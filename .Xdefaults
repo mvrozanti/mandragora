@@ -1,0 +1,92 @@
+*foreground: #ff1100
+*foreground_bold: #ffff00
+*cursor: #ffffff
+*background: rgba:0000/0000/0000/c000
+!!*color0: #ff1050
+*color0: #000
+*color9: #7600ff
+!! red
+*color1: #ff3300
+*color8: #ff0000
+!! purple
+*color2: #faaa00
+*color10:#501fb0 
+!! 
+*color3: #aa0000
+*color11: #f1f01f
+!! dark purple
+*color4: #606060
+*color12: #aa0057
+!! background on autocomplete:
+*color5: rgba:fa00/0a00/0000/f900
+*color13: #aa00aa
+!! green
+*color6: #f1f01f
+*color14: #000d3c
+!! white
+*color7: #38313f
+*color15: #f1efee
+*color233:rgba:0000/0000/0000/e800
+URxvt.intensityStyles:	false
+Xft*rgba:                   rgb
+!!URxvt.transparent: true
+!!URxvt.shading: 20
+URxvt.tintColor:    #ffffff
+URxvt.letterSpace: -1
+URxvt*saveLines: 0
+URxvt.depth:		32
+URxvt.font:xft: Droid Sans Mono Slashed for Powerline:antialias:hinting=true:size=13
+!!URxvt.font:xft: Droid Sans Mono Dotted for Powerline:antialias:hinting=true:size=13
+!!URxvt.font: xft:DejaVu\ Sans\ Mono\ for\ Powerline:antialias:hinting=true:size=15
+!!URxvt.font: xft:Source\ Code\ Pro\ for\ Powerline:antialias:hinting=true:size=15
+URxvt.scrollBar:	false
+URxvt.cursorColor:	#faa
+URxvt*.termName: screen-256color
+!!URxvt.perl-ext-common:	default,matcher
+!!URxvt.perl-lib:		$HOME/.config/Scripts
+URxvt.url-launcher:	/usr/bin/xdg-open
+URxvt.matcher.button:	1
+URxvt.geometry: 101x42
+!!URxvt.iconFile: /usr/share/icons/Mint-X/apps/96/gnome-eterm.svg
+rofi.color-enabled:	true
+URxvt.perl-ext-common: default,matcher,font-size
+URxvt.keysym.C-Up:     perl:font-size:increase
+URxvt.keysym.C-Down:   perl:font-size:decrease
+URxvt.keysym.C-S-Up:   perl:font-size:incglobal
+URxvt.keysym.C-S-Down: perl:font-size:decglobal
+URxvt.keysym.C-equal:  perl:font-size:reset
+URxvt.keysym.C-slash:  perl:font-size:show
+URxvt.iso14755:        false
+URxvt.iso14755_52:     false
+URxvt.keysym.C-M-c:    builtin-string:
+URxvt.keysym.C-M-v:    builtin-string:
+URxvt.keysym.C-S-0x43: eval:selection_to_clipboard
+URxvt.keysym.C-S-0x56: eval:paste_clipboard
+!!rofi.color-window:	#000, #000, #000
+rofi.color-normal:	#111, #819396, #222, #ff0e04, #ffffff
+URxvt.iso14755:        false
+URxvt.iso14755_52:     false
+URxvt.keysym.C-M-c:    builtin-string:
+URxvt.keysym.C-M-v:    builtin-string:
+URxvt.keysym.C-S-0x43: eval:selection_to_clipboard
+URxvt.keysym.C-S-0x56: eval:paste_clipboard
+
+URxvt.keysym.Home: \033[1~
+URxvt.keysym.End: \033[4~
+URxvt.keysym.KP_Home: \033[1~
+URxvt.keysym.KP_End:  \033[4~
+URxvt.keysym.C-4: command:\033]11;rgba:0500/0500/0500/4800\007
+URxvt.keysym.C-5: command:\033]11;rgba:0500/0500/0500/8800\007
+URxvt.keysym.C-6: command:\033]11;rgba:0500/0500/0500/a800\007
+URxvt.keysym.C-7: command:\033]11;rgba:0500/0500/0500/c800\007
+URxvt.keysym.C-8: command:\033]11;rgba:0500/0500/0500/f800\007
+URxvt.keysym.C-9: command:\033]11;#000000\007
+URxvt.keysym.C-minus:  perl:font-size:show
+
+!!rofi.color-active:	#002b37, #008ed4, #003643, #008ed4, #66c6ff
+!!rofi.color-urgent:	#002b37, #da4281, #003643, #008ed4, #890661
+!!rofi.lines:		3
+!!rofi.bw:		0
+!!rofi.hide-scrollbar:	true
+!!rofi.width:		30
+

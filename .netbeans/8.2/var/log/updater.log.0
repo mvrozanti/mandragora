@@ -1,0 +1,1060 @@
+Sep 02, 2018 3:18:06 PM org.netbeans.updater.UpdaterFrame <clinit>
+INFO: Entering updater.jar .................................................................... 
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-editor-actions.nbm
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-actions.nbm:netbeans/config/Modules/org-netbeans-modules-editor-actions.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-editor-actions.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-actions.nbm:netbeans/modules/locale/org-netbeans-modules-editor-actions_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_ja.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_ja.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-actions.nbm:netbeans/modules/locale/org-netbeans-modules-editor-actions_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_pt_BR.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-actions.nbm:netbeans/modules/locale/org-netbeans-modules-editor-actions_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_ru.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_ru.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-actions.nbm:netbeans/modules/locale/org-netbeans-modules-editor-actions_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_zh_CN.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-actions_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-actions.nbm:netbeans/modules/org-netbeans-modules-editor-actions.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-actions.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-actions.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-actions.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-actions.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-actions.nbm deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@35e31c26
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-editor-actions.xml modified.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-dlight-nativeexecution-nb.nbm
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution-nb.nbm:netbeans/config/Modules/org-netbeans-modules-dlight-nativeexecution-nb.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-dlight-nativeexecution-nb.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution-nb.nbm:netbeans/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_ja.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_ja.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution-nb.nbm:netbeans/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_pt_BR.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution-nb.nbm:netbeans/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_ru.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_ru.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution-nb.nbm:netbeans/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_zh_CN.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution-nb_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution-nb.nbm:netbeans/modules/org-netbeans-modules-dlight-nativeexecution-nb.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-dlight-nativeexecution-nb.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-dlight-nativeexecution-nb.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-dlight-nativeexecution-nb.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-dlight-nativeexecution-nb.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution-nb.nbm deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@43aa866e
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-dlight-nativeexecution-nb.xml modified.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking com-jcraft-jsch.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/com-jcraft-jsch.jar to /home/nexor/.netbeans/8.2/modules/com-jcraft-jsch.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/com-jcraft-jsch.jar deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@28f127e8
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/com-jcraft-jsch.xml modified.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module writeModulesConfig
+INFO: New config was written in /home/nexor/.netbeans/8.2/config/Modules/com-jcraft-jsch.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-docker-ui.nbm
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-docker-ui.nbm:netbeans/config/Modules/org-netbeans-modules-docker-ui.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-docker-ui.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-docker-ui.nbm:netbeans/modules/locale/org-netbeans-modules-docker-ui_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_ja.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_ja.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-docker-ui.nbm:netbeans/modules/locale/org-netbeans-modules-docker-ui_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_pt_BR.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-docker-ui.nbm:netbeans/modules/locale/org-netbeans-modules-docker-ui_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_ru.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_ru.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-docker-ui.nbm:netbeans/modules/locale/org-netbeans-modules-docker-ui_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_zh_CN.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-ui_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-docker-ui.nbm:netbeans/modules/org-netbeans-modules-docker-ui.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-docker-ui.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-docker-ui.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-docker-ui.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-docker-ui.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-docker-ui.nbm deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@1f3fc794
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-docker-ui.xml modified.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-versioning-core.nbm
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-versioning-core.nbm:netbeans/config/Modules/org-netbeans-modules-versioning-core.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-versioning-core.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-versioning-core.nbm:netbeans/modules/locale/org-netbeans-modules-versioning-core_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_ja.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_ja.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-versioning-core.nbm:netbeans/modules/locale/org-netbeans-modules-versioning-core_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_pt_BR.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-versioning-core.nbm:netbeans/modules/locale/org-netbeans-modules-versioning-core_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_ru.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_ru.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-versioning-core.nbm:netbeans/modules/locale/org-netbeans-modules-versioning-core_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_zh_CN.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-core_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-versioning-core.nbm:netbeans/modules/org-netbeans-modules-versioning-core.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-versioning-core.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-versioning-core.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-versioning-core.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-versioning-core.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-versioning-core.nbm deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@25d3c5b
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-versioning-core.xml modified.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-dlight-terminal.nbm
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-terminal.nbm:netbeans/config/Modules/org-netbeans-modules-dlight-terminal.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-dlight-terminal.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-terminal.nbm:netbeans/modules/locale/org-netbeans-modules-dlight-terminal_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_ja.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_ja.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-terminal.nbm:netbeans/modules/locale/org-netbeans-modules-dlight-terminal_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_pt_BR.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-terminal.nbm:netbeans/modules/locale/org-netbeans-modules-dlight-terminal_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_ru.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_ru.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-terminal.nbm:netbeans/modules/locale/org-netbeans-modules-dlight-terminal_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_zh_CN.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-terminal_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-terminal.nbm:netbeans/modules/org-netbeans-modules-dlight-terminal.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-dlight-terminal.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-dlight-terminal.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-dlight-terminal.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-dlight-terminal.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-terminal.nbm deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@4e1f053b
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-dlight-terminal.xml modified.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-editor.nbm
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor.nbm:netbeans/config/ModuleAutoDeps/org-netbeans-modules-editor.xml to /home/nexor/.netbeans/8.2/config/ModuleAutoDeps/org-netbeans-modules-editor.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor.nbm:netbeans/config/Modules/org-netbeans-modules-editor.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-editor.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor.nbm:netbeans/modules/locale/org-netbeans-modules-editor_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_ja.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_ja.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor.nbm:netbeans/modules/locale/org-netbeans-modules-editor_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_pt_BR.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor.nbm:netbeans/modules/locale/org-netbeans-modules-editor_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_ru.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_ru.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor.nbm:netbeans/modules/locale/org-netbeans-modules-editor_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_zh_CN.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor.nbm:netbeans/modules/org-netbeans-modules-editor.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor.nbm deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@4d6240d9
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-editor.xml modified.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-editor-search.nbm
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-search.nbm:netbeans/config/Modules/org-netbeans-modules-editor-search.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-editor-search.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-search.nbm:netbeans/modules/locale/org-netbeans-modules-editor-search_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_ja.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_ja.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-search.nbm:netbeans/modules/locale/org-netbeans-modules-editor-search_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_pt_BR.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-search.nbm:netbeans/modules/locale/org-netbeans-modules-editor-search_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_ru.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_ru.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-search.nbm:netbeans/modules/locale/org-netbeans-modules-editor-search_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_zh_CN.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-search_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-search.nbm:netbeans/modules/org-netbeans-modules-editor-search.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-search.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-search.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-search.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-search.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-search.nbm deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@11a24231
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-editor-search.xml modified.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-terminal.nbm
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-terminal.nbm:netbeans/config/Modules/org-netbeans-modules-terminal.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-terminal.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-terminal.nbm:netbeans/modules/locale/org-netbeans-modules-terminal_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_ja.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_ja.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-terminal.nbm:netbeans/modules/locale/org-netbeans-modules-terminal_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_pt_BR.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-terminal.nbm:netbeans/modules/locale/org-netbeans-modules-terminal_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_ru.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_ru.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-terminal.nbm:netbeans/modules/locale/org-netbeans-modules-terminal_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_zh_CN.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-terminal_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-terminal.nbm:netbeans/modules/org-netbeans-modules-terminal.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-terminal.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-terminal.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-terminal.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-terminal.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-terminal.nbm deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@3abeba41
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-terminal.xml modified.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-versioning-util.nbm
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-versioning-util.nbm:netbeans/config/Modules/org-netbeans-modules-versioning-util.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-versioning-util.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-versioning-util.nbm:netbeans/modules/locale/org-netbeans-modules-versioning-util_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_ja.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_ja.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-versioning-util.nbm:netbeans/modules/locale/org-netbeans-modules-versioning-util_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_pt_BR.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-versioning-util.nbm:netbeans/modules/locale/org-netbeans-modules-versioning-util_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_ru.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_ru.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-versioning-util.nbm:netbeans/modules/locale/org-netbeans-modules-versioning-util_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_zh_CN.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-versioning-util_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-versioning-util.nbm:netbeans/modules/org-netbeans-modules-versioning-util.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-versioning-util.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-versioning-util.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-versioning-util.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-versioning-util.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-versioning-util.nbm deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@17cb864a
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-versioning-util.xml modified.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-editor-lib.nbm
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib.nbm:netbeans/config/ModuleAutoDeps/org-netbeans-modules-editor-lib.xml to /home/nexor/.netbeans/8.2/config/ModuleAutoDeps/org-netbeans-modules-editor-lib.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib.nbm:netbeans/config/Modules/org-netbeans-modules-editor-lib.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-editor-lib.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib.nbm:netbeans/modules/locale/org-netbeans-modules-editor-lib_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_ja.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_ja.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib.nbm:netbeans/modules/locale/org-netbeans-modules-editor-lib_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_pt_BR.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib.nbm:netbeans/modules/locale/org-netbeans-modules-editor-lib_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_ru.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_ru.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib.nbm:netbeans/modules/locale/org-netbeans-modules-editor-lib_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_zh_CN.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib.nbm:netbeans/modules/org-netbeans-modules-editor-lib.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-lib.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-lib.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-lib.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-lib.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib.nbm deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@73408514
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-editor-lib.xml modified.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-editor-lib2.nbm
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib2.nbm:netbeans/config/ModuleAutoDeps/org-netbeans-modules-editor-lib2.xml to /home/nexor/.netbeans/8.2/config/ModuleAutoDeps/org-netbeans-modules-editor-lib2.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib2.nbm:netbeans/config/Modules/org-netbeans-modules-editor-lib2.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-editor-lib2.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib2.nbm:netbeans/modules/locale/org-netbeans-modules-editor-lib2_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_ja.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_ja.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib2.nbm:netbeans/modules/locale/org-netbeans-modules-editor-lib2_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_pt_BR.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib2.nbm:netbeans/modules/locale/org-netbeans-modules-editor-lib2_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_ru.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_ru.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib2.nbm:netbeans/modules/locale/org-netbeans-modules-editor-lib2_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_zh_CN.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-lib2_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib2.nbm:netbeans/modules/org-netbeans-modules-editor-lib2.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-lib2.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-lib2.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-lib2.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-lib2.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-lib2.nbm deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@47c62c04
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-editor-lib2.xml modified.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-openide-filesystems-nb.nbm
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-openide-filesystems-nb.nbm:netbeans/config/Modules/org-openide-filesystems-nb.xml to /home/nexor/.netbeans/8.2/config/Modules/org-openide-filesystems-nb.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-openide-filesystems-nb.nbm:netbeans/modules/locale/org-openide-filesystems-nb_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_ja.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_ja.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-openide-filesystems-nb.nbm:netbeans/modules/locale/org-openide-filesystems-nb_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_pt_BR.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-openide-filesystems-nb.nbm:netbeans/modules/locale/org-openide-filesystems-nb_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_ru.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_ru.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-openide-filesystems-nb.nbm:netbeans/modules/locale/org-openide-filesystems-nb_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_zh_CN.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-openide-filesystems-nb_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-openide-filesystems-nb.nbm:netbeans/modules/org-openide-filesystems-nb.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-openide-filesystems-nb.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-openide-filesystems-nb.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-openide-filesystems-nb.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-openide-filesystems-nb.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-openide-filesystems-nb.nbm deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@2e208557
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-openide-filesystems-nb.xml modified.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-editor-bracesmatching.nbm
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-bracesmatching.nbm:netbeans/config/Modules/org-netbeans-modules-editor-bracesmatching.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-editor-bracesmatching.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-bracesmatching.nbm:netbeans/modules/locale/org-netbeans-modules-editor-bracesmatching_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_ja.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_ja.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-bracesmatching.nbm:netbeans/modules/locale/org-netbeans-modules-editor-bracesmatching_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_pt_BR.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-bracesmatching.nbm:netbeans/modules/locale/org-netbeans-modules-editor-bracesmatching_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_ru.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_ru.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-bracesmatching.nbm:netbeans/modules/locale/org-netbeans-modules-editor-bracesmatching_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_zh_CN.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-bracesmatching_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-bracesmatching.nbm:netbeans/modules/org-netbeans-modules-editor-bracesmatching.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-bracesmatching.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-bracesmatching.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-bracesmatching.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-bracesmatching.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-bracesmatching.nbm deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@7780efa5
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-editor-bracesmatching.xml modified.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-lib-terminalemulator.nbm
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-lib-terminalemulator.nbm:netbeans/config/Modules/org-netbeans-lib-terminalemulator.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-lib-terminalemulator.xml
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-lib-terminalemulator.nbm:netbeans/modules/locale/org-netbeans-lib-terminalemulator_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_ja.jar.pack.gz
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_ja.jar
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:07 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-lib-terminalemulator.nbm:netbeans/modules/locale/org-netbeans-lib-terminalemulator_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_pt_BR.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-lib-terminalemulator.nbm:netbeans/modules/locale/org-netbeans-lib-terminalemulator_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_ru.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_ru.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-lib-terminalemulator.nbm:netbeans/modules/locale/org-netbeans-lib-terminalemulator_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_zh_CN.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-lib-terminalemulator_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-lib-terminalemulator.nbm:netbeans/modules/org-netbeans-lib-terminalemulator.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-lib-terminalemulator.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-lib-terminalemulator.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-lib-terminalemulator.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-lib-terminalemulator.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-lib-terminalemulator.nbm deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@45126b
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-lib-terminalemulator.xml modified.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-docker-api.nbm
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-docker-api.nbm:netbeans/config/Modules/org-netbeans-modules-docker-api.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-docker-api.xml
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-docker-api.nbm:netbeans/modules/locale/org-netbeans-modules-docker-api_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_ja.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_ja.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-docker-api.nbm:netbeans/modules/locale/org-netbeans-modules-docker-api_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_pt_BR.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-docker-api.nbm:netbeans/modules/locale/org-netbeans-modules-docker-api_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_ru.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_ru.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-docker-api.nbm:netbeans/modules/locale/org-netbeans-modules-docker-api_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_zh_CN.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-docker-api_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-docker-api.nbm:netbeans/modules/org-netbeans-modules-docker-api.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-docker-api.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-docker-api.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-docker-api.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-docker-api.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-docker-api.nbm deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@da7f93c
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-docker-api.xml modified.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-editor-deprecated-pre65formatting.nbm
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-deprecated-pre65formatting.nbm:netbeans/config/Modules/org-netbeans-modules-editor-deprecated-pre65formatting.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-editor-deprecated-pre65formatting.xml
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-deprecated-pre65formatting.nbm:netbeans/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_ja.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_ja.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-deprecated-pre65formatting.nbm:netbeans/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_pt_BR.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-deprecated-pre65formatting.nbm:netbeans/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_ru.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_ru.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-deprecated-pre65formatting.nbm:netbeans/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_zh_CN.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-deprecated-pre65formatting.nbm:netbeans/modules/org-netbeans-modules-editor-deprecated-pre65formatting.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-deprecated-pre65formatting.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-deprecated-pre65formatting.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-deprecated-pre65formatting.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-deprecated-pre65formatting.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-deprecated-pre65formatting.nbm deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@416bf93d
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-editor-deprecated-pre65formatting.xml modified.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-spi-editor-hints.nbm
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-spi-editor-hints.nbm:netbeans/config/Modules/org-netbeans-spi-editor-hints.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-spi-editor-hints.xml
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-spi-editor-hints.nbm:netbeans/modules/locale/org-netbeans-spi-editor-hints_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_ja.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_ja.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-spi-editor-hints.nbm:netbeans/modules/locale/org-netbeans-spi-editor-hints_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_pt_BR.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-spi-editor-hints.nbm:netbeans/modules/locale/org-netbeans-spi-editor-hints_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_ru.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_ru.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-spi-editor-hints.nbm:netbeans/modules/locale/org-netbeans-spi-editor-hints_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_zh_CN.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-spi-editor-hints_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-spi-editor-hints.nbm:netbeans/modules/org-netbeans-spi-editor-hints.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-spi-editor-hints.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-spi-editor-hints.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-spi-editor-hints.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-spi-editor-hints.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-spi-editor-hints.nbm deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@405f386e
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-spi-editor-hints.xml modified.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-openide-filesystems.nbm
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-openide-filesystems.nbm:netbeans/config/ModuleAutoDeps/org-openide-filesystems.xml to /home/nexor/.netbeans/8.2/config/ModuleAutoDeps/org-openide-filesystems.xml
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-openide-filesystems.nbm:netbeans/core/locale/org-openide-filesystems_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_ja.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_ja.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-openide-filesystems.nbm:netbeans/core/locale/org-openide-filesystems_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_pt_BR.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-openide-filesystems.nbm:netbeans/core/locale/org-openide-filesystems_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_ru.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_ru.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-openide-filesystems.nbm:netbeans/core/locale/org-openide-filesystems_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_zh_CN.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/core/locale/org-openide-filesystems_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-openide-filesystems.nbm:netbeans/core/org-openide-filesystems.jar.pack.gz to /home/nexor/.netbeans/8.2/core/org-openide-filesystems.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/core/org-openide-filesystems.jar.pack.gz to /home/nexor/.netbeans/8.2/core/org-openide-filesystems.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/core/org-openide-filesystems.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-openide-filesystems.nbm deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@31ad7d5b
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-openide-filesystems.xml modified.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.UpdateTracking$Module writeModulesConfig
+WARNING: No config file written for module org.openide.filesystems. No jar file present in "modules" directory.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-editor-macros.nbm
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-macros.nbm:netbeans/config/Modules/org-netbeans-modules-editor-macros.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-editor-macros.xml
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-macros.nbm:netbeans/modules/locale/org-netbeans-modules-editor-macros_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_ja.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_ja.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-macros.nbm:netbeans/modules/locale/org-netbeans-modules-editor-macros_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_pt_BR.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-macros.nbm:netbeans/modules/locale/org-netbeans-modules-editor-macros_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_ru.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_ru.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-macros.nbm:netbeans/modules/locale/org-netbeans-modules-editor-macros_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_zh_CN.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-macros_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-macros.nbm:netbeans/modules/org-netbeans-modules-editor-macros.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-macros.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-macros.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-macros.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-macros.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-macros.nbm deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@77d0fa6e
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-editor-macros.xml modified.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-web-common.nbm
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-web-common.nbm:netbeans/config/Modules/org-netbeans-modules-web-common.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-web-common.xml
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-web-common.nbm:netbeans/modules/locale/org-netbeans-modules-web-common_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_ja.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_ja.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-web-common.nbm:netbeans/modules/locale/org-netbeans-modules-web-common_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_pt_BR.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-web-common.nbm:netbeans/modules/locale/org-netbeans-modules-web-common_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_ru.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_ru.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-web-common.nbm:netbeans/modules/locale/org-netbeans-modules-web-common_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_zh_CN.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-web-common_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-web-common.nbm:netbeans/modules/org-netbeans-modules-web-common.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-web-common.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-web-common.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-web-common.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-web-common.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-web-common.nbm deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@62cba60
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-web-common.xml modified.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-editor-fold-nbui.nbm
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-fold-nbui.nbm:netbeans/config/Modules/org-netbeans-modules-editor-fold-nbui.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-editor-fold-nbui.xml
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-fold-nbui.nbm:netbeans/modules/locale/org-netbeans-modules-editor-fold-nbui_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_ja.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_ja.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-fold-nbui.nbm:netbeans/modules/locale/org-netbeans-modules-editor-fold-nbui_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_pt_BR.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-fold-nbui.nbm:netbeans/modules/locale/org-netbeans-modules-editor-fold-nbui_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_ru.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_ru.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-fold-nbui.nbm:netbeans/modules/locale/org-netbeans-modules-editor-fold-nbui_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_zh_CN.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-editor-fold-nbui_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-fold-nbui.nbm:netbeans/modules/org-netbeans-modules-editor-fold-nbui.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-fold-nbui.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-fold-nbui.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-fold-nbui.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-editor-fold-nbui.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-editor-fold-nbui.nbm deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@4e8f1e17
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-editor-fold-nbui.xml modified.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: 780: Unpacking org-netbeans-modules-dlight-nativeexecution.nbm
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-sparc_64/killall to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-sparc_64/killall
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-sparc_64/process_start to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-sparc_64/process_start
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-sparc_64/pty to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-sparc_64/pty
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-sparc_64/pty_open to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-sparc_64/pty_open
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-sparc_64/sigqueue to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-sparc_64/sigqueue
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-sparc_64/stat to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-sparc_64/stat
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-sparc_64/unbuffer.so to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-sparc_64/unbuffer.so
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-x86/killall to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-x86/killall
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-x86/process_start to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-x86/process_start
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-x86/pty to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-x86/pty
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-x86/pty_open to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-x86/pty_open
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-x86/sigqueue to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-x86/sigqueue
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-x86/stat to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-x86/stat
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-x86/unbuffer.so to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-x86/unbuffer.so
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-x86_64/killall to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-x86_64/killall
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-x86_64/process_start to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-x86_64/process_start
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-x86_64/pty to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-x86_64/pty
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-x86_64/pty_open to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-x86_64/pty_open
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-x86_64/sigqueue to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-x86_64/sigqueue
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-x86_64/stat to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-x86_64/stat
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Linux-x86_64/unbuffer.so to /home/nexor/.netbeans/8.2/bin/nativeexecution/Linux-x86_64/unbuffer.so
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/MacOSX-x86/killall to /home/nexor/.netbeans/8.2/bin/nativeexecution/MacOSX-x86/killall
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/MacOSX-x86/process_start to /home/nexor/.netbeans/8.2/bin/nativeexecution/MacOSX-x86/process_start
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/MacOSX-x86/pty to /home/nexor/.netbeans/8.2/bin/nativeexecution/MacOSX-x86/pty
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/MacOSX-x86/pty_open to /home/nexor/.netbeans/8.2/bin/nativeexecution/MacOSX-x86/pty_open
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/MacOSX-x86/stat to /home/nexor/.netbeans/8.2/bin/nativeexecution/MacOSX-x86/stat
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/MacOSX-x86/unbuffer.dylib to /home/nexor/.netbeans/8.2/bin/nativeexecution/MacOSX-x86/unbuffer.dylib
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/MacOSX-x86_64/killall to /home/nexor/.netbeans/8.2/bin/nativeexecution/MacOSX-x86_64/killall
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/MacOSX-x86_64/process_start to /home/nexor/.netbeans/8.2/bin/nativeexecution/MacOSX-x86_64/process_start
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/MacOSX-x86_64/pty to /home/nexor/.netbeans/8.2/bin/nativeexecution/MacOSX-x86_64/pty
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/MacOSX-x86_64/pty_open to /home/nexor/.netbeans/8.2/bin/nativeexecution/MacOSX-x86_64/pty_open
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/MacOSX-x86_64/stat to /home/nexor/.netbeans/8.2/bin/nativeexecution/MacOSX-x86_64/stat
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/MacOSX-x86_64/unbuffer.dylib to /home/nexor/.netbeans/8.2/bin/nativeexecution/MacOSX-x86_64/unbuffer.dylib
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc/killall to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc/killall
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc/privp to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc/privp
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc/process_start to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc/process_start
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc/pty to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc/pty
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc/pty_open to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc/pty_open
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc/sigqueue to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc/sigqueue
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc/stat to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc/stat
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc/unbuffer.so to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc/unbuffer.so
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc_64/killall to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc_64/killall
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc_64/privp to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc_64/privp
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc_64/process_start to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc_64/process_start
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc_64/pty to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc_64/pty
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc_64/pty_open to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc_64/pty_open
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc_64/sigqueue to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc_64/sigqueue
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc_64/stat to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc_64/stat
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-sparc_64/unbuffer.so to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-sparc_64/unbuffer.so
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86/killall to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86/killall
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86/privp to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86/privp
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86/process_start to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86/process_start
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86/pty to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86/pty
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86/pty_open to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86/pty_open
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86/sigqueue to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86/sigqueue
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86/stat to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86/stat
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86/unbuffer.so to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86/unbuffer.so
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86_64/killall to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86_64/killall
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86_64/process_start to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86_64/process_start
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86_64/pty to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86_64/pty
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86_64/pty_open to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86_64/pty_open
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86_64/sigqueue to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86_64/sigqueue
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86_64/stat to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86_64/stat
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/SunOS-x86_64/unbuffer.so to /home/nexor/.netbeans/8.2/bin/nativeexecution/SunOS-x86_64/unbuffer.so
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Windows-x86/killall to /home/nexor/.netbeans/8.2/bin/nativeexecution/Windows-x86/killall
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Windows-x86/process_start to /home/nexor/.netbeans/8.2/bin/nativeexecution/Windows-x86/process_start
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Windows-x86/pty to /home/nexor/.netbeans/8.2/bin/nativeexecution/Windows-x86/pty
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Windows-x86/pty_open to /home/nexor/.netbeans/8.2/bin/nativeexecution/Windows-x86/pty_open
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Windows-x86/sigqueue to /home/nexor/.netbeans/8.2/bin/nativeexecution/Windows-x86/sigqueue
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Windows-x86/unbuffer.dll to /home/nexor/.netbeans/8.2/bin/nativeexecution/Windows-x86/unbuffer.dll
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Windows-x86_64/killall to /home/nexor/.netbeans/8.2/bin/nativeexecution/Windows-x86_64/killall
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Windows-x86_64/process_start to /home/nexor/.netbeans/8.2/bin/nativeexecution/Windows-x86_64/process_start
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Windows-x86_64/pty to /home/nexor/.netbeans/8.2/bin/nativeexecution/Windows-x86_64/pty
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Windows-x86_64/pty_open to /home/nexor/.netbeans/8.2/bin/nativeexecution/Windows-x86_64/pty_open
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Windows-x86_64/sigqueue to /home/nexor/.netbeans/8.2/bin/nativeexecution/Windows-x86_64/sigqueue
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/Windows-x86_64/unbuffer.dll to /home/nexor/.netbeans/8.2/bin/nativeexecution/Windows-x86_64/unbuffer.dll
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/dorun.sh to /home/nexor/.netbeans/8.2/bin/nativeexecution/dorun.sh
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/bin/nativeexecution/hostinfo.sh to /home/nexor/.netbeans/8.2/bin/nativeexecution/hostinfo.sh
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/config/Modules/org-netbeans-modules-dlight-nativeexecution.xml to /home/nexor/.netbeans/8.2/config/Modules/org-netbeans-modules-dlight-nativeexecution.xml
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/modules/locale/org-netbeans-modules-dlight-nativeexecution_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_ja.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_ja.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_ja.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_ja.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/modules/locale/org-netbeans-modules-dlight-nativeexecution_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_pt_BR.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_pt_BR.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_pt_BR.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_pt_BR.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/modules/locale/org-netbeans-modules-dlight-nativeexecution_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_ru.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_ru.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_ru.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_ru.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/modules/locale/org-netbeans-modules-dlight-nativeexecution_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_zh_CN.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_zh_CN.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_zh_CN.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/locale/org-netbeans-modules-dlight-nativeexecution_zh_CN.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: Copied file /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm:netbeans/modules/org-netbeans-modules-dlight-nativeexecution.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-dlight-nativeexecution.jar.pack.gz
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack200
+INFO: Unpack /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-dlight-nativeexecution.jar.pack.gz to /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-dlight-nativeexecution.jar
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/modules/org-netbeans-modules-dlight-nativeexecution.jar.pack.gz deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater unpack
+INFO: File /home/nexor/.netbeans/8.2/update/download/org-netbeans-modules-dlight-nativeexecution.nbm deleted.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.XMLUtil write
+INFO: Use XML Transformer: com.sun.org.apache.xalan.internal.xsltc.trax.TransformerImpl@38f88a38
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.UpdateTracking$Module write
+INFO: File /home/nexor/.netbeans/8.2/update_tracking/org-netbeans-modules-dlight-nativeexecution.xml modified.
+Sep 02, 2018 3:18:08 PM org.netbeans.updater.ModuleUpdater deleteAdditionalInfo
+INFO: File /home/nexor/.netbeans/8.2/update/download/additional_information.xml deleted.

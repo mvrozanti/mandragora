@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<module codename="org.netbeans.modules.editor.deprecated.pre65formatting/0">
+    <module_version install_time="1535901488048" last="true" origin="NetBeans Distribution" specification_version="1.31.1.1.6.24.56">
+        <file crc="1017076465" name="config/Modules/org-netbeans-modules-editor-deprecated-pre65formatting.xml"/>
+        <file crc="4056589799" name="modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_ja.jar"/>
+        <file crc="605148917" name="modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_pt_BR.jar"/>
+        <file crc="941262793" name="modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_ru.jar"/>
+        <file crc="185495866" name="modules/locale/org-netbeans-modules-editor-deprecated-pre65formatting_zh_CN.jar"/>
+        <file crc="854775250" name="modules/org-netbeans-modules-editor-deprecated-pre65formatting.jar"/>
+    </module_version>
+</module>
