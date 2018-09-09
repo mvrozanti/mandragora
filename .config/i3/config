@@ -1,15 +1,27 @@
-#exec --no-startup-id redshift -O 15000K
+#         _ _        _     
+#  __   _(_) |_ __ _| |___ 
+#  \ \ / / | __/ _` | / __|
+#   \ V /| | || (_| | \__ \
+#    \_/ |_|\__\__,_|_|___/
+#                          
+
+bindsym Ctrl+Mod1+BackSpace   exec --no-startup-id shutdown -h 0
+bindsym Ctrl+Shift+Escape     exec --no-startup-id urxvt -e htop
+bindsym $mod+Shift+r restart # i3
+bindsym $mod+Shift+e exec --no-startup-id "if [[ $(echo -e 'Exit i3\nDont'|dmenu -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300') == 'Exit i3' ]]; then i3-msg exit; fi"
+bindsym $mod+r exec dmenu_run -fn "Droid Sans Mono for Powerline" -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300'
+set $mod Mod4
 exec --no-startup-id setxkbmap us alt-intl
 exec --no-startup-id mpd
-exec --no-startup-id compton -D 15
-exec --no-startup-id feh --bg-scale /home/nexor/TOSHIBE/mandragora/gdrive/Levv/wllpps/bamboo_forest-wallpaper-3840x2160.jpg 
-#exec --no-startup-id ntpdate 0.us.pool.ntp.org
-# win Mod4
-# alt Mod1
-floating_modifier Mod1
-set $mod Mod4
-set $term urxvt -e tmux
+
+#                       _   
+#    ___ ___  _ __  ___| |_ 
+#   / __/ _ \| '_ \/ __| __|
+#  | (_| (_) | | | \__ \ |_ 
+#   \___\___/|_| |_|___/\__|
+#                           
 set $minty 192.168.0.10
+set $term urxvt -e tmux
 set $minty_remote texugos.duckdns.org
 set $bl_delta 10
 set $mpc mpc --host 
@@ -17,6 +29,147 @@ set $orange   #ff3300
 set $gray   #1e1e1e
 set $darkgray   #0c0c0c
 
+#    __                                 _   
+#   / _|_ __ ___  __ _ _   _  ___ _ __ | |_ 
+#  | |_| '__/ _ \/ _` | | | |/ _ \ '_ \| __|
+#  |  _| | |  __/ (_| | |_| |  __/ | | | |_ 
+#  |_| |_|  \___|\__, |\__,_|\___|_| |_|\__|
+#                   |_|                     
+
+bindsym $mod+1 exec --no-startup-id /usr/local/bin/switch_to_firefox
+bindsym $mod+2 exec --no-startup-id /usr/local/bin/switch_to_ncmpcpp
+bindsym $mod+3 exec --no-startup-id /usr/local/bin/switch_to_urxvt
+bindsym $mod+Shift+3 split v; exec --no-startup-id urxvt -e tmux
+
+#                      _   
+#   ___  ___ _ __ ___ | |_ 
+#  / __|/ __| '__/ _ \| __|
+#  \__ \ (__| | | (_) | |_ 
+#  |___/\___|_|  \___/ \__|
+#                          
+bindsym Print           exec --no-startup-id scrot    ~/.scrot.png && cat ~/.scrot.png | xclip -selection clipboard -target image/png -i 
+bindsym Shift+Print     exec --no-startup-id scrot -u ~/.scrot.png && cat ~/.scrot.png | xclip -selection clipboard -target image/png -i 
+bindsym Ctrl+Print      exec --no-startup-id scrot -s ~/.scrot.png && cat ~/.scrot.png | xclip -selection clipboard -target image/png -i 
+bindsym $mod+q kill
+#bindsym $mod+Ctrl+r exec rofi -show run -lines 3 -width 40 -opacity "45" -font "DejaVu Sans Mono 10" -color-window "#1e1e1e" 
+
+#                                                 _   
+#   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_ 
+#  | '_ ` _ \ / _ \ \ / / _ \ '_ ` _ \ / _ \ '_ \| __|
+#  | | | | | | (_) \ V /  __/ | | | | |  __/ | | | |_ 
+#  |_| |_| |_|\___/ \_/ \___|_| |_| |_|\___|_| |_|\__|
+#                                                     
+
+bindsym $mod+h              focus left
+bindsym $mod+j              focus down
+bindsym $mod+k              focus up
+bindsym $mod+l              focus right
+bindsym $mod+Left           focus left
+bindsym $mod+Down           focus down
+bindsym $mod+Up             focus up
+bindsym $mod+Right          focus right
+bindsym $mod+Shift+h        move left
+bindsym $mod+Shift+j        move down
+bindsym $mod+Shift+k        move up
+bindsym $mod+Shift+l        move right
+bindsym $mod+Shift+Left     move left
+bindsym $mod+Shift+Down     move down
+bindsym $mod+Shift+Up       move up
+bindsym $mod+Shift+Right    move right
+bindsym $mod+backslash      split h 
+bindsym $mod+plus           split h 
+bindsym $mod+minus          split v
+bindsym $mod+f              fullscreen toggle
+bindsym $mod+c              move scratchpad 
+bindsym $mod+Shift+c        scratchpad show;floating toggle
+bindsym $mod+a              focus parent
+bindsym $mod+s              layout stacking
+bindsym $mod+w              layout tabbed
+bindsym $mod+e              layout toggle split
+bindsym $mod+Shift+space    floating toggle
+bindsym $mod+space focus    mode_toggle
+bindsym Ctrl+$mod+Left      resize shrink width 10 px or 10 ppt
+bindsym Ctrl+$mod+Up        resize grow height 10 px or 10 ppt
+bindsym Ctrl+$mod+Down      resize shrink height 10 px or 10 ppt
+bindsym Ctrl+$mod+Right     resize grow width 10 px or 10 ppt
+
+
+#                      _ _       
+#   _ __ ___   ___  __| (_) __ _ 
+#  | '_ ` _ \ / _ \/ _` | |/ _` |
+#  | | | | | |  __/ (_| | | (_| |
+#  |_| |_| |_|\___|\__,_|_|\__,_|
+#                                
+
+bindsym XF86MonBrightnessUp     exec --no-startup-id xbacklight -inc $bl_delta
+bindsym XF86MonBrightnessDown   exec --no-startup-id xbacklight -dec $bl_delta
+bindsym XF86AudioNext		    exec --no-startup-id mpc next  #$mpc $minty_remote next
+bindsym XF86AudioPlay		    exec --no-startup-id mpc toggle  #$mpc $minty_remote toggle
+bindsym XF86AudioPrev		    exec --no-startup-id mpc prev  #$mpc $minty_remote prev
+bindsym XF86AudioStop		    exec --no-startup-id /usr/local/bin/start-stop-stream
+bindsym XF86AudioMute           exec --no-startup-id paxmier -q set Master toggle
+bindsym XF86AudioLowerVolume    exec --no-startup-id amixer -c 0 -q set Master 4dB- unmute 
+bindsym XF86AudioRaiseVolume    exec --no-startup-id amixer -c 0 -q set Master 4dB+ unmute
+#bindsym XF86AudioLowerVolume    exec --no-startup-id pamixer -d 4 
+#bindsym XF86AudioRaiseVolume    exec --no-startup-id pamixer -i 4 
+
+#                                            _          __         _          
+#    ___ ___  _ __ ___  _ __ ___   ___ _ __ | |_ ___   / / __ ___ (_)___  ___ 
+#   / __/ _ \| '_ ` _ \| '_ ` _ \ / _ \ '_ \| __/ __| / / '_ ` _ \| / __|/ __|
+#  | (_| (_) | | | | | | | | | | |  __/ | | | |_\__ \/ /| | | | | | \__ \ (__ 
+#   \___\___/|_| |_| |_|_| |_| |_|\___|_| |_|\__|___/_/ |_| |_| |_|_|___/\___|
+#                                                                             
+
+# win Mod4
+# alt Mod1
+focus_follows_mouse no
+
+# WORKSPACES
+# set $ws1 "1"
+# set $ws2 "2"
+# set $ws3 "3"
+# set $ws4 "4"
+# set $ws5 "5"
+# set $ws6 "6"
+# set $ws7 "7"
+# set $ws8 "8"
+# set $ws9 "9"
+# set $ws10 "10"
+
+# switch to workspace
+# bindsym $mod+Ctrl+1 workspace $ws1
+# bindsym $mod+Ctrl+2 workspace $ws2
+# bindsym $mod+Ctrl+3 workspace $ws3
+# bindsym $mod+Ctrl+4 workspace $ws4
+# bindsym $mod+Ctrl+5 workspace $ws5
+# bindsym $mod+Ctrl+6 workspace $ws6
+# bindsym $mod+Ctrl+7 workspace $ws7
+# bindsym $mod+Ctrl+8 workspace $ws8
+# bindsym $mod+9 workspace $ws9
+# bindsym $mod+0 workspace $ws10
+
+# move focused container to workspace
+# bindsym $mod+Shift+1 move container to workspace $ws1
+# bindsym $mod+Shift+2 move container to workspace $ws2
+# bindsym $mod+Shift+3 move container to workspace $ws3
+# bindsym $mod+Shift+4 move container to workspace $ws4
+# bindsym $mod+Shift+5 move container to workspace $ws5
+# bindsym $mod+Shift+6 move container to workspace $ws6
+# bindsym $mod+Shift+7 move container to workspace $ws7
+# bindsym $mod+Shift+8 move container to workspace $ws8
+# bindsym $mod+Shift+9 move container to workspace $ws9
+# bindsym $mod+Shift+0 move container to workspace $ws10
+
+#                                    _       _                     _       _             
+#      _ _   _     _ _ _     _ _ _ |   | _ |   | _ _       _ _ _ |   | _ ( _ )   _ _ _   
+#    /   _ `   | /   _   \ /   _ _ |   _ _ |   ' _   \   /   _   \   _ _ |   | /   _ _ | 
+#   |  ( _ |   |     _ _ / \ _ _   \   | _ |   |   |   |     _ _ /   | _ |   |   ( _ _   
+#    \ _ _ , _ | \ _ _ _ | | _ _ _ / \ _ _ | _ |   | _ | \ _ _ _ | \ _ _ | _ | \ _ _ _ | 
+#                                                                                        
+exec --no-startup-id compton -D 15
+exec --no-startup-id feh --bg-scale /home/nexor/TOSHIBE/mandragora/gdrive/Levv/wllpps/bamboo_forest-wallpaper-3840x2160.jpg 
+popup_during_fullscreen smart
+floating_modifier Mod1
 font pango:Droid Sans Mono for Powerline11
 client.focused          $orange $gray   $orange $gray     #285577
 client.focused_inactive $orange $gray   $orange $gray   #5f676a
@@ -24,131 +177,33 @@ client.unfocused        $gray   #222222 #888888 #292d2e   #222222
 client.urgent           $gray   #900000 #ffffff #900000   #900000
 client.placeholder      #000000 #0c0c0c #ffffff #000000   #0c0c0c
 client.background       #ffffff
-
-bindsym $mod+1 exec --no-startup-id /usr/local/bin/switch_to_firefox
-bindsym $mod+2 exec --no-startup-id /usr/local/bin/switch_to_ncmpcpp
-bindsym $mod+3 exec --no-startup-id /usr/local/bin/switch_to_urxvt
-bindsym $mod+Shift+3 split v; exec --no-startup-id urxvt -e tmux
-#bindsym $mod+w exec --no-startup-id whatsapp
-bindsym $mod+4 exec --no-startup-id telegram
-#bindsym $mod+Escape exec --no-startup-id /usr/bin/switch_to_term
-#bindsym $mod+Shift+BackSpace exec --no-startup-id shutdown -h 0
-
-# throw under
-bindsym $mod+c move scratchpad 
-bindsym $mod+Shift+c scratchpad show;floating toggle
-bindsym $mod+Shift+BackSpace exec shutdown -h -t 0
-#bindsym $mod+w exec --no-startup-id whatsapp
-bindsym Print           exec --no-startup-id scrot ~/.scrot.png && cat ~/.scrot.png | xclip -selection clipboard -target image/png -i 
-bindsym Shift+Print     exec --no-startup-id scrot -u ~/.scrot.png && cat ~/.scrot.png | xclip -selection clipboard -target image/png -i 
-bindsym Ctrl+Print      exec --no-startup-id scrot -s ~/.scrot.png && cat ~/.scrot.png | xclip -selection clipboard -target image/png -i 
-bindsym $mod+q kill
-#bindsym $mod+Ctrl+r exec rofi -show run -lines 3 -width 40 -opacity "45" -font "DejaVu Sans Mono 10" -color-window "#1e1e1e" 
-bindsym $mod+r exec dmenu_run -fn "Droid Sans Mono for Powerline" -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300'
-
-# There also is the (new) i3-dmenu-desktop which only displays applications
-# shipping a .desktop file. It is a wrapper around dmenu, so you need that
-# installed.
-# bindsym $mod+d exec --no-startup-id i3-dmenu-desktop
-
-# split in horizontal orientation
-bindsym $mod+backslash split h 
-bindsym $mod+plus split h 
-bindsym $mod+minus split v
-bindsym $mod+f fullscreen toggle
-#bindsym $mod+up fullscreen toggle
-
-# change container layout (stacked, tabbed, toggle split)
-bindsym $mod+s layout stacking
-bindsym $mod+w layout tabbed
-bindsym $mod+e layout toggle split
-
-# toggle tiling / floating
-bindsym $mod+Shift+space floating toggle
-
-# change focus between tiling / floating windows
-bindsym $mod+space focus mode_toggle
-
-# focus the parent container
-bindsym $mod+a focus parent
-
 bindsym $mod+KP_Home exec --no-startup-id redshift -g 1:0.5:0.5 -O 25000K
 bindsym $mod+KP_Up   exec --no-startup-id redshift -g 0.5:0.5:1 -O 25000K
 bindsym $mod+KP_Prior exec --no-startup-id redshift -g 1:1:1 -O 25000K
-# bindsym $mod+KP_Home exec --no-startup-id redshift -g 1:0.5:0.5 -O 25000K
 
-# WORKSPACES
-set $ws1 "1"
-set $ws2 "2"
-set $ws3 "3"
-set $ws4 "4"
-set $ws5 "5"
-set $ws6 "6"
-set $ws7 "7"
-set $ws8 "8"
-set $ws9 "9"
-set $ws10 "10"
-
-# switch to workspace
-bindsym $mod+Ctrl+1 workspace $ws1
-bindsym $mod+Ctrl+2 workspace $ws2
-bindsym $mod+Ctrl+3 workspace $ws3
-bindsym $mod+Ctrl+4 workspace $ws4
-bindsym $mod+Ctrl+5 workspace $ws5
-bindsym $mod+Ctrl+6 workspace $ws6
-bindsym $mod+Ctrl+7 workspace $ws7
-bindsym $mod+Ctrl+8 workspace $ws8
-bindsym $mod+9 workspace $ws9
-bindsym $mod+0 workspace $ws10
-
-# move focused container to workspace
-bindsym $mod+Shift+1 move container to workspace $ws1
-bindsym $mod+Shift+2 move container to workspace $ws2
-# bindsym $mod+Shift+3 move container to workspace $ws3
-bindsym $mod+Shift+4 move container to workspace $ws4
-bindsym $mod+Shift+5 move container to workspace $ws5
-bindsym $mod+Shift+6 move container to workspace $ws6
-bindsym $mod+Shift+7 move container to workspace $ws7
-bindsym $mod+Shift+8 move container to workspace $ws8
-bindsym $mod+Shift+9 move container to workspace $ws9
-bindsym $mod+Shift+0 move container to workspace $ws10
-
-bindsym $mod+Shift+r restart # i3
-bindsym $mod+Shift+e exec --no-startup-id "if [[ $(echo -e 'Exit i3\nDont'|dmenu -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300') == 'Exit i3' ]]; then i3-msg exit; fi"
-# bindsym $mod+Shift+e exec --no-startup-id "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
-
-focus_follows_mouse no
-        bindsym Ctrl+$mod+Left resize shrink width 10 px or 10 ppt
-        bindsym Ctrl+$mod+Up resize grow height 10 px or 10 ppt
-        bindsym Ctrl+$mod+Down resize shrink height 10 px or 10 ppt
-        bindsym Ctrl+$mod+Right resize grow width 10 px or 10 ppt
 #  _                
 # | |__   __ _ _ __ 
 # | '_ \ / _` | '__|
 # | |_) | (_| | |   
 # |_.__/ \__,_|_|   
 #                   
-
-# Start i3bar to display a workspace bar (plus the system information i3status
-# finds out, if available)
- bar {
-         set $bg-color            #1e1e1ec0
-         set $inactive-bg-color   #ff3300
-         set $text-color          #000000
-         set $inactive-text-color $bg-color
-         set $urgent-bg-color     $inactive-bg-color
-         #status_command i3status --config ~/.config/status.ctl
-         status_command i3status 
-         colors {
-             background $bg-color
-                 separator $text-color
-                 focused_workspace  $inactive-bg-color  $inactive-bg-color      $text-color
-                 inactive_workspace $bg-color $bg-color $inactive-text-color
-                 urgent_workspace   $urgent-bg-color    $urgent-bg-color        $text-color
-                 active_workspace   $inactive-bg-color  $inactive-bg-color      $inactive-text-color
-         }
-     i3bar_command i3bar -t         
- }
+bar {
+    set $bg-color            #1e1e1ec0
+    set $inactive-bg-color   #ff3300
+    set $text-color          #000000
+    set $inactive-text-color $bg-color
+    set $urgent-bg-color     $inactive-bg-color
+    status_command i3status 
+    colors {
+        background $bg-color
+        separator $text-color
+        focused_workspace  $inactive-bg-color  $inactive-bg-color      $text-color
+        inactive_workspace $bg-color $bg-color $inactive-text-color
+        urgent_workspace   $urgent-bg-color    $urgent-bg-color        $text-color
+        active_workspace   $inactive-bg-color  $inactive-bg-color      $inactive-text-color
+    }
+    i3bar_command i3bar -t         
+}
 
 
 #     __ _  __ _ _ __  ___ 
@@ -197,39 +252,3 @@ mode "$mode_gaps_outer" {
         bindsym Return mode "default"
         bindsym Escape mode "default"
 }
-
-# FICOU DO CARALHO BORODER : 
-bindsym XF86MonBrightnessUp     exec --no-startup-id xbacklight -inc $bl_delta
-bindsym XF86MonBrightnessDown   exec --no-startup-id xbacklight -dec $bl_delta
-bindsym XF86AudioNext		    exec --no-startup-id mpc next  #$mpc $minty_remote next
-bindsym XF86AudioPlay		    exec --no-startup-id mpc toggle  #$mpc $minty_remote toggle
-bindsym XF86AudioPrev		    exec --no-startup-id mpc prev  #$mpc $minty_remote prev
-bindsym XF86AudioStop		    exec --no-startup-id /usr/local/bin/start-stop-stream
-#bindsym XF86AudioLowerVolume    exec --no-startup-id pamixer -d 4 
-#bindsym XF86AudioRaiseVolume    exec --no-startup-id pamixer -i 4 
-bindsym XF86AudioLowerVolume    exec --no-startup-id amixer -c 0 -q set Master 4dB- unmute 
-bindsym XF86AudioRaiseVolume    exec --no-startup-id amixer -c 0 -q set Master 4dB+ unmute
-bindsym XF86AudioMute           exec --no-startup-id paxmier -q set Master toggle
-
-#bindsym $mod+u exec --no-startup-id #play -n -c1 synth sin %-12 sin %-9 sin %-5 sin %-2 fade q 0.1 0.5 0.1
-
-# change focus
-bindsym $mod+h focus left
-bindsym $mod+j focus down
-bindsym $mod+k focus up
-bindsym $mod+l focus right
-bindsym $mod+Left focus left
-bindsym $mod+Down focus down
-bindsym $mod+Up focus up
-bindsym $mod+Right focus right
-
-# move focused window
-bindsym $mod+Shift+h move left
-bindsym $mod+Shift+j move down
-bindsym $mod+Shift+k move up
-bindsym $mod+Shift+l move right
-bindsym $mod+Shift+Left move left
-bindsym $mod+Shift+Down move down
-bindsym $mod+Shift+Up move up
-bindsym $mod+Shift+Right move right
-
