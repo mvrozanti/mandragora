@@ -53,9 +53,10 @@ alias cfb='sudo -E vim $HOME/.bashrc'
 # config this
 alias cfa='sudo -E vim $HOME/.bash_aliases'
 # config dotfiles
-alias cfd='sudo -E vim $HOME/disk/gdrive/Programming/bash/dotfiles/grab_updated_and_push.sh'
+alias cfd='sudo -E vim $HOME/mandragora/dotty/.dotty.json'
 # config push
-alias cfp='. $HOME/disk/gdrive/Programming/bash/dotfiles/grab_updated_and_push.sh'
+# alias cfp='. $HOME/disk/gdrive/Programming/bash/dotfiles/grab_updated_and_push.sh'
+alias cfp='exec $HOME/mandragora/dotty/dotty.py -s'
 alias motd='sudo cat /etc/update-motd.d/nexor.asc'
 alias serve='python3 -m http.server 2717'
 alias schmod='sudo chmod'
