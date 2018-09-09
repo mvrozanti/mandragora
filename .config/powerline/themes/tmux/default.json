@@ -12,14 +12,6 @@
         ],
         "right": [
             {
-                "function":"powerlinemem.mem_usage.mem_usage_percent",
-                "name":"mem usage",
-                "args":{
-                    "format":"μ:%d%%",
-                    "mem_type":"active"
-                }
-            },
-            {
                 "function":"powerline.segments.common.net.network_load",
                 "name":"network",
                 "args":{

@@ -165,6 +165,7 @@ focus_follows_mouse no
 #   |  ( _ |   |     _ _ / \ _ _   \   | _ |   |   |   |     _ _ /   | _ |   |   ( _ _   
 #    \ _ _ , _ | \ _ _ _ | | _ _ _ / \ _ _ | _ |   | _ | \ _ _ _ | \ _ _ | _ | \ _ _ _ | 
 #                                                                                        
+exec --no-startup-id xset s off
 exec --no-startup-id compton -D 15
 exec --no-startup-id feh --bg-scale /home/nexor/TOSHIBE/mandragora/gdrive/Levv/wllpps/bamboo_forest-wallpaper-3840x2160.jpg 
 popup_during_fullscreen smart
