@@ -18,6 +18,7 @@ nnoremap dl v$hxJhv0w"_x
 nnoremap cW eF_hvbc
 " this is basically ci( -> nnoremap c( $F(lvt)c
 vnoremap - $h
+nnoremap x "_x
 
 " vnoremap ) 
 vnoremap <C-r> "hy:%s/<C-r>h//gc<left><left><left>
