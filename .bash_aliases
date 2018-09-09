@@ -27,12 +27,6 @@ alias testx='echo;for a in {40..47}; do echo -ne "\e[0;30;$a""m  ""\e[0;37;39m "
 alias cutefetch='while true; do screenfetch_out="$(screenfetch -a $HOME/nexor.ascii -p)$(testx;echo;echo;echo)";clear;printf "$screenfetch_out"|lolcat-c;sleep 0.01; done'
 alias neofetch="screenfetch -a $HOME/nexor.ascii -p"
 alias vmutt='sudo -E vim $HOME/.muttrc'
-alias cfi='sudo -E vim $HOME/.config/i3/config'
-alias cfr='sudo -E vim $HOME/.config/ranger'
-alias cft='vim $HOME/.tmux.conf'
-alias cfv='sudo -E vim $HOME/.vimrc'
-alias cfx='sudo -E vim $HOME/.Xdefaults; xrdb $HOME/.Xdefaults'
-alias cfz='sudo -E vim $HOME/.zshrc'
 alias gfd='git fetch origin; git diff master'
 alias gc='git clone'
 function gac(){ commit_message="${@:1}"; git add -A; git commit -m $commit_message; }
@@ -52,11 +46,14 @@ alias msk='ncmpcpp'
 alias cfb='sudo -E vim $HOME/.bashrc'
 # config this
 alias cfa='sudo -E vim $HOME/.bash_aliases'
-# config dotfiles
 alias cfd='sudo -E vim $HOME/mandragora/dotty/.dotty.json'
-# config push
-# alias cfp='. $HOME/disk/gdrive/Programming/bash/dotfiles/grab_updated_and_push.sh'
-alias cfp='exec $HOME/mandragora/dotty/dotty.py -s'
+alias cfi='sudo -E vim $HOME/.config/i3/config'
+alias cfp='__="$@";exec $HOME/mandragora/dotty/dotty.py -s'
+alias cfr='sudo -E vim $HOME/.config/ranger'
+alias cft='vim $HOME/.tmux.conf'
+alias cfv='sudo -E vim $HOME/.vimrc'
+alias cfx='sudo -E vim $HOME/.Xdefaults; xrdb $HOME/.Xdefaults'
+alias cfz='sudo -E vim $HOME/.zshrc'
 alias motd='sudo cat /etc/update-motd.d/nexor.asc'
 alias serve='python3 -m http.server 2717'
 alias schmod='sudo chmod'
