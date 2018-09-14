@@ -1,2 +1,0 @@
-#!/bin/bash
-youtube-dl --extract-audio --audio-format mp3 -o "/home/nexor/disk/Musik/%(title)s.%(ext)s" $1
