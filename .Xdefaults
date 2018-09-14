@@ -1,7 +1,7 @@
 *foreground: #ff1100
 *foreground_bold: #ffff00
 *cursor: #ffffff
-*background: rgba:0000/0000/0000/c000
+*background: rgba:0000/0000/0000/0000
 !!*color0: #ff1050
 *color0: #000
 *color9: #7600ff
@@ -29,12 +29,12 @@
 *color233:rgba:0000/0000/0000/e800
 URxvt.intensityStyles:	false
 Xft*rgba:                   rgb
-!!URxvt.transparent: true
+URxvt.transparent: false
 !!URxvt.shading: 20
 URxvt.tintColor:    #ffffff
 URxvt.letterSpace: -1
 URxvt*saveLines: 0
-URxvt.depth:		32
+URxvt.depth:		24
 URxvt.font:xft: Droid Sans Mono Slashed for Powerline:antialias:hinting=true:size=13
 !!URxvt.font:xft: Droid Sans Mono Dotted for Powerline:antialias:hinting=true:size=13
 !!URxvt.font: xft:DejaVu\ Sans\ Mono\ for\ Powerline:antialias:hinting=true:size=15

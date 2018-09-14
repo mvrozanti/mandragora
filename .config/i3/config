@@ -123,7 +123,7 @@ bindsym XF86AudioRaiseVolume    exec --no-startup-id amixer -c 0 -q set Master 4
 
 # win Mod4
 # alt Mod1
-focus_follows_mouse no
+focus_follows_mouse yes
 
 # WORKSPACES
 set $ws1 "1"
@@ -215,7 +215,7 @@ bar {
 #    \__, |\__,_| .__/|___/
 #     |___/      |_|        
 #
-gaps inner 10
+gaps inner 3
 gaps outer 0
 new_window none
 bindsym $mod+g gaps inner all set 0; gaps outer all set 0

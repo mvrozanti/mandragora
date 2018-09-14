@@ -88,10 +88,10 @@ filetype off  " required
 set exrc
 
 "move vim splits
-nnoremap <C-LEFT> :10winc <
-nnoremap <C-UP> :10wincmd +
-nnoremap <C-RIGHT> :10wincmd > 
-nnoremap <C-DOWN> :10wincmd -
+nnoremap <C-LEFT> :10winc <<CR>
+nnoremap <C-UP> :10wincmd +<CR>
+nnoremap <C-RIGHT> :10wincmd ><CR> 
+nnoremap <C-DOWN> :10wincmd -<CR>
 
 "autocomplete colors
 "highlight Pmenu ctermfg=2 ctermbg=4 guifg=1 guibg=4
