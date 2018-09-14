@@ -29,7 +29,7 @@
 *color233:rgba:0000/0000/0000/e800
 URxvt.intensityStyles:	false
 Xft*rgba:                   rgb
-URxvt.transparent: false
+URxvt.transparent: true
 !!URxvt.shading: 20
 URxvt.tintColor:    #ffffff
 URxvt.letterSpace: -1
