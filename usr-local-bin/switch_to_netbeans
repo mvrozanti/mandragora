@@ -1,0 +1,6 @@
+#!/bin/bash
+if [[ $(wmctrl -l|grep -i netbeans|grep -c -v Waterfox) -gt 0 ]]; then
+    wmctrl -i -a "$(wmctrl -l|grep -i netbeans|grep -v Waterfox|cut -d' ' -f1)"
+else
+    netbeans
+fi

@@ -1,4 +1,9 @@
 conky.config = {
+    own_window = true,
+    own_window_transparent = false,
+    own_window_argb_visual = true,
+    own_window_argb_value = 90,
+    own_window_type = desktop,
     out_to_x = false,
     own_window = false,
     out_to_console = true,
