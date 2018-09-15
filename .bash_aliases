@@ -130,7 +130,7 @@ function cdt(){ wis_smth="`wis "$1"`"; abs_path="`readlink -f "$wis_smth"`"; cd 
 alias filesize='du -h'
 function addalias(){ echo "alias $1='${@:2}'" >> $HOME/.bash_aliases; }
 function domany() { if [[ "$1" == "-n" ]]; then n=$2; else n=99999; fi; cmd="${@:3}"; for i in {1..$n}; do sh -c $cmd; done; }
-function vw() { whereis "$1" | cut -d':' -f2 | cut -d' ' -f2 | xargs vim; }
+function vw() { vim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`" }
 function wi(){ wal --staturate 1.0 -i "${@:1}"; }
 alias biggest-files='du -hsx *|sudo sort -rh|head -10'
 alias lg='lazygit'
