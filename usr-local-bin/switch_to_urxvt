@@ -1,7 +1,0 @@
-#!/bin/bash
-i3-msg fullscreen disable
-if [[ $(wmctrl -l|grep tmux|grep -c -v Waterfox) -gt 0 ]]; then
-    wmctrl -i -a "$(wmctrl -l|grep tmux|grep -v Waterfox|cut -d' ' -f1)"
-else
-    urxvt -geometry 100x50+1000+100 -e 'tmux'
-fi

@@ -1,7 +1,0 @@
-#!/bin/bash
-i3-msg fullscreen disable
-if [[ -n $(wmctrl -l|grep Waterfox) ]]; then
-    wmctrl -a Waterfox;
-else
-    waterfox;
-fi

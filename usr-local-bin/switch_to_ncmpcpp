@@ -1,7 +1,0 @@
-#!/bin/bash
-if [[ -n $(wmctrl -l grep tmux) ]]; then 
-    wmctrl -i -a "$(wmctrl -l|grep tmux|grep -v Waterfox|cut -d' ' -f1)"
-    tmux neww ncmpcpp
-else 
-    urxvt -e tmux -c ncmpcpp
-fi

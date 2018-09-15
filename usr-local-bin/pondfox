@@ -1,6 +1,0 @@
-#!/bin/bash
-les_args="$@"
-cp -r $HOME/.waterfox/ $HOME/.pondfox/`pwgen 8 1`default/
-mv userChrome.css alt_temp && mv alt userChrome.css && mv alt_temp alt && sleep 1
-waterfox --new-instance "$les_args"
-mv userChrome.css alt_temp && mv alt userChrome.css && mv alt_temp alt # undoit
