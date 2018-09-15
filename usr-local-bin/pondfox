@@ -1,0 +1,9 @@
+#!/bin/bash
+les_args="$@"
+cd $HOME/.waterfox/*.default/chrome
+mv userChrome.css alt_temp && 
+mv alt userChrome.css && 
+mv alt_temp alt && 
+sleep 1
+waterfox --new-window "$les_args"
+mv userChrome.css alt_temp; mv alt userChrome.css; mv alt_temp alt # undoit
