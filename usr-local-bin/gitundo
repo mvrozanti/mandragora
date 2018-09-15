@@ -1,0 +1,6 @@
+#!/bin/bash
+
+last_commit_id=`git log | re 'commit (.*)' | sed -n 2p`
+git reset --hard $last_commit_id
+git commit -m "revert" 
+git push --force
