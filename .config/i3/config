@@ -32,6 +32,7 @@ set $darkgray   #0c0c0c
 for_window [class="Waterfox"] move to workspace $ws9
 assign [class="URxvt"] $ws7
 assign [class="NetBeans IDE "] $ws6
+assign [class="Zoom Meeting ID:"] $ws5
 
 #    __                                 _   
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_ 
@@ -171,7 +172,7 @@ bindsym $mod+Shift+0 move container to workspace $ws10
 #   \__,_|\___||___/\__|_| |_|\___|\__|_|\___|
 #                                             
 exec --no-startup-id xset s off
-exec --no-startup-id compton -D 15
+exec --no-startup-id compton -D 10
 exec --no-startup-id feh --bg-scale /home/nexor/TOSHIBE/mandragora/gdrive/Levv/wllpps/bamboo_forest-wallpaper-3840x2160.jpg 
 popup_during_fullscreen smart
 floating_modifier Mod1
@@ -193,22 +194,20 @@ bindsym $mod+KP_Prior exec --no-startup-id redshift -g 1:1:1 -O 25000K
 # |_.__/ \__,_|_|   
 #                   
 bar {
-    set $bg-color            #1e1e1e00
+    set $bg-color            #111111
     set $inactive-bg-color   #ff3300
     set $text-color          #000000
     set $inactive-text-color $bg-color
     set $urgent-bg-color     $inactive-bg-color
     status_command $HOME/conky-i3bar
-#     status_command i3status 
-#     colors {
-#         background $bg-color
-#         separator $text-color
-#         focused_workspace  $inactive-bg-color  $inactive-bg-color      $text-color
-#         inactive_workspace $bg-color $bg-color $inactive-text-color
-#         urgent_workspace   $urgent-bg-color    $urgent-bg-color        $text-color
-#         active_workspace   $inactive-bg-color  $inactive-bg-color      $inactive-text-color
-#     }
-#     i3bar_command i3bar -t         
+    colors {
+        background $bg-color
+        separator $text-color
+        focused_workspace  $inactive-bg-color  $inactive-bg-color      $text-color
+        inactive_workspace $bg-color $bg-color $inactive-text-color
+        urgent_workspace   $urgent-bg-color    $urgent-bg-color        $text-color
+        active_workspace   $inactive-bg-color  $inactive-bg-color      $inactive-text-color
+    }
 }
 
 

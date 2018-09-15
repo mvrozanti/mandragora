@@ -260,7 +260,7 @@ let g:EasyMotion_do_mapping = 0
 let g:EasyMotion_smartcase = 1
 nmap f <Plug>(easymotion-s)
 
-autocmd FileType c,cpp,java,scala,javascript                        let b:comment_leader = '// '
+autocmd FileType c,cpp,java,scala,javascript,css                    let b:comment_leader = '// '
 autocmd FileType conf,fstab,sh,ruby,python                          let b:comment_leader = '# '
 autocmd FileType swipl,perl,tex                                     let b:comment_leader = '% '
 autocmd FileType mail                                               let b:comment_leader = '> '
