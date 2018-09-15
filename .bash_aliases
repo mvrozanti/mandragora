@@ -143,7 +143,7 @@ alias p3i='pip3 install --user'
 alias p2i='pip2 install --user'
 function centr() { ls *.c* | entr $@ echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -o "$noext"; clear; exec "$noext"'; }
 alias dotty='$HOME/mandragora/dotty/dotty.py'
-# can dotty catch this
 
 # lol color vim bug
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+alias mviz='ncmpcpp --screen visualizer'

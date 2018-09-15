@@ -9,7 +9,7 @@ bindsym Ctrl+Mod1+BackSpace   exec --no-startup-id shutdown -h 0
 bindsym Ctrl+Shift+Escape     exec --no-startup-id urxvt -e htop
 bindsym $mod+Shift+r          restart # i3
 bindsym $mod+Shift+e          exec --no-startup-id "if [[ $(echo -e 'Exit i3\nDo not'|dmenu -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300') == 'Exit i3' ]]; then i3-msg exit; fi"
-bindsym $mod+slash            exec --no-startup-id "if [[ $(echo -e 'Exit i3\nDo not'|dmenu -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300') == 'Exit i3' ]]; then i3-msg exit; fi"bindsym $mod+r                exec dmenu_run -fn "Droid Sans Mono for Powerline" -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300'
+bindsym $mod+r                exec dmenu_run -fn "Droid Sans Mono for Powerline" -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300'
 bindsym $mod+q                kill
 set $mod Mod4
 exec --no-startup-id setxkbmap us alt-intl
