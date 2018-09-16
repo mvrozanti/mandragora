@@ -29,8 +29,8 @@ set $mpc mpc --host
 set $orange   #ff3300
 set $gray   #1e1e1e
 set $darkgray   #0c0c0c
-for_window [class="Waterfox"] move to workspace $ws9
-assign [class="URxvt"] $ws7
+for_window [class="Waterfox"] move to workspace $ws1
+assign [class="URxvt"] $ws3
 assign [class="NetBeans IDE "] $ws6
 assign [class="Zoom Meeting ID:"] $ws5
 
@@ -41,13 +41,14 @@ assign [class="Zoom Meeting ID:"] $ws5
 #  |_| |_|  \___|\__, |\__,_|\___|_| |_|\__|
 #                   |_|                     
 
-bindsym $mod+1 exec --no-startup-id /usr/local/bin/switch_to_firefox 
-bindsym $mod+2 exec --no-startup-id /usr/local/bin/switch_to_ncmpcpp
-bindsym $mod+3 exec --no-startup-id /usr/local/bin/switch_to_urxvt
-bindsym $mod+Shift+3 split toggle; exec urxvt -e tmux
-bindsym $mod+4 exec --no-startup-id telegram-desktop
-bindsym $mod+5 exec pondfox https://web.whatsapp.com
-bindsym $mod+d exec --no-startup-id /usr/local/bin/switch_to_netbeans
+bindsym $mod+1              exec --no-startup-id /usr/local/bin/switch_to_firefox 
+bindsym $mod+2              exec --no-startup-id /usr/local/bin/switch_to_ncmpcpp
+bindsym $mod+3              exec --no-startup-id /usr/local/bin/switch_to_urxvt
+bindsym $mod+Shift+3        split toggle; exec urxvt -e tmux
+bindsym $mod+4              exec --no-startup-id telegram-desktop
+bindsym $mod+5              exec pondfox https://web.whatsapp.com
+bindsym $mod+d              exec --no-startup-id /usr/local/bin/switch_to_netbeans
+bindsym $mod+Shift+x        exec --no-startup-id exec urxvt; i3-msg "exec sleep 1; floating enable"
 
 
 #                      _   
