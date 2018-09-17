@@ -49,6 +49,7 @@ bindsym $mod+4              exec --no-startup-id telegram-desktop
 bindsym $mod+5              exec pondfox https://web.whatsapp.com
 bindsym $mod+d              exec --no-startup-id /usr/local/bin/switch_to_netbeans
 bindsym $mod+Shift+x        exec --no-startup-id exec urxvt; i3-msg "exec sleep 1; floating enable"
+bindsym $mod+z              exec --no-startup-id wmctrl -i -a "`wmctrl -l|re '(\S+).*Zoom Meeting.*'`"
 
 
 #                      _   
