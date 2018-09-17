@@ -102,6 +102,8 @@ bindsym Ctrl+$mod+Left      resize shrink width 10 px or 10 ppt
 bindsym Ctrl+$mod+Up        resize grow height 10 px or 10 ppt
 bindsym Ctrl+$mod+Down      resize shrink height 10 px or 10 ppt
 bindsym Ctrl+$mod+Right     resize grow width 10 px or 10 ppt
+bindsym Ctrl+Mod1+Left     workspace prev
+bindsym Ctrl+Mod1+Right    workspace next
 
 
 #                      _ _       
