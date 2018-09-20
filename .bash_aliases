@@ -139,6 +139,7 @@ alias unp='unp -U'
 alias pwdc="pwd | tr -d '\n' | xsel -i -b"
 alias scrot='scrot ~/.scrot.png'
 function f(){ sudo find . -iname "*$@*"; }
+function cdf(){ cd `find . -iname "*$@*" | head -n1`; }
 alias curpos="cnee --record --mouse | awk  '/7,4,0,0,1/ { system(\"xdotool getmouselocation\") }'"
 alias p3i='pip3 install --user'
 alias p2i='pip2 install --user'
