@@ -76,7 +76,8 @@
 
         "mkdir ~/Downloads && wget https://telegram.org/dl/desktop/linux -O ~/Downloads/telegram-latest.tar.xz && cd ~/Downloads && unp -U telegram-latest.tar.xz && cd Telegram && ln -s $(realpath Telegram) /usr/local/bin/telegram",
 
-        "pip3 install --user maybe "
+        "pip3 install --user maybe",
+        "pip3 install --user grip"
     ]
 
 }
