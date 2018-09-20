@@ -59,13 +59,13 @@
         ".bashrc" : "~/.bashrc",
         ".zshrc" : "~/.zshrc",
 
-        "usr-local-bin/gitai" : "/usr/local/bin/gitai",
-        "usr-local-bin/gitap" : "/usr/local/bin/gitap",
-        "usr-local-bin/gitundo" : "/usr/local/bin/gitundo",
-        "usr-local-bin/re" : "/usr/local/bin/re",
-        "usr-local-bin/make-ranger-aliases" : "/usr/local/bin/make-ranger-aliases",
-        "usr-local-bin/pipes" : "/usr/local/bin/pipes",
-        "usr-local-bin/ytdl" : "/usr/local/bin/ytdl"
+        "usr/local/bin/gitai" : "/usr/local/bin/gitai",
+        "usr/local/bin/gitap" : "/usr/local/bin/gitap",
+        "usr/local/bin/gitundo" : "/usr/local/bin/gitundo",
+        "usr/local/bin/re" : "/usr/local/bin/re",
+        "usr/local/bin/make-ranger-aliases" : "/usr/local/bin/make-ranger-aliases",
+        "usr/local/bin/pipes" : "/usr/local/bin/pipes",
+        "usr/local/bin/ytdl" : "/usr/local/bin/ytdl"
     },
     "commands": [
         "mkdir -p ~/util/ && cd $_ && git clone https://github.com/danielchatfield/trello-desktop",
