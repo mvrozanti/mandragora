@@ -44,7 +44,7 @@ alias smv='sudo mv'
 alias msk='ncmpcpp'
 alias cfa='sudo -E vim $HOME/.bash_aliases'
 alias cfb='sudo -E vim $HOME/.bashrc'
-alias cfd='sudo -E vim $HOME/mandragora/dotty/.dotty.json'
+alias cfd='sudo -E vim /home/nexor/mandragora/.dottyrc.json'
 alias cfi='sudo -E vim $HOME/.config/i3/config'
 alias cfp='exec $HOME/mandragora/dotty/dotty.py -s'
 alias cfr='sudo -E vim $HOME/.config/ranger'
@@ -145,7 +145,6 @@ alias p2i='pip2 install --user'
 function centr() { ls *.c* | entr $@ echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -o "$noext"; clear; exec "$noext"'; }
 alias dotty='$HOME/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
-alias cd='echo you dont need this; cd'
 
 # lol color vim bug
 # alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'

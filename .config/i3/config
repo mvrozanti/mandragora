@@ -45,7 +45,7 @@ assign [instance="DBeaver"] $ws4
 bindsym $mod+1              exec --no-startup-id /usr/local/bin/switch_to_firefox 
 bindsym $mod+2              exec --no-startup-id /usr/local/bin/switch_to_ncmpcpp
 bindsym $mod+3              exec --no-startup-id /usr/local/bin/switch_to_urxvt
-bindsym $mod+Shift+3        split toggle; exec urxvt -e tmux
+bindsym $mod+Shift+3        split toggle; exec --no-startup-id urxvt -e tmux
 bindsym $mod+4              exec --no-startup-id telegram-desktop
 bindsym $mod+5              exec pondfox https://web.whatsapp.com
 bindsym $mod+d              exec --no-startup-id /usr/local/bin/switch_to_netbeans
@@ -210,6 +210,7 @@ bar {
     set $inactive-text-color $bg-color
     set $urgent-bg-color     $inactive-bg-color
     status_command $HOME/conky-i3bar
+    font pango: Droid Sans Mono Slashed for Powerline 11
     colors {
         background $bg-color
         separator $text-color

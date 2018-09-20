@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <Colors>
+  <Color r="0x0000" g="0x0000" b="0x0000">
+    <Extension></Extension>
+  </Color>
   <Color r="0x0000" g="0x0000" b="0xaaaa">
     <Extension>zip</Extension>
     <Extension>gz</Extension>
@@ -42,6 +45,12 @@
   <Color r="0x0000" g="0xffff" b="0x0000">
     <Extension>h</Extension>
     <Extension>hh</Extension>
+  </Color>
+  <Color r="0xffff" g="0x5d05" b="0x0000">
+    <Extension>java</Extension>
+  </Color>
+  <Color r="0xaaaa" g="0x3456" b="0x0000">
+    <Extension>jar</Extension>
   </Color>
   <Color r="0x0000" g="0xaaaa" b="0x0000">
     <Extension>c</Extension>
