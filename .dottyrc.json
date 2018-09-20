@@ -34,7 +34,7 @@
         "zsh"
     ],
     "copy" : {
-        "usr-share-themes/Glass" : "/usr/share/themes/Glass",
+        "usr/share/themes/Glass" : "/usr/share/themes/Glass",
 
         ".config/powerline" : "~/.config/powerline", 
         ".config/ncmpcpp" : "~/.config/.ncmpcpp",
