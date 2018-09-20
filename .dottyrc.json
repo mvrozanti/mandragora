@@ -40,7 +40,7 @@
         ".config/ncmpcpp" : "~/.config/.ncmpcpp",
         ".config/i3" : "~/.config/i3",
         ".config/ranger" : "~/.config/ranger",
-        ".config/mpd" : "~/.config/mpd",
+        ".config/mpd" : "~/.config/mp*",
 
         ".tmux" : "~/.tmux/",
         ".urxvt" : "~/.urxvt/",
