@@ -1,0 +1,9 @@
+#!/bin/bash
+commit_message="$@"
+if [[ -z "$commit_message" ]]; then 
+    echo "Commit message is missing"
+else 
+    git add .
+    git commit -m "$commit_message"
+    git push
+fi
