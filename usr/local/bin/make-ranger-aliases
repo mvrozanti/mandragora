@@ -1,2 +1,0 @@
-#!/bin/bash
-cat .config/ranger/rc.conf|grep "^map g"|grep -v '\?'|grep cd|awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}'|sed -E 's/\s{2}//g' > $HOME/.ranger_aliases
