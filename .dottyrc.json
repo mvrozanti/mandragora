@@ -34,10 +34,13 @@
         "zsh"
     ],
     "copy" : {
+        "usr-share-themes/Glass" : "/usr/share/themes/Glass",
+
         ".config/powerline" : "~/.config/powerline", 
         ".config/ncmpcpp" : "~/.config/.ncmpcpp",
         ".config/i3" : "~/.config/i3",
         ".config/ranger" : "~/.config/ranger",
+        ".config/mpd" : "~/.config/mpd",
 
         ".tmux" : "~/.tmux/",
         ".urxvt" : "~/.urxvt/",
@@ -46,9 +49,15 @@
         ".Xdefaults" : "~/.Xdefaults",
         ".bash_aliases" : "~/.bash_aliases",
         ".nexor.ascii" : "~/nexor.ascii",
-        ".mpd.conf" : "~/nexor.ascii",
+        ".fehbg" : "~/.fehbg",
+        ".bash_profile" : "~/.bash_profile",
+        ".conky-i3bar" : "~/.conky-i3bar",
+        ".conkyrc" : "~/.conkyrc",
+        ".xinitrc" : "~/.xinitrc",
         ".vimrc" : "~/.vimrc",
         ".gdmap" : "~/.gdmap",
+        ".bashrc" : "~/.bashrc",
+        ".zshrc" : "~/.zshrc",
 
         "usr-local-bin/gitai" : "/usr/local/bin/gitai",
         "usr-local-bin/gitap" : "/usr/local/bin/gitap",
