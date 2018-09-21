@@ -88,6 +88,7 @@ bindkey '\e[4~' end-of-line
 bindkey "\e[7~" beginning-of-line
 bindkey "\e[8~" end-of-line
 
-# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+# Ruby
 export PATH="$PATH:$HOME/.rvm/bin"
-export GEM_HOME=$HOME/.gem
+export GEM_HOM=$HOME/.gem
+export PATH=~/.npm/bin:$PATH
