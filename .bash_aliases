@@ -146,6 +146,7 @@ alias p2i='pip2 install --user'
 function centr() { ls *.c* | entr $@ echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -o "$noext"; clear; exec "$noext"'; }
 alias dotty='$HOME/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
+function countdown(){ date1=$((`date +%s` + $1)); while [ "$date1" -ge `date +%s` ]; do clear; echo -ne "$(date -u --date @$(($date1 - `date +%s`)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; } 
 
 # lol color vim bug
 # alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
