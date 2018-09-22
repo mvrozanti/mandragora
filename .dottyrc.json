@@ -58,6 +58,7 @@
         ".gdmap" : "~/.gdmap",
         ".bashrc" : "~/.bashrc",
         ".zshrc" : "~/.zshrc",
+        ".urlview" : "~/.urlview",
 
         "usr/local/bin/gitai" : "/usr/local/bin/gitai",
         "usr/local/bin/gitap" : "/usr/local/bin/gitap",
