@@ -88,7 +88,12 @@ bindkey '\e[4~' end-of-line
 bindkey "\e[7~" beginning-of-line
 bindkey "\e[8~" end-of-line
 
-# Ruby
+# rb
 export PATH="$PATH:$HOME/.rvm/bin"
-export GEM_HOM=$HOME/.gem
+export GEM_HOME=$HOME/.gem
+
+# js
 export PATH=~/.npm/bin:$PATH
+
+# py
+export PATH=~/.local/bin:$PATH

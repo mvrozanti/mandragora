@@ -141,6 +141,8 @@ alias scrot='scrot ~/.scrot.png'
 function f(){ sudo find . -iname "*$@*"; }
 function cdf(){ cd `find . -iname "*$@*" | head -n1`; }
 alias curpos="cnee --record --mouse | awk  '/7,4,0,0,1/ { system(\"xdotool getmouselocation\") }'"
+alias p3u='pip3 uninstall'
+alias p3u='pip3 uninstall'
 alias p3i='pip3 install --user'
 alias p2i='pip2 install --user'
 function centr() { ls *.c* | entr $@ echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -o "$noext"; clear; exec "$noext"'; }
