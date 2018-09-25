@@ -3,6 +3,7 @@
     "install" : [
         "arandr",
         "calcurse",
+        "conky",
         "compton",
         "curl",
         "dmenu",
