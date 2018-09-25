@@ -1,6 +1,7 @@
 {
     "install_cmd" : "pacman -Syu",
     "install" : [
+        "arandr",
         "calcurse",
         "compton",
         "curl",
