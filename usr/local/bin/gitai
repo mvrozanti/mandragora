@@ -1,0 +1,5 @@
+#!/bin/bash
+url="$1"
+reponame=`$url|cut -d/ -f5`
+git remote add $reponame $url
+git push --set-upstream $reponame master

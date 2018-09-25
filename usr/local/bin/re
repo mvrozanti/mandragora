@@ -1,0 +1,26 @@
+#!/usr/bin/python3
+import code
+import re
+import sys
+import argparse
+import fileinput
+
+# parse args
+parser = argparse.ArgumentParser(description='Regex simplified')
+parser.add_argument('-m',  action='store_true',  help='enable multiline search')
+parser.add_argument('regex', nargs=1, help='regex')
+parser.add_argument('file', nargs='?', help='file (default=stdin)')
+parser.add_argument('-r', metavar='replacee', help='replace regex by this')
+parsed = parser.parse_args()
+
+if 'file' in parsed and parsed.file: content = '\n'.join(open(parsed.file).readlines())
+else: content = '\n'.join(sys.stdin)
+
+regex = ''.join(parsed.regex)
+if parsed.m: search = re.findall(regex, content, re.DOTALL)
+else: search = re.findall(regex, content)
+
+if len(search) > 0:
+    for result in search:
+        print(result,  flush=True)
+        sys.stdout.flush()

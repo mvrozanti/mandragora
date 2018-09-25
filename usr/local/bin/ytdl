@@ -1,0 +1,2 @@
+#!/bin/bash
+youtube-dl --extract-audio --audio-format mp3 -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1
