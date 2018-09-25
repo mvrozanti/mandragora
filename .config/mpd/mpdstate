@@ -2,8 +2,8 @@ sw_volume: 99
 audio_device_state:1:My Pulse Output
 audio_device_state:1:my_fifo
 state: play
-current: 2
-time: 4.021000
+current: 16
+time: 4.181000
 random: 0
 repeat: 0
 single: 0
@@ -28,4 +28,5 @@ playlist_begin
 13:Daso - Meine.mp3
 14:ADULT. - Breathe On (LIARS “Savannah” Remix).mp3
 15:Yahel & Infected Mushroom - Electro Panic (Azax x Boombastix Remix) [Official Audio].mp3
+16:The Glitch Mob - Drink the Sea (Full Album).mp3
 playlist_end
