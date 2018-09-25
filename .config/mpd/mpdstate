@@ -1,0 +1,31 @@
+sw_volume: 99
+audio_device_state:1:My Pulse Output
+audio_device_state:1:my_fifo
+state: play
+current: 2
+time: 4.021000
+random: 0
+repeat: 0
+single: 0
+consume: 0
+crossfade: 0
+mixrampdb: 0.000000
+mixrampdelay: -1.000000
+playlist_begin
+0:Parov Stelar's Demon Diaries... Mixed.mp3
+1:The Glitch Mob - We Can Make The World Stop.mp3
+2:Parov Stelar... Mix 1.mp3
+3:The Glitch Mob - See Without Eyes (Full Album).mp3
+4:Dido - Thank You (Thunderstorm Remix).mp3
+5:Erik Satie - Gymnopédie No.1.mp3
+6:Pegboard Nerds - Purple People Eater [Monstercat Release].mp3
+7:mr robot _ wires.mp3
+8:The Moth (Les Deux Love Orchestra Cover) -  Aimee Mann [Mr. Robot S02E12].mp3
+9:'Nisi Dominus - Cum Dederit' de Antonio Vivaldi. Andreas Scholl.wmv.mp3
+10:Yat-Kha 'Karangailyg kara hovaa' (in the endless black steppe).mp3
+11:Tove Lo - Perfect Loop (Lyrics).mp3
+12:CéU - Malemolência.mp3
+13:Daso - Meine.mp3
+14:ADULT. - Breathe On (LIARS “Savannah” Remix).mp3
+15:Yahel & Infected Mushroom - Electro Panic (Azax x Boombastix Remix) [Official Audio].mp3
+playlist_end
