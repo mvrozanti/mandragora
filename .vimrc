@@ -153,6 +153,7 @@ let g:syntastic_javascript_checkers = ['eslint']
 " let g:syntastic_java_checkers=['eclim']
 Plugin 'tpope/vim-surround'
 Plugin 'chrisbra/Colorizer'
+Plugin 'chrisbra/unicode.vim'
 
 Plugin 'othree/yajs.vim'
 Plugin 'mitsuhiko/vim-jinja'
