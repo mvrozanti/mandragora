@@ -15,7 +15,7 @@ bindsym $mod+q                kill
 set $mod Mod4
 exec --no-startup-id setxkbmap us alt-intl
 exec --no-startup-id mpd
-exec --no-startup-id owncloud
+#exec --no-startup-id owncloud
 exec --no-startup-id xset s off
 exec --no-startup-id xset -dpms
 exec --no-startup-id xset s off -dpms
