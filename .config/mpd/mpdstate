@@ -1,9 +1,9 @@
 sw_volume: 99
 audio_device_state:1:My Pulse Output
 audio_device_state:1:my_fifo
-state: pause
-current: 2
-time: 1789.866000
+state: play
+current: 0
+time: 3338.228000
 random: 0
 repeat: 0
 single: 0
@@ -29,4 +29,5 @@ playlist_begin
 14:ADULT. - Breathe On (LIARS “Savannah” Remix).mp3
 15:Yahel & Infected Mushroom - Electro Panic (Azax x Boombastix Remix) [Official Audio].mp3
 16:The Glitch Mob - Drink the Sea (Full Album).mp3
+17:Infected Mushroom - Walking On The Moon.mp3
 playlist_end
