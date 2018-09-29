@@ -1,5 +1,5 @@
 {
-    "install_cmd" : "sudo pacman -Syu",
+    "install_cmd" : "sudo pacman -S",
     "install" : [
         "arandr",
         "calcurse",
@@ -71,7 +71,7 @@
         "mkdir -p ~/util/ && cd $_ && git clone https://github.com/mvrozanti/bash-tetris",
         "mkdir -p ~/util/ && cd $_ && git clone https://github.com/sigpipe/urlview",
 
-        "mkdir ~/Downloads && wget '$(curl -s 'https://www.waterfoxproject.org/en-US/waterfox/new/?scene=1' | re '(https://storage-waterfox.netdna-ssl.com/releases/linux64/installer/waterfox-\\d+.\\d+.\\d+.en-US.linux-x86_64.tar.bz2)' | head -n1) -O ~/Downloads/waterfox-latest.tar.bz2 && cd ~/Downloads && unp -U waterfox-latest.tar.bz2 && cd waterfox* && ln -s $(realpath waterfox) /usr/local/bin/waterfox",
+        "mkdir -p ~/Downloads && wget $(curl -s 'https://www.waterfoxproject.org/en-US/waterfox/new/?scene=1' | re '(https://storage-waterfox.netdna-ssl.com/releases/linux64/installer/waterfox-\\d+.\\d+.\\d+.en-US.linux-x86_64.tar.bz2)' | head -n1) -O ~/Downloads/waterfox-latest.tar.bz2 && cd ~/Downloads && unp -U waterfox-latest.tar.bz2 && cd waterfox* && ln -s $(realpath waterfox) /usr/local/bin/waterfox",
 
         "mkdir ~/Downloads && wget https://telegram.org/dl/desktop/linux -O ~/Downloads/telegram-latest.tar.xz && cd ~/Downloads && unp -U telegram-latest.tar.xz && cd Telegram && ln -s $(realpath Telegram) /usr/local/bin/telegram",
 
