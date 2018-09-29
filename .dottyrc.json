@@ -36,6 +36,7 @@
         "xclip",
         "xorg-xev",
         "youtube-dl",
+        "wmctrl",
         "zsh"
     ],
     "copy" : {
@@ -49,7 +50,7 @@
         ".urxvt" : "~/.urxvt/",
 
         ".tmux.conf" : "~/.tmux.conf",
-        ".Xdefaults" : "~/.Xdefaults",
+        ".Xresources" : "~/.Xresources",
         ".bash_aliases" : "~/.bash_aliases",
         ".nexor.ascii" : "~/nexor.ascii",
         ".fehbg" : "~/.fehbg",
