@@ -1,5 +1,5 @@
 {
-    "install_cmd" : "pacman -S",
+    "install_cmd" : "sudo pacman -Syu",
     "install" : [
         "arandr",
         "calcurse",
