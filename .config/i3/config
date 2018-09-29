@@ -43,7 +43,7 @@ assign [instance="DBeaver"]                     $ws4
 #  |  _| | |  __/ (_| | |_| |  __/ | | | |_ 
 #  |_| |_|  \___|\__, |\__,_|\___|_| |_|\__|
 #                   |_|                     
-bindsym $mod+1              exec --no-startup-id /usr/local/bin/switch_to_firefox 
+bindsym $mod+1              exec --no-startup-id wmctrl -a Waterfox || waterfox
 bindsym $mod+2              exec --no-startup-id wmctrl -a ncmpcpp || urxvt -e ncmpcpp
 bindsym $mod+3              exec --no-startup-id wmctrl -a tmux || urxvt -e tmux
 bindsym $mod+Shift+3        split toggle; exec --no-startup-id urxvt -e tmux
