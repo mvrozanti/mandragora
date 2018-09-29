@@ -58,11 +58,11 @@ bindsym $mod+z              exec --no-startup-id wmctrl -a Zoom || zoom
 #  \__ \ (__| | | (_) | |_ 
 #  |___/\___|_|  \___/ \__|
 #                          
-bindsym Print                       exec --no-startup-id scrot    -e 'xclip -selection clipboard -target image/png -i $f'
-bindsym mod4+Print                  exec --no-startup-id scrot -u -e 'xclip -selection clipboard -target image/png -i $f'
-bindsym --release Ctrl+Print        exec --no-startup-id scrot -s -e 'xclip -selection clipboard -target image/png -i $f'
-bindsym --release Ctrl+Shift+Print  exec --no-startup-id scrot -s -e 'pinta $f'
-bindsym Shift+Print                 exec --no-startup-id scrot -e 'pinta $f'
+bindsym Print                       exec --no-startup-id scrot ~/.scrot.png   -e 'xclip -selection clipboard -target image/png -i $f'
+bindsym mod4+Print                  exec --no-startup-id scrot ~/.scrot.png u -e 'xclip -selection clipboard -target image/png -i $f'
+bindsym --release Ctrl+Print        exec --no-startup-id scrot ~/.scrot.png s -e 'xclip -selection clipboard -target image/png -i $f'
+bindsym --release Ctrl+Shift+Print  exec --no-startup-id scrot ~/.scrot.png s -e 'pinta $f'
+bindsym Shift+Print                 exec --no-startup-id scrot ~/.scrot.png e 'pinta $f'
 
 #                                                 _   
 #   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_ 
