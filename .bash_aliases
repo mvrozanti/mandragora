@@ -150,3 +150,5 @@ alias dotty='$HOME/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
 function countdown(){ date1=$((`date +%s` + $1)); while [ "$date1" -ge `date +%s` ]; do clear; echo -ne "$(date -u --date @$(($date1 - `date +%s`)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; } 
 function stopwatch(){ date1=`date +%s`; while true; do clear; echo -ne "$(date -u --date @$((`date +%s` - $date1)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
+function ytdl(){ youtube-dl --extract-audio --audio-format mp3 -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1 } 
+alias fortune="re '\[(.+)\]' .vim/bundle/vim-startify/autoload/startify/fortune.vim | shuf | head -n1"

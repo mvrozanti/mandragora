@@ -39,8 +39,6 @@
         "zsh"
     ],
     "copy" : {
-        "usr/share/themes/Glass" : "/usr/share/themes/Glass",
-
         ".config/powerline" : "~/.config/powerline", 
         ".config/ncmpcpp" : "~/.config/.ncmpcpp",
         ".config/i3" : "~/.config/i3",
@@ -68,9 +66,7 @@
         "usr/local/bin/gitap" : "/usr/local/bin/gitap",
         "usr/local/bin/gitundo" : "/usr/local/bin/gitundo",
         "usr/local/bin/re" : "/usr/local/bin/re",
-        "usr/local/bin/make-ranger-aliases" : "/usr/local/bin/make-ranger-aliases",
-        "usr/local/bin/pipes" : "/usr/local/bin/pipes",
-        "usr/local/bin/ytdl" : "/usr/local/bin/ytdl"
+        "usr/local/bin/make-ranger-aliases" : "/usr/local/bin/make-ranger-aliases"
     },
     "commands": [
         "mkdir -p ~/util/ && cd $_ && git clone https://github.com/danielchatfield/trello-desktop",
