@@ -48,6 +48,7 @@
         ".config/i3" : "~/.config/i3",
         ".config/ranger" : "~/.config/ranger",
         ".config/mpd" : "~/.config/mpd",
+        ".waterfox/bfgoo8ze.default/chrome" : ".waterfox/bfgoo8ze.default/chrome",
 
         ".tmux" : "~/.tmux/",
         ".urxvt" : "~/.urxvt/",
