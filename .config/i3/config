@@ -47,7 +47,7 @@ bindsym $mod+2              exec --no-startup-id wmctrl -a ncmpcpp || urxvt -e n
 bindsym $mod+3              exec --no-startup-id wmctrl -a tmux || urxvt -e tmux
 bindsym $mod+Shift+3        split toggle; exec --no-startup-id urxvt -e tmux
 bindsym $mod+4              exec --no-startup-id telegram-desktop
-bindsym $mod+b              exec --no-startup-id wmctrl -a DBeaver || netbeans
+bindsym $mod+Shift+d        exec --no-startup-id wmctrl -a DBeaver || netbeans
 bindsym $mod+d              exec --no-startup-id wmctrl -a Netbeans || netbeans
 bindsym $mod+Shift+x        exec --no-startup-id exec urxvt; i3-msg "exec sleep 1; floating enable"
 bindsym $mod+z              exec --no-startup-id wmctrl -a Zoom || zoom
