@@ -151,4 +151,6 @@ alias mviz='ncmpcpp --screen visualizer'
 function countdown(){ date1=$((`date +%s` + $1)); while [ "$date1" -ge `date +%s` ]; do clear; echo -ne "$(date -u --date @$(($date1 - `date +%s`)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; } 
 function stopwatch(){ date1=`date +%s`; while true; do clear; echo -ne "$(date -u --date @$((`date +%s` - $date1)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
 function ytdl(){ youtube-dl --extract-audio --audio-format mp3 -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1 } 
+function gitap(){ commit_message="$@"; if [[ -z "$commit_message" ]]; then echo "Commit message is missing"; else git add .;  git commit -m "$commit_message"; git push; fi } 
+
 alias fortune="re '\[(.+)\]' .vim/bundle/vim-startify/autoload/startify/fortune.vim | shuf | head -n1"

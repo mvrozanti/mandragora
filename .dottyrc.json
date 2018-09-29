@@ -60,13 +60,7 @@
         ".gdmap" : "~/.gdmap",
         ".bashrc" : "~/.bashrc",
         ".zshrc" : "~/.zshrc",
-        ".urlview" : "~/.urlview",
-
-        "usr/local/bin/gitai" : "/usr/local/bin/gitai",
-        "usr/local/bin/gitap" : "/usr/local/bin/gitap",
-        "usr/local/bin/gitundo" : "/usr/local/bin/gitundo",
-        "usr/local/bin/re" : "/usr/local/bin/re",
-        "usr/local/bin/make-ranger-aliases" : "/usr/local/bin/make-ranger-aliases"
+        ".urlview" : "~/.urlview"
     },
     "commands": [
         "mkdir -p ~/util/ && cd $_ && git clone https://github.com/danielchatfield/trello-desktop",
