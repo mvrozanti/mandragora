@@ -37,6 +37,7 @@
         "unp",
         "rxvt-unicode",
         "xclip",
+        "xsel",
         "xorg-xev",
         "youtube-dl",
         "wmctrl",
