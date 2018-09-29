@@ -32,7 +32,6 @@
         "ufw",
         "unclutter",
         "unp",
-        "urlview",
         "rxvt-unicode",
         "xclip",
         "xorg-xev",
@@ -68,6 +67,7 @@
         "mkdir -p ~/util/ && cd $_ && git clone https://github.com/emcrisostomo/fswatch",
         "mkdir -p ~/util/ && cd $_ && git clone https://github.com/jesseduffield/lazygit",
         "mkdir -p ~/util/ && cd $_ && git clone https://github.com/mvrozanti/bash-tetris",
+        "mkdir -p ~/util/ && cd $_ && git clone https://github.com/sigpipe/urlview",
 
         "mkdir ~/Downloads && wget '$(curl -s 'https://www.waterfoxproject.org/en-US/waterfox/new/?scene=1' | re '(https://storage-waterfox.netdna-ssl.com/releases/linux64/installer/waterfox-\\d+.\\d+.\\d+.en-US.linux-x86_64.tar.bz2)' | head -n1) -O ~/Downloads/waterfox-latest.tar.bz2 && cd ~/Downloads && unp -U waterfox-latest.tar.bz2 && cd waterfox* && ln -s $(realpath waterfox) /usr/local/bin/waterfox",
 
