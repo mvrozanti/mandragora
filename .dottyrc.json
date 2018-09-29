@@ -63,6 +63,7 @@
         ".urlview" : "~/.urlview"
     },
     "commands": [
+        "mkdir -p ~/util/ && git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim && vim +PluginInstall +qall",
         "mkdir -p ~/util/ && cd $_ && git clone https://github.com/danielchatfield/trello-desktop",
         "mkdir -p ~/util/ && cd $_ && git clone https://github.com/emcrisostomo/fswatch",
         "mkdir -p ~/util/ && cd $_ && git clone https://github.com/jesseduffield/lazygit",
