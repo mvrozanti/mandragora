@@ -10,6 +10,8 @@ let g:ycm_key_list_stop_completion = ['<Enter>']
 
 " hits bong: 
 vnoremap ( xi()<Esc>PF(i
+vnoremap q[ di[]<Esc>P
+vnoremap q" di""<Esc>P
 vnoremap " xi""<Esc>PF"i
 nnoremap yF maggyG'a
 inoremap <C-Space> <C-X><C-O>
