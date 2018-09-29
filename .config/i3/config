@@ -6,16 +6,15 @@
 #                          
 
 bindsym Ctrl+Mod1+BackSpace   exec --no-startup-id shutdown -h 0
-bindsym Ctrl+Shift+Escape     exec --no-startup-id urxvt -e htop
-bindsym $mod+Return            exec --no-startup-id xterm # fallback
-bindsym $mod+Shift+r          restart # i3
+bindsym Ctrl+Shift+Escape     exec --no-startup-id urxvt -e htop    # should add some more control and sorting for fast proc killing
+bindsym $mod+Return           exec --no-startup-id xterm            # fallback
+bindsym $mod+Shift+r          restart
+bindsym $mod+q                kill
 bindsym $mod+Shift+e          exec --no-startup-id "if [[ $(echo -e 'Exit i3\nDo not'|dmenu -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300') == 'Exit i3' ]]; then i3-msg exit; fi"
 bindsym $mod+r                exec dmenu_run -fn "Droid Sans Mono for Powerline" -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300'
-bindsym $mod+q                kill
 set $mod Mod4
-exec --no-startup-id setxkbmap us alt-intl # this is machine-specific
+exec --no-startup-id setxkbmap us alt-intl # this is machine-specific and should not be here, maybe xinit[rc]
 exec --no-startup-id mpd
-#exec --no-startup-id owncloud
 exec --no-startup-id xset s off
 exec --no-startup-id xset -dpms
 exec --no-startup-id xset s off -dpms
@@ -26,15 +25,13 @@ exec --no-startup-id xset s off -dpms
 #   \___\___/|_| |_|___/\__|
 #                           
 set $minty 192.168.0.10
-set $term urxvt -e tmux
 SET $minty_remote texugos.duckdns.org
 set $bl_delta 10
-set $mpc mpc --host 
-set $orange   #ff3300
-set $gray   #1e1e1e
+set $orange     #ff3300
+set $gray       #1e1e1e
 set $darkgray   #0c0c0c
 for_window [class="Waterfox"] move to workspace $ws1
-assign [instance="tmux"] $ws3
+assign [class="URxvt"] $ws3
 assign [class="NetBeans IDE "] $ws6
 assign [class="Zoom Meeting ID:"] $ws5
 assign [instance="DBeaver"] $ws4
@@ -50,6 +47,7 @@ bindsym $mod+2              exec --no-startup-id wmctrl -a ncmpcpp || urxvt -e n
 bindsym $mod+3              exec --no-startup-id wmctrl -a tmux || urxvt -e tmux
 bindsym $mod+Shift+3        split toggle; exec --no-startup-id urxvt -e tmux
 bindsym $mod+4              exec --no-startup-id telegram-desktop
+bindsym $mod+b              exec --no-startup-id wmctrl -a DBeaver || netbeans
 bindsym $mod+d              exec --no-startup-id wmctrl -a Netbeans || netbeans
 bindsym $mod+Shift+x        exec --no-startup-id exec urxvt; i3-msg "exec sleep 1; floating enable"
 bindsym $mod+z              exec --no-startup-id wmctrl -a Zoom || zoom
@@ -60,10 +58,11 @@ bindsym $mod+z              exec --no-startup-id wmctrl -a Zoom || zoom
 #  \__ \ (__| | | (_) | |_ 
 #  |___/\___|_|  \___/ \__|
 #                          
-bindsym Print           exec --no-startup-id scrot    ~/.scrot.png && cat ~/.scrot.png | xclip -selection clipboard -target image/png -i 
-bindsym Shift+Print     exec --no-startup-id scrot -u ~/.scrot.png && cat ~/.scrot.png | xclip -selection clipboard -target image/png -i 
-bindsym Ctrl+Print      exec --no-startup-id scrot -s ~/.scrot.png && cat ~/.scrot.png | xclip -selection clipboard -target image/png -i 
-#bindsym $mod+Ctrl+r exec rofi -show run -lines 3 -width 40 -opacity "45" -font "DejaVu Sans Mono 10" -color-window "#1e1e1e" 
+bindsym Print                       exec --no-startup-id scrot    -e 'xclip -selection clipboard -target image/png -i $f'
+bindsym mod4+Print                  exec --no-startup-id scrot -u -e 'xclip -selection clipboard -target image/png -i $f'
+bindsym --release Ctrl+Print        exec --no-startup-id scrot -s -e 'xclip -selection clipboard -target image/png -i $f'
+bindsym --release Ctrl+Shift+Print  exec --no-startup-id scrot -s -e 'pinta $f'
+bindsym Shift+Print                 exec --no-startup-id scrot -e 'pinta $f'
 
 #                                                 _   
 #   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_ 
