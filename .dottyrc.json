@@ -62,7 +62,7 @@
         ".nexor.ascii" : "~/nexor.ascii",
         ".fehbg" : "~/.fehbg",
         ".bash_profile" : "~/.bash_profile",
-        ".conky-i3bar" : "~/conky-i3bar",
+        "conky-i3bar" : "~/conky-i3bar",
         ".conkyrc" : "~/.conkyrc",
         ".vimrc" : "~/.vimrc",
         ".gdmap" : "~/.gdmap",
