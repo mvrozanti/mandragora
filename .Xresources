@@ -34,7 +34,7 @@ URxvt.tintColor:    #ffffff
 URxvt.letterSpace: -1
 URxvt*saveLines: 0
 URxvt.depth:		32
-URxvt.font:xft: Droid Sans Mono Slashed for Powerline:antialias:hinting=true:size=13
+URxvt.font:xft: Droid Sans Mono Nerd Font Complete:antialias:hinting=true:size=13
 URxvt.scrollBar:	false
 URxvt.cursorColor:	#faa
 URxvt*.termName: screen-256color
