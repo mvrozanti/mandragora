@@ -15,6 +15,7 @@
         "lsof",
         "mpd",
         "mpv",
+        "nemo",
         "netbeans",
         "ntp",
         "powerline",
@@ -25,9 +26,10 @@
         "ranger",
         "rsync",
         "rxvt-unicode",
-        "scrot",
-        "sxiv",
         "screenfetch",
+        "scrot",
+        "socat",
+        "sxiv",
         "tig",
         "tmux",
         "trash-cli",
@@ -74,11 +76,11 @@
     },
     "commands": [
         "mkdir -p ~/util/ && git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim && vim +PluginInstall +qall",
-        "mkdir -p ~/util/ && cd $_ && git clone https://github.com/danielchatfield/trello-desktop",
-        "mkdir -p ~/util/ && cd $_ && git clone https://github.com/emcrisostomo/fswatch",
-        "mkdir -p ~/util/ && cd $_ && git clone https://github.com/jesseduffield/lazygit",
-        "mkdir -p ~/util/ && cd $_ && git clone https://github.com/mvrozanti/bash-tetris",
-        "mkdir -p ~/util/ && cd $_ && git clone https://github.com/sigpipe/urlview",
+        "git clone https://github.com/danielchatfield/trello-desktop",
+        "git clone https://github.com/emcrisostomo/fswatch",
+        "git clone https://github.com/jesseduffield/lazygit",
+        "git clone https://github.com/mvrozanti/bash-tetris",
+        "git clone https://github.com/sigpipe/urlview",
         "curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh | sh",
         "git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions",
         "git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm",
@@ -87,7 +89,6 @@
 
         "mkdir ~/Downloads && wget https://telegram.org/dl/desktop/linux -O ~/Downloads/telegram-latest.tar.xz && cd ~/Downloads && unp -U telegram-latest.tar.xz && cd Telegram && ln -s $(realpath Telegram) /usr/local/bin/telegram",
 
-        "pip3 install --user maybe",
-        "pip3 install --user grip"
+        "pip3 install --user grip psutil maybe"
     ]
 }
