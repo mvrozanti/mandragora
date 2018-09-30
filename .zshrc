@@ -97,3 +97,4 @@ export PATH=~/.npm/bin:$PATH
 
 # py
 export PATH=~/.local/bin:$PATH
+# source /usr/share/zsh-theme-powerlevel9k/powerlevel9k.zsh-theme
