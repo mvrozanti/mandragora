@@ -182,7 +182,7 @@ bindsym $mod+n move container to workspace next
 #  | (_| |  __/\__ \ |_| | | |  __/ |_| | (__ 
 #   \__,_|\___||___/\__|_| |_|\___|\__|_|\___|
 #                                             
-exec --no-startup-id compton -D 13
+exec --no-startup-id compton -D 6
 exec --no-startup-id feh --bg-scale /mnt/4ADE1465DE144C17/gdrive/Levv/wllpps/bamboo_forest-wallpaper-3840x2160.jpg 
 popup_during_fullscreen smart
 floating_modifier Mod1
