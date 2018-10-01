@@ -32,12 +32,11 @@ set $orange     #ff3300
 set $gray       #1e1e1e
 set $darkgray   #0c0c0c
 for_window [class="Waterfox"] move to workspace $ws1
+for_window [title="Zoom"]     move to workspace $ws5
 assign [instance="st"]                          $ws2
 assign [class="URxvt"]                          $ws3
 assign [instance="DBeaver"]                     $ws4
-assign [class="Zoom Meeting ID:"]               $ws5
 assign [class="NetBeans IDE "]                  $ws6
-# assign [instance="telegram"]                    $ws7
 
 #    __                                 _   
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_ 
