@@ -37,6 +37,7 @@ assign [class="URxvt"]                          $ws3
 assign [instance="DBeaver"]                     $ws4
 assign [class="Zoom Meeting ID:"]               $ws5
 assign [class="NetBeans IDE "]                  $ws6
+# assign [instance="telegram"]                    $ws7
 
 #    __                                 _   
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_ 
@@ -48,7 +49,7 @@ bindsym $mod+1              exec --no-startup-id wmctrl -a Waterfox || waterfox
 bindsym $mod+2              exec --no-startup-id wmctrl -a ncmpcpp || urxvt -e ncmpcpp
 bindsym $mod+3              exec --no-startup-id wmctrl -xa st || st -e zsh
 bindsym $mod+Shift+3        exec --no-startup-id wmctrl -a tmux || urxvt -e tmux
-bindsym $mod+4              exec --no-startup-id telegram-desktop
+bindsym $mod+4              split h; exec --no-startup-id wmctrl -a telegram || telegram-desktop
 bindsym $mod+Shift+d        exec --no-startup-id wmctrl -xa DBeaver || dbeaver
 bindsym $mod+d              exec --no-startup-id wmctrl -a Netbeans || netbeans
 bindsym $mod+Shift+x        exec --no-startup-id exec urxvt; i3-msg "exec sleep 1; floating enable"
