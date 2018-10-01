@@ -32,10 +32,11 @@ set $orange     #ff3300
 set $gray       #1e1e1e
 set $darkgray   #0c0c0c
 for_window [class="Waterfox"] move to workspace $ws1
+assign [instance="st"]                          $ws2
 assign [class="URxvt"]                          $ws3
-assign [class="NetBeans IDE "]                  $ws6
-assign [class="Zoom Meeting ID:"]               $ws5
 assign [instance="DBeaver"]                     $ws4
+assign [class="Zoom Meeting ID:"]               $ws5
+assign [class="NetBeans IDE "]                  $ws6
 
 #    __                                 _   
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_ 
@@ -45,8 +46,8 @@ assign [instance="DBeaver"]                     $ws4
 #                   |_|                     
 bindsym $mod+1              exec --no-startup-id wmctrl -a Waterfox || waterfox
 bindsym $mod+2              exec --no-startup-id wmctrl -a ncmpcpp || urxvt -e ncmpcpp
-bindsym $mod+3              exec --no-startup-id wmctrl -a tmux || urxvt -e tmux
-bindsym $mod+Shift+3        split toggle; exec --no-startup-id urxvt -e tmux
+bindsym $mod+3              exec --no-startup-id wmctrl -xa st || st -e zsh
+bindsym $mod+Shift+3        exec --no-startup-id wmctrl -a tmux || urxvt -e tmux
 bindsym $mod+4              exec --no-startup-id telegram-desktop
 bindsym $mod+Shift+d        exec --no-startup-id wmctrl -xa DBeaver || dbeaver
 bindsym $mod+d              exec --no-startup-id wmctrl -a Netbeans || netbeans

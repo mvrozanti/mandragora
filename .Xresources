@@ -15,9 +15,9 @@
 *color11: #f1f01f
 !! dark purple
 *color4: #606060
-*color12: #aa0057
+*color12: #ff0007
 !! background on autocomplete:
-*color5: rgba:fa00/0a00/0000/f900
+!!*color5: rgba:fa00/0a00/0000/f900
 *color13: #aa00aa
 !! green
 *color6: #f1f01f
@@ -34,7 +34,7 @@ URxvt.tintColor:    #ffffff
 URxvt.letterSpace: -1
 URxvt*saveLines: 0
 URxvt.depth:		32
-URxvt.font:xft: Droid Sans Mono Nerd Font Complete:antialias:hinting=true:size=13
+URxvt.font:xft: Droid Sans Mono Slashed for Powerline:antialias:hinting=true:size=13
 URxvt.scrollBar:	false
 URxvt.cursorColor:	#faa
 URxvt*.termName: screen-256color
