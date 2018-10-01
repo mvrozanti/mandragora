@@ -152,6 +152,6 @@ function stopwatch(){ date1=`date +%s`; while true; do clear; echo -ne "$(date -
 function ytdl(){ youtube-dl --extract-audio --audio-format mp3 -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1 } 
 function gitap(){ commit_message="$@"; if [[ -z "$commit_message" ]]; then echo "Commit message is missing"; else git add .;  git commit -m "$commit_message"; git push; fi } 
 alias sw='sudo wifi-menu'
-alias cfs='cd ~/util/st/ && vim config.h && sudo make install'
+alias cfs='cd ~/util/st/ && vim config.h && sudo make install && gitap changed st'
 
 alias fortune="re '\[(.+)\]' .vim/bundle/vim-startify/autoload/startify/fortune.vim | shuf | head -n1"
