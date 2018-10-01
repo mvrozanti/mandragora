@@ -120,7 +120,6 @@ function knock(){ nc -z -w3 "$1" "$2"; echo $?; }
 function ec() { [[ "$1" == "-h" ]] && { shift && eval $* > /dev/null 2>&1; ec=$?; echo $ec; } || eval $*; ec=$?; }
 function sshasap(){ while [[ $(nc -z -w1 "$1" 22) -gt 0 ]]; do sleep 1; done; beep; ssh "$1"; }
 # function copa(){ kek="$(curl -s http://worldcup.sfg.io/matches/current)"; echo -n $kek|jq '.[0].home_team.goals'|tr -d '\n'; echo -n 'x'; echo $kek|jq '.[0].away_team.goals'; }
-alias cfs='ls /home/nexor/Dropbox/Sys4Bank\ -\ Programas\ Java/**/config_*.properties|v -'
 alias diff='diff --color=auto'
 alias fslint='/usr/share/fslint/fslint/fslint'
 alias stream='pkill darkice; alsao2i; tmux new -d darkice'  
@@ -153,5 +152,6 @@ function stopwatch(){ date1=`date +%s`; while true; do clear; echo -ne "$(date -
 function ytdl(){ youtube-dl --extract-audio --audio-format mp3 -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1 } 
 function gitap(){ commit_message="$@"; if [[ -z "$commit_message" ]]; then echo "Commit message is missing"; else git add .;  git commit -m "$commit_message"; git push; fi } 
 alias sw='sudo wifi-menu'
+alias cfs='cd ~/util/st/ && vim config.h && sudo make install'
 
 alias fortune="re '\[(.+)\]' .vim/bundle/vim-startify/autoload/startify/fortune.vim | shuf | head -n1"

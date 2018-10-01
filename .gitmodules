@@ -1,3 +1,6 @@
 [submodule "dotty"]
 	path = dotty
 	url = https://github.com/mvrozanti/dotty
+[submodule "st"]
+	path = st
+	url = https://github.com/mvrozanti/st
