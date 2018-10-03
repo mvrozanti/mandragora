@@ -77,6 +77,7 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 source ~/.oh-my-zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 source $HOME/.bash_aliases
+source /home/nexor/.ranger_aliases
 source /usr/lib/python3.7/site-packages/powerline/bindings/bash/powerline.sh
 stty -ixon
 unsetopt HIST_VERIFY
