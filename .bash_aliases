@@ -155,5 +155,6 @@ function ytdl(){ youtube-dl --extract-audio --audio-format mp3 -o "/mnt/4ADE1465
 function gitap(){ commit_message="$@"; if [[ -z "$commit_message" ]]; then echo "Commit message is missing"; else git add .;  git commit -m "$commit_message"; git push; fi } 
 alias sw='sudo wifi-menu'
 alias cfs='cd ~/util/st/ && vim config.h && sudo make install && gitap changed st'
+function make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > $HOME/.ranger_aliases } 
 
 alias fortune="re '\[(.+)\]' .vim/bundle/vim-startify/autoload/startify/fortune.vim | shuf | head -n1"
