@@ -4,6 +4,3 @@
 [submodule "st"]
 	path = st
 	url = https://github.com/mvrozanti/st
-[submodule "git"]
-	path = git
-	url = https://github.com/mvrozanti/dotty
