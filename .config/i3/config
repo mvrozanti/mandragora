@@ -12,6 +12,7 @@ bindsym $mod+Shift+r          restart
 bindsym $mod+q                kill
 bindsym $mod+Shift+e          exec --no-startup-id "if [[ $(echo -e 'Exit i3\nDo not'|dmenu -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300') == 'Exit i3' ]]; then i3-msg exit; fi"
 bindsym $mod+r                exec dmenu_run -fn "Droid Sans Mono for Powerline" -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300'
+bindsym $mod+Tab              exec --no-startup-id "case $(wmctrl -l|awk '{$3="";$2="";$1=""; print $0}'|dmenu)"
 set $mod Mod4
 exec --no-startup-id setxkbmap us alt-intl # this is machine-specific and should not be here, maybe xinit[rc]
 exec --no-startup-id mpd
