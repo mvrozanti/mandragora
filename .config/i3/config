@@ -25,18 +25,21 @@ exec --no-startup-id xset s off -dpms
 #  | (_| (_) | | | \__ \ |_ 
 #   \___\___/|_| |_|___/\__|
 #                           
+set $TERMINAL st
 set $minty 192.168.0.10
-SET $minty_remote texugos.duckdns.org
+set $minty_remote texugos.duckdns.org
 set $bl_delta 10
 set $orange     #ff3300
 set $gray       #1e1e1e
 set $darkgray   #0c0c0c
 for_window [class="Waterfox"] move to workspace $ws1
 for_window [title="Zoom"]     move to workspace $ws5
+for_window [class="URxvt"]    floating enable
+
 assign [instance="st"]                          $ws2
-assign [class="URxvt"]                          $ws3
 assign [instance="DBeaver"]                     $ws4
 assign [class="NetBeans IDE "]                  $ws6
+assign [title="Discord"]                        $ws7
 
 #    __                                 _   
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_ 
@@ -49,10 +52,12 @@ bindsym $mod+2              exec --no-startup-id wmctrl -a ncmpcpp || urxvt -e n
 bindsym $mod+3              exec --no-startup-id wmctrl -xa st || st -e zsh
 bindsym $mod+Shift+3        exec --no-startup-id wmctrl -a tmux || urxvt -e tmux
 bindsym $mod+4              split h; exec --no-startup-id wmctrl -a telegram || telegram-desktop
-bindsym $mod+Shift+d        exec --no-startup-id wmctrl -xa DBeaver || dbeaver
-bindsym $mod+d              exec --no-startup-id wmctrl -a Netbeans || netbeans
-bindsym $mod+Shift+x        exec --no-startup-id exec urxvt; i3-msg "exec sleep 1; floating enable"
+bindsym $mod+Shift+b        exec --no-startup-id wmctrl -xa DBeaver || dbeaver
+bindsym $mod+Shift+d        exec --no-startup-id wmctrl -a Netbeans || netbeans
 bindsym $mod+z              exec --no-startup-id wmctrl -a Zoom || zoom
+bindsym $mod+o              exec --no-startup-id wmctrl -xa urxvt || urxvt -e vim $HOME/todo
+bindsym $mod+Shift+f        exec --no-startup-id exec /usr/local/bin/pondfox https://web.whatsapp.com/
+bindsym $mod+d              workspace $ws9
 
 #                      _   
 #   ___  ___ _ __ ___ | |_ 
@@ -173,8 +178,8 @@ bindsym $mod+Shift+8 move container to workspace $ws8
 bindsym $mod+Shift+9 move container to workspace $ws9
 bindsym $mod+Shift+0 move container to workspace $ws10
 
-bindsym $mod+Shift+n move container to workspace next
-bindsym $mod+n move container to workspace next
+# bindsym $mod+Shift+n move container to workspace next
+# bindsym $mod+n move container to workspace next
 
 #                   _   _          _   _      
 #    __ _  ___  ___| |_| |__   ___| |_(_) ___ 
@@ -204,12 +209,13 @@ bindsym $mod+KP_Prior exec --no-startup-id redshift -g 1:1:1 -O 25000K
 # |_.__/ \__,_|_|   
 #                   
 bar {
-    set $bg-color            #111111
+    set $bg-color            #111111aa
     set $inactive-bg-color   #ff3300
     set $text-color          #000000
     set $inactive-text-color $bg-color
     set $urgent-bg-color     $inactive-bg-color
     status_command $HOME/conky-i3bar
+    i3bar_command i3bar -t
     font pango: Droid Sans Mono Slashed for Powerline 11
     colors {
         background $bg-color
