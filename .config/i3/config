@@ -33,9 +33,6 @@ set $orange     #ff3300
 set $gray       #1e1e1e
 set $darkgray   #0c0c0c
 $ensid mpd
-$ensid xset s off
-$ensid xset -dpms
-$ensid xset s off -dpms
 $ensid unclutter -idle 1
 
 for_window  [class="Waterfox"]                       move to workspace $ws1
