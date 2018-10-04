@@ -3,7 +3,7 @@
 <fontscolors>
     <fontcolor bgColor="3aff00ff" name="mark-occurrences"/>
     <fontcolor bgColor="black" foreColor="green" name="default">
-        <font name="Monospaced" size="14" style="plain"/>
+        <font name="Droid Sans Mono Slashed for Powerline" size="14"/>
     </fontcolor>
     <fontcolor name="warning" waveUnderlined="yellow"/>
     <fontcolor name="separator"/>
