@@ -34,6 +34,7 @@ set $gray       #1e1e1e
 set $darkgray   #0c0c0c
 $ensid mpd
 $ensid unclutter -idle 1
+focus_follows_mouse no
 
 for_window  [class="Waterfox"]                       move to workspace $ws1
 for_window  [title="Zoom"]                           move to workspace $ws5

@@ -154,7 +154,7 @@ Plugin 'tpope/vim-fugitive'
 " ==== syntax helpers
 Plugin 'scrooloose/syntastic'
 let g:syntastic_javascript_checkers = ['eslint']
-" let g:syntastic_java_checkers=['eclim']
+let g:syntastic_java_checkers=['eclim']
 Plugin 'tpope/vim-surround'
 Plugin 'chrisbra/Colorizer'
 Plugin 'chrisbra/unicode.vim'
