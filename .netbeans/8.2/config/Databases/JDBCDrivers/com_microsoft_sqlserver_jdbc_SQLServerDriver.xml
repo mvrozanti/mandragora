@@ -1,0 +1,10 @@
+<?xml version='1.0'?>
+<!DOCTYPE driver PUBLIC '-//NetBeans//DTD JDBC Driver 1.1//EN' 'http://www.netbeans.org/dtds/jdbc-driver-1_1.dtd'>
+<driver>
+  <name value='Microsoft SQL Server 2005'/>
+  <display-name value='Microsoft SQL Server 2005'/>
+  <class value='com.microsoft.sqlserver.jdbc.SQLServerDriver'/>
+  <urls>
+    <url value='file:/home/nexor/sys4bank/prog/s4Utils/lib/sqljdbc42.jar'/>
+  </urls>
+</driver>

@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE settings PUBLIC "-//NetBeans//DTD Session settings 1.0//EN" "http://www.netbeans.org/dtds/sessionsettings-1_0.dtd">
+<settings version="1.0">
+    <module name="org.netbeans.spi.debugger.ui/1" spec="2.54.1"/>
+    <instanceof class="java.awt.Component"/>
+    <instanceof class="java.awt.Container"/>
+    <instanceof class="java.awt.MenuContainer"/>
+    <instanceof class="java.awt.event.KeyListener"/>
+    <instanceof class="java.awt.image.ImageObserver"/>
+    <instanceof class="java.beans.PropertyChangeListener"/>
+    <instanceof class="java.io.Externalizable"/>
+    <instanceof class="java.io.Serializable"/>
+    <instanceof class="java.lang.Object"/>
+    <instanceof class="java.util.EventListener"/>
+    <instanceof class="javax.accessibility.Accessible"/>
+    <instanceof class="javax.swing.JComponent"/>
+    <instanceof class="javax.swing.TransferHandler$HasGetTransferHandler"/>
+    <instanceof class="javax.swing.event.DocumentListener"/>
+    <instanceof class="org.netbeans.modules.debugger.ui.eval.CodeEvaluatorUI"/>
+    <instanceof class="org.openide.util.HelpCtx$Provider"/>
+    <instanceof class="org.openide.util.Lookup$Provider"/>
+    <instanceof class="org.openide.windows.TopComponent"/>
+    <serialdata class="org.netbeans.modules.debugger.ui.eval.CodeEvaluatorUI">
+        ACED0005737200296F72672E6F70656E6964652E77696E646F77732E546F70436F6D706F6E656E74245265706C6163657284
+        874494BDDF6D6403000078707400356F72672E6E65746265616E732E6D6F64756C65732E64656275676765722E75692E6576
+        616C2E436F64654576616C7561746F7255497372000F6A6176612E6C616E672E53686F7274684D37133460DA520200015300
+        0576616C7565787200106A6176612E6C616E672E4E756D62657286AC951D0B94E08B02000078700001770400000001740013
+        4576616C756174652045787072657373696F6E7400264576616C756174652065787072657373696F6E73206F7220636F6465
+        20736E6970706574732E7078
+    </serialdata>
+</settings>
