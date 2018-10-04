@@ -6,15 +6,16 @@
 #                          
 
 set $mod Mod4
+set $dmenu_looks -fn "Droid Sans Mono for Powerline" -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300' 
 bindsym Ctrl+Mod1+BackSpace   exec --no-startup-id shutdown -h 0
 bindsym Ctrl+Shift+Escape     exec --no-startup-id urxvt -e htop    # should add some more control and sorting for fast proc killing
 bindsym $mod+Return           exec --no-startup-id xterm            # fallback
 bindsym $mod+Shift+r          restart
 bindsym $mod+q                kill
-# bindsym $mod+Tab              exec wmctrl -l \| awk '{$3="";$2="";$1=""; print $0}' \| dmenu \| xargs wmctrl -a
-bindsym $mod+Shift+e          exec --no-startup-id "if [[ $(echo -e 'Exit i3\nDo not'|dmenu -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300') == 'Exit i3' ]]; then i3-msg exit; fi"
-bindsym $mod+r                exec dmenu_run -fn "Droid Sans Mono for Powerline" -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300'
-exec --no-startup-id setxkbmap us alt-intl # this is machine-specific and should not be here, maybe xinit[rc]
+bindsym Mod1+Tab              exec wmctrl -l | sed -E "s/.*$(hostname)(.*)/\1/g" | rev | cut -d '-' -f1 | rev  | dmenu $dmenu_looks | xargs wmctrl -a
+bindsym $mod+Shift+e          exec --no-startup-id [[ `echo -e 'Exit i3\nDo not'|dmenu $dmenu_looks` -eq 'Exit i3' ]] && i3-msg exit
+bindsym $mod+r                exec dmenu_run $dmenu_looks
+exec --no-startup-id setxkbmap us alt-intl # this is machine-specific and should not be here, maybe .profile?
 exec --no-startup-id mpd
 exec --no-startup-id xset s off
 exec --no-startup-id xset -dpms
@@ -49,9 +50,10 @@ assign [title="Discord"]                        $ws7
 #  |_| |_|  \___|\__, |\__,_|\___|_| |_|\__|
 #                   |_|                     
 bindsym $mod+1              exec --no-startup-id wmctrl -a Waterfox || waterfox
-bindsym $mod+2              exec --no-startup-id wmctrl -a ncmpcpp || urxvt -e ncmpcpp
-bindsym $mod+3              exec --no-startup-id wmctrl -xa st || st -e zsh
-bindsym $mod+Shift+3        exec --no-startup-id wmctrl -a tmux || urxvt -e tmux
+bindsym $mod+2              exec --no-startup-id wmctrl -a ncmpcpp || st -e ncmpcpp
+bindsym $mod+Shift+2        exec --no-startup-id wmctrl -a ncmpcpp || st -e ncmpcpp -s visualizer 
+bindsym $mod+3              split h; exec --no-startup-id wmctrl -xa st || st -e zsh
+bindsym $mod+Shift+3        split toggle; exec --no-startup-id wmctrl -xa tmux || st -e tmux
 bindsym $mod+4              split h; exec --no-startup-id wmctrl -a telegram || telegram-desktop
 bindsym $mod+Shift+b        exec --no-startup-id wmctrl -xa DBeaver || dbeaver
 bindsym $mod+Shift+d        exec --no-startup-id wmctrl -a Netbeans || netbeans
@@ -129,10 +131,10 @@ bindsym XF86AudioPlay		    exec --no-startup-id mpc toggle  #$mpc $minty_remote 
 bindsym XF86AudioPrev		    exec --no-startup-id mpc prev  #$mpc $minty_remote prev
 bindsym XF86AudioStop		    exec --no-startup-id /usr/local/bin/start-stop-stream
 bindsym XF86AudioMute           exec --no-startup-id paxmier -q set Master toggle
-# bindsym XF86AudioLowerVolume    exec --no-startup-id amixer -c 0 -q set Master 4dB- unmute 
-# bindsym XF86AudioRaiseVolume    exec --no-startup-id amixer -c 0 -q set Master 4dB+ unmute
 bindsym XF86AudioLowerVolume    exec --no-startup-id pamixer -d 4 
 bindsym XF86AudioRaiseVolume    exec --no-startup-id pamixer -i 4 
+# bindsym XF86AudioLowerVolume    exec --no-startup-id amixer -c 0 -q set Master 4dB- unmute 
+# bindsym XF86AudioRaiseVolume    exec --no-startup-id amixer -c 0 -q set Master 4dB+ unmute
 
 #                                            _          __         _          
 #    ___ ___  _ __ ___  _ __ ___   ___ _ __ | |_ ___   / / __ ___ (_)___  ___ 
@@ -169,7 +171,7 @@ bindsym $mod+Ctrl+8 workspace $ws8
 bindsym $mod+Ctrl+9 workspace $ws9
 
 bindsym $mod+Shift+1 move container to workspace $ws1
-bindsym $mod+Shift+2 move container to workspace $ws2
+# bindsym $mod+Shift+2 move container to workspace $ws2
 # bindsym $mod+Shift+3 is extra urxvt
 bindsym $mod+Shift+4 move container to workspace $ws4
 bindsym $mod+Shift+5 move container to workspace $ws5
@@ -189,7 +191,7 @@ bindsym $mod+Shift+0 move container to workspace $ws10
 #   \__,_|\___||___/\__|_| |_|\___|\__|_|\___|
 #                                             
 exec --no-startup-id compton -D 6
-exec --no-startup-id feh --bg-scale /mnt/4ADE1465DE144C17/gdrive/Levv/wllpps/bamboo_forest-wallpaper-3840x2160.jpg 
+exec --no-startup-id $HOME/.fehbg
 popup_during_fullscreen smart
 floating_modifier Mod1
 font pango:Droid Sans Mono for Powerline11
@@ -239,16 +241,17 @@ gaps inner 3
 gaps outer 0
 new_window none
 bindsym $mod+g gaps inner all set 0; gaps outer all set 0
-set $mode_gaps Gaps: (o) outer, (i) inner
+set $mode_gaps Gaps: (o) outer, (i) inner, (I) gappy
 set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
 set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
 bindsym $mod+Shift+g mode "$mode_gaps"
  
 mode "$mode_gaps" {
-        bindsym o      mode "$mode_gaps_outer"
-        bindsym i      mode "$mode_gaps_inner"
-        bindsym Return mode "default"
-        bindsym Escape mode "default"
+        bindsym o               mode "$mode_gaps_outer"
+        bindsym i               mode "$mode_gaps_inner"
+        bindsym Shift+i         gaps inner current set 50
+        bindsym Return          mode "default"
+        bindsym Escape          mode "default"
 }
  
 mode "$mode_gaps_inner" {
