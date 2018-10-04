@@ -115,6 +115,7 @@ let g:system_copy#copy_command='xclip -sel clipboard -i'
 let g:system_copy#paste_command='xclip -sel clipboard -o'
 
 Plugin 'ehamberg/vim-cute-python'
+Plugin 'mikelue/vim-maven-plugin'
 
 "==== plugin manager
 Plugin 'VundleVim/Vundle.vim'
@@ -278,6 +279,7 @@ autocmd FileType javascript                                         set omnifunc
 autocmd FileType python                                             let b:run_script = '! clear;python3 %'
 autocmd FileType python                                             let g:pymode_python = 'python3'
 autocmd FileType cpp                                                let b:run_script = '! clear; make && !%:r'
+autocmd FileType java                                               imap <F5> <ESC><ESC>:!ant target -Dfilenoext=\"%<\"
 " autocmd FileType *.c                                                  let b:run_script='gcc\ %\ &&\ ./!%:r.out'
 
 inoremap <A-Left> <ESC>h
