@@ -6,19 +6,21 @@
 #                          
 
 set $mod Mod4
+set $ensid exec --no-startup-id
+set $bind bindsym
 set $dmenu_looks -fn "Droid Sans Mono for Powerline" -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300' 
-bindsym Ctrl+Mod1+BackSpace   exec --no-startup-id shutdown -h 0
-bindsym Ctrl+Shift+Escape     exec --no-startup-id urxvt -e htop    # should add some more control and sorting for fast proc killing
-bindsym $mod+Return           exec --no-startup-id xterm            # fallback
-bindsym $mod+Shift+r          restart
-bindsym $mod+q                kill
-bindsym Mod1+Tab              exec wmctrl -l | sed -E "s/.*$(hostname)(.*)/\1/g" | rev | cut -d '-' -f1 | rev  | dmenu $dmenu_looks | xargs wmctrl -a
-bindsym $mod+Shift+e          exec --no-startup-id [[ `echo -e 'Exit i3\nDo not'|dmenu $dmenu_looks` -eq 'Exit i3' ]] && i3-msg exit
-bindsym $mod+r                exec dmenu_run $dmenu_looks
-exec --no-startup-id mpd
-exec --no-startup-id xset s off
-exec --no-startup-id xset -dpms
-exec --no-startup-id xset s off -dpms
+$bind Ctrl+Mod1+BackSpace   $ensid shutdown -h 0
+$bind Ctrl+Shift+Escape     $ensid urxvt -e htop    # should add some more control and sorting for fast proc killing
+$bind $mod+Return           $ensid xterm            # fallback
+$bind $mod+Shift+r          restart
+$bind $mod+q                kill
+$bind Mod1+Tab              exec wmctrl -l | sed -E "s/.*$(hostname)(.*)/\1/g" | rev | cut -d '-' -f1 | rev  | dmenu $dmenu_looks | xargs wmctrl -a
+$bind $mod+Shift+e          $ensid [[ `echo -e 'Exit i3\nDo not'|dmenu $dmenu_looks` -eq 'Exit i3' ]] && i3-msg exit
+$bind $mod+r                exec dmenu_run $dmenu_looks
+$ensid mpd
+$ensid xset s off
+$ensid xset -dpms
+$ensid xset s off -dpms
 
 #                       _   
 #    ___ ___  _ __  ___| |_ 
@@ -48,18 +50,18 @@ assign [title="Discord"]                        $ws7
 #  |  _| | |  __/ (_| | |_| |  __/ | | | |_ 
 #  |_| |_|  \___|\__, |\__,_|\___|_| |_|\__|
 #                   |_|                     
-bindsym $mod+1              exec --no-startup-id wmctrl -a Waterfox || waterfox
-bindsym $mod+2              exec --no-startup-id wmctrl -a ncmpcpp || st -e ncmpcpp
-bindsym $mod+Shift+2        exec --no-startup-id wmctrl -a ncmpcpp || st -e ncmpcpp -s visualizer 
-bindsym $mod+3              split h; exec --no-startup-id wmctrl -xa st || st -e zsh
-bindsym $mod+Shift+3        split toggle; exec --no-startup-id wmctrl -xa tmux || st -e tmux
-bindsym $mod+4              split h; exec --no-startup-id wmctrl -a telegram || telegram-desktop
-bindsym $mod+Shift+b        exec --no-startup-id wmctrl -xa DBeaver || dbeaver
-bindsym $mod+Shift+d        exec --no-startup-id wmctrl -a Netbeans || netbeans
-bindsym $mod+z              exec --no-startup-id wmctrl -a Zoom || zoom
-bindsym $mod+o              exec --no-startup-id wmctrl -xa urxvt || urxvt -e vim $HOME/todo
-bindsym $mod+Shift+f        exec --no-startup-id exec /usr/local/bin/pondfox https://web.whatsapp.com/
-bindsym $mod+d              workspace $ws9
+$bind $mod+1              $ensid wmctrl -a Waterfox || waterfox
+$bind $mod+2              split h; $ensid wmctrl -a ncmpcpp || st -e ncmpcpp
+$bind $mod+Shift+2        split h; $ensid wmctrl -a ncmpcpp || st -e ncmpcpp -s visualizer
+$bind $mod+3              split h; $ensid wmctrl -xa st || st -e zsh
+$bind $mod+Shift+3        split toggle; $ensid wmctrl -xa tmux || st -e tmux
+$bind $mod+4              split h; $ensid wmctrl -a telegram || telegram-desktop
+$bind $mod+b              $ensid wmctrl -xa DBeaver || dbeaver
+$bind $mod+Shift+d        $ensid wmctrl -a Netbeans || netbeans
+$bind $mod+z              $ensid wmctrl -a Zoom || zoom
+$bind $mod+o              $ensid wmctrl -xa urxvt || urxvt -e vim $HOME/todo
+$bind $mod+Shift+f        $ensid exec /usr/local/bin/pondfox https://web.whatsapp.com/
+$bind $mod+d              workspace $ws9
 
 #                      _   
 #   ___  ___ _ __ ___ | |_ 
@@ -67,11 +69,11 @@ bindsym $mod+d              workspace $ws9
 #  \__ \ (__| | | (_) | |_ 
 #  |___/\___|_|  \___/ \__|
 #                          
-bindsym Print                       exec --no-startup-id scrot ~/.scrot.png   -e 'xclip -selection clipboard -target image/png -i $f'
-bindsym mod4+Print                  exec --no-startup-id scrot ~/.scrot.png u -e 'xclip -selection clipboard -target image/png -i $f'
-bindsym --release Ctrl+Print        exec --no-startup-id scrot ~/.scrot.png s -e 'xclip -selection clipboard -target image/png -i $f'
-bindsym --release Ctrl+Shift+Print  exec --no-startup-id scrot ~/.scrot.png s -e 'pinta $f'
-bindsym Shift+Print                 exec --no-startup-id scrot ~/.scrot.png e 'pinta $f'
+$bind Print                       $ensid scrot ~/.scrot.png   -e 'xclip -selection clipboard -target image/png -i $f'
+$bind mod4+Print                  $ensid scrot ~/.scrot.png u -e 'xclip -selection clipboard -target image/png -i $f'
+$bind --release Ctrl+Print        $ensid scrot ~/.scrot.png s -e 'xclip -selection clipboard -target image/png -i $f'
+$bind --release Ctrl+Shift+Print  $ensid scrot ~/.scrot.png s -e 'pinta $f'
+$bind Shift+Print                 $ensid scrot ~/.scrot.png e 'pinta $f'
 
 #                                                 _   
 #   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_ 
@@ -80,40 +82,40 @@ bindsym Shift+Print                 exec --no-startup-id scrot ~/.scrot.png e 'p
 #  |_| |_| |_|\___/ \_/ \___|_| |_| |_|\___|_| |_|\__|
 #                                                     
 
-bindsym $mod+h              focus left
-bindsym $mod+j              focus down
-bindsym $mod+k              focus up
-bindsym $mod+l              focus right
-bindsym $mod+Left           focus left
-bindsym $mod+Down           focus down
-bindsym $mod+Up             focus up
-bindsym $mod+Right          focus right
-bindsym $mod+Shift+h        move left
-bindsym $mod+Shift+j        move down
-bindsym $mod+Shift+k        move up
-bindsym $mod+Shift+l        move right
-bindsym $mod+Shift+Left     move left
-bindsym $mod+Shift+Down     move down
-bindsym $mod+Shift+Up       move up
-bindsym $mod+Shift+Right    move right
-bindsym $mod+backslash      split h 
-bindsym $mod+plus           split h 
-bindsym $mod+minus          split v
-bindsym $mod+f              fullscreen toggle
-bindsym $mod+c              move scratchpad 
-bindsym $mod+Shift+c        scratchpad show;floating toggle
-bindsym $mod+a              focus parent
-bindsym $mod+s              layout stacking
-bindsym $mod+w              layout tabbed
-bindsym $mod+e              layout toggle split
-bindsym $mod+Shift+space    floating toggle
-bindsym $mod+space focus    mode_toggle
-bindsym Ctrl+$mod+Left      resize shrink width 10 px or 10 ppt
-bindsym Ctrl+$mod+Up        resize grow height 10 px or 10 ppt
-bindsym Ctrl+$mod+Down      resize shrink height 10 px or 10 ppt
-bindsym Ctrl+$mod+Right     resize grow width 10 px or 10 ppt
-bindsym Ctrl+Mod1+Left     workspace prev
-bindsym Ctrl+Mod1+Right    workspace next
+$bind $mod+h              focus left
+$bind $mod+j              focus down
+$bind $mod+k              focus up
+$bind $mod+l              focus right
+$bind $mod+Left           focus left
+$bind $mod+Down           focus down
+$bind $mod+Up             focus up
+$bind $mod+Right          focus right
+$bind $mod+Shift+h        move left
+$bind $mod+Shift+j        move down
+$bind $mod+Shift+k        move up
+$bind $mod+Shift+l        move right
+$bind $mod+Shift+Left     move left
+$bind $mod+Shift+Down     move down
+$bind $mod+Shift+Up       move up
+$bind $mod+Shift+Right    move right
+$bind $mod+backslash      split h 
+$bind $mod+plus           split h 
+$bind $mod+minus          split v
+$bind $mod+f              fullscreen toggle
+$bind $mod+c              move scratchpad 
+$bind $mod+Shift+c        scratchpad show;floating toggle
+$bind $mod+a              focus parent
+$bind $mod+s              layout stacking
+$bind $mod+w              layout tabbed
+$bind $mod+e              layout toggle split
+$bind $mod+Shift+space    floating toggle
+$bind $mod+space focus    mode_toggle
+$bind Ctrl+$mod+Left      resize shrink width 10 px or 10 ppt
+$bind Ctrl+$mod+Up        resize grow height 10 px or 10 ppt
+$bind Ctrl+$mod+Down      resize shrink height 10 px or 10 ppt
+$bind Ctrl+$mod+Right     resize grow width 10 px or 10 ppt
+$bind Ctrl+Mod1+Left      workspace prev
+$bind Ctrl+Mod1+Right     workspace next
 
 
 #                      _ _       
@@ -123,17 +125,17 @@ bindsym Ctrl+Mod1+Right    workspace next
 #  |_| |_| |_|\___|\__,_|_|\__,_|
 #                                
 
-bindsym XF86MonBrightnessUp     exec --no-startup-id xbacklight -inc $bl_delta
-bindsym XF86MonBrightnessDown   exec --no-startup-id xbacklight -dec $bl_delta
-bindsym XF86AudioNext		    exec --no-startup-id mpc next  #$mpc $minty_remote next
-bindsym XF86AudioPlay		    exec --no-startup-id mpc toggle  #$mpc $minty_remote toggle
-bindsym XF86AudioPrev		    exec --no-startup-id mpc prev  #$mpc $minty_remote prev
-bindsym XF86AudioStop		    exec --no-startup-id /usr/local/bin/start-stop-stream
-bindsym XF86AudioMute           exec --no-startup-id paxmier -q set Master toggle
-bindsym XF86AudioLowerVolume    exec --no-startup-id pamixer -d 4 
-bindsym XF86AudioRaiseVolume    exec --no-startup-id pamixer -i 4 
-# bindsym XF86AudioLowerVolume    exec --no-startup-id amixer -c 0 -q set Master 4dB- unmute 
-# bindsym XF86AudioRaiseVolume    exec --no-startup-id amixer -c 0 -q set Master 4dB+ unmute
+$bind XF86MonBrightnessUp       $ensid xbacklight -inc $bl_delta
+$bind XF86MonBrightnessDown     $ensid xbacklight -dec $bl_delta
+$bind XF86AudioNext		        $ensid mpc next  #$mpc $minty_remote next
+$bind XF86AudioPlay		        $ensid mpc toggle  #$mpc $minty_remote toggle
+$bind XF86AudioPrev		        $ensid mpc prev  #$mpc $minty_remote prev
+$bind XF86AudioStop		        $ensid /usr/local/bin/start-stop-stream
+$bind XF86AudioMute             $ensid paxmier -q set Master toggle
+$bind XF86AudioLowerVolume      $ensid pamixer -d 4 
+$bind XF86AudioRaiseVolume      $ensid pamixer -i 4 
+# $bind XF86AudioLowerVolume    $ensid amixer -c 0 -q set Master 4dB- unmute 
+# $bind XF86AudioRaiseVolume    $ensid amixer -c 0 -q set Master 4dB+ unmute
 
 #                                            _          __         _          
 #    ___ ___  _ __ ___  _ __ ___   ___ _ __ | |_ ___   / / __ ___ (_)___  ___ 
@@ -159,29 +161,29 @@ set $ws9 "9"
 set $ws10 "10"
 
 # switch to workspace
-bindsym $mod+Ctrl+1 workspace $ws1
-bindsym $mod+Ctrl+2 workspace $ws2
-bindsym $mod+Ctrl+3 workspace $ws3
-bindsym $mod+Ctrl+4 workspace $ws4
-bindsym $mod+Ctrl+5 workspace $ws5
-bindsym $mod+Ctrl+6 workspace $ws6
-bindsym $mod+Ctrl+7 workspace $ws7
-bindsym $mod+Ctrl+8 workspace $ws8
-bindsym $mod+Ctrl+9 workspace $ws9
+$bind $mod+Ctrl+1 workspace $ws1
+$bind $mod+Ctrl+2 workspace $ws2
+$bind $mod+Ctrl+3 workspace $ws3
+$bind $mod+Ctrl+4 workspace $ws4
+$bind $mod+Ctrl+5 workspace $ws5
+$bind $mod+Ctrl+6 workspace $ws6
+$bind $mod+Ctrl+7 workspace $ws7
+$bind $mod+Ctrl+8 workspace $ws8
+$bind $mod+Ctrl+9 workspace $ws9
 
-bindsym $mod+Shift+1 move container to workspace $ws1
-# bindsym $mod+Shift+2 move container to workspace $ws2
-# bindsym $mod+Shift+3 is extra urxvt
-bindsym $mod+Shift+4 move container to workspace $ws4
-bindsym $mod+Shift+5 move container to workspace $ws5
-bindsym $mod+Shift+6 move container to workspace $ws6
-bindsym $mod+Shift+7 move container to workspace $ws7
-bindsym $mod+Shift+8 move container to workspace $ws8
-bindsym $mod+Shift+9 move container to workspace $ws9
-bindsym $mod+Shift+0 move container to workspace $ws10
+$bind $mod+Shift+1 move container to workspace $ws1
+# $bind $mod+Shift+2 move container to workspace $ws2
+# $bind $mod+Shift+3 is extra urxvt
+$bind $mod+Shift+4 move container to workspace $ws4
+$bind $mod+Shift+5 move container to workspace $ws5
+$bind $mod+Shift+6 move container to workspace $ws6
+$bind $mod+Shift+7 move container to workspace $ws7
+$bind $mod+Shift+8 move container to workspace $ws8
+$bind $mod+Shift+9 move container to workspace $ws9
+$bind $mod+Shift+0 move container to workspace $ws10
 
-# bindsym $mod+Shift+n move container to workspace next
-# bindsym $mod+n move container to workspace next
+# $bind $mod+Shift+n move container to workspace next
+# $bind $mod+n move container to workspace next
 
 #                   _   _          _   _      
 #    __ _  ___  ___| |_| |__   ___| |_(_) ___ 
@@ -189,8 +191,8 @@ bindsym $mod+Shift+0 move container to workspace $ws10
 #  | (_| |  __/\__ \ |_| | | |  __/ |_| | (__ 
 #   \__,_|\___||___/\__|_| |_|\___|\__|_|\___|
 #                                             
-exec --no-startup-id compton -D 6
-exec --no-startup-id $HOME/.fehbg
+$ensid compton -D 6
+$ensid $HOME/.fehbg
 popup_during_fullscreen smart
 floating_modifier Mod1
 font pango:Droid Sans Mono for Powerline11
@@ -200,9 +202,9 @@ client.unfocused        $gray   #222222 #888888 #292d2e   #222222
 client.urgent           $gray   #900000 #ffffff #900000   #900000
 client.placeholder      #000000 #0c0c0c #ffffff #000000   #0c0c0c
 client.background       #ffffff
-bindsym $mod+KP_Home exec --no-startup-id redshift -g 1:0.5:0.5 -O 25000K
-bindsym $mod+KP_Up   exec --no-startup-id redshift -g 0.5:0.5:1 -O 25000K
-bindsym $mod+KP_Prior exec --no-startup-id redshift -g 1:1:1 -O 25000K
+$bind $mod+KP_Home $ensid redshift -g 1:0.5:0.5 -O 25000K
+$bind $mod+KP_Up   $ensid redshift -g 0.5:0.5:1 -O 25000K
+$bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 
 #  _                
 # | |__   __ _ _ __ 
@@ -236,44 +238,41 @@ bar {
 #    \__, |\__,_| .__/|___/
 #     |___/      |_|        
 #
-gaps inner 3
+gaps inner 25
 gaps outer 0
 new_window none
-bindsym $mod+g gaps inner all set 0; gaps outer all set 0
-set $mode_gaps Gaps: (o) outer, (i) inner, (I) gappy
+$bind $mod+g gaps inner all set 0; gaps outer all set 0
+set $mode_gaps Gaps: (o) outer, (i) inner, (I) sexy, (0) performance
 set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
 set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
-bindsym $mod+Shift+g mode "$mode_gaps"
+$bind $mod+Shift+g mode "$mode_gaps"
  
 mode "$mode_gaps" {
-        bindsym o               mode "$mode_gaps_outer"
-        bindsym i               mode "$mode_gaps_inner"
-        bindsym Shift+i         gaps inner current set 50
-        bindsym Return          mode "default"
-        bindsym Escape          mode "default"
+        $bind o               mode "$mode_gaps_outer"
+        $bind i               mode "$mode_gaps_inner"
+        $bind Shift+i         gaps inner current set 50; mode default
+        $bind 0               gaps inner current set 0; mode default
+        $bind Return          mode default
+        $bind Escape          mode default
 }
  
 mode "$mode_gaps_inner" {
-        bindsym plus  gaps inner current plus 5
-        bindsym minus gaps inner current minus 5
-        bindsym 0     gaps inner current set 0
- 
-        bindsym Shift+plus  gaps inner all plus 5
-        bindsym Shift+minus gaps inner all minus 5
-        bindsym Shift+0     gaps inner all set 0
- 
-        bindsym Return mode "default"
-        bindsym Escape mode "default"
+        $bind plus  gaps inner current plus 5
+        $bind minus gaps inner current minus 5
+        $bind 0     gaps inner current set 0
+        $bind Shift+plus  gaps inner all plus 5
+        $bind Shift+minus gaps inner all minus 5
+        $bind Shift+0     gaps inner all set 0
+        $bind Return mode default
+        $bind Escape mode default
 }
 mode "$mode_gaps_outer" {
-        bindsym plus  gaps outer current plus 5
-        bindsym minus gaps outer current minus 5
-        bindsym 0     gaps outer current set 0
- 
-        bindsym Shift+plus  gaps outer all plus 5
-        bindsym Shift+minus gaps outer all minus 5
-        bindsym Shift+0     gaps outer all set 0
- 
-        bindsym Return mode "default"
-        bindsym Escape mode "default"
+        $bind plus  gaps outer current plus 5
+        $bind minus gaps outer current minus 5
+        $bind 0     gaps outer current set 0
+        $bind Shift+plus  gaps outer all plus 5
+        $bind Shift+minus gaps outer all minus 5
+        $bind Shift+0     gaps outer all set 0
+        $bind Return mode default
+        $bind Escape mode "default"
 }
