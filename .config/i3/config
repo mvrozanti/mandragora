@@ -42,11 +42,11 @@ for_window  [class="Waterfox"]                       move to workspace $ws1
 for_window  [title="Zoom"]                           move to workspace $ws5
 for_window  [class="URxvt"]                          floating enable
 for_window  [title="todo"]                           floating enable
-assign      [title="zsh"]                            $ws2
+for_window  [title="ranger"]                         move to workspace $ws8
+assign      [title="zsth"]                           $ws2
 assign      [instance="DBeaver"]                     $ws4
 assign      [class="NetBeans IDE "]                  $ws6
 assign      [title="Discord"]                        $ws7
-assign      [title="ranger"]                         $ws8
 
 #    __                                 _   
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_ 
@@ -58,7 +58,7 @@ assign      [title="ranger"]                         $ws8
 $bind $mod+1              $ensid wmctrl -a Waterfox || waterfox
 $bind $mod+2              split h; $ensid wmctrl -a ncmpcpp || $TERMINAL -e ncmpcpp
 $bind $mod+Shift+2        split h; $ensid wmctrl -a ncmpcpp || $TERMINAL -t ncmpcpp -e ncmpcpp -s visualizer
-$bind $mod+3              split h; $ensid wmctrl -xa $TERMINAL || $TERMINAL -e zsh
+$bind $mod+3              split h; $ensid wmctrl -a zsth || $TERMINAL -t zsth -e zsh
 $bind $mod+Shift+3        split h; $ensid wmctrl -xa tmux || $TERMINAL -e tmux
 $bind $mod+4              split h; $ensid wmctrl -a telegram || telegram-desktop
 $bind $mod+b              $ensid wmctrl -xa DBeaver || dbeaver
@@ -67,7 +67,7 @@ $bind $mod+z              $ensid wmctrl -a Zoom || zoom
 $bind $mod+o              $ensid $TERMINAL -t todo -e tmux -c 'stty -ixon && vim /home/nexor/todo'
 $bind $mod+Shift+f        $ensid exec /usr/local/bin/pondfox https://web.whatsapp.com/
 $bind $mod+d              workspace $ws9
-$bind $mod+Return         $ensid wmctrl -a ranger || $TERMINAL -e ranger && wmctrl -a ranger
+$bind $mod+Return         $ensid wmctrl -a ranger || $TERMINAL -t ranger -e ranger
 $bind $mod+Shift+Return   $ensid $TERMINAL -e ranger
 
 #                      _   
@@ -148,8 +148,6 @@ $bind XF86AudioRaiseVolume      $ensid pamixer -i 4
 #   / __/ _ \| '_ ` _ \| '_ ` _ \ / _ \ '_ \| __/ __| / / '_ ` _ \| / __|/ __|
 #  | (_| (_) | | | | | | | | | | |  __/ | | | |_\__ \/ /| | | | | | \__ \ (__ 
 #   \___\___/|_| |_| |_|_| |_| |_|\___|_| |_|\__|___/_/ |_| |_| |_|_|___/\___|
-
-focus_follows_mouse yes
 
 set $ws1 "1"
 set $ws2 "2"
