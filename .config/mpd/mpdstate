@@ -1,9 +1,9 @@
-sw_volume: 99
+sw_volume: 100
 audio_device_state:1:My Pulse Output
 audio_device_state:1:my_fifo
 state: play
-current: 24
-time: 4.086000
+current: 1062
+time: 0.576000
 random: 1
 repeat: 1
 single: 0
@@ -795,8 +795,8 @@ playlist_begin
 780:Tell Me Baby.mp3
 781:Sandstorm.mp3
 782:Ring my Bell.mp3
-783:Alive  Amplified.mp3
-784:1-11 A Walk In The Park.m4a
+783:1-11 A Walk In The Park.m4a
+784:Alive  Amplified.mp3
 785:1-14 To The Club.m4a
 786:1-06 Floating In Love.m4a
 787:1-10 Lovin' You (Power Remix).m4a
@@ -1088,7 +1088,7 @@ playlist_begin
 1073:Yat-Kha 'Karangailyg kara hovaa' (in the endless black steppe).mp3
 1074:Tove Lo - Perfect Loop (Lyrics).mp3
 1075:CéU - Malemolência.mp3
-1076:Daso - Meine.mp3
-1077:ADULT. - Breathe On (LIARS “Savannah” Remix).mp3
+1076:ADULT. - Breathe On (LIARS “Savannah” Remix).mp3
+1077:Daso - Meine.mp3
 1078:Yahel & Infected Mushroom - Electro Panic (Azax x Boombastix Remix) [Official Audio].mp3
 playlist_end

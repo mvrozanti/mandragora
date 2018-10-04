@@ -20,6 +20,8 @@ alias s='sudo'
 alias create-readme='cp $HOME/.README.md ./README.md && vim README.md'
 alias r='ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true" "$(if [ -z "$@" ]; then cat $HOME/.rangerdir; fi)";cd "`cat $HOME/.rangerdir`"'
 alias sr='sudo ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true" "$(if [ -z "$@" ]; then cat $HOME/.rangerdir; fi)";cd "`cat $HOME/.rangerdir`"'
+alias u='unp -U'
+alias unp='unp -U'
 alias v='vim'
 alias em='emacs -nw'
 # test .Xresources colors
@@ -134,7 +136,6 @@ function svw() { sudo -E vim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
 function wi(){ wal --saturate 1.0 -i "${@:1}"; }
 alias biggest-files='du -hsx *|sudo sort -rh|head -10'
 alias lg='lazygit'
-alias unp='unp -U'
 alias pwdc="pwd | tr -d '\n' | xsel -i -b"
 alias scrot='scrot ~/.scrot.png'
 function f(){ sudo find . -iname "*$@*"; }
