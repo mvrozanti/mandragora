@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE attributes PUBLIC "-//NetBeans//DTD DefaultAttributes 1.0//EN" "http://www.netbeans.org/dtds/attributes-1_0.dtd">
+<attributes version="1.0">
+    <fileobject name="output-window-clear">
+        <attr name="sc1" stringvalue="C-L"/>
+    </fileobject>
+    <fileobject name="output-window-close">
+        <attr name="sc1" stringvalue="C-F4"/>
+    </fileobject>
+    <fileobject name="output-window-filter">
+        <attr name="sc1" stringvalue="C-G"/>
+    </fileobject>
+    <fileobject name="output-window-larger-font">
+        <attr name="sc1" stringvalue="D-UP"/>
+    </fileobject>
+    <fileobject name="output-window-save-as">
+        <attr name="sc1" stringvalue="C-S"/>
+    </fileobject>
+    <fileobject name="output-window-smaller-font">
+        <attr name="sc1" stringvalue="D-DOWN"/>
+    </fileobject>
+    <fileobject name="output-window-wrap">
+        <attr name="sc1" stringvalue="C-R"/>
+    </fileobject>
+</attributes>

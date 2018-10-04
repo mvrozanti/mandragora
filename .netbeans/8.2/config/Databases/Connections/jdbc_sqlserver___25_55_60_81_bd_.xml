@@ -1,0 +1,10 @@
+<?xml version='1.0'?>
+<!DOCTYPE connection PUBLIC '-//NetBeans//DTD Database Connection 1.2//EN' 'http://www.netbeans.org/dtds/connection-1_2.dtd'>
+<connection>
+  <driver-class value='com.microsoft.sqlserver.jdbc.SQLServerDriver'/>
+  <driver-name value='Microsoft SQL Server 2005'/>
+  <database-url value='jdbc:sqlserver://25.55.60.81\bd_4Config@NOTE-DELL:1433;databaseName=bd_4Config'/>
+  <schema value='dbo'/>
+  <user value='sa'/>
+  <use-scrollable-cursors value='false'/>
+</connection>

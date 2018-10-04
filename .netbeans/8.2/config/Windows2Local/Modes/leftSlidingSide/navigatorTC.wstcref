@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<tc-ref version="2.2">
+    <tc-id id="navigatorTC" />
+    <state opened="true" />
+    <previousMode name="navigator"  index="0"  />
+    <docking-status default-mode="slided" />
+</tc-ref>

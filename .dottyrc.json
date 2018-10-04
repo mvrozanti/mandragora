@@ -57,7 +57,7 @@
         ".config/ranger" : "~/.config/ranger",
         ".config/mpd" : "~/.config/mpd",
         ".waterfox/bfgoo8ze.default/chrome" : "~/.waterfox/bfgoo8ze.default/chrome",
-        ".netbeans/8.2/config/Editors/FontsColors/CityLights" : "~/.netbeans/8.2/config/Editors/FontsColors/CityLights",
+        ".netbeans/8.2/config" : "~/.netbeans/8.2/config",
         ".vim/bundle/vim-cute-python/after/syntax/python.vim" : "~/.vim/bundle/vim-cute-python/after/syntax/python.vim",
 
         ".tmux" : "~/.tmux/",
