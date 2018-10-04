@@ -31,7 +31,7 @@ Xft*rgba:                   rgb
 URxvt.transparent: true
 URxvt.shading: 15
 URxvt.tintColor:    #ffffff
-URxvt.letterSpace: -1
+URxvt.letterSpace: 5
 URxvt*saveLines: 0
 URxvt.depth:		32
 URxvt.font:xft: Droid Sans Mono Slashed for Powerline:antialias:hinting=true:size=13
