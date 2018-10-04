@@ -15,7 +15,6 @@ bindsym $mod+q                kill
 bindsym Mod1+Tab              exec wmctrl -l | sed -E "s/.*$(hostname)(.*)/\1/g" | rev | cut -d '-' -f1 | rev  | dmenu $dmenu_looks | xargs wmctrl -a
 bindsym $mod+Shift+e          exec --no-startup-id [[ `echo -e 'Exit i3\nDo not'|dmenu $dmenu_looks` -eq 'Exit i3' ]] && i3-msg exit
 bindsym $mod+r                exec dmenu_run $dmenu_looks
-exec --no-startup-id setxkbmap us alt-intl # this is machine-specific and should not be here, maybe .profile?
 exec --no-startup-id mpd
 exec --no-startup-id xset s off
 exec --no-startup-id xset -dpms
