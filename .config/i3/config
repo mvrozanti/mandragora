@@ -13,7 +13,6 @@ set $bind bindsym
 set $dmenu_looks -fn "Droid Sans Mono for Powerline" -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300' 
 $bind Ctrl+Mod1+BackSpace   $ensid shutdown -h 0
 $bind Ctrl+Shift+Escape     $ensid urxvt -e htop    # should add some more control and sorting for fast proc killing
-$bind $mod+Return           $ensid xterm            # fallback
 $bind $mod+Shift+r          restart
 $bind $mod+q                kill
 # $bind Mod1+Tab dafuqisthis> exec wmctrl -l | sed -E "s/.*$(hostname)(.*)/\1/g" | rev | cut -d '-' -f1 | rev  | dmenu $dmenu_looks | xargs wmctrl -a
@@ -47,6 +46,7 @@ assign      [title="zsh"]                            $ws2
 assign      [instance="DBeaver"]                     $ws4
 assign      [class="NetBeans IDE "]                  $ws6
 assign      [title="Discord"]                        $ws7
+assign      [title="ranger"]                         $ws8
 
 #    __                                 _   
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_ 
@@ -67,6 +67,8 @@ $bind $mod+z              $ensid wmctrl -a Zoom || zoom
 $bind $mod+o              $ensid $TERMINAL -t todo -e tmux -c 'stty -ixon && vim /home/nexor/todo'
 $bind $mod+Shift+f        $ensid exec /usr/local/bin/pondfox https://web.whatsapp.com/
 $bind $mod+d              workspace $ws9
+$bind $mod+Return         $ensid wmctrl -a ranger || $TERMINAL -e ranger && wmctrl -a ranger
+$bind $mod+Shift+Return   $ensid $TERMINAL -e ranger
 
 #                      _   
 #   ___  ___ _ __ ___ | |_ 
