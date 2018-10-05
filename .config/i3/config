@@ -41,7 +41,8 @@ for_window  [title="Zoom"]                           move to workspace $ws5
 for_window  [class="URxvt"]                          floating enable
 for_window  [title="todo"]                           floating enable
 for_window  [title="ranger"]                         move to workspace $ws8
-for_window  [title=".*WhatsApp.*"]                    move to workspace $ws3
+for_window  [title=".*WhatsApp.*"]                   move to workspace $ws3
+for_window  [title=".*Trello.*"]                     move to workspace $ws4
 assign      [title="zsth"]                           $ws2
 assign      [instance="DBeaver"]                     $ws4
 assign      [class="NetBeans IDE "]                  $ws6
@@ -57,14 +58,16 @@ assign      [title="Discord"]                        $ws7
 $bind $mod+1              $ensid wmctrl -a Waterfox || waterfox
 $bind $mod+2              split h; $ensid wmctrl -a ncmpcpp || $TERMINAL -e ncmpcpp
 $bind $mod+Shift+2        split h; $ensid wmctrl -a ncmpcpp || $TERMINAL -t ncmpcpp -e ncmpcpp -s visualizer
-$bind $mod+3              split h; workspace $ws2; $ensid wmctrl -a zsth || $TERMINAL -t zsth -e zsh
-$bind $mod+Shift+3        split h; $ensid wmctrl -xa tmux || $TERMINAL -e tmux
+$bind $mod+3              workspace $ws2; $ensid wmctrl -a zsth || $TERMINAL -t zsth -e zsh
+$bind $mod+Shift+3        $ensid wmctrl -xa tmux || $TERMINAL -e tmux
 $bind $mod+4              split h; $ensid wmctrl -a telegram || telegram-desktop
 $bind $mod+b              $ensid wmctrl -xa DBeaver || dbeaver
 $bind $mod+Shift+d        $ensid wmctrl -a Netbeans || netbeans
 $bind $mod+z              workspace $ws5; $ensid wmctrl -a Zoom || zoom
 $bind $mod+o              $ensid $TERMINAL -t todo -e tmux -c 'stty -ixon && vim /home/nexor/todo'
 $bind $mod+Shift+f        workspace $ws3; $ensid wmctrl -a WhatsApp || /usr/local/bin/pondfox https://web.whatsapp.com/
+$bind $mod+Shift+o        workspace $ws4; $ensid wmctrl -a Trello || /usr/local/bin/pondfox https://trello.com/
+
 $bind $mod+d              workspace $ws9
 $bind $mod+Return         workspace $ws8; $ensid wmctrl -a ranger || $TERMINAL -t ranger -e ranger
 $bind $mod+Shift+Return   $ensid $TERMINAL -e ranger
@@ -187,6 +190,7 @@ $bind $mod+Ctrl+Shift+Left                  move container to workspace prev_on_
 #   \__,_|\___||___/\__|_| |_|\___|\__|_|\___|
 #                                             
 
+$ensid wal --saturate 1.0 -a 299 -i `cat $HOME/.fehbg | tail -n1 | cut -d ' ' -f3 | tr -d "'"`
 $ensid compton -D 6
 $ensid $HOME/.fehbg
 popup_during_fullscreen smart
