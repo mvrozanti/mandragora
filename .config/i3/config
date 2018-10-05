@@ -12,7 +12,7 @@ set $ensid exec --no-startup-id
 set $bind bindsym
 set $dmenu_looks -fn "Droid Sans Mono for Powerline" -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300' 
 $bind Ctrl+Mod1+BackSpace   $ensid shutdown -h 0
-$bind Ctrl+Shift+Escape     $ensid urxvt -e htop    # should add some more control and sorting for fast proc killing
+$bind Ctrl+Shift+Escape     $ensid $TERMINAL -e htop    # should add some more control and sorting for fast proc killing
 $bind $mod+Shift+r          restart
 $bind $mod+q                kill
 # $bind Mod1+Tab dafuqisthis> exec wmctrl -l | sed -E "s/.*$(hostname)(.*)/\1/g" | rev | cut -d '-' -f1 | rev  | dmenu $dmenu_looks | xargs wmctrl -a
@@ -44,6 +44,7 @@ for_window  [title="ranger"]                         move to workspace $ws8
 for_window  [title=".*WhatsApp.*"]                   move to workspace $ws3
 for_window  [title=".*Trello.*"]                     move to workspace $ws4
 assign      [title="zsth"]                           $ws2
+assign      [instance="cava"]                        $ws2
 assign      [instance="DBeaver"]                     $ws4
 assign      [class="NetBeans IDE "]                  $ws6
 assign      [title="Discord"]                        $ws7
@@ -64,6 +65,7 @@ $bind $mod+4              split h;          $ensid wmctrl -a telegram   || teleg
 $bind $mod+b                                $ensid wmctrl -xa DBeaver   || dbeaver
 $bind $mod+Shift+d                          $ensid wmctrl -a Netbeans   || netbeans
 $bind $mod+z              workspace $ws5;   $ensid wmctrl -a Zoom       || zoom
+$bind $mod+g                                $ensid wmctrl -a cava       || $TERMINAL -n cava -e cava
 $bind $mod+Shift+f        workspace $ws3;   $ensid wmctrl -a WhatsApp   || /usr/local/bin/pondfox https://web.whatsapp.com/
 $bind $mod+Shift+o        workspace $ws4;   $ensid wmctrl -a Trello     || /usr/local/bin/pondfox https://trello.com/
 $bind $mod+o                                $ensid $TERMINAL -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
@@ -242,7 +244,6 @@ bar {
 gaps inner 25
 gaps outer 0
 new_window none
-$bind $mod+g gaps inner all set 0; gaps outer all set 0
 set $mode_gaps Gaps: (o) outer, (i) inner, (I) sexy, (0) performance
 set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
 set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
@@ -251,7 +252,7 @@ $bind $mod+Shift+g mode "$mode_gaps"
 mode "$mode_gaps" {
         $bind o               mode "$mode_gaps_outer"
         $bind i               mode "$mode_gaps_inner"
-        $bind Shift+i         gaps inner current set 50; mode default
+        $bind Shift+i         gaps inner current set 50; gaps outer all set 0; mode default
         $bind 0               gaps inner current set 0; mode default
         $bind Return          mode default
         $bind Escape          mode default
