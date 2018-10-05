@@ -48,6 +48,7 @@
         "vlc",
         "wget",
         "wmctrl",
+        "xdotool",
         "zsh"
     ],
     "copy" : {
