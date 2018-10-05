@@ -7,7 +7,7 @@
 ; mode = normal
  
 # Accepts only non-negative values.
-; framerate = 60
+framerate = 120
 
 # 'autosens' will attempt to decrease sensitivity if the bars peak. 1 = on, 0 = off
 # new as of 0.6.0 autosens of low values (dynamic range)
@@ -17,7 +17,7 @@
 
 # Manual sensitivity in %. Autosens must be turned off for this to take effect.
 # 200 means double height. Accepts only non-negative values.
-; sensitivity = 100
+sensitivity = 110
 
 # The number of bars (0-200). 0 sets it to auto (fill up console).
 # Bars' width and space between bars in number of characters.
@@ -76,7 +76,7 @@
 ; raw_target = /dev/stdout
 
 # Raw data format. Can be 'binary' or 'ascii'.
-; data_format = binary
+data_format = binary
 
 # Binary bit format, can be '8bit' (0-255) or '16bit' (0-65530).
 ; bit_format = 16bit
@@ -102,10 +102,10 @@
 # Gradient mode, only hex defined colors are supported, background must also be defined in hex
 # or remain commented out. 1 = on, 0 = off. Warning: for certain terminal emulators cava will
 # not able to restore color definitions on exit, simply restart your terminal to restore colors.
-; gradient = 1
-; gradient_count = 2
-; gradient_color_1 = '#0099ff'
-; gradient_color_2 = '#ff3399'
+gradient = 1
+gradient_count = 2
+gradient_color_1 = '#f33000'
+gradient_color_2 = '#000000'
 
 
 
@@ -121,7 +121,7 @@
 
 # Set gravity percentage for "drop off". Higher values means bars will drop faster.
 # Accepts only non-negative values. 50 means half gravity, 200 means double. Set to 0 to disable "drop off".
-; gravity = 100
+gravity = 200
 
 
 # In bar height, bars that would have been lower that this will not be drawn.
