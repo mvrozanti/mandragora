@@ -59,6 +59,7 @@
         ".config/i3" : "~/.config/i3",
         ".config/ranger" : "~/.config/ranger",
         ".config/mpd" : "~/.config/mpd",
+        ".config/cava/" : "~/.config/cava",
         ".calcurse/conf" : "~/.calcurse/conf",
         "util/st" : "~/util/st",
         ".waterfox/bfgoo8ze.default/chrome" : "~/.waterfox/bfgoo8ze.default/chrome",
