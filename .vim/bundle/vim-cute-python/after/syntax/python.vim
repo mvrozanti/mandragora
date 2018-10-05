@@ -10,6 +10,7 @@ syntax clear pythonOperator
 syntax match pyNiceOperator "\<in\>" conceal cchar=∈
 syntax match pyNiceOperator "\<not in\>" conceal cchar=∉
 syntax match pyNiceOperator "\<or\>" conceal cchar=∨
+" syntax match pyNiceOperator "for\%( \+\)\w\+\%( \)" conceal cchar=⑁
 syntax match pyNiceOperator "\<and\>" conceal cchar=∧
 syntax match pyNiceOperator "\<not\%( \|\>\)" conceal cchar=¬
 syntax match pyNiceOperator "<=" conceal cchar=≤

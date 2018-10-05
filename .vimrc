@@ -282,8 +282,8 @@ autocmd FileType javascript                                         set omnifunc
 autocmd FileType python                                             let b:run_script = '! clear;python3 %'
 autocmd FileType python                                             let g:pymode_python = 'python3'
 autocmd FileType cpp                                                let b:run_script = '! clear; make && !%:r'
-autocmd FileType java                                               imap <F5> <ESC><ESC>:!ant target -Dfilenoext=\"%<\"
-" autocmd FileType *.c                                                  let b:run_script='gcc\ %\ &&\ ./!%:r.out'
+autocmd FileType java                                               nnoremap <C-S-i> gg
+" autocmd FileType *.c                                              let b:run_script='gcc\ %\ &&\ ./!%:r.out'
 
 inoremap <A-Left> <ESC>h
 inoremap <A-Down> <ESC>j
