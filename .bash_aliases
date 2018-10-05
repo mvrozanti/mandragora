@@ -156,7 +156,7 @@ function stopwatch(){ date1=`date +%s`; while true; do clear; echo -ne "$(date -
 function ytdl(){ youtube-dl --extract-audio --audio-format mp3 -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1 } 
 function gitap(){ commit_message="$@"; if [[ -z "$commit_message" ]]; then echo "Commit message is missing"; else git add .;  git commit -m "$commit_message"; git push; fi } 
 alias sw='sudo wifi-menu'
-alias cfs='cd ~/util/st/ && vim config.h && sudo make install && gitap changed st'
+alias cfs='cd ~/util/st/ && vim . && sudo make install && gitap changed st'
 function make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > $HOME/.ranger_aliases } 
 alias bep='beep'
 
