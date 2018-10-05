@@ -115,6 +115,7 @@ let g:system_copy#copy_command='xclip -sel clipboard -i'
 let g:system_copy#paste_command='xclip -sel clipboard -o'
 
 Plugin 'ehamberg/vim-cute-python'
+Plugin 'vim-scripts/Conque-GDB'
 " Plugin 'mikelue/vim-maven-plugin'
 " Plugin 'vim-scripts/maven-ide'
 
