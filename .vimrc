@@ -94,10 +94,10 @@ filetype off  " required
 set exrc
 
 "move vim splits
-nnoremap <C-LEFT> :10winc <<CR>
-nnoremap <C-UP> :10wincmd +<CR>
-nnoremap <C-RIGHT> :10wincmd ><CR> 
-nnoremap <C-DOWN> :10wincmd -<CR>
+nnoremap <S-H>      :5winc <<CR>
+nnoremap <S-K>      :5winc +<CR>
+nnoremap <S-L>      :5winc ><CR> 
+nnoremap <S-U>      :5winc -<CR>
 
 "autocomplete colors
 "highlight Pmenu ctermfg=2 ctermbg=4 guifg=1 guibg=4
@@ -115,7 +115,8 @@ let g:system_copy#copy_command='xclip -sel clipboard -i'
 let g:system_copy#paste_command='xclip -sel clipboard -o'
 
 Plugin 'ehamberg/vim-cute-python'
-Plugin 'mikelue/vim-maven-plugin'
+" Plugin 'mikelue/vim-maven-plugin'
+" Plugin 'vim-scripts/maven-ide'
 
 "==== plugin manager
 Plugin 'VundleVim/Vundle.vim'
