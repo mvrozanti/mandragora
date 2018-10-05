@@ -59,6 +59,7 @@
         ".config/ranger" : "~/.config/ranger",
         ".config/mpd" : "~/.config/mpd",
         ".calcurse/conf" : "~/.calcurse/conf",
+        "util/st" : "~/util/st",
         ".waterfox/bfgoo8ze.default/chrome" : "~/.waterfox/bfgoo8ze.default/chrome",
         ".netbeans/8.2/config/Editors/FontsColors/CityLights" : "~/.netbeans/8.2/config/Editors/FontsColors/CityLights",
         ".vim/bundle" : "~/.vim/bundle",
