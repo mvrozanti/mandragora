@@ -63,14 +63,13 @@
         ".calcurse/conf" : "~/.calcurse/conf",
         "util/st" : "~/util/st",
         ".waterfox/bfgoo8ze.default/chrome" : "~/.waterfox/bfgoo8ze.default/chrome",
-        ".netbeans/8.2/config/Editors/FontsColors/CityLights" : "~/.netbeans/8.2/config/Editors/FontsColors/CityLights",
+        ".netbeans/8.2/config/Editors" : "~/.netbeans/8.2/config/Editors",
+        ".netbeans/8.2/config/Keymaps" : "~/.netbeans/8.2/config/Keymaps",
+        ".netbeans/8.2/config/Preferences" : "~/.netbeans/8.2/config/Preferences",
         ".vim/bundle" : "~/.vim/bundle",
         ".vim/eclim" : "~/.vim/eclim",
         ".vim/plugin" : "~/.vim/plugin",
-
         ".tmux" : "~/.tmux/",
-        ".urxvt" : "~/.urxvt/",
-
         ".tmux.conf" : "~/.tmux.conf",
         ".Xresources" : "~/.Xresources",
         ".bash_aliases" : "~/.bash_aliases",
