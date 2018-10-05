@@ -61,7 +61,9 @@
         ".calcurse/conf" : "~/.calcurse/conf",
         ".waterfox/bfgoo8ze.default/chrome" : "~/.waterfox/bfgoo8ze.default/chrome",
         ".netbeans/8.2/config/Editors/FontsColors/CityLights" : "~/.netbeans/8.2/config/Editors/FontsColors/CityLights",
-        ".vim/bundle/vim-cute-python/after/syntax/python.vim" : "~/.vim/bundle/vim-cute-python/after/syntax/python.vim",
+        ".vim/bundle" : "~/.vim/bundle",
+        ".vim/eclim" : "~/.vim/eclim",
+        ".vim/plugin" : "~/.vim/plugin",
 
         ".tmux" : "~/.tmux/",
         ".urxvt" : "~/.urxvt/",
