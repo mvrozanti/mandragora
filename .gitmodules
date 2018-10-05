@@ -4,3 +4,6 @@
 [submodule "st"]
 	path = st
 	url = https://github.com/mvrozanti/st
+[submodule "util/st"]
+	path = util/st
+	url = https://github.com/mvrozanti/st/
