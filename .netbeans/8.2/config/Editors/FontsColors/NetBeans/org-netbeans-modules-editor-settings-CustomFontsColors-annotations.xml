@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE fontscolors PUBLIC "-//NetBeans//DTD Editor Fonts and Colors settings 1.1//EN" "http://www.netbeans.org/dtds/EditorFontsColors-1_1.dtd">
+<fontscolors>
+    <fontcolor name="org-netbeans-modules-web-core-syntax-JspParserErrorAnnotation" waveUnderlined="red"/>
+    <fontcolor bgColor="ffff8080" name="org-netbeans-modules-tomcat5-error"/>
+    <fontcolor name="org-netbeans-modules-web-beans-annotations-decorated-bean"/>
+    <fontcolor name="org-netbeans-modules-web-beans-annotations-event"/>
+    <fontcolor name="org-netbeans-modules-web-beans-annotations-delegate-point"/>
+    <fontcolor name="PinnedWatch"/>
+    <fontcolor name="org-netbeans-modules-editor-annotations-intercepted"/>
+    <fontcolor name="org-netbeans-modules-web-beans-annotations-observer"/>
+    <fontcolor name="org-netbeans-modules-web-beans-annotations-injection-point"/>
+</fontscolors>
