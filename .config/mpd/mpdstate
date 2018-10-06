@@ -2,8 +2,8 @@ sw_volume: 99
 audio_device_state:1:My Pulse Output
 audio_device_state:1:my_fifo
 state: play
-current: 361
-time: 4.075000
+current: 233
+time: 4.017000
 random: 1
 repeat: 1
 single: 0
@@ -1091,4 +1091,5 @@ playlist_begin
 1076:ADULT. - Breathe On (LIARS “Savannah” Remix).mp3
 1077:Daso - Meine.mp3
 1078:Yahel & Infected Mushroom - Electro Panic (Azax x Boombastix Remix) [Official Audio].mp3
+1079:Tom Day - Who We Want To Be.mp3
 playlist_end
