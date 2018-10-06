@@ -57,23 +57,24 @@ assign      [title="Discord"]                        $ws7
 #  |_| |_|  \___|\__, |\__,_|\___|_| |_|\__|
 #                   |_|                     
 
-$bind $mod+1                                $ensid wmctrl -a Waterfox   || waterfox
-$bind $mod+2              split h;          $ensid wmctrl -a ncmpcpp    || $TERMINAL -e ncmpcpp
-$bind $mod+Shift+2        split h;          $ensid wmctrl -a ncmpcpp    || $TERMINAL -t ncmpcpp -e ncmpcpp -s visualizer
-$bind $mod+3              workspace $ws2;   $ensid wmctrl -a zsth       || $TERMINAL -t zsth -e zsh
-$bind $mod+Shift+3                          $ensid wmctrl -xa tmux      || $TERMINAL -e tmux
-$bind $mod+4              split h;          $ensid wmctrl -a telegram   || telegram-desktop
-$bind $mod+b                                $ensid wmctrl -xa DBeaver   || dbeaver
-$bind $mod+Shift+d                          $ensid wmctrl -a Netbeans   || netbeans
-$bind $mod+z              workspace $ws5;   $ensid wmctrl -a Zoom       || zoom
-$bind $mod+g                                $ensid wmctrl -a cava       || $TERMINAL -n cava -e cava
-$bind $mod+m                                $ensid wmctrl -a cmatrix    || $TERMINAL -n cmatrix -e sh -c cmatrix
-$bind $mod+Shift+f        workspace $ws3;   $ensid wmctrl -a WhatsApp   || /usr/local/bin/pondfox https://web.whatsapp.com/
-$bind $mod+Shift+o        workspace $ws4;   $ensid wmctrl -a Trello     || /usr/local/bin/pondfox https://trello.com/
+$bind $mod+1                                $ensid wmctrl -a  Waterfox     || waterfox
+$bind $mod+2              split h;          $ensid wmctrl -a  ncmpcpp      || $TERMINAL -e ncmpcpp
+$bind $mod+Shift+2        split h;          $ensid wmctrl -a  ncmpcpp      || $TERMINAL -t ncmpcpp -e ncmpcpp -s visualizer
+$bind $mod+3              workspace $ws2;   $ensid wmctrl -a  zsth         || $TERMINAL -t zsth -e zsh
+$bind $mod+Shift+3                          $ensid wmctrl -xa tmux         || $TERMINAL -e tmux
+$bind $mod+g                                $ensid wmctrl -a  cava         || $TERMINAL -n cava -e cava
+$bind $mod+m                                $ensid wmctrl -a  cmatrix      || $TERMINAL -n cmatrix -e sh -c cmatrix
+$bind $mod+Return         workspace $ws8;   $ensid wmctrl -a  ^ranger$     || $TERMINAL -n ranger -e ranger
+$bind $mod+4              split h;          $ensid wmctrl -a  telegram     || telegram-desktop
+$bind $mod+b                                $ensid wmctrl -xa DBeaver      || dbeaver
+$bind $mod+Shift+d                          $ensid wmctrl -a  Netbeans     || netbeans
+$bind $mod+z              workspace $ws5;   $ensid wmctrl -a  Zoom         || zoom
+$bind $mod+Shift+f        workspace $ws3;   $ensid wmctrl -a  WhatsApp     || /usr/local/bin/pondfox https://web.whatsapp.com/
+$bind $mod+Shift+o        workspace $ws4;   $ensid wmctrl -a  Trello       || /usr/local/bin/pondfox https://trello.com/
+$bind $mod+Shift+w                          $ensid wmctrl -xa thunderbird  || thunderbird
 $bind $mod+o                                $ensid $TERMINAL -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
 $bind $mod+v                                $ensid $TERMINAL -t vtop -e $HOME/.npm/bin/vtop -t seti --update-interval 50
 $bind $mod+d              workspace $ws9
-$bind $mod+Return         workspace $ws8;   $ensid wmctrl -a "^ranger$" || $TERMINAL -n ranger -e ranger
 $bind $mod+Shift+Return                     $ensid $TERMINAL -e ranger
 
 #                      _   
@@ -83,11 +84,12 @@ $bind $mod+Shift+Return                     $ensid $TERMINAL -e ranger
 #  |___/\___|_|  \___/ \__|
 #                          
 
-$bind Print                       $ensid scrot    -e 'xclip -selection clipboard -target image/png -i $f' ~/.scrot.png
-$bind $mod+Print                  $ensid scrot -u -e 'xclip -selection clipboard -target image/png -i $f' ~/.scrot.png
-$bind --release Ctrl+Print        $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' ~/.scrot.png
-$bind --release Ctrl+Shift+Print  $ensid scrot -s -e 'pinta $f'                                           ~/.scrot.png
-$bind Shift+Print                 $ensid scrot    -e 'pinta $f'                                           ~/.scrot.png
+set $scrot_file ~/.scrot.png
+$bind Print                       $ensid scrot    -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
+$bind $mod+Print                  $ensid scrot -u -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
+$bind --release Ctrl+Print        $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
+$bind --release Ctrl+Shift+Print  $ensid scrot -s -e 'pinta $f'                                           $scrot_file
+$bind Shift+Print                 $ensid scrot    -e 'pinta $f'                                           $scrot_file
 $bind Ctrl+Mod4+Print             $ensid byzanz-record -d \
         `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
        ~/.imgur-recording.gif && beep && curl -X POST --url \
