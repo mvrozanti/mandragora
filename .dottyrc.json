@@ -91,10 +91,11 @@
         "git clone https://github.com/jesseduffield/lazygit ~/util/lazygit",
         "git clone https://github.com/mvrozanti/bash-tetris ~/util/bash-tetris",
         "git clone https://github.com/sigpipe/urlview ~/util/urlview",
-        "git clone https://github.com/clibs/entr ~/util/entr && cd ~/util/entr && ./configure && sudo make install && cd ..",
+        "git clone https://github.com/clibs/entr ~/util/entr && cd ~/util/entr && ./configure && sudo make install && cd",
         "curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh | sh",
         "git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions",
         "git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm",
+        "git clone https://github.com/alexanderjeurissen/ranger_devicons ~/util/ranger_devicons && cd $_ && make install && cd",
 
         "mkdir -p ~/Downloads && wget $(curl -s 'https://www.waterfoxproject.org/en-US/waterfox/new/?scene=1' | re '(https://storage-waterfox.netdna-ssl.com/releases/linux64/installer/waterfox-\\d+.\\d+.\\d+.en-US.linux-x86_64.tar.bz2)' | head -n1) -O ~/Downloads/waterfox-latest.tar.bz2 && cd ~/Downloads && unp -U waterfox-latest.tar.bz2 && cd waterfox* && ln -s $(realpath waterfox) /usr/local/bin/waterfox",
 
