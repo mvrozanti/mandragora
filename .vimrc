@@ -10,11 +10,6 @@ let g:ycm_key_list_stop_completion = ['<Enter>']
 
 " hits bong: 
 vnoremap ( xi()<Esc>PF(i
-vnoremap q[ di[]<Esc>p
-vnoremap q` di``<Esc>p
-vnoremap q" di""<Esc>p
-vnoremap q. di..<Esc>p
-vnoremap " xi""<Esc>PF"i
 nnoremap yF maggyG'a
 inoremap <C-Space> <C-X><C-O>
 nnoremap <Space><Space> <Esc>/<+><CR>"_3xi
@@ -282,7 +277,7 @@ autocmd FileType javascript                                         set omnifunc
 autocmd FileType python                                             let b:run_script = '! clear;python3 %'
 autocmd FileType python                                             let g:pymode_python = 'python3'
 autocmd FileType cpp                                                let b:run_script = '! clear; make && !%:r'
-autocmd FileType java                                               nnoremap <C-S-i> gg
+autocmd FileType java                                               nnoremap <C-S-i> :JavaImportOrganize<CR>
 " autocmd FileType *.c                                              let b:run_script='gcc\ %\ &&\ ./!%:r.out'
 
 inoremap <A-Left> <ESC>h
