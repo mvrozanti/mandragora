@@ -43,7 +43,6 @@ for_window  [title="todo"]                           floating enable
 for_window  [instance="^ranger$"]                    move to workspace $ws8
 for_window  [title=".*WhatsApp.*"]                   move to workspace $ws3
 for_window  [title=".*Trello.*"]                     move to workspace $ws4
-for_window  [title="vtop"]                           move to workspace $ws2
 assign      [title="zsth"]                           $ws2
 assign      [instance="cava"]                        $ws2
 assign      [instance="cmatrix"]                     $ws2
@@ -72,7 +71,7 @@ $bind $mod+m                                $ensid wmctrl -a cmatrix    || $TERM
 $bind $mod+Shift+f        workspace $ws3;   $ensid wmctrl -a WhatsApp   || /usr/local/bin/pondfox https://web.whatsapp.com/
 $bind $mod+Shift+o        workspace $ws4;   $ensid wmctrl -a Trello     || /usr/local/bin/pondfox https://trello.com/
 $bind $mod+o                                $ensid $TERMINAL -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
-$bind $mod+v                                $ensid $TERMINAL -e $HOME/.npm/bin/vtop -t seti
+$bind $mod+v                                $ensid $TERMINAL -t vtop -e $HOME/.npm/bin/vtop -t seti --update-interval 50
 $bind $mod+d              workspace $ws9
 $bind $mod+Return         workspace $ws8;   $ensid wmctrl -a "^ranger$" || $TERMINAL -n ranger -e ranger
 $bind $mod+Shift+Return                     $ensid $TERMINAL -e ranger
