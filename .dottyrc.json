@@ -21,6 +21,7 @@
         "ncmpcpp",
         "netbeans",
         "ntp",
+        "perl-anyevent-i3",
         "powerline",
         "powerline-vim",
         "powerline-fonts",

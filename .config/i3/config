@@ -45,6 +45,7 @@ for_window  [title=".*WhatsApp.*"]                   move to workspace $ws3
 for_window  [title=".*Trello.*"]                     move to workspace $ws4
 assign      [title="zsth"]                           $ws2
 assign      [instance="cava"]                        $ws2
+assign      [instance="cmatrix"]                     $ws2
 assign      [instance="DBeaver"]                     $ws4
 assign      [class="NetBeans IDE "]                  $ws6
 assign      [title="Discord"]                        $ws7
@@ -66,6 +67,7 @@ $bind $mod+b                                $ensid wmctrl -xa DBeaver   || dbeav
 $bind $mod+Shift+d                          $ensid wmctrl -a Netbeans   || netbeans
 $bind $mod+z              workspace $ws5;   $ensid wmctrl -a Zoom       || zoom
 $bind $mod+g                                $ensid wmctrl -a cava       || $TERMINAL -n cava -e cava
+$bind $mod+m                                $ensid wmctrl -a cmatrix    || $TERMINAL -n cmatrix -e sh -c cmatrix
 $bind $mod+Shift+f        workspace $ws3;   $ensid wmctrl -a WhatsApp   || /usr/local/bin/pondfox https://web.whatsapp.com/
 $bind $mod+Shift+o        workspace $ws4;   $ensid wmctrl -a Trello     || /usr/local/bin/pondfox https://trello.com/
 $bind $mod+o                                $ensid $TERMINAL -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
