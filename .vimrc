@@ -7,6 +7,7 @@ let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/
 let g:ycm_key_list_select_completion = ['<TAB>', '<Down>', '<CR>']
 let g:ycm_autoclose_preview_window_after_completion = 1
 let g:ycm_key_list_stop_completion = ['<Enter>']
+let g:vebugger_leader = '\'
 
 " hits bong: 
 vnoremap ( xi()<Esc>PF(i
@@ -20,6 +21,7 @@ vnoremap - $h
 nnoremap x "_x
 nnoremap <C-i> :mark x<CR>
 nnoremap <C-u> 'x
+inoremap {<CR> {<CR>}<Esc>k$o
 
 " vnoremap ) 
 vnoremap <C-r> "hy:%s/<C-r>h//gc<left><left><left>
@@ -116,8 +118,8 @@ Plugin 'ehamberg/vim-cute-python'
 " C/C++ debugging
 Plugin 'Shougo/vimproc.vim' 
 Plugin 'idanarye/vim-vebugger'
-Plugin 'vim-scripts/Conque-Shell'
-Plugin 'vim-scripts/Conque-GDB'
+" Plugin 'vim-scripts/Conque-Shell'
+" Plugin 'vim-scripts/Conque-GDB'
 
 "==== plugin manager
 Plugin 'VundleVim/Vundle.vim'
