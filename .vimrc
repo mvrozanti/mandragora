@@ -22,6 +22,7 @@ nnoremap x "_x
 nnoremap <C-i> :mark x<CR>
 nnoremap <C-u> 'x
 inoremap {<CR> {<CR>}<Esc>k$o
+vnoremap <CR> c<CR>
 
 " vnoremap ) 
 vnoremap <C-r> "hy:%s/<C-r>h//gc<left><left><left>
