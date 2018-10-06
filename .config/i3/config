@@ -40,7 +40,7 @@ for_window  [class="Waterfox"]                       move to workspace $ws1
 for_window  [title="Zoom"]                           move to workspace $ws5
 for_window  [class="URxvt"]                          floating enable
 for_window  [title="todo"]                           floating enable
-for_window  [title="ranger"]                         move to workspace $ws8
+for_window  [instance="^ranger$"]                    move to workspace $ws8
 for_window  [title=".*WhatsApp.*"]                   move to workspace $ws3
 for_window  [title=".*Trello.*"]                     move to workspace $ws4
 for_window  [title="vtop"]                           move to workspace $ws2
@@ -74,7 +74,7 @@ $bind $mod+Shift+o        workspace $ws4;   $ensid wmctrl -a Trello     || /usr/
 $bind $mod+o                                $ensid $TERMINAL -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
 $bind $mod+v                                $ensid $TERMINAL -e $HOME/.npm/bin/vtop -t seti
 $bind $mod+d              workspace $ws9
-$bind $mod+Return         workspace $ws8;   $ensid wmctrl -a ranger || $TERMINAL -t ranger -e ranger
+$bind $mod+Return         workspace $ws8;   $ensid wmctrl -a "^ranger$" || $TERMINAL -n ranger -e ranger
 $bind $mod+Shift+Return                     $ensid $TERMINAL -e ranger
 
 #                      _   
