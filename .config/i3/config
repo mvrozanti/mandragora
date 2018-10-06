@@ -90,7 +90,7 @@ $bind --release Ctrl+Shift+Print  $ensid scrot -s -e 'pinta $f'                 
 $bind Shift+Print                 $ensid scrot    -e 'pinta $f'                                           ~/.scrot.png
 $bind Ctrl+Mod4+Print             $ensid byzanz-record -d \
         `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
-               ~/.imgur-recording.gif && curl -X POST --url \
+        ~/.imgur-recording.gif && beep &&curl -X POST --url \
                             https://api.imgur.com/3/image -H \
                 'Authorization: Client-ID 09828b99a4e7777' -F \
                  "image=@"$_ | jq -r '.data.link' | xsel -i -b \

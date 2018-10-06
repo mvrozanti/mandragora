@@ -86,6 +86,8 @@ alias acs='apt-cache search'
 alias lisp='clisp --silent'
 alias pa='ps aux|grep'
 # alias jsonify='python -m json.tool --sort-keys'
+alias jsonify='echo use jq instead /dev/stderr'
+
 alias iftop='sudo iftop -Nlp'
 alias cava='cava -p $HOME/.config/cava/config'
 alias usdbrl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=USD_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
