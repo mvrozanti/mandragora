@@ -83,12 +83,17 @@ $bind $mod+Shift+Return                     $ensid $TERMINAL -e ranger
 #  |___/\___|_|  \___/ \__|
 #                          
 
-$bind Print                       $ensid scrot ~/.scrot.png    -e 'xclip -selection clipboard -target image/png -i $f'
-$bind $mod+Print                  $ensid scrot ~/.scrot.png -u -e 'xclip -selection clipboard -target image/png -i $f'
-$bind --release Ctrl+Print        $ensid scrot ~/.scrot.png -s -e 'xclip -selection clipboard -target image/png -i $f'
-$bind --release Ctrl+Shift+Print  $ensid scrot ~/.scrot.png -s -e 'pinta $f'
-$bind Shift+Print                 $ensid scrot ~/.scrot.png -e 'pinta $f'
-$bind Ctrl+Mod4+Print             $ensid byzanz-record -d `echo -e 'Seconds to record: '|dmenu $dmenu_looks` ~/.imgur-recording.gif && curl -X POST --url https://api.imgur.com/3/image -H 'Authorization: Client-ID 09828b99a4e7777' -F "image=@"$_ | jq -r '.data.link' | xsel -i -b 
+$bind Print                       $ensid scrot    -e 'xclip -selection clipboard -target image/png -i $f' ~/.scrot.png
+$bind $mod+Print                  $ensid scrot -u -e 'xclip -selection clipboard -target image/png -i $f' ~/.scrot.png
+$bind --release Ctrl+Print        $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' ~/.scrot.png
+$bind --release Ctrl+Shift+Print  $ensid scrot -s -e 'pinta $f'                                           ~/.scrot.png
+$bind Shift+Print                 $ensid scrot    -e 'pinta $f'                                           ~/.scrot.png
+$bind Ctrl+Mod4+Print             $ensid byzanz-record -d \
+        `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
+               ~/.imgur-recording.gif && curl -X POST --url \
+                            https://api.imgur.com/3/image -H \
+                'Authorization: Client-ID 09828b99a4e7777' -F \
+                 "image=@"$_ | jq -r '.data.link' | xsel -i -b \
 
 #                                                 _   
 #   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_ 
