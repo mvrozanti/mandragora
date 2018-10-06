@@ -100,6 +100,8 @@ nnoremap <S-U>      :5winc -<CR>
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
+Plugin 'godlygeek/tabular'
+
 "Clipboard -> cp,cv 
 Plugin 'christoomey/vim-system-copy'
 map y cp
