@@ -129,7 +129,7 @@ alias diff='diff --color=auto'
 alias fslint='/usr/share/fslint/fslint/fslint'
 alias stream='pkill darkice; alsao2i; tmux new -d darkice'  
 # for real time READMEs editing:
-alias READTHIS='grip -b'
+alias grip='wmctrl -a waterfox && st -e tmux -c "stty -ixon && vim *.md" & grip -b --wide'
 function cdt(){ wis_smth="`wis "$1"`"; abs_path="`readlink -f "$wis_smth"`"; cd `dirname "$abs_path"`; }
 alias filesize='du -h'
 function addalias(){ echo "alias $1='${@:2}'" >> $HOME/.bash_aliases; }
