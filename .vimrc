@@ -112,10 +112,12 @@ let g:system_copy#copy_command='xclip -sel clipboard -i'
 let g:system_copy#paste_command='xclip -sel clipboard -o'
 
 Plugin 'ehamberg/vim-cute-python'
+
+" C/C++ debugging
+Plugin 'Shougo/vimproc.vim' 
+Plugin 'idanarye/vim-vebugger'
 Plugin 'vim-scripts/Conque-Shell'
 Plugin 'vim-scripts/Conque-GDB'
-" Plugin 'mikelue/vim-maven-plugin'
-" Plugin 'vim-scripts/maven-ide'
 
 "==== plugin manager
 Plugin 'VundleVim/Vundle.vim'
