@@ -10,7 +10,8 @@
 set $mod Mod4
 set $ensid exec --no-startup-id
 set $bind bindsym
-set $dmenu_looks -fn "Droid Sans Mono for Powerline" -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300' 
+set $font "Droid Sans Mono for Powerline"
+set $dmenu_looks -fn $font -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300' 
 $bind Ctrl+Mod1+BackSpace   $ensid shutdown -h 0
 $bind Ctrl+Shift+Escape     $ensid $TERMINAL -e htop    # should add some more control and sorting for fast proc killing
 $bind $mod+Shift+r          restart
@@ -73,7 +74,7 @@ $bind $mod+z              workspace $ws5;   $ensid wmctrl -a  Zoom         || zo
 $bind $mod+Shift+f        workspace $ws3;   $ensid wmctrl -a  WhatsApp     || /usr/local/bin/pondfox https://web.whatsapp.com/
 $bind $mod+Shift+o        workspace $ws4;   $ensid wmctrl -a  Trello       || /usr/local/bin/pondfox https://trello.com/
 $bind $mod+Shift+w        workspace $ws7;   $ensid wmctrl -xa thunderbird  || thunderbird
-$bind $mod+o                                $ensid $TERMINAL -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
+$bind $mod+o                                $ensid $TERMINAL -f $font":pixelsize=15" -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
 $bind $mod+v                                $ensid $TERMINAL -t vtop -e $HOME/.npm/bin/vtop -t seti --update-interval 50
 $bind $mod+d              workspace $ws9
 $bind $mod+Shift+Return                     $ensid $TERMINAL -e ranger
@@ -173,12 +174,12 @@ $bind XF86AudioRaiseVolume      $ensid pamixer -i 4
 #  | (_| (_) | | | | | | | | | | |  __/ | | | |_\__ \/ /| | | | | | \__ \ (__ 
 #   \___\___/|_| |_| |_|_| |_| |_|\___|_| |_|\__|___/_/ |_| |_| |_|_|___/\___|
 
-set $ws1 "1"
-set $ws2 "2"
-set $ws3 "3"
-set $ws4 "4"
-set $ws5 "5"
-set $ws6 "6"
+set $ws1 "🌐"
+set $ws2 "Ϡ"
+set $ws3 "⊶"
+set $ws4 "⩥"
+set $ws5 "λ"
+set $ws6 "ϡ"
 set $ws7 "7"
 set $ws8 "8"
 set $ws9 "9"
@@ -202,7 +203,7 @@ $bind $mod+Shift+7                          move container to workspace $ws7
 $bind $mod+Shift+8                          move container to workspace $ws8
 $bind $mod+Shift+9                          move container to workspace $ws9
 $bind $mod+Shift+0                          move container to workspace $ws10
-$bind $mod+Ctrl+Shift+Right                 move container to workspace next_on_output
+$bind $mod+Ctrl+Shift+Right                 move container to workspace next_on_output; 
 $bind $mod+Ctrl+Shift+Left                  move container to workspace prev_on_output
 
 #                   _   _          _   _      
@@ -213,7 +214,7 @@ $bind $mod+Ctrl+Shift+Left                  move container to workspace prev_on_
 #                                             
 
 $ensid wal --saturate 1.0 -a 299 -i `cat $HOME/.fehbg | tail -n1 | cut -d ' ' -f3 | tr -d "'"`
-$ensid compton -D 6
+$ensid compton -D 3
 $ensid $HOME/.fehbg
 popup_during_fullscreen smart
 floating_modifier Mod1
@@ -241,9 +242,9 @@ bar {
     set $text-color          #000000
     set $inactive-text-color $bg-color
     set $urgent-bg-color     $inactive-bg-color
-    status_command $HOME/conky-i3bar
+    status_command $HOME/.conky-i3bar
     i3bar_command i3bar -t
-    font pango: Droid Sans Mono Slashed for Powerline 11
+    font pango: Droid Sans Mono Slashed for Powerline autohint antialias 12
     colors {
         background $bg-color
         separator $text-color
