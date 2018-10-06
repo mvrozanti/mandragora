@@ -8,7 +8,6 @@
         ".config/cava/" : "~/.config/cava",
         ".calcurse/conf" : "~/.calcurse/conf",
         "util/st" : "~/util/st",
-        ".waterfox/bfgoo8ze.default/chrome" : "~/.waterfox/bfgoo8ze.default/chrome",
         ".netbeans/8.2/config/Editors" : "~/.netbeans/8.2/config/Editors",
         ".netbeans/8.2/config/Keymaps" : "~/.netbeans/8.2/config/Keymaps",
         ".netbeans/8.2/config/Preferences" : "~/.netbeans/8.2/config/Preferences",
