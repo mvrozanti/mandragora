@@ -10,8 +10,8 @@
 set $mod Mod4
 set $ensid exec --no-startup-id
 set $bind bindsym
-set $font "Droid Sans Mono for Powerline"
-set $dmenu_looks -fn $font -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300' 
+set $font "Droid Sans Mono Slashed for Powerline"
+set $dmenu_looks -fn 'Droid Sans Mono for Powerline' -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300' 
 $bind Ctrl+Mod1+BackSpace   $ensid shutdown -h 0
 $bind Ctrl+Shift+Escape     $ensid $TERMINAL -e htop    # should add some more control and sorting for fast proc killing
 $bind $mod+Shift+r          restart
@@ -76,6 +76,7 @@ $bind $mod+Shift+o        workspace $ws4;   $ensid wmctrl -a  Trello       || /u
 $bind $mod+Shift+w        workspace $ws7;   $ensid wmctrl -xa thunderbird  || thunderbird
 $bind $mod+o                                $ensid $TERMINAL -f $font":pixelsize=15" -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
 $bind $mod+v                                $ensid $TERMINAL -t vtop -e $HOME/.npm/bin/vtop -t seti --update-interval 50
+$bind $mod+p              workspace $ws1    $ensid sh -c 'source /etc/environment && waterfox $waterfox_arg'
 $bind $mod+d              workspace $ws9
 $bind $mod+Shift+Return                     $ensid $TERMINAL -e ranger
 
