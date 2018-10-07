@@ -62,7 +62,7 @@ assign      [title="Discord"]                        $ws7
 $bind $mod+1                                $ensid wmctrl -a  Waterfox     || waterfox
 $bind $mod+2              split h;          $ensid wmctrl -a  ncmpcpp      || $TERMINAL -e ncmpcpp
 $bind $mod+Shift+2        split h;          $ensid wmctrl -a  ncmpcpp      || $TERMINAL -t ncmpcpp -e ncmpcpp -s visualizer
-$bind $mod+3              workspace $ws2;   $ensid wmctrl -a  zsth         || $TERMINAL -t zsth -e zsh
+$bind $mod+3              workspace $ws2;   $ensid wmctrl -a  zsth         || $TERMINAL -t zsth -e tmux
 $bind $mod+Shift+3                          $ensid wmctrl -xa tmux         || $TERMINAL -e tmux
 $bind $mod+g                                $ensid wmctrl -a  cava         || $TERMINAL -n cava -e cava
 $bind $mod+m                                $ensid wmctrl -a  cmatrix      || $TERMINAL -n cmatrix -e sh -c cmatrix
@@ -99,6 +99,7 @@ $bind Ctrl+Mod4+Print             $ensid source /etc/environment && byzanz-recor
                                                        https://api.imgur.com/3/image -H \
                                              "Authorization: Client-ID $imgur_client_id" \
                                          -F "image=@"$_ | jq -r '.data.link' | xsel -i -b \
+                                                                                      beep \
 
 #                                                 _   
 #   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_ 

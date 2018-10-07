@@ -2,7 +2,7 @@ alias rm='rm -f'
 alias ll='ls -alFh'
 alias la='ls -A'
 alias l='ls --sort=time'
-alias watch='watch --color -n1'
+alias watch='watch --color -n2'
 alias grep='egrep --color'
 alias sp='sudo pacman' 
 alias sps='sudo pacman -S' 
@@ -157,10 +157,9 @@ alias dotty='. $HOME/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
 function countdown(){ date1=$((`date +%s` + $1)); while [ "$date1" -ge `date +%s` ]; do clear; echo -ne "$(date -u --date @$(($date1 - `date +%s`)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; } 
 function stopwatch(){ date1=`date +%s`; while true; do clear; echo -ne "$(date -u --date @$((`date +%s` - $date1)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
-function ytdl(){ youtube-dl --extract-audio --audio-format mp3 -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1 } 
 alias sw='sudo wifi-menu'
 alias cfs='ranger ~/util/st/ && cd $_ && sudo make install && gacp changed st'
 alias vtop='vtop -t seti'
-function fortune() { re '\[(.+)\]' ".vim/bundle/vim-startify/autoload/startify/fortune.vim" | shuf | head -n1 } 
+function fortune() { re '\[(.+)\]' ".vim/bundle/vim-startify/autoload/startify/fortune.vim" | shuf | head -n2; } 
 function make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > $HOME/.ranger_aliases; } 
-
+function ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1; } 
