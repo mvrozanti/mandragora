@@ -93,11 +93,12 @@ $bind $mod+Print                  $ensid scrot -u -e 'xclip -selection clipboard
 $bind --release Ctrl+Print        $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
 $bind --release Ctrl+Shift+Print  $ensid scrot -s -e 'pinta $f'                                           $scrot_file
 $bind Shift+Print                 $ensid scrot    -e 'pinta $f'                                           $scrot_file
-$bind Ctrl+Mod4+Print             $ensid byzanz-record -d \
-        `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
-       ~/.imgur-recording.gif && beep && curl -X POST --url \
-                            https://api.imgur.com/3/image -H \
-                "image=@"$_ | jq -r '.data.link' | xsel -i -b \
+$bind Ctrl+Mod4+Print             $ensid source /etc/environment && byzanz-record -d \
+                                   `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
+                                          ~/.imgur-recording.gif && curl -X POST --url \
+                                                       https://api.imgur.com/3/image -H \
+                                             "Authorization: Client-ID $imgur_client_id" \
+                                         -F "image=@"$_ | jq -r '.data.link' | xsel -i -b \
 
 #                                                 _   
 #   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_ 

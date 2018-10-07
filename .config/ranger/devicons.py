@@ -140,6 +140,7 @@ dir_node_exact_matches = {
     'Public'                           : '',
     'Templates'                        : '',
     'Videos'                           : '',
+    'raspberry'                        : '⚘',
 # French
     'Bureau'                           : '',
     'Documents'                        : '',
