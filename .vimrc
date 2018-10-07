@@ -23,7 +23,7 @@ inoremap {<CR> {<CR>}<Esc>k$o
 vnoremap <CR> c<CR>
 
 " Goyo
-map <F2> :Goyo<CR>
+map <F2> :Goyo 100x100<CR>
 
 " Replace visual selection
 vnoremap <C-r> "hy:%s/<C-r>h//gc<left><left><left>
@@ -289,7 +289,7 @@ inoremap <A-Down> <ESC>j
 inoremap <A-Up> <ESC>k
 inoremap <A-Right> <ESC>l
 
-nnoremap <C-W> <Esc>:q<CR> 
+nnoremap <C-W> <Esc>:Goyo!<CR> <bar>:q<CR>
 inoremap <C-W> <Esc>:q<CR>
 nnoremap <C-S> <Esc>:w<CR>
 inoremap <C-S> <Esc>:w<CR>
