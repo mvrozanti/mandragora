@@ -16,17 +16,20 @@ inoremap <C-Space> <C-X><C-O>
 nnoremap <Space><Space> <Esc>/<+><CR>"_3xi
 nnoremap dl v$hxJhv0w"_x
 nnoremap cW eF_hvbc
-" this is basically ci( -> nnoremap c( $F(lvt)c
 vnoremap - $h
-nnoremap x "_x
 nnoremap <C-i> :mark x<CR>
 nnoremap <C-u> 'x
 inoremap {<CR> {<CR>}<Esc>k$o
 vnoremap <CR> c<CR>
 
-" vnoremap ) 
+" Goyo
+map <F2> :Goyo<CR>
+
+" Replace visual selection
 vnoremap <C-r> "hy:%s/<C-r>h//gc<left><left><left>
+" Del and x do not affect clipboard
 nnoremap <Del> "_<Del>
+nnoremap x "_x
 
 nmap S ysiw
 " nnoremap <Space><Space> f<Space>i
@@ -103,7 +106,8 @@ nnoremap <S-U>      :5winc -<CR>
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
-Plugin 'godlygeek/tabular'
+Plugin  'godlygeek/tabular'
+Plugin  'junegunn/goyo.vim'
 
 "Clipboard -> cp,cv 
 Plugin 'christoomey/vim-system-copy'
@@ -140,8 +144,8 @@ let g:javascript_conceal_super                = "Ω"
 let g:javascript_conceal_arrow_function       = "⇒"
 let g:javascript_plugin_ngdoc = 1
 let g:javascript_plugin_flow = 1
-
 let g:CXXFLAGS='-std=c++11'
+
 " ==== File tree
 Plugin 'scrooloose/nerdtree'
 
@@ -175,13 +179,6 @@ Plugin 'kien/ctrlp.vim'
 " ==== snippets
 Plugin 'SirVer/ultisnips'
 
-" ==== AUTOCOMPLETE PAIRS
-" Plugin 'jiangmiao/auto-pairs'
-" let g:AutoPairsFlyMode = 1
-
-" ==== PLUGIN THEMES
-"Plugin 'morhetz/gruvbox'
-
 call vundle#end()
 filetype plugin indent on
 
@@ -190,7 +187,7 @@ filetype plugin indent on
 set rtp+=$HOME/.local/lib/python3.7/site-packages/powerline/bindings/vim/
 set laststatus=2
 set t_Co=256
-set guifont=Monospace\ 10
+" set guifont=Monospace\ 10
 set fillchars+=vert:\$
 syntax enable
 "set background=
