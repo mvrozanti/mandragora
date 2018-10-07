@@ -76,7 +76,7 @@ $bind $mod+Shift+o        workspace $ws4;   $ensid wmctrl -a  Trello       || /u
 $bind $mod+Shift+w        workspace $ws7;   $ensid wmctrl -xa thunderbird  || thunderbird
 $bind $mod+o                                $ensid $TERMINAL -f $font":pixelsize=15" -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
 $bind $mod+v                                $ensid $TERMINAL -t vtop -e $HOME/.npm/bin/vtop -t seti --update-interval 50
-$bind $mod+p              workspace $ws1    $ensid sh -c 'source /etc/environment && waterfox $waterfox_arg'
+$bind $mod+p              workspace $ws1    $ensid waterfox $waterfox_arg
 $bind $mod+d              workspace $ws9
 $bind $mod+Shift+Return                     $ensid $TERMINAL -e ranger
 
