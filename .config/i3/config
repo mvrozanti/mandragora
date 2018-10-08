@@ -74,7 +74,7 @@ $bind $mod+z              workspace $ws5;   $ensid wmctrl -a  Zoom         || zo
 $bind $mod+Shift+f        workspace $ws3;   $ensid wmctrl -a  WhatsApp     || /usr/local/bin/pondfox https://web.whatsapp.com/
 $bind $mod+Shift+o        workspace $ws4;   $ensid wmctrl -a  Trello       || /usr/local/bin/pondfox https://trello.com/
 $bind $mod+Shift+w        workspace $ws7;   $ensid wmctrl -xa thunderbird  || thunderbird
-$bind $mod+o                                $ensid $TERMINAL -f $font":pixelsize=15" -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
+$bind $mod+o          fullscreen disable;   $ensid $TERMINAL -f $font":pixelsize=15" -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
 $bind $mod+v                                $ensid $TERMINAL -t vtop -e $HOME/.npm/bin/vtop -t seti --update-interval 50
 $bind $mod+p              workspace $ws1    $ensid waterfox $waterfox_arg
 $bind $mod+d              workspace $ws9
