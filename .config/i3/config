@@ -93,7 +93,7 @@ $bind $mod+Print                  $ensid scrot -u -e 'xclip -selection clipboard
 $bind --release Ctrl+Print        $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
 $bind --release Ctrl+Shift+Print  $ensid scrot -s -e 'pinta $f'                                           $scrot_file
 $bind Shift+Print                 $ensid scrot    -e 'pinta $f'                                           $scrot_file
-$bind Ctrl+Mod4+Print             $ensid byzanz-record -d \
+$bind Ctrl+$mod+Print             $ensid byzanz-record -d \
                                    `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
                                        ~/.imgur-recording.gif && curl -s -X POST --url \
                                                        https://api.imgur.com/3/image -H \
