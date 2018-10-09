@@ -151,6 +151,8 @@ mode "$mode_resize" {
 }
 $bind Ctrl+Mod1+Left      workspace prev
 $bind Ctrl+Mod1+Right     workspace next
+$bind Ctrl+Mod1+h         workspace prev
+$bind Ctrl+Mod1+l         workspace next
 
 #                      _ _       
 #   _ __ ___   ___  __| (_) __ _ 
