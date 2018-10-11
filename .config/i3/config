@@ -66,7 +66,7 @@ $bind $mod+3              workspace $ws2;   $ensid wmctrl -a  zsth         || $T
 $bind $mod+Shift+3                          $ensid wmctrl -xa tmux         || $TERMINAL -e tmux
 $bind $mod+g                                $ensid wmctrl -a  cava         || $TERMINAL -n cava -e cava
 $bind $mod+m                                $ensid wmctrl -a  cmatrix      || $TERMINAL -n cmatrix -e sh -c cmatrix
-$bind $mod+Return         workspace $ws8;   $ensid wmctrl -a  ranger       || $TERMINAL -n ranger -t ranger -e ranger
+$bind $mod+Return         workspace $ws8;   $ensid wmctrl -a  ranger       || $TERMINAL -n ranger -t ranger -e sh -c "stty -ixon && ranger"
 $bind $mod+4              split h;          $ensid wmctrl -a  telegram     || telegram-desktop
 $bind $mod+b                                $ensid wmctrl -xa DBeaver      || dbeaver
 $bind $mod+Shift+d                          $ensid wmctrl -a  Netbeans     || netbeans
