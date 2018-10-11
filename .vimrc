@@ -1,6 +1,5 @@
 set encoding=utf-8
 let g:colorizer_auto_color = 1
-" map // V//
 set nofoldenable
 set foldmethod=manual
 let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
@@ -108,8 +107,11 @@ nnoremap <S-U>      :5winc -<CR>
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
-Plugin  'godlygeek/tabular'
-Plugin  'junegunn/goyo.vim'
+Plugin 'godlygeek/tabular'
+
+Plugin 'junegunn/goyo.vim'
+
+Plugin 'realincubus/vim-clang-refactor'
 
 "Clipboard -> cp,cv 
 Plugin 'christoomey/vim-system-copy'
