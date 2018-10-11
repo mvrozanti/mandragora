@@ -164,3 +164,5 @@ alias vtop='vtop -t seti'
 function fortune() { re '\[(.+)\]' ".vim/bundle/vim-startify/autoload/startify/fortune.vim" | shuf | head -n2; } 
 function make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > $HOME/.ranger_aliases; } 
 function ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1; } 
+alias wt='watch tree'
+function hl(){ hamachi list | tail -n +2 | grep '^\s*\*' | awk '{print $4}'; }
