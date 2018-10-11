@@ -38,19 +38,19 @@ $ensid unclutter -idle 1
 focus_follows_mouse no
 
 for_window  [class="Waterfox"]                       move to workspace $ws1
-for_window  [title="Zoom"]                           move to workspace $ws5
-for_window  [class="URxvt"]                          floating enable
-for_window  [title="todo"]                           floating enable
-for_window  [instance="^ranger$"]                    move to workspace $ws8
 for_window  [title=".*WhatsApp.*"]                   move to workspace $ws3
 for_window  [title=".*Trello.*"]                     move to workspace $ws4
-assign      [title="Mozilla Thunderbird"]            $ws7
+for_window  [title="Zoom"]                           move to workspace $ws5
+for_window  [instance="^ranger$"]                    move to workspace $ws8
+for_window  [class="URxvt"]                          floating enable
+for_window  [title="todo"]                           floating enable
 assign      [title="zsth"]                           $ws2
 assign      [instance="cava"]                        $ws2
 assign      [instance="cmatrix"]                     $ws2
-assign      [instance="DBeaver"]                     $ws4
 assign      [class="NetBeans IDE "]                  $ws6
 assign      [title="Discord"]                        $ws7
+assign      [instance="DBeaver"]                     $ws9
+assign      [title="Mozilla Thunderbird"]            $ws10
 
 #    __                                 _   
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_ 
