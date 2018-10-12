@@ -1,6 +1,6 @@
 *foreground: #ff1100
 *foreground_bold: #ffff00
-*cursor: #ffffff
+!!*cursor: #ffffff -- this fucks Tkinter up
 !!*color0: #ff1050
 *color0: #000
 *color9: #7600ff
