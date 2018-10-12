@@ -21,6 +21,8 @@ nnoremap <C-u> 'x
 inoremap {<CR> {<CR>}<Esc>k$o
 vnoremap <CR> c<CR>
 
+nnoremap <C-Tab> gK
+
 " Goyo
 map <F2> :Goyo 100x100<CR>
 " Case insensitive search by default
@@ -43,6 +45,7 @@ inoremap fori<tab> for(int i=0; i < ; i++){<CR>}<Esc>3Bla
 
 " python shortcuts
 autocmd FileType python inoremap ci<tab> code.interact(local=locals())<Esc> 
+autocmd FileType python set makeprg=python3\ %
 autocmd FileType python inoremap ld<tab> LOG.debug()<Esc>i
 autocmd FileType python inoremap pr<tab> print()<Esc>i
 autocmd FileType python inoremap she<tab> #!/usr/bin/env python

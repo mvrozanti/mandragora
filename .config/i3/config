@@ -59,7 +59,7 @@ assign      [title="Mozilla Thunderbird"]            $ws10
 #  |_| |_|  \___|\__, |\__,_|\___|_| |_|\__|
 #                   |_|                     
 
-$bind $mod+1                                $ensid wmctrl -a  Waterfox     || waterfox
+$bind $mod+1                                $ensid wmctrl -a  Waterfox     || sh -c 'GTK_IM_MODULE=cedilla && waterfox'
 $bind $mod+2              split h;          $ensid wmctrl -a  ncmpcpp      || $TERMINAL -e ncmpcpp
 $bind $mod+Shift+2        split h;          $ensid wmctrl -a  ncmpcpp      || $TERMINAL -t ncmpcpp -e ncmpcpp -s visualizer
 $bind $mod+3              workspace $ws2;   $ensid wmctrl -a  zsth         || $TERMINAL -t zsth -e tmux

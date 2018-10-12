@@ -38,6 +38,7 @@
         "dmenu",
         "electron",
         "feh",
+        "geckodriver",
         "gdb",
         "gdmap",
         "hping",
