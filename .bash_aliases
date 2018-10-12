@@ -166,3 +166,4 @@ function make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | g
 function ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1; } 
 alias wt='watch -n 1 tree'
 function hl(){ hamachi list | tail -n +2 | grep '^\s*\*' | awk '{print $4}'; }
+function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath $fp | xsel -i -b; }
