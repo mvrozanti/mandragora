@@ -110,7 +110,7 @@ function tts(){ printf "(SayText "`cat -`")" | festival -i;}
 function vapor(){ vapore="`cat -`"; n=1;if [[ "$1" == "-n" ]]; then n=$2;fi;for i in {1..$n};do vapore="`echo $vapore | sed -r 's/(.)/\1 /g'`";done;echo $vapore; }
 alias d='trash'
 alias mbtc='/mnt/4ADE1465DE144C17/gdrive/Programming/bash/mbtc/alerter.sh'
-alias rp='realpath'
+alias rp='realpath -z'
 # short whereis for scripting
 function wis(){ whereis "$1" | cut -d':' -f2 | cut -d' ' -f2;}
 alias reip='re "\d+\.\d+\.\d+\.\d+"'
@@ -166,4 +166,4 @@ function make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | g
 function ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1; } 
 alias wt='watch -n 1 tree'
 function hl(){ hamachi list | tail -n +2 | grep '^\s*\*' | awk '{print $4}'; }
-function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath $fp | xsel -i -b; }
+function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
