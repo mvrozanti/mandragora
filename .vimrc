@@ -88,9 +88,9 @@ let &runtimepath.=','.vimDir
 inoremap QQ <Esc>:q!<CR>
 
 " netbeans<3
-inoremap <C-E> <Esc> ddi
-nnoremap <C-E> dd
-vnoremap <C-E> d
+inoremap <C-E> <Esc> "_ddi
+nnoremap <C-E> "_dd
+vnoremap <C-E> "_d
 
 set hlsearch
 set nocompatible  " be iMproved, required # ??

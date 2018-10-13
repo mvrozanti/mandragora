@@ -14,6 +14,7 @@ syntax match pyNiceOperator "\<or\>"                 conceal cchar=∨
 syntax match pyNiceOperator "\<and\>"                conceal cchar=∧
 " syntax match pyNiceOperator "for\%( \+\)\w\+\%( \)"conceal cchar=⑁
 syntax match pyNiceOperator "\<not\%( \|\>\)"        conceal cchar=¬
+syntax match pyNiceOperator "\<not\%( \|\>\)"        conceal cchar=᨟
 syntax match pyNiceOperator "<="                     conceal cchar=≤
 syntax match pyNiceOperator ">="                     conceal cchar=≥
 syntax match pyNiceOperator "=\@<!===\@!"            conceal cchar=≡
@@ -55,7 +56,7 @@ syntax keyword pyNiceStatement except                conceal cchar=〆
 syntax keyword pyNiceStatement pass                  conceal cchar=֍
 syntax keyword pyNiceStatement raise                 conceal cchar=↑
 syntax keyword pyNiceStatement global                conceal cchar=🌐
-syntax keyword pyNiceStatement file                  conceal cchar=🗄
+syntax keyword pyNiceStatement file                  conceal cchar=🗃
 syntax keyword pyNiceStatement filter                conceal cchar=Ÿ
 syntax keyword pyNiceStatement sorted                conceal cchar=Δ
 syntax keyword pyNiceStatement self                  conceal cchar=ϡ
