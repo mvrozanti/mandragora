@@ -45,6 +45,7 @@ inoremap fori<tab> for(int i=0; i < ; i++){<CR>}<Esc>3Bla
 
 " python shortcuts
 autocmd FileType python inoremap ci<tab> code.interact(local=locals())<Esc> 
+autocmd FileType python inoremap pdbt<tab> pdb.set_trace()<Esc> 
 autocmd FileType python set makeprg=python3\ %
 autocmd FileType python inoremap ld<tab> LOG.debug()<Esc>i
 autocmd FileType python inoremap pr<tab> print()<Esc>i
@@ -71,8 +72,8 @@ nnoremap <C-N> :tabe<CR>
 nnoremap [ <C-W>
 
 " WIP
-nnoremap <buffer> <F5> <Esc>:w<CR>:call system(b:run_script)<CR>
-autocmd FileType c nnoremap <buffer> <F5> <Esc>:make<CR>
+" nnoremap <buffer> <F5> <Esc>:w<CR>:call system(b:run_script)<CR>
+" autocmd FileType c nnoremap <buffer> <F5> <Esc>:make<CR>
 
 " remap mark
 nnoremap , '
