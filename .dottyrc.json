@@ -43,6 +43,7 @@
         "gdmap",
         "hping",
         "iptraf-ng",
+        "iftop",
         "jupyter",
         "jq",
         "lolcat",
