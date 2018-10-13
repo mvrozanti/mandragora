@@ -2,8 +2,8 @@ sw_volume: 100
 audio_device_state:1:My Pulse Output
 audio_device_state:1:my_fifo
 state: play
-current: 370
-time: 4.179000
+current: 559
+time: 4.109000
 random: 1
 repeat: 1
 single: 0
@@ -1098,4 +1098,5 @@ playlist_begin
 1083:10 Love Island.mp3
 1084:1-11 Acid 8000.mp3
 1085:Satisfaction.mp3
+1086:The Glitch Mob - Can't Kill Us (Official Video).mp3
 playlist_end
