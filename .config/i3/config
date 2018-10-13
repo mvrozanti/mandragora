@@ -134,7 +134,7 @@ $bind $mod+a              focus parent
 $bind $mod+s              layout stacking
 $bind $mod+w              layout tabbed
 $bind $mod+e              layout toggle split
-$bind $mod+Shift+space    floating toggle
+$bind $mod+Shift+space    floating toggle; sticky enable
 $bind $mod+space focus    mode_toggle
 $bind Ctrl+$mod+Left      resize shrink width 10 px or 10 ppt
 $bind Ctrl+$mod+Up        resize grow height 10 px or 10 ppt
