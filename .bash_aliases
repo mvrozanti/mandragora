@@ -33,6 +33,7 @@ alias gfd='git fetch origin; git diff master'
 alias gc='git clone'
 function gac() { cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; }
 function gacp(){ gac "${@:1}"; git push; } 
+function gdc(){ git diff HEAD HEAD~1; } 
 alias gs='git status'
 alias gco='git checkout'
 alias vp='vim "$HOME/Dropbox/Sys4Bank - Programas Java/pendencias.txt"'
@@ -47,7 +48,8 @@ alias smv='sudo mv'
 alias msk='ncmpcpp'
 alias cfa='sudo -E vim $HOME/.bash_aliases'
 alias cfb='sudo -E vim $HOME/.bashrc'
-alias cfd='sudo -E vim /home/nexor/mandragora/.dottyrc.json'
+alias cfc='sudo -E vim /home/nexor/mandragora/.dottyrc.json'
+alias cfd='sh -c "cd $HOME/mandragora && git diff HEAD HEAD~1"' 
 alias cfi='sudo -E vim $HOME/.config/i3/config'
 alias cfp='$HOME/mandragora/dotty/dotty.py -c -s'
 alias cfr='sudo -E vim $HOME/.config/ranger'
