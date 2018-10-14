@@ -76,6 +76,7 @@ $bind $mod+Shift+o        workspace $ws4;   $ensid wmctrl -a  Trello       || /u
 $bind $mod+Shift+w        workspace $ws7;   $ensid wmctrl -xa thunderbird  || thunderbird
 $bind $mod+o          fullscreen disable;   $ensid wmctrl -a  todo         || $TERMINAL -n todo -f $font":pixelsize=15" -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
 $bind $mod+i                                $ensid wmctrl -a  iftop        || $TERMINAL -t iftop -n iftop -e sudo iftop
+$bind $mod+x                                $ensid wmctrl -a discord       || discord-canary
 $bind $mod+v                                $ensid $TERMINAL -t vtop -e $HOME/.npm/bin/vtop -t seti --update-interval 50
 $bind $mod+p              workspace $ws1    $ensid waterfox $waterfox_arg
 $bind $mod+d              workspace $ws9
