@@ -93,8 +93,8 @@ set $scrot_file ~/.scrot.png
 $bind Print                       $ensid scrot    -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
 $bind $mod+Print                  $ensid scrot -u -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
 $bind --release Ctrl+Print        $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
-$bind --release Ctrl+Shift+Print  $ensid scrot -s -e 'pinta $f'                                           $scrot_file
-$bind Shift+Print                 $ensid scrot    -e 'pinta $f'                                           $scrot_file
+$bind Shift+Print                 $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
+$bind --release Ctrl+Shift+Print  $ensid scrot    -e 'pinta $f'                                           $scrot_file
 $bind Ctrl+$mod+Print             $ensid byzanz-record -d \
                                    `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
                                        ~/.imgur-recording.gif && curl -s -X POST --url \
@@ -188,8 +188,8 @@ set $ws5 "λ"
 set $ws6 "ϡ"
 set $ws7 "ৠ"
 set $ws8 "ৡ"
-set $ws9 "༆"
-set $ws10 "༺"
+set $ws9 "⚒"
+set $ws10 "🗡"
 
 $bind $mod+Ctrl+1                           workspace $ws1
 $bind $mod+Ctrl+2                           workspace $ws2

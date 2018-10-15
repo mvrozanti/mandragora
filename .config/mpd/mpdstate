@@ -1,9 +1,9 @@
 sw_volume: 100
 audio_device_state:1:My Pulse Output
 audio_device_state:1:my_fifo
-state: pause
-current: 1086
-time: 78.837000
+state: play
+current: 1077
+time: 4.086000
 random: 1
 repeat: 1
 single: 0
@@ -1099,4 +1099,5 @@ playlist_begin
 1084:1-11 Acid 8000.mp3
 1085:Satisfaction.mp3
 1086:The Glitch Mob - Can't Kill Us (Official Video).mp3
+1087:OGRE - 195 [Full Album].mp3
 playlist_end
