@@ -26,7 +26,8 @@
         ".bashrc" : "~/.bashrc",
         ".zshrc" : "~/.zshrc",
         ".urlview" : "~/.urlview",
-        ".vimfx" : "~/.vimfx"
+        ".vimfx" : "~/.vimfx",
+        ".XCompose" : "~/.XCompose"
     },
     "install_cmd" : "sudo pacman -S",
     "install" : [
