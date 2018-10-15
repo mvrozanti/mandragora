@@ -169,4 +169,5 @@ function ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE14
 alias wt='watch -n 1 tree'
 function hl(){ hamachi list | tail -n +2 | grep '^\s*\*' | awk '{print $4}'; }
 function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
-alias sc='`wis sc`'
+function ocsv() { cat "$@" | psc -k -d, | `wis sc` }
+alias sc='sc-im'
