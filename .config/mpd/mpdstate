@@ -1,9 +1,9 @@
-sw_volume: 100
+sw_volume: 99
 audio_device_state:1:My Pulse Output
 audio_device_state:1:my_fifo
 state: pause
-current: 312
-time: 87.584000
+current: 493
+time: 43.189000
 random: 1
 repeat: 1
 single: 0
@@ -1100,4 +1100,5 @@ playlist_begin
 1085:Satisfaction.mp3
 1086:The Glitch Mob - Can't Kill Us (Official Video).mp3
 1087:OGRE - 195 [Full Album].mp3
+1088:OGRE - Into the breach.mp3
 playlist_end
