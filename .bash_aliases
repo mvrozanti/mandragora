@@ -173,3 +173,4 @@ function whl(){ watch -g "hamachi list | tail -n +2 | grep '^\s*\*' | awk '{prin
 function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
 function ocsv() { cat "$@" | psc -k -d, | `wis sc` }
 alias sc='sc-im'
+alias nv='nvim'

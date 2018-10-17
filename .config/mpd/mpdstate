@@ -2,8 +2,8 @@ sw_volume: 99
 audio_device_state:1:My Pulse Output
 audio_device_state:1:my_fifo
 state: play
-current: 109
-time: 4.156000
+current: 76
+time: 4.202000
 random: 1
 repeat: 1
 single: 0
@@ -53,8 +53,8 @@ playlist_begin
 38:01 Smooth Criminal.mp3
 39:01 Someday.mp3
 40:01 Tchaikovsky.mp3
-41:01 The Game Has Changed.mp3
-42:01 Venus As A Boy.mp3
+41:01 Venus As A Boy.mp3
+42:01 The Game Has Changed.mp3
 43:01 Yes Man.mp3
 44:03 Crazy.mp3
 45:1200 Mics - Shiva's India.mp3
