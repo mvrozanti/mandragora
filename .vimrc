@@ -11,7 +11,7 @@ let g:vebugger_leader = '\'
 " hits bong: 
 vnoremap ( xi()<Esc>PF(i
 nnoremap yF maggyG'a
-inoremap <C-Space> <C-X><C-O>
+" inoremap <C-Space> <C-X><C-O>
 nnoremap <Space><Space> <Esc>/<+><CR>"_3xi
 nnoremap dl v$hxJhv0w"_x
 nnoremap cW eF_hvbc
