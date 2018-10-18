@@ -232,8 +232,8 @@ client.unfocused        $gray   #222222 #888888 #292d2e   #222222
 client.urgent           $gray   #900000 #ffffff #900000   #900000
 client.placeholder      #000000 #0c0c0c #ffffff #000000   #0c0c0c
 client.background       #ffffff
-$bind $mod+KP_Home $ensid redshift -g 1:0.5:0.5 -O 25000K
-$bind $mod+KP_Up   $ensid redshift -g 0.5:0.5:1 -O 25000K
+$bind $mod+KP_Home  $ensid redshift -g 1:0.5:0.5 -O 25000K
+$bind $mod+KP_Up    $ensid redshift -g 0.5:0.5:1 -O 25000K
 $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 
 #  _                
