@@ -174,3 +174,4 @@ function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && re
 function ocsv() { cat "$@" | psc -k -d, | `wis sc` }
 alias sc='sc-im'
 alias nv='nvim'
+function fv(){ find . -type f -name "*$@*" -exec vim {} +  }

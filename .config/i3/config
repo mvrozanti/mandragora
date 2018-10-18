@@ -71,8 +71,8 @@ $bind $mod+4              split h;          $ensid wmctrl -a  telegram     || te
 $bind $mod+b                                $ensid wmctrl -xa DBeaver      || dbeaver
 $bind $mod+Shift+d                          $ensid wmctrl -a  Netbeans     || netbeans
 $bind $mod+z              workspace $ws5;   $ensid wmctrl -a  Zoom         || zoom
-$bind $mod+Shift+f        workspace $ws3;   $ensid wmctrl -a  WhatsApp     || /usr/local/bin/pondfox https://web.whatsapp.com/
-$bind $mod+Shift+o        workspace $ws4;   $ensid wmctrl -a  Trello       || /usr/local/bin/pondfox https://trello.com/
+$bind $mod+Shift+f        workspace $ws3;   $ensid wmctrl -a  WhatsApp     || whatsapp
+$bind $mod+Shift+s        workspace $ws4;   $ensid wmctrl -a  Trello       || /usr/local/bin/pondfox https://trello.com/
 $bind $mod+Shift+w        workspace $ws7;   $ensid wmctrl -xa thunderbird  || thunderbird
 $bind $mod+o          fullscreen disable;   $ensid wmctrl -a  todo         || $TERMINAL -n todo -f $font":pixelsize=15" -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
 $bind $mod+i                                $ensid wmctrl -a  iftop        || $TERMINAL -t iftop -n iftop -e sudo iftop
