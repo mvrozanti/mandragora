@@ -1,9 +1,9 @@
-sw_volume: 99
+sw_volume: 100
 audio_device_state:1:My Pulse Output
 audio_device_state:1:my_fifo
-state: pause
-current: 1087
-time: 32.351000
+state: play
+current: 1089
+time: 4.213000
 random: 1
 repeat: 1
 single: 0
@@ -1101,4 +1101,7 @@ playlist_begin
 1086:The Glitch Mob - Can't Kill Us (Official Video).mp3
 1087:OGRE - 195 [Full Album].mp3
 1088:OGRE - Into the breach.mp3
+1089:The Glitch Mob - Fly By Night Only (feat. Yaarrohs).mp3
+1090:The Glitch Mob - Mind of a Beast.mp3
+1091:The Glitch Mob - Skullclub.mp3
 playlist_end
