@@ -60,27 +60,27 @@ assign      [title="Mozilla Thunderbird"]            $ws10
 #  |_| |_|  \___|\__, |\__,_|\___|_| |_|\__|
 #                   |_|                     
 
-$bind $mod+1          fullscreen disable;           $ensid wmctrl -a  Waterfox     || waterfox
-$bind $mod+2          fullscreen disable; split h;  $ensid wmctrl -a  ncmpcpp      || $TERMINAL -T 200 -e ncmpcpp 
-$bind $mod+Shift+2    fullscreen disable; split h;  $ensid wmctrl -a  ncmpcpp      || $TERMINAL -t ncmpcpp -e ncmpcpp -s visualizer
-$bind $mod+3   fullscreen disable; workspace $ws2;  $ensid wmctrl -a  zsth         || $TERMINAL -t zsth -e tmux
-$bind $mod+Shift+3                                  $ensid wmctrl -xa tmux         || $TERMINAL -e tmux
-$bind $mod+g                                        $ensid wmctrl -a  cava         || $TERMINAL -n cava -e cava
-$bind $mod+m                                        $ensid wmctrl -a  cmatrix      || $TERMINAL -n cmatrix -e sh -c cmatrix
-$bind $mod+Return         workspace $ws8;           $ensid wmctrl -a  ranger       || $TERMINAL -n ranger -T 100 -t ranger -e sh -c "stty -ixon && ranger"
-$bind $mod+o          fullscreen disable;           $ensid wmctrl -a  todo         || $TERMINAL -n todo -f $font":pixelsize=15" -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
-$bind $mod+i                                        $ensid wmctrl -a  iftop        || $TERMINAL -t iftop -n iftop -e sudo iftop
-$bind $mod+4              split h;                  $ensid wmctrl -a  telegram     || telegram-desktop
-$bind $mod+b                                        $ensid wmctrl -xa DBeaver      || dbeaver
-$bind $mod+Shift+d                                  $ensid wmctrl -a  Netbeans     || netbeans
-$bind $mod+z              workspace $ws5;           $ensid wmctrl -a  Zoom         || zoom
-$bind $mod+Shift+f        workspace $ws3;           $ensid wmctrl -a  WhatsApp     || whatsapp
-$bind $mod+Shift+s        workspace $ws4;           $ensid wmctrl -a  Trello       || /usr/local/bin/pondfox https://trello.com/
-$bind $mod+Shift+w        workspace $ws7;           $ensid wmctrl -xa thunderbird  || thunderbird
-$bind $mod+x                                        $ensid wmctrl -a discord       || discord-canary
-$bind $mod+v                                        $ensid $TERMINAL -T 200 -t vtop -e $HOME/.npm/bin/vtop -t seti --update-interval 50
-$bind $mod+p              workspace $ws1            $ensid waterfox $waterfox_arg
-$bind $mod+Shift+Return                             $ensid $TERMINAL -e ranger
+$bind $mod+1          fullscreen disable; split toggle;         $ensid wmctrl -a  Waterfox     || waterfox
+$bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp      || $TERMINAL -T 200 -e ncmpcpp 
+$bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp      || $TERMINAL -t ncmpcpp -e ncmpcpp -s visualizer
+$bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  zsth         || $TERMINAL -t zsth -e tmux
+$bind $mod+Shift+3                                              $ensid wmctrl -xa tmux         || $TERMINAL -e tmux
+$bind $mod+g                                                    $ensid wmctrl -a  cava         || $TERMINAL -n cava -e cava
+$bind $mod+m                                                    $ensid wmctrl -a  cmatrix      || $TERMINAL -n cmatrix -e sh -c cmatrix
+$bind $mod+Return         workspace $ws8;                       $ensid wmctrl -a  ranger       || $TERMINAL -n ranger -T 100 -t ranger -e sh -c "stty -ixon && ranger"
+$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo         || $TERMINAL -n todo -f $font":pixelsize=15" -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
+$bind $mod+v                              split toggle;         $ensid wmctrl -a vtop          || $TERMINAL -T 200 -t vtop -e $HOME/.npm/bin/vtop -t seti --update-interval 50
+$bind $mod+i                                                    $ensid wmctrl -a  iftop        || $TERMINAL -t iftop -n iftop -e sudo iftop
+$bind $mod+4              split h;                              $ensid wmctrl -a  telegram     || telegram-desktop
+$bind $mod+b                                                    $ensid wmctrl -xa DBeaver      || dbeaver
+$bind $mod+Shift+d                                              $ensid wmctrl -a  Netbeans     || netbeans
+$bind $mod+z              workspace $ws5;                       $ensid wmctrl -a  Zoom         || zoom
+$bind $mod+Shift+f        workspace $ws3;                       $ensid wmctrl -a  WhatsApp     || whatsapp
+$bind $mod+Shift+s        workspace $ws4;                       $ensid wmctrl -a  Trello       || /usr/local/bin/pondfox https://trello.com/
+$bind $mod+Shift+w        workspace $ws7;                       $ensid wmctrl -xa thunderbird  || thunderbird
+$bind $mod+x                                                    $ensid wmctrl -a discord       || discord-canary
+$bind $mod+p              workspace $ws1                        $ensid waterfox $waterfox_arg
+$bind $mod+Shift+Return                                         $ensid $TERMINAL -e ranger
 $bind $mod+d              workspace $ws9
 
 #                      _   
@@ -181,16 +181,26 @@ $bind XF86AudioRaiseVolume      $ensid pamixer -i 4
 #  | (_| (_) | | | | | | | | | | |  __/ | | | |_\__ \/ /| | | | | | \__ \ (__ 
 #   \___\___/|_| |_| |_|_| |_| |_|\___|_| |_|\__|___/_/ |_| |_| |_|_|___/\___|
 
-set $ws1 "⚉"
-set $ws2 "Ϡ"
-set $ws3 "⊶"
-set $ws4 "⩥"
-set $ws5 "λ"
-set $ws6 "ϡ"
-set $ws7 "ৠ"
-set $ws8 "ৡ"
-set $ws9 "⚒"
-set $ws10 "🗡"
+# set $ws1  "⚉"
+# set $ws2  "Ϡ"
+# set $ws3  "⊶"
+# set $ws4  "⩥"
+# set $ws5  "λ"
+# set $ws6  "ϡ"
+# set $ws7  "ৠ"
+# set $ws8  "ৡ"
+# set $ws9  "⚒"
+# set $ws10 "🗡"
+set $ws1  "1"
+set $ws2  "2"
+set $ws3  "3"
+set $ws4  "4"
+set $ws5  "5"
+set $ws6  "6"
+set $ws7  "7"
+set $ws8  "8"
+set $ws9  "9"
+set $ws10 "10"
 
 $bind $mod+Ctrl+1                           workspace $ws1
 $bind $mod+Ctrl+2                           workspace $ws2
