@@ -7,6 +7,7 @@
 
 # win=Mod4
 # alt=Mod1
+exec_always --no-startup-id $HOME/.config/polybar/launch.sh
 set $mod Mod4
 set $ensid exec --no-startup-id
 set $bind bindsym
@@ -60,13 +61,15 @@ assign      [title="Mozilla Thunderbird"]            $ws10
 #                   |_|                     
 
 $bind $mod+1          fullscreen disable;           $ensid wmctrl -a  Waterfox     || sh -c 'GTK_IM_MODULE=cedilla && waterfox'
-$bind $mod+2          fullscreen disable; split h;  $ensid wmctrl -a  ncmpcpp      || $TERMINAL -e ncmpcpp
+$bind $mod+2          fullscreen disable; split h;  $ensid wmctrl -a  ncmpcpp      || $TERMINAL -T 140 -e ncmpcpp 
 $bind $mod+Shift+2    fullscreen disable; split h;  $ensid wmctrl -a  ncmpcpp      || $TERMINAL -t ncmpcpp -e ncmpcpp -s visualizer
 $bind $mod+3   fullscreen disable; workspace $ws2;  $ensid wmctrl -a  zsth         || $TERMINAL -t zsth -e tmux
 $bind $mod+Shift+3                                  $ensid wmctrl -xa tmux         || $TERMINAL -e tmux
 $bind $mod+g                                        $ensid wmctrl -a  cava         || $TERMINAL -n cava -e cava
 $bind $mod+m                                        $ensid wmctrl -a  cmatrix      || $TERMINAL -n cmatrix -e sh -c cmatrix
-$bind $mod+Return         workspace $ws8;           $ensid wmctrl -a  ranger       || $TERMINAL -n ranger -t ranger -e sh -c "stty -ixon && ranger"
+$bind $mod+Return         workspace $ws8;           $ensid wmctrl -a  ranger       || $TERMINAL -n ranger -T 100 -t ranger -e sh -c "stty -ixon && ranger"
+$bind $mod+o          fullscreen disable;           $ensid wmctrl -a  todo         || $TERMINAL -n todo -f $font":pixelsize=15" -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
+$bind $mod+i                                        $ensid wmctrl -a  iftop        || $TERMINAL -t iftop -n iftop -e sudo iftop
 $bind $mod+4              split h;                  $ensid wmctrl -a  telegram     || telegram-desktop
 $bind $mod+b                                        $ensid wmctrl -xa DBeaver      || dbeaver
 $bind $mod+Shift+d                                  $ensid wmctrl -a  Netbeans     || netbeans
@@ -74,8 +77,6 @@ $bind $mod+z              workspace $ws5;           $ensid wmctrl -a  Zoom      
 $bind $mod+Shift+f        workspace $ws3;           $ensid wmctrl -a  WhatsApp     || whatsapp
 $bind $mod+Shift+s        workspace $ws4;           $ensid wmctrl -a  Trello       || /usr/local/bin/pondfox https://trello.com/
 $bind $mod+Shift+w        workspace $ws7;           $ensid wmctrl -xa thunderbird  || thunderbird
-$bind $mod+o          fullscreen disable;           $ensid wmctrl -a  todo         || $TERMINAL -n todo -f $font":pixelsize=15" -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
-$bind $mod+i                                        $ensid wmctrl -a  iftop        || $TERMINAL -t iftop -n iftop -e sudo iftop
 $bind $mod+x                                        $ensid wmctrl -a discord       || discord-canary
 $bind $mod+v                                        $ensid $TERMINAL -t vtop -e $HOME/.npm/bin/vtop -t seti --update-interval 50
 $bind $mod+p              workspace $ws1            $ensid waterfox $waterfox_arg
@@ -243,24 +244,26 @@ $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 # |_.__/ \__,_|_|   
 #                   
 
-bar {
-    set $bg-color            #111111aa
-    set $inactive-bg-color   #ff3300
-    set $text-color          #000000
-    set $inactive-text-color $bg-color
-    set $urgent-bg-color     $inactive-bg-color
-    status_command $HOME/.conky-i3bar
-    i3bar_command i3bar -t
-    font pango: Droid Sans Mono Slashed for Powerline autohint antialias 12
-    colors {
-        background $bg-color
-        separator $text-color
-        focused_workspace  $inactive-bg-color  $inactive-bg-color      $text-color
-        inactive_workspace $bg-color $bg-color $inactive-text-color
-        urgent_workspace   $urgent-bg-color    $urgent-bg-color        $text-color
-        active_workspace   $inactive-bg-color  $inactive-bg-color      $inactive-text-color
-    }
-}
+# bar {
+#     i3bar_command $HOME/.config/polybar/launch.sh
+#     i3bar_command $HOME/.config/i3/i3_lemonbar.sh
+#     i3bar_command i3bar -t
+#     status_command $HOME/.conky-i3bar
+#     set $bg-color            #111111aa
+#     set $inactive-bg-color   #ff3300
+#     set $text-color          #000000
+#     set $inactive-text-color $bg-color
+#     set $urgent-bg-color     $inactive-bg-color
+#     font pango: Droid Sans Mono Slashed for Powerline
+#     colors {
+#         background $bg-color
+#         separator $text-color
+#         focused_workspace  $inactive-bg-color  $inactive-bg-color      $text-color
+#         inactive_workspace $bg-color $bg-color $inactive-text-color
+#         urgent_workspace   $urgent-bg-color    $urgent-bg-color        $text-color
+#         active_workspace   $inactive-bg-color  $inactive-bg-color      $inactive-text-color
+#     }
+# }
 
 #     __ _  __ _ _ __  ___ 
 #    / _` |/ _` | '_ \/ __|

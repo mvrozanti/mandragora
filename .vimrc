@@ -8,6 +8,9 @@ let g:ycm_autoclose_preview_window_after_completion = 1
 let g:ycm_key_list_stop_completion = ['<Enter>']
 let g:vebugger_leader = '\'
 
+set visualbell
+set t_vb=
+
 " hits bong: 
 vnoremap ( xi()<Esc>PF(i
 nnoremap yF maggyG'a

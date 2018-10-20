@@ -11,4 +11,3 @@ echo '[],'
 
 # Now send blocks with information forever:
 exec conky -c $HOME/.conkyrc
-# { "full_text": "${mpd_smart} ${mpd_bar 5 100}",             "color": "\#ff0000" },
