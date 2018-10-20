@@ -3,6 +3,7 @@
         ".config/powerline" : "~/.config/powerline", 
         ".config/ncmpcpp" : "~/.config/.ncmpcpp",
         ".config/i3" : "~/.config/i3",
+        ".config/polybar" : "~/.config/polybar",
         ".config/ranger" : "~/.config/ranger",
         ".config/mpd" : "~/.config/mpd",
         ".config/cava/" : "~/.config/cava",
@@ -100,7 +101,7 @@
         "mkdir -p ~/util",
         "git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim && vim +PluginInstall +qall",
         "git clone https://github.com/danielchatfield/trello-desktop ~/util",
-        "git clone https://github.com/emcrisostomo/fswatch ~/util/fswatch && cd $_ && ./configure && sudo make install && cd",
+        "git clone https://github.com/emcrisostomo/fswatch ~/util/fswatch && cd $_ && ./configure && sudo make install && cd.",
         "git clone https://github.com/jesseduffield/lazygit ~/util/lazygit",
         "git clone https://github.com/mvrozanti/bash-tetris ~/util/bash-tetris",
         "git clone https://github.com/sigpipe/urlview ~/util/urlview",
@@ -113,6 +114,7 @@
         "[[ -z `whereis waterfox | cut -d ':' -f2` ]] && mkdir -p ~/Downloads && wget $(curl -s 'https://www.waterfoxproject.org/en-US/waterfox/new/?scene=1' | re '(https://storage-waterfox.netdna-ssl.com/releases/linux64/installer/waterfox-\\d+.\\d+.\\d+.en-US.linux-x86_64.tar.bz2)' | head -n1) -O ~/Downloads/waterfox-latest.tar.bz2 && cd ~/Downloads && unp -U waterfox-latest.tar.bz2 && cd waterfox* && ln -s $(realpath waterfox) /usr/local/bin/waterfox",
         "mkdir ~/Downloads && wget https://telegram.org/dl/desktop/linux -O ~/Downloads/telegram-latest.tar.xz && cd ~/Downloads && unp -U telegram-latest.tar.xz && cd Telegram && ln -s $(realpath Telegram) /usr/local/bin/telegram",
         "npm i -g vtop",
-        "pip3 install --user grip psutil maybe"
+        "pip3 install --user grip psutil maybe",
+        "yay polybar"
     ]
 }
