@@ -17,7 +17,6 @@
 ;==========================================================
 
 [colors]
-;background = ${xrdb:color0}
 background = #b01e1e1e
 background-alt = #444
 ;foreground = ${xrdb:color7:#222}
@@ -53,9 +52,9 @@ module-margin-left = 1
 module-margin-right = 2
 
 font-0 = Droid Sans Mono for Powerline:size=10
-; font-0 = fixed:pixelsize=10;1
-; font-1 = unifont:fontformat=truetype:size=8:antialias=false;0
-; font-2 = siji:pixelsize=10;1
+font-1 = fixed:pixelsize=10;1
+font-2 = unifont:fontformat=truetype:size=8:antialias=false;0
+font-3 = siji:pixelsize=10;1
 
 modules-left = i3
 modules-center = mpd
@@ -313,13 +312,13 @@ format-muted-foreground = ${colors.foreground-alt}
 label-muted = sound muted
 
 bar-volume-width = 10
-bar-volume-foreground-0 = #55aa55
-bar-volume-foreground-1 = #55aa55
-bar-volume-foreground-2 = #55aa55
-bar-volume-foreground-3 = #55aa55
-bar-volume-foreground-4 = #55aa55
-bar-volume-foreground-5 = #f5a70a
-bar-volume-foreground-6 = #ff5555
+bar-volume-foreground-0 = #000000
+bar-volume-foreground-1 = #300000
+bar-volume-foreground-2 = #500000
+bar-volume-foreground-3 = #700000
+bar-volume-foreground-4 = #900000
+bar-volume-foreground-5 = #a00000
+bar-volume-foreground-6 = #f00000
 bar-volume-gradient = false
 bar-volume-indicator = |
 bar-volume-indicator-font = 2
