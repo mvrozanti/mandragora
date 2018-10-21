@@ -67,7 +67,7 @@ $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a
 $bind $mod+Shift+3                                              $ensid wmctrl -xa tmux         || $TERMINAL -e tmux
 $bind $mod+g                                                    $ensid wmctrl -a  cava         || $TERMINAL -n cava -e cava
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix      || $TERMINAL -n cmatrix -e sh -c cmatrix
-$bind $mod+Return         workspace $ws8;                       $ensid wmctrl -a  ranger       || $TERMINAL -n ranger -T 100 -t ranger -e sh -c "stty -ixon && ranger"
+$bind $mod+Return         workspace $ws8;                       $ensid wmctrl -a  ranger       || $TERMINAL -n ranger -T 200 -t ranger -e sh -c "stty -ixon && ranger"
 $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo         || $TERMINAL -n todo -f $font":pixelsize=15" -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
 $bind $mod+v                              split toggle;         $ensid wmctrl -a vtop          || $TERMINAL -T 200 -t vtop -e $HOME/.npm/bin/vtop -t seti --update-interval 50
 $bind $mod+i                                                    $ensid wmctrl -a  iftop        || $TERMINAL -t iftop -n iftop -e sudo iftop
@@ -77,7 +77,7 @@ $bind $mod+Shift+d                                              $ensid wmctrl -a
 $bind $mod+z              workspace $ws5;                       $ensid wmctrl -a  Zoom         || zoom
 $bind $mod+Shift+f        workspace $ws3;                       $ensid wmctrl -a  WhatsApp     || whatsapp
 $bind $mod+Shift+s        workspace $ws4;                       $ensid wmctrl -a  Trello       || /usr/local/bin/pondfox https://trello.com/
-$bind $mod+Shift+w        workspace $ws7;                       $ensid wmctrl -xa thunderbird  || thunderbird
+$bind $mod+Shift+w        workspace $ws10;                      $ensid wmctrl -xa thunderbird  || thunderbird
 $bind $mod+x                                                    $ensid wmctrl -a discord       || discord-canary
 $bind $mod+p              workspace $ws1                        $ensid waterfox $waterfox_arg
 $bind $mod+Shift+Return                                         $ensid $TERMINAL -e ranger

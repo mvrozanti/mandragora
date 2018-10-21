@@ -27,7 +27,7 @@ vnoremap <CR> c<CR>
 nnoremap <C-Tab> gK
 
 " Goyo
-map <F2> :Goyo 100x100<CR>
+map <F2> :Goyo 140x100<CR>
 " Case insensitive search by default
 map / /\c
 
