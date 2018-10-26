@@ -160,6 +160,9 @@ let g:CXXFLAGS='-std=c++11'
 " ==== File tree
 Plugin 'scrooloose/nerdtree'
 
+" ==== Refactoring for C-family
+Plugin 'bbchung/clighter8'
+
 " ==== overwrite vim banner
 Plugin 'mhinz/vim-startify'
 Plugin 'mhinz/vim-signify'

@@ -117,7 +117,7 @@ alias rp='realpath -z'
 # short whereis for scripting
 function wis(){ whereis "$1" | cut -d':' -f2 | cut -d' ' -f2;}
 alias reip='re "\d+\.\d+\.\d+\.\d+"'
-alias ecdsa='ssh-keygen -l -f /etc/ssh/ssh_host_ecdsa_key.pub;; ssh-keygen -l -f $_ -E md5'
+alias ecdsa='ssh-keygen -l -f /etc/ssh/ssh_host_ecdsa_key.pub; ssh-keygen -l -f $_ -E md5'
 alias pi2='sudo -H pip2 install'
 alias pi='sudo -H pip3 install'
 alias up2pi='rsync -a "`pwd`" torta:'

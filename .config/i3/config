@@ -69,7 +69,7 @@ $bind $mod+g                                                    $ensid wmctrl -a
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix      || $TERMINAL -n cmatrix -e sh -c cmatrix
 $bind $mod+Return         workspace $ws8;                       $ensid wmctrl -a  ranger       || $TERMINAL -n ranger -T 200 -t ranger -e sh -c "stty -ixon && ranger"
 $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo         || $TERMINAL -n todo -f $font":pixelsize=15" -t todo -e tmux -c 'stty -ixon && vim $HOME/todo'
-$bind $mod+v                              split toggle;         $ensid wmctrl -a vtop          || $TERMINAL -T 200 -t vtop -e $HOME/.npm/bin/vtop -t seti --update-interval 50
+$bind $mod+v                              split toggle;         $ensid wmctrl -a gotop          || $TERMINAL -T 200 -t gotop -e gotop
 $bind $mod+Shift+v                        split toggle;         $ensid wmctrl -a VirtualBox    || virtualbox
 $bind $mod+i                                                    $ensid wmctrl -a  iftop        || $TERMINAL -t iftop -n iftop -e sudo iftop
 $bind $mod+4              split h;                              $ensid wmctrl -a  telegram     || telegram-desktop
