@@ -179,3 +179,4 @@ alias sc='sc-im'
 alias nv='nvim'
 function fv(){ find . -type f -name "*$@*" -exec vim {} +  }
 function zt(){ tar -czvf $1".tar.gz" ${@:2} }
+alias less='bat'
