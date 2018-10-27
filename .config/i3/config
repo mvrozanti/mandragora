@@ -224,6 +224,8 @@ $bind $mod+Shift+9                          move container to workspace $ws9
 $bind $mod+Shift+0                          move container to workspace $ws10
 $bind $mod+Ctrl+Shift+Right                 move container to workspace next; workspace next
 $bind $mod+Ctrl+Shift+Left                  move container to workspace prev; workspace prev
+$bind $mod+Ctrl+Shift+l                     move container to workspace next; workspace next
+$bind $mod+Ctrl+Shift+h                     move container to workspace prev; workspace prev
 
 #                   _   _          _   _      
 #    __ _  ___  ___| |_| |__   ___| |_(_) ___ 
