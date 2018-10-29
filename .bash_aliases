@@ -23,7 +23,7 @@ alias sr='sudo ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true
 alias u='unp -U'
 alias unp='unp -U'
 alias v='vim'
-alias em='emacs -nw'
+alias E='emacs -nw'
 # test .Xresources colors
 alias testx='echo;for a in {40..47}; do echo -ne "\e[0;30;$a""m  ""\e[0;37;39m "; done; echo ""'
 alias cutefetch='while true; do screenfetch_out="$(screenfetch -a $HOME/nexor.ascii -p)$(testx;echo;echo;echo)";sleep 1;clear;printf "$screenfetch_out"|lolcat;sleep 1; done'
