@@ -156,7 +156,7 @@ alias p3i='pip3 install --user'
 alias p2i='pip2 install --user'
 alias p3r='pip3 uninstall'
 alias p3r='pip2 uninstall'
-function cnt() { echo $1 | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && ./"$noext"'; }
+function cnt() { echo $1 | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -g -o "$noext" ${@:2} && clear && ./"$noext"'; }
 function cntr() { echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && exec "$noext"'; }
 function centr() { ls *.c* | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
 alias dotty='. $HOME/mandragora/dotty/dotty.py'
@@ -182,3 +182,4 @@ function zt(){ tar -czvf $1".tar.gz" ${@:2} }
 alias less='bat'
 alias py='python'
 alias S='du -sh'
+alias gsu='git ls-files . --exclude-standard --others'
