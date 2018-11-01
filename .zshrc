@@ -102,3 +102,6 @@ export PATH=~/.local/bin:$PATH
 
 # turn off beep
 set bell-style none
+export PATH="/home/nexor/.pyenv/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"

@@ -1,9 +1,9 @@
 sw_volume: 92
 audio_device_state:1:My Pulse Output
 audio_device_state:1:my_fifo
-state: pause
-current: 794
-time: 71.842000
+state: play
+current: 1021
+time: 0.986000
 random: 1
 repeat: 1
 single: 0
@@ -1098,4 +1098,5 @@ playlist_begin
 1083:_Small Grey Creatures_ - Shulman.mp3
 1084:_Holiday_ By Green Day.mp3
 1085:Life Could Be A Dream (Chill Trap Remix).mp3
+1086:The Glitch Mob - I Need My Memory Back (feat. Aja Volkman).mp3
 playlist_end
