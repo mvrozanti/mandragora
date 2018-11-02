@@ -58,7 +58,7 @@ autocmd FileType python inoremap Tr<tab> True
 
 " autocmd FileType c set makeprg=gcc\ -O2\ -g\ -Wall\ -Wextra\ -o'%<'\ '%'\ -lm ; ./%\:r
 
-autocmd FileType c inoremap pr<tab> printf("", <+>);<Esc>7hi
+autocmd FileType c,cpp inoremap pr<tab> printf("", <+>);<Esc>7hi
 
 " bash shortcuts
 " autocmd FileType sh     
