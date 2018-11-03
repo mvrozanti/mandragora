@@ -73,7 +73,6 @@ alias e='echo'
 alias c='xsel -i -b'
 alias co='xsel -o -b'
 alias feh='feh -B black --sort mtime -.'
-alias cal='calcurse'
 alias randip="dd if=/dev/urandom bs=4 count=1 2>/dev/null | od -An -tu1 | sed -e 's/^ *//' -e 's/  */./g'"
 alias 2wmv='sudo ffmpeg -c:v wmv2 -b:v 99M -c:a wmav2 -b:a 192k output.wmv -i'
 alias mp32wav='mpg123 -w output.wav'
@@ -176,7 +175,7 @@ function whl(){ watch -g "hamachi list | tail -n +2 | grep '^\s*\*' | awk '{prin
 function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
 function ocsv() { cat "$@" | psc -k -d, | `wis sc` }
 alias sc='sc-im'
-alias nv='nvim'
+alias nv='nvim -S $HOME/.nvimrc'
 function fv(){ find . -type f -name "*$@*" -exec vim {} +  }
 function zt(){ tar -czvf $1".tar.gz" ${@:2} }
 alias less='bat'
