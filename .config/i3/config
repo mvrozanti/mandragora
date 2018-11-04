@@ -45,6 +45,7 @@ for_window  [title="Zoom"]                           move to workspace $ws5
 for_window  [instance="^ranger$"]                    move to workspace $ws8
 for_window  [class="URxvt"]                          floating enable
 for_window  [title="todo"]                           floating enable
+for_window  [title="cal"]                            floating enable
 assign      [title="zsth"]                           $ws2
 assign      [instance="cava"]                        $ws2
 assign      [instance="cmatrix"]                     $ws2
@@ -60,8 +61,8 @@ assign      [title="Mozilla Thunderbird"]            $ws10
 #  |_| |_|  \___|\__, |\__,_|\___|_| |_|\__|
 #                   |_|                     
 
-$bind $mod+1          fullscreen disable; split toggle;         $ensid wmctrl -xa  Waterfox    || waterfox
-$bind $mod+Shift+1        workspace $ws1                        $ensid wmctrl -a Browsing      || waterfox $waterfox_arg
+$bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox     || waterfox
+$bind $mod+Shift+1        workspace $ws1                        $ensid wmctrl -a  Browsing     || waterfox $waterfox_arg
 $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp      || $TERMINAL -T 200 -e ncmpcpp 
 $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp      || $TERMINAL -T 150 -t ncmpcpp -e ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  zsth         || $TERMINAL -t zsth -e tmux
@@ -69,9 +70,10 @@ $bind $mod+Shift+3                                              $ensid wmctrl -x
 $bind $mod+g                                                    $ensid wmctrl -a  cava         || $TERMINAL -n cava -e cava
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix      || $TERMINAL -n cmatrix -e sh -c cmatrix
 $bind $mod+Return         workspace $ws8;                       $ensid wmctrl -a  ranger       || $TERMINAL -n ranger -T 200 -t ranger -e sh -c "stty -ixon && ranger"
-$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo         || $TERMINAL -n todo -f $font":pixelsize=15" -t todo -e sh -c "stty -ixon && vim $HOME/todo"
-$bind $mod+v                              split toggle;         $ensid wmctrl -a gotop         || $TERMINAL -T 200 -t gotop -e gotop
-$bind $mod+Shift+v                        split toggle;         $ensid wmctrl -a VirtualBox    || virtualbox
+$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo         || $TERMINAL -T 255 -n todo -f $font":pixelsize=19" -t todo -e sh -c "stty -ixon && vim $HOME/todo"
+$bind $mod+Shift+a          fullscreen disable;                 $ensid wmctrl -a  cal          || $TERMINAL -T 255 -n cal -f $font":pixelsize=25" -t cal -e sh -c "cal -3 && read -n1 ans" 
+$bind $mod+v                              split toggle;         $ensid wmctrl -a  gotop        || $TERMINAL -T 200 -t gotop -e gotop
+$bind $mod+Shift+v                        split toggle;         $ensid wmctrl -a  VirtualBox   || virtualbox
 $bind $mod+i                                                    $ensid wmctrl -a  iftop        || $TERMINAL -t iftop -n iftop -e sudo iftop
 $bind $mod+4              split h;                              $ensid wmctrl -a  telegram     || telegram-desktop
 $bind $mod+b                                                    $ensid wmctrl -xa DBeaver      || dbeaver
@@ -79,7 +81,7 @@ $bind $mod+Shift+d                                              $ensid wmctrl -a
 $bind $mod+z              workspace $ws5;                       $ensid wmctrl -a  Zoom         || zoom
 $bind $mod+Shift+f        workspace $ws3;                       $ensid wmctrl -a  WhatsApp     || whatsapp
 $bind $mod+Shift+s        workspace $ws4;                       $ensid wmctrl -a  Trello       || /usr/local/bin/pondfox https://trello.com/
-# $bind $mod+Shift+s        workspace $ws4;                       $ensid wmctrl -a "| Trello"    || electron $HOME/util/trello-desktop
+# $bind $mod+Shift+s        workspace $ws4;                     $ensid wmctrl -a "| Trello"    || electron $HOME/util/trello-desktop
 $bind $mod+Shift+w        workspace $ws10;                      $ensid wmctrl -xa thunderbird  || thunderbird
 $bind $mod+x                                                    $ensid wmctrl -a discord       || discord-canary
 $bind $mod+Shift+Return                                         $ensid $TERMINAL -e ranger
