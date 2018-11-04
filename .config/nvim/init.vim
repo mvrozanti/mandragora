@@ -236,6 +236,10 @@ set shiftwidth=4
 
 " Real-time markdown editing
 Plug 'iamcco/markdown-preview.vim'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+let g:airline_powerline_fonts = 1
+let g:airline_theme='term'
 call plug#end()
 
 " ==== NERDTREE
