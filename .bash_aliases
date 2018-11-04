@@ -16,19 +16,20 @@ alias agr='sudo apt-get remove'
 alias py2='python2'
 alias py3='python3'
 alias s='sudo'
-alias create-readme='cp $HOME/.README.md ./README.md && vim README.md'
 alias r='ranger'
 alias r.='ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true" "$(if [ -z "$@" ]; then cat $HOME/.rangerdir; fi)";cd "`cat $HOME/.rangerdir`"'
 alias sr='sudo ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true" "$(if [ -z "$@" ]; then cat $HOME/.rangerdir; fi)";cd "`cat $HOME/.rangerdir`"'
 alias u='unp -U'
 alias unp='unp -U'
-alias v='vim'
+alias create-readme='cp $HOME/.README.md ./README.md && nvim README.md'
+alias sv='sudo -E nvim'
+alias v='nvim'
+alias vmutt='sudo -E vim $HOME/.muttrc'
 alias E='emacs -nw'
 # test .Xresources colors
 alias testx='echo;for a in {40..47}; do echo -ne "\e[0;30;$a""m  ""\e[0;37;39m "; done; echo ""'
 alias cutefetch='while true; do screenfetch_out="$(screenfetch -a $HOME/nexor.ascii -p)$(testx;echo;echo;echo)";sleep 1;clear;printf "$screenfetch_out"|lolcat;sleep 1; done'
 alias neofetch="screenfetch -a $HOME/nexor.ascii -p"
-alias vmutt='sudo -E vim $HOME/.muttrc'
 alias gfd='git fetch origin; git diff master'
 alias gc='git clone'
 function gac() { cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; }
@@ -36,8 +37,7 @@ function gacp(){ gac "${@:1}"; git push; }
 function gdc(){ git diff HEAD HEAD~1; } 
 alias gs='git status'
 alias gco='git checkout'
-alias vp='vim "$HOME/Dropbox/Sys4Bank - Programas Java/pendencias.txt"'
-alias sv='sudo -E vim'
+alias vp='nvim "$HOME/Dropbox/Sys4Bank - Programas Java/pendencias.txt"'
 alias srm='sudo rm'
 alias mkdir='mkdir -p'
 # terminal geographic map
@@ -46,19 +46,19 @@ alias termap='telnet mapscii.me'
 alias ta='tmux a -t sess0'
 alias smv='sudo mv'
 alias msk='ncmpcpp'
-alias cfa='sudo -E vim $HOME/.bash_aliases'
-#alias cfb='sudo -E vim $HOME/.bashrc'
-alias cfc='sudo -E vim /home/nexor/mandragora/.dottyrc.json'
+alias cfa='sudo -E nvim $HOME/.bash_aliases'
+#alias cfb='sudo -E nvim $HOME/.bashrc'
+alias cfc='sudo -E nvim /home/nexor/mandragora/.dottyrc.json'
 alias cfd='sh -c "cd $HOME/mandragora && git diff HEAD HEAD~1"' 
-alias cfi='sudo -E vim $HOME/.config/i3/config'
+alias cfi='sudo -E nvim $HOME/.config/i3/config'
 alias cfp='$HOME/mandragora/dotty/dotty.py -c -s'
-alias cfb='vim $HOME/.config/polybar/config'
-alias cfr='sudo -E vim $HOME/.config/ranger'
-alias cft='vim $HOME/.tmux.conf'
-alias cfv='sudo -E vim $HOME/.vimrc'
-alias cfV='sudo -E vim $HOME/.vim'
-alias cfx='sudo -E vim $HOME/.Xresources; xrdb $HOME/.Xresources'
-alias cfz='sudo -E vim $HOME/.zshrc'
+alias cfb='nvim $HOME/.config/polybar/config'
+alias cfr='sudo -E nvim $HOME/.config/ranger'
+alias cft='nvim $HOME/.tmux.conf'
+alias cfv='sudo -E nvim $HOME/.config/nvim/init.vim'
+alias cfV='sudo -E nvim $HOME/.config/nvim'
+alias cfx='sudo -E nvim $HOME/.Xresources; xrdb $HOME/.Xresources'
+alias cfz='sudo -E nvim $HOME/.zshrc'
 alias motd='sudo cat /etc/update-motd.d/nexor.asc'
 alias serve='python3 -m http.server 2717'
 alias schmod='sudo chmod'
@@ -133,14 +133,13 @@ alias diff='diff --color=auto'
 alias fslint='/usr/share/fslint/fslint/fslint'
 alias stream='pkill darkice; alsao2i; tmux new -d darkice'  
 # for real time READMEs editing:
-# alias grip='i3-msg "move container to workspace ⚉" && vim *.md & grip -b --wide'
-alias grip='wmctrl -a waterfox && st -e tmux -c "stty -ixon && vim *.md" & grip -b --wide'
+alias grip='wmctrl -a waterfox && st -e tmux -c "stty -ixon && nvim *.md" & grip -b --wide'
 function cdt(){ wis_smth="`wis "$1"`"; abs_path="`readlink -f "$wis_smth"`"; cd `dirname "$abs_path"`; }
 alias filesize='du -h'
 function addalias(){ echo "alias $1='${@:2}'" >> $HOME/.bash_aliases; }
 function domany() { if [[ "$1" == "-n" ]]; then n=$2; else n=99999; fi; cmd="${@:3}"; for i in {1..$n}; do sh -c $cmd; done; }
-function vw() { vim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
-function svw() { sudo -E vim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
+function vw() { nvim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
+function svw() { sudo -E nvim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
 function wi(){ wal --saturate 1.0 -i "${@:1}"; }
 alias biggest-files='du -hsx *|sudo sort -rh|head -10'
 alias lg='lazygit'
@@ -175,7 +174,7 @@ function whl(){ watch -g "hamachi list | tail -n +2 | grep '^\s*\*' | awk '{prin
 function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
 function ocsv() { cat "$@" | psc -k -d, | `wis sc` }
 alias sc='sc-im'
-alias nv='nvim'
+alias ov='vim'
 function fv(){ find . -type f -name "*$@*" -exec vim {} +  }
 function zt(){ tar -czvf $1".tar.gz" ${@:2} }
 alias less='bat'

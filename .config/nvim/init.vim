@@ -26,7 +26,6 @@ call plug#begin()
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'tpope/vim-surround'
 nmap S ysiw
-call plug#end()
 let g:tmux_navigator_no_mappings = 0
 nnoremap <A-Left>  :TmuxNavigateLeft<cr>
 nnoremap <A-Down>  :TmuxNavigateDown<cr>
@@ -181,6 +180,8 @@ Plug 'bbchung/clighter8'
 
 " ==== overwrite vim banner
 Plug 'mhinz/vim-startify'
+let NERDTreeHijackNetrw = 0
+let g:startify_session_autoload = 1
 Plug 'mhinz/vim-signify'
 
 " ==== Completion
@@ -235,6 +236,7 @@ set shiftwidth=4
 
 " Real-time markdown editing
 Plug 'iamcco/markdown-preview.vim'
+call plug#end()
 
 " ==== NERDTREE
 let NERDTreeIgnore = ['\.pyc$', '\.o$', '\.so$', '\.a$', '\.swp', '*\.swp', '\.swo', '\.swn', '\.swh', '\.swm', '\.swl', '\.swk', '\.sw*$', '[a-zA-Z]*egg[a-zA-Z]*', '[a-zA-Z]*cache[a-zA-Z]*', '.DS_Store']
