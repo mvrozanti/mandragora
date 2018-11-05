@@ -36,9 +36,10 @@ let g:colorizer_auto_color = 1
 set nofoldenable
 set foldmethod=indent
 let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
-let g:ycm_key_list_select_completion = ['<TAB>', '<C-Space>']
+let g:ycm_key_list_select_completion = ['<TAB>']
 let g:ycm_autoclose_preview_window_after_completion = 1
 let g:ycm_key_list_stop_completion = ['<Enter>']
+let g:ycm_path_to_python_interpreter="/usr/bin/python"
 let g:vebugger_leader = '\'
 
 set visualbell
@@ -47,7 +48,6 @@ set t_vb=
 " hits bong: 
 vnoremap ( xi()<Esc>PF(i
 nnoremap yF maggyG'a
-" inoremap <C-Space> <C-X><C-O>
 nnoremap <Space><Space> <Esc>/<+><CR>"_3xi
 nnoremap dl v$hxJhv0w"_x
 nnoremap cW eF_hvbc
@@ -176,7 +176,7 @@ let g:CXXFLAGS='-std=c++11'
 Plug 'scrooloose/nerdtree'
 
 " ==== Refactoring for C-family
-Plug 'bbchung/clighter8'
+" Plug 'bbchung/clighter8'
 
 " ==== overwrite vim banner
 Plug 'mhinz/vim-startify'
@@ -185,7 +185,7 @@ let g:startify_session_autoload = 1
 Plug 'mhinz/vim-signify'
 
 " ==== Completion
-Plug 'Valloric/YouCompleteMe'
+Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer' }
 Plug 'davidhalter/jedi-vim'
 
 " ==== Git
@@ -239,7 +239,7 @@ Plug 'iamcco/markdown-preview.vim'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 let g:airline_powerline_fonts = 1
-let g:airline_theme='term'
+let g:airline_theme='atomic'
 call plug#end()
 
 " ==== NERDTREE
