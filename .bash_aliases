@@ -117,8 +117,6 @@ alias rp='realpath -z'
 function wis(){ whereis "$1" | cut -d':' -f2 | cut -d' ' -f2;}
 alias reip='re "\d+\.\d+\.\d+\.\d+"'
 alias ecdsa='ssh-keygen -l -f /etc/ssh/ssh_host_ecdsa_key.pub; ssh-keygen -l -f $_ -E md5'
-alias pi2='sudo -H pip2 install'
-alias pi='sudo -H pip3 install'
 alias up2pi='rsync -a "`pwd`" torta:'
 # alias sumlines='python3 -c "import sys; print(eval("+".join(sys.stdin).replace("\n",""))"'
 # alias backup='rsync -e "ssh -p 22" -avzp /home/nexor/kekao 25.25.25.25:'
