@@ -184,3 +184,4 @@ alias cfy='nvim /home/nexor/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extr
 alias ls='exa'
 alias H='cd -'
 alias piu='pip install --user'
+alias lo='libreoffice'
