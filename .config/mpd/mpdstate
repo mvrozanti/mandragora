@@ -2,8 +2,8 @@ sw_volume: 99
 audio_device_state:1:My Pulse Output
 audio_device_state:1:my_fifo
 state: play
-current: 1086
-time: 4.149000
+current: 550
+time: 4.017000
 random: 1
 repeat: 1
 single: 0
@@ -1099,4 +1099,6 @@ playlist_begin
 1084:_Holiday_ By Green Day.mp3
 1085:Life Could Be A Dream (Chill Trap Remix).mp3
 1086:The Glitch Mob - I Need My Memory Back (feat. Aja Volkman).mp3
+1087:Dj Adolf SS SA Remix.mp3
+1088:DJ Adolf & DJ Heinrich - Deutschland Den Deutschen.mp3
 playlist_end

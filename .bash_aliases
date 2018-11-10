@@ -174,6 +174,7 @@ alias sc='sc-im'
 alias ov='vim'
 function fv(){ find . -type f -name "*$@*" -exec vim {} +  }
 function zt(){ tar -czvf $1".tar.gz" ${@:2} }
+function zr(){ zip -r  "$1".zip ${@:2} }
 alias less='bat'
 alias py='python'
 alias S='du -sh'
