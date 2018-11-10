@@ -38,6 +38,7 @@ set foldmethod=indent
 let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
 let g:ycm_key_list_select_completion = ['<TAB>', '<S-Space>']
 let g:ycm_autoclose_preview_window_after_completion = 1
+let g:ycm_server_python_interpreter = "/usr/bin/python2.7" 
 let g:ycm_key_list_stop_completion = ['<Enter>']
 let g:ycm_path_to_python_interpreter="/usr/bin/python"
 let g:vebugger_leader = '\'
@@ -91,7 +92,7 @@ autocmd FileType python inoremap Tr<tab> True
 
 " autocmd FileType c set makeprg=gcc\ -O2\ -g\ -Wall\ -Wextra\ -o'%<'\ '%'\ -lm ; ./%\:r
 
-autocmd FileType c inoremap pr<tab> printf("", <+>);<Esc>7hi
+autocmd FileType c,cpp inoremap pr<tab> printf("", <+>);<Esc>7hi
 
 " bash shortcuts
 " autocmd FileType sh     
@@ -187,8 +188,8 @@ let g:startify_session_autoload = 1
 Plug 'mhinz/vim-signify'
 
 " ==== Completion
-Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer' }
-Plug 'davidhalter/jedi-vim'
+Plug 'Valloric/YouCompleteMe', { 'do': './install.py --all' }
+" Plug 'davidhalter/jedi-vim'
 
 " ==== Git
 Plug 'airblade/vim-gitgutter'
