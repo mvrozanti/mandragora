@@ -98,7 +98,7 @@ autocmd FileType c,cpp inoremap pr<tab> printf("", <+>);<Esc>7hi
 " autocmd FileType sh     
 
 " remove highlight
-nnoremap <Esc><Esc> :nohl<CR>
+nnoremap <Esc><Esc> :noh<CR>
 
 " tabs
 nnoremap gJ gT
