@@ -1,5 +1,5 @@
 let g:netrw_dirhistmax  =10
-let g:netrw_dirhist_cnt =7
+let g:netrw_dirhist_cnt =9
 let g:netrw_dirhist_1='/mnt/4ADE1465DE144C17/sys4bank/s4Flow/teste BPM Bizagi Simples'
 let g:netrw_dirhist_2='/mnt/4ADE1465DE144C17/Programming/python/sound-cnn/audio/audio-cats-and-dogs/cats_dogs'
 let g:netrw_dirhist_3='/mnt/4ADE1465DE144C17/Programming/javascript/mvrozanti.github.io/content/post'
@@ -7,3 +7,5 @@ let g:netrw_dirhist_4='/mnt/4ADE1465DE144C17/Programming/javascript/mvrozanti.gi
 let g:netrw_dirhist_5='/home/nexor/mackenzie/comp-paralela/openmp/ParallelMatrix/build'
 let g:netrw_dirhist_6='/mnt/4ADE1465DE144C17/Programming/python/audio-classification/data'
 let g:netrw_dirhist_7='/mnt/4ADE1465DE144C17/Programming/python/audio-classification/data/002 - Cat'
+let g:netrw_dirhist_8='/home/nexor/.config/menus'
+let g:netrw_dirhist_9='/home/nexor/.config/menus/applications-merged'
