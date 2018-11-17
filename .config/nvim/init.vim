@@ -1,4 +1,4 @@
-set encoding=utf-8
+hi Folded ctermbg=0
 inoremap jk <Esc>l
 inoremap JK <Esc>l
 vnoremap JK <Esc> 
@@ -115,7 +115,7 @@ nnoremap , '
 command Reversefilelines g/^/m0
 command Jsonify execute ":%!python3 -m json.tool"
 
-" netbeans<3
+" netbeans bad habits
 inoremap <C-E> <Esc> "_ddi
 nnoremap <C-E> "_dd
 vnoremap <C-E> "_d
@@ -350,3 +350,4 @@ let g:syntastic_java_javac_config_file_enabled = 1
 vnoremap <silent> // :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:nohlsearch<CR>
 vnoremap <silent> <leader><leader> :<C-B>silent <C-E>s/^\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:nohlsearch<CR>
 nnoremap <silent> <leader><leader> :<C-B>silent <C-E>s/^\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:nohlsearch<CR>
+set encoding=utf-8
