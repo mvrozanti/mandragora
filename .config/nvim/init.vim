@@ -347,3 +347,4 @@ hi Folded ctermbg=none
 hi Pmenu ctermbg=none
 hi PmenuSel ctermbg=1
 hi Pmenu ctermfg=3
+hi SpellBad ctermbg=2
