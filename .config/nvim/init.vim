@@ -34,7 +34,7 @@ let g:colorizer_auto_color = 1
 set nofoldenable
 set foldmethod=indent
 let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
-let g:ycm_key_list_select_completion = ['<TAB>', '<S-Space>']
+let g:ycm_key_list_select_completion = ['<TAB>']
 let g:ycm_autoclose_preview_window_after_completion = 1
 let g:ycm_server_python_interpreter = "/usr/bin/python2.7" 
 let g:ycm_key_list_stop_completion = ['<Enter>']
@@ -48,6 +48,7 @@ set t_vb=
 vnoremap ( xi()<Esc>PF(i
 nnoremap yF maggyG'a
 nnoremap <Space><Space> <Esc>/<+><CR>"_3xi
+nnoremap ZZ <Esc>?<+><CR>"_3xi
 nnoremap dl v$hxJhv0w"_x
 nnoremap cW eF_hvbc
 vnoremap - $h
@@ -91,6 +92,7 @@ autocmd FileType python inoremap Tr<tab> True
 " autocmd FileType c set makeprg=gcc\ -O2\ -g\ -Wall\ -Wextra\ -o'%<'\ '%'\ -lm ; ./%\:r
 
 autocmd FileType c,cpp inoremap pr<tab> printf("", <+>);<Esc>7hi
+autocmd FileType c,cpp,java inoremap sw<tab> switch(){<CR>case <+>:<CR>break;<CR>}<Esc>3kwa
 
 " bash shortcuts
 " autocmd FileType sh     
@@ -286,11 +288,6 @@ nmap <silent> <A-Right> :wincmd l<CR>
 
 
 " ==== custom commands
-" Plug 'kien/rainbow_parentheses.vim'
-" " au VimEnter * RainbowParenthesesToggle
-" au Syntax * RainbowParenthesesLoadRound
-" au Syntax * RainbowParenthesesLoadSquare
-" au Syntax * RainbowParenthesesLoadBraces
 set mouse=c
 let g:BASH_Ctrl_j = 'off'
 
