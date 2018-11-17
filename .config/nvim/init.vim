@@ -1,4 +1,4 @@
-unmap Q
+map Q <Nop>
 inoremap jk <Esc>l
 inoremap JK <Esc>l
 vnoremap JK <Esc> 
