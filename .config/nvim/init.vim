@@ -1,11 +1,9 @@
-hi Folded ctermbg=0
+unmap Q
 inoremap jk <Esc>l
 inoremap JK <Esc>l
 vnoremap JK <Esc> 
 inoremap QQ <Esc>:q!<CR>
 nnoremap QQ :q!<CR>
-
-" KILL REPLACE mode
 inoremap <Insert> <Esc> 
 
 " Keep undo history across sessions by storing it in a file
@@ -330,10 +328,7 @@ vnoremap _ :split<CR>
 nnoremap \| :vsplit<CR>
 vnoremap \| :vsplit<CR>
 
-
-" ==== Visual timeouts
 set timeoutlen=1000 ttimeoutlen=0
-
 
 " endl but not really
 " this is actually not needed since d$
@@ -342,7 +337,6 @@ set timeoutlen=1000 ttimeoutlen=0
 
 " nnoremap F gg=G''
 
-colorscheme peachpuff
 " let g:EclimFileTypeValidate = 0
 let g:syntastic_java_javac_config_file_enabled = 1
 
@@ -351,3 +345,8 @@ vnoremap <silent> // :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<C
 vnoremap <silent> <leader><leader> :<C-B>silent <C-E>s/^\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:nohlsearch<CR>
 nnoremap <silent> <leader><leader> :<C-B>silent <C-E>s/^\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:nohlsearch<CR>
 set encoding=utf-8
+colorscheme peachpuff
+hi Folded ctermbg=none
+hi Pmenu ctermbg=none
+hi PmenuSel ctermbg=1
+hi Pmenu ctermfg=3
