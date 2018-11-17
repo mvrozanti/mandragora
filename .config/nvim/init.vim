@@ -47,7 +47,7 @@ set t_vb=
 " hits bong: 
 vnoremap ( xi()<Esc>PF(i
 nnoremap yF maggyG'a
-nnoremap <Space><Space> <Esc>/<+><CR>"_3xi
+nnoremap <Space><Space> <Esc>/<+><CR>"_3x:noh<CR>i
 nnoremap ZZ <Esc>?<+><CR>"_3xi
 nnoremap dl v$hxJhv0w"_x
 nnoremap cW eF_hvbc
