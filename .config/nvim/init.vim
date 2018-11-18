@@ -94,6 +94,7 @@ autocmd FileType python inoremap Tr<tab> True
 autocmd FileType c,cpp inoremap pr<tab> printf("\n", <+>);<Esc>9hi
 autocmd FileType c,cpp,java inoremap sw<tab> switch(){<CR>case <+>:<CR>break;<CR>}<Esc>3kwa
 autocmd FileType c,cpp,java inoremap wh<tab> while(){<CR>}<Esc>kwa
+autocmd FileType c,cpp,java inoremap if<tab> if(){<CR>}<Esc>kwa
 
 " bash shortcuts
 " autocmd FileType sh     
@@ -176,15 +177,20 @@ let g:javascript_plugin_ngdoc = 1
 let g:javascript_plugin_flow = 1
 let g:CXXFLAGS='-std=c++11'
 
-" ==== File tree
-Plug 'scrooloose/nerdtree'
+" ==== File Browsing
+Plug 'tpope/vim-vinegar'
+let g:netrw_banner=0
+let g:netrw_browse_split=4
+let g:netrw_altv=1
+let g:netrw_liststyle=3
+" let g:netrw_list_hide=netrw_gitignore#Hide()
+
 
 " ==== Refactoring for C-family
 " Plug 'bbchung/clighter8'
 
 " ==== overwrite vim banner
 Plug 'mhinz/vim-startify'
-let NERDTreeHijackNetrw = 0
 let g:startify_session_autoload = 1
 Plug 'mhinz/vim-signify'
 
@@ -245,14 +251,6 @@ Plug 'vim-airline/vim-airline-themes'
 let g:airline_powerline_fonts = 1
 let g:airline_theme='atomic'
 call plug#end()
-
-" ==== NERDTREE
-let NERDTreeIgnore = ['\.pyc$', '\.o$', '\.so$', '\.a$', '\.swp', '*\.swp', '\.swo', '\.swn', '\.swh', '\.swm', '\.swl', '\.swk', '\.sw*$', '[a-zA-Z]*egg[a-zA-Z]*', '[a-zA-Z]*cache[a-zA-Z]*', '.DS_Store']
-
-let NERDTreeShowHidden=1
-let g:NERDTreeWinPos="left"
-let g:NERDTreeDirArrows=0
-map <C-t> :NERDTreeToggle<CR>
 
 " ==== Syntastic
 let g:syntastic_always_populate_loc_list = 1
