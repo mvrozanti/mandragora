@@ -155,7 +155,7 @@ set clipboard=unnamed,unnamedplus
 Plug 'ehamberg/vim-cute-python'
 
 " C/C++ debugging
-Plug 'Shougo/vimproc.vim' 
+Plug 'Shougo/vimproc.vim', {'do' : 'make'}
 Plug 'idanarye/vim-vebugger'
 " Plug 'vim-scripts/Conque-Shell'
 " Plug 'vim-scripts/Conque-GDB'
