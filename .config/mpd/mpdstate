@@ -2,8 +2,8 @@ sw_volume: 100
 audio_device_state:1:My Pulse Output
 audio_device_state:1:my_fifo
 state: play
-current: 449
-time: 4.029000
+current: 514
+time: 31.599000
 random: 1
 repeat: 1
 single: 0
@@ -1103,4 +1103,6 @@ playlist_begin
 1088:I Monster - Heaven.mp3
 1089:The Glitch Mob - Head Full of Shadows.mp3
 1090:Armin van Buuren vs Vini Vici feat. Hilight Tribe - Great Spirit (Extended Mix).mp3
+1091:Infected Mushroom & Bliss - Bliss on Mushrooms (feat. Miyavi) [Monstercat Release].mp3
+1092:8. I MONSTER - Stobart's Blues.mp3
 playlist_end

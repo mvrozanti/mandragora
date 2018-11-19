@@ -40,6 +40,10 @@ let g:ycm_server_python_interpreter = "/usr/bin/python2.7"
 let g:ycm_key_list_stop_completion = ['<Enter>']
 let g:ycm_path_to_python_interpreter="/usr/bin/python"
 let g:vebugger_leader = '\'
+if !exists('g:vdebug_options')
+    let g:vdebug_options = {}
+endif
+let g:vdebug_options.break_on_open = 0
 
 set visualbell
 set t_vb=
