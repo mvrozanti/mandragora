@@ -2,8 +2,8 @@ sw_volume: 100
 audio_device_state:1:My Pulse Output
 audio_device_state:1:my_fifo
 state: play
-current: 514
-time: 31.599000
+current: 1096
+time: 1.725000
 random: 1
 repeat: 1
 single: 0
@@ -1105,4 +1105,9 @@ playlist_begin
 1090:Armin van Buuren vs Vini Vici feat. Hilight Tribe - Great Spirit (Extended Mix).mp3
 1091:Infected Mushroom & Bliss - Bliss on Mushrooms (feat. Miyavi) [Monstercat Release].mp3
 1092:8. I MONSTER - Stobart's Blues.mp3
+1093:Cassia Eller - Malandragem.mp3
+1094:4. I MONSTER - Everyone's A Loser.mp3
+1095:Life Could Be A Dream (Chill Trap Remix).mp3
+1096:1. I MONSTER - Some Thing's Coming.mp3
+1097:I, Monster — She Sucks.mp3
 playlist_end

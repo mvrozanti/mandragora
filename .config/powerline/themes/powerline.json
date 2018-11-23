@@ -16,7 +16,8 @@
 		},
 		"cwd": {
 			"args": {
-				"ellipsis": "⋯"
+				"ellipsis": "⋯",
+                "dir_limit_depth": 2
 			}
 		},
 

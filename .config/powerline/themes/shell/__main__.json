@@ -7,7 +7,7 @@
 		},
 		"cwd": {
 			"args": {
-				"dir_limit_depth": 4
+				"dir_limit_depth": 2
 			}
 		}
 	}
