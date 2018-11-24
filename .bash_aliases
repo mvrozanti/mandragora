@@ -193,3 +193,5 @@ alias wav2ogg='oggenc -q 3 -o file.ogg'
 alias ogg2wav='ffmpeg -i audio.ogg audio.wav'
 alias nudoku='nudoku -c'
 function cdd(){ cd `dirname $1` }
+alias pir='sudo pip uninstall'
+alias scrot2imgur='curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@"$HOME/.scrot.png | jq -r '.data.link' | xsel -i -b'
