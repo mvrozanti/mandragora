@@ -174,7 +174,7 @@ function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && re
 function ocsv() { cat "$@" | psc -k -d, | `wis sc` }
 alias sc='sc-im'
 alias ov='vim'
-function fv(){ find . -type f -name "*$@*" -exec vim {} +  }
+function fv(){ find . -type f -name "*$@*" -exec nvim {} +  }
 function zt(){ tar -czvf $1".tar.gz" ${@:2} }
 function zz(){ zip -r  "$1".zip ${@:2} }
 alias less='bat'
@@ -192,3 +192,4 @@ alias jn='jupyter notebook'
 alias wav2ogg='oggenc -q 3 -o file.ogg'
 alias ogg2wav='ffmpeg -i audio.ogg audio.wav'
 alias nudoku='nudoku -c'
+function cdd(){ cd `dirname $1` }
