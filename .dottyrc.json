@@ -37,6 +37,7 @@
         "conky",
         "compton",
         "curl",
+        "curlftpfs",
         "dmenu",
         "exa",
         "electron",
