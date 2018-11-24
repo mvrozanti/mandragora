@@ -41,6 +41,7 @@
         "dmenu",
         "exa",
         "electron",
+        "fd",
         "feh",
         "geckodriver",
         "gdb",
