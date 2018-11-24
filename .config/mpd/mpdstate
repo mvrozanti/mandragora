@@ -2,8 +2,8 @@ sw_volume: 100
 audio_device_state:1:My Pulse Output
 audio_device_state:1:my_fifo
 state: play
-current: 916
-time: 4.154000
+current: 882
+time: 4.018000
 random: 1
 repeat: 1
 single: 0
@@ -922,8 +922,8 @@ playlist_begin
 907:Bodies.mp3
 908:Paralyzer.mp3
 909:05 Shut Up and Drive.mp3
-910:03 Meet Her At The Love Parede.m4a
-911:Keep On Moving.mp3
+910:Keep On Moving.mp3
+911:03 Meet Her At The Love Parede.m4a
 912:09 Yesterday.mp3
 913:05 I'm With You.mp3
 914:It's Tricky.mp3
