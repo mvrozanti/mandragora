@@ -1,5 +1,6 @@
 let g:netrw_dirhistmax  =10
-let g:netrw_dirhist_cnt =3
+let g:netrw_dirhist_cnt =4
 let g:netrw_dirhist_1='/home/nexor/.config/nvim/plugged/vim-cute-python/after/syntax'
 let g:netrw_dirhist_2='/home/nexor/.config/ranger'
 let g:netrw_dirhist_3='/mnt/4ADE1465DE144C17/Programming/python/audio-classification'
+let g:netrw_dirhist_4='/mnt/4ADE1465DE144C17/Programming/python/audio-classification/.git'
