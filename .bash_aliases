@@ -77,7 +77,7 @@ alias randip="dd if=/dev/urandom bs=4 count=1 2>/dev/null | od -An -tu1 | sed -e
 alias 2wmv='sudo ffmpeg -c:v wmv2 -b:v 99M -c:a wmav2 -b:a 192k output.wmv -i'
 alias mp32wav='mpg123 -w output.wav'
 alias o='xdg-open'
-alias g='grep'
+alias g='grep -i'
 alias it='ps aux|head -n -1|grep '
 alias prolog='swipl -q'
 alias t='date +%s'
