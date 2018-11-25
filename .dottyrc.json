@@ -11,7 +11,7 @@
         ".netbeans/8.2/config/Editors" : "~/.netbeans/8.2/config/Editors",
         ".netbeans/8.2/config/Keymaps" : "~/.netbeans/8.2/config/Keymaps",
         ".netbeans/8.2/config/Preferences" : "~/.netbeans/8.2/config/Preferences",
-        ".vim/bundle/vim-cute-python/after/syntax/python.vim" : "~/.vim/bundle/vim-cute-python/after/syntax/python.vim",
+        ".config/nvim/plugged/vim-cute-python/after/syntax/python.vim" : "~/.config/nvim/plugged/vim-cute-python/after/syntax/python.vim",
         ".tmux" : "~/.tmux/",
         ".tmux.conf" : "~/.tmux.conf",
         ".Xresources" : "~/.Xresources",
