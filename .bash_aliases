@@ -33,7 +33,7 @@ unalias gr
 function gr(){ fileh="$@"; git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
 function gac(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; }
 function gacp(){ gac "${@:1}"; git push; } 
-function gacdp(){ gac "${@:1}"; gd; git push; } 
+#function gacdp(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; gd; git push; } 
 function gdc(){ git diff HEAD HEAD~1; } 
 alias gs='git status'
 alias gco='git checkout'
