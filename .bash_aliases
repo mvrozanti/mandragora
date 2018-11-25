@@ -33,6 +33,7 @@ alias neofetch="screenfetch -a $HOME/nexor.ascii -p"
 alias gfd='git fetch origin; git diff master'
 alias gD='git diff HEAD HEAD~1'
 alias gc='git clone'
+alias gr='git rev-list -n 1 HEAD --'
 function gac() { cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; }
 function gacp(){ gac "${@:1}"; git push; } 
 function gdc(){ git diff HEAD HEAD~1; } 
