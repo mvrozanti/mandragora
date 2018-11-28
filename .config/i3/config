@@ -8,7 +8,9 @@
 # win=Mod4
 # alt=Mod1
 exec_always --no-startup-id $HOME/.config/polybar/launch.sh
-exec_always --no-startup-id curlftpfs -o user="nexor:2715" ftp://192.168.0.52:2221 ~/android2
+#exec_always --no-startup-id curlftpfs -o user="nexor:2715" ftp://192.168.0.52:2221 ~/android2
+exec_always --no-startup-id ~/prog/python/audio-classification/cnn.py -P |while read -r o; do case "$o" in "9") (st 2> /dev/null &);; "0") st -T 150 -t ncmpcpp -e ncmpcpp -s visualizer 2> /dev/null &;; *) echo $o;; esac; done
+
 set $mod Mod4
 set $ensid exec --no-startup-id
 set $bind bindsym

@@ -69,7 +69,7 @@ map <F2> :Goyo 140x100<CR>
 map / /\c
 
 " Replace visual selection
-vnoremap <C-r> "hy:%s/<C-r>h//gc<left><left><left>
+vnoremap <C-r> "hy:.,$s/<C-r>h//gc<left><left><left>
 " Delete where does not contain
 vnoremap D "hy:%g!/<C-r>h/d"
 " Del and x do not affect clipboard
