@@ -1,12 +1,13 @@
 " Automatically deletes all tralling whitespace on save.
-autocmd BufWritePre * %s/\s\+$//e
+autocmd BufWritePre  *     %s/\s\+$//e
+autocmd BufWritePost *.tex silent! !pdflatex  %
 map Q <Nop>
 inoremap jk <Esc>l
 inoremap JK <Esc>l
-vnoremap JK <Esc> 
+vnoremap JK <Esc>
 inoremap QQ <Esc>:q!<CR>
 nnoremap QQ :q!<CR>
-inoremap <Insert> <Esc> 
+inoremap <Insert> <Esc>
 
 " Keep undo history across sessions by storing it in a file
 " if has('persistent_undo')      "check if your vim version supports it
@@ -38,7 +39,7 @@ set foldmethod=indent
 let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
 let g:ycm_key_list_select_completion = ['<TAB>']
 let g:ycm_autoclose_preview_window_after_completion = 1
-let g:ycm_server_python_interpreter = "/usr/bin/python2.7" 
+let g:ycm_server_python_interpreter = "/usr/bin/python2.7"
 let g:ycm_key_list_stop_completion = ['<Enter>']
 let g:ycm_path_to_python_interpreter="/usr/bin/python"
 let g:vebugger_leader = '\'
@@ -50,7 +51,7 @@ let g:vdebug_options.break_on_open = 0
 set visualbell
 set t_vb=
 
-" hits bong: 
+" hits bong:
 vnoremap ( xi()<Esc>PF(i
 nnoremap yF maggyG'a
 nnoremap <Space><Space> <Esc>/<+><CR>"_3x:noh<CR>i
@@ -86,8 +87,8 @@ inoremap fori<tab> for(int i=0; i < ; i++){<CR>}<Esc>3Bla
 
 
 " python shortcuts
-autocmd FileType python inoremap ci<tab> code.interact(local=locals())<Esc> 
-autocmd FileType python inoremap pdbt<tab> pdb.set_trace()<Esc> 
+autocmd FileType python inoremap ci<tab> code.interact(local=locals())<Esc>
+autocmd FileType python inoremap pdbt<tab> pdb.set_trace()<Esc>
 autocmd FileType python set makeprg=python3\ %
 autocmd FileType python inoremap ld<tab> LOG.debug()<Esc>i
 autocmd FileType python inoremap pr<tab> print()<Esc>i
@@ -103,7 +104,7 @@ autocmd FileType c,cpp,java inoremap wh<tab> while(){<CR>}<Esc>kwa
 autocmd FileType c,cpp,java inoremap if<tab> if(){<CR>}<Esc>kwa
 
 " bash shortcuts
-" autocmd FileType sh     
+" autocmd FileType sh
 
 " remove highlight
 nnoremap <Esc><Esc> :noh<CR>
@@ -137,7 +138,7 @@ set exrc
 "move vim splits
 nnoremap <S-H>      :5winc <<CR>
 nnoremap <S-U>      :5winc +<CR>
-nnoremap <S-L>      :5winc ><CR> 
+nnoremap <S-L>      :5winc ><CR>
 nnoremap <S-K>      :5winc -<CR>
 
 "autocomplete colors
@@ -149,7 +150,7 @@ Plug 'junegunn/goyo.vim'
 
 Plug 'realincubus/vim-clang-refactor'
 
-"Clipboard -> cp,cv 
+"Clipboard -> cp,cv
 " Plug 'christoomey/vim-system-copy'
 " map y cp
 " map yy YY
