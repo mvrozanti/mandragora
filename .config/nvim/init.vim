@@ -313,6 +313,10 @@ set statusline+=%*
 set statusline+=%f
 "let g:syntastic_javascript_checkers = ['eslint']
 "let g:syntastic_cpp_compiler = 'clang++'
+let g:syntastic_quiet_messages = { "regex": [
+        \ '\mpossible unwanted space at "{"',
+        \ '\Delete this space to maintain correct pagereferences',
+        \ '\Wrong length of dash may have been used.'] }
 let g:syntastic_cpp_compiler_options = '-std=c++11 -stdlib=libc++'
 let g:syntastic_javascript_mri_args = "--config=$HOME/.jshintrc"
 let g:syntastic_python_checkers = [ 'pylint', 'flake8', 'pep8', 'pyflakes', 'python3', 'pymode']
