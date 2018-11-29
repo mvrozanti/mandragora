@@ -352,3 +352,17 @@ hi PmenuSel ctermbg=1
 hi Pmenu ctermfg=3
 hi SpellBad ctermbg=2
 hi ColorColumn ctermbg=3
+
+" https://github.com/gotbletu/shownotes/blob/master/vim_neovim_manpager.md
+" augroup manlaunchtoc
+"     autocmd!
+"     if has('nvim')
+"         autocmd FileType man
+"             \ call man#show_toc() |
+"             \ setlocal laststatus=0 nonumber norelativenumber |
+"             \ nnoremap <buffer> l <Enter> |
+"             \ wincmd H |
+"             \ vert resize 35 |
+"             \ wincmd p
+"     endif
+" augroup end
