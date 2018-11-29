@@ -101,6 +101,8 @@
         "wget",
         "wmctrl",
         "xdotool",
+        "zathura",
+        "zathura-pdf-poppler",
         "zsh"
     ],
     "commands": [
