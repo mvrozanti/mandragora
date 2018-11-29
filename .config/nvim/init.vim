@@ -1,3 +1,5 @@
+" Automatically deletes all tralling whitespace on save.
+autocmd BufWritePre * %s/\s\+$//e
 map Q <Nop>
 inoremap jk <Esc>l
 inoremap JK <Esc>l
