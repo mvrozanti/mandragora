@@ -108,3 +108,4 @@ eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+export MANPAGER="nvim +set\ filetype=man -"

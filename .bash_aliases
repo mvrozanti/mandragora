@@ -196,3 +196,4 @@ alias nudoku='nudoku -c'
 function cdd(){ cd `dirname $1` }
 alias pir='sudo pip uninstall'
 alias scrot2imgur='curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@"$HOME/.scrot.png | jq -r '.data.link' | xsel -i -b'
+alias 2048='/home/nexor/util/bash2048/bash2048.sh'
