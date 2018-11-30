@@ -1,6 +1,6 @@
 {
     "copy" : {
-        ".config/powerline" : "~/.config/powerline", 
+        ".config/powerline" : "~/.config/powerline",
         ".config/ncmpcpp" : "~/.config/.ncmpcpp",
         ".config/i3" : "~/.config/i3",
         ".config/nvim" : "~/.config/nvim", ".config/polybar" : "~/.config/polybar", ".config/ranger" : "~/.config/ranger",
@@ -34,6 +34,7 @@
     "install_cmd" : "sudo pacman -S",
     "install" : [
         "arandr",
+        "biber",
         "calcurse",
         "conky",
         "compton",
@@ -67,6 +68,7 @@
         "nmap",
         "npm",
         "ntp",
+        "nvim",
         "perl-anyevent-i3",
         "powerline",
         "powerline-vim",
