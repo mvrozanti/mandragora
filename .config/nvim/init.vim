@@ -1,4 +1,5 @@
-noremap p pgvy
+xnoremap p "_dP
+
 " Automatically deletes all tralling whitespace on save.
 autocmd BufWritePre  *     %s/\s\+$//e
 autocmd BufWritePost *.tex silent! !pdflatex  %

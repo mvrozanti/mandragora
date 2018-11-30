@@ -4,11 +4,11 @@ alias la='exa -a'
 alias l='ls --sort=time'
 alias watch='watch --color -n2'
 alias grep='egrep --color'
-alias sp='sudo pacman' 
-alias sps='sudo pacman -S' 
-alias spr='sudo pacman -R' 
-alias spss='sudo pacman -Ss' 
-alias spsyu='sudo pacman -Syu' 
+alias sp='sudo pacman'
+alias sps='sudo pacman -S'
+alias spr='sudo pacman -R'
+alias spss='sudo pacman -Ss'
+alias spsyu='sudo pacman -Syu'
 alias py2='python2'
 alias py3='python3'
 alias s='sudo'
@@ -32,9 +32,9 @@ alias gc='git clone'
 unalias gr
 function gr(){ fileh="$@"; git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
 function gac(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; }
-function gacp(){ gac "${@:1}"; git push; } 
-#function gacdp(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; gd; git push; } 
-function gdc(){ git diff HEAD HEAD~1; } 
+function gacp(){ gac "${@:1}"; git push; }
+#function gacdp(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; gd; git push; }
+function gdc(){ git diff HEAD HEAD~1; }
 alias gs='git status'
 alias gco='git checkout'
 alias vp='nvim "$HOME/Dropbox/Sys4Bank - Programas Java/pendencias.txt"'
@@ -49,7 +49,7 @@ alias msk='ncmpcpp'
 alias cfa='sudo -E nvim $HOME/.bash_aliases'
 #alias cfb='sudo -E nvim $HOME/.bashrc'
 alias cfc='sudo -E nvim /home/nexor/mandragora/.dottyrc.json'
-alias cfd='sh -c "cd $HOME/mandragora && git diff HEAD HEAD~1"' 
+alias cfd='sh -c "cd $HOME/mandragora && git diff HEAD HEAD~1"'
 alias cfi='sudo -E nvim $HOME/.config/i3/config'
 alias cfp='$HOME/mandragora/dotty/dotty.py -c -s'
 alias cfb='nvim $HOME/.config/polybar/config'
@@ -129,7 +129,7 @@ function sshasap(){ while [[ `nc -z -w1 "$1" 22` -gt 0 ]]; do sleep 1; done; bee
 # function copa(){ kek="$(curl -s http://worldcup.sfg.io/matches/current)"; echo -n $kek|jq '.[0].home_team.goals'|tr -d '\n'; echo -n 'x'; echo $kek|jq '.[0].away_team.goals'; }
 alias diff='diff --color=auto'
 alias fslint='/usr/share/fslint/fslint/fslint'
-alias stream='pkill darkice; alsao2i; tmux new -d darkice'  
+alias stream='pkill darkice; alsao2i; tmux new -d darkice'
 # for real time READMEs editing:
 alias grip='wmctrl -a waterfox && st -e tmux -c "stty -ixon && nvim *.md" & grip -b --wide'
 function cdt(){ wis_smth="`wis "$1"`"; abs_path="`readlink -f "$wis_smth"`"; cd `dirname "$abs_path"`; }
@@ -156,16 +156,18 @@ function cnt() { echo $1 | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc 
 function cntr() { echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && sh -c "$noext || :"'; }
 function centr() { ls *.c* | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
 function pentr() { ls *.py* | entr /_ $@ }
+function mentr() { ls *.* | entr "make clean; make" }
+function N() { ls *.* | entr "$@" }
 alias dotty='. $HOME/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
-function countdown(){ date1=$((`date +%s` + $1)); while [ "$date1" -ge `date +%s` ]; do clear; echo -ne "$(date -u --date @$(($date1 - `date +%s`)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; } 
+function countdown(){ date1=$((`date +%s` + $1)); while [ "$date1" -ge `date +%s` ]; do clear; echo -ne "$(date -u --date @$(($date1 - `date +%s`)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
 function stopwatch(){ date1=`date +%s`; while true; do clear; echo -ne "$(date -u --date @$((`date +%s` - $date1)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
 alias sw='sudo wifi-menu'
 alias cfs='ranger ~/util/st/ && cd $_ && sudo make install'
 alias vtop='vtop -t seti'
-function fortune() { re '\[(.+)\]' ".vim/bundle/vim-startify/autoload/startify/fortune.vim" | shuf | head -n2; } 
-function make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > $HOME/.ranger_aliases; } 
-function ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1; } 
+function fortune() { re '\[(.+)\]' ".vim/bundle/vim-startify/autoload/startify/fortune.vim" | shuf | head -n2; }
+function make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > $HOME/.ranger_aliases; }
+function ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1; }
 alias wt='watch -n 1 tree'
 function wtg(){ watch -n 1 "tree | grep $@" }
 alias wcat='watch -n 1 cat'
