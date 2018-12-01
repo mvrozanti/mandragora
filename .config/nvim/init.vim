@@ -2,7 +2,7 @@ xnoremap p "_dP
 
 " Automatically deletes all tralling whitespace on save.
 autocmd BufWritePre  *     %s/\s\+$//e
-autocmd BufWritePost *.tex silent! !pdflatex % && rm *.toc *.out *.log *.lot *.lof *.aux
+autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex % ; rm *.out *.log *.lot *.lof *.aux
 " latex snippets
 	" Word count:
 	autocmd   FileType   tex        map        <F3>       :w                                                                                                                                                                             !detex   \|                                       wc   -w<CR>
