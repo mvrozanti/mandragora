@@ -1,9 +1,9 @@
-#                            _   _       _     
-#    ___  ___ ___  ___ _ __ | |_(_) __ _| |___ 
+#                            _   _       _
+#    ___  ___ ___  ___ _ __ | |_(_) __ _| |___
 #   / _ \/ __/ __|/ _ \ '_ \| __| |/ _` | / __|
 #  |  __/\__ \__ \  __/ | | | |_| | (_| | \__ \
 #   \___||___/___/\___|_| |_|\__|_|\__,_|_|___/
-#                                              
+#
 
 # win=Mod4
 # alt=Mod1
@@ -15,7 +15,7 @@ set $mod Mod4
 set $ensid exec --no-startup-id
 set $bind bindsym
 set $font "Droid Sans Mono Slashed for Powerline"
-set $dmenu_looks -fn 'Droid Sans Mono for Powerline' -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300' 
+set $dmenu_looks -fn 'Droid Sans Mono for Powerline' -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300'
 $bind Ctrl+Mod1+BackSpace   $ensid shutdown -h 0
 $bind Ctrl+Shift+Escape     $ensid $TERMINAL -e htop    # should add some more control and sorting for fast proc killing
 $bind $mod+Shift+r          restart
@@ -25,10 +25,10 @@ $bind Mod1+Tab              workspace back_and_forth
 $bind $mod+Shift+e          $ensid [[ `echo -e 'Exit i3\nDo not'|dmenu $dmenu_looks` -eq 'Exit i3' ]] && i3-msg exit
 $bind $mod+r                exec dmenu_run $dmenu_looks
 
-#                       _   
-#    ___ ___  _ __  ___| |_ 
+#                       _
+#    ___ ___  _ __  ___| |_
 #   / __/ _ \| '_ \/ __| __|
-#  | (_| (_) | | | \__ \ |_ 
+#  | (_| (_) | | | \__ \ |_
 #   \___\___/|_| |_|___/\__|
 
 set $TERMINAL st
@@ -57,24 +57,24 @@ assign      [title="Discord"]                        $ws7
 assign      [instance="DBeaver"]                     $ws9
 assign      [title="Mozilla Thunderbird"]            $ws10
 
-#    __                                 _   
-#   / _|_ __ ___  __ _ _   _  ___ _ __ | |_ 
+#    __                                 _
+#   / _|_ __ ___  __ _ _   _  ___ _ __ | |_
 #  | |_| '__/ _ \/ _` | | | |/ _ \ '_ \| __|
-#  |  _| | |  __/ (_| | |_| |  __/ | | | |_ 
+#  |  _| | |  __/ (_| | |_| |  __/ | | | |_
 #  |_| |_|  \___|\__, |\__,_|\___|_| |_|\__|
-#                   |_|                     
+#                   |_|
 
 $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox     || waterfox
 $bind $mod+Shift+1        workspace $ws1                        $ensid wmctrl -a  Browsing     || waterfox $waterfox_arg
-$bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp      || $TERMINAL -T 200 -e ncmpcpp 
-$bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp      || $TERMINAL -T 150 -t ncmpcpp -e ncmpcpp -s visualizer
+$bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp      || $TERMINAL -f $font":pixelsize=15" -T 200 -e ncmpcpp
+$bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp      || $TERMINAL -f $font":pixelsize=15" -T 150 -t ncmpcpp -e ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  zsth         || $TERMINAL -t zsth -e tmux
 $bind $mod+Shift+3                                              $ensid wmctrl -xa tmux         || $TERMINAL -e tmux
 $bind $mod+g                                                    $ensid wmctrl -a  cava         || $TERMINAL -n cava -e cava
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix      || $TERMINAL -n cmatrix -e sh -c cmatrix
 $bind $mod+Return         workspace $ws8;                       $ensid wmctrl -a  ranger       || $TERMINAL -n ranger -T 200 -t ranger -e sh -c "stty -ixon && ranger"
 $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo         || $TERMINAL -T 255 -n todo -f $font":pixelsize=19" -t todo -e sh -c "stty -ixon && nvim $HOME/todo"
-$bind $mod+Shift+a          fullscreen disable;                 $ensid wmctrl -a  cal          || $TERMINAL -T 255 -n cal -f $font":pixelsize=25" -t cal -e sh -c "cal -3 && read -n1 ans" 
+$bind $mod+Shift+a          fullscreen disable;                 $ensid wmctrl -a  cal          || $TERMINAL -T 255 -n cal -f $font":pixelsize=25" -t cal -e sh -c "cal -3 && read -n1 ans"
 $bind $mod+v                              split toggle;         $ensid wmctrl -a  gotop        || $TERMINAL -T 200 -t gotop -e gotop
 $bind $mod+Shift+v                        split toggle;         $ensid wmctrl -a  VirtualBox   || virtualbox
 $bind $mod+i                                                    $ensid wmctrl -a  iftop        || $TERMINAL -t iftop -n iftop -e sudo iftop
@@ -90,12 +90,12 @@ $bind $mod+x                                                    $ensid wmctrl -a
 $bind $mod+Shift+Return                                         $ensid $TERMINAL -e ranger
 $bind $mod+d              workspace $ws9
 
-#                      _   
-#   ___  ___ _ __ ___ | |_ 
+#                      _
+#   ___  ___ _ __ ___ | |_
 #  / __|/ __| '__/ _ \| __|
-#  \__ \ (__| | | (_) | |_ 
+#  \__ \ (__| | | (_) | |_
 #  |___/\___|_|  \___/ \__|
-#                          
+#
 
 set $scrot_file ~/.scrot.png
 $bind Print                       $ensid scrot    -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
@@ -110,12 +110,12 @@ $bind Ctrl+$mod+Print             $ensid byzanz-record -d \
                                              "Authorization: Client-ID $imgur_client_id" \
                                          -F "image=@"$_ | jq -r '.data.link' | xsel -i -b
 
-#                                                 _   
-#   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_ 
+#                                                 _
+#   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_
 #  | '_ ` _ \ / _ \ \ / / _ \ '_ ` _ \ / _ \ '_ \| __|
-#  | | | | | | (_) \ V /  __/ | | | | |  __/ | | | |_ 
+#  | | | | | | (_) \ V /  __/ | | | | |  __/ | | | |_
 #  |_| |_| |_|\___/ \_/ \___|_| |_| |_|\___|_| |_|\__|
-#                                                     
+#
 
 $bind $mod+h              focus left
 $bind $mod+j              focus down
@@ -133,11 +133,11 @@ $bind $mod+Shift+Left     move left
 $bind $mod+Shift+Down     move down
 $bind $mod+Shift+Up       move up
 $bind $mod+Shift+Right    move right
-$bind $mod+backslash      split h 
-$bind $mod+plus           split h 
+$bind $mod+backslash      split h
+$bind $mod+plus           split h
 $bind $mod+minus          split v
 $bind $mod+f              fullscreen toggle
-$bind $mod+c              move scratchpad 
+$bind $mod+c              move scratchpad
 $bind $mod+Shift+c        scratchpad show;floating toggle
 $bind $mod+a              focus parent
 $bind $mod+s              layout stacking
@@ -164,12 +164,12 @@ $bind Ctrl+Mod1+Right     workspace next
 $bind Ctrl+Mod1+h         workspace prev
 $bind Ctrl+Mod1+l         workspace next
 
-#                      _ _       
-#   _ __ ___   ___  __| (_) __ _ 
+#                      _ _
+#   _ __ ___   ___  __| (_) __ _
 #  | '_ ` _ \ / _ \/ _` | |/ _` |
 #  | | | | | |  __/ (_| | | (_| |
 #  |_| |_| |_|\___|\__,_|_|\__,_|
-#                                
+#
 
 $bind XF86MonBrightnessUp       $ensid xbacklight -inc $bl_delta
 $bind XF86MonBrightnessDown     $ensid xbacklight -dec $bl_delta
@@ -177,15 +177,15 @@ $bind XF86AudioNext		        $ensid mpc next  #$mpc $minty_remote next
 $bind XF86AudioPlay		        $ensid mpc toggle  #$mpc $minty_remote toggle
 $bind XF86AudioPrev		        $ensid mpc prev  #$mpc $minty_remote prev
 $bind XF86AudioMute             $ensid paxmier -q set Master toggle
-$bind XF86AudioLowerVolume      $ensid pamixer -d 4 
-$bind XF86AudioRaiseVolume      $ensid pamixer -i 4 
-# $bind XF86AudioLowerVolume    $ensid amixer -c 0 -q set Master 4dB- unmute 
+$bind XF86AudioLowerVolume      $ensid pamixer -d 4
+$bind XF86AudioRaiseVolume      $ensid pamixer -i 4
+# $bind XF86AudioLowerVolume    $ensid amixer -c 0 -q set Master 4dB- unmute
 # $bind XF86AudioRaiseVolume    $ensid amixer -c 0 -q set Master 4dB+ unmute
 
-#                                            _          __         _          
-#    ___ ___  _ __ ___  _ __ ___   ___ _ __ | |_ ___   / / __ ___ (_)___  ___ 
+#                                            _          __         _
+#    ___ ___  _ __ ___  _ __ ___   ___ _ __ | |_ ___   / / __ ___ (_)___  ___
 #   / __/ _ \| '_ ` _ \| '_ ` _ \ / _ \ '_ \| __/ __| / / '_ ` _ \| / __|/ __|
-#  | (_| (_) | | | | | | | | | | |  __/ | | | |_\__ \/ /| | | | | | \__ \ (__ 
+#  | (_| (_) | | | | | | | | | | |  __/ | | | |_\__ \/ /| | | | | | \__ \ (__
 #   \___\___/|_| |_| |_|_| |_| |_|\___|_| |_|\__|___/_/ |_| |_| |_|_|___/\___|
 
 # set $ws1  "⚉"
@@ -232,12 +232,12 @@ $bind $mod+Ctrl+Shift+Left                  move container to workspace prev; wo
 $bind $mod+Ctrl+Shift+l                     move container to workspace next; workspace next
 $bind $mod+Ctrl+Shift+h                     move container to workspace prev; workspace prev
 
-#                   _   _          _   _      
-#    __ _  ___  ___| |_| |__   ___| |_(_) ___ 
+#                   _   _          _   _
+#    __ _  ___  ___| |_| |__   ___| |_(_) ___
 #   / _` |/ _ \/ __| __| '_ \ / _ \ __| |/ __|
-#  | (_| |  __/\__ \ |_| | | |  __/ |_| | (__ 
+#  | (_| |  __/\__ \ |_| | | |  __/ |_| | (__
 #   \__,_|\___||___/\__|_| |_|\___|\__|_|\___|
-#                                             
+#
 
 $ensid wal --saturate 1.0 -a 299 -i `cat $HOME/.fehbg | tail -n1 | cut -d ' ' -f3 | tr -d "'"`
 $ensid compton -D 3
@@ -255,12 +255,12 @@ $bind $mod+KP_Home  $ensid redshift -g 1:0.5:0.5 -O 25000K
 $bind $mod+KP_Up    $ensid redshift -g 0.5:0.5:1 -O 25000K
 $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 
-#  _                
-# | |__   __ _ _ __ 
+#  _
+# | |__   __ _ _ __
 # | '_ \ / _` | '__|
-# | |_) | (_| | |   
-# |_.__/ \__,_|_|   
-#                   
+# | |_) | (_| | |
+# |_.__/ \__,_|_|
+#
 
 # bar {
 #     i3bar_command $HOME/.config/polybar/launch.sh
@@ -283,11 +283,11 @@ $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 #     }
 # }
 
-#     __ _  __ _ _ __  ___ 
+#     __ _  __ _ _ __  ___
 #    / _` |/ _` | '_ \/ __|
 #   | (_| | (_| | |_) \__ \
 #    \__, |\__,_| .__/|___/
-#     |___/      |_|        
+#     |___/      |_|
 #
 
 gaps inner 25
@@ -297,7 +297,7 @@ set $mode_gaps Gaps: (o) outer, (i) inner, (I) sexy, (0) performance
 set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
 set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
 $bind $mod+Shift+g mode "$mode_gaps"
- 
+
 mode "$mode_gaps" {
         $bind o               mode "$mode_gaps_outer"
         $bind i               mode "$mode_gaps_inner"
@@ -306,7 +306,7 @@ mode "$mode_gaps" {
         $bind Return          mode default
         $bind Escape          mode default
 }
- 
+
 mode "$mode_gaps_inner" {
         $bind plus  gaps inner current plus 5
         $bind minus gaps inner current minus 5
