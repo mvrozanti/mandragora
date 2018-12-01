@@ -66,8 +66,8 @@ assign      [title="Mozilla Thunderbird"]            $ws10
 
 $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox     || waterfox
 $bind $mod+Shift+1        workspace $ws1                        $ensid wmctrl -a  Browsing     || waterfox $waterfox_arg
-$bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp      || $TERMINAL -f $font":pixelsize=15" -T 200 -e ncmpcpp
-$bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp      || $TERMINAL -f $font":pixelsize=15" -T 150 -t ncmpcpp -e ncmpcpp -s visualizer
+$bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp      || $TERMINAL -f $font":pixelsize=17" -T 200 -e ncmpcpp
+$bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp      || $TERMINAL -f $font":pixelsize=17" -T 150 -t ncmpcpp -e ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  zsth         || $TERMINAL -t zsth -e tmux
 $bind $mod+Shift+3                                              $ensid wmctrl -xa tmux         || $TERMINAL -e tmux
 $bind $mod+g                                                    $ensid wmctrl -a  cava         || $TERMINAL -n cava -e cava
