@@ -1,11 +1,7 @@
 let g:netrw_dirhistmax  =10
-let g:netrw_dirhist_cnt =9
-let g:netrw_dirhist_1='/home/nexor/.config/nvim/plugged/vim-cute-python/after/syntax'
-let g:netrw_dirhist_2='/home/nexor/.config/ranger'
-let g:netrw_dirhist_3='/mnt/4ADE1465DE144C17/Programming/python/audio-classification'
-let g:netrw_dirhist_4='/mnt/4ADE1465DE144C17/Programming/python/audio-classification/.git'
-let g:netrw_dirhist_5='/mnt/4ADE1465DE144C17/Programming/python/audio-classification/predict'
-let g:netrw_dirhist_6='/home/nexor'
-let g:netrw_dirhist_7='/home/nexor/mackenzie/comp-paralela/projeto/mandelbrot'
-let g:netrw_dirhist_8='/home/nexor/.config/ranger'
-let g:netrw_dirhist_9='/home/nexor/mackenzie/comp-paralela/projeto/article_2'
+let g:netrw_dirhist_cnt =5
+let g:netrw_dirhist_1='/home/nexor/mackenzie/comp-paralela'
+let g:netrw_dirhist_2='/home/nexor/mackenzie'
+let g:netrw_dirhist_3='/home/nexor'
+let g:netrw_dirhist_4='/home'
+let g:netrw_dirhist_5='/'
