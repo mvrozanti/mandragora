@@ -83,6 +83,7 @@ $bind $mod+4              split h;                              $ensid wmctrl -a
 $bind $mod+b                                                    $ensid wmctrl -xa DBeaver      || dbeaver
 $bind $mod+Shift+d                                              $ensid wmctrl -a  Netbeans     || netbeans
 $bind $mod+z              workspace $ws5;                       $ensid wmctrl -a  Zoom         || zoom
+$bind $mod+Shift+z                                              $ensid wmctrl -a  zathura
 $bind $mod+Shift+f        workspace $ws3;                       $ensid wmctrl -a  WhatsApp     || whatsapp
 $bind $mod+Shift+s        workspace $ws4;                       $ensid wmctrl -a  Trello       || /usr/local/bin/pondfox https://trello.com/
 # $bind $mod+Shift+s        workspace $ws4;                     $ensid wmctrl -a "| Trello"    || electron $HOME/util/trello-desktop
