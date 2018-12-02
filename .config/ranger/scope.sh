@@ -44,10 +44,13 @@ handle_extension() {
     case "${FILE_EXTENSION_LOWER}" in
         # Archive
         a|ace|alz|arc|arj|bz|bz2|cab|cpio|deb|gz|jar|lha|lz|lzh|lzma|lzo|\
-        rpm|rz|t7z|tar|tbz|tbz2|tgz|tlz|txz|tZ|tzo|war|xpi|xz|Z|zip)
+        rpm|rz|t7z|tar|tbz|tbz2|tgz|tlz|txz|tZ|tzo|war|xpi|xz|Z)
 #             unp "${FILE_PATH}" && exit 5
             atool --list -- "${FILE_PATH}" && exit 5
 #             bsdtar --list --file "${FILE_PATH}" && exit 5
+            exit 1;;
+        zip)
+            unzip -l "${FILE_PATH}" && exit 5
             exit 1;;
         rar)
             # Avoid password prompt by providing empty password
@@ -153,7 +156,7 @@ handle_mime() {
 #                 --style="${HIGHLIGHT_STYLE}" --force -- "${FILE_PATH}" && exit 5
 #             # pygmentize -f "${pygmentize_format}" -O "style=${PYGMENTIZE_STYLE}" -- "${FILE_PATH}" && exit 5
 #             exit 2;;
-# 
+#
         # Image
         image/*)
             # Preview as text conversion
