@@ -49,6 +49,7 @@ for_window  [instance="^ranger$"]                    move to workspace $ws8
 for_window  [class="URxvt"]                          floating enable
 for_window  [title="todo"]                           floating enable
 for_window  [title="cal"]                            floating enable
+for_window  [class="mpv"]                            floating enable
 assign      [title="zsth"]                           $ws2
 assign      [instance="cava"]                        $ws2
 assign      [instance="cmatrix"]                     $ws2

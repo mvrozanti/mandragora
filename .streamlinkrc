@@ -1,1 +1,1 @@
-player=mpv --cache 2048 --ontop --no-border --force-window --autofit=500x280 --geometry=-15-60
+player=mpv --cache 2048 --ontop --no-border --force-window --autofit=800x600 --geometry=-15-60
