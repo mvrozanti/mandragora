@@ -1,5 +1,6 @@
 xnoremap p "_dP
 
+
 " Automatically deletes all tralling whitespace on save.
 autocmd BufWritePre  *     %s/\s\+$//e
 autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex % ; rm *.out *.log *.lot *.lof *.aux *.toc
@@ -232,6 +233,7 @@ let g:CXXFLAGS='-std=c++11'
 " ==== File Browsing
 " Plug 'tpope/vim-vinegar'
 Plug 'scrooloose/nerdtree'
+Plug 'ryanoasis/vim-devicons'
 map <C-t> :NERDTreeToggle<CR>
 let NERDTreeIgnore = ['\.pyc$', '\.o$', '\.so$', '\.a$', '\.swp', '*\.swp', '\.swo', '\.swn', '\.swh', '\.swm', '\.swl', '\.swk', '\.sw*$', '[a-zA-Z]*egg[a-zA-Z]*', '[a-zA-Z]*cache[a-zA-Z]*', '.DS_Store']
 let g:NERDTreeShowHidden=1
@@ -425,3 +427,4 @@ hi ColorColumn ctermbg=3
 "             \ wincmd p
 "     endif
 " augroup end
+set fillchars+=vert:│
