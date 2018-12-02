@@ -230,7 +230,8 @@ let g:javascript_plugin_flow = 1
 let g:CXXFLAGS='-std=c++11'
 
 " ==== File Browsing
-Plug 'tpope/vim-vinegar'
+" Plug 'tpope/vim-vinegar'
+Plug 'scrooloose/nerdtree'
 let g:netrw_banner=0
 let g:netrw_browse_split=4
 let g:netrw_altv=1
