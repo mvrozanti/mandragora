@@ -232,6 +232,12 @@ let g:CXXFLAGS='-std=c++11'
 " ==== File Browsing
 " Plug 'tpope/vim-vinegar'
 Plug 'scrooloose/nerdtree'
+map <C-t> :NERDTreeToggle<CR>
+let NERDTreeIgnore = ['\.pyc$', '\.o$', '\.so$', '\.a$', '\.swp', '*\.swp', '\.swo', '\.swn', '\.swh', '\.swm', '\.swl', '\.swk', '\.sw*$', '[a-zA-Z]*egg[a-zA-Z]*', '[a-zA-Z]*cache[a-zA-Z]*', '.DS_Store']
+let g:NERDTreeShowHidden=1
+let g:NERDTreeWinPos="left"
+let g:NERDTreeDirArrows=0
+
 let g:netrw_banner=0
 let g:netrw_browse_split=4
 let g:netrw_altv=1
