@@ -28,29 +28,6 @@
                 "args":{
                     "format":"{state_symbol} {title}"
                 }
-            },
-            {
-                "function": "powerline.segments.common.wthr.weather",
-                "args": {
-                    "unit": "C",
-                    "location_query":"Sao Paulo, Brazil",
-                    "temp_hottest":30,
-                    "temp_coldest":10,
-                    "icons": {
-                        "day":           "〇",
-                        "blustery":      "⚑",
-                        "rainy":         "☔",
-                        "cloudy":        "☁",
-                        "snowy":         "❅",
-                        "stormy":        "☈",
-                        "foggy":         "≡",
-                        "sunny":         "☼",
-                        "night":         "☾",
-                        "windy":         "☴",
-                        "not_available": "�",
-                        "unknown":       "⚠"
-                    }
-                }
             }
         ]
     }
