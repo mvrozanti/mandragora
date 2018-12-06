@@ -1,27 +1,9 @@
 {
     "segments": {
         "left":[
-            {
-                "function": "powerline.segments.common.time.date",
-                "name": "time",
-                "args": {
-                    "format": "%H:%M",
-                    "istime": true
-                }
-            }
+            
         ],
         "right": [
-            {
-                "function":"powerline.segments.common.net.network_load",
-                "name":"network",
-                "args":{
-                    "sent_format":"↑{value:>8}",
-                    "recv_format":"↓{value:>8}  ",
-                    "si_prefix":"MB",
-                    "recv_max":136314.0,
-                    "sent_max":200000.0
-                }
-            },
             {
                 "function":"powerline.segments.common.players.mpd",
                 "name":"player",
