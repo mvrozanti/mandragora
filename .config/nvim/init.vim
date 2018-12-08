@@ -131,6 +131,8 @@ inoremap she<tab> #!/bin/bash<Esc>o
 inoremap re<tab> return<Space>
 inoremap fori<tab> for(int i=0; i < ; i++){<CR>}<Esc>3Bla
 
+" javascript shortcuts
+autocmd FileType javascript inoremap repl<tab> require('repl').start('> ').context.<+> = <+>;<Esc>
 
 " python shortcuts
 autocmd FileType python inoremap ci<tab> code.interact(local=locals())<Esc>
