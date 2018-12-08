@@ -135,6 +135,7 @@ inoremap fori<tab> for(int i=0; i < ; i++){<CR>}<Esc>3Bla
 autocmd FileType javascript inoremap repl<tab> require('repl').start('> ').context.<+> = <+>;<Esc>
 autocmd FileType javascript inoremap tr<tab> true
 autocmd FileType javascript inoremap fa<tab> false
+autocmd FileType javascript inoremap cl<tab> console.log()<Esc>i
 
 " python shortcuts
 autocmd FileType python inoremap ci<tab> code.interact(local=locals())<Esc>
@@ -142,6 +143,7 @@ autocmd FileType python inoremap pdbt<tab> pdb.set_trace()<Esc>
 autocmd FileType python set makeprg=python3\ %
 autocmd FileType python inoremap ld<tab> LOG.debug()<Esc>i
 autocmd FileType python inoremap pr<tab> print()<Esc>i
+autocmd FileType python inoremap inm<tab> if __name__ == '__main__':<CR>
 autocmd FileType python inoremap she<tab> #!/usr/bin/env python
 autocmd FileType python inoremap Fa<tab> False
 autocmd FileType python inoremap Tr<tab> True

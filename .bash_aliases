@@ -25,7 +25,7 @@ alias E='emacs -nw'
 # test .Xresources colors
 alias testx='echo;for a in {40..47}; do echo -ne "\e[0;30;$a""m  ""\e[0;37;39m "; done; echo ""'
 alias cutefetch='while true; do screenfetch_out="$(screenfetch -a $HOME/nexor.ascii -p)$(testx;echo;echo;echo)";sleep 1;clear;printf "$screenfetch_out"|lolcat;sleep 1; done'
-alias neofetch="screenfetch -a $HOME/nexor.ascii -p"
+alias screenfetch="screenfetch -a $HOME/nexor.ascii -p"
 alias gfd='git fetch origin; git diff master'
 alias gD='git diff HEAD HEAD~1'
 alias gc='git clone'
