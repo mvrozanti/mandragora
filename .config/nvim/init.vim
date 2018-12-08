@@ -133,6 +133,8 @@ inoremap fori<tab> for(int i=0; i < ; i++){<CR>}<Esc>3Bla
 
 " javascript shortcuts
 autocmd FileType javascript inoremap repl<tab> require('repl').start('> ').context.<+> = <+>;<Esc>
+autocmd FileType javascript inoremap tr<tab> true
+autocmd FileType javascript inoremap fa<tab> false
 
 " python shortcuts
 autocmd FileType python inoremap ci<tab> code.interact(local=locals())<Esc>
