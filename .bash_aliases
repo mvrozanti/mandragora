@@ -204,3 +204,4 @@ alias ws='watch stat'
 function vz(){ find . -iname "*$@*" | head -n1 | xargs nvim  }
 unalias gg
 function gg(){ git grep "$@" $(git rev-list --all) }
+alias nig='npm i -g'
