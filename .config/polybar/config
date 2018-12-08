@@ -246,13 +246,14 @@ ramp-signal-foreground = ${colors.foreground-alt}
 
 [module/eth]
 type = internal/network
-interface = ham0
+interface = eno1
 interval = 3.0
+udspeed-minwidth = 5
 
-format-connected-underline = #55aa55
-format-connected-prefix = " "
+format-connected-underline = #7218a4
+; format-connected-prefix = "↑"
 format-connected-prefix-foreground = ${colors.foreground-alt}
-label-connected = %local_ip%
+label-connected = ↑ %upspeed:9% ↓ %downspeed:9%
 
 format-disconnected =
 ;format-disconnected = <label-disconnected>
@@ -270,9 +271,9 @@ date-alt = " %Y-%m-%d"
 time = %H:%M
 time-alt = %H:%M:%S
 
-format-prefix = 
+format-prefix = ◉
 format-prefix-foreground = ${colors.foreground-alt}
-format-underline = #0a6cf5
+format-underline = #3a3c35
 
 label = %date% %time%
 
