@@ -1,4 +1,5 @@
 xnoremap p "_dP
+vnoremap \/ y/<C-R>"<CR>
 
 
 " Automatically deletes all tralling whitespace on save.
