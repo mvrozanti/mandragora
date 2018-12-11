@@ -41,7 +41,7 @@ padding-left = 0
 padding-right = 0
 
 module-margin-left = 1
-module-margin-right = 4
+module-margin-right = 1
 
 font-0 = Droid Sans Mono for Powerline:size=10
 font-1 = fixed:pixelsize=10;1
@@ -96,7 +96,7 @@ interval = 25
 
 mount-0 = /
 
-label-mounted =  %{F#0a81f5}%mountpoint%%{F-}: %percentage_used%%
+label-mounted =  %{F#ffffff}❖%{F-} %percentage_free%%
 label-unmounted = %mountpoint% not mounted
 label-unmounted-foreground = ${colors.foreground-alt}
 
@@ -247,13 +247,13 @@ ramp-signal-foreground = ${colors.foreground-alt}
 [module/eth]
 type = internal/network
 interface = eno1
-interval = 3.0
-udspeed-minwidth = 5
+interval = 1.0
+udspeed-minwidth = 3
 
 format-connected-underline = #7218a4
 ; format-connected-prefix = "↑"
 format-connected-prefix-foreground = ${colors.foreground-alt}
-label-connected = ↑ %upspeed:9% ↓ %downspeed:9%
+label-connected = ↑ %upspeed:3% ↓ %downspeed:3%
 
 format-disconnected =
 ;format-disconnected = <label-disconnected>
