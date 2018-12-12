@@ -29,6 +29,7 @@
         ".zshrc" : "~/.zshrc",
         ".urlview" : "~/.urlview",
         ".vimfx" : "~/.vimfx",
+        ".emacs" : "~/.emacs",
         ".XCompose" : "~/.XCompose"
     },
     "install_cmd" : "sudo pacman -S",
