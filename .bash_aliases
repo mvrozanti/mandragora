@@ -203,6 +203,7 @@ alias scrot2imgur='curl -s -X POST --url https://api.imgur.com/3/image -H "Autho
 alias 2048='/home/nexor/util/bash2048/bash2048.sh'
 alias ws='watch stat'
 function vz(){ find . -iname "*$@*" | head -n1 | xargs nvim  }
+function vg(){ grep -ril "*$@*" | head -n1 | xargs nvim  }
 unalias gg
 function gg(){ git grep "$@" $(git rev-list --all) }
 alias nig='npm i -g'
