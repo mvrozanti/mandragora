@@ -43,7 +43,7 @@ focus_follows_mouse no
 
 for_window  [class="Waterfox"]                       move to workspace $ws1
 for_window  [title="^(\d+) WhatsApp$"]               move to workspace $ws3
-for_window  [title=".*Trello.*"]                     move to workspace $ws4
+for_window  [title=".*Trello.*"]                     move to workspace $ws7
 for_window  [title="Zoom"]                           move to workspace $ws5
 for_window  [instance="^ranger$"]                    move to workspace $ws8
 # for_window  [title="khal"]                           move to workspace $ws11
@@ -87,7 +87,7 @@ $bind $mod+b                                                    $ensid wmctrl -x
 $bind $mod+Shift+d                                              $ensid wmctrl -a  Netbeans        || netbeans
 $bind $mod+z          workspace $ws5;                           $ensid wmctrl -a  Zoom            || zoom
 $bind $mod+Shift+f    workspace $ws3;                           $ensid wmctrl -a  WhatsApp        || whatsapp
-$bind $mod+Shift+s    workspace $ws4;                           $ensid wmctrl -a  Trello          || /usr/local/bin/pondfox https://trello.com/
+$bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a  Trello          || /usr/local/bin/pondfox https://trello.com/
 # $bind $mod+Shift+s  workspace $ws4;                           $ensid wmctrl -a "| Trello"       || electron $HOME/util/trello-desktop
 $bind $mod+Shift+w    workspace $ws11;                          $ensid wmctrl -xa thunderbird     || thunderbird
 $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary

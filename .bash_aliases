@@ -210,3 +210,4 @@ alias vC='echo `xclip -o`|nvim'
 unalias gg
 function gg(){ git grep "$@" $(git rev-list --all) }
 alias nig='npm i -g'
+alias tron='ssh sshtron.zachlatta.com'
