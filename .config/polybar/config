@@ -12,8 +12,7 @@
 
 [colors]
 background = #801e1e1e
-background-alt = #444
-;foreground = ${xrdb:color7:#222}
+background-alt = #301e1e1e
 foreground = #c1c1c1
 foreground-alt = #555
 primary = #609e9e9e
@@ -346,7 +345,7 @@ thermal-zone = 0
 warn-temperature = 60
 
 format = <ramp> <label>
-format-underline = #f50a4d
+format-underline = #f5aa4a
 format-warn = <ramp> <label-warn>
 format-warn-underline = ${self.format-underline}
 
