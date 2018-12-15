@@ -214,3 +214,4 @@ alias nig='npm i -g'
 alias tron='ssh sshtron.zachlatta.com'
 alias empty-trash='rm -rf $HOME/.local/share/Trash/*'
 alias fsw='fswatch .'
+alias head='sed 11q' # kek
