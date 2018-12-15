@@ -212,3 +212,5 @@ unalias gg
 function gg(){ git grep "$@" $(git rev-list --all) }
 alias nig='npm i -g'
 alias tron='ssh sshtron.zachlatta.com'
+alias empty-trash='rm -rf $HOME/.local/share/Trash/*'
+alias fsw='fswatch .'
