@@ -96,6 +96,7 @@ autocmd FileType javascript inoremap fa<tab> false
 autocmd FileType javascript inoremap cl<tab> console.log()<Esc>i
 
 " python shortcuts
+autocmd FileType python inoremap im<tab> import<Space>
 autocmd FileType python inoremap ci<tab> code.interact(local=locals())<Esc>
 autocmd FileType python inoremap pdbt<tab> pdb.set_trace()<Esc>
 autocmd FileType python set makeprg=python3\ %
