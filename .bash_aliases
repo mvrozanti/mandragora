@@ -24,6 +24,7 @@ alias vmutt='sudo -E vim $HOME/.muttrc'
 alias E='emacs -nw'
 # test .Xresources colors
 alias testx='echo;for a in {40..47}; do echo -ne "\e[0;30;$a""m  ""\e[0;37;39m "; done; echo ""'
+alias neofetch='neofetch --backend ascii --source /mnt/4ADE1465DE144C17/gdrive/nexor.ascii -L'
 alias cutefetch='while true; do screenfetch_out="$(screenfetch -a $HOME/nexor.ascii -p)$(testx;echo;echo;echo)";sleep 1;clear;printf "$screenfetch_out"|lolcat;sleep 1; done'
 alias screenfetch="screenfetch -a $HOME/nexor.ascii -p"
 alias gfd='git fetch origin; git diff master'
@@ -202,7 +203,7 @@ alias pir='sudo pip uninstall'
 alias scrot2imgur='curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@"$HOME/.scrot.png | jq -r '.data.link' | xsel -i -b'
 alias 2048='/home/nexor/util/bash2048/bash2048.sh'
 alias ws='watch stat'
-function vz(){ find . -iname "*$@*" | head -n1 | xargs nvim  }
+function vf(){ find . -iname "*$@*" | head -n1 | xargs nvim  }
 function vg(){ grep -ril "*$@*" | head -n1 | xargs nvim  }
 alias vc='echo `xsel -o -b`|xargs nvim'
 alias vC='echo `xclip -o`|nvim'
