@@ -107,5 +107,7 @@ export PATH="/home/nexor/.pyenv/bin:$PATH"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
+VISUAL=nvim; export VISUAL EDITOR=nvim; export EDITOR
+
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export MANPAGER="nvim +set\ filetype=man -"
