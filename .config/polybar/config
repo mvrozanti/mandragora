@@ -22,7 +22,7 @@ alert = #bd2c40
 [bar/mybar]
 ;monitor = ${env:MONITOR:HDMI-1}
 width = 100%
-height = 20
+height = 24
 bottom = true
 radius = 0.0
 fixed-center = true
@@ -396,7 +396,7 @@ screenchange-reload = true
 ;pseudo-transparency = false
 
 [global/wm]
-margin-top = 5
-margin-bottom = 5
+margin-top = 0
+margin-bottom = 0
 
 ; vim:ft=dosini
