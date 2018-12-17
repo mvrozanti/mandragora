@@ -15,7 +15,6 @@
         ".config/nvim/plugged/vim-cute-python/after/syntax/python.vim" : "~/.config/nvim/plugged/vim-cute-python/after/syntax/python.vim",
         ".tmux" : "~/.tmux/",
         ".tmux.conf" : "~/.tmux.conf",
-        ".Xresources" : "~/.Xresources",
         ".bash_aliases" : "~/.bash_aliases",
         ".nexor.ascii" : "~/nexor.ascii",
         ".fehbg" : "~/.fehbg",
