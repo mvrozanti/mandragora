@@ -7,6 +7,8 @@ autocmd BufWritePre  *     %s/\s\+$//e
 autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex % ; rm *.out *.log *.lot *.lof *.aux *.toc
 map Q <Nop>
 inoremap jk <Esc>l
+inoremap jK <Esc>l
+inoremap Jk <Esc>l
 inoremap JK <Esc>l
 vnoremap JK <Esc>
 inoremap QQ <Esc>:q!<CR>
