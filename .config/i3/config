@@ -46,7 +46,6 @@ for_window  [title="^(\d+) WhatsApp$"]               move to workspace $ws3
 for_window  [title=".*Trello.*"]                     move to workspace $ws7
 for_window  [title="Zoom"]                           move to workspace $ws5
 for_window  [instance="^ranger$"]                    move to workspace $ws8
-# for_window  [title="khal"]                           move to workspace $ws11
 for_window  [class="URxvt"]                          floating enable
 for_window  [title="todo"]                           floating enable
 for_window  [class="mpv"]                            floating enable
@@ -57,7 +56,7 @@ assign      [instance="cmatrix"]                     $ws2
 assign      [class="NetBeans IDE "]                  $ws6
 assign      [title="Discord"]                        $ws7
 assign      [instance="DBeaver"]                     $ws9
-assign      [title="Mozilla Thunderbird"]            $ws10
+assign      [title="Mozilla Thunderbird"]            $ws11
 
 #    __                                 _
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_
@@ -73,7 +72,7 @@ $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  zsth            || $TERMINAL -t zsth -e tmux
 $bind $mod+Shift+3                                              $ensid wmctrl -xa tmux            || $TERMINAL -e tmux
 $bind $mod+g                                                    $ensid wmctrl -a  cava            || $TERMINAL -n cava -e cava
-$bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || $TERMINAL -n cmatrix -e sh -c cmatrix
+$bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || $TERMINAL -n cmatrix -T 100 -e sh -c cmatrix
 $bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  ranger          || $TERMINAL -n ranger -T 200 -t ranger -e sh -c "stty -ixon && ranger"
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || $TERMINAL -n youtube-curses -T 200 -t youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
 $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || $TERMINAL -T 255 -n todo -f $font":pixelsize=19" -t todo -e sh -c "stty -ixon && nvim $HOME/todo"
