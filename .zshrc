@@ -97,6 +97,9 @@ export GEM_HOME=$HOME/.gem
 # js
 export PATH=~/.npm/bin:$PATH
 
+# go
+export GOPATH=$HOME/go
+
 # py
 export PATH=~/.local/bin:$PATH
 # source /usr/share/zsh-theme-powerlevel9k/powerlevel9k.zsh-theme

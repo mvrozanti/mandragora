@@ -150,6 +150,10 @@ $bind $mod+w              layout tabbed
 $bind $mod+e              layout toggle split
 $bind $mod+Shift+space    floating toggle; sticky enable
 $bind $mod+space focus    mode_toggle
+$bind Ctrl+$mod+h         resize shrink width 10 px or 10 ppt
+$bind Ctrl+$mod+k         resize grow height 10 px or 10 ppt
+$bind Ctrl+$mod+j         resize shrink height 10 px or 10 ppt
+$bind Ctrl+$mod+l         resize grow width 10 px or 10 ppt
 $bind Ctrl+$mod+Left      resize shrink width 10 px or 10 ppt
 $bind Ctrl+$mod+Up        resize grow height 10 px or 10 ppt
 $bind Ctrl+$mod+Down      resize shrink height 10 px or 10 ppt
@@ -193,16 +197,6 @@ $bind XF86AudioRaiseVolume      $ensid pamixer -i 4
 #  | (_| (_) | | | | | | | | | | |  __/ | | | |_\__ \/ /| | | | | | \__ \ (__
 #   \___\___/|_| |_| |_|_| |_| |_|\___|_| |_|\__|___/_/ |_| |_| |_|_|___/\___|
 
-# set $ws1  "⚉"
-# set $ws2  "Ϡ"
-# set $ws3  "⊶"
-# set $ws4  "⩥"
-# set $ws5  "λ"
-# set $ws6  "ϡ"
-# set $ws7  "ৠ"
-# set $ws8  "ৡ"
-# set $ws9  "⚒"
-# set $ws10 "🗡"
 set $ws1  "1"
 set $ws2  "2"
 set $ws3  "3"
