@@ -102,7 +102,7 @@ autocmd FileType javascript inoremap cl<tab> console.log()<Esc>i
 autocmd FileType python inoremap im<tab> import<Space>
 autocmd FileType python inoremap ci<tab> code.interact(local=locals())<Esc>
 autocmd FileType python inoremap pdbt<tab> pdb.set_trace()<Esc>
-autocmd FileType python set makeprg=python3\ %
+autocmd FileType python set makeprg=python\ %
 autocmd FileType python inoremap ld<tab> LOG.debug()<Esc>i
 autocmd FileType python inoremap pr<tab> print()<Esc>i
 autocmd FileType python inoremap inm<tab> if __name__ == '__main__':<CR>
