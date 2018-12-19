@@ -479,3 +479,5 @@ set fillchars+=vert:│
 	autocmd   FileType   tex        inoremap   nu<Tab> $\varnothing$
 	autocmd   FileType   tex        inoremap   col<Tab> \begin{columns}[T]<Enter>\begin{column}{.5\textwidth}<Enter><Enter>\end{column}<Enter>\begin{column}{.5\textwidth}<Enter><+><Enter>\end{column}<Enter>\end{columns}<Esc>5kA
 	autocmd   FileType   tex        inoremap   rn<Tab> (\ref{})<+><Esc>F}i
+
+map <C-x> <Nop>
