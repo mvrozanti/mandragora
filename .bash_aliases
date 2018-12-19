@@ -42,7 +42,7 @@ alias vp='nvim "$HOME/Dropbox/Sys4Bank - Programas Java/pendencias.txt"'
 alias srm='sudo rm'
 alias mkdir='mkdir -p'
 # terminal geographic map
-alias termap='telnet mapscii.me'
+alias asciimap='telnet mapscii.me'
 # tmux attach
 alias ta='tmux a -t sess0'
 alias smv='sudo mv'
