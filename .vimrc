@@ -1,3 +1,21 @@
+"   ____  ___    _____ ___    _   ___     _____ __  __
+"  / ___|/ _ \  |_   _/ _ \  | \ | \ \   / /_ _|  \/  |
+" | |  _| | | |   | || | | | |  \| |\ \ / / | || |\/| |
+" | |_| | |_| |   | || |_| | | |\  | \ V /  | || |  | |
+"  \____|\___/    |_| \___/  |_| \_|  \_/  |___|_|  |_|
+"
+"  ____    _    ____ _  __  _____ _   _ _____   _____ _   _  ____ _  __
+" | __ )  / \  / ___| |/ / |_   _| | | | ____| |  ___| | | |/ ___| |/ /
+" |  _ \ / _ \| |   | ' /    | | | |_| |  _|   | |_  | | | | |   | ' /
+" | |_) / ___ \ |___| . \    | | |  _  | |___  |  _| | |_| | |___| . \
+" |____/_/   \_\____|_|\_\   |_| |_| |_|_____| |_|    \___/ \____|_|\_\
+"
+"  _   _ ____
+" | | | |  _ \
+" | | | | |_) |
+" | |_| |  __/
+"  \___/|_|
+
 set encoding=utf-8
 let g:colorizer_auto_color = 1
 set nofoldenable
@@ -11,7 +29,7 @@ let g:vebugger_leader = '\'
 set visualbell
 set t_vb=
 
-" hits bong: 
+" hits bong:
 vnoremap ( xi()<Esc>PF(i
 nnoremap yF maggyG'a
 " inoremap <C-Space> <C-X><C-O>
@@ -47,8 +65,8 @@ inoremap fori<tab> for(int i=0; i < ; i++){<CR>}<Esc>3Bla
 
 
 " python shortcuts
-autocmd FileType python inoremap ci<tab> code.interact(local=locals())<Esc> 
-autocmd FileType python inoremap pdbt<tab> pdb.set_trace()<Esc> 
+autocmd FileType python inoremap ci<tab> code.interact(local=locals())<Esc>
+autocmd FileType python inoremap pdbt<tab> pdb.set_trace()<Esc>
 autocmd FileType python set makeprg=python3\ %
 autocmd FileType python inoremap ld<tab> LOG.debug()<Esc>i
 autocmd FileType python inoremap pr<tab> print()<Esc>i
@@ -61,7 +79,7 @@ autocmd FileType python inoremap Tr<tab> True
 autocmd FileType c,cpp inoremap pr<tab> printf("", <+>);<Esc>7hi
 
 " bash shortcuts
-" autocmd FileType sh     
+" autocmd FileType sh
 
 " remove highlight
 nnoremap <Esc><Esc> :nohl<CR>
@@ -105,7 +123,7 @@ set exrc
 "move vim splits
 nnoremap <S-H>      :5winc <<CR>
 nnoremap <S-K>      :5winc +<CR>
-nnoremap <S-L>      :5winc ><CR> 
+nnoremap <S-L>      :5winc ><CR>
 nnoremap <S-U>      :5winc -<CR>
 
 "autocomplete colors
@@ -120,7 +138,7 @@ Plugin 'junegunn/goyo.vim'
 
 Plugin 'realincubus/vim-clang-refactor'
 
-"Clipboard -> cp,cv 
+"Clipboard -> cp,cv
 Plugin 'christoomey/vim-system-copy'
 map y cp
 map yy YY
@@ -132,7 +150,7 @@ let g:system_copy#paste_command='xclip -sel clipboard -o'
 Plugin 'ehamberg/vim-cute-python'
 
 " C/C++ debugging
-Plugin 'Shougo/vimproc.vim' 
+Plugin 'Shougo/vimproc.vim'
 Plugin 'idanarye/vim-vebugger'
 " Plugin 'vim-scripts/Conque-Shell'
 " Plugin 'vim-scripts/Conque-GDB'
@@ -317,13 +335,13 @@ vnoremap \| :vsplit<CR>
 
 inoremap jk <Esc>l
 inoremap JK <Esc>l
-vnoremap JK <Esc> 
+vnoremap JK <Esc>
 
 " ==== Visual timeouts
 set timeoutlen=1000 ttimeoutlen=0
 
 " reverse J
-nnoremap <C-o> i<CR><Esc> 
+nnoremap <C-o> i<CR><Esc>
 
 " endl but not really
 " this is actually not needed since d$
