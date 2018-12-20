@@ -43,6 +43,7 @@
         "curl",
         "curlftpfs",
         "dmenu",
+        "dnsutils",
         "exa",
         "electron",
         "fd",
