@@ -249,9 +249,7 @@ let g:startify_session_autoload = 1
 Plug 'mhinz/vim-signify'
 
 " ==== Completion
-" Plug 'Valloric/YouCompleteMe', { 'do': './install.py --all' }
 Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
-" inoremap <C-Space> <C-x><C-o>
 inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
 inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
