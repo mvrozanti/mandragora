@@ -249,6 +249,10 @@ let g:startify_session_autoload = 1
 Plug 'mhinz/vim-signify'
 
 " ==== Completion
+Plug 'OmniSharp/omnisharp-vim'
+set completeopt=longest,menuone,preview
+let g:OmniSharp_proc_debug = 1
+" let g:OmniSharp_server_use_mono = 1
 Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
 inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
 inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
@@ -289,14 +293,10 @@ Plug 'SirVer/ultisnips'
 filetype plugin indent on
 
 " ==== Colors and other basic settings
-" powerline
-" set rtp+=$HOME/.local/lib/python3.7/site-packages/powerline/bindings/vim/
 set laststatus=2
 set t_Co=256
-" set guifont=Monospace\ 10
 set fillchars+=vert:\$
 syntax enable
-"set background=
 set ruler
 set hidden
 set number
@@ -305,11 +305,10 @@ set laststatus=2
 set smartindent
 set tabstop=4 sw=4 et
 set shiftwidth=4
-"let &colorcolumn="80"
-:set guioptions-=m  "remove menu bar
-:set guioptions-=T  "remove toolbar
-:set guioptions-=r  "remove right-hand scroll bar
-:set guioptions-=L  "remove left-hand scroll bar
+" :set guioptions-=m  "remove menu bar
+" :set guioptions-=T  "remove toolbar
+" :set guioptions-=r  "remove right-hand scroll bar
+" :set guioptions-=L  "remove left-hand scroll bar
 
 " Real-time markdown editing
 Plug 'iamcco/markdown-preview.vim'
