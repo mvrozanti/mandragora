@@ -5,6 +5,7 @@
         ".config/i3" : "~/.config/i3",
         ".config/nvim" : "~/.config/nvim", ".config/polybar" : "~/.config/polybar", ".config/ranger" : "~/.config/ranger",
         ".config/mpd" : "~/.config/mpd/mpd.conf",
+        ".config/dunst/dunstrc" : "~/.config/dunst/dunstrc",
         ".config/cava/" : "~/.config/cava",
         ".config/zathura/" : "~/.config/zathura/",
         ".calcurse/conf" : "~/.calcurse/conf",
