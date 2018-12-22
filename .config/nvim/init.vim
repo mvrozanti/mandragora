@@ -42,12 +42,13 @@ nnoremap <A-Right> :TmuxNavigateRight<cr>
 let g:colorizer_auto_color = 1
 set nofoldenable
 set foldmethod=indent
-" let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
-" let g:ycm_key_list_select_completion = ['<TAB>']
-" let g:ycm_autoclose_preview_window_after_completion = 1
-" let g:ycm_server_python_interpreter = "/usr/bin/python2.7"
-" let g:ycm_key_list_stop_completion = ['<Enter>']
-" let g:ycm_path_to_python_interpreter="/usr/bin/python"
+Plug 'Valloric/YouCompleteMe'
+let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
+let g:ycm_key_list_select_completion = ['<TAB>']
+let g:ycm_autoclose_preview_window_after_completion = 1
+let g:ycm_server_python_interpreter = "/usr/bin/python2.7"
+let g:ycm_key_list_stop_completion = ['<Enter>']
+let g:ycm_path_to_python_interpreter="/usr/bin/python"
 let g:vebugger_leader = '\'
 if !exists('g:vdebug_options')
     let g:vdebug_options = {}
@@ -249,15 +250,15 @@ let g:startify_session_autoload = 1
 Plug 'mhinz/vim-signify'
 
 " ==== Completion
-Plug 'OmniSharp/omnisharp-vim'
+" Plug 'OmniSharp/omnisharp-vim'
 set completeopt=longest,menuone,preview
-let g:OmniSharp_proc_debug = 1
+" let g:OmniSharp_proc_debug = 1
 " let g:OmniSharp_server_use_mono = 1
-Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
-inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
-inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
-inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-inoremap <silent><expr> <c-space> coc#refresh()
+" Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
+" inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
+" inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+" inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+" inoremap <silent><expr> <c-space> coc#refresh()
 " inoremap <silent><expr> <TAB>
 "       \ pumvisible() ? "\<C-n>" :
 "       \ <SID>check_back_space() ? "\<TAB>" :
