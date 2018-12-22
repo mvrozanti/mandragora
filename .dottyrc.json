@@ -44,6 +44,7 @@
         "curlftpfs",
         "dmenu",
         "dnsutils",
+        "dunst",
         "exa",
         "electron",
         "fd",
