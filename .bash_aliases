@@ -217,3 +217,4 @@ function isprime(){ if [[ $1 -eq 2 ]]||[[ $1 -eq 3 ]];then return 0;fi;if [[ $((
 alias sdf='ssh mvrozanti@sdf.org'
 alias wip='dig +short myip.opendns.com @resolver1.opendns.com'
 alias ms='ssh play@anonymine-demo.oskog97.com -p 2222'
+alias R='nnn'
