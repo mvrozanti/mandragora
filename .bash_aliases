@@ -207,7 +207,6 @@ function vf(){ find . -iname "*$@*" | head -n1 | xargs nvim  }
 function vg(){ grep -ril "*$@*" | head -n1 | xargs nvim  }
 alias vc='echo `xsel -o -b`|xargs nvim'
 alias vC='echo `xclip -o`|nvim'
-
 unalias gg
 function gg(){ git grep "$@" $(git rev-list --all) }
 alias nig='npm i -g'
