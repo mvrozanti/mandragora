@@ -46,9 +46,16 @@ Plug 'Valloric/YouCompleteMe'
 let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
 let g:ycm_key_list_select_completion = ['<TAB>']
 let g:ycm_autoclose_preview_window_after_completion = 1
-let g:ycm_server_python_interpreter = "/usr/bin/python2.7"
+let g:ycm_server_python_interpreter = "/usr/bin/python3.6"
 let g:ycm_key_list_stop_completion = ['<Enter>']
 let g:ycm_path_to_python_interpreter="/usr/bin/python"
+let g:ycm_filetype_whitelist = {
+			\ "c":1,
+			\ "cpp":1,
+			\ "sh":1,
+			\ "zsh":1,
+			\ "python":1,
+			\ }
 let g:vebugger_leader = '\'
 if !exists('g:vdebug_options')
     let g:vdebug_options = {}
@@ -250,6 +257,7 @@ let g:startify_session_autoload = 1
 Plug 'mhinz/vim-signify'
 
 " ==== Completion
+Plug 'davidhalter/jedi-vim'
 " Plug 'OmniSharp/omnisharp-vim'
 set completeopt=longest,menuone,preview
 " let g:OmniSharp_proc_debug = 1
