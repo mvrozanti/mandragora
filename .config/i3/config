@@ -76,7 +76,7 @@ $bind $mod+g                                                    $ensid wmctrl -a
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || $TERMINAL -n cmatrix -T 100 -e sh -c cmatrix
 $bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  ranger          || $TERMINAL -n ranger -T 200 -t ranger -e sh -c "stty -ixon && ranger"
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || $TERMINAL -n youtube-curses -T 200 -t youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
-$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || $TERMINAL -T 255 -n todo -f $font":pixelsize=19" -t todo -e sh -c "stty -ixon && nvim $HOME/todo"
+$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || $TERMINAL -T 255 -n todo -f $font":pixelsize=19" -t todo -e zsh -c "nvim $HOME/todo"
 $bind $mod+braceleft  workspace $ws12                           $ensid wmctrl -a  khal            || $TERMINAL -T 200 -n khal -f $font":pixelsize=13" -t khal -e sh -c "khal interactive"
 $bind $mod+Shift+o    workspace $ws12                           $ensid wmctrl -a  khal            || $TERMINAL -T 200 -n khal -f $font":pixelsize=13" -t khal -e sh -c "khal interactive"
 $bind $mod+v          split toggle;                             $ensid wmctrl -a  gotop           || $TERMINAL -T 200 -t gotop -e gotop
@@ -248,11 +248,11 @@ $ensid $HOME/.fehbg
 popup_during_fullscreen smart
 floating_modifier Mod1
 font pango:Droid Sans Mono for Powerline11
-client.focused          $orange $gray   $orange $gray     #285577
+client.focused          $orange $gray   $orange $gray   #ff0000
 client.focused_inactive $orange $gray   $orange $gray   #5f676a
-client.unfocused        $gray   #222222 #888888 #292d2e   #222222
-client.urgent           $gray   #900000 #ffffff #900000   #900000
-client.placeholder      #000000 #0c0c0c #ffffff #000000   #0c0c0c
+client.unfocused        $gray   #222222 #888888 #292d2e #222222
+client.urgent           $gray   #900000 #ffffff #900000 #900000
+client.placeholder      #000000 #0c0c0c #ffffff #000000 #0c0c0c
 client.background       #ffffff
 $bind $mod+KP_Home  $ensid redshift -g 1:0.5:0.5 -O 25000K
 $bind $mod+KP_Up    $ensid redshift -g 0.5:0.5:1 -O 25000K
@@ -295,6 +295,8 @@ $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 
 gaps inner 25
 gaps outer 0
+# focus border width
+# new_window pixel 0
 new_window none
 set $mode_gaps Gaps: (o) outer, (i) inner, (I) sexy, (0) performance
 set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
