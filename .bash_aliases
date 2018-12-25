@@ -1,6 +1,6 @@
 alias rm='rm -f'
 alias ll='ls -alFh'
-alias la='exa -a'
+alias la='ls -la'
 alias l='ls --sort=time'
 alias watch='watch --color -n2'
 alias grep='egrep --color'
