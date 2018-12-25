@@ -112,7 +112,6 @@
         "xorg-xfd",
         "xorg-xev",
         "youtube-dl",
-        "vim",
         "vlc",
         "wget",
         "wmctrl",
@@ -123,7 +122,8 @@
     ],
     "commands": [
         "mkdir -p ~/util",
-        "git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim && vim +PluginInstall +qall",
+        "curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim",
+        "nvim +PlugInstall +qall",
         "git clone https://github.com/danielchatfield/trello-desktop ~/util",
         "git clone https://github.com/oniony/TMSU ~/util",
         "git clone https://github.com/emcrisostomo/fswatch ~/util/fswatch && cd $_ && ./configure && sudo make install && cd.",
