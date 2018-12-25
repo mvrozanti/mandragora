@@ -13,3 +13,7 @@
 [submodule ".config/nvim/plugged/LanguageClient-neovim/"]
 	path =.config/nvim/plugged/LanguageClient-neovim
 	url = https://github.com/autozimu/LanguageClient-neovim
+[submodule ".config/nvim/plugged/vim-cute-python"]
+    path =.config/nvim/plugged/vim-cute-python
+    url = https://github.com/mvrozanti/vim-cute-python
+
