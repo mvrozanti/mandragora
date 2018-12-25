@@ -7,3 +7,9 @@
 [submodule "util/st"]
 	path = util/st
 	url = https://github.com/mvrozanti/st/
+[submodule ".config/nvim/plugged/Colorizer"]
+	path =.config/nvim/plugged/Colorizer
+	url = https://github.com/chrisbra/Colorizer
+[submodule ".config/nvim/plugged/LanguageClient-neovim/"]
+	path =.config/nvim/plugged/LanguageClient-neovim
+	url = https://github.com/autozimu/LanguageClient-neovim
