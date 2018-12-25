@@ -82,6 +82,7 @@
         "powerline",
         "powerline-vim",
         "powerline-fonts",
+        "python-dev",
         "python-pip",
         "python-pywal",
         "ranger",
