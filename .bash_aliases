@@ -221,3 +221,4 @@ alias googlecloud='gcloud compute --project projeto-cloud-226116 ssh --zone us-w
 alias agi='sudo apt-get install'
 alias agr='sudo apt-get remove'
 alias tnsd='tmux new-session -d sh -c'
+alias ls='[ -x "$(command -v exa)" ] && exa || ls'
