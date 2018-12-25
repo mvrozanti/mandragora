@@ -7,10 +7,10 @@
 
 # win=Mod4
 # alt=Mod1
-exec_always --no-startup-id dunst
-exec_always --no-startup-id $HOME/.config/polybar/launch.sh
+exec_always  --no-startup-id dunst
+exec_always  --no-startup-id $HOME/.config/polybar/launch.sh
 #exec_always --no-startup-id curlftpfs -o user="nexor:2715" ftp://192.168.0.52:2221 ~/android2
-exec_always --no-startup-id ~/prog/python/audio-classification/cnn.py -P |while read -r o; do case "$o" in "9") (st 2> /dev/null &);; "0") st -T 150 -t ncmpcpp -e ncmpcpp -s visualizer 2> /dev/null &;; *) echo $o;; esac; done
+exec_always  --no-startup-id ~/prog/python/audio-classification/cnn.py -P |while read -r o; do case "$o" in "9") (st 2> /dev/null &);; "0") st -T 150 -t ncmpcpp -e ncmpcpp -s visualizer 2> /dev/null &;; *) echo $o;; esac; done
 
 set $mod Mod4
 set $ensid exec --no-startup-id
@@ -123,42 +123,42 @@ $bind Ctrl+$mod+Print             $ensid byzanz-record -d \
 #  |_| |_| |_|\___/ \_/ \___|_| |_| |_|\___|_| |_|\__|
 #
 
-$bind $mod+h              focus left
-$bind $mod+j              focus down
-$bind $mod+k              focus up
-$bind $mod+l              focus right
-$bind $mod+Left           focus left
-$bind $mod+Down           focus down
-$bind $mod+Up             focus up
-$bind $mod+Right          focus right
-$bind $mod+Shift+h        move left
-$bind $mod+Shift+j        move down
-$bind $mod+Shift+k        move up
-$bind $mod+Shift+l        move right
-$bind $mod+Shift+Left     move left
-$bind $mod+Shift+Down     move down
-$bind $mod+Shift+Up       move up
-$bind $mod+Shift+Right    move right
-$bind $mod+backslash      split h
-$bind $mod+plus           split h
-$bind $mod+minus          split v
-$bind $mod+f              fullscreen toggle
-$bind $mod+c              move scratchpad
-$bind $mod+Shift+c        scratchpad show;floating toggle
-$bind $mod+a              focus parent
-$bind $mod+s              layout stacking
-$bind $mod+w              layout tabbed
-$bind $mod+e              layout toggle split
-$bind $mod+Shift+space    floating toggle; sticky enable
-$bind $mod+space focus    mode_toggle
-$bind Ctrl+$mod+h         resize shrink width 10 px or 10 ppt
-$bind Ctrl+$mod+k         resize grow height 10 px or 10 ppt
-$bind Ctrl+$mod+j         resize shrink height 10 px or 10 ppt
-$bind Ctrl+$mod+l         resize grow width 10 px or 10 ppt
-$bind Ctrl+$mod+Left      resize shrink width 10 px or 10 ppt
-$bind Ctrl+$mod+Up        resize grow height 10 px or 10 ppt
-$bind Ctrl+$mod+Down      resize shrink height 10 px or 10 ppt
-$bind Ctrl+$mod+Right     resize grow width 10 px or 10 ppt
+$bind $mod+h                   focus left
+$bind $mod+j                   focus down
+$bind $mod+k                   focus up
+$bind $mod+l                   focus right
+$bind $mod+Left                focus left
+$bind $mod+Down                focus down
+$bind $mod+Up                  focus up
+$bind $mod+Right               focus right
+$bind $mod+Shift+h             move left  10 px
+$bind $mod+Shift+j             move down  10 px
+$bind $mod+Shift+k             move up    10 px
+$bind $mod+Shift+l             move right 10 px
+$bind $mod+Shift+Left          move left  30 px
+$bind $mod+Shift+Down          move down  30 px
+$bind $mod+Shift+Up            move up    30 px
+$bind $mod+Shift+Right         move right 30 px
+$bind $mod+backslash           split h
+$bind $mod+plus                split h
+$bind $mod+minus               split v
+$bind $mod+f                   fullscreen toggle
+$bind $mod+c                   move scratchpad
+$bind $mod+Shift+c             scratchpad show;floating toggle
+$bind $mod+a                   focus parent
+$bind $mod+s                   layout stacking
+$bind $mod+w                   layout tabbed
+$bind $mod+e                   layout toggle split
+$bind $mod+Shift+space         floating toggle; sticky enable
+$bind $mod+space focus         mode_toggle
+$bind Ctrl+$mod+h              resize shrink width 10 px or 10 ppt
+$bind Ctrl+$mod+k              resize grow height 10 px or 10 ppt
+$bind Ctrl+$mod+j              resize shrink height 10 px or 10 ppt
+$bind Ctrl+$mod+l              resize grow width 10 px or 10 ppt
+$bind Ctrl+$mod+Left           resize shrink width 10 px or 10 ppt
+$bind Ctrl+$mod+Up             resize grow height 10 px or 10 ppt
+$bind Ctrl+$mod+Down           resize shrink height 10 px or 10 ppt
+$bind Ctrl+$mod+Right          resize grow width 10 px or 10 ppt
 set $mode_resize Resize
 $bind $mod+Ctrl+r mode "$mode_resize"
 mode "$mode_resize" {
