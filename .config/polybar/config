@@ -26,7 +26,6 @@ height = 24
 bottom = true
 radius = 0.0
 fixed-center = true
-
 background = ${colors.background}
 foreground = ${colors.foreground}
 
@@ -66,7 +65,7 @@ tray-padding = 2
 ;scroll-up = i3wm-wsnext
 ;scroll-down = i3wm-wsprev
 
-cursor-click = pointer
+cursor-click = default
 cursor-scroll = ns-resize
 
 [module/xwindow]
@@ -270,13 +269,13 @@ date-alt = " %Y-%m-%d"
 
 time = %H:%M
 time-alt = %H:%M:%S
-
-format-prefix = ◉
 format-prefix-foreground = ${colors.foreground-alt}
 format-underline = #3a3c35
 
-label = %date% %time%
+label = %{A1:poweroff:}%date% %time%
+format-prefix = ◉
 
+click-left = /usr/bin/beep &
 
 [module/alsa]
 type = internal/alsa
@@ -398,5 +397,3 @@ screenchange-reload = true
 [global/wm]
 margin-top = 0
 margin-bottom = 0
-
-; vim:ft=dosini
