@@ -272,10 +272,8 @@ time-alt = %H:%M:%S
 format-prefix-foreground = ${colors.foreground-alt}
 format-underline = #3a3c35
 
-label = %{A1:poweroff:}%date% %time%
+label = %{A8:shutdown -h 0:}%date% %time%
 format-prefix = ◉
-
-click-left = /usr/bin/beep &
 
 [module/alsa]
 type = internal/alsa
