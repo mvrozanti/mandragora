@@ -76,7 +76,7 @@ alias ka='killall'
 alias e='echo'
 alias c='xsel -i -b'
 alias co='xsel -o -b'
-alias feh='feh -B black --sort mtime -. --action1 "realpath $PWD/%F | xsel -i -b"'
+alias feh='feh -B black --scale-down --auto-zoom --sort mtime -. --action2 "rm %F" --action1 "realpath $PWD/%F | xsel -i -b"'
 alias randip="dd if=/dev/urandom bs=4 count=1 2>/dev/null | od -An -tu1 | sed -e 's/^ *//' -e 's/  */./g'"
 alias 2wmv='sudo ffmpeg -c:v wmv2 -b:v 99M -c:a wmav2 -b:a 192k output.wmv -i'
 alias mp32wav='mpg123 -w output.wav'
