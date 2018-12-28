@@ -258,34 +258,6 @@ $bind $mod+KP_Home  $ensid redshift -g 1:0.5:0.5 -O 25000K
 $bind $mod+KP_Up    $ensid redshift -g 0.5:0.5:1 -O 25000K
 $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 
-#  _
-# | |__   __ _ _ __
-# | '_ \ / _` | '__|
-# | |_) | (_| | |
-# |_.__/ \__,_|_|
-#
-
-# bar {
-#     i3bar_command $HOME/.config/polybar/launch.sh
-#     i3bar_command $HOME/.config/i3/i3_lemonbar.sh
-#     i3bar_command i3bar -t
-#     status_command $HOME/.conky-i3bar
-#     set $bg-color            #111111aa
-#     set $inactive-bg-color   #ff3300
-#     set $text-color          #000000
-#     set $inactive-text-color $bg-color
-#     set $urgent-bg-color     $inactive-bg-color
-#     font pango: Droid Sans Mono Slashed for Powerline
-#     colors {
-#         background $bg-color
-#         separator $text-color
-#         focused_workspace  $inactive-bg-color  $inactive-bg-color      $text-color
-#         inactive_workspace $bg-color $bg-color $inactive-text-color
-#         urgent_workspace   $urgent-bg-color    $urgent-bg-color        $text-color
-#         active_workspace   $inactive-bg-color  $inactive-bg-color      $inactive-text-color
-#     }
-# }
-
 #     __ _  __ _ _ __  ___
 #    / _` |/ _` | '_ \/ __|
 #   | (_| | (_| | |_) \__ \
