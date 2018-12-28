@@ -248,7 +248,7 @@ $ensid $HOME/.fehbg
 popup_during_fullscreen smart
 floating_modifier Mod1
 font pango:Droid Sans Mono for Powerline11
-client.focused          $orange $gray   $orange $gray   #ff0000
+client.focused          $orange $gray   $orange $gray   #000000
 client.focused_inactive $orange $gray   $orange $gray   #5f676a
 client.unfocused        $gray   #222222 #888888 #292d2e #222222
 client.urgent           $gray   #900000 #ffffff #900000 #900000
