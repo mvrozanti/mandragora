@@ -31,7 +31,4 @@
     <entry javaType="java.lang.String" name="text-line-wrap" xml:space="preserve">
         <value><![CDATA[chars]]></value>
     </entry>
-    <entry javaType="java.lang.Boolean" name="toolbarVisible" xml:space="preserve">
-        <value><![CDATA[false]]></value>
-    </entry>
 </editor-preferences>
