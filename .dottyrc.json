@@ -11,6 +11,7 @@
         ".config/cava/" : "~/.config/cava",
         ".config/zathura/" : "~/.config/zathura/",
         ".calcurse/conf" : "~/.calcurse/conf",
+        ".ideavimrc" : "~/.ideavimrc",
         "util/st" : "~/util/st",
         ".netbeans/9.0/config/Editors" : "~/.netbeans/9.0/config/Editors",
         ".netbeans/9.0/config/Keymaps" : "~/.netbeans/9.0/config/Keymaps",
