@@ -1,7 +1,6 @@
 xnoremap p "_dP
 vnoremap \/ y/<C-R>"<CR>
 nnoremap <A-p> <C-j>p
-
 " Automatically deletes all tralling whitespace on save.
 autocmd BufWritePre  *     %s/\s\+$//e
 autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex % ; rm *.out *.log *.lot *.lof *.aux *.toc
@@ -46,9 +45,9 @@ Plug 'Valloric/YouCompleteMe'
 let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
 let g:ycm_key_list_select_completion = ['<TAB>']
 let g:ycm_autoclose_preview_window_after_completion = 1
-let g:ycm_server_python_interpreter = "/usr/bin/python3.6"
 let g:ycm_key_list_stop_completion = ['<Enter>']
-let g:ycm_path_to_python_interpreter="/usr/bin/python"
+" let g:ycm_server_python_interpreter = "/usr/bin/python"
+" let g:ycm_path_to_python_interpreter="/usr/bin/python"
 let g:ycm_filetype_whitelist = {
 			\ "c":1,
 			\ "cpp":1,

@@ -10,6 +10,9 @@
     <entry javaType="java.lang.Integer" name="indent-shift-width" xml:space="preserve">
         <value><![CDATA[4]]></value>
     </entry>
+    <entry javaType="java.lang.Boolean" name="line-number-visible" xml:space="preserve">
+        <value><![CDATA[false]]></value>
+    </entry>
     <entry javaType="java.lang.String" name="on-save-reformat" xml:space="preserve">
         <value><![CDATA[never]]></value>
     </entry>
