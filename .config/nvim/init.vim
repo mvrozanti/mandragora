@@ -5,6 +5,10 @@ nnoremap <A-p> <C-j>p
 autocmd BufWritePre  *     %s/\s\+$//e
 autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex % ; rm *.out *.log *.lot *.lof *.aux *.toc
 map Q <Nop>
+imap silent <C-h> <A-b>
+imap silent <C-l> <A-w>
+imap silent <C-Left> <A-b>
+imap silent <C-Right> <A-w>
 inoremap jk <Esc>l
 inoremap jK <Esc>l
 inoremap Jk <Esc>l
