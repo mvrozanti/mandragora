@@ -32,7 +32,7 @@ $bind $mod+r                exec dmenu_run $dmenu_looks
 #  | (_| (_) | | | \__ \ |_
 #   \___\___/|_| |_|___/\__|
 
-set $TERMINAL st
+set $TERMINAL kitty
 # set $TERMINAL st
 set $minty 192.168.0.10
 set $bl_delta 10
@@ -68,23 +68,40 @@ assign      [title="Mozilla Thunderbird"]            $ws11
 #  |_| |_|  \___|\__, |\__,_|\___|_| |_|\__|
 #                   |_|
 
+$bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || $TERMINAL -o font_size=15 background_opacity=.39 --title ncmpcpp -e ncmpcpp
+$bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || $TERMINAL -o font_size=15 background_opacity=.58 --title ncmpcpp -e ncmpcpp -s visualizer
+$bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  zsth            || $TERMINAL --title zsth -e tmux
+$bind $mod+Shift+3                                              $ensid wmctrl -xa tmux            || $TERMINAL -e tmux
+$bind $mod+g                                                    $ensid wmctrl -a  cava            || $TERMINAL -n cava -e cava
+$bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || $TERMINAL -n cmatrix background_opacity=.39 -e sh -c cmatrix
+$bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  ranger          || $TERMINAL -n ranger background_opacity=.78 --title ranger -e sh -c "stty -ixon && ranger"
+$bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || $TERMINAL -n youtube-curses background_opacity=.78 --title youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
+$bind $mod+Shift+Return                                         $ensid                               $TERMINAL -e ranger
+$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || $TERMINAL background_opacity=1   -n todo -o font_size=19 --title todo -e zsh -c "nvim $HOME/todo"
+$bind $mod+Shift+braceleft                                      $ensid                               $TERMINAL background_opacity=.78 -n khal -o font_size=15 --title khal -e sh -c "khal interactive"
+$bind $mod+braceleft  workspace $ws12                           $ensid wmctrl -a  khal            || $TERMINAL background_opacity=.78 -n khal -o font_size=19 --title khal -e sh -c "khal interactive"
+$bind $mod+Shift+o    workspace $ws12                           $ensid wmctrl -a  khal            || $TERMINAL background_opacity=.78 -n khal -o font_size=19 --title khal -e sh -c "khal interactive"
+$bind $mod+v          split toggle;                             $ensid wmctrl -a  gotop           || $TERMINAL background_opacity=.78 --title gotop -e gotop
+$bind $mod+i                                                    $ensid wmctrl -a  iftop           || $TERMINAL --title iftop -n iftop -e sudo iftop
+#
+# $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -f $font":pixelsize=17" -T 200 -e ncmpcpp
+# $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -f $font":pixelsize=17" -T 150 -t ncmpcpp -e ncmpcpp -s visualizer
+# $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  zsth            || st -t zsth -e tmux
+# $bind $mod+Shift+3                                              $ensid wmctrl -xa tmux            || st -e tmux
+# $bind $mod+g                                                    $ensid wmctrl -a  cava            || st -n cava -e cava
+# $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || st -n cmatrix -T 100 -e sh -c cmatrix
+# $bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  ranger          || st -n ranger -T 200 -t ranger -e sh -c "stty -ixon && ranger"
+# $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || st -n youtube-curses -T 200 -t youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
+# $bind $mod+Shift+Return                                         $ensid st -e ranger
+# $bind $mod+Shift+braceleft                                      $ensid st -T 200 -n khal -f $font":pixelsize=15" -t khal -e sh -c "khal interactive"
+# $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || st -T 255 -n todo -f $font":pixelsize=19" -t todo -e zsh -c "nvim $HOME/todo"
+# $bind $mod+braceleft  workspace $ws12                           $ensid wmctrl -a  khal            || st -T 200 -n khal -f $font":pixelsize=19" -t khal -e sh -c "khal interactive"
+# $bind $mod+Shift+o    workspace $ws12                           $ensid wmctrl -a  khal            || st -T 200 -n khal -f $font":pixelsize=19" -t khal -e sh -c "khal interactive"
+# $bind $mod+v          split toggle;                             $ensid wmctrl -a  gotop           || st -T 200 -t gotop -e gotop
+# $bind $mod+i                                                    $ensid wmctrl -a  iftop           || st -t iftop -n iftop -e sudo iftop
+#
 $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox        || waterfox
 $bind $mod+Shift+1        workspace $ws1                        $ensid wmctrl -a  Browsing        || waterfox $waterfox_arg
-$bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -f $font":pixelsize=17" -T 200 -e ncmpcpp
-$bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -f $font":pixelsize=17" -T 150 -t ncmpcpp -e ncmpcpp -s visualizer
-$bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  zsth            || st -t zsth -e tmux
-$bind $mod+Shift+3                                              $ensid wmctrl -xa tmux            || st -e tmux
-$bind $mod+g                                                    $ensid wmctrl -a  cava            || st -n cava -e cava
-$bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || st -n cmatrix -T 100 -e sh -c cmatrix
-$bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  ranger          || st -n ranger -T 200 -t ranger -e sh -c "stty -ixon && ranger"
-$bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || st -n youtube-curses -T 200 -t youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
-$bind $mod+Shift+Return                                         $ensid st -e ranger
-$bind $mod+Shift+braceleft                                      $ensid st -T 200 -n khal -f $font":pixelsize=15" -t khal -e sh -c "khal interactive"
-$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || st -T 255 -n todo -f $font":pixelsize=19" -t todo -e zsh -c "nvim $HOME/todo"
-$bind $mod+braceleft  workspace $ws12                           $ensid wmctrl -a  khal            || st -T 200 -n khal -f $font":pixelsize=19" -t khal -e sh -c "khal interactive"
-$bind $mod+Shift+o    workspace $ws12                           $ensid wmctrl -a  khal            || st -T 200 -n khal -f $font":pixelsize=19" -t khal -e sh -c "khal interactive"
-$bind $mod+v          split toggle;                             $ensid wmctrl -a  gotop           || st -T 200 -t gotop -e gotop
-$bind $mod+i                                                    $ensid wmctrl -a  iftop           || st -t iftop -n iftop -e sudo iftop
 $bind $mod+Shift+v    split toggle;                             $ensid wmctrl -a  VirtualBox      || virtualbox
 $bind $mod+Shift+a                                              $ensid wmctrl -a  Android Studio  || android-studio
 $bind $mod+4              split h;                              $ensid wmctrl -a  telegram        || telegram-desktop
