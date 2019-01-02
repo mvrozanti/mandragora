@@ -229,3 +229,4 @@ alias make-gource-mandragora='git --no-pager log --date=raw|g "^\s+.+|Date"|sed 
 alias tfl='tf *.log'
 alias cfk='nvim /home/nexor/.config/kitty/kitty.conf'
 alias cfK='nvim /home/nexor/.config/kitty/startup_session.kit'
+alias ki='khal interactive'
