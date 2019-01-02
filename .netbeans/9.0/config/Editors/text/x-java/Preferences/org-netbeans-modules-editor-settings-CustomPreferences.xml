@@ -11,7 +11,7 @@
         <value><![CDATA[4]]></value>
     </entry>
     <entry javaType="java.lang.Boolean" name="line-number-visible" xml:space="preserve">
-        <value><![CDATA[false]]></value>
+        <value><![CDATA[true]]></value>
     </entry>
     <entry javaType="java.lang.String" name="on-save-reformat" xml:space="preserve">
         <value><![CDATA[never]]></value>

@@ -19,4 +19,10 @@
     <entry javaType="java.lang.Boolean" name="code-folding-collapse-tags" xml:space="preserve">
         <value><![CDATA[false]]></value>
     </entry>
+    <entry javaType="java.lang.String" name="expand-tabs" xml:space="preserve">
+        <value><![CDATA[false]]></value>
+    </entry>
+    <entry javaType="java.lang.String" name="tab-size" xml:space="preserve">
+        <value><![CDATA[4]]></value>
+    </entry>
 </editor-preferences>
