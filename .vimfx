@@ -1,6 +1,6 @@
 {
   "prevent_autofocus": true,
-  "hints.chars": "dertgbvcxzsaq w3",
+  "hints.chars": "asdertgbvcx zq",
   "browsewithcaret": true,
   "mode.normal.scroll_page_down": "<c-f>",
   "mode.normal.scroll_half_page_up": "b",
@@ -12,4 +12,3 @@
   "mode.normal.follow_in_focused_tab": "F",
   "mode.normal.window_new": ""
 }
-

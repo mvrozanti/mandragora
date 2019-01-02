@@ -2,7 +2,7 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 # Path to your oh-my-zsh installation.
 export ZSH=$HOME/.oh-my-zsh
-ZSH_TMUX_AUTOSTART=false
+ZSH_TMUX_AUTOSTART=true
 ZSH_TMUX_FIXTERM=true
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=12'
 ZSH_THEME="agnoster"
