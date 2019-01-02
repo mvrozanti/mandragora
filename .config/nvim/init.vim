@@ -1,4 +1,4 @@
-let &t_EI = "\<Esc>]50;CursorShape=0\x7" " Block in normal mode
+set guicursor=i:100-bCursor
 xnoremap p "_dP
 vnoremap \/ y/<C-R>"<CR>
 nnoremap <A-p> <C-j>p
