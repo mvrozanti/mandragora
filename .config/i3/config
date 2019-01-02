@@ -32,7 +32,8 @@ $bind $mod+r                exec dmenu_run $dmenu_looks
 #  | (_| (_) | | | \__ \ |_
 #   \___\___/|_| |_|___/\__|
 
-set $TERMINAL st
+set $TERMINAL kitty
+# set $TERMINAL st
 set $minty 192.168.0.10
 set $bl_delta 10
 set $orange     #ff3300
