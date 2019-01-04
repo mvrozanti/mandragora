@@ -2,6 +2,7 @@ alias rm='rm -f'
 # alias ll='ls -alFh'
 # alias la='ls -la'
 # alias l='ls --sort=time'
+alias l=exa
 alias watch='watch --color -n2'
 alias grep='egrep --color'
 alias sp='sudo pacman'
