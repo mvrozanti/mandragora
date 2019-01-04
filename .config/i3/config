@@ -106,7 +106,7 @@ $bind $mod+Shift+v    split toggle;                             $ensid wmctrl -a
 $bind $mod+Shift+a                                              $ensid wmctrl -a  Android Studio  || android-studio
 $bind $mod+4              split h;                              $ensid wmctrl -a  telegram        || telegram-desktop
 $bind $mod+b                                                    $ensid wmctrl -xa DBeaver         || dbeaver
-$bind $mod+Shift+d                                              $ensid wmctrl -a  Netbeans        || netbeans
+$bind $mod+Shift+d                                              $ensid wmctrl -xa Netbeans        || netbeans
 $bind $mod+z          workspace $ws5;                           $ensid wmctrl -a  Zoom            || zoom
 $bind $mod+Shift+f    workspace $ws3;                           $ensid wmctrl -a  WhatsApp        || whatsapp
 $bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a  Trello          || /usr/local/bin/pondfox https://trello.com/
@@ -299,6 +299,7 @@ mode "$mode_gaps" {
         $bind o               mode "$mode_gaps_outer"
         $bind i               mode "$mode_gaps_inner"
         $bind Shift+i         gaps inner current set 50; gaps outer all set 0; mode default
+        $bind 5               gaps inner current set 100; gaps outer all set 0; mode default
         $bind 0               gaps inner current set 0; mode default
         $bind Return          mode default
         $bind Escape          mode default
