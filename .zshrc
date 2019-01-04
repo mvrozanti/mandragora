@@ -90,6 +90,9 @@ bindkey '\e[4~' end-of-line
 bindkey "\e[7~" beginning-of-line
 bindkey "\e[8~" end-of-line
 
+# rust
+export PATH="$PATH:$HOME/.cargo/bin"
+
 # rb
 export PATH="$PATH:$HOME/.rvm/bin"
 export GEM_HOME=$HOME/.gem
