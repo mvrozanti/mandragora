@@ -1,34 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE editor-preferences PUBLIC "-//NetBeans//DTD Editor Preferences 1.0//EN" "http://www.netbeans.org/dtds/EditorPreferences-1_0.dtd">
 <editor-preferences>
-    <entry javaType="java.lang.Boolean" name="code-folding-collapse-innerclass" xml:space="preserve">
-        <value><![CDATA[false]]></value>
-    </entry>
-    <entry javaType="java.lang.Boolean" name="code-folding-collapse-javadoc" xml:space="preserve">
-        <value><![CDATA[false]]></value>
-    </entry>
-    <entry javaType="java.lang.Boolean" name="code-folding-collapse-method" xml:space="preserve">
-        <value><![CDATA[false]]></value>
-    </entry>
-    <entry javaType="java.lang.String" name="code-template-expand-key" xml:space="preserve">
-        <value><![CDATA[TAB]]></value>
-    </entry>
-    <entry javaType="java.lang.String" name="code-template-on-expand-action" xml:space="preserve">
-        <value><![CDATA[FORMAT]]></value>
-    </entry>
-    <entry javaType="java.lang.Boolean" name="enable.breadcrumbs" xml:space="preserve">
-        <value><![CDATA[true]]></value>
-    </entry>
-    <entry javaType="java.lang.Boolean" name="enable.guide.lines" xml:space="preserve">
-        <value><![CDATA[true]]></value>
-    </entry>
-    <entry javaType="methodvalue" name="kit-install-action-name-list" xml:space="preserve">
-        <value><![CDATA[org.netbeans.modules.jvi.KeyBindings.getKitInstallActionNameList]]></value>
-    </entry>
-    <entry javaType="java.lang.Boolean" name="non-printable-characters-visible" xml:space="preserve">
-        <value><![CDATA[false]]></value>
-    </entry>
-    <entry javaType="java.lang.String" name="text-line-wrap" xml:space="preserve">
-        <value><![CDATA[chars]]></value>
-    </entry>
+    <entry javaType="java.lang.Boolean" name="code-folding-collapse-innerclass" xml:space="preserve"><value><![CDATA[false]]></value></entry>
+    <entry javaType="java.lang.Boolean" name="code-folding-collapse-javadoc" xml:space="preserve"><value><![CDATA[false]]></value></entry>
+    <entry javaType="java.lang.Boolean" name="code-folding-collapse-method" xml:space="preserve"><value><![CDATA[false]]></value></entry>
+    <entry javaType="java.lang.String" name="code-template-expand-key" xml:space="preserve"><value><![CDATA[TAB]]></value></entry>
+    <entry javaType="java.lang.String" name="code-template-on-expand-action" xml:space="preserve"><value><![CDATA[FORMAT]]></value></entry>
+    <entry javaType="java.lang.Boolean" name="enable.breadcrumbs" xml:space="preserve"><value><![CDATA[true]]></value></entry>
+    <entry javaType="java.lang.Boolean" name="enable.guide.lines" xml:space="preserve"><value><![CDATA[true]]></value></entry>
+    <entry javaType="methodvalue" name="kit-install-action-name-list" xml:space="preserve"><value><![CDATA[org.netbeans.modules.jvi.KeyBindings.getKitInstallActionNameList]]></value></entry>
+    <entry javaType="java.lang.Boolean" name="non-printable-characters-visible" xml:space="preserve"><value><![CDATA[false]]></value></entry>
+    <entry javaType="java.lang.String" name="text-line-wrap" xml:space="preserve"><value><![CDATA[chars]]></value></entry>
 </editor-preferences>
