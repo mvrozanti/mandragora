@@ -1,7 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE bindings PUBLIC "-//NetBeans//DTD Editor KeyBindings settings 1.1//EN" "http://www.netbeans.org/dtds/EditorKeyBindings-1_1.dtd">
 <bindings>
+    <bind actionName="delete-next" key="DELETE"/>
+    <bind actionName="switch-case" key="D-U$S"/>
+    <bind actionName="to-lower-case" key="D-U$L"/>
+    <bind actionName="to-upper-case" key="D-U$U"/>
+    <bind key="S-RIGHT" remove="true"/>
+    <bind key="S-DOWN" remove="true"/>
+    <bind key="D-F" remove="true"/>
+    <bind key="D-G" remove="true"/>
+    <bind key="D-CLOSE_BRACKET" remove="true"/>
+    <bind key="D-H" remove="true"/>
+    <bind key="INSERT" remove="true"/>
+    <bind key="ESCAPE" remove="true"/>
     <bind key="S-SPACE" remove="true"/>
+    <bind key="D-U" remove="true"/>
+    <bind key="S-PAGE_UP" remove="true"/>
+    <bind key="D-V" remove="true"/>
+    <bind key="S-PAGE_DOWN" remove="true"/>
+    <bind key="D-COMMA" remove="true"/>
+    <bind key="S-END" remove="true"/>
+    <bind key="BACK_SPACE" remove="true"/>
+    <bind key="D-B" remove="true"/>
+    <bind key="TAB" remove="true"/>
+    <bind key="S-HOME" remove="true"/>
+    <bind key="ENTER" remove="true"/>
+    <bind key="SD-R" remove="true"/>
+    <bind key="S-LEFT" remove="true"/>
+    <bind key="UNDO" remove="true"/>
+    <bind key="D-PERIOD" remove="true"/>
+    <bind key="D-Y" remove="true"/>
+    <bind key="S-UP" remove="true"/>
+    <bind key="D-D" remove="true"/>
+    <bind key="D-O" remove="true"/>
+    <bind key="D-LEFT" remove="true"/>
+    <bind key="D-P" remove="true"/>
     <bind key="S-F10" remove="true"/>
+    <bind key="D-UP" remove="true"/>
     <bind key="D-Q" remove="true"/>
+    <bind key="D-RIGHT" remove="true"/>
+    <bind key="D-R" remove="true"/>
+    <bind key="D-DOWN" remove="true"/>
+    <bind key="D-T" remove="true"/>
+    <bind key="SPACE" remove="true"/>
+    <bind key="PAGE_UP" remove="true"/>
+    <bind key="PAGE_DOWN" remove="true"/>
+    <bind key="END" remove="true"/>
+    <bind key="HOME" remove="true"/>
+    <bind key="LEFT" remove="true"/>
+    <bind key="D-PAGE_UP" remove="true"/>
+    <bind key="UP" remove="true"/>
+    <bind key="D-L" remove="true"/>
+    <bind key="RIGHT" remove="true"/>
+    <bind key="DOWN" remove="true"/>
+    <bind key="D-PAGE_DOWN" remove="true"/>
+    <bind key="D-M" remove="true"/>
+    <bind key="D-END" remove="true"/>
+    <bind key="D-N" remove="true"/>
+    <bind key="D-HOME" remove="true"/>
 </bindings>
