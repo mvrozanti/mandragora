@@ -234,3 +234,4 @@ alias sxiv='sxiv -a'
 alias i='sxiv -ft *'
 function hextv(){ while true; do kek=`head /dev/urandom|tr -dc A-Za-z0-9|head -c $1`;e $kek|xxd;sleep $2;done }
 alias ci='cargo install'
+unalias sd
