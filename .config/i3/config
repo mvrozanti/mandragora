@@ -70,9 +70,8 @@ assign      [title="Mozilla Thunderbird"]            $ws11
 
 $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || $TERMINAL -o font_size=15 background_opacity=.39 --title ncmpcpp -e ncmpcpp
 $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || $TERMINAL -o font_size=15 background_opacity=.58 --title ncmpcpp -e ncmpcpp -s visualizer
-$bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  zsth            || $TERMINAL --title zsth -e tmux
-$bind $mod+Shift+3                                              $ensid wmctrl -xa tmux            || $TERMINAL -e tmux
-$bind $mod+g                                                    $ensid wmctrl -a  cava            || $TERMINAL -n cava -e cava
+$bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  tmux            || $TERMINAL zsth -e tmux
+$bind $mod+Shift+3                                              $ensid wmctrl -xa tmux            || $TERMINAL -e tmux $bind $mod+g                                                    $ensid wmctrl -a  cava            || $TERMINAL -n cava -e cava
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || $TERMINAL -n cmatrix background_opacity=.39 -e sh -c cmatrix
 $bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  ranger          || $TERMINAL -n ranger background_opacity=.78 --title ranger -e sh -c "stty -ixon && ranger"
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || $TERMINAL -n youtube-curses background_opacity=.78 --title youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
