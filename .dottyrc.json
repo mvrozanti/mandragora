@@ -36,8 +36,7 @@
     ".urlview": "~/.urlview",
     ".vimfx": "~/.vimfx",
     ".emacs": "~/.emacs",
-    ".XCompose": "~/.XCompose",
-    "motd": "~/motd"
+    ".XCompose": "~/.XCompose"
   },
   "install_cmd": "sudo pacman -S",
   "install": [
@@ -71,6 +70,7 @@
     "lolcat",
     "lsof",
     "lynx",
+    "moreutils",
     "mpc",
     "mpd",
     "mpv",
@@ -155,4 +155,3 @@
     "yay polybar"
   ]
 }
-
