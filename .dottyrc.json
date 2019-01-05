@@ -18,7 +18,7 @@
         ".netbeans/9.0/config/Editors" : "~/.netbeans/9.0/config/Editors",
         ".netbeans/9.0/config/Keymaps" : "~/.netbeans/9.0/config/Keymaps",
         ".netbeans/9.0/config/Preferences" : "~/.netbeans/9.0/config/Preferences",
-        "usr/etc/netbeans.conf":"/usr/etc/netbeans.conf",
+        "usr/etc/netbeans.conf":"/usr/etc/netbeans.confS",
         ".config/nvim/plugged/vim-cute-python/after/syntax/python.vim" : "~/.config/nvim/plugged/vim-cute-python/after/syntax/python.vim",
         ".tmux.conf" : "~/.tmux.conf",
         ".bash_aliases" : "~/.bash_aliases",
