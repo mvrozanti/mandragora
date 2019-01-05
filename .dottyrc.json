@@ -1,6 +1,5 @@
 {
     "copy" : {
-        "_.config/powerline" : "~/.config/powerline",
         ".config/powerline" : "~/.config/powerline",
         ".config/ncmpcpp" : "~/.config/.ncmpcpp",
         ".config/i3" : "~/.config/i3",
@@ -93,6 +92,7 @@
         "python-pywal",
         "ranger",
         "retroarch",
+        "rclone",
         "rsync",
         "rxvt-unicode",
         "screenfetch",
