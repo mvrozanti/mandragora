@@ -113,7 +113,7 @@ $bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a
 # $bind $mod+Shift+s  workspace $ws4;                           $ensid wmctrl -a "| Trello"       || electron $HOME/util/trello-desktop
 $bind $mod+Shift+w    workspace $ws11;                          $ensid wmctrl -xa thunderbird     || thunderbird
 $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
-$bind $mod+Shift+z                                              $ensid wmctrl -a  zathura
+$bind $mod+Shift+p                                              $ensid wmctrl -a ".pdf"
 $bind $mod+d              workspace $ws9
 
 #                      _
