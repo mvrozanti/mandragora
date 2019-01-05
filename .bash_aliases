@@ -242,5 +242,6 @@ alias cfrs='nvim $HOME/.config/ranger/scope.sh'
 alias cfrd='nvim $HOME/.config/ranger/devicons.sh'
 alias k='kitty'
 # function cfcf(){ jq '.copy |= . + {"kekao":"'$@'"}' ~/mandragora/.dottyrc.json }
+function cfci(){ jq '.install |= . + ["'$1'"]' ~/mandragora/.dottyrc.json }
 function lnb(){ fpath="$1"; sudo ln -s `realpath $fpath` /usr/local/bin/`echo $fpath|cut -f 1 -d '.'` }
 
