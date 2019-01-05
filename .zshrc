@@ -150,3 +150,7 @@ if [ -f '/home/nexor/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/home/n
 if [ -f '/home/nexor/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/home/nexor/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
 
 cat /home/nexor/.cache/wal/sequences
+if [[ ! $TERM =~ screen ]]; then
+    exec tmux
+fi
+
