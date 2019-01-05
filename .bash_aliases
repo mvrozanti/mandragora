@@ -241,7 +241,6 @@ alias cfri='nvim $HOME/.config/ranger/rifle.conf'
 alias cfrs='nvim $HOME/.config/ranger/scope.sh'
 alias cfrd='nvim $HOME/.config/ranger/devicons.sh'
 alias k='kitty'
-# function cfcf(){ jq '.copy |= . + {"kekao":"'$@'"}' ~/mandragora/.dottyrc.json }
+function cfcf(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sd $HOME'/(.*)' '$1'` || lefths="${trackedf:1}"; updtd=`jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf|sd $HOME'(.*)' '~$1' || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json"`; echo $updtd > $HOME"/mandragora/.dottyrc.json" }
 function cfci(){ jq '.install |= . + ["'$1'"]' ~/mandragora/.dottyrc.json }
 function lnb(){ fpath="$1"; sudo ln -s `realpath $fpath` /usr/local/bin/`echo $fpath|cut -f 1 -d '.'` }
-
