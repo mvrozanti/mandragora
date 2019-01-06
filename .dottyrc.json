@@ -130,7 +130,8 @@
     "zathura",
     "zathura-pdf-poppler",
     "zsh",
-    "ack"
+    "ack",
+    "unzip"
   ],
   "commands": [
     "mkdir -p ~/util",
@@ -144,7 +145,7 @@
     "git clone https://github.com/sigpipe/urlview ~/util/urlview",
     "git clone https://github.com/clibs/entr ~/util/entr && cd ~/util/entr && ./configure && sudo make install && cd",
     "curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh | sh",
-    "git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && cd",
+    "git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions && cd",
     "git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm",
     "git clone https://github.com/alexanderjeurissen/ranger_devicons ~/util/ranger_devicons && cd $_ && make install && cd",
     "git clone https://github.com/rizsotto/Bear ~/util/Bear && cd $_ && cmake . && make all && sudo make install && cd",
