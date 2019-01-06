@@ -137,7 +137,8 @@
     "zsh",
     "ack",
     "unzip",
-    "xsel"
+    "xsel",
+    "bat"
   ],
   "commands": [
     "mkdir -p ~/util",
