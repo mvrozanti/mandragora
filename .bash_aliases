@@ -245,3 +245,4 @@ function cfcf(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`ec
 function cfci(){ jq '.install |= . + ["'$1'"]' ~/mandragora/.dottyrc.json | sponge ~/mandragora/.dottyrc.json }
 # function cfcc(){ jq '.commands |= . + ["'$1'"]' ~/mandragora/.dottyrc.json | sponge ~/mandragora/.dottyrc.json }
 function lnb(){ fpath="$1"; dst="$2"; sudo ln -s `realpath $fpath` /usr/local/bin/`[[ -z "$dst" ]] && echo $fpath|cut -f 1 -d '.' || echo $2` }
+alias cfD='nvim /home/nexor/mandragora/dotty/dotty.py'
