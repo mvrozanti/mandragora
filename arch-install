@@ -1,0 +1,43 @@
+loadkeys br-abnt2|us-intl?
+lsblk
+partition disks:
+    (fdisk -l;fdisk /dev/sd.)|parted|gdisk|cfdisk
+    fdisk:
+        [m,]p,d\+,
+            n,p[rimary],<CR>,+200M,[,y],
+            [p,n,p,<CR>,+12G(swap)[,y],]
+            p,n,p,<CR>,<CR>[,<CR>],w # N
+    parted:
+        <todo>
+set date: timedatectl set-ntp true
+if wireless: wifi-menu
+for each partition_count: mkfs.ext4 /dev/sd??
+[lsblk]
+[mkswap /dev/sd??;swapon /dev/sd??]
+[pacman --noconfirm -Sy archlinux-keyring] # for older ISOs that contain expired signatures
+mount /dev/sd?$partition_count /mnt && cd $_ && mkdir boot && mount /dev/sd?1 /mnt/boot && pacstrap . base[ base-devel[ vim[ neovim]]]
+genfstab [-U] . >> ./etc/fstab # use -U for UUID
+arch-chroot .
+pacman -S networkmanager; systemctl enable NetworkManager
+pacman -S grub
+pacman -S efibootmgr # if using UEFI
+lsblk
+mkdir /boot/efi
+grub-install [--target=(i386-pc|--efi-directory=/boot/efi)] /dev/sd? # target is dependant on target system (UEFI|BIOS)
+grub-mkconfig -o /boot/grub/grub.cfg
+passwd # set root pass
+sed -i 's/#\(en_US.*\)/\1/' /etc/locale.gen
+echo LANG=en_US.UTF-8  > /etc/locale.conf
+ln -sf /usr/share/zoneinfo/Brazil/DeNoronha /etc/localtime
+useradd -m nexor
+passwd !!:2
+exit # leave chroot
+[echo kek > /etc/hostname]
+cd /
+umount -R /mnt
+reboot
+# xinit i3-gaps
+# git passwd shit
+# gnome-keyring
+# set .gitconfig (name, email, helper=store)
+# install fira and nerdfonts
