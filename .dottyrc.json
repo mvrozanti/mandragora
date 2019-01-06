@@ -37,7 +37,8 @@
     ".urlview": "~/.urlview",
     ".vimfx": "~/.vimfx",
     ".emacs": "~/.emacs",
-    ".XCompose": "~/.XCompose"
+    ".XCompose": "~/.XCompose",
+    "util/WhatsApp-linux-x64": "~/util/WhatsApp-linux-x64"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
@@ -150,13 +151,13 @@
     "git clone https://github.com/sigpipe/urlview ~/util/urlview",
     "git clone https://github.com/clibs/entr ~/util/entr && cd ~/util/entr && ./configure && sudo make install && cd",
     "curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh | sh",
-    "git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions && cd",
+    "git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/zsh-autosuggestions && cd",
     "git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm",
     "git clone https://github.com/alexanderjeurissen/ranger_devicons ~/util/ranger_devicons && cd $_ && make install && cd",
     "git clone https://github.com/rizsotto/Bear ~/util/Bear && cd $_ && cmake . && make all && sudo make install && cd",
     "curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash",
     "[[ -z `whereis waterfox | cut -d ':' -f2` ]] && mkdir -p ~/Downloads && wget $(curl -s 'https://www.waterfoxproject.org/en-US/waterfox/new/?scene=1' | grep -Eo '(https://storage-waterfox.netdna-ssl.com/releases/linux64/installer/waterfox-[^e]*en-US.linux-x86_64.tar.bz2)' | head -n1) -O ~/Downloads/waterfox-latest.tar.bz2 && cd ~/Downloads && unp -U waterfox-latest.tar.bz2 && cd waterfox* && sudo ln -s $(realpath waterfox) /usr/local/bin/waterfox",
-    "mkdir -p ~/Downloads && [[ ! -f $_/telegram* ]] && wget https://telegram.org/dl/desktop/linux -O ~/Downloads/telegram-latest.tar.xz && cd ~/Downloads && unp -U telegram-latest.tar.xz && cd Telegram && sudo ln -s $(realpath Telegram) /usr/local/bin/telegram",
+    "mkdir -p ~/Downloads && [[ ! -f ~/Downloads/telegram* ]] && wget https://telegram.org/dl/desktop/linux -O ~/Downloads/telegram-latest.tar.xz && cd ~/Downloads && unp -U telegram-latest.tar.xz && cd Telegram && sudo ln -s $(realpath Telegram) /usr/local/bin/telegram",
     "npm i -g bitcoin-chart-cli",
     "go get github.com/cjbassi/gotop",
     "cargo install sd",
