@@ -36,7 +36,8 @@
     ".vimfx": "~/.vimfx",
     ".emacs": "~/.emacs",
     ".XCompose": "~/.XCompose",
-    ".npmrc": "~/.npmrc"
+    ".npmrc": "~/.npmrc",
+    "arch-install": "~/arch-install"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
