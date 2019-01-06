@@ -129,7 +129,8 @@
     "xdotool",
     "zathura",
     "zathura-pdf-poppler",
-    "zsh"
+    "zsh",
+    "ack"
   ],
   "commands": [
     "mkdir ~/util",
