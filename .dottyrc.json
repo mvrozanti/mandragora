@@ -14,7 +14,7 @@
     ".config/zathura/": "~/.config/zathura/",
     ".calcurse/conf": "~/.calcurse/conf",
     ".ideavimrc": "~/.ideavimrc",
-    ".waterfox/*.default*/chrome": "~/.waterfox/chrome",
+    ".waterfox/chrome": "~/.waterfox/*.default*/chrome",
     "util/st": "~/util/st",
     ".netbeans/9.0/config/Editors": "~/.netbeans/9.0/config/Editors",
     ".netbeans/9.0/config/Keymaps": "~/.netbeans/9.0/config/Keymaps",
