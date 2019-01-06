@@ -133,7 +133,8 @@
     "zathura-pdf-poppler",
     "zsh",
     "ack",
-    "unzip"
+    "unzip",
+    "xsel"
   ],
   "commands": [
     "mkdir -p ~/util",
