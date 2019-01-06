@@ -156,8 +156,7 @@
     "npm i -g bitcoin-chart-cli",
     "npm i -g gotop",
     "cargo install sd",
-    "pip3 install --user khal grip psutil maybe sqlcrush",
-    "yay polybar",
-    "curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh|sh"
+    "pip3 install --user khal grip psutil maybe sqlcrush pynvim",
+    "yay polybar"
   ]
 }
