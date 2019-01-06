@@ -37,7 +37,6 @@
     ".vimfx": "~/.vimfx",
     ".emacs": "~/.emacs",
     ".XCompose": "~/.XCompose",
-    "util/WhatsApp-linux-x64": "~/util/WhatsApp-linux-x64",
     ".npmrc": "~/.npmrc"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
