@@ -39,7 +39,7 @@
     ".emacs": "~/.emacs",
     ".XCompose": "~/.XCompose"
   },
-  "install_cmd": "sudo pacman --noconfirm -S",
+  "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
     "arandr",
     "biber",
