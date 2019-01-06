@@ -137,7 +137,8 @@
     "ack",
     "unzip",
     "xsel",
-    "bat"
+    "bat",
+    "thunderbird"
   ],
   "commands": [
     "mkdir -p ~/util",
