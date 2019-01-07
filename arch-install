@@ -1,4 +1,3 @@
-
 loadkeys br-abnt2|us-intl?
 lsblk
 partition disks:
