@@ -136,7 +136,8 @@
     "unzip",
     "xsel",
     "bat",
-    "thunderbird"
+    "thunderbird",
+    "xorg-xbacklight"
   ],
   "commands": [
     "mkdir -p ~/util",
@@ -165,6 +166,7 @@
     "command -v gotop || go get github.com/cjbassi/gotop",
     "cargo install sd",
     "pip3 install --user khal grip psutil maybe sqlcrush pynvim",
-    "command -v polybar || yay polybar"
+    "command -v polybar || yay polybar",
+    "command -v gotop || yay gotop"
   ]
 }
