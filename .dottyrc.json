@@ -164,6 +164,6 @@
     "_go get github.com/cjbassi/gotop",
     "cargo install sd",
     "pip3 install --user khal grip psutil maybe sqlcrush pynvim",
-    "yay --needed --useask polybar"
+    "command -v polybar || yay polybar"
   ]
 }
