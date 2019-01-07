@@ -36,7 +36,8 @@
     ".emacs": "~/.emacs",
     ".XCompose": "~/.XCompose",
     ".npmrc": "~/.npmrc",
-    "arch-install": "~/arch-install"
+    "arch-install": "~/arch-install",
+    "util/jvi.zip": "~/util/jvi.zip"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
