@@ -246,4 +246,4 @@ function cfci(){ jq '.install |= . + ["'$1'"]' ~/mandragora/.dottyrc.json | spon
 # function cfcc(){ jq '.commands |= . + ["'$1'"]' ~/mandragora/.dottyrc.json | sponge ~/mandragora/.dottyrc.json }
 function lnb(){ fpath="$1"; dst="$2"; sudo ln -s `realpath $fpath` /usr/local/bin/`[[ -z "$dst" ]] && echo $fpath|cut -f 1 -d '.' || echo $2` }
 alias cfD='nvim /home/nexor/mandragora/dotty/dotty.py'
-alias grow='git -C ~/mandragora pull && ~/mandragora/dotty/dotty.py -r'
+alias grow='[[ `git -C ~/mandragora pull|wc -l` -eq 1 ]] || ~/mandragora/dotty/dotty.py -r'
