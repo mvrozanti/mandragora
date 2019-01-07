@@ -138,7 +138,8 @@
     "thunderbird",
     "xorg-xbacklight",
     "gtk-chtheme",
-    "alsa-utils"
+    "alsa-utils",
+    "bluez-utils"
   ],
   "commands": [
     "mkdir -p ~/util",
