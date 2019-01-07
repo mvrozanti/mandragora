@@ -137,7 +137,8 @@
     "bat",
     "thunderbird",
     "xorg-xbacklight",
-    "gtk-chtheme"
+    "gtk-chtheme",
+    "alsa-utils"
   ],
   "commands": [
     "mkdir -p ~/util",
