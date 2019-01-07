@@ -15,7 +15,6 @@
     ".calcurse/conf": "~/.calcurse/conf",
     ".ideavimrc": "~/.ideavimrc",
     "_.waterfox/chrome": "_~/.waterfox/*.default*/chrome",
-    "util/st": "~/util/st",
     ".netbeans/9.0/config/Editors": "~/.netbeans/9.0/config/Editors",
     ".netbeans/9.0/config/Keymaps": "~/.netbeans/9.0/config/Keymaps",
     ".netbeans/9.0/config/Preferences": "~/.netbeans/9.0/config/Preferences",
