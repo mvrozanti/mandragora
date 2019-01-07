@@ -138,7 +138,8 @@
     "xsel",
     "bat",
     "thunderbird",
-    "xorg-xbacklight"
+    "xorg-xbacklight",
+    "gtk-chtheme"
   ],
   "commands": [
     "mkdir -p ~/util",
