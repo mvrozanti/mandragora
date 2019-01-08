@@ -148,6 +148,7 @@
     "nvim +PlugInstall +qall",
     "git clone https://github.com/danielchatfield/trello-desktop ~/util",
     "git clone https://github.com/oniony/TMSU ~/util",
+    "git clone https://github.com/mydzor/bash2048 ~/util",
     "git clone https://github.com/emcrisostomo/fswatch ~/util/fswatch && cd $_ && ./configure && sudo make install && cd.",
     "git clone https://github.com/jesseduffield/lazygit ~/util/lazygit",
     "git clone https://github.com/mvrozanti/bash-tetris ~/util/bash-tetris",
