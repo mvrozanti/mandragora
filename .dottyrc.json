@@ -35,7 +35,8 @@
     ".XCompose": "~/.XCompose",
     ".npmrc": "~/.npmrc",
     "arch-install": "~/arch-install",
-    "util/jvi.zip": "~/util/jvi.zip"
+    "util/jvi.zip": "~/util/jvi.zip",
+    "etc/pulse/default.pa": "/etc/pulse/default.pa"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
