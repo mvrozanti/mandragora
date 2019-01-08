@@ -148,7 +148,7 @@ alias biggest-files='du -hsx *|sudo sort -rh|head -10'
 alias lg='lazygit'
 alias pwdc="pwd | tr -d '\n' | xsel -i -b"
 alias scrot='scrot ~/.scrot.png'
-function f(){ sudo find . -iname "*$@*"; }
+# function f(){ sudo find . -iname "*$@*"; }
 function cdf(){ cd `find . -iname "*$@*" | head -n1`; }
 alias curpos="cnee --record --mouse | awk  '/7,4,0,0,1/ { system(\"xdotool getmouselocation\") }'"
 alias p3u='pip3 uninstall'
@@ -249,3 +249,4 @@ function lnb(){ fpath="$1"; dst="$2"; sudo ln -s `realpath $fpath` /usr/local/bi
 alias cfD='nvim /home/nexor/mandragora/dotty/dotty.py'
 alias grow='[[ `git -C ~/mandragora pull|wc -l` -eq 1 ]] || ~/mandragora/dotty/dotty.py -f -r && git -C ~/mandragora submodule update --recursive --remote'
 alias oc='mpv /dev/video0'
+alias f='fd'
