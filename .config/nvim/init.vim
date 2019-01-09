@@ -1,4 +1,3 @@
-set guicursor=i:100-bCursor
 xnoremap p "_dP
 vnoremap \/ y/<C-R>"<CR>
 nnoremap <A-p> <C-j>p
@@ -492,3 +491,4 @@ set fillchars+=vert:│
 	autocmd   FileType   tex        inoremap   rn<Tab> (\ref{})<+><Esc>F}i
 
 map <C-x> <Nop>
+set guicursor=i:100-bCursor
