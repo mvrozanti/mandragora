@@ -251,3 +251,4 @@ alias grow='[[ `git -C ~/mandragora pull|wc -l` -eq 1 ]] || ~/mandragora/dotty/d
 alias oc='mpv /dev/video0'
 alias f='fd'
 alias O='sxiv'
+alias nohup='nohup > /dev/null'
