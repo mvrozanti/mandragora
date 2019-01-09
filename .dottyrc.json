@@ -35,7 +35,8 @@
     ".XCompose": "~/.XCompose",
     ".npmrc": "~/.npmrc",
     "arch-install": "~/arch-install",
-    "etc/pulse/default.pa": "/etc/pulse/default.pa"
+    "etc/pulse/default.pa": "/etc/pulse/default.pa",
+    ".config/khal/config": "~/.config/khal/config"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
