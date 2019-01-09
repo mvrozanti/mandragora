@@ -263,7 +263,7 @@ $bind $mod+Ctrl+Shift+h                     move container to workspace prev; wo
 #
 
 $ensid wal --saturate 1.0 -a 299 -i `cat $HOME/.fehbg | tail -n1 | cut -d ' ' -f3 | tr -d "'"`
-$ensid compton -D 3
+$ensid compton -D 4 --blur-background --blur-kern "11,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
 $ensid $HOME/.fehbg
 popup_during_fullscreen smart
 floating_modifier Mod1
