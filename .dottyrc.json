@@ -36,7 +36,8 @@
     ".npmrc": "~/.npmrc",
     "arch-install": "~/arch-install",
     "etc/pulse/default.pa": "/etc/pulse/default.pa",
-    ".config/khal/config": "~/.config/khal/config"
+    ".config/khal/config": "~/.config/khal/config",
+    ".local/share/applications": "~/.local/share/applications"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [

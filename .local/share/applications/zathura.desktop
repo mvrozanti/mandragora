@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=zathura
+Comment=Launches the zathura
+Icon=utilities-terminal
+Terminal=false
+Exec=zathura
+Categories=ConsoleOnly;System;FileTools;FileManager
+MimeType=application/pdf;
