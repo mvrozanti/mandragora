@@ -176,6 +176,7 @@
     "cargo install --list | grep sd || cargo install sd",
     "pip3 install --user khal grip psutil maybe sqlcrush pynvim",
     "command -v polybar || yay polybar",
+    "command -v hamachi || yay logmein-hamachi",
     "command -v gotop || yay gotop"
   ]
 }
