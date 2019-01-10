@@ -171,7 +171,7 @@
     "command -v nativefier || npm i -g $_ && [[ ! -f /usr/local/bin/whatsapp ]] && nativefier web.whatsapp.com ~/util/whatsapp && cd $_ && sudo ln -s $(realpath $_/whats-app-web/whats-app-web-linux-x64/whats-app-web) /usr/local/bin/whatsapp",
     "git clone --depth 1 https://github.com/cjbassi/gotop /tmp/gotop && /tmp/gotop/scripts/download.sh",
     "command -v gotop || go get github.com/cjbassi/gotop",
-    "cargo install sd",
+    "cargo install --list | grep sd || cargo install sd",
     "pip3 install --user khal grip psutil maybe sqlcrush pynvim",
     "command -v polybar || yay polybar",
     "command -v gotop || yay gotop"
