@@ -15,8 +15,9 @@
     ".calcurse/conf": "~/.calcurse/conf",
     ".ideavimrc": "~/.ideavimrc",
     "_.waterfox/chrome": "_~/.waterfox/*.default*/chrome",
+    "_etc/pulse/default.pa": "_/etc/pulse/default.pa",
+    "_usr/etc/netbeans.conf": "_/usr/etc/netbeans.conf",
     "util/netbeans.zip": "~/util/netbeans.zip",
-    "usr/etc/netbeans.conf": "/usr/etc/netbeans.conf",
     ".config/nvim/plugged/vim-cute-python/after/syntax/python.vim": "~/.config/nvim/plugged/vim-cute-python/after/syntax/python.vim",
     ".tmux.conf": "~/.tmux.conf",
     ".bash_aliases": "~/.bash_aliases",
@@ -35,7 +36,6 @@
     ".XCompose": "~/.XCompose",
     ".npmrc": "~/.npmrc",
     "arch-install": "~/arch-install",
-    "etc/pulse/default.pa": "/etc/pulse/default.pa",
     ".config/khal/config": "~/.config/khal/config",
     ".local/share/applications": "~/.local/share/applications",
     ".ssh/rc": "~/.ssh/rc"
