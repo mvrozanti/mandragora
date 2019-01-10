@@ -1,5 +1,9 @@
 [calendars]
 
+[[private]]
+path = /home/nexor/.local/share/khal/calendars/private
+type = calendar
+
 [locale]
 timeformat = %H:%M
 dateformat = %d/%m/%Y
