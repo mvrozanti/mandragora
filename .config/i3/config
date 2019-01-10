@@ -69,7 +69,7 @@ assign      [title="Mozilla Thunderbird"]            $ws11
 #                   |_|
 
 $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp
-$bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp
+$bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  zsh             || kitty --title zsh --name zsh
 $bind $mod+Shift+3                                              $ensid wmctrl -xa tmux            || kitty
 $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
@@ -263,7 +263,7 @@ $bind $mod+Ctrl+Shift+h                     move container to workspace prev; wo
 #
 
 $ensid wal --saturate 1.0 -a 299 -i `cat $HOME/.fehbg | tail -n1 | cut -d ' ' -f3 | tr -d "'"`
-$ensid compton -D 4 --blur-background --blur-kern "11,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
+$ensid compton -D 3 --blur-background --blur-kern `compton-convgen.py --dump-compton box 3`
 $ensid $HOME/.fehbg
 popup_during_fullscreen smart
 floating_modifier Mod1
