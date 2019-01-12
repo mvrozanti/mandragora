@@ -176,7 +176,7 @@ function ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE14
 alias wt='watch -n 1 tree'
 function wtg(){ watch -n 1 "tree | grep $@" }
 alias wcat='watch -n 1 cat'
-function hl(){ hamachi list | tail -n +2 | grep '\*' | grep -o '(\S+)\s+([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})\s' }
+function hl(){ hamachi list | tail -n +2 | grep '^\s*\*' | awk '{print $4}'; }
 function whl(){ watch -g "hamachi list | tail -n +2 | grep '^\s*\*' | awk '{print \$4}'" && beep -l 1000 }
 function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
 function ocsv() { cat "$@" | psc -k -d, | `wis sc` }
@@ -254,4 +254,3 @@ alias O='sxiv'
 alias nohup='nohup > /dev/null'
 alias SV='ffmpeg -f video4linux2  -i /dev/video0  -vcodec libx264 -preset fast -b 1000k -f matroska -y /dev/stdout | nc -lp 2717'
 alias RV='nc mndrgr2 2717 | mplayer - -cache 512'
-function servesingle(){ [[ ! -z $1 ]] && { filepath=`realpath $1` &&  echo -ne "HTTP/1.0 200 OK\r\nContent-Disposition: filename=\"`basename $filepath`\"\nContent-Length: $(wc -c <$filepath)\r\n\r\n"; cat $filepath; } | nc -l -p 2717 }
