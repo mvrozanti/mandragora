@@ -48,11 +48,11 @@ for_window  [title="^(\d+) WhatsApp$"]               move to workspace $ws3
 for_window  [title=".*Trello.*"]                     move to workspace $ws7
 for_window  [title="Zoom"]                           move to workspace $ws5
 for_window  [instance="^ranger$"]                    move to workspace $ws8
-for_window  [class="URxvt"]                          floating enable
 for_window  [title="todo"]                           floating enable
 for_window  [class="mpv"]                            floating enable
 for_window  [title="todo"] [floating]                resize set 600 800 px; move position center
-assign      [title="zsth"]                           $ws2
+for_window  [class="zsh"] [floating]  resize set 600 800; move position center
+assign      [class="zsh"]                            $ws2
 assign      [instance="cava"]                        $ws2
 assign      [instance="cmatrix"]                     $ws2
 assign      [class="NetBeans IDE "]                  $ws6
@@ -76,7 +76,7 @@ $bind $mod+g                                                    $ensid wmctrl -a
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix -o background_opacity=.39 sh -c cmatrix
 $bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  ranger          || kitty --name ranger  -o background_opacity=.78 --title ranger -e sh -c "stty -ixon && wal -r && ranger"
 $bind $mod+Shift+Return                                         $ensid                               kitty sh -c 'wal -r && ranger'
-$bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || kitty --name youtube-curses background_opacity=.78 --title youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
+$bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || kitty --name youtube-curses -o background_opacity=.78 --title youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
 $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || kitty -o background_opacity=.78 --name todo -o font_size=15 --title todo -e zsh -c "nvim $HOME/todo"
 $bind $mod+Shift+braceleft                                      $ensid                               kitty -o background_opacity=.78 --name khal -o font_size=15 --title khal -e sh -c "khal interactive"
 $bind $mod+braceleft  workspace $ws12                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal -o font_size=15 --title khal -e sh -c "khal interactive"
