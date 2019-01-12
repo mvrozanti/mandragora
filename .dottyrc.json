@@ -143,7 +143,8 @@
     "alsa-utils",
     "bluez-utils",
     "maven",
-    "binutils"
+    "binutils",
+    "libreoffice"
   ],
   "before_bak": [
     "zip -r ~/util/netbeans.zip ~/.netbeans/10.0/"
