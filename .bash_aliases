@@ -176,7 +176,7 @@ function ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE14
 alias wt='watch -n 1 tree'
 function wtg(){ watch -n 1 "tree | grep $@" }
 alias wcat='watch -n 1 cat'
-function hl(){ hamachi list | tail -n +2 | grep '^\s*\*' | awk '{print $4}'; }
+function hl(){ hamachi list | tail -n +2 | grep '\*' | grep -o '(\S+)\s+([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})\s' }
 function whl(){ watch -g "hamachi list | tail -n +2 | grep '^\s*\*' | awk '{print \$4}'" && beep -l 1000 }
 function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
 function ocsv() { cat "$@" | psc -k -d, | `wis sc` }
