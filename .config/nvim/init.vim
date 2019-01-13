@@ -112,7 +112,7 @@ autocmd FileType javascript inoremap cl<tab> console.log()<Esc>i
 " python shortcuts
 " %s/print\s\(.\+\)/print(\1)/g
 autocmd FileType python inoremap im<tab> import<Space>
-autocmd FileType python inoremap ci<tab> code.interact(local=locals())<Esc>
+autocmd FileType python inoremap ci<tab> code.interact(local=globals().update(locals()) or globals())<Esc>
 autocmd FileType python inoremap pdbt<tab> pdb.set_trace()<Esc>
 autocmd FileType python set makeprg=python\ %
 autocmd FileType python inoremap ld<tab> LOG.debug()<Esc>i
