@@ -79,7 +79,7 @@ $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a
 $bind $mod+Shift+3                                              $ensid wmctrl -xa tmux            || kitty
 $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix -o background_opacity=.39 sh -c cmatrix
-$bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  ranger          || kitty --name ranger  -o background_opacity=.78 --title ranger -e sh -c "stty -ixon && wal -r && ranger"
+$bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  ranger          || kitty --name ranger  -o background_opacity=.78 --title ranger -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ranger"
 $bind $mod+Shift+Return                                         $ensid                               kitty sh -c 'wal -r && ranger'
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || kitty --name youtube-curses -o background_opacity=.78 --title youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
 $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || kitty -o background_opacity=.78 --name todo -o font_size=15 --title todo -e zsh -c "nvim $HOME/todo"
