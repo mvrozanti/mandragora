@@ -259,4 +259,3 @@ function servesingle(){ [[ ! -z $1 ]] && { filepath=`realpath $1` &&  echo -ne "
 alias sctl='sudo systemctl'
 alias GD='git daemon --base-path=. --export-all'
 alias blank='xset -display :0.0 dpms force off'
-alias hi='echo hello'
