@@ -1,12 +1,12 @@
 {
   "copy": {
     ".config/powerline": "~/.config/powerline",
-    ".config/ncmpcpp": "~/.config/.ncmpcpp",
+    ".config/ncmpcpp": "~/.config/ncmpcpp",
     ".config/i3": "~/.config/i3",
     ".config/nvim/init.vim": "~/.config/nvim/init.vim",
     ".config/polybar": "~/.config/polybar",
     ".config/ranger": "~/.config/ranger",
-    ".config/mpd": "~/.config/mpd/mpd.conf",
+    ".config/mpd/mpd.conf": "~/.config/mpd/mpd.conf",
     ".config/dunst/dunstrc": "~/.config/dunst/dunstrc",
     ".config/kitty/kitty.conf": "~/.config/kitty/kitty.conf",
     ".config/kitty/startup_session.kit": "~/.config/kitty/startup_session.kit",
