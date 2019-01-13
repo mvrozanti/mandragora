@@ -20,6 +20,8 @@ set $ensid exec --no-startup-id
 set $bind bindsym
 set $font "Droid Sans Mono Slashed for Powerline"
 set $dmenu_looks -fn 'Droid Sans Mono for Powerline' -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300'
+$bind $mod+Shift+BackSpace  $ensid xset -display :0.0 dpms force on
+$bind $mod+Ctrl+BackSpace   $ensid xset -display :0.0 dpms force off
 $bind Ctrl+Mod1+BackSpace   $ensid shutdown -h 0
 $bind Ctrl+Shift+Escape     $ensid $TERMINAL -e htop    # should add some more control and sorting for fast proc killing
 $bind $mod+Shift+r          restart
