@@ -256,3 +256,4 @@ alias SV='ffmpeg -f video4linux2  -i /dev/video0  -vcodec libx264 -preset fast -
 alias RV='nc mndrgr2 2717 | mpv - -cache 512'
 alias wS='watch du -sh'
 function servesingle(){ [[ ! -z $1 ]] && { filepath=`realpath $1` &&  echo -ne "HTTP/1.0 200 OK\r\nContent-Disposition: filename=\"`basename $filepath`\"\nContent-Length: $(wc -c <$filepath)\r\n\r\n"; cat $filepath; } | nc -l -p 2717 }
+alias sctl='sudo systemctl'
