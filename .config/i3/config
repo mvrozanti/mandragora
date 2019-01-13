@@ -9,10 +9,9 @@
 # alt=Mod1
 exec_always  --no-startup-id dunst
 exec_always  --no-startup-id $HOME/.config/polybar/launch.sh
-exec_always  --no-startup-id seafile-applet
 exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seafile.sh
 exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seahub.sh
-#exec_always --no-startup-id curlftpfs -o user="nexor:2715" ftp://192.168.0.52:2221 ~/android2
+exec_always  --no-startup-id [[ `ps aux|grep seafile-applet|wc -l` -lt 2 ]] || seafile-applet
 exec_always  --no-startup-id ~/prog/python/audio-classification/cnn.py -P |while read -r o; do case "$o" in "9") (st 2> /dev/null &);; "0") st -T 150 -t ncmpcpp -e ncmpcpp -s visualizer 2> /dev/null &;; *) echo $o;; esac; done
 
 set $mod Mod4
@@ -41,7 +40,7 @@ $bind $mod+r                exec dmenu_run $dmenu_looks
 # set $TERMINAL st
 set $minty 192.168.0.10
 set $bl_delta 10
-set $oaange     #ff3300
+set $orange     #ff3300
 set $gray       #1e1e1e
 set $darkgray   #0c0c0c
 $ensid mpd
@@ -55,8 +54,9 @@ for_window  [title="Zoom"]                           move to workspace $ws5
 for_window  [instance="^ranger$"]                    move to workspace $ws8
 for_window  [class="URxvt"]                          floating enable
 for_window  [title="todo"]                           floating enable
-for_window  [class="mpv"]                            floating enable move right 600px move down 270px
-for_window  [title="todo"] [floating]                resize set 600 800 px; move position center
+for_window  [class="mpv"]                            floating enable move right -500 move down -10
+for_window  [title="todo"] [floating]                resize set 600 800 px move position center
+for_window  [title="zsh"] [floating]                 resize set 600 800 px move position center
 assign      [title="zsth"]                           $ws2
 assign      [instance="cava"]                        $ws2
 assign      [instance="cmatrix"]                     $ws2
@@ -80,31 +80,14 @@ $bind $mod+Shift+3                                              $ensid wmctrl -x
 $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix -o background_opacity=.39 sh -c cmatrix
 $bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  ranger          || kitty --name ranger  -o background_opacity=.78 --title ranger -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ranger"
-$bind $mod+Shift+Return                                         $ensid                               kitty sh -c 'wal -r && ranger'
+$bind $mod+Shift+Return                                         $ensid                               kitty sh -c 'cat /home/nexor/.cache/wal/sequences && ranger'
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || kitty --name youtube-curses -o background_opacity=.78 --title youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
-$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || kitty -o background_opacity=.78 --name todo -o font_size=15 --title todo -e zsh -c "nvim $HOME/todo"
-$bind $mod+Shift+braceleft                                      $ensid                               kitty -o background_opacity=.78 --name khal -o font_size=15 --title khal -e sh -c "khal interactive"
-$bind $mod+braceleft  workspace $ws12                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal -o font_size=15 --title khal -e sh -c "khal interactive"
-$bind $mod+Shift+o    workspace $ws12                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal -o font_size=15 --title khal -e sh -c "khal interactive"
+$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || kitty -o background_opacity=.78 --name todo -o font_size=13 --title todo -e zsh -c "nvim $HOME/todo"
+$bind $mod+Shift+braceleft                                      $ensid                               kitty -o background_opacity=.78 --name khal -o font_size=13 --title khal -e sh -c "khal interactive"
+$bind $mod+braceleft  workspace $ws12                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal -o font_size=13 --title khal -e sh -c "khal interactive"
+$bind $mod+Shift+o    workspace $ws12                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal -o font_size=13 --title khal -e sh -c "khal interactive"
 $bind $mod+v          split toggle;                             $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e gotop
 $bind $mod+i                                                    $ensid wmctrl -a  iftop           || kitty --name iftop sudo iftop -i eno1
-#
-# $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -f $font":pixelsize=17" -T 200 -e ncmpcpp
-# $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -f $font":pixelsize=17" -T 150 -t ncmpcpp -e ncmpcpp -s visualizer
-# $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  zsth            || st -t zsth -e tmux
-# $bind $mod+Shift+3                                              $ensid wmctrl -xa tmux            || st -e tmux
-# $bind $mod+g                                                    $ensid wmctrl -a  cava            || st -n cava -e cava
-# $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || st -n cmatrix -T 100 -e sh -c cmatrix
-# $bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  ranger          || st -n ranger -T 200 -t ranger -e sh -c "stty -ixon && ranger"
-# $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || st -n youtube-curses -T 200 -t youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
-# $bind $mod+Shift+Return                                         $ensid st -e ranger
-# $bind $mod+Shift+braceleft                                      $ensid st -T 200 -n khal -f $font":pixelsize=15" -t khal -e sh -c "khal interactive"
-# $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || st -T 255 -n todo -f $font":pixelsize=19" -t todo -e zsh -c "nvim $HOME/todo"
-# $bind $mod+braceleft  workspace $ws12                           $ensid wmctrl -a  khal            || st -T 200 -n khal -f $font":pixelsize=19" -t khal -e sh -c "khal interactive"
-# $bind $mod+Shift+o    workspace $ws12                           $ensid wmctrl -a  khal            || st -T 200 -n khal -f $font":pixelsize=19" -t khal -e sh -c "khal interactive"
-# $bind $mod+v          split toggle;                             $ensid wmctrl -a  gotop           || st -T 200 -t gotop -e gotop
-# $bind $mod+i                                                    $ensid wmctrl -a  iftop           || st -t iftop -n iftop -e sudo iftop
-#
 $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox        || waterfox
 $bind $mod+Shift+1        workspace $ws1                        $ensid wmctrl -a  Browsing        || waterfox $waterfox_arg
 $bind $mod+Shift+v    split toggle;                             $ensid wmctrl -a  VirtualBox      || virtualbox
@@ -134,12 +117,13 @@ $bind $mod+Print                  $ensid scrot -u -e 'xclip -selection clipboard
 $bind --release Ctrl+Print        $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
 $bind Shift+Print                 $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
 $bind --release Ctrl+Shift+Print  $ensid scrot    -e 'pinta $f'                                           $scrot_file
-$bind Ctrl+$mod+Print             $ensid byzanz-record -d \
+$bind Ctrl+$mod+Print             $ensid byzanz-record -d                            \
                                    `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
                                        ~/.imgur-recording.gif && curl -s -X POST --url \
                                                        https://api.imgur.com/3/image -H \
                                              "Authorization: Client-ID $imgur_client_id" \
-                                         -F "image=@"$_ | jq -r '.data.link' | xsel -i -b
+                                         -F "image=@"$_ | jq -r '.data.link' | xsel -i -b \
+
 
 #                                                 _
 #   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_
