@@ -254,7 +254,7 @@ alias O='sxiv'
 alias nohup='nohup > /dev/null'
 alias SV='ffmpeg -f video4linux2  -i /dev/video0  -vcodec libx264 -preset fast -b 1000k -f matroska -y /dev/stdout | nc -lp 2717'
 alias SA='pacat -r | nc -l -p 2718'
-alias RA='nc `[[ $(hostname) == mndrgr2 ]] && echo mndrgr || echo mndrgr2 ` 2718 | aplay -c 2 -f S16_LE -r 44100'
+alias RA='nc `[[ $(hostname) == mndrgr2 ]] && echo mndrgr || echo mndrgr2` 2718 | aplay -c 2 -f S16_LE -r 44100'
 alias RV='nc mndrgr2 2717 | mpv - -cache 512'
 alias wS='watch du -sh'
 function servesingle(){ [[ ! -z $1 ]] && { filepath=`realpath $1` &&  echo -ne "HTTP/1.0 200 OK\r\nContent-Disposition: filename=\"`basename $filepath`\"\nContent-Length: $(wc -c <$filepath)\r\n\r\n"; cat $filepath; } | nc -l -p 2717 }

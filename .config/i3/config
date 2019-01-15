@@ -114,7 +114,7 @@ set $scrot_file ~/.scrot.png
 $bind Print                       $ensid scrot    -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
 $bind $mod+Print                  $ensid scrot -u -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
 $bind --release Ctrl+Print        $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
-$bind Shift+Print                 $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
+$bind --release Shift+Print       $ensid scrot -s -e 'sxiv $f'                                            $scrot_file
 $bind --release Ctrl+Shift+Print  $ensid scrot    -e 'pinta $f'                                           $scrot_file
 $bind Ctrl+$mod+Print             $ensid byzanz-record -d                            \
                                    `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
