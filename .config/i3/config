@@ -47,23 +47,23 @@ $ensid mpd
 $ensid unclutter -idle 1
 focus_follows_mouse no
 
-for_window  [class="Waterfox"]                       move to workspace $ws1
-for_window  [title="^(\d+) WhatsApp$"]               move to workspace $ws3
-for_window  [title=".*Trello.*"]                     move to workspace $ws7
-for_window  [title="Zoom"]                           move to workspace $ws5
-for_window  [instance="^ranger$"]                    move to workspace $ws8
-for_window  [class="URxvt"]                          floating enable
-for_window  [class="mpv"]                            floating enable move right -500 move down -10
-for_window  [title="todo"]                           floating enable resize set 300 100 px move position center
-for_window  [title="zsh"] [floating]                 resize set 600 800 px move position center
-assign      [title="zsth"]                           $ws2
-assign      [instance="cava"]                        $ws2
-assign      [instance="cmatrix"]                     $ws2
-assign      [class="NetBeans IDE "]                  $ws6
-assign      [title=".*Android Studio.*"]             $ws6
-assign      [title="Discord"]                        $ws7
-assign      [instance="DBeaver"]                     $ws9
-assign      [title="Mozilla Thunderbird"]            $ws11
+for_window  [class="Waterfox"]            move to workspace $ws1
+for_window  [title="^(\d+) WhatsApp$"]    move to workspace $ws3
+for_window  [title=".*Trello.*"]          move to workspace $ws7
+for_window  [title="Zoom"]                move to workspace $ws5
+for_window  [instance="^ranger$"]         move to workspace $ws8
+for_window  [class="mpv"]                 floating enable move right -500 move down -10
+for_window  [title="todo"]                floating enable resize set 300 100 px move position center
+for_window  [title="zsh"]                 floating_maximum_size 800 x 600
+for_window  [title="zsh"]                 floating_minimum_size 800 x 600
+assign      [title="zsh"]                 $ws2
+assign      [instance="cava"]             $ws2
+assign      [instance="cmatrix"]          $ws2
+assign      [class="NetBeans IDE "]       $ws6
+assign      [title=".*Android Studio.*"]  $ws6
+assign      [title="Discord"]             $ws7
+assign      [instance="DBeaver"]          $ws9
+assign      [title="Mozilla Thunderbird"] $ws11
 
 #    __                                 _
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_
@@ -158,7 +158,7 @@ $bind $mod+s                   layout stacking
 $bind $mod+w                   layout tabbed
 $bind $mod+e                   layout toggle split
 $bind $mod+Shift+space         floating toggle; sticky enable
-$bind $mod+space focus         mode_toggle
+$bind $mod+space               focus mode_toggle
 $bind Ctrl+$mod+h              resize shrink width 10 px or 10 ppt
 $bind Ctrl+$mod+k              resize grow height 10 px or 10 ppt
 $bind Ctrl+$mod+j              resize shrink height 10 px or 10 ppt

@@ -265,3 +265,4 @@ alias GD='git daemon --base-path=. --export-all'
 alias blank='xset -display :0.0 dpms force off'
 function setbg(){ [[ -z $1 ]] && return 1; fpath=`realpath $1` ; [[ `echo $fpath | rev | cut -d"." -f1 | rev` = "gif" ]] && xwinwrap -g `xrandr | awk '/\*/{printf $1" "}'` -ni -s -nf -b -un -argb -ov -- gifview -w WID $fpath -a || wal -a 299 -i $fpath }
 function ra(){ [[ ! -z "$1" && ! -z "$2" ]] && sd -i 'alias '$1'=' 'alias '$2'=' $HOME/.bash_aliases && sd -i 'function '$1'\(\)' 'function '$2'()' $HOME/.bash_aliases }
+alias I='uname -mrs'
