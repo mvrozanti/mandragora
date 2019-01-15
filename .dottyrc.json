@@ -166,6 +166,7 @@
     "git clone https://github.com/jesseduffield/lazygit ~/util/lazygit",
     "git clone https://github.com/mvrozanti/bash-tetris ~/util/bash-tetris",
     "git clone https://github.com/sigpipe/urlview ~/util/urlview && cd $_ && ./configure && sudo make install",
+    "git clone https://github.com/ujjwal96/xwinwrap ~/util/xwinwrap && cd $_ && sudo make install",
     "git clone https://github.com/clibs/entr ~/util/entr && cd ~/util/entr && ./configure && sudo make install",
     "git clone https://github.com/mvrozanti/sxiv ~/util/sxiv && cd $_ && sudo make install",
     "git clone https://github.com/krpors/hx ~/util/hx && cd $_ && sudo make install",
