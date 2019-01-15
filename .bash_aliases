@@ -263,3 +263,4 @@ function servesingle(){ [[ ! -z $1 ]] && { filepath=`realpath $1` &&  echo -ne "
 alias sctl='sudo systemctl'
 alias GD='git daemon --base-path=. --export-all'
 alias blank='xset -display :0.0 dpms force off'
+function ra(){ [[ ! -z "$1" && ! -z "$2" ]] && sd -i 'alias '$1'=' 'alias '$2'=' $HOME/.bash_aliases && sd -i 'function '$1'\(\)' 'function '$2'()' $HOME/.bash_aliases }
