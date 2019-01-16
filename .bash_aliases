@@ -179,7 +179,7 @@ alias wt='watch -n 1 tree'
 function wtg(){ watch -n 1 "tree | grep $@" }
 alias wcat='watch -n 1 cat'
 function hl(){ hamachi list | tail -n +2 | grep '\*' | grep -o '(\S+)\s+([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})\s' }
-function whl(){ watch -g "hamachi list | tail -n +2 | grep '^\s*\*' | awk '{print \$4}'" && beep -l 1000 }
+# function whl(){ watch hl }
 function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
 function ocsv() { cat "$@" | psc -k -d, | `wis sc` }
 alias sc='sc-im'
@@ -208,8 +208,8 @@ alias 2048='/home/nexor/util/bash2048/bash2048.sh'
 alias ws='watch stat'
 function vf(){ find . -iname "*$@*" | head -n1 | xargs nvim  }
 function vg(){ grep -ril "*$@*" | head -n1 | xargs nvim  }
-alias vc='echo `xsel -o -b`|xargs nvim'
-alias vC='echo `xclip -o`|nvim'
+alias vc='co|v -'
+alias vC='co|xargs nvim'
 unalias gg
 function gg(){ git grep "$@" $(git rev-list --all) }
 alias nig='npm i -g'
