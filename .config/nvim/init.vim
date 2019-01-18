@@ -109,6 +109,13 @@ autocmd FileType javascript inoremap tr<tab> true
 autocmd FileType javascript inoremap fa<tab> false
 autocmd FileType javascript inoremap cl<tab> console.log()<Esc>i
 
+" java shortcuts
+autocmd FileType java inoremap psvm<tab> public static void main(String args[]){<CR>}
+autocmd FileType java map <silent> <F6> :Java<CR><CR>
+autocmd FileType java inoremap pr<tab> private<Space>
+autocmd FileType java inoremap pu<tab> public<Space>
+autocmd FileType java inoremap sout<tab> System.out.println()<Esc>i
+
 " python shortcuts
 " %s/print\s\(.\+\)/print(\1)/g
 autocmd FileType python inoremap im<tab> import<Space>
@@ -387,10 +394,12 @@ autocmd FileType vim                                                let b:commen
 autocmd FileType lisp                                               let b:comment_leader = '; '
 autocmd FileType javascript                                         let b:run_script = '!clear;xvkbd -window Firefox -text "\Cr" && xdotool keydown alt key Tab; sleep 2.001; xdotool keyup alt'
 autocmd FileType javascript                                         set omnifunc=javascriptcomplete#CompleteJS
+let g:EclimCompletionMethod = 'omnifunc'
 autocmd FileType python                                             let b:run_script = '! clear;python3 %'
 autocmd FileType python                                             let g:pymode_python = 'python3'
 autocmd FileType cpp                                                let b:run_script = '! clear; make && !%:r'
 autocmd FileType java                                               nnoremap <C-S-i> :JavaImportOrganize<CR>
+inoremap <C-Space> <C-x><C-o>
 " autocmd FileType *.c                                              let b:run_script='gcc\ %\ &&\ ./!%:r.out'
 
 inoremap <A-Left> <ESC>h

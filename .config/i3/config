@@ -61,7 +61,7 @@ assign      [instance="cmatrix"]          $ws2
 assign      [class="NetBeans IDE "]       $ws6
 assign      [title=".*Android Studio.*"]  $ws6
 assign      [title="Discord"]             $ws7
-assign      [instance="DBeaver"]          $ws9
+assign      [instance="DBeaver"]          $ws10
 assign      [title="Mozilla Thunderbird"] $ws11
 
 #    __                                 _
