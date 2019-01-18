@@ -115,6 +115,8 @@ autocmd FileType java map <silent> <F6> :Java<CR><CR>
 autocmd FileType java inoremap pr<tab> private<Space>
 autocmd FileType java inoremap pu<tab> public<Space>
 autocmd FileType java inoremap sout<tab> System.out.println()<Esc>i
+autocmd FileType java inoremap fa<tab> false
+autocmd FileType java inoremap tr<tab> true
 
 " python shortcuts
 " %s/print\s\(.\+\)/print(\1)/g

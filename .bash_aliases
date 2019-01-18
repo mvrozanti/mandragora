@@ -267,3 +267,4 @@ function setbg(){ [[ -z $1 ]] && return 1; fpath=`realpath $1` ; [[ `echo $fpath
 function ra(){ [[ ! -z "$1" && ! -z "$2" ]] && sd -i 'alias '$1'=' 'alias '$2'=' $HOME/.bash_aliases && sd -i 'function '$1'\(\)' 'function '$2'()' $HOME/.bash_aliases }
 alias I='uname -mrs'
 alias spsyyu='sudo pacman -Syyu'
+alias fuck='sudo'
