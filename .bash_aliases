@@ -162,7 +162,7 @@ alias p3r='pip2 uninstall'
 function cnt() { echo $1 | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -g -o "$noext" ${@:2} && clear && ./"$noext"'; }
 function cntr() { echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && sh -c "$noext || :"'; }
 function centr() { ls *.c* | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
-function pentr() { ls *.py* | entr /_ $@ }
+function pentr() { [[ -z $1 ]] && ls *.py* | entr /_ $@ || echo $1 | entr /_ }
 function mentr() { ls *.* | entr "make clean; make" }
 function N() { ls *.* | entr sh -c $@ }
 alias dotty='. $HOME/mandragora/dotty/dotty.py'
