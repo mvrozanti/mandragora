@@ -55,6 +55,7 @@ for_window  [instance="^ranger$"]         move to workspace $ws8
 for_window  [class="mpv"]                 floating enable move right -500 move down -10
 for_window  [title="todo"]                floating enable resize set 300 100 px move position center
 for_window  [title="zsh"]                 [floating] resize set 200 100
+for_window  [class="portal"]              [floating]
 assign      [title="zsh"]                 $ws2
 assign      [instance="cava"]             $ws2
 assign      [instance="cmatrix"]          $ws2
@@ -138,14 +139,14 @@ $bind $mod+Left                focus left
 $bind $mod+Down                focus down
 $bind $mod+Up                  focus up
 $bind $mod+Right               focus right
-$bind $mod+Shift+h             move left  10 px
-$bind $mod+Shift+j             move down  10 px
-$bind $mod+Shift+k             move up    10 px
-$bind $mod+Shift+l             move right 10 px
-$bind $mod+Shift+Left          move left  30 px
-$bind $mod+Shift+Down          move down  30 px
-$bind $mod+Shift+Up            move up    30 px
-$bind $mod+Shift+Right         move right 30 px
+$bind $mod+Shift+h             move left  30 px
+$bind $mod+Shift+j             move down  30 px
+$bind $mod+Shift+k             move up    30 px
+$bind $mod+Shift+l             move right 30 px
+$bind $mod+Shift+Left          move left  10 px
+$bind $mod+Shift+Down          move down  10 px
+$bind $mod+Shift+Up            move up    10 px
+$bind $mod+Shift+Right         move right 10 px
 $bind $mod+backslash           split h
 $bind $mod+plus                split h
 $bind $mod+minus               split v
