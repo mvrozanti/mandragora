@@ -1,3 +1,4 @@
+map <A-F> mzgg=G`z
 xnoremap p "_dP
 vnoremap \/ y/<C-R>"<CR>
 nnoremap <A-p> <C-j>p
