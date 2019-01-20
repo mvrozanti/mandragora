@@ -166,7 +166,8 @@
     "git clone https://github.com/danielchatfield/trello-desktop ~/util",
     "git clone https://github.com/oniony/TMSU ~/util",
     "git clone https://github.com/mydzor/bash2048 ~/util",
-    "git clone https://github.com/emcrisostomo/fswatch ~/util/fswatch && cd $_ && ./configure && sudo make install && cd.",
+    "git clone --recurse-submodules https://github.com/cylgom/ly ~/util/ly && cd $_ && make && sudo make install && sudo systemctl enable ly.service",
+    "git clone https://github.com/emcrisostomo/fswatch ~/util/fswatch && cd $_ && ./configure && sudo make install",
     "git clone https://github.com/jesseduffield/lazygit ~/util/lazygit",
     "git clone https://github.com/mvrozanti/bash-tetris ~/util/bash-tetris",
     "git clone https://github.com/sigpipe/urlview ~/util/urlview && cd $_ && ./configure && sudo make install",
@@ -189,8 +190,9 @@
     "command -v gotop || go get github.com/cjbassi/gotop",
     "cargo install --list | grep sd || cargo install sd",
     "pip3 install --user khal grip psutil maybe sqlcrush pynvim",
-    "command -v polybar || yay polybar",
-    "command -v hamachi || yay logmein-hamachi",
-    "command -v gotop || yay gotop"
+    "command -v polybar || yay -S polybar",
+    "command -v hamachi || yay -S logmein-hamachi",
+    "command -v gotop || yay -S gotop",
+    "command -v browsh || yay -S browsh"
   ]
 }
