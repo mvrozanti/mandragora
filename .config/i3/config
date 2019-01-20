@@ -55,7 +55,7 @@ for_window  [instance="^ranger$"]         move to workspace $ws8
 for_window  [class="mpv"]                 floating enable move right -500 move down -10
 for_window  [title="todo"]                floating enable resize set 300 100 px move position center
 for_window  [title="zsh"]                 [floating] resize set 200 100
-for_window  [class="portal"]              [floating]
+for_window  [instance="portal"]           sticky enable floating enable move position 1000 200
 assign      [title="zsh"]                 $ws2
 assign      [instance="cava"]             $ws2
 assign      [instance="cmatrix"]          $ws2
@@ -114,7 +114,7 @@ set $scrot_file ~/.scrot.png
 $bind Print                       $ensid scrot    -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
 $bind $mod+Print                  $ensid scrot -u -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
 $bind --release Ctrl+Print        $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
-$bind --release Shift+Print       $ensid scrot -s -e 'sxiv -b $f'                                         $scrot_file
+$bind --release Shift+Print       $ensid scrot -s -e 'sxiv -N portal -b $f'                               $scrot_file
 $bind --release Ctrl+Shift+Print  $ensid scrot    -e 'pinta $f'                                           $scrot_file
 $bind Ctrl+$mod+Print             $ensid byzanz-record -d                            \
                                    `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
