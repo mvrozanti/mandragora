@@ -11,7 +11,7 @@ exec_always  --no-startup-id dunst
 exec_always  --no-startup-id $HOME/.config/polybar/launch.sh
 exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seafile.sh start
 exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seahub.sh start
-exec_always  --no-startup-id [[ `ps aux|grep seafile-applet|wc -l` -lt 2 ]] || seafile-applet
+exec_always  --no-startup-id [[ `ps aux|grep seafile-daemon|wc -l` -eq 0 ]] && seafile-daemon
 exec_always  --no-startup-id ~/prog/python/audio-classification/cnn.py -P |while read -r o; do case "$o" in "9") (st 2> /dev/null &);; "0") st -T 150 -t ncmpcpp -e ncmpcpp -s visualizer 2> /dev/null &;; *) echo $o;; esac; done
 
 set $mod Mod4
@@ -53,8 +53,12 @@ for_window  [title=".*Trello.*"]          move to workspace $ws7
 for_window  [title="Zoom"]                move to workspace $ws5
 for_window  [instance="^ranger$"]         move to workspace $ws8
 for_window  [class="mpv"]                 floating enable move right -500 move down -10
-for_window  [title="todo"]                floating enable resize set 300 100 px move position center
-for_window  [title="zsh"]                 [floating] resize set 200 100
+for_window  [title="todo"]                floating enable;             \
+                                            resize shrink width 10000px;\
+                                            resize shrink height 10000px;\
+                                            resize grow width 800px;      \
+                                            resize grow height 600px;      \
+                                            move position center
 for_window  [instance="portal"]           sticky enable floating enable move position 1000 200
 assign      [title="zsh"]                 $ws2
 assign      [instance="cava"]             $ws2
@@ -158,6 +162,7 @@ $bind $mod+s                   layout stacking
 $bind $mod+w                   layout tabbed
 $bind $mod+e                   layout toggle split
 $bind $mod+Shift+space         floating toggle; sticky enable
+$bind $mod+Ctrl+space          floating enable resize set 800 600 move position center
 $bind $mod+space               focus mode_toggle
 $bind Ctrl+$mod+h              resize shrink width 10 px or 10 ppt
 $bind Ctrl+$mod+k              resize grow height 10 px or 10 ppt
