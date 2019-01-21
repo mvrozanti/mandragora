@@ -268,3 +268,4 @@ alias spsyyu='sudo pacman -Syyu'
 alias fuck='sudo'
 alias scan4sd='echo 1 | sudo tee /sys/bus/pci/rescan'
 alias sj='sudo journalctl'
+function onf(){ inotifywait -m . -e create -e moved_to | while read pathe action filet; do echo $filet | xargs -I{} $@; done }
