@@ -106,6 +106,7 @@ $bind $mod+Shift+w    workspace $ws11;                          $ensid wmctrl -x
 $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
 $bind $mod+Shift+p                                              $ensid wmctrl -a ".pdf"
 $bind $mod+d              workspace $ws9
+# $bind $mod+Shift+m see $HOME/.config/dunst/dunstrc
 
 #                      _
 #   ___  ___ _ __ ___ | |_
