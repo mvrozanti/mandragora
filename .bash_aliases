@@ -242,9 +242,10 @@ alias cfri='nvim $HOME/.config/ranger/rifle.conf'
 alias cfrs='nvim $HOME/.config/ranger/scope.sh'
 alias cfrd='nvim $HOME/.config/ranger/devicons.sh'
 alias k='kitty'
+# function cfcr(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sd $HOME'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf|sd $HOME'(.*)' '~$1' || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json" | sponge $HOME"/mandragora/.dottyrc.json" }
 function cfcf(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sd $HOME'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf|sd $HOME'(.*)' '~$1' || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json" | sponge $HOME"/mandragora/.dottyrc.json" }
+function cfcu(){ to_remove="$1"; [[ ! -z $to_remove ]] && removed_array="`jq '.install|map(select(.!="'$to_remove'"))' $HOME"/mandragora/.dottyrc.json"`" && jq .install="$removed_array" $HOME"/mandragora/.dottyrc.json" | sponge ~/mandragora/.dottyrc.json }
 function cfci(){ jq '.install |= . + ["'$1'"]' ~/mandragora/.dottyrc.json | sponge ~/mandragora/.dottyrc.json }
-# function cfcc(){ jq '.commands |= . + ["'$1'"]' ~/mandragora/.dottyrc.json | sponge ~/mandragora/.dottyrc.json }
 function lnb(){ fpath="$1"; dst="$2"; sudo ln -s `realpath $fpath` /usr/local/bin/`[[ -z "$dst" ]] && echo $fpath|cut -f 1 -d '.' || echo $2` }
 alias cfD='nvim /home/nexor/mandragora/dotty/dotty.py'
 alias grow='[[ `git -C ~/mandragora pull|wc -l` -eq 1 ]] || ~/mandragora/dotty/dotty.py -f -r && git -C ~/mandragora submodule update --recursive --remote'
