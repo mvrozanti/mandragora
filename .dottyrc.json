@@ -40,7 +40,8 @@
     ".config/khal/config": "~/.config/khal/config",
     ".local/share/applications": "~/.local/share/applications",
     ".ssh/rc": "~/.ssh/rc",
-    ".zprofile": "~/.zprofile"
+    ".zprofile": "~/.zprofile",
+    ".config/Dharkael/flameshot.ini": "~/.config/Dharkael/flameshot.ini"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
@@ -155,6 +156,7 @@
     "gpart",
     "gparted",
     "inotify-tools",
+    "flameshot",
     "flameshot"
   ],
   "before_bak": [
