@@ -53,13 +53,13 @@ for_window  [title=".*Trello.*"]          move to workspace $ws7
 for_window  [title="Zoom"]                move to workspace $ws5
 for_window  [instance="^ranger$"]         move to workspace $ws8
 for_window  [class="mpv"]                 floating enable move right -500 move down -10
-for_window  [title="todo"]                floating enable;             \
-                                            resize shrink width 10000px;\
-                                            resize shrink height 10000px;\
-                                            resize grow width 800px;      \
-                                            resize grow height 600px;      \
-                                            move position center
 for_window  [instance="portal"]           sticky enable floating enable move position 1000 200
+for_window  [instance="khal2"]            floating enable move position 100 100;\
+                                            resize shrink width 10000px;       \
+                                            resize shrink height 10000px;       \
+                                            resize grow width 1200px;             \
+                                            resize grow height 600px;             \
+for_window  [instance="khal_"]            move to workspace $ws2
 assign      [title="zsh"]                 $ws2
 assign      [instance="cava"]             $ws2
 assign      [instance="cmatrix"]          $ws2
@@ -68,6 +68,12 @@ assign      [title=".*Android Studio.*"]  $ws6
 assign      [title="Discord"]             $ws7
 assign      [instance="DBeaver"]          $ws10
 assign      [title="Mozilla Thunderbird"] $ws11
+for_window  [title="todo"]                floating enable;             \
+                                            resize shrink width 10000px;\
+                                            resize shrink height 10000px;\
+                                            resize grow width 800px;      \
+                                            resize grow height 600px;      \
+                                            move position center
 
 #    __                                 _
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_
@@ -85,10 +91,9 @@ $bind $mod+m                                                    $ensid wmctrl -a
 $bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  ranger          || kitty --name ranger  -o background_opacity=.78 --title ranger -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ranger"
 $bind $mod+Shift+Return                                         $ensid                               kitty sh -c 'cat /home/nexor/.cache/wal/sequences && ranger'
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || kitty --name youtube-curses -o background_opacity=.78 --title youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
-$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || kitty -o background_opacity=.78 --name todo -o font_size=13 --title todo -e zsh -c "nvim $HOME/todo"
-$bind $mod+Shift+braceleft                                      $ensid                               kitty -o background_opacity=.78 --name khal -o font_size=13 --title khal -e sh -c "khal interactive"
-$bind $mod+braceleft  workspace $ws12                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal -o font_size=13 --title khal -e sh -c "khal interactive"
-$bind $mod+Shift+o    workspace $ws12                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal -o font_size=13 --title khal -e sh -c "khal interactive"
+$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || kitty -o background_opacity=.78 --name todo  -o font_size=13 --title todo  -e zsh -c "nvim $HOME/todo"
+$bind $mod+braceleft                                            $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal2 -o font_size=24 --title khal2 -e sh  -c "khal interactive"
+$bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal_ -o font_size=13 --title khal_ -e sh  -c "khal interactive"
 $bind $mod+v          split toggle;                             $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e sh -c 'cat /home/nexor/.cache/wal/sequences && gotop'
 $bind $mod+i                                                    $ensid wmctrl -a  iftop           || kitty --name iftop sudo iftop -i eno1
 $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox        || waterfox
@@ -97,7 +102,7 @@ $bind $mod+Shift+v    split toggle;                             $ensid wmctrl -a
 $bind $mod+Shift+a                                              $ensid wmctrl -a  Android Studio  || android-studio
 $bind $mod+4              split h;                              $ensid wmctrl -a  telegram        || telegram
 $bind $mod+b                                                    $ensid wmctrl -xa DBeaver         || dbeaver
-$bind $mod+Shift+d                                              $ensid wmctrl -xa Netbeans        || netbeans
+$bind $mod+Shift+d                                              $ensid wmctrl -xa Netbeans        || /usr/bin/netbeans
 $bind $mod+z          workspace $ws5;                           $ensid wmctrl -a  Zoom            || zoom
 $bind $mod+Shift+f    workspace $ws3;                           $ensid wmctrl -a  WhatsApp        || whatsapp
 $bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a  Trello          || /usr/local/bin/pondfox https://trello.com/
