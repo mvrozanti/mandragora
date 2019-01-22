@@ -41,7 +41,8 @@
     ".local/share/applications": "~/.local/share/applications",
     ".ssh/rc": "~/.ssh/rc",
     ".zprofile": "~/.zprofile",
-    ".config/Dharkael/flameshot.ini": "~/.config/Dharkael/flameshot.ini"
+    ".config/Dharkael/flameshot.ini": "~/.config/Dharkael/flameshot.ini",
+    ".local/bin/gmp": "~/.local/bin/gmp"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
