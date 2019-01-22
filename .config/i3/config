@@ -126,6 +126,7 @@ $bind $mod+Print                  $ensid scrot -u -e 'xclip -selection clipboard
 $bind --release Ctrl+Print        $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
 $bind --release Shift+Print       $ensid scrot -s -e 'sxiv -N portal -b $f'                               $scrot_file
 $bind --release Ctrl+Shift+Print  $ensid scrot    -e 'pinta $f'                                           $scrot_file
+$bind $mod+Scroll_Lock            $ensid flameshot gui
 $bind Ctrl+$mod+Print             $ensid byzanz-record -d                            \
                                    `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
                                        ~/.imgur-recording.gif && curl -s -X POST --url \
