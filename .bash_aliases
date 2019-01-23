@@ -36,7 +36,6 @@ function gac(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: ";
 function gacp(){ gac "${@:1}"; git push; }
 #function gacdp(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; gd; git push; }
 function gdc(){ git diff HEAD HEAD~1; }
-alias ga='git status'
 alias gs='git status'
 alias gco='git checkout'
 alias vp='nvim "$HOME/Dropbox/Sys4Bank - Programas Java/pendencias.txt"'
