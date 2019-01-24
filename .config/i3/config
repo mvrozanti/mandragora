@@ -263,14 +263,26 @@ $bind $mod+Ctrl+Shift+h                     move container to workspace prev; wo
 #
 
 $ensid wal --saturate 1.0 -a 299 -i `cat $HOME/.fehbg | tail -n1 | cut -d ' ' -f3 | tr -d "'"`
-$ensid compton -D 3 --blur-background --blur-kern `compton-convgen.py --dump-compton box 3`
+$ensid compton -i 0.3 -D 3 --blur-background --blur-kern `compton-convgen.py --dump-compton box 3`
 $ensid $HOME/.fehbg
 popup_during_fullscreen smart
 floating_modifier Mod1
 font pango:Droid Sans Mono for Powerline11
-client.focused          $orange $gray   $orange $gray   #000000
-client.focused_inactive $orange $gray   $orange $gray   #5f676a
-client.unfocused        $gray   #222222 #888888 #292d2e #222222
+set_from_resource $color0 color0 #000000
+set_from_resource $color1 color1 #f0000f
+set_from_resource $color2 color2 #0f00f0
+set_from_resource $color3 color3 #00ff00
+set_from_resource $color4 color4 #00ff00
+set_from_resource $color5 color5 #0f00f0
+set_from_resource $color6 color6 #f0000f
+set_from_resource $color7 color7 #0f00f0
+set_from_resource $color8 color8 #00ff00
+set_from_resource $color9 color9 #0f00f0
+set_from_resource $color9 color9 #0f00f0
+
+client.focused          $orange $orange $orange $orange $orange
+client.focused_inactive $gray $gray $gray $gray $gray
+client.unfocused        $gray $gray $gray $gray $gray
 client.urgent           $gray   #900000 #ffffff #900000 #900000
 client.placeholder      #000000 #0c0c0c #ffffff #000000 #0c0c0c
 client.background       #ffffff
@@ -287,9 +299,12 @@ $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 
 gaps inner 25
 gaps outer 0
+
 # focus border width
-# new_window pixel 0
-new_window none
+# new_window pixel 10
+default_border pixel 1
+# new_window none
+
 set $mode_gaps Gaps: (o) outer, (i) inner, (I) sexy, (0) performance
 set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
 set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
