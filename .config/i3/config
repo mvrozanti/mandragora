@@ -40,9 +40,6 @@ $bind $mod+r                exec dmenu_run $dmenu_looks
 # set $TERMINAL st
 set $minty 192.168.0.10
 set $bl_delta 10
-set $orange     #ff3300
-set $gray       #1e1e1e
-set $darkgray   #0c0c0c
 $ensid mpd
 $ensid unclutter -idle 1
 focus_follows_mouse no
@@ -263,7 +260,7 @@ $bind $mod+Ctrl+Shift+h                     move container to workspace prev; wo
 #
 
 $ensid wal --saturate 1.0 -a 299 -i `cat $HOME/.fehbg | tail -n1 | cut -d ' ' -f3 | tr -d "'"`
-$ensid compton -i 0.3 -D 3 --blur-background --blur-kern `compton-convgen.py --dump-compton box 3`
+$ensid compton -D 3 --blur-background --blur-kern `compton-convgen.py --dump-compton box 3`
 $ensid $HOME/.fehbg
 popup_during_fullscreen smart
 floating_modifier Mod1
@@ -278,12 +275,11 @@ set_from_resource $color6 color6 #f0000f
 set_from_resource $color7 color7 #0f00f0
 set_from_resource $color8 color8 #00ff00
 set_from_resource $color9 color9 #0f00f0
-set_from_resource $color9 color9 #0f00f0
 
-client.focused          $orange $orange $orange $orange $orange
-client.focused_inactive $gray $gray $gray $gray $gray
-client.unfocused        $gray $gray $gray $gray $gray
-client.urgent           $gray   #900000 #ffffff #900000 #900000
+client.focused          $color1 $color1 $color1 $color1 $color1
+client.focused_inactive $color0 $color0 $color0 $color0 $color0
+client.unfocused        $color2 $color2 $color2 $color2 $color2
+client.urgent           $color3   $color3 #ffffff #900000 #900000
 client.placeholder      #000000 #0c0c0c #ffffff #000000 #0c0c0c
 client.background       #ffffff
 $bind $mod+KP_Home  $ensid redshift -g 1:0.5:0.5 -O 25000K
@@ -300,12 +296,10 @@ $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 gaps inner 25
 gaps outer 0
 
-# focus border width
-# new_window pixel 10
+# focused border width
 default_border pixel 1
-# new_window none
 
-set $mode_gaps Gaps: (o) outer, (i) inner, (I) sexy, (0) performance
+set $mode_gaps Gaps: (o) outer, (i) inner, (I) sexy, (1) performance
 set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
 set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
 $bind $mod+Shift+g mode "$mode_gaps"
