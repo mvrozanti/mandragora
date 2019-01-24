@@ -271,3 +271,4 @@ alias scan4sd='echo 1 | sudo tee /sys/bus/pci/rescan'
 alias sj='sudo journalctl'
 function onf(){ inotifywait -m . -e create -e moved_to | while read pathe action filet; do echo $filet | xargs -I{} $@; done }
 alias netbeans='/usr/bin/netbeans'
+alias lasagna='countdown "14*60" && for i in {1..4}; do beep -l 500; sleep 0.5; done'
