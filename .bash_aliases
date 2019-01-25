@@ -276,3 +276,4 @@ alias clock='watch -t -n1 "date +"%H:%M"|figlet -f big"'
 alias cfn='v /home/nexor/.newsboat/config'
 alias cfN='v /home/nexor/.newsboat/urls'
 alias N='newsboat'
+function arf(){ echo "$@" >> ~/.newsboat/urls }
