@@ -100,7 +100,7 @@ handle_image() {
         # image/svg+xml)
         #     convert "${FILE_PATH}" "${IMAGE_CACHE_PATH}" && exit 6
         #     exit 1;;
-
+        # animation
         # Image
         image/*)
             local orientation
@@ -111,11 +111,14 @@ handle_image() {
                 # ...auto-rotate the image according to the EXIF data.
                 convert -- "${FILE_PATH}" -auto-orient "${IMAGE_CACHE_PATH}" && exit 6
             fi
+#             if [ $mimetype == "image/gif" ]; then
+#                 resolution="$(identify "${FILE_PATH}" | cut -d' ' -f3 | sed 1q)"
+#                 xwinwrap -g "$resolution" -ni -s -nf -b -un -argb -ov -- gifview -w WID ${FILE_PATH} -a &>/dev/null &
+#             fi
 
             # `w3mimgdisplay` will be called for all images (unless overriden as above),
             # but might fail for unsupported types.
             exit 7;;
-
         # Video
         # video/*)
         #     # Thumbnail
