@@ -275,3 +275,4 @@ alias lasagna='countdown "14*60" && for i in {1..4}; do beep -l 500; sleep 0.5; 
 alias clock='watch -t -n1 "date +"%H:%M"|figlet -f big"'
 alias cfn='v /home/nexor/.newsboat/config'
 alias cfN='v /home/nexor/.newsboat/urls'
+alias N='newsboat'
