@@ -17,10 +17,8 @@ alias r='ranger'
 alias r.='ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true" "$(if [ -z "$@" ]; then cat $HOME/.rangerdir; fi)";cd "`cat $HOME/.rangerdir`"'
 alias sr='sudo ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true" "$(if [ -z "$@" ]; then cat $HOME/.rangerdir; fi)";cd "`cat $HOME/.rangerdir`"'
 alias u='unp -U'
-alias unp='unp -U'
+alias unp='u'
 alias create-readme='cp $HOME/.README.md ./README.md && nvim README.md'
-alias sv='sudo -E nvim'
-alias v='nvim'
 alias vmutt='sudo -E vim $HOME/.muttrc'
 alias E='emacs -nw'
 # test .Xresources colors
@@ -39,7 +37,6 @@ function gacp(){ gac "${@:1}"; git push; }
 function gdc(){ git diff HEAD HEAD~1; }
 alias gs='git status'
 alias gco='git checkout'
-alias vp='nvim "$HOME/Dropbox/Sys4Bank - Programas Java/pendencias.txt"'
 alias srm='sudo rm'
 alias mkdir='mkdir -p'
 # terminal geographic map
@@ -171,6 +168,12 @@ function stopwatch(){ date1=`date +%s`; while true; do clear; echo -ne "$(date -
 alias sw='sudo wifi-menu'
 alias cfs='ranger ~/util/st/ && cd $_ && sudo make install'
 alias vtop='vtop -t seti'
+alias sv='sudo -E nvim'
+alias vc='co|v -'
+alias vC='co|xargs nvim'
+alias vh='nvim /home/nexor/.zsh_history'
+alias v='nvim'
+function vx(){ xxd $@ | v - }
 function fortune() { re '\[(.+)\]' ".vim/bundle/vim-startify/autoload/startify/fortune.vim" | shuf | head -n2; }
 function make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > $HOME/.ranger_aliases; }
 function ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1; }
@@ -182,7 +185,6 @@ function hl(){ hamachi list | sed -E '/\*/!d;/\s{2,}\*/!d;s/\s+\*\S+?\s+?\S+?\s+
 function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
 function ocsv() { cat "$@" | psc -k -d, | `wis sc` }
 alias sc='sc-im'
-alias ov='vim'
 function fv(){ find . -type f -name "*$@*" -exec nvim {} +  }
 function zt(){ tar -czvf $1".tar.gz" ${@:2} }
 function zz(){ zip -r  "$1".zip ${@:2} }
@@ -207,8 +209,6 @@ alias 2048='/home/nexor/util/bash2048/bash2048.sh'
 alias ws='watch stat'
 function vf(){ find . -iname "*$@*" | head -n1 | xargs nvim  }
 function vg(){ grep -ril "*$@*" | head -n1 | xargs nvim  }
-alias vc='co|v -'
-alias vC='co|xargs nvim'
 unalias gg
 function gg(){ git grep "$@" $(git rev-list --all) }
 alias nig='npm i -g'
@@ -226,7 +226,6 @@ alias agr='sudo apt-get remove'
 alias tnsd='tmux new-session -d sh -c'
 # alias ls='[ -x "$(command -v exa)" ] && exa || ls'
 alias wdu='watch -n 1 du -sh "*"'
-alias vh='nvim /home/nexor/.zsh_history'
 alias lh='less /home/nexor/.zsh_history'
 alias make-gource-mandragora='git --no-pager log --date=raw|g "^\s+.+|Date"|sed -E "s/Date:\s+//g"|sed "N;s/\n//"|sed -E "s/(\S+)\s-\S+\s+(.+)/\1|\2/g" > caption_file'
 alias tfl='tf *.log'
