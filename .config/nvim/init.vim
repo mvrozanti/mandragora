@@ -86,7 +86,7 @@ vnoremap <CR> c<CR>
 nnoremap <C-Tab> gK
 
 " Goyo
-map <F2> :Goyo 140x100<CR>
+map <F2> :Goyo 200x200<CR>
 " Case insensitive search by default
 map / /\c
 
@@ -201,7 +201,7 @@ nnoremap <F5> :call LanguageClient_contextMenu()<CR>
 " Or map each action separately
 nnoremap <silent> K :call LanguageClient#textDocument_hover()<CR>
 nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
-nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<CR>
+" nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<CR>
 
 " === LSP/ ===
 
