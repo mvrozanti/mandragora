@@ -43,7 +43,9 @@
     ".zprofile": "~/.zprofile",
     ".config/Dharkael/flameshot.ini": "~/.config/Dharkael/flameshot.ini",
     ".local/bin/gmp": "~/.local/bin/gmp",
-    ".irssi/config": "~/.irssi/config"
+    ".irssi/config": "~/.irssi/config",
+    ".newsboat/urls": "~/.newsboat/urls",
+    ".newsboat/config": "~/.newsboat/config"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
