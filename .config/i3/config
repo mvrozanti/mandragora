@@ -79,12 +79,12 @@ for_window  [title="todo"]                floating enable;             \
 #  |_| |_|  \___|\__, |\__,_|\___|_| |_|\__|
 #                   |_|
 
-$bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp
-$bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp -s visualizer
+$bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || kitty --name ncmpcpp -o background_opacity=.78 --title ncmpcpp -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ncmpcpp"
+$bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || kitty --name ncmpcpp -o background_opacity=.36 --title ncmpcpp -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ncmpcpp -s visualizer"
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  zsh             || kitty --title zsh --name zsh
 $bind $mod+Shift+3                                              $ensid wmctrl -xa tmux            || kitty
 $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
-$bind $mod+m                                                    $ensid wmctrl -a  cmatrix          || kitty --name cmatrix -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && cmatrix"
+$bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && cmatrix"
 $bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  ranger          || kitty --name ranger  -o background_opacity=.78 --title ranger -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ranger"
 $bind $mod+Shift+Return                                         $ensid                               kitty sh -c 'cat /home/nexor/.cache/wal/sequences && ranger'
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || kitty --name youtube-curses -o background_opacity=.78 --title youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
