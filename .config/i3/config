@@ -151,10 +151,10 @@ $bind $mod+Left                focus left
 $bind $mod+Down                focus down
 $bind $mod+Up                  focus up
 $bind $mod+Right               focus right
-$bind $mod+Shift+h             move left  30 px
-$bind $mod+Shift+j             move down  30 px
-$bind $mod+Shift+k             move up    30 px
-$bind $mod+Shift+l             move right 30 px
+$bind $mod+Shift+h             move left  70 px
+$bind $mod+Shift+j             move down  70 px
+$bind $mod+Shift+k             move up    70 px
+$bind $mod+Shift+l             move right 70 px
 $bind $mod+Shift+Left          move left  10 px
 $bind $mod+Shift+Down          move down  10 px
 $bind $mod+Shift+Up            move up    10 px
@@ -303,7 +303,7 @@ gaps outer 0
 # focused border width
 default_border pixel 1
 
-set $mode_gaps Gaps: (o) outer, (i) inner, (I) sexy, (1) performance
+set $mode_gaps Gaps: (o) outer, (i) inner, (I) sexy, (0) performance
 set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
 set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
 $bind $mod+Shift+g mode "$mode_gaps"
