@@ -1,3 +1,4 @@
+unalias sd
 alias rm='rm -f'
 # alias ll='ls -alFh'
 # alias la='ls -la'
@@ -176,7 +177,7 @@ function ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE14
 alias wt='watch -n 1 tree'
 function wtg(){ watch -n 1 "tree | grep $@" }
 alias wcat='watch -n 1 cat'
-function hl(){ hamachi list | tail -n +2 | grep '\*' | grep -o '(\S+)\s+([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})\s' }
+function hl(){ hamachi list | sed -E '/\*/!d;/\s{2,}\*/!d;s/\s+\*\S+?\s+?\S+?\s+?(\S+)\s+(\S+).+$/\1 \2/g' }
 # function whl(){ watch hl }
 function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
 function ocsv() { cat "$@" | psc -k -d, | `wis sc` }
@@ -236,7 +237,6 @@ alias sxiv='sxiv -ab'
 alias i='sxiv -ft *'
 function hextv(){ while true; do kek=`head /dev/urandom|tr -dc A-Za-z0-9|head -c $1`;e $kek|xxd;sleep $2;done }
 alias ci='cargo install'
-unalias sd
 alias cfrc='nvim $HOME/.config/ranger/rc.conf'
 alias cfri='nvim $HOME/.config/ranger/rifle.conf'
 alias cfrs='nvim $HOME/.config/ranger/scope.sh'
