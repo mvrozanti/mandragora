@@ -92,8 +92,9 @@ $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a
 $bind $mod+braceleft                                            $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal2 -o font_size=24 --title khal2 -e sh  -c "khal interactive"
 $bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal_ -o font_size=13 --title khal_ -e sh  -c "khal interactive"
 $bind Ctrl+Shift+Escape                                         $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e sh -c 'cat /home/nexor/.cache/wal/sequences && gotop'
-$bind $mod+v          split toggle;                             $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e sh -c 'cat /home/nexor/.cache/wal/sequences && gotop'
-$bind $mod+i                                                    $ensid wmctrl -a  iftop           || kitty --name iftop sudo iftop -i eno1
+# $bind $mod+v          split toggle;                             $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e sh -c 'cat /home/nexor/.cache/wal/sequences && gotop'
+$bind $mod+i                                                    $ensid wmctrl -a  irssi           || kitty -o background_opacity=.78 --name irssi sh -c 'cat /home/nexor/.cache/wal/sequences && irssi'
+$bind $mod+Shift+i                                              $ensid wmctrl -a  iftop           || kitty --name iftop sudo iftop -i eno1
 $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox        || waterfox
 $bind $mod+Shift+1        workspace $ws1                        $ensid wmctrl -a  Browsing        || waterfox $waterfox_arg
 $bind $mod+Shift+v    split toggle;                             $ensid wmctrl -a  VirtualBox      || virtualbox
