@@ -164,7 +164,8 @@
     "flameshot",
     "irssi",
     "newsboat",
-    "inkscape"
+    "inkscape",
+    ".Xmodmap"
   ],
   "before_bak": [
     "zip -r ~/util/netbeans.zip ~/.netbeans/10.0/"
