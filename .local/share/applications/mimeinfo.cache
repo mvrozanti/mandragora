@@ -18,6 +18,7 @@ inode/directory=ranger.desktop;
 text/html=waterfox.desktop;
 text/plain=wine-extension-txt.desktop;
 audio/mpeg=mpv.desktop;
+video/mp4=mpv.desktop;
 x-scheme-handler/about=waterfox.desktop;
 x-scheme-handler/http=waterfox.desktop;
 x-scheme-handler/https=waterfox.desktop;
