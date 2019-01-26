@@ -90,6 +90,10 @@ bindkey '\e[4~' end-of-line
 bindkey "\e[7~" beginning-of-line
 bindkey "\e[8~" end-of-line
 
+# vi - thanks hoberto
+bindkey '\ek' up-history
+bindkey '\ej' down-history
+
 # rust
 export PATH="$PATH:$HOME/.cargo/bin"
 
