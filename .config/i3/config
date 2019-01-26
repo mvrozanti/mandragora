@@ -282,7 +282,7 @@ set_from_resource $color9 color9 #0f00f0
 
 client.focused          $color1 $color1 $color1 $color1 $color1
 client.focused_inactive $color0 $color0 $color0 $color0 $color0
-client.unfocused        $color2 $color2 $color2 $color2 $color2
+# client.unfocused        $color9 $color9 $color9 $color9 $color9
 client.urgent           $color3   $color3 #ffffff #900000 #900000
 client.placeholder      #000000 #0c0c0c #ffffff #000000 #0c0c0c
 client.background       #ffffff
