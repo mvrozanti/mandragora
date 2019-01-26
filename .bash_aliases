@@ -279,3 +279,4 @@ function arf(){ echo "$@" >> ~/.newsboat/urls }
 alias cfI='v ~/.irssi/config'
 alias help='echo no && read'
 alias t1='tail -n1'
+alias sl='ls'
