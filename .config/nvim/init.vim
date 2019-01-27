@@ -109,6 +109,7 @@ autocmd FileType javascript inoremap repl<tab> require('repl').start('> ').conte
 autocmd FileType javascript inoremap tr<tab> true
 autocmd FileType javascript inoremap fa<tab> false
 autocmd FileType javascript inoremap cl<tab> console.log()<Esc>i
+autocmd FileType javascript inoremap fn<tab> function(){<CR><+><CR>}<Esc>2kf(l
 autocmd FileType javascript inoremap she<tab> #!/usr/bin/env node
 
 " java shortcuts
@@ -185,17 +186,19 @@ nnoremap <S-K>      :5winc -<CR>
 "highlight Pmenu ctermfg=2 ctermbg=4 guifg=1 guibg=4
 
 " === LSP ===
-Plug 'autozimu/LanguageClient-neovim', {
-    \ 'branch': 'next',
-    \ 'do': 'bash install.sh',
-    \ }
+" Plug 'autozimu/LanguageClient-neovim', {
+"     \ 'branch': 'next',
+"     \ 'do': 'bash install.sh',
+"     \ }
+Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
+inoremap <silent><expr> <c-space> coc#refresh()
 
 set hidden
 
+"     \ 'javascript': ['/home/nexor/.npm/bin/javascript-typescript-stdio'],
 let g:LanguageClient_serverCommands = {
     \ 'rust': ['~/.cargo/bin/rustup', 'run', 'stable', 'rls'],
-    \ 'javascript': ['/home/nexor/.npm/bin/javascript-typescript-stdio'],
-    \ 'javascript.jsx': ['tcp://127.0.0.1:2089'],
+    \ 'javascript': ['tcp://127.0.0.1:2089'],
     \ 'python': ['/usr/local/bin/pyls'],
     \ }
 
@@ -279,11 +282,9 @@ Plug 'davidhalter/jedi-vim'
 set completeopt=longest,menuone,preview
 " let g:OmniSharp_proc_debug = 1
 " let g:OmniSharp_server_use_mono = 1
-" Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
 " inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
 " inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 " inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-" inoremap <silent><expr> <c-space> coc#refresh()
 " inoremap <silent><expr> <TAB>
 "       \ pumvisible() ? "\<C-n>" :
 "       \ <SID>check_back_space() ? "\<TAB>" :
@@ -398,7 +399,7 @@ autocmd FileType mail                                               let b:commen
 autocmd FileType vim                                                let b:comment_leader = '" '
 autocmd FileType lisp                                               let b:comment_leader = '; '
 autocmd FileType javascript                                         let b:run_script = '!clear;xvkbd -window Firefox -text "\Cr" && xdotool keydown alt key Tab; sleep 2.001; xdotool keyup alt'
-autocmd FileType javascript                                         set omnifunc=javascriptcomplete#CompleteJS
+" autocmd FileType javascript                                         set omnifunc=javascriptcomplete#CompleteJS
 let g:EclimCompletionMethod = 'omnifunc'
 autocmd FileType python                                             let b:run_script = '! clear;python3 %'
 autocmd FileType python                                             let g:pymode_python = 'python3'
@@ -505,5 +506,5 @@ set fillchars+=vert:│
 	autocmd   FileType   tex        inoremap   col<Tab> \begin{columns}[T]<Enter>\begin{column}{.5\textwidth}<Enter><Enter>\end{column}<Enter>\begin{column}{.5\textwidth}<Enter><+><Enter>\end{column}<Enter>\end{columns}<Esc>5kA
 	autocmd   FileType   tex        inoremap   rn<Tab> (\ref{})<+><Esc>F}i
 
-map <C-x> <Nop>
+" map <C-x> <Nop>
 set guicursor=i:100-bCursor
