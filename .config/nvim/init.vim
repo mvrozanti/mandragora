@@ -109,6 +109,7 @@ autocmd FileType javascript inoremap repl<tab> require('repl').start('> ').conte
 autocmd FileType javascript inoremap tr<tab> true
 autocmd FileType javascript inoremap fa<tab> false
 autocmd FileType javascript inoremap cl<tab> console.log()<Esc>i
+autocmd FileType javascript inoremap she<tab> #!/usr/bin/env node
 
 " java shortcuts
 autocmd FileType java inoremap psvm<tab> public static void main(String args[]){<CR>}
