@@ -18,6 +18,16 @@ set $mod Mod4
 set $ensid exec --no-startup-id
 set $bind bindsym
 set $font "Droid Sans Mono Slashed for Powerline"
+set_from_resource $color0 color0 #000000
+set_from_resource $color1 color1 #f0000f
+set_from_resource $color2 color2 #0f00f0
+set_from_resource $color3 color3 #00ff00
+set_from_resource $color4 color4 #00ff00
+set_from_resource $color5 color5 #0f00f0
+set_from_resource $color6 color6 #f0000f
+set_from_resource $color7 color7 #0f00f0
+set_from_resource $color8 color8 #00ff00
+set_from_resource $color9 color9 #0f00f0
 set $dmenu_looks -fn 'Droid Sans Mono for Powerline' -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300'
 $bind $mod+Shift+BackSpace  $ensid xset -display :0 dpms force on
 $bind $mod+Ctrl+BackSpace   $ensid sleep 1 && xset -display :0.0 dpms force off
@@ -27,7 +37,7 @@ $bind $mod+q                kill
 # $bind Mod1+Tab dafuqisthis> exec wmctrl -l | sed -E "s/.*$(hostname)(.*)/\1/g" | rev | cut -d '-' -f1 | rev  | dmenu $dmenu_looks | xargs wmctrl -a
 $bind Mod1+Tab              workspace back_and_forth
 $bind $mod+Shift+e          $ensid [[ `echo -e 'Exit i3\nDo not'|dmenu $dmenu_looks` == 'Exit i3' ]] && i3-msg exit
-$bind $mod+r                exec dmenu_run $dmenu_looks
+$bind $mod+r                exec dmenu_run -fn 'Droid Sans Mono for Powerline' -nb '#1e1e1e' -sf '#1e1e1e' -sb '$color8' -nf '$color9'
 
 #                       _
 #    ___ ___  _ __  ___| |_
@@ -269,16 +279,6 @@ $ensid $HOME/.fehbg
 popup_during_fullscreen smart
 floating_modifier Mod1
 font pango:Droid Sans Mono for Powerline11
-set_from_resource $color0 color0 #000000
-set_from_resource $color1 color1 #f0000f
-set_from_resource $color2 color2 #0f00f0
-set_from_resource $color3 color3 #00ff00
-set_from_resource $color4 color4 #00ff00
-set_from_resource $color5 color5 #0f00f0
-set_from_resource $color6 color6 #f0000f
-set_from_resource $color7 color7 #0f00f0
-set_from_resource $color8 color8 #00ff00
-set_from_resource $color9 color9 #0f00f0
 
 client.focused          $color1 $color1 $color1 $color1 $color1
 client.focused_inactive $color0 $color0 $color0 $color0 $color0
