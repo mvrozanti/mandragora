@@ -46,7 +46,8 @@
     ".irssi/config": "~/.irssi/config",
     ".newsboat/urls": "~/.newsboat/urls",
     ".newsboat/config": "~/.newsboat/config",
-    ".Xmodmap": "~/.Xmodmap"
+    ".Xmodmap": "~/.Xmodmap",
+    ".vimium": "~/.vimium"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
