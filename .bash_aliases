@@ -105,9 +105,9 @@ alias ali='apt list --installed'
 alias alsao2i='pacmd set-default-source "alsa_output.pci-0000_00_1b.0.analog-stereo.monitor"'
 alias alsai2i='pacmd set-default-source "alsa_input.pci-0000_00_1b.0.analog-stereo"'
 alias alsawat='pacmd list-sources|grep -A 5 \* '
-alias giquo='re "\"([^\"]+)"'
-alias gipar='re "\(([^\)]+)"'
-alias gip='re "((\d{1,3}\.){3}\d{1,3})"'
+# alias giquo='re "\"([^\"]+)"'
+# alias gipar='re "\(([^\)]+)"'
+# alias gip='re "((\d{1,3}\.){3}\d{1,3})"'
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
 alias cutecat='awk "{print $0; system(\"sleep .001\");}"'
@@ -119,7 +119,7 @@ alias mbtc='/mnt/4ADE1465DE144C17/gdrive/Programming/bash/mbtc/alerter.sh'
 alias rp='realpath -z'
 # short whereis for scripting
 function wis(){ whereis "$1" | cut -d':' -f2 | cut -d' ' -f2;}
-alias reip='re "\d+\.\d+\.\d+\.\d+"'
+# alias reip='re "\d+\.\d+\.\d+\.\d+"'
 alias ecdsa='ssh-keygen -l -f /etc/ssh/ssh_host_ecdsa_key.pub; ssh-keygen -l -f $_ -E md5'
 alias up2pi='rsync -a "`pwd`" torta:'
 # alias sumlines='python3 -c "import sys; print(eval("+".join(sys.stdin).replace("\n",""))"'
