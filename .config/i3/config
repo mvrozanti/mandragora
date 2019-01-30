@@ -185,13 +185,13 @@ $bind $mod+e                   layout toggle split
 $bind $mod+Ctrl+space          floating toggle; sticky enable
 $bind $mod+Shift+space         floating toggle resize set 800 600; move position 100 100
 $bind $mod+space               focus mode_toggle
-$bind Ctrl+$mod+h              resize shrink width  10 px or 10 ppt
-$bind Ctrl+$mod+j              resize shrink height 10 px or 10 ppt
+$bind Ctrl+$mod+h              resize shrink width  20 px or 20 ppt
+$bind Ctrl+$mod+j              resize shrink height 20 px or 20 ppt
+$bind Ctrl+$mod+k              resize grow   height 20 px or 20 ppt
+$bind Ctrl+$mod+l              resize grow   width  20 px or 20 ppt
 $bind Ctrl+$mod+Left           resize shrink width  10 px or 10 ppt
 $bind Ctrl+$mod+Down           resize shrink height 10 px or 10 ppt
 $bind Ctrl+$mod+Right          resize grow   width  10 px or 10 ppt
-$bind Ctrl+$mod+k              resize grow   height 10 px or 10 ppt
-$bind Ctrl+$mod+l              resize grow   width  10 px or 10 ppt
 $bind Ctrl+$mod+Up             resize grow   height 10 px or 10 ppt
 set $mode_resize Resize
 $bind $mod+Ctrl+r mode "$mode_resize"
