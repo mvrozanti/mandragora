@@ -54,6 +54,7 @@ $ensid unclutter -idle 1
 focus_follows_mouse no
 
 for_window  [class="Waterfox"]            move to workspace $ws1
+# for_window  [class="Firefox"]            move to workspace $ws1
 for_window  [title="^(\d+) WhatsApp$"]    move to workspace $ws3
 for_window  [title=".*Trello.*"]          move to workspace $ws7
 for_window  [title="Zoom"]                move to workspace $ws5
@@ -107,7 +108,9 @@ $bind Ctrl+Shift+Escape                                         $ensid wmctrl -a
 # $bind $mod+v          split toggle;                             $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e sh -c 'cat /home/nexor/.cache/wal/sequences && gotop'
 $bind $mod+i                                                    $ensid wmctrl -a  irssi           || kitty -o background_opacity=.78 --name irssi sh -c 'cat /home/nexor/.cache/wal/sequences && irssi'
 $bind $mod+Shift+i                                              $ensid wmctrl -a  iftop           || kitty --name iftop sudo iftop -i eno1
+$bind $mod+Shift+n                                              $ensid wmctrl -a  newsboat        || kitty -o background_opacity=.78 --name newsboat sh -c 'cat /home/nexor/.cache/wal/sequences && newsboat'
 $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox        || waterfox
+# $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Firefox         || firefox
 $bind $mod+Shift+1        workspace $ws1                        $ensid wmctrl -a  Browsing        || waterfox $waterfox_arg
 $bind $mod+Shift+v    split toggle;                             $ensid wmctrl -a  VirtualBox      || virtualbox
 $bind $mod+Shift+a                                              $ensid wmctrl -a  Android Studio  || android-studio
@@ -182,14 +185,14 @@ $bind $mod+e                   layout toggle split
 $bind $mod+Ctrl+space          floating toggle; sticky enable
 $bind $mod+Shift+space         floating toggle resize set 800 600; move position 100 100
 $bind $mod+space               focus mode_toggle
-$bind Ctrl+$mod+h              resize shrink width  30 px or 30 ppt
-$bind Ctrl+$mod+j              resize shrink height 30 px or 30 ppt
-$bind Ctrl+$mod+Left           resize shrink width  30 px or 30 ppt
-$bind Ctrl+$mod+Down           resize shrink height 30 px or 30 ppt
-$bind Ctrl+$mod+Right          resize grow   width  30 px or 30 ppt
-$bind Ctrl+$mod+k              resize grow   height 30 px or 30 ppt
-$bind Ctrl+$mod+l              resize grow   width  30 px or 30 ppt
-$bind Ctrl+$mod+Up             resize grow   height 30 px or 30 ppt
+$bind Ctrl+$mod+h              resize shrink width  10 px or 10 ppt
+$bind Ctrl+$mod+j              resize shrink height 10 px or 10 ppt
+$bind Ctrl+$mod+Left           resize shrink width  10 px or 10 ppt
+$bind Ctrl+$mod+Down           resize shrink height 10 px or 10 ppt
+$bind Ctrl+$mod+Right          resize grow   width  10 px or 10 ppt
+$bind Ctrl+$mod+k              resize grow   height 10 px or 10 ppt
+$bind Ctrl+$mod+l              resize grow   width  10 px or 10 ppt
+$bind Ctrl+$mod+Up             resize grow   height 10 px or 10 ppt
 set $mode_resize Resize
 $bind $mod+Ctrl+r mode "$mode_resize"
 mode "$mode_resize" {
