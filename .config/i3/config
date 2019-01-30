@@ -61,10 +61,10 @@ for_window  [title="Zoom"]                move to workspace $ws5
 for_window  [instance="^ranger$"]         move to workspace $ws8
 for_window  [class="mpv"]                 floating enable move right -500 move down -10
 for_window  [instance="portal"]           sticky enable floating enable move position 1000 200
-for_window  [instance="khal2"]            floating enable move position 100 100;\
+for_window  [instance="khal2"]            floating enable move position 50 50;\
                                             resize shrink width 10000px;         \
                                             resize shrink height 10000px;         \
-                                            resize grow width 1200px;              \
+                                            resize grow width 1500px;              \
                                             resize grow height 600px;               \
 for_window  [instance="khal_"]            move to workspace $ws2
 for_window  [title="gifview"]             floating enable
