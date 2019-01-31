@@ -285,5 +285,5 @@ alias enc='openssl aes-256-cbc -in - 2>/dev/null'
 alias dec='enc -d 2>/dev/null'
 alias t1a='t1 /home/nexor/.bash_aliases'
 alias scrot2imgur2cb='up2imgur $HOME/.scrot.png | c'
-hue(){ [[ -z $1$2 ]] && {echo kek && return} || cp $1 /tmp/mod_hue_000; ang=200; delay=1; for i in $(seq 1 $ang); do convert /tmp/mod_hue_000 -modulate 100,100,$i /tmp/mod_hue_$(printf "%03d\n" $i); done; convert -fuzz 30% -loop 0 -delay $delay /tmp/mod_hue* $2; }
+hue(){ [[ -z $1$2 ]] && {echo kek && return} || cp $1 /tmp/x_000; for i in $(seq 1 200); do convert /tmp/x_000 -modulate 100,100,$i /tmp/x_$(printf "%03d\n" $i); done; convert -fuzz 30% -loop 0 -delay 1 /tmp/x_* $2 }
 
