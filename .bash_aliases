@@ -204,7 +204,7 @@ alias ogg2wav='ffmpeg -i audio.ogg audio.wav'
 alias nudoku='nudoku -c'
 function cdd(){ cd `dirname $1` }
 alias pir='sudo pip uninstall'
-alias scrot2imgur='curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@"$HOME/.scrot.png | jq -r '.data.link' | xsel -i -b'
+function up2imgur(){ curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@$@" | jq -r '.data.link' }
 alias 2048='/home/nexor/util/bash2048/bash2048.sh'
 alias ws='watch stat'
 function vf(){ find . -iname "*$@*" | head -n1 | xargs nvim  }
@@ -284,3 +284,6 @@ alias burncd='o https://www.linuxquestions.org/questions/linux-newbie-8/how-to-b
 alias enc='openssl aes-256-cbc -in - 2>/dev/null'
 alias dec='enc -d 2>/dev/null'
 alias t1a='t1 /home/nexor/.bash_aliases'
+alias scrot2imgur2cb='up2imgur $HOME/.scrot.png | c'
+hue(){ [[ -z $1$2 ]] && {echo kek && return} || cp $1 /tmp/mod_hue_000; ang=200; delay=1; for i in $(seq 1 $ang); do convert /tmp/mod_hue_000 -modulate 100,100,$i /tmp/mod_hue_$(printf "%03d\n" $i); done; echo converting...; convert -fuzz 30% -loop 0 -delay $delay /tmp/mod_hue* $2; }
+
