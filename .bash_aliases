@@ -30,11 +30,11 @@ alias gfd='git fetch origin; git diff master'
 alias gD='git diff HEAD HEAD~1'
 alias gc='git clone'
 unalias gr
-function gr(){ fileh="$@"; git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
-function gac(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; }
-function gacp(){ gac "${@:1}"; git push; }
-#function gacdp(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; gd; git push; }
-function gdc(){ git diff HEAD HEAD~1; }
+gr(){ fileh="$@"; git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
+gac(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; }
+gacp(){ gac "${@:1}"; git push; }
+#gacdp(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; gd; git push; }
+gdc(){ git diff HEAD HEAD~1; }
 alias gs='git status'
 alias gco='git checkout'
 alias srm='sudo rm'
@@ -89,7 +89,7 @@ alias rsync='rsync -a --info=progress2'
 # open in existing browser window
 alias waterfox='[[ $(ps aux|grep -c waterfox) -eq 1 ]] && waterfox || waterfox -new-tab'
 alias R='R --silent '
-function mp42gif(){ mp4_file="$@"; mkdir -p animation_frames; ffmpeg -i "$mp4_file" -r 5 "animation_frames/frame-%03d.jpg"; convert -delay 20 -loop 0 animation_frames/*.jpg animation.gif; rm -r animation_frames }
+mp42gif(){ mp4_file="$@"; mkdir -p animation_frames; ffmpeg -i "$mp4_file" -r 5 "animation_frames/frame-%03d.jpg"; convert -delay 20 -loop 0 animation_frames/*.jpg animation.gif; rm -r animation_frames }
 alias acs='apt-cache search'
 alias lisp='clisp --silent'
 alias pa='ps aux|grep'
@@ -112,43 +112,43 @@ alias alsawat='pacmd list-sources|grep -A 5 \* '
 #   sleep 10; alert
 alias cutecat='awk "{print $0; system(\"sleep .001\");}"'
 #   text to speech:
-function tts(){ printf "(SayText "`cat -`")" | festival -i;}
-function vapor(){ vapore="`cat -`"; n=1;if [[ "$1" == "-n" ]]; then n=$2;fi;for i in {1..$n};do vapore="`echo $vapore | sed -r 's/(.)/\1 /g'`";done;echo $vapore; }
+tts(){ printf "(SayText "`cat -`")" | festival -i;}
+vapor(){ vapore="`cat -`"; n=1;if [[ "$1" == "-n" ]]; then n=$2;fi;for i in {1..$n};do vapore="`echo $vapore | sed -r 's/(.)/\1 /g'`";done;echo $vapore; }
 alias d='trash'
 alias mbtc='/mnt/4ADE1465DE144C17/gdrive/Programming/bash/mbtc/alerter.sh'
 alias rp='realpath -z'
 # short whereis for scripting
-function wis(){ whereis "$1" | cut -d':' -f2 | cut -d' ' -f2;}
+wis(){ whereis "$1" | cut -d':' -f2 | cut -d' ' -f2;}
 # alias reip='re "\d+\.\d+\.\d+\.\d+"'
 alias ecdsa='ssh-keygen -l -f /etc/ssh/ssh_host_ecdsa_key.pub; ssh-keygen -l -f $_ -E md5'
 alias up2pi='rsync -a "`pwd`" torta:'
 # alias sumlines='python3 -c "import sys; print(eval("+".join(sys.stdin).replace("\n",""))"'
 # alias backup='rsync -e "ssh -p 22" -avzp /home/nexor/kekao 25.25.25.25:'
-function tf() { tail -f "$1" 2>&1 | perl -ne 'if (/file truncated/) {system 'clear'; print} else {print}'; }
-function t2d(){ timestamp="`cat -`"; date -d "@$timestamp"; }
-function knock(){ nc -z -w3 "$1" "$2"; echo $?; }
+tf() { tail -f "$1" 2>&1 | perl -ne 'if (/file truncated/) {system 'clear'; print} else {print}'; }
+t2d(){ timestamp="`cat -`"; date -d "@$timestamp"; }
+knock(){ nc -z -w3 "$1" "$2"; echo $?; }
 # exit code of arg
-function ec() { [[ "$1" == "-h" ]] && { shift && eval $* > /dev/null 2>&1; ec=$?; echo $ec; } || eval $*; ec=$?; }
-function sshasap(){ while [[ `nc -z -w1 "$1" 22` -gt 0 ]]; do sleep 1; done; beep ssh "$1"; }
-# function copa(){ kek="$(curl -s http://worldcup.sfg.io/matches/current)"; echo -n $kek|jq '.[0].home_team.goals'|tr -d '\n'; echo -n 'x'; echo $kek|jq '.[0].away_team.goals'; }
+ec() { [[ "$1" == "-h" ]] && { shift && eval $* > /dev/null 2>&1; ec=$?; echo $ec; } || eval $*; ec=$?; }
+sshasap(){ while [[ `nc -z -w1 "$1" 22` -gt 0 ]]; do sleep 1; done; beep ssh "$1"; }
+# copa(){ kek="$(curl -s http://worldcup.sfg.io/matches/current)"; echo -n $kek|jq '.[0].home_team.goals'|tr -d '\n'; echo -n 'x'; echo $kek|jq '.[0].away_team.goals'; }
 alias diff='diff --color=auto'
 alias fslint='/usr/share/fslint/fslint/fslint'
 alias stream='pkill darkice; alsao2i; tmux new -d darkice'
 # for real time READMEs editing:
 alias grip='wmctrl -a waterfox && st -e tmux -c "stty -ixon && nvim *.md" & grip -b --wide'
-function cdt(){ wis_smth="`wis "$1"`"; abs_path="`readlink -f "$wis_smth"`"; cd `dirname "$abs_path"`; }
+cdt(){ wis_smth="`wis "$1"`"; abs_path="`readlink -f "$wis_smth"`"; cd `dirname "$abs_path"`; }
 alias filesize='du -h'
-function aa(){ [[ ! -z $1 && ! -z $2 ]] && echo "alias $1='${@:2}'" >> $HOME/.bash_aliases; }
-function domany() { if [[ "$1" == "-n" ]]; then n=$2; else n=99999; fi; cmd="${@:3}"; for i in {1..$n}; do sh -c $cmd; done; }
-function vw() { nvim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
-function svw() { sudo -E nvim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
-function wi(){ wal --saturate 1.0 -i "${@:1}"; }
+aa(){ [[ ! -z $1 && ! -z $2 ]] && echo "alias $1='${@:2}'" >> $HOME/.bash_aliases; }
+domany() { if [[ "$1" == "-n" ]]; then n=$2; else n=99999; fi; cmd="${@:3}"; for i in {1..$n}; do sh -c $cmd; done; }
+vw() { nvim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
+svw() { sudo -E nvim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
+wi(){ wal --saturate 1.0 -i "${@:1}"; }
 alias biggest-files='du -hsx *|sudo sort -rh|head -10'
 alias lg='lazygit'
 alias pwdc="pwd | tr -d '\n' | xsel -i -b"
 alias scrot='scrot ~/.scrot.png'
-# function f(){ sudo find . -iname "*$@*"; }
-function cdf(){ cd `find . -iname "*$@*" | head -n1`; }
+# f(){ sudo find . -iname "*$@*"; }
+cdf(){ cd `find . -iname "*$@*" | head -n1`; }
 alias curpos="cnee --record --mouse | awk  '/7,4,0,0,1/ { system(\"xdotool getmouselocation\") }'"
 alias p3u='pip3 uninstall'
 alias p3u='pip3 uninstall'
@@ -156,15 +156,15 @@ alias p3i='pip3 install --user'
 alias p2i='pip2 install --user'
 alias p3r='pip3 uninstall'
 alias p3r='pip2 uninstall'
-function cnt() { echo $1 | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -g -o "$noext" ${@:2} && clear && ./"$noext"'; }
-function cntr() { echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && sh -c "$noext || :"'; }
-function centr() { ls *.c* | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
-function pentr() { [[ -z $1 ]] && ls *.py* | entr /_ $@ || echo $1 | entr /_ }
-function mentr() { ls *.* | entr "make clean; make" }
+cnt() { echo $1 | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -g -o "$noext" ${@:2} && clear && ./"$noext"'; }
+cntr() { echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && sh -c "$noext || :"'; }
+centr() { ls *.c* | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
+pentr() { [[ -z $1 ]] && ls *.py* | entr /_ $@ || echo $1 | entr /_ }
+mentr() { ls *.* | entr "make clean; make" }
 alias dotty='$HOME/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
-function countdown(){ date1=$((`date +%s` + $1)); while [ "$date1" -ge `date +%s` ]; do clear; echo -ne "$(date -u --date @$(($date1 - `date +%s`)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
-function stopwatch(){ date1=`date +%s`; while true; do clear; echo -ne "$(date -u --date @$((`date +%s` - $date1)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
+countdown(){ date1=$((`date +%s` + $1)); while [ "$date1" -ge `date +%s` ]; do clear; echo -ne "$(date -u --date @$(($date1 - `date +%s`)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
+stopwatch(){ date1=`date +%s`; while true; do clear; echo -ne "$(date -u --date @$((`date +%s` - $date1)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
 alias sw='sudo wifi-menu'
 alias cfs='ranger ~/util/st/ && cd $_ && sudo make install'
 alias vtop='vtop -t seti'
@@ -173,21 +173,21 @@ alias vc='co|v -'
 alias vC='co|xargs nvim'
 alias vh='nvim /home/nexor/.zsh_history'
 alias v='nvim'
-function vx(){ xxd $@ | v - }
-function fortune() { re '\[(.+)\]' ".vim/bundle/vim-startify/autoload/startify/fortune.vim" | shuf | head -n2; }
-function make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > $HOME/.ranger_aliases; }
-function ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1; }
+vx(){ xxd $@ | v - }
+fortune() { re '\[(.+)\]' ".vim/bundle/vim-startify/autoload/startify/fortune.vim" | shuf | head -n2; }
+make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > $HOME/.ranger_aliases; }
+ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1; }
 alias wt='watch -n 1 tree'
-function wtg(){ watch -n 1 "tree | grep $@" }
+wtg(){ watch -n 1 "tree | grep $@" }
 alias wcat='watch -n 1 cat'
-function hl(){ hamachi list | sed -E '/\*/!d;/\s{2,}\*/!d;s/\s+\*\S+?\s+?\S+?\s+?(\S+)\s+(\S+).+$/\1 \2/g' }
-# function whl(){ watch hl }
-function coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
-function ocsv() { cat "$@" | psc -k -d, | `wis sc` }
+hl(){ hamachi list | sed -E '/\*/!d;/\s{2,}\*/!d;s/\s+\*\S+?\s+?\S+?\s+?(\S+)\s+(\S+).+$/\1 \2/g' }
+# whl(){ watch hl }
+coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
+ocsv() { cat "$@" | psc -k -d, | `wis sc` }
 alias sc='sc-im'
-function fv(){ find . -type f -name "*$@*" -exec nvim {} +  }
-function zt(){ tar -czvf $1".tar.gz" ${@:2} }
-function zz(){ zip -r  "$1".zip ${@:2} }
+fv(){ find . -type f -name "*$@*" -exec nvim {} +  }
+zt(){ tar -czvf $1".tar.gz" ${@:2} }
+zz(){ zip -r  "$1".zip ${@:2} }
 alias less='bat'
 alias py='python'
 alias S='du -sh'
@@ -202,20 +202,20 @@ alias jn='jupyter notebook'
 alias wav2ogg='oggenc -q 3 -o file.ogg'
 alias ogg2wav='ffmpeg -i audio.ogg audio.wav'
 alias nudoku='nudoku -c'
-function cdd(){ cd `dirname $1` }
+cdd(){ cd `dirname $1` }
 alias pir='sudo pip uninstall'
-function up2imgur(){ curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@$@" | jq -r '.data.link' }
+up2imgur(){ curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@$@" | jq -r '.data.link' }
 alias 2048='/home/nexor/util/bash2048/bash2048.sh'
 alias ws='watch stat'
-function vf(){ find . -iname "*$@*" | head -n1 | xargs nvim  }
-function vg(){ grep -ril "*$@*" | head -n1 | xargs nvim  }
+vf(){ find . -iname "*$@*" | head -n1 | xargs nvim  }
+vg(){ grep -ril "*$@*" | head -n1 | xargs nvim  }
 unalias gg
-function gg(){ git grep "$@" $(git rev-list --all) }
+gg(){ git grep "$@" $(git rev-list --all) }
 alias nig='npm i -g'
 alias tron='ssh sshtron.zachlatta.com'
 alias empty-trash='rm -rf $HOME/.local/share/Trash/*'
 alias fsw='fswatch .'
-function isprime(){ if [[ $1 -eq 2 ]]||[[ $1 -eq 3 ]];then return 0;fi;if [[ $(($1 % 2)) -eq 0 ]]||[[ $(($1 % 3)) -eq 0 ]];then return 1;fi;i=5;w=2;while [[ $((i * i)) -le $1 ]];do if [[ $(($1 % i)) -eq 0 ]];then return 1;fi;i=$((i + w));w=$((6 - w));done;return 0; }
+isprime(){ if [[ $1 -eq 2 ]]||[[ $1 -eq 3 ]];then return 0;fi;if [[ $(($1 % 2)) -eq 0 ]]||[[ $(($1 % 3)) -eq 0 ]];then return 1;fi;i=5;w=2;while [[ $((i * i)) -le $1 ]];do if [[ $(($1 % i)) -eq 0 ]];then return 1;fi;i=$((i + w));w=$((6 - w));done;return 0; }
 alias sdf='ssh mvrozanti@sdf.org'
 alias wip='dig +short myip.opendns.com @resolver1.opendns.com'
 alias ms='ssh play@anonymine-demo.oskog97.com -p 2222'
@@ -234,17 +234,17 @@ alias cfK='nvim /home/nexor/.config/kitty/startup_session.kit'
 alias ki='khal interactive'
 alias sxiv='sxiv -ab'
 alias i='sxiv -ft *'
-function hextv(){ while true; do kek=`head /dev/urandom|tr -dc A-Za-z0-9|head -c $1`;e $kek|xxd;sleep $2;done }
+hextv(){ while true; do kek=`head /dev/urandom|tr -dc A-Za-z0-9|head -c $1`;e $kek|xxd;sleep $2;done }
 alias cfrc='nvim $HOME/.config/ranger/rc.conf'
 alias cfri='nvim $HOME/.config/ranger/rifle.conf'
 alias cfrs='nvim $HOME/.config/ranger/scope.sh'
 alias cfrd='nvim $HOME/.config/ranger/devicons.sh'
 alias k='kitty'
-# function cfcr(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sd $HOME'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf|sd $HOME'(.*)' '~$1' || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json" | sponge $HOME"/mandragora/.dottyrc.json" }
-function cfcf(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sd $HOME'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf|sd $HOME'(.*)' '~$1' || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json" | sponge $HOME"/mandragora/.dottyrc.json" }
-function cfcu(){ to_remove="$1"; [[ ! -z $to_remove ]] && removed_array="`jq '.install|map(select(.!="'$to_remove'"))' $HOME"/mandragora/.dottyrc.json"`" && jq .install="$removed_array" $HOME"/mandragora/.dottyrc.json" | sponge ~/mandragora/.dottyrc.json }
-function cfci(){ jq '.install |= . + ["'$1'"]' ~/mandragora/.dottyrc.json | sponge ~/mandragora/.dottyrc.json }
-function lnb(){ fpath="$1"; dst="$2"; sudo ln -s `realpath $fpath` ~/.local/bin/`[[ -z "$dst" ]] && echo $fpath|cut -f 1 -d '.' || echo $2` }
+# cfcr(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sd $HOME'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf|sd $HOME'(.*)' '~$1' || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json" | sponge $HOME"/mandragora/.dottyrc.json" }
+cfcf(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sd $HOME'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf|sd $HOME'(.*)' '~$1' || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json" | sponge $HOME"/mandragora/.dottyrc.json" }
+cfcu(){ to_remove="$1"; [[ ! -z $to_remove ]] && removed_array="`jq '.install|map(select(.!="'$to_remove'"))' $HOME"/mandragora/.dottyrc.json"`" && jq .install="$removed_array" $HOME"/mandragora/.dottyrc.json" | sponge ~/mandragora/.dottyrc.json }
+cfci(){ jq '.install |= . + ["'$1'"]' ~/mandragora/.dottyrc.json | sponge ~/mandragora/.dottyrc.json }
+lnb(){ fpath="$1"; dst="$2"; sudo ln -s `realpath $fpath` ~/.local/bin/`[[ -z "$dst" ]] && echo $fpath|cut -f 1 -d '.' || echo $2` }
 alias cfD='nvim /home/nexor/mandragora/dotty/dotty.py'
 alias grow='[[ `git -C ~/mandragora pull|wc -l` -eq 1 ]] || ~/mandragora/dotty/dotty.py -f -r && git -C ~/mandragora submodule update --recursive --remote'
 alias oc='mpv /dev/video0'
@@ -256,25 +256,25 @@ alias SA='pacat -r | nc -l -p 2718'
 alias RA='nc `[[ $(hostname) == mndrgr2 ]] && echo mndrgr || echo mndrgr2` 2718 | aplay -c 2 -f S16_LE -r 44100'
 alias RV='nc mndrgr2 2717 | mpv - -cache 512'
 alias wS='watch du -sh'
-function servesingle(){ [[ ! -z $1 ]] && { filepath=`realpath $1` &&  echo -ne "HTTP/1.0 200 OK\r\nContent-Disposition: filename=\"`basename $filepath`\"\nContent-Length: $(wc -c <$filepath)\r\n\r\n"; cat $filepath; } | nc -l -p 2717 }
+servesingle(){ [[ ! -z $1 ]] && { filepath=`realpath $1` &&  echo -ne "HTTP/1.0 200 OK\r\nContent-Disposition: filename=\"`basename $filepath`\"\nContent-Length: $(wc -c <$filepath)\r\n\r\n"; cat $filepath; } | nc -l -p 2717 }
 alias sctl='sudo systemctl'
 alias GD='git daemon --base-path=. --export-all'
 alias blank='xset -display :0.0 dpms force off'
-function setbg(){ [[ -z $1 ]] && return 1; fpath=`realpath $1` ; [[ `echo $fpath | rev | cut -d"." -f1 | rev` = "gif" ]] && xwinwrap -g `xrandr | awk '/\*/{printf $1" "}'` -ni -s -nf -b -un -argb -ov -- gifview -w WID $fpath -a || wal -a 299 -i $fpath }
-function ra(){ [[ ! -z "$1" && ! -z "$2" ]] && sd -i 'alias '$1'=' 'alias '$2'=' $HOME/.bash_aliases && sd -i 'function '$1'\(\)' 'function '$2'()' $HOME/.bash_aliases }
+setbg(){ [[ -z $1 ]] && return 1; fpath=`realpath $1` ; [[ `echo $fpath | rev | cut -d"." -f1 | rev` = "gif" ]] && xwinwrap -g `xrandr | awk '/\*/{printf $1" "}'` -ni -s -nf -b -un -argb -ov -- gifview -w WID $fpath -a || wal -a 299 -i $fpath }
+ra(){ [[ ! -z "$1" && ! -z "$2" ]] && sd -i 'alias '$1'=' 'alias '$2'=' $HOME/.bash_aliases && sd -i ''$1'\(\)' ''$2'()' $HOME/.bash_aliases }
 alias I='uname -mrs'
 alias spsyyu='sudo pacman -Syyu'
 alias fuck='sudo'
 alias scan4sd='echo 1 | sudo tee /sys/bus/pci/rescan'
 alias sj='sudo journalctl'
-function onf(){ inotifywait -m . -e create -e moved_to | while read pathe action filet; do echo $filet | xargs -I{} $@; done }
+onf(){ inotifywait -m . -e create -e moved_to | while read pathe action filet; do echo $filet | xargs -I{} $@; done }
 alias netbeans='/usr/bin/netbeans'
 alias lasagna='countdown "14*60" && for i in {1..4}; do beep -l 500; sleep 0.5; done'
 alias clock='watch -t -n1 "date +"%H:%M"|figlet -f big"'
 alias cfn='v ~/.newsboat/config'
 alias cfN='v ~/.newsboat/urls'
 alias N='newsboat'
-function arf(){ echo "$@" >> ~/.newsboat/urls }
+arf(){ echo "$@" >> ~/.newsboat/urls }
 alias cfI='v ~/.irssi/config'
 alias help='echo no && read'
 alias t1='tail -n1'
@@ -285,5 +285,5 @@ alias enc='openssl aes-256-cbc -in - 2>/dev/null'
 alias dec='enc -d 2>/dev/null'
 alias t1a='t1 /home/nexor/.bash_aliases'
 alias scrot2imgur2cb='up2imgur $HOME/.scrot.png | c'
-hue(){ [[ -z $1$2 ]] && {echo kek && return} || cp $1 /tmp/mod_hue_000; ang=200; delay=1; for i in $(seq 1 $ang); do convert /tmp/mod_hue_000 -modulate 100,100,$i /tmp/mod_hue_$(printf "%03d\n" $i); done; echo converting...; convert -fuzz 30% -loop 0 -delay $delay /tmp/mod_hue* $2; }
+hue(){ [[ -z $1$2 ]] && {echo kek && return} || cp $1 /tmp/mod_hue_000; ang=200; delay=1; for i in $(seq 1 $ang); do convert /tmp/mod_hue_000 -modulate 100,100,$i /tmp/mod_hue_$(printf "%03d\n" $i); done; convert -fuzz 30% -loop 0 -delay $delay /tmp/mod_hue* $2; }
 
