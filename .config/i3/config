@@ -68,7 +68,7 @@ for_window  [instance="khal2"]            floating enable move position 50 50;\
                                             resize grow height 600px;               \
 for_window  [instance="khal_"]            move to workspace $ws2
 for_window  [title="gifview"]             floating enable
-assign      [title="zsh"]                 $ws2
+assign      [title="_zsh_"]               $ws2
 assign      [instance="cava"]             $ws2
 assign      [instance="cmatrix"]          $ws2
 assign      [class="NetBeans IDE "]       $ws6
@@ -94,7 +94,7 @@ $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a
 $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp -s visualizer
 # $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || kitty --name ncmpcpp -o background_opacity=.36 --title ncmpcpp -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ranger"
 # $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || kitty --name ncmpcpp -o background_opacity=.36 --title ncmpcpp -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ranger"
-$bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  zsh             || kitty --title zsh --name zsh
+$bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  _zsh_           || kitty --title _zsh_ --name _zsh_
 $bind $mod+Shift+3                                              $ensid wmctrl -xa tmux            || kitty
 $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && cmatrix"
