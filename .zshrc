@@ -5,7 +5,7 @@ export ZSH=$HOME/.oh-my-zsh
 ZSH_TMUX_AUTOSTART=true
 ZSH_TMUX_FIXTERM=true
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=12'
-ZSH_THEME="agnoster"
+ZSH_THEME="nexor"
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
