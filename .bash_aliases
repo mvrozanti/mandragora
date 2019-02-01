@@ -74,6 +74,7 @@ alias ka='killall'
 alias e='echo'
 alias c='xsel -i -b'
 alias co='xsel -o -b'
+alias coxw='co | xargs wget'
 alias P='curl -sF "sprunge=<-" http://sprunge.us'
 alias p='P | c'
 alias feh='feh -B black --scale-down --auto-zoom --sort mtime -. --action2 "rm %F" --action1 "realpath $PWD/%F | xsel -i -b"'
@@ -162,6 +163,7 @@ centr() { ls *.c* | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1
 pentr() { [[ -z $1 ]] && ls *.py* | entr /_ $@ || echo $1 | entr /_ }
 mentr() { ls *.* | entr "make clean; make" }
 xentr() { ls *.* | entr -p $@ /_ }
+alias entr='entr -p'
 alias dotty='$HOME/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
 countdown(){ date1=$((`date +%s` + $1)); while [ "$date1" -ge `date +%s` ]; do clear; echo -ne "$(date -u --date @$(($date1 - `date +%s`)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
@@ -286,6 +288,4 @@ alias enc='openssl aes-256-cbc -in - 2>/dev/null'
 alias dec='enc -d 2>/dev/null'
 alias t1a='t1 /home/nexor/.bash_aliases'
 alias scrot2imgur2cb='up2imgur $HOME/.scrot.png | c'
-hue(){ [[ -z $1$2 ]] && {echo kek && return} || cp $1 /tmp/x_000; for i in $(seq 1 200); do convert /tmp/x_000 -modulate 100,100,$i /tmp/x_$(printf "%03d\n" $i); done; convert -fuzz 30% -loop 0 -delay 1 /tmp/x_* $2 }
-
-alias coxw='co | xargs wget'
+hue(){ [[ -z $1 || -z $2 ]] && {echo kek && return} || cp $1 /tmp/hue_000;  for i in $(seq 1 200); do convert /tmp/hue_000 -modulate 100,100,$i /tmp/hue_$(printf "%03d\n" $i);  done;  echo creating gif; convert -loop 0 -delay 1 /tmp/hue_* $2; rm /tmp/hue_* };
