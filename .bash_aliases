@@ -161,7 +161,7 @@ cntr() { echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`
 centr() { ls *.c* | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
 pentr() { [[ -z $1 ]] && ls *.py* | entr /_ $@ || echo $1 | entr /_ }
 mentr() { ls *.* | entr "make clean; make" }
-xentr() { ls *.* | entr /_ }
+xentr() { ls *.* | entr -p $@ /_ }
 alias dotty='$HOME/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
 countdown(){ date1=$((`date +%s` + $1)); while [ "$date1" -ge `date +%s` ]; do clear; echo -ne "$(date -u --date @$(($date1 - `date +%s`)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
@@ -288,3 +288,4 @@ alias t1a='t1 /home/nexor/.bash_aliases'
 alias scrot2imgur2cb='up2imgur $HOME/.scrot.png | c'
 hue(){ [[ -z $1$2 ]] && {echo kek && return} || cp $1 /tmp/x_000; for i in $(seq 1 200); do convert /tmp/x_000 -modulate 100,100,$i /tmp/x_$(printf "%03d\n" $i); done; convert -fuzz 30% -loop 0 -delay 1 /tmp/x_* $2 }
 
+alias coxw='co | xargs wget'
