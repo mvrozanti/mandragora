@@ -48,7 +48,8 @@
     ".newsboat/config": "~/.newsboat/config",
     ".Xmodmap": "~/.Xmodmap",
     ".vimium": "~/.vimium",
-    ".local/share/applications/defaults.list": "~/.local/share/applications/defaults.list"
+    ".local/share/applications/defaults.list": "~/.local/share/applications/defaults.list",
+    ".oh-my-zsh/themes/nexor.zsh-theme": "~/.oh-my-zsh/themes/nexor.zsh-theme"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
