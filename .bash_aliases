@@ -288,4 +288,4 @@ alias enc='openssl aes-256-cbc -in - 2>/dev/null'
 alias dec='enc -d 2>/dev/null'
 alias t1a='t1 /home/nexor/.bash_aliases'
 alias scrot2imgur2cb='up2imgur $HOME/.scrot.png | c'
-hue(){ [[ -z $1 || -z $2 ]] && {echo kek && return} || cp $1 /tmp/hue_000;  for i in $(seq 1 200); do convert /tmp/hue_000 -modulate 100,100,$i /tmp/hue_$(printf "%03d\n" $i);  done;  echo creating gif; convert -loop 0 -delay 1 /tmp/hue_* $2; rm /tmp/hue_* };
+hue(){ [[ -z $1 || -z $2 ]] && {echo kek && return} || cp $1 /tmp/hue_000;  for i in $(seq 1 200); do convert -limit memory 32 -limit map 32 /tmp/hue_000 -modulate 100,100,$i /tmp/hue_$(printf "%03d\n" $i);  done;  echo creating gif; convert -loop 0 -delay 1 /tmp/hue_* $2; rm /tmp/hue_* };
