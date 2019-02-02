@@ -292,3 +292,4 @@ hue(){ [[ -z $1 || -z $2 ]] && {echo kek && return} || cp $1 hue_000;  for i in 
 alias cfS='v /home/nexor/.scimrc'
 reboot(){ [[ `echo -e 'Restart\nDo not'|dmenu -fn 'Droid Sans Mono for Powerline' -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300'` == 'Restart' ]] && reboot }
 ncp(){ [[ -z $1 ]] && echo kek || { md -p $1; cd $1; dotnew new console -o $1; dotnet new sln; dotnet sln add $1/$1.csproj } }
+alias cfZ='/home/nexor/.config/zathura/zathurarc'
