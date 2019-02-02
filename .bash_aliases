@@ -291,3 +291,4 @@ alias scrot2imgur2cb='up2imgur $HOME/.scrot.png | c'
 hue(){ [[ -z $1 || -z $2 ]] && {echo kek && return} || cp $1 hue_000;  for i in $(seq 1 200); do convert hue_000 -modulate 100,100,$i hue_$(printf "%03d\n" $i);  done;  echo creating gif; nice -20 convert -limit memory 4GB -limit map 4GB -define registry:temporary-path=/var/tmp -loop 0 -delay 1 hue_* $2; rm hue_* };
 alias cfS='v /home/nexor/.scimrc'
 reboot(){ [[ `echo -e 'Restart\nDo not'|dmenu -fn 'Droid Sans Mono for Powerline' -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300'` == 'Restart' ]] && reboot }
+ncp(){ [[ -z $1 ]] && echo kek || { md -p $1; cd $1; dotnew new console -o $1; dotnet new sln; dotnet sln add $1/$1.csproj } }
