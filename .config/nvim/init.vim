@@ -186,28 +186,9 @@ nnoremap <S-K>      :5winc -<CR>
 "highlight Pmenu ctermfg=2 ctermbg=4 guifg=1 guibg=4
 
 " === LSP ===
-" Plug 'autozimu/LanguageClient-neovim', {
-"     \ 'branch': 'next',
-"     \ 'do': 'bash install.sh',
-"     \ }
 Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
 inoremap <silent><expr> <c-space> coc#refresh()
-
 set hidden
-
-"     \ 'javascript': ['/home/nexor/.npm/bin/javascript-typescript-stdio'],
-let g:LanguageClient_serverCommands = {
-    \ 'rust': ['~/.cargo/bin/rustup', 'run', 'stable', 'rls'],
-    \ 'javascript': ['tcp://127.0.0.1:2089'],
-    \ 'python': ['/usr/local/bin/pyls'],
-    \ }
-
-nnoremap <F5> :call LanguageClient_contextMenu()<CR>
-" Or map each action separately
-nnoremap <silent> K :call LanguageClient#textDocument_hover()<CR>
-nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
-" nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<CR>
-
 " === LSP/ ===
 
 
@@ -222,7 +203,6 @@ Plug 'realincubus/vim-clang-refactor'
 " map y cp
 " map yy YY
 set clipboard=unnamed,unnamedplus
-"set paste " < does not work with jedi, but works w/ YCM
 " let g:system_copy#copy_command='xclip -sel clipboard -i'
 " let g:system_copy#paste_command='xclip -sel clipboard -o'
 
@@ -277,11 +257,15 @@ let g:startify_session_autoload = 1
 Plug 'mhinz/vim-signify'
 
 " ==== Completion
-Plug 'davidhalter/jedi-vim'
-" Plug 'OmniSharp/omnisharp-vim'
+Plug 'OmniSharp/omnisharp-vim'
+Plug 'markwoodhall/vim-nuget'
+Plug 'Shougo/deoplete.nvim'
+Plug 'mattn/webapi-vim'
+Plug 'junegunn/fzf.vim', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
 set completeopt=longest,menuone,preview
 " let g:OmniSharp_proc_debug = 1
-" let g:OmniSharp_server_use_mono = 1
+let g:OmniSharp_server_use_mono = 1
 " inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
 " inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 " inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
@@ -294,7 +278,6 @@ set completeopt=longest,menuone,preview
 "   return !col || getline('.')[col - 1]  =~ '\s'
 " endfunction
 
-" Plug 'davidhalter/jedi-vim'
 
 " ==== Git
 Plug 'airblade/vim-gitgutter'
