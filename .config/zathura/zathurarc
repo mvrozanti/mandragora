@@ -64,3 +64,4 @@ map <C-k> zoom in
 map <C-j> zoom out
 map [fullscreen] <C-k> zoom in
 map [fullscreen] <C-j> zoom out
+set selection-clipboard clipboard
