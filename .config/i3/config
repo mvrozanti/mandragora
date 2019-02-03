@@ -121,8 +121,7 @@ $bind $mod+b                                                    $ensid wmctrl -x
 $bind $mod+Shift+d                                              $ensid wmctrl -xa Netbeans        || /usr/bin/netbeans
 $bind $mod+z          workspace $ws5;                           $ensid wmctrl -a  Zoom            || zoom
 $bind $mod+Shift+f    workspace $ws3;                           $ensid wmctrl -a  WhatsApp        || whatsapp
-$bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a  Trello          || /usr/local/bin/pondfox https://trello.com/
-# $bind $mod+Shift+s  workspace $ws4;                           $ensid wmctrl -a "| Trello"       || electron $HOME/util/trello-desktop
+$bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a  Trello          || trello
 $bind $mod+Shift+w    workspace $ws11;                          $ensid wmctrl -xa thunderbird     || thunderbird
 $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
 $bind $mod+Shift+p                                              $ensid wmctrl -a zathura          || zathura
