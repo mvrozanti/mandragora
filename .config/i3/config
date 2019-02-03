@@ -91,7 +91,7 @@ for_window  [title="todo"]                floating enable;             \
 #  |_| |_|  \___|\__, |\__,_|\___|_| |_|\__|
 #                   |_|
 
-$bind $mod+0          fullscreen disable; split h;              $ensid wmctrl -a  _neomutt_       || st -e neomutt
+$bind $mod+0          fullscreen disable; split h;              $ensid wmctrl -a  _neomutt_       || st -t _neomutt_ -e neomutt
 $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp
 $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp -s visualizer
 # $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || kitty --name ncmpcpp -o background_opacity=.36 --title ncmpcpp -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ranger"
