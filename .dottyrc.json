@@ -51,7 +51,8 @@
     ".local/share/applications/defaults.list": "~/.local/share/applications/defaults.list",
     ".oh-my-zsh/themes/nexor.zsh-theme": "~/.oh-my-zsh/themes/nexor.zsh-theme",
     ".scimrc": "~/.scimrc",
-    ".config/mutt/muttrc": "~/.config/mutt/muttrc"
+    ".config/mutt/muttrc": "~/.config/mutt/muttrc",
+    ".config/mutt/etc/mailcap": "~/.config/mutt/etc/mailcap"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
