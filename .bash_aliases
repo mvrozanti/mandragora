@@ -294,4 +294,5 @@ reboot(){ [[ `echo -e 'Restart\nDo not'|dmenu -fn 'Droid Sans Mono for Powerline
 ncp(){ [[ -z $1 ]] && echo kek || { md -p $1; cd $1; dotnew new console -o $1; dotnet new sln; dotnet sln add $1/$1.csproj } }
 alias cfZ='v /home/nexor/.config/zathura/zathurarc'
 alias cfm='v /home/nexor/.config/mutt/muttrc'
+alias figlet='figlet -d ~/.config/figlet'
 alias leet='toilet -f .config/figlet/rusto'
