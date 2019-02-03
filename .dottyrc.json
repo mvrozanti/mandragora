@@ -178,7 +178,8 @@
     "parallel",
     "code",
     "offlineimap",
-    "pass"
+    "pass",
+    "urlscan"
   ],
   "excluded": [
     "hotmail.gpg"
