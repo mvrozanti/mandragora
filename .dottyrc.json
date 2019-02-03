@@ -52,7 +52,8 @@
     ".oh-my-zsh/themes/nexor.zsh-theme": "~/.oh-my-zsh/themes/nexor.zsh-theme",
     ".scimrc": "~/.scimrc",
     ".config/mutt/muttrc": "~/.config/mutt/muttrc",
-    ".config/mutt/etc/mailcap": "~/.config/mutt/etc/mailcap"
+    ".config/mutt/etc/mailcap": "~/.config/mutt/etc/mailcap",
+    ".config/figlet": "~/.config/figlet"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
