@@ -73,6 +73,7 @@ assign      [title="_zsh_"]               $ws2
 assign      [instance="cava"]             $ws2
 assign      [instance="cmatrix"]          $ws2
 assign      [class="NetBeans IDE "]       $ws6
+assign      [class="Visual Studio"]       $ws6
 assign      [title=".*Android Studio.*"]  $ws6
 assign      [title="Discord"]             $ws7
 assign      [instance="DBeaver"]          $ws10

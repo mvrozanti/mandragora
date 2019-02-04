@@ -2,8 +2,7 @@ unalias sd
 alias rm='rm -f'
 # alias ll='ls -alFh'
 # alias la='ls -la'
-# alias l='ls --sort=time'
-alias l=exa
+alias l='exa --reverse --sort=modified'
 alias watch='watch --color -n2'
 alias sp='sudo pacman'
 alias sps='sudo pacman -S'
