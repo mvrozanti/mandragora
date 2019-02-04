@@ -103,6 +103,9 @@ handle_image() {
         # animation
         # Image
         image/*)
+            if [ $mimetype == "image/gif" ]; then
+                exit 6
+            fi
             local orientation
             orientation="$( identify -format '%[EXIF:Orientation]\n' -- "${FILE_PATH}" )"
             # If orientation data is present and the image actually
