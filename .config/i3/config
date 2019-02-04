@@ -78,6 +78,7 @@ assign      [title=".*Android Studio.*"]  $ws6
 assign      [title="Discord"]             $ws7
 assign      [instance="DBeaver"]          $ws10
 assign      [title="Mozilla Thunderbird"] $ws11
+assign      [title="Skype"]               $ws11
 for_window  [title="todo"]                floating enable;             \
                                             resize shrink width 10000px;\
                                             resize shrink height 10000px;\
@@ -92,16 +93,17 @@ for_window  [title="todo"]                floating enable;             \
 #  |_| |_|  \___|\__, |\__,_|\___|_| |_|\__|
 #                   |_|
 
+# $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || kitty --name ncmpcpp -o background_opacity=.36 --title ncmpcpp -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ranger"
+# $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || kitty --name ncmpcpp -o background_opacity=.36 --title ncmpcpp -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ranger"
+$bind $mod+9          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  skype           || skypeforlinux
 $bind $mod+0          fullscreen disable; split h;              $ensid wmctrl -a  _neomutt_       || st -t _neomutt_ -e neomutt
 $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp
 $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp -s visualizer
-# $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || kitty --name ncmpcpp -o background_opacity=.36 --title ncmpcpp -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ranger"
-# $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || kitty --name ncmpcpp -o background_opacity=.36 --title ncmpcpp -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ranger"
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  _zsh_           || kitty --title _zsh_ --name _zsh_
-$bind $mod+Shift+3                                              $ensid wmctrl -xa tmux            || kitty
+$bind $mod+Shift+3                                              $ensid wmctrl -xa _tmux_          || kitty --title _tmux_
 $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && cmatrix"
-$bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  ranger          || kitty --name ranger  -o background_opacity=.78 --title ranger -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ranger"
+$bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ranger"
 $bind $mod+Shift+Return                                         $ensid                               kitty sh -c 'cat /home/nexor/.cache/wal/sequences && ranger'
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || kitty --name youtube-curses -o background_opacity=.78 --title youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
 $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || kitty -o background_opacity=.78 --name todo  -o font_size=13 --title todo  -e zsh -c "nvim $HOME/todo"
@@ -109,7 +111,7 @@ $bind $mod+braceleft                                            $ensid wmctrl -a
 $bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal_ -o font_size=13 --title khal_ -e sh  -c "cat /home/nexor/.cache/wal/sequences && khal interactive"
 $bind Ctrl+Shift+Escape                                         $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e sh -c 'cat /home/nexor/.cache/wal/sequences && gotop'
 # $bind $mod+v          split toggle;                             $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e sh -c 'cat /home/nexor/.cache/wal/sequences && gotop'
-$bind $mod+i                                                    $ensid wmctrl -a  irssi           || kitty -o background_opacity=.78 --name irssi sh -c 'cat /home/nexor/.cache/wal/sequences && irssi'
+$bind $mod+i                                                    $ensid wmctrl -a  _irssi_           || kitty -o background_opacity=.78 --name _irssi_ sh -c 'cat /home/nexor/.cache/wal/sequences && irssi'
 $bind $mod+Shift+i                                              $ensid wmctrl -a  iftop           || kitty --name iftop sudo iftop -i eno1
 $bind $mod+Shift+n                                              $ensid wmctrl -a  newsboat        || kitty -o background_opacity=.78 --name newsboat sh -c 'cat /home/nexor/.cache/wal/sequences && newsboat'
 $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox        || waterfox
