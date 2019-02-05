@@ -48,7 +48,7 @@ font-2 = unifont:fontformat=truetype:size=8:antialias=false;0
 font-3 = siji:pixelsize=10;1
 
 modules-left = i3
-modules-center = mpd
+modules-center =
 modules-right = filesystem xbacklight alsa memory cpu wlan eth temperature battery date powermenu
 
 tray-position = right
