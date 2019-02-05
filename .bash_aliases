@@ -98,7 +98,6 @@ alias lisp='clisp --silent'
 alias pa='ps aux|grep'
 # alias jsonify='python -m json.tool --sort-keys'
 alias jsonify='echo use jq instead /dev/stderr'
-
 alias iftop='sudo iftop -Nlp'
 alias cava='cava -p $HOME/.config/cava/config'
 alias usdbrl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=USD_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
@@ -162,7 +161,7 @@ alias p3r='pip2 uninstall'
 cnt() { echo $1 | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -g -o "$noext" ${@:2} && clear && ./"$noext"'; }
 cntr() { echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && sh -c "$noext || :"'; }
 centr() { ls *.c* | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
-pentr() { [[ -z $1 ]] && ls *.py* | entr -c /_ $@ || echo $1 | entr /_ }
+pentr() { [[ -z $1 ]] && ls *.py* | entr -rc /_ $@ || echo $1 | entr /_ }
 mentr() { ls *.* | entr "make clean; make" }
 xentr() { ls *.* | entr -p $@ /_ }
 alias entr='entr -p'
@@ -208,7 +207,9 @@ alias ogg2wav='ffmpeg -i audio.ogg audio.wav'
 alias nudoku='nudoku -c'
 cdd(){ cd `dirname $1` }
 alias pir='sudo pip uninstall'
-up2imgur(){ curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@$@" | jq -r '.data.link' }
+up2imgur(){ curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@$@" }
+up2giphy(){ curl -s -X POST --url https://upload.giphy.com/v1/gifs -H "api_key: $giphy_client_id" -F "file=@$@" | jq .data.id |xargs -i echo https://i.giphy.com/media/{}/source.gif }
+up2gfycat(){ [[ -z $1 ]] && return || { json_data=`curl -s -XPOST https://api.gfycat.com/v1/gfycats`; [[ `echo $json_data|jq .isOk` ]] || return ; gfyname=`echo $json_data|jq -r .gfyname`; secret=`echo $json_data|jq .secret`; cp $1 /tmp/$gfyname; curl -s -i https://filedrop.gfycat.com --upload-file /tmp/$gfyname 2>&1 >/dev/null; echo https://gfycat.com/$gfyname } }
 alias 2048='/home/nexor/util/bash2048/bash2048.sh'
 alias ws='watch stat'
 vf(){ find . -iname "*$@*" | head -n1 | xargs nvim  }

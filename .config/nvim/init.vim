@@ -134,7 +134,7 @@ autocmd FileType python inoremap inm<tab> if __name__ == '__main__':<CR>
 autocmd FileType python inoremap she<tab> #!/usr/bin/env python
 autocmd FileType python inoremap Fa<tab> False
 autocmd FileType python inoremap Tr<tab> True
-autocmd FileType python inoremap wh<tab> while :<A-h>
+autocmd FileType python inoremap wh<tab> while :<Esc>i
 autocmd FileType python inoremap trycatch<tab> try:<CR><+><CR>except Exception as e: print(e)
 
 " autocmd FileType c set makeprg=gcc\ -O2\ -g\ -Wall\ -Wextra\ -o'%<'\ '%'\ -lm ; ./%\:r
@@ -188,6 +188,13 @@ nnoremap <S-K>      :5winc -<CR>
 " === LSP ===
 Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
 inoremap <silent><expr> <c-space> coc#refresh()
+inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
 set hidden
 " === LSP/ ===
 
@@ -266,13 +273,6 @@ Plug 'junegunn/fzf.vim'
 set completeopt=longest,menuone,preview
 " let g:OmniSharp_proc_debug = 1
 let g:OmniSharp_server_use_mono = 1
-" inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
-" inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
-" inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-" inoremap <silent><expr> <TAB>
-"       \ pumvisible() ? "\<C-n>" :
-"       \ <SID>check_back_space() ? "\<TAB>" :
-"       \ coc#refresh()
 " function! s:check_back_space() abort
 "   let col = col('.') - 1
 "   return !col || getline('.')[col - 1]  =~ '\s'
