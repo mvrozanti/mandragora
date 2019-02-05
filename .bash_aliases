@@ -297,4 +297,4 @@ alias cfZ='v /home/nexor/.config/zathura/zathurarc'
 alias cfm='v /home/nexor/.config/mutt/muttrc'
 alias leet='toilet -d ~/.config/figlet -f rusto'
 alias playback='pacat -r | aplay -c 2 -f S16_LE -r 44100'
-divsil(){ [[ -z $@ ]] && return; jq '.'`echo $@|cut -c1`'."'$@'"' < ~/prog/python/portal-da-lingua-portuguesa/palavras-divisao-silabica.json }
+divsil(){ [[ -z $@ ]] && return; jq -r '.'`echo $@|cut -c1`'."'$@'"' < ~/prog/python/portal-da-lingua-portuguesa/palavras-divisao-silabica.json }
