@@ -1,7 +1,7 @@
 unalias sd
 alias rm='rm -f'
 # alias ll='ls -alFh'
-# alias la='ls -la'
+alias la='exa --all'
 alias ls=exa
 alias l='exa --reverse --sort=modified'
 alias watch='watch --color -n2'
