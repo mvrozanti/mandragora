@@ -1,0 +1,14 @@
+{
+    "keyboard.dispatch": "keyCode",
+    "vim.neovimPath": "/usr/bin/nvim",
+    "workbench.colorTheme": "Darcula Theme from IntelliJ",
+    "vim.enableNeovim": true,
+    "vim.insertModeKeyBindings": [
+        {
+            "before": ["jk"],
+                "after": ["<esc>"]
+        }
+    ],
+    "razor.disabled": true,
+    "window.zoomLevel": 0
+}
