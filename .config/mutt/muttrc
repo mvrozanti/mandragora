@@ -8,7 +8,7 @@ source etc/aliases
 source personal.muttrc
 set sleep_time = 0
 set sort = 'reverse-date'
-set editor = nvim
+set editor = '/usr/bin/nvim'
 #set copy = no
 set timeout = "5"
 set mail_check = "10"
