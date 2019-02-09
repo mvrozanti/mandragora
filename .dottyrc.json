@@ -53,7 +53,8 @@
     ".scimrc": "~/.scimrc",
     ".config/mutt/muttrc": "~/.config/mutt/muttrc",
     ".config/Code - OSS/User/settings.json": "~/.config/Code - OSS/User/settings.json",
-    ".config/mutt/etc/mailcap": "~/.config/mutt/etc/mailcap"
+    ".config/mutt/etc/mailcap": "~/.config/mutt/etc/mailcap",
+    ".config/mpv/input.conf": "~/.config/mpv/input.conf"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [

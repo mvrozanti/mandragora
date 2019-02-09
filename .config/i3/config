@@ -120,6 +120,7 @@ $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -x
 $bind $mod+Shift+1        workspace $ws1                        $ensid wmctrl -a  Browsing        || waterfox $waterfox_arg
 $bind $mod+Shift+v    split toggle;                             $ensid wmctrl -a  VirtualBox      || virtualbox
 $bind $mod+Shift+a                                              $ensid wmctrl -a  Android Studio  || android-studio
+$bind $mod+x                                                    $ensid wmctrl -a  mpv
 $bind $mod+4              split h;                              $ensid wmctrl -a  telegram        || telegram
 $bind $mod+b                                                    $ensid wmctrl -xa DBeaver         || dbeaver
 $bind $mod+Shift+d                                              $ensid wmctrl -xa Netbeans        || /usr/bin/netbeans
@@ -127,7 +128,7 @@ $bind $mod+z          workspace $ws5;                           $ensid wmctrl -a
 $bind $mod+Shift+f    workspace $ws3;                           $ensid wmctrl -a  WhatsApp        || whatsapp
 $bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a  Trello          || trello
 $bind $mod+Shift+w    workspace $ws11;                          $ensid wmctrl -xa thunderbird     || thunderbird
-$bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
+# $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
 $bind $mod+Shift+p                                              $ensid wmctrl -a zathura          || zathura
 $bind $mod+d              workspace $ws9
 # $bind $mod+Shift+m see $HOME/.config/dunst/dunstrc
