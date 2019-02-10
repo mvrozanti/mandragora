@@ -77,6 +77,7 @@ nnoremap <Space><Space> <Esc>/<+><CR>"_3x:noh<CR>i
 nnoremap ZZ <Esc>?<+><CR>"_3xi
 nnoremap dl v$hxJhv0w"_x
 nnoremap cW ct_
+nnoremap dA F(vbdf)x
 vnoremap - $h
 nnoremap <C-i> :mark x<CR>
 nnoremap <C-u> 'x
@@ -190,7 +191,7 @@ Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
 inoremap <silent><expr> <c-space> coc#refresh()
 inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+" inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <silent><expr> <TAB>
       \ pumvisible() ? "\<C-n>" :
       \ <SID>check_back_space() ? "\<TAB>" :
