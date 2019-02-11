@@ -299,3 +299,5 @@ alias leet='toilet -d ~/.config/figlet -f rusto'
 alias playback='pacat -r | aplay -c 2 -f S16_LE -r 44100'
 divsil(){ [[ -z $@ ]] && return; jq -r '.'`echo $@|cut -c1`'."'$@'"' < ~/prog/python/portal-da-lingua-portuguesa/palavras-divisao-silabica.json }
 alias sanduba='countdown "6*60" && for i in {1..4}; do beep -l 500; sleep 0.5; done'
+alias hlo='hamachi logout'
+alias hli='hamachi login'
