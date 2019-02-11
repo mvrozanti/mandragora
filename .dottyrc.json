@@ -183,7 +183,8 @@
     "code",
     "offlineimap",
     "pass",
-    "urlscan"
+    "urlscan",
+    "libburn"
   ],
   "excluded": [
     "hotmail.gpg"
