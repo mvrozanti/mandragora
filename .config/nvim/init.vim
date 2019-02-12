@@ -93,9 +93,10 @@ map / /\c
 
 " Replace visual selection
 vnoremap <C-r> "hy:.,$s/<C-r>h//gc<left><left><left>
+vnoremap <C-h> "hy:%s/<C-r>h//gc<left><left><left>
 " Delete where does not contain
 vnoremap D "hy:%g!/<C-r>h/d"
-" Del and x do not affect clipboard
+" Del and x should not affect clipboard
 nnoremap <Del> "_<Del>
 nnoremap x "_x
 
