@@ -301,3 +301,5 @@ divsil(){ [[ -z $@ ]] && return; jq -r '.'`echo $@|cut -c1`'."'$@'"' < ~/prog/py
 alias sanduba='countdown "6*60" && for i in {1..4}; do beep -l 500; sleep 0.5; done'
 alias hlo='hamachi logout'
 alias hli='hamachi login'
+ti(){ tar -czf - $@ > ~/.tarchive.tar }
+to(){ tar -xzv < ~/.tarchive.tar }
