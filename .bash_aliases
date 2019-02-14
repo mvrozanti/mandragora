@@ -290,7 +290,6 @@ alias enc='openssl aes-256-cbc -in - 2>/dev/null'
 alias dec='enc -d 2>/dev/null'
 alias scrot2imgur2cb='up2imgur $HOME/.scrot.png | c'
 hue(){ [[ -z $1 || -z $2 ]] && {echo kek && return} || cp $1 hue_000;  for i in $(seq 1 50); do convert hue_000 -modulate 100,100,-$(($i*4)) hue_$(printf "%03d\n" $i);  done;  echo creating gif; rm hue_000; nice -20 convert -limit memory 4GB -limit map 4GB -define registry:temporary-path=/var/tmp -loop 0 -delay 1 hue_* $2; rm hue_* };
-reboot(){ [[ `echo -e 'Restart\nDo not'|dmenu -fn 'Droid Sans Mono for Powerline' -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300'` == 'Restart' ]] && reboot }
 ncp(){ [[ -z $1 ]] && echo kek || { md -p $1; cd $1; dotnew new console -o $1; dotnet new sln; dotnet sln add $1/$1.csproj } }
 alias cfZ='v /home/nexor/.config/zathura/zathurarc'
 alias cfm='v /home/nexor/.config/mutt/muttrc'
@@ -300,5 +299,3 @@ divsil(){ [[ -z $@ ]] && return; jq -r '.'`echo $@|cut -c1`'."'$@'"' < ~/prog/py
 alias sanduba='countdown "6*60" && for i in {1..4}; do beep -l 500; sleep 0.5; done'
 alias hlo='hamachi logout'
 alias hli='hamachi login'
-ti(){ tar -czf - $@ > ~/.tarchive.tar }
-to(){ tar -xzv < ~/.tarchive.tar }
