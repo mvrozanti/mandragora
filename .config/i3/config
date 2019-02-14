@@ -199,14 +199,14 @@ $bind $mod+Shift+Left          move left            20 px
 $bind $mod+Shift+Down          move down            20 px
 $bind $mod+Shift+Up            move up              20 px
 $bind $mod+Shift+Right         move right           20 px
-$bind Ctrl+$mod+h              resize shrink width  00 px or 05 ppt
-$bind Ctrl+$mod+l              resize grow   width  00 px or 05 ppt
-$bind Ctrl+$mod+j              resize shrink height 00 px or 05 ppt
-$bind Ctrl+$mod+k              resize grow   height 00 px or 05 ppt
-$bind Ctrl+$mod+Down           resize shrink height 00 px or 05 ppt
-$bind Ctrl+$mod+Up             resize grow   height 00 px or 05 ppt
-$bind Ctrl+$mod+Left           resize shrink width  00 px or 05 ppt
-$bind Ctrl+$mod+Right          resize grow   width  00 px or 05 ppt
+$bind Ctrl+$mod+h              resize shrink width  05 px or 05 ppt
+$bind Ctrl+$mod+l              resize grow   width  05 px or 05 ppt
+$bind Ctrl+$mod+j              resize shrink height 05 px or 05 ppt
+$bind Ctrl+$mod+k              resize grow   height 05 px or 05 ppt
+$bind Ctrl+$mod+Down           resize shrink height 10 px or 10 ppt
+$bind Ctrl+$mod+Up             resize grow   height 10 px or 10 ppt
+$bind Ctrl+$mod+Left           resize shrink width  10 px or 10 ppt
+$bind Ctrl+$mod+Right          resize grow   width  10 px or 10 ppt
 $bind Ctrl+Mod1+Left      workspace prev
 $bind Ctrl+Mod1+Right     workspace next
 $bind Ctrl+Mod1+h         workspace prev
