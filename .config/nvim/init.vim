@@ -71,6 +71,8 @@ set visualbell
 set t_vb=
 
 " hits bong:
+"vnoremap <C-I>
+vnoremap <C-f> y/<C-R>"<CR>
 nnoremap <CR> o<Esc>
 vnoremap ( <Esc>a)<Esc>gvo<Esc>i(<Esc>i
 nnoremap yF maggyG'a
