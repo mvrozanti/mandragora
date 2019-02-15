@@ -19,7 +19,7 @@ set guioptions ""
 
 # zathurarc-dark
 
-set font "inconsolata 15"
+set font "Fira Mono for Powerline 11"
 set default-bg "#000000" #00
 set default-fg "#F7F7F6" #01
 
@@ -39,12 +39,12 @@ set highlight-color "#F4BF75" #0A
 set highlight-active-color "#6A9FB5" #0D
 
 set completion-highlight-fg "#151515" #02
-set completion-highlight-bg "#90A959" #0C
+set completion-highlight-bg "#e33300" #0C
 
 set completion-bg "#303030" #02
 set completion-fg "#E0E0E0" #0C
 
-set notification-bg "#90A959" #0B
+set notification-bg "#e33300" #0B
 set notification-fg "#151515" #00
 
 set recolor "true"
@@ -65,9 +65,12 @@ map <C-j> zoom out
 map [fullscreen] <C-k> zoom in
 map [fullscreen] <C-j> zoom out
 map = adjust_window best-fit
+map [fullscreen] = adjust_window best-fit
 unmap d
 map d scroll half-down
 map [fullscreen] d scroll half-down
 map b scroll half-up
 set selection-clipboard clipboard
-# map <C-o> feedkeys ":exec notify-send kek<Return>"
+map <C-i> feedkeys ":info<Return>"
+map <C-o> feedkeys ":open <Tab><Return>"
+map <C-O> feedkeys ":open <Tab>"
