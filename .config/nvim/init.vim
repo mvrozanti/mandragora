@@ -71,6 +71,7 @@ set visualbell
 set t_vb=
 
 " hits bong:
+nnoremap <CR> o<Esc>
 vnoremap ( <Esc>a)<Esc>gvo<Esc>i(<Esc>i
 nnoremap yF maggyG'a
 nnoremap <Space><Space> <Esc>/<+><CR>"_3x:noh<CR>i
@@ -207,6 +208,7 @@ Plug 'junegunn/goyo.vim'
 
 Plug 'realincubus/vim-clang-refactor'
 
+Plug 'jaxbot/browserlink.vim'
 "Clipboard -> cp,cv
 " Plug 'christoomey/vim-system-copy'
 " map y cp

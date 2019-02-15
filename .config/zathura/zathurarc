@@ -70,3 +70,4 @@ map d scroll half-down
 map [fullscreen] d scroll half-down
 map b scroll half-up
 set selection-clipboard clipboard
+# map <C-o> feedkeys ":exec notify-send kek<Return>"

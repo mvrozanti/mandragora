@@ -184,7 +184,8 @@
     "offlineimap",
     "pass",
     "urlscan",
-    "libburn"
+    "libburn",
+    "binwalk"
   ],
   "excluded": [
     "hotmail.gpg"
