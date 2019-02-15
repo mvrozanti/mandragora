@@ -87,7 +87,7 @@ alias feh='feh -B black --scale-down --auto-zoom --sort mtime -. --action2 "rm %
 alias randip="dd if=/dev/urandom bs=4 count=1 2>/dev/null | od -An -tu1 | sed -e 's/^ *//;s/  */./g'"
 alias 2wmv='sudo ffmpeg -c:v wmv2 -b:v 99M -c:a wmav2 -b:a 192k output.wmv -i'
 alias mp32wav='mpg123 -w output.wav'
-o(){ xdg-open $@ 2>&1 >/dev/null & }
+o(){ nohup xdg-open $@ 2>&1 >/dev/null & }
 alias g='grep -i'
 alias it='ps aux|head -n -1|grep '
 alias prolog='swipl -q'
