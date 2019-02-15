@@ -70,6 +70,7 @@ unmap d
 map d scroll half-down
 map [fullscreen] d scroll half-down
 map b scroll half-up
+map [fullscreen] b scroll half-up
 set selection-clipboard clipboard
 map <C-i> feedkeys ":info<Return>"
 map <C-o> feedkeys ":open <Tab><Return>"
