@@ -187,7 +187,7 @@ alias wt='watch -n 1 tree'
 wtg(){ watch -n 1 "tree | grep $@" }
 alias wcat='watch -n 1 cat'
 hl(){ hamachi list | sed -E '/\*/!d;/\s{2,}\*/!d;s/\s+\*\S+?\s+?\S+?\s+?(\S+)\s+(\S+).+$/\1 \2/g' }
-# whl(){ watch hl }
+whl(){ watch "hamachi list | sed -E '/\*/!d;/\s{2,}\*/!d;s/\s+\*\S+?\s+?\S+?\s+?(\S+)\s+(\S+).+$/\1 \2/g'" }
 coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
 ocsv() { cat "$@" | psc -k -d, | `wis sc` }
 alias sc='sc-im'
