@@ -39,6 +39,7 @@ Plug 'christoomey/vim-tmux-navigator'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 vmap <C-Space> gc
+nmap <C-Space> gcc
 
 nmap S ysiw
 let g:tmux_navigator_no_mappings = 0
