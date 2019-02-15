@@ -1,4 +1,4 @@
-map <A-F> mzgg=G`z
+map <A-F> mzgg=G`zzz
 xnoremap p "_dP
 vnoremap \/ y/<C-R>"<CR>
 nnoremap <A-p> <C-j>p
@@ -271,7 +271,7 @@ let g:netrw_liststyle=3
 " ==== overwrite vim banner
 Plug 'mhinz/vim-startify'
 let g:startify_session_autoload = 1
-Plug 'mhinz/vim-signify'
+" Plug 'mhinz/vim-signify'
 
 " ==== Completion
 Plug 'OmniSharp/omnisharp-vim'
@@ -291,7 +291,7 @@ let g:OmniSharp_server_use_mono = 1
 
 " ==== Git
 Plug 'airblade/vim-gitgutter'
-Plug 'tpope/vim-fugitive'
+" Plug 'tpope/vim-fugitive'
 
 " ==== syntax helpers
 " Plug 'scrooloose/syntastic'
@@ -385,12 +385,6 @@ let g:EasyMotion_do_mapping = 0
 let g:EasyMotion_smartcase = 1
 nmap f <Plug>(easymotion-s)
 
-autocmd FileType c,css,cpp,java,javascript,php,scala                let b:comment_leader = '// '
-autocmd FileType conf,fstab,sh,ruby,python                          let b:comment_leader = '# '
-autocmd FileType swipl,perl,tex                                     let b:comment_leader = '% '
-autocmd FileType mail                                               let b:comment_leader = '> '
-autocmd FileType vim                                                let b:comment_leader = '" '
-autocmd FileType lisp                                               let b:comment_leader = '; '
 autocmd FileType javascript                                         let b:run_script = '!clear;xvkbd -window Firefox -text "\Cr" && xdotool keydown alt key Tab; sleep 2.001; xdotool keyup alt'
 " autocmd FileType javascript                                         set omnifunc=javascriptcomplete#CompleteJS
 let g:EclimCompletionMethod = 'omnifunc'
@@ -429,10 +423,17 @@ set timeoutlen=1000 ttimeoutlen=0
 let g:syntastic_java_javac_config_file_enabled = 1
 
 " Commenting blocks of code.
+" autocmd FileType c,css,cpp,java,javascript,php,scala                let b:comment_leader = '// '
+" autocmd FileType conf,fstab,sh,ruby,python                          let b:comment_leader = '# '
+" autocmd FileType swipl,perl,tex                                     let b:comment_leader = '% '
+" autocmd FileType mail                                               let b:comment_leader = '> '
+" autocmd FileType vim                                                let b:comment_leader = '" '
+" autocmd FileType lisp                                               let b:comment_leader = '; '
 " vnoremap <silent> <C-C> :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:noh<CR>
 " vnoremap <silent> <leader><leader> :<C-B>silent <C-E>s/^\s*\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:noh<CR>
 " nnoremap <silent> <leader><leader> :<C-B>silent <C-E>s/^\s*\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:noh<CR>
 set encoding=utf-8
+
 colorscheme peachpuff
 hi Folded ctermbg=none
 hi Pmenu ctermbg=none
