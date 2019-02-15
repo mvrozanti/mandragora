@@ -37,6 +37,9 @@ endif
 call plug#begin()
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'tpope/vim-surround'
+Plug 'tpope/vim-commentary'
+vmap <C-Space> gc
+
 nmap S ysiw
 let g:tmux_navigator_no_mappings = 0
 nnoremap <A-Left>  :TmuxNavigateLeft<cr>
@@ -71,7 +74,7 @@ set visualbell
 set t_vb=
 
 " hits bong:
-"vnoremap <C-I>
+" vnoremap <silent> <C-c> :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:noh<CR>
 vnoremap <C-f> y/<C-R>"<CR>
 nnoremap <CR> o<Esc>
 vnoremap ( <Esc>a)<Esc>gvo<Esc>i(<Esc>i
@@ -425,9 +428,9 @@ set timeoutlen=1000 ttimeoutlen=0
 let g:syntastic_java_javac_config_file_enabled = 1
 
 " Commenting blocks of code.
-vnoremap <silent> <C-c> :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:noh<CR>
-vnoremap <silent> <leader><leader> :<C-B>silent <C-E>s/^\s*\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:noh<CR>
-nnoremap <silent> <leader><leader> :<C-B>silent <C-E>s/^\s*\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:noh<CR>
+" vnoremap <silent> <C-C> :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:noh<CR>
+" vnoremap <silent> <leader><leader> :<C-B>silent <C-E>s/^\s*\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:noh<CR>
+" nnoremap <silent> <leader><leader> :<C-B>silent <C-E>s/^\s*\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:noh<CR>
 set encoding=utf-8
 colorscheme peachpuff
 hi Folded ctermbg=none
