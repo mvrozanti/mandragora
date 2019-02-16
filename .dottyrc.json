@@ -18,7 +18,6 @@
     "_etc/pulse/default.pa": "_/etc/pulse/default.pa",
     "_usr/etc/netbeans.conf": "_/usr/etc/netbeans.conf",
     "etc/ly/config.ini": "/etc/ly/config.ini",
-    "util/netbeans.zip": "~/util/netbeans.zip",
     ".config/nvim/plugged/vim-cute-python/after/syntax/python.vim": "~/.config/nvim/plugged/vim-cute-python/after/syntax/python.vim",
     ".tmux.conf": "~/.tmux.conf",
     ".bash_aliases": "~/.bash_aliases",
@@ -189,9 +188,6 @@
   ],
   "excluded": [
     "hotmail.gpg"
-  ],
-  "before_bak": [
-    "zip -r ~/util/netbeans.zip ~/.netbeans/10.0/"
   ],
   "commands": [
     "mkdir -p ~/util",
