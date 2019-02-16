@@ -77,7 +77,7 @@ set t_vb=
 " hits bong:
 " vnoremap <silent> <C-c> :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:noh<CR>
 vnoremap <C-f> y/<C-R>"<CR>
-nnoremap <CR> o<Esc>
+nnoremap <CR> i<CR><Esc>
 vnoremap ( <Esc>a)<Esc>gvo<Esc>i(<Esc>i
 nnoremap yF maggyG'a
 nnoremap <Space><Space> <Esc>/<+><CR>"_3x:noh<CR>i
