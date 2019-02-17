@@ -184,7 +184,8 @@
     "pass",
     "urlscan",
     "libburn",
-    "binwalk"
+    "binwalk",
+    "valgrind"
   ],
   "excluded": [
     "hotmail.gpg"
