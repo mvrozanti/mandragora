@@ -302,3 +302,4 @@ alias hlo='hamachi logout'
 alias hli='hamachi login'
 ti(){ tar -czf - $@ > ~/.tarchive.tar }
 to(){ tar -xzv < ~/.tarchive.tar }
+compv(){ co | xargs mpv }
