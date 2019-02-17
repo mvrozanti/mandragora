@@ -9,8 +9,8 @@
 # alt=Mod1
 exec_always  --no-startup-id dunst
 exec_always  --no-startup-id $HOME/.config/polybar/launch.sh
-exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seafile.sh start
-exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seahub.sh start
+# exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seafile.sh start
+# exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seahub.sh start
 exec_always  --no-startup-id [[ `ps aux|grep seafile-daemon|wc -l` -eq 0 ]] && seafile-daemon
 exec_always  --no-startup-id ~/prog/python/audio-classification/cnn.py -P |while read -r o; do case "$o" in "9") (st 2> /dev/null &);; "0") st -T 150 -t ncmpcpp -e ncmpcpp -s visualizer 2> /dev/null &;; *) echo $o;; esac; done
 
