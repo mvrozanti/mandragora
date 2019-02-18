@@ -49,7 +49,7 @@ font-3 = siji:pixelsize=10;1
 
 modules-left = i3
 modules-center =
-modules-right = filesystem xbacklight alsa memory cpu wlan eth temperature battery date powermenu
+modules-right = filesystem xbacklight alsa memory cpu wlan eth battery date powermenu
 
 tray-position = right
 tray-padding = 2
