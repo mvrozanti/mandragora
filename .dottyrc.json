@@ -185,7 +185,8 @@
     "urlscan",
     "libburn",
     "binwalk",
-    "valgrind"
+    "valgrind",
+    "bettercap"
   ],
   "excluded": [
     "hotmail.gpg"
