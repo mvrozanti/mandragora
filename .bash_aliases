@@ -305,3 +305,4 @@ to(){ tar -xzv < ~/.tarchive.tar }
 compv(){ co | xargs mpv }
 alias scanlan='nmap -p80,443 192.168.0.0/24 -oG -'
 alias scanvuln='nikto -h -'
+alias pull='git pull'
