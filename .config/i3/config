@@ -345,3 +345,12 @@ mode "$mode_gaps_outer" {
         $bind Return mode default
         $bind Escape mode default
 }
+
+# Now open, lock!
+# To the Dead Man's knock!
+# Fly, bolt, and bar, and band!
+# Nor move, nor swerve,
+# Joint, muscle, or nerve,
+# At the spell of the Dead Man's hand!
+# Sleep, all who sleep! -- Wake, all who wake!
+# But be as the dead for the Dead Man's sake!j
