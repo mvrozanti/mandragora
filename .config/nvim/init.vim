@@ -152,6 +152,8 @@ autocmd FileType python inoremap trycatch<tab> try:<CR><+><CR>except Exception a
 
 " autocmd FileType c set makeprg=gcc\ -O2\ -g\ -Wall\ -Wextra\ -o'%<'\ '%'\ -lm ; ./%\:r
 
+autocmd FileType c inoremap im<tab> int main(){}<Esc>i<CR><Esc>O
+autocmd FileType c inoremap in<tab> #include<><Esc>i
 autocmd FileType c,cpp inoremap pr<tab> printf("\n", <+>);<Esc>9hi
 autocmd FileType c,cpp,java inoremap sw<tab> switch(){<CR>case <+>:<CR>break;<CR>}<Esc>3kwa
 autocmd FileType c,cpp,java inoremap wh<tab> while(){<CR>}<Esc>kwa
