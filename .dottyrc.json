@@ -188,7 +188,8 @@
     "valgrind",
     "bettercap",
     "p7zip",
-    "ddrescue"
+    "ddrescue",
+    "gocryptfs"
   ],
   "excluded": [
     "hotmail.gpg"
