@@ -187,7 +187,8 @@
     "binwalk",
     "valgrind",
     "bettercap",
-    "p7zip"
+    "p7zip",
+    "ddrescue"
   ],
   "excluded": [
     "hotmail.gpg"
