@@ -306,3 +306,4 @@ compv(){ co | xargs mpv }
 alias scanlan='nmap -p80,443 192.168.0.0/24 -oG -'
 alias scanvuln='nikto -h -'
 alias pull='git pull'
+ytpl(){ search="$@"; mpv --script-opts=ytdl_hook-try_ytdl_first=yes ytdl://ytsearch:"$search" }
