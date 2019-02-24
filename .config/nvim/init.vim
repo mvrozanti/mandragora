@@ -87,7 +87,7 @@ nnoremap yF maggyG'a
 nnoremap <Space><Space> <Esc>/<+><CR>"_3x:noh<CR>i
 nnoremap ZZ <Esc>?<+><CR>"_3xi
 nnoremap dl v$hxJhv0w"_x
-nnoremap cW ct_
+nnoremap c_ ct_
 nnoremap dA F(vbdf)xB
 vnoremap - $h
 nnoremap <C-i> :mark x<CR>

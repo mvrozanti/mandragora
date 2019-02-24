@@ -186,7 +186,8 @@
     "libburn",
     "binwalk",
     "valgrind",
-    "bettercap"
+    "bettercap",
+    "p7zip"
   ],
   "excluded": [
     "hotmail.gpg"
