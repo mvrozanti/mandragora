@@ -82,6 +82,7 @@ alias cow='co | xargs wget'
 alias cov='co | xargs nvim'
 alias cogc='co | xargs git clone'
 alias P='curl -sF "sprunge=<-" http://sprunge.us'
+# P(){ curl  -X POST -d @- http://0x0.st }
 alias p='P | c'
 alias feh='feh -B black --scale-down --auto-zoom --sort mtime -. --action2 "rm %F" --action1 "realpath $PWD/%F | xsel -i -b"'
 alias randip="dd if=/dev/urandom bs=4 count=1 2>/dev/null | od -An -tu1 | sed -e 's/^ *//;s/  */./g'"
@@ -307,3 +308,4 @@ alias scanlan='nmap -p80,443 192.168.0.0/24 -oG -'
 alias scanvuln='nikto -h -'
 alias pull='git pull'
 ytpl(){ search="$@"; mpv --script-opts=ytdl_hook-try_ytdl_first=yes ytdl://ytsearch:"$search" }
+alias sk='screenkey --font-color red --opacity 0.2 --compr-cnt 3 -s small'
