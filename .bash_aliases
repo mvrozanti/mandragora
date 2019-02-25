@@ -311,3 +311,4 @@ alias pull='git pull'
 ytpl(){ search="$@"; mpv --script-opts=ytdl_hook-try_ytdl_first=yes ytdl://ytsearch:"$search" }
 alias sk='screenkey --font-color red --opacity 0.2 --compr-cnt 3 -s small'
 alias U='sudo umount'
+alias cfM='v .config/mpv/input.conf'
