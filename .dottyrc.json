@@ -225,6 +225,7 @@
     "command -v gotop || go get github.com/cjbassi/gotop",
     "cargo install --list | grep sd || cargo install sd",
     "pip3 install --user khal grip psutil maybe sqlcrush pynvim",
+    "command -v cnee || { wget http://ftp.gnu.org/gnu/xnee/xnee-3.19.tar.gz && unp -U xnee* && cd xnee* && ./configure && sudo make && sudo make install } ",
     "command -v polybar || yay -S polybar",
     "command -v hamachi || yay -S logmein-hamachi",
     "command -v gotop || yay -S gotop",
