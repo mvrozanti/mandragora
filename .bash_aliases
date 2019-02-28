@@ -182,7 +182,6 @@ alias v='nvim'
 alias vc='co|v -'
 alias vh='nvim /home/nexor/.zsh_history'
 vx(){ xxd $@ | v - }
-fortune() { re '\[(.+)\]' ".vim/bundle/vim-startify/autoload/startify/fortune.vim" | shuf | head -n2; }
 make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > $HOME/.ranger_aliases; }
 ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1; }
 alias wt='watch -n 1 tree'
