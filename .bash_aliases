@@ -312,3 +312,5 @@ ytpl(){ search="$@"; mpv --script-opts=ytdl_hook-try_ytdl_first=yes ytdl://ytsea
 alias sk='screenkey --font-color red --opacity 0.2 --compr-cnt 3 -s small'
 alias U='sudo umount'
 alias cfM='v .config/mpv/input.conf'
+smbscanner(){ nmap $1 -p 445 --open -oG - | grep "Host:" | cut -d " " -f 2 | uniq | xargs -I '{}' sh -c 'echo "Scan {}";echo "---------";smbclient -L//{} -N' }
+alias smd='sudo mkdir'
