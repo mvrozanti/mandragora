@@ -48,6 +48,7 @@ macro index,pager S <sync-mailbox>
 macro index,pager \Cu "|urlscan -r 'setsid $BROWSER \"{}\"'"\n
 macro index,pager ,, "|urlscan -r 'setsid $BROWSER \"{}\"'"\n
 macro attach SP <save-entry><kill-line>/home/nexor/pericia1/
+macro attach SD <save-entry><kill-line>/home/nexor/Downloads/
 
 # View attachments properly.
 bind attach <return> view-mailcap
