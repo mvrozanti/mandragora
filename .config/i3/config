@@ -107,7 +107,6 @@ $bind $mod+Shift+3                                              $ensid wmctrl -x
 $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && cmatrix"
 $bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && ranger"
-$bind $mod+Shift+Return                                         $ensid                               kitty sh -c 'cat /home/nexor/.cache/wal/sequences && ranger'
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a  youtube-curses  || kitty --name youtube-curses -o background_opacity=.78 --title youtube-curses -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses.py || read"
 $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || kitty -o background_opacity=.78 --name todo  -o font_size=13 --title todo  -e zsh -c "nvim $HOME/todo"
 $bind $mod+braceleft                                            $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal2 -o font_size=24 --title khal2 -e sh  -c "cat /home/nexor/.cache/wal/sequences && khal interactive"
@@ -129,6 +128,7 @@ $bind $mod+z          workspace $ws5;                           $ensid wmctrl -a
 $bind $mod+Shift+f    workspace $ws3;                           $ensid wmctrl -a  WhatsApp        || whatsapp
 $bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a  Trello          || trello
 $bind $mod+Shift+w    workspace $ws11;                          $ensid wmctrl -xa thunderbird     || thunderbird
+$bind $mod+Shift+Return                                         $ensid                               kitty sh -c 'cat /home/nexor/.cache/wal/sequences && ranger'
 # $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
 $bind $mod+Shift+p                                              $ensid wmctrl -a zathura          || zathura
 $bind $mod+d              workspace $ws9
