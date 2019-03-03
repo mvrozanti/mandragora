@@ -93,7 +93,8 @@ O(){ nohup xdg-open $@ 2>&1 >/dev/null &; exit }
 alias g='grep -i'
 alias it='ps aux|head -n -1|grep '
 alias prolog='swipl -q'
-alias t='date +%s'
+alias T='date +%s'
+alias t='tree'
 alias rsync='rsync -a --info=progress2'
 # open in existing browser window
 alias waterfox='[[ $(ps aux|grep -c waterfox) -eq 1 ]] && waterfox || waterfox -new-tab'
