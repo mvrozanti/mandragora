@@ -189,7 +189,8 @@
     "bettercap",
     "p7zip",
     "ddrescue",
-    "gocryptfs"
+    "gocryptfs",
+    "shellcheck"
   ],
   "excluded": [
     "hotmail.gpg"

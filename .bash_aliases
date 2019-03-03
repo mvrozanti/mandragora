@@ -277,7 +277,7 @@ alias scan4sd='echo 1 | sudo tee /sys/bus/pci/rescan'
 alias sj='sudo journalctl'
 onf(){ inotifywait -m . -e create -e moved_to | while read pathe action filet; do echo $filet | xargs -I{} $@; done }
 alias netbeans='/usr/bin/netbeans'
-alias lasagna='countdown "14*60" && for i in {1..4}; do beep -l 500; sleep 0.5; done'
+alias lasagna='countdown "11*60" && for i in {1..4}; do beep -l 500; sleep 0.5; done'
 alias clock='watch -t -n1 "date +"%H:%M"|figlet -f big"'
 alias cfn='v ~/.newsboat/config'
 alias cfN='v ~/.newsboat/urls'

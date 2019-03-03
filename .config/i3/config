@@ -281,7 +281,7 @@ $bind $mod+Ctrl+Shift+h                     move container to workspace prev; wo
 #   \__,_|\___||___/\__|_| |_|\___|\__|_|\___|
 #
 $ensid wal --saturate 1.0 -a 299 -i `cat $HOME/.fehbg | tail -n1 | cut -d ' ' -f3 | tr -d "'"`
-$ensid sh -c '[[ `hostname` == "mndrgr"  ]] && compton -D 3 --blur-background --blur-kern `compton-convgen.py --dump-compton box 9`'
+$ensid sh -c '[[ `hostname` == "mndrgr"  ]] && compton -D 3 --blur-background --blur-kern `compton-convgen.py --dump-compton box 11`'
 $ensid sh -c '[[ `hostname` == "mndrgr2" ]] && compton'
 $ensid $HOME/.fehbg
 popup_during_fullscreen smart
