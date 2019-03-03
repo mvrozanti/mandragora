@@ -171,7 +171,7 @@ gentr(){ ls *.cpp | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. 
 pentr(){ [[ -z $1 ]] && ls *.py* | entr -rc /_ $@ || echo $1 | entr /_ }
 mentr(){ ls *.* | entr "make clean; make" }
 xentr(){ ls *.* | entr -p $@ /_ }
-ventr(){ [[ $(($#)) -gt 0 ]] && ls | entr -r sh -c 'valgrind --show-leak-kinds=all --leak-check=full '`realpath ${@: -1}`' -v --track-origins=yes' }
+ventr(){ [[ $(($#)) -gt 0 ]] && ls | entr -r sh -c 'valgrind --quiet --show-leak-kinds=all --leak-check=full '`realpath ${@: -1}`' -v --track-origins=yes' }
 alias entr='entr -p'
 alias dotty='$HOME/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
