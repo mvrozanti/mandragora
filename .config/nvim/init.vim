@@ -213,7 +213,7 @@ nnoremap <A-r> :call CocAction('rename')<CR>
 "       \ coc#refresh()
 set hidden
 " === LSP/ ===
-
+Plug 'jiangmiao/auto-pairs'
 
 Plug 'godlygeek/tabular'
 
