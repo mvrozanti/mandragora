@@ -321,3 +321,4 @@ alias ve='v -c "let startify_disable_at_vimenter = 1" '
 alias V=ve
 alias vi=ve
 alias howtomake='o http://www.cs.colby.edu/maxwell/courses/tutorials/maketutor/'
+alias jflap='java -jar ~/mackenzie/2019/compiladores/JFLAP.jar'
