@@ -5,14 +5,18 @@
   </Color>
   <Color r="0x0000" g="0x0000" b="0xaaaa">
     <Extension>zip</Extension>
+    <Extension>tar</Extension>
     <Extension>gz</Extension>
     <Extension>tgz</Extension>
+    <Extension>xz</Extension>
+    <Extension>txz</Extension>
     <Extension>rar</Extension>
     <Extension>bz2</Extension>
     <Extension>7z</Extension>
   </Color>
   <Color r="0x6666" g="0xaaaa" b="0xffff">
     <Extension>mdb</Extension>
+    <Extension>vdi</Extension>
     <Extension>doc</Extension>
     <Extension>pdf</Extension>
     <Extension>ps</Extension>
