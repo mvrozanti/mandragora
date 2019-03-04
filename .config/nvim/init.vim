@@ -152,12 +152,13 @@ autocmd FileType python inoremap trycatch<tab> try:<CR><+><CR>except Exception a
 
 " autocmd FileType c set makeprg=gcc\ -O2\ -g\ -Wall\ -Wextra\ -o'%<'\ '%'\ -lm ; ./%\:r
 
-autocmd FileType c inoremap im<tab> int main(){}<Esc>i<CR><Esc>O
-autocmd FileType c inoremap in<tab> #include<><Esc>i
-autocmd FileType c,cpp inoremap pr<tab> printf("\n", <+>);<Esc>9hi
-autocmd FileType c,cpp,java inoremap sw<tab> switch(){<CR>case <+>:<CR>break;<CR>}<Esc>3kwa
-autocmd FileType c,cpp,java inoremap wh<tab> while(){<CR>}<Esc>kwa
-autocmd FileType c,cpp,java inoremap if<tab> if(){<CR>}<Esc>kwa
+autocmd FileType c,lex inoremap im<tab> int main(){}<Esc>i<CR><Esc>O
+autocmd FileType c,lex inoremap in<tab> #include<><Esc>i
+autocmd FileType c,lex inoremap so<tab> sizeof()<Esc>i
+autocmd FileType c,cpp,lex inoremap pr<tab> printf("\n", <+>);<Esc>9hi
+autocmd FileType c,cpp,java,lex inoremap sw<tab> switch(){<CR>case <+>:<CR>break;<CR>}<Esc>3kwa
+autocmd FileType c,cpp,java,lex inoremap wh<tab> while(){<CR>}<Esc>kwa
+autocmd FileType c,cpp,java,lex inoremap if<tab> if(){<CR>}<Esc>kwa
 
 " bash shortcuts
 " autocmd FileType sh
@@ -213,7 +214,7 @@ nnoremap <A-r> :call CocAction('rename')<CR>
 "       \ coc#refresh()
 set hidden
 " === LSP/ ===
-
+Plug 'jiangmiao/auto-pairs'
 
 Plug 'godlygeek/tabular'
 
