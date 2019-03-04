@@ -316,7 +316,6 @@ alias U='sudo umount'
 alias cfM='v .config/mpv/input.conf'
 alias mp='jmtpfs ~/phone'
 alias sp='rsync -rtv /mnt/4ADE1465DE144C17/Musik /home/nexor/phone/Internal storage/Music'
-alias md5sum='md5sum | cut -d" " -f1'
 alias ve='v -c "let startify_disable_at_vimenter = 1" '
 alias V=ve
 alias vi=ve
