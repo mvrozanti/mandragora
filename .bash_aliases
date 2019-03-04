@@ -5,7 +5,6 @@ alias la='exa --all'
 alias ls=exa
 alias l='exa --reverse --sort=modified'
 alias watch='watch --color -n2'
-alias sp='sudo pacman'
 alias sps='sudo pacman -S'
 alias spr='sudo pacman -R'
 alias pss='pacman -Ss'
@@ -72,6 +71,7 @@ alias snode='sudo node'
 alias sf='sudo find / -iname'
 alias weather='curl -s wttr.in | head -n -1'
 alias h='cd ..'
+alias hh='h;h'
 alias cd..='cd ..'
 alias eye='tail -f'
 alias ka='killall'
@@ -94,7 +94,8 @@ O(){ nohup xdg-open $@ 2>&1 >/dev/null &; exit }
 alias g='grep -i'
 alias it='ps aux|head -n -1|grep '
 alias prolog='swipl -q'
-alias t='date +%s'
+alias T='date +%s'
+alias t='tree'
 alias rsync='rsync -a --info=progress2'
 # open in existing browser window
 alias waterfox='[[ $(ps aux|grep -c waterfox) -eq 1 ]] && waterfox || waterfox -new-tab'
@@ -165,12 +166,14 @@ alias p3i='pip3 install --user'
 alias p2i='pip2 install --user'
 alias p3r='pip3 uninstall'
 alias p3r='pip2 uninstall'
-cnt() { echo $1 | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -g -o "$noext" ${@:2} && clear && ./"$noext"'; }
-cntr() { echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && sh -c "$noext || :"'; }
-centr() { ls *.c* | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
-pentr() { [[ -z $1 ]] && ls *.py* | entr -rc /_ $@ || echo $1 | entr /_ }
-mentr() { ls *.* | entr "make clean; make" }
-xentr() { ls *.* | entr -p $@ /_ }
+cnt(){ echo $1 | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -g -o "$noext" ${@:2} && clear && ./"$noext"'; }
+cntr(){ echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && sh -c "$noext || :"'; }
+centr(){ ls *.c | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
+gentr(){ ls *.cpp | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; g++ '$@' {} -o "$noext" && clear && exec "$noext"'; }
+pentr(){ [[ -z $1 ]] && ls *.py* | entr -rc /_ $@ || echo $1 | entr /_ }
+mentr(){ ls *.* | entr make }
+xentr(){ ls *.* | entr -p $@ /_ }
+ventr(){ [[ $(($#)) -gt 0 ]] && ls | entr -r sh -c 'valgrind --quiet --show-leak-kinds=all --leak-check=full '`realpath ${@: -1}`' -v --track-origins=yes' }
 alias entr='entr -p'
 alias dotty='$HOME/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
@@ -183,7 +186,6 @@ alias v='nvim'
 alias vc='co|v -'
 alias vh='nvim /home/nexor/.zsh_history'
 vx(){ xxd $@ | v - }
-fortune() { re '\[(.+)\]' ".vim/bundle/vim-startify/autoload/startify/fortune.vim" | shuf | head -n2; }
 make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > $HOME/.ranger_aliases; }
 ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1; }
 alias wt='watch -n 1 tree'
@@ -277,7 +279,7 @@ alias scan4sd='echo 1 | sudo tee /sys/bus/pci/rescan'
 alias sj='sudo journalctl'
 onf(){ inotifywait -m . -e create -e moved_to | while read pathe action filet; do echo $filet | xargs -I{} $@; done }
 alias netbeans='/usr/bin/netbeans'
-alias lasagna='countdown "14*60" && for i in {1..4}; do beep -l 500; sleep 0.5; done'
+alias lasagna='countdown "11*60" && for i in {1..4}; do beep -l 500; sleep 0.5; done'
 alias clock='watch -t -n1 "date +"%H:%M"|figlet -f big"'
 alias cfn='v ~/.newsboat/config'
 alias cfN='v ~/.newsboat/urls'
@@ -312,5 +314,10 @@ ytpl(){ search="$@"; mpv --script-opts=ytdl_hook-try_ytdl_first=yes ytdl://ytsea
 alias sk='screenkey --font-color red --opacity 0.2 --compr-cnt 3 -s small'
 alias U='sudo umount'
 alias cfM='v .config/mpv/input.conf'
-smbscanner(){ nmap $1 -p 445 --open -oG - | grep "Host:" | cut -d " " -f 2 | uniq | xargs -I '{}' sh -c 'echo "Scan {}";echo "---------";smbclient -L//{} -N' }
-alias smd='sudo mkdir'
+alias mp='jmtpfs ~/phone'
+alias sp='rsync -rtv /mnt/4ADE1465DE144C17/Musik /home/nexor/phone/Internal storage/Music'
+alias ve='v -c "let startify_disable_at_vimenter = 1" '
+alias V=ve
+alias vi=ve
+alias howtomake='o http://www.cs.colby.edu/maxwell/courses/tutorials/maketutor/'
+alias jflap='java -jar ~/mackenzie/2019/compiladores/JFLAP.jar'

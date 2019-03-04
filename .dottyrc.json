@@ -189,7 +189,8 @@
     "bettercap",
     "p7zip",
     "ddrescue",
-    "gocryptfs"
+    "gocryptfs",
+    "shellcheck"
   ],
   "excluded": [
     "hotmail.gpg"
@@ -229,6 +230,7 @@
     "command -v polybar || yay -S polybar",
     "command -v hamachi || yay -S logmein-hamachi",
     "command -v gotop || yay -S gotop",
+    "command -v jmtpfs || yay -S jmtpfs",
     "command -v browsh || yay -S browsh"
   ]
 }
