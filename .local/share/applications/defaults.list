@@ -1,3 +1,4 @@
 inode/directory=ranger.desktop;
 audio/mpeg=mpv.desktop;
 video/mpeg=mpv.desktop;
+video/avi=mpv.desktop;
