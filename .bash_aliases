@@ -204,7 +204,8 @@ alias py='python'
 alias S='du -sh'
 alias gsu='git ls-files . --exclude-standard --others'
 alias gsi='git ls-files . --ignored --exclude-standard --others'
-alias sgdm='sudo gdmap -f .'
+gdm(){ [[ $# -eq 0 ]] && gdmap -f . || gdmap -f "$@" }
+sgdm(){ [[ $# -eq 0 ]] && sudo gdmap -f . || sudo gdmap -f "$@" }
 alias H='cd -'
 alias piu='pip install --user'
 alias lo='libreoffice'
