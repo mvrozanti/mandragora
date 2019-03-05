@@ -1,40 +1,56 @@
 <?xml version="1.0"?>
 <Colors>
-  <Color r="0x8989" g="0xabab" b="0x0d0d">
-    <Extension>aar</Extension>
-  </Color>
-  <Color r="0x6aaa" g="0x0000" b="0xffff">
-    <Extension>vdi</Extension>
-  </Color>
-  <Color r="0x0000" g="0x0000" b="0xaaaa">
-    <Extension>zip</Extension>
-    <Extension>gz</Extension>
-    <Extension>tgz</Extension>
-    <Extension>rar</Extension>
-    <Extension>bz2</Extension>
-    <Extension>7z</Extension>
-    <Extension>xz</Extension>
-    <Extension>tar</Extension>
-  </Color>
-  <Color r="0x6666" g="0xaaaa" b="0xffff">
-    <Extension>mdb</Extension>
-    <Extension>doc</Extension>
-    <Extension>pdf</Extension>
-    <Extension>ps</Extension>
-    <Extension>ppt</Extension>
-    <Extension>txt</Extension>
-    <Extension>po</Extension>
-    <Extension>xsl</Extension>
-    <Extension>xls</Extension>
+  <Color r="0xbef8" g="0xd7c6" b="0x4092">
+    <Extension>csv</Extension>
     <Extension>xml</Extension>
+    <Extension>json</Extension>
+    <Extension>txt</Extension>
+  </Color>
+  <Color r="0xbbba" g="0x7e4e" b="0x5c8c">
+    <Extension>js</Extension>
     <Extension>html</Extension>
     <Extension>htm</Extension>
   </Color>
-  <Color r="0xffff" g="0x998b" b="0x0000">
-    <Extension>mp3</Extension>
-    <Extension>ogg</Extension>
-    <Extension>flac</Extension>
-    <Extension>wav</Extension>
+  <Color r="0xffff" g="0xffff" b="0xffff">
+    <Extension>ttf</Extension>
+    <Extension>otf</Extension>
+  </Color>
+  <Color r="0xb0b0" g="0x7272" b="0x1919">
+    <Extension>java</Extension>
+    <Extension>jar</Extension>
+  </Color>
+  <Color r="0x3fbb" g="0x5a66" b="0x2cef">
+    <Extension>img</Extension>
+    <Extension>iso</Extension>
+    <Extension>dat</Extension>
+  </Color>
+  <Color r="0xdddd" g="0x0000" b="0x0000">
+    <Extension>asf</Extension>
+    <Extension>avi</Extension>
+    <Extension>mpg</Extension>
+    <Extension>mpeg</Extension>
+    <Extension>wmv</Extension>
+  </Color>
+  <Color r="0xffff" g="0x0000" b="0xffff">
+    <Extension>exe</Extension>
+    <Extension>msi</Extension>
+    <Extension>bin</Extension>
+  </Color>
+  <Color r="0xbbbb" g="0x0000" b="0xbbbb">
+    <Extension>dll</Extension>
+    <Extension>o</Extension>
+    <Extension>lo</Extension>
+    <Extension>a</Extension>
+    <Extension>so</Extension>
+  </Color>
+  <Color r="0xf3f3" g="0x4b4b" b="0x7d7d">
+    <Extension>c</Extension>
+    <Extension>cc</Extension>
+    <Extension>cpp</Extension>
+  </Color>
+  <Color r="0x0000" g="0xffff" b="0x0000">
+    <Extension>h</Extension>
+    <Extension>hh</Extension>
   </Color>
   <Color r="0xeeee" g="0xeeee" b="0x0000">
     <Extension>eps</Extension>
@@ -47,49 +63,45 @@
     <Extension>tif</Extension>
     <Extension>tiff</Extension>
   </Color>
-  <Color r="0x0000" g="0xffff" b="0x0000">
-    <Extension>h</Extension>
-    <Extension>hh</Extension>
+  <Color r="0xffff" g="0x998b" b="0x0000">
+    <Extension>mp3</Extension>
+    <Extension>ogg</Extension>
+    <Extension>flac</Extension>
+    <Extension>wav</Extension>
   </Color>
-  <Color r="0xf3f3" g="0x4b4b" b="0x7d7d">
-    <Extension>c</Extension>
-    <Extension>cc</Extension>
-    <Extension>cpp</Extension>
+  <Color r="0x6666" g="0xaaaa" b="0xffff">
+    <Extension>mdb</Extension>
+    <Extension>doc</Extension>
+    <Extension>pdf</Extension>
+    <Extension>ps</Extension>
+    <Extension>ppt</Extension>
+    <Extension>po</Extension>
+    <Extension>xsl</Extension>
+    <Extension>xls</Extension>
   </Color>
-  <Color r="0xbbbb" g="0x0000" b="0xbbbb">
-    <Extension>dll</Extension>
-    <Extension>o</Extension>
-    <Extension>lo</Extension>
-    <Extension>a</Extension>
-    <Extension>so</Extension>
+  <Color r="0x0000" g="0x0000" b="0xaaaa">
+    <Extension>zip</Extension>
+    <Extension>gz</Extension>
+    <Extension>tgz</Extension>
+    <Extension>rar</Extension>
+    <Extension>bz2</Extension>
+    <Extension>7z</Extension>
+    <Extension>xz</Extension>
+    <Extension>tar</Extension>
   </Color>
-  <Color r="0xffff" g="0x0000" b="0xffff">
-    <Extension>exe</Extension>
-    <Extension>msi</Extension>
+  <Color r="0x6aaa" g="0x0000" b="0xffff">
+    <Extension>vdi</Extension>
+    <Extension>sav</Extension>
   </Color>
-  <Color r="0xdddd" g="0x0000" b="0x0000">
-    <Extension>asf</Extension>
-    <Extension>avi</Extension>
-    <Extension>mpg</Extension>
-    <Extension>mpeg</Extension>
-    <Extension>wmv</Extension>
+  <Color r="0x8989" g="0xabab" b="0x0d0d">
+    <Extension>aar</Extension>
+    <Extension>nupkg</Extension>
   </Color>
-  <Color r="0x3fbb" g="0x5a66" b="0x2cef">
-    <Extension>img</Extension>
-    <Extension>iso</Extension>
-    <Extension>dat</Extension>
+  <Color r="0x3535" g="0x7272" b="0xa5a5">
+    <Extension></Extension>
   </Color>
-  <Color r="0xb0b0" g="0x7272" b="0x1919">
-    <Extension>java</Extension>
-    <Extension>jar</Extension>
-  </Color>
-  <Color r="0xffff" g="0xffff" b="0xffff">
-    <Extension>ttf</Extension>
-    <Extension>otf</Extension>
-    <Extension>atf</Extension>
-  </Color>
-  <Color type="Folder" r="0x2222" g="0x4444" b="0x0000"/>
-  <Color type="Mark2" r="0x0f0f" g="0xffff" b="0xffff"/>
-  <Color type="Mark1" r="0xffff" g="0xffff" b="0x0000"/>
   <Color type="Default" r="0xcccc" g="0xcccc" b="0xcccc"/>
+  <Color type="Mark1" r="0xffff" g="0xffff" b="0x0000"/>
+  <Color type="Mark2" r="0x0f0f" g="0xffff" b="0xffff"/>
+  <Color type="Folder" r="0x2222" g="0x4444" b="0x0000"/>
 </Colors>
