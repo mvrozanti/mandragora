@@ -27,7 +27,7 @@
     ".vimrc": "~/.vimrc",
     ".streamlinkrc": "~/.streamlinkrc",
     ".jupyter/custom/custom.css": "~/.jupyter/custom/custom.css",
-    "/root/.gdmap": "/root/.gdmap",
+    ".gdmap": "~/.gdmap",
     ".bashrc": "~/.bashrc",
     ".zshrc": "~/.zshrc",
     ".urlview": "~/.urlview",
