@@ -6,7 +6,7 @@ alias ls=exa
 alias l='exa --reverse --sort=modified'
 alias watch='watch --color -n2'
 alias sps='sudo pacman -S'
-alias spr='sudo pacman -Rs'
+alias spr='sudo pacman -Rns'
 alias pss='pacman -Ss'
 alias spsyu='sudo pacman -Syu'
 alias py2='python2'
