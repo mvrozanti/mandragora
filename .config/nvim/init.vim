@@ -2,8 +2,7 @@ map <A-F> mzgg=G`zzz
 xnoremap p "_dP
 vnoremap \/ y/<C-R>"<CR>
 nnoremap <A-p> o<A-p>
-" Automatically deletes all tralling whitespace on save, except for txt files
-autocmd BufWritePre  * if index(['txt'], &ft) < 0 | %s/\s\+$//e
+autocmd BufWritePre  !*.txt %s/\s\+$//e
 autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex % ; rm *.out *.log *.lot *.lof *.aux *.toc
 map Q <Nop>
 imap silent <C-h> <A-b>
