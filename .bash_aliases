@@ -6,7 +6,7 @@ alias ls=exa
 alias l='exa --reverse --sort=modified'
 alias watch='watch --color -n2'
 alias sps='sudo pacman -S'
-alias spr='sudo pacman -R'
+alias spr='sudo pacman -Rns'
 alias pss='pacman -Ss'
 alias spsyu='sudo pacman -Syu'
 alias py2='python2'
@@ -204,7 +204,8 @@ alias py='python'
 alias S='du -sh'
 alias gsu='git ls-files . --exclude-standard --others'
 alias gsi='git ls-files . --ignored --exclude-standard --others'
-alias sgdm='sudo gdmap -f .'
+gdm(){ [[ $# -eq 0 ]] && gdmap -f . || gdmap -f "$@" }
+sgdm(){ [[ $# -eq 0 ]] && sudo gdmap -f . || sudo gdmap -f "$@" }
 alias H='cd -'
 alias piu='pip install --user'
 alias lo='libreoffice'
@@ -321,3 +322,6 @@ alias V=ve
 alias vi=ve
 alias howtomake='o http://www.cs.colby.edu/maxwell/courses/tutorials/maketutor/'
 alias jflap='java -jar ~/mackenzie/2019/compiladores/JFLAP.jar'
+lix(){ curl -s ix.io/user/ | grep '<a href=' |sed 1q | sd -f m '.+?href=.(.+?).>.+' '$1' | xargs -I{} curl -s ix.io{} }
+alias spscc='s pacman -Scc'
+wht(){ while 1;do $@;done }
