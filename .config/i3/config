@@ -34,7 +34,6 @@ $bind $mod+Ctrl+BackSpace   $ensid sleep 1 && xset -display :0.0 dpms force off
 $bind Ctrl+Mod1+BackSpace   $ensid shutdown -h 0
 $bind $mod+Shift+r          restart
 $bind $mod+q                kill
-# $bind Mod1+Tab dafuqisthis> exec wmctrl -l | sed -E "s/.*$(hostname)(.*)/\1/g" | rev | cut -d '-' -f1 | rev  | dmenu $dmenu_looks | xargs wmctrl -a
 $bind Mod1+Tab              workspace back_and_forth
 $bind $mod+Shift+e          $ensid [[ `echo -e 'Exit i3\nDo not'|dmenu $dmenu_looks` == 'Exit i3' ]] && i3-msg exit
 $bind $mod+Ctrl+r           $ensid [[ `echo -e 'Restart\nDo not'|dmenu $dmenu_looks` == 'Restart' ]] && reboot
