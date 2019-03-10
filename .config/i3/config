@@ -310,7 +310,7 @@ gaps outer 0
 # focused border width
 default_border pixel 1
 
-set $mode_gaps Gaps: (o) outer, (i) inner, (I) sexy, (0) performance
+set $mode_gaps Gaps: (o) outer, (i) inner, (I) typical, (0) performance, (s) sexy
 set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
 set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
 $bind $mod+Shift+g mode "$mode_gaps"
@@ -319,7 +319,7 @@ mode "$mode_gaps" {
         $bind o               mode "$mode_gaps_outer"
         $bind i               mode "$mode_gaps_inner"
         $bind Shift+i         gaps inner current set 50; gaps outer all set 0; mode default
-        $bind 5               gaps inner current set 100; gaps outer all set 0; mode default
+        $bind s               gaps inner current set 100; gaps outer all set 0; mode default
         $bind 0               gaps inner current set 0; mode default
         $bind Return          mode default
         $bind Escape          mode default
