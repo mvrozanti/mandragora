@@ -324,4 +324,4 @@ alias howtomake='o http://www.cs.colby.edu/maxwell/courses/tutorials/maketutor/'
 alias jflap='java -jar ~/mackenzie/2019/compiladores/JFLAP.jar'
 lix(){ curl -s ix.io/user/ | grep '<a href=' |sed 1q | sd -f m '.+?href=.(.+?).>.+' '$1' | xargs -I{} curl -s ix.io{} }
 alias spscc='s pacman -Scc'
-wht(){ while 1;do $@;done }
+alias wmd5='watch md5sum'
