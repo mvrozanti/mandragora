@@ -327,3 +327,4 @@ lix(){ curl -s ix.io/user/ | grep '<a href=' |sed 1q | sd -f m '.+?href=.(.+?).>
 alias spscc='s pacman -Scc'
 alias wmd5='watch md5sum'
 alias re='perl -pe'
+wco(){ watch xsel -o -b }
