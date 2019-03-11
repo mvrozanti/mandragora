@@ -257,7 +257,7 @@ alias k='kitty'
 cfcf(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sd $HOME'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf|sd $HOME'(.*)' '~$1' || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json" | sponge $HOME"/mandragora/.dottyrc.json" }
 cfcu(){ to_remove="$1"; [[ ! -z $to_remove ]] && removed_array="`jq '.install|map(select(.!="'$to_remove'"))' $HOME"/mandragora/.dottyrc.json"`" && jq .install="$removed_array" $HOME"/mandragora/.dottyrc.json" | sponge ~/mandragora/.dottyrc.json }
 cfci(){ jq '.install |= . + ["'$1'"]' ~/mandragora/.dottyrc.json | sponge ~/mandragora/.dottyrc.json }
-lnb(){ fpath="$1"; dst="$2"; sudo ln -s `realpath $fpath` ~/.local/bin/`[[ -z "$dst" ]] && echo $fpath|cut -f 1 -d '.' || echo $2` }
+lnb(){ le_fpath="$1"; le_dst="$2"; sudo ln -s `realpath $le_fpath` ~/.local/bin/`[[ -z "$le_dst" ]] && echo $le_fpath|cut -f 1 -d '.' || echo $2` }
 alias cfD='nvim /home/nexor/mandragora/dotty/dotty.py'
 alias grow='[[ `git -C ~/mandragora pull|wc -l` -eq 1 ]] || ~/mandragora/dotty/dotty.py -f -r && git -C ~/mandragora submodule update --recursive --remote'
 alias oc='mpv /dev/video0'
@@ -328,3 +328,4 @@ alias spscc='s pacman -Scc'
 alias wmd5='watch md5sum'
 alias re='perl -pe'
 wco(){ watch xsel -o -b }
+v.(){ v . }
