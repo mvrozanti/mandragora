@@ -190,7 +190,8 @@
     "p7zip",
     "ddrescue",
     "gocryptfs",
-    "shellcheck"
+    "shellcheck",
+    "sdedit"
   ],
   "excluded": [
     "hotmail.gpg"
