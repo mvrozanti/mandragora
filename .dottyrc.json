@@ -191,7 +191,8 @@
     "ddrescue",
     "gocryptfs",
     "shellcheck",
-    "sdedit"
+    "sdedit",
+    "nasm"
   ],
   "excluded": [
     "hotmail.gpg"
