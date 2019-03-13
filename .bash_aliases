@@ -8,6 +8,7 @@ alias watch='watch --color -n2'
 alias sps='sudo pacman -S'
 alias spr='sudo pacman -Rns'
 alias pss='pacman -Ss'
+alias pqo='pacman -Qo'
 alias spsyu='sudo pacman -Syu'
 alias py2='python2'
 alias py3='python3'
@@ -168,6 +169,7 @@ alias p3r='pip3 uninstall'
 alias p3r='pip2 uninstall'
 cnt(){ echo $1 | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -g -o "$noext" ${@:2} && clear && ./"$noext"'; }
 cntr(){ echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && sh -c "$noext || :"'; }
+bentr(){ ls * | entr -p /_ $@ }
 centr(){ ls *.c | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
 gentr(){ ls *.cpp | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; g++ '$@' {} -o "$noext" && clear && exec "$noext"'; }
 pentr(){ [[ -z $1 ]] && ls *.py* | entr -rc /_ $@ || echo $1 | entr /_ }
@@ -256,7 +258,7 @@ alias k='kitty'
 cfcf(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sd $HOME'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf|sd $HOME'(.*)' '~$1' || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json" | sponge $HOME"/mandragora/.dottyrc.json" }
 cfcu(){ to_remove="$1"; [[ ! -z $to_remove ]] && removed_array="`jq '.install|map(select(.!="'$to_remove'"))' $HOME"/mandragora/.dottyrc.json"`" && jq .install="$removed_array" $HOME"/mandragora/.dottyrc.json" | sponge ~/mandragora/.dottyrc.json }
 cfci(){ jq '.install |= . + ["'$1'"]' ~/mandragora/.dottyrc.json | sponge ~/mandragora/.dottyrc.json }
-lnb(){ fpath="$1"; dst="$2"; sudo ln -s `realpath $fpath` ~/.local/bin/`[[ -z "$dst" ]] && echo $fpath|cut -f 1 -d '.' || echo $2` }
+lnb(){ le_fpath="$1"; le_dst="$2"; sudo ln -s `realpath $le_fpath` ~/.local/bin/`[[ -z "$le_dst" ]] && echo $le_fpath|cut -f 1 -d '.' || echo $2` }
 alias cfD='nvim /home/nexor/mandragora/dotty/dotty.py'
 alias grow='[[ `git -C ~/mandragora pull|wc -l` -eq 1 ]] || ~/mandragora/dotty/dotty.py -f -r && git -C ~/mandragora submodule update --recursive --remote'
 alias oc='mpv /dev/video0'
@@ -316,7 +318,7 @@ alias sk='screenkey --font-color red --opacity 0.2 --compr-cnt 3 -s small'
 alias U='sudo umount'
 alias cfM='v .config/mpv/input.conf'
 alias mp='jmtpfs ~/phone'
-alias sp='rsync -rtv /mnt/4ADE1465DE144C17/Musik /home/nexor/phone/Internal storage/Music'
+alias sp='rsync -rtv /mnt/4ADE1465DE144C17/Musik "/home/nexor/phone/Internal storage/Music"'
 alias ve='v -c "let startify_disable_at_vimenter = 1" '
 alias V=ve
 alias vi=ve
@@ -324,4 +326,8 @@ alias howtomake='o http://www.cs.colby.edu/maxwell/courses/tutorials/maketutor/'
 alias jflap='java -jar ~/mackenzie/2019/compiladores/JFLAP.jar'
 lix(){ curl -s ix.io/user/ | grep '<a href=' |sed 1q | sd -f m '.+?href=.(.+?).>.+' '$1' | xargs -I{} curl -s ix.io{} }
 alias spscc='s pacman -Scc'
-wht(){ while 1;do $@;done }
+alias wmd5='watch md5sum'
+alias re='perl -pe'
+wco(){ watch xsel -o -b }
+v.(){ v . }
+alias cfC='v /home/nexor/.config/nvim/coc-settings.json'

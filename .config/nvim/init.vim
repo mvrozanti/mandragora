@@ -2,7 +2,9 @@ map <A-F> mzgg=G`zzz
 xnoremap p "_dP
 vnoremap \/ y/<C-R>"<CR>
 nnoremap <A-p> o<A-p>
-autocmd BufWritePre  !*.txt %s/\s\+$//e
+" Automatically deletes all tralling whitespace on save.
+" let blacklist = ['txt']
+" autocmd BufWritePre  * if index(blacklist, &ft) < 0 | %s/\s\+$//e
 autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex % ; rm *.out *.log *.lot *.lof *.aux *.toc
 map Q <Nop>
 imap silent <C-h> <A-b>
@@ -151,8 +153,9 @@ autocmd FileType python inoremap trycatch<tab> try:<CR><+><CR>except Exception a
 
 " autocmd FileType c set makeprg=gcc\ -O2\ -g\ -Wall\ -Wextra\ -o'%<'\ '%'\ -lm ; ./%\:r
 
-autocmd FileType c,lex inoremap im<tab> int main(){}<Esc>i<CR><Esc>O
-autocmd FileType c,lex inoremap in<tab> #include<><Esc>i
+autocmd FileType c,cpp,lex inoremap im<tab> int main(){}<Esc>i<CR><Esc>O
+autocmd FileType c,cpp,lex inoremap uns<tab> using namespace std;<CR>
+autocmd FileType c,cpp,lex inoremap in<tab> #include<><Esc>i
 autocmd FileType c,lex inoremap so<tab> sizeof()<Esc>i
 autocmd FileType c,cpp,lex inoremap pr<tab> printf("\n", <+>);<Esc>9hi
 autocmd FileType c,cpp,java,lex inoremap sw<tab> switch(){<CR>case <+>:<CR>break;<CR>}<Esc>3kwa
