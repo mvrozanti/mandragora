@@ -10,3 +10,9 @@ def_key "n"
     next_found_item
 def_key "N"
     previous_found_item
+def_key "0"
+  replay_song
+def_key "ctrl-b"
+  page_up
+def_key "ctrl-f"
+  page_down
