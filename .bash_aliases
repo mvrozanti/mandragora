@@ -318,7 +318,7 @@ alias sk='screenkey --font-color red --opacity 0.2 --compr-cnt 3 -s small'
 alias U='sudo umount'
 alias cfM='v .config/mpv/input.conf'
 alias mp='jmtpfs ~/phone'
-alias sp='rsync -rtv /mnt/4ADE1465DE144C17/Musik /home/nexor/phone/Internal storage/Music'
+alias sp='rsync -rtv /mnt/4ADE1465DE144C17/Musik "/home/nexor/phone/Internal storage/Music"'
 alias ve='v -c "let startify_disable_at_vimenter = 1" '
 alias V=ve
 alias vi=ve
@@ -330,3 +330,4 @@ alias wmd5='watch md5sum'
 alias re='perl -pe'
 wco(){ watch xsel -o -b }
 v.(){ v . }
+alias cfC='v /home/nexor/.config/nvim/coc-settings.json'
