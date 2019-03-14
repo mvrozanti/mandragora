@@ -234,6 +234,7 @@ set clipboard=unnamed,unnamedplus
 " let g:system_copy#paste_command='xclip -sel clipboard -o'
 
 Plug 'mvrozanti/vim-cute-python'
+Plug 'mvrozanti/vim-cute-cpp'
 
 " C/C++ debugging
 Plug 'Shougo/vimproc.vim', {'do' : 'make'}
