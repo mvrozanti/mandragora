@@ -12,6 +12,7 @@ imap silent <C-l> <A-w>
 imap silent <C-Left> <A-b>
 imap silent <C-Right> <A-w>
 inoremap <A-Backspace> <A-c>iw
+nnoremap <A-Backspace> viwd
 inoremap jk <Esc>l
 inoremap jK <Esc>l
 inoremap Jk <Esc>l
