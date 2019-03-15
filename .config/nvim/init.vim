@@ -197,9 +197,9 @@ set exrc
 
 "move vim splits
 nnoremap <S-H>      :5winc <<CR>
-nnoremap <S-U>      :5winc +<CR>
+nnoremap <S-K>      :5winc +<CR>
 nnoremap <S-L>      :5winc ><CR>
-nnoremap <S-K>      :5winc -<CR>
+nnoremap <S-U>      :5winc -<CR>
 
 "autocomplete colors
 "highlight Pmenu ctermfg=2 ctermbg=4 guifg=1 guibg=4
