@@ -334,3 +334,4 @@ v.(){ v . }
 alias cfC='v /home/nexor/.config/nvim/coc-settings.json'
 alias G='googler -l en -n 3 -c en'
 coytdl(){ ytdl `co` }
+alias /f='/;f'
