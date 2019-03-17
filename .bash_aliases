@@ -332,4 +332,4 @@ wco(){ watch xsel -o -b }
 v.(){ v . }
 alias cfC='v /home/nexor/.config/nvim/coc-settings.json'
 alias G='googler -l en -n 3 -c en'
-alias coytdl='co | ytdl'
+coytdl(){ ytdl `co` }
