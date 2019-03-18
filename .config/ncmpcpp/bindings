@@ -16,3 +16,5 @@ def_key "ctrl-b"
   page_up
 def_key "ctrl-f"
   page_down
+def_key "|"
+  apply_filter
