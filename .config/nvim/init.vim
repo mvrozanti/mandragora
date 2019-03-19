@@ -12,6 +12,7 @@ imap silent <C-l> <A-w>
 imap silent <C-Left> <A-b>
 imap silent <C-Right> <A-w>
 inoremap <A-Backspace> <A-c>iw
+nnoremap <A-Backspace> viwd
 inoremap jk <Esc>l
 inoremap jK <Esc>l
 inoremap Jk <Esc>l
@@ -77,6 +78,7 @@ set t_vb=
 
 " hits bong:
 " vnoremap <silent> <C-c> :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:noh<CR>
+nnoremap : q:i
 nnoremap <A-i> f(a
 inoremap <A-i> <Esc>f(a
 nnoremap <A-I> <Esc>f,a
@@ -196,9 +198,9 @@ set exrc
 
 "move vim splits
 nnoremap <S-H>      :5winc <<CR>
-nnoremap <S-U>      :5winc +<CR>
+nnoremap <S-K>      :5winc +<CR>
 nnoremap <S-L>      :5winc ><CR>
-nnoremap <S-K>      :5winc -<CR>
+nnoremap <S-U>      :5winc -<CR>
 
 "autocomplete colors
 "highlight Pmenu ctermfg=2 ctermbg=4 guifg=1 guibg=4

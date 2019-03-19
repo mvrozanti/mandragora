@@ -1,2 +1,2 @@
-COMMAND waterfox
+COMMAND /etc/urlview/url_handler.sh
 

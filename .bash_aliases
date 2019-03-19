@@ -13,8 +13,8 @@ alias spsyu='sudo pacman -Syu'
 alias py2='python2'
 alias py3='python3'
 alias s='sudo'
-alias r='ranger'
-alias r.='ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true" "$(if [ -z "$@" ]; then cat $HOME/.rangerdir; fi)";cd "`cat $HOME/.rangerdir`"'
+alias r.='ranger'
+alias r='ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true" "$(if [ -z "$@" ]; then cat $HOME/.rangerdir; fi)";cd "`cat $HOME/.rangerdir`"'
 alias sr='sudo ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true" "$(if [ -z "$@" ]; then cat $HOME/.rangerdir; fi)";cd "`cat $HOME/.rangerdir`"'
 alias u='unp -U'
 alias unp='unp -U'
@@ -175,6 +175,7 @@ gentr(){ ls *.cpp | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. 
 pentr(){ [[ -z $1 ]] && ls *.py* | entr -rc /_ $@ || echo $1 | entr /_ }
 mentr(){ ls *.* | entr make }
 xentr(){ ls *.* | entr -p $@ /_ }
+nentr(){ ls *.* | entr -p $@ node /_ }
 ventr(){ [[ $(($#)) -gt 0 ]] && ls | entr -r sh -c 'valgrind --quiet --show-leak-kinds=all --leak-check=full '`realpath ${@: -1}`' -v --track-origins=yes' }
 alias entr='entr -p'
 alias dotty='$HOME/mandragora/dotty/dotty.py'
@@ -200,7 +201,7 @@ ocsv() { cat "$@" | psc -k -d, | `wis sc` }
 alias sc='sc-im'
 fv(){ find . -type f -name "*$@*" -exec nvim {} +  }
 zt(){ tar -czvf $1".tar.gz" ${@:2} }
-zz(){ zip -r  "$1".zip ${@:2} }
+zz(){ [[ "$#" -eq 2 ]] && zip -r  "$1".zip ${@:2} }
 alias less='bat'
 alias py='python'
 alias S='du -sh'
@@ -270,6 +271,7 @@ alias RA='nc `[[ $(hostname) == mndrgr2 ]] && echo mndrgr || echo mndrgr2` 2718 
 alias RV='nc mndrgr2 2717 | mpv - -cache 512'
 alias wS='watch du -sh'
 servesingle(){ [[ ! -z $1 ]] && { filepath=`realpath $1` &&  echo -ne "HTTP/1.0 200 OK\r\nContent-Disposition: filename=\"`basename $filepath`\"\nContent-Length: $(wc -c <$filepath)\r\n\r\n"; cat $filepath; } | nc -l -p 2717 }
+alias sS='servesingle'
 alias sctl='sudo systemctl'
 alias GD='git daemon --base-path=. --export-all'
 alias blank='xset -display :0.0 dpms force off'
@@ -292,7 +294,7 @@ alias help='echo no && read'
 alias t1='tail -n1'
 alias t1a='t1 /home/nexor/.bash_aliases'
 alias sl='ls'
-alias cfT='v /home/nexor/.tridactyl'
+alias cfT='v /home/nexor/.tig'
 alias burncd='i3-msg workspace 1 && o https://www.linuxquestions.org/questions/linux-newbie-8/how-to-burn-files-into-a-dvd-from-command-line-4175464968/'
 alias enc='openssl aes-256-cbc -in - 2>/dev/null'
 alias dec='enc -d 2>/dev/null'
@@ -332,3 +334,8 @@ wco(){ watch xsel -o -b }
 v.(){ v . }
 alias cfC='v /home/nexor/.config/nvim/coc-settings.json'
 alias G='googler -l en -n 3 -c en'
+coytdl(){ ytdl `co` }
+alias /f='/;f'
+alias copss='pss `co`'
+_toggle_ssh_password_auth(){ grep 'PasswordAuthentication yes' /etc/ssh/sshd_config >/dev/null; [[ $? -eq 0 ]] && sudo sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config || sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config; sudo systemctl restart sshd; trap - SIGINT }
+wetty(){ _toggle_ssh_password_auth; trap _toggle_ssh_password_auth SIGINT; node ~/util/wetty/index.js -p 2717 }
