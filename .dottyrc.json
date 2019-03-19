@@ -55,7 +55,9 @@
     ".config/mutt/etc/mailcap": "~/.config/mutt/etc/mailcap",
     ".config/mpv/input.conf": "~/.config/mpv/input.conf",
     ".ranger_aliases": "~/.ranger_aliases",
-    ".config/nvim/coc-settings.json": "~/.config/nvim/coc-settings.json"
+    ".config/nvim/coc-settings.json": "~/.config/nvim/coc-settings.json",
+    ".tigrc": "~/.tigrc",
+    "etc/urlview/url_handler.sh": "/etc/urlview/url_handler.sh"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
@@ -209,6 +211,7 @@
     "git clone https://github.com/emcrisostomo/fswatch ~/util/fswatch && cd $_ && ./configure && sudo make install",
     "git clone https://github.com/jesseduffield/lazygit ~/util/lazygit",
     "git clone https://github.com/mvrozanti/bash-tetris ~/util/bash-tetris",
+    "git clone https://github.com/krishnasrinivas/wetty ~/util/wetty && cd $_ && yarn && yarn build",
     "git clone https://github.com/sigpipe/urlview ~/util/urlview && cd $_ && ./configure && sudo make install",
     "git clone https://github.com/ujjwal96/xwinwrap ~/util/xwinwrap && cd $_ && sudo make install",
     "git clone https://github.com/clibs/entr ~/util/entr && cd ~/util/entr && ./configure && sudo make install",
@@ -230,10 +233,11 @@
     "command -v gotop || go get github.com/cjbassi/gotop",
     "cargo install --list | grep sd || cargo install sd",
     "pip3 install --user khal grip psutil maybe sqlcrush pynvim",
-    "command -v polybar || yay -S polybar",
+    "command -v polybar || yay -S $_",
     "command -v hamachi || yay -S logmein-hamachi",
-    "command -v gotop || yay -S gotop",
-    "command -v jmtpfs || yay -S jmtpfs",
-    "command -v browsh || yay -S browsh"
+    "command -v gotop   || yay -S $_",
+    "command -v jmtpfs  || yay -S $_",
+    "command -v browsh  || yay -S $_",
+    "command -v googler || yay -S $_ "
   ]
 }
