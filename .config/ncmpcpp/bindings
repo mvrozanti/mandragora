@@ -18,3 +18,7 @@ def_key "ctrl-f"
   page_down
 def_key "|"
   apply_filter
+def_key "s"
+  toggle_find_mode
+def_key "w"
+  seek_forward
