@@ -40,6 +40,7 @@ call plug#begin()
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
+Plug 'richq/vim-cmake-completion'
 vmap <C-Space> gc
 nmap <C-Space> gcc
 
@@ -279,6 +280,7 @@ let g:netrw_liststyle=3
 
 
 " ==== Refactoring for C-family
+Plug 'vim-scripts/a.vim'
 " Plug 'bbchung/clighter8'
 
 " ==== overwrite vim banner
