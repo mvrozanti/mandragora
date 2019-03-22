@@ -342,3 +342,5 @@ wetty(){ _toggle_ssh_password_auth; trap _toggle_ssh_password_auth SIGINT; node 
 alias xfix='xset r rate 200 30;xmodmap ~/.Xmodmap;setxkbmap us alt-intl'
 alias cocd='cd `co`'
 alias cocdd='cdd `co`'
+other_mndrgr(){ [[ `hostname` == "mndrgr" ]] && echo mndrgr2 || echo mndrgr }
+diffmndrgr(){ [[ -z $@ ]] || diff $@ <(ssh $(other_mndrgr) 'cat '$(realpath $@)) }
