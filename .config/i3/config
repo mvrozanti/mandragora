@@ -128,6 +128,7 @@ $bind $mod+z          workspace $ws5;                           $ensid wmctrl -a
 $bind $mod+Shift+f    workspace $ws3;                           $ensid wmctrl -a  WhatsApp        || whatsapp
 $bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a  Trello          || trello
 $bind $mod+Shift+w    workspace $ws11;                          $ensid wmctrl -xa thunderbird     || thunderbird
+$bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -xa gdmap           || gdmap -f /
 $bind $mod+Shift+Return                                         $ensid                               kitty sh -c 'cat /home/nexor/.cache/wal/sequences && ranger'
 # $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
 $bind $mod+Shift+p                                              $ensid wmctrl -a zathura          || zathura
