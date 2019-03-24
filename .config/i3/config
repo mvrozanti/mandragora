@@ -57,7 +57,7 @@ for_window  [class="Waterfox"]            move to workspace $ws1
 # for_window  [class="Firefox"]            move to workspace $ws1
 for_window  [title="^(\d+) WhatsApp$"]    move to workspace $ws3
 for_window  [title=".*Trello.*"]          move to workspace $ws7
-for_window  [title="Zoom"]                move to workspace $ws5
+for_window  [title="Zoom\s-"]              move to workspace $ws5
 for_window  [instance="^ranger$"]         move to workspace $ws8
 for_window  [class="mpv"]                 floating enable move right -500 move down -10
 for_window  [instance="portal"]           sticky enable floating enable move position 1000 200
@@ -124,7 +124,7 @@ $bind $mod+x                                                    $ensid wmctrl -a
 $bind $mod+4              split h;                              $ensid wmctrl -a  telegram        || telegram
 $bind $mod+b                                                    $ensid wmctrl -xa DBeaver         || dbeaver
 $bind $mod+Shift+d                                              $ensid wmctrl -xa Netbeans        || /usr/bin/netbeans
-$bind $mod+z          workspace $ws5;                           $ensid wmctrl -a  Zoom            || zoom
+$bind $mod+z          workspace $ws5;                           $ensid wmctrl -a  "Zoom -"        || zoom
 $bind $mod+Shift+f    workspace $ws3;                           $ensid wmctrl -a  WhatsApp        || whatsapp
 $bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a  Trello          || trello
 $bind $mod+Shift+w    workspace $ws11;                          $ensid wmctrl -xa thunderbird     || thunderbird
