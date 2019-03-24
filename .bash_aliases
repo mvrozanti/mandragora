@@ -347,3 +347,4 @@ other_mndrgr(){ [[ `hostname` == "mndrgr" ]] && echo mndrgr2 || echo mndrgr }
 diffmndrgr(){ [[ -z $@ ]] || diff $@ <(ssh $(other_mndrgr) 'cat '$(realpath $@)) }
 alias cosv='sv `co`'
 alias cos='sudo `co`'
+alias corm='rm `co`'
