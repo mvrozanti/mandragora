@@ -348,3 +348,4 @@ diffmndrgr(){ [[ -z $@ ]] || diff $@ <(ssh $(other_mndrgr) 'cat '$(realpath $@))
 alias cosv='sv `co`'
 alias cos='sudo `co`'
 alias corm='rm `co`'
+mdcd(){ md $@; cd $_ }
