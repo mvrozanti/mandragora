@@ -56,7 +56,8 @@
     ".config/mpv/input.conf": "~/.config/mpv/input.conf",
     ".ranger_aliases": "~/.ranger_aliases",
     ".config/nvim/coc-settings.json": "~/.config/nvim/coc-settings.json",
-    ".tigrc": "~/.tigrc"
+    ".tigrc": "~/.tigrc",
+    ".config/mpv/scripts": "~/.config/mpv/scripts"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
