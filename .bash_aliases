@@ -352,3 +352,4 @@ alias corm='rm `co`'
 mdcd(){ md $@; cd $_ }
 alias enhance='function ne() { docker run --rm -v "$(pwd)/`dirname ${@:$#}`":/ne/input -it alexjc/neural-enhance ${@:1:$#-1} "input/`basename ${@:$#}`"; }; ne'
 alias gacap='git add .; git commit --amend; git push'
+alias up='sudo umount /home/nexor/phone'
