@@ -81,7 +81,7 @@ alias c='xsel -i -b'
 alias co='xsel -o -b'
 alias cow='co | xargs wget'
 alias cov='co | xargs nvim'
-alias cogc='co | xargs git clone'
+alias cogc='[[ -d .git ]] && git submodule add `co` || git clone `co`'
 # alias P='curl -sF "sprunge=<-" http://sprunge.us'
 alias P='curl -sF "f:1=<-" ix.io'
 # P(){ curl  -X POST -d @- http://0x0.st }
