@@ -351,3 +351,4 @@ alias cos='sudo `co`'
 alias corm='rm `co`'
 mdcd(){ md $@; cd $_ }
 alias enhance='function ne() { docker run --rm -v "$(pwd)/`dirname ${@:$#}`":/ne/input -it alexjc/neural-enhance ${@:1:$#-1} "input/`basename ${@:$#}`"; }; ne'
+alias gcap='git commit --amend; git push'
