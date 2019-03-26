@@ -1,4 +1,5 @@
 unalias sd
+unalias sp
 alias rm='rm -f'
 # alias ll='ls -alFh'
 alias la='exa --all'
@@ -321,7 +322,6 @@ alias sk='screenkey --font-color red --opacity 0.2 --compr-cnt 3 -s small'
 alias U='sudo umount'
 alias cfM='v .config/mpv/input.conf'
 alias mp='jmtpfs ~/phone'
-alias sp='rsync -rtv /mnt/4ADE1465DE144C17/Musik "/home/nexor/phone/Internal storage/Music"'
 alias ve='v -c "let startify_disable_at_vimenter = 1" '
 alias V=ve
 alias vi=ve
@@ -353,3 +353,4 @@ mdcd(){ md $@; cd $_ }
 alias enhance='function ne() { docker run --rm -v "$(pwd)/`dirname ${@:$#}`":/ne/input -it alexjc/neural-enhance ${@:1:$#-1} "input/`basename ${@:$#}`"; }; ne'
 alias gacap='git add .; git commit --amend; git push'
 alias up='sudo umount /home/nexor/phone'
+sp(){ phone_dir="~/phone/Internal storage/Music/"; while read line; do cp "~/Musik/$line" "$phone_dir"; done < <(diff <(ls ~/Musik/) <(ls $phone_dir) | grep '<' | tr -d $_) }
