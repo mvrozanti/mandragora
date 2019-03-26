@@ -248,7 +248,7 @@ alias make-gource-mandragora='git --no-pager log --date=raw|g "^\s+.+|Date"|sed 
 alias tfl='tf *.log'
 alias cfK='nvim /home/nexor/.config/kitty/startup_session.kit'
 alias ki='khal interactive'
-alias sxiv='sxiv -ab'
+alias sxiv='sxiv -ab 2>&1 >/dev/null'
 alias i='sxiv -ft *'
 hextv(){ while true; do kek=`head /dev/urandom|tr -dc A-Za-z0-9|head -c $1`;e $kek|xxd;sleep $2;done }
 alias cfrc='nvim $HOME/.config/ranger/rc.conf'
@@ -350,3 +350,4 @@ alias cosv='sv `co`'
 alias cos='sudo `co`'
 alias corm='rm `co`'
 mdcd(){ md $@; cd $_ }
+alias enhance='function ne() { docker run --rm -v "$(pwd)/`dirname ${@:$#}`":/ne/input -it alexjc/neural-enhance ${@:1:$#-1} "input/`basename ${@:$#}`"; }; ne'
