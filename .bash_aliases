@@ -15,7 +15,7 @@ alias py2='python2'
 alias py3='python3'
 alias s='sudo'
 alias r.='ranger'
-r(){ ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true" "`[[ -z "$@" ]] && cat $HOME/.rangerdir`";cd "`cat $HOME/.rangerdir`" }
+r(){ ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true";cd "`cat $HOME/.rangerdir`" }
 alias sr='sudo ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true" "$(if [ -z "$@" ]; then cat $HOME/.rangerdir; fi)";cd "`cat $HOME/.rangerdir`"'
 alias u='unp -U'
 alias unp='unp -U'
