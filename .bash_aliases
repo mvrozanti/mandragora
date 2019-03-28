@@ -354,3 +354,4 @@ alias enhance='function ne() { docker run --rm -v "$(pwd)/`dirname ${@:$#}`":/ne
 alias gacap='git add .; git commit --amend; git push'
 alias up='sudo umount /home/nexor/phone'
 sp(){ diff <(ls /home/nexor/Musik/) <(ls "/home/nexor/phone/Internal storage/Music/") | grep mp3 | cut -c 2- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "/home/nexor/phone/Internal storage/Music/"; done }
+cox(){ `co` }
