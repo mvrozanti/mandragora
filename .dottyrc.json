@@ -195,7 +195,8 @@
     "shellcheck",
     "sdedit",
     "nasm",
-    "gcc-fortran"
+    "gcc-fortran",
+    "whois"
   ],
   "excluded": [
     "hotmail.gpg"
