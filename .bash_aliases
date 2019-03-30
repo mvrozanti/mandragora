@@ -1,3 +1,4 @@
+unalias rg
 unalias sd
 unalias sp
 alias rm='rm -f'
@@ -274,6 +275,7 @@ alias RV='nc mndrgr2 2717 | mpv - -cache 512'
 alias wS='watch du -sh'
 servesingle(){ [[ ! -z $1 ]] && { filepath=`realpath $1` &&  echo -ne "HTTP/1.0 200 OK\r\nContent-Disposition: filename=\"`basename $filepath`\"\nContent-Length: $(wc -c <$filepath)\r\n\r\n"; cat $filepath; } | nc -l -p 2717 }
 alias sS='servesingle'
+alias ctl='systemctl'
 alias sctl='sudo systemctl'
 alias GD='git daemon --base-path=. --export-all'
 alias blank='xset -display :0.0 dpms force off'
