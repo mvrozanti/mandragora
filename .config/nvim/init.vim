@@ -1,6 +1,7 @@
 map <A-F> mzgg=G`zzz
 xnoremap p "_dP
 vnoremap \/ y/<C-R>"<CR>
+nnoremap dA ysw<Space><Space>ds)
 nnoremap <A-p> o<A-p>
 " Automatically deletes all tralling whitespace on save.
 " let blacklist = ['txt']
