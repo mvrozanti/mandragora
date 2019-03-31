@@ -104,7 +104,10 @@ handle_image() {
         # Image
         image/*)
             if [ $mimetype == "image/gif" ]; then
-                exit 6
+            #     chafa -c 16 -s 20x20 --symbols=ascii ${FILE_PATH} && exit 2
+                resolution="$(identify "${FILE_PATH}" | cut -d' ' -f3 | sed 1q)"
+                # gifview -a ${FILE_PATH} --geometry $resolution+$PV_WIDTH+$PV_HEIGHT && exit 1;;
+                xwinwrap -g "$resolution"+${PV_WIDTH}+ -a -ni -s -nf -b -un -argb -ov -- gifview -w WID ${FILE_PATH}
             fi
             local orientation
             orientation="$( identify -format '%[EXIF:Orientation]\n' -- "${FILE_PATH}" )"
@@ -114,12 +117,6 @@ handle_image() {
                 # ...auto-rotate the image according to the EXIF data.
                 convert -- "${FILE_PATH}" -auto-orient "${IMAGE_CACHE_PATH}" && exit 6
             fi
-#             if [ $mimetype == "image/gif" ]; then
-#                 resolution="$(identify "${FILE_PATH}" | cut -d' ' -f3 | sed 1q)"
-#                 gifview -a ${FILE_PATH} --geometry $resolution+$PV_WIDTH+$PV_HEIGHT &
-# #                 xwinwrap -g "$resolution"+$PV_WIDTH+ -ni -s -nf -b -un -argb -ov -- gifview -w WID ${FILE_PATH} -a &>/dev/null &
-#             fi
-
             # `w3mimgdisplay` will be called for all images (unless overriden as above),
             # but might fail for unsupported types.
             exit 7;;
