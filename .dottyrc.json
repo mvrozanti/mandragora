@@ -196,7 +196,8 @@
     "sdedit",
     "nasm",
     "gcc-fortran",
-    "whois"
+    "whois",
+    "fzf"
   ],
   "excluded": [
     "hotmail.gpg"
