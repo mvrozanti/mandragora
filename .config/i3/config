@@ -81,12 +81,12 @@ assign      [instance="DBeaver"]          $ws10
 assign      [title="Mozilla Thunderbird"] $ws11
 assign      [title="Skype"]               $ws11
 assign      [title="_neomutt_"]           $ws12
-for_window  [title="todo"]                floating enable;             \
-                                            resize shrink width 10000px;\
-                                            resize shrink height 10000px;\
-                                            resize grow width 800px;      \
-                                            resize grow height 600px;      \
-                                            move position center
+for_window  [title="_todo_"]              floating enable;           \
+                                          resize shrink width 10000px;\
+                                          resize shrink height 10000px;\
+                                          resize grow width 800px;      \
+                                          resize grow height 600px;      \
+                                          move position center
 
 #    __                                 _
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_
@@ -108,8 +108,8 @@ $bind $mod+g                                                    $ensid wmctrl -a
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && cmatrix"
 $bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && tmux new ranger"
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtube_curses_ || kitty --name _youtube_curses_ -o background_opacity=.78 --title _youtube_curses_ -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses || read"
-$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  todo            || kitty -o background_opacity=.78 --name todo  -o font_size=13 --title todo  -e zsh -c "nvim $HOME/todo.md"
-$bind $mod+Shift+o          fullscreen disable;                 $ensid wmctrl -a  todo            || kitty -o background_opacity=.78 --name todo  -o font_size=13 --title todo  -e zsh -c "nvim /home/nexor/mackenzie/tcc1/duvidas.md"
+$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  _todo_          || kitty -o background_opacity=.78 --name _todo_  -o font_size=13 --title _todo_  -e zsh -c "nvim $HOME/todo.md"
+$bind $mod+Shift+o          fullscreen disable;                 $ensid wmctrl -a  _todo_          || kitty -o background_opacity=.78 --name _todo_  -o font_size=13 --title _todo_  -e zsh -c "nvim /home/nexor/mackenzie/tcc1/duvidas.md"
 $bind $mod+braceleft                                            $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal2 -o font_size=24 --title khal2 -e sh  -c "cat /home/nexor/.cache/wal/sequences && khal interactive"
 $bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal_ -o font_size=13 --title khal_ -e sh  -c "cat /home/nexor/.cache/wal/sequences && khal interactive"
 $bind Ctrl+Shift+Escape                                         $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e sh -c 'cat /home/nexor/.cache/wal/sequences && gotop'
