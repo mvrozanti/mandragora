@@ -214,6 +214,7 @@
     "git clone https://github.com/mvrozanti/bash-tetris ~/util/bash-tetris",
     "git clone https://github.com/mvrozanti/chkservice ~/util/chkservice && cd $_ && mkdir build && cd $_ && cmake .. && make && sudo make install",
     "git clone https://github.com/krishnasrinivas/wetty ~/util/wetty && cd $_ && yarn && yarn build",
+    "git clone https://github.com/mvrozanti/zaread ~/util/zaread && cd $_ && sudo make install",
     "git clone https://github.com/sigpipe/urlview ~/util/urlview && cd $_ && ./configure && sudo make install",
     "git clone https://github.com/ujjwal96/xwinwrap ~/util/xwinwrap && cd $_ && sudo make install",
     "git clone https://github.com/clibs/entr ~/util/entr && cd ~/util/entr && ./configure && sudo make install",
