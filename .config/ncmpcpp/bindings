@@ -22,3 +22,11 @@ def_key "s"
   toggle_find_mode
 def_key "w"
   seek_forward
+def_key "l"
+  next
+def_key "h"
+  previous
+def_key "K"
+  push_characters "kkkkkkk"
+def_key "J"
+  push_characters "jjjjjjj"
