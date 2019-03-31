@@ -210,7 +210,6 @@ nnoremap <S-U>      :5winc -<CR>
 " === LSP ===
 Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
 inoremap <silent><expr> <c-space> coc#refresh()
-nmap <silent> <leader>b <Plug>(coc-diagnostic-prev)
 nmap <silent> <leader>w <Plug>(coc-diagnostic-next)
 inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
