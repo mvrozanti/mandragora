@@ -68,6 +68,7 @@ for_window  [instance="khal2"]            floating enable move position 50 50;\
                                             resize grow height 600px;               \
 for_window  [instance="khal_"]            move to workspace $ws2
 for_window  [title="gifview"]             floating enable
+for_window  [title="_youtube_"]           sticky enable floating enable
 for_window  [title="Event Tester"]        floating enable # xev
 assign      [title="_zsh_"]               $ws2
 assign      [instance="cava"]             $ws2
@@ -132,6 +133,7 @@ $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -x
 $bind $mod+Shift+Return                                         $ensid                               kitty sh -c 'cat /home/nexor/.cache/wal/sequences && ranger'
 # $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
 $bind $mod+Shift+p                                              $ensid wmctrl -a zathura          || zathura
+$bind $mod+y                                                    $ensid wmctrl -a _youtube_            || mpv --title _youtube_ `xsel -o -b`
 $bind $mod+d              workspace $ws9
 # $bind $mod+Shift+m see $HOME/.config/dunst/dunstrc
 
