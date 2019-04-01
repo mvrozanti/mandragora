@@ -359,4 +359,3 @@ alias up='sudo umount /home/nexor/phone'
 sp(){ diff <(ls /home/nexor/Musik/) <(ls "/home/nexor/phone/Internal storage/Music/") | grep mp3 | cut -c 2- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "/home/nexor/phone/Internal storage/Music/"; done }
 coz(){ `co` }
 sa(){ grep -E "^(alias )?$@(=|\()" ~/.bash_aliases }
-# sit(){ le_tag="$1"; [[ ! -z $le_tag ]] && find . -print0 | xargs -0 -I{} sh -c '[[ "$(exiftool -Comment "'{}'")" =~ "*$le_tag*" ]] && echo kek' }
