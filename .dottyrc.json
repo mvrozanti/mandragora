@@ -57,7 +57,10 @@
     ".ranger_aliases": "~/.ranger_aliases",
     ".config/nvim/coc-settings.json": "~/.config/nvim/coc-settings.json",
     ".tigrc": "~/.tigrc",
-    ".config/mpv/scripts": "~/.config/mpv/scripts"
+    ".config/mpv/scripts": "~/.config/mpv/scripts",
+    ".local/bin/ait": "~/.local/bin/ait",
+    ".local/bin/eit": "~/.local/bin/eit",
+    ".local/bin/qit": "~/.local/bin/qit"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [

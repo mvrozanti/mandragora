@@ -1,0 +1,1 @@
+qit(){ [[ $# -eq 1 ]] && exiftool -Comment $1 | cut -d':' -f2 }
