@@ -310,7 +310,7 @@ alias cfmu='v /home/nexor/.config/ncmpcpp/'
 alias leet='toilet -d ~/.config/figlet -f rusto'
 alias playback='pacat -r | aplay -c 2 -f S16_LE -r 44100'
 divsil(){ [[ -z $@ ]] && return; jq -r '.'`echo $@|cut -c1`'."'$@'"' < ~/prog/python/portal-da-lingua-portuguesa/palavras-divisao-silabica.json }
-alias sanduba='countdown "6*60" && for i in {1..4}; do beep -l 500; sleep 0.5; done'
+alias sanduba='countdown "6*60" && for i in {1..3}; do beep -l 500; sleep 0.5; done'
 alias hlo='hamachi logout'
 alias hli='hamachi login'
 ti(){ tar -czf - $@ > ~/.tarchive.tar }
@@ -359,7 +359,4 @@ alias up='sudo umount /home/nexor/phone'
 sp(){ diff <(ls /home/nexor/Musik/) <(ls "/home/nexor/phone/Internal storage/Music/") | grep mp3 | cut -c 2- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "/home/nexor/phone/Internal storage/Music/"; done }
 coz(){ `co` }
 sa(){ grep -E "^(alias )?$@(=|\()" ~/.bash_aliases }
-eit(){ [[ $# -eq 1 ]] && jhead -ce $1 }
-qit(){ [[ $# -eq 1 ]] && exiftool -Comment $1 | cut -d':' -f2 }
-sit(){ le_tag="$1"; [[ ! -z $le_tag ]] && find . -print0 | xargs -0 -I{} sh -c '[[ "$(exiftool -Comment "'{}'")" =~ "*$le_tag*" ]] && echo kek' }
-ait(){ [[ $# -eq 2 ]] && exiftool -Comment="`sit $1`;"$2 $1 }
+# sit(){ le_tag="$1"; [[ ! -z $le_tag ]] && find . -print0 | xargs -0 -I{} sh -c '[[ "$(exiftool -Comment "'{}'")" =~ "*$le_tag*" ]] && echo kek' }
