@@ -60,7 +60,8 @@
     ".config/mpv/scripts": "~/.config/mpv/scripts",
     ".local/bin/ait": "~/.local/bin/ait",
     ".local/bin/eit": "~/.local/bin/eit",
-    ".local/bin/qit": "~/.local/bin/qit"
+    ".local/bin/qit": "~/.local/bin/qit",
+    ".local/bin/sit": "~/.local/bin/sit"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [

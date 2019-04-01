@@ -1,0 +1,16 @@
+#!/bin/bash
+le_tag="$1"; 
+shopt -s nocasematch
+if [[ ! -z $le_tag ]]; then
+    find . | while read le_file; do
+        le_tags="`qit $le_file 2>/dev/null`"
+        if [[ 
+            "$le_tags" =~ "$le_tag"
+            && ! -z "$le_tags" 
+            && ! ${le_tags:0:2} == "==" 
+            && ! "$le_tags" =~ "Warning" ]]; then
+            echo "$le_file $le_tags"
+        fi
+    done
+fi
+shopt -u nocasematch
