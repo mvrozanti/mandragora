@@ -96,7 +96,6 @@ alias mp32wav='mpg123 -w output.wav'
 o(){ nohup xdg-open $@ 2>&1 >/dev/null & }
 O(){ nohup xdg-open $@ 2>&1 >/dev/null &; exit }
 alias g='grep -i'
-alias it='ps aux|head -n -1|grep '
 alias prolog='swipl -q'
 alias T='date +%s'
 alias t='tree'
@@ -360,3 +359,6 @@ alias up='sudo umount /home/nexor/phone'
 sp(){ diff <(ls /home/nexor/Musik/) <(ls "/home/nexor/phone/Internal storage/Music/") | grep mp3 | cut -c 2- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "/home/nexor/phone/Internal storage/Music/"; done }
 coz(){ `co` }
 sa(){ grep -E "^(alias )?$@(=|\()" ~/.bash_aliases }
+eit(){ [[ $# -eq 1 ]] && jhead -ce $1 }
+sit(){ [[ $# -eq 1 ]] && exiftool -Comment $1 | cut -d':' -f2 }
+ait(){ [[ $# -eq 2 ]] && exiftool -Comment="`sit $1`;"$2 $1 }
