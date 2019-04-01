@@ -360,5 +360,6 @@ sp(){ diff <(ls /home/nexor/Musik/) <(ls "/home/nexor/phone/Internal storage/Mus
 coz(){ `co` }
 sa(){ grep -E "^(alias )?$@(=|\()" ~/.bash_aliases }
 eit(){ [[ $# -eq 1 ]] && jhead -ce $1 }
-sit(){ [[ $# -eq 1 ]] && exiftool -Comment $1 | cut -d':' -f2 }
+qit(){ [[ $# -eq 1 ]] && exiftool -Comment $1 | cut -d':' -f2 }
+sit(){ le_tag="$1"; [[ ! -z $le_tag ]] && find . -print0 | xargs -0 -I{} sh -c '[[ "$(exiftool -Comment "'{}'")" =~ "*$le_tag*" ]] && echo kek' }
 ait(){ [[ $# -eq 2 ]] && exiftool -Comment="`sit $1`;"$2 $1 }
