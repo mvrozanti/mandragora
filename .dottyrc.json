@@ -196,7 +196,8 @@
     "nasm",
     "gcc-fortran",
     "whois",
-    "fzf"
+    "fzf",
+    "perl-image-exiftool"
   ],
   "excluded": [
     "hotmail.gpg"
