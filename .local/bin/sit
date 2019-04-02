@@ -9,7 +9,8 @@ if [[ ! -z $le_tag ]]; then
             && ! -z "$le_tags" 
             && ! ${le_tags:0:2} == "==" 
             && ! "$le_tags" =~ "Warning" ]]; then
-            echo "$le_file $le_tags"
+            # echo "$le_file $le_tags"
+            echo "$le_file"
         fi
     done
 fi
