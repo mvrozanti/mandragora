@@ -106,67 +106,25 @@ class exif_filter(Command):
         filter_stack show
     """
     def execute(self):
-        from ranger.core.filter_stack import SIMPLE_FILTERS, FILTER_COMBINATORS
-
-        tag = self.arg(1)
-        import subprocess
         from ranger.ext.get_executables import get_executables
+        from ranger.core.filter_stack import SIMPLE_FILTERS
+        import subprocess
+        tag = self.arg(1)
         if not 'exiftool' in get_executables():
             self.fm.notify("Couldn't find exif_filter on the PATH.", bad=True)
             return
-        if tag is None:
+        if not tag:
             self.fm.notify(":exif_filter needs a query.", bad=True)
             return
 
         process = subprocess.Popen(['sit', tag],
                     universal_newlines=True, stdout=subprocess.PIPE)
         (search_results, _err) = process.communicate()
-        # try:
-        #     self.fm.thisdir.filter_stack.append(
-        #         SIMPLE_FILTERS['or']()
-        #     )
-        # except KeyError:
-        #     FILTER_COMBINATORS[self.arg(2)](self.fm.thisdir.filter_stack)
-            
-        # global fd_deq
-        # fd_deq = deque((self.fm.thisdir.path + os.sep + rel for rel in
-        #     sorted(search_results.split(result_sep['split']), key=str.lower)
-        #     if rel != ''))
-        # if len(fd_deq) > 0:
-        #     self.fm.select_file(fd_deq[0])
+        search_results = search_results.split('\n')
 
-        # if subcommand == "add":
-        #     try:
-        #         self.fm.thisdir.filter_stack.append(
-        #             SIMPLE_FILTERS[self.arg(2)](self.rest(3))
-        #         )
-        #     except KeyError:
-        #         FILTER_COMBINATORS[self.arg(2)](self.fm.thisdir.filter_stack)
-        # elif subcommand == "pop":
-        #     self.fm.thisdir.filter_stack.pop()
-        # elif subcommand == "decompose":
-        #     inner_filters = self.fm.thisdir.filter_stack.pop().decompose()
-        #     if inner_filters:
-        #         self.fm.thisdir.filter_stack.extend(inner_filters)
-        # elif subcommand == "clear":
-        #     self.fm.thisdir.filter_stack = []
-        # elif subcommand == "rotate":
-        #     rotate_by = int(self.arg(2) or 1)
-        #     self.fm.thisdir.filter_stack = (
-        #         self.fm.thisdir.filter_stack[-rotate_by:]
-        #         + self.fm.thisdir.filter_stack[:-rotate_by]
-        #     )
-        # elif subcommand == "show":
-        #     stack = list(map(str, self.fm.thisdir.filter_stack))
-        #     pager = self.fm.ui.open_pager()
-        #     pager.set_source(["Filter stack: "] + stack)
-        #     pager.move(to=100, percentage=True)
-        #     return
-        # else:
-        #     self.fm.notify(
-        #         "Unknown subcommand: {}".format(subcommand),
-        #         bad=True
-        #     )
-        #     return
-
-        # self.fm.thisdir.refilter()
+        for search_result in search_results:
+            if search_result:
+                self.fm.thisdir.filter_stack.append(
+                    SIMPLE_FILTERS['name'](search_result[2:])
+                )
+        self.fm.thisdir.refilter()
