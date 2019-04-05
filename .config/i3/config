@@ -68,7 +68,7 @@ for_window  [instance="khal2"]            floating enable move position 50 50;\
                                             resize grow height 600px;               \
 for_window  [instance="khal_"]            move to workspace $ws2
 for_window  [title="gifview"]             floating enable
-for_window  [title="_youtube_"]           sticky enable floating enable
+for_window  [title="_youtube_"]           floating enable
 for_window  [title="Event Tester"]        floating enable # xev
 assign      [title="_zsh_"]               $ws2
 assign      [instance="cava"]             $ws2
