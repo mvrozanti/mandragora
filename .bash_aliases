@@ -16,17 +16,17 @@ alias py2='python2'
 alias py3='python3'
 alias s='sudo'
 alias r.='ranger'
-r(){ ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true";cd "`cat $HOME/.rangerdir`" }
-alias sr='sudo ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true" "$(if [ -z "$@" ]; then cat $HOME/.rangerdir; fi)";cd "`cat $HOME/.rangerdir`"'
+r(){ ranger --choosedir=~/.rangerdir --cmd="set preview_files=true";cd "`cat ~/.rangerdir`" }
+alias sr='sudo ranger --choosedir=~/.rangerdir --cmd="set preview_files=true" "$(if [ -z "$@" ]; then cat ~/.rangerdir; fi)";cd "`cat ~/.rangerdir`"'
 alias u='unp -U'
 alias unp='unp -U'
-alias create-readme='cp $HOME/.README.md ./README.md && nvim README.md'
+alias create-readme='cp ~/.README.md ./README.md && nvim README.md'
 alias E='emacs -nw'
 # test .Xresources colors
 alias colors='echo;for a in {40..47}; do echo -ne "\e[0;30;$a""m  ""\e[0;37;39m "; done; echo ""'
 alias neofetch='neofetch --backend ascii --source /mnt/4ADE1465DE144C17/gdrive/nexor.ascii -L'
-alias cutefetch='while true; do screenfetch_out="$(screenfetch -a $HOME/nexor.ascii -p)$(testx;echo;echo;echo)";sleep 1;clear;printf "$screenfetch_out"|lolcat;sleep 1; done'
-alias screenfetch="screenfetch -a $HOME/nexor.ascii -p"
+alias cutefetch='while true; do screenfetch_out="$(screenfetch -a ~/nexor.ascii -p)$(testx;echo;echo;echo)";sleep 1;clear;printf "$screenfetch_out"|lolcat;sleep 1; done'
+alias screenfetch="screenfetch -a ~/nexor.ascii -p"
 alias gfd='git fetch origin; git diff master'
 alias gD='git diff HEAD HEAD~1'
 alias gc='git clone'
@@ -47,26 +47,26 @@ alias asciimap='telnet mapscii.me'
 alias ta='tmux a -t sess0'
 alias smv='sudo mv'
 alias msk='ncmpcpp'
-alias cfa='sudo -E nvim $HOME/.bash_aliases'
-#alias cfb='sudo -E nvim $HOME/.bashrc'
-alias cfc='sudo -E nvim /home/nexor/mandragora/.dottyrc.json'
-alias cfd='sh -c "cd $HOME/mandragora && git diff HEAD HEAD~1"'
-alias cfe='sudo -E nvim $HOME/.emacs'
-alias cfi='sudo -E nvim $HOME/.config/i3/config'
+alias cfa='sudo -E nvim ~/.bash_aliases'
+#alias cfb='sudo -E nvim ~/.bashrc'
+alias cfc='sudo -E nvim ~/mandragora/.dottyrc.json'
+alias cfd='sh -c "cd ~/mandragora && git diff HEAD HEAD~1"'
+alias cfe='sudo -E nvim ~/.emacs'
+alias cfi='sudo -E nvim ~/.config/i3/config'
 alias cfI='v ~/.irssi/config'
-alias cfp='$HOME/mandragora/dotty/dotty.py -c -f -s'
-alias cfP='ranger $HOME/.config/powerline/'
+alias cfp='~/mandragora/dotty/dotty.py -c -f -s'
+alias cfP='ranger ~/.config/powerline/'
 alias cfs='ranger ~/util/st/ && cd $_ && sudo make install'
-alias cfS='v /home/nexor/.scimrc'
-alias cfb='v $HOME/.config/polybar/config'
-alias cfr='sudo -E nvim $HOME/.config/ranger'
-alias cft='v $HOME/.tmux.conf'
-alias cfv='sudo -E nvim $HOME/.config/nvim/init.vim'
-alias cfV='sudo -E nvim $HOME/.config/nvim'
-alias cfx='sudo -E nvim $HOME/.Xresources; xrdb $HOME/.Xresources'
-alias cfz='sudo -E nvim $HOME/.zshrc'
-alias cfy='v /home/nexor/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py'
-alias cfk='v /home/nexor/.config/kitty/kitty.conf'
+alias cfS='v ~/.scimrc'
+alias cfb='v ~/.config/polybar/config'
+alias cfr='sudo -E nvim ~/.config/ranger'
+alias cft='v ~/.tmux.conf'
+alias cfv='sudo -E nvim ~/.config/nvim/init.vim'
+alias cfV='sudo -E nvim ~/.config/nvim'
+alias cfx='sudo -E nvim ~/.Xresources; xrdb ~/.Xresources'
+alias cfz='sudo -E nvim ~/.zshrc'
+alias cfy='v ~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py'
+alias cfk='v ~/.config/kitty/kitty.conf'
 alias motd='sudo cat /etc/update-motd.d/nexor.asc'
 alias serve='python3 -m http.server 2717'
 alias servetxt='xargs echo -e "HTTP/1.1 200 OK\r\n\r\n" | nc -l -p 2717 -c'
@@ -110,7 +110,7 @@ alias pa='ps aux|grep'
 # alias jsonify='python -m json.tool --sort-keys'
 alias jsonify='echo use jq instead /dev/stderr'
 alias iftop='sudo iftop -Nlp'
-alias cava='cava -p $HOME/.config/cava/config'
+alias cava='cava -p ~/.config/cava/config'
 alias usdbrl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=USD_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
 alias eurbrl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=EUR_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
 alias btcbrl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=BTC_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
@@ -136,7 +136,7 @@ wis(){ whereis "$1" | cut -d':' -f2 | cut -d' ' -f2;}
 alias ecdsa='ssh-keygen -l -f /etc/ssh/ssh_host_ecdsa_key.pub; ssh-keygen -l -f $_ -E md5'
 alias up2pi='rsync -a "`pwd`" torta:'
 # alias sumlines='python3 -c "import sys; print(eval("+".join(sys.stdin).replace("\n",""))"'
-# alias backup='rsync -e "ssh -p 22" -avzp /home/nexor/kekao 25.25.25.25:'
+# alias backup='rsync -e "ssh -p 22" -avzp ~/kekao 25.25.25.25:'
 tf() { tail -f "$1" 2>&1 | perl -ne 'if (/file truncated/) {system 'clear'; print} else {print}'; }
 t2d(){ timestamp="`cat -`"; date -d "@$timestamp"; }
 knock(){ nc -z -w3 "$1" "$2"; echo $?; }
@@ -151,7 +151,7 @@ alias stream='pkill darkice; alsao2i; tmux new -d darkice'
 alias grip='wmctrl -a waterfox && st -e tmux -c "stty -ixon && nvim *.md" & grip -b --wide'
 cdt(){ wis_smth="`wis "$1"`"; abs_path="`readlink -f "$wis_smth"`"; cd `dirname "$abs_path"`; }
 alias filesize='du -h'
-aa(){ [[ ! -z $1 && ! -z $2 ]] && echo "alias $1='${@:2}'" >> $HOME/.bash_aliases; }
+aa(){ [[ ! -z $1 && ! -z $2 ]] && echo "alias $1='${@:2}'" >> ~/.bash_aliases; }
 domany() { if [[ "$1" == "-n" ]]; then n=$2; else n=99999; fi; cmd="${@:3}"; for i in {1..$n}; do sh -c $cmd; done; }
 vw() { nvim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
 svw() { sudo -E nvim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
@@ -180,7 +180,7 @@ xentr(){ ls *.* | entr -p $@ /_ }
 nentr(){ ls *.* | entr -p $@ node /_ }
 ventr(){ [[ $(($#)) -gt 0 ]] && ls | entr -r sh -c 'valgrind --quiet --show-leak-kinds=all --leak-check=full '`realpath ${@: -1}`' -v --track-origins=yes' }
 alias entr='entr -p'
-alias dotty='$HOME/mandragora/dotty/dotty.py'
+alias dotty='~/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
 countdown(){ date1=$((`date +%s` + $1)); while [ "$date1" -ge `date +%s` ]; do clear; echo -ne "$(date -u --date @$(($date1 - `date +%s`)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
 stopwatch(){ date1=`date +%s`; while true; do clear; echo -ne "$(date -u --date @$((`date +%s` - $date1)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
@@ -189,9 +189,9 @@ alias vtop='vtop -t seti'
 alias sv='sudo -E nvim'
 alias v='nvim'
 alias vc='co|v -'
-alias vh='nvim /home/nexor/.zsh_history'
+alias vh='nvim ~/.zsh_history'
 vx(){ xxd $@ | v - }
-make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > $HOME/.ranger_aliases; }
+make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > ~/.ranger_aliases; }
 ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1; }
 alias wt='watch -n 1 tree'
 wtg(){ watch -n 1 "tree | grep $@" }
@@ -223,7 +223,7 @@ alias pir='sudo pip uninstall'
 up2imgur(){ curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@$@" }
 up2giphy(){ curl -s -X POST --url https://upload.giphy.com/v1/gifs -H "api_key: $giphy_client_id" -F "file=@$@" | jq .data.id |xargs -i echo https://i.giphy.com/media/{}/source.gif }
 up2gfycat(){ [[ -z $1 ]] && return || { json_data=`curl -s -XPOST https://api.gfycat.com/v1/gfycats`; [[ `echo $json_data|jq .isOk` ]] || return ; gfyname=`echo $json_data|jq -r .gfyname`; secret=`echo $json_data|jq .secret`; cp $1 /tmp/$gfyname; curl -s -i https://filedrop.gfycat.com --upload-file /tmp/$gfyname 2>&1 >/dev/null; echo https://gfycat.com/$gfyname } }
-alias 2048='/home/nexor/util/bash2048/bash2048.sh'
+alias 2048='~/util/bash2048/bash2048.sh'
 alias ws='watch stat'
 vf(){ find . -iname "*$@*" | head -n1 | xargs nvim  }
 vg(){ grep -ril "*$@*" | head -n1 | xargs nvim  }
@@ -231,7 +231,7 @@ unalias gg
 gg(){ git grep "$@" $(git rev-list --all) }
 alias nig='npm i -g'
 alias tron='ssh sshtron.zachlatta.com'
-alias empty-trash='rm -rf $HOME/.local/share/Trash/*'
+alias empty-trash='rm -rf ~/.local/share/Trash/*'
 alias fsw='fswatch .'
 isprime(){ if [[ $1 -eq 2 ]]||[[ $1 -eq 3 ]];then return 0;fi;if [[ $(($1 % 2)) -eq 0 ]]||[[ $(($1 % 3)) -eq 0 ]];then return 1;fi;i=5;w=2;while [[ $((i * i)) -le $1 ]];do if [[ $(($1 % i)) -eq 0 ]];then return 1;fi;i=$((i + w));w=$((6 - w));done;return 0; }
 alias sdf='ssh mvrozanti@sdf.org'
@@ -244,25 +244,25 @@ alias agr='sudo apt-get remove'
 alias tnsd='tmux new-session -d sh -c'
 # alias ls='[ -x "$(command -v exa)" ] && exa || ls'
 alias wdu='watch -n 1 du -sh "*"'
-alias lh='less /home/nexor/.zsh_history'
+alias lh='less ~/.zsh_history'
 alias make-gource-mandragora='git --no-pager log --date=raw|g "^\s+.+|Date"|sed -E "s/Date:\s+//g"|sed "N;s/\n//"|sed -E "s/(\S+)\s-\S+\s+(.+)/\1|\2/g" > caption_file'
 alias tfl='tf *.log'
-alias cfK='nvim /home/nexor/.config/kitty/startup_session.kit'
+alias cfK='nvim ~/.config/kitty/startup_session.kit'
 alias ki='khal interactive'
 alias sxiv='sxiv -ab 2>&1 >/dev/null'
 alias i='sxiv -ft *'
 hextv(){ while true; do kek=`head /dev/urandom|tr -dc A-Za-z0-9|head -c $1`;e $kek|xxd;sleep $2;done }
-alias cfrc='nvim $HOME/.config/ranger/rc.conf'
-alias cfri='nvim $HOME/.config/ranger/rifle.conf'
-alias cfrs='nvim $HOME/.config/ranger/scope.sh'
-alias cfrd='nvim $HOME/.config/ranger/devicons.sh'
+alias cfrc='nvim ~/.config/ranger/rc.conf'
+alias cfri='nvim ~/.config/ranger/rifle.conf'
+alias cfrs='nvim ~/.config/ranger/scope.sh'
+alias cfrd='nvim ~/.config/ranger/devicons.sh'
 alias k='kitty'
-# cfcr(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sd $HOME'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf|sd $HOME'(.*)' '~$1' || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json" | sponge $HOME"/mandragora/.dottyrc.json" }
-cfcf(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sd $HOME'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf|sd $HOME'(.*)' '~$1' || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json" | sponge $HOME"/mandragora/.dottyrc.json" }
-cfcu(){ to_remove="$1"; [[ ! -z $to_remove ]] && removed_array="`jq '.install|map(select(.!="'$to_remove'"))' $HOME"/mandragora/.dottyrc.json"`" && jq .install="$removed_array" $HOME"/mandragora/.dottyrc.json" | sponge ~/mandragora/.dottyrc.json }
+# cfcr(){ trackedf=`realpath $1`; [[ $trackedf == ~* ]] && lefths=`echo $trackedf|xargs readlink -f|sd ~'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == ~*  ]] && echo $trackedf|sd ~'(.*)' '~$1' || echo $trackedf)'"}' ~"/mandragora/.dottyrc.json" | sponge ~"/mandragora/.dottyrc.json" }
+cfcf(){ trackedf=`realpath $1`; [[ $trackedf == ~* ]] && lefths=`echo $trackedf|xargs readlink -f|sd ~'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == ~*  ]] && echo $trackedf|sd ~'(.*)' '~$1' || echo $trackedf)'"}' ~"/mandragora/.dottyrc.json" | sponge ~"/mandragora/.dottyrc.json" }
+cfcu(){ to_remove="$1"; [[ ! -z $to_remove ]] && removed_array="`jq '.install|map(select(.!="'$to_remove'"))' ~"/mandragora/.dottyrc.json"`" && jq .install="$removed_array" ~"/mandragora/.dottyrc.json" | sponge ~/mandragora/.dottyrc.json }
 cfci(){ jq '.install |= . + ["'$1'"]' ~/mandragora/.dottyrc.json | sponge ~/mandragora/.dottyrc.json }
 lnb(){ le_fpath="$1"; le_dst="$2"; sudo ln -s `realpath $le_fpath` ~/.local/bin/`[[ -z "$le_dst" ]] && echo $le_fpath|cut -f 1 -d '.' || echo $2` }
-alias cfD='nvim /home/nexor/mandragora/dotty/dotty.py'
+alias cfD='nvim ~/mandragora/dotty/dotty.py'
 alias grow='[[ `git -C ~/mandragora pull|wc -l` -eq 1 ]] || ~/mandragora/dotty/dotty.py -f -r && git -C ~/mandragora submodule update --recursive --remote'
 alias oc='mpv /dev/video0'
 alias f='fd -H'
@@ -279,7 +279,7 @@ alias sctl='sudo systemctl'
 alias GD='git daemon --base-path=. --export-all'
 alias blank='xset -display :0.0 dpms force off'
 setbg(){ [[ -z $1 ]] && return 1; fpath=`realpath $1` ; [[ `echo $fpath | rev | cut -d"." -f1 | rev` = "gif" ]] && xwinwrap -g `xrandr | awk '/\*/{printf $1" "}'` -ni -s -nf -b -un -argb -ov -- gifview -w WID $fpath -a || wal -a 299 -i $fpath }
-ra(){ [[ ! -z "$1" && ! -z "$2" ]] && sd -i 'alias '$1'=' 'alias '$2'=' $HOME/.bash_aliases && sd -i ''$1'\(\)' ''$2'()' $HOME/.bash_aliases }
+ra(){ [[ ! -z "$1" && ! -z "$2" ]] && sd -i 'alias '$1'=' 'alias '$2'=' ~/.bash_aliases && sd -i ''$1'\(\)' ''$2'()' ~/.bash_aliases }
 alias me='uname -mrs'
 alias spsyyu='sudo pacman -Syyu'
 alias fuck='sudo'
@@ -295,18 +295,18 @@ alias N='newsboat'
 arf(){ echo "$@" >> ~/.newsboat/urls }
 alias help='echo no && read'
 alias t1='tail -n1'
-alias t1a='t1 /home/nexor/.bash_aliases'
+alias t1a='t1 ~/.bash_aliases'
 alias sl='ls'
-alias cfT='v /home/nexor/.tig'
+alias cfT='v ~/.tig'
 alias burncd='i3-msg workspace 1 && o https://www.linuxquestions.org/questions/linux-newbie-8/how-to-burn-files-into-a-dvd-from-command-line-4175464968/'
 alias enc='openssl aes-256-cbc -in - 2>/dev/null'
 alias dec='enc -d 2>/dev/null'
-alias scrot2imgur2cb='up2imgur $HOME/.scrot.png | c'
+alias scrot2imgur2cb='up2imgur ~/.scrot.png | c'
 hue(){ [[ -z $1 || -z $2 ]] && {echo kek && return} || cp $1 hue_000;  for i in $(seq 1 50); do convert hue_000 -modulate 100,100,-$(($i*4)) hue_$(printf "%03d\n" $i);  done;  echo creating gif; rm hue_000; nice -20 convert -limit memory 4GB -limit map 4GB -define registry:temporary-path=/var/tmp -loop 0 -delay 1 hue_* $2; rm hue_* };
 ncp(){ [[ -z $1 ]] && echo kek || { md -p $1; cd $1; dotnew new console -o $1; dotnet new sln; dotnet sln add $1/$1.csproj } }
-alias cfZ='v /home/nexor/.config/zathura/zathurarc'
-alias cfm='v /home/nexor/.config/mutt/muttrc'
-alias cfmu='v /home/nexor/.config/ncmpcpp/'
+alias cfZ='v ~/.config/zathura/zathurarc'
+alias cfm='v ~/.config/mutt/muttrc'
+alias cfmu='v ~/.config/ncmpcpp/'
 alias leet='toilet -d ~/.config/figlet -f rusto'
 alias playback='pacat -r | aplay -c 2 -f S16_LE -r 44100'
 divsil(){ [[ -z $@ ]] && return; jq -r '.'`echo $@|cut -c1`'."'$@'"' < ~/prog/python/portal-da-lingua-portuguesa/palavras-divisao-silabica.json }
@@ -335,7 +335,7 @@ alias wmd5='watch md5sum'
 alias re='perl -pe'
 wco(){ watch xsel -o -b }
 v.(){ v . }
-alias cfC='v /home/nexor/.config/nvim/coc-settings.json'
+alias cfC='v ~/.config/nvim/coc-settings.json'
 alias G='googler -l en -n 3 -c en'
 coytdl(){ ytdl `co` }
 alias /f='/;f'
@@ -355,8 +355,10 @@ mdcd(){ md $@; cd $_ }
 alias enhance='function ne() { docker run --rm -v "$(pwd)/`dirname ${@:$#}`":/ne/input -it alexjc/neural-enhance ${@:1:$#-1} "input/`basename ${@:$#}`"; }; ne'
 alias gaca='git add .; git commit --amend'
 alias gacap='gaca; git push'
-alias up='sudo umount /home/nexor/phone'
-sp(){ diff <(ls /home/nexor/Musik/) <(ls "/home/nexor/phone/Internal storage/Music/") | grep mp3 | cut -c 2- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "/home/nexor/phone/Internal storage/Music/"; done }
+alias up='sudo umount ~/phone'
+smp(){ diff <(ls ~/Musik/) <(ls "~/phone/Internal storage/Music/") | grep mp3 | cut -c 2- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "~/phone/Internal storage/Music/"; done }
+spp(){ PREFIX="~/phone/Internal storage";mv "$PREFIX/DCIM/Facebook/*" "$PREFIX/Pictures/Telegram/*" "$PREFIX/Pictures/Reddit/*" "$PREFIX/Camera/*" ~/gdrive/Levv/4chan/ }
+sp(){ smp;spp }
 coz(){ `co` }
 sa(){ grep -E "^(alias )?$@(=|\()" ~/.bash_aliases }
 alias I='sxiv'
