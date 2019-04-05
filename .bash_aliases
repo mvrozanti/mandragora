@@ -354,7 +354,7 @@ alias corm='rm `co`'
 mdcd(){ md $@; cd $_ }
 alias enhance='function ne() { docker run --rm -v "$(pwd)/`dirname ${@:$#}`":/ne/input -it alexjc/neural-enhance ${@:1:$#-1} "input/`basename ${@:$#}`"; }; ne'
 alias gaca='git add .; git commit --amend'
-alias gacap='gaca; git push'
+alias gacap='gaca; git push -f'
 alias up='sudo umount ~/phone'
 smp(){ diff <(ls ~/Musik/) <(ls "~/phone/Internal storage/Music/") | grep mp3 | cut -c 2- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "~/phone/Internal storage/Music/"; done }
 spp(){ mv ~/phone/Internal\ storage/DCIM/Facebook/* ~/phone/Internal\ storage/Pictures/Telegram/* ~/phone/Internal\ storage/Pictures/Reddit/* ~/phone/Internal\ storage/DCIM/Camera/* ~/gdrive/Levv/4chan/ }
