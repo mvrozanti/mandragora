@@ -357,8 +357,9 @@ alias gaca='git add .; git commit --amend'
 alias gacap='gaca; git push'
 alias up='sudo umount ~/phone'
 smp(){ diff <(ls ~/Musik/) <(ls "~/phone/Internal storage/Music/") | grep mp3 | cut -c 2- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "~/phone/Internal storage/Music/"; done }
-spp(){ PREFIX="~/phone/Internal storage";mv "$PREFIX/DCIM/Facebook/*" "$PREFIX/Pictures/Telegram/*" "$PREFIX/Pictures/Reddit/*" "$PREFIX/Camera/*" ~/gdrive/Levv/4chan/ }
+spp(){ mv ~/phone/Internal\ storage/DCIM/Facebook/* ~/phone/Internal\ storage/Pictures/Telegram/* ~/phone/Internal\ storage/Pictures/Reddit/* ~/phone/Internal\ storage/DCIM/Camera/* ~/gdrive/Levv/4chan/ }
 sp(){ smp;spp }
 coz(){ `co` }
 sa(){ grep -E "^(alias )?$@(=|\()" ~/.bash_aliases }
 alias I='sxiv'
+alias x='xargs'
