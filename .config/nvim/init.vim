@@ -80,7 +80,7 @@ set t_vb=
 
 " hits bong:
 " vnoremap <silent> <C-c> :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:noh<CR>
-nnoremap : q:i
+" nnoremap : q:i
 nnoremap <A-i> f(a
 inoremap <A-i> <Esc>f(a
 nnoremap <A-I> <Esc>f,a
@@ -349,7 +349,8 @@ set shiftwidth=4
 " :set guioptions-=L  "remove left-hand scroll bar
 
 " Real-time markdown editing
-Plug 'iamcco/markdown-preview.vim'
+Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app & yarn install'  }
+let g:mkdp_markdown_css = '/home/nexor/darkdown.css'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 let g:airline_powerline_fonts = 1
