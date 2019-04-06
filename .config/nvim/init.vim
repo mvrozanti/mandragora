@@ -37,6 +37,7 @@ if has('persistent_undo')
 endif
 
 call plug#begin()
+" Plug 'Yggdroot/indentLine'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
