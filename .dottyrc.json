@@ -242,11 +242,12 @@
     "command -v gotop || go get github.com/cjbassi/gotop",
     "cargo install --list | grep sd || cargo install sd",
     "pip3 install --user khal grip psutil maybe sqlcrush pynvim",
-    "command -v polybar || yay -S $_",
-    "command -v hamachi || yay -S logmein-hamachi",
-    "command -v gotop   || yay -S $_",
-    "command -v jmtpfs  || yay -S $_",
-    "command -v browsh  || yay -S $_",
-    "command -v googler || yay -S $_ "
+    "command -v hamachi   || yay -S logmein-hamachi",
+    "command -v polybar   || yay -S $_",
+    "command -v gotop     || yay -S $_",
+    "command -v jmtpfs    || yay -S $_",
+    "command -v browsh    || yay -S $_",
+    "command -v googler   || yay -S $_",
+    "command -v downgrade || yay -S $_ "
   ]
 }
