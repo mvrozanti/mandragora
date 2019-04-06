@@ -364,3 +364,4 @@ sa(){ grep -E "^(alias )?$@(=|\()" ~/.bash_aliases }
 alias I='sxiv'
 alias x='xargs'
 alias coag='ag `co`'
+alias pqi='pacman -Qi'
