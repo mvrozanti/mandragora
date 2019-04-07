@@ -202,7 +202,8 @@
     "gcc-fortran",
     "whois",
     "fzf",
-    "perl-image-exiftool"
+    "perl-image-exiftool",
+    "gnuplot"
   ],
   "excluded": [
     "hotmail.gpg"
