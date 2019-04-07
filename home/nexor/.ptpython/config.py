@@ -4,7 +4,7 @@ Configuration example for ``ptpython``.
 Copy this file to ~/.ptpython/config.py
 """
 from __future__ import unicode_literals
-from prompt_toolkit.filters import ViInsertMode
+from prompt_toolkit.filters import ViInsertMode, ViNavigationMode
 from prompt_toolkit.key_binding.key_processor import KeyPress
 from prompt_toolkit.keys import Keys
 from pygments.token import Token
@@ -62,7 +62,7 @@ def configure(repl):
     repl.complete_while_typing = True
 
     # Vi mode.
-    repl.vi_mode = False
+    repl.vi_mode = True
 
     # Paste mode. (When True, don't insert whitespace after new line.)
     repl.paste_mode = False
@@ -94,7 +94,7 @@ def configure(repl):
     repl.enable_system_bindings = True
 
     # Ask for confirmation on exit.
-    repl.confirm_exit = True
+    repl.confirm_exit = False
 
     # Enable input validation. (Don't try to execute when the input contains
     # syntax errors.)
@@ -105,10 +105,10 @@ def configure(repl):
 
     # Set color depth (keep in mind that not all terminals support true color).
 
-    #repl.color_depth = 'DEPTH_1_BIT'  # Monochrome.
-    #repl.color_depth = 'DEPTH_4_BIT'  # ANSI colors only.
-    repl.color_depth = 'DEPTH_8_BIT'  # The default, 256 colors.
-    #repl.color_depth = 'DEPTH_24_BIT'  # True color.
+    # repl.color_depth = 'DEPTH_1_BIT'  # Monochrome.
+    # repl.color_depth = 'DEPTH_4_BIT'  # ANSI colors only.
+    # repl.color_depth = 'DEPTH_8_BIT'  # The default, 256 colors.
+    repl.color_depth = 'DEPTH_24_BIT'  # True color.
 
     # Syntax.
     repl.enable_syntax_highlighting = True
@@ -119,13 +119,11 @@ def configure(repl):
     repl.use_ui_colorscheme('my-colorscheme')
     """
 
-    # Add custom key binding for PDB.
-    """
-    @repl.add_key_binding(Keys.ControlB)
-    def _(event):
-        ' Pressing Control-B will insert "pdb.set_trace()" '
-        event.cli.current_buffer.insert_text('\nimport pdb; pdb.set_trace()\n')
-    """
+    # Add custom key for removing current line
+    # @repl.add_key_binding(Keys.ControlE, filter=ViNavigationMode())
+    # def _(event):
+    #     ' Pressing Control-E will clear the line'
+    #     event.cli.current_buffer.insert_text('Vd')
 
     # Typing ControlE twice should also execute the current command.
     # (Alternative for Meta-Enter.)
