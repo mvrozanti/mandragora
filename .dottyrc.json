@@ -203,7 +203,8 @@
     "whois",
     "fzf",
     "perl-image-exiftool",
-    "gnuplot"
+    "gnuplot",
+    "mutt"
   ],
   "excluded": [
     "hotmail.gpg"
