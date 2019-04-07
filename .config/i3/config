@@ -109,7 +109,6 @@ $bind $mod+Shift+o          fullscreen disable;                 $ensid wmctrl -a
 $bind $mod+braceleft                                            $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal2 -o font_size=24 --title khal2 -e sh  -c "cat /home/nexor/.cache/wal/sequences && khal interactive"
 $bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal_ -o font_size=13 --title khal_ -e sh  -c "cat /home/nexor/.cache/wal/sequences && khal interactive"
 $bind Ctrl+Shift+Escape                                         $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e sh -c 'cat /home/nexor/.cache/wal/sequences && gotop'
-# $bind $mod+v          split toggle;                             $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e sh -c 'cat /home/nexor/.cache/wal/sequences && gotop'
 $bind $mod+i                                                    $ensid wmctrl -a  _irssi_           || kitty -o background_opacity=.78 --name _irssi_ sh -c 'cat /home/nexor/.cache/wal/sequences && irssi'
 $bind $mod+Shift+i                                              $ensid wmctrl -a  iftop           || kitty --name iftop sudo iftop -i eno1
 $bind $mod+Shift+n                                              $ensid wmctrl -a  newsboat        || kitty -o background_opacity=.78 --name newsboat sh -c 'cat /home/nexor/.cache/wal/sequences && newsboat'
@@ -117,7 +116,6 @@ $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -x
 $bind $mod+Shift+1        workspace $ws1                        $ensid wmctrl -a  Browsing        || waterfox $waterfox_arg
 $bind $mod+Shift+v    split toggle;                             $ensid wmctrl -a  VirtualBox      || virtualbox
 $bind $mod+Shift+a                                              $ensid wmctrl -a  "Android Studio"|| android-studio
-$bind $mod+x                                                    $ensid wmctrl -a  mpv
 $bind $mod+4              split h;                              $ensid wmctrl -a  telegram        || telegram
 $bind $mod+b                                                    $ensid wmctrl -xa DBeaver         || dbeaver
 $bind $mod+Shift+d                                              $ensid wmctrl -xa Netbeans        || /usr/bin/netbeans
@@ -126,11 +124,12 @@ $bind $mod+Shift+f    workspace $ws3;                           $ensid wmctrl -a
 $bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a  Trello          || trello
 $bind $mod+Shift+w    workspace $ws11;                          $ensid wmctrl -xa thunderbird     || thunderbird
 $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -xa gdmap           || gdmap -f /
-$bind $mod+Shift+Return                                         $ensid                               kitty sh -c 'cat /home/nexor/.cache/wal/sequences && ranger'
-# $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
+$bind $mod+Shift+Return                                         $ensid                               st -T 100 ranger
+$bind $mod+x                                                    $ensid wmctrl -a  mpv
 $bind $mod+Shift+p                                              $ensid wmctrl -a zathura          || zathura
-$bind $mod+y                                                    $ensid wmctrl -a _youtube_            || mpv --title _youtube_ `xsel -o -b`
+$bind $mod+y                                                    $ensid wmctrl -a _youtube_        || mpv --title _youtube_ `xsel -o -b`
 $bind $mod+d              workspace $ws9
+# $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
 # $bind $mod+Shift+m see $HOME/.config/dunst/dunstrc
 
 #                      _
