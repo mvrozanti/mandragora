@@ -91,6 +91,7 @@ alias P='curl -sF "f:1=<-" ix.io'
 alias p='P | c'
 alias feh='feh -B black --scale-down --auto-zoom --sort mtime -. --action2 "rm %F" --action1 "realpath $PWD/%F | xsel -i -b"'
 alias randip="dd if=/dev/urandom bs=4 count=1 2>/dev/null | od -An -tu1 | sed -e 's/^ *//;s/  */./g'"
+myip(){ curl -s ipinfo.io | jq '.ip' | tr -d '"' | c }
 alias 2wmv='sudo ffmpeg -c:v wmv2 -b:v 99M -c:a wmav2 -b:a 192k output.wmv -i'
 alias mp32wav='mpg123 -w output.wav'
 o(){ nohup xdg-open $@ 2>&1 >/dev/null & }
@@ -234,7 +235,6 @@ alias empty-trash='rm -rf ~/.local/share/Trash/*'
 alias fsw='fswatch .'
 isprime(){ if [[ $1 -eq 2 ]]||[[ $1 -eq 3 ]];then return 0;fi;if [[ $(($1 % 2)) -eq 0 ]]||[[ $(($1 % 3)) -eq 0 ]];then return 1;fi;i=5;w=2;while [[ $((i * i)) -le $1 ]];do if [[ $(($1 % i)) -eq 0 ]];then return 1;fi;i=$((i + w));w=$((6 - w));done;return 0; }
 alias sdf='ssh mvrozanti@sdf.org'
-alias wip='dig +short myip.opendns.com @resolver1.opendns.com'
 alias ms='ssh play@anonymine-demo.oskog97.com -p 2222'
 alias R='nnn'
 alias googlecloud='gcloud compute --project projeto-cloud-226116 ssh --zone us-east1-b instance-2'
