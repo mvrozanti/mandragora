@@ -366,3 +366,4 @@ alias coag='ag `co`'
 alias pqi='pacman -Qi'
 alias nvimdiff='nvim -d'
 alias vimdiff=nvimdiff
+xdiff(){ [[ "$#" -eq 2 ]] && nvimdiff <(xxd $1) <(xxd $2) }
