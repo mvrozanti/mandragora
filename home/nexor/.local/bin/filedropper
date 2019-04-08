@@ -1,0 +1,41 @@
+#!/bin/bash
+trap gracefully_exit INT
+gracefully_exit() { 
+    exit 
+}
+
+payload=$(cat <<-END
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ayy</title>
+  <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
+</head>
+<body bgcolor="#1e1e1e">
+  <input type="file" class="filepond">
+  <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+  <script>
+  FilePond.parse(document.body);
+  FilePond.setOptions({
+      server: window.location.href 
+  });  
+  </script>
+</body>
+</html>
+END
+)
+
+header=$(cat <<-END
+HTTP/1.1 200 OK
+Content-Length: ${#payload}
+Content-Type: text/html
+END
+)
+
+le_output=$1
+[[ -z $le_output ]] && le_output="dropped.file"
+
+while :; do 
+    printf "$header\n\n$payload" | nc -clp 2717
+    nc -lp 2717 > $le_output
+done
