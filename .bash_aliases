@@ -15,8 +15,8 @@ alias spsyu='sudo pacman -Syu'
 alias py='ptpython --vi'
 alias s='sudo'
 alias r.='ranger'
-r(){ ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true";cd "`ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t $HOME/.rangerdir`" }
-alias sr='sudo ranger --choosedir=~/.rangerdir --cmd="set preview_files=true" "$(if [ -z "$@" ]; then ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t ~/.rangerdir; fi)";cd "`ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t ~/.rangerdir`"'
+r(){ ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true";cd "`cat $HOME/.rangerdir`" }
+alias sr='sudo ranger --choosedir=~/.rangerdir --cmd="set preview_files=true" "$(if [ -z "$@" ]; then cat ~/.rangerdir; fi)";cd "`cat ~/.rangerdir`"'
 alias u='unp -U'
 alias unp='unp -U'
 alias create-readme='cp ~/.README.md ./README.md && nvim README.md'
@@ -24,7 +24,7 @@ alias E='emacs -nw'
 # test .Xresources colors
 alias colors='echo;for a in {40..47}; do echo -ne "\e[0;30;$a""m  ""\e[0;37;39m "; done; echo ""'
 alias neofetch='neofetch --backend ascii --source /mnt/4ADE1465DE144C17/gdrive/nexor.ascii -L'
-alias cutefetch='while true; do screenfetch_out="$(screenfetch -a ~/nexor.ascii -p)$(testx;echo;echo;echo)";sleep 1;clear;printf "$screenfetch_out"|lolca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t;sleep 1; done'
+alias cutefetch='while true; do screenfetch_out="$(screenfetch -a ~/nexor.ascii -p)$(testx;echo;echo;echo)";sleep 1;clear;printf "$screenfetch_out"|lolcat;sleep 1; done'
 alias screenfetch="screenfetch -a ~/nexor.ascii -p"
 alias gfd='git fetch origin; git diff master'
 alias gD='git diff HEAD HEAD~1'
@@ -67,7 +67,7 @@ alias cfx='sudo -E nvim ~/.Xresources; xrdb ~/.Xresources'
 alias cfz='sudo -E nvim ~/.zshrc'
 alias cfy='v ~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py'
 alias cfk='v ~/.config/kitty/kitty.conf'
-alias motd='sudo ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t /etc/update-motd.d/nexor.asc'
+alias motd='sudo cat /etc/update-motd.d/nexor.asc'
 alias serve='python3 -m http.server 2717'
 alias servetxt='xargs echo -e "HTTP/1.1 200 OK\r\n\r\n" | nc -l -p 2717 -c'
 alias schmod='sudo chmod'
@@ -89,7 +89,7 @@ alias cogc='[[ -d .git ]] && git submodule add `co` || git clone `co`'
 alias P='curl -sF "f:1=<-" ix.io'
 # P(){ curl  -X POST -d @- http://0x0.st }
 alias p='P | c'
-alias feh='feh -B black --sca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }le-down --auto-zoom --sort mtime -. --action2 "rm %F" --action1 "realpath $PWD/%F | xsel -i -b"'
+alias feh='feh -B black --scale-down --auto-zoom --sort mtime -. --action2 "rm %F" --action1 "realpath $PWD/%F | xsel -i -b"'
 alias randip="dd if=/dev/urandom bs=4 count=1 2>/dev/null | od -An -tu1 | sed -e 's/^ *//;s/  */./g'"
 myip(){ curl -s ipinfo.io | jq '.ip' | tr -d '"' }
 alias 2wmv='sudo ffmpeg -c:v wmv2 -b:v 99M -c:a wmav2 -b:a 192k output.wmv -i'
@@ -105,16 +105,16 @@ alias rsync='rsync -a --info=progress2'
 alias waterfox='[[ $(ps aux|grep -c waterfox) -eq 1 ]] && waterfox || waterfox -new-tab'
 alias R='R --silent '
 mp42gif(){ mp4_file="$@"; mkdir -p animation_frames; ffmpeg -i "$mp4_file" -r 5 "animation_frames/frame-%03d.jpg"; convert -delay 20 -loop 0 animation_frames/*.jpg animation.gif; rm -r animation_frames }
-alias acs='apt-ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }che search'
+alias acs='apt-cache search'
 alias lisp='clisp --silent'
 alias pa='ps aux|grep'
 # alias jsonify='python -m json.tool --sort-keys'
 alias jsonify='echo use jq instead /dev/stderr'
 alias iftop='sudo iftop -Nlp'
-alias ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }va='ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }va -p ~/.config/ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }va/config'
-alias usdbrl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=USD_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t -)'
-alias eurbrl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=EUR_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t -)'
-alias btcbrl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=BTC_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t -)'
+alias cava='cava -p ~/.config/cava/config'
+alias usdbrl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=USD_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
+alias eurbrl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=EUR_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
+alias btcbrl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=BTC_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
 alias ali='apt list --installed'
 alias alsao2i='pacmd set-default-source "alsa_output.pci-0000_00_1b.0.analog-stereo.monitor"'
 alias alsai2i='pacmd set-default-source "alsa_input.pci-0000_00_1b.0.analog-stereo"'
@@ -124,10 +124,10 @@ alias alsawat='pacmd list-sources|grep -A 5 \* '
 # alias gip='re "((\d{1,3}\.){3}\d{1,3})"'
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
-alias cuteca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t='awk "{print $0; system(\"sleep .001\");}"'
+alias cutecat='awk "{print $0; system(\"sleep .001\");}"'
 #   text to speech:
-tts(){ printf "(SayText "`ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t -`")" | festival -i;}
-vapor(){ vapore="`ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t -`"; n=1;if [[ "$1" == "-n" ]]; then n=$2;fi;for i in {1..$n};do vapore="`echo $vapore | sed -r 's/(.)/\1 /g'`";done;echo $vapore; }
+tts(){ printf "(SayText "`cat -`")" | festival -i;}
+vapor(){ vapore="`cat -`"; n=1;if [[ "$1" == "-n" ]]; then n=$2;fi;for i in {1..$n};do vapore="`echo $vapore | sed -r 's/(.)/\1 /g'`";done;echo $vapore; }
 alias d='trash'
 alias mbtc='/mnt/4ADE1465DE144C17/gdrive/Programming/bash/mbtc/alerter.sh'
 alias rp='realpath -z'
@@ -138,8 +138,8 @@ alias ecdsa='ssh-keygen -l -f /etc/ssh/ssh_host_ecdsa_key.pub; ssh-keygen -l -f 
 alias up2pi='rsync -a "`pwd`" torta:'
 # alias sumlines='python3 -c "import sys; print(eval("+".join(sys.stdin).replace("\n",""))"'
 # alias backup='rsync -e "ssh -p 22" -avzp ~/kekao 25.25.25.25:'
-tf() { tail -f "$1" 2>&1 | perl -ne 'if (/file trunca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }ted/) {system 'clear'; print} else {print}'; }
-t2d(){ timestamp="`ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t -`"; date -d "@$timestamp"; }
+tf() { tail -f "$1" 2>&1 | perl -ne 'if (/file truncated/) {system 'clear'; print} else {print}'; }
+t2d(){ timestamp="`cat -`"; date -d "@$timestamp"; }
 knock(){ nc -z -w3 "$1" "$2"; echo $?; }
 # exit code of arg
 ec() { [[ "$1" == "-h" ]] && { shift && eval $* > /dev/null 2>&1; ec=$?; echo $ec; } || eval $*; ec=$?; }
@@ -163,7 +163,7 @@ alias pwdc="pwd | tr -d '\n' | xsel -i -b"
 alias scrot='scrot ~/.scrot.png'
 # f(){ sudo find . -iname "*$@*"; }
 cdf(){ cd `find . -iname "*$@*" | head -n1`; }
-alias curpos="cnee --record --mouse | awk  '/7,4,0,0,1/ { system(\"xdotool getmouseloca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }tion\") }'"
+alias curpos="cnee --record --mouse | awk  '/7,4,0,0,1/ { system(\"xdotool getmouselocation\") }'"
 alias p3u='pip3 uninstall'
 alias p3u='pip3 uninstall'
 alias p3i='pip3 install --user'
@@ -192,15 +192,15 @@ alias v='nvim'
 alias vc='co|v -'
 alias vh='nvim ~/.zsh_history'
 vx(){ xxd $@ | v - }
-make-ranger-aliases(){ ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > ~/.ranger_aliases; }
+make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > ~/.ranger_aliases; }
 ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $1; }
 alias wt='watch -n 1 tree'
 wtg(){ watch -n 1 "tree | grep $@" }
-alias wca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t='watch -n 1 ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t'
+alias wcat='watch -n 1 cat'
 hl(){ hamachi list | sed -E '/\*/!d;/\s{2,}\*/!d;s/\s+\*\S+?\s+?\S+?\s+?(\S+)\s+(\S+).+$/\1 \2/g' }
 whl(){ watch "hamachi list | sed -E '/\*/!d;/\s{2,}\*/!d;s/\s+\*\S+?\s+?\S+?\s+?(\S+)\s+(\S+).+$/\1 \2/g'" }
 coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
-ocsv() { ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t "$@" | psc -k -d, | `wis sc` }
+ocsv() { cat "$@" | psc -k -d, | `wis sc` }
 alias sc='sc-im'
 fv(){ find . -type f -name "*$@*" -exec nvim {} +  }
 zt(){ tar -czvf $1".tar.gz" ${@:2} }
@@ -222,7 +222,7 @@ cdd(){ cd `dirname $1` }
 alias pir='sudo pip uninstall'
 up2imgur(){ curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@$@" }
 up2giphy(){ curl -s -X POST --url https://upload.giphy.com/v1/gifs -H "api_key: $giphy_client_id" -F "file=@$@" | jq .data.id |xargs -i echo https://i.giphy.com/media/{}/source.gif }
-up2gfyca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t(){ [[ -z $1 ]] && return || { json_data=`curl -s -XPOST https://api.gfyca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t.com/v1/gfyca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }ts`; [[ `echo $json_data|jq .isOk` ]] || return ; gfyname=`echo $json_data|jq -r .gfyname`; secret=`echo $json_data|jq .secret`; cp $1 /tmp/$gfyname; curl -s -i https://filedrop.gfyca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t.com --upload-file /tmp/$gfyname 2>&1 >/dev/null; echo https://gfyca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t.com/$gfyname } }
+up2gfycat(){ [[ -z $1 ]] && return || { json_data=`curl -s -XPOST https://api.gfycat.com/v1/gfycats`; [[ `echo $json_data|jq .isOk` ]] || return ; gfyname=`echo $json_data|jq -r .gfyname`; secret=`echo $json_data|jq .secret`; cp $1 /tmp/$gfyname; curl -s -i https://filedrop.gfycat.com --upload-file /tmp/$gfyname 2>&1 >/dev/null; echo https://gfycat.com/$gfyname } }
 alias 2048='~/util/bash2048/bash2048.sh'
 alias ws='watch stat'
 vf(){ find . -iname "*$@*" | head -n1 | xargs nvim  }
@@ -231,7 +231,7 @@ unalias gg
 gg(){ git grep "$@" $(git rev-list --all) }
 alias nig='npm i -g'
 alias tron='ssh sshtron.zachlatta.com'
-alias empty-trash='rm -rf ~/.loca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }l/share/Trash/*'
+alias empty-trash='rm -rf ~/.local/share/Trash/*'
 alias fsw='fswatch .'
 isprime(){ if [[ $1 -eq 2 ]]||[[ $1 -eq 3 ]];then return 0;fi;if [[ $(($1 % 2)) -eq 0 ]]||[[ $(($1 % 3)) -eq 0 ]];then return 1;fi;i=5;w=2;while [[ $((i * i)) -le $1 ]];do if [[ $(($1 % i)) -eq 0 ]];then return 1;fi;i=$((i + w));w=$((6 - w));done;return 0; }
 alias sdf='ssh mvrozanti@sdf.org'
@@ -245,7 +245,7 @@ alias tnsd='tmux new-session -d sh -c'
 # alias ls='[ -x "$(command -v exa)" ] && exa || ls'
 alias wdu='watch -n 1 du -sh "*"'
 alias lh='less ~/.zsh_history'
-alias make-gource-mandragora='git --no-pager log --date=raw|g "^\s+.+|Date"|sed -E "s/Date:\s+//g"|sed "N;s/\n//"|sed -E "s/(\S+)\s-\S+\s+(.+)/\1|\2/g" > ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }ption_file'
+alias make-gource-mandragora='git --no-pager log --date=raw|g "^\s+.+|Date"|sed -E "s/Date:\s+//g"|sed "N;s/\n//"|sed -E "s/(\S+)\s-\S+\s+(.+)/\1|\2/g" > caption_file'
 alias tfl='tf *.log'
 alias cfK='nvim ~/.config/kitty/startup_session.kit'
 alias ki='khal interactive'
@@ -261,18 +261,18 @@ alias k='kitty'
 cfcf(){ trackedf=`realpath $1`; [[ $trackedf == ~* ]] && lefths=`echo $trackedf|xargs readlink -f|sd ~'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == ~*  ]] && echo $trackedf|sd ~'(.*)' '~$1' || echo $trackedf)'"}' ~"/mandragora/.dottyrc.json" | sponge ~"/mandragora/.dottyrc.json" }
 cfcu(){ to_remove="$1"; [[ ! -z $to_remove ]] && removed_array="`jq '.install|map(select(.!="'$to_remove'"))' ~"/mandragora/.dottyrc.json"`" && jq .install="$removed_array" ~"/mandragora/.dottyrc.json" | sponge ~/mandragora/.dottyrc.json }
 cfci(){ jq '.install |= . + ["'$1'"]' ~/mandragora/.dottyrc.json | sponge ~/mandragora/.dottyrc.json }
-lnb(){ le_fpath="$1"; le_dst="$2"; sudo ln -s `realpath $le_fpath` ~/.loca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }l/bin/`[[ -z "$le_dst" ]] && echo $le_fpath|cut -f 1 -d '.' || echo $2` }
+lnb(){ le_fpath="$1"; le_dst="$2"; sudo ln -s `realpath $le_fpath` ~/.local/bin/`[[ -z "$le_dst" ]] && echo $le_fpath|cut -f 1 -d '.' || echo $2` }
 alias cfD='nvim ~/mandragora/dotty/dotty.py'
 alias grow='[[ `git -C ~/mandragora pull|wc -l` -eq 1 ]] || ~/mandragora/dotty/dotty.py -f -r && git -C ~/mandragora submodule update --recursive --remote'
 alias oc='mpv /dev/video0'
 alias f='fd -H'
 alias nohup='nohup > /dev/null'
 alias SV='ffmpeg -f video4linux2  -i /dev/video0  -vcodec libx264 -preset fast -b 1000k -f matroska -y /dev/stdout | nc -lp 2717'
-alias SA='paca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t -r | nc -l -p 2718'
+alias SA='pacat -r | nc -l -p 2718'
 alias RA='nc `[[ $(hostname) == mndrgr2 ]] && echo mndrgr || echo mndrgr2` 2718 | aplay -c 2 -f S16_LE -r 44100'
-alias RV='nc mndrgr2 2717 | mpv - -ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }che 512'
+alias RV='nc mndrgr2 2717 | mpv - -cache 512'
 alias wS='watch du -sh'
-servesingle(){ [[ ! -z $1 ]] && { filepath=`realpath $1` &&  echo -ne "HTTP/1.0 200 OK\r\nContent-Disposition: filename=\"`basename $filepath`\"\nContent-Length: $(wc -c <$filepath)\r\n\r\n"; ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t $filepath; } | nc -l -p 2717 }
+servesingle(){ [[ ! -z $1 ]] && { filepath=`realpath $1` &&  echo -ne "HTTP/1.0 200 OK\r\nContent-Disposition: filename=\"`basename $filepath`\"\nContent-Length: $(wc -c <$filepath)\r\n\r\n"; cat $filepath; } | nc -l -p 2717 }
 alias sS='servesingle'
 alias ctl='systemctl'
 alias sctl='sudo systemctl'
@@ -283,7 +283,7 @@ ra(){ [[ ! -z "$1" && ! -z "$2" ]] && sd -i 'alias '$1'=' 'alias '$2'=' ~/.bash_
 alias me='uname -mrs'
 alias spsyyu='sudo pacman -Syyu'
 alias fuck='sudo'
-alias sca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }n4sd='echo 1 | sudo tee /sys/bus/pci/resca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }n'
+alias scan4sd='echo 1 | sudo tee /sys/bus/pci/rescan'
 alias sj='sudo journalctl'
 onf(){ inotifywait -m . -e create -e moved_to | while read pathe action filet; do echo $filet | xargs -I{} $@; done }
 alias netbeans='/usr/bin/netbeans'
@@ -308,16 +308,16 @@ alias cfZ='v ~/.config/zathura/zathurarc'
 alias cfm='v ~/.config/mutt/muttrc'
 alias cfmu='v ~/.config/ncmpcpp/'
 alias leet='toilet -d ~/.config/figlet -f rusto'
-alias playback='paca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t -r | aplay -c 2 -f S16_LE -r 44100'
-divsil(){ [[ -z $@ ]] && return; jq -r '.'`echo $@|cut -c1`'."'$@'"' < ~/prog/python/portal-da-lingua-portuguesa/palavras-divisao-silabica(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }.json }
+alias playback='pacat -r | aplay -c 2 -f S16_LE -r 44100'
+divsil(){ [[ -z $@ ]] && return; jq -r '.'`echo $@|cut -c1`'."'$@'"' < ~/prog/python/portal-da-lingua-portuguesa/palavras-divisao-silabica.json }
 alias sanduba='countdown "6*60" && for i in {1..3}; do beep -l 500; sleep 0.5; done'
 alias hlo='hamachi logout'
 alias hli='hamachi login'
 ti(){ tar -czf - $@ > ~/.tarchive.tar }
 to(){ tar -xzv < ~/.tarchive.tar }
 compv(){ co | xargs mpv }
-alias sca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }nlan='nmap -p80,443 192.168.0.0/24 -oG -'
-alias sca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }nvuln='nikto -h -'
+alias scanlan='nmap -p80,443 192.168.0.0/24 -oG -'
+alias scanvuln='nikto -h -'
 alias pull='git pull'
 ytpl(){ search="$@"; mpv --script-opts=ytdl_hook-try_ytdl_first=yes ytdl://ytsearch:"$search" }
 alias sk='screenkey --font-color red --opacity 0.2 --compr-cnt 3 -s small'
@@ -340,21 +340,21 @@ alias G='googler -l en -n 3 -c en'
 coytdl(){ ytdl `co` }
 alias /f='/;f'
 alias copss='pss `co`'
-_toggle_ssh_password_auth(){ grep 'PasswordAuthentica(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }tion yes' /etc/ssh/sshd_config >/dev/null; [[ $? -eq 0 ]] && sudo sed -i 's/PasswordAuthentica(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }tion yes/PasswordAuthentica(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }tion no/g' /etc/ssh/sshd_config || sudo sed -i 's/PasswordAuthentica(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }tion no/PasswordAuthentica(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }tion yes/g' /etc/ssh/sshd_config; sudo systemctl restart sshd; trap - SIGINT }
+_toggle_ssh_password_auth(){ grep 'PasswordAuthentication yes' /etc/ssh/sshd_config >/dev/null; [[ $? -eq 0 ]] && sudo sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config || sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config; sudo systemctl restart sshd; trap - SIGINT }
 wetty(){ _toggle_ssh_password_auth; trap _toggle_ssh_password_auth SIGINT; node ~/util/wetty/index.js -p 2717 }
 alias xfix='xset r rate 200 30;xmodmap ~/.Xmodmap;setxkbmap us alt-intl'
 toggle_touchpad(){ [[ `xinput list-props 12 | grep "Device Enabled" | grep -o "[01]$"` -eq 1 ]] && xinput --disable 12 || xinput --enable 12 }
 alias cocd='cd `co`'
 alias cocdd='cdd `co`'
 other_mndrgr(){ [[ `hostname` == "mndrgr" ]] && echo mndrgr2 || echo mndrgr }
-diffmndrgr(){ [[ -z $@ ]] || diff $@ <(ssh $(other_mndrgr) 'ca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }t '$(realpath $@)) }
+diffmndrgr(){ [[ -z $@ ]] || diff $@ <(ssh $(other_mndrgr) 'cat '$(realpath $@)) }
 alias cosv='sv `co`'
 alias cos='sudo `co`'
 alias corm='rm `co`'
 mdcd(){ md $@; cd $_ }
 alias enhance='function ne() { docker run --rm -v "$(pwd)/`dirname ${@:$#}`":/ne/input -it alexjc/neural-enhance ${@:1:$#-1} "input/`basename ${@:$#}`"; }; ne'
-alias gaca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }='git add .; git commit --amend'
-alias gaca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }p='gaca(){ kesa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }; git push -f'
+alias gaca='git add .; git commit --amend'
+alias gacap='gaca; git push -f'
 alias up='sudo umount ~/phone'
 smp(){ diff <(ls ~/Musik/) <(ls "~/phone/Internal storage/Music/") | grep mp3 | cut -c 2- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "~/phone/Internal storage/Music/"; done }
 spp(){ mv ~/phone/Internal\ storage/DCIM/Facebook/* ~/phone/Internal\ storage/Pictures/Telegram/* ~/phone/Internal\ storage/Pictures/Reddit/* ~/phone/Internal\ storage/DCIM/Camera/* ~/gdrive/Levv/4chan/ }
@@ -368,4 +368,4 @@ alias pqi='pacman -Qi'
 alias nvimdiff='nvim -d'
 alias vimdiff=nvimdiff
 xdiff(){ [[ "$#" -eq 2 ]] && nvimdiff <(xxd $1) <(xxd $2) }
-ca(){ sa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }(){ sa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }
+ca(){ sa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }
