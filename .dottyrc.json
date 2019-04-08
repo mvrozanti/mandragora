@@ -206,7 +206,8 @@
     "fzf",
     "perl-image-exiftool",
     "gnuplot",
-    "mutt"
+    "mutt",
+    "bbe"
   ],
   "excluded": [
     "hotmail.gpg"
