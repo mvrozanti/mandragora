@@ -37,5 +37,5 @@ le_output=$1
 
 while :; do 
     printf "$header\n\n$payload" | nc -clp 2717
-    nc -lp 2717 > $le_output
+    nc -lp 2717 | bbe -b ':/\x0D\x0A\x0D\x0A/' -e 'D 1;D 2;D 3' -o $le_output - 
 done
