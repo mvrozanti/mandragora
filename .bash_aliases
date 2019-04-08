@@ -235,7 +235,8 @@ alias empty-trash='rm -rf ~/.local/share/Trash/*'
 alias fsw='fswatch .'
 isprime(){ if [[ $1 -eq 2 ]]||[[ $1 -eq 3 ]];then return 0;fi;if [[ $(($1 % 2)) -eq 0 ]]||[[ $(($1 % 3)) -eq 0 ]];then return 1;fi;i=5;w=2;while [[ $((i * i)) -le $1 ]];do if [[ $(($1 % i)) -eq 0 ]];then return 1;fi;i=$((i + w));w=$((6 - w));done;return 0; }
 alias sdf='ssh mvrozanti@sdf.org'
-alias ms='ssh play@anonymine-demo.oskog97.com -p 2222'
+# alias ms='ssh play@anonymine-demo.oskog97.com -p 2222'
+alias ms=anonymine
 alias R='nnn'
 alias googlecloud='gcloud compute --project projeto-cloud-226116 ssh --zone us-east1-b instance-2'
 alias agi='sudo apt-get install'
