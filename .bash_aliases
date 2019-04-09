@@ -175,7 +175,7 @@ cntr(){ echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"
 bentr(){ ls * | entr -p /_ $@ }
 centr(){ ls *.c | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
 gentr(){ ls *.cpp | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; g++ '$@' {} -o "$noext" && clear && exec "$noext"'; }
-pentr(){ [[ -z $1 ]] && ls *.py* | entr -rc /_ $@ || echo $1 | entr /_ }
+# pentr(){ [[ -z $1 ]] && ls *.py* | entr -rc /_ $@ || echo $1 | entr /_ }
 mentr(){ ls *.* | entr make }
 xentr(){ ls *.* | entr -p $@ /_ }
 nentr(){ ls *.* | entr -p $@ node /_ }
@@ -368,4 +368,4 @@ alias pqi='pacman -Qi'
 alias nvimdiff='nvim -d'
 alias vimdiff=nvimdiff
 xdiff(){ [[ "$#" -eq 2 ]] && nvimdiff <(xxd $1) <(xxd $2) }
-ca(){ sa $@ | vipe | xargs -I{} sd -s -i $@ {} ~/.bash_aliases }
+# ca(){ kek="$@"; sa $kek | vipe | xargs -I{} sd -s -i "$(sa $kek)" '{}' ~/.bash_aliases }
