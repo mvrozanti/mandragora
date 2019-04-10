@@ -356,7 +356,7 @@ alias enhance='function ne() { docker run --rm -v "$(pwd)/`dirname ${@:$#}`":/ne
 alias gaca='git add .; git commit --amend'
 alias gacap='gaca; git push -f'
 alias up='sudo umount ~/phone'
-smp(){ diff <(ls ~/Musik/) <(ls "~/phone/Internal storage/Music/") | grep mp3 | cut -c 2- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "~/phone/Internal storage/Music/"; done }
+smp(){ diff <(ls ~/Musik/) <(ls "$HOME/phone/Internal storage/Music/") | grep mp3 | cut -c 3- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "$HOME/phone/Internal storage/Music/"; done }
 spp(){ mv ~/phone/Internal\ storage/DCIM/Facebook/* ~/phone/Internal\ storage/Pictures/Telegram/* ~/phone/Internal\ storage/Pictures/Reddit/* ~/phone/Internal\ storage/DCIM/Camera/* ~/gdrive/Levv/4chan/ }
 sp(){ smp;spp }
 coz(){ `co` }
@@ -368,4 +368,4 @@ alias pqi='pacman -Qi'
 alias nvimdiff='nvim -d'
 alias vimdiff=nvimdiff
 xdiff(){ [[ "$#" -eq 2 ]] && nvimdiff <(xxd $1) <(xxd $2) }
-# ca(){ kek="$@"; sa $kek | vipe | xargs -I{} sd -s -i "$(sa $kek)" '{}' ~/.bash_aliases }
+ca(){ le_line="$(sa $@)"; new_line="`echo $le_line | vipe`"; sd -s -i "`echo $le_line`" "`echo $new_line`" ~/.bash_aliases }
