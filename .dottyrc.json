@@ -207,7 +207,8 @@
     "perl-image-exiftool",
     "gnuplot",
     "mutt",
-    "bbe"
+    "bbe",
+    "php"
   ],
   "excluded": [
     "hotmail.gpg"
