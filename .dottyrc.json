@@ -130,7 +130,6 @@
     "sqlitebrowser",
     "sshfs",
     "streamlink",
-    "sxiv",
     "swi-prolog",
     "the_silver_searcher",
     "tig",
@@ -208,7 +207,8 @@
     "gnuplot",
     "mutt",
     "bbe",
-    "php"
+    "php",
+    "python-html2text"
   ],
   "excluded": [
     "hotmail.gpg"
