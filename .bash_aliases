@@ -371,3 +371,4 @@ xdiff(){ [[ "$#" -eq 2 ]] && nvimdiff <(xxd $1) <(xxd $2) }
 ca(){ le_line="$(sa $@)"; new_line="`echo $le_line | vipe`"; sd -s -i "`echo $le_line`" "`echo $new_line`" ~/.bash_aliases }
 alias wstat='watch stat'
 alias md5='md5sum'
+alias lesss='less'
