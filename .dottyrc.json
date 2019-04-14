@@ -249,7 +249,7 @@
     "_git clone --depth 1 https://github.com/cjbassi/gotop /tmp/gotop && /tmp/gotop/scripts/download.sh",
     "command -v gotop || go get github.com/cjbassi/gotop",
     "cargo install --list | grep sd || cargo install sd",
-    "pip3 install --user khal grip psutil maybe sqlcrush pynvim ptpython",
+    "pip3 install --user khal grip psutil maybe sqlcrush pynvim ptpython extract-msg",
     "command -v hamachi   || yay -S logmein-hamachi",
     "command -v polybar   || yay -S $_",
     "command -v gotop     || yay -S $_",
