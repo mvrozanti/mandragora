@@ -69,6 +69,7 @@ map [fullscreen] = adjust_window best-fit
 # unmap d 
 map C set recolor true
 map D toggle_page_mode 2
+map [fullscreen] D toggle_page_mode 2
 map d scroll half-down
 map [fullscreen] d scroll half-down
 map b scroll half-up
