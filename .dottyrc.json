@@ -63,9 +63,8 @@
     ".local/bin/qit": "~/.local/bin/qit",
     ".local/bin/sit": "~/.local/bin/sit",
     ".local/bin/wiki": "~/.local/bin/wiki",
-    "home/nexor/.ptpython/config.py": "/home/nexor/.ptpython/config.py",
-    "home/nexor/.local/bin/filedropper": "/home/nexor/.local/bin/filedropper",
-    "todo": "~/todo"
+    ".ptpython/config.py": "~/.ptpython/config.py",
+    ".local/bin/filedropper": "~/.local/bin/filedropper"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
