@@ -170,6 +170,7 @@ autocmd FileType c,cpp,lex inoremap uns<tab> using namespace std;<CR>
 autocmd FileType c,cpp,lex inoremap in<tab> #include<><Esc>i
 autocmd FileType c,lex inoremap so<tab> sizeof()<Esc>i
 autocmd FileType c,cpp,lex inoremap pr<tab> printf("\n", <+>);<Esc>9hi
+autocmd FileType c,cpp,lex inoremap fn<tab> <+> <+>(<+>){<CR>}<Esc>O
 autocmd FileType c,cpp,java,lex inoremap sw<tab> switch(){<CR>case <+>:<CR>break;<CR>}<Esc>3kwa
 autocmd FileType c,cpp,java,lex inoremap wh<tab> while(){<CR>}<Esc>kwa
 autocmd FileType c,cpp,java,lex inoremap if<tab> if(){<CR>}<Esc>kwa
