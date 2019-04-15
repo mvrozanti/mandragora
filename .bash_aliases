@@ -361,6 +361,7 @@ spp(){ mv ~/phone/Internal\ storage/DCIM/Facebook/* ~/phone/Internal\ storage/Pi
 sp(){ smp;spp }
 coz(){ `co` }
 sa(){ grep -E "^(alias )?$@(=|\()" ~/.bash_aliases }
+sma(){ sd "alias.+='(.+)'|.+\(\)\{\s?(.+)\s?}" '$1$2' }
 alias I='sxiv'
 alias x='xargs'
 alias coag='ag `co`'
