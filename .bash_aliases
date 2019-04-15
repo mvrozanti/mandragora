@@ -261,7 +261,7 @@ alias cfrs='nvim ~/.config/ranger/scope.sh'
 alias cfrd='nvim ~/.config/ranger/devicons.sh'
 alias k='kitty'
 # cfcr(){ trackedf=`realpath $1`; [[ $trackedf == ~* ]] && lefths=`echo $trackedf|xargs readlink -f|sd ~'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == ~*  ]] && echo $trackedf|sd ~'(.*)' '~$1' || echo $trackedf)'"}' ~"/mandragora/.dottyrc.json" | sponge ~"/mandragora/.dottyrc.json" }
-cfcf(){ trackedf=`realpath $1`; [[ $trackedf == ~* ]] && lefths=`echo $trackedf|xargs readlink -f|sd ~'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == ~*  ]] && echo $trackedf|sd ~'(.*)' '~$1' || echo $trackedf)'"}' ~"/mandragora/.dottyrc.json" | sponge ~"/mandragora/.dottyrc.json" }
+cfcf(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sd $HOME'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf|sd $HOME'(.*)' '~$1' || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json" | sponge $HOME"/mandragora/.dottyrc.json" }
 cfcu(){ to_remove="$1"; [[ ! -z $to_remove ]] && removed_array="`jq '.install|map(select(.!="'$to_remove'"))' ~"/mandragora/.dottyrc.json"`" && jq .install="$removed_array" ~"/mandragora/.dottyrc.json" | sponge ~/mandragora/.dottyrc.json }
 cfci(){ jq '.install |= . + ["'$1'"]' ~/mandragora/.dottyrc.json | sponge ~/mandragora/.dottyrc.json }
 lnb(){ le_fpath="$1"; le_dst="$2"; sudo ln -s `realpath $le_fpath` ~/.local/bin/`[[ -z "$le_dst" ]] && echo $le_fpath|cut -f 1 -d '.' || echo $2` }
