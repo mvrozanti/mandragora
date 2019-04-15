@@ -170,6 +170,9 @@ alias p3i='pip3 install --user'
 alias p2i='pip2 install --user'
 alias p3r='pip3 uninstall'
 alias p3r='pip2 uninstall'
+alias nvimdiff='nvim -d'
+alias vimdiff=nvimdiff
+alias entr='entr -p'
 cnt(){ echo $1 | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -g -o "$noext" ${@:2} && clear && ./"$noext"'; }
 cntr(){ echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && sh -c "$noext || :"'; }
 bentr(){ ls * | entr -p /_ $@ }
@@ -177,10 +180,10 @@ centr(){ ls *.c | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f
 gentr(){ ls *.cpp | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; g++ '$@' {} -o "$noext" && clear && exec "$noext"'; }
 # pentr(){ [[ -z $1 ]] && ls *.py* | entr -rc /_ $@ || echo $1 | entr /_ }
 mentr(){ ls *.* | entr make }
-xentr(){ ls *.* | entr -p $@ /_ }
-nentr(){ ls *.* | entr -p $@ node /_ }
+xentr(){ ls *.* | entr $@ /_ }
+nentr(){ ls *.* | entr $@ node /_ }
+dentr(){ ls *.* | entr nvimdiff <(xxd $1) <(xxd $2) }
 ventr(){ [[ $(($#)) -gt 0 ]] && ls | entr -r sh -c 'valgrind --quiet --show-leak-kinds=all --leak-check=full '`realpath ${@: -1}`' -v --track-origins=yes' }
-alias entr='entr -p'
 alias dotty='~/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
 countdown(){ date1=$((`date +%s` + $1)); while [ "$date1" -ge `date +%s` ]; do clear; echo -ne "$(date -u --date @$(($date1 - `date +%s`)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
@@ -366,8 +369,6 @@ alias I='sxiv'
 alias x='xargs'
 alias coag='ag `co`'
 alias pqi='pacman -Qi'
-alias nvimdiff='nvim -d'
-alias vimdiff=nvimdiff
 xdiff(){ [[ "$#" -eq 2 ]] && nvimdiff <(xxd $1) <(xxd $2) }
 ca(){ le_line="$(sa $@)"; new_line="`echo $le_line | vipe`"; sd -s -i "`echo $le_line`" "`echo $new_line`" ~/.bash_aliases }
 alias wstat='watch stat'
