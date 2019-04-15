@@ -182,7 +182,7 @@ gentr(){ ls *.cpp | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. 
 mentr(){ ls *.* | entr make }
 xentr(){ ls *.* | entr $@ /_ }
 nentr(){ ls *.* | entr $@ node /_ }
-dentr(){ ls *.* | entr nvimdiff <(xxd $1) <(xxd $2) }
+dentr(){ le_f1="$1"; le_f2="$2"; ls *.* | entr nvimdiff <(xxd $le_f1) <(xxd $le_f2) }
 ventr(){ [[ $(($#)) -gt 0 ]] && ls | entr -r sh -c 'valgrind --quiet --show-leak-kinds=all --leak-check=full '`realpath ${@: -1}`' -v --track-origins=yes' }
 alias dotty='~/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
@@ -374,3 +374,4 @@ ca(){ le_line="$(sa $@)"; new_line="`echo $le_line | vipe`"; sd -s -i "`echo $le
 alias wstat='watch stat'
 alias md5='md5sum'
 alias lesss='less'
+gC(){ git config pack.threads 1;git config pack.deltaCacheSize 1;git config core.packedGitWindowSize 16m;git config core.packedGitLimit 128m;git config pack.windowMemory 512mgit gc;git gc --aggressive;git prune }
