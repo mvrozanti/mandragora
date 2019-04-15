@@ -6,7 +6,9 @@ endfun
 call SetupCommandAlias("jsonify","%!python -m json.tool")
 map <A-F> mzgg=G`zzz
 xnoremap p "_dP
-vnoremap \/ y/<C-R>"<CR>
+map / /\c
+vnoremap / y/<C-r><C-w><CR>
+vnoremap ? y:%s/<C-r><C-w>//gn<CR>
 nnoremap <A-p> o<A-p>
 " Automatically deletes all tralling whitespace on save.
 " let blacklist = ['txt']
@@ -113,7 +115,6 @@ nnoremap <C-Tab> gK
 " Goyo
 map <F2> :Goyo 200x200<CR>
 " Case insensitive search by default
-map / /\c
 
 " Replace visual selection
 vnoremap <C-r> "hy:.,$s/<C-r>h//gc<left><left><left>
