@@ -208,7 +208,9 @@
     "mutt",
     "bbe",
     "php",
-    "python-html2text"
+    "python-html2text",
+    "afl",
+    "afl-utils"
   ],
   "excluded": [
     "hotmail.gpg"
