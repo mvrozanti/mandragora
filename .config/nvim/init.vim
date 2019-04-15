@@ -359,7 +359,7 @@ set shiftwidth=4
 
 " Real-time markdown editing
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app & yarn install'  }
-let g:mkdp_markdown_css = '/home/nexor/darkdown.css'
+" let g:mkdp_markdown_css = '/home/nexor/darkdown.css'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 let g:airline_powerline_fonts = 1
