@@ -64,7 +64,8 @@
     ".local/bin/sit": "~/.local/bin/sit",
     ".local/bin/wiki": "~/.local/bin/wiki",
     ".ptpython/config.py": "~/.ptpython/config.py",
-    ".local/bin/filedropper": "~/.local/bin/filedropper"
+    ".local/bin/filedropper": "~/.local/bin/filedropper",
+    ".taskrc": "~/.taskrc"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
@@ -210,7 +211,8 @@
     "php",
     "python-html2text",
     "afl",
-    "afl-utils"
+    "afl-utils",
+    "task"
   ],
   "excluded": [
     "hotmail.gpg"
