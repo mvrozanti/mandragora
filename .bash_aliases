@@ -43,7 +43,7 @@ alias mkdir='mkdir -p'
 # terminal geographic map
 alias asciimap='telnet mapscii.me'
 # tmux attach
-alias ta='tmux a -t sess0'
+alias ta='task add'
 alias smv='sudo mv'
 alias msk='ncmpcpp'
 alias cfa='sudo -E nvim ~/.bash_aliases'
