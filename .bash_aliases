@@ -377,3 +377,4 @@ alias lesss='less'
 gC(){ git config pack.threads 1;git config pack.deltaCacheSize 1;git config core.packedGitWindowSize 16m;git config core.packedGitLimit 128m;git config pack.windowMemory 512mgit gc;git gc --aggressive;git prune }
 alias tls='task list'
 td(){ [[ -z $@ ]] || task $@ delete }
+af(){ [[ ! -z $1 && ! -z $2 ]] && echo "$1(){ ${@:2} }" >> ~/.bash_aliases }
