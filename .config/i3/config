@@ -58,6 +58,7 @@ for_window  [title=".*Trello.*"]          move to workspace $ws7
 for_window  [title="Zoom\s-"]              move to workspace $ws5
 for_window  [instance="^ranger$"]         move to workspace $ws8
 for_window  [class="mpv"]                 floating enable move right -500 move down -10
+for_window  [title="_visualizer_"]               floating enable; move right -100 move down -100
 for_window  [instance="portal"]           sticky enable floating enable move position 1000 200
 for_window  [instance="khal2"]            floating enable move position 50 50;\
                                             resize shrink width 10000px;         \
@@ -97,6 +98,7 @@ $bind $mod+v          fullscreen disable; workspace $ws6;       $ensid wmctrl -a
 $bind $mod+9          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  skype           || skypeforlinux
 $bind $mod+0      fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && offlineimap -a hotmail && cat /home/nexor/.cache/wal/sequences && tmux new neomutt"
 $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp
+$bind $mod+Mod1+2     fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -g 50+1410+530 -T 100 -t _visualizer_ -c _visualizer_ -e ncmpcpp -s visualizer
 $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  _zsh_           || kitty --title _zsh_ --name _zsh_
 $bind $mod+Shift+3                                              $ensid wmctrl -xa _tmux_          || kitty --title _tmux_
