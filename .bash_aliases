@@ -378,3 +378,4 @@ gC(){ git config pack.threads 1;git config pack.deltaCacheSize 1;git config core
 alias tls='task list'
 td(){ [[ -z $@ ]] || task $@ delete }
 af(){ [[ ! -z $1 && ! -z $2 ]] && echo "$1(){ ${@:2} }" >> ~/.bash_aliases }
+alias vig='v .gitignore'
