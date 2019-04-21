@@ -61,6 +61,7 @@ nnoremap <A-Up>    :TmuxNavigateUp<cr>
 nnoremap <A-Right> :TmuxNavigateRight<cr>
 
 let g:colorizer_auto_color = 1
+
 set nofoldenable
 set foldmethod=indent
 " Plug 'Valloric/YouCompleteMe'
@@ -89,6 +90,7 @@ set t_vb=
 " hits bong:
 " vnoremap <silent> <C-c> :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:noh<CR>
 " nnoremap : q:i
+nmap <silent> M    "_yiw:s/\(\%#\w\+\)\(\_W\+\)\(\w\+\)/\3\2\1/<CR><C-O> *N*<Esc><Esc>
 nnoremap yD y$
 nnoremap <A-i> f(a
 inoremap <A-i> <Esc>f(a
