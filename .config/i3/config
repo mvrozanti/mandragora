@@ -97,25 +97,25 @@ for_window  [title="_todo_"]              floating enable;           \
 
 $bind $mod+v          fullscreen disable; workspace $ws6;       $ensid wmctrl -a  Code            || code
 $bind $mod+9          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  skype           || skypeforlinux
-$bind $mod+0      fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && offlineimap -a hotmail && cat /home/nexor/.cache/wal/sequences && tmux new neomutt"
+$bind $mod+0      fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && offlineimap -a hotmail && "$cat_seqs" && tmux new neomutt"
 $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp
 $bind $mod+Mod1+2     fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -g 50+1410+530 -T 100 -t _visualizer_ -c _visualizer_ -e ncmpcpp -s visualizer
 $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  _zsh_           || kitty --title _zsh_ --name _zsh_
 $bind $mod+Shift+3                                              $ensid wmctrl -xa _tmux_          || kitty --title _tmux_
-$bind $mod+Mod1+3                                               $ensid wmctrl -xa _tmux_float_     || kitty --title _tmux_float_ 
+$bind $mod+Mod1+3                                               $ensid wmctrl -xa _tmux_float_    || kitty --title _tmux_float_ 
 $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
-$bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && cmatrix"
-$bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && tmux new ranger"
+$bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
+$bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtubecurses_  || kitty --name _youtubecurses_ -o background_opacity=.78 --title _youtubecurses_ -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses || read"
 $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  _todo_          || kitty -o background_opacity=.78 --name _todo_  -o font_size=13 --title _todo_  -e zsh -c "nvim $HOME/todo.md"
 $bind $mod+Shift+o          fullscreen disable;                 $ensid wmctrl -a  _todo_          || kitty -o background_opacity=.78 --name _todo_  -o font_size=13 --title _todo_  -e zsh -c "nvim /home/nexor/mackenzie/tcc1/duvidas.md"
-$bind $mod+braceleft                                            $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal2 -o font_size=24 --title khal2 -e sh  -c "cat /home/nexor/.cache/wal/sequences && khal interactive"
-$bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal_ -o font_size=13 --title khal_ -e sh  -c "cat /home/nexor/.cache/wal/sequences && khal interactive"
-$bind Ctrl+Shift+Escape                                         $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e sh -c 'cat /home/nexor/.cache/wal/sequences && gotop'
-$bind $mod+i                                                    $ensid wmctrl -a  _irssi_         || kitty -o background_opacity=.78 --name _irssi_ sh -c 'cat /home/nexor/.cache/wal/sequences && irssi'
+$bind $mod+braceleft                                            $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal2 -o font_size=24 --title khal2 -e sh  -c $cat_seqs" && khal interactive"
+$bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal_ -o font_size=13 --title khal_ -e sh  -c $cat_seqs" && khal interactive"
+$bind Ctrl+Shift+Escape                                         $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e sh -c $cat_seqs' && gotop'
+$bind $mod+i                                                    $ensid wmctrl -a  _irssi_         || kitty -o background_opacity=.78 --name _irssi_ sh -c $cat_seqs' && irssi'
 $bind $mod+Shift+i                                              $ensid wmctrl -a  iftop           || kitty --name iftop sudo iftop -i eno1
-$bind $mod+Shift+n                                              $ensid wmctrl -a  newsboat        || kitty -o background_opacity=.78 --name newsboat sh -c 'cat /home/nexor/.cache/wal/sequences && newsboat'
+$bind $mod+Shift+n                                              $ensid wmctrl -a  newsboat        || kitty -o background_opacity=.78 --name newsboat sh -c $cat_seqs' && newsboat'
 $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox        || waterfox
 $bind $mod+Shift+1        workspace $ws1                        $ensid wmctrl -a  Browsing        || waterfox $waterfox_arg
 $bind $mod+Shift+v    split toggle;                             $ensid wmctrl -a  VirtualBox      || virtualbox
