@@ -340,7 +340,7 @@ wco(){ watch xsel -o -b }
 v.(){ v . }
 alias cfC='v ~/.config/nvim/coc-settings.json'
 alias G='googler -l en -n 3 -c en'
-coytdl(){ ytdl `co` }
+coy(){ ytdl `co` }
 alias /f='/;f'
 alias copss='pss `co`'
 _toggle_ssh_password_auth(){ grep 'PasswordAuthentication yes' /etc/ssh/sshd_config >/dev/null; [[ $? -eq 0 ]] && sudo sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config || sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config; sudo systemctl restart sshd; trap - SIGINT }
