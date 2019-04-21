@@ -18,6 +18,7 @@ set $mod Mod4
 set $ensid exec --no-startup-id
 set $bind bindsym
 set $font "Droid Sans Mono Slashed for Powerline"
+set $cat_seqs "cat /home/nexor/.cache/wal/sequences"
 set_from_resource $color0 color0 #000000
 set_from_resource $color1 color1 #f0000f
 set_from_resource $color2 color2 #0f00f0
@@ -55,10 +56,10 @@ for_window  [class="Waterfox"]            move to workspace $ws1
 # for_window  [class="Firefox"]            move to workspace $ws1
 for_window  [title="^(\d+) WhatsApp$"]    move to workspace $ws3
 for_window  [title=".*Trello.*"]          move to workspace $ws7
-for_window  [title="Zoom\s-"]              move to workspace $ws5
+for_window  [title="Zoom\s-"]             move to workspace $ws5
 for_window  [instance="^ranger$"]         move to workspace $ws8
-for_window  [class="mpv"]                 floating enable move right -500 move down -10
-for_window  [title="_visualizer_"]               floating enable; move right -100 move down -100
+for_window  [class="mpv"]                 floating enable; move right -500 move down -10
+for_window  [title="_visualizer_"]        sticky enable floating enable
 for_window  [instance="portal"]           sticky enable floating enable move position 1000 200
 for_window  [instance="khal2"]            floating enable move position 50 50;\
                                             resize shrink width 10000px;         \
@@ -102,16 +103,17 @@ $bind $mod+Mod1+2     fullscreen disable; split h;              $ensid wmctrl -a
 $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  _zsh_           || kitty --title _zsh_ --name _zsh_
 $bind $mod+Shift+3                                              $ensid wmctrl -xa _tmux_          || kitty --title _tmux_
+$bind $mod+Mod1+3                                               $ensid wmctrl -xa _tmux_float_     || kitty --title _tmux_float_ 
 $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && cmatrix"
 $bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && tmux new ranger"
-$bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtubecurses_ || kitty --name _youtubecurses_ -o background_opacity=.78 --title _youtubecurses_ -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses || read"
+$bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtubecurses_  || kitty --name _youtubecurses_ -o background_opacity=.78 --title _youtubecurses_ -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses || read"
 $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  _todo_          || kitty -o background_opacity=.78 --name _todo_  -o font_size=13 --title _todo_  -e zsh -c "nvim $HOME/todo.md"
 $bind $mod+Shift+o          fullscreen disable;                 $ensid wmctrl -a  _todo_          || kitty -o background_opacity=.78 --name _todo_  -o font_size=13 --title _todo_  -e zsh -c "nvim /home/nexor/mackenzie/tcc1/duvidas.md"
 $bind $mod+braceleft                                            $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal2 -o font_size=24 --title khal2 -e sh  -c "cat /home/nexor/.cache/wal/sequences && khal interactive"
 $bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal_ -o font_size=13 --title khal_ -e sh  -c "cat /home/nexor/.cache/wal/sequences && khal interactive"
 $bind Ctrl+Shift+Escape                                         $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e sh -c 'cat /home/nexor/.cache/wal/sequences && gotop'
-$bind $mod+i                                                    $ensid wmctrl -a  _irssi_           || kitty -o background_opacity=.78 --name _irssi_ sh -c 'cat /home/nexor/.cache/wal/sequences && irssi'
+$bind $mod+i                                                    $ensid wmctrl -a  _irssi_         || kitty -o background_opacity=.78 --name _irssi_ sh -c 'cat /home/nexor/.cache/wal/sequences && irssi'
 $bind $mod+Shift+i                                              $ensid wmctrl -a  iftop           || kitty --name iftop sudo iftop -i eno1
 $bind $mod+Shift+n                                              $ensid wmctrl -a  newsboat        || kitty -o background_opacity=.78 --name newsboat sh -c 'cat /home/nexor/.cache/wal/sequences && newsboat'
 $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox        || waterfox
@@ -127,9 +129,9 @@ $bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a
 $bind $mod+Shift+w    workspace $ws11;                          $ensid wmctrl -xa thunderbird     || thunderbird
 $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -xa gdmap           || gdmap -f /
 $bind $mod+Shift+Return                                         $ensid                               st -T 100 ranger
-$bind $mod+x                                                    $ensid wmctrl -a  mpv
 $bind $mod+Shift+p                                              $ensid wmctrl -a zathura          || zathura
 $bind $mod+y                                                    $ensid wmctrl -a _youtube_        || mpv --title _youtube_ `xsel -o -b`
+$bind $mod+x                                                    $ensid wmctrl -a  mpv
 $bind $mod+d              workspace $ws9
 # $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
 # $bind $mod+Shift+m see $HOME/.config/dunst/dunstrc
