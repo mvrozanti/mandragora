@@ -379,3 +379,4 @@ alias tls='task list'
 td(){ [[ -z $@ ]] || task $@ delete }
 af(){ [[ ! -z $1 && ! -z $2 ]] && echo "$1(){ ${@:2} }" >> ~/.bash_aliases }
 alias vig='v .gitignore'
+x2c(){ printf "\\$(printf '%03o' "$1")" }
