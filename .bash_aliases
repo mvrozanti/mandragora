@@ -382,3 +382,4 @@ alias vig='v .gitignore'
 x2c(){ printf "\\$(printf '%03o' "$1")" }
 alias rp.c='rp . | c'
 alias vm='v Makefile'
+alias vcm='v CMakeLists.txt'
