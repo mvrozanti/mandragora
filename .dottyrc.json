@@ -212,7 +212,8 @@
     "python-html2text",
     "afl",
     "afl-utils",
-    "task"
+    "task",
+    "exfat-utils"
   ],
   "excluded": [
     "hotmail.gpg"
