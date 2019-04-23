@@ -180,7 +180,7 @@ centr(){ ls *.c | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f
 gentr(){ ls *.cpp | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; g++ '$@' {} -o "$noext" && clear && exec "$noext"'; }
 # pentr(){ [[ -z $1 ]] && ls *.py* | entr -rc /_ $@ || echo $1 | entr /_ }
 mentr(){ ls *.* | entr make }
-xentr(){ ls *.* | entr $@ /_ }
+# xentr(){ ls *.* | entr $@ /_ }
 nentr(){ ls *.* | entr $@ node /_ }
 dentr(){ le_f1="$1"; le_f2="$2"; ls *.* | entr nvim -d <(xxd $le_f1) <(xxd $le_f2) }
 ventr(){ [[ $(($#)) -gt 0 ]] && ls | entr -r sh -c 'valgrind --quiet --show-leak-kinds=all --leak-check=full '`realpath ${@: -1}`' -v --track-origins=yes' }
@@ -384,5 +384,5 @@ alias rp.c='realpath . | c'
 alias vm='v Makefile'
 alias vcm='v CMakeLists.txt'
 alias xlx='l -tnew | x file | g ELF | sed 1q | cut -d ':' -f1 | x -I{} zsh -c ./{}'
-
+xentr(){ ls | entr zsh -c 'setopt expand_aliases && source ~/.bash_aliases ; xlx' }
 alias costat='co | x stat'
