@@ -383,5 +383,5 @@ x2c(){ printf "\\$(printf '%03o' "$1")" }
 alias rp.c='rp . | c'
 alias vm='v Makefile'
 alias vcm='v CMakeLists.txt'
-alias xlx='l | x file | g ELF | cut -d ':' -f1 | x -I{} zsh -c ./{}'
+alias xlx='l -tnew | x file | g ELF | sed 1q | cut -d ':' -f1 | x -I{} zsh -c ./{}'
 
