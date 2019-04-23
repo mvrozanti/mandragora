@@ -380,9 +380,9 @@ td(){ [[ -z $@ ]] || task $@ delete }
 af(){ [[ ! -z $1 && ! -z $2 ]] && echo "$1(){ ${@:2} }" >> ~/.bash_aliases }
 alias vig='v .gitignore'
 x2c(){ printf "\\$(printf '%03o' "$1")" }
-alias rp.c='rp . | c'
+alias rp.c='realpath . | c'
 alias vm='v Makefile'
 alias vcm='v CMakeLists.txt'
 alias xlx='l -tnew | x file | g ELF | sed 1q | cut -d ':' -f1 | x -I{} zsh -c ./{}'
 
-alias costat='co | stat'
+alias costat='co | x stat'
