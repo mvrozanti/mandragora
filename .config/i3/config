@@ -60,7 +60,8 @@ for_window  [title="Zoom\s-"]             move to workspace $ws5
 for_window  [instance="^ranger$"]         move to workspace $ws8
 for_window  [class="mpv"]                 floating enable; move right -500 move down -10
 for_window  [title="_visualizer_"]        sticky enable floating enable
-for_window  [instance="portal"]           sticky enable floating enable move position 1000 200
+for_window  [title="_tmux-float_"]        sticky enable; floating enable; move position 1550 700 
+for_window  [instance="portal"]           sticky enable floating enable
 for_window  [instance="khal2"]            floating enable move position 50 50;\
                                             resize shrink width 10000px;         \
                                             resize shrink height 10000px;         \
@@ -103,17 +104,27 @@ $bind $mod+Mod1+2     fullscreen disable; split h;              $ensid wmctrl -a
 $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  ncmpcpp         || st -e ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  _zsh_           || kitty --listen-on=unix:@mykitty --title _zsh_ --name _zsh_
 $bind $mod+Shift+3                                              $ensid wmctrl -xa _tmux_          || kitty --title _tmux_
-$bind $mod+Mod1+3                                               $ensid wmctrl -xa _tmux_float_    || kitty --title _tmux_float_ 
 $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
-$bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
-$bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
-$bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtubecurses_  || kitty --name _youtubecurses_ -o background_opacity=.78 --title _youtubecurses_ -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses || read"
-$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  _todo_          || kitty -o background_opacity=.78 --name _todo_  -o font_size=13 --title _todo_  -e zsh -c "nvim $HOME/todo.md"
-$bind $mod+Shift+o          fullscreen disable;                 $ensid wmctrl -a  _todo_          || kitty -o background_opacity=.78 --name _todo_  -o font_size=13 --title _todo_  -e zsh -c "nvim /home/nexor/mackenzie/tcc1/duvidas.md"
-$bind $mod+braceleft                                            $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal2 -o font_size=24 --title khal2 -e sh  -c $cat_seqs" && khal interactive"
-$bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a  khal            || kitty -o background_opacity=.78 --name khal_ -o font_size=13 --title khal_ -e sh  -c $cat_seqs" && khal interactive"
-$bind Ctrl+Shift+Escape                                         $ensid wmctrl -a  gotop           || kitty -o background_opacity=.78 --title gotop -e sh -c $cat_seqs' && gotop'
-$bind $mod+i                                                    $ensid wmctrl -a  _irssi_         || kitty -o background_opacity=.78 --name _irssi_ sh -c $cat_seqs' && irssi'
+$bind $mod+Mod1+3                                               $ensid wmctrl -xa _tmux-float_    || kitty --title _tmux-float_ \
+    -o initial_window_width=300 -o initial_window_height=400 -o remember_window_size=no
+$bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix \
+    -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
+$bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
+    -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
+$bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtubecurses_  || kitty --name _youtubecurses_ \
+    -o background_opacity=.78 --title _youtubecurses_ -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses || read"
+$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  _todo_          || kitty --name _todo_ \
+    -o background_opacity=.78 -o font_size=13 --title _todo_  -e zsh -c "nvim $HOME/todo.md"
+$bind $mod+Shift+o          fullscreen disable;                 $ensid wmctrl -a  _todo_          || kitty --name _todo_ \
+    -o background_opacity=.78 -o font_size=13 --title _todo_  -e zsh -c "nvim /home/nexor/mackenzie/tcc1/duvidas.md"
+$bind $mod+braceleft                                            $ensid wmctrl -a  khal            || kitty --name khal2 \
+    -o background_opacity=.78 -o font_size=24 --title khal2 -e sh  -c $cat_seqs" && khal interactive"
+$bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a  khal            || kitty --name khal_ \
+    -o background_opacity=.78 -o font_size=13 --title khal_ -e sh  -c $cat_seqs" && khal interactive"
+$bind Ctrl+Shift+Escape                                         $ensid wmctrl -a  gotop           || kitty --title gotop \
+    -o background_opacity=.78 -e sh -c $cat_seqs' && gotop'
+$bind $mod+i                                                    $ensid wmctrl -a  _irssi_         || kitty --name _irssi_ \
+    -o background_opacity=.78 sh -c $cat_seqs' && irssi'
 $bind $mod+Shift+i                                              $ensid wmctrl -a  iftop           || kitty --name iftop sudo iftop -i eno1
 $bind $mod+Shift+n                                              $ensid wmctrl -a  newsboat        || kitty -o background_opacity=.78 --name newsboat sh -c $cat_seqs' && newsboat'
 $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox        || waterfox
@@ -150,20 +161,20 @@ $bind --release Ctrl+Print        $ensid scrot -s -e 'xclip -selection clipboard
 $bind --release Shift+Print       $ensid scrot -s -e 'sxiv -N portal -b $f'                               $scrot_file
 $bind --release Ctrl+Shift+Print  $ensid scrot    -e 'pinta $f'                                           $scrot_file
 $bind $mod+Scroll_Lock            $ensid flameshot gui
-$bind Ctrl+$mod+Print             $ensid byzanz-record -d                            \
-                                   `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
-                                       ~/.scrot.gif && curl -s -X POST --url           \
-                                       https://upload.giphy.com/v1/gifs -H              \
-                                       "api_key: $giphy_client_id" -F "file=@"$_ |       \
-                                       jq .data.id | xargs -i echo                        \
-                                       https://i.giphy.com/media/{}/source.gif | xsel -i -b\
-                                       && notify-send gif copied to clipboard               \
 # $bind Ctrl+$mod+Print             $ensid byzanz-record -d                            \
 #                                    `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
-#                                        ~/.scrot.gif && curl -s -X POST --url \
-#                                                        https://api.imgur.com/3/image -H \
-#                                              "Authorization: Client-ID $imgur_client_id" \
-#                                          -F "image=@"$_ | jq -r '.data.link' | xsel -i -b \
+#                                        ~/.scrot.gif && curl -s -X POST --url           \
+#                                        https://upload.giphy.com/v1/gifs -H              \
+#                                        "api_key: $giphy_client_id" -F "file=@"$_ |       \
+#                                        jq .data.id | xargs -i echo                        \
+#                                        https://i.giphy.com/media/{}/source.gif | xsel -i -b\
+#                                        && notify-send gif copied to clipboard               \
+$bind Ctrl+$mod+Print             $ensid byzanz-record -d                            \
+                                   `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
+                                       ~/.scrot.gif && curl -s -X POST --url \
+                                                       https://api.imgur.com/3/image -H \
+                                             "Authorization: Client-ID $imgur_client_id" \
+                                         -F "image=@"$_ | jq -r '.data.link' | xsel -i -b \
 
 
 #                                                 _
