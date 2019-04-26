@@ -387,3 +387,4 @@ alias xlx='l -tnew | x file | g ELF | sed 1q | cut -d ':' -f1 | x -I{} zsh -c ./
 xentr(){ ls | entr zsh -c 'setopt expand_aliases && source ~/.bash_aliases ; xlx' }
 alias costat='co | x stat'
 preent(){ clear;e $@ | leet | lolcat;read }
+ren(){ e $@ | vipe | xargs -I{} mv $@ {} }
