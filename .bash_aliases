@@ -388,3 +388,4 @@ xentr(){ ls | entr zsh -c 'setopt expand_aliases && source ~/.bash_aliases ; xlx
 alias costat='co | x stat'
 preent(){ clear;e $@ | leet | lolcat;read }
 ren(){ e $@ | vipe | xargs -I{} mv $@ {} }
+gource2mp4(){ gource -1280x720 -o - | ffmpeg -y -r 60 -f image2pipe -vcodec ppm -i - -vcodec libx264 -preset ultrafast -pix_fmt yuv420p -crf 1 -threads 0 -bf 0 $(basename `realpath .`) }
