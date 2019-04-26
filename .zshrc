@@ -79,7 +79,7 @@ export SSH_KEY_PATH="~/.ssh/rsa_id"
 #
 source ~/.oh-my-zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 source $HOME/.bash_aliases
-source /home/nexor/.ranger_aliases
+source $HOME/.ranger_aliases
 # source /usr/lib/python3.7/site-packages/powerline/bindings/bash/powerline.sh
 stty -ixon
 unsetopt HIST_VERIFY
@@ -101,6 +101,8 @@ export PATH="$PATH:$HOME/.cargo/bin"
 # rb
 export PATH="$PATH:$HOME/.rvm/bin"
 export GEM_HOME=$HOME/.gem
+export PATH="$GEM_HOME/bin:$PATH"
+export PATH="$PATH:$HOME/.gem/ruby/2.6.0/bin"
 
 # js
 export PATH=~/.npm/bin:$PATH
@@ -114,7 +116,6 @@ export PATH=~/.local/bin:$PATH
 
 # turn off beep
 set bell-style none
-export PATH="/home/nexor/.pyenv/bin:$PATH"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
@@ -123,7 +124,7 @@ VISUAL=nvim; export VISUAL EDITOR=nvim; export EDITOR
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export MANPAGER="nvim +set\ filetype=man -"
 
-cat /home/nexor/.cache/wal/sequences
+cat $HOME/.cache/wal/sequences
 
 if [[ ! $TERM =~ screen ]]; then
     exec tmux
@@ -135,4 +136,5 @@ if [ -f '/home/nexor/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/home/n
 # The next line enables shell command completion for gcloud.
 if [ -f '/home/nexor/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/home/nexor/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
 
+export PATH="$HOME/.pyenv/bin:$PATH"
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
