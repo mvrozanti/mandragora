@@ -213,7 +213,8 @@
     "afl",
     "afl-utils",
     "task",
-    "exfat-utils"
+    "exfat-utils",
+    "dateutils"
   ],
   "excluded": [
     "hotmail.gpg"
