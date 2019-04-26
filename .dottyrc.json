@@ -256,6 +256,7 @@
     "command -v gotop || go get github.com/cjbassi/gotop",
     "cargo install --list | grep sd || cargo install sd",
     "pip3 install --user pdd khal grip psutil maybe sqlcrush pynvim ptpython extract-msg",
+    "gem install --install-user word_wrap",
     "command -v hamachi   || yay -S logmein-hamachi",
     "command -v polybar   || yay -S $_",
     "command -v gotop     || yay -S $_",
