@@ -65,7 +65,8 @@
     ".local/bin/wiki": "~/.local/bin/wiki",
     ".ptpython/config.py": "~/.ptpython/config.py",
     ".local/bin/filedropper": "~/.local/bin/filedropper",
-    ".taskrc": "~/.taskrc"
+    ".taskrc": "~/.taskrc",
+    ".local/bin/lipsum": "~/.local/bin/lipsum"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
