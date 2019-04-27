@@ -27,8 +27,7 @@ def main(palavra):
     print('Antônimos:\n\n')
     le_html = sess.get(ANT_URL + palavra, timeout=10).text
     bs = BeautifulSoup(le_html, 'lxml')
-    s_wrapper_divs = bs.find_all('div', {'class':'s-wrapper'}
-            )
+    s_wrapper_divs = bs.find_all('div', {'class':'s-wrapper'})
     for div in s_wrapper_divs:
         print(div.text[3:].capitalize() + '\n')
 
