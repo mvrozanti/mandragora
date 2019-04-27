@@ -66,7 +66,8 @@
     ".ptpython/config.py": "~/.ptpython/config.py",
     ".local/bin/filedropper": "~/.local/bin/filedropper",
     ".taskrc": "~/.taskrc",
-    ".local/bin/lipsum": "~/.local/bin/lipsum"
+    ".local/bin/lipsum": "~/.local/bin/lipsum",
+    ".local/bin/sinon": "~/.local/bin/sinon"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [

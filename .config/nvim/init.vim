@@ -3,6 +3,7 @@ fun! SetupCommandAlias(from, to)
         \ .' ((getcmdtype() is# ":" && getcmdline() is# "'.a:from.'")'
         \ .'? ("'.a:to.'") : ("'.a:from.'"))'
 endfun
+nnoremap <F4> :call ToggleConceal()
 call SetupCommandAlias("jsonify","%!python -m json.tool")
 map <A-F> mzgg=G`zzz
 xnoremap p "_dP
@@ -219,6 +220,7 @@ nnoremap <S-U>      :5winc -<CR>
 
 "autocomplete colors
 "highlight Pmenu ctermfg=2 ctermbg=4 guifg=1 guibg=4
+set conceallevel=0
 
 " === LSP ===
 Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
@@ -251,8 +253,8 @@ set clipboard=unnamed,unnamedplus
 " let g:system_copy#copy_command='xclip -sel clipboard -i'
 " let g:system_copy#paste_command='xclip -sel clipboard -o'
 
-Plug 'mvrozanti/vim-cute-python'
-Plug 'mvrozanti/vim-cute-cpp'
+" Plug 'mvrozanti/vim-cute-python'
+" Plug 'mvrozanti/vim-cute-cpp'
 
 " C/C++ debugging
 Plug 'Shougo/vimproc.vim', {'do' : 'make'}
@@ -261,7 +263,6 @@ Plug 'idanarye/vim-vebugger'
 " Plug 'vim-scripts/Conque-GDB'
 
 Plug 'pangloss/vim-javascript'
-set conceallevel=1
 let g:javascript_conceal_function = "ƒ"
 let g:javascript_plugin_jsdoc = 1
 let g:javascript_conceal_null                 = "ø"
@@ -347,6 +348,7 @@ set laststatus=2
 set t_Co=256
 set fillchars+=vert:\$
 syntax enable
+set lbr
 set ruler
 set hidden
 set number
@@ -538,3 +540,4 @@ set fillchars+=vert:│
 
 " map <C-x> <Nop>
 set guicursor=i:100-bCursor
+set conceallevel=0
