@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+from bs4 import BeautifulSoup 
+import requests
+import code
+
+SIN_URL = 'https://www.sinonimos.com.br/'
+ANT_URL = 'https://www.antonimos.com.br/'
+
+def main(palavra):
+    sess = requests.session()
+
+    # sinônimos
+    le_html = sess.get(SIN_URL + palavra, timeout=10).text
+    bs = BeautifulSoup(le_html, 'lxml')
+    s_wrapper_divs = bs.find_all('div', {'class':'s-wrapper'})
+    for div in s_wrapper_divs:
+        sentido = div.find('div', {'class':'sentido'}).text
+        sinonimos = div.find_all('span') + div.find_all('a')
+        print(sentido + '\n')
+        txt_sinonimos = ''
+        for sinonimo in sinonimos:
+            if sinonimo.text:
+                if (sinonimo.has_attr('class') and sinonimo['class'] == 'sinonimo') or not sinonimo.has_attr('class'):
+                    code.interact(local=globals().update(locals()) or globals())
+                    txt_sinonimos += sinonimo.text  + ', '
+        print('\t' + txt_sinonimos[:-2] + '.\n')
+        code.interact(local=globals().update(locals()) or globals())
+
+    # antônimos
+    print('Antônimos:\n\n')
+    le_html = sess.get(ANT_URL + palavra, timeout=10).text
+    bs = BeautifulSoup(le_html, 'lxml')
+    s_wrapper_divs = bs.find_all('div', {'class':'s-wrapper'}
+            )
+    for div in s_wrapper_divs:
+        print(div.text[3:].capitalize() + '\n')
+
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv) > 1: main(sys.argv[1])
+    else: print('Uso: sinon <palavra>')
