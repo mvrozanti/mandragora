@@ -391,3 +391,4 @@ ren(){ e $@ | vipe | xargs -I{} mv $@ {} }
 gource2mp4(){ gource -1280x720 -o - | ffmpeg -y -r 60 -f image2pipe -vcodec ppm -i - -vcodec libx264 -preset ultrafast -pix_fmt yuv420p -crf 1 -threads 0 -bf 0 $(basename `realpath .`) }
 alias vre='v README.md'
 wiki(){ `wis wiki` $@ | ww -w $COLUMNS }
+alias screenkey='screenkey --font-color red --opacity 0.5 --compr-cnt 3 -s small'
