@@ -133,6 +133,7 @@ nnoremap x "_x
 inoremap she<tab> #!/bin/bash<Esc>o
 inoremap re<tab> return<Space>
 inoremap fori<tab> for(int i=0; i < ; i++){<CR>}<Esc>3Bla
+inoremap forj<tab> for(int j=0; j < ; j++){<CR>}<Esc>3Bla
 
 " javascript shortcuts
 autocmd FileType javascript inoremap repl<tab> require('repl').start('> ').context.<+> = <+>;<Esc>
