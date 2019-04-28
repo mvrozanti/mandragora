@@ -19,17 +19,21 @@ def main(palavra):
         txt_sinonimos = ''
         for sinonimo in sinonimos:
             if sinonimo.text:
-                if (sinonimo.has_attr('class') and sinonimo['class'] == ['sinonimo']) or not sinonimo.has_attr('class'):
+                if (sinonimo.has_attr('class') and sinonimo['class'] == ['sinonimo']) \
+                    or not sinonimo.has_attr('class'):
                     txt_sinonimos += sinonimo.text  + ', '
         print('\t' + txt_sinonimos[:-2] + '.\n')
 
     # antônimos
-    print('Antônimos:\n\n')
+    print('\nAntônimos:\n')
     le_html = sess.get(ANT_URL + palavra, timeout=10).text
     bs = BeautifulSoup(le_html, 'lxml')
     s_wrapper_divs = bs.find_all('div', {'class':'s-wrapper'})
     for div in s_wrapper_divs:
-        print(div.text[3:].capitalize() + '\n')
+        txt_ants = div.text
+        if ':' in txt_ants: 
+            txt_ants = txt_ants[[txt_ants[':'] + 1]:]
+        print('\t' + div.text + '\n')
 
 if __name__ == '__main__':
     import sys
