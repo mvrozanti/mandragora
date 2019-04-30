@@ -542,3 +542,4 @@ set fillchars+=vert:│
 " map <C-x> <Nop>
 set guicursor=i:100-bCursor
 set conceallevel=0
+set noshowcmd
