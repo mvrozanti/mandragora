@@ -30,9 +30,9 @@ def main(palavra):
     bs = BeautifulSoup(le_html, 'lxml')
     s_wrapper_divs = bs.find_all('div', {'class':'s-wrapper'})
     for div in s_wrapper_divs:
-        txt_ants = div.text
-        if ':' in txt_ants: 
-            txt_ants = txt_ants[[txt_ants[':'] + 1]:]
+        # txt_ants = div.text
+        # if ':' in txt_ants: 
+        #     txt_ants = txt_ants[[txt_ants.index(':') + 1]:]
         print('\t' + div.text + '\n')
 
 if __name__ == '__main__':
