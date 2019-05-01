@@ -260,6 +260,12 @@ set clipboard=unnamed,unnamedplus
 " C/C++ debugging
 Plug 'Shougo/vimproc.vim', {'do' : 'make'}
 Plug 'idanarye/vim-vebugger'
+nnoremap <F5>   :VBGcontinue<Space> 
+nnoremap <F6>   :VBGstartGDB<Space> 
+nnoremap <F7>   :VBGstepIn<CR>
+nnoremap <F8>   :VBGstepOver<CR>
+nnoremap <C-F8> :VBGtoggleBreakpointThisLine<CR>
+nnoremap <F10>  :VBGstepOut<CR>
 " Plug 'vim-scripts/Conque-Shell'
 " Plug 'vim-scripts/Conque-GDB'
 
