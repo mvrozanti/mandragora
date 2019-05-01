@@ -260,8 +260,8 @@ set clipboard=unnamed,unnamedplus
 " C/C++ debugging
 Plug 'Shougo/vimproc.vim', {'do' : 'make'}
 Plug 'idanarye/vim-vebugger'
-nnoremap <F5>   :VBGcontinue<Space> 
-nnoremap <F6>   :VBGstartGDB<Space> 
+nnoremap <F5>   :VBGcontinue<CR>
+nnoremap <F6>   :VBGstartGDB %:r<CR>
 nnoremap <F7>   :VBGstepIn<CR>
 nnoremap <F8>   :VBGstepOver<CR>
 nnoremap <C-F8> :VBGtoggleBreakpointThisLine<CR>
