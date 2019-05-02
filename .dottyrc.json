@@ -216,7 +216,8 @@
     "afl-utils",
     "task",
     "exfat-utils",
-    "dateutils"
+    "dateutils",
+    "ledger"
   ],
   "excluded": [
     "hotmail.gpg"
