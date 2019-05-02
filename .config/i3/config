@@ -58,16 +58,16 @@ for_window  [title="^(\d+) WhatsApp$"]    move to workspace $ws3
 for_window  [title=".*Trello.*"]          move to workspace $ws7
 for_window  [title="Zoom\s-"]             move to workspace $ws5
 for_window  [instance="^ranger$"]         move to workspace $ws8
-for_window  [title="mpv"]                 floating enable; move right -500 move down -10
-for_window  [title="_visualizer_"]        sticky enable floating enable
-for_window  [title="_tmux-float_"]        sticky enable; floating enable; move position 1500 670 
-for_window  [title="_ranger-float_"]        sticky enable; floating enable; move position 1500 670 
-for_window  [instance="portal"]           sticky enable floating enable
-for_window  [instance="khal2"]            floating enable move position 50 50;\
-                                            resize shrink width 10000px;         \
-                                            resize shrink height 10000px;         \
-                                            resize grow width 1500px;              \
-                                            resize grow height 600px;               \
+for_window  [class="mpv"]                 sticky enable, floating enable, move position 1500 670
+for_window  [title="_visualizer_"]        sticky enable, floating enable
+for_window  [title="_tmux-float_"]        sticky enable, floating enable, move position 1500 670 
+for_window  [title="_ranger-float_"]      sticky enable, floating enable, move position 1500 670 
+for_window  [instance="portal"]           sticky enable, floating enable
+for_window  [instance="khal2"]            floating enable move position 50 50, \
+                                            resize shrink width 10000px,        \
+                                            resize shrink height 10000px,        \
+                                            resize grow width 1500px,             \
+                                            resize grow height 600px               \
 for_window  [instance="khal_"]            move to workspace $ws2
 for_window  [title="gifview"]             floating enable
 for_window  [title="_youtube_"]           floating enable
@@ -83,11 +83,11 @@ assign      [instance="DBeaver"]          $ws10
 assign      [title="Mozilla Thunderbird"] $ws11
 assign      [title="Skype"]               $ws11
 assign      [title="_neomutt_"]           $ws12
-for_window  [title="_todo_"]              floating enable;           \
-                                          resize shrink width 10000px;\
-                                          resize shrink height 10000px;\
-                                          resize grow width 800px;      \
-                                          resize grow height 600px;      \
+for_window  [title="_todo_"]              floating enable,           \
+                                          resize shrink width 10000px,\
+                                          resize shrink height 10000px,\
+                                          resize grow width 800px,      \
+                                          resize grow height 600px,      \
                                           move position center
 
 #    __                                 _
