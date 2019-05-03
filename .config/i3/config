@@ -52,7 +52,6 @@ $ensid mpd
 $ensid unclutter -idle 1
 focus_follows_mouse no
 
-# for_window  [title="Sys4Bank"]            border normal
 for_window  [class="Waterfox"]            move to workspace $ws1
 # for_window  [class="Firefox"]            move to workspace $ws1
 for_window  [title="^(\d+) WhatsApp$"]    move to workspace $ws3

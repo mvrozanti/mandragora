@@ -395,3 +395,4 @@ alias screenkey='screenkey --font-color red --opacity 0.5 --compr-cnt 3 -s small
 alias trc='transmission-remote-cli'
 alias cfpa='git --git-dir=$HOME/mandragora/.git commit --amend; git push'
 cogacp(){ gacp "`co`" }
+cosrm(){ srm "`co`" }
