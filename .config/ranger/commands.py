@@ -119,17 +119,28 @@ class exif_filter(Command):
 
         process = subprocess.Popen(['/home/nexor/.local/bin/sit', tag],
                     universal_newlines=True, stdout=subprocess.PIPE)
-        (search_results, _err) = process.communicate()
-        search_results = search_results.split('\n')
-
         i = 0
-        for search_result in search_results:
-            # code.interact(local=globals().update(locals()) or globals())
-            if search_result:
-                self.fm.thisdir.filter_stack.append(
-                    SIMPLE_FILTERS['name'](search_result[2:])
-                )
+        for l in iter(lambda: process.stdout.readline(), ''):
+            self.fm.thisdir.filter_stack.append(
+                SIMPLE_FILTERS['name'](l[2:])
+            )
             if not i % 5:
                 self.fm.thisdir.refilter()
             i+=1
         self.fm.thisdir.refilter()
+
+        
+        # (search_results, _err) = process.communicate()
+        # search_results = search_results.split('\n')
+
+        # i = 0
+        # for search_result in search_results:
+        #     # code.interact(local=globals().update(locals()) or globals())
+        #     if search_result:
+        #         self.fm.thisdir.filter_stack.append(
+        #             SIMPLE_FILTERS['name'](search_result[2:])
+        #         )
+        #     if not i % 5:
+        #         self.fm.thisdir.refilter()
+        #     i+=1
+        # self.fm.thisdir.refilter()
