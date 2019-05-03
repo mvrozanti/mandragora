@@ -217,7 +217,8 @@
     "task",
     "exfat-utils",
     "dateutils",
-    "ledger"
+    "ledger",
+    "kmag"
   ],
   "excluded": [
     "hotmail.gpg"
