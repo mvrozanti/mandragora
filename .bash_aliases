@@ -180,6 +180,7 @@ centr(){ ls *.c | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f
 gentr(){ ls *.cpp | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; g++ '$@' {} -o "$noext" && clear && exec "$noext"'; }
 # pentr(){ [[ -z $1 ]] && ls *.py* | entr -rc /_ $@ || echo $1 | entr /_ }
 mentr(){ ls *.* | entr -c make }
+jentr(){ ls *.java | entr -c javac * }
 # xentr(){ ls *.* | entr $@ /_ }
 nentr(){ ls *.* | entr $@ node /_ }
 dentr(){ le_f1="$1"; le_f2="$2"; ls *.* | entr nvim -d <(xxd $le_f1) <(xxd $le_f2) }
@@ -264,7 +265,7 @@ alias k='kitty'
 cfcf(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sd $HOME'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf|sd $HOME'(.*)' '~$1' || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json" | sponge $HOME"/mandragora/.dottyrc.json" }
 cfcu(){ to_remove="$1"; [[ ! -z $to_remove ]] && removed_array="`jq '.install|map(select(.!="'$to_remove'"))' ~"/mandragora/.dottyrc.json"`" && jq .install="$removed_array" ~"/mandragora/.dottyrc.json" | sponge ~/mandragora/.dottyrc.json }
 cfci(){ jq '.install |= . + ["'$1'"]' ~/mandragora/.dottyrc.json | sponge ~/mandragora/.dottyrc.json }
-lnb(){ le_fpath="$1"; le_dst="$2"; sudo ln -s `realpath $le_fpath` ~/.local/bin/`[[ -z "$le_dst" ]] && echo $le_fpath|cut -f 1 -d '.' || echo $2` }
+lnb(){ [[ $# != 2 ]] && return; le_fpath="$1"; le_dst="$2"; sudo ln -s `realpath $le_fpath` ~/.local/bin/`[[ -z "$le_dst" ]] && echo $le_fpath|cut -f 1 -d '.' || echo $2` }
 alias cfD='sh -c "cd ~/mandragora && git diff"'
 alias grow='[[ `git -C ~/mandragora pull|wc -l` -eq 1 ]] || ~/mandragora/dotty/dotty.py -f -r && git -C ~/mandragora submodule update --recursive --remote'
 alias oc='mpv /dev/video0'
@@ -396,3 +397,4 @@ alias trc='transmission-remote-cli'
 alias cfpa='git --git-dir=$HOME/mandragora/.git commit --amend; git push'
 cogacp(){ gacp "`co`" }
 cosrm(){ srm "`co`" }
+alb(){ ln -s "`realpath $1`" "$HOME/.local/bin/`basename -- $1`" }
