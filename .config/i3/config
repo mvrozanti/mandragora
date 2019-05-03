@@ -340,6 +340,7 @@ mode "$mode_gaps" {
         $bind 0               gaps inner current set 0; mode default
         $bind Return          mode default
         $bind Escape          mode default
+        $bind q mode default
 }
 
 mode "$mode_gaps_inner" {
@@ -351,6 +352,7 @@ mode "$mode_gaps_inner" {
         $bind Shift+0     gaps inner all set 0
         $bind Return mode default
         $bind Escape mode default
+        $bind q mode default
 }
 mode "$mode_gaps_outer" {
         $bind plus  gaps outer current plus 5
@@ -361,6 +363,7 @@ mode "$mode_gaps_outer" {
         $bind Shift+0     gaps outer all set 0
         $bind Return mode default
         $bind Escape mode default
+        $bind q mode default
 }
 
 # Now open, lock!

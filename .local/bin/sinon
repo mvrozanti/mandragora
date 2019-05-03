@@ -13,9 +13,10 @@ def main(palavra):
     bs = BeautifulSoup(le_html, 'lxml')
     s_wrapper_divs = bs.find_all('div', {'class':'s-wrapper'})
     for div in s_wrapper_divs:
-        sentido = div.find('div', {'class':'sentido'}).text
+        div_sentido = div.find('div', {'class':'sentido'})
+        if div_sentido:
+            print(div_sentido.text)
         sinonimos = div.find_all('span') + div.find_all('a')
-        print(sentido + '\n')
         txt_sinonimos = ''
         for sinonimo in sinonimos:
             if sinonimo.text:
