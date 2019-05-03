@@ -400,3 +400,4 @@ alias cfpa='git --git-dir=$HOME/mandragora/.git commit --amend; git push'
 cogacp(){ gacp "`co`" }
 cosrm(){ srm "`co`" }
 alb(){ ln -s "`realpath $1`" "$HOME/.local/bin/`basename -- $1`" }
+alias scv='s `cv`'
