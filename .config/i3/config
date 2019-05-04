@@ -63,11 +63,11 @@ for_window  [title="_visualizer_"]        sticky enable, floating enable
 for_window  [title="_tmux-float_"]        sticky enable, floating enable, move position 1500 670 
 for_window  [title="_ranger-float_"]      sticky enable, floating enable, move position 1500 670 
 for_window  [instance="portal"]           sticky enable, floating enable
-for_window  [instance="khal2"]            floating enable move position 50 50, \
+for_window  [instance="khal2"]            floating enable, move position 950 250, \
                                             resize shrink width 10000px,        \
                                             resize shrink height 10000px,        \
-                                            resize grow width 1500px,             \
-                                            resize grow height 600px               \
+                                            resize grow width 800,             \
+                                            resize grow height 600               
 for_window  [instance="khal_"]            move to workspace $ws2
 for_window  [title="gifview"]             floating enable
 for_window  [title="_youtube_"]           floating enable
@@ -121,7 +121,7 @@ $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a
 $bind $mod+Shift+o          fullscreen disable;                 $ensid wmctrl -a  _todo_          || kitty --name _todo_ \
     -o background_opacity=.78 -o font_size=13 --title _todo_  -e zsh -c "nvim /home/nexor/mackenzie/tcc1/duvidas.md"
 $bind $mod+braceleft                                            $ensid wmctrl -a  khal            || kitty --name khal2 \
-    -o background_opacity=.78 -o font_size=24 --title khal2 -e sh  -c $cat_seqs" && khal interactive"
+    -o background_opacity=.78 -o font_size=14 --title khal2 -e sh  -c $cat_seqs" && khal interactive"
 $bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a  khal            || kitty --name khal_ \
     -o background_opacity=.78 -o font_size=13 --title khal_ -e sh  -c $cat_seqs" && khal interactive"
 $bind Ctrl+Shift+Escape                                         $ensid wmctrl -a  gotop           || kitty --title gotop \
@@ -145,6 +145,7 @@ $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -x
 $bind $mod+Shift+Return                                         $ensid                               st -T 100 ranger
 $bind $mod+Shift+p                                              $ensid wmctrl -a zathura          || zathura
 $bind $mod+y                                                    $ensid wmctrl -a _youtube_        || mpv --title _youtube_ `xsel -o -b`
+$bind $mod+Next                                                 $ensid KMag
 $bind $mod+x                                                    $ensid wmctrl -a  mpv
 $bind $mod+d              workspace $ws9
 # $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
