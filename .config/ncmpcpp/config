@@ -8,16 +8,13 @@ mpd_crossfade_time = "5"
 startup_screen = playlist
 
 # Playlist
-playlist_disable_highlight_delay = "0"
+playlist_disable_highlight_delay = "1"
 playlist_display_mode = "columns"
 playlist_show_remaining_time = "yes"
 browser_display_mode = "columns"
 browser_sort_mode = "mtime"
 media_library_sort_by_mtime = "yes"
 media_library_primary_tag = "date"
-# autocenter_mode = "yes"
-#follow_now_playing_lyrics = "yes"
-# display_screens_numbers_on_start = "no"
 song_columns_list_format = "(10)[blue]{l} (50)[yellow]{t} (30)[green]{a}"
 colors_enabled = "yes"
 header_window_color = "cyan"
@@ -26,6 +23,7 @@ volume_change_step = "1"
 progressbar_color = "red"
 statusbar_color = "red"
 active_window_border = "red"
+message_delay_time = "1"
 
 alternative_header_first_line_format = "$0$aqqu$/a {$7%a - $9}{$5%t$9}|{$8%f$9} $0$atqq$/a$9"
 alternative_header_second_line_format = "{{$6%b$9}{ [$6%y$9]}}|{%D}"
@@ -65,23 +63,23 @@ discard_colors_if_item_is_selected = "no"
 incremental_seeking = "yes"
 seek_time = "1"
 
-## Visivility ##
-header_visibility = "yes"
-statusbar_visibility = "yes"
-song_window_title_format = "{%t - }{%a} | ncmpcpp"
-titles_visibility = "yes"
+## Visibility ##
+header_visibility = "no"
+statusbar_visibility = "no"
+song_window_title_format = "{%t - }{%a} | _ncmpcpp_"
+titles_visibility = "no"
 
 # progressbar_look =  "_-"
 progressbar_look = "─╼─"
 progressbar_elapsed_color = "white"
 
 now_playing_prefix = " "
-song_status_format = " $2%a $4⟫$3⟫ $8%t $4⟫$3⟫ $5%b "
-autocenter_mode = "yes"
-#centered_cursor = "yes"
+song_status_format = " $2%a $4$3 $8%t $4$3 $5%b "
+autocenter_mode = "no"
+# centered_cursor = "yes"
 
 # Misc
-display_bitrate = "yes"
+display_bitrate = "no"
 # enable_window_title = "no"
 follow_now_playing_lyrics = "yes"
 ignore_leading_the = "yes"
