@@ -402,3 +402,4 @@ cosrm(){ srm "`co`" }
 alb(){ ln -s "`realpath $1`" "$HOME/.local/bin/`basename -- $1`" }
 alias scv='s `cv`'
 sinon(){ ~/.local/bin/sinon $@ | ww -w $(($COLUMNS-3)) }
+alias cocp='cp "`co`"'
