@@ -15,7 +15,7 @@ nnoremap <A-p> o<A-p>
 " Automatically deletes all tralling whitespace on save.
 " let blacklist = ['txt']
 " autocmd BufWritePre  * if index(blacklist, &ft) < 0 | %s/\s\+$//e
-autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex % ; rm *.out *.log *.lot *.lof *.aux *.toc
+autocmd BufWritePost *.tex silent! !pdflatex % !pdflatex % !rm *.out 
 map Q <Nop>
 imap silent <C-h> <A-b>
 imap silent <C-l> <A-w>
@@ -506,9 +506,6 @@ hi DiffText     ctermfg=1          ctermbg=8
 " augroup end
 set fillchars+=vert:│
 " latex snippets
-	" Word count:
-	autocmd   FileType   tex        map        <F3>       :w                                                                                                                                                                             !detex   \|                                       wc   -w<CR>
-	autocmd   FileType   tex        inoremap   <F3>       <Esc>:w                                                                                                                                                                        !detex   \|                                       wc   -w<CR>
 	"         Compile    document   using      xelatex:
 	autocmd   FileType   tex        inoremap   <F5>       <Esc>:!xelatex<space><c-r>%<Enter>a
 	autocmd   FileType   tex        nnoremap   <F5>       :!xelatex<space><c-r>%<Enter>
@@ -549,7 +546,6 @@ set fillchars+=vert:│
 	autocmd   FileType   tex        inoremap   col<Tab> \begin{columns}[T]<Enter>\begin{column}{.5\textwidth}<Enter><Enter>\end{column}<Enter>\begin{column}{.5\textwidth}<Enter><+><Enter>\end{column}<Enter>\end{columns}<Esc>5kA
 	autocmd   FileType   tex        inoremap   rn<Tab> (\ref{})<+><Esc>F}i
 
-" map <C-x> <Nop>
 set guicursor=i:100-bCursor
 set conceallevel=0
 set noshowcmd
