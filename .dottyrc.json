@@ -67,7 +67,8 @@
     ".local/bin/filedropper": "~/.local/bin/filedropper",
     ".taskrc": "~/.taskrc",
     ".local/bin/lipsum": "~/.local/bin/lipsum",
-    ".local/bin/sinon": "~/.local/bin/sinon"
+    ".local/bin/sinon": "~/.local/bin/sinon",
+    ".compton.conf": "~/.compton.conf"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
