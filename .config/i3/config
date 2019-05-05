@@ -143,7 +143,7 @@ $bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a
 $bind $mod+Shift+w    workspace $ws11;                          $ensid wmctrl -xa thunderbird     || thunderbird
 $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -xa gdmap           || gdmap -f /
 $bind $mod+Shift+Return                                         $ensid                               st -T 100 ranger
-$bind $mod+p                                                    $ensid wmctrl -a zathura          || zathura
+$bind $mod+p                                                    $ensid wmctrl -a ".pdf ["         || zathura
 $bind $mod+y                                                    $ensid wmctrl -a _youtube_        || mpv --title _youtube_ `xsel -o -b`
 $bind $mod+Next                                                 $ensid KMag
 $bind $mod+x                                                    $ensid wmctrl -a  mpv
@@ -225,10 +225,10 @@ $bind Ctrl+$mod+Down           resize shrink height 20 px or 20 ppt
 $bind Ctrl+$mod+Up             resize grow   height 20 px or 20 ppt
 $bind Ctrl+$mod+Left           resize shrink width  20 px or 20 ppt
 $bind Ctrl+$mod+Right          resize grow   width  20 px or 20 ppt
-$bind Ctrl+Mod1+Left      workspace prev
-$bind Ctrl+Mod1+Right     workspace next
-$bind Ctrl+Mod1+h         workspace prev
-$bind Ctrl+Mod1+l         workspace next
+$bind Ctrl+Mod1+Left           workspace prev
+$bind Ctrl+Mod1+Right          workspace next
+$bind Ctrl+Mod1+h              workspace prev
+$bind Ctrl+Mod1+l              workspace next
 
 #                      _ _
 #   _ __ ___   ___  __| (_) __ _
@@ -248,11 +248,12 @@ $bind XF86AudioRaiseVolume      $ensid pamixer -i 4
 # $bind XF86AudioLowerVolume    $ensid amixer -c 0 -q set Master 4dB- unmute
 # $bind XF86AudioRaiseVolume    $ensid amixer -c 0 -q set Master 4dB+ unmute
 
-#                                            _          __         _
-#    ___ ___  _ __ ___  _ __ ___   ___ _ __ | |_ ___   / / __ ___ (_)___  ___
-#   / __/ _ \| '_ ` _ \| '_ ` _ \ / _ \ '_ \| __/ __| / / '_ ` _ \| / __|/ __|
-#  | (_| (_) | | | | | | | | | | |  __/ | | | |_\__ \/ /| | | | | | \__ \ (__
-#   \___\___/|_| |_| |_|_| |_| |_|\___|_| |_|\__|___/_/ |_| |_| |_|_|___/\___|
+#                     _                             
+# __      _____  _ __| | _____ _ __   __ _  ___ ___ 
+# \ \ /\ / / _ \| '__| |/ / __| '_ \ / _` |/ __/ _ \
+#  \ V  V / (_) | |  |   <\__ \ |_) | (_| | (_|  __/
+#   \_/\_/ \___/|_|  |_|\_\___/ .__/ \__,_|\___\___|
+#                             |_|                   
 
 set $ws1  "1"
 set $ws2  "2"
