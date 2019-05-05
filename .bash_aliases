@@ -7,7 +7,7 @@ alias lt='ls -snew'
 alias la='exa --all'
 alias ls=exa
 alias l='exa --reverse --sort=modified'
-alias watch='watch --color -n2'
+alias watch='watch --color -n1 --no-title'
 alias sps='sudo pacman -S'
 alias spr='sudo pacman -Rns'
 alias pss='pacman -Ss'
@@ -219,7 +219,7 @@ gdm(){ [[ $# -eq 0 ]] && gdmap -f . || gdmap -f "$@" }
 sgdm(){ [[ $# -eq 0 ]] && sudo gdmap -f . || sudo gdmap -f "$@" }
 alias H='cd -'
 alias piu='pip install --user'
-alias lo='libreoffice'
+alias lo='libreoffice 2>&1 > /dev/null &'
 alias jn='jupyter notebook'
 alias wav2ogg='oggenc -q 3 -o file.ogg'
 alias ogg2wav='ffmpeg -i audio.ogg audio.wav'
