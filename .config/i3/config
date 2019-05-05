@@ -144,6 +144,7 @@ $bind $mod+Shift+w    workspace $ws11;                          $ensid wmctrl -x
 $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -xa gdmap           || gdmap -f /
 $bind $mod+Shift+Return                                         $ensid                               st -T 100 ranger
 $bind $mod+p                                                    $ensid wmctrl -a ".pdf ["         || zathura
+$bind $mod+Shift+p                                              $ensid transset-df -n ".pdf \[" -t 
 $bind $mod+y                                                    $ensid wmctrl -a _youtube_        || mpv --title _youtube_ `xsel -o -b`
 $bind $mod+Next                                                 $ensid KMag
 $bind $mod+x                                                    $ensid wmctrl -a  mpv
