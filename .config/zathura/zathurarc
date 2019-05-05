@@ -62,6 +62,7 @@ unmap f
 map f toggle_fullscreen
 map [fullscreen] f toggle_fullscreen
 
+map B toggle_statusbar
 map <C-k> zoom in
 map <C-j> zoom out
 map [fullscreen] <C-k> zoom in
