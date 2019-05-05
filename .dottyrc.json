@@ -219,7 +219,8 @@
     "exfat-utils",
     "dateutils",
     "ledger",
-    "kmag"
+    "kmag",
+    "transset-df"
   ],
   "excluded": [
     "hotmail.gpg"
