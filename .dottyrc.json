@@ -220,7 +220,8 @@
     "dateutils",
     "ledger",
     "kmag",
-    "transset-df"
+    "transset-df",
+    "texlive-bin"
   ],
   "excluded": [
     "hotmail.gpg"
