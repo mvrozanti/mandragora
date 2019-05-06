@@ -15,7 +15,8 @@ nnoremap <A-p> o<A-p>
 " Automatically deletes all tralling whitespace on save.
 " let blacklist = ['txt']
 " autocmd BufWritePre  * if index(blacklist, &ft) < 0 | %s/\s\+$//e
-autocmd BufWritePost *.tex silent! !bibtex *.bib && pdflatex % 
+autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex %
+autocmd BufWritePost *.bib silent! !bibtex %:r ; pdflatex %:r.tex ; pdflatex %:r.tex 
 map Q <Nop>
 imap silent <C-h> <A-b>
 imap silent <C-l> <A-w>
