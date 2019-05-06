@@ -221,7 +221,8 @@
     "ledger",
     "kmag",
     "transset-df",
-    "texlive-bin"
+    "texlive-bin",
+    "figlet"
   ],
   "excluded": [
     "hotmail.gpg"
