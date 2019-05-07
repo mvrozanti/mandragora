@@ -1,7 +1,11 @@
+def_key "h"
+  previous
 def_key "j"
     scroll_down
 def_key "k"
     scroll_up
+def_key "l"
+  next
 def_key "g"
     move_home
 def_key "G"
@@ -22,13 +26,9 @@ def_key "s"
   toggle_find_mode
 def_key "w"
   seek_forward
-def_key "l"
-  next
-def_key "L"
-  show_lyrics
-def_key "h"
-  previous
-def_key "K"
-  push_characters "kkkkkkk"
 def_key "J"
   push_characters "jjjjjjj"
+def_key "K"
+  push_characters "kkkkkkk"
+def_key "L"
+  show_lyrics
