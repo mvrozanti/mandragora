@@ -134,7 +134,7 @@ def configure(repl):
     """
 
 
-    # Typing 'jj' in Vi Insert mode, should send escape. (Go back to navigation
+    # Typing 'jk' in Vi Insert mode, should send escape. (Go back to navigation
     # mode.)
     @repl.add_key_binding('j', 'k', filter=ViInsertMode())
     def _(event):
