@@ -24,6 +24,8 @@ def_key "w"
   seek_forward
 def_key "l"
   next
+def_key "L"
+  show_lyrics
 def_key "h"
   previous
 def_key "K"
