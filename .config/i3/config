@@ -63,7 +63,7 @@ for_window  [title="_visualizer_"]        sticky enable, floating enable
 no_focus [title="_visualizer-float_"]
 for_window  [title="_tmux-float_"]        sticky enable, floating enable, move position 1500 670 
 for_window  [title="_ranger-float_"]      sticky enable, floating enable, move position 1500 670 
-for_window  [title="_visualizer-float_"]  sticky enable, floating enable, move position 1500 670 
+for_window  [title="_visualizer-float_"]  sticky enable, floating enable, move position 1400 520 
 for_window  [instance="portal"]           sticky enable, floating enable
 for_window  [instance="khal2"]            floating enable, move position 950 250, \
                                             resize shrink width 10000px,        \
@@ -104,7 +104,7 @@ $bind $mod+v          fullscreen disable; workspace $ws6;       $ensid wmctrl -a
 $bind $mod+9          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  skype           || skypeforlinux
 $bind $mod+0      fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && offlineimap -a hotmail && "$cat_seqs" && tmux new neomutt"
 $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  _ncmpcpp_       || st -e ncmpcpp
-$bind $mod+Mod1+2     fullscreen disable; split h;              $ensid wmctrl -a  _ncmpcpp_       || st -g 50+1410+530 -T 100 -t _visualizer-float_ -c _visualizer_ -e ncmpcpp -s visualizer
+$bind $mod+Mod1+2     fullscreen disable; split h;              $ensid wmctrl -a  _ncmpcpp_       || st -T 100 -t _visualizer-float_ -c _visualizer_ -e ncmpcpp -s visualizer
 $bind $mod+Shift+2    fullscreen disable; split h;              $ensid wmctrl -a  _ncmpcpp_       || st -e ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  _zsh_           || kitty --listen-on=unix:@mykitty --title _zsh_ --name _zsh_
 $bind $mod+Shift+3                                              $ensid wmctrl -xa _tmux_          || kitty --title _tmux_
