@@ -55,7 +55,8 @@ Plug 'tpope/vim-commentary'
 Plug 'richq/vim-cmake-completion'
 vmap <C-Space> gc
 nmap <C-Space> gcc
-
+Plug 'scrooloose/vim-slumlord'
+Plug 'aklt/plantuml-syntax'
 nmap S ysiw
 let g:tmux_navigator_no_mappings = 0
 nnoremap <A-Left>  :TmuxNavigateLeft<cr>
