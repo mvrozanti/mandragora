@@ -222,7 +222,8 @@
     "kmag",
     "transset-df",
     "texlive-bin",
-    "figlet"
+    "figlet",
+    "autojump"
   ],
   "excluded": [
     "hotmail.gpg"
