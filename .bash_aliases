@@ -407,3 +407,4 @@ alias wl='watch ls'
 alias nemo='nemo 3>&2 2>&1 > /dev/null &'
 alias schown='s chown'
 alias cint='picoc'
+wf(){ watch fd -H }
