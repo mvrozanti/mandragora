@@ -26,6 +26,10 @@ def_key "s"
   toggle_find_mode
 def_key "w"
   seek_forward
+def_key "W"
+  push_characters "wwwwwww"
+def_key "B"
+  push_characters "bbbbbbb"
 def_key "J"
   push_characters "jjjjjjj"
 def_key "K"
