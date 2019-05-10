@@ -404,7 +404,7 @@ alias scv='s `cv`'
 sinon(){ ~/.local/bin/sinon $@ | ww -w $(($COLUMNS-3)) }
 alias cocp='cp "`co`"'
 alias wl='watch ls'
-alias nemo='nemo 3>&2 2>&1 > /dev/null &'
+nem(){ nemo $@ 3>&2 2>&1 > /dev/null & }
 alias schown='s chown'
 alias cint='picoc'
 wf(){ watch fd -H $@ }

@@ -157,6 +157,7 @@ dir_node_exact_matches = {
     'Público'                          : '',
     'Vídeos'                           : '',
     'Área de trabalho'                 : '',
+    'sys4bank'                         : '$',
 # Italian
     'Documenti'                        : '',
     'Immagini'                         : '',
