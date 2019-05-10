@@ -250,6 +250,9 @@ Plug 'junegunn/goyo.vim'
 Plug 'realincubus/vim-clang-refactor'
 
 Plug 'jaxbot/browserlink.vim'
+
+Plug 'sakhnik/nvim-gdb', { 'do': ':!./install.sh \| UpdateRemotePlugins' }
+"
 "Clipboard -> cp,cv
 " Plug 'christoomey/vim-system-copy'
 " map y cp
