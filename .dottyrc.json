@@ -223,7 +223,8 @@
     "transset-df",
     "texlive-bin",
     "figlet",
-    "autojump"
+    "autojump",
+    "flake8"
   ],
   "excluded": [
     "hotmail.gpg"
