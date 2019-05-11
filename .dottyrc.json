@@ -68,7 +68,8 @@
     ".taskrc": "~/.taskrc",
     ".local/bin/lipsum": "~/.local/bin/lipsum",
     ".local/bin/sinon": "~/.local/bin/sinon",
-    ".compton.conf": "~/.compton.conf"
+    ".compton.conf": "~/.compton.conf",
+    ".local/bin/dict": "~/.local/bin/dict"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
