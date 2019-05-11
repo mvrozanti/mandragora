@@ -512,45 +512,43 @@ hi DiffText     ctermfg=1          ctermbg=8
 " augroup end
 set fillchars+=vert:│
 " latex snippets
-	"         Compile    document   using      xelatex:
-	autocmd   FileType   tex        inoremap   <F5>       <Esc>:!xelatex<space><c-r>%<Enter>a
-	autocmd   FileType   tex        nnoremap   <F5>       :!xelatex<space><c-r>%<Enter>
-	"         Code       snippets
-	autocmd   FileType   tex        inoremap   fr<Tab> \begin{frame}<Enter>\frametitle{}<Enter><Enter><+><Enter><Enter>\end{frame}<Enter><Enter><+><Esc>6kf}i
-	autocmd   FileType   tex        inoremap   fi<Tab> \begin{fitch}<Enter><Enter>\end{fitch}<Enter><Enter><+><Esc>3kA
-	autocmd   FileType   tex        inoremap   exe<Tab> \begin{exe}<Enter>\ex<Space><Enter>\end{exe}<Enter><Enter><+><Esc>3kA
-	autocmd   FileType   tex        inoremap   em<Tab> \emph{}<+><Esc>T{i
-	autocmd   FileType   tex        inoremap   bf<Tab> \textbf{}<+><Esc>T{i
-	autocmd   FileType   tex        vnoremap                                                                                                                                                                                                                                                            , <ESC>`<i\{<ESC>`>2la}<ESC>?\\{<Enter>a
-	autocmd   FileType   tex        inoremap   it<Tab> \textit{}<+><Esc>T{i
-	autocmd   FileType   tex        inoremap   ct<Tab> \textcite{}<+><Esc>T{i
-	autocmd   FileType   tex        inoremap   cp<Tab> \parencite{}<+><Esc>T{i
-	autocmd   FileType   tex        inoremap   glos<Tab> {\gll<Space><+><Space>\\<Enter><+><Space>\\<Enter>\trans{``<+>''}}<Esc>2k2bcw
-	autocmd   FileType   tex        inoremap   x<Tab> \begin{xlist}<Enter>\ex<Space><Enter>\end{xlist}<Esc>kA<Space>
-	autocmd   FileType   tex        inoremap   ol<Tab> \begin{enumerate}<Enter><Enter>\end{enumerate}<Enter><Enter><+><Esc>3kA\item<Space>
-	autocmd   FileType   tex        inoremap   ul<Tab> \begin{itemize}<Enter><Enter>\end{itemize}<Enter><Enter><+><Esc>3kA\item<Space>
-	autocmd   FileType   tex        inoremap   li<Tab> <Enter>\item<Space>
-	autocmd   FileType   tex        inoremap   ref<Tab> \ref{}<Space><+><Esc>T{i
-	autocmd   FileType   tex        inoremap   tab<Tab> \begin{tabular}<Enter><+><Enter>\end{tabular}<Enter><Enter><+><Esc>4kA{}<Esc>i
-	autocmd   FileType   tex        inoremap   ot<Tab> \begin{tableau}<Enter>\inp{<+>}<Tab>\const{<+>}<Tab><+><Enter><+><Enter>\end{tableau}<Enter><Enter><+><Esc>5kA{}<Esc>i
-	autocmd   FileType   tex        inoremap   can<Tab> \cand{}<Tab><+><Esc>T{i
-	autocmd   FileType   tex        inoremap   con<Tab> \const{}<Tab><+><Esc>T{i
-	autocmd   FileType   tex        inoremap   v<Tab> \vio{}<Tab><+><Esc>T{i
-	autocmd   FileType   tex        inoremap   a<Tab> \href{}{<+>}<Space><+><Esc>2T{i
-	autocmd   FileType   tex        inoremap   sc<Tab> \textsc{}<Space><+><Esc>T{i
-	autocmd   FileType   tex        inoremap   chap<Tab> \chapter{}<Enter><Enter><+><Esc>2kf}i
-	autocmd   FileType   tex        inoremap   sec<Tab> \section{}<Enter><Enter><+><Esc>2kf}i
-	autocmd   FileType   tex        inoremap   ssec<Tab> \subsection{}<Enter><Enter><+><Esc>2kf}i
-	autocmd   FileType   tex        inoremap   sssec<Tab> \subsubsection{}<Enter><Enter><+><Esc>2kf}i
-	autocmd   FileType   tex        inoremap   st<Tab> <Esc>F{i*<Esc>f}i
-	autocmd   FileType   tex        inoremap   beg<Tab> \begin{DELRN}<Enter><+><Enter>\end{DELRN}<Enter><Enter><+><Esc>4k0fR:MultipleCursorsFind<Space>DELRN<Enter>c
-	autocmd   FileType   tex        inoremap   up<Tab> <Esc>/usepackage<Enter>o\usepackage{}<Esc>i
-	autocmd   FileType   tex        nnoremap   up<Tab> /usepackage<Enter>o\usepackage{}<Esc>i
-	autocmd   FileType   tex        inoremap   tt<Tab> \texttt{}<Space><+><Esc>T{i
-	autocmd   FileType   tex        inoremap   bt<Tab> {\blindtext}
-	autocmd   FileType   tex        inoremap   nu<Tab> $\varnothing$
-	autocmd   FileType   tex        inoremap   col<Tab> \begin{columns}[T]<Enter>\begin{column}{.5\textwidth}<Enter><Enter>\end{column}<Enter>\begin{column}{.5\textwidth}<Enter><+><Enter>\end{column}<Enter>\end{columns}<Esc>5kA
-	autocmd   FileType   tex        inoremap   rn<Tab> (\ref{})<+><Esc>F}i
+" autocmd FileType   tex        inoremap   <F5>       <Esc>:!xelatex<space><c-r>%<Enter>a
+" autocmd FileType   tex        nnoremap   <F5>       :!xelatex<space><c-r>%<Enter>
+autocmd FileType tex inoremap fr<Tab> \begin{frame}<CR>\frametitle{}<CR><CR><+><CR><CR>\end{frame}<CR><CR><+><Esc>6kf}i
+autocmd FileType tex inoremap fi<Tab> \begin{fitch}<CR><CR>\end{fitch}<CR><CR><+><Esc>3kA
+autocmd FileType tex inoremap exe<Tab> \begin{exe}<CR>\ex<Space><CR>\end{exe}<CR><CR><+><Esc>3kA
+autocmd FileType tex inoremap em<Tab> \emph{}<+><Esc>T{i
+autocmd FileType tex inoremap bf<Tab> \textbf{}<+><Esc>T{i
+autocmd FileType tex vnoremap , <ESC>`<i\{<ESC>`>2la}<ESC>?\\{<CR>a
+autocmd FileType tex inoremap it<Tab> \textit{}<+><Esc>T{i
+autocmd FileType tex inoremap ct<Tab> \textcite{}<+><Esc>T{i
+autocmd FileType tex inoremap cp<Tab> \parencite{}<+><Esc>T{i
+autocmd FileType tex inoremap glos<Tab> {\gll<Space><+><Space>\\<CR><+><Space>\\<CR>\trans{``<+>''}}<Esc>2k2bcw
+autocmd FileType tex inoremap x<Tab> \begin{xlist}<CR>\ex<Space><CR>\end{xlist}<Esc>kA<Space>
+autocmd FileType tex inoremap ol<Tab> \begin{enumerate}<CR><CR>\end{enumerate}<CR><CR><+><Esc>3kA\item<Space>
+autocmd FileType tex inoremap ul<Tab> \begin{itemize}<CR><CR>\end{itemize}<CR><CR><+><Esc>3kA\item<Space>
+autocmd FileType tex inoremap li<Tab> <CR>\item<Space>
+autocmd FileType tex inoremap ref<Tab> \ref{}<Space><+><Esc>T{i
+autocmd FileType tex inoremap tab<Tab> \begin{tabular}<CR><+><CR>\end{tabular}<CR><CR><+><Esc>4kA{}<Esc>i
+autocmd FileType tex inoremap ot<Tab> \begin{tableau}<CR>\inp{<+>}<Tab>\const{<+>}<Tab><+><CR><+><CR>\end{tableau}<CR><CR><+><Esc>5kA{}<Esc>i
+autocmd FileType tex inoremap can<Tab> \cand{}<Tab><+><Esc>T{i
+autocmd FileType tex inoremap con<Tab> \const{}<Tab><+><Esc>T{i
+autocmd FileType tex inoremap v<Tab> \vio{}<Tab><+><Esc>T{i
+autocmd FileType tex inoremap a<Tab> \href{}{<+>}<Space><+><Esc>2T{i
+autocmd FileType tex inoremap sc<Tab> \textsc{}<Space><+><Esc>T{i
+autocmd FileType tex inoremap chap<Tab> \chapter{}<CR><CR><+><Esc>2kf}i
+autocmd FileType tex inoremap sec<Tab> \section{}<CR><CR><+><Esc>2kf}i
+autocmd FileType tex inoremap ssec<Tab> \subsection{}<CR><CR><+><Esc>2kf}i
+autocmd FileType tex inoremap sssec<Tab> \subsubsection{}<CR><CR><+><Esc>2kf}i
+autocmd FileType tex inoremap st<Tab> <Esc>F{i*<Esc>f}i
+autocmd FileType tex inoremap beg<Tab> \begin{DELRN}<CR><+><CR>\end{DELRN}<CR><CR><+><Esc>4k0fR:MultipleCursorsFind<Space>DELRN<CR>c
+autocmd FileType tex inoremap up<Tab> <Esc>/usepackage<CR>o\usepackage{}<Esc>i
+autocmd FileType tex nnoremap up<Tab> /usepackage<CR>o\usepackage{}<Esc>i
+autocmd FileType tex inoremap tt<Tab> \texttt{}<Space><+><Esc>T{i
+autocmd FileType tex inoremap bt<Tab> {\blindtext}
+autocmd FileType tex inoremap nu<Tab> $\varnothing$
+autocmd FileType tex inoremap col<Tab> \begin{columns}[T]<CR>\begin{column}{.5\textwidth}<CR><CR>\end{column}<CR>\begin{column}{.5\textwidth}<CR><+><CR>\end{column}<CR>\end{columns}<Esc>5kA
+autocmd FileType tex inoremap rn<Tab> (\ref{})<+><Esc>F}i
 
 set guicursor=i:100-bCursor
 set conceallevel=0
