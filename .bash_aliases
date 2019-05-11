@@ -348,7 +348,7 @@ alias /f='/;f'
 alias copss='pss `co`'
 _toggle_ssh_password_auth(){ grep 'PasswordAuthentication yes' /etc/ssh/sshd_config >/dev/null; [[ $? -eq 0 ]] && sudo sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config || sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config; sudo systemctl restart sshd; trap - SIGINT }
 wetty(){ _toggle_ssh_password_auth; trap _toggle_ssh_password_auth SIGINT; node ~/util/wetty/index.js -p 2717 }
-alias xfix='xset r rate 200 30; xmodmap ~/.Xmodmap; setxkbmap us alt-intl'
+xfix(){ xmodmap ~/.Xmodmap; xset r rate 200 30; setxkbmap us alt-intl }
 toggle_touchpad(){ [[ `xinput list-props 12 | grep "Device Enabled" | grep -o "[01]$"` -eq 1 ]] && xinput --disable 12 || xinput --enable 12 }
 alias cocd='cd `co`'
 alias cocdd='cdd `co`'
@@ -408,3 +408,4 @@ nem(){ nemo $@ 3>&2 2>&1 > /dev/null & }
 alias schown='s chown'
 alias cint='picoc'
 wf(){ watch fd -H $@ }
+alias piup='pip install --upgrade pip'
