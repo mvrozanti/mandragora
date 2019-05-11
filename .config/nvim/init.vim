@@ -514,6 +514,7 @@ set fillchars+=vert:│
 " latex snippets
 " autocmd FileType   tex        inoremap   <F5>       <Esc>:!xelatex<space><c-r>%<Enter>a
 " autocmd FileType   tex        nnoremap   <F5>       :!xelatex<space><c-r>%<Enter>
+autocmd FileType tex inoremap pb<Tab> \pagebreak
 autocmd FileType tex inoremap fr<Tab> \begin{frame}<CR>\frametitle{}<CR><CR><+><CR><CR>\end{frame}<CR><CR><+><Esc>6kf}i
 autocmd FileType tex inoremap fi<Tab> \begin{fitch}<CR><CR>\end{fitch}<CR><CR><+><Esc>3kA
 autocmd FileType tex inoremap exe<Tab> \begin{exe}<CR>\ex<Space><CR>\end{exe}<CR><CR><+><Esc>3kA
