@@ -55,13 +55,13 @@ set recolor-darkcolor "#E0E0E0" #06
 set recolor-reverse-video "true"
 set recolor-keephue "true"
 
-
 set render-loading "false"
 set scroll-step 50
 unmap f
 map f toggle_fullscreen
 map [fullscreen] f toggle_fullscreen
 
+map <C-0> adjust_window width
 map B toggle_statusbar
 map <C-k> zoom in
 map <C-j> zoom out
