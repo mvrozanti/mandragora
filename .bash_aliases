@@ -409,3 +409,4 @@ alias schown='s chown'
 alias cint='picoc'
 wf(){ watch fd -H $@ }
 alias piup='pip install --upgrade pip'
+alias vres='v /home/nexor/mackenzie/2019/mpc/tex/simd.bib '

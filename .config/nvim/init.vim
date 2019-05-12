@@ -351,6 +351,7 @@ Plug 'mitsuhiko/vim-jinja'
 " ==== moving / seraching
 Plug 'easymotion/vim-easymotion'
 Plug 'kien/ctrlp.vim'
+let g:ctrlp_show_hidden=1
 
 " ==== snippets
 Plug 'SirVer/ultisnips'
@@ -518,10 +519,11 @@ autocmd FileType tex inoremap pb<Tab> \pagebreak
 autocmd FileType tex inoremap fr<Tab> \begin{frame}<CR>\frametitle{}<CR><CR><+><CR><CR>\end{frame}<CR><CR><+><Esc>6kf}i
 autocmd FileType tex inoremap fi<Tab> \begin{fitch}<CR><CR>\end{fitch}<CR><CR><+><Esc>3kA
 autocmd FileType tex inoremap exe<Tab> \begin{exe}<CR>\ex<Space><CR>\end{exe}<CR><CR><+><Esc>3kA
-autocmd FileType tex inoremap em<Tab> \emph{}<+><Esc>T{i
-autocmd FileType tex inoremap bf<Tab> \textbf{}<+><Esc>T{i
+autocmd FileType tex inoremap em<Tab> \emph{} <+><Esc>T{i
+autocmd FileType tex inoremap bf<Tab> \textbf{} <+><Esc>T{i
 autocmd FileType tex vnoremap , <ESC>`<i\{<ESC>`>2la}<ESC>?\\{<CR>a
-autocmd FileType tex inoremap it<Tab> \textit{}<+><Esc>T{i
+autocmd FileType tex inoremap it<Tab> \textit{} <+><Esc>T{i
+autocmd FileType tex vnoremap it xi\textit{}<Esc>P
 autocmd FileType tex inoremap ct<Tab> \textcite{}<+><Esc>T{i
 autocmd FileType tex inoremap cp<Tab> \parencite{}<+><Esc>T{i
 autocmd FileType tex inoremap glos<Tab> {\gll<Space><+><Space>\\<CR><+><Space>\\<CR>\trans{``<+>''}}<Esc>2k2bcw
