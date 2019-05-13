@@ -211,7 +211,6 @@ alias sc='sc-im'
 fv(){ find . -type f -name "*$@*" -exec nvim {} +  }
 zt(){ tar -czvf $1".tar.gz" ${@:2} }
 zz(){ [[ "$#" -eq 2 ]] && zip -r  "$1".zip ${@:2} }
-alias less='bat'
 alias S='du -sh'
 alias gsu='git ls-files . --exclude-standard --others'
 alias gsi='git ls-files . --ignored --exclude-standard --others'
