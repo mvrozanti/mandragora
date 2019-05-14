@@ -413,3 +413,4 @@ funccount(){ nm $@ | grep "T " | g -v " _" | wc -l }
 urldecode(){ e "$@" | awk -niord '{printf RT?$0chr("0x"substr(RT,2)):$0}' RS=%.. }
 oldf(){ ls -rsnew ~/Downloads | sed q1 | xargs -I{} xdg-open ~/Downloads/{} }
 Oldf(){ ls -rsnew ~/Downloads | sed q1 | xargs -I{} `sma sxiv` ~/Downloads/{} }
+alias lwcl='l | wc- l'
