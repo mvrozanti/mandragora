@@ -149,7 +149,7 @@ $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -x
 $bind $mod+Shift+Return                                         $ensid                               st -T 100 ranger
 $bind $mod+p                                                    $ensid wmctrl -a ".pdf ["         || zathura
 $bind $mod+Shift+p                                              $ensid transset-df -n ".pdf \[" -t 
-$bind $mod+y                                                    $ensid wmctrl -a _youtube_        || mpv --title _youtube_ `xsel -o -b`
+$bind $mod+y                                                    $ensid wmctrl -a _youtube_        || mpv --no-config -v `xsel -o -b` 2>&1 > ~/kek.txt
 $bind $mod+Next                                                 $ensid KMag
 $bind $mod+x                                                    $ensid wmctrl -a  mpv
 $bind $mod+d              workspace $ws9
