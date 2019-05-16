@@ -225,7 +225,7 @@
     "figlet",
     "autojump",
     "flake8",
-    "zerotier"
+    "zerotier-one"
   ],
   "excluded": [
     "hotmail.gpg"
