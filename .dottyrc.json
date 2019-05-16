@@ -224,7 +224,8 @@
     "texlive-bin",
     "figlet",
     "autojump",
-    "flake8"
+    "flake8",
+    "zerotier"
   ],
   "excluded": [
     "hotmail.gpg"
