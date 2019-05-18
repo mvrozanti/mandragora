@@ -525,8 +525,12 @@ autocmd FileType tex inoremap bf<Tab> \textbf{} <+><Esc>T{i
 autocmd FileType tex vnoremap , <ESC>`<i\{<ESC>`>2la}<ESC>?\\{<CR>a
 autocmd FileType tex inoremap it<Tab> \textit{} <+><Esc>T{i
 autocmd FileType tex vnoremap it xi\textit{}<Esc>P
+
 autocmd FileType tex inoremap ct<Tab> \textcite{}<+><Esc>T{i
 autocmd FileType tex inoremap cp<Tab> \parencite{}<+><Esc>T{i
+autocmd FileType tex inoremap co<Tab> \citeonline{}<+><Esc>T{i
+autocmd FileType tex inoremap cb<Tab> \citebook{}<+><Esc>T{i
+
 autocmd FileType tex inoremap glos<Tab> {\gll<Space><+><Space>\\<CR><+><Space>\\<CR>\trans{``<+>''}}<Esc>2k2bcw
 autocmd FileType tex inoremap x<Tab> \begin{xlist}<CR>\ex<Space><CR>\end{xlist}<Esc>kA<Space>
 autocmd FileType tex inoremap ol<Tab> \begin{enumerate}<CR><CR>\end{enumerate}<CR><CR><+><Esc>3kA\item<Space>
