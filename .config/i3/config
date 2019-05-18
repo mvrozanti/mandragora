@@ -102,7 +102,7 @@ for_window  [title="_todo_"]              floating enable,           \
 
 $bind $mod+v          fullscreen disable; workspace $ws6;       $ensid wmctrl -a  Code            || code
 $bind $mod+9          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  skype           || skypeforlinux
-$bind $mod+Delete                                               $ensid wmctrl -a simd
+$bind $mod+Shift+u                                               $ensid wmctrl -a simd
 # $bind $mod+Delete                                               $ensid wmctrl -a  LibreOffice     || libreoffice
 $bind $mod+0      fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && offlineimap -a hotmail && "$cat_seqs" && tmux new neomutt"
 $bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  _ncmpcpp_       || st -e ncmpcpp
