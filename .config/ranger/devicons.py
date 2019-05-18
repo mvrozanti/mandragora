@@ -141,6 +141,8 @@ dir_node_exact_matches = {
     'Templates'                        : '',
     'Videos'                           : '',
     'raspberry'                        : '⚘',
+    'mandragora'                       : 'מ',
+    'util'                             : '⚒',
 # French
     'Bureau'                           : '',
     'Documents'                        : '',
