@@ -116,6 +116,7 @@ nnoremap <C-i> :mark x<CR>
 nnoremap <C-u> 'x
 inoremap {<CR> {<CR>}<Esc>k$o
 vnoremap <CR> c<CR>
+nnoremap * :tabedit %<CR> <bar> gt:set hiddenkj<CR>
 
 nnoremap <C-Tab> gK
 
@@ -298,6 +299,7 @@ Plug 'scrooloose/nerdtree'
 Plug 'ryanoasis/vim-devicons'
 map <C-t> :NERDTreeToggle<CR>
 let NERDTreeIgnore = ['\.pyc$', '\.o$', '\.so$', '\.a$', '\.swp', '*\.swp', '\.swo', '\.swn', '\.swh', '\.swm', '\.swl', '\.swk', '\.sw*$', '[a-zA-Z]*egg[a-zA-Z]*', '[a-zA-Z]*cache[a-zA-Z]*', '.DS_Store']
+let g:NERDTreeQuitOnOpen=1
 let g:NERDTreeShowHidden=1
 let g:NERDTreeWinPos="left"
 let g:NERDTreeDirArrows=0
