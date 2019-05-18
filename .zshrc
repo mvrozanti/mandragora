@@ -109,6 +109,7 @@ export PATH=~/.npm/bin:$PATH
 
 # go
 export GOPATH=$HOME/go
+export PATH=${GOPATH//://bin:}/bin:$PATH
 
 # py
 export PATH=~/.local/bin:$PATH
