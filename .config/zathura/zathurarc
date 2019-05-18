@@ -82,6 +82,6 @@ map b scroll half-up
 map [fullscreen] b scroll half-up
 set selection-clipboard clipboard
 map <C-i> feedkeys ":info<Return>"
-map <C-o> feedkeys ":open <Tab><Return>"
-map <C-O> feedkeys ":open <Tab>"
+map <C-O> feedkeys ":open <Tab><Return>"
+map <C-o> feedkeys ":open <Tab>"
 map H feedkeys ":exec sh -c \"cat ~/.local/share/zathura/history | grep -Po '\[\K[^\]]*' | dmenu | xargs zathura\""
