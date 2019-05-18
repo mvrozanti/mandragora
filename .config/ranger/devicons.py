@@ -142,7 +142,10 @@ dir_node_exact_matches = {
     'Videos'                           : '',
     'raspberry'                        : '⚘',
     'mandragora'                       : 'מ',
+    'mackenzie'                        : 'ℳ',
     'util'                             : '⚒',
+    'phone'                            : '☎',
+    'prog'                             : '',
 # French
     'Bureau'                           : '',
     'Documents'                        : '',
