@@ -116,7 +116,6 @@ nnoremap <C-i> :mark x<CR>
 nnoremap <C-u> 'x
 inoremap {<CR> {<CR>}<Esc>k$o
 vnoremap <CR> c<CR>
-nnoremap * :tabedit %<CR> <bar> gt:set hiddenkj<CR>
 
 nnoremap <C-Tab> gK
 
