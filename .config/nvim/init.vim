@@ -1,4 +1,3 @@
-
 fun! SetupCommandAlias(from, to)
   exec 'cnoreabbrev <expr> '.a:from
         \ .' ((getcmdtype() is# ":" && getcmdline() is# "'.a:from.'")'
@@ -16,9 +15,16 @@ nnoremap <A-p> o<A-p>
 " Automatically deletes all tralling whitespace on save.
 " let blacklist = ['txt']
 " autocmd BufWritePre  * if index(blacklist, &ft) < 0 | %s/\s\+$//e
-autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex %
-autocmd BufWritePost *.bib silent! !bibtex %:r ; pdflatex %:r.tex ; pdflatex %:r.tex 
-map Q <Nop>
+autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex -synctex=1 %
+autocmd BufWritePost *.bib silent! !bibtex %:r ; pdflatex %:r.tex ; pdflatex -synctex=1 %:r.tex 
+" Sync tex pdf (doesnt work tho)
+" function! Synctex()
+"     execute "silent !zathura --synctex-forward " . line('.') . ":" . col('.') . ":" . bufname('%') . " " . g:syncpdf
+"     redraw!
+" endfunction
+" map <C-enter> :call Synctex()<CR>
+" 
+map Q <NOP>
 imap silent <C-h> <A-b>
 imap silent <C-l> <A-w>
 imap silent <C-Left> <A-b>
@@ -56,8 +62,8 @@ Plug 'tpope/vim-commentary'
 Plug 'richq/vim-cmake-completion'
 vmap <C-Space> gc
 nmap <C-Space> gcc
-" Plug 'dbmrq/vim-ditto'
-" autocmd FileType tex
+Plug 'dbmrq/vim-ditto'
+au FileType tex DittoOn
 Plug 'scrooloose/vim-slumlord'
 Plug 'aklt/plantuml-syntax'
 nmap S ysiw
@@ -314,6 +320,8 @@ let g:netrw_liststyle=3
 
 " ==== Refactoring for C-family
 Plug 'vim-scripts/a.vim'
+" Plug 'vim-scripts/ShowMarks'
+
 " Plug 'bbchung/clighter8'
 
 " ==== overwrite vim banner
@@ -526,7 +534,8 @@ autocmd FileType tex inoremap em<Tab> \emph{} <+><Esc>T{i
 autocmd FileType tex inoremap bf<Tab> \textbf{} <+><Esc>T{i
 autocmd FileType tex vnoremap , <ESC>`<i\{<ESC>`>2la}<ESC>?\\{<CR>a
 autocmd FileType tex inoremap it<Tab> \textit{} <+><Esc>T{i
-autocmd FileType tex vnoremap it xi\textit{}<Esc>P
+autocmd FileType tex vnoremap it xa\textit{}<Esc>P
+autocmd FileType tex vnoremap tt xa\texttt{}<Esc>P
 
 autocmd FileType tex inoremap ct<Tab> \textcite{}<+><Esc>T{i
 autocmd FileType tex inoremap cp<Tab> \parencite{}<+><Esc>T{i
