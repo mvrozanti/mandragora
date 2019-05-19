@@ -6,7 +6,7 @@
     "coc.preferences.noselect": true,
     "coc.preferences.formatOnType": false,
     "coc.preferences.jumpCommand": "edit",
-    "coc.preferences.diagnostic.enable": true,
+    "coc.preferences.diagnostic.enable": false,
     "coc.preferences.diagnostic.signOffset": 1000,
     "coc.preferences.diagnostic.warningSign": "⚠",
     "coc.preferences.diagnostic.errorSign": ">>",

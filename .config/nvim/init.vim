@@ -56,6 +56,8 @@ Plug 'tpope/vim-commentary'
 Plug 'richq/vim-cmake-completion'
 vmap <C-Space> gc
 nmap <C-Space> gcc
+" Plug 'dbmrq/vim-ditto'
+" autocmd FileType tex
 Plug 'scrooloose/vim-slumlord'
 Plug 'aklt/plantuml-syntax'
 nmap S ysiw
