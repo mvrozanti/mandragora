@@ -419,3 +419,4 @@ cC(){ trap "exit" INT; while :; do [[ ! -z `co` ]] && co | "$@" && e -n | c; don
 alias rmr='rm -r'
 alias zres='z tcc1/resources'
 alias pk='pkill'
+alias getredir='curl -Ls -o /dev/null -w %{url_effective}'
