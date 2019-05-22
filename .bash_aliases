@@ -63,9 +63,9 @@ alias cfb='v ~/.config/polybar/config'
 alias cfr='sudo -E nvim ~/.config/ranger'
 alias cft='v ~/.tmux.conf'
 alias cfv='nvim ~/.config/nvim/init.vim'
-alias cfV='sudo -E nvim ~/.config/nvim'
-alias cfx='sudo -E nvim ~/.Xresources; xrdb ~/.Xresources'
-alias cfz='sudo -E nvim ~/.zshrc'
+alias cfV='sudoedit~/.config/nvim'
+alias cfx='sudoedit~/.Xresources; xrdb ~/.Xresources'
+alias cfz='sudoedit~/.zshrc'
 alias cfy='v ~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py'
 alias cfk='v ~/.config/kitty/kitty.conf'
 alias motd='cat /etc/motd'
@@ -156,7 +156,7 @@ alias filesize='du -h'
 aa(){ [[ ! -z $1 && ! -z $2 ]] && echo "alias $1='${@:2}'" >> ~/.bash_aliases; }
 domany() { if [[ "$1" == "-n" ]]; then n=$2; else n=99999; fi; cmd="${@:3}"; for i in {1..$n}; do sh -c $cmd; done; }
 vw() { nvim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
-svw() { sudo -E nvim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
+svw() { sudoedit"`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
 wi(){ wal --saturate 1.0 -i "${@:1}"; }
 alias biggest-files='du -hsx *|sudo sort -rh|head -10'
 alias lg='lazygit'
