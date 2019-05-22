@@ -19,7 +19,7 @@
     #   %I  iconname (without its path)
     #   %p  progress value if set ([  0%] to [100%]) or nothing
     # Markup is allowed
-    format = "<b>%a:</b> %s\n%b"
+    format = "<b></b> %s\n%b"
 
     # Sort messages by urgency
     sort = yes
@@ -63,7 +63,7 @@
 
     # The transparency of the window. range: [0; 100]
     # This option will only work if a compositing windowmanager is present (e.g. xcompmgr, compiz, etc..)
-    transparency = 30
+    transparency = 0
 
     # Don't remove messages, if the user is idle (no mouse or keyboard input)
     # for longer than idle_threshold seconds.
@@ -193,6 +193,11 @@
 ## This notification will not be displayed
 #    summary = "foobar"
 #    format = ""
+
+[msg]
+    appname = *nativefier*
+    summary = "*:*"
+    urgency = low
 
 [signed_on]
     appname = Pidgin
