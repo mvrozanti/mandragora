@@ -389,7 +389,7 @@ set shiftwidth=4
 
 " Real-time markdown editing
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app & yarn install'  }
-" let g:mkdp_markdown_css = '/home/nexor/darkdown.css'
+" let g:mkdp_markdown_css = '~/darkdown.css'
 Plug 'terryma/vim-expand-region'
 map + <Plug>(expand_region_expand)
 map - <Plug>(expand_region_shrink)
