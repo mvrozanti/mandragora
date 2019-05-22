@@ -65,7 +65,7 @@ nmap <C-Space> gcc
 Plug 'dbmrq/vim-ditto'
 au FileType tex DittoOn
 Plug 'scrooloose/vim-slumlord'
-Plug 'aklt/plantuml-syntax'
+" Plug 'aklt/plantuml-syntax'
 nmap S ysiw
 let g:tmux_navigator_no_mappings = 0
 nnoremap <A-Left>  :TmuxNavigateLeft<cr>
@@ -248,7 +248,6 @@ nnoremap <A-r> :call CocAction('rename')<CR>
 "       \ <SID>check_back_space() ? "\<TAB>" :
 "       \ coc#refresh()
 set hidden
-" === LSP/ ===
 Plug 'jiangmiao/auto-pairs'
 
 Plug 'godlygeek/tabular'
