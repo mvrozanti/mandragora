@@ -194,11 +194,6 @@
 #    summary = "foobar"
 #    format = ""
 
-[msg]
-    appname = *nativefier*
-    summary = "*:*"
-    urgency = low
-
 [signed_on]
     appname = Pidgin
     summary = "*signed on*"
