@@ -21,11 +21,11 @@ def handle_result(args, data, target_window_id, boss):
         if k == 'foreground': fg = v
 
     import random
-    coin = random.randint(0,10) % 2 == 0
+    coin = random.randint(0,2) % 2 == 0
     print(str(coin))
     le_new_colors = {
-            'background': fg if coin else bg,
-            'foreground': bg if coin else fg
+            'background': -1 if coin else 0,
+            'foreground':  0 if coin else -1
             }
 
     set_colors_opts = { 
