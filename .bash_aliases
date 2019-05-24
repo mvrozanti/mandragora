@@ -194,7 +194,7 @@ alias sw='sudo wifi-menu'
 alias vtop='vtop -t seti'
 alias sv='sudoedit'
 alias v='nvim'
-alias vc='co|v -'
+alias vc='co | v -'
 alias cv='co | xargs nvim'
 alias vh='nvim ~/.zsh_history'
 vx(){ xxd $@ | v - }
