@@ -58,7 +58,7 @@ for_window  [title="^(\d+) WhatsApp$"]    move to workspace $ws3
 for_window  [title=".*Trello.*"]          move to workspace $ws7
 for_window  [title=".*Zoom "]             move to workspace $ws5
 for_window  [instance="^ranger$"]         move to workspace $ws8
-for_window  [class="mpv"]                 sticky enable, floating enable, move position 1250 570
+for_window  [class="mpv"]                 sticky enable, floating enable, move position 1000 470
 for_window  [title="_visualizer_"]        sticky enable, floating enable
 no_focus [title="_visualizer-float_"]
 for_window  [title="_tmux-float_"]        sticky enable, floating enable, move position 1500 670 
@@ -101,8 +101,10 @@ for_window  [title="_todo_"]              floating enable,           \
 #                   |_|
 
 $bind $mod+v          fullscreen disable; workspace $ws6;       $ensid wmctrl -a  Code            || code
+
+$bind $mod+8          fullscreen disable; workspace $ws12;      $ensid wmctrl -a  diaspora        || sh -c /home/nexor/util/diaspora-br-sign-in-linux-x64/diaspora-br-sign-in 
 $bind $mod+9          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  skype           || skypeforlinux
-$bind $mod+Shift+u                                               $ensid wmctrl -a simd
+$bind $mod+Shift+u                                              $ensid wmctrl -a simd
 # $bind $mod+Delete                                               $ensid wmctrl -a  LibreOffice     || libreoffice
 $bind $mod+0      fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && offlineimap -a hotmail && "$cat_seqs" && tmux new neomutt"
 $bind $mod+2          fullscreen disable;                       $ensid wmctrl -a  _ncmpcpp_       || st -e ncmpcpp
@@ -273,7 +275,8 @@ set $ws8  "8"
 set $ws9  "9"
 set $ws10 "10"
 set $ws11 "11"
-set $ws12 "13"
+set $ws12 "12"
+set $ws13 "13"
 set $ws14 "14"
 
 $bind $mod+Ctrl+1                           workspace $ws1
