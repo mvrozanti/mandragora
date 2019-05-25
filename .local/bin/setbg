@@ -1,0 +1,1 @@
+[[ -z $1 ]] && return 1; fpath=`realpath $1` ; [[ `echo $fpath | rev | cut -d"." -f1 | rev` = "gif" ]] && xwinwrap -g `xrandr | awk '/\*/{printf $1" "}'` -ni -s -nf -b -un -argb -ov -- gifview -w WID $fpath -a || wal -a 299 -i $fpath
