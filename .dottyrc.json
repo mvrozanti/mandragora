@@ -69,7 +69,8 @@
     ".local/bin/sinon": "~/.local/bin/sinon",
     ".compton.conf": "~/.compton.conf",
     ".local/bin/dict": "~/.local/bin/dict",
-    ".config/kitty/set_colors.py": "~/.config/kitty/set_colors.py"
+    ".config/kitty/set_colors.py": "~/.config/kitty/set_colors.py",
+    ".local/bin/setbg": "~/.local/bin/setbg"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
