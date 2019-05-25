@@ -1,4 +1,3 @@
-unalias rg
 unalias sd
 unalias sp
 alias rm='rm -f'
