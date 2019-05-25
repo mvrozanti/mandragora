@@ -3,7 +3,6 @@ fun! SetupCommandAlias(from, to)
         \ .' ((getcmdtype() is# ":" && getcmdline() is# "'.a:from.'")'
         \ .'? ("'.a:to.'") : ("'.a:from.'"))'
 endfun
-nnoremap <F4> :call ToggleConceal()
 call SetupCommandAlias("jsonify","%!python -m json.tool")
 map <A-F> mzgg=G`zzz
 xnoremap p "_dP
