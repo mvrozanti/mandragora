@@ -282,7 +282,7 @@ alias ctl='systemctl'
 alias sctl='sudo systemctl'
 alias GD='git daemon --base-path=. --export-all'
 alias blank='xset -display :0.0 dpms force off'
-setbg(){ [[ -z $1 ]] && return 1; fpath=`realpath $1` ; [[ `echo $fpath | rev | cut -d"." -f1 | rev` = "gif" ]] && xwinwrap -g `xrandr | awk '/\*/{printf $1" "}'` -ni -s -nf -b -un -argb -ov -- gifview -w WID $fpath -a || wal -a 299 -i $fpath }
+# setbg(){ [[ -z $1 ]] && return 1; fpath=`realpath $1` ; [[ `echo $fpath | rev | cut -d"." -f1 | rev` = "gif" ]] && xwinwrap -g `xrandr | awk '/\*/{printf $1" "}'` -ni -s -nf -b -un -argb -ov -- gifview -w WID $fpath -a || wal -a 299 -i $fpath }
 ra(){ [[ ! -z "$1" && ! -z "$2" ]] && sd -i 'alias '$1'=' 'alias '$2'=' ~/.bash_aliases && sd -i ''$1'\(\)' ''$2'()' ~/.bash_aliases }
 alias me='uname -mrs'
 alias spsyyu='sudo pacman -Syyu'

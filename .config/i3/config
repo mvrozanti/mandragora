@@ -7,12 +7,11 @@
 
 # win=Mod4
 # alt=Mod1
-exec_always  --no-startup-id dunst
 exec_always  --no-startup-id $HOME/.config/polybar/launch.sh
 # exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seafile.sh start
 # exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seahub.sh start
 exec_always  --no-startup-id [[ `ps aux|grep seafile-daemon|wc -l` -eq 0 ]] && seafile-daemon
-exec_always  --no-startup-id ~/prog/python/audio-classification/cnn.py -P |while read -r o; do case "$o" in "9") (st 2> /dev/null &);; "0") st -T 150 -t ncmpcpp -e ncmpcpp -s visualizer 2> /dev/null &;; *) echo $o;; esac; done
+# exec_always  --no-startup-id ~/prog/python/audio-classification/cnn.py -P |while read -r o; do case "$o" in "9") (st 2> /dev/null &);; "0") st -T 150 -t ncmpcpp -e ncmpcpp -s visualizer 2> /dev/null &;; *) echo $o;; esac; done
 
 set $mod Mod4
 set $ensid exec --no-startup-id
@@ -112,7 +111,8 @@ $bind $mod+Mod1+2     fullscreen disable;                       $ensid wmctrl -a
 $bind $mod+Shift+2    fullscreen disable;                       $ensid wmctrl -a  _ncmpcpp_       || st -e ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  _zsh_           || kitty --listen-on=unix:@mykitty --title _zsh_ --name _zsh_
 $bind $mod+Shift+3                                              $ensid wmctrl -xa _tmux_          || kitty --title _tmux_
-$bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
+# $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
+$bind $mod+g                                                    $ensid find /mnt/4ADE1465DE144C17/gdrive/Levv/wllpps | shuf | sed 1q | xargs notify-send 
 $bind $mod+Mod1+3                                               $ensid wmctrl -xa _tmux-float_    || kitty --title _tmux-float_ \
     -o font_size=10 -o initial_window_width=400 -o initial_window_height=300 -o remember_window_size=no
 $bind $mod+Mod1+Return                                          $ensid wmctrl -xa _ranger-float_    || kitty --title _ranger-float_ \
@@ -311,6 +311,7 @@ $bind $mod+Ctrl+Shift+h                     move container to workspace prev; wo
 $ensid wal --saturate 1.0 -a 299 -i `cat $HOME/.fehbg | tail -n1 | cut -d ' ' -f3 | tr -d "'"`
 $ensid sh -c '[[ `hostname` == "mndrgr"  ]] && compton -D 3 --blur-background --blur-kern `compton-convgen.py --dump-compton box 11`'
 $ensid sh -c '[[ `hostname` == "mndrgr2" ]] && compton'
+$ensid sh -c dunst
 $ensid $HOME/.fehbg
 popup_during_fullscreen smart
 floating_modifier Mod1
