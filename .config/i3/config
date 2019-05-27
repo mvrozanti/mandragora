@@ -102,7 +102,7 @@ for_window  [title="_todo_"]              floating enable,           \
 
 $bind $mod+v          fullscreen disable; workspace $ws6;       $ensid wmctrl -a  Code            || code
 
-$bind $mod+8          fullscreen disable; workspace $ws12;      $ensid wmctrl -a  diaspora        || sh -c /home/nexor/util/diaspora-br-sign-in-linux-x64/diaspora-br-sign-in 
+$bind $mod+8          fullscreen disable; workspace $ws11;      $ensid wmctrl -a  diaspora        || sh -c /home/nexor/util/diaspora-br-sign-in-linux-x64/diaspora-br-sign-in 
 $bind $mod+9          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  skype           || skypeforlinux
 $bind $mod+Shift+u                                              $ensid wmctrl -a simd
 # $bind $mod+Delete                                               $ensid wmctrl -a  LibreOffice     || libreoffice
