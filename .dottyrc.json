@@ -226,7 +226,8 @@
     "figlet",
     "autojump",
     "flake8",
-    "zerotier-one"
+    "zerotier-one",
+    "git-lfs"
   ],
   "excluded": [
     "hotmail.gpg"
