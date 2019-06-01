@@ -424,3 +424,4 @@ alias cocurl='co | xargs curl -s'
 alias /ag='cd /;ag'
 alias ns='notify-send'
 alias torb='nohup tor-browser 2>&1 > /dev/null &'
+keep(){ while :; do "$@"; done }
