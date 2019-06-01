@@ -103,7 +103,7 @@ set t_vb=
 " hits bong:
 " vnoremap <silent> <C-c> :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:noh<CR>
 " nnoremap : q:i
-nmap <silent> M    "_yiw:s/\(\%#\w\+\)\(\_W\+\)\(\w\+\)/\3\2\1/<CR><C-O> *N*<Esc><Esc>
+" nmap <silent> M    "_yiw:s/\(\%#\w\+\)\(\_W\+\)\(\w\+\)/\3\2\1/<CR><C-O> *N*<Esc><Esc>
 nnoremap yD y$
 nnoremap <A-i> f(a
 inoremap <A-i> <Esc>f(a
@@ -203,11 +203,9 @@ nnoremap <Esc><Esc> :noh<CR>
 nnoremap gJ gT
 nnoremap gK gt
 
-" nnoremap M :tabedit %<CR>
 nnoremap <C-N> :tabe<CR>
 nnoremap [ <C-W>
 
-" remap mark
 nnoremap , '
 
 " general
@@ -248,6 +246,8 @@ nnoremap <A-r> :call CocAction('rename')<CR>
 "       \ <SID>check_back_space() ? "\<TAB>" :
 "       \ coc#refresh()
 set hidden
+Plug 'tommcdo/vim-exchange'
+
 Plug 'jiangmiao/auto-pairs'
 
 Plug 'godlygeek/tabular'
@@ -280,8 +280,6 @@ nnoremap <F7>   :VBGstepIn<CR>
 nnoremap <F8>   :VBGstepOver<CR>
 nnoremap <C-F8> :VBGtoggleBreakpointThisLine<CR>
 nnoremap <F10>  :VBGstepOut<CR>
-" Plug 'vim-scripts/Conque-Shell'
-" Plug 'vim-scripts/Conque-GDB'
 
 Plug 'pangloss/vim-javascript'
 let g:javascript_conceal_function = "ƒ"
@@ -482,17 +480,6 @@ set timeoutlen=1000 ttimeoutlen=0
 
 " let g:EclimFileTypeValidate = 0
 let g:syntastic_java_javac_config_file_enabled = 1
-
-" Commenting blocks of code.
-" autocmd FileType c,css,cpp,java,javascript,php,scala                let b:comment_leader = '// '
-" autocmd FileType conf,fstab,sh,ruby,python                          let b:comment_leader = '# '
-" autocmd FileType swipl,perl,tex                                     let b:comment_leader = '% '
-" autocmd FileType mail                                               let b:comment_leader = '> '
-" autocmd FileType vim                                                let b:comment_leader = '" '
-" autocmd FileType lisp                                               let b:comment_leader = '; '
-" vnoremap <silent> <C-C> :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:noh<CR>
-" vnoremap <silent> <leader><leader> :<C-B>silent <C-E>s/^\s*\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:noh<CR>
-" nnoremap <silent> <leader><leader> :<C-B>silent <C-E>s/^\s*\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:noh<CR>
 set encoding=utf-8
 
 colorscheme peachpuff
