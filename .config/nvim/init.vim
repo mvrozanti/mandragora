@@ -385,6 +385,8 @@ set shiftwidth=4
 " :set guioptions-=r  "remove right-hand scroll bar
 " :set guioptions-=L  "remove left-hand scroll bar
 
+Plug 'danro/rename.vim'
+
 " Real-time markdown editing
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app & yarn install'  }
 " let g:mkdp_markdown_css = '~/darkdown.css'
