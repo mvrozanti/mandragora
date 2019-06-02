@@ -227,7 +227,8 @@
     "autojump",
     "flake8",
     "zerotier-one",
-    "git-lfs"
+    "git-lfs",
+    "torsocks"
   ],
   "excluded": [
     "hotmail.gpg"
