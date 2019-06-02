@@ -194,7 +194,7 @@ alias vtop='vtop -t seti'
 alias sv='sudoedit'
 alias v='nvim'
 alias vc='co | v -'
-alias cv='co | xargs nvim'
+alias cv='cov'
 alias vh='nvim ~/.zsh_history'
 vx(){ xxd $@ | v - }
 make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > ~/.ranger_aliases; }
