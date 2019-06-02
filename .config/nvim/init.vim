@@ -59,6 +59,7 @@ Plug 'christoomey/vim-tmux-navigator'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 autocmd FileType prolog setlocal commentstring=%\ %s
+autocmd FileType perl   setlocal commentstring=%\ %s
 Plug 'richq/vim-cmake-completion'
 vmap <C-Space> gc
 nmap <C-Space> gcc
