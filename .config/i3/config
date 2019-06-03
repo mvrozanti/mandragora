@@ -80,6 +80,7 @@ assign      [instance="cmatrix"]          $ws2
 assign      [class="NetBeans IDE "]       $ws6
 assign      [class="Eclipse IDE "]        $ws6
 assign      [class="Visual Studio"]       $ws6
+assign      [class="Tor Browser"]         $ws11
 assign      [title=".*Android Studio.*"]  $ws6
 assign      [title="Discord"]             $ws7
 assign      [instance="DBeaver"]          $ws10
@@ -114,6 +115,7 @@ $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a
 $bind $mod+Shift+3                                              $ensid wmctrl -xa _tmux_          || kitty --title _tmux_
 # $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
 $bind $mod+g                                                    $ensid ~/.local/bin/setbg
+$bind $mod+t                                                    $ensid wmctrl -a "Tor Browser"    || ~/.local/bin/tor-browser
 $bind $mod+Mod1+3                                               $ensid wmctrl -xa _tmux-float_    || kitty --title _tmux-float_ \
     -o font_size=10 -o initial_window_width=400 -o initial_window_height=300 -o remember_window_size=no
 $bind $mod+Mod1+Return                                          $ensid wmctrl -xa _ranger-float_    || kitty --title _ranger-float_ \
