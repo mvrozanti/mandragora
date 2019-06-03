@@ -426,3 +426,4 @@ alias ns='notify-send'
 alias torb='nohup tor-browser 2>&1 > /dev/null &'
 keep(){ while :; do "$@"; done }
 alias swipl='swipl -q'
+cowv(){ cow 2>&1 | grep to: | sd '.+‘(.+)’' '$1' | xargs nvim }
