@@ -319,11 +319,12 @@ alias hlo='hamachi logout'
 alias hli='hamachi login'
 ti(){ tar -czf - $@ > ~/.tarchive.tar }
 to(){ tar -xzv < ~/.tarchive.tar }
-compv(){ co | xargs mpv }
+compv(){ co | xargs mpv --ytdl-format=best }
 alias scanlan='nmap -p80,443 192.168.0.0/24 -oG -'
 alias scanvuln='nikto -h -'
 alias pull='git pull'
 ytpl(){ search="$@"; mpv --script-opts=ytdl_hook-try_ytdl_first=yes ytdl://ytsearch:"$search" }
+alias yts='ytpl'
 alias sk='screenkey --font-color red --opacity 0.2 --compr-cnt 3 -s small'
 alias U='sudo umount'
 alias cfM='v ~/.config/mpv/input.conf'
