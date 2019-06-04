@@ -174,7 +174,7 @@ alias nvimdiff='nvim -d'
 alias vimdiff=nvimdiff
 alias entr='entr -p'
 cnt(){ echo $1 | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -g -o "$noext" ${@:2} && clear && ./"$noext"'; }
-bentr(){ ls * | entr -p /_ $@ }
+xentr(){ ls * | entr -p /_ $@ }
 cntr(){ echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && sh -c "$noext || :"'; }
 centr(){ ls *.c   | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
 gentr(){ ls *.cpp | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; g++ '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
@@ -182,10 +182,9 @@ gentr(){ ls *.cpp | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. 
 mentr(){ ls *.* | entr -c make }
 mxentr(){ ls *.c   | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; make && clear && exec "$noext"'; }
 jentr(){ ls *.java | entr -c javac * }
-# xentr(){ ls *.* | entr $@ /_ }
 nentr(){ ls *.* | entr $@ node /_ }
 dentr(){ le_f1="$1"; le_f2="$2"; ls *.* | entr nvim -d <(xxd $le_f1) <(xxd $le_f2) }
-ventr(){ [[ $(($#)) -gt 1 ]] && echo $1 | entr -cr sh -c 'valgrind --quiet --show-leak-kinds=all --leak-check=full '`realpath ${@: -1}`' -v --track-origins=yes' }
+ventr(){ [[ $(($#)) -gt 0 ]] && echo $1 | entr -cr sh -c 'valgrind --quiet --show-leak-kinds=all --leak-check=full '`realpath ${@: -1}`' -v --track-origins=yes' }
 alias dotty='~/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
 countdown(){ date1=$((`date +%s` + $1)); while [ "$date1" -ge `date +%s` ]; do clear; echo -ne "$(date -u --date @$(($date1 - `date +%s`)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
