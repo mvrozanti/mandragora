@@ -78,6 +78,7 @@ assign      [title="_zsh_"]               $ws2
 assign      [instance="cava"]             $ws2
 assign      [instance="cmatrix"]          $ws2
 assign      [class="NetBeans IDE "]       $ws6
+assign      [class="| Slack"]             $ws13
 assign      [class="Eclipse IDE "]        $ws6
 assign      [class="Visual Studio"]       $ws6
 assign      [class="Tor Browser"]         $ws11
