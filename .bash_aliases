@@ -300,7 +300,7 @@ arf(){ echo "$@" >> ~/.newsboat/urls }
 alias help='echo no && read'
 alias t1='tail -n1'
 alias t1a='t1 ~/.bash_aliases'
-alias sl='ls'
+alias sl='slack'
 alias cfT='v ~/.tig'
 alias burncd='i3-msg workspace 1 && o https://www.linuxquestions.org/questions/linux-newbie-8/how-to-burn-files-into-a-dvd-from-command-line-4175464968/'
 alias enc='openssl aes-256-cbc -in - 2>/dev/null'
