@@ -62,7 +62,7 @@ for_window  [class="mpv"]                 sticky enable, floating enable, move p
 for_window  [title="_visualizer_"]        sticky enable, floating enable
 no_focus [title="_visualizer-float_"]
 for_window  [title="_tmux-float_"]        sticky enable, floating enable, move position 1500 670 
-for_window  [title="_ranger-float_"]      sticky enable, floating enable, move position 1500 670 
+for_window  [title="_ranger-float_"]      sticky enable, floating enable, move position 1400 570 
 for_window  [title="_visualizer-float_"]  sticky enable, floating enable, move position 1400 520 
 for_window  [instance="portal"]           sticky enable, floating enable
 for_window  [instance="khal2"]            floating enable, move position 950 250, \
@@ -121,7 +121,7 @@ $bind $mod+7          fullscreen disable; workspace $ws11;      $ensid wmctrl -a
 $bind $mod+Mod1+3                                               $ensid wmctrl -xa _tmux-float_    || kitty --title _tmux-float_ \
     -o font_size=10 -o initial_window_width=400 -o initial_window_height=300 -o remember_window_size=no
 $bind $mod+Mod1+Return                                          $ensid wmctrl -xa _ranger-float_    || kitty --title _ranger-float_ \
-    -o font_size=10 -o initial_window_width=400 -o initial_window_height=300 -o remember_window_size=no sh -c $cat_seqs' && ranger' 
+    -o font_size=10 -o initial_window_width=500 -o initial_window_height=400 -o remember_window_size=no sh -c $cat_seqs' && ranger' 
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix \
     -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
 $bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
