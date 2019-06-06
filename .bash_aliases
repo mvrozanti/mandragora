@@ -364,7 +364,7 @@ alias up='sudo umount ~/phone'
 smp(){ diff <(ls ~/Musik/) <(ls "$HOME/phone/Internal storage/Music/") | grep mp3 | cut -c 3- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "$HOME/phone/Internal storage/Music/"; done }
 spp(){ mv ~/phone/Internal\ storage/DCIM/Facebook/* ~/phone/Internal\ storage/Pictures/Telegram/* ~/phone/Internal\ storage/Pictures/Reddit/* ~/phone/Internal\ storage/DCIM/Camera/* ~/gdrive/Levv/4chan/ }
 sp(){ smp;spp }
-coz(){ `co` }
+cox(){ `co` }
 sa(){ grep -E "^(alias )?$@(=|\()" ~/.bash_aliases }
 sma(){ sa "$@" | sd "alias.+='(.+)'|.+\(\)\{\s?(.+)\s?}" '$1$2' }
 alias I='sxiv'
