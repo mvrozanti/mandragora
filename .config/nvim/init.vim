@@ -3,6 +3,7 @@ fun! SetupCommandAlias(from, to)
         \ .' ((getcmdtype() is# ":" && getcmdline() is# "'.a:from.'")'
         \ .'? ("'.a:to.'") : ("'.a:from.'"))'
 endfun
+
 call SetupCommandAlias("jsonify","%!python -m json.tool")
 map <A-F> mzgg=G`zzz
 xnoremap p "_dP
@@ -14,8 +15,10 @@ nnoremap <A-p> o<A-p>
 " Automatically deletes all tralling whitespace on save.
 " let blacklist = ['txt']
 " autocmd BufWritePre  * if index(blacklist, &ft) < 0 | %s/\s\+$//e
-autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex -synctex=1 %
+autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex -synctex=1 % 
+nnoremap <C-o> :call Synctex()<CR>
 autocmd BufWritePost *.bib silent! !bibtex %:r ; pdflatex %:r.tex ; pdflatex -synctex=1 %:r.tex 
+
 " Sync tex pdf (doesnt work tho)
 " function! Synctex()
 "     execute "silent !zathura --synctex-forward " . line('.') . ":" . col('.') . ":" . bufname('%') . " " . g:syncpdf
@@ -561,3 +564,9 @@ autocmd FileType tex inoremap rn<Tab> (\ref{})<+><Esc>F}i
 set guicursor=i:100-bCursor
 set conceallevel=0
 set noshowcmd
+
+function! Synctex()
+  " remove 'silent' for debugging
+  execute "silent !zathura --synctex-forward " . line('.') . ":" . col('.') . ":" . bufname('%') . " " . bufname('%')[:-5]. ".pdf"
+  redraw!
+endfunction
