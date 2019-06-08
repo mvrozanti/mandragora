@@ -434,3 +434,4 @@ alias zresr='zres;r'
 alias zat='zathura'
 alias cu='curl'
 alias tremc='transmission-remote-cli'
+coz(){ zathura `co` }
