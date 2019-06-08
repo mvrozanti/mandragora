@@ -228,7 +228,8 @@
     "flake8",
     "zerotier-one",
     "git-lfs",
-    "torsocks"
+    "torsocks",
+    "wkhtmltopdf"
   ],
   "excluded": [
     "hotmail.gpg"
