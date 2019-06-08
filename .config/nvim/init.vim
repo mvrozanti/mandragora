@@ -62,6 +62,7 @@ Plug 'christoomey/vim-tmux-navigator'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 autocmd FileType prolog setlocal commentstring=%\ %s
+autocmd FileType prolog inoremap she<tab> #!/usr/bin/swipl
 " autocmd FileType prolog map <F5> <ESC>:w<CR>:exec '!swipl -q %'<CR>
 " autocmd FileType perl   map <F5> <ESC>:w<CR>:exec '!swipl -q %'<CR>
 autocmd FileType perl   setlocal commentstring=%\ %s
