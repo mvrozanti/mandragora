@@ -431,3 +431,4 @@ cowv(){ cow 2>&1 | grep to: | sd '.+‘(.+)’' '$1' | xargs nvim }
 alias rp.='realpath .'
 alias zresr='zres;r'
 alias zat='zathura'
+alias cu='curl'
