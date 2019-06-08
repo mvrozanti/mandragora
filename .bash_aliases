@@ -434,4 +434,5 @@ alias zresr='zres;r'
 alias zat='zathura'
 alias cu='curl'
 alias tremc='transmission-remote-cli'
-coz(){ wget -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36' `co` -O /tmp/html.pdf ; nohup zathura $_ 2>&1 >/dev/null & }
+coz(){ nohup zathura "$@" 2>&1 >/dev/null & }
+cohz(){ cocurl | wkhtmltopdf - /tmp/html.pdf ; nohup zathura $_ 2>&1 >/dev/null & }
