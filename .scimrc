@@ -1,8 +1,5 @@
 nnoremap "Q" ":q!<CR>"
 nnoremap "<CR>" "\"
-/* vnoremap "y" ":ccopy<cr>" */
 nnoremap "y" ":ccopy<cr>"
-set default_copy_to_clipboard_cmd="xsel -i -b <"
-set default_paste_from_clipboard_cmd="xsel"
-set copy_to_clipboard_delimited_tab=1
-set debug=0
+nnoremap "p" ":cpaste<cr>"
+nnoremap "<C-w>" ":wq "
