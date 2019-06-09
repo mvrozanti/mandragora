@@ -32,7 +32,7 @@ set_from_resource $color9 color9 #0f00f0
 set $dmenu_looks -fn 'Droid Sans Mono for Powerline' -nb '#1e1e1e' -sf '#1e1e1e' -sb '#ff3300' -nf '#ff3300'
 $bind $mod+Shift+BackSpace  $ensid xset -display :0 dpms force on
 $bind $mod+Ctrl+BackSpace   $ensid sleep 1 && xset -display :0.0 dpms force off
-$bind Ctrl+Mod1+BackSpace   $ensid shutdown -h 0
+$bind $mod+Pause            $ensid shutdown -h 0
 $bind $mod+Shift+r          restart
 $bind $mod+q                kill
 $bind Mod1+Tab              workspace back_and_forth
@@ -163,6 +163,7 @@ $bind $mod+Shift+p                                              $ensid transset-
 $bind $mod+Mod1+p                                               $ensid zathura
 $bind $mod+y                                                    $ensid wmctrl -a _youtube_        || mpv `xsel -o -b`
 $bind $mod+x                                                    $ensid wmctrl -a  mpv
+$bind $mod+Pause                                                $ensid notify-send kek
 $bind $mod+d              workspace $ws9
 # $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
 # $bind $mod+Shift+m see $HOME/.config/dunst/dunstrc
