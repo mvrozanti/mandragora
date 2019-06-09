@@ -163,7 +163,6 @@ $bind $mod+Shift+p                                              $ensid transset-
 $bind $mod+Mod1+p                                               $ensid zathura
 $bind $mod+y                                                    $ensid wmctrl -a _youtube_        || mpv `xsel -o -b`
 $bind $mod+x                                                    $ensid wmctrl -a  mpv
-$bind $mod+Pause                                                $ensid notify-send kek
 $bind $mod+d              workspace $ws9
 # $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
 # $bind $mod+Shift+m see $HOME/.config/dunst/dunstrc
