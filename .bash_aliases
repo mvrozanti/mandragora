@@ -177,7 +177,7 @@ alias entr='entr -p'
 cnt(){ echo $1 | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -g -o "$noext" ${@:2} && clear && ./"$noext"'; }
 xentr(){ ls * | entr -p /_ $@ }
 cntr(){ echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && sh -c "$noext || :"'; }
-centr(){ ls *.c   | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
+centr(){ ls *.c   | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '"$@"' {} -g -o "$noext" && clear && exec "$noext"'; }
 gentr(){ ls *.cpp | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; g++ '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
 # pentr(){ [[ -z $1 ]] && ls *.py* | entr -rc /_ $@ || echo $1 | entr /_ }
 mentr(){ ls *.* | entr -c make }
@@ -364,7 +364,7 @@ alias gaca='git add .; git commit --amend'
 alias gacap='gaca; git push -f'
 alias up='sudo umount ~/phone'
 smp(){ diff <(ls ~/Musik/) <(ls "$HOME/phone/Internal storage/Music/") | grep mp3 | cut -c 3- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "$HOME/phone/Internal storage/Music/"; done }
-spp(){ mv ~/phone/Internal\ storage/DCIM/Facebook/* ~/phone/Internal\ storage/Pictures/Telegram/* ~/phone/Internal\ storage/Pictures/Reddit/* ~/phone/Internal\ storage/DCIM/Camera/* ~/gdrive/Levv/4chan/ }
+spp(){ mv "~/phone/Internal storage/DCIM/Facebook/*" "~/phone/Internal storage/Pictures/Telegram/*" "~/phone/Internal storage/Pictures/Reddit/*" "~/phone/Internal storage/DCIM/Camera/*" ~/gdrive/Levv/4chan/ }
 sp(){ smp;spp }
 cox(){ `co` }
 sa(){ grep -E "^(alias )?$@(=|\()" ~/.bash_aliases }
@@ -435,3 +435,4 @@ alias zat='zathura'
 alias cu='curl'
 alias tremc='transmission-remote-cli'
 coz(){ wget -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36' "`co`" -O /tmp/html.pdf 2>&1 >/dev/null ; [[ "`file -ib /tmp/html.pdf`" =~ ".*pdf.*" ]] || cat $_ | wkhtmltopdf - $_ ; nohup zathura $_ 2>&1 >/dev/null & }
+alias wla='watch ls -a'
