@@ -478,14 +478,17 @@ inoremap <A-Right> <ESC>l
 
 function! Killit()
     let l:buf_count = len(getbufinfo({'buflisted':1}))
-    if &buftype ==# "nofile"
-        :q
-    endif
-    if l:buf_count == 1
-        :wq
-    else
-        :bd
-    endif
+    try
+        if l:buf_count == 1
+            :wq
+        else
+            :bd
+        endif
+    catch
+        if &buftype ==# "nofile"
+            :q
+        endif
+    endtry
 endfunction
 
 nnoremap <C-W> :call Killit()<CR>
