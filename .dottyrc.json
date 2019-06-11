@@ -231,7 +231,8 @@
     "torsocks",
     "wkhtmltopdf",
     "python-pytest",
-    "tidy"
+    "tidy",
+    "meson"
   ],
   "excluded": [
     "hotmail.gpg"
