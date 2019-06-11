@@ -438,3 +438,4 @@ coz(){ wget -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (
 alias wla='watch ls -a'
 alias 2h='hh'
 cowat(){ co > /tmp/cowat.html ; waterfox --new-tab /tmp/cowat.html }
+alias cocurll='cocurl | less'
