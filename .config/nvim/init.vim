@@ -62,6 +62,7 @@ Plug 'christoomey/vim-tmux-navigator'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 Plug 'terryma/vim-multiple-cursors'
+Plug 'alvan/vim-closetag'
 autocmd BufEnter *.pro :setlocal filetype=prolog
 autocmd FileType prolog setlocal commentstring=%\ %s
 autocmd FileType prolog inoremap she<tab> #!/usr/bin/swipl
