@@ -440,3 +440,4 @@ alias wla='watch ls -a'
 alias 2h='hh'
 cowat(){ co > /tmp/cowat.html ; waterfox --new-tab /tmp/cowat.html }
 alias cocurll='cocurl | less'
+alias gdd='git diff HEAD~1'
