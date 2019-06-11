@@ -84,6 +84,7 @@ map [fullscreen] d scroll half-down
 map b scroll half-up
 map [fullscreen] b scroll half-up
 set selection-clipboard clipboard
+map ,<Space> feedkeys "'"
 map <C-i> feedkeys ":info<Return>"
 map <C-O> feedkeys ":open <Tab><Return>"
 map <C-o> feedkeys ":open <Tab>"
