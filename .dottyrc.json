@@ -230,7 +230,8 @@
     "git-lfs",
     "torsocks",
     "wkhtmltopdf",
-    "python-pytest"
+    "python-pytest",
+    "tidy"
   ],
   "excluded": [
     "hotmail.gpg"
