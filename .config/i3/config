@@ -88,13 +88,7 @@ assign      [title="Mozilla Thunderbird"] $ws11
 assign      [class="Slack"]               $ws11
 assign      [title="Skype"]               $ws11
 assign      [title="_neomutt_"]           $ws12
-for_window  [title="_todo_"]              floating enable,           \
-                                          resize shrink width 10000px,\
-                                          resize shrink height 10000px,\
-                                          resize grow width 800px,      \
-                                          resize grow height 600px,      \
-                                          move position center
-
+for_window  [title="_todo_"]              sticky enable, floating enable, move position 900 440
 #    __                                 _
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_
 #  | |_| '__/ _ \/ _` | | | |/ _ \ '_ \| __|
@@ -128,10 +122,16 @@ $bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a
     -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtubecurses_  || kitty --name _youtubecurses_ \
     -o background_opacity=.78 --title _youtubecurses_ -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses || read"
-$bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  _todo_          || kitty --name _todo_ \
-    -o background_opacity=.78 -o font_size=13 --title _todo_  -e zsh -c "nvim $HOME/todo.md"
-$bind $mod+Shift+o          fullscreen disable;                 $ensid wmctrl -a  _todo_          || kitty --name _todo_ \
-    -o background_opacity=.78 -o font_size=13 --title _todo_  -e zsh -c "nvim /home/nexor/mackenzie/tcc1/duvidas.md"
+# $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  _todo_          || kitty --name _todo_ \
+#     -o background_opacity=.78 -o font_size=16 --title _todo_  -e zsh -c 'swipl -q -s $HOME/kno.pro'
+$bind $mod+o                                                    $ensid wmctrl -xa _todo_          || kitty --title _todo_ \
+    -o font_size=16 -o initial_window_width=600 -o initial_window_height=500 -o remember_window_size=no zsh -c $cat_seqs' && swipl -q -s $HOME/kno.pro' 
+$bind $mod+Shift+o                                              $ensid wmctrl -xa _todo_          || kitty --title _todo_ \
+    -o font_size=14 -o initial_window_width=500 -o initial_window_height=400 -o remember_window_size=no zsh -c $cat_seqs' && sleep 0.1 && nvim $HOME/kno.pro' 
+# $bind $mod+Shift+o          fullscreen disable;                 $ensid wmctrl -a  _todo_          || kitty --name _todo_ \
+#     -o background_opacity=.78 -o font_size=13 --title _todo_  -e zsh -c "nvim $HOME/kno.pro"
+# $bind $mod+Shift+o          fullscreen disable;                 $ensid wmctrl -a  _todo_          || kitty --name _todo_ \
+#     -o background_opacity=.78 -o font_size=13 --title _todo_  -e zsh -c "nvim $HOME/mackenzie/tcc1/duvidas.md"
 $bind $mod+braceleft                                            $ensid wmctrl -a  khal            || kitty --name khal2 \
     -o background_opacity=.78 -o font_size=14 --title khal2 -e sh  -c $cat_seqs" && khal interactive"
 $bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a  khal            || kitty --name khal_ \
