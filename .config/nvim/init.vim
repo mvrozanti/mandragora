@@ -470,8 +470,21 @@ inoremap <A-Down> <ESC>j
 inoremap <A-Up> <ESC>k
 inoremap <A-Right> <ESC>l
 
-nnoremap <C-W> <Esc>:q<CR>
-inoremap <C-W> <Esc>:q<CR>
+function! Killit()
+    let l:buf_count = len(getbufinfo({'buflisted':1}))
+    if l:buf_count == 1
+        :wq
+    else
+        :bd
+    endif
+endfunction
+
+nnoremap <C-W> :call Killit()<CR>
+inoremap <C-W> :call Killit()<CR>
+
+" nnoremap <C-W> <Esc>:q<CR>
+" inoremap <C-W> <Esc>:q<CR>
+
 nnoremap <C-S> <Esc>:w<CR>
 inoremap <C-S> <Esc>:w<CR>
 
@@ -542,7 +555,7 @@ autocmd FileType tex inoremap cb<Tab> \citebook{}<+><Esc>T{i
 autocmd FileType tex inoremap glos<Tab> {\gll<Space><+><Space>\\<CR><+><Space>\\<CR>\trans{``<+>''}}<Esc>2k2bcw
 autocmd FileType tex inoremap x<Tab> \begin{xlist}<CR>\ex<Space><CR>\end{xlist}<Esc>kA<Space>
 autocmd FileType tex inoremap ol<Tab> \begin{enumerate}<CR><CR>\end{enumerate}<CR><CR><+><Esc>3kA\item<Space>
-autocmd FileType tex inoremap ul<Tab> \begin{itemize}<CR><CR>\end{itemize}<CR><CR><+><Esc>3kA\item<Space>
+autocmd FileType tex inoremap item<Tab> \begin{itemize}<CR><CR>\end{itemize}<CR><CR><+><Esc>3kA\item<Space>
 autocmd FileType tex inoremap li<Tab> <CR>\item<Space>
 autocmd FileType tex inoremap ref<Tab> \ref{}<Space><+><Esc>T{i
 autocmd FileType tex inoremap tab<Tab> \begin{tabular}<CR><+><CR>\end{tabular}<CR><CR><+><Esc>4kA{}<Esc>i
@@ -571,7 +584,7 @@ set conceallevel=0
 set noshowcmd
 
 function! Synctex()
-  " remove 'silent' for debugging
-  execute "silent !zathura --synctex-forward " . line('.') . ":" . col('.') . ":" . bufname('%') . " " . bufname('%')[:-5]. ".pdf"
-  redraw!
+    " remove 'silent' for debugging
+    execute "silent !zathura --synctex-forward " . line('.') . ":" . col('.') . ":" . bufname('%') . " " . bufname('%')[:-5]. ".pdf"
+    redraw!
 endfunction
