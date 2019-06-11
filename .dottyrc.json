@@ -229,7 +229,8 @@
     "zerotier-one",
     "git-lfs",
     "torsocks",
-    "wkhtmltopdf"
+    "wkhtmltopdf",
+    "python-pytest"
   ],
   "excluded": [
     "hotmail.gpg"
