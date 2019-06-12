@@ -139,3 +139,6 @@ if [ -f '/home/nexor/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/home/n
 if [ -f '/home/nexor/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/home/nexor/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
 
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+
+# added by travis gem
+[ -f /home/nexor/.travis/travis.sh ] && source /home/nexor/.travis/travis.sh

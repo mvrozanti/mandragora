@@ -5,3 +5,6 @@ POWERLINE_BASH_SELECT=1
 stty -ixon
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+# added by travis gem
+[ -f /home/nexor/.travis/travis.sh ] && source /home/nexor/.travis/travis.sh
