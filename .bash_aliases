@@ -96,7 +96,7 @@ alias 2wmv='sudo ffmpeg -c:v wmv2 -b:v 99M -c:a wmav2 -b:a 192k output.wmv -i'
 alias mp32wav='mpg123 -w output.wav'
 o(){ nohup xdg-open $@ 2>&1 >/dev/null & }
 O(){ nohup xdg-open $@ 2>&1 >/dev/null &; exit }
-alias g='grep -i'
+alias g='grep -i --color '
 alias swipl='swipl -q'
 alias prolog='swipl'
 alias T='date +%s'

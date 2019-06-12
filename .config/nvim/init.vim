@@ -63,6 +63,7 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 Plug 'terryma/vim-multiple-cursors'
 Plug 'alvan/vim-closetag'
+Plug 'chase/vim-ansible-yaml'
 autocmd BufEnter *.pro :setlocal filetype=prolog
 autocmd FileType prolog setlocal commentstring=%\ %s
 autocmd FileType prolog inoremap she<tab> #!/usr/bin/swipl
@@ -346,8 +347,7 @@ Plug 'OmniSharp/omnisharp-vim'
 Plug 'markwoodhall/vim-nuget'
 Plug 'Shougo/deoplete.nvim'
 Plug 'mattn/webapi-vim'
-Plug 'junegunn/fzf.vim', { 'dir': '~/.fzf', 'do': './install --all' }
-Plug 'junegunn/fzf.vim'
+" Plug 'junegunn/fzf.vim', { 'dir': '~/.fzf', 'do': './install --all' }
 set completeopt=longest,menuone,preview
 " let g:OmniSharp_proc_debug = 1
 let g:OmniSharp_server_use_mono = 1
