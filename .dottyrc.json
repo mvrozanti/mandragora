@@ -231,7 +231,6 @@
     "torsocks",
     "wkhtmltopdf",
     "python-pytest",
-    "tidy",
     "meson"
   ],
   "excluded": [
