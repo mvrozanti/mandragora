@@ -441,4 +441,4 @@ alias 2h='hh'
 cowat(){ co > /tmp/cowat.html ; waterfox --new-tab /tmp/cowat.html }
 alias cocurll='cocurl | less'
 alias gdd='git diff HEAD~1'
-trentr(){ e .travis.yml | entr echo /_ | xargs -I{} travis lint {} }
+trentr(){ e .travis.yml | entr echo /_ | xargs -I{} sh -c 'clear && travis lint {}' }
