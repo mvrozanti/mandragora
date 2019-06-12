@@ -57,13 +57,13 @@ if has('persistent_undo')
 endif
 
 call plug#begin()
-" Plug 'Yggdroot/indentLine'
+Plug 'Yggdroot/indentLine'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 Plug 'terryma/vim-multiple-cursors'
 Plug 'alvan/vim-closetag'
-Plug 'chase/vim-ansible-yaml'
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
 autocmd BufEnter *.pro :setlocal filetype=prolog
 autocmd FileType prolog setlocal commentstring=%\ %s
 autocmd FileType prolog inoremap she<tab> #!/usr/bin/swipl
