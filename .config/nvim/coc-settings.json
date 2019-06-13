@@ -1,7 +1,8 @@
 {
     "coc.preferences.autoTrigger": "always",
     "coc.preferences.triggerAfterInsertEnter": false,
-    "coc.preferences.timeout": 2000,
+    "coc.preferences.timeout": 100,
+    "suggest.triggerCompletionWait": 50,
     "coc.preferences.noselect": true,
     "coc.preferences.formatOnType": false,
     "coc.preferences.jumpCommand": "edit",
