@@ -164,7 +164,7 @@ autocmd FileType javascript inoremap repl<tab> require('repl').start('> ').conte
 autocmd FileType javascript inoremap tr<tab> true
 autocmd FileType javascript inoremap fa<tab> false
 autocmd FileType javascript inoremap cl<tab> console.log()<Esc>i
-autocmd FileType javascript inoremap fn<tab> function(){<CR><+><CR>}<Esc>2kf(l
+autocmd FileType html,javascript inoremap fn<tab> function(){<CR><Tab><+><CR>}<Esc>2kf(a
 autocmd FileType javascript inoremap she<tab> #!/usr/bin/env node
 
 " java shortcuts
