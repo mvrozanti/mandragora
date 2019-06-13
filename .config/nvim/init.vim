@@ -480,7 +480,11 @@ function! Killit()
     let l:buf_count = len(getbufinfo({'buflisted':1}))
     try
         if l:buf_count == 1
-            :wq
+            try
+                :q
+            catch
+                :wq
+            endtry
         else
             :bd
         endif
