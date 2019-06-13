@@ -369,7 +369,6 @@ Plug 'chrisbra/Colorizer'
 Plug 'chrisbra/unicode.vim'
 
 Plug 'othree/yajs.vim'
-Plug 'mitsuhiko/vim-jinja'
 
 " ==== moving / seraching
 Plug 'easymotion/vim-easymotion'
