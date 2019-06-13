@@ -4,6 +4,8 @@ fun! SetupCommandAlias(from, to)
         \ .'? ("'.a:to.'") : ("'.a:from.'"))'
 endfun
 
+nmap - cxt_t_llcxe
+
 call SetupCommandAlias("jsonify","%!python -m json.tool")
 map <A-F> mzgg=G`zzz
 xnoremap p "_dP
@@ -406,8 +408,8 @@ Plug 'danro/rename.vim'
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app & yarn install'  }
 " let g:mkdp_markdown_css = '~/darkdown.css'
 Plug 'terryma/vim-expand-region'
-map + <Plug>(expand_region_expand)
-map - <Plug>(expand_region_shrink)
+map ; <Plug>(expand_region_expand)
+map + <Plug>(expand_region_shrink)
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 let g:airline_powerline_fonts = 1
