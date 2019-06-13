@@ -58,6 +58,7 @@ endif
 
 call plug#begin()
 Plug 'Yggdroot/indentLine'
+Plug 'tomtom/tcomment_vim'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
