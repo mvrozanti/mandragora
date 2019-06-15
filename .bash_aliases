@@ -445,3 +445,4 @@ alias wag='watch ag'
 ci(){ {filename=$@; [[ "${filename##*.}" =~ "jpe?g" ]] && convert $@ png:- || cat $@} | xclip -selection clipboard -t image/png }
 alias f.='find .'
 pentr(){ find . | entr -c sh -c 'ag "__name__ == '"'"'__main__'"'"'" | sed 1q | cut -d '"'"':'"'"' -f1 | xargs python' }
+alias wls='watch ls'
