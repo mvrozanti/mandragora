@@ -443,3 +443,4 @@ alias gdd='git diff HEAD~1'
 trentr(){ e .travis.yml | entr echo /_ | xargs -I{} sh -c 'clear && travis lint {}' }
 alias wag='watch ag'
 ci(){ {filename=$@; [[ "${filename##*.}" =~ "jpe?g" ]] && convert $@ png:- || cat $@} | xclip -selection clipboard -t image/png }
+alias f.='find .'
