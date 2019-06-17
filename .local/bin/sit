@@ -1,5 +1,5 @@
 #!/bin/bash
-find -iname "*.jpg" -print0 | xargs -P16 -I{} -0 sh -c "exiftool -a `realpath \'{}\'` | grep $@ > /dev/null && echo '{}'" 2>&1
+find -iname "*.jpg" -print0 | xargs -P8 -I{} -0 sh -c "exiftool -a `realpath \'{}\'` | grep $@ > /dev/null && echo '{}'" 2>&1
 # le_tag="$1"; 
 # if [[ $# -eq 2 ]]; then 
 #     show_tags=1
