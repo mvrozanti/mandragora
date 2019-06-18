@@ -318,6 +318,7 @@ $ensid wal --saturate 1.0 -a 299 -i `cat $HOME/.fehbg | tail -n1 | cut -d ' ' -f
 $ensid sh -c '[[ `hostname` == "mndrgr"  ]] && compton -D 3 --blur-background --blur-kern `compton-convgen.py --dump-compton box 11`'
 $ensid sh -c '[[ `hostname` == "mndrgr2" ]] && compton'
 $ensid sh -c sleep 40 && dunst
+$ensid sh -c sleep 40 && ntpdate 0.br.pool.ntp.org
 $ensid $HOME/.fehbg
 popup_during_fullscreen smart
 floating_modifier Mod1
