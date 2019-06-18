@@ -254,7 +254,7 @@ alias lh='less ~/.zsh_history'
 alias make-gource-mandragora='git --no-pager log --date=raw|g "^\s+.+|Date"|sed -E "s/Date:\s+//g"|sed "N;s/\n//"|sed -E "s/(\S+)\s-\S+\s+(.+)/\1|\2/g" > caption_file'
 alias tfl='tf *.log'
 alias cfK='nvim ~/.config/kitty/startup_session.kit'
-alias ki='khal interactive'
+alias ki='kitty'
 alias sxiv='sxiv -ab 2>&1 >/dev/null'
 alias i='sxiv -ft *'
 hextv(){ while true; do kek=`head /dev/urandom|tr -dc A-Za-z0-9|head -c $1`;e $kek|xxd;sleep $2;done }
@@ -262,7 +262,7 @@ alias cfrc='nvim ~/.config/ranger/rc.conf'
 alias cfri='nvim ~/.config/ranger/rifle.conf'
 alias cfrs='nvim ~/.config/ranger/scope.sh'
 alias cfrd='nvim ~/.config/ranger/devicons.sh'
-alias k='kitty'
+alias k='khal interactive'
 # cfcr(){ trackedf=`realpath $1`; [[ $trackedf == ~* ]] && lefths=`echo $trackedf|xargs readlink -f|sd ~'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == ~*  ]] && echo $trackedf|sd ~'(.*)' '~$1' || echo $trackedf)'"}' ~"/mandragora/.dottyrc.json" | sponge ~"/mandragora/.dottyrc.json" }
 cfcf(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sd $HOME'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf|sd $HOME'(.*)' '~$1' || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json" | sponge $HOME"/mandragora/.dottyrc.json" }
 cfcu(){ to_remove="$1"; [[ ! -z $to_remove ]] && removed_array="`jq '.install|map(select(.!="'$to_remove'"))' ~"/mandragora/.dottyrc.json"`" && jq .install="$removed_array" ~"/mandragora/.dottyrc.json" | sponge ~/mandragora/.dottyrc.json }
