@@ -447,3 +447,4 @@ pentr(){ find . | entr -c sh -c 'ag "__name__ == '"'"'__main__'"'"'" | sed 1q | 
 alias wls='watch ls'
 alias cosxiv='sxiv `co`'
 alias cogco='gco fix-non-existing-docker-image'
+alias ag='ag --hidden'
