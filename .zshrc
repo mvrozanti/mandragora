@@ -80,7 +80,6 @@ export SSH_KEY_PATH="~/.ssh/rsa_id"
 source ~/.oh-my-zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 source $HOME/.bash_aliases
 source $HOME/.ranger_aliases
-# source /usr/lib/python3.7/site-packages/powerline/bindings/bash/powerline.sh
 stty -ixon
 unsetopt HIST_VERIFY
 bindkey '^ ' autosuggest-accept
@@ -113,7 +112,13 @@ export PATH=${GOPATH//://bin:}/bin:$PATH
 
 # py
 export PATH=~/.local/bin:$PATH
-# source /usr/share/zsh-theme-powerlevel9k/powerlevel9k.zsh-theme
+
+# powerlevel9k
+source /usr/share/zsh-theme-powerlevel9k/powerlevel9k.zsh-theme
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs)
+POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status)
+
+# source /usr/lib/python3.7/site-packages/powerline/bindings/bash/powerline.sh
 
 # turn off beep
 set bell-style none

@@ -22,7 +22,7 @@ alias unp='unp -U'
 alias create-readme='cp ~/.README.md ./README.md && nvim README.md'
 alias E='emacs -nw'
 # test .Xresources colors
-alias colors='echo;for a in {40..47}; do echo -ne "\e[0;30;$a""m  ""\e[0;37;39m "; done; echo ""'
+alias showcolors='echo;for a in {40..47}; do echo -ne "\e[0;30;$a""m  ""\e[0;37;39m "; done; echo ""'
 # alias neofetch='neofetch --backend ascii --source /mnt/4ADE1465DE144C17/gdrive/nexor.ascii'
 alias cutefetch='while true; do screenfetch_out="$(screenfetch -a ~/nexor.ascii -p)$(colors;echo;echo;echo)";sleep 1;clear;printf "$screenfetch_out"|lolcat;sleep 1; done'
 alias screenfetch="screenfetch -a ~/nexor.ascii -p"
