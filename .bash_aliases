@@ -203,7 +203,7 @@ make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\
 ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $@; }
 alias wt='watch -n 1 tree'
 wtg(){ watch -n 1 "tree | grep $@" }
-wcat(){ ls $@ | entr -c cat }
+wcat(){ ls "$@" | entr -c cat /_ }
 hl(){ hamachi list | sed -E '/\*/!d;/\s{2,}\*/!d;s/\s+\*\S+?\s+?\S+?\s+?(\S+)\s+(\S+).+$/\1 \2/g' }
 whl(){ watch "hamachi list | sed -E '/\*/!d;/\s{2,}\*/!d;s/\s+\*\S+?\s+?\S+?\s+?(\S+)\s+(\S+).+$/\1 \2/g'" }
 coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z $fp | xsel -i -b; }
