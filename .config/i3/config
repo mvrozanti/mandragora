@@ -111,6 +111,8 @@ $bind $mod+Shift+3                                              $ensid wmctrl -x
 $bind $mod+g                                                    $ensid ~/.local/bin/setbg
 $bind $mod+t                                                    $ensid wmctrl -a "Tor Browser"    || ~/.local/bin/tor-browser
 $bind $mod+7          fullscreen disable; workspace $ws11;      $ensid wmctrl -a "Slack"          || slack
+$bind $mod+Mod1+k                                               $ensid pamixer -i 4
+$bind $mod+Mod1+j                                               $ensid pamixer -d 4
 $bind $mod+Mod1+3                                               $ensid wmctrl -xa _tmux-float_    || kitty --title _tmux-float_ \
     -o font_size=10 -o initial_window_width=400 -o initial_window_height=300 -o remember_window_size=no
 $bind $mod+Mod1+Return                                          $ensid wmctrl -xa _ranger-float_    || kitty --title _ranger-float_ \
@@ -330,8 +332,7 @@ client.focused_inactive $color0 $color0 $color0 $color0 $color0
 client.urgent           $color3   $color3 #ffffff #900000 #900000
 client.placeholder      #000000 #0c0c0c #ffffff #000000 #0c0c0c
 client.background       #ffffff
-$bind $mod+KP_Home  $ensid redshift -g 1:0.5:0.5 -O 25000K
-$bind $mod+KP_Up    $ensid redshift -g 0.5:0.5:1 -O 25000K
+$bind $mod+KP_Home  $ensid redshift -g 1:0.5:0.5 -O 25000K $bind $mod+KP_Up    $ensid redshift -g 0.5:0.5:1 -O 25000K
 $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 
 #     __ _  __ _ _ __  ___
