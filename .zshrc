@@ -6,6 +6,7 @@ ZSH_TMUX_AUTOSTART=true
 ZSH_TMUX_FIXTERM=true
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=12'
 ZSH_THEME="nexor"
+# ZSH_THEME="powerlevel9k/powerlevel9k"
 LS_COLORS='fi=0:ln=5:pi=0:so=7:bd=5:cd=5:or=31:mi=0:ex=93:*.py=36:di=40:*.zip=33:*.tgz=33:ow=1'
 
 # Uncomment the following line to use case-sensitive completion.
@@ -113,10 +114,16 @@ export PATH=${GOPATH//://bin:}/bin:$PATH
 # py
 export PATH=~/.local/bin:$PATH
 
+
 # powerlevel9k
-source /usr/share/zsh-theme-powerlevel9k/powerlevel9k.zsh-theme
 POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs)
 POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status)
+# User with skull
+# user_with_skull() { echo -n "\ufb8a $(whoami)" }
+# P9K_CUSTOM_USER="user_with_skull"
+# POWERLEVEL9K_MODE="awesome-fontconfig"
+# POWERLEVEL9K_HOME_SUB_ICON=$'\UE18D '
+source /usr/share/zsh-theme-powerlevel9k/powerlevel9k.zsh-theme
 
 # source /usr/lib/python3.7/site-packages/powerline/bindings/bash/powerline.sh
 
