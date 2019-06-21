@@ -232,7 +232,8 @@
     "torsocks",
     "wkhtmltopdf",
     "python-pytest",
-    "meson"
+    "meson",
+    "/home/nexor/.local/bin/ci"
   ],
   "excluded": [
     "hotmail.gpg"
