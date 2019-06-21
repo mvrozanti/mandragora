@@ -71,7 +71,8 @@
     ".local/bin/dict": "~/.local/bin/dict",
     ".config/kitty/set_colors.py": "~/.config/kitty/set_colors.py",
     ".local/bin/setbg": "~/.local/bin/setbg",
-    ".local/bin/superscripter": "~/.local/bin/superscripter"
+    ".local/bin/superscripter": "~/.local/bin/superscripter",
+    ".local/bin/ci": "~/.local/bin/ci"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
@@ -232,8 +233,7 @@
     "torsocks",
     "wkhtmltopdf",
     "python-pytest",
-    "meson",
-    "/home/nexor/.local/bin/ci"
+    "meson"
   ],
   "excluded": [
     "hotmail.gpg"
