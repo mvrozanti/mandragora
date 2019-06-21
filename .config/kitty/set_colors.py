@@ -8,10 +8,10 @@ def main(args):
     pass
 
 def handle_result(args, data, target_window_id, boss):
-    f = open('/home/nexor/kek', 'w')
+    # f = open('/home/nexor/kek', 'w')
     # print = lambda x: os.system('notify-send ' + str(x))
     colors = get_colors(boss, boss.window_id_map.get(target_window_id), { 'match':'background', 'configured': True })
-    print = lambda x: f.write(x+'\n'); f.flush()
+    # print = lambda x: f.write(x+'\n'); f.flush()
     bg = fg = None
     for col_tuple in colors.split('\n'):
         while '  ' in col_tuple:
