@@ -199,7 +199,7 @@ alias vc='co | v -'
 alias cv='cov'
 alias vh='nvim ~/.zsh_history'
 vx(){ xxd $@ | v - }
-make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias g"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > ~/.ranger_aliases; }
+make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias z"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > ~/.ranger_aliases; }
 ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $@; }
 alias wt='watch -n 1 tree'
 wtg(){ watch -n 1 "tree | grep $@" }
@@ -210,8 +210,8 @@ coif(){ fp="$@"; xclip -selection clipboard -t image/png -o > $fp && realpath -z
 ocsv() { cat "$@" | psc -k -d, | `wis sc` }
 alias sc='sc-im'
 fv(){ find . -type f -name "*$@*" -exec nvim {} +  }
-zt(){ tar -czvf $1".tar.gz" ${@:2} }
-zz(){ [[ "$#" -eq 2 ]] && zip -r  "$1".zip ${@:2} }
+Zt(){ tar -czvf $1".tar.gz" ${@:2} }
+Zz(){ [[ "$#" -eq 2 ]] && zip -r  "$1".zip ${@:2} }
 alias S='du -sh'
 alias gsu='git ls-files . --exclude-standard --others'
 alias gsi='git ls-files . --ignored --exclude-standard --others'
