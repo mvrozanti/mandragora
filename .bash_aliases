@@ -199,7 +199,7 @@ alias vc='co | v -'
 alias cv='cov'
 alias vh='nvim ~/.zsh_history'
 vx(){ xxd $@ | v - }
-make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias z"$2"='\''"; $1=$2=""; print $0"'\''"}' | sed -E 's/\s{2}//g' > ~/.ranger_aliases; }
+make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias z"substr($2, 2)"='\''"; $1=$2=""; print substr($0, 1)"'\''"}' | sed -E 's/\s{2}//g' > ~/.ranger_aliases; }
 ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $@; }
 alias wt='watch -n 1 tree'
 wtg(){ watch -n 1 "tree | grep $@" }
