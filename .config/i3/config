@@ -59,7 +59,7 @@ for_window  [title=".*Zoom "]             move to workspace $ws5
 for_window  [instance="^ranger$"]         move to workspace $ws8
 for_window  [class="mpv"]                 sticky enable, floating enable, move position 1000 470
 for_window  [title="_visualizer_"]        sticky enable, floating enable
-no_focus [title="_visualizer-float_"]
+no_focus    [title="_visualizer-float_"]
 for_window  [title="_tmux-float_"]        sticky enable, floating enable, move position 1500 670 
 for_window  [title="_ranger-float_"]      sticky enable, floating enable, move position 1400 570 
 for_window  [title="_visualizer-float_"]  sticky enable, floating enable, move position 1400 520 
@@ -372,15 +372,17 @@ mode "$mode_gaps" {
 }
 
 mode "$mode_gaps_inner" {
-        $bind plus  gaps inner current plus 5
-        $bind minus gaps inner current minus 5
-        $bind 0     gaps inner current set 0
+        $bind plus        gaps inner current plus 5
+        $bind minus       gaps inner current minus 5
+        $bind 0           gaps inner current set 0
         $bind Shift+plus  gaps inner all plus 5
+        $bind k           gaps inner all plus 5
         $bind Shift+minus gaps inner all minus 5
+        $bind j           gaps inner all minus 5
         $bind Shift+0     gaps inner all set 0
-        $bind Return mode default
-        $bind Escape mode default
-        $bind q mode default
+        $bind Return      mode default
+        $bind Escape      mode default
+        $bind q           mode default
 }
 mode "$mode_gaps_outer" {
         $bind plus  gaps outer current plus 5
