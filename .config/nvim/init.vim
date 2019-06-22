@@ -252,7 +252,8 @@ nnoremap <S-U>      :5winc -<CR>
 set conceallevel=0
 
 " === LSP ===
-set grepprg="ag --hidden"
+set grepprg=ag
+let g:grep_cmd_opts = '--hidden'
 Plug 'skwp/greplace.vim'
 
 Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
