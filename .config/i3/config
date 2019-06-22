@@ -377,8 +377,10 @@ mode "$mode_gaps_inner" {
         $bind 0           gaps inner current set 0
         $bind Shift+plus  gaps inner all plus 5
         $bind k           gaps inner all plus 5
+        $bind Shift+k     gaps inner all plus 5
         $bind Shift+minus gaps inner all minus 5
         $bind j           gaps inner all minus 5
+        $bind Shift+j     gaps inner all minus 5
         $bind Shift+0     gaps inner all set 0
         $bind Return      mode default
         $bind Escape      mode default
