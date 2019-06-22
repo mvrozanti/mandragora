@@ -279,6 +279,7 @@
     "cargo install --list | grep sd || cargo install sd",
     "pip3 install --user pdd khal grip psutil maybe sqlcrush pynvim ptpython extract-msg gscholar",
     "gem install --install-user word_wrap",
+    "command -v i3-cycle                || pip install i3-cycle",
     "command -v hamachi                 || yay -S logmein-hamachi",
     "command -v polybar                 || yay -S $_",
     "command -v gotop                   || yay -S $_",
