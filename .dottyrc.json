@@ -234,7 +234,8 @@
     "wkhtmltopdf",
     "python-pytest",
     "meson",
-    "asciidoc"
+    "asciidoc",
+    "xorg-xwininfo"
   ],
   "excluded": [
     "hotmail.gpg"

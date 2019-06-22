@@ -123,6 +123,7 @@ POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status)
 # P9K_CUSTOM_USER="user_with_skull"
 # POWERLEVEL9K_MODE="awesome-fontconfig"
 # POWERLEVEL9K_HOME_SUB_ICON=$'\UE18D '
+# 
 source /usr/share/zsh-theme-powerlevel9k/powerlevel9k.zsh-theme
 
 # source /usr/lib/python3.7/site-packages/powerline/bindings/bash/powerline.sh

@@ -362,6 +362,8 @@ let g:OmniSharp_server_use_mono = 1
 "   return !col || getline('.')[col - 1]  =~ '\s'
 " endfunction
 
+" sleuth.vim: Heuristically set buffer options
+Plug 'tpope/vim-sleuth'
 
 " ==== Git
 Plug 'airblade/vim-gitgutter'
