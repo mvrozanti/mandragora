@@ -324,7 +324,7 @@ $bind $mod+Ctrl+Shift+h                     move container to workspace prev; wo
 #
 $ensid wal --saturate 1.0 -a 299 -i `cat $HOME/.fehbg | tail -n1 | cut -d ' ' -f3 | tr -d "'"`
 $ensid sh -c '[[ `hostname` == "mndrgr"  ]] && compton -D 3 --blur-strength 8 --blur-method kawase'
-$ensid sh -c '[[ `hostname` == "mndrgr2" ]] && compton'
+$ensid sh -c '[[ `hostname` == "mndrgr2" ]] && compton --blur-strength 5 --blur-method kawase'
 $ensid sh -c sleep 40 && dunst
 $ensid sh -c sleep 40 && ntpdate 0.br.pool.ntp.org
 $ensid $HOME/.fehbg
