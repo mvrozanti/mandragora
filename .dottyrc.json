@@ -232,7 +232,8 @@
     "torsocks",
     "wkhtmltopdf",
     "python-pytest",
-    "meson"
+    "meson",
+    "asciidoc"
   ],
   "excluded": [
     "hotmail.gpg"
