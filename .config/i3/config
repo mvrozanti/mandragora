@@ -102,9 +102,9 @@ $bind $mod+9          fullscreen disable; workspace $ws2;       $ensid wmctrl -a
 $bind $mod+Shift+u                                              $ensid wmctrl -a simd
 # $bind $mod+Delete                                               $ensid wmctrl -a  LibreOffice     || libreoffice
 $bind $mod+0      fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && offlineimap -a hotmail && "$cat_seqs" && tmux new neomutt"
-$bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  _ncmpcpp_       || st -e ncmpcpp
-$bind $mod+Mod1+2     fullscreen disable;                       $ensid wmctrl -a  _ncmpcpp_       || st -T 100 -t _visualizer-float_ -c _visualizer_ -e ncmpcpp -s visualizer
-$bind $mod+Shift+2    fullscreen disable;                       $ensid wmctrl -a  _ncmpcpp_       || st -e ncmpcpp -s visualizer
+$bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e ncmpcpp
+$bind $mod+Mod1+2     fullscreen disable;                       $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -t _visualizer-float_ -c _visualizer_ -e ncmpcpp -s visualizer
+$bind $mod+Shift+2    fullscreen disable;                       $ensid wmctrl -a  _ncmpcpp_       || st -T 0  -e ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  _zsh_           || kitty --listen-on=unix:@mykitty --title _zsh_ --name _zsh_
 $bind $mod+Shift+3                                              $ensid wmctrl -xa _tmux_          || kitty --title _tmux_
 # $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
