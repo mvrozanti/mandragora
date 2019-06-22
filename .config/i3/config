@@ -109,8 +109,10 @@ $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a
 $bind $mod+Shift+3                                              $ensid wmctrl -xa _tmux_          || kitty --title _tmux_
 # $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
 $bind $mod+g                                                    $ensid ~/.local/bin/setbg
-$bind $mod+Tab                                                  $ensid ~/.local/bin/i3shrink-window-animation
-$bind $mod+Shift+Tab                                            $ensid ~/.local/bin/i3expand-window-animation
+$bind $mod+Tab                                                  $ensid ~/.local/bin/i3-cycler.py next
+$bind $mod+Shift+Tab                                            $ensid ~/.local/bin/i3-cycler.py prev
+# $bind $mod+Tab                                                  $ensid ~/.local/bin/i3shrink-window-animation
+# $bind $mod+Shift+Tab                                            $ensid ~/.local/bin/i3expand-window-animation
 $bind $mod+t                                                    $ensid wmctrl -a "Tor Browser"    || ~/.local/bin/tor-browser
 $bind $mod+7          fullscreen disable; workspace $ws11;      $ensid wmctrl -a "Slack"          || slack
 $bind $mod+Mod1+k                                               $ensid transset-df --inc 0.04 -a
