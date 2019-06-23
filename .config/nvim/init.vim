@@ -12,7 +12,6 @@ xnoremap p "_dP
 map / /\c
 nnoremap < <<
 nnoremap > >>
-nnoremap vt v%
 vnoremap / y/<C-r><C-w><CR>
 vnoremap ? y:%s/<C-r><C-w>//gn<CR>
 nnoremap <A-p> o<A-p>
@@ -413,6 +412,10 @@ Plug 'danro/rename.vim'
 " Real-time markdown editing
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app & yarn install'  }
 " let g:mkdp_markdown_css = '~/darkdown.css'
+
+" Text-object like motion for arguments
+Plug 'vim-scripts/argtextobj.vim'
+
 Plug 'terryma/vim-expand-region'
 map ; <Plug>(expand_region_expand)
 map + <Plug>(expand_region_shrink)
