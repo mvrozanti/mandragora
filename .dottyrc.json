@@ -73,7 +73,8 @@
     ".local/bin/setbg": "~/.local/bin/setbg",
     ".local/bin/superscripter": "~/.local/bin/superscripter",
     ".local/bin/ci": "~/.local/bin/ci",
-    ".config/GIMP/2.10/gimprc": "~/.config/GIMP/2.10/gimprc"
+    ".config/GIMP/2.10/gimprc": "~/.config/GIMP/2.10/gimprc",
+    ".local/bin/toggle-desktop": "~/.local/bin/toggle-desktop"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
