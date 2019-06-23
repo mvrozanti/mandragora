@@ -392,9 +392,9 @@ menu-2-1-exec = menu-open-0
 [settings]
 screenchange-reload = true
 ; compositing-background = xor
-compositing-background = source
+; compositing-background = screen
 ; compositing-foreground = source
-compositing-border = over
+; compositing-border = over
 pseudo-transparency = true
 
 [global/wm]
