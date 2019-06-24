@@ -451,3 +451,5 @@ alias vt='v .travis.yml'
 alias mount-skl='sh -c "sleep 2 && sshfs -p 2223 ***REMOVED***@localhost:/home/***REMOVED*** ~/mackenzie/skl" & ; ssh -L 2223:localhost:2224 ***REMOVED*** -p 2222 -A ssh -L 2224:localhost:22 ***REMOVED***@skl'
 alias lc='history | tail -n1 | cut -d " " -f4'
 alias schmxlc='schmod +x "`lc`"'
+alias pytest='pytest -s'
+ptentr(){ find . | entr -c pytest -s /_ }
