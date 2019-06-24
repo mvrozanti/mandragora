@@ -190,6 +190,7 @@ autocmd FileType python set makeprg=python\ %
 autocmd FileType python map <silent> <F6> :make<CR><CR>
 autocmd FileType python inoremap ld<tab> LOG.debug()<Esc>i
 autocmd FileType python inoremap pr<tab> print()<Esc>i
+autocmd FileType python inoremap dis<tab> def __init__(self, ):<CR><+><Esc>kWi
 autocmd FileType python inoremap inm<tab> if __name__ == '__main__':<CR>
 autocmd FileType python inoremap she<tab> #!/usr/bin/env python
 autocmd FileType python inoremap Fa<tab> False
