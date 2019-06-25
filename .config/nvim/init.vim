@@ -187,7 +187,7 @@ autocmd FileType python inoremap im<tab> import<Space>
 autocmd FileType python inoremap ci<tab> code.interact(local=globals().update(locals()) or globals())<Esc>
 autocmd FileType python inoremap pdbt<tab> pdb.set_trace()<Esc>
 autocmd FileType python set makeprg=python\ %
-autocmd FileType python map <silent> <F6> :make<CR><CR>
+" autocmd FileType python map <silent> <F6> :make<CR><CR>
 autocmd FileType python inoremap ld<tab> LOG.debug()<Esc>i
 autocmd FileType python inoremap pr<tab> print()<Esc>i
 autocmd FileType python inoremap dis<tab> def __init__(self, ):<CR><+><Esc>kWi
