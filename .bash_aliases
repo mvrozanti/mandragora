@@ -184,7 +184,6 @@ mxentr(){ ls *.c   | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d.
 jentr(){ ls *.java | entr -c javac * }
 nentr(){ ls *.* | entr $@ node /_ }
 prentr(){ ls *.pl | entr $@ swipl -q /_ }
-ptentr(){ ls *.py | entr $@ pytest }
 dentr(){ le_f1="$1"; le_f2="$2"; ls *.* | entr nvim -d <(xxd $le_f1) <(xxd $le_f2) }
 ventr(){ [[ $(($#)) -gt 0 ]] && echo $1 | entr -cr sh -c 'valgrind --quiet --show-leak-kinds=all --leak-check=full '`realpath ${@: -1}`' -v --track-origins=yes' }
 alias dotty='~/mandragora/dotty/dotty.py'
@@ -452,4 +451,4 @@ alias mount-skl='sh -c "sleep 2 && sshfs -p 2223 ***REMOVED***@localhost:/home/*
 alias lc='history | tail -n1 | cut -d " " -f4'
 alias schmxlc='schmod +x "`lc`"'
 alias pytest='pytest -s'
-ptentr(){ find . | entr -c pytest -s /_ }
+ptentr(){ find . | entr -c pytest -s test/* }
