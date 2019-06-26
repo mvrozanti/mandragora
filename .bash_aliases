@@ -27,7 +27,6 @@ alias showcolors='echo;for a in {40..47}; do echo -ne "\e[0;30;$a""m  ""\e[0;37;
 alias cutefetch='while true; do screenfetch_out="$(screenfetch -a ~/nexor.ascii -p)$(colors;echo;echo;echo)";sleep 1;clear;printf "$screenfetch_out"|lolcat;sleep 1; done'
 alias screenfetch="screenfetch -a ~/nexor.ascii -p"
 alias gfd='git fetch origin; git diff master'
-alias gD='git diff HEAD HEAD~1'
 alias gc='git clone'
 alias gmc='git merge --continue'
 unalias gr
@@ -281,7 +280,13 @@ servesingle(){ [[ ! -z $1 ]] && { filepath=`realpath $1` &&  echo -ne "HTTP/1.0 
 alias sS='servesingle'
 alias ctl='systemctl'
 alias sctl='sudo systemctl'
-alias GD='git daemon --base-path=. --export-all'
+alias GD='git daemon --base-path=. --export-all' # serve git repo on port 9418
+unalias gd
+gd(){ [[ "$#" -eq 1 ]] && git diff HEAD~$@ || git diff }
+alias gdd='git diff HEAD~1'
+alias gddd='git diff HEAD~2'
+alias gdddd='git diff HEAD~3'
+alias gddddd='git diff HEAD~4'
 alias blank='xset -display :0.0 dpms force off'
 # setbg(){ [[ -z $1 ]] && return 1; fpath=`realpath $1` ; [[ `echo $fpath | rev | cut -d"." -f1 | rev` = "gif" ]] && xwinwrap -g `xrandr | awk '/\*/{printf $1" "}'` -ni -s -nf -b -un -argb -ov -- gifview -w WID $fpath -a || wal -a 299 -i $fpath }
 ra(){ [[ ! -z "$1" && ! -z "$2" ]] && sd -i 'alias '$1'=' 'alias '$2'=' ~/.bash_aliases && sd -i ''$1'\(\)' ''$2'()' ~/.bash_aliases }
@@ -437,10 +442,6 @@ alias wla='watch ls -a'
 alias 2h='hh'
 cowat(){ co > /tmp/cowat.html ; waterfox --new-tab /tmp/cowat.html }
 alias cocurll='cocurl | less'
-alias gdd='git diff HEAD~1'
-alias gddd='git diff HEAD~2'
-alias gdddd='git diff HEAD~3'
-alias gddddd='git diff HEAD~4'
 trentr(){ e .travis.yml | entr echo /_ | xargs -I{} sh -c 'clear && travis lint {}' }
 alias wag='watch ag'
 alias f.='find .'
