@@ -298,7 +298,8 @@ set clipboard=unnamed,unnamedplus
 Plug 'Shougo/vimproc.vim', {'do' : 'make'}
 Plug 'idanarye/vim-vebugger'
 nnoremap <F5>   :VBGcontinue<CR>
-nnoremap <F6>   :VBGstartGDB %:r<CR>
+autocmd FileType c,cpp  nnoremap <F6>   :VBGstartGDB %:r<CR>
+autocmd FileType python nnoremap <F6>   :VBGstartPDB3 %<CR>
 nnoremap <F7>   :VBGstepIn<CR>
 nnoremap <F8>   :VBGstepOver<CR>
 nnoremap <C-F8> :VBGtoggleBreakpointThisLine<CR>

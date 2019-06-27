@@ -293,6 +293,7 @@
     "command -v googler                 || yay -S $_",
     "command -v downgrade               || yay -S $_",
     "stat /usr/lib/libwebp.so           || yay -S imlib2-webp-git",
-    "command -v transmission-remote-cli || yay -S $_ "
+    "command -v transmission-remote-cli || yay -S $_ ",
+    "systemctl enable ntpd.service"
   ]
 }
