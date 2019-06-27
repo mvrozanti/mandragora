@@ -2,5 +2,6 @@ pkill xwinwrap
 {
     [[ -z $1 ]] && fpath=`find /mnt/4ADE1465DE144C17/gdrive/Levv/wllpps -maxdepth 1 -type f | grep "jpe\?g\|png" | shuf | sed 1q` || fpath=`realpath $1` 
     wal -a 299 -i $fpath
-    [[ `echo $fpath | rev | cut -d"." -f1 | rev` = "gif" ]] && xwinwrap -g `xrandr | awk '/\*/{printf $1" "}'` -ni -s -nf -b -un -argb -ov -- gifview -w WID $fpath -a &
+    sleep 1
+    [[ `echo $fpath | rev | cut -d"." -f1 | rev` = "gif" ]] && nohup xwinwrap -g `xrandr | awk '/\*/{printf $1" "}'` -ni -s -nf -b -un -argb -ov -- gifview -w WID $fpath -a &
 }
