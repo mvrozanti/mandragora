@@ -183,6 +183,7 @@ autocmd FileType java inoremap tr<tab> true
 
 " python shortcuts
 " %s/print\s\(.\+\)/print(\1)/g
+autocmd FileType python inoremap ii<tab> isinstance()<Esc>i
 autocmd FileType python inoremap im<tab> import<Space>
 autocmd FileType python inoremap ci<tab> code.interact(local=globals().update(locals()) or globals())<Esc>
 autocmd FileType python inoremap pdbt<tab> pdb.set_trace()<Esc>
