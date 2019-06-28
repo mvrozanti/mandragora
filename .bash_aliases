@@ -389,7 +389,7 @@ x2c(){ printf "\\$(printf '%03o' "$1")" }
 alias rp.c='realpath . | c'
 alias vm='[[ -f CMakeLists.txt ]] && v CMakeLists.txt || v Makefile'
 alias vcm='v CMakeLists.txt'
-alias xlx='l -tnew | x file | g ELF | sed 1q | cut -d ":" -f1 | x -I{} zsh -c ./{}'
+alias xlx='f -tnew | x file | g ELF | sed 1q | cut -d ":" -f1 | x -I{} zsh -c ./{}'
 # xentr(){ ls | entr zsh -c 'setopt expand_aliases && source ~/.bash_aliases ; xlx' }
 alias costat='co | x stat'
 preent(){ clear;e $@ | leet | lolcat;read }
@@ -455,3 +455,4 @@ alias lc='history | tail -n1 | cut -d " " -f4'
 alias schmxlc='schmod +x "`lc`"'
 alias pytest='pytest -s'
 ptentr(){ find . | entr -c pytest -s test/* }
+rpc(){ realpath $@ | c }
