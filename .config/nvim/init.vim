@@ -60,6 +60,7 @@ if has('persistent_undo')
 endif
 
 call plug#begin()
+Plug 'iberianpig/tig-explorer.vim'
 Plug 'Yggdroot/indentLine'
 let g:indentLine_enabled = 0
 Plug 'tomtom/tcomment_vim'
