@@ -456,3 +456,4 @@ alias schmxlc='schmod +x "`lc`"'
 alias pytest='pytest -s'
 ptentr(){ find . | entr -c pytest -s test/* }
 rpc(){ realpath $@ | c }
+alias pie.='pip install -e .'
