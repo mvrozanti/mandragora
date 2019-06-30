@@ -237,7 +237,8 @@
     "python-pytest",
     "meson",
     "asciidoc",
-    "xorg-xwininfo"
+    "xorg-xwininfo",
+    "upx"
   ],
   "excluded": [
     "hotmail.gpg"
