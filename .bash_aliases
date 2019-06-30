@@ -457,3 +457,4 @@ alias pytest='pytest -s'
 ptentr(){ find . | entr -c pytest -s test/* }
 rpc(){ realpath $@ | c }
 alias pie.='pip install -e .'
+alias le='less'
