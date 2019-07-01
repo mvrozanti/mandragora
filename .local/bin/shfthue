@@ -1,8 +1,15 @@
 #!/bin/bash
 hex="`kitty @ --to unix:@mykitty get-colors | grep ^ba | cut -c 25-`"
+
 if [[ -z $1 ]]; then
-    newhex=`echo "HEX('"$hex"').rotate(10.00)" | /home/nexor/.pyenv/shims/colp`
+    newhex=`echo "HEX('"$hex"').rotate(10.00)"  | /home/nexor/.pyenv/shims/colp`
 else
     newhex=`echo "HEX('"$hex"').rotate(-10.00)" | /home/nexor/.pyenv/shims/colp`
 fi
+
+# def kek(col):
+#       if col == RGB(0,0,0):
+#               return HEX('#ff0000')
+#       else:
+#               return col.rotate(3)
 kitty @ --to unix:@mykitty set-colors background=$newhex
