@@ -454,7 +454,7 @@ alias mount-skl='sh -c "sleep 2 && sshfs -p 2223 ***REMOVED***@localhost:/home/*
 alias lc='history | tail -n1 | cut -d " " -f4'
 alias schmxlc='schmod +x "`lc`"'
 alias pytest='pytest -s'
-ptentr(){ find \.py | entr -c pytest -s test/* }
+ptentr(){ f "\\.py" | entr -c pytest -s test/*.py }
 rpc(){ realpath $@ | c }
 alias pie.='pip install -e .'
 alias le='less'
