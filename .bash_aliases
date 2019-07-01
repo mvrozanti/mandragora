@@ -454,8 +454,9 @@ alias mount-skl='sh -c "sleep 2 && sshfs -p 2223 ***REMOVED***@localhost:/home/*
 alias lc='history | tail -n1 | cut -d " " -f4'
 alias schmxlc='schmod +x "`lc`"'
 alias pytest='pytest -s'
-ptentr(){ find . | entr -c pytest -s test/* }
+ptentr(){ find \.py | entr -c pytest -s test/* }
 rpc(){ realpath $@ | c }
 alias pie.='pip install -e .'
 alias le='less'
 alias cm='offlineimap-notify'
+up2pypi(){ rm -r dist || : ; python setup.py bdist_wheel && twine upload dist/* }
