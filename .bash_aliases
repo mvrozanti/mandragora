@@ -163,7 +163,6 @@ alias scrot='scrot ~/.scrot.png'
 cdf(){ cd `find . -iname "*$@*" | head -n1`; }
 alias curpos="cnee --record --mouse | awk  '/7,4,0,0,1/ { system(\"xdotool getmouselocation\") }'"
 alias p3u='pip3 uninstall'
-alias p3u='pip3 uninstall'
 alias p3i='pip3 install --user'
 alias p2i='pip2 install --user'
 alias p3r='pip3 uninstall'
