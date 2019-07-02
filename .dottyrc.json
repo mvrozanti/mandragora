@@ -242,7 +242,8 @@
     "upx"
   ],
   "excluded": [
-    "hotmail.gpg"
+    "hotmail.gpg",
+    "__pycache__"
   ],
   "commands": [
     "mkdir -p ~/util",
