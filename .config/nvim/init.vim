@@ -619,4 +619,4 @@ function! Synctex()
     execute "silent !zathura --synctex-forward " . line('.') . ":" . col('.') . ":" . bufname('%') . " " . bufname('%')[:-5]. ".pdf"
     redraw!
 endfunction
-set statusline+=%{abs(line('.')\ -\ line('v'))\ +\ 1}
+let &statusline.='%{abs(line(".") - line("v")) + 1}'
