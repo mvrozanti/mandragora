@@ -2,9 +2,9 @@
 hex="`kitty @ --to unix:@mykitty get-colors | grep ^ba | cut -c 25-`"
 
 if [[ -z $1 ]]; then
-    newhex=`echo "HEX('"$hex"').rotate(10.00)"  | /home/nexor/.pyenv/shims/colp`
+    newhex=`echo "HEX('"$hex"').rotate(10.00)"  | /home/nexor/.pyenv/shims/colp -s`
 else
-    newhex=`echo "HEX('"$hex"').rotate(-10.00)" | /home/nexor/.pyenv/shims/colp`
+    newhex=`echo "HEX('"$hex"').rotate(-10.00)" | /home/nexor/.pyenv/shims/colp -s`
 fi
 
 # def kek(col):
