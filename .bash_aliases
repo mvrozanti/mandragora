@@ -459,3 +459,5 @@ alias pie.='pip install -e .'
 alias le='less'
 alias cm='offlineimap-notify'
 up2pypi(){ rm -r dist || : ; python setup.py bdist_wheel && twine upload dist/* }
+unalias gbd
+gbd(){ git branch -d "$@" && git push origin --delete "$@" }
