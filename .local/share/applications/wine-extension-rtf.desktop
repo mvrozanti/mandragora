@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=wordpad
-MimeType=application/rtf;
-Exec=env WINEPREFIX="/home/nexor/.wine" wine start /ProgIDOpen rtffile %f
-NoDisplay=true
-StartupNotify=true
-Icon=97C1_wordpad.0
