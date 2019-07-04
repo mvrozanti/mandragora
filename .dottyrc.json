@@ -241,7 +241,8 @@
     "meson",
     "asciidoc",
     "xorg-xwininfo",
-    "upx"
+    "upx",
+    "python-coverage"
   ],
   "excluded": [
     "hotmail.gpg",
