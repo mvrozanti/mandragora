@@ -31,8 +31,6 @@ alias gc='git clone'
 alias gmc='git merge --continue'
 unalias gr
 gr(){ fileh="$@"; git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
-gac(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; }
-gacp(){ gac "${@:1}"; git push; }
 #gacdp(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; gd; git push; }
 gdc(){ git diff HEAD HEAD~1; }
 alias gs='git status'
