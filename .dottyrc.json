@@ -76,7 +76,9 @@
     ".config/GIMP/2.10/gimprc": "~/.config/GIMP/2.10/gimprc",
     ".local/bin/toggle-desktop": "~/.local/bin/toggle-desktop",
     ".local/bin/mp42gif": "~/.local/bin/mp42gif",
-    ".local/bin/shfthue": "~/.local/bin/shfthue"
+    ".local/bin/shfthue": "~/.local/bin/shfthue",
+    ".local/bin/gac": "~/.local/bin/gac",
+    ".local/bin/gacp": "~/.local/bin/gacp"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
