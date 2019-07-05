@@ -9,13 +9,14 @@ def pop_and_turn(c):
               return col.rotate(10)
 
 print(pop_and_turn(HEX('$hex')))
+
 EOV
 
-if [[ -z $1 ]]; then
-    newhex=`echo "$pop_and_turn"  | /home/nexor/.pyenv/shims/colp -s`
-else
-    newhex=`echo "HEX('"$hex"').rotate(-10.00)" | /home/nexor/.pyenv/shims/colp -s`
-fi
+# if [[ -z $1 ]]; then
+newhex=`echo "$pop_and_turn"  | /home/nexor/.pyenv/shims/colp -s`
+# else
+# newhex=`echo "$pop_and_turn"  | /home/nexor/.pyenv/shims/colp -s`
+# fi
 
 
 kitty @ --to unix:@mykitty set-colors background=$newhex
