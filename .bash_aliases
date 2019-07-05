@@ -461,3 +461,4 @@ unalias gbd
 gbd(){ git branch -d "$@" && git push origin --delete "$@" }
 alias gsc='git stash clear'
 alias gsc='git stash clear'
+alias gsa='git stash apply'
