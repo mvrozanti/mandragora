@@ -60,6 +60,7 @@ if has('persistent_undo')
 endif
 
 call plug#begin()
+Plug 'salsifis/vim-transpose' " Vim plugin - Transpose matrices of text (swap lines with columns). 
 Plug 'iberianpig/tig-explorer.vim'
 Plug 'Yggdroot/indentLine'
 let g:indentLine_enabled = 0
@@ -612,10 +613,11 @@ autocmd FileType tex inoremap rn<Tab> (\ref{})<+><Esc>F}i
 
 set guicursor=i:100-bCursor
 set conceallevel=0
-set noshowcmd
+set showcmd
 
 function! Synctex()
     " remove 'silent' for debugging
     execute "silent !zathura --synctex-forward " . line('.') . ":" . col('.') . ":" . bufname('%') . " " . bufname('%')[:-5]. ".pdf"
     redraw!
 endfunction
+let &statusline.='%{abs(line(".") - line("v")) + 1}'
