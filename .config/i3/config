@@ -61,6 +61,7 @@ for_window  [class="mpv"]                 sticky enable, floating enable, move p
 for_window  [title="_visualizer_"]        sticky enable, floating enable
 no_focus    [title="_visualizer-float_"]
 for_window  [title="_tmux-float_"]        sticky enable, floating enable, move position 1500 670 
+for_window  [title="^colp$"]              sticky enable, floating enable, move position 1500 670 
 for_window  [title="_ranger-float_"]      sticky enable, floating enable, move position 1400 570 
 for_window  [title="_visualizer-float_"]  sticky enable, floating enable, move position 1400 520 
 for_window  [instance="portal"]           sticky enable, floating enable

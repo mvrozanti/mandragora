@@ -60,6 +60,7 @@ if has('persistent_undo')
 endif
 
 call plug#begin()
+Plug 'salsifis/vim-transpose' " Vim plugin - Transpose matrices of text (swap lines with columns). 
 Plug 'iberianpig/tig-explorer.vim'
 Plug 'Yggdroot/indentLine'
 let g:indentLine_enabled = 0
