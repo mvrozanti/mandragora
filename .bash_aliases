@@ -329,7 +329,7 @@ ytpl(){ search="$@"; mpv --script-opts=ytdl_hook-try_ytdl_first=yes ytdl://ytsea
 alias yts='ytpl'
 alias sk='screenkey --font-color red --opacity 0.2 --compr-cnt 3 -s small'
 alias U='sudo umount'
-alias cfM='v ~/.config/mpv/input.conf'
+alias cfM='v ~/.config/mpv/'
 alias mp='jmtpfs ~/phone'
 alias ve='v -c "let startify_disable_at_vimenter = 1" '
 alias V=ve
