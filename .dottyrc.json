@@ -78,7 +78,8 @@
     ".local/bin/mp42gif": "~/.local/bin/mp42gif",
     ".local/bin/shfthue": "~/.local/bin/shfthue",
     ".local/bin/gac": "~/.local/bin/gac",
-    ".local/bin/gacp": "~/.local/bin/gacp"
+    ".local/bin/gacp": "~/.local/bin/gacp",
+    ".config/mpv/mpv.conf": "~/.config/mpv/mpv.conf"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
