@@ -31,8 +31,6 @@ alias gc='git clone'
 alias gmc='git merge --continue'
 unalias gr
 gr(){ fileh="$@"; git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
-gac(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; }
-gacp(){ gac "${@:1}"; git push; }
 #gacdp(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; gd; git push; }
 gdc(){ git diff HEAD HEAD~1; }
 alias gs='git status'
@@ -449,7 +447,6 @@ alias cosxiv='sxiv `co`'
 alias cogco='gco fix-non-existing-docker-image'
 alias ag='ag --hidden'
 alias vt='v .travis.yml'
-alias mount-skl='sh -c "sleep 2 && sshfs -p 2223 ***REMOVED***@localhost:/home/***REMOVED*** ~/mackenzie/skl" & ; ssh -L 2223:localhost:2224 ***REMOVED*** -p 2222 -A ssh -L 2224:localhost:22 ***REMOVED***@skl'
 alias lc='history | tail -n1 | cut -d " " -f4'
 alias schmxlc='schmod +x "`lc`"'
 alias pytest='pytest -s'
@@ -461,3 +458,6 @@ alias cm='offlineimap-notify'
 up2pypi(){ rm -r dist || : ; python setup.py bdist_wheel && twine upload dist/* }
 unalias gbd
 gbd(){ git branch -d "$@" && git push origin --delete "$@" }
+alias gsc='git stash clear'
+alias gsc='git stash clear'
+alias gsa='git stash apply'
