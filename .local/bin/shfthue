@@ -5,11 +5,11 @@ else
       inc=False
 fi
 hex="`kitty @ --to unix:@mykitty get-colors | grep ^ba | cut -c 25-`"
-
+bootup="`cat ~/.cache/wal/sequences | grep -oE '#[0-9A-F]{6}' | sed 1q `"
 read -r -d '' pop_and_turn << EOV
 def pop_and_turn(c, inc):
       if c == RGB(0,0,0):
-              return HEX('#ff0000')
+              return HEX('$bootup')
       return c.rotate(10 if inc else -10)
 
 print(pop_and_turn(HEX('$hex'), $inc))
