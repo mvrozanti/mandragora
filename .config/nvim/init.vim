@@ -511,9 +511,8 @@ function! Killit()
     endtry
 endfunction
 
-" nnoremap <C-W> :call Killit()<CR>
-" inoremap <C-W> <Esc>:call Killit()<CR>
-
+nnoremap <C-W> :call Killit()<CR>
+inoremap <C-W> <Esc>:call Killit()<CR>
 " nnoremap <C-W> <Esc>:q<CR>
 " inoremap <C-W> <Esc>:q<CR>
 
