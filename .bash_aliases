@@ -462,3 +462,4 @@ alias gsc='git stash clear'
 alias gsc='git stash clear'
 alias gsa='git stash apply'
 filter-colors(){ grep -oE '#[0-9A-F]{6}' | sed 1q }
+alias hhh='2h;h'
