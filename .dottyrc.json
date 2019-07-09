@@ -243,7 +243,8 @@
     "asciidoc",
     "xorg-xwininfo",
     "upx",
-    "python-coverage"
+    "python-coverage",
+    "kubectl"
   ],
   "excluded": [
     "hotmail.gpg",
