@@ -464,3 +464,4 @@ alias gsa='git stash apply'
 filter-colors(){ grep -oE '#[0-9A-F]{6}' | sed 1q }
 alias hhh='2h;h'
 dbt(){ docker build -t $@ . } # docker build tag
+alias ds='docker stats'
