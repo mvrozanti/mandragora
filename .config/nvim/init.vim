@@ -1,3 +1,4 @@
+
 fun! SetupCommandAlias(from, to)
   exec 'cnoreabbrev <expr> '.a:from
         \ .' ((getcmdtype() is# ":" && getcmdline() is# "'.a:from.'")'
@@ -257,6 +258,10 @@ set conceallevel=0
 " === LSP ===
 set grepprg=ag
 let g:grep_cmd_opts = '--hidden'
+"
+" The Maven plugin for VIM 
+Plug 'mikelue/vim-maven-plugin'
+
 Plug 'skwp/greplace.vim'
 
 Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
@@ -479,7 +484,7 @@ nmap f <Plug>(easymotion-s)
 
 autocmd FileType javascript                                         let b:run_script = '!clear;xvkbd -window Firefox -text "\Cr" && xdotool keydown alt key Tab; sleep 2.001; xdotool keyup alt'
 " autocmd FileType javascript                                         set omnifunc=javascriptcomplete#CompleteJS
-let g:EclimCompletionMethod = 'omnifunc'
+" let g:EclimCompletionMethod = 'omnifunc'
 autocmd FileType python                                             let b:run_script = '! clear;python3 %'
 autocmd FileType python                                             let g:pymode_python = 'python3'
 autocmd FileType cpp                                                let b:run_script = '! clear; make && !%:r'
