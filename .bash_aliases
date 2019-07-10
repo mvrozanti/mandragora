@@ -450,7 +450,7 @@ alias vt='v .travis.yml'
 alias lc='history | tail -n1 | cut -d " " -f4'
 alias schmxlc='schmod +x "`lc`"'
 alias pytest='pytest -s'
-ptentr(){ f "\\.py" | entr -c pytest -s test/*.py }
+ptentr(){ f "\\.py" | entr -c pytest --cov-report term-missing --cov -s test/*.py }
 rpc(){ realpath $@ | c }
 alias pie.='pip install -e .'
 alias le='less'
