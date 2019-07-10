@@ -244,7 +244,8 @@
     "xorg-xwininfo",
     "upx",
     "python-coverage",
-    "kubectl"
+    "kubectl",
+    "gucharmap"
   ],
   "excluded": [
     "hotmail.gpg",
