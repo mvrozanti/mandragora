@@ -228,7 +228,7 @@ nnoremap gK gt
 nnoremap <C-N> :tabe<CR>
 nnoremap [ <C-W>
 
-nnoremap , '
+nnoremap , `
 
 " general
 command Reversefilelines g/^/m0
