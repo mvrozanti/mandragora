@@ -467,3 +467,4 @@ dbt(){ docker build -t $@ . } # docker build tag
 alias ds='docker stats'
 alias drmi='docker rmi'
 alias cormr='co | xargs rm -r'
+alias 3h='hh;h'
