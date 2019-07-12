@@ -177,7 +177,8 @@ autocmd FileType javascript inoremap she<tab> #!/usr/bin/env node
 
 " java shortcuts
 autocmd FileType java inoremap psvm<tab> public static void main(String args[]){<CR>}
-autocmd FileType java map <silent> <F6> :Java<CR><CR>
+autocmd FileType java call SetupCommandAlias("mvnexec","!mvnexec %")
+autocmd FileType java map <silent> <F6> :mvnexec<CR><CR>
 autocmd FileType java inoremap pr<tab> private<Space>
 autocmd FileType java inoremap pu<tab> public<Space>
 autocmd FileType java inoremap sout<tab> System.out.println()<Esc>i
