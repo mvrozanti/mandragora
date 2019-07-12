@@ -245,7 +245,8 @@
     "upx",
     "python-coverage",
     "kubectl",
-    "gucharmap"
+    "gucharmap",
+    "/home/nexor/.local/bin/mvnexec"
   ],
   "excluded": [
     "hotmail.gpg",
