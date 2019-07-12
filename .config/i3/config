@@ -374,6 +374,7 @@ mode "$mode_gaps" {
         $bind Shift+i         gaps inner current set 50  ; gaps outer all set 0 ; mode default
         $bind s               gaps inner current set 100 ; gaps outer all set 0 ; mode default
         $bind 0               gaps inner current set 0   ; mode default
+        $bind z               gaps inner current set 0   ; mode default
         $bind Return          mode default
         $bind       k         gaps inner all plus  5
         $bind Shift+k         gaps inner all plus  5
@@ -387,6 +388,7 @@ mode "$mode_gaps_inner" {
         $bind plus        gaps inner current plus 5
         $bind minus       gaps inner current minus 5
         $bind 0           gaps inner current set 0
+        $bind z           gaps inner current set 0
         $bind Shift+plus  gaps inner all plus 5
         $bind k           gaps inner all plus 5
         $bind Shift+k     gaps inner all plus 5
@@ -402,6 +404,7 @@ mode "$mode_gaps_outer" {
         $bind plus  gaps outer current plus 5
         $bind minus gaps outer current minus 5
         $bind 0     gaps outer current set 0
+        $bind z     gaps outer current set 0
         $bind Shift+plus  gaps outer all plus 5
         $bind Shift+minus gaps outer all minus 5
         $bind Shift+0     gaps outer all set 0
