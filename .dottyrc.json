@@ -79,7 +79,8 @@
     ".local/bin/shfthue": "~/.local/bin/shfthue",
     ".local/bin/gac": "~/.local/bin/gac",
     ".local/bin/gacp": "~/.local/bin/gacp",
-    ".config/mpv/mpv.conf": "~/.config/mpv/mpv.conf"
+    ".config/mpv/mpv.conf": "~/.config/mpv/mpv.conf",
+    ".local/bin/mvnexec": "~/.local/bin/mvnexec"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
@@ -245,8 +246,7 @@
     "upx",
     "python-coverage",
     "kubectl",
-    "gucharmap",
-    "/home/nexor/.local/bin/mvnexec"
+    "gucharmap"
   ],
   "excluded": [
     "hotmail.gpg",
