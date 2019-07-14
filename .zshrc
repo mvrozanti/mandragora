@@ -92,6 +92,15 @@ bindkey "\e[7~" beginning-of-line
 bindkey "\e[8~" end-of-line
 bindkey '^b' backward-word
 bindkey '^f' forward-word
+run_ranger () {
+    echo
+    ranger --choosedir=$HOME/.rangerdir < $TTY
+    LASTDIR=`cat $HOME/.rangerdir`
+    cd "$LASTDIR"
+    zle reset-prompt
+}
+zle -N run_ranger
+bindkey '^[r' 'run_ranger'
 
 # vi - thanks hoberto
 bindkey '\ek' up-history
