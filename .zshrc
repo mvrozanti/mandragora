@@ -176,3 +176,7 @@ export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 
 # added by travis gem
 [ -f /home/nexor/.travis/travis.sh ] && source /home/nexor/.travis/travis.sh
+
+export PATH=$PATH:/home/nexor/azure-cli/bin
+
+source '/home/nexor/azure-cli/az.completion'
