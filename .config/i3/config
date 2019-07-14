@@ -272,8 +272,10 @@ $bind XF86AudioNext		        $ensid mpc next  #$mpc $minty_remote next
 $bind XF86AudioPlay		        $ensid mpc toggle  #$mpc $minty_remote toggle
 $bind XF86AudioPrev		        $ensid mpc prev  #$mpc $minty_remote prev
 $bind XF86AudioMute             $ensid pamixer -t
-$bind XF86AudioRaiseVolume      $ensid amixer -c 0 -q set Master 4dB+ unmute 
-$bind XF86AudioLowerVolume      $ensid amixer -c 0 -q set Master 4dB- unmute 
+# $bind XF86AudioRaiseVolume      $ensid amixer -c 0 -q set Master 4dB+ unmute 
+$bind XF86AudioRaiseVolume      $ensid amixer set 'Master' 10%+
+$bind XF86AudioLowerVolume      $ensid amixer set 'Master' 10%- 
+# $bind XF86AudioLowerVolume      $ensid amixer -c 0 -q set Master 4dB- unmute 
 # $bind XF86AudioRaiseVolume      $ensid pamixer -i 4
 # $bind XF86AudioLowerVolume      $ensid pamixer -d 4
 # $bind XF86AudioRaiseVolume    $ensid amixer -c 0 -q set Master 4dB+ unmute
@@ -363,8 +365,8 @@ gaps outer 0
 # focused border width
 default_border pixel 0
 
-set $mode_gaps Gaps: (o) outer, (i) inner, (I) typical, (0) performance, (s) sexy
-set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps Gaps: (o) outer, (i) inner, (I|a) typical, (0|z) performance, (s) sexy, (k) increase, (j) decrease
+set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global) 
 set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
 $bind $mod+Shift+g mode "$mode_gaps"
 
