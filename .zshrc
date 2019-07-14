@@ -90,6 +90,8 @@ bindkey '\e[1~' beginning-of-line
 bindkey '\e[4~' end-of-line
 bindkey "\e[7~" beginning-of-line
 bindkey "\e[8~" end-of-line
+bindkey '^b' backward-word
+bindkey '^f' forward-word
 
 # vi - thanks hoberto
 bindkey '\ek' up-history
@@ -125,6 +127,16 @@ POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status)
 # POWERLEVEL9K_HOME_SUB_ICON=$'\UE18D '
 # 
 source /usr/share/zsh-theme-powerlevel9k/powerlevel9k.zsh-theme
+#   ctrl + u     : clear line
+#   ctrl + w     : delete word backward
+#   alt  + d     : delete word
+#   ctrl + a     : move to beginning of line
+#   ctrl + e     : move to end of line (e for end)
+#   alt/ctrl + f : move to next word (f for forward)
+#   alt/ctrl + b : move to previous word (b for backward)
+#   ctrl + d     : delete char at current position (d for delete)
+#   ctrl + k     : delete from character to end of line
+#   alt  + .     : cycle through previous args
 
 # source /usr/lib/python3.7/site-packages/powerline/bindings/bash/powerline.sh
 
