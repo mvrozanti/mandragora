@@ -469,3 +469,4 @@ alias drmi='docker rmi'
 alias cormr='co | xargs rm -r'
 alias 3h='hh;h'
 aka(){ cat /etc/hosts | grep "$@" | cut -d' ' -f1 }
+co/f(){ /f `co` }
