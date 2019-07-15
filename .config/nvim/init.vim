@@ -202,6 +202,7 @@ autocmd FileType python inoremap Fa<tab> False
 autocmd FileType python inoremap Tr<tab> True
 autocmd FileType python inoremap wh<tab> while :<Esc>i
 autocmd FileType python inoremap trycatch<tab> try:<CR><+><CR>except Exception as e: print(e)
+autocmd FileType python inoremap agp<tab> parser = argparse.ArgumentParser(description='<+>')<CR>parsed = parser.parse_args()<CR><+>
 
 " autocmd FileType c set makeprg=gcc\ -O2\ -g\ -Wall\ -Wextra\ -o'%<'\ '%'\ -lm ; ./%\:r
 
