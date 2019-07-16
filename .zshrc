@@ -93,7 +93,7 @@ bindkey "\e[8~" end-of-line
 bindkey '^b' backward-word
 bindkey '^f' forward-word
 bindkey '^h' backward-delete-char
-bindkey '^l' delete-char
+# bindkey '^l' delete-char
 bindkey '^[^l' delete-word
 run_ranger () {
     echo
