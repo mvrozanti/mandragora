@@ -471,3 +471,4 @@ alias 3h='hh;h'
 aka(){ cat /etc/hosts | grep "$@" | cut -d' ' -f1 }
 co/f(){ /f `co` }
 alias mvncas='mvn clean compile assembly:single'
+alias wh='watch head'
