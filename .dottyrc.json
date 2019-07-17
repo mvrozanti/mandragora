@@ -294,6 +294,7 @@
     "_git clone --depth 1 https://github.com/cjbassi/gotop /tmp/gotop && /tmp/gotop/scripts/download.sh",
     "command -v gotop || go get github.com/cjbassi/gotop",
     "cargo install --list | grep sd || cargo install sd",
+    "command -v interactive-rebase-tool || cargo install git-interactive-rebase-tool",
     "pip3 install --user pdd khal grip psutil maybe sqlcrush pynvim ptpython extract-msg gscholar",
     "gem install --install-user word_wrap",
     "command -v i3-cycle                || pip install --user i3-cycle",
