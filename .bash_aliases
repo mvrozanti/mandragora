@@ -474,3 +474,4 @@ alias mvncas='mvn clean compile assembly:single'
 alias wh='watch head'
 unalias gpf
 gpf='git push -f'
+alias gpsu='git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)'
