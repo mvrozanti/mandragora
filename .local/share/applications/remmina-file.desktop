@@ -1,0 +1,18 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Remmina Connect
+Comment=Access remote desktops with Remmina
+TryExec=/usr/bin/remmina
+Exec=/usr/bin/remmina --connect %U
+Icon=org.remmina.Remmina
+MimeType=application/x-remmina;
+Actions=Edit;
+Terminal=false
+StartupNotify=true
+NoDisplay=true
+X-Desktop-File-Install-Version=0.24
+
+[Desktop Action Edit]
+Name=Remmina Edit
+Exec=/usr/bin/remmina --edit %U
