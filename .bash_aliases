@@ -265,7 +265,7 @@ lnb(){ [[ $# != 2 ]] && return 1; le_fpath="$1"; le_dst="$2"; sudo ln -s `realpa
 alias cfD='sh -c "cd ~/mandragora && git diff"'
 alias grow='[[ `git -C ~/mandragora pull|wc -l` -eq 1 ]] || ~/mandragora/dotty/dotty.py -f -r && git -C ~/mandragora submodule update --recursive --remote'
 alias oc='mpv /dev/video0'
-alias f='fd -H'
+# alias f='fd -H'
 alias nohup='nohup > /dev/null'
 alias SV='ffmpeg -f video4linux2  -i /dev/video0  -vcodec libx264 -preset fast -b 1000k -f matroska -y /dev/stdout | nc -lp 2717'
 alias SA='pacat -r | nc -l -p 2718'
@@ -476,3 +476,4 @@ unalias gpf
 alias gpf='git push -f'
 alias gpsu='git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)'
 alias gri='git rebase -i'
+alias f=find
