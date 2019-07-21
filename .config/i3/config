@@ -103,9 +103,9 @@ $bind $mod+9          fullscreen disable; workspace $ws2;       $ensid wmctrl -a
 $bind $mod+Shift+u                                              $ensid wmctrl -a simd
 # $bind $mod+Delete                                               $ensid wmctrl -a  LibreOffice     || libreoffice
 $bind $mod+0      fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && offlineimap -a hotmail && "$cat_seqs" && tmux new neomutt"
-$bind $mod+2          fullscreen disable; split h;              $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e ncmpcpp
-$bind $mod+Mod1+2     fullscreen disable;                       $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -t _visualizer-float_ -c _visualizer_ -e ncmpcpp -s visualizer
-$bind $mod+Shift+2    fullscreen disable;                       $ensid wmctrl -a  _ncmpcpp_       || st -T 0  -e ncmpcpp -s visualizer
+$bind $mod+4          fullscreen disable; split h;              $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e ncmpcpp
+$bind $mod+Mod1+4     fullscreen disable;                       $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -t _visualizer-float_ -c _visualizer_ -e ncmpcpp -s visualizer
+$bind $mod+Shift+4    fullscreen disable;                       $ensid wmctrl -a  _ncmpcpp_       || st -T 0  -e ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  _zsh_           || kitty --listen-on=unix:@mykitty --title _zsh_ --name _zsh_
 $bind $mod+Shift+3                                              $ensid wmctrl -xa _tmux_          || kitty --title _tmux_
 # $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
@@ -123,11 +123,11 @@ $bind $mod+Mod1+k                                               $ensid transset-
 $bind $mod+Mod1+j                                               $ensid transset-df --dec 0.04 -a
 $bind $mod+Mod1+3                                               $ensid wmctrl -xa _tmux-float_    || kitty --title _tmux-float_ \
     -o font_size=10 -o initial_window_width=400 -o initial_window_height=300 -o remember_window_size=no
-$bind $mod+Mod1+Return                                          $ensid wmctrl -xa _ranger-float_    || kitty --title _ranger-float_ \
+$bind $mod+Mod1+3                                               $ensid wmctrl -xa _ranger-float_    || kitty --title _ranger-float_ \
     -o font_size=10 -o initial_window_width=500 -o initial_window_height=400 -o remember_window_size=no sh -c $cat_seqs' && ranger' 
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix \
     -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
-$bind $mod+Return     workspace $ws8;                           $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
+$bind $mod+3     workspace $ws8;                                $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
     -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtubecurses_  || kitty --name _youtubecurses_ \
     -o background_opacity=.78 --title _youtubecurses_ -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses || read"
