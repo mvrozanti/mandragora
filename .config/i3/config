@@ -114,7 +114,7 @@ $bind $mod+Tab                                                  $ensid ~/.local/
 $bind $mod+Shift+Tab                                            $ensid ~/.local/bin/i3-cycler.py prev
 # $bind $mod+Tab                                                  $ensid ~/.local/bin/i3shrink-window-animation
 # $bind $mod+Shift+Tab                                            $ensid ~/.local/bin/i3expand-window-animation
-$bind $mod+t                                                    $ensid wmctrl -a "Tor Browser"    || ~/.local/bin/tor-browser
+$bind $mod+Shift+t                                              $ensid wmctrl -a "Tor Browser"    || ~/.local/bin/tor-browser
 $bind $mod+7          fullscreen disable; workspace $ws11;      $ensid wmctrl -a "Slack"          || slack
 $bind $mod+BackSpace                                            $ensid kitty @ --to unix:@mykitty set-colors background='#ff0000'
 $bind $mod+Mod1+Shift+k                                         $ensid ~/.local/bin/shfthue 1
@@ -159,7 +159,7 @@ $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -x
 $bind $mod+Shift+1        workspace $ws1                        $ensid wmctrl -a  Browsing        || waterfox $waterfox_arg
 $bind $mod+Shift+v    split toggle;                             $ensid wmctrl -a  VirtualBox      || virtualbox
 $bind $mod+Shift+a                                              $ensid wmctrl -a  "Android Studio"|| android-studio
-$bind $mod+4              split h;                              $ensid wmctrl -a  telegram        || telegram
+$bind $mod+t              split h;                              $ensid wmctrl -a  telegram        || telegram
 $bind $mod+b                                                    $ensid wmctrl -xa DBeaver         || dbeaver
 $bind $mod+Shift+b    fullscreen disable;workspace $ws8;        $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
     -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger ~/mackenzie/tcc1/resources"
@@ -170,7 +170,7 @@ $bind $mod+Shift+f    workspace $ws3;                           $ensid wmctrl -a
 $bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a  Trello          || trello
 $bind $mod+Shift+w    workspace $ws11;                          $ensid wmctrl -xa thunderbird     || thunderbird
 $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -xa gdmap           || gdmap -f /
-$bind $mod+Shift+Return                                         $ensid                               st -T 100 ranger
+$bind $mod+Shift+2                                              $ensid                               st -T 100 ranger
 $bind $mod+p                                                    $ensid wmctrl -a ".pdf ["         || zathura
 $bind $mod+Shift+p                                              $ensid transset-df -a -t 
 $bind $mod+Mod1+p                                               $ensid zathura
