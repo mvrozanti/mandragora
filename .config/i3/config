@@ -53,10 +53,10 @@ focus_follows_mouse no
 
 for_window  [class="Waterfox"]            move to workspace $ws1
 # for_window  [class="Firefox"]            move to workspace $ws1
-for_window  [title="^(\d+) WhatsApp$"]    move to workspace $ws3
+for_window  [title="^(\d+) WhatsApp$"]    move to workspace $ws4
 for_window  [title=".*Trello.*"]          move to workspace $ws7
 for_window  [title=".*Zoom "]             move to workspace $ws5
-for_window  [instance="^ranger$"]         move to workspace $ws8
+for_window  [instance="^ranger$"]         move to workspace $ws2
 for_window  [class="mpv"]                 sticky enable, floating enable, move position 1000 470
 for_window  [title="_visualizer_"]        sticky enable, floating enable
 no_focus    [title="_visualizer-float_"]
@@ -64,19 +64,20 @@ for_window  [title="_tmux-float_"]        sticky enable, floating enable, move p
 for_window  [title="^colp$"]              sticky enable, floating enable, move position 1500 670 
 for_window  [title="_ranger-float_"]      sticky enable, floating enable, move position 1400 570 
 for_window  [title="_visualizer-float_"]  sticky enable, floating enable, move position 1400 520 
+for_window  [title="KMagnifier"]          sticky enable, floating enable, move position 1300 520 
 for_window  [instance="portal"]           sticky enable, floating enable
 for_window  [instance="khal2"]            floating enable, move position 950 250, \
                                             resize shrink width 10000px,        \
                                             resize shrink height 10000px,        \
                                             resize grow width 800,             \
                                             resize grow height 600               
-for_window  [instance="khal_"]            move to workspace $ws2
+for_window  [instance="khal_"]            move to workspace $ws3
 for_window  [title="gifview"]             floating enable
 for_window  [title="_youtube_"]           floating enable
 for_window  [title="Event Tester"]        floating enable # xev
-assign      [title="_zsh_"]               $ws2
-assign      [instance="cava"]             $ws2
-assign      [instance="cmatrix"]          $ws2
+assign      [title="_zsh_"]               $ws3
+assign      [instance="cava"]             $ws3
+assign      [instance="cmatrix"]          $ws3
 assign      [class="NetBeans IDE "]       $ws6
 assign      [class="Eclipse IDE "]        $ws6
 assign      [class="Visual Studio"]       $ws6
@@ -112,6 +113,7 @@ $bind $mod+Mod1+3                                               $ensid wmctrl -x
     -o font_size=10 -o initial_window_width=400 -o initial_window_height=300 -o remember_window_size=no
 # $bind $mod+g                                                    $ensid wmctrl -a  cava            || kitty --name cava -e cava
 $bind $mod+g                                                    $ensid ~/.local/bin/setbg
+$bind $mod+Ctrl+equal                                           $ensid kmag
 $bind $mod+Tab                                                  $ensid ~/.local/bin/i3-cycler.py next
 $bind $mod+Shift+Tab                                            $ensid ~/.local/bin/i3-cycler.py prev
 # $bind $mod+Tab                                                  $ensid ~/.local/bin/i3shrink-window-animation
@@ -167,7 +169,7 @@ $bind $mod+Shift+b    fullscreen disable;workspace $ws8;        $ensid wmctrl -a
 # $bind $mod+Tab                                                  $ensid notify-send kek 
 $bind $mod+Shift+d                                              $ensid wmctrl -a "Netbeans "      || wmctrl -xa "Eclipse" || /usr/bin/netbeans
 $bind $mod+z          workspace $ws5;                           $ensid wmctrl -a "Zoom -"         || zoom
-$bind $mod+Shift+f    workspace $ws3;                           $ensid wmctrl -a  WhatsApp        || whatsapp
+$bind $mod+Shift+f    workspace $ws4;                           $ensid wmctrl -a  WhatsApp        || whatsapp
 $bind $mod+Shift+s    workspace $ws7;                           $ensid wmctrl -a  Trello          || trello
 $bind $mod+Shift+w    workspace $ws11;                          $ensid wmctrl -xa thunderbird     || thunderbird
 $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -xa gdmap           || gdmap -f /
