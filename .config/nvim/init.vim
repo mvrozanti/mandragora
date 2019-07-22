@@ -443,10 +443,10 @@ let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
-set statusline+=%#warningmsg#
+" set statusline+=%#warningmsg#
 " set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
-set statusline+=%f
+" set statusline+=%*
+" set statusline+=%f
 "let g:syntastic_javascript_checkers = ['eslint']
 "let g:syntastic_cpp_compiler = 'clang++'
 let g:syntastic_quiet_messages = { "regex": [
@@ -627,4 +627,4 @@ function! Synctex()
     execute "silent !zathura --synctex-forward " . line('.') . ":" . col('.') . ":" . bufname('%') . " " . bufname('%')[:-5]. ".pdf"
     redraw!
 endfunction
-let &statusline.='%{abs(line(".") - line("v")) + 1}'
+" let &statusline.='%{abs(line(".") - line("v")) + 1}'
