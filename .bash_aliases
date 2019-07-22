@@ -445,7 +445,7 @@ pentr(){ find . | entr -c sh -c 'ag "__name__ == '"'"'__main__'"'"'" | sed 1q | 
 alias wls='watch ls'
 alias cosxiv='sxiv `co`'
 alias cogco='gco fix-non-existing-docker-image'
-alias ag='ag --hidden'
+alias ag='ag --search-binary --hidden'
 alias vt='v .travis.yml'
 alias lc='history | tail -n1 | cut -d " " -f4'
 alias schmxlc='schmod +x "`lc`"'
