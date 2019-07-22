@@ -220,7 +220,7 @@ alias ogg2wav='ffmpeg -i audio.ogg audio.wav'
 alias nudoku='nudoku -c'
 cdd(){ cd `dirname $1` }
 alias pir='pip uninstall --no-cache-dir'
-up2imgur(){ curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@$@" }
+up2imgur(){ curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@$@" | jq .data.link }
 up2giphy(){ curl -s -X POST --url https://upload.giphy.com/v1/gifs -H "api_key: $giphy_client_id" -F "file=@$@" | jq .data.id |xargs -i echo https://i.giphy.com/media/{}/source.gif }
 up2gfycat(){ [[ -z $1 ]] && return || { json_data=`curl -s -XPOST https://api.gfycat.com/v1/gfycats`; [[ `echo $json_data|jq .isOk` ]] || return ; gfyname=`echo $json_data|jq -r .gfyname`; secret=`echo $json_data|jq .secret`; cp $1 /tmp/$gfyname; curl -s -i https://filedrop.gfycat.com --upload-file /tmp/$gfyname 2>&1 >/dev/null; echo https://gfycat.com/$gfyname } }
 alias 2048='~/util/bash2048/bash2048.sh'
@@ -481,4 +481,4 @@ alias wmd5.='watch md5sum *'
 alias cd/='/'
 alias gcfd='git clean -f -d'
 alias co2i='xclip -selection clipboard -t image/png -o > clipboard-out.png'
-alias co2imgur='xclip -selection clipboard -t image/png -o > /tmp/img; up2imgur $_'
+alias co2imgur='xclip -selection clipboard -t image/png -o > /tmp/img; up2imgur /tmp/img | '
