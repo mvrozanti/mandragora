@@ -10,6 +10,7 @@
 (monitor-xresolution 305.000000)
 (monitor-yresolution 305.000000)
 (save-session-info no)
+(image-resize-fill-type foreground)
 (fill-options
     (style solid)
     (antialias yes)

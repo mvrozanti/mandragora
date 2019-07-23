@@ -127,19 +127,19 @@ format = <label-state> <label-mode>
 index-sort = true
 wrapping-scroll = false
 ws-icon-0 = 1;⚉
-ws-icon-1 = 2;Ϡ
-ws-icon-2 = 3;𖧒
+ws-icon-1 = 2;ߧ
+ws-icon-2 = 3;Ϡ
 ws-icon-3 = 4;⊶
-ws-icon-4 = 5;λ
-ws-icon-5 = 6;ϡ
-ws-icon-6 = 7;໑
-ws-icon-7 = 8;ߧ
+ws-icon-4 = 5;♋
+/* ws-icon-4 = 5;𖧒 */
+ws-icon-5 = 6;λ
+ws-icon-6 = 7;ϡ
+ws-icon-7 = 8;໑
 ; ⚒
 ws-icon-8 = 9;ϕ
 ws-icon-9 = 10;ϰ
 ws-icon-10 = 11;ӂ
 ws-icon-11 = 12;♟
-ws-icon-12 = 13;♋
 icon-default = ♟
 
 ; Only show workspaces on the same output as the bar
