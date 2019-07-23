@@ -248,7 +248,8 @@
     "python-coverage",
     "kubectl",
     "gucharmap",
-    "xmldiff"
+    "xmldiff",
+    "mediainfo"
   ],
   "excluded": [
     "hotmail.gpg",
