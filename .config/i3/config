@@ -145,13 +145,13 @@ $bind $mod+Shift+o                                              $ensid wmctrl -x
 #     -o background_opacity=.78 -o font_size=13 --title _todo_  -e zsh -c "nvim $HOME/kno.pro"
 # $bind $mod+Shift+o          fullscreen disable;                 $ensid wmctrl -a  _todo_          || kitty --name _todo_ \
 #     -o background_opacity=.78 -o font_size=13 --title _todo_  -e zsh -c "nvim $HOME/mackenzie/tcc1/duvidas.md"
-$bind $mod+braceleft                                            $ensid wmctrl -a  khal            || kitty --name khal2 \
+$bind $mod+braceleft                                            $ensid wmctrl -a  khal            || kitty --title khal2 \
     -o background_opacity=.78 -o font_size=14 --title khal2 -e sh  -c $cat_seqs" && khal interactive"
-$bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a  khal            || kitty --name khal_ \
+$bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a  khal            || kitty --title khal_ \
     -o background_opacity=.78 -o font_size=13 --title khal_ -e sh  -c $cat_seqs" && khal interactive"
 $bind Ctrl+Shift+Escape                                         $ensid wmctrl -a  gotop           || kitty --title gotop \
     -o background_opacity=.78 -e sh -c $cat_seqs' && gotop'
-$bind $mod+i                                                    $ensid wmctrl -a  _irssi_         || kitty --name _irssi_ \
+$bind $mod+i                                                    $ensid wmctrl -a  _irssi_         || kitty --title _irssi_ \
     -o background_opacity=.78 sh -c $cat_seqs' && irssi'
 
 $bind $mod+Ctrl+braceleft                                       $ensid $HOME/util/compton/dbus-examples/dbus-strength.sh -1
