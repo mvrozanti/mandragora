@@ -55,7 +55,7 @@ for_window  [class="Waterfox"]            move to workspace $ws1
 # for_window  [class="Firefox"]            move to workspace $ws1
 for_window  [title="^(\d+) WhatsApp$"]    move to workspace $ws4
 for_window  [title=".*Trello.*"]          move to workspace $ws8
-for_window  [title=".*Zoom "]             move to workspace $ws5
+for_window  [title=".*Zoom "]             move to workspace $ws6
 for_window  [instance="^ranger$"]         move to workspace $ws2
 for_window  [class="mpv"]                 sticky enable, floating enable, move position 1000 470
 for_window  [title="_visualizer_"]        sticky enable, floating enable
@@ -83,13 +83,13 @@ assign      [class="NetBeans IDE "]       $ws7
 assign      [class="Eclipse IDE "]        $ws7
 assign      [class="Visual Studio"]       $ws7
 assign      [class="Tor Browser"]         $ws11
-assign      [title=".*Android Studio.*"]  $ws6
-assign      [title="Discord"]             $ws7
-assign      [instance="DBeaver"]          $ws10
-assign      [title="Mozilla Thunderbird"] $ws11
-assign      [class="Slack"]               $ws11
-assign      [title="Skype"]               $ws11
-assign      [title="_neomutt_"]           $ws12
+assign      [title=".*Android Studio.*"]  $ws7
+assign      [title="Discord"]             $ws8
+assign      [instance="DBeaver"]          $ws11
+assign      [title="Mozilla Thunderbird"] $ws12
+assign      [class="Slack"]               $ws12
+assign      [title="Skype"]               $ws12
+assign      [title="_neomutt_"]           $ws13
 for_window  [title="_todo_"]              sticky enable, floating enable, move position 900 440
 #    __                                 _
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_
@@ -169,7 +169,7 @@ $bind $mod+Shift+b    fullscreen disable;workspace $ws8;        $ensid wmctrl -a
     -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger ~/mackenzie/tcc1/resources"
 # $bind $mod+Tab                                                  $ensid notify-send kek 
 $bind $mod+Shift+d                                              $ensid wmctrl -a "Netbeans "      || wmctrl -xa "Eclipse" || /usr/bin/netbeans
-$bind $mod+z          workspace $ws5;                           $ensid wmctrl -a "Zoom -"         || zoom
+$bind $mod+z          workspace $ws6;                           $ensid wmctrl -a "Zoom -"         || zoom
 $bind $mod+Shift+f    workspace $ws4;                           $ensid wmctrl -a  WhatsApp        || whatsapp
 $bind $mod+Shift+s    workspace $ws8;                           $ensid wmctrl -a  Trello          || trello
 $bind $mod+Shift+w    workspace $ws12;                          $ensid wmctrl -xa thunderbird     || thunderbird
