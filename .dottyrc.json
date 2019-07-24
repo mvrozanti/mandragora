@@ -249,7 +249,8 @@
     "kubectl",
     "gucharmap",
     "xmldiff",
-    "mediainfo"
+    "mediainfo",
+    "steghide"
   ],
   "excluded": [
     "hotmail.gpg",
