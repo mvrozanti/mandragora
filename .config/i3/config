@@ -130,7 +130,7 @@ $bind $mod+Shift+2                                         $ensid               
 $bind $mod+Mod1+2                                          $ensid wmctrl -xa _ranger-float_    || kitty --title _ranger-float_ \
     -o font_size=10 -o initial_window_width=500 -o initial_window_height=400 -o remember_window_size=no sh -c $cat_seqs' && ranger' 
 $bind $mod+2     workspace $ws2;                           $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
-    -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
+    --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
 $bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix \
     -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtubecurses_  || kitty --name _youtubecurses_ \
