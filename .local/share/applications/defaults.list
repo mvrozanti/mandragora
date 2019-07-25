@@ -5,3 +5,4 @@ video/avi=mpv.desktop;
 video/mp4=mpv.desktop;
 image/jpeg=sxiv.desktop;
 text/sql=nvim.desktop;
+text/coffee=nvim.desktop;
