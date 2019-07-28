@@ -250,7 +250,8 @@
     "gucharmap",
     "xmldiff",
     "mediainfo",
-    "steghide"
+    "steghide",
+    "img2pdf"
   ],
   "excluded": [
     "hotmail.gpg",
