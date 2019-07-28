@@ -251,7 +251,8 @@
     "xmldiff",
     "mediainfo",
     "steghide",
-    "img2pdf"
+    "img2pdf",
+    "zathura-cb"
   ],
   "excluded": [
     "hotmail.gpg",
