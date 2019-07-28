@@ -177,7 +177,7 @@ $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -x
 $bind $mod+p                                                    $ensid wmctrl -a ".pdf ["         || zathura
 $bind $mod+Shift+p                                              $ensid transset-df -a -t 
 $bind $mod+Mod1+p                                               $ensid zathura
-$bind $mod+y                                                    $ensid wmctrl -a _youtube_        || mpv `xsel -o -b`
+$bind $mod+y                                                    $ensid wmctrl -a _youtube_        || mpv --ytdl-format=best `xsel -o -b`
 # $bind $mod+x                                                    $ensid wmctrl -a  mpv
 $bind $mod+d                                                    $ensid ~/.local/bin/toggle-desktop
 $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
