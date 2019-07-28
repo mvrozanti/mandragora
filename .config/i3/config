@@ -173,7 +173,7 @@ $bind $mod+z          workspace $ws6;                           $ensid wmctrl -a
 $bind $mod+Shift+f    workspace $ws4;                           $ensid wmctrl -a  WhatsApp        || whatsapp
 $bind $mod+Shift+s    workspace $ws8;                           $ensid wmctrl -a  Trello          || trello
 $bind $mod+Shift+w    workspace $ws12;                          $ensid wmctrl -xa thunderbird     || thunderbird
-$bind $mod+Ctrl+d     workspace $ws12;                          $ensid wmctrl -xa gdmap           || gdmap -f /
+$bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -xa gdmap           || gdmap -f /
 $bind $mod+p                                                    $ensid wmctrl -a ".pdf ["         || zathura
 $bind $mod+Shift+p                                              $ensid transset-df -a -t 
 $bind $mod+Mod1+p                                               $ensid zathura
