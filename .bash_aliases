@@ -485,3 +485,6 @@ alias co2imgur='xclip -selection clipboard -t image/png -o > /tmp/img; up2imgur 
 alias v-='v -'
 alias gddv-='gdd|v-'
 alias coytdl='youtube-dl `co`'
+alias uppercase="sed 's/[^ ]\+/\U&/g'"
+alias lowercase="sed 's/[^ ]\+/\L&/g'"
+alias capitalize="sed 's/[^ ]\+/\L\u&/g'"
