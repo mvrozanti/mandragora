@@ -312,6 +312,7 @@
     "command -v downgrade               || yay -S $_",
     "command -v yq                      || pip install --user $_",
     "command -v jiq                     || go get github.com/fiatjaf/jiq/cmd/$_",
+    "command -v github-linguist         || gem install github-linguist",
     "stat /usr/lib/libwebp.so           || yay -S imlib2-webp-git",
     "command -v transmission-remote-cli || yay -S $_ ",
     "systemctl enable ntpd.service"
