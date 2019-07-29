@@ -274,7 +274,7 @@ date-alt = " %Y-%m-%d"
 time = %H:%M
 time-alt = %H:%M:%S
 format-prefix-foreground = ${colors.foreground-alt}
-format-underline = ${xrdb:color5}
+format-underline = ${xrdb:color14}
 
 label = %{A8:shutdown -h 0:}%date% %time%
 format-prefix = ◉
