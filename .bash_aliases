@@ -489,3 +489,4 @@ alias uppercase="sed 's/[^ ]\+/\U&/g'"
 alias lowercase="sed 's/[^ ]\+/\L&/g'"
 alias capitalize="sed 's/[^ ]\+/\L\u&/g'"
 append(){ [ "$#" -eq 2 ] && grep -FIxvf $2 $1 | head -n -1 >> $2 }
+alias a='ag'
