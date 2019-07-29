@@ -342,7 +342,7 @@ alias re='perl -pe'
 wco(){ watch xsel -o -b }
 v.(){ v . }
 alias cfC='v ~/.config/nvim/coc-settings.json'
-alias G='googler -l en -n 3 -c en'
+alias G='googler -l en -n 4'
 coy(){ ytdl `co` }
 alias /f='/;f'
 alias copss='pss `co`'
