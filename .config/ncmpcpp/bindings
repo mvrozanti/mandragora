@@ -36,3 +36,7 @@ def_key "K"
   push_characters "kkkkkkk"
 def_key "L"
   show_lyrics
+def_key "L"
+  show_lyrics
+def_key "space"
+  pause
