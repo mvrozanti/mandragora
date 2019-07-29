@@ -76,6 +76,7 @@ Plug 'mogelbrod/vim-jsonpath'
 autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
 autocmd BufEnter *.pro :setlocal filetype=prolog
 autocmd FileType prolog setlocal commentstring=%\ %s
+autocmd FileType jq setlocal commentstring=#\ %s
 autocmd FileType prolog inoremap she<tab> #!/usr/bin/swipl
 autocmd FileType make inoremap al<tab> all:<CR>
 " autocmd FileType prolog map <F5> <ESC>:w<CR>:exec '!swipl -q %'<CR>
