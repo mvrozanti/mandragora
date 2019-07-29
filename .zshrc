@@ -8,6 +8,10 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=12'
 ZSH_THEME="nexor"
 # ZSH_THEME="powerlevel9k/powerlevel9k"
 LS_COLORS='fi=0:ln=5:pi=0:so=7:bd=5:cd=5:or=31:mi=0:ex=93:*.py=36:di=40:*.zip=33:*.tgz=33:ow=1'
+unsetopt HIST_VERIFY
+export HISTSIZE=1000000000
+export SAVEHIST=$HISTSIZE
+setopt EXTENDED_HISTORY
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
@@ -82,7 +86,7 @@ source ~/.oh-my-zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 source $HOME/.bash_aliases
 source $HOME/.ranger_aliases
 stty -ixon
-unsetopt HIST_VERIFY
+
 bindkey '^ ' autosuggest-accept
 bindkey "\eOH" beginning-of-line
 bindkey "\eOF" end-of-line
