@@ -493,3 +493,4 @@ alias capitalize="sed 's/[^ ]\+/\L\u&/g'"
 append(){ [ "$#" -eq 2 ] && grep -FIxvf $2 $1 | head -n -1 >> $2 }
 alias a='ag'
 alias myMACs="ip a | grep -EB1 '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'"
+alias k9='kill -9'
