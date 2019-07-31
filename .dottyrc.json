@@ -81,7 +81,8 @@
     ".local/bin/gacp": "~/.local/bin/gacp",
     ".config/mpv/mpv.conf": "~/.config/mpv/mpv.conf",
     ".local/bin/mvnexec": "~/.local/bin/mvnexec",
-    ".config/kdeconnect/4867d0d0cc3048f8/kdeconnect_runcommand/config": "~/.config/kdeconnect/4867d0d0cc3048f8/kdeconnect_runcommand/config"
+    ".config/kdeconnect/4867d0d0cc3048f8/kdeconnect_runcommand/config": "~/.config/kdeconnect/4867d0d0cc3048f8/kdeconnect_runcommand/config",
+    ".config/pueue/pueue.ini": "~/.config/pueue/pueue.ini"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
