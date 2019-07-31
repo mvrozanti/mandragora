@@ -194,7 +194,7 @@ alias cv='cov'
 alias vh='nvim ~/.zsh_history'
 vx(){ xxd $@ | v - }
 make-ranger-aliases(){ cat ~/.config/ranger/rc.conf | grep "^map g" | grep -v '\?' | grep cd | awk '{printf "alias z"substr($2, 2)"='\''"; $1=$2=""; print substr($0, 1)"'\''"}' | sed -E 's/\s{2}//g' > ~/.ranger_aliases; }
-ytdl(){ youtube-dl --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $@; }
+ytdl(){ youtube-dl -w --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" $@; }
 alias wt='watch -n 1 tree'
 wtg(){ watch -n 1 "tree | grep $@" }
 wcat(){ ls "$@" | entr -c cat /_ }
@@ -494,3 +494,4 @@ append(){ [ "$#" -eq 2 ] && grep -FIxvf $2 $1 | head -n -1 >> $2 }
 alias a='ag'
 alias myMACs="ip a | grep -EB1 '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'"
 alias k9='kill -9'
+alias pq='pueue'
