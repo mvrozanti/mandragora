@@ -302,7 +302,7 @@
     "command -v interactive-rebase-tool || cargo install git-interactive-rebase-tool",
     "pip3 install --user pdd khal grip psutil maybe sqlcrush pynvim ptpython extract-msg gscholar",
     "gem install --install-user word_wrap",
-    "command -v i3-cycle                || pip install --user i3-cycle",
+    "stat /usr/lib/libwebp.so           || yay -S imlib2-webp-git",
     "command -v hamachi                 || yay -S logmein-hamachi",
     "command -v polybar                 || yay -S $_",
     "command -v gotop                   || yay -S $_",
@@ -310,11 +310,12 @@
     "command -v browsh                  || yay -S $_",
     "command -v googler                 || yay -S $_",
     "command -v downgrade               || yay -S $_",
+    "command -v transmission-remote-cli || yay -S $_ ",
+    "command -v pueue                   || pip install --user $_",
+    "command -v i3-cycle                || pip install --user $_",
     "command -v yq                      || pip install --user $_",
     "command -v jiq                     || go get github.com/fiatjaf/jiq/cmd/$_",
     "command -v github-linguist         || gem install github-linguist",
-    "stat /usr/lib/libwebp.so           || yay -S imlib2-webp-git",
-    "command -v transmission-remote-cli || yay -S $_ ",
     "systemctl enable ntpd.service"
   ]
 }
