@@ -7,6 +7,8 @@
 
 # win=Mod4
 # alt=Mod1
+
+exec_always pueue --daemon
 exec_always  --no-startup-id $HOME/.config/polybar/launch.sh
 # exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seafile.sh start
 # exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seahub.sh start
