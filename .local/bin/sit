@@ -1,4 +1,18 @@
 #!/bin/bash
+SHOWTAGS=0
+SHOWPATH=0
+while [ "$1" != "" ]; do
+    PARAM=`echo $1 | awk -F= '{print $1}'`
+    case $PARAM in
+        --tags)
+            SHOWTAGS=1
+            ;;
+        --path)
+            SHOWPATH=1
+            ;;
+    esac
+    shift
+done
 find -iname "*.jpg" -print0 | xargs -P8 -I{} -0 sh -c "exiftool -a `realpath \'{}\'` | grep $@ > /dev/null && echo '{}'" 2>&1
 # le_tag="$1"; 
 # if [[ $# -eq 2 ]]; then 
