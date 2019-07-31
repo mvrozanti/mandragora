@@ -216,6 +216,8 @@ alias piu='pip install --user'
 alias lo='libreoffice 2>&1 > /dev/null &'
 alias jn='jupyter notebook'
 alias wav2ogg='oggenc -q 3 -o file.ogg'
+# png2jpg(){ [[ $# -eq 1 ]] && convert "$1" "$(basename `realpath $1` | cut -d. -f1).jpg" || [[ $# -eq 2 ]] && convert "$1" "$2" }
+# jpg2png(){ [[ $# -eq 1 ]] && convert "$1" "$(basename '$1' .jpg)" || [[ $# -eq 2 ]] && convert "$1" "$2" }
 alias ogg2wav='ffmpeg -i audio.ogg audio.wav'
 alias nudoku='nudoku -c'
 cdd(){ cd `dirname $1` }
