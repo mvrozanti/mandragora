@@ -498,3 +498,4 @@ alias myMACs="ip a | grep -EB1 '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'"
 alias k9='kill -9'
 alias q='pueue'
 hrmr(){ kek="$(basename $(pwd))";cd ..;rm -r "$kek" }
+alias piur='pip install --user requirements.txt'
