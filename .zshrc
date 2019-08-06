@@ -99,15 +99,22 @@ bindkey '^f' forward-word
 bindkey '^h' backward-delete-char
 # bindkey '^l' delete-char
 bindkey '^[^l' delete-word
-run_ranger () {
+run_ranger() {
     echo
     ranger --choosedir=$HOME/.rangerdir < $TTY
     LASTDIR=`cat $HOME/.rangerdir`
     cd "$LASTDIR"
     zle reset-prompt
 }
+run_nnn() {
+    echo
+    nnn .
+    zle reset-prompt
+}
 zle -N run_ranger
+zle -N run_nnn
 bindkey '^[r' 'run_ranger'
+bindkey '^[R' 'run_nnn'
 
 # vi - thanks hoberto
 bindkey '\ek' up-history

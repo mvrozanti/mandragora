@@ -254,7 +254,8 @@
     "steghide",
     "img2pdf",
     "zathura-cb",
-    "jp2a"
+    "jp2a",
+    "zxing-cpp"
   ],
   "excluded": [
     "hotmail.gpg",
