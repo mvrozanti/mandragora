@@ -20,7 +20,7 @@ nnoremap <A-p> o<A-p>
 " let blacklist = ['txt']
 " autocmd BufWritePre  * if index(blacklist, &ft) < 0 | %s/\s\+$//e
 autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex -synctex=1 % 
-nnoremap <C-o> :call Synctex()<CR>
+" nnoremap <C-o> :call Synctex()<CR>
 autocmd BufWritePost *.bib silent! !bibtex %:r ; pdflatex %:r.tex ; pdflatex -synctex=1 %:r.tex 
 
 " Sync tex pdf (doesnt work tho)
@@ -100,15 +100,27 @@ let g:colorizer_auto_color = 1
 
 set nofoldenable
 set foldmethod=indent
-" Plug 'Valloric/YouCompleteMe'
-let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
+Plug 'Valloric/YouCompleteMe'
+" let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
+let g:ycm_global_ycm_extra_conf = "/home/nexor/.config/nvim/plugged/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
+let g:ycm_language_server = 
+  \ [ 
+  \   {
+  \     'name': 'omnisharp',
+  \     'cmdline': [ 'mono', '/home/nexor/.omnisharp/omnisharp-roslyn/OmniSharp.exe' ],
+  \     'filetypes': [ 'cs' ]
+  \   }
+  \ ]
 let g:ycm_key_list_select_completion = ['<TAB>']
 let g:ycm_autoclose_preview_window_after_completion = 1
+let g:ycm_auto_start_csharp_server = 1
+let g:ycm_auto_stop_csharp_server = 1
 let g:ycm_key_list_stop_completion = ['<Enter>']
 " let g:ycm_server_python_interpreter = "/usr/bin/python"
 " let g:ycm_path_to_python_interpreter="/usr/bin/python"
 let g:ycm_filetype_whitelist = {
 			\ "c":1,
+			\ "cs":1,
 			\ "cpp":1,
 			\ "sh":1,
 			\ "zsh":1,
@@ -179,13 +191,14 @@ autocmd FileType html,javascript inoremap fn<tab> function(){<CR><Tab><+><CR>}<E
 autocmd FileType javascript inoremap she<tab> #!/usr/bin/env node
 
 " c# shortcuts
+autocmd FileType cs   inoremap pr<tab> private<Space>
 autocmd FileType cs   inoremap psvm<tab> public static void Main(string[] args)<CR>{<CR>}
 autocmd FileType cs   inoremap ns<tab> namespace<Space><CR>{<CR>}
 autocmd FileType cs   inoremap us<tab> using<Space>
 autocmd FileType cs   inoremap pu<tab> public<Space>
 autocmd FileType cs   inoremap fa<tab> false
 autocmd FileType cs   inoremap tr<tab> true
-autocmd FileType java inoremap cw<tab> Console.WriteLine()<Esc>i
+autocmd FileType cs   inoremap cw<tab> Console.WriteLine()<Esc>i
 
 " java shortcuts
 autocmd FileType java inoremap psvm<tab> public static void main(String args[]){<CR>}
@@ -374,16 +387,16 @@ let g:startify_session_autoload = 1
 " Plug 'mhinz/vim-signify'
 
 " ==== Completion
-Plug 'OmniSharp/omnisharp-vim'
+" Plug 'OmniSharp/omnisharp-vim'
 " Plug 'markwoodhall/vim-nuget'
 Plug 'Shougo/deoplete.nvim'
 Plug 'mattn/webapi-vim'
 " Plug 'junegunn/fzf.vim', { 'dir': '~/.fzf', 'do': './install --all' }
 set completeopt=longest,menuone,preview
-let g:OmniSharp_proc_debug = 1
-let g:OmniSharp_server_stdio = 1
-let g:OmniSharp_server_use_mono = 1
-let g:coc_global_extensions=[ 'coc-omnisharp' ]
+" let g:OmniSharp_proc_debug = 1
+" let g:OmniSharp_server_stdio = 1
+" let g:OmniSharp_server_use_mono = 1
+" let g:coc_global_extensions=[ 'coc-omnisharp' ]
 " function! s:check_back_space() abort
 "   let col = col('.') - 1
 "   return !col || getline('.')[col - 1]  =~ '\s'
