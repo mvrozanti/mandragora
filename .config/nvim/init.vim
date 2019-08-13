@@ -182,6 +182,10 @@ autocmd FileType javascript inoremap she<tab> #!/usr/bin/env node
 autocmd FileType cs   inoremap psvm<tab> public static void Main(string[] args)<CR>{<CR>}
 autocmd FileType cs   inoremap ns<tab> namespace<Space><CR>{<CR>}
 autocmd FileType cs   inoremap us<tab> using<Space>
+autocmd FileType cs   inoremap pu<tab> public<Space>
+autocmd FileType cs   inoremap fa<tab> false
+autocmd FileType cs   inoremap tr<tab> true
+autocmd FileType java inoremap cw<tab> Console.WriteLine()<Esc>i
 
 " java shortcuts
 autocmd FileType java inoremap psvm<tab> public static void main(String args[]){<CR>}
@@ -371,13 +375,13 @@ let g:startify_session_autoload = 1
 
 " ==== Completion
 Plug 'OmniSharp/omnisharp-vim'
-Plug 'markwoodhall/vim-nuget'
+" Plug 'markwoodhall/vim-nuget'
 Plug 'Shougo/deoplete.nvim'
 Plug 'mattn/webapi-vim'
 " Plug 'junegunn/fzf.vim', { 'dir': '~/.fzf', 'do': './install --all' }
 set completeopt=longest,menuone,preview
 " let g:OmniSharp_proc_debug = 1
-let g:OmniSharp_server_use_mono = 1
+" let g:OmniSharp_server_use_mono = 1
 " function! s:check_back_space() abort
 "   let col = col('.') - 1
 "   return !col || getline('.')[col - 1]  =~ '\s'
@@ -495,6 +499,7 @@ nmap f <Plug>(easymotion-s)
 
 autocmd FileType javascript                                         let b:run_script = '!clear;xvkbd -window Firefox -text "\Cr" && xdotool keydown alt key Tab; sleep 2.001; xdotool keyup alt'
 " autocmd FileType javascript                                         set omnifunc=javascriptcomplete#CompleteJS
+" autocmd FileType cs                                         set omnifunc=javascriptcomplete#CompleteJS
 " let g:EclimCompletionMethod = 'omnifunc'
 autocmd FileType python                                             let b:run_script = '! clear;python3 %'
 autocmd FileType python                                             let g:pymode_python = 'python3'
