@@ -380,8 +380,10 @@ Plug 'Shougo/deoplete.nvim'
 Plug 'mattn/webapi-vim'
 " Plug 'junegunn/fzf.vim', { 'dir': '~/.fzf', 'do': './install --all' }
 set completeopt=longest,menuone,preview
-" let g:OmniSharp_proc_debug = 1
-" let g:OmniSharp_server_use_mono = 1
+let g:OmniSharp_proc_debug = 1
+let g:OmniSharp_server_stdio = 1
+let g:OmniSharp_server_use_mono = 1
+let g:coc_global_extensions=[ 'coc-omnisharp' ]
 " function! s:check_back_space() abort
 "   let col = col('.') - 1
 "   return !col || getline('.')[col - 1]  =~ '\s'
