@@ -178,6 +178,11 @@ autocmd FileType html,javascript inoremap cl<tab> console.log()<Esc>i
 autocmd FileType html,javascript inoremap fn<tab> function(){<CR><Tab><+><CR>}<Esc>2kf(a
 autocmd FileType javascript inoremap she<tab> #!/usr/bin/env node
 
+" c# shortcuts
+autocmd FileType cs   inoremap psvm<tab> public static void Main(string[] args)<CR>{<CR>}
+autocmd FileType cs   inoremap ns<tab> namespace<Space><CR>{<CR>}
+autocmd FileType cs   inoremap us<tab> using<Space>
+
 " java shortcuts
 autocmd FileType java inoremap psvm<tab> public static void main(String args[]){<CR>}
 autocmd FileType java call SetupCommandAlias("mvnexec","!mvnexec %")
