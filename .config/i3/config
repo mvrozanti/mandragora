@@ -86,8 +86,9 @@ assign      [instance="cmatrix"]          $ws3
 assign      [class="NetBeans IDE "]       $ws7
 assign      [class="Eclipse IDE "]        $ws7
 assign      [class="Visual Studio"]       $ws7
-assign      [class="Tor Browser"]         $ws11
 assign      [title=".*Android Studio.*"]  $ws7
+assign      [title=".*MonoDevelop.*"]     $ws7
+assign      [class="Tor Browser"]         $ws11
 assign      [title="Discord"]             $ws8
 assign      [instance="DBeaver"]          $ws11
 assign      [title="Mozilla Thunderbird"] $ws12
@@ -166,7 +167,8 @@ $bind $mod+Shift+n                                              $ensid wmctrl -a
 $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox        || waterfox
 $bind $mod+Shift+1        workspace $ws1                        $ensid wmctrl -a  Browsing        || waterfox $waterfox_arg
 $bind $mod+Shift+v    split toggle;                             $ensid wmctrl -a  VirtualBox      || virtualbox
-$bind $mod+Shift+a                                              $ensid wmctrl -a  "Android Studio"|| android-studio
+# $bind $mod+Shift+a                                              $ensid wmctrl -a  "Android Studio"|| android-studio
+$bind $mod+Shift+a                                              $ensid wmctrl -a  "MonoDevelop"   || /usr/bin/monodevelop 
 $bind $mod+4              split h;                              $ensid wmctrl -a  telegram        || telegram
 $bind $mod+b                                                    $ensid wmctrl -xa DBeaver         || dbeaver
 $bind $mod+Shift+b    fullscreen disable;workspace $ws8;        $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \

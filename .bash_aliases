@@ -500,3 +500,4 @@ alias q='pueue'
 hrmr(){ kek="$(basename $(pwd))";cd ..;rm -r "$kek" }
 alias piur='pip install --user -r requirements.txt'
 x1exe(){ mono `f exe|sed 1q` }
+alias wcl='wc -l'
