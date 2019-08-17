@@ -14,7 +14,7 @@ servers = (
     tls_verify = "yes";
   },
   {
-    address = "chat.freenode.net";
+    address = "irc.freenode.net";
     chatnet = "Freenode";
     port = "6697";
     use_tls = "yes";
@@ -156,7 +156,7 @@ channels = (
   { name = "#netfuze"; chatnet = "NetFuze"; autojoin = "No"; },
   { name = "#oftc"; chatnet = "OFTC"; autojoin = "No"; },
   { name = "silc"; chatnet = "SILC"; autojoin = "No"; },
-  { name = "##c"; chatnet = "freenode"; autojoin = "yes"; }
+  { name = "##c"; chatnet = "freenode"; autojoin = "No"; }
 );
 
 aliases = {
