@@ -100,13 +100,21 @@ let g:colorizer_auto_color = 1
 
 set nofoldenable
 set foldmethod=indent
-Plug 'Valloric/YouCompleteMe'
+
+" __   ______ __  __ 
+" \ \ / / ___|  \/  |
+"  \ V / |   | |\/| |
+"   | || |___| |  | |
+"   |_| \____|_|  |_|
+"                    
+                      
+" Plug 'Valloric/YouCompleteMe'
 " let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
-let g:ycm_key_invoke_completion = "<C-Space>"
-let g:OmniSharp_server_path = '/home/me/omnisharp/omnisharp.http-linux-x64/run'
+" let g:ycm_key_invoke_completion = "<C-Space>"
+" let g:OmniSharp_server_path = '/home/me/omnisharp/omnisharp.http-linux-x64/run'
 " let g:ycm_cache_omnifunc = 1
 " let g:ycm_use_ultisnips_completer = 1
-set omnifunc="youcompleteme#Complete"
+" set omnifunc="youcompleteme#Complete"
 " let g:ycm_global_ycm_extra_conf = "/home/nexor/.config/nvim/plugged/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
 " let g:ycm_language_server = 
 "   \ [ 
@@ -116,21 +124,24 @@ set omnifunc="youcompleteme#Complete"
 "   \     'filetypes': [ 'cs' ]
 "   \   }
 "   \ ]
-let g:ycm_key_list_select_completion = ['<TAB>']
-let g:ycm_autoclose_preview_window_after_completion = 1
-let g:ycm_auto_start_csharp_server = 1
-let g:ycm_auto_stop_csharp_server = 1
-let g:ycm_key_list_stop_completion = ['<Enter>']
+" let g:ycm_key_list_select_completion = ['<TAB>']
+" let g:ycm_autoclose_preview_window_after_completion = 1
+" let g:ycm_auto_start_csharp_server = 1
+" let g:ycm_auto_stop_csharp_server = 1
+" let g:ycm_key_list_stop_completion = ['<Enter>']
 " let g:ycm_server_python_interpreter = "/usr/bin/python"
 " let g:ycm_path_to_python_interpreter="/usr/bin/python"
-let g:ycm_filetype_whitelist = {
-			\ "c":1,
-			\ "cs":1,
-			\ "cpp":1,
-			\ "sh":1,
-			\ "zsh":1,
-			\ "python":1,
-			\ }
+" let g:ycm_filetype_whitelist = {
+" 			\ "c":1,
+" 			\ "cs":1,
+" 			\ "cpp":1,
+" 			\ "sh":1,
+" 			\ "zsh":1,
+"			\ "python":1,
+" 			\ }
+
+
+
 let g:vebugger_leader = '\'
 if !exists('g:vdebug_options')
     let g:vdebug_options = {}
@@ -297,7 +308,8 @@ Plug 'mikelue/vim-maven-plugin'
 
 Plug 'skwp/greplace.vim'
 
-Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
+" Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
+Plug 'neoclide/coc.nvim', {'tag': '*', 'branch': 'release'}
 
 inoremap <silent><expr> <c-space> coc#refresh()
 nmap <silent> <leader>w <Plug>(coc-diagnostic-next)
