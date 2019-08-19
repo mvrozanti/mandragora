@@ -108,10 +108,10 @@ set foldmethod=indent
 "   |_| \____|_|  |_|
 "                    
                       
-Plug 'Valloric/YouCompleteMe'
+" Plug 'Valloric/YouCompleteMe'
 " let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
 " let g:ycm_key_invoke_completion = "<C-Space>"
-" let g:OmniSharp_server_path = '/home/me/omnisharp/omnisharp.http-linux-x64/run'
+let g:OmniSharp_loglevel = 'debug'
 " let g:ycm_cache_omnifunc = 1
 " let g:ycm_use_ultisnips_completer = 1
 " set omnifunc="youcompleteme#Complete"
@@ -389,7 +389,7 @@ let g:startify_session_autoload = 1
 " Plug 'mhinz/vim-signify'
 
 " ==== Completion
-" Plug 'OmniSharp/omnisharp-vim'
+Plug 'OmniSharp/omnisharp-vim'
 " Plug 'markwoodhall/vim-nuget'
 Plug 'Shougo/deoplete.nvim'
 Plug 'mattn/webapi-vim'
