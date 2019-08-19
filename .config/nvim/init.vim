@@ -108,7 +108,7 @@ set foldmethod=indent
 "   |_| \____|_|  |_|
 "                    
                       
-" Plug 'Valloric/YouCompleteMe'
+Plug 'Valloric/YouCompleteMe'
 " let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
 " let g:ycm_key_invoke_completion = "<C-Space>"
 " let g:OmniSharp_server_path = '/home/me/omnisharp/omnisharp.http-linux-x64/run'
@@ -116,29 +116,14 @@ set foldmethod=indent
 " let g:ycm_use_ultisnips_completer = 1
 " set omnifunc="youcompleteme#Complete"
 " let g:ycm_global_ycm_extra_conf = "/home/nexor/.config/nvim/plugged/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
-" let g:ycm_language_server = 
-"   \ [ 
-"   \   {
-"   \     'name': 'omnisharp',
-"   \     'cmdline': [ 'mono', '/home/nexor/.omnisharp/omnisharp-roslyn/OmniSharp.exe' ],
-"   \     'filetypes': [ 'cs' ]
-"   \   }
-"   \ ]
-" let g:ycm_key_list_select_completion = ['<TAB>']
-" let g:ycm_autoclose_preview_window_after_completion = 1
-" let g:ycm_auto_start_csharp_server = 1
-" let g:ycm_auto_stop_csharp_server = 1
-" let g:ycm_key_list_stop_completion = ['<Enter>']
-" let g:ycm_server_python_interpreter = "/usr/bin/python"
-" let g:ycm_path_to_python_interpreter="/usr/bin/python"
-" let g:ycm_filetype_whitelist = {
-" 			\ "c":1,
-" 			\ "cs":1,
-" 			\ "cpp":1,
-" 			\ "sh":1,
-" 			\ "zsh":1,
-"			\ "python":1,
-" 			\ }
+let g:ycm_key_list_select_completion = ['<TAB>']
+let g:ycm_autoclose_preview_window_after_completion = 1
+let g:ycm_auto_start_csharp_server = 1
+let g:ycm_auto_stop_csharp_server = 1
+let g:ycm_key_list_stop_completion = ['<Enter>']
+let g:ycm_filetype_whitelist = {
+			\ "cs":1
+			\ }
 
 
 
