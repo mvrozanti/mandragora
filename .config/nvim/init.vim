@@ -192,14 +192,16 @@ autocmd FileType html,javascript inoremap fn<tab> function(){<CR><Tab><+><CR>}<E
 autocmd FileType javascript inoremap she<tab> #!/usr/bin/env node
 
 " c# shortcuts
-autocmd FileType cs   inoremap pr<tab> private<Space>
-autocmd FileType cs   inoremap psvm<tab> public static void Main(string[] args)<CR>{<CR>}
-autocmd FileType cs   inoremap ns<tab> namespace<Space><CR>{<CR>}
-autocmd FileType cs   inoremap us<tab> using<Space>
-autocmd FileType cs   inoremap pu<tab> public<Space>
-autocmd FileType cs   inoremap fa<tab> false
-autocmd FileType cs   inoremap tr<tab> true
-autocmd FileType cs   inoremap cw<tab> Console.WriteLine()<Esc>i
+autocmd FileType cs inoremap pr<tab> private<Space>
+autocmd FileType cs inoremap psvm<tab> public static void Main(string[] args)<CR>{<CR>}
+autocmd FileType cs inoremap ns<tab> namespace<Space><CR>{<CR>}
+autocmd FileType cs inoremap us<tab> using<Space>
+autocmd FileType cs inoremap pu<tab> public<Space>
+autocmd FileType cs inoremap fa<tab> false
+autocmd FileType cs inoremap tr<tab> true
+autocmd FileType cs inoremap cw<tab> Console.WriteLine()<Esc>i
+autocmd FileType cs inoremap <C-i> <Esc>l:OmniSharpFixUsings<CR>aa
+autocmd FileType cs nnoremap <C-i> :OmniSharpFixUsings<CR>
 
 " java shortcuts
 autocmd FileType java inoremap psvm<tab> public static void main(String args[]){<CR>}
