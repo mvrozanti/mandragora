@@ -19,7 +19,7 @@ primary = #609e9e9e
 secondary = #e60053
 alert = ${xrdb:color14} 
 
-[bar/mybar]
+[bar/.]
 ;monitor = ${env:MONITOR:HDMI-1}
 width = 100%
 height = 24
