@@ -151,7 +151,7 @@ alias filesize='du -h'
 aa(){ [[ ! -z $1 && ! -z $2 ]] && echo "alias $1='${@:2}'" >> ~/.bash_aliases; }
 domany() { if [[ "$1" == "-n" ]]; then n=$2; else n=99999; fi; cmd="${@:3}"; for i in {1..$n}; do sh -c $cmd; done; }
 vw() { nvim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
-svw() { sudoedit"`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
+svw() { sudoedit "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
 wi(){ wal --saturate 1.0 -i "${@:1}"; }
 alias biggest-files='du -hsx *|sudo sort -rh|head -10'
 alias lg='lazygit'
