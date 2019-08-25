@@ -79,7 +79,7 @@ alias e='echo'
 alias c='xsel -i -b'
 alias co='xsel -o -b'
 alias cow='co | xargs wget'
-alias cov='co | xargs nvim'
+alias cov='nvim "`co`"'
 alias cogc='[[ -d .git ]] && git submodule add `co` || git clone `co`; cd `rev <(co) | cut -d '/' -f1 | rev`'
 # alias P='curl -sF "sprunge=<-" http://sprunge.us'
 alias P='curl -sF "f:1=<-" ix.io'
@@ -501,3 +501,4 @@ hrmr(){ kek="$(basename $(pwd))";cd ..;rm -r "$kek" }
 alias piur='pip install --user -r requirements.txt'
 x1exe(){ mono `f exe|sed 1q` }
 alias wcl='wc -l'
+alias rh='runhaskell'
