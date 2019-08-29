@@ -504,3 +504,4 @@ x1exe(){ mono `f exe|sed 1q` }
 alias wcl='wc -l'
 alias rh='runhaskell'
 alias cof='f `co`'
+alias C='co'
