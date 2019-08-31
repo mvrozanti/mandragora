@@ -505,3 +505,4 @@ alias wcl='wc -l'
 alias rh='runhaskell'
 alias cof='f `co`'
 alias C='co'
+gbm(){ [[ "$#" -eq 2 ]] && git branch -m $1 $2 }
