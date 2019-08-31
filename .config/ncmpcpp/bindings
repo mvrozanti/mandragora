@@ -40,3 +40,9 @@ def_key "L"
   show_lyrics
 def_key "space"
   pause
+def_key "D"
+  delete_playlist_items
+def_key "D"
+  delete_browser_items
+def_key "D"
+  delete_stored_playlist
