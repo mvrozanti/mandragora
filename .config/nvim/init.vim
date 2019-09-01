@@ -295,8 +295,8 @@ Plug 'mikelue/vim-maven-plugin'
 
 Plug 'skwp/greplace.vim'
 
-" Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
-Plug 'neoclide/coc.nvim', {'tag': '*', 'branch': 'release'}
+Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
+" Plug 'neoclide/coc.nvim', {'tag': '*', 'branch': 'release'}
 
 inoremap <silent><expr> <c-space> coc#refresh()
 nmap <silent> <leader>w <Plug>(coc-diagnostic-next)
@@ -391,7 +391,7 @@ let g:startify_session_autoload = 1
 " Plug 'mhinz/vim-signify'
 
 " ==== Completion
-Plug 'OmniSharp/omnisharp-vim'
+" Plug 'OmniSharp/omnisharp-vim'
 " Plug 'markwoodhall/vim-nuget'
 " Plug 'Shougo/deoplete.nvim'
 Plug 'mattn/webapi-vim'
@@ -564,7 +564,7 @@ vnoremap _ :split<CR>
 nnoremap \| :vsplit<CR>
 vnoremap \| :vsplit<CR>
 
-set timeoutlen=1000 ttimeoutlen=0
+set timeoutlen=200 ttimeoutlen=0
 
 " endl but not really
 " this is actually not needed since d$
