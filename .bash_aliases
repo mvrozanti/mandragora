@@ -506,3 +506,4 @@ alias rh='runhaskell'
 alias cof='f `co`'
 alias C='co'
 gbm(){ [[ "$#" -eq 2 ]] && git branch -m $1 $2 }
+alias cas='/home/nexor/util/cas-1.0.1/run.sh'
