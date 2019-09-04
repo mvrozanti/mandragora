@@ -256,7 +256,8 @@
     "img2pdf",
     "zathura-cb",
     "jp2a",
-    "zxing-cpp"
+    "zxing-cpp",
+    "zsh-theme-powerlevel9k"
   ],
   "excluded": [
     "hotmail.gpg",
