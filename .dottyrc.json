@@ -257,7 +257,8 @@
     "zathura-cb",
     "jp2a",
     "zxing-cpp",
-    "zsh-theme-powerlevel9k"
+    "zsh-theme-powerlevel9k",
+    "iperf3"
   ],
   "excluded": [
     "hotmail.gpg",
