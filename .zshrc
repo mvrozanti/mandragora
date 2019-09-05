@@ -8,7 +8,6 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=12'
 ZSH_THEME="nexor"
 # ZSH_THEME="powerlevel9k/powerlevel9k"
 LS_COLORS='fi=0:ln=5:pi=0:so=7:bd=5:cd=5:or=31:mi=0:ex=93:*.py=36:di=40:*.zip=33:*.tgz=33:ow=1'
-# unsetopt HIST_VERIFY
 export HISTSIZE=1000000000
 export SAVEHIST=$HISTSIZE
 setopt EXTENDED_HISTORY
@@ -195,3 +194,5 @@ export PATH="$PATH:/home/nexor/.dotnet/tools"
 [ -f /home/nexor/.travis/travis.sh ] && source /home/nexor/.travis/travis.sh
 
 [[ -f /home/nexor/azure-cli/bin ]] && export PATH=$PATH:/home/nexor/azure-cli/bin && source '/home/nexor/azure-cli/az.completion'
+
+unsetopt hist_verify
