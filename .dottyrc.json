@@ -273,7 +273,7 @@
     "git clone https://github.com/oniony/TMSU ~/util",
     "git clone https://github.com/mydzor/bash2048 ~/util",
     "git clone --recurse-submodules https://github.com/cylgom/ly ~/util/ly && cd $_ && make && sudo make install && sudo systemctl enable ly.service && echo 'source ~/.xinitrc' | sudo sed -i '${x;s/.*/cat/e;p;x}' /etc/ly/xsetup.sh",
-    "git clone https://github.com/emcrisostomo/fswatch ~/util/fswatch && cd $_ && ./configure && sudo make install",
+    "_git clone https://github.com/emcrisostomo/fswatch ~/util/fswatch && cd $_ && ./configure && sudo make install",
     "git clone https://github.com/jesseduffield/lazygit ~/util/lazygit",
     "git clone https://gitlab.com/zsaleeba/picoc ~/util/picoc && cd $_ && make && cp picoc ~/.local/bin",
     "git clone https://github.com/andmarti1424/sc-im ~/util/sc-im && sudo make -C src install",
