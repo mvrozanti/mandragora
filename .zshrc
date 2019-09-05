@@ -194,6 +194,4 @@ export PATH="$PATH:/home/nexor/.dotnet/tools"
 # added by travis gem
 [ -f /home/nexor/.travis/travis.sh ] && source /home/nexor/.travis/travis.sh
 
-[[ -f /home/nexor/azure-cli/bin ]] && export PATH=$PATH:/home/nexor/azure-cli/bin
-
-source '/home/nexor/azure-cli/az.completion'
+[[ -f /home/nexor/azure-cli/bin ]] && export PATH=$PATH:/home/nexor/azure-cli/bin && source '/home/nexor/azure-cli/az.completion'
