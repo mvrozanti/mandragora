@@ -110,10 +110,17 @@ run_nnn() {
     nnn .
     zle reset-prompt
 }
+run_vim() {
+    echo
+    nvim
+    zle reset-prompt
+}
 zle -N run_ranger
 zle -N run_nnn
+zle -N run_vim
 bindkey '^[r' 'run_ranger'
 bindkey '^[R' 'run_nnn'
+bindkey '^[v' 'run_vim'
 
 # vi - thanks hoberto
 bindkey '\ek' up-history
