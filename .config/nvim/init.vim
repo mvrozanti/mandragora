@@ -11,6 +11,7 @@ call SetupCommandAlias("jsonify","%!python -m json.tool")
 map <A-F> mzgg=G`zzz
 xnoremap p "_dP
 map / /\c
+nnoremap R ge
 nnoremap < <<
 nnoremap > >>
 vnoremap / y/<C-r><C-w><CR>
