@@ -156,8 +156,11 @@ $bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a
     -o background_opacity=.78 -o font_size=13 --title khal_ -e sh  -c $cat_seqs" && khal interactive"
 $bind Ctrl+Shift+Escape                                         $ensid wmctrl -a  gotop           || kitty --title gotop \
     -o background_opacity=.78 -e sh -c $cat_seqs' && gotop'
-$bind $mod+i                                                    $ensid wmctrl -a  _irssi_         || kitty --title _irssi_ \
-    -o background_opacity=.78 sh -c $cat_seqs' && irssi'
+# $bind $mod+i                                                    $ensid wmctrl -a  _irssi_         || kitty --title _irssi_ \
+#     -o background_opacity=.78 sh -c $cat_seqs' && irssi'
+$bind $mod+i                                                    $ensid wmctrl -a  _irssi_          || kitty --name _irssi_ \
+    -o background_opacity=.78 sh -c "stty -ixon && "$cat_seqs" && tmux new irssi"
+
 
 $bind $mod+Ctrl+braceleft                                       $ensid $HOME/util/compton/dbus-examples/dbus-strength.sh -1
 $bind $mod+Ctrl+braceright                                      $ensid $HOME/util/compton/dbus-examples/dbus-strength.sh +1
