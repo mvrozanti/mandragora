@@ -41,7 +41,6 @@
     ".ssh/rc": "~/.ssh/rc",
     ".zprofile": "~/.zprofile",
     ".local/bin/gmp": "~/.local/bin/gmp",
-    ".irssi/config": "~/.irssi/config",
     ".newsboat/urls": "~/.newsboat/urls",
     ".newsboat/config": "~/.newsboat/config",
     ".Xmodmap": "~/.Xmodmap",
