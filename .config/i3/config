@@ -158,7 +158,7 @@ $bind Ctrl+Shift+Escape                                         $ensid wmctrl -a
     -o background_opacity=.78 -e sh -c $cat_seqs' && gotop'
 # $bind $mod+i                                                    $ensid wmctrl -a  _irssi_         || kitty --title _irssi_ \
 #     -o background_opacity=.78 sh -c $cat_seqs' && irssi'
-$bind $mod+i                                                    $ensid wmctrl -a  _irssi_          || kitty --name _irssi_ \
+$bind $mod+i                                                    $ensid wmctrl -a  _irssi_          || kitty --title _irssi_ \
     -o background_opacity=.78 sh -c "stty -ixon && "$cat_seqs" && tmux new irssi"
 
 
