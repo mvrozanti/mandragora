@@ -85,7 +85,7 @@ alias cogc='[[ -d .git ]] && git submodule add `co` || git clone `co`; cd `rev <
 # alias P='curl -sF "sprunge=<-" http://sprunge.us'
 # alias P='curl -sF "f:1=<-" ix.io'
 # alias P='curl -sF "f:1=<-" 0x0.st'
-P(){ kek=`cat -`;ls $kek 2>/dev/null && curl -sF "f:1=<$kek" 0x0.st || echo $kek | curl -sF "f:1=<-" ix.io }
+P(){ kek=`cat -`;ls $kek 2>/dev/null && curl -sF"file=@$kek" 0x0.st || echo $kek | curl -sF "f:1=<-" ix.io }
 alias p='P | c'
 alias feh='feh -B black --scale-down --auto-zoom --sort mtime -. --action2 "rm %F" --action1 "realpath $PWD/%F | xsel -i -b"'
 alias randip="dd if=/dev/urandom bs=4 count=1 2>/dev/null | od -An -tu1 | sed -e 's/^ *//;s/  */./g'"
