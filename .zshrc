@@ -192,6 +192,8 @@ export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 # dotnet
 export PATH="$PATH:/home/nexor/.dotnet/tools"
 
+export SYSTEMD_EDITOR=nvim
+
 # added by travis gem
 [ -f /home/nexor/.travis/travis.sh ] && source /home/nexor/.travis/travis.sh
 
