@@ -84,7 +84,8 @@
     ".config/pueue/pueue.ini": "~/.config/pueue/pueue.ini",
     ".local/bin/polyb": "~/.local/bin/polyb",
     ".local/bin/cursivescript": "~/.local/bin/cursivescript",
-    ".local/bin/vaporscript": "~/.local/bin/vaporscript"
+    ".local/bin/vaporscript": "~/.local/bin/vaporscript",
+    ".config/transmission-daemon/settings.json": "~/.config/transmission-daemon/settings.json"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
