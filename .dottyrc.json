@@ -82,7 +82,9 @@
     ".local/bin/mvnexec": "~/.local/bin/mvnexec",
     ".config/kdeconnect/4867d0d0cc3048f8/kdeconnect_runcommand/config": "~/.config/kdeconnect/4867d0d0cc3048f8/kdeconnect_runcommand/config",
     ".config/pueue/pueue.ini": "~/.config/pueue/pueue.ini",
-    ".local/bin/polyb": "~/.local/bin/polyb"
+    ".local/bin/polyb": "~/.local/bin/polyb",
+    ".local/bin/cursivescript": "~/.local/bin/cursivescript",
+    ".local/bin/vaporscript": "~/.local/bin/vaporscript"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
