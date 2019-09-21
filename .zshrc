@@ -101,15 +101,21 @@ bindkey '^[^l' delete-word
 run_ranger() { echo; ranger --choosedir=$HOME/.rangerdir < $TTY; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"; zle reset-prompt }
 run_nnn() { echo; nnn .; zle reset-prompt }
 run_vim() { echo; nvim; zle reset-prompt }
+cd_disk() { echo; cd ~/disk; zle reset-prompt }
+cd_tcc() { echo; cd ~/mackenzie/TCC/; zle reset-prompt }
 run_ncmpcpp() { BUFFER="ncmpcpp"; zle accept-line }
 zle -N run_ranger
 zle -N run_nnn
 zle -N run_vim
 zle -N run_ncmpcpp
+zle -N cd_disk 
+zle -N cd_tcc 
 bindkey '^[r' 'run_ranger'
 bindkey '^[R' 'run_nnn'
 bindkey '^[v' 'run_vim'
 bindkey '^[m' 'run_ncmpcpp'
+bindkey '^[d' 'cd_disk'
+bindkey '^[t' 'cd_tcc'
 
 # vi - thanks hoberto
 bindkey '\ek' up-history
