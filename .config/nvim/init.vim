@@ -231,6 +231,7 @@ autocmd FileType python inoremap she<tab> #!/usr/bin/env python
 autocmd FileType python inoremap Fa<tab> False
 autocmd FileType python inoremap Tr<tab> True
 autocmd FileType python inoremap wh<tab> while :<Esc>i
+autocmd FileType python inoremap en<tab> enumerate
 autocmd FileType python inoremap trycatch<tab> try:<CR><+><CR>except Exception as e: print(e)
 autocmd FileType python inoremap agp<tab> parser = argparse.ArgumentParser(description='<+>')<CR>parsed = parser.parse_args()<CR><+>
 
