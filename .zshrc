@@ -104,6 +104,7 @@ run_vim() { echo; nvim; zle reset-prompt }
 cd_disk() { echo; cd ~/disk; zle reset-prompt }
 cd_tcc() { echo; cd ~/mackenzie/TCC/; zle reset-prompt }
 cd_sys4bank() { echo; cd ~/sys4bank/prog; zle reset-prompt }
+cd_downloads() { echo; cd ~/Downloads; zle reset-prompt }
 run_ncmpcpp() { BUFFER="ncmpcpp"; zle accept-line }
 zle -N run_ranger
 zle -N run_nnn
@@ -112,11 +113,13 @@ zle -N run_ncmpcpp
 zle -N cd_disk 
 zle -N cd_tcc 
 zle -N cd_sys4bank 
+zle -N cd_downloads 
 bindkey '^[r' 'run_ranger'
 bindkey '^[R' 'run_nnn'
 bindkey '^[v' 'run_vim'
 bindkey '^[m' 'run_ncmpcpp'
 bindkey '^[d' 'cd_disk'
+bindkey '^[D' 'cd_downloads'
 bindkey '^[t' 'cd_tcc'
 bindkey '^[s' 'cd_sys4bank'
 
