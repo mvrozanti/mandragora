@@ -522,3 +522,4 @@ alias v9='nvim -c "normal '\''9"'
 alias hhhh='3h;h'
 alias K='kill'
 alias se='s -E'
+bin2dec(){ e "$((2#`cat -`))" }
