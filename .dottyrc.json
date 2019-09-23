@@ -259,7 +259,8 @@
     "jp2a",
     "zxing-cpp",
     "zsh-theme-powerlevel9k",
-    "iperf3"
+    "iperf3",
+    "pdfgrep"
   ],
   "excluded": [
     "hotmail.gpg",
