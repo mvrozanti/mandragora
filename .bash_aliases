@@ -524,3 +524,4 @@ alias hhhh='3h;h'
 alias K='kill'
 alias se='s -E'
 bin2dec(){ e "$((2#`cat -`))" }
+alias wdf='watch df'
