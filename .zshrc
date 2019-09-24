@@ -172,9 +172,9 @@ source /usr/share/zsh-theme-powerlevel9k/powerlevel9k.zsh-theme
 
 # turn off beep
 set bell-style none
-export PATH="$HOME/.pyenv/bin:$PATH"
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+# export PATH="$HOME/.pyenv/bin:$PATH"
+# eval "$(pyenv init -)"
+# eval "$(pyenv virtualenv-init -)"
 
 VISUAL=nvim; export VISUAL EDITOR=nvim; export EDITOR
 
