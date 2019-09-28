@@ -83,7 +83,7 @@ for_window  [title="Event Tester"]        floating enable # xev
 assign      [title="_zsh_"]               $ws3
 assign      [instance="cava"]             $ws3
 assign      [instance="cmatrix"]          $ws3
-assign      [class=".*NetBeans 11.1"]       $ws7
+assign      [class=".*NetBeans 11.1"]     $ws7
 assign      [class="Eclipse IDE "]        $ws7
 assign      [class="Visual Studio"]       $ws7
 assign      [title=".*Android Studio.*"]  $ws7
@@ -131,12 +131,12 @@ $bind $mod+Mod1+Shift+k                                         $ensid ~/.local/
 $bind $mod+Mod1+Shift+j                                         $ensid ~/.local/bin/shfthue
 $bind $mod+Mod1+k                                               $ensid transset-df --inc 0.04 -a
 $bind $mod+Mod1+j                                               $ensid transset-df --dec 0.04 -a
-$bind $mod+Shift+2                                         $ensid                               st -T 100 ranger
-$bind $mod+Mod1+2                                          $ensid wmctrl -xa _ranger-float_    || kitty --title _ranger-float_ \
+$bind $mod+Shift+2                                              $ensid st -T 100 ranger
+$bind $mod+Mod1+2                                               $ensid wmctrl -xa _ranger-float_    || kitty --title _ranger-float_ \
     -o font_size=10 -o initial_window_width=500 -o initial_window_height=400 -o remember_window_size=no sh -c $cat_seqs' && ranger' 
-$bind $mod+2     workspace $ws2;                           $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
+$bind $mod+2     workspace $ws2;                                $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
     --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
-$bind $mod+m                                                    $ensid wmctrl -a  cmatrix         || kitty --name cmatrix \
+$bind $mod+m     fullscreen disable; workspace $ws3;           $ensid wmctrl -a  cmatrix         || kitty --name cmatrix \
     -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtubecurses_  || kitty --name _youtubecurses_ \
     -o background_opacity=.78 --title _youtubecurses_ -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses || read"
