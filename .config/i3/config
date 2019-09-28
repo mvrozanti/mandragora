@@ -140,7 +140,7 @@ $bind $mod+2     workspace $ws2;                                $ensid wmctrl -a
 $bind $mod+m     fullscreen disable; workspace $ws3;           $ensid wmctrl -a  cmatrix          || kitty --name cmatrix \
     -o font_size=13 -o background_opacity=.00 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
 $bind $mod+Shift+m     fullscreen disable; workspace $ws3;     $ensid wmctrl -a  bonsai           || kitty --name bonsai \
-    -o font_size=13 -o background_opacity=.00 --title bonsai -e sh -c "stty -ixon && "$cat_seqs" && bonsai"
+    -o font_size=13 -o background_opacity=.00 --title bonsai -e sh -c "stty -ixon && "$cat_seqs" && tmux new ~/.local/bin/bonsai -T -i -l -t 0"
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtubecurses_  || kitty --name _youtubecurses_ \
     -o background_opacity=.78 --title _youtubecurses_ -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses || read"
 # $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  _todo_          || kitty --name _todo_ \
@@ -217,13 +217,7 @@ $bind $mod+Scroll_Lock            $ensid flameshot gui
 #                                        jq .data.id | xargs -i echo                        \
 #                                        https://i.giphy.com/media/{}/source.gif | xsel -i -b\
 #                                        && notify-send gif copied to clipboard               \
-$bind Ctrl+$mod+Print             $ensid byzanz-record -d                            \
-                                   `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
-                                       ~/.scrot.gif && curl -s -X POST --url \
-                                                       https://api.imgur.com/3/image -H \
-                                             "Authorization: Client-ID $imgur_client_id" \
-                                         -F "image=@"$_ | jq -r '.data.link' | xsel -i -b \
-
+$bind Ctrl+$mod+Print             $ensid byzrec
 
 #                                                 _
 #   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_
