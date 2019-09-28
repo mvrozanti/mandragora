@@ -527,4 +527,3 @@ bin2dec(){ e "$((2#`cat -`))" }
 alias wdf='watch df'
 bonsai(){ [[ $# -eq 0 ]] && ~/.local/bin/bonsai -Tilt0 -L50 -b2 -w0 || ~/.local/bin/bonsai $@ }
 webm2gif(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.gif }
-mov2gif(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.gif }
