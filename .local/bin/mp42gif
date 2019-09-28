@@ -1,5 +1,5 @@
 mp4_file="$@"
 mkdir -p animation_frames
 ffmpeg -i "$mp4_file" -r 5 "animation_frames/frame-%03d.jpg"
-convert -delay 20 -loop 0 animation_frames/*.jpg animation.gif
+convert -delay 20 -loop 0 animation_frames/*.jpg "${$mp4_file%%.*}".gif
 rm -r animation_frames
