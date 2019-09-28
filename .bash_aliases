@@ -525,3 +525,4 @@ alias K='kill'
 alias se='s -E'
 bin2dec(){ e "$((2#`cat -`))" }
 alias wdf='watch df'
+alias bonsa='bonsai -Tilt0 -L50 -b2 -w0 '
