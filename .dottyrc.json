@@ -88,7 +88,8 @@
     ".config/transmission-daemon/settings.json": "~/.config/transmission-daemon/settings.json",
     ".local/bin/bonsai": "~/.local/bin/bonsai",
     ".local/bin/byzrec": "~/.local/bin/byzrec",
-    ".local/bin/mkv2gif": "~/.local/bin/mkv2gif"
+    ".local/bin/mkv2gif": "~/.local/bin/mkv2gif",
+    ".local/bin/mov2gif": "~/.local/bin/mov2gif"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
