@@ -138,9 +138,9 @@ $bind $mod+Mod1+2                                               $ensid wmctrl -x
 $bind $mod+2     workspace $ws2;                                $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
     --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
 $bind $mod+m     fullscreen disable; workspace $ws3;           $ensid wmctrl -a  cmatrix          || kitty --name cmatrix \
-    -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
+    -o font_size=13 -o background_opacity=.00 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
 $bind $mod+Shift+m     fullscreen disable; workspace $ws3;     $ensid wmctrl -a  bonsai           || kitty --name bonsai \
-    -o font_size=13 -o background_opacity=.39 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
+    -o font_size=13 -o background_opacity=.00 --title bonsai -e sh -c "stty -ixon && "$cat_seqs" && bonsai"
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtubecurses_  || kitty --name _youtubecurses_ \
     -o background_opacity=.78 --title _youtubecurses_ -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses || read"
 # $bind $mod+o          fullscreen disable;                       $ensid wmctrl -a  _todo_          || kitty --name _todo_ \
