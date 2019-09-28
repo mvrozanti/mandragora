@@ -1,2 +1,2 @@
 #!/bin/bash
-[[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.gif 
+[[ $# -eq 1 ]] && ffmpeg -i "$1" "${1%%.*}.gif"
