@@ -139,7 +139,7 @@ $bind $mod+2     workspace $ws2;                                $ensid wmctrl -a
     --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
 $bind $mod+m     fullscreen disable; workspace $ws3;           $ensid wmctrl -a  cmatrix          || kitty --name cmatrix \
     -o font_size=13 -o background_opacity=.00 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
-$bind $mod+Shift+m     fullscreen disable; workspace $ws3;     $ensid wmctrl -a  bonsai           || kitty --name bonsai \
+$bind $mod+Shift+b     fullscreen disable; workspace $ws3;     $ensid wmctrl -a  bonsai           || kitty --name bonsai \
     -o font_size=13 -o background_opacity=.00 --title bonsai -e sh -c "stty -ixon && "$cat_seqs" && tmux new ~/.local/bin/bonsai -T -i -l -t 0"
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtubecurses_  || kitty --name _youtubecurses_ \
     -o background_opacity=.78 --title _youtubecurses_ -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses || read"
@@ -177,8 +177,8 @@ $bind $mod+Shift+a                                              $ensid wmctrl -a
 # $bind $mod+Shift+a                                              $ensid wmctrl -a  "MonoDevelop"   || /usr/bin/monodevelop 
 $bind $mod+4              split h;                              $ensid wmctrl -a  telegram        || telegram
 $bind $mod+b                                                    $ensid wmctrl -xa DBeaver         || dbeaver
-$bind $mod+Shift+b    fullscreen disable;workspace $ws8;        $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
-    -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger ~/mackenzie/tcc1/resources"
+# $bind $mod+Shift+b    fullscreen disable;workspace $ws8;        $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
+#     -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger ~/mackenzie/tcc1/resources"
 # $bind $mod+Tab                                                  $ensid notify-send kek 
 $bind $mod+Shift+d                                              $ensid wmctrl -a "Netbeans "      || wmctrl -xa "Eclipse" || /usr/bin/netbeans
 $bind $mod+z          workspace $ws6;                           $ensid wmctrl -a "Zoom -"         || zoom
