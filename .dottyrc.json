@@ -264,7 +264,8 @@
     "zxing-cpp",
     "zsh-theme-powerlevel9k",
     "iperf3",
-    "pdfgrep"
+    "pdfgrep",
+    "tokei"
   ],
   "excluded": [
     "hotmail.gpg",
