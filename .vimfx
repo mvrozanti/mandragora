@@ -1,15 +1,15 @@
--{
--  "prevent_autofocus": true,
--  "hints.chars": "asdertgbvcx zq",
--  "browsewithcaret": true,
--  "mode.normal.scroll_page_down": "<c-f>",
--  "mode.normal.scroll_half_page_up": "b",
--  "mode.normal.tab_select_previous": "K    gT    Q",
--  "mode.normal.tab_select_next": "J    gt    W",
--  "mode.normal.tab_move_backward": "gK",
--  "mode.normal.tab_move_forward": "gJ",
--  "mode.normal.follow_in_tab": "et",
--  "mode.normal.follow_in_focused_tab": "F",
--  "mode.normal.window_new": ""
--}
-
+{
+  "prevent_autofocus": true,
+  "hints.chars": "asdertgbvcx zq",
+  "browsewithcaret": true,
+  "mode.normal.scroll_page_down": "<c-f>",
+  "mode.normal.scroll_half_page_up": "b",
+  "mode.normal.tab_select_previous": "K    gT    q",
+  "mode.normal.tab_select_next": "J    gt    w",
+  "mode.normal.tab_select_oldest_unvisited": "gL    ",
+  "mode.normal.tab_move_backward": "gK    Q",
+  "mode.normal.tab_move_forward": "gJ    W",
+  "mode.normal.follow_in_tab": "et",
+  "mode.normal.follow_in_focused_tab": "F",
+  "mode.normal.window_new": ""
+}
