@@ -530,3 +530,4 @@ webm2gif(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.gif }
 pdf2png(){ [[ $# -eq 1 ]] && pdftoppm "$1" /tmp/slicedPDF -png && convert /tmp/slicedPDF* -gravity center -append "${1%%.*}.png" && rm /tmp/slicedPDF* }
 pdf2jpg(){  [[ $# -eq 1 ]] && pdftoppm "$1" /tmp/slicedPDF -jpg && convert /tmp/slicedPDF* -gravity center -append "${1%%.*}.jpg" && rm /tmp/slicedPDF* }
 ter2dec(){ e "$((3#`cat -`))" }
+alias gP='git pull'
