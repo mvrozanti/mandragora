@@ -74,6 +74,7 @@ Plug 'terryma/vim-multiple-cursors'
 Plug 'alvan/vim-closetag'
 " Vim plugin that lets you navigate JSON documents using dot.notation.paths 
 Plug 'mogelbrod/vim-jsonpath'
+Plug 'itchyny/screensaver.vim'
 autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
 autocmd BufEnter *.pro :setlocal filetype=prolog
 autocmd FileType prolog setlocal commentstring=%\ %s

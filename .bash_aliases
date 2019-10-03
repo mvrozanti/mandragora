@@ -216,7 +216,7 @@ gdm(){ [[ $# -eq 0 ]] && gdmap -f . || gdmap -f "$@" }
 sgdm(){ [[ $# -eq 0 ]] && sudo gdmap -f . || sudo gdmap -f "$@" }
 alias H='cd -'
 alias piu='pip install --user'
-lo(){ 'libreoffice 2>&1 > /dev/null &' }
+lo(){ libreoffice $1 2>&1 > /dev/null & }
 alias jn='jupyter notebook'
 alias wav2ogg='oggenc -q 3 -o file.ogg'
 # png2jpg(){ [[ $# -eq 1 ]] && convert "$1" "$(basename `realpath $1` | cut -d. -f1).jpg" || [[ $# -eq 2 ]] && convert "$1" "$2" }
