@@ -1,3 +1,4 @@
 #!/bin/bash
-[[ $# -eq 1 ]] && le_time=$1 || le_time=
+[[ $# -eq 1 ]] && le_time=$1 || exit 1
 byzanz-record -d $le_time ~/.scrot.gif && curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@"$_ | jq -r '.data.link' | xsel -i -b 
+notify-send "GIF in clipboard: "`xsel -o -b`
