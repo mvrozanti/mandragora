@@ -217,7 +217,7 @@ $bind $mod+Scroll_Lock            $ensid flameshot gui
 #                                        jq .data.id | xargs -i echo                        \
 #                                        https://i.giphy.com/media/{}/source.gif | xsel -i -b\
 #                                        && notify-send gif copied to clipboard               \
-$bind Ctrl+$mod+Print             $ensid byzrec
+$bind Ctrl+$mod+Print             $ensid ~/.local/bin/byzrec
 
 #                                                 _
 #   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_
