@@ -114,6 +114,7 @@ zle -N cd_disk
 zle -N cd_tcc 
 zle -N cd_sys4bank 
 zle -N cd_downloads 
+
 bindkey '^[r' 'run_ranger'
 bindkey '^[R' 'run_nnn'
 bindkey '^[v' 'run_vim'
@@ -122,6 +123,7 @@ bindkey '^[d' 'cd_disk'
 bindkey '^[D' 'cd_downloads'
 bindkey '^[t' 'cd_tcc'
 bindkey '^[s' 'cd_sys4bank'
+bindkey -s '^[^M' '^M'
 
 # vi - thanks hoberto
 bindkey '\ek' up-history
