@@ -282,10 +282,10 @@ filetype off  " required
 set exrc
 
 "move vim splits
-nnoremap <S-H>      :5winc <<CR>
-nnoremap <S-K>      :5winc +<CR>
-nnoremap <S-L>      :5winc ><CR>
-nnoremap <S-U>      :5winc -<CR>
+nnoremap <C-A-h>      :5winc <<CR>
+nnoremap <C-A-b>      :5winc +<CR>
+nnoremap <C-A-l>      :5winc ><CR>
+nnoremap <C-A-u>      :5winc -<CR>
 
 "autocomplete colors
 "highlight Pmenu ctermfg=2 ctermbg=4 guifg=1 guibg=4
@@ -342,6 +342,7 @@ set clipboard=unnamed,unnamedplus
 " C/C++ debugging
 Plug 'Shougo/vimproc.vim', {'do' : 'make'}
 Plug 'idanarye/vim-vebugger'
+Plug 'sophacles/vim-processing'
 nnoremap <F5>   :VBGcontinue<CR>
 autocmd FileType c,cpp  nnoremap <F6>   :VBGstartGDB %:r<CR>
 autocmd FileType python nnoremap <F6>   :VBGstartPDB3 %<CR>
@@ -416,7 +417,7 @@ Plug 'tpope/vim-sleuth'
 
 " ==== Git
 Plug 'airblade/vim-gitgutter'
-" Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-fugitive'
 
 " ==== syntax helpers
 " Plug 'scrooloose/syntastic'

@@ -94,7 +94,7 @@ assign      [title="Discord"]             $ws8
 assign      [instance="DBeaver"]          $ws11
 assign      [title="Mozilla Thunderbird"] $ws12
 assign      [class="Slack"]               $ws12
-assign      [title="Skype"]               $ws12
+assign      [class="Skype"]               $ws12
 assign      [title="_neomutt_"]           $ws13
 for_window  [title="_todo_"]              sticky enable, floating enable, move position 900 440
 #    __                                 _
@@ -107,7 +107,7 @@ for_window  [title="_todo_"]              sticky enable, floating enable, move p
 $bind $mod+v          fullscreen disable; workspace $ws6;       $ensid wmctrl -a  Code            || code
 
 $bind $mod+8          fullscreen disable; workspace $ws11;      $ensid wmctrl -a  diaspora        || sh -c /home/nexor/util/diaspora-br-sign-in-linux-x64/diaspora-br-sign-in 
-$bind $mod+9          fullscreen disable; workspace $ws2;       $ensid wmctrl -a  skype           || skypeforlinux
+$bind $mod+9          fullscreen disable; workspace $ws12;      $ensid wmctrl -a  skype           || skypeforlinux
 $bind $mod+Shift+u                                              $ensid wmctrl -a simd
 # $bind $mod+Delete                                               $ensid wmctrl -a  LibreOffice     || libreoffice
 $bind $mod+0      fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && offlineimap -a hotmail && "$cat_seqs" && tmux new neomutt"
