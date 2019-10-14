@@ -323,7 +323,7 @@ alias cfmu='v ~/.config/ncmpcpp/'
 alias leet='toilet -d ~/.config/figlet -f rusto'
 alias playback='pacat -r | aplay -c 2 -f S16_LE -r 44100'
 divsil(){ [[ -z $@ ]] && return; jq -r '.'`echo $@|cut -c1`'."'$@'"' < ~/prog/python/portal-da-lingua-portuguesa/palavras-divisao-silabica.json }
-alias sanduba='countdown "6*60" && for i in {1..3}; do beep -l 300; sleep 0.3; done'
+alias sanduba='timer 6\*60'
 alias hlo='hamachi logout'
 alias hli='hamachi login'
 ti(){ tar -czf - $@ > ~/.tarchive.tar }
