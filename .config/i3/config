@@ -85,7 +85,7 @@ for_window  [title="Event Tester"]        floating enable # xev
 assign      [title="_zsh_"]               $ws3
 assign      [instance="cava"]             $ws3
 assign      [instance="^cmatrix$"]        $ws3
-assign      [instance="^bonsai$"]         $ws3
+# assign      [instance="^bonsai$"]         $ws3
 assign      [class=".*NetBeans 11.1"]     $ws7
 assign      [class="Eclipse IDE "]        $ws7
 assign      [class="Visual Studio"]       $ws7
@@ -141,7 +141,7 @@ $bind $mod+2     workspace $ws2;                                $ensid wmctrl -a
     --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
 $bind $mod+m     fullscreen disable; workspace $ws3;           $ensid wmctrl -a  cmatrix          || kitty --name cmatrix \
     -o font_size=13 -o background_opacity=.00 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
-$bind $mod+Shift+b     fullscreen disable; workspace $ws3;     $ensid wmctrl -a  bonsai           || kitty --name bonsai \
+$bind $mod+Shift+b     fullscreen disable; split h;                     $ensid wmctrl -a  bonsai           || kitty --name bonsai \
     -o font_size=13 -o background_opacity=.00 --title bonsai -e sh -c "stty -ixon && "$cat_seqs" && tmux new ~/.local/bin/bonsai -T -i -l -t 0"
 $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtubecurses_  || kitty --name _youtubecurses_ \
     -o background_opacity=.78 --title _youtubecurses_ -e sh -c "python $HOME/prog/python/youtube-curses/youtube-curses || read"
