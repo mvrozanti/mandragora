@@ -183,11 +183,16 @@ handle_fallback() {
     exit 1
 }
 
+handle_md5(){
+    md5sum "${FILE_PATH}" | cut -f1 -d' '
+    echo
+}
 
 MIMETYPE="$( file --dereference --brief --mime-type -- "${FILE_PATH}" )"
 if [[ "${PV_IMAGE_ENABLED}" == 'True' ]]; then
     handle_image "${MIMETYPE}"
 fi
+handle_md5
 handle_extension
 handle_mime "${MIMETYPE}"
 handle_fallback
