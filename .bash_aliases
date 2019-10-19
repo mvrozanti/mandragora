@@ -533,3 +533,4 @@ ter2dec(){ e "$((3#`cat -`))" }
 alias gP='git pull'
 alias ga.='git add .'
 alias poof='shutdown -h 0'
+alias gssp='git stash show -p'
