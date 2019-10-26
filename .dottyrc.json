@@ -265,7 +265,8 @@
     "zsh-theme-powerlevel9k",
     "iperf3",
     "pdfgrep",
-    "tokei"
+    "tokei",
+    "qiv"
   ],
   "excluded": [
     "hotmail.gpg",
