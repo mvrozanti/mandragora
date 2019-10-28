@@ -1,8 +1,9 @@
 pkill xwinwrap
 {
     [[ -z $1 ]] && fpath=`find ~/gdrive/Levv/wllpps -maxdepth 1 -type f | grep "jpe\?g\|png" | shuf | sed 1q` || fpath=`realpath $1` 
+    [[ "${fpath##*.}" == "webm" ]] && ffmpeg -i $fpath /tmp/`basename -s webm $fpath`gif && fpath=/tmp/$(basename -s webm $fpath)gif
     wal -a 299 -i $fpath
-    [[ "`identify $fpath | cut -d' ' -f3`" == 1920x1080 ]] || gifsicle --resize 1920x1080 -i "$fpath" > /tmp/`basename $fpath`
+    [[ "`identify $fpath | cut -d' ' -f3`" == 1920x1080 ]] || gifsicle --resize 1920x1080 --batch -i "$fpath"
     fpath="/tmp/`basename $fpath`"
     sleep 1
     [[ `echo $fpath | rev | cut -d"." -f1 | rev` = "gif" ]] && nohup xwinwrap -g `xrandr | awk '/\*/{printf $1" "}'` -ni -s -nf -b -un -argb -ov -- gifview -w WID $fpath -a >/dev/null 2>&1 &
