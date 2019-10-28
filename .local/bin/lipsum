@@ -4,6 +4,8 @@ AMOUNT=5
 WHAT=paras
 START=false
 
+usage(){ -n [AMOUNT] [-w] [-p] [-b] [-l] [s] }
+
 while getopts ":n:wpbls" opt; do
   case $opt in
     n)
