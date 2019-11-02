@@ -571,7 +571,7 @@ vnoremap _ :split<CR>
 nnoremap \| :vsplit<CR>
 vnoremap \| :vsplit<CR>
 
-set timeoutlen=200 ttimeoutlen=0
+set timeoutlen=300 ttimeoutlen=0
 
 " endl but not really
 " this is actually not needed since d$
