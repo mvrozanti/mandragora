@@ -267,7 +267,8 @@
     "iperf3",
     "pdfgrep",
     "tokei",
-    "qiv"
+    "qiv",
+    "mkvtoolnix-cli"
   ],
   "excluded": [
     "hotmail.gpg",
