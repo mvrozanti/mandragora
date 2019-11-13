@@ -402,7 +402,7 @@ gource2mp4(){ gource -1280x720 -o - | ffmpeg -y -r 60 -f image2pipe -vcodec ppm 
 alias vre='v README.md'
 wiki(){ `wis wiki` $@ | ww -w $COLUMNS }
 alias screenkey='screenkey --font-color red --opacity 0.5 --compr-cnt 3 -s small'
-alias trc='transmission-remote-cli -f ~/.config/transmission-daemon/settings.json'
+alias trc='transmission-remote-cli'
 alias cfpa='git --git-dir=$HOME/mandragora/.git commit --amend; git push'
 cogacp(){ gacp "`co`" }
 cosrm(){ srm "`co`" }
