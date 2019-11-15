@@ -3,6 +3,7 @@
   "hints.chars": "asdertgbvcx zq",
   "browsewithcaret": true,
   "mode.normal.scroll_page_down": "<c-f>",
+  "mode.normal.scroll_page_up": "<s-space> B",
   "mode.normal.scroll_half_page_up": "b",
   "mode.normal.tab_select_previous": "K    gT    q",
   "mode.normal.tab_select_next": "J    gt    w",
