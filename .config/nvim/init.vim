@@ -299,6 +299,12 @@ let g:grep_cmd_opts = '--hidden'
 " The Maven plugin for VIM 
 Plug 'mikelue/vim-maven-plugin'
 
+Plug 'terryma/vim-smooth-scroll'
+noremap <silent> <c-u> :call smooth_scroll#up(&scroll, 10, 2)<CR>
+noremap <silent> <c-d> :call smooth_scroll#down(&scroll, 10, 2)<CR>
+noremap <silent> <c-b> :call smooth_scroll#up(&scroll*2, 10, 4)<CR>
+noremap <silent> <c-f> :call smooth_scroll#down(&scroll*2, 10, 4)<CR>
+
 Plug 'skwp/greplace.vim'
 
 Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
