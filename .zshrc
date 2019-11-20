@@ -100,7 +100,8 @@ bindkey '^h' backward-delete-char
 bindkey '^[^l' delete-word
 run_ranger() { echo; ranger --choosedir=$HOME/.rangerdir < $TTY; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"; zle reset-prompt }
 run_nnn() { echo; nnn .; zle reset-prompt }
-run_vim() { echo; nvim; zle reset-prompt }
+run_nvim_fast() { echo; nvim; zle reset-prompt }
+run_nvim() { echo; nvim -c 'Startify'; zle reset-prompt }
 cd_disk() { echo; cd ~/disk; zle reset-prompt }
 cd_tcc() { echo; cd ~/mackenzie/TCC/; zle reset-prompt }
 cd_sys4bank() { echo; cd ~/sys4bank/prog; zle reset-prompt }
@@ -108,7 +109,8 @@ cd_downloads() { echo; cd ~/Downloads; zle reset-prompt }
 run_ncmpcpp() { BUFFER="ncmpcpp"; zle accept-line }
 zle -N run_ranger
 zle -N run_nnn
-zle -N run_vim
+zle -N run_nvim
+zle -N run_nvim_fast
 zle -N run_ncmpcpp
 zle -N cd_disk 
 zle -N cd_tcc 
@@ -117,7 +119,8 @@ zle -N cd_downloads
 
 bindkey '^[r' 'run_ranger'
 bindkey '^[R' 'run_nnn'
-bindkey '^[v' 'run_vim'
+bindkey '^[v' 'run_nvim'
+bindkey '^[V' 'run_nvim_fast'
 bindkey '^[m' 'run_ncmpcpp'
 bindkey '^[d' 'cd_disk'
 bindkey '^[D' 'cd_downloads'
