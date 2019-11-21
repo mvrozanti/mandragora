@@ -320,6 +320,7 @@ ncp(){ [[ -z $1 ]] && echo kek || { md -p $1; cd $1; dotnew new console -o $1; d
 alias cfZ='v ~/.config/zathura/zathurarc'
 alias cfm='v ~/.config/mutt/muttrc'
 alias cfmu='v ~/.config/ncmpcpp/'
+alias figlet='figlet -t'
 alias leet='toilet -d ~/.config/figlet -f rusto'
 alias playback='pacat -r | aplay -c 2 -f S16_LE -r 44100'
 divsil(){ [[ -z $@ ]] && return; jq -r '.'`echo $@|cut -c1`'."'$@'"' < ~/prog/python/portal-da-lingua-portuguesa/palavras-divisao-silabica.json }
