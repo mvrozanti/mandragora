@@ -1,5 +1,6 @@
 {
   "prevent_autofocus": true,
+  "blacklist": "http://dotapicker.com/*",
   "hints.chars": "asdertgbvcx zq",
   "browsewithcaret": true,
   "mode.normal.scroll_page_down": "<c-f>",
