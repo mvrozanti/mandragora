@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Wolfram Player 12
+Comment=Technical Computing System
+TryExec=/mnt/4ADE1465DE144C17/Wolfram/WolframPlayer/12.0/Executables/WolframPlayer
+Exec=/mnt/4ADE1465DE144C17/Wolfram/WolframPlayer/12.0/Executables/WolframPlayer %F
+Icon=wolfram-player
+MimeType=application/mathematica;application/x-mathematica;application/vnd.wolfram.nb;application/vnd.wolfram.cdf;application/vnd.wolfram.player;application/vnd.wolfram.mathematica.package;application/vnd.wolfram.wl;x-scheme-handler/wolfram+cloudobject;x-scheme-handler/wolframmathematica+cloudobject;
