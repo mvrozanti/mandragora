@@ -186,14 +186,16 @@ inoremap re<tab> return<Space>
 inoremap fori<tab> for(int i=0; i < ; i++){<CR>}<Esc>3Bla
 inoremap forj<tab> for(int j=0; j < ; j++){<CR>}<Esc>3Bla
 
-" javascript shortcuts
+" javascript/typescript shortcuts
 autocmd FileType javascript inoremap repl<tab> require('repl').start('> ').context.<+> = <+>;<Esc>
 autocmd FileType javascript inoremap tr<tab> true
 autocmd FileType javascript inoremap fa<tab> false
 autocmd FileType javascript inoremap fori<tab> for(i=0; i < ; i++){<CR>}<Esc>3Bla
-autocmd FileType html,javascript inoremap cl<tab> console.log()<Esc>i
+autocmd FileType typescript,html,javascript inoremap cl<tab> console.log()<Esc>i
 autocmd FileType html,javascript inoremap fn<tab> function(){<CR><Tab><+><CR>}<Esc>2kf(a
 autocmd FileType javascript inoremap she<tab> #!/usr/bin/env node
+autocmd FileType typescript inoremap im<tab> import<Space>
+
 
 " c# shortcuts
 autocmd FileType cs inoremap pr<tab> private<Space>
@@ -308,6 +310,7 @@ noremap <silent> <c-f> :call smooth_scroll#down ( &scroll*2, 10, 4)<CR>
 Plug 'skwp/greplace.vim'
 
 Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
+command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
 " Plug 'neoclide/coc.nvim', {'tag': '*', 'branch': 'release'}
 
 inoremap <silent><expr> <c-space> coc#refresh()

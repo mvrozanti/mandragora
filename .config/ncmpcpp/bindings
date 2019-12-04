@@ -46,5 +46,3 @@ def_key "D"
   delete_browser_items
 def_key "D"
   delete_stored_playlist
-def_key "v"
-  toggle_visualization_type
