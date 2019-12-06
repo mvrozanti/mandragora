@@ -543,3 +543,4 @@ alias K9='K -9'
 alias rmempty='find . -type d -empty -delete'
 alias snmap='s nmap'
 alias unquote="sed 's/^\"//g;s/\"$//g'"
+alias cotra='transmission-remote -a "`co`"'
