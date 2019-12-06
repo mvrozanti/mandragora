@@ -165,7 +165,9 @@ $bind Ctrl+Shift+Escape                                         $ensid wmctrl -a
 #     -o background_opacity=.78 sh -c $cat_seqs' && irssi'
 $bind $mod+i                                                    $ensid wmctrl -a  _irssi_          || kitty --title _irssi_ \
     -o background_opacity=.78 sh -c "stty -ixon && "$cat_seqs" && tmux new irssi"
-$bind $mod+Ctrl+c                                               $ensid vlc -Idummy http://192.168.0.11:8080/video/mjpeg
+# $bind $mod+Ctrl+c                                               $ensid vlc -Idummy http://192.168.0.11:8080/video/mjpeg
+$bind $mod+Ctrl+c                                               $ensid vlc -Idummy http://`echo -e 'ipaddress' | dmenu $dmenu_looks`:8080/video/mjpeg
+$bind $mod+Ctrl+Shift+c                                         $ensid vlc -Idummy http://192.168.0.11:8080/video/mjpeg
 
 
 $bind $mod+Ctrl+braceleft                                       $ensid $HOME/util/compton/dbus-examples/dbus-strength.sh -1
