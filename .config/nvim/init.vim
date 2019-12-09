@@ -313,16 +313,20 @@ Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
 command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
 " Plug 'neoclide/coc.nvim', {'tag': '*', 'branch': 'release'}
 
-inoremap <silent><expr> <c-space> coc#refresh()
+" inoremap <silent><expr> <c-space> coc#refresh()
 nmap <silent> <leader>w <Plug>(coc-diagnostic-next)
 inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 nnoremap <A-r> :call CocAction('rename')<CR>
-" inoremap <silent><expr> <TAB>
-"       \ pumvisible() ? "\<C-n>" :
-"       \ <SID>check_back_space() ? "\<TAB>" :
-"       \ coc#refresh()
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+inoremap <silent><expr> <c-space>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
 set hidden
 Plug 'tommcdo/vim-exchange'
 
@@ -540,7 +544,7 @@ autocmd FileType python                                             let b:run_sc
 autocmd FileType python                                             let g:pymode_python = 'python3'
 autocmd FileType cpp                                                let b:run_script = '! clear; make && !%:r'
 autocmd FileType java                                               nnoremap <C-S-i> :JavaImportOrganize<CR>
-inoremap <C-Space> <C-x><C-o>
+" inoremap <C-Space> <C-x><C-o>
 " autocmd FileType *.c                                              let b:run_script='gcc\ %\ &&\ ./!%:r.out'
 
 inoremap <A-Left> <ESC>h
