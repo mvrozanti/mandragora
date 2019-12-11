@@ -150,7 +150,6 @@ alias stream='pkill darkice; alsao2i; tmux new -d darkice'
 alias grip='wmctrl -a waterfox && st -e tmux -c "stty -ixon && nvim *.md" & grip -b --wide'
 cdt(){ wis_smth="`wis "$1"`"; abs_path="`readlink -f "$wis_smth"`"; cd `dirname "$abs_path"`; }
 alias filesize='du -h'
-aa(){ [[ ! -z $1 && ! -z $2 ]] && echo "alias $1='${@:2}'" >> ~/.bash_aliases; }
 domany() { if [[ "$1" == "-n" ]]; then n=$2; else n=99999; fi; cmd="${@:3}"; for i in {1..$n}; do sh -c $cmd; done; }
 vw() { nvim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
 svw() { sudoedit "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
@@ -307,6 +306,7 @@ arf(){ echo "$@" >> ~/.newsboat/urls }
 alias help='echo no && read'
 alias t1='tail -n1'
 alias t1a='t1 ~/.bash_aliases'
+aa(){ [[ ! -z $1 && ! -z $2 ]] && echo "alias $1='${@:2}'" >> ~/.bash_aliases; t1a }
 alias sl='slack'
 alias cfT='v ~/.tig'
 alias burncd='i3-msg workspace 1 && o https://www.linuxquestions.org/questions/linux-newbie-8/how-to-burn-files-into-a-dvd-from-command-line-4175464968/'
@@ -545,3 +545,4 @@ alias snmap='s nmap'
 alias unquote="sed 's/^\"//g;s/\"$//g'"
 alias cotra='transmission-remote -a "`co`"'
 alias coinflip='echo $(($(($RANDOM%10))%2)) '
+alias jj='java -jar'
