@@ -546,3 +546,4 @@ alias unquote="sed 's/^\"//g;s/\"$//g'"
 alias cotra='transmission-remote -a "`co`"'
 alias coinflip='echo $(($(($RANDOM%10))%2)) '
 alias jj='java -jar'
+alias lentr='l|entr'
