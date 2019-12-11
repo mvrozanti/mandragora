@@ -114,7 +114,7 @@ set foldmethod=indent
 " Plug 'Valloric/YouCompleteMe'
 " let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py"
 " let g:ycm_key_invoke_completion = "<C-Space>"
-let g:OmniSharp_loglevel = 'debug'
+" let g:OmniSharp_loglevel = 'debug'
 " let g:ycm_cache_omnifunc = 1
 " let g:ycm_use_ultisnips_completer = 1
 " set omnifunc="youcompleteme#Complete"
@@ -159,7 +159,7 @@ nnoremap c_ ct_
 nnoremap dA F(vbdf)xB
 nmap dS bysw<Space><Space>ds)
 vnoremap - $h
-nnoremap <C-i> :mark x<CR>
+" nnoremap <C-i> :mark x<CR>
 nnoremap <C-u> 'x
 inoremap {<CR> {<CR>}<Esc>k$o
 vnoremap <CR> c<CR>
@@ -206,8 +206,8 @@ autocmd FileType cs inoremap pu<tab> public<Space>
 autocmd FileType cs inoremap fa<tab> false
 autocmd FileType cs inoremap tr<tab> true
 autocmd FileType cs inoremap cw<tab> Console.WriteLine()<Esc>i
-autocmd FileType cs inoremap <C-i> <Esc>l:OmniSharpFixUsings<CR>aa
-autocmd FileType cs nnoremap <C-i> :OmniSharpFixUsings<CR>
+" autocmd FileType cs inoremap <C-i> <Esc>l:OmniSharpFixUsings<CR>aa
+" autocmd FileType cs nnoremap <C-i> :OmniSharpFixUsings<CR>
 
 " java shortcuts
 autocmd FileType java inoremap psvm<tab> public static void main(String args[]){<CR>}
@@ -218,6 +218,7 @@ autocmd FileType java inoremap pu<tab> public<Space>
 autocmd FileType java inoremap sout<tab> System.out.println()<Esc>i
 autocmd FileType java inoremap fa<tab> false
 autocmd FileType java inoremap tr<tab> true
+autocmd FileType java inoremap st<tab> static
 
 " python shortcuts
 " %s/print\s\(.\+\)/print(\1)/g
@@ -418,7 +419,7 @@ Plug 'mattn/webapi-vim'
 " Plug 'junegunn/fzf.vim', { 'dir': '~/.fzf', 'do': './install --all' }
 set completeopt=longest,menuone,preview
 " let g:OmniSharp_proc_debug = 1
-let g:OmniSharp_server_stdio = 1
+" let g:OmniSharp_server_stdio = 1
 " let g:OmniSharp_server_use_mono = 1
 " let g:coc_global_extensions=[ 'coc-omnisharp' ]
 " function! s:check_back_space() abort
@@ -436,7 +437,6 @@ Plug 'tpope/vim-fugitive'
 " ==== syntax helpers
 " Plug 'scrooloose/syntastic'
 " let g:syntastic_javascript_checkers = ['eslint']
-" let g:syntastic_java_checkers=['eclim']
 Plug 'chrisbra/Colorizer'
 Plug 'chrisbra/unicode.vim'
 
@@ -539,11 +539,9 @@ nmap f <Plug>(easymotion-s)
 autocmd FileType javascript                                         let b:run_script = '!clear;xvkbd -window Firefox -text "\Cr" && xdotool keydown alt key Tab; sleep 2.001; xdotool keyup alt'
 " autocmd FileType javascript                                         set omnifunc=javascriptcomplete#CompleteJS
 " autocmd FileType cs                                         set omnifunc=javascriptcomplete#CompleteJS
-" let g:EclimCompletionMethod = 'omnifunc'
 autocmd FileType python                                             let b:run_script = '! clear;python3 %'
 autocmd FileType python                                             let g:pymode_python = 'python3'
 autocmd FileType cpp                                                let b:run_script = '! clear; make && !%:r'
-autocmd FileType java                                               nnoremap <C-S-i> :JavaImportOrganize<CR>
 " inoremap <C-Space> <C-x><C-o>
 " autocmd FileType *.c                                              let b:run_script='gcc\ %\ &&\ ./!%:r.out'
 
@@ -593,7 +591,6 @@ set timeoutlen=300 ttimeoutlen=0
 
 " nnoremap F gg=G''
 
-" let g:EclimFileTypeValidate = 0
 let g:syntastic_java_javac_config_file_enabled = 1
 set encoding=utf-8
 
@@ -681,3 +678,4 @@ function! Synctex()
     redraw!
 endfunction
 " let &statusline.='%{abs(line(".") - line("v")) + 1}'
+nmap <C-i> :JavaImportOrganize<CR> " ????????
