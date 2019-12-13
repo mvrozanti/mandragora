@@ -551,4 +551,4 @@ alias fentr='f|entr'
 mvnroot(){ curdir=`realpath .`; while [[ ! `find pom.xml 2>/dev/null` ]]; do cd.. ; done ; realpath .; cd $curdir}
 mvnp(){ curdir=`realpath .`; cd `mvnroot` && mvn package; cd $curdir }
 mvnmc(){ ag "public static void main" | sd '(.*?):.*' '$1' | sed 's/src\/main\/java\///g;s/\//./g;s/\.java$//g' }
-mvne(){ mvn clean compile exec:java -Dexec.mainClass="`mvnmc|fzf --select-1`" -Dexec.args="$@" }
+mvne(){ mvn clean compile exec:java -Dexec.mainClass="`mvnmc|fzf --select-1`" -Dexec.args="$@" 2>/dev/null | grep -v '^\[INFO\]' }
