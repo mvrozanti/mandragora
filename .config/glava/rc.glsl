@@ -13,10 +13,10 @@
    as a 2D sampler.
    
    See documentation for more details. */
-#request mod circle
+#request mod radial
 
 /* Window hints */
-#request setfloating  false
+#request setfloating  true
 #request setdecorated true
 #request setfocused   false
 #request setmaximized false
@@ -34,7 +34,7 @@
               Has very little performance impact.
     
    "none"   - Disable window opacity completely. */
-#request setopacity "xroot"
+#request setopacity "native"
 
 /* Whether to mirror left and right audio input channels from PulseAudio.*/
 #request setmirror false
@@ -53,6 +53,10 @@
 /* Window background color (RGB format).
    Does not work with `setopacity "xroot"` */
 #request setbg 00000000
+/* #define COLOR mix(#ff0000, #000000, clamp(d / 80, 0, 1)) */
+#define BACKGROUND @bg:(@fg:#3C3CA8 * 0.4)
+#define COLOR @fg:#3C3CA8
+
 
 /* (X11 only) EWMH Window type. Possible values are:
    
@@ -68,7 +72,7 @@
    will do nothing, but you can use "!+" and "!-" to stack on top
    or below other windows.
 */
-#request setxwintype "fullscreen"
+#request setxwintype "normal"
 
 /* (X11 only) EWMH Window state atoms (multiple can be specified).
    Possible values are:
@@ -225,5 +229,3 @@
    the buffer. It is reccommended to use `setsamplerate` and
    `setsamplesize` to improve performance or accuracy instead. */
 #request setbufscale 1
-/* #define COLOR mix(#3366b2, #a0a0b2, clamp(d / 80, 0, 1)) */
-#define COLOR @fg:#3C3CA8

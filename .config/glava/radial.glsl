@@ -16,9 +16,9 @@
 /* Amplify magnitude of the results each bar displays */
 #define AMPLIFY 300
 /* Bar color */ 
-#define COLOR (#cc3333 * ((d / 40) + 1))
+#define COLOR (#ff0000 * ((40 / d) + 1))
 /* Angle (in radians) for how much to rotate the visualizer */
-#define ROTATE (PI / 2)
+#define ROTATE (PI / 3)
 /* Whether to switch left/right audio buffers */
 #define INVERT 0
 /* Aliasing factors. Higher values mean more defined and jagged lines.
