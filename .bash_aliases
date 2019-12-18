@@ -553,3 +553,4 @@ mvnp(){ curdir=`realpath .`; cd `mvnroot` && mvn package; cd $curdir }
 mvnmc(){ ag "public static void main" | sd '(.*?):.*' '$1' | sed 's/src\/main\/java\///g;s/\//./g;s/\.java$//g' }
 mvne(){ mvn clean compile exec:java -Dexec.mainClass="`mvnmc|fzf --select-1`" -Dexec.args="$@" 2>/dev/null | grep -v '^\[INFO\]' }
 webm2mp4(){ ffmpeg -i "$1" -crf 26 "${1%.*}".mp4  }
+alias timecurl='curl -w "%{time_total}"'
