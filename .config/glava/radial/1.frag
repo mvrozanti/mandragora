@@ -31,7 +31,7 @@ out vec4 fragment;
 
 void main() {
     
-    #if USE_ALPHA > 0
+    #if _USE_ALPHA > 0
     #define APPLY_FRAG(f, c) f = vec4(f.rgb * f.a + c.rgb * (1 - clamp(f.a, 0, 1)), max(c.a, f.a))
     fragment = #00000000;
     #else
@@ -48,7 +48,7 @@ void main() {
     float d = sqrt((dx * dx) + (dy * dy)); /* distance */
     if (d > C_RADIUS - (float(C_LINE) / 2.0F) && d < C_RADIUS + (float(C_LINE) / 2.0F)) {
         APPLY_FRAG(fragment, OUTLINE);
-        #if USE_ALPHA > 0
+        #if _USE_ALPHA > 0
         fragment.a *= clamp(((C_LINE / 2) - abs(C_RADIUS - d)) * C_ALIAS_FACTOR, 0, 1);
         #else
         return; /* return immediately if there is no alpha blending available */
@@ -64,8 +64,9 @@ void main() {
             float dir = mod(abs(idx), TWOPI);          /* absolute position, [0, 2pi) */
             if (dir > PI)
                 idx = -sign(idx) * (TWOPI - dir);      /* Re-correct position values to [-pi, pi) */
-            if (INVERT > 0)
-                idx = -idx;                            /* Invert if needed */
+            #if INVERT == 0
+            idx = -idx;                                /* Invert if needed */
+            #endif
             float pos = int(abs(idx) / section) / float(NBARS / 2);        /* bar position, [0, 1) */
             #define smooth_f(tex) smooth_audio(tex, audio_sz, pos)         /* smooth function format */
             float v;
@@ -74,7 +75,7 @@ void main() {
             v *= AMPLIFY;                                                  /* amplify */
             #undef smooth_f
             /* offset to fragment distance from inner circle */
-            #if USE_ALPHA > 0
+            #if _USE_ALPHA > 0
             #define ALIAS_FACTOR (((BAR_WIDTH / 2) - abs(ym)) * BAR_ALIAS_FACTOR)
             d -= C_RADIUS; /* start bar overlapping the inner circle for blending */
             #else
@@ -91,7 +92,7 @@ void main() {
                 #else
                 r = COLOR;
                 #endif
-                #if USE_ALPHA > 0
+                #if _USE_ALPHA > 0
                 r.a *= ALIAS_FACTOR;
                 #endif
                 APPLY_FRAG(fragment, r);
@@ -99,7 +100,7 @@ void main() {
             }
             #if BAR_OUTLINE_WIDTH > 0
             if (d <= v) {
-                #if USE_ALPHA > 0
+                #if _USE_ALPHA > 0
                 vec4 r = BAR_OUTLINE;
                 r.a *= ALIAS_FACTOR;
                 APPLY_FRAG(fragment, r);

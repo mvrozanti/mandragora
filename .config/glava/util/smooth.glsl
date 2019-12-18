@@ -1,26 +1,10 @@
- 
-#ifndef _SMOOTH_GLSL /* include gaurd */
+ #ifndef _SMOOTH_GLSL
 #define _SMOOTH_GLSL
 
-#ifndef TWOPI
-#define TWOPI 6.28318530718
-#endif
-
-#ifndef PI
-#define PI 3.14159265359
-#endif
+#include ":util/common.glsl"
 
 #include "@smooth_parameters.glsl"
 #include ":smooth_parameters.glsl"
-
-/* window value t that resides in range [0, sz)*/
-#define window(t, sz) (0.53836 - (0.46164 * cos(TWOPI * t / (sz - 1))))
-/* this does nothing, but we keep it as an option for config */
-#define linear(x) (x)
-/* take value x that scales linearly between [0, 1) and return its sinusoidal curve */
-#define sinusoidal(x) ((0.5 * sin((PI * (x)) - (PI / 2))) + 0.5)
-/* take value x that scales linearly between [0, 1) and return its circlar curve */
-#define circular(x) sqrt(1 - (((x) - 1) * ((x) - 1)))
 
 #define average 0
 #define maximum 1
@@ -34,14 +18,14 @@ float iscale_audio(float idx) {
     return -log((SAMPLE_RANGE) * idx) / (SAMPLE_SCALE);
 }
 
-/* Note: the SMOOTH_FACTOR macro is defined by GLava itself, from `#request setsmoothfactor`*/
+/* Note: the _SMOOTH_FACTOR macro is defined by GLava itself, from `#request setsmoothfactor`*/
 
 float smooth_audio(in sampler1D tex, int tex_sz, highp float idx) {
     
-    #if PRE_SMOOTHED_AUDIO < 1
+    #if _PRE_SMOOTHED_AUDIO < 1
     float
-        smin = scale_audio(clamp(idx - SMOOTH_FACTOR, 0, 1)) * tex_sz,
-        smax = scale_audio(clamp(idx + SMOOTH_FACTOR, 0, 1)) * tex_sz;
+        smin = scale_audio(clamp(idx - _SMOOTH_FACTOR, 0, 1)) * tex_sz,
+        smax = scale_audio(clamp(idx + _SMOOTH_FACTOR, 0, 1)) * tex_sz;
     float m = ((smax - smin) / 2.0F), s, w;
     float rm = smin + m; /* middle */
     
