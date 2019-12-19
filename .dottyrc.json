@@ -268,7 +268,8 @@
     "pdfgrep",
     "tokei",
     "qiv",
-    "mkvtoolnix-cli"
+    "mkvtoolnix-cli",
+    "sqlmap"
   ],
   "excluded": [
     "hotmail.gpg",
