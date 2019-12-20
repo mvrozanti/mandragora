@@ -63,10 +63,11 @@ for_window  [title=".*N/A.*"]             move to workspace $ws12
 for_window  [instance="^ranger$"]         move to workspace $ws2
 for_window  [class="mpv"]                 sticky enable, floating enable, move position 1000 470
 for_window  [class="GLava"]               sticky enable, floating enable, move position 1500 550, \
-                                            resize shrink width 1000px,                            \
+                                            resize shrink width  1000px,                           \
                                             resize shrink height 1000px,                            \
-                                            resize grow height 200px,                                \
-                                            resize grow width  200px,                                  
+                                            resize grow   height 200px,                              \
+                                            resize grow   width  200px,                                  
+no_focus    [class="GLava"] 
 for_window  [title="_visualizer_"]        sticky enable, floating enable
 no_focus    [title="_visualizer-float_"] 
 for_window  [title="gifview.*"]           floating enable, move position 1500 670
