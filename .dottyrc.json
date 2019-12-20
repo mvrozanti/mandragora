@@ -324,6 +324,7 @@
     "command -v hamachi                 || yay -S logmein-hamachi",
     "command -v polybar                 || yay -S $_",
     "command -v gotop                   || yay -S $_",
+    "command -v ncpamixer               || yay -S $_",
     "command -v jmtpfs                  || yay -S $_",
     "command -v browsh                  || yay -S $_",
     "command -v googler                 || yay -S $_",
