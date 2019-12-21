@@ -1,0 +1,17 @@
+#!/bin/bash
+pid_file="/home/nexor/.virtmic.pid"
+if [ -f $pid_file ]; then
+  pid=$(cat $pid_file)
+  kill -9 $pid || :
+  rm $pid_file
+fi
+if [ -z "`pactl list short modules | grep module-pipe-source`" ]; then
+  pactl load-module module-pipe-source format=s16le rate=44100 channels=1 source_name=virtmic
+  pactl set-default-source virtmic
+  echo "default-source = virtmic" > /home/nexor/.config/pulse/client.conf
+fi
+duration=`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1"`
+(xdotool keydown comma; sleep "$duration"; xdotool keyup comma) &
+mplayer "$1" &
+ffmpeg -re -i "$1" -f s16le -ar 44100 -ac 1 - > /tmp/music.input &
+echo $! > $pid_file
