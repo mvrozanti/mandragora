@@ -555,3 +555,4 @@ mvne(){ mvn clean compile exec:java -Dexec.mainClass="`mvnmc|fzf --select-1`" -D
 webm2mp4(){ ffmpeg -i "$1" -crf 26 "${1%.*}".mp4  }
 alias timecurl='curl -w "%{time_total}"'
 urlencode(){ omz_urlencode "`cat -`" }
+shortenurl(){ curl https://is.gd/create.php\?format\=simple\&url\=$1 }
