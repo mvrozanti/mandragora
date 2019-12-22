@@ -373,15 +373,15 @@ $bind $mod+KP_Home  $ensid redshift -g 1:0.5:0.5 -O 25000K
 $bind $mod+KP_Up    $ensid redshift -g 0.5:0.5:1 -O 25000K
 $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 
-$bind $mod+F4       $ensid $HOME/.local/bin/play_virtmic /home/nexor/F4.mp3
-$bind $mod+F5       $ensid $HOME/.local/bin/play_virtmic /home/nexor/F5.mp3
-$bind $mod+F6       $ensid $HOME/.local/bin/play_virtmic /home/nexor/F6.mp3
-$bind $mod+F7       $ensid $HOME/.local/bin/play_virtmic /home/nexor/F7.mp3
-$bind $mod+F8       $ensid $HOME/.local/bin/play_virtmic /home/nexor/F8.mp3
-$bind $mod+F9       $ensid $HOME/.local/bin/play_virtmic /home/nexor/F9.mp3
-$bind $mod+F10      $ensid $HOME/.local/bin/play_virtmic /home/nexor/F10.mp3
-$bind $mod+F11      $ensid $HOME/.local/bin/play_virtmic /home/nexor/F11.mp3
-$bind $mod+F12      $ensid $HOME/.local/bin/play_virtmic /home/nexor/F12.mp3
+$bind $mod+F4       $ensid $HOME/.local/bin/play_virtmic $HOME/F4.mp3
+$bind $mod+F5       $ensid $HOME/.local/bin/play_virtmic $HOME/F5.mp3
+$bind $mod+F6       $ensid $HOME/.local/bin/play_virtmic $HOME/F6.mp3
+$bind $mod+F7       $ensid $HOME/.local/bin/play_virtmic $HOME/F7.mp3
+$bind $mod+F8       $ensid $HOME/.local/bin/play_virtmic $HOME/F8.mp3
+$bind $mod+F9       $ensid $HOME/.local/bin/play_virtmic $HOME/F9.mp3
+$bind $mod+F10      $ensid $HOME/.local/bin/play_virtmic $HOME/F10.mp3
+$bind $mod+F11      $ensid $HOME/.local/bin/play_virtmic $HOME/F11.mp3
+$bind $mod+F12      $ensid $HOME/.local/bin/play_virtmic $HOME/F12.mp3
 
 #     __ _  __ _ _ __  ___
 #    / _` |/ _` | '_ \/ __|
