@@ -557,3 +557,4 @@ alias timecurl='curl -w "%{time_total}"'
 urlencode(){ omz_urlencode "`cat -`" }
 shortenurl(){ curl https://is.gd/create.php\?format\=simple\&url\=$1 }
 alias gibberish='tr -cd "[:alnum:]" < /dev/urandom | head ; echo'
+alias cojq='co|jq'
