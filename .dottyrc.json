@@ -90,8 +90,8 @@
     ".local/bin/mkv2gif": "~/.local/bin/mkv2gif",
     ".local/bin/mov2gif": "~/.local/bin/mov2gif",
     ".notmuch-config": "~/.notmuch-config",
-    ".config/glava": "~/.config/glava",
-    ".local/bin/play_virtmic": "~/.local/bin/play_virtmic"
+    ".local/bin/play_virtmic": "~/.local/bin/play_virtmic",
+    ".config/glava/rc.glsl": "~/.config/glava/rc.glsl"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
