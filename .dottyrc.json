@@ -314,6 +314,7 @@
     "npm -g list bitcoin-chart-cli || npm i -g $_",
     "npm -g list regexgen || npm i -g $_",
     "npm -g list fx || npm i -g $_",
+    "npm -g list sql-cli || npm i -g $_",
     "npm -g list graphqurl || npm i -g $_",
     "_command -v nativefier || npm i -g $_ && [[ ! -f /usr/local/bin/whatsapp ]] && nativefier web.whatsapp.com ~/util/whatsapp && cd $_ && sudo ln -s $(realpath $_/whats-app-web/whats-app-web-linux-x64/whats-app-web) /usr/local/bin/whatsapp",
     "_git clone --depth 1 https://github.com/cjbassi/gotop /tmp/gotop && /tmp/gotop/scripts/download.sh",
