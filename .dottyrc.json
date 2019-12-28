@@ -91,7 +91,8 @@
     ".local/bin/mov2gif": "~/.local/bin/mov2gif",
     ".notmuch-config": "~/.notmuch-config",
     ".local/bin/play_virtmic": "~/.local/bin/play_virtmic",
-    ".config/glava/rc.glsl": "~/.config/glava/rc.glsl"
+    ".config/glava/rc.glsl": "~/.config/glava/rc.glsl",
+    ".irssi/config": "~/.irssi/config"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
