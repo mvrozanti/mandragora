@@ -197,7 +197,7 @@ $bind $mod+Shift+f    workspace $ws4;                           $ensid wmctrl -a
 $bind $mod+Shift+s    workspace $ws8;                           $ensid wmctrl -a  Trello          || trello
 $bind $mod+Shift+w    workspace $ws12;                          $ensid wmctrl -xa thunderbird     || thunderbird
 $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -xa gdmap           || gdmap -f /
-$bind $mod+p                                                    $ensid wmctrl -a ".pdf ["         || zathura
+$bind $mod+p                                                    $ensid wmctrl -a ".pdf ["         || ~/.local/bin/zathura  
 # $bind $mod+Shift+p                                              $ensid transset-df -a -t 
 $bind $mod+Shift+p                                               $ensid zathura
 $bind $mod+y                                                    $ensid wmctrl -a _youtube_        || mpv --ytdl-format=best `xsel -o -b`
