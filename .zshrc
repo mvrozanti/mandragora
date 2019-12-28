@@ -99,7 +99,7 @@ bindkey '^h' backward-delete-char
 # bindkey '^l' delete-char
 bindkey '^[^l' delete-word
 run_ranger() { echo; ranger --choosedir=$HOME/.rangerdir < $TTY; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"; zle reset-prompt }
-run_nnn() { echo; nnn .; zle reset-prompt }
+run_nnn() { echo; nnn < $TTY ; zle reset-prompt }
 run_W() { clear; echo; W; zle reset-prompt }
 run_weather() { clear; echo; weather; zle reset-prompt }
 run_nvim_fast() { echo; nvim; zle reset-prompt }
@@ -121,8 +121,8 @@ zle -N cd_tcc
 zle -N cd_sys4bank 
 zle -N cd_downloads 
 
-bindkey '^[r' 'run_ranger'
 bindkey '^[R' 'run_nnn'
+bindkey '^[r' 'run_ranger'
 bindkey '^[w' 'run_W'
 bindkey '^[W' 'run_weather'
 bindkey '^[v' 'run_nvim'
