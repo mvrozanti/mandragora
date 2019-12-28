@@ -258,6 +258,7 @@ autocmd FileType c,cpp,lex inoremap fn<tab> <+> <+>(<+>){<CR>}<Esc>O
 autocmd FileType c,cpp,java,lex inoremap sw<tab> switch(){<CR>case <+>:<CR>break;<CR>}<Esc>3kwa
 autocmd FileType c,cpp,java,lex inoremap wh<tab> while(){<CR>}<Esc>kwa
 autocmd FileType c,cpp,java,lex inoremap if<tab> if(){<CR>}<Esc>kwa
+autocmd FileType c TagbarToggle
 
 " bash shortcuts
 " autocmd FileType sh
@@ -493,6 +494,9 @@ map ; <Plug>(expand_region_expand)
 map + <Plug>(expand_region_shrink)
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+Plug 'majutsushi/tagbar'
+
+let g:airline#extensions#tagbar#enabled = 1
 let g:airline_powerline_fonts = 1
 let g:airline_theme='atomic'
 call plug#end()
