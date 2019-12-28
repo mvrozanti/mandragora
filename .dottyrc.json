@@ -271,7 +271,8 @@
     "tokei",
     "qiv",
     "mkvtoolnix-cli",
-    "sqlmap"
+    "sqlmap",
+    "ctags"
   ],
   "excluded": [
     "hotmail.gpg",

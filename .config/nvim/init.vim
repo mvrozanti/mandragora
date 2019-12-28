@@ -488,6 +488,9 @@ Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app & yarn install'  }
 " Text-object like motion for arguments
 Plug 'vim-scripts/argtextobj.vim'
 
+" Display function name in the title bar.
+Plug 'vim-scripts/ctags.vim'
+
 Plug 'terryma/vim-expand-region'
 map ; <Plug>(expand_region_expand)
 map + <Plug>(expand_region_shrink)
