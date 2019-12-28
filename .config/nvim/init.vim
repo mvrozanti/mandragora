@@ -22,6 +22,7 @@ nnoremap <A-p> o<A-p>
 autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex -synctex=1 % 
 " nnoremap <C-o> :call Synctex()<CR>
 autocmd BufWritePost *.bib silent! !bibtex %:r ; pdflatex %:r.tex ; pdflatex -synctex=1 %:r.tex 
+autocmd BufEnter * :Minimap
 
 " Sync tex pdf (doesnt work tho)
 " function! Synctex()
@@ -306,6 +307,8 @@ let g:grep_cmd_opts = '--hidden'
 "
 " The Maven plugin for VIM 
 Plug 'mikelue/vim-maven-plugin'
+
+Plug 'severin-lemaignan/vim-minimap'
 
 Plug 'terryma/vim-smooth-scroll'
 noremap <silent> <c-u> :call smooth_scroll#up   ( &scroll, 10, 2)<CR>
