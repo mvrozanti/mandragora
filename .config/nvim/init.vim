@@ -44,6 +44,8 @@ inoremap JK <Esc>l
 vnoremap JK <Esc>
 inoremap QQ <Esc>:q!<CR>
 nnoremap QQ :q!<CR>
+nnoremap <A-J> :resize +1<CR>
+nnoremap <A-K> :resize -1<CR>
 inoremap <Insert> <Esc>
 
 " Keep undo history across sessions by storing it in a file
