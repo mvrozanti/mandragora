@@ -105,7 +105,7 @@ alias waterfox='[[ $(ps aux|grep -c waterfox) -eq 1 ]] && waterfox || waterfox -
 alias R='R --silent '
 alias acs='apt-cache search'
 alias lisp='clisp --silent'
-alias pa='ps aux|grep|head -n -1'
+pa(){ ps aux | grep "$@" | head -n -1 }
 # alias jsonify='python -m json.tool --sort-keys'
 alias jsonify='echo use jq instead /dev/stderr'
 alias iftop='sudo iftop -Nlp'
