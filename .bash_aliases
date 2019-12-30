@@ -560,4 +560,4 @@ alias gibberish='tr -cd "[:alnum:]" < /dev/urandom | head ; echo'
 alias cojq='co|jq'
 mvcd(){ mv $@;cd ${@:$#} }
 wpa(){ watch 'ps aux | grep "'$@'" | head -n -1' }
-cop(){ co | tr -d '\n' | p }
+cop(){ co | p | tr -d '\n' }
