@@ -8,7 +8,6 @@
 # win=Mod4
 # alt=Mod1
 
-exec_always --no-startup-id /usr/bin/wal `cat $HOME/.cache/wal/wal`
 exec_always --no-startup-id $HOME/.config/polybar/launch.sh
 exec_always --no-startup-id /mnt/4ADE1465DE144C17/Programming/python/gatekeeper/gatekeeper.py
 # exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seafile.sh start
@@ -355,7 +354,7 @@ $bind $mod+Ctrl+Shift+h                     move container to workspace prev; wo
 #  | (_| |  __/\__ \ |_| | | |  __/ |_| | (__
 #   \__,_|\___||___/\__|_| |_|\___|\__|_|\___|
 #
-$ensid wal --saturate 1.0 -a 299 -i `cat $HOME/.fehbg | tail -n1 | cut -d ' ' -f3 | tr -d "'"`
+$ensid sleep 3 && wal --saturate 1.0 -a 299 -i `cat $HOME/.cache/wal/wal`
 $ensid sh -c 'compton -D 3 --blur-strength 15 --blur-method kawase -b --dbus'
 $ensid sh -c sleep 40 && dunst
 $ensid sh -c sleep 40 && ntpdate 0.br.pool.ntp.org

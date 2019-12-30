@@ -89,7 +89,7 @@ P(){ kek=`cat -`;ls $kek 2>/dev/null && curl -sF"file=@$kek" 0x0.st || echo $kek
 alias p='P | c'
 alias feh='feh -B black --scale-down --auto-zoom --sort mtime -. --action2 "rm %F" --action1 "realpath $PWD/%F | xsel -i -b"'
 alias randip="dd if=/dev/urandom bs=4 count=1 2>/dev/null | od -An -tu1 | sed -e 's/^ *//;s/  */./g'"
-myip(){ curl -s ipinfo.io | jq '.ip' | tr -d '"' }
+eip(){ curl -s ipinfo.io | jq '.ip' | tr -d '"' }
 alias 2wmv='ffmpeg -c:v wmv2 -b:v 99M -c:a wmav2 -b:a 192k output.wmv -i'
 alias mp32wav='mpg123 -w output.wav'
 o(){ nohup xdg-open $@ 2>&1 >/dev/null & }
