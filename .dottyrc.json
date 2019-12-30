@@ -92,7 +92,8 @@
     ".notmuch-config": "~/.notmuch-config",
     ".local/bin/play_virtmic": "~/.local/bin/play_virtmic",
     ".config/glava/rc.glsl": "~/.config/glava/rc.glsl",
-    ".irssi/config": "~/.irssi/config"
+    ".irssi/config": "~/.irssi/config",
+    ".config/shellinabox/dark.css": "~/.config/shellinabox/dark.css"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
