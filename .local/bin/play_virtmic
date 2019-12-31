@@ -12,5 +12,5 @@ fi
 duration=`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1"`
 mplayer "$1" &
 (xdotool keydown comma; sleep "$duration"; xdotool keyup comma) &
-ffmpeg -re -i "$1" -f s16le -ar 44100 -ac 2 - > /tmp/music.input &
+ffmpeg -re -i "$1" -f s16le -ar 44100 -ac 1 - > /tmp/music.input &
 echo $! > $pid_file
