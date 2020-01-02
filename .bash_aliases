@@ -559,4 +559,6 @@ shortenurl(){ curl https://is.gd/create.php\?format\=simple\&url\=$1 }
 alias gibberish='tr -cd "[:alnum:]" < /dev/urandom | head ; echo'
 alias cojq='co|jq'
 mvcd(){ mv $@;cd ${@:$#} }
+unalias gcd
+gcd(){ ! (( $1 % $2 )) && echo $2 || gcd $2 $(( $1 % $2 )) }
 wpa(){ watch 'ps aux | grep "'$@'" | head -n -1' }
