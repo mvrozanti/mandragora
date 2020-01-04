@@ -56,7 +56,7 @@ focus_follows_mouse no
 for_window  [class="Waterfox"]            move to workspace $ws1
 # for_window  [class="Firefox"]            move to workspace $ws1
 for_window  [title="^(\d+) WhatsApp$"]    move to workspace $ws4
-for_window  [title=".*Trello.*"]          move to workspace $ws8
+for_window  [title=".*| Trello.*"]          move to workspace $ws8
 for_window  [title=".*Zoom "]             move to workspace $ws6
 for_window  [title=".*^Dota 2$"]          move to workspace $ws8
 for_window  [title=".*N/A.*"]             move to workspace $ws12
@@ -194,7 +194,7 @@ $bind $mod+b                                                    $ensid wmctrl -x
 $bind $mod+Shift+d                                              $ensid wmctrl -a "Netbeans "      || wmctrl -xa "Eclipse" || /usr/bin/netbeans
 $bind $mod+z          workspace $ws6;                           $ensid wmctrl -a "Zoom -"         || zoom
 $bind $mod+Shift+f    workspace $ws4;                           $ensid wmctrl -a  WhatsApp        || whatsapp
-$bind $mod+Shift+s    workspace $ws8;                           $ensid wmctrl -a  Trello          || trello
+$bind $mod+Shift+s    workspace $ws8;                           $ensid wmctrl -a  \| Trello       || trello
 $bind $mod+Shift+w    workspace $ws12;                          $ensid wmctrl -xa thunderbird     || thunderbird
 $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -xa gdmap           || gdmap -f /
 $bind $mod+p                                                    $ensid wmctrl -a ".pdf ["         || ~/.local/bin/zathura  
