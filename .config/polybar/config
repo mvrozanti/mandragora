@@ -53,7 +53,7 @@ font-3 = fixed:pixelsize=10;1
 
 modules-left = i3
 modules-center =
-modules-right = mpd filesystem xbacklight alsa memory cpu wlan eth battery date powermenu
+modules-right = mpd xbacklight alsa filesystem memory cpu wlan eth battery date powermenu
 
 tray-position = right
 tray-padding = 2
@@ -102,7 +102,7 @@ format-mounted-underline = ${xrdb:color15}
 label-mounted = %{F#ffffff}   %{F-} %percentage_free%%
 label-unmounted = %mountpoint% not mounted
 label-unmounted-foreground = ${colors.foreground-alt}
-label-font = 5
+label-mounted-font = 5
 
 [module/bspwm]
 type = internal/bspwm
@@ -131,21 +131,19 @@ type = internal/i3
 format = <label-state> <label-mode>
 index-sort = true
 wrapping-scroll = false
-ws-icon-0 = 1;
-ws-icon-1 = 2;
-ws-icon-2 = 3;
-ws-icon-3 = 4;
-ws-icon-4 = 5;♋
-/* ws-icon-4 = 5;𖧒 */
-ws-icon-5 = 6;
-ws-icon-6 = 7;
-ws-icon-7 = 8;
-; ⚒
-ws-icon-8 = 9;ϕ
-ws-icon-9 = 10;ϰ
+ws-icon-0  =  1;
+ws-icon-1  =  2;
+ws-icon-2  =  3;
+ws-icon-3  =  4;
+ws-icon-4  =  5;♋
+ws-icon-5  =  6;
+ws-icon-6  =  7;
+ws-icon-7  =  8;
+ws-icon-8  =  9;ϕ
+ws-icon-9  = 10;ϰ
 ws-icon-10 = 11;
 ws-icon-11 = 12;♟
-icon-default = ♟
+icon-default = ?
 
 ; Only show workspaces on the same output as the bar
 ;pin-workspaces = true

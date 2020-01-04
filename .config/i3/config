@@ -354,7 +354,7 @@ $bind $mod+Ctrl+Shift+h                     move container to workspace prev; wo
 #  | (_| |  __/\__ \ |_| | | |  __/ |_| | (__
 #   \__,_|\___||___/\__|_| |_|\___|\__|_|\___|
 #
-$ensid sleep 3 && wal --saturate 1.0 -a 299 -i `cat $HOME/.cache/wal/wal`
+$ensid sleep 5 && wal --saturate 1.0 -a 299 -i `cat $HOME/.cache/wal/wal`
 $ensid sh -c 'compton -D 3 --blur-strength 15 --blur-method kawase -b --dbus'
 $ensid sh -c sleep 40 && dunst
 $ensid sh -c sleep 40 && ntpdate 0.br.pool.ntp.org
