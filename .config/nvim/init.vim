@@ -457,7 +457,7 @@ Plug 'kien/ctrlp.vim'
 let g:ctrlp_show_hidden=1
 
 " ==== snippets
-Plug 'SirVer/ultisnips'
+" Plug 'SirVer/ultisnips'
 
 filetype plugin indent on
 
