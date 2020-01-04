@@ -1,7 +1,0 @@
-text/plain; nvim %s ;
-text/html; setsid i3-msg workspace 1 && base=$(basename %s) && ext="${base##*.}" && file=$(mktemp -u --suffix=".$ext") && rm -f "$file" && cp %s "$file" && waterfox $file ;
-image/*; ~/.config/mutt/etc/muttimage.sh %s ; copiousoutput
-video/*; setsid mpv --quiet %s &; copiousoutput
-application/pdf; ~/.config/mutt/etc/openfile.sh %s ;
-application/pgp-encrypted; gpg -d '%s'; copiousoutput;
-
