@@ -58,18 +58,6 @@ modules-right = mpd xbacklight alsa filesystem memory cpu wlan eth battery date 
 
 tray-position = right
 tray-padding = 2
-;tray-background = #0063ff
-
-;wm-restack = bspwm
-;wm-restack = i3
-
-;override-redirect = true
-
-;scroll-up = bspwm-desknext
-;scroll-down = bspwm-deskprev
-
-;scroll-up = i3wm-wsnext
-;scroll-down = i3wm-wsprev
 
 cursor-click = default
 cursor-scroll = ns-resize
@@ -100,83 +88,61 @@ interval = 25
 
 mount-0 = /
 format-mounted-underline = ${xrdb:color15}
-label-mounted = %{F#ffffff}   %{F-} %percentage_free%%
+label-mounted = %{F#ffffff}  %{F-} %percentage_free%%
 label-unmounted = %mountpoint% not mounted
 label-unmounted-foreground = ${colors.foreground-alt}
 label-mounted-font = 5
 
 [module/bspwm]
-type = internal/bspwm
-
-label-focused = %index%
-label-focused-background = ${colors.background-alt}
-label-focused-underline= ${colors.primary}
-label-focused-padding = 2
-
-label-occupied = %index%
-label-occupied-padding = 2
-
-label-urgent = %index%!
-label-urgent-background = ${colors.alert}
-label-urgent-padding = 2
-
 label-empty = %index%
 label-empty-foreground = ${colors.foreground-alt}
 label-empty-padding = 2
-
-; Separator in between workspaces
-; label-separator = |
+label-focused = %index%
+label-focused-background = ${colors.background-alt}
+label-focused-padding = 2
+label-focused-underline= ${colors.primary}
+label-occupied = %index%
+label-occupied-padding = 2
+label-urgent = %index%!
+label-urgent-background = ${colors.alert}
+label-urgent-padding = 2
+type = internal/bspwm
 
 [module/i3]
-type = internal/i3
-format = <label-state> <label-mode>
-index-sort = true
-wrapping-scroll = false
-ws-icon-0  =  1;
-ws-icon-1  =  2;
-ws-icon-2  =  3;
-ws-icon-3  =  4;
-ws-icon-4  =  5;♋
-ws-icon-5  =  6;
-ws-icon-6  =  7;
-ws-icon-7  =  8;
-ws-icon-8  =  9;ϕ
-ws-icon-9  = 10;ϰ
-ws-icon-10 = 11;
-ws-icon-11 = 12;♟
-icon-default = ?
-
-; Only show workspaces on the same output as the bar
-;pin-workspaces = true
-
-label-mode-padding = 2
-label-mode-foreground = #000
-label-mode-background = ${colors.background}
-
-; focused = Active workspace on focused monitor
-label-focused = %icon%
+format                   = <label-state> <label-mode>
+icon-default             = ?
+index-sort               = true
+label-focused            = %icon%
 label-focused-background = ${module/bspwm.label-focused-background}
-label-focused-underline = ${module/bspwm.label-focused-underline}
-label-focused-padding = ${module/bspwm.label-focused-padding}
-
-; unfocused = Inactive workspace on any monitor
-label-unfocused = %icon%
-label-unfocused-padding = ${module/bspwm.label-occupied-padding}
-
-; visible = Active workspace on unfocused monitor
-label-visible = %index%
+label-focused-underline  = ${module/bspwm.label-focused-underline}
+label-mode-background    = ${colors.background}
+label-mode-foreground    = #000
+label-mode-padding       = 5
+label-focused-padding    = 5
+label-unfocused-padding  = 5
+label-urgent-font        = 5
+label-unfocused          = %icon%
+label-urgent             = %icon%
+label-urgent-background  = ${module/bspwm.label-urgent-background}
+label-urgent-padding     = ${module/bspwm.label-urgent-padding}
+label-visible            = %index%
 label-visible-background = ${self.label-focused-background}
-label-visible-underline = ${self.label-focused-underline}
-label-visible-padding = ${self.label-focused-padding}
-
-; urgent = Workspace with urgency hint set
-label-urgent = %index%
-label-urgent-background = ${module/bspwm.label-urgent-background}
-label-urgent-padding = ${module/bspwm.label-urgent-padding}
-
-; Separator in between workspaces
-; label-separator = |
-
+label-visible-padding    = ${self.label-focused-padding}
+label-visible-underline  = ${self.label-focused-underline}
+type = internal/i3
+wrapping-scroll = false
+ws-icon-0  =  1;  
+ws-icon-1  =  2;  
+ws-icon-2  =  3;  
+ws-icon-3  =  4;  
+ws-icon-4  =  5; ♋
+ws-icon-5  =  6;  
+ws-icon-6  =  7;  
+ws-icon-7  =  8;  
+ws-icon-8  =  9; ϕ 
+ws-icon-9  = 10; ϰ 
+ws-icon-10 = 11;  
+ws-icon-11 = 12; ♟ 
 
 [module/mpd]
 type = internal/mpd
@@ -264,9 +230,6 @@ udspeed-minwidth = 3
 format-connected-underline = ${xrdb:color3}
 ; format-connected-prefix = "↑"
 format-connected-prefix-foreground = ${colors.foreground-alt}
-/* format-connected-padding = 10 */
-/* format-connected-margin  = 10 */
-/* format-connected-spacing = 10 */
 label-connected = ↑ %upspeed:3% ↓ %downspeed:3%
 label-connected-font = 5
 

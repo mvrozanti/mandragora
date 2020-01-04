@@ -53,16 +53,15 @@ $ensid mpd
 $ensid unclutter -idle 1
 focus_follows_mouse no
 
-for_window  [class="Waterfox"]            move to workspace $ws1
-# for_window  [class="Firefox"]            move to workspace $ws1
-for_window  [title="^(\d+) WhatsApp$"]    move to workspace $ws4
-for_window  [title=".*\| Trello.*"]          move to workspace $ws8
-for_window  [title=".*Zoom "]             move to workspace $ws6
-for_window  [title=".*^Dota 2$"]          move to workspace $ws8
-for_window  [title=".*N/A.*"]             move to workspace $ws12
-for_window  [instance="^ranger$"]         move to workspace $ws2
-for_window  [class="mpv"]                 sticky enable, floating enable, move position 1000 470
-for_window  [class="GLava"]               sticky enable, floating enable, move position 1500 550, \
+for_window  [class="Waterfox"]              move to workspace $ws1
+for_window  [title="^(\d+) WhatsApp$"]      move to workspace $ws4
+for_window  [title=".*\| Trello.*"]         move to workspace $ws8
+for_window  [title=".*Zoom - Free Account"] move to workspace $ws6
+for_window  [title=".*^Dota 2$"]            move to workspace $ws8
+for_window  [title=".*N/A.*"]               move to workspace $ws12
+for_window  [instance="^ranger$"]           move to workspace $ws2
+for_window  [class="mpv"]                   sticky enable, floating enable, move position 1000 470
+for_window  [class="GLava"]                 sticky enable, floating enable, move position 1500 550, \
                                             resize shrink width  1000px,                           \
                                             resize shrink height 1000px,                            \
                                             resize grow   height 200px,                              \
@@ -355,7 +354,7 @@ $bind $mod+Ctrl+Shift+h                     move container to workspace prev; wo
 #   \__,_|\___||___/\__|_| |_|\___|\__|_|\___|
 #
 $ensid sleep 5 && wal --saturate 1.0 -a 299 -i `cat $HOME/.cache/wal/wal`
-$ensid sh -c 'compton -D 3 --blur-strength 15 --blur-method kawase -b --dbus'
+$ensid sh -c 'compton -D 3 --blur-strength 10 --blur-method kawase -b --dbus'
 $ensid sh -c sleep 40 && dunst
 $ensid sh -c sleep 40 && ntpdate 0.br.pool.ntp.org
 $ensid $HOME/.fehbg
