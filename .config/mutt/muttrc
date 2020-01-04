@@ -6,6 +6,7 @@ bind index \Cf noop
 source etc/muttcol
 source etc/aliases
 source personal.muttrc
+set folder          = "~/.mail"
 set sleep_time = 0
 set sort = 'reverse-date'
 set editor = '/usr/bin/nvim'

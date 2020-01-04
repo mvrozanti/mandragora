@@ -273,7 +273,8 @@
     "qiv",
     "mkvtoolnix-cli",
     "sqlmap",
-    "ctags"
+    "ctags",
+    "isync"
   ],
   "excluded": [
     "hotmail.gpg",
