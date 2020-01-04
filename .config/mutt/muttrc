@@ -47,7 +47,6 @@ bind pager \005 next-line # Mouse wheel
 macro index,pager S <sync-mailbox>
 macro index,pager \Cu "|urlscan -r 'setsid waterfox \"{}\"'"\n
 macro index,pager ,, "|urlscan -r 'setsid waterfox \"{}\"'"\n
-macro attach SP <save-entry><kill-line>/home/nexor/pericia1/
 macro attach SD <save-entry><kill-line>/home/nexor/Downloads/
 
 # View attachments properly.
