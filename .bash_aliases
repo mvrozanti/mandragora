@@ -562,3 +562,4 @@ mvcd(){ mv $@;cd ${@:$#} }
 unalias gcd
 gcd(){ ! (( $1 % $2 )) && echo $2 || gcd $2 $(( $1 % $2 )) }
 wpa(){ watch 'ps aux | grep "'$@'" | head -n -1' }
+vX(){ e | vipe | xargs }
