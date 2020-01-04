@@ -41,16 +41,12 @@ padding-right = 0
 module-margin-left = 1
 module-margin-right = 1
 
-; font-0 = Fira Mono for Powerline:style=Regular:size=10
-
 font-0 = "Ubuntu Condensed:size=11;2"
 font-1 = "icomoon\-feather:size=13;2"
 font-2 = "xos4 Terminus:size=12;1"
 font-3 = fixed:pixelsize=10;1
 font-4 = Droid Sans Mono Slashed for Powerline:size=10
 font-5 = "FontAwesome:size=13;2"
-; font-2 = unifont:fontformat=truetype:size=8:antialias=false;0
-; font-3 = siji:pixelsize=10;1
 
 modules-left = i3
 modules-center =
@@ -371,7 +367,7 @@ menu-2-1-exec = menu-open-0
 
 [settings]
 screenchange-reload = true
-compositing-background = over
+compositing-background = source
 compositing-foreground = over
 compositing-overline = over
 compositing-underline = over
