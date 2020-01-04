@@ -357,7 +357,8 @@ _toggle_ssh_password_auth(){ grep 'PasswordAuthentication yes' /etc/ssh/sshd_con
 wetty(){ _toggle_ssh_password_auth; trap _toggle_ssh_password_auth SIGINT; node ~/util/wetty/index.js -p 2717 }
 xfix(){ xmodmap ~/.Xmodmap; xset r rate 200 30; setxkbmap us alt-intl }
 toggle_touchpad(){ [[ `xinput list-props 12 | grep "Device Enabled" | grep -o "[01]$"` -eq 1 ]] && xinput --disable 12 || xinput --enable 12 }
-alias cocd='cd "`co`"'
+# alias cocd='cd "`co | sed 's/^~/$HOME/'`"'
+cocd(){ cd "`co | sed 's/^~/\/home\/nexor/'`" }
 alias cocdd='cdd `co`'
 other_mndrgr(){ [[ `hostname` == "mndrgr" ]] && echo mndrgr2 || echo mndrgr }
 diffmndrgr(){ [[ -z $@ ]] || diff $@ <(ssh $(other_mndrgr) 'cat '$(realpath $@)) }
