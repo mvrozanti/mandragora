@@ -41,15 +41,19 @@ padding-right = 0
 module-margin-left = 1
 module-margin-right = 1
 
-# font-0 = Fira Mono for Powerline:style=Regular:size=10
-font-0 = Droid Sans Mono Slashed for Powerline:size=10
-font-1 = fixed:pixelsize=10;1
-font-2 = unifont:fontformat=truetype:size=8:antialias=false;0
-font-3 = siji:pixelsize=10;1
+; font-0 = Fira Mono for Powerline:style=Regular:size=10
+font-4 = Droid Sans Mono Slashed for Powerline:size=10
+
+font-0 = "Ubuntu Condensed:size=11;2"
+font-1 = "icomoon\-feather:size=11;2"
+font-2 = "xos4 Terminus:size=12;1"
+font-3 = fixed:pixelsize=10;1
+; font-2 = unifont:fontformat=truetype:size=8:antialias=false;0
+; font-3 = siji:pixelsize=10;1
 
 modules-left = i3
 modules-center =
-modules-right = filesystem xbacklight alsa memory cpu wlan eth battery date powermenu
+modules-right = mpd filesystem xbacklight alsa memory cpu wlan eth battery date powermenu
 
 tray-position = right
 tray-padding = 2
@@ -94,10 +98,11 @@ type = internal/fs
 interval = 25
 
 mount-0 = /
-
-label-mounted =  %{F#ffffff}❖%{F-} %percentage_free%%
+format-mounted-underline = ${xrdb:color15}
+label-mounted = %{F#ffffff}   %{F-} %percentage_free%%
 label-unmounted = %mountpoint% not mounted
 label-unmounted-foreground = ${colors.foreground-alt}
+label-font = 5
 
 [module/bspwm]
 type = internal/bspwm
@@ -126,19 +131,19 @@ type = internal/i3
 format = <label-state> <label-mode>
 index-sort = true
 wrapping-scroll = false
-ws-icon-0 = 1;⚉
-ws-icon-1 = 2;ߧ
-ws-icon-2 = 3;Ϡ
-ws-icon-3 = 4;⊶
+ws-icon-0 = 1;
+ws-icon-1 = 2;
+ws-icon-2 = 3;
+ws-icon-3 = 4;
 ws-icon-4 = 5;♋
 /* ws-icon-4 = 5;𖧒 */
-ws-icon-5 = 6;λ
-ws-icon-6 = 7;ϡ
-ws-icon-7 = 8;໑
+ws-icon-5 = 6;
+ws-icon-6 = 7;
+ws-icon-7 = 8;
 ; ⚒
 ws-icon-8 = 9;ϕ
 ws-icon-9 = 10;ϰ
-ws-icon-10 = 11;ӂ
+ws-icon-10 = 11;
 ws-icon-11 = 12;♟
 icon-default = ♟
 
@@ -176,13 +181,14 @@ label-urgent-padding = ${module/bspwm.label-urgent-padding}
 
 [module/mpd]
 type = internal/mpd
-format-online = <label-song>  <icon-prev> <icon-stop> <toggle> <icon-next>
+format-online = <label-song> <icon-prev> <toggle> <icon-next>
 
-icon-prev = 
-icon-stop = 
-icon-play = 
-icon-pause = 
-icon-next = 
+icon-play = 
+icon-prev = 
+icon-next = 
+icon-pause = 
+icon-stop = 
+label-song =   %title%
 
 label-song-maxlen = 500
 label-song-ellipsis = true
@@ -212,15 +218,17 @@ card = intel_backlight
 [module/cpu]
 type = internal/cpu
 interval = 2
-format-prefix = "ﭏ "
+format-prefix = " "
 format-prefix-foreground = ${colors.foreground-alt}
 format-underline = ${xrdb:color2}
 label = %percentage:2%%
+label-font = 5
 
 [module/memory]
 type = internal/memory
 interval = 2
-format-prefix = "מ "
+label-font = 5
+format-prefix = " "
 format-prefix-foreground = ${colors.foreground-alt}
 format-underline = ${xrdb:color1}
 label = %percentage_used%%
@@ -232,7 +240,7 @@ interval = 3.0
 
 format-connected = <ramp-signal> <label-connected>
 format-connected-underline = ${xrdb:color3}
-label-connected = ↑ %upspeed:3% ↓ %downspeed:3% %essid%
+label-connected = ↑ %upspeed:4% ↓ %downspeed:4% %essid%
 
 format-disconnected =
 ;format-disconnected = <label-disconnected>
@@ -256,7 +264,11 @@ udspeed-minwidth = 3
 format-connected-underline = ${xrdb:color3}
 ; format-connected-prefix = "↑"
 format-connected-prefix-foreground = ${colors.foreground-alt}
+/* format-connected-padding = 10 */
+/* format-connected-margin  = 10 */
+/* format-connected-spacing = 10 */
 label-connected = ↑ %upspeed:3% ↓ %downspeed:3%
+label-connected-font = 5
 
 format-disconnected =
 ;format-disconnected = <label-disconnected>
@@ -275,20 +287,25 @@ time = %H:%M
 time-alt = %H:%M:%S
 format-prefix-foreground = ${colors.foreground-alt}
 format-underline = ${xrdb:color14}
+label-font = 5
 
 label = %{A8:shutdown -h 0:}%date% %time%
-format-prefix = ◉
+format-prefix =  
 
 [module/alsa]
 type = internal/alsa
 
-format-volume = <label-volume> <bar-volume>
+format-volume = <ramp-volume> <bar-volume>
 label-volume = "∿"
 label-volume-foreground = ${root.foreground}
-
-format-muted-prefix = " "
-format-muted-foreground = ${colors.foreground-alt}
-label-muted = sound muted
+ramp-volume-0 = 
+ramp-volume-1 = 
+ramp-volume-2 = 
+ramp-volume-3 = 
+ramp-volume-4 = 
+format-muted =   <bar-volume>
+/* format-muted-foreground = ${colors.foreground-alt} */
+/* label-muted = <bar-volume> */
 
 bar-volume-width = 10
 bar-volume-foreground-0 = ${xrdb:color7}
