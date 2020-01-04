@@ -4,4 +4,4 @@
 ![stones](https://i.imgur.com/a5ySKOh.gif)
 [](![1](https://i.imgur.com/QVVP1Em.jpg))
 [](![colorflame](https://i.giphy.com/media/WRZWkBEwsPqYIT98xd/source.gif))
-![kawase](https://i.imgur.com/jmppo4P.gif)
+![kawase](https://i.giphy.com/media/jpWcanGdyxPQwDuAaE/source.gif)
