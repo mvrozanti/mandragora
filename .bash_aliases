@@ -563,6 +563,6 @@ unalias gcd
 gcd(){ ! (( $1 % $2 )) && echo $2 || gcd $2 $(( $1 % $2 )) }
 wpa(){ watch 'ps aux | grep "'$@'" | head -n -1' }
 vX(){ e | vipe | xargs -0 zsh -c }
-# . ~/.local/bin/resty
+. ~/.local/bin/resty
 alias i3ws='i3-msg workspace'
 webm2mp3(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.mp3 }
