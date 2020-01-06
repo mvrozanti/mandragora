@@ -690,4 +690,4 @@ function! Synctex()
     redraw!
 endfunction
 " let &statusline.='%{abs(line(".") - line("v")) + 1}'
-nmap <C-i> :JavaImportOrganize<CR> " ????????
+" nmap <C-i> :JavaImportOrganize<CR> " ????????
