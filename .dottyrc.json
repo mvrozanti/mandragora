@@ -94,7 +94,8 @@
     ".config/glava/rc.glsl": "~/.config/glava/rc.glsl",
     ".irssi/config": "~/.irssi/config",
     ".config/shellinabox/dark.css": "~/.config/shellinabox/dark.css",
-    ".local/bin/resty": "~/.local/bin/resty"
+    ".local/bin/resty": "~/.local/bin/resty",
+    "usr/local/share/mutt-wizard/mutt-wizard.muttrc": "/usr/local/share/mutt-wizard/mutt-wizard.muttrc"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
