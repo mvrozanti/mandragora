@@ -60,7 +60,7 @@ for_window  [title=".*Zoom - Free Account"] move to workspace $ws6
 for_window  [title=".*^Dota 2$"]            move to workspace $ws14
 for_window  [title=".*N/A.*"]               move to workspace $ws12
 for_window  [instance="^ranger$"]           move to workspace $ws2
-for_window  [class="Steam"]                 move to workspace $ws15
+# for_window  [class="Steam"]                 move to workspace $ws15
 for_window  [class="mpv"]                   sticky enable, floating enable, move position 1000 470
 for_window  [class="GLava"]                 sticky enable, floating enable, move position 1500 550, \
                                             resize shrink width  1000px,                           \
@@ -214,11 +214,11 @@ $bind $mod+x                                                    $ensid wmctrl -a
 #
 
 set $scrot_file ~/.scrot.png
-$bind Print                       $ensid scrot    -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
-$bind $mod+Print                  $ensid scrot -u -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
-$bind --release Ctrl+Print        $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file
-$bind --release Shift+Print       $ensid scrot -s -e 'sxiv -N portal -b $f'                               $scrot_file
-$bind --release Ctrl+Shift+Print  $ensid scrot    -e 'pinta $f'                                           $scrot_file
+$bind Print                       $ensid scrot    -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file && notify-send "Screenshot saved to clipboard" 
+$bind $mod+Print                  $ensid scrot -u -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file && notify-send "Screenshot saved to clipboard" 
+$bind --release Ctrl+Print        $ensid scrot -s -e 'xclip -selection clipboard -target image/png -i $f' $scrot_file && notify-send "Screenshot saved to clipboard" 
+$bind --release Shift+Print       $ensid scrot -s -e 'sxiv -N portal -b $f'                               $scrot_file && notify-send "Screenshot saved to clipboard" 
+$bind --release Ctrl+Shift+Print  $ensid scrot    -e 'pinta $f'                                           $scrot_file && notify-send
 $bind $mod+Scroll_Lock            $ensid flameshot gui
 # $bind Ctrl+$mod+Print             $ensid byzanz-record -d                            \
 #                                    `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
@@ -379,7 +379,8 @@ $bind $mod+KP_Home  $ensid redshift -g 1:0.5:0.5 -O 25000K
 $bind $mod+KP_Up    $ensid redshift -g 0.5:0.5:1 -O 25000K
 $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 
-$bind --whole-window button2        $ensid $HOME/.local/bin/play_virtmic $HOME/F6.mp3 
+# $bind --whole-window button2        $ensid $HOME/.local/bin/play_virtmic $HOME/F6.mp3 
+$bind $mod+F3                       $ensid $HOME/.local/bin/play_virtmic $HOME/F3.mp3
 $bind $mod+F4                       $ensid $HOME/.local/bin/play_virtmic $HOME/F4.mp3
 $bind $mod+F5                       $ensid $HOME/.local/bin/play_virtmic $HOME/F5.mp3
 $bind $mod+F6                       $ensid $HOME/.local/bin/play_virtmic $HOME/F6.mp3

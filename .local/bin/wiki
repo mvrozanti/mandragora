@@ -1,7 +1,7 @@
 #!/bin/bash
 
-search=$1
-search=`sed 's/ /%20/g' <<< $search`
+search=$@
+search=`sed 's/ /%20/g' <<< "$search"`
 inp=`curl -s -H "Accept:application/json" "https://en.wikipedia.org/w/api.php?action=opensearch&format=json&redirects=return&search=$search"`
 length=2
 
