@@ -535,7 +535,7 @@ alias gP='git pull'
 alias ga.='git add .'
 alias poof='shutdown -h 0'
 alias gssp='git stash show -p'
-# alias mail='neomutt'
+alias mail='neomutt'
 alias hhhhh='4h;h'
 alias 4h='hhhh'
 alias Q='qa'
@@ -566,3 +566,4 @@ vX(){ e | vipe | xargs -0 zsh -c }
 . ~/.local/bin/resty
 alias i3ws='i3-msg workspace'
 webm2mp3(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.mp3 }
+coG(){ G "`co`" }
