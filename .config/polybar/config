@@ -87,6 +87,7 @@ format-mounted-underline = ${xrdb:color15}
 label-mounted = %{F#ffffff}  %{F-} %percentage_free%%
 label-unmounted = %mountpoint% not mounted
 label-unmounted-foreground = ${colors.foreground-alt}
+
 label-mounted-font = 5
 
 [module/bspwm]
@@ -112,19 +113,19 @@ label-focused-background = ${module/bspwm.label-focused-background}
 label-focused-underline  = ${module/bspwm.label-focused-underline}
 label-mode-background    = ${colors.background}
 label-mode-foreground    = #000
-label-mode-padding       = 5
 label-mode-font = 5
+label-urgent-font        = 5
+label-mode-padding       = 5
 label-focused-padding    = 5
 label-unfocused-padding  = 5
-label-urgent-font        = 5
+label-urgent-padding     = 5
+label-visible-padding    = 5
 label-focused            = %icon%
 label-unfocused          = %icon%
 label-urgent             = %icon%
 label-visible            = %icon%
 label-urgent-background  = ${module/bspwm.label-urgent-background}
-label-urgent-padding     = 5
 label-visible-background = ${self.label-focused-background}
-label-visible-padding    = ${self.label-focused-padding}
 label-visible-underline  = ${self.label-focused-underline}
 type = internal/i3
 wrapping-scroll = false
