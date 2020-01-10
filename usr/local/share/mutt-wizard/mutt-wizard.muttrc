@@ -28,6 +28,7 @@ alternative_order text/plain text/enriched text/html
 bind index,pager i noop
 bind index,pager g noop
 bind index \Cf noop
+set editor=nvim
 
 # General rebindings
 bind attach <return> view-mailcap
