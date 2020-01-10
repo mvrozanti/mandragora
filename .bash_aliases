@@ -567,3 +567,4 @@ alias i3ws='i3-msg workspace'
 webm2mp3(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.mp3 }
 coG(){ G "`co`" }
 alias grao='git remote add origin'
+corpc(){ co | xargs realpath -z | c }
