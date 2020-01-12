@@ -116,12 +116,14 @@ $bind $mod+v          fullscreen disable; workspace $ws6;       $ensid wmctrl -a
 
 $bind $mod+8          fullscreen disable; workspace $ws11;      $ensid wmctrl -a  diaspora        || sh -c /home/nexor/util/diaspora-br-sign-in-linux-x64/diaspora-br-sign-in 
 $bind $mod+9          fullscreen disable; workspace $ws12;      $ensid wmctrl -a  skype           || skypeforlinux
-# $bind $mod+Delete                                               $ensid wmctrl -a  LibreOffice     || libreoffice
-$bind $mod+0      fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && mbsync hotmail && "$cat_seqs" && tmux new neomutt"
+$bind $mod+0          fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && mbsync hotmail && "$cat_seqs" && tmux new neomutt"
+$bind  XF86Mail       fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && mbsync hotmail && "$cat_seqs" && tmux new neomutt"
 $bind $mod+dead_grave          fullscreen disable; split h;     $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e ncmpcpp
+$bind XF86Tools                fullscreen disable; split h;     $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e ncmpcpp
 $bind $mod+Mod1+dead_grave     fullscreen disable;              $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -t _visualizer-float_ -c _visualizer_ -e ncmpcpp -s visualizer
 $bind $mod+Shift+dead_grave    fullscreen disable;              $ensid wmctrl -a  _ncmpcpp_       || st -T 0  -e ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws3;       $ensid wmctrl -a  _zsh_           || kitty --listen-on=unix:@mykitty --title _zsh_ --name _zsh_
+$bind XF86HomePage    fullscreen disable; workspace $ws3;       $ensid wmctrl -a  _zsh_           || kitty --listen-on=unix:@mykitty --title _zsh_ --name _zsh_
 $bind $mod+Shift+3                                              $ensid wmctrl -xa _tmux_          || kitty --title _tmux_
 $bind $mod+Mod1+3                                               $ensid wmctrl -xa _tmux-float_    || kitty --title _tmux-float_ \
     -o font_size=10 -o initial_window_width=400 -o initial_window_height=300 -o remember_window_size=no
@@ -143,6 +145,8 @@ $bind $mod+Shift+2                                              $ensid st -T 100
 $bind $mod+Mod1+2                                               $ensid wmctrl -xa _ranger-float_  || kitty --title _ranger-float_ \
     -o font_size=10 -o initial_window_width=500 -o initial_window_height=400 -o remember_window_size=no sh -c $cat_seqs' && ranger' 
 $bind $mod+2     workspace $ws2;                                $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
+    --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
+$bind XF86Search workspace $ws2;                                $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
     --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
 $bind $mod+m     fullscreen disable; workspace $ws3;           $ensid wmctrl -a  cmatrix          || kitty --name cmatrix \
     -o font_size=13 -o background_opacity=.00 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
@@ -182,6 +186,7 @@ $bind $mod+Ctrl+braceright                                      $ensid $HOME/uti
 $bind $mod+Shift+i                                              $ensid wmctrl -a  iftop           || kitty --name iftop sudo iftop -i eno1
 $bind $mod+Shift+n                                              $ensid wmctrl -a  newsboat        || kitty -o background_opacity=.78 --name newsboat sh -c $cat_seqs' && newsboat'
 $bind $mod+1   workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox        || waterfox
+$bind XF86WWW  workspace $ws1;fullscreen disable; split toggle; $ensid wmctrl -xa Waterfox        || waterfox
 $bind $mod+Shift+1        workspace $ws1                        $ensid wmctrl -a  Browsing        || waterfox $waterfox_arg
 $bind $mod+Shift+v    split toggle;                             $ensid wmctrl -a  VirtualBox      || virtualbox
 $bind $mod+Shift+a                                              $ensid wmctrl -a  "Android Studio"|| android-studio
