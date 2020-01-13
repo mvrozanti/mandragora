@@ -104,6 +104,7 @@ run_W() { clear; echo; W; zle reset-prompt }
 run_weather() { clear; echo; weather; zle reset-prompt }
 run_nvim_fast() { echo; nvim; zle reset-prompt }
 run_nvim() { echo; nvim -c 'Startify'; zle reset-prompt }
+run_khal() { echo; khal interactive < $TTY; zle reset-prompt }
 cd_disk() { echo; cd ~/disk; zle reset-prompt }
 cd_tcc() { echo; cd ~/mackenzie/TCC/; zle reset-prompt }
 cd_sys4bank() { echo; cd ~/sys4bank/prog; zle reset-prompt }
@@ -116,6 +117,7 @@ zle -N run_W
 zle -N run_nvim
 zle -N run_nvim_fast
 zle -N run_ncmpcpp
+zle -N run_khal
 zle -N cd_disk 
 zle -N cd_tcc 
 zle -N cd_sys4bank 
@@ -128,6 +130,7 @@ bindkey '^[W' 'run_weather'
 bindkey '^[v' 'run_nvim'
 bindkey '^[V' 'run_nvim_fast'
 bindkey '^[m' 'run_ncmpcpp'
+bindkey '^[K' 'run_khal'
 bindkey '^[d' 'cd_disk'
 bindkey '^[D' 'cd_downloads'
 bindkey '^[t' 'cd_tcc'
