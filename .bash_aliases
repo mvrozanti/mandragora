@@ -499,8 +499,8 @@ append(){ [ "$#" -eq 2 ] && grep -FIxvf $2 $1 | head -n -1 >> $2 }
 alias a='ag'
 alias myMACs="ip a | grep -EB1 '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'"
 alias k9='kill -9'
-alias q='pueue status || pueue --daemon; pueue'
-alias qa='q add'
+# alias q='pueue status || pueue --daemon; pueue'
+# alias qa='q add'
 hrmr(){ kek="$(basename $(pwd))";cd ..;rm -r "$kek" }
 alias piur='pip install --user -r requirements.txt'
 x1exe(){ mono `f exe|sed 1q` }
