@@ -568,3 +568,4 @@ webm2mp3(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.mp3 }
 coG(){ G "`co`" }
 alias grao='git remote add origin'
 corpc(){ co | xargs realpath -z | c }
+alias cfR='v /home/nexor/.config/rofi/config.rasi'
