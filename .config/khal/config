@@ -1,3 +1,10 @@
+[default]
+default_calendar = private
+
+[view]
+agenda_event_format = {calendar-color}{cancelled}{start-end-time-style} {title}{repeat-symbol}{description-separator}{description}{reset}
+dynamic_days = True
+
 [calendars]
 
 [[private]]
