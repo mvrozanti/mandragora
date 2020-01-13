@@ -96,7 +96,8 @@
     ".config/shellinabox/dark.css": "~/.config/shellinabox/dark.css",
     ".local/bin/resty": "~/.local/bin/resty",
     "usr/local/share/mutt-wizard/mutt-wizard.muttrc": "/usr/local/share/mutt-wizard/mutt-wizard.muttrc",
-    ".config/twmn/twmn.conf": "~/.config/twmn/twmn.conf"
+    ".config/twmn/twmn.conf": "~/.config/twmn/twmn.conf",
+    ".config/rofi/config.rasi": "~/.config/rofi/config.rasi"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
