@@ -451,7 +451,7 @@ alias wag='watch ag'
 alias f.='find .'
 pentr(){ find . | entr -c sh -c 'ag "__name__ == '"'"'__main__'"'"'" | sed 1q | cut -d '"'"':'"'"' -f1 | xargs python' }
 alias wls='watch ls'
-alias cosxiv='sxiv `co`'
+alias cosxiv='sxiv "`co`"'
 alias cogco='gco fix-non-existing-docker-image'
 alias ag='ag --search-binary --hidden --color'
 alias vt='v .travis.yml'
