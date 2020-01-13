@@ -72,8 +72,8 @@ configuration {
 	/* display-keys: ; */
 	kb-primary-paste: "Control+V,Shift+Insert";
 	kb-secondary-paste: "Control+v,Insert";
-	kb-clear-line: "Control+l,Control+c";
-	kb-move-front: "Control+a";
+	kb-clear-line: "Control+l,Control+c,Control+a";
+	kb-move-front: "";
 	kb-move-end: "Control+e";
 	kb-move-word-back: "Alt+b,Control+Left";
 	kb-move-word-forward: "Alt+f,Control+Right";
