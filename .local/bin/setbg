@@ -4,7 +4,7 @@ pkill xwinwrap
     [[ -z $2 ]] && sed -i -e 's/background #fff/background #000/' ~/.config/kitty/kitty.conf || sed -i -e 's/background #000/background #fff/' ~/.config/kitty/kitty.conf
     [[ -z $2 ]] && kitty @ --to unix:@mykitty set-colors background=#000 || kitty @ --to unix:@mykitty set-colors background=#fff
     wal -a 299 $2 -i $fpath
-    sed -E -i 's/^(\s+)background: (#[0-9a-fA-F]{6});/\1background: \200;/g' .cache/wal/colors-rofi-dark.rasi
+    sed -E -i 's/^(\s+)background: (#[0-9a-fA-F]{6});/\1background: \200;/g' ~/.cache/wal/colors-rofi-dark.rasi
     [[ "`identify $fpath | cut -d' ' -f3`" == 1920x1080 ]] || gifsicle --resize 1920x1080 -i "$fpath" > /tmp/`basename $fpath`
     fpath="/tmp/`basename $fpath`"
     sleep 1
