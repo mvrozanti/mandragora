@@ -98,7 +98,8 @@
     "usr/local/share/mutt-wizard/mutt-wizard.muttrc": "/usr/local/share/mutt-wizard/mutt-wizard.muttrc",
     ".config/twmn/twmn.conf": "~/.config/twmn/twmn.conf",
     ".config/rofi/config.rasi": "~/.config/rofi/config.rasi",
-    ".local/bin/mbsync-notify.sh": "~/.local/bin/mbsync-notify.sh"
+    ".local/bin/mbsync-notify.sh": "~/.local/bin/mbsync-notify.sh",
+    ".mbsyncrc": "~/.mbsyncrc"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
