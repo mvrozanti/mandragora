@@ -1,0 +1,25 @@
+IMAPStore hotmail-remote
+Host imap-mail.outlook.com
+Port  993
+User mvrozanti@hotmail.com
+PassCmd "pass mutt-wizard-hotmail"
+SSLType IMAPS
+CertificateFile /etc/ssl/certs/ca-certificates.crt
+
+MaildirStore hotmail-local
+Subfolders Verbatim
+Path ~/.local/share/mail/hotmail/
+Inbox ~/.local/share/mail/hotmail/INBOX
+Flatten .
+
+Channel hotmail
+Expunge Both
+Master :hotmail-remote:
+Slave :hotmail-local:
+Patterns * !"[Gmail]/All Mail"
+Create Both
+SyncState *
+MaxMessages 0
+ExpireUnread no
+# End profile
+
