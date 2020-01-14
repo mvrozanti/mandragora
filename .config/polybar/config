@@ -54,6 +54,7 @@ modules-right = mpd xbacklight alsa filesystem memory cpu wlan eth battery date 
 
 tray-position = right
 tray-padding = 2
+tray-background = ${colors.background}
 
 cursor-click = default
 cursor-scroll = ns-resize
