@@ -1,4 +1,0 @@
-#!/bin/zsh
-filename="$@"
-{ [[ "${filename##*.}" =~ "jpe?g" ]] && convert $filename png:- || cat $filename } | xclip -selection clipboard -t image/png
-notify-send "$filename" copied to clipboard.

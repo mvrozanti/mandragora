@@ -71,7 +71,6 @@
     ".config/kitty/set_colors.py": "~/.config/kitty/set_colors.py",
     ".local/bin/setbg": "~/.local/bin/setbg",
     ".local/bin/superscript": "~/.local/bin/superscript",
-    ".local/bin/ci": "~/.local/bin/ci",
     ".config/GIMP/2.10/gimprc": "~/.config/GIMP/2.10/gimprc",
     ".local/bin/toggle-desktop": "~/.local/bin/toggle-desktop",
     ".local/bin/mp42gif": "~/.local/bin/mp42gif",
