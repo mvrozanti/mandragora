@@ -98,7 +98,8 @@
     ".config/twmn/twmn.conf": "~/.config/twmn/twmn.conf",
     ".config/rofi/config.rasi": "~/.config/rofi/config.rasi",
     ".local/bin/mbsync-notify.sh": "~/.local/bin/mbsync-notify.sh",
-    ".mbsyncrc": "~/.mbsyncrc"
+    ".mbsyncrc": "~/.mbsyncrc",
+    ".config/sxiv": "~/.config/sxiv"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
