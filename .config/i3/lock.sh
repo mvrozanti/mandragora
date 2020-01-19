@@ -1,7 +1,7 @@
 #!/bin/bash
 IFS=$'\n' read -d '' -r -a colors < ~/.cache/wal/colors
 i3-msg workspace 9 && sleep 0.1
-transp=30
+transp=70
 i3lock -k --blur=10 -b \
     --pass-media-keys --pass-screen-keys --pass-power-keys \
     --insidevercolor=${colors[0]:1}$transp \
@@ -19,8 +19,7 @@ i3lock -k --blur=10 -b \
     --timecolor=${colors[12]:1}66 \
     --linecolor=${colors[13]:1}66 \
     --datecolor=${colors[14]:1}66 \
-    --radius 540 \
+    --radius 250 \
     --wrongtext="no" \
     --veriftext="" \
-    --noinputtext="text" \
-    --ring-width=50
+    --noinputtext="text"
