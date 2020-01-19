@@ -34,6 +34,7 @@ set $dmenu_looks -fn 'Droid Sans Mono for Powerline' -nb '#1e1e1e' -sf '#1e1e1e'
 $bind $mod+Shift+BackSpace  $ensid xset -display :0 dpms force on
 $bind $mod+Ctrl+BackSpace   $ensid sleep 1 && xset -display :0.0 dpms force off
 $bind $mod+Pause            $ensid shutdown -h 0
+$bind $mod+Home             $ensid $HOME/.config/i3/lock.sh
 $bind $mod+Shift+r          restart
 $bind $mod+q                kill
 $bind Mod1+Tab              workspace back_and_forth
