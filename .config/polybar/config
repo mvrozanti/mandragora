@@ -380,6 +380,12 @@ compositing-underline = over
 compositing-border = over
 pseudo-transparency = false
 
+[module/popup-calendar]
+type = custom/script
+exec = ~/.config/polybar/popup-calendar.sh
+interval = 5
+click-left = ~/.config/polybar/popup-calendar.sh --popup &
+
 [global/wm]
 margin-top = 0
 margin-bottom = 0
