@@ -2,8 +2,8 @@
 Version=1.0
 Name=Telegram Desktop
 Comment=Official desktop application for the Telegram messaging service
-TryExec=/usr/bin/telegram-desktop
-Exec=/usr/bin/telegram-desktop -- %u
+TryExec=/home/nexor/Downloads/Telegram/Telegram
+Exec=/home/nexor/Downloads/Telegram/Telegram -- %u
 Icon=telegram
 Terminal=false
 StartupWMClass=TelegramDesktop
