@@ -120,10 +120,10 @@ $bind $mod+8          fullscreen disable; workspace $ws11;      $ensid wmctrl -a
 $bind $mod+9          fullscreen disable; workspace $ws12;      $ensid wmctrl -a  skype           || skypeforlinux
 $bind $mod+0          fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && mbsync hotmail && "$cat_seqs" && tmux new neomutt"
 $bind  XF86Mail       fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && mbsync hotmail && "$cat_seqs" && tmux new neomutt"
-$bind $mod+dead_grave          fullscreen disable; split h;     $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e ncmpcpp
-$bind XF86Tools                fullscreen disable; split h;     $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e ncmpcpp
-$bind $mod+Mod1+dead_grave     fullscreen disable;              $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -t _visualizer-float_ -c _visualizer_ -e ncmpcpp -s visualizer
-$bind $mod+Shift+dead_grave    fullscreen disable;              $ensid wmctrl -a  _ncmpcpp_       || st -T 0  -e ncmpcpp -s visualizer
+$bind $mod+dead_grave          fullscreen disable; split h;     $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e /usr/bin/ncmpcpp
+$bind XF86Tools                fullscreen disable; split h;     $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e /usr/bin/ncmpcpp
+$bind $mod+Mod1+dead_grave     fullscreen disable;              $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -t _visualizer-float_ -c _visualizer_ -e /usr/bin/ncmpcpp -s visualizer
+$bind $mod+Shift+dead_grave    fullscreen disable;              $ensid wmctrl -a  _ncmpcpp_       || st -T 0  -e /usr/bin/ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws3;       $ensid wmctrl -a  _zsh_           || kitty --listen-on=unix:@mykitty --title _zsh_ --name _zsh_
 $bind XF86HomePage    fullscreen disable; workspace $ws3;       $ensid wmctrl -a  _zsh_           || kitty --listen-on=unix:@mykitty --title _zsh_ --name _zsh_
 $bind $mod+Shift+3                                              $ensid wmctrl -xa _tmux_          || kitty --title _tmux_
