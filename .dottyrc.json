@@ -280,7 +280,8 @@
     "mkvtoolnix-cli",
     "sqlmap",
     "ctags",
-    "isync"
+    "isync",
+    "yad"
   ],
   "excluded": [
     "hotmail.gpg",
