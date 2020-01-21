@@ -79,6 +79,7 @@ for_window  [title="^colp$"]              sticky enable, floating enable, move p
 for_window  [title="_ranger-float_"]      sticky enable, floating enable, move position 1400 570 
 for_window  [title="_visualizer-float_"]  sticky enable, floating enable, move position 1400 520 
 for_window  [title="KMagnifier"]          sticky enable, floating enable, move position 1300 520 
+for_window  [class="Yad" title="yad-calendar"] floating enable
 no_focus    [title="KMagnifier"]
 for_window  [instance="portal"]           sticky enable, floating enable
 for_window  [instance="khal2"]            floating enable, move position 950 250, \
