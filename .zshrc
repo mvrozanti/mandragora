@@ -160,10 +160,15 @@ export PATH=${GOPATH//://bin:}/bin:$PATH
 # py
 export PATH=~/.local/bin:$PATH
 
+# vi_mode
+# bindkey -v
 
 # powerlevel9k
 POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs)
 POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status)
+POWERLEVEL9K_SHORTEN_DIR_LENGTH=2
+POWERLEVEL9K_SHORTEN_STRATEGY='truncate_middle'
+
 # User with skull
 # user_with_skull() { echo -n "\ufb8a $(whoami)" }
 # P9K_CUSTOM_USER="user_with_skull"
