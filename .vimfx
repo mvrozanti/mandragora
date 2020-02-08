@@ -1,6 +1,6 @@
 {
   "prevent_autofocus": true,
-  "blacklist": "http://dotapicker.com/*",
+  "blacklist": "http://dotapicker.com/*  http://localhost:8888/notebooks/*",
   "hints.chars": "asdertgbvcx zq",
   "browsewithcaret": true,
   "mode.normal.scroll_page_down": "<c-f>",
