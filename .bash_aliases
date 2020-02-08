@@ -571,3 +571,4 @@ coG(){ G "`co`" }
 alias grao='git remote add origin'
 corpc(){ co | xargs realpath -z | c }
 alias cfR='v /home/nexor/.config/rofi/config.rasi'
+scov(){ sudoedit "`co`" }
