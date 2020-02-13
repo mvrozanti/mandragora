@@ -3,6 +3,7 @@
   "blacklist": "http://dotapicker.com/*  http://localhost:8888/*",
   "hints.chars": "asdertgbvcx zq",
   "browsewithcaret": true,
+  "mode.normal.reload": "r <a-space>",
   "mode.normal.scroll_page_down": "<c-f>",
   "mode.normal.scroll_page_up": "<s-space> B",
   "mode.normal.scroll_half_page_up": "b",
