@@ -9,7 +9,7 @@
 # alt=Mod1
 
 exec_always --no-startup-id $HOME/.config/polybar/launch.sh
-exec_always --no-startup-id /mnt/4ADE1465DE144C17/Programming/python/gatekeeper/gatekeeper.py --css=/home/nexor/.config/shellinabox/dark.css -a 255566841 
+# exec_always --no-startup-id /mnt/4ADE1465DE144C17/Programming/python/gatekeeper/gatekeeper.py --css=/home/nexor/.config/shellinabox/dark.css -a 255566841 
 # exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seafile.sh start
 # exec_always  --no-startup-id /srv/seafile/seafile-nexor/seafile-server/seahub/seahub.sh start
 exec_always --no-startup-id [[ `ps aux|grep seafile-daemon|wc -l` -eq 0 ]] && seafile-daemon
