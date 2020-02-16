@@ -99,7 +99,8 @@
     ".config/rofi/config.rasi": "~/.config/rofi/config.rasi",
     ".local/bin/mbsync-notify.sh": "~/.local/bin/mbsync-notify.sh",
     ".mbsyncrc": "~/.mbsyncrc",
-    ".config/sxiv": "~/.config/sxiv"
+    ".config/sxiv": "~/.config/sxiv",
+    ".local/bin/imap-notify": "~/.local/bin/imap-notify"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
