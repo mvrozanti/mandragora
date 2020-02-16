@@ -302,7 +302,7 @@ alias cfn='v ~/.newsboat/config'
 alias cfN='v ~/.newsboat/urls'
 alias N='newsboat'
 arf(){ echo "$@" >> ~/.newsboat/urls }
-alias help='echo no && read'
+# alias help='echo no && read'
 alias t1='tail -n1'
 alias t1a='t1 ~/.bash_aliases'
 aa(){ [[ ! -z $1 && ! -z $2 ]] && echo "alias $1='${@:2}'" >> ~/.bash_aliases; t1a }
@@ -572,3 +572,4 @@ alias grao='git remote add origin'
 corpc(){ co | xargs realpath -z | c }
 alias cfR='v /home/nexor/.config/rofi/config.rasi'
 scov(){ sudoedit "`co`" }
+getpass(){ python -c 'from getpass import getpass;print(getpass("Password: "))' }
