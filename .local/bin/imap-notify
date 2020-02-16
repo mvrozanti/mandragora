@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+user=mvrozanti@hotmail.com
+password=`pass show mutt-wizard-hotmail`
+server=outlook.office365.com:993
+
+start_idle () {
+  echo ". login \"$user\" \"$password\""
+  echo ". select inbox"
+  echo ". idle"
+  while true; do
+    sleep 60;
+    echo "done"
+    echo ". noop"
+    echo ". idle"
+  done
+}
+echo "Starting imap idle client, logging in as $user at $server"
+while read -r line ; do
+  if [[ `grep RECENT <<< $line` ]]; then
+    new=`echo $line | sed -E 's/.*?([0-9]).*?/\1/g'`
+    /usr/bin/beep -l"$new"000
+    notify-send " You have $new new emails."
+  fi
+done < <(openssl s_client -crlf -quiet -connect "$server" 2>/dev/null < <(start_idle))
