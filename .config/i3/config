@@ -107,7 +107,7 @@ assign      [class="Visual Studio"]       $ws7
 assign      [title=".*Android Studio.*"]  $ws7
 assign      [title=".*MonoDevelop.*"]     $ws7
 assign      [class="Tor Browser"]         $ws11
-assign      [title="Discord"]             $ws8
+assign      [title="Discord"]             $ws17
 assign      [instance="DBeaver"]          $ws11
 assign      [title="Mozilla Thunderbird"] $ws12
 assign      [class="Slack"]               $ws12
@@ -218,7 +218,7 @@ $bind $mod+Ctrl+p                                               $ensid wmctrl -a
 $bind $mod+y                                                    $ensid wmctrl -a _youtube_        || mpv --ytdl-format=best `xsel -o -b`
 # $bind $mod+x                                                    $ensid wmctrl -a  mpv
 $bind $mod+d                                                    $ensid ~/.local/bin/toggle-desktop
-$bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary
+$bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary ; workspace $ws17
 # $bind $mod+Shift+m see $HOME/.config/dunst/dunstrc
 
 #                      _
