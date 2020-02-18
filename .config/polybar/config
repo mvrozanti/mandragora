@@ -146,6 +146,8 @@ ws-icon-12 = 13; ♟
 ws-icon-13 = 14; 
 ws-icon-14 = 15; 
 ws-icon-15 = 16; 
+ws-icon-16 = 17; 
+
 
 [module/mpd]
 type = internal/mpd
