@@ -105,6 +105,7 @@ alias R='R --silent '
 alias acs='apt-cache search'
 alias lisp='clisp --silent'
 pa(){ ps aux | grep "$@" | head -n -1 }
+K9(){ pa "$@" | awk '{printf("%s ", $2);for(i=11;i<=NF;++i){ printf("%s ",$i) } print("") }' | fzf | awk '{print $1}' | xargs kill -9  }
 # alias jsonify='python -m json.tool --sort-keys'
 alias jsonify='echo use jq instead /dev/stderr'
 alias iftop='sudo iftop -Nlp'
@@ -538,7 +539,6 @@ alias mail='neomutt'
 alias hhhhh='4h;h'
 alias 4h='hhhh'
 alias Q='qa'
-alias K9='K -9'
 alias rmempty='find . -type d -empty -delete'
 alias snmap='s nmap'
 alias unquote="sed 's/^\"//g;s/\"$//g'"
