@@ -267,7 +267,8 @@ $bind $mod+f                   fullscreen toggle
 $bind $mod+c                   move scratchpad
 $bind $mod+Shift+c             scratchpad show;floating toggle
 $bind $mod+a                   focus parent
-$bind $mod+s                   layout stacking
+# $bind $mod+s                   layout stacking
+$bind $mod+s                   sticky toggle
 $bind $mod+w                   layout tabbed
 $bind $mod+e                   layout toggle split
 $bind $mod+Ctrl+space          floating toggle; sticky enable
