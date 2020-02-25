@@ -1,0 +1,10 @@
+#!/bin/bash
+layout=`setxkbmap -query | grep layout`
+if [[ $layout =~ 'ru' ]]; then
+    layout='us alt-intl'
+elif [[ $layout =~ 'us' ]]; then
+    layout=ru
+fi
+setxkbmap $layout
+xmodmap ~/.Xmodmap
+beep
