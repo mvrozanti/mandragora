@@ -214,7 +214,7 @@ $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -x
 $bind $mod+p                                                    $ensid wmctrl -a ".pdf ["         || ~/.local/bin/zathura  
 # $bind $mod+Shift+p                                              $ensid transset-df -a -t 
 $bind $mod+Shift+p                                               $ensid zathura
-$bind $mod+Ctrl+p                                               $ensid wmctrl -a "LM-X410.F"      || adb connect 192.168.0.11:5555 && scrcpy ; workspace $ws16
+$bind $mod+Ctrl+p                                               $ensid wmctrl -a "LM-X410.F"      || adb connect 192.168.0.11:5555 && scrcpy -S ; workspace $ws16
 $bind $mod+y                                                    $ensid wmctrl -a _youtube_        || mpv --ytdl-format=best `xsel -o -b`
 # $bind $mod+x                                                    $ensid wmctrl -a  mpv
 $bind $mod+d                                                    $ensid ~/.local/bin/toggle-desktop
