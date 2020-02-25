@@ -283,7 +283,8 @@
     "sqlmap",
     "ctags",
     "isync",
-    "yad"
+    "yad",
+    "glances"
   ],
   "excluded": [
     "hotmail.gpg",
