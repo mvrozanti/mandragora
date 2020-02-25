@@ -62,7 +62,7 @@
     ".local/bin/sit": "~/.local/bin/sit",
     ".local/bin/wiki": "~/.local/bin/wiki",
     ".ptpython/config.py": "~/.ptpython/config.py",
-    ".ptpython/ptpythonrc": "~/.ptpython/ptpythonrc",
+    ".ptpython/ptpythonrc.py": "~/.ptpython/ptpythonrc.py",
     ".local/bin/filedropper": "~/.local/bin/filedropper",
     ".taskrc": "~/.taskrc",
     ".local/bin/lipsum": "~/.local/bin/lipsum",
