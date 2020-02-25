@@ -140,6 +140,7 @@ $bind $mod+Mod1+3                                               $ensid wmctrl -x
 $bind $mod+g                                                    $ensid ~/.local/bin/setbg
 $bind $mod+Ctrl+equal                                           $ensid kmag
 $bind $mod+Tab                                                  $ensid ~/.local/bin/i3-cycler.py next
+$bind $mod+Return                                               $ensid ~/.local/bin/i3-cycler.py next
 $bind $mod+Shift+Tab                                            $ensid ~/.local/bin/i3-cycler.py prev
 # $bind $mod+Tab                                                  $ensid ~/.local/bin/i3shrink-window-animation
 # $bind $mod+Shift+Tab                                            $ensid ~/.local/bin/i3expand-window-animation
@@ -219,6 +220,8 @@ $bind $mod+y                                                    $ensid wmctrl -a
 # $bind $mod+x                                                    $ensid wmctrl -a  mpv
 $bind $mod+d                                                    $ensid ~/.local/bin/toggle-desktop
 $bind $mod+x                                                    $ensid wmctrl -a discord          || discord-canary ; workspace $ws17
+$bind Ctrl+Mod1+l                                               $ensid echo $'ru\nus alt-intl' | dmenu $dmenu_looks | xargs setxkbmap && xmodmap $HOME/.Xmodmap
+$bind Ctrl+Mod1+Cyrillic_de                                     $ensid echo $'ru\nus alt-intl' | dmenu $dmenu_looks | xargs setxkbmap && xmodmap $HOME/.Xmodmap
 # $bind $mod+Shift+m see $HOME/.config/dunst/dunstrc
 
 #                      _
