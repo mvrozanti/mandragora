@@ -101,7 +101,8 @@
     ".local/bin/mbsync-notify.sh": "~/.local/bin/mbsync-notify.sh",
     ".mbsyncrc": "~/.mbsyncrc",
     ".config/sxiv": "~/.config/sxiv",
-    ".local/bin/imap-notify": "~/.local/bin/imap-notify"
+    ".local/bin/imap-notify": "~/.local/bin/imap-notify",
+    ".local/bin/cycle-kbd-layouts": "~/.local/bin/cycle-kbd-layouts"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
