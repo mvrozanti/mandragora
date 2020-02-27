@@ -12,7 +12,7 @@ alias spr='sudo pacman -Rns'
 alias pss='pacman -Ss'
 alias pqo='pacman -Qo'
 alias spsyu='sudo pacman -Syu'
-alias py='ptpython --vi -i ~/.ptpython/ptpythonrc'
+alias py='ptpython --vi -i ~/.ptpython/ptpythonrc.py'
 alias s='sudo'
 alias r.='ranger'
 r(){ ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true";cd "`cat $HOME/.rangerdir`" }
