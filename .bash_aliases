@@ -574,3 +574,4 @@ alias cfR='v /home/nexor/.config/rofi/config.rasi'
 scov(){ sudoedit "`co`" }
 getpass(){ python -c 'from getpass import getpass;print(getpass("Password: "))' }
 alias cfpy='v /home/nexor/.ptpython/ptpythonrc.py'
+wlg(){ watch 'ls | grep '@ }
