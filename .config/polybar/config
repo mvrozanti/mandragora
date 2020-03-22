@@ -50,7 +50,7 @@ font-5 = "FontAwesome:size=13;2"
 
 modules-left = i3
 modules-center =
-modules-right = corona mpd xbacklight alsa filesystem memory cpu wlan eth battery date powermenu
+modules-right = corona mpd xbacklight alsa filesystem memory cpu wlan eth battery date
 
 tray-position = right
 tray-padding = 2
@@ -161,7 +161,7 @@ icon-stop =
 label-song =   %title%
 
 label-song-font = 5
-label-song-maxlen = 500
+; label-song-maxlen = 500
 label-song-ellipsis = true
 
 [module/xbacklight]
