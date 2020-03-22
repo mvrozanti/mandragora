@@ -1,0 +1,42 @@
+#!/usr/bin/env python
+from bs4 import BeautifulSoup
+import os
+from os import path as op
+from time import sleep
+import code
+import json
+import requests
+import pyjq
+
+def differences(a, b, section=None):
+    return [(c, d, g, section) if all(not isinstance(i, dict) for i in [d, g]) and d != g \
+            else None if all(not isinstance(i, dict) for i in [d, g]) and d == g \
+            else differences(d, g, c) for [c, d], [h, g] in zip(a.items(), b.items())]
+
+scores_filepath = '/home/nexor/corona-scores.json'
+html = requests.get('https://www.worldometers.info/coronavirus/#countries').text
+table = BeautifulSoup(html, 'lxml').select_one('table')
+data = [[td.text.strip() for td in row.find_all('td')] \
+        for row in table.select('tr + tr')]
+headers = [th.text.strip() for th in table.select('tr th')]
+recent_cases = json.load(open(scores_filepath)) if \
+        op.exists(scores_filepath) else {}
+current_cases = {}
+for d in data:
+    current_cases[d[0]] = {}
+    for ix,v in enumerate(d[1:]):
+        current_cases[d[0]][headers[ix+1]] = v.replace('+','') if v else 0 
+diffs = list(filter(None, [i for b in differences(recent_cases, current_cases) for i in b]))
+for change in diffs:
+    do_break = False
+    for cell in change:
+        if type(cell)!=int and 'Brazil' in cell:
+            # os.system('n=3000; while [ $n -gt 400 ]; do beep -f $n -l 2; n=$((n*97/100)); done')
+            os.system('curl -s https://raw.githubusercontent.com/Josef-Friedrich/beep-melodies/master/startup.sh | sh')
+            do_break = True
+            break
+    if do_break:
+        break
+if diffs:
+    json.dump(current_cases, open(scores_filepath, 'w'))
+print(pyjq.first('.Brazil.ActiveCases', current_cases))
