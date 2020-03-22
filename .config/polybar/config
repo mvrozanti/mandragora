@@ -264,10 +264,11 @@ format-prefix = 
 type = custom/script
 exec = ~/.local/bin/corona-bar
 interval = 90
-format-padding = 4
-format-prefix = ☠🕱
+format-prefix = ☢
+format-margin = 4
+format-prefix-margin = 4
 label-font = 5
-format-prefix-font = 1
+prefix-font = 2
 
 [module/alsa]
 type = internal/alsa
@@ -361,7 +362,7 @@ expand-right = true
 
 format-spacing = 1
 
-label-open = 
+label-open = a
 label-open-foreground = ${colors.secondary}
 label-close =  cancel
 label-close-foreground = ${colors.secondary}
