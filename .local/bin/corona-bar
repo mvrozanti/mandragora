@@ -31,8 +31,8 @@ for change in diffs:
     do_break = False
     for cell in change:
         if type(cell)!=int and 'Brazil' in cell:
-            # os.system('n=3000; while [ $n -gt 400 ]; do beep -f $n -l 2; n=$((n*97/100)); done')
-            os.system('curl -s https://raw.githubusercontent.com/Josef-Friedrich/beep-melodies/master/startup.sh | sh')
+            os.system('n=12000; while [ $n -gt 400 ]; do beep -f $n -l 2; n=$((n*97/100)); done')
+            # os.system('curl -s https://raw.githubusercontent.com/Josef-Friedrich/beep-melodies/master/startup.sh | sh')
             do_break = True
             break
     if do_break:
