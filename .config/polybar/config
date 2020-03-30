@@ -61,12 +61,12 @@ cursor-scroll = ns-resize
 
 [module/ip]
 type = custom/script
-exec = curl -s http://checkip.dyndns.org/ | perl -pe 's/.*: (.*?)<.*/\1/'
-underline = ${xrdb:color3}
+exec = curl -s http://checkip.dyndns.org/ | perl -pe 's/.*: (.*?)<.*/\1/' | xargs echo  
+format-underline = ${xrdb:color3}
 ; format-prefix-underline = ${xrdb:color3}
 label-padding = 1
 interval = 10
-format-prefix = 
+; format-prefix = 
 format-margin = 4
 format-prefix-margin = 4
 label-font = 5
