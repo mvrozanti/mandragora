@@ -50,7 +50,7 @@ font-5 = "FontAwesome:size=13;2"
 
 modules-left = i3
 modules-center =
-modules-right = ip corona mpd xbacklight alsa filesystem memory cpu wlan eth battery date
+modules-right = corona mpd xbacklight alsa filesystem memory cpu wlan eth ip date battery
 
 tray-position = right
 tray-padding = 2
@@ -61,7 +61,9 @@ cursor-scroll = ns-resize
 
 [module/ip]
 type = custom/script
-exec = curl -s http://checkip.dyndns.org/ | perl -pe 's/.*: (.*?)<.*/\1/'  
+exec = curl -s http://checkip.dyndns.org/ | perl -pe 's/.*: (.*?)<.*/\1/'
+underline = ${xrdb:color3}
+; format-prefix-underline = ${xrdb:color3}
 label-padding = 1
 interval = 10
 format-prefix = 
