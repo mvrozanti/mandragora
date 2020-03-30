@@ -576,3 +576,5 @@ scov(){ sudoedit "`co`" }
 getpass(){ python -c 'from getpass import getpass;print(getpass("Password: "))' }
 alias cfpy='v /home/nexor/.ptpython/ptpythonrc.py'
 wlg(){ watch "ls | grep $@" }
+alias dec2hex='printf "%x\n"'
+hex2dec(){ echo $@ | tr '[:lower:]' '[:upper:]' | xargs echo "obase=10; ibase=16;" | bc }
