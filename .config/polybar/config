@@ -20,7 +20,7 @@ secondary = #e60053
 alert = ${xrdb:color14} 
 
 [bar/.]
-;monitor = ${env:MONITOR:HDMI-1}
+monitor = ${env:MONITOR:HDMI2}
 width = 100%
 height = 30
 bottom = true
@@ -50,7 +50,7 @@ font-5 = "FontAwesome:size=13;2"
 
 modules-left = i3
 modules-center =
-modules-right = corona mpd xbacklight alsa filesystem memory cpu wlan eth battery date
+modules-right = ip corona mpd xbacklight alsa filesystem memory cpu wlan eth battery date
 
 tray-position = right
 tray-padding = 2
@@ -58,6 +58,17 @@ tray-background = ${colors.background}
 
 cursor-click = default
 cursor-scroll = ns-resize
+
+[module/ip]
+type = custom/script
+exec = curl -s http://checkip.dyndns.org/ | perl -pe 's/.*: (.*?)<.*/\1/'  
+label-padding = 1
+interval = 10
+format-prefix = 🗺
+format-margin = 4
+format-prefix-margin = 4
+label-font = 5
+prefix-font = 2
 
 [module/xwindow]
 type = internal/xwindow
@@ -256,14 +267,14 @@ time-alt = %H:%M:%S
 format-prefix-foreground = #fff
 format-underline = ${xrdb:color14}
 label-font = 5
-
+format-padding = 5
 label = %{A1:~/.local/bin/popup-calendar --popup:} %date% %time%
 format-prefix =  
 
 [module/corona]
 type = custom/script
-exec = ~/.local/bin/corona-bar
-interval = 90
+exec = ~/.local/bin/corona-bar -u -a -b
+interval = 900
 format-prefix = ☢
 format-margin = 4
 format-prefix-margin = 4
