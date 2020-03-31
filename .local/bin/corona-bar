@@ -58,7 +58,10 @@ def to_dataframe(cases):
     df = pd.read_json(json.dumps(cases)).T
     df['Country'] = df.index
     df['Timestamp'] = int(time.time())
-    for k in ['TotalCases', 
+    relevant_columns = [
+              'Country',
+              'Timestamp',
+              'TotalCases', 
               'NewCases', 
               'TotalDeaths', 
               'NewDeaths', 
@@ -67,11 +70,12 @@ def to_dataframe(cases):
               'Serious,Critical', 
               'Tot_Cases/1M_pop',
               'Deaths/1M_pop',
-              ]:
+              ]
+    for k in relevant_columns[2:]:
         df[k] = pd.to_numeric(df[k].str.replace(',', '').replace(r'^\s*$', np.nan, regex=True), \
                 errors='coerce')
     df.reset_index(inplace=True)
-    df.drop(['index','1stcase'], axis=1, inplace=True)
+    df.drop(['index'] + [c for c in df.columns if c not in relevant_columns], axis=1, inplace=True)
     return df
 
 def main(args):
@@ -79,23 +83,23 @@ def main(args):
         cases = get_current_stats(beep_difference=args.location)
         df = to_dataframe(cases)
         df.to_sql('cases', db, index=False, if_exists='append')
-        db.execute('''DELETE FROM CASES
-WHERE ROWID IN(
-SELECT
-c1.rowid
---c1.Country,c1.Timestamp
---c1.Country, c1.Timestamp, c2.Country, c2.Timestamp
---*
-FROM CASES c1
-JOIN CASES c2	ON  c1.Country   = c2.Country
-				AND c1.Timestamp <> c2.Timestamp
-WHERE (c1.TotalCases             = c2.TotalCases OR (c1.TotalCases IS NULL AND c2.TotalCases IS NULL))
-AND   (c1.NewCases               = c2.NewCases OR (c1.NewCases IS NULL AND c2.NewCases IS NULL))
-AND   (c1.TotalDeaths            = c2.TotalDeaths OR (c1.TotalDeaths IS NULL AND c2.TotalDeaths IS NULL))
-AND   (c1.NewDeaths              = c2.NewDeaths OR (c1.NewDeaths IS NULL AND c2.NewDeaths IS NULL))
-AND   (c1.TotalRecovered         = c2.TotalRecovered OR (c1.TotalRecovered IS NULL AND c2.TotalRecovered IS NULL))
-AND   (c1.ActiveCases            = c2.ActiveCases OR (c1.ActiveCases IS NULL AND c2.ActiveCases IS NULL))
-)''')
+#         db.execute('''DELETE FROM CASES
+# WHERE ROWID IN(
+# SELECT
+# c1.rowid
+# --c1.Country,c1.Timestamp
+# --c1.Country, c1.Timestamp, c2.Country, c2.Timestamp
+# --*
+# FROM CASES c1
+# JOIN CASES c2	ON  c1.Country   = c2.Country
+# 				AND c1.Timestamp <> c2.Timestamp
+# WHERE (c1.TotalCases             = c2.TotalCases OR (c1.TotalCases IS NULL AND c2.TotalCases IS NULL))
+# AND   (c1.NewCases               = c2.NewCases OR (c1.NewCases IS NULL AND c2.NewCases IS NULL))
+# AND   (c1.TotalDeaths            = c2.TotalDeaths OR (c1.TotalDeaths IS NULL AND c2.TotalDeaths IS NULL))
+# AND   (c1.NewDeaths              = c2.NewDeaths OR (c1.NewDeaths IS NULL AND c2.NewDeaths IS NULL))
+# AND   (c1.TotalRecovered         = c2.TotalRecovered OR (c1.TotalRecovered IS NULL AND c2.TotalRecovered IS NULL))
+# AND   (c1.ActiveCases            = c2.ActiveCases OR (c1.ActiveCases IS NULL AND c2.ActiveCases IS NULL))
+# )''')
     if args.active_cases:
         print(int(df.loc[df['Country'] == args.location]['ActiveCases']))
     if args.infection_rate:
@@ -109,6 +113,7 @@ AND   (c1.ActiveCases            = c2.ActiveCases OR (c1.ActiveCases IS NULL AND
         activeCasesYesterday = db.execute(q).fetchone()[0]
         activeCasesToday = db.execute(f"SELECT ActiveCases FROM CASES WHERE Country='Brazil' ORDER BY Timestamp DESC LIMIT 1").fetchone()[0]
         daily_rate = activeCasesToday/activeCasesYesterday*100-100
+        # code.interact(local=globals().update(locals()) or globals())
         print(f'{daily_rate:.2f}%')
     
 if __name__ == '__main__':
