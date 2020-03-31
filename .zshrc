@@ -169,13 +169,9 @@ POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status)
 POWERLEVEL9K_SHORTEN_DIR_LENGTH=2
 POWERLEVEL9K_SHORTEN_STRATEGY='truncate_middle'
 
-# User with skull
-# user_with_skull() { echo -n "\ufb8a $(whoami)" }
-# P9K_CUSTOM_USER="user_with_skull"
-# POWERLEVEL9K_MODE="awesome-fontconfig"
-# POWERLEVEL9K_HOME_SUB_ICON=$'\UE18D '
-# 
+POWERLEVEL9K_HOME_ICON='🏠'
 source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+
 #   ctrl + u     : clear line
 #   ctrl + w     : delete word backward
 #   alt  + d     : delete word
