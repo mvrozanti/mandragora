@@ -314,6 +314,7 @@
     "git clone https://github.com/mvrozanti/zaread ~/util/zaread && cd $_ && sudo make install",
     "git clone https://github.com/sigpipe/urlview ~/util/urlview && cd $_ && ./configure && sudo make install",
     "git clone https://github.com/wapiflapi/veles ~/util/veles && cd $_ && cmake . && sudo make install",
+    "git clone https://github.com/lolilolicon/xrectsel ~/util/xrectsel && cd $_ && ./configure --prefix /usr && sudo make install",
     "git clone https://github.com/ujjwal96/xwinwrap ~/util/xwinwrap && cd $_ && sudo make install",
     "git clone https://github.com/clibs/entr ~/util/entr && cd ~/util/entr && ./configure && sudo make install",
     "git clone https://github.com/mvrozanti/sxiv ~/util/sxiv && cd $_ && sudo make install",
