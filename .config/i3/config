@@ -64,7 +64,7 @@ for_window  [title=".*^Dota 2$"]            move to workspace $ws14
 for_window  [title=".*N/A.*"]               move to workspace $ws12
 for_window  [instance="^ranger$"]           move to workspace $ws2
 # for_window  [class="Steam"]                 move to workspace $ws15
-for_window  [class="mpv"]                   sticky enable, floating enable, move position 1000 470
+for_window  [class="mpv"]                   sticky enable, floating enable #, move position 1000 470
 for_window  [title=".*^LM-X410.F$"]         move to workspace $ws16, floating enable, move position 1400 100, \
                                             resize shrink width  1000px,                                                      \
                                             resize shrink height 1000px,                                                       \
