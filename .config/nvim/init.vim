@@ -475,10 +475,6 @@ set laststatus=2
 set smartindent
 set tabstop=4 sw=4 et
 set shiftwidth=4
-" :set guioptions-=m  "remove menu bar
-" :set guioptions-=T  "remove toolbar
-" :set guioptions-=r  "remove right-hand scroll bar
-" :set guioptions-=L  "remove left-hand scroll bar
 
 Plug 'danro/rename.vim'
 
@@ -506,12 +502,6 @@ let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
-" set statusline+=%#warningmsg#
-" set statusline+=%{SyntasticStatuslineFlag()}
-" set statusline+=%*
-" set statusline+=%f
-"let g:syntastic_javascript_checkers = ['eslint']
-"let g:syntastic_cpp_compiler = 'clang++'
 let g:syntastic_quiet_messages = { "regex": [
         \ '\mpossible unwanted space at "{"',
         \ '\Delete this space to maintain correct pagereferences',
@@ -682,12 +672,10 @@ autocmd FileType tex inoremap rn<Tab> (\ref{})<+><Esc>F}i
 
 set guicursor=i:100-bCursor
 set conceallevel=0
-set showcmd
 
 function! Synctex()
     " remove 'silent' for debugging
     execute "silent !zathura --synctex-forward " . line('.') . ":" . col('.') . ":" . bufname('%') . " " . bufname('%')[:-5]. ".pdf"
     redraw!
 endfunction
-" let &statusline.='%{abs(line(".") - line("v")) + 1}'
 " nmap <C-i> :JavaImportOrganize<CR> " ????????
