@@ -103,7 +103,8 @@
     ".config/sxiv": "~/.config/sxiv",
     ".local/bin/imap-notify": "~/.local/bin/imap-notify",
     ".local/bin/cycle-kbd-layouts": "~/.local/bin/cycle-kbd-layouts",
-    ".local/bin/corona-bar": "~/.local/bin/corona-bar"
+    ".local/bin/corona-bar": "~/.local/bin/corona-bar",
+    ".mostrc": "~/.mostrc"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
