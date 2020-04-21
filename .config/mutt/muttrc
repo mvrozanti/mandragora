@@ -15,3 +15,7 @@ bind pager \Cb half-up
 bind pager b half-down
 bind pager \Cd half-down
 bind pager d half-down
+set sort = threads 
+set sort_aux = reverse-last-date-received
+set recall = no
+macro index V "<mark-as-new>"
