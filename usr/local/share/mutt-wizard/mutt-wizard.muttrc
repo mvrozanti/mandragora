@@ -11,6 +11,7 @@ set smtp_authenticators = 'gssapi:login'
 set query_command = "notmuch address %s"
 set query_format="%4c %t %-70.70a %-70.70n %?e?(%e)?"
 set rfc2047_parameters = yes
+set menu_scroll = yes
 set sleep_time = 0		# Pause 0 seconds for informational messages
 set markers = no		# Disables the `+` displayed at line wraps
 set mark_old = no		# Unread mail stay unread until read
@@ -27,7 +28,6 @@ auto_view text/html		# automatically show html (mailcap uses w3m)
 auto_view application/pgp-encrypted
 alternative_order text/plain text/enriched text/html
 bind index,pager i noop
-bind index,pager g noop
 bind index \Cf noop
 set editor=nvim
 
@@ -35,8 +35,6 @@ set editor=nvim
 bind attach <return> view-mailcap
 bind attach l view-mailcap
 bind editor <space> noop
-bind index G last-entry
-bind index gg first-entry
 bind pager,attach h exit
 bind pager j next-line
 bind pager k previous-line
@@ -51,10 +49,6 @@ bind index <space> tag-entry
 macro browser h '<change-dir><kill-line>..<enter>' "Go to parent folder"
 bind index,pager H view-raw-message
 bind browser l select-entry
-bind pager,browser gg top-page
-bind pager,browser G bottom-page
-bind index,pager,browser d half-down
-bind index,pager,browser u half-up
 bind index,pager S sync-mailbox
 bind index,pager R group-reply
 bind index \031 previous-undeleted	# Mouse wheel
@@ -64,7 +58,7 @@ bind pager \005 next-line		# Mouse wheel
 bind editor <Tab> complete-query
 bind editor ^T complete
 
-macro index,pager a "<enter-command>set my_pipe_decode=\$pipe_decode pipe_decode<return><pipe-message>abook --add-email<return><enter-command>set pipe_decode=\$my_pipe_decode; unset my_pipe_decode<return>" "add the sender address to abook"
+# macro index,pager a "<enter-command>set my_pipe_decode=\$pipe_decode pipe_decode<return><pipe-message>abook --add-email<return><enter-command>set pipe_decode=\$my_pipe_decode; unset my_pipe_decode<return>" "add the sender address to abook"
 macro index \Cr "T~U<enter><tag-prefix><clear-flag>N<untag-pattern>.<enter>" "mark all messages as read"
 macro index O "<shell-escape>mbsync -a<enter>" "run mbsync to sync all mail"
 macro index \Cf "<enter-command>unset wait_key<enter><shell-escape>read -p 'Enter a search term to find with notmuch: ' x; echo \$x >~/.cache/mutt_terms<enter><limit>~i \"\`notmuch search --output=messages \$(cat ~/.cache/mutt_terms) | head -n 600 | perl -le '@a=<>;s/\^id:// for@a;$,=\"|\";print@a' | perl -le '@a=<>; chomp@a; s/\\+/\\\\+/ for@a;print@a' \`\"<enter>" "show only messages matching a notmuch pattern"
@@ -82,7 +76,8 @@ bind index,pager \Cj sidebar-next
 bind index,pager \Co sidebar-open
 bind index,pager \Cp sidebar-prev-new
 bind index,pager \Cn sidebar-next-new
-bind index,pager B sidebar-toggle-visible
+bind index,pager \Ct sidebar-toggle-visible
+bind index G last-entry
 
 # Default index colors:
 color index yellow default '.*'
