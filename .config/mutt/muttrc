@@ -19,4 +19,4 @@ set sort = threads
 set sort_aux = reverse-last-date-received
 set recall = no
 macro index V "<mark-as-new>"
-set index_format="%2C | [%d] %-30.30F (%-4.4c) %s"
+set index_format="%2C %zs %?X?A& ? %D %-30.30F %s (%-4.4c)"
