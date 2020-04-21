@@ -5,7 +5,6 @@
 # If you want to override any settings, set those in your muttrc.
 set mailcap_path = /usr/local/share/mutt-wizard/mailcap
 set date_format="%d/%m/%y %I:%M%p"
-set index_format="%2C %zs %?X?A& ? %D %-15.15F %s (%-4.4c)"
 set sort = 'reverse-date'
 set smtp_authenticators = 'gssapi:login'
 set query_command = "notmuch address %s"
