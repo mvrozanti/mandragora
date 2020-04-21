@@ -125,6 +125,7 @@ $bind $mod+v          fullscreen disable; workspace $ws6;       $ensid wmctrl -a
 
 $bind $mod+8          fullscreen disable; workspace $ws11;      $ensid wmctrl -a  diaspora        || sh -c /home/nexor/util/diaspora-br-sign-in-linux-x64/diaspora-br-sign-in 
 $bind $mod+9          fullscreen disable; workspace $ws12;      $ensid wmctrl -a  skype           || skypeforlinux
+$bind Ctrl+$mod+0     fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new neomutt"
 $bind $mod+0          fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && mbsync hotmail && "$cat_seqs" && tmux new neomutt"
 $bind  XF86Mail       fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && mbsync hotmail && "$cat_seqs" && tmux new neomutt"
 $bind $mod+dead_grave          fullscreen disable; split h;     $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e /usr/bin/ncmpcpp
@@ -350,17 +351,6 @@ set $ws17 "17"
 set $ws18 "18"
 set $ws19 "19"
 set $ws20 "20"
-
-$bind $mod+Ctrl+1                           workspace $ws1
-$bind $mod+Ctrl+2                           workspace $ws2
-$bind $mod+Ctrl+3                           workspace $ws3
-$bind $mod+Ctrl+4                           workspace $ws4
-$bind $mod+Ctrl+5                           workspace $ws5
-$bind $mod+Ctrl+6                           workspace $ws6
-$bind $mod+Ctrl+7                           workspace $ws7
-$bind $mod+Ctrl+8                           workspace $ws8
-$bind $mod+Ctrl+9                           workspace $ws9
-$bind $mod+Ctrl+0                           workspace $ws10
 
 # $bind $mod+Shift+4                          move container to workspace $ws4
 # $bind $mod+Shift+5                          move container to workspace $ws5
