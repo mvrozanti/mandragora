@@ -1,0 +1,22 @@
+# vim: filetype=neomuttrc
+# muttrc file for account hotmail
+# /home/nexor/.local/share/mail
+set realname = "Marcelo"
+set from = "mvrozanti@hotmail.com"
+set sendmail = "msmtp -a hotmail"
+alias me Marcelo <mvrozanti@hotmail.com>
+set folder = "/home/nexor/.local/share/mail/hotmail"
+set header_cache = /home/nexor/.cache/mutt-wizard/hotmail/headers
+set message_cachedir = /home/nexor/.cache/mutt-wizard/hotmail/bodies
+set mbox_type = Maildir
+bind index,pager gg noop
+bind index,pager g noop
+bind index,pager M noop
+bind index,pager C noop
+macro index o "<shell-escape>mailsync -V hotmail<enter>" "run mbsync to sync hotmail"
+unmailboxes *
+set spoolfile = "+Inbox"
+set record = "+Sent\ Items"
+set postponed = "+Drafts"
+set trash = "+Trash.Infected\ Items"
+mailboxes "=Inbox" "=Investimentos" "=RD|Essence" "=Drafts" "=Sent\ Items" "=Junk" "=Sent" "=Armazenados" "Mackenzie" "Pessoal"
