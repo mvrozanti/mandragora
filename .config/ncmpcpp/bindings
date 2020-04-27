@@ -46,5 +46,9 @@ def_key "D"
   delete_browser_items
 def_key "D"
   delete_stored_playlist
+def_key "C"
+  toggle_consume
+def_key "R"
+  toggle_random
 def_key "ctrl-a"
   reverse_selection 
