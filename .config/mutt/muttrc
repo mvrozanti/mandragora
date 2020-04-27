@@ -19,7 +19,7 @@ set sort = threads
 set sort_aux = reverse-last-date-received
 set recall = no
 macro index V "<mark-as-new>"
-macro index M "<save-message>?<toggle-mailboxes>" "move a message to a mailbox"
+macro index M ";<save-message>?<toggle-mailboxes>" "move a message to a mailbox"
 set index_format="%2C %zs %?X?A& ? %D %-30.30F %s (%-4.4c)"
 macro index,pager gi "<change-folder>=Inbox<enter>" "go to inbox"
 macro index,pager Ci ";<copy-message>=Inbox<enter>" "copy mail to inbox"
