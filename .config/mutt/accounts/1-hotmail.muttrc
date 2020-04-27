@@ -18,6 +18,6 @@ set spoolfile = "+Inbox"
 set record = "+Sent\ Items"
 set postponed = "+Drafts"
 set trash = "+Trash.Infected\ Items"
-mailboxes "=Inbox" "=Investimentos" "=RD|Essence" "=Drafts" "=Sent\ Items" "=Junk" "=Sent" "=Armazenados"
+mailboxes "=Inbox" "=Investimentos" "=RD|Essence" "=Mackenzie" "=Drafts" "=Sent\ Items" "=Junk" "=Sent" "=Armazenados"
 # /home/nexor/.local/share/mail
 
