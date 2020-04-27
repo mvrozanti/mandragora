@@ -290,7 +290,8 @@
     "isync",
     "yad",
     "glances",
-    "yq"
+    "yq",
+    "yaegi"
   ],
   "excluded": [
     "hotmail.gpg",
