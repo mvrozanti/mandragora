@@ -22,8 +22,6 @@ def_key "ctrl-f"
   page_down
 def_key "|"
   apply_filter
-def_key "s"
-  toggle_find_mode
 def_key "w"
   seek_forward
 def_key "W"
@@ -50,5 +48,7 @@ def_key "C"
   toggle_consume
 def_key "R"
   toggle_random
+def_key "s"
+  toggle_single
 def_key "ctrl-a"
   reverse_selection 
