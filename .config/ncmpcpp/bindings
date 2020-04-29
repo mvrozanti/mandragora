@@ -1,3 +1,10 @@
+def_key "M"
+  dummy
+def_key "C"
+  dummy
+def_key "S"
+  dummy
+
 def_key "h"
   previous
 def_key "j"
@@ -44,7 +51,7 @@ def_key "D"
   delete_browser_items
 def_key "D"
   delete_stored_playlist
-def_key "C"
+def_key "c"
   toggle_consume
 def_key "R"
   toggle_random
