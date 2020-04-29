@@ -84,7 +84,7 @@ autocmd BufEnter *.pro :setlocal filetype=prolog
 autocmd FileType prolog setlocal commentstring=%\ %s
 autocmd FileType perl setlocal commentstring=%\ %s
 autocmd FileType jq setlocal commentstring=#\ %s
-autocmd FileType prolog inoremap she<tab> #!/usr/bin/swipl
+autocmd FileType prolog inoremap she<tab> #!/usr/bin/swipl -q
 autocmd FileType make inoremap al<tab> all:<CR>
 " autocmd FileType prolog map <F5> <ESC>:w<CR>:exec '!swipl -q %'<CR>
 " autocmd FileType perl   map <F5> <ESC>:w<CR>:exec '!swipl -q %'<CR>
