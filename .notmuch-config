@@ -12,7 +12,7 @@
 #
 
 [database]
-path=/home/nexor/.mail
+path=/home/nexor/.local/share/mail
 
 # User configuration
 #

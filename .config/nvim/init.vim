@@ -228,7 +228,7 @@ autocmd FileType java inoremap st<tab> static<Space>
 " %s/print\s\(.\+\)/print(\1)/g
 autocmd FileType python inoremap ii<tab> isinstance()<Esc>i
 autocmd FileType python inoremap im<tab> import<Space>
-autocmd FileType python inoremap ci<tab> code.interact(banner=', local=globals().update(locals()) or globals(), exitmsg='')<Esc>
+autocmd FileType python inoremap ci<tab> code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')<Esc>
 autocmd FileType python inoremap enci<tab> curses.endwin() or code.interact(local=globals().update(locals()) or globals())<Esc>
 autocmd FileType python inoremap pdbt<tab> pdb.set_trace()<Esc>
 autocmd FileType python set makeprg=python\ %
@@ -678,4 +678,4 @@ function! Synctex()
     execute "silent !zathura --synctex-forward " . line('.') . ":" . col('.') . ":" . bufname('%') . " " . bufname('%')[:-5]. ".pdf"
     redraw!
 endfunction
-" nmap <C-i> :JavaImportOrganize<CR> " ????????
+nmap <C-i> :CocAction<CR>
