@@ -291,7 +291,8 @@
     "yad",
     "glances",
     "yq",
-    "yaegi"
+    "yaegi",
+    "xorg-xinput"
   ],
   "excluded": [
     "hotmail.gpg",
