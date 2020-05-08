@@ -580,4 +580,5 @@ alias dec2hex='printf "%x\n"'
 hex2dec(){ echo $@ | tr '[:lower:]' '[:upper:]' | xargs echo "obase=10; ibase=16;" | bc }
 cofile(){ co | xargs file }
 covipec(){ viped="`co | vipe`"; c <<< $viped}
-mousespeed(){ [[ $# -eq 0 ]] && exit; sens="$@";xinput list|g mouse | sed -e 's/.*id=\(..\)\s.*/\1/' | xargs -n1 -I{} xinput set-prop {} 161 $sens 0 0 0 $sens 0 0 0 1 }
+setmousespeed(){ [[ $# -eq 0 ]] && exit; sens="$@";xinput list|g mouse | sed -e 's/.*id=\(..\)\s.*/\1/' | xargs -n1 -I{} xinput set-prop {} 161 $sens 0 0 0 $sens 0 0 0 1 }
+getmousespeed(){ xinput list|g mouse | sed -e 's/.*id=\(..\)\s.*/\1/' | xargs -n1 -I{} xinput list-props {} | g '(161)' }
