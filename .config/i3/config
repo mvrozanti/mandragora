@@ -146,7 +146,6 @@ $bind $mod+Shift+Tab                                            $ensid ~/.local/
 # $bind $mod+Shift+Tab                                            $ensid ~/.local/bin/i3expand-window-animation
 $bind $mod+Shift+t                                              $ensid wmctrl -a "Tor Browser"    || ~/.local/bin/tor-browser
 $bind $mod+7          fullscreen disable; workspace $ws11;      $ensid wmctrl -a "Slack"          || slack
-$bind $mod+BackSpace                                            $ensid kitty @ --to unix:@mykitty set-colors background='#ff0000'
 $bind $mod+Mod1+Shift+k                                         $ensid ~/.local/bin/shfthue 1
 $bind $mod+Mod1+Shift+j                                         $ensid ~/.local/bin/shfthue
 $bind $mod+Mod1+k                                               $ensid transset-df --inc 0.04 -a
@@ -249,7 +248,7 @@ $bind $mod+Scroll_Lock            $ensid flameshot gui
 #                                        https://i.giphy.com/media/{}/source.gif | xsel -i -b\
 #                                        && notify-send gif copied to clipboard               \
 $bind Ctrl+$mod+Print             $ensid ~/.local/bin/byzrec `echo -e 'Seconds to record: '|dmenu $dmenu_looks`
-$bind Ctrl+Mod1+Print             $ensid ~/.local/bin/byzrec `echo -e 'Seconds to record: '|dmenu $dmenu_looks` -r
+$bind Shift+Print             $ensid ~/.local/bin/byzrec `echo -e 'Seconds to record: '|dmenu $dmenu_looks` -r
 
 #                                                 _
 #   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_
@@ -391,6 +390,8 @@ $bind $mod+KP_Up    $ensid redshift -g 0.5:0.5:1 -O 25000K
 $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 
 # $bind --whole-window button2        $ensid $HOME/.local/bin/play_virtmic $HOME/F6.mp3 
+$bind $mod+BackSpace                $ensid sh -c '[[ -z `ps -eC aux|grep pacat` ]] && pacat --channels=2 --format=s16le --rate=44100 /tmp/mpd.fifo >> /tmp/music.input'
+$bind --release $mod+BackSpace      $ensid pkill pacat
 $bind $mod+F1                       $ensid $HOME/.local/bin/play_virtmic $HOME/F1.mp3
 $bind $mod+F2                       $ensid $HOME/.local/bin/play_virtmic $HOME/F2.mp3
 $bind $mod+F3                       $ensid $HOME/.local/bin/play_virtmic $HOME/F3.mp3
