@@ -6,7 +6,6 @@ alias lt='ls -snew'
 alias la='exa --all'
 alias ls=exa
 alias l='exa --reverse --sort=modified'
-alias watch='watch --color -n1 --no-title'
 alias sps='sudo pacman -S'
 alias spr='sudo pacman -Rns'
 alias pss='pacman -Ss'
@@ -582,3 +581,4 @@ cofile(){ co | xargs file }
 covipec(){ viped="`co | vipe`"; c <<< $viped}
 setmousespeed(){ [[ $# -eq 0 ]] && exit; sens="$@";xinput list|g mouse | sed -e 's/.*id=\(..\)\s.*/\1/' | xargs -n1 -I{} xinput set-prop {} 161 $sens 0 0 0 $sens 0 0 0 1 }
 getmousespeed(){ xinput list|g mouse | sed -e 's/.*id=\(..\)\s.*/\1/' | xargs -n1 -I{} xinput list-props {} | g '(161)' }
+watch(){ expanded="$(alias "$@" | cut -d\' -f2)"; [[ -z $expanded ]] && expanded="$(sma "$@")"; /usr/bin/watch --color -n1 --no-title $expanded }
