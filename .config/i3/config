@@ -390,8 +390,8 @@ $bind $mod+KP_Up    $ensid redshift -g 0.5:0.5:1 -O 25000K
 $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 
 # $bind --whole-window button2        $ensid $HOME/.local/bin/play_virtmic $HOME/F6.mp3 
-$bind $mod+BackSpace                $ensid sh -c '[[ -z `ps -eC aux|grep sox` ]] && xdotool keydown comma && sox -b 16 -e signed -c 2 -t raw -r 44100 /tmp/mpd.fifo -c 1 -t raw -r 44100 /tmp/music.input'
-$bind --release $mod+BackSpace      $ensid pkill sox && xdotool keyup comma
+$bind $mod+BackSpace                $ensid sh -c '[[ -z `ps -eC aux|grep sox` ]] && sox -b 16 -e signed -c 2 -t raw -r 44100 /tmp/mpd.fifo -c 1 -t raw -r 44100 /tmp/music.input' && xdotool keyup 0xff08 && xdotool keydown comma
+$bind --release $mod+BackSpace      $ensid pkill sox
 $bind $mod+F1                       $ensid $HOME/.local/bin/play_virtmic $HOME/F1.mp3
 $bind $mod+F2                       $ensid $HOME/.local/bin/play_virtmic $HOME/F2.mp3
 $bind $mod+F3                       $ensid $HOME/.local/bin/play_virtmic $HOME/F3.mp3
