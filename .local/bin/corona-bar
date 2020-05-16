@@ -56,7 +56,7 @@ def get_current_stats(beep_difference=None):
 
 def to_dataframe(cases):
     df = pd.read_json(json.dumps(cases)).T
-    df['Country'] = df.index
+    df['Country'] = df['Country,Other']
     df['Timestamp'] = int(time.time())
     relevant_columns = [
               'Country',
@@ -101,7 +101,11 @@ def main(args):
 # AND   (c1.ActiveCases            = c2.ActiveCases OR (c1.ActiveCases IS NULL AND c2.ActiveCases IS NULL))
 # )''')
     if args.active_cases:
-        print(int(df.loc[df['Country'] == args.location]['ActiveCases']))
+        try:
+            print(int(df.loc[df['Country'] == args.location]['ActiveCases']))
+        except Exception as e: 
+            print(e)
+            code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')
     if args.infection_rate:
         today = dt.now()
         yesterday = today - datetime.timedelta(days=1)
