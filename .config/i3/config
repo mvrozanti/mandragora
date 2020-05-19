@@ -113,6 +113,7 @@ assign      [title="Mozilla Thunderbird"] $ws12
 assign      [class="Slack"]               $ws12
 assign      [class="Skype"]               $ws12
 assign      [title="_neomutt_"]           $ws12
+assign      [title="Mathematica"]         $ws18
 for_window  [title="_todo_"]              sticky enable, floating enable, move position 900 440
 #    __                                 _
 #   / _|_ __ ___  __ _ _   _  ___ _ __ | |_
