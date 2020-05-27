@@ -438,6 +438,7 @@ x-content/video-dvd=vlc.desktop;
 x-content/video-svcd=vlc.desktop;
 x-content/video-vcd=vlc.desktop;
 x-scheme-handler/about=waterfox.desktop;
+x-scheme-handler/discord-589393213723246592=discord-589393213723246592.desktop;
 x-scheme-handler/http=firefox.desktop;waterfox.desktop;
 x-scheme-handler/https=firefox.desktop;waterfox.desktop;
 x-scheme-handler/icy=vlc.desktop;
