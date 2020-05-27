@@ -158,8 +158,9 @@ $bind $mod+Mod1+2                                               $ensid wmctrl -x
     -o font_size=10 -o initial_window_width=500 -o initial_window_height=400 -o remember_window_size=no sh -c $cat_seqs' && ranger' 
 $bind XF86Search workspace $ws2;                                $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
     --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
-$bind $mod+m     fullscreen disable; workspace $ws3;           $ensid wmctrl -a  cmatrix          || kitty --name cmatrix \
-    -o font_size=13 -o background_opacity=.00 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
+$bind $mod+m     fullscreen disable; workspace $ws3;           $ensid wmctrl -a  Mathematica      || mathematica
+# $bind $mod+m     fullscreen disable; workspace $ws3;           $ensid wmctrl -a  cmatrix          || kitty --name cmatrix \
+#     -o font_size=13 -o background_opacity=.00 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
 $bind $mod+Shift+b     fullscreen disable; split h;                     $ensid wmctrl -a  bonsai           || kitty --name bonsai \
     -o font_size=13 -o background_opacity=.00 --title bonsai -e sh -c "stty -ixon && "$cat_seqs" && tmux new ~/.local/bin/bonsai -T -i -l -t 0"
 # $bind $mod+bar        workspace $ws10;                          $ensid wmctrl -a _youtubecurses_  || kitty --name _youtubecurses_ \
