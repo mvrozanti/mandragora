@@ -70,6 +70,7 @@ Plug 'iberianpig/tig-explorer.vim'
 Plug 'Yggdroot/indentLine'
 let g:indentLine_enabled = 0
 Plug 'tomtom/tcomment_vim'
+Plug 'chrisbra/csv.vim'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'tpope/vim-surround'
 Plug 'lervag/vim-latex'
