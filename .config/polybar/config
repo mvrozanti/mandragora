@@ -284,6 +284,16 @@ format-prefix-margin = 4
 label-font = 5
 prefix-font = 2
 
+; [module/book]
+; type = custom/script
+; exec = ~/.local/bin/corona-bar -u -a -b
+; interval = 900
+; format-prefix = 📕
+; format-margin = 4
+; format-prefix-margin = 4
+; label-font = 5
+; prefix-font = 2
+
 [module/alsa]
 type = internal/alsa
 
