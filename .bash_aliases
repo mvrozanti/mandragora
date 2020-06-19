@@ -583,3 +583,4 @@ covipec(){ viped="`co | vipe`"; c <<< $viped}
 setmousespeed(){ [[ $# -eq 0 ]] && exit; sens="$@";xinput list|g mouse | sed -e 's/.*id=\(..\)\s.*/\1/' | xargs -n1 -I{} xinput set-prop {} 161 $sens 0 0 0 $sens 0 0 0 1 }
 getmousespeed(){ xinput list|g mouse | sed -e 's/.*id=\(..\)\s.*/\1/' | xargs -n1 -I{} xinput list-props {} | g '(161)' }
 alias pbrush='pinta'
+rule(){ [[ -z $1 ]] && exit; wget http://atlas.wolfram.com/01/01/$1/01_01_108_$1.gif -O /tmp/rule$1 && sxiv /tmp/rule$1 }
