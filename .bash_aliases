@@ -585,3 +585,4 @@ getmousespeed(){ xinput list|g mouse | sed -e 's/.*id=\(..\)\s.*/\1/' | xargs -n
 alias pbrush='pinta'
 rule(){ [[ -z $1 ]] && exit; wget http://atlas.wolfram.com/01/01/$1/01_01_108_$1.gif -O /tmp/rule$1 && sxiv /tmp/rule$1 }
 mp42webm(){ ffmpeg -i "$1" -crf 26 "${1%.*}".webm  }
+alias en='e -n'
