@@ -292,7 +292,8 @@
     "glances",
     "yq",
     "yaegi",
-    "xorg-xinput"
+    "xorg-xinput",
+    "htmldoc"
   ],
   "excluded": [
     "hotmail.gpg",
