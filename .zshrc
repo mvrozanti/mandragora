@@ -83,7 +83,8 @@ export SSH_KEY_PATH="~/.ssh/rsa_id"
 #
 source ~/.oh-my-zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 source $HOME/.bash_aliases
-source $HOME/.ranger_aliases
+# source $HOME/.ranger_aliases
+source $HOME/.lf_aliases
 stty -ixon
 
 bindkey '^ ' autosuggest-accept
