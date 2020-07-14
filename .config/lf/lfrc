@@ -99,4 +99,68 @@ cmd zip ${{
     rm -rf $1
 }}
 
+#############################################################
 set previewer ~/.config/lf/preview
+cmd bulk-rename ${{
+	index=$(mktemp /tmp/lf-bulk-rename-index.XXXXXXXXXX)
+	if [ -n "${fs}" ]; then
+		echo "$fs" > $index
+	else
+		echo "$(ls "$(dirname $f)" | tr ' ' "\n")" > $index
+	fi
+	index_edit=$(mktemp /tmp/lf-bulk-rename.XXXXXXXXXX)
+	cat $index > $index_edit
+	$EDITOR $index_edit
+	if [ $(cat $index | wc -l) -eq $(cat $index_edit | wc -l) ]; then
+		max=$(($(cat $index | wc -l)+1))
+		counter=1
+		while [ $counter -le $max ]; do
+			a="$(cat $index | sed "${counter}q;d")"
+			b="$(cat $index_edit | sed "${counter}q;d")"
+			counter=$(($counter+1))
+
+			[ "$a" = "$b" ] && continue
+			[ -e "$b" ] && echo "File exists: $b" && continue
+			mv "$a" "$b"
+		done
+	else
+		echo "Number of lines must stay the same"
+	fi
+	rm $index $index_edit
+}}
+map R bulk-rename
+map ; :set hidden!
+
+map g/ cd /
+map gh cd ~
+# map ge chain shell ~/.local/bin/mP ; cd ~/disk/pics
+map gE cd /etc
+map gv cd /var
+map g? cd /usr/share/doc/ranger
+map gR cd ~/.config/ranger
+# map gl cd -r .
+# map gL cd -r %f
+map gd cd ~/disk
+map gt cd ~/mackenzie/TCC/
+map gT cd ~/.local/share/Trash
+map gG cd ~/gdrive
+map gu cd ~/util
+map gb cd ~/prog/bash
+map gL cd ~/gdrive/library/
+map gA cd ~/gdrive/library/abstracts
+map gB cd ~/gdrive/library/books
+map gC cd ~/prog/C++
+map gJ cd ~/prog/javascript
+map gj cd ~/prog/java
+map gp cd ~/prog/python
+map gP cd ~/prog
+map gc cd ~/.config
+map gM cd ~/disk/Musik
+map gf cd ~/disk/Filmes
+map gw cd ~/gdrive/Levv/wllpps
+map g4 cd ~/gdrive/Levv/4chan
+map gV cd ~/.config/nvim
+map gs cd ~/sys4bank/prog
+map gD cd ~/Downloads
+map gm cd ~/mackenzie
+map gr cd ~/mackenzie/TCC/res/arts/
