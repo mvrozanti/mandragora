@@ -293,7 +293,8 @@
     "yq",
     "yaegi",
     "xorg-xinput",
-    "htmldoc"
+    "htmldoc",
+    "ffmpegthumbnailer"
   ],
   "excluded": [
     "hotmail.gpg",
