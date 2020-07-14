@@ -354,6 +354,7 @@
     "command -v googler                 || yay -S $_",
     "command -v downgrade               || yay -S $_",
     "command -v transmission-remote-cli || yay -S $_ ",
+    "command -v lf                      || yay -S $_ ",
     "npm -g list bitcoin-chart-cli      || npm i -g $_",
     "npm -g list regexgen               || npm i -g $_",
     "npm -g list fx                     || npm i -g $_",
