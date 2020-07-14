@@ -223,4 +223,6 @@ export SYSTEMD_EDITOR=nvim
 
 [[ -f /home/nexor/azure-cli/bin ]] && export PATH=$PATH:/home/nexor/azure-cli/bin && source '/home/nexor/azure-cli/az.completion'
 
+source /home/nexor/.config/lf/lfcd.sh
+
 unsetopt hist_verify
