@@ -106,7 +106,8 @@
     ".local/bin/cycle-kbd-layouts": "~/.local/bin/cycle-kbd-layouts",
     ".local/bin/corona-bar": "~/.local/bin/corona-bar",
     ".mostrc": "~/.mostrc",
-    ".config/mutt/accounts/1-hotmail.muttrc": "~/.config/mutt/accounts/1-hotmail.muttrc"
+    ".config/mutt/accounts/1-hotmail.muttrc": "~/.config/mutt/accounts/1-hotmail.muttrc",
+    ".lf_aliases": "~/.lf_aliases"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
