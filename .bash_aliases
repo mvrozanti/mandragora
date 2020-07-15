@@ -546,7 +546,9 @@ alias rmempty='find . -type d -empty -delete'
 alias snmap='s nmap'
 alias unquote="sed 's/^\"//g;s/\"$//g'"
 alias cotra='transmission-remote -a "`co`"'
-alias coinflip='echo $(($(($RANDOM%10))%2)) '
+die(){ echo $(($(($RANDOM%10))%$1)) }
+# alias coinflip='echo $(($(($RANDOM%10))%2)) '
+alias coinflip='die 2'
 alias jj='java -jar'
 alias lentr='l|entr'
 alias fentr='f|entr'
