@@ -91,6 +91,7 @@ alias p='P | tr -d "\n" | c'
 alias feh='feh -B black --scale-down --auto-zoom --sort mtime -. --action2 "rm %F" --action1 "realpath $PWD/%F | xsel -i -b"'
 alias randip="dd if=/dev/urandom bs=4 count=1 2>/dev/null | od -An -tu1 | sed -e 's/^ *//;s/  */./g'"
 eip(){ curl -s ipinfo.io | jq '.ip' | tr -d '"' }
+lip(){ ip a|grep 192|cut -d' ' -f6|sed 's/\(.*\)\/.*/\1/g' }
 alias 2wmv='ffmpeg -c:v wmv2 -b:v 99M -c:a wmav2 -b:a 192k output.wmv -i'
 alias mp32wav='mpg123 -w output.wav'
 o(){ nohup xdg-open $@ 2>&1 >/dev/null & }
