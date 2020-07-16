@@ -594,3 +594,4 @@ mp42webm(){ ffmpeg -i "$1" -crf 26 "${1%.*}".webm  }
 alias en='e -n'
 epub2pdf(){ pandoc --pdf-engine=xelatex -f epub -t pdf $1 -o "${1%%.*}.pdf" }
 alias lf=lfrun
+alias nmutt='neomut'
