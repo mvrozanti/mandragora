@@ -151,13 +151,13 @@ $bind $mod+Mod1+Shift+k                                         $ensid ~/.local/
 $bind $mod+Mod1+Shift+j                                         $ensid ~/.local/bin/shfthue
 $bind $mod+Mod1+k                                               $ensid transset-df --inc 0.04 -a
 $bind $mod+Mod1+j                                               $ensid transset-df --dec 0.04 -a
-$bind $mod+Shift+2                                              $ensid kitty ranger
+$bind $mod+Shift+2                                              $ensid kitty zsh -c "stty -ixon && "$cat_seqs" && tmux new lfrun" 
 $bind $mod+2     workspace $ws2;                                $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
-    --title _ranger_ -e zsh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
+    --title _ranger_ -e zsh -c "stty -ixon && "$cat_seqs" && tmux new lfrun"
 $bind $mod+Mod1+2                                               $ensid wmctrl -xa _ranger-float_  || kitty --title _ranger-float_ \
-    -o font_size=10 -o initial_window_width=500 -o initial_window_height=400 -o remember_window_size=no sh -c $cat_seqs' && ranger' 
+    -o font_size=10 -o initial_window_width=500 -o initial_window_height=400 -o remember_window_size=no sh -c $cat_seqs' && lfrun' 
 $bind XF86Search workspace $ws2;                                $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
-    --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
+    --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new lfrun"
 $bind $mod+m     fullscreen disable; workspace $ws3;           $ensid wmctrl -a  Mathematica      || mathematica
 # $bind $mod+m     fullscreen disable; workspace $ws3;           $ensid wmctrl -a  cmatrix          || kitty --name cmatrix \
 #     -o font_size=13 -o background_opacity=.00 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
