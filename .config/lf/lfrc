@@ -41,6 +41,7 @@ cmd open ${{
         text/*) $EDITOR $fx;;
         audio/*) mplayer $fx;;
         video/*) mpv $fx;;
+        image/*) sxiv -a $f `pwd`;;
         application/*) nvim $fx;;
         *) for f in $fx; do setsid $OPENER $f > /dev/null 2> /dev/null & done;;
     esac
@@ -125,20 +126,22 @@ map R bulk-rename
 map ; :set hidden!
 map A rename # at the very end
 map D delete
+map U $unp -u $f 
 
 map g/ cd /
 map gh cd ~
-cmd mountPics :{{ 
-    cd ~/disk/pics
-    $ ~/.local/bin/mP
+cmd mountPics %{{ 
+    if [ -z "$(ls ~/disk/pics)" ]; then
+        read -s pass
+        echo $pass | gocryptfs /mnt/4ADE1465DE144C17/peeks /mnt/4ADE1465DE144C17/pics
+    fi
+    lf -remote "send $id cd ~/disk/pics"
 }}
 map ge mountPics
 map gE cd /etc
 map gv cd /var
 map g? cd /usr/share/doc/ranger
 map gR cd ~/.config/ranger
-# map gl cd -r .
-# map gL cd -r %f
 map gd cd ~/disk
 map gt cd ~/mackenzie/TCC/
 map gT cd ~/.local/share/Trash
