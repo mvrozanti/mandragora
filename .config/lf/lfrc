@@ -1,5 +1,5 @@
-# set previewer ~/.config/lf/preview
-set previewer ~/.config/lf/scope.sh
+set previewer ~/.config/lf/preview
+# set previewer ~/.config/lf/scope.sh
 # interpreter for shell commands (needs to be POSIX compatible)
 set shell zsh
 
@@ -30,8 +30,8 @@ map x $$f
 map X !$f
 
 # dedicated keys for file opener actions
-map o &mimeopen $f
-map O $mimeopen --ask $f
+map o &rifle $f
+map O $rifle --ask $f
 
 # define a custom 'open' command
 # This command is called when current file is not a directory. You may want to
@@ -40,6 +40,8 @@ map O $mimeopen --ask $f
 cmd open ${{
     case $(file --mime-type $f -b) in
         text/*) $EDITOR $fx;;
+        audio/*) mplayer $fx;;
+        video/*) mpv $fx;;
         *) for f in $fx; do setsid $OPENER $f > /dev/null 2> /dev/null & done;;
     esac
 }}
