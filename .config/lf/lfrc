@@ -111,7 +111,11 @@ map A rename # at the very end
 
 map g/ cd /
 map gh cd ~
-# map ge chain shell ~/.local/bin/mP ; cd ~/disk/pics
+cmd mountPics :{{ 
+    cd ~/disk/pics
+    $ ~/.local/bin/mP
+}}
+map ge mountPics
 map gE cd /etc
 map gv cd /var
 map g? cd /usr/share/doc/ranger

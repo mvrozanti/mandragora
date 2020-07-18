@@ -100,6 +100,7 @@ bindkey '^h' backward-delete-char
 # bindkey '^l' delete-char
 bindkey '^[^l' delete-word
 run_ranger() { echo; ranger --choosedir=$HOME/.rangerdir < $TTY; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"; zle reset-prompt }
+run_lf() { echo; lf; zle reset-prompt }
 run_nnn() { echo; nnn < $TTY ; zle reset-prompt }
 run_W() { clear; echo; W; zle reset-prompt }
 run_weather() { clear; echo; weather; zle reset-prompt }
@@ -112,7 +113,8 @@ cd_sys4bank() { echo; cd ~/sys4bank/prog; zle reset-prompt }
 cd_downloads() { echo; cd ~/Downloads; zle reset-prompt }
 cd_fzf() { echo; cd "`exa -D|fzf`"; zle reset-prompt }
 run_ncmpcpp() { BUFFER="ncmpcpp"; zle accept-line }
-zle -N run_ranger
+# zle -N run_ranger
+zle -N run_lf
 zle -N run_nnn
 zle -N run_weather
 zle -N run_W
@@ -127,7 +129,8 @@ zle -N cd_downloads
 zle -N cd_fzf 
 
 bindkey '^[R' 'run_nnn'
-bindkey '^[r' 'run_ranger'
+# bindkey '^[r' 'run_ranger'
+bindkey '^[r' 'run_lf'
 bindkey '^[w' 'run_W'
 bindkey '^[W' 'run_weather'
 bindkey '^[v' 'run_nvim'
