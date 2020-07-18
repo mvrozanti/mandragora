@@ -1,5 +1,4 @@
 set previewer ~/.config/lf/preview
-# set previewer ~/.config/lf/scope.sh
 # interpreter for shell commands (needs to be POSIX compatible)
 set shell zsh
 
@@ -30,8 +29,8 @@ map x $$f
 map X !$f
 
 # dedicated keys for file opener actions
-map o &rifle $f
-map O $rifle --ask $f
+# map o &rifle $f
+# map O $rifle --ask $f
 
 # define a custom 'open' command
 # This command is called when current file is not a directory. You may want to
@@ -42,13 +41,18 @@ cmd open ${{
         text/*) $EDITOR $fx;;
         audio/*) mplayer $fx;;
         video/*) mpv $fx;;
+        application/*) nvim $fx;;
         *) for f in $fx; do setsid $OPENER $f > /dev/null 2> /dev/null & done;;
     esac
 }}
 
-# define a custom 'rename' command without prompt for overwrite
-# cmd rename %[ -e $1 ] && printf "file exists" || mv $f $1
-# map r push :rename<space>
+cmd on-cd &{{ 
+    [[ -f ~/.current-dir-lf ]] && mv ~/.current-dir-lf > ~/.last-dir-lf
+    pwd > ~/.current-dir-lf
+}}
+
+cmd go-back &{{ cd `cat ~/.last-dir-lf` }}
+map H go-back
 
 # make sure trash folder exists
 # %mkdir -p ~/.trash
@@ -57,18 +61,8 @@ cmd open ${{
 # (also see 'man mv' for backup/overwrite options)
 cmd trash %set -f; mv $fx ~/.trash
 
-# define a custom 'delete' command
-# cmd delete ${{
-#     set -f
-#     printf "$fx\n"
-#     printf "delete?[y/n]"
-#     read ans
-#     [ $ans = "y" ] && rm -rf $fx
-# }}
-
-# use '<delete>' key for either 'trash' or 'delete' command
-# map <delete> trash
-# map <delete> delete
+map D delete
+map <delete> delete
 
 # extract the current file with the right command
 # (xkcd link: https://xkcd.com/1168/)
@@ -110,6 +104,7 @@ cmd bulk-rename ${{
 map R bulk-rename
 map ; :set hidden!
 map A rename # at the very end
+map D delete
 
 map g/ cd /
 map gh cd ~
@@ -148,3 +143,6 @@ map gs cd ~/sys4bank/prog
 map gD cd ~/Downloads
 map gm cd ~/mackenzie
 map gr cd ~/mackenzie/TCC/res/arts/
+
+set reverse on
+set sortby time

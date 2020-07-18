@@ -171,7 +171,7 @@ alias p3r='pip3 uninstall'
 alias p3r='pip2 uninstall'
 alias nvimdiff='nvim -d'
 alias vimdiff=nvimdiff
-alias entr='entr -p'
+# alias entr='entr -p'
 cnt(){ echo $1 | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc {} -g -o "$noext" ${@:2} && clear && ./"$noext"'; }
 xentr(){ ls * | entr -p /_ $@ }
 cntr(){ echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && sh -c "$noext || :"'; }
