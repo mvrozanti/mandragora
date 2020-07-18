@@ -46,12 +46,32 @@ cmd open ${{
     esac
 }}
 
+$pwd > ~/.dir-stack-lf
 cmd on-cd &{{ 
-    [[ -f ~/.current-dir-lf ]] && mv ~/.current-dir-lf > ~/.last-dir-lf
-    pwd > ~/.current-dir-lf
+    SKIP=`cat ~/.do_skip`
+    if [ $SKIP -ne 1 ]; then
+        pwd >> ~/.dir-stack-lf
+    fi
+    echo 0 > ~/.do_skip
 }}
-
-cmd go-back &{{ cd `cat ~/.last-dir-lf` }}
+# cmd on-cd &{{ 
+#     [[ -f ~/.current-dir-lf ]] && mv ~/.current-dir-lf ~/.last-dir-lf
+#     pwd > ~/.current-dir-lf
+# }}
+#
+# cmd go-back ${{ 
+#     last_dir="`cat ~/.last-dir-lf`" 
+#     lf -remote "send $id cd \"$last_dir\""
+# }}
+cmd go-back ${{ 
+    last_dir="`tail -2 ~/.dir-stack-lf|head -1|sed 's;/;\\/;g'`"
+    lf -remote "send $id cd \"$last_dir\""
+    # egrep -vE "^$last_dir$" ~/.dir-stack-lf > /tmp/lf-last-dirs
+    egrep -vE "^$last_dir$" ~/.dir-stack-lf > /tmp/lf-last-dirs
+    # sed '$d' /tmp/lf-last-dirs > ~/.dir-stack-lf
+    mv /tmp/lf-last-dirs ~/.dir-stack-lf
+    echo 1 > ~/.do_skip
+}}
 map H go-back
 
 # make sure trash folder exists
