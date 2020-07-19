@@ -47,33 +47,66 @@ cmd open ${{
     esac
 }}
 
-$pwd > ~/.dir-stack-lf
-cmd on-cd &{{ 
-    SKIP=`cat ~/.do_skip`
-    if [ $SKIP -ne 1 ]; then
-        pwd >> ~/.dir-stack-lf
-    fi
-    echo 0 > ~/.do_skip
+map L jump-in
+map H jump-out
+
+${{
+  JUMP_LIST=~/.config/lf/jump-list.$id
+  JUMP_INDEX=~/.config/lf/jump-index.$id
+  JUMPING=~/.config/lf/jumping.$id
+  pwd >> $JUMP_LIST
+  uniq $JUMP_LIST $JUMP_LIST.uniq
+  mv $JUMP_LIST.uniq $JUMP_LIST
+  cat $JUMP_LIST | wc -l | sed -e 's/ //g' > $JUMP_INDEX
+  rm -f $JUMPING
 }}
-# cmd on-cd &{{ 
-#     [[ -f ~/.current-dir-lf ]] && mv ~/.current-dir-lf ~/.last-dir-lf
-#     pwd > ~/.current-dir-lf
-# }}
-#
-# cmd go-back ${{ 
-#     last_dir="`cat ~/.last-dir-lf`" 
-#     lf -remote "send $id cd \"$last_dir\""
-# }}
-cmd go-back ${{ 
-    last_dir="`tail -2 ~/.dir-stack-lf|head -1|sed 's;/;\\/;g'`"
-    lf -remote "send $id cd \"$last_dir\""
-    # egrep -vE "^$last_dir$" ~/.dir-stack-lf > /tmp/lf-last-dirs
-    egrep -vE "^$last_dir$" ~/.dir-stack-lf > /tmp/lf-last-dirs
-    # sed '$d' /tmp/lf-last-dirs > ~/.dir-stack-lf
-    mv /tmp/lf-last-dirs ~/.dir-stack-lf
-    echo 1 > ~/.do_skip
+
+cmd jump-in ${{
+  beep
+  JUMP_LIST=~/.config/lf/jump-list.$id
+  JUMP_INDEX=~/.config/lf/jump-index.$id
+  INDEX=$(expr `cat $JUMP_INDEX` + 1)
+  MAX=$(cat $JUMP_LIST | wc -l)
+  if [ $INDEX -le $MAX ]; then
+    echo $INDEX > $JUMP_INDEX
+    touch ~/.config/lf/jumping.$id
+
+    # https://stackoverflow.com/a/6022431/2103996
+    TARGET=$(sed "${INDEX}q;d" $JUMP_LIST)
+    lf -remote "send $id cd \"$TARGET\""
+  fi
 }}
-map H go-back
+
+cmd jump-out ${{
+  JUMP_LIST=~/.config/lf/jump-list.$id
+  JUMP_INDEX=~/.config/lf/jump-index.$id
+  INDEX=$(expr `cat $JUMP_INDEX` - 1)
+  if [ $INDEX -gt 0 ]; then
+    echo $INDEX > $JUMP_INDEX
+    touch ~/.config/lf/jumping.$id
+
+    # https://stackoverflow.com/a/6022431/2103996
+    TARGET=$(sed "${INDEX}q;d" $JUMP_LIST)
+    lf -remote "send $id cd \"$TARGET\""
+  fi
+}}
+
+cmd on-cd &{{
+  JUMP_LIST=~/.config/lf/jump-list.$id
+  JUMP_INDEX=~/.config/lf/jump-index.$id
+  JUMPING=~/.config/lf/jumping.$id
+  if [ -e $JUMPING ]; then
+    # If jumping, just move.
+    rm $JUMPING
+  else
+    # Otherwise, truncate jump list at current index and record new directory.
+    head -n $(cat $JUMP_INDEX) $JUMP_LIST > $JUMP_LIST.new
+    pwd >> $JUMP_LIST.new
+    mv $JUMP_LIST.new $JUMP_LIST
+    INDEX=$(expr `cat $JUMP_LIST | wc -l`)
+    echo $INDEX > $JUMP_INDEX
+  fi
+}}
 
 # make sure trash folder exists
 # %mkdir -p ~/.trash
@@ -84,6 +117,22 @@ cmd trash %set -f; mv $fx ~/.trash
 
 map D delete
 map <delete> delete
+
+map y
+map d
+map dd cut
+map yy copy 
+cmd copy-image &{{
+  [[ `echo "$f" | rev | cut -d'.' -f1 | rev` =~ "jpe?g" ]] && convert $f png:- | xclip -selection clipboard -t image/png || xclip -selection clipboard -t image/png %f
+}}
+map yb copy-image 
+map yp $echo $f|xargs realpath|xsel -i -b
+map yn $echo $f|xargs basename|xsel -i -b
+cmd edit-tags ${{
+  [[ -d .tmsu ]] || tmsu init ; tmsu tags $f | cut -d':' -f2- | vipe | xargs -I{} sh -c 'tmsu untag -a $f ; tmsu tag $f {}'
+}}
+map t edit-tags
+map bw $~/.local/bin/setbg $f
 
 # extract the current file with the right command
 # (xkcd link: https://xkcd.com/1168/)
@@ -135,7 +184,7 @@ cmd mountPics %{{
         read -s pass
         echo $pass | gocryptfs /mnt/4ADE1465DE144C17/peeks /mnt/4ADE1465DE144C17/pics
     fi
-    lf -remote "send $id cd ~/disk/pics"
+    ~/go/bin/lf -remote "send $id cd ~/disk/pics"
 }}
 map ge mountPics
 map gE cd /etc
