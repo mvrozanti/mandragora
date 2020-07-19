@@ -44,10 +44,10 @@ inoremap JK <Esc>l
 vnoremap JK <Esc>
 inoremap QQ <Esc>:q!<CR>
 nnoremap QQ :q!<CR>
-nnoremap <A-J> :resize +1<CR>
-nnoremap <A-K> :resize -1<CR>
-nnoremap <A-H> :vertical resize +1<CR>
-nnoremap <A-L> :vertical resize -1<CR>
+nnoremap <A-J> :resize +2<CR>
+nnoremap <A-K> :resize -2<CR>
+nnoremap <A-H> :vertical resize +2<CR>
+nnoremap <A-L> :vertical resize -2<CR>
 inoremap <Insert> <Esc>
 
 " Keep undo history across sessions by storing it in a file
