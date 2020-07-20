@@ -41,7 +41,9 @@ cmd open ${{
         text/*) $EDITOR $fx;;
         audio/*) mplayer $fx;;
         video/*) mpv $fx;;
-        image/*) sxiv -a $f `pwd`;;
+        image/*) 
+          bn=$(basename $f|sed 's;/;\\/;g')
+          echo $a | grep 'png$\|jpe\?g$\|gif$' | sed '/'$bn'/,$!d' | sxiv -a -;;
         application/*) nvim $fx;;
         *) for f in $fx; do setsid $OPENER $f > /dev/null 2> /dev/null & done;;
     esac
@@ -180,9 +182,9 @@ map U $unp -u $f
 map g/ cd /
 map gh cd ~
 cmd mountPics %{{ 
-    if [ -z "$(ls ~/disk/pics)" ]; then
-        read -s pass
-        echo $pass | gocryptfs /mnt/4ADE1465DE144C17/peeks /mnt/4ADE1465DE144C17/pics
+    if [[ -z "$(ls ~/disk/pics)" ]]; then
+        read -s pass;
+        echo $pass | gocryptfs /mnt/4ADE1465DE144C17/peeks /mnt/4ADE1465DE144C17/pics;
     fi
     ~/go/bin/lf -remote "send $id cd ~/disk/pics"
 }}
