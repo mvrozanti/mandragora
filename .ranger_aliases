@@ -1,5 +1,6 @@
 alias z/='cd /'
 alias zh='cd ~'
+alias ze='chain shell ~/.local/bin/mP ; cd ~/disk/pics'
 alias zE='cd /etc'
 alias zv='cd /var'
 alias zR='cd ~/.config/ranger'
