@@ -1,0 +1,17 @@
+#!/bin/bash
+[[ $# == 2 ]] || exit 1
+map=$1
+dir=`realpath $2`
+lfrc_path=$HOME/.config/lf/lfrc
+add_mapping(){
+    echo $1 $2
+    sed -i '/g'$1'/d' $lfrc_path
+    echo map g$1 $2 >> $lfrc_path 
+    make-ranger-aliases 
+}
+if [[ -z `grep '^map g'$1 $lfrc_path` ]]; then
+   add_mapping $1 $2
+else
+    read -p 'Overwrite? [Y/n] ' ow
+    [[ -z $ow || `tr '[:upper:]' '[:lower:]' <<< $ow` == 'y' ]] && add_mapping $1 $2|| exit
+fi

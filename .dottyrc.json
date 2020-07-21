@@ -112,7 +112,8 @@
     ".config/mutt/accounts/1-hotmail.muttrc": "~/.config/mutt/accounts/1-hotmail.muttrc",
     ".lf_aliases": "~/.lf_aliases",
     ".local/bin/make-ranger-aliases": "~/.local/bin/make-ranger-aliases",
-    ".local/bin/make-lf-aliases": "~/.local/bin/make-lf-aliases"
+    ".local/bin/make-lf-aliases": "~/.local/bin/make-lf-aliases",
+    ".local/bin/am": "~/.local/bin/am"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
