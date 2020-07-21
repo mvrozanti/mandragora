@@ -179,6 +179,9 @@ map A rename # at the very end
 map D delete
 map U $unp -u $f 
 
+set reverse on
+set sortby time
+
 map g/ cd /
 map gh cd ~
 cmd mountPics %{{ 
@@ -217,6 +220,3 @@ map gs cd ~/sys4bank/prog
 map gD cd ~/Downloads
 map gm cd ~/mackenzie
 map gr cd ~/mackenzie/TCC/res/arts/
-
-set reverse on
-set sortby time
