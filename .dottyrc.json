@@ -110,7 +110,9 @@
     ".local/bin/corona-bar": "~/.local/bin/corona-bar",
     ".mostrc": "~/.mostrc",
     ".config/mutt/accounts/1-hotmail.muttrc": "~/.config/mutt/accounts/1-hotmail.muttrc",
-    ".lf_aliases": "~/.lf_aliases"
+    ".lf_aliases": "~/.lf_aliases",
+    ".local/bin/make-ranger-aliases": "~/.local/bin/make-ranger-aliases",
+    ".local/bin/make-lf-aliases": "~/.local/bin/make-lf-aliases"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
