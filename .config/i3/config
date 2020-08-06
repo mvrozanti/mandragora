@@ -127,7 +127,7 @@ $bind $mod+v          fullscreen disable; workspace $ws6;       $ensid wmctrl -a
 $bind $mod+8          fullscreen disable; workspace $ws11;      $ensid wmctrl -a  diaspora        || sh -c /home/nexor/util/diaspora-br-sign-in-linux-x64/diaspora-br-sign-in 
 $bind $mod+9          fullscreen disable; workspace $ws12;      $ensid wmctrl -a  skype           || skypeforlinux
 $bind Ctrl+$mod+0     fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new neomutt"
-$bind $mod+0          fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && mbsync hotmail && "$cat_seqs" && tmux new neomutt"
+$bind $mod+0          fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && "$cat_seqs" && mbsync hotmail && tmux new neomutt"
 $bind  XF86Mail       fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && mbsync hotmail && "$cat_seqs" && tmux new neomutt"
 $bind $mod+dead_grave          fullscreen disable; split h;     $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e /usr/bin/ncmpcpp
 $bind XF86Tools                fullscreen disable; split h;     $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e /usr/bin/ncmpcpp
@@ -153,11 +153,11 @@ $bind $mod+Mod1+k                                               $ensid transset-
 $bind $mod+Mod1+j                                               $ensid transset-df --dec 0.04 -a
 $bind $mod+Shift+2                                              $ensid kitty zsh -c "stty -ixon && "$cat_seqs" && tmux new lfrun" 
 $bind $mod+2     workspace $ws2;                                $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
-    --title _ranger_ -e zsh -c "stty -ixon && "$cat_seqs" && tmux new lfrun"
+    --title _ranger_ -e zsh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
 $bind $mod+Mod1+2                                               $ensid wmctrl -xa _ranger-float_  || kitty --title _ranger-float_ \
-    -o font_size=10 -o initial_window_width=500 -o initial_window_height=400 -o remember_window_size=no sh -c $cat_seqs' && lfrun' 
+    -o font_size=10 -o initial_window_width=500 -o initial_window_height=400 -o remember_window_size=no sh -c $cat_seqs' && ranger' 
 $bind XF86Search workspace $ws2;                                $ensid wmctrl -a  _ranger_        || kitty --name _ranger_ \
-    --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new lfrun"
+    --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger"
 $bind $mod+m     fullscreen disable; workspace $ws3;           $ensid wmctrl -a  Mathematica      || mathematica
 # $bind $mod+m     fullscreen disable; workspace $ws3;           $ensid wmctrl -a  cmatrix          || kitty --name cmatrix \
 #     -o font_size=13 -o background_opacity=.00 --title cmatrix -e sh -c "stty -ixon && "$cat_seqs" && cmatrix"
@@ -392,8 +392,8 @@ $bind $mod+KP_Up    $ensid redshift -g 0.5:0.5:1 -O 25000K
 $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 
 # $bind --whole-window button2        $ensid $HOME/.local/bin/play_virtmic $HOME/F6.mp3 
-$bind $mod+BackSpace                $ensid sh -c '[[ -z `ps -eC aux|grep sox` ]] && sox -b 16 -e signed -c 2 -t raw -r 44100 /tmp/mpd.fifo -c 1 -t raw -r 44100 /tmp/music.input' && xdotool keyup 0xff08 && xdotool keydown comma
-$bind --release $mod+BackSpace      $ensid pkill sox
+$bind $mod+BackSpace                $ensid sh -c 'xdotool keydown comma && sox -b 16 -e signed -c 2 -t raw -r 44100 /tmp/mpd.fifo -c 1 -t raw -r 44100 /tmp/music.input'
+# $bind --release $mod+BackSpace      $ensid pkill [ -z `ps -eC aux|grep sox` ]sox
 $bind $mod+F1                       $ensid $HOME/.local/bin/play_virtmic $HOME/F1.mp3
 $bind $mod+F2                       $ensid $HOME/.local/bin/play_virtmic $HOME/F2.mp3
 $bind $mod+F3                       $ensid $HOME/.local/bin/play_virtmic $HOME/F3.mp3

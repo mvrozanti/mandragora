@@ -302,7 +302,8 @@
     "yaegi",
     "xorg-xinput",
     "htmldoc",
-    "ffmpegthumbnailer"
+    "ffmpegthumbnailer",
+    "xdo"
   ],
   "excluded": [
     "hotmail.gpg",

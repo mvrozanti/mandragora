@@ -14,10 +14,10 @@ bind index,pager M noop
 bind index,pager C noop
 macro index o "<shell-escape>mailsync -V hotmail<enter>" "run mbsync to sync hotmail"
 unmailboxes *
-set spoolfile = "+Inbox"
+set spoolfile = "+INBOX"
 set record = "+Sent\ Items"
 set postponed = "+Drafts"
 set trash = "+Trash.Infected\ Items"
-mailboxes "=Inbox" "=Investimentos" "=RD|Essence" "=Mackenzie" "=Drafts" "=Sent\ Items" "=Junk" "=Sent" "=Armazenados"
+mailboxes "=INBOX" "=Investimentos" "=RD|Essence" "=Mackenzie" "=Drafts" "=Sent\ Items" "=Junk" "=Sent" "=Armazenados"
 # /home/nexor/.local/share/mail
 
