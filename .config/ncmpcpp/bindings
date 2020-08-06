@@ -1,7 +1,5 @@
 def_key "M"
   dummy
-def_key "C"
-  dummy
 def_key "S"
   dummy
 
@@ -57,5 +55,7 @@ def_key "R"
   toggle_random
 def_key "s"
   toggle_single
+def_key "C"
+  clear_main_playlist
 def_key "ctrl-a"
   reverse_selection 
