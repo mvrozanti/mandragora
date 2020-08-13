@@ -1,8 +1,2 @@
 #!/bin/bash
-[[ $# -gt 1 ]] && le_time=$1
-[[ -z $le_time ]]  && exit 1
-[[ $# -eq 2 ]] && xrect=$2
-[[ ! -z $xrect ]] && next_args="-w `xrectsel | sed 's/x/ -h /;s/+/ -x /;s/+/ -y /'`" || next_args=""
-echo $next_args
-byzanz-record $next_args -d $le_time ~/.scrot.gif && curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@"$_ | jq -r '.data.link' | xsel -i -b 
-notify-send "GIF in clipboard: "`xsel -o -b`
+byzanz-record -d `echo -e 'Seconds to record: '|dmenu $dmenu_looks` ~/.scrot.gif && curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@"$_ | jq -r '.data.link' | xsel -i -b 

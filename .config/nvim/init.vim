@@ -82,10 +82,12 @@ Plug 'mogelbrod/vim-jsonpath'
 Plug 'itchyny/screensaver.vim'
 autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
 autocmd BufEnter *.pro :setlocal filetype=prolog
+autocmd BufEnter *.wl :setlocal filetype=wolframlanguage
 autocmd FileType prolog setlocal commentstring=%\ %s
 autocmd FileType perl setlocal commentstring=%\ %s
 autocmd FileType jq setlocal commentstring=#\ %s
 autocmd FileType prolog inoremap she<tab> #!/usr/bin/swipl -q
+autocmd FileType wolframlanguage inoremap she<tab> #!/usr/bin/wolframscript -file
 autocmd FileType make inoremap al<tab> all:<CR>
 " autocmd FileType prolog map <F5> <ESC>:w<CR>:exec '!swipl -q %'<CR>
 " autocmd FileType perl   map <F5> <ESC>:w<CR>:exec '!swipl -q %'<CR>

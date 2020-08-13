@@ -249,8 +249,8 @@ $bind $mod+Scroll_Lock            $ensid flameshot gui
 #                                        jq .data.id | xargs -i echo                        \
 #                                        https://i.giphy.com/media/{}/source.gif | xsel -i -b\
 #                                        && notify-send gif copied to clipboard               \
-$bind Ctrl+$mod+Print             $ensid ~/.local/bin/byzrec `echo -e 'Seconds to record: '|dmenu $dmenu_looks`
-$bind Shift+Print             $ensid ~/.local/bin/byzrec `echo -e 'Seconds to record: '|dmenu $dmenu_looks` -r
+$bind Ctrl+$mod+Print             $ensid ~/.local/bin/byzrec 
+# $bind Shift+Print             $ensid ~/.local/bin/byzrec `echo -e 'Seconds to record: '|dmenu $dmenu_looks` -r
 
 #                                                 _
 #   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_
