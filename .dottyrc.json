@@ -113,7 +113,10 @@
     ".lf_aliases": "~/.lf_aliases",
     ".local/bin/make-ranger-aliases": "~/.local/bin/make-ranger-aliases",
     ".local/bin/make-lf-aliases": "~/.local/bin/make-lf-aliases",
-    ".local/bin/am": "~/.local/bin/am"
+    ".local/bin/am": "~/.local/bin/am",
+    ".Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelDarkSolarized.nb": "~/.Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelDarkSolarized.nb",
+    ".Mathematica/SystemFiles/FrontEnd/StyleSheets/Dimad.nb": "~/.Mathematica/SystemFiles/FrontEnd/StyleSheets/Dimad.nb",
+    ".Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelSolarized.nb": "~/.Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelSolarized.nb"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
