@@ -282,6 +282,7 @@ nnoremap ' `
 
 " general
 command Reversefilelines g/^/m0
+command Reload ":e"
 command Jsonify execute ":%!python3 -m json.tool"
 
 " netbeans bad habits
