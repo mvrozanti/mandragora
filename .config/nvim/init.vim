@@ -353,7 +353,7 @@ Plug 'junegunn/goyo.vim'
 
 Plug 'realincubus/vim-clang-refactor'
 
-Plug 'jaxbot/browserlink.vim'
+" Plug 'jaxbot/browserlink.vim'
 
 Plug 'sakhnik/nvim-gdb', { 'do': ':!./install.sh \| UpdateRemotePlugins' }
 "

@@ -576,7 +576,7 @@ mkv2webm(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.webm }
 mp42gif(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.gif }
 coG(){ G "`co`" }
 alias grao='git remote add origin'
-corpc(){ co | xargs realpath -z | c }
+corpc(){ co | xargs -I{} realpath -z "{}" | c }
 alias cfR='v /home/nexor/.config/rofi/config.rasi'
 scov(){ sudoedit "`co`" }
 getpass(){ python -c 'from getpass import getpass;print(getpass("Password: "))' }
