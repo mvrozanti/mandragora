@@ -596,3 +596,4 @@ epub2pdf(){ pandoc --pdf-engine=xelatex -f epub -t pdf $1 -o "${1%%.*}.pdf" }
 alias lf=lfcd
 alias nmutt='neomutt'
 alias gai='git add -i'
+alias F='fzf'
