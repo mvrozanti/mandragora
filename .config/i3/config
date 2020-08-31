@@ -316,6 +316,7 @@ $bind XF86MonBrightnessDown     $ensid xbacklight -dec $bl_delta
 $bind XF86AudioNext		        $ensid mpc next  #$mpc $minty_remote next
 $bind XF86AudioPlay		        $ensid mpc toggle  #$mpc $minty_remote toggle
 $bind XF86AudioPrev		        $ensid mpc prev  #$mpc $minty_remote prev
+# $bind XF86AudioStop		        $ensid mpc stop
 $bind XF86AudioMute             $ensid pamixer -t
 # $bind XF86AudioRaiseVolume      $ensid amixer -c 0 -q set Master 4dB+ unmute 
 $bind XF86AudioRaiseVolume      $ensid amixer set 'Master' 4%+
