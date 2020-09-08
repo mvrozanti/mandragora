@@ -9,7 +9,7 @@ class ag(Command):
     """:ag 'regex'
     Looks for a string in all marked paths or current dir
     """
-    editor = os.getenv('EDITOR') or 'vim'
+    editor = os.getenv('EDITOR') or 'nvim'
     acmd = 'ag --smart-case --group --color --hidden'  # --search-zip
     qarg = re.compile(r"""^(".*"|'.*')$""")
     patterns = []

@@ -1,5 +1,8 @@
 POWERLINE_BASH_CONFIGURATION=1
 POWERLINE_BASH_SELECT=1
+set -x EDITOR nvim
+export VISUAL=nvim
+export EDITOR=nvim
 . /usr/lib/python3.7/site-packages/powerline/bindings/bash/powerline.sh
 [[ -f ~/.bash_aliases ]] && source ~/.bash_aliases
 stty -ixon
