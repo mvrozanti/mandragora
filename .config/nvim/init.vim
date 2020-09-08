@@ -9,7 +9,7 @@ nmap - cxt_t_llcxe
 
 call SetupCommandAlias("jsonify","%!python -m json.tool")
 map <A-F> mzgg=G`zzz
-xnoremap p "_dP
+nnoremap p "_dP
 map / /\c
 nnoremap < <<
 nnoremap > >>
