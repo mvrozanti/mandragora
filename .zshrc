@@ -101,6 +101,7 @@ bindkey '^f' forward-word
 bindkey '^h' backward-delete-char
 # bindkey '^l' delete-char
 bindkey '^[^l' delete-word
+
 run_ranger() { echo; ranger --choosedir=$HOME/.rangerdir < $TTY; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"; zle reset-prompt }
 run_lf() { echo; lf; zle reset-prompt }
 run_nnn() { echo; nnn < $TTY ; zle reset-prompt }
@@ -115,6 +116,9 @@ cd_sys4bank() { echo; cd ~/sys4bank/prog; zle reset-prompt }
 cd_downloads() { echo; cd ~/Downloads; zle reset-prompt }
 cd_fzf() { echo; cd "`exa -D|fzf`"; zle reset-prompt }
 run_ncmpcpp() { BUFFER="ncmpcpp"; zle accept-line }
+run_clock() { echo; peaclock --config-dir ~/.config/peaclock; zle reset-prompt}
+
+zle -N run_clock
 zle -N run_ranger
 # zle -N run_lf
 zle -N run_nnn
@@ -144,6 +148,7 @@ bindkey '^[D' 'cd_downloads'
 bindkey '^[t' 'cd_tcc'
 bindkey '^[s' 'cd_sys4bank'
 bindkey '^f' 'cd_fzf'
+bindkey '^[C' 'run_clock'
 bindkey -s '^[^M' '^M'
 
 # vi - thanks hoberto
