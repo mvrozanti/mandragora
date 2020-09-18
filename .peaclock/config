@@ -57,7 +57,7 @@ locale ''
 timezone ''
 
 # set the date format string, an empty string clears the value
-date '%d/%M/%y, %B'
+date '%d/%m/%y, %B'
 
 # set the mode type
 # select one of:
