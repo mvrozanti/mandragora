@@ -338,6 +338,7 @@
     "git clone https://github.com/clibs/entr ~/util/entr && cd ~/util/entr && ./configure && sudo make install",
     "git clone https://github.com/mvrozanti/sxiv ~/util/sxiv && cd $_ && sudo make install",
     "git clone https://github.com/mvrozanti/hx ~/util/hx && cd $_ && sudo make install",
+    "git clone https://github.com/octobanana/peaclock ~/util/peaclock && cd $_ && sudo ./RUNME.sh --install",
     "curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh | sh",
     "git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/zsh-autosuggestions && cd",
     "git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm",
