@@ -116,7 +116,7 @@ cd_sys4bank() { echo; cd ~/sys4bank/prog; zle reset-prompt }
 cd_downloads() { echo; cd ~/Downloads; zle reset-prompt }
 cd_fzf() { echo; cd "`exa -D|fzf`"; zle reset-prompt }
 run_ncmpcpp() { BUFFER="ncmpcpp"; zle accept-line }
-run_clock() { echo; peaclock --config-dir ~/.config/peaclock; zle reset-prompt}
+run_clock() { echo; peaclock --config-dir ~/.peaclock/config; zle reset-prompt}
 
 zle -N run_clock
 zle -N run_ranger
