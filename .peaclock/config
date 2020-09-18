@@ -57,7 +57,7 @@ locale ''
 timezone ''
 
 # set the date format string, an empty string clears the value
-date '%a %b %d'
+date '%d/%M/%y, %B'
 
 # set the mode type
 # select one of:
@@ -106,7 +106,7 @@ rate-status 5000
 set hour-24 on
 
 # display seconds
-set seconds off
+set seconds on
 
 # display the date
 set date on
