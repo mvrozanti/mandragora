@@ -301,7 +301,7 @@ onf(){ inotifywait -m . -e create -e moved_to | while read pathe action filet; d
 alias netbeans='/usr/bin/netbeans'
 alias lasagna='countdown "11*60" && for i in {1..4}; do beep -l 400; sleep 0.6; done'
 # alias clock='watch -t -n1 "date +"%H:%M"|figlet -f big"'
-alias clock='peaclock --config-dir ~/.config/peaclock'
+alias clock='peaclock --config-dir ~/.peaclock/config'
 alias cfn='v ~/.newsboat/config'
 alias cfN='v ~/.newsboat/urls'
 alias N='newsboat'
