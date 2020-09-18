@@ -116,7 +116,8 @@
     ".local/bin/am": "~/.local/bin/am",
     ".Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelDarkSolarized.nb": "~/.Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelDarkSolarized.nb",
     ".Mathematica/SystemFiles/FrontEnd/StyleSheets/Dimad.nb": "~/.Mathematica/SystemFiles/FrontEnd/StyleSheets/Dimad.nb",
-    ".Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelSolarized.nb": "~/.Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelSolarized.nb"
+    ".Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelSolarized.nb": "~/.Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelSolarized.nb",
+    ".peaclock": "~/.peaclock"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
