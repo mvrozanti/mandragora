@@ -142,18 +142,18 @@ set auto-ratio on
 
 # set the style of the text set by the command 'fill' used to draw active
 # blocks in the clock
-style active-fg #00f
+style active-fg red
 
 # set the style of the text set by the command 'fill' used to draw inactive
 # blocks in the clock
-style inactive-fg #00f
+style inactive-fg clear
 
 # set the style of the text set by the command 'fill-colon' used to draw colon
 # blocks in the clock
-style colon-fg #00f
+style colon-fg cyan
 
 # set the style of the background used to draw active blocks in the clock
-style active-bg #f00
+style active-bg reverse
 
 # set the style of the background used to draw inactive blocks in the clock
 style inactive-bg clear
@@ -165,10 +165,10 @@ style colon-bg clear
 style date clear
 
 # set the style of the background
-style background red
+style background clear
 
 # set the style of the text
-style text red
+style text clear
 
 # set the style of the command prompt symbol shown at the start of the line
 style prompt clear
