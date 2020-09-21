@@ -548,7 +548,7 @@ alias rmempty='find . -type d -empty -delete'
 alias snmap='s nmap'
 alias unquote="sed 's/^\"//g;s/\"$//g'"
 alias cotra='transmission-remote -a "`co`"'
-die(){ echo $(($(($RANDOM%10))%$1)) }
+die(){ echo $(($RANDOM%$1)) }
 # alias coinflip='echo $(($(($RANDOM%10))%2)) '
 alias coinflip='die 2'
 alias jj='java -jar'
@@ -598,3 +598,4 @@ alias lf=lfcd
 alias nmutt='neomutt'
 alias gai='git add -i'
 alias F='fzf'
+flipscreen(){ xrandr --query|g ' connected'|g 'inverted (' && xrandr --output HDMI2  --rotate normal || xrandr --output HDMI2 --rotate inverted }
