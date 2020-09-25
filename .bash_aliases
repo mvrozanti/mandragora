@@ -599,3 +599,4 @@ alias nmutt='neomutt'
 alias gai='git add -i'
 alias F='fzf'
 flipscreen(){ xrandr --query|g ' connected'|g 'inverted (' && xrandr --output HDMI2  --rotate normal || xrandr --output HDMI2 --rotate inverted }
+alias lennyface='echo "( ͡° ͜ʖ ͡°)" | c'
