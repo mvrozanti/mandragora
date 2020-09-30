@@ -600,3 +600,5 @@ alias gai='git add -i'
 alias F='fzf'
 flipscreen(){ xrandr --query|g ' connected'|g 'inverted (' && xrandr --output HDMI2  --rotate normal || xrandr --output HDMI2 --rotate inverted }
 alias lennyface='echo "( ͡° ͜ʖ ͡°)" | c'
+gw(){ echo "$(shuf -n 32 ~/gw --random-source=/dev/urandom | tr '\n' ' ')" }
+wtd(){ while true; do $@; done }
