@@ -602,3 +602,4 @@ flipscreen(){ xrandr --query|g ' connected'|g 'inverted (' && xrandr --output HD
 alias lennyface='echo "( ͡° ͜ʖ ͡°)" | c'
 gw(){ echo "$(shuf -n 32 ~/gw --random-source=/dev/urandom | tr '\n' ' ')" }
 wtd(){ while true; do $@; done }
+www(){ ww -w $COLUMNS }
