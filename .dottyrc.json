@@ -307,7 +307,8 @@
     "xorg-xinput",
     "htmldoc",
     "ffmpegthumbnailer",
-    "xdo"
+    "xdo",
+    "earlyoom"
   ],
   "excluded": [
     "hotmail.gpg",
