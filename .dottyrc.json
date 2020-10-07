@@ -308,7 +308,8 @@
     "htmldoc",
     "ffmpegthumbnailer",
     "xdo",
-    "earlyoom"
+    "earlyoom",
+    "lsscsi"
   ],
   "excluded": [
     "hotmail.gpg",
