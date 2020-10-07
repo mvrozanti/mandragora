@@ -35,6 +35,7 @@ imap silent <C-h> <A-b>
 imap silent <C-l> <A-w>
 imap silent <C-Left> <A-b>
 imap silent <C-Right> <A-w>
+nnoremap <A-m> :tabe %<CR>
 inoremap <A-Backspace> <A-c>iw
 nnoremap <A-Backspace> viwd
 inoremap jk <Esc>l
@@ -69,6 +70,7 @@ Plug 'salsifis/vim-transpose' " Vim plugin - Transpose matrices of text (swap li
 Plug 'iberianpig/tig-explorer.vim'
 Plug 'Yggdroot/indentLine'
 let g:indentLine_enabled = 0
+let g:EclimSignLevel = 'error'
 Plug 'tomtom/tcomment_vim'
 Plug 'chrisbra/csv.vim'
 Plug 'christoomey/vim-tmux-navigator'
@@ -219,7 +221,9 @@ autocmd FileType cs inoremap cw<tab> Console.WriteLine()<Esc>i
 " java shortcuts
 autocmd FileType java inoremap psvm<tab> public static void main(String args[]){<CR>}
 autocmd FileType java call SetupCommandAlias("mvnexec","!mvnexec %")
+autocmd FileType java call SetupCommandAlias("PP!","ProjectProblems!")
 autocmd FileType java map <silent> <F6> :mvnexec<CR><CR>
+autocmd FileType java inoremap <c-space> <c-x><c-u>
 autocmd FileType java inoremap pr<tab> private<Space>
 autocmd FileType java inoremap pu<tab> public<Space>
 autocmd FileType java inoremap sout<tab> System.out.println()<Esc>i

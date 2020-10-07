@@ -1,0 +1,8 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Type=Application
+NoDisplay=true
+Exec=/home/nexor/Downloads/waterfox-current-2020.09.en-US.linux-x86_64/waterfox/waterfox %u
+Name=Waterfox
+Comment=Custom definition for Waterfox
