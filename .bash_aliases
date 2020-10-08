@@ -603,3 +603,4 @@ alias lennyface='echo "( ͡° ͜ʖ ͡°)" | c'
 gw(){ echo "$(shuf -n 32 ~/gw --random-source=/dev/urandom | tr '\n' ' ')" }
 wtd(){ while true; do $@; done }
 www(){ ww -w $COLUMNS }
+alias setvolume='amixer sset Master'
