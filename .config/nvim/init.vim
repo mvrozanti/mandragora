@@ -606,7 +606,7 @@ let g:syntastic_java_javac_config_file_enabled = 1
 set encoding=utf-8
 
 colorscheme peachpuff
-hi Search       ctermbg=1
+hi Search       cterm=NONE ctermbg=0 ctermfg=NONE guibg=Grey40
 hi Folded       ctermbg=none
 hi Pmenu        ctermbg=none
 hi PmenuSel     ctermbg=1
@@ -618,6 +618,7 @@ hi DiffAdd      ctermfg=7  ctermbg=6
 hi DiffChange   ctermfg=4  ctermbg=5
 hi DiffDelete   ctermfg=2  ctermbg=3
 hi DiffText     ctermfg=1  ctermbg=8
+hi Visual       cterm=NONE ctermbg=0 ctermfg=NONE guibg=Grey40
 
 " https://github.com/gotbletu/shownotes/blob/master/vim_neovim_manpager.md
 " augroup manlaunchtoc
