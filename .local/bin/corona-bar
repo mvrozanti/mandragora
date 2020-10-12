@@ -19,7 +19,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-db = sqlite3.connect('/home/nexor/corona-db.sqlite', isolation_level=None)
+db = sqlite3.connect('/home/nexor/corona-db2.sqlite', isolation_level=None)
 scores_filepath = '/home/nexor/corona-scores.json'
 
 def differences(a, b, section=None):
