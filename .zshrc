@@ -164,6 +164,7 @@ export GEM_HOME=$HOME/.gem
 export PATH="$GEM_HOME/bin:$PATH"
 export PATH="$PATH:$HOME/.gem/ruby/2.6.0/bin"
 export PATH="$PATH:$HOME/.gem/ruby/2.7.0/bin"
+export PATH="$PATH:$HOME/.rbenv/bin"
 
 # js
 export PATH=~/.npm/bin:$PATH
