@@ -36,6 +36,7 @@
     ".zshrc": "~/.zshrc",
     ".urlview": "~/.urlview",
     ".vimfx": "~/.vimfx",
+    ".tridactylrc": "~/.tridactylrc",
     ".emacs": "~/.emacs",
     ".XCompose": "~/.XCompose",
     ".npmrc": "~/.npmrc",
