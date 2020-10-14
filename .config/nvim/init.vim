@@ -19,6 +19,7 @@ nnoremap <A-p> o<A-p>
 " Automatically deletes all tralling whitespace on save.
 " let blacklist = ['txt']
 " autocmd BufWritePre  * if index(blacklist, &ft) < 0 | %s/\s\+$//e
+let g:tex_flavor = 'latex'
 autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex -synctex=1 % 
 " nnoremap <C-o> :call Synctex()<CR>
 autocmd BufWritePost *.bib silent! !bibtex %:r ; pdflatex %:r.tex ; pdflatex -synctex=1 %:r.tex 
@@ -287,6 +288,7 @@ nnoremap ' `
 " general
 command Reversefilelines g/^/m0
 command Reload ":e"
+command RandomLine execute 'normal! '.(system('/bin/bash -c "echo -n $RANDOM"') % line('$')).'G'
 command Jsonify execute ":%!python3 -m json.tool"
 
 " netbeans bad habits
