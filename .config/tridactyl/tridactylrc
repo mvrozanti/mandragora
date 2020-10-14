@@ -86,10 +86,13 @@ autocmd DocStart www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
 
 
 
+bind / fillcmdline find
+bind ? fillcmdline find -?
+bind n findnext 1
+bind N findnext -1
 colors mine
 bind J tabnext
 bind K tabprev
 set hintchars asdertgbvcx
 bind b scrollpage -0.5
 bind d scrollpage  0.5
-bind n findnext

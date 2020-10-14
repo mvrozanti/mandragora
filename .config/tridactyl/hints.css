@@ -1,0 +1,19 @@
+span.TridactylHint {
+    position: absolute;
+    font-family: sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: black;
+    background-color: #ffd76e;
+    border-color: rgba(0, 0, 0, 0.4);
+    border-width: 1px;
+    min-width: .75em;
+    border-style: solid;
+    padding: 0 1pt;
+    text-align: center;
+    z-index: 2147483647;
+}
+
+/* .TridactylHintElem { background-color: yellow;  color: black; } */
+.TridactylHintActive { background-color: #88FF00; color: black; }
