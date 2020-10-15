@@ -259,6 +259,7 @@
 
     --tridactyl-hintspan-fg: white;
     --tridactyl-hintspan-bg: #2e2e2e;
+    --tridactyl-hintspan-font-size: 12.5pt;
 
     --tridactyl-hint-active-fg: transparent;
     --tridactyl-hint-active-bg: transparent;
