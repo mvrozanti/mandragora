@@ -40,7 +40,7 @@ jsb browser.runtime.getPlatformInfo().then(os=>{const profiledir = os.os=="win" 
 
 " Make Tridactyl work on more sites at the expense of some security
 " set csp clobber
-fixamo_quiet
+" fixamo_quiet
 
 " Make quickmarks for the sane Tridactyl issue view
 quickmark t https://github.com/cmcaine/tridactyl/issues?utf8=%E2%9C%93&q=sort%3Aupdated-desc+
@@ -54,9 +54,7 @@ autocmd DocStart www.reddit.com js tri.excmds.urlmodify("-t", "www", "old")
 " Mosquito nets won't make themselves
 autocmd DocStart www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
 
-
-
-
+autocmd DocLoaded github.com js document.querySelector("html.TridactylThemeUnugly body.logged-in.env-production.page-responsive div.position-relative.js-header-wrapper div.flash.flash-full.js-notice.flash-warn").remove()
 
 " YouTube
 bindurl https://www.youtube.com <A-f> hint -Jc a#thumbnail.yt-simple-endpoint.inline-block.style-scope.ytd-thumbnail
@@ -81,3 +79,9 @@ bind K tabprev
 set hintchars asdertgbvcxzq
 bind b scrollpage -0.5
 bind d scrollpage  0.5
+bind x tabclose
+
+""set hintdelay 100
+bind <C-o> fillcmdline open 
+bind <C-V> viewsource
+bind yu composite js document.URL | yank
