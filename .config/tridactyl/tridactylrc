@@ -70,7 +70,9 @@ bind x tabclose
 bind <C-o> fillcmdline open 
 bind <C-V> viewsource
 bind yu composite js document.URL | yank
+bind yf hint -y
+bind ec hint -A
 bind <C-1> open reddit.com
 bind <C-2> open youtube.com
 bind <C-3> open github.com
-set newtab github
+set newtab about:blank
