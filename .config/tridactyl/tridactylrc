@@ -24,16 +24,6 @@ unbind --mode=ex <C-c>
 bind gd tabdetach
 bind gD composite tabduplicate | tabdetach
 
-"
-" Misc settings
-"
-
-" set editorcmd to suckless terminal, or use the defaults on other platforms
-js tri.browserBg.runtime.getPlatformInfo().then(os=>{const editorcmd = os.os=="linux" ? "st vim" : "auto"; tri.config.set("editorcmd", editorcmd)})
-
-" set profile dir on Windows
-jsb browser.runtime.getPlatformInfo().then(os=>{const profiledir = os.os=="win" ? "C:\\Users\\olie\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\gwm76nmk.default" : "auto"; tri.config.set("profiledir", profiledir)})
-
 " Sane hinting mode
 " set hintfiltermode vimperator-reflow
 " set hintnames numeric
@@ -45,10 +35,6 @@ jsb browser.runtime.getPlatformInfo().then(os=>{const profiledir = os.os=="win" 
 " Make quickmarks for the sane Tridactyl issue view
 quickmark t https://github.com/cmcaine/tridactyl/issues?utf8=%E2%9C%93&q=sort%3Aupdated-desc+
 
-"
-" URL redirects
-"
-
 " New reddit is bad
 autocmd DocStart www.reddit.com js tri.excmds.urlmodify("-t", "www", "old")
 " Mosquito nets won't make themselves
@@ -57,9 +43,10 @@ autocmd DocStart www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
 autocmd DocLoaded github.com js document.querySelector("html.TridactylThemeUnugly body.logged-in.env-production.page-responsive div.position-relative.js-header-wrapper div.flash.flash-full.js-notice.flash-warn").remove()
 
 " YouTube
-bindurl https://www.youtube.com <A-f> hint -Jc a#thumbnail.yt-simple-endpoint.inline-block.style-scope.ytd-thumbnail
-bindurl https://www.youtube.com/watch <A-f> hint -Jc button.ytp-button
+bindurl https://www.youtube.com <C-f> hint -Jc a#thumbnail.yt-simple-endpoint.inline-block.style-scope.ytd-thumbnail
+bindurl https://www.youtube.com/watch <C-f> hint -Jc button.ytp-button
 
+""set hintdelay 100
 ""ignoremaps = {
 ""    "<S-Insert>": "mode normal",
 ""    "<AC-Escape>": "mode normal",
@@ -80,8 +67,9 @@ set hintchars asdertgbvcxzq
 bind b scrollpage -0.5
 bind d scrollpage  0.5
 bind x tabclose
-
-""set hintdelay 100
 bind <C-o> fillcmdline open 
 bind <C-V> viewsource
 bind yu composite js document.URL | yank
+bind <C-1> open reddit.com
+bind <C-2> open youtube.com
+bind <C-3> open github.com
