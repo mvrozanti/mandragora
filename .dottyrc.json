@@ -310,7 +310,8 @@
     "ffmpegthumbnailer",
     "xdo",
     "earlyoom",
-    "lsscsi"
+    "lsscsi",
+    "feedreader"
   ],
   "excluded": [
     "hotmail.gpg",
