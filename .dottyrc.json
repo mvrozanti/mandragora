@@ -378,6 +378,7 @@
     "npm -g list sql-cli                || npm i -g $_",
     "npm -g list graphqurl              || npm i -g $_",
     "npm -g list dockly                 || npm i -g $_",
+    "command -v feedparser              || pip install --user $_",
     "command -v pueue                   || pip install --user $_",
     "command -v i3-cycle                || pip install --user $_",
     "command -v yq                      || pip install --user $_",
