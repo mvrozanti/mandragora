@@ -311,7 +311,8 @@
     "xdo",
     "earlyoom",
     "lsscsi",
-    "feedreader"
+    "feedreader",
+    "pv"
   ],
   "excluded": [
     "hotmail.gpg",

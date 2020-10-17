@@ -77,4 +77,3 @@ bind <C-1> open reddit.com
 bind <C-2> open youtube.com
 bind <C-3> open github.com
 set newtab about:blank
-autocmd DocStart moz-extension://.*/static/newtab.html js document.body.style.display = "none"
