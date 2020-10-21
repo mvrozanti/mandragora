@@ -604,3 +604,4 @@ gw(){ echo "$(shuf -n 32 ~/gw --random-source=/dev/urandom | tr '\n' ' ')" }
 wtd(){ while true; do $@; done }
 www(){ ww -w $COLUMNS }
 alias setvolume='amixer sset Master'
+alias f.c='f.|c'
