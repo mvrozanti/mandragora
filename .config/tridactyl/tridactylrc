@@ -80,3 +80,4 @@ bind t tabnew
 set newtab about:blank
 unbind gd
 colors unugly
+bindurl https://www.youtube.com ? js document.querySelector("input.ytd-searchbox").focus()
