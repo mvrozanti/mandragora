@@ -41,17 +41,18 @@ autocmd DocStart www.reddit.com js tri.excmds.urlmodify("-t", "www", "old")
 " Mosquito nets won't make themselves
 autocmd DocStart www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
 
-autocmd DocLoaded github.com js document.querySelector("html.TridactylThemeUnugly body.logged-in.env-production.page-responsive div.position-relative.js-header-wrapper div.flash.flash-full.js-notice.flash-warn").remove()
+autocmd DocLoad github.com js document.querySelector("div.flash:nth-child(4)").remove()
 
 " YouTube
 ""bindurl https://www.youtube.com <C-f> hint -Jc a#thumbnail.yt-simple-endpoint.inline-block.style-scope.ytd-thumbnail
 ""bindurl https://www.youtube.com/watch <C-f> hint -Jc button.ytp-button
 bindurl https://www.youtube.com 0 open https://www.youtube.com
 bindurl https://www.youtube.com ? js document.querySelector('ytd-searchbox form #search').focus()
-bindurl https://www.youtube.com f hint -Jc a#thumbnail.yt-simple-endpoint.inline-block.style-scope.ytd-thumbnail
+bindurl https://www.youtube.com f hint -Jc a#thumbnail.yt-simple-endpoint.inline-block.style-scope.ytd-thumbnail,ytd-comment-thread-renderer a,ytd-channel-name a,paper-button,a#logo
 bindurl https://www.youtube.com/watch l js document.querySelector('ytd-toggle-button-renderer.style-scope:nth-child(1) > a:nth-child(1)').click()
 bindurl https://www.youtube.com/watch D js document.querySelector('ytd-toggle-button-renderer.style-scope:nth-child(2) > a:nth-child(1)').click()
 bindurl https://www.youtube.com/watch <C-f> hint -Jc button.ytp-button
+bindurl https://www.youtube.com/ O js document.querySelector("html.TridactylThemeUnugly body ytd-app div#content.style-scope.ytd-app div#masthead-container.style-scope.ytd-app ytd-masthead#masthead.masthead-finish div#container.style-scope.ytd-masthead div#end.style-scope.ytd-masthead div#buttons.style-scope.ytd-masthead ytd-notification-topbar-button-renderer.style-scope.ytd-masthead.notification-button-style-type-default").click()
 
 ""set hintdelay 100
 ""ignoremaps = {
@@ -83,8 +84,9 @@ bind <C-1> open reddit.com
 bind <C-2> open youtube.com
 bind <C-3> open github.com
 bind t tabnew
-bind I mode ignore
-bind i --mode=ignore mode normal
+bind f hint
+""bind I mode ignore
+""bind i --mode=ignore mode normal
 set newtab about:blank
 unbind gd
 colors unugly
