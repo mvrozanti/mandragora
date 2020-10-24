@@ -15,7 +15,7 @@ rofi_config=${HOME}/.config/polybar/scripts/news/config.rasi
 rofi_width="auto"  # (auto or empty)
 # number of characters for the output
 # zero means no limit
-length=0
+length=10
 #  used only when the title is shortened, i.e when length > 0
 add_ellipsis="yes"
 
