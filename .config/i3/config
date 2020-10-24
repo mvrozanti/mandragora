@@ -40,7 +40,8 @@ $bind $mod+Shift+r          restart
 $bind $mod+q                kill
 $bind Mod1+Tab              workspace back_and_forth
 $bind $mod+Shift+e          $ensid [[ `echo -e 'Exit i3\nDo not'|dmenu $dmenu_looks` == 'Exit i3' ]] && i3-msg exit
-$bind $mod+Ctrl+r           $ensid [[ `echo -e 'Restart\nDo not'|dmenu $dmenu_looks` == 'Restart' ]] && reboot
+$bind $mod+Ctrl+r           $ensid ~/.config/polybar/scripts/news/news.sh show_menu
+# $bind $mod+Ctrl+r           $ensid [[ `echo -e 'Restart\nDo not'|dmenu $dmenu_looks` == 'Restart' ]] && reboot
 # $bind $mod+r                exec dmenu_run -fn 'Droid Sans Mono for Powerline' -nb '#1e1e1e' -sf '#1e1e1e' -sb '$color8' -nf '$color9'
 $bind $mod+r                exec rofi -show run
 
