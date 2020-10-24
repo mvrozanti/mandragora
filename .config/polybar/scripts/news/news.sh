@@ -13,7 +13,7 @@ show_site="yes"  # display the name of the news source
 use_colors="yes"  # for error/warning
 
 show_menu="yes"  # show a menu with all news (via rofi, right click)
-menu_prompt="Find news"
+menu_prompt=""
 _menu_lines=15
 
 # number of characters for the output
@@ -180,17 +180,13 @@ show_menu() {
     choice="$(awk 'NR % 2 == 1' "${rofi_list}" | \
         rofi \
             -columns 1 \
-            -location 5 \
+            -location 0 \
             -p "${menu_prompt}" \
             -dmenu \
             -format d \
             -lines "${menu_lines}" \
-            "${rofi_case}" \
-            -xoffset -100 \
-            -yoffset -100 \
             -theme-str "*{scrollbar:${menu_scrollbar};}" \
-            # -width "${menu_width}")"
-            -width "200")"
+            -width 60)"
 
     if [ -n "${choice}" ]; then
         url="$(sed -n -e $((choice*2))p "${rofi_list}")"
