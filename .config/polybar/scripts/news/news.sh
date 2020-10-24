@@ -178,14 +178,19 @@ show_menu() {
     fi
 
     choice="$(awk 'NR % 2 == 1' "${rofi_list}" | \
-        rofi ${rofi_options} \
+        rofi \
+            -columns 1 \
+            -location 5 \
             -p "${menu_prompt}" \
             -dmenu \
             -format d \
             -lines "${menu_lines}" \
             "${rofi_case}" \
+            -xoffset -100 \
+            -yoffset -100 \
             -theme-str "*{scrollbar:${menu_scrollbar};}" \
-            -width "${menu_width}")"
+            # -width "${menu_width}")"
+            -width "200")"
 
     if [ -n "${choice}" ]; then
         url="$(sed -n -e $((choice*2))p "${rofi_list}")"

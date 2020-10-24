@@ -50,7 +50,7 @@ font-5 = "FontAwesome:size=13;2"
 
 modules-left = i3
 modules-center =
-modules-right = corona mpd xbacklight alsa filesystem memory cpu wlan eth ip date battery
+modules-right = corona mpd xbacklight alsa filesystem memory cpu wlan eth ip news date battery
 
 tray-position = right
 tray-padding = 2
@@ -273,6 +273,18 @@ label-font = 5
 format-padding = 5
 label = %{A1:~/.local/bin/popup-calendar --popup:} %date% %time%
 format-prefix =  
+
+[module/news]
+format-underline = ${xrdb:color15}
+type = custom/text
+exec = ~/.config/polybar/scripts/news/news.sh download
+interval = 900
+click-left = ~/.config/polybar/scripts/news/news.sh show_menu
+content = 
+format-margin = 4
+format-prefix-margin = 4
+label-font = 5
+prefix-font = 2
 
 [module/corona]
 type = custom/script
