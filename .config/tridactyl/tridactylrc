@@ -55,8 +55,6 @@ bindurl https://www.youtube.com/watch <C-f> hint -Jc button.ytp-button
 bindurl https://www.youtube.com/ O js document.querySelector("html.TridactylThemeUnugly body ytd-app div#content.style-scope.ytd-app div#masthead-container.style-scope.ytd-app ytd-masthead#masthead.masthead-finish div#container.style-scope.ytd-masthead div#end.style-scope.ytd-masthead div#buttons.style-scope.ytd-masthead ytd-notification-topbar-button-renderer.style-scope.ytd-masthead.notification-button-style-type-default").click()
 bindurl https://www.youtube.com/watch c js document.querySelector("#simplebox-placeholder").focus()
 
-google 
-
 ""set hintdelay 100
 ""ignoremaps = {
 ""    "<S-Insert>": "mode normal",
@@ -88,8 +86,7 @@ bind <C-2> open youtube.com
 bind <C-3> open github.com
 bind t tabnew
 bind f hint
-""bind I mode ignore
-""bind i --mode=ignore mode normal
+bind i js var css="html {-webkit-filter: invert(100%);-moz-filter: invert(100%);-o-filter: invert(100%);-ms-filter: invert(100%); }",head=document.getElementsByTagName("head")[0],style=document.createElement("style");if(window.counter){if(window.counter++,window.counter%2==0)var css="html {-webkit-filter: invert(0%); -moz-filter:    invert(0%); -o-filter: invert(0%); -ms-filter: invert(0%); }"}else window.counter=1;style.type="text/css",style.styleSheet?style.styleSheet.cssText=css:style.appendChild(document.createTextNode(css)),head.appendChild(style);
 set newtab about:blank
 unbind gd
 colors unugly
