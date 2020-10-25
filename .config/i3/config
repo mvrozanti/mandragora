@@ -131,8 +131,8 @@ $bind $mod+9          fullscreen disable; workspace $ws12;      $ensid wmctrl -a
 $bind Ctrl+$mod+0     fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new neomutt"
 $bind $mod+0          fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && "$cat_seqs" && mbsync hotmail && tmux new neomutt"
 $bind  XF86Mail       fullscreen disable; workspace $ws12; split h; $ensid wmctrl -a  _neomutt_       || kitty --title _neomutt_ -e sh -c "stty -ixon && mbsync hotmail && "$cat_seqs" && tmux new neomutt"
-$bind $mod+dead_grave          fullscreen disable; split h;     $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e /usr/bin/ncmpcpp
-$bind XF86Tools                fullscreen disable; split h;     $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e /usr/bin/ncmpcpp
+$bind $mod+dead_grave          fullscreen disable;              $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e /usr/bin/ncmpcpp
+$bind XF86Tools                fullscreen disable;              $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -e /usr/bin/ncmpcpp
 $bind $mod+Mod1+dead_grave     fullscreen disable;              $ensid wmctrl -a  _ncmpcpp_       || st -T 50 -t _visualizer-float_ -c _visualizer_ -e /usr/bin/ncmpcpp -s visualizer
 $bind $mod+Shift+dead_grave    fullscreen disable;              $ensid wmctrl -a  _ncmpcpp_       || st -T 0  -e /usr/bin/ncmpcpp -s visualizer
 $bind $mod+3          fullscreen disable; workspace $ws3;       $ensid wmctrl -a  _zsh_           || kitty --listen-on=unix:@mykitty --title _zsh_ --name _zsh_
