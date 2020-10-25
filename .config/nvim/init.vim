@@ -1,4 +1,3 @@
-
 fun! SetupCommandAlias(from, to)
   exec 'cnoreabbrev <expr> '.a:from
         \ .' ((getcmdtype() is# ":" && getcmdline() is# "'.a:from.'")'
@@ -463,7 +462,6 @@ Plug 'chrisbra/unicode.vim'
 Plug 'othree/yajs.vim'
 
 " ==== moving / seraching
-Plug 'easymotion/vim-easymotion'
 Plug 'kien/ctrlp.vim'
 let g:ctrlp_show_hidden=1
 
@@ -506,6 +504,13 @@ Plug 'majutsushi/tagbar'
 let g:airline#extensions#tagbar#enabled = 1
 let g:airline_powerline_fonts = 1
 let g:airline_theme='atomic'
+" ==== Easymotion
+Plug 'easymotion/vim-easymotion'
+nmap <A-f> <Plug>(easymotion-s)
+" let g:EasyMotion_do_mapping = 0
+" let g:EasyMotion_smartcase = 1
+" nmap f <Plug>(easymotion-s)
+
 call plug#end()
 
 " ==== Syntastic
@@ -543,11 +548,6 @@ nmap <silent> <A-Right> :wincmd l<CR>
 " ==== custom commands
 set mouse=c
 let g:BASH_Ctrl_j = 'off'
-
-" ==== Easymotion
-let g:EasyMotion_do_mapping = 0
-let g:EasyMotion_smartcase = 1
-nmap f <Plug>(easymotion-s)
 
 autocmd FileType javascript                                         let b:run_script = '!clear;xvkbd -window Firefox -text "\Cr" && xdotool keydown alt key Tab; sleep 2.001; xdotool keyup alt'
 " autocmd FileType javascript                                         set omnifunc=javascriptcomplete#CompleteJS
