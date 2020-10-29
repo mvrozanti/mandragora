@@ -605,3 +605,6 @@ wtd(){ while true; do $@; done }
 www(){ ww -w $COLUMNS }
 alias setvolume='amixer sset Master'
 alias f.c='f.|c'
+alias mv='mv -iv'
+alias cp='mv -riv'
+alias md='mkdir -vp'
