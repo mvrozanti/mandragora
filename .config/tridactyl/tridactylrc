@@ -90,4 +90,5 @@ unbind <C-a>
 bind i js var css="html {-webkit-filter: invert(100%);-moz-filter: invert(100%);-o-filter: invert(100%);-ms-filter: invert(100%); }",head=document.getElementsByTagName("head")[0],style=document.createElement("style");if(window.counter){if(window.counter++,window.counter%2==0)var css="html {-webkit-filter: invert(0%); -moz-filter:    invert(0%); -o-filter: invert(0%); -ms-filter: invert(0%); }"}else window.counter=1;style.type="text/css",style.styleSheet?style.styleSheet.cssText=css:style.appendChild(document.createTextNode(css)),head.appendChild(style);
 set newtab about:blank
 unbind gd
+unbind gf
 colors unugly
