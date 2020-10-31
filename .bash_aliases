@@ -421,7 +421,6 @@ alias schown='s chown'
 alias cint='picoc'
 wf(){ watch fd -H $@ }
 alias piup='pip install --upgrade pip'
-alias vres='v /home/nexor/mackenzie/2019/mpc/tex/simd.bib '
 funccount(){ nm $@ | grep "T " | g -v " _" | wc -l }
 urldecode(){ e "$@" | awk -niord '{printf RT?$0chr("0x"substr(RT,2)):$0}' RS=%.. }
 oldf(){ ls -rsnew ~/Downloads | sed q1 | xargs -I{} xdg-open ~/Downloads/{} }
