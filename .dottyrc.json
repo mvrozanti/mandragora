@@ -384,6 +384,7 @@
     "command -v i3-cycle                || pip install --user $_",
     "command -v yq                      || pip install --user $_",
     "command -v jiq                     || go get github.com/fiatjaf/jiq/cmd/$_",
+    "command -v translate               || pip install --user googletrans",
     "command -v github-linguist         || gem install $_",
     "systemctl enable ntpd.service"
   ]
