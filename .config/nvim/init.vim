@@ -329,9 +329,10 @@ noremap <silent> <c-f> :call smooth_scroll#down ( &scroll*2, 10, 4)<CR>
 
 Plug 'skwp/greplace.vim'
 
-Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
+" Plug 'neoclide/coc.nvim', {'tag': '*', 'do': { -> coc#util#install()}}
+" Plug 'neoclide/coc.nvim' ", {'tag': 'v0.0.78'}
 command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
-" Plug 'neoclide/coc.nvim', {'tag': '*', 'branch': 'release'}
+Plug 'neoclide/coc.nvim', {'tag': '*', 'branch': 'release'}
 
 " inoremap <silent><expr> <c-space> coc#refresh()
 nmap <silent> <leader>w <Plug>(coc-diagnostic-next)
