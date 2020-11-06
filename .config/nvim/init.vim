@@ -506,7 +506,7 @@ let g:airline_powerline_fonts = 1
 let g:airline_theme='atomic'
 " ==== Easymotion
 Plug 'easymotion/vim-easymotion'
-nmap <A-f> <Plug>(easymotion-s)
+" nmap <A-f> <Plug>(easymotion-s)
 " let g:EasyMotion_do_mapping = 0
 " let g:EasyMotion_smartcase = 1
 " nmap f <Plug>(easymotion-s)
