@@ -186,7 +186,7 @@ POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status)
 POWERLEVEL9K_SHORTEN_DIR_LENGTH=2
 POWERLEVEL9K_SHORTEN_STRATEGY='truncate_middle'
 
-POWERLEVEL9K_HOME_ICON='🏠'
+POWERLEVEL9K_HOME_ICON=''
 source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
 
 #   ctrl + u     : clear line
