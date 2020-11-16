@@ -591,6 +591,8 @@ getmousespeed(){ xinput list|g mouse | sed -e 's/.*id=\(..\)\s.*/\1/' | xargs -n
 alias pbrush='pinta'
 rule(){ [[ -z $1 ]] && exit; wget http://atlas.wolfram.com/01/01/$1/01_01_108_$1.gif -O /tmp/rule$1 && sxiv /tmp/rule$1 }
 mp42webm(){ ffmpeg -i "$1" -crf 26 "${1%.*}".webm  }
+mkv2mp4(){ ffmpeg -i "$1" -crf 26 "${1%.*}".mp4  }
+v2whatsapp(){ ffmpeg -i "$1" -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p "${1%.*}-whatsapp.${1##*.}" }
 alias en='e -n'
 epub2pdf(){ pandoc --pdf-engine=xelatex -f epub -t pdf $1 -o "${1%%.*}.pdf" }
 alias lf=lfcd
