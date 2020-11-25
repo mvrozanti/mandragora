@@ -118,7 +118,8 @@
     ".Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelDarkSolarized.nb": "~/.Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelDarkSolarized.nb",
     ".Mathematica/SystemFiles/FrontEnd/StyleSheets/Dimad.nb": "~/.Mathematica/SystemFiles/FrontEnd/StyleSheets/Dimad.nb",
     ".Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelSolarized.nb": "~/.Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelSolarized.nb",
-    ".peaclock/config": "~/.peaclock/config"
+    ".peaclock/config": "~/.peaclock/config",
+    ".local/bin/byzanz-record-window": "~/.local/bin/byzanz-record-window"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
