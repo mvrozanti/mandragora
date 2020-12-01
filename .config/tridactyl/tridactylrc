@@ -92,3 +92,4 @@ set newtab about:blank
 unbind gd
 unbind gf
 colors unugly
+blacklistadd meet.google.com/
