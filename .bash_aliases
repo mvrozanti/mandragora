@@ -612,3 +612,4 @@ alias md='mkdir -vp'
 unalias gcm
 gcm(){ git commit -m "$@" }
 alias spsyy='sps -yy'
+alias wgs='watch git status'
