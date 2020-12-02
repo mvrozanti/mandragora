@@ -216,7 +216,8 @@ $bind $mod+b                                                    $ensid wmctrl -x
 $bind $mod+Shift+d                                              $ensid wmctrl -xa "jetbrains-idea-ce" || idea
 $bind $mod+z          workspace $ws6;                           $ensid wmctrl -a "Zoom -"         || zoom
 $bind $mod+Shift+f    workspace $ws4;                           $ensid wmctrl -a  WhatsApp        || whatsapp
-$bind $mod+Shift+s    workspace $ws8;                           $ensid wmctrl -a  \| Trello       || trello
+# $bind $mod+Shift+s    workspace $ws8;                           $ensid wmctrl -a  \| Trello       || trello
+$bind $mod+Shift+s    workspace $ws8;                           $ensid wmctrl -a  Slack           || slack
 $bind $mod+Shift+w    workspace $ws12;                          $ensid wmctrl -xa thunderbird     || thunderbird
 $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -xa gdmap           || gdmap -f /
 $bind $mod+p                                                    $ensid wmctrl -a ".pdf ["         || ~/.local/bin/zathura  
