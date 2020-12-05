@@ -271,7 +271,7 @@ lnb(){ [[ $# != 2 ]] && return 1; le_fpath="$1"; le_dst="$2"; sudo ln -s `realpa
 alias cfD='sh -c "cd ~/mandragora && git diff"'
 alias grow='[[ `git -C ~/mandragora pull|wc -l` -eq 1 ]] || ~/mandragora/dotty/dotty.py -f -r && git -C ~/mandragora submodule update --recursive --remote'
 alias oc='mpv /dev/video0'
-alias f='fd -H'
+alias f='fd -HI'
 alias nohup='nohup > /dev/null'
 alias SV='ffmpeg -f video4linux2  -i /dev/video0  -vcodec libx264 -preset fast -b 1000k -f matroska -y /dev/stdout | nc -lp 2717'
 alias SA='pacat -r | nc -l -p 2718'
@@ -419,7 +419,7 @@ alias wl='watch ls'
 nem(){ nemo $@ 3>&2 2>&1 > /dev/null & }
 alias schown='s chown'
 alias cint='picoc'
-wf(){ watch fd -H $@ }
+wf(){ watch fd -HI $@ }
 alias piup='pip install --upgrade pip'
 funccount(){ nm $@ | grep "T " | g -v " _" | wc -l }
 urldecode(){ e "$@" | awk -niord '{printf RT?$0chr("0x"substr(RT,2)):$0}' RS=%.. }
