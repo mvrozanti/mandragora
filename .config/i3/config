@@ -221,7 +221,7 @@ $bind $mod+Shift+f    workspace $ws4;                           $ensid wmctrl -a
 $bind $mod+Shift+s    workspace $ws8;                           $ensid wmctrl -a  Slack           || slack
 $bind $mod+Shift+w    workspace $ws12;                          $ensid wmctrl -xa thunderbird     || thunderbird
 $bind $mod+Ctrl+d     workspace $ws11;                          $ensid wmctrl -xa gdmap           || gdmap -f /
-$bind $mod+p          workspace $ws19;                          $ensid wmctrl -a ".pdf ["         || ~/.local/bin/zathura  
+$bind $mod+p          workspace $ws19;                          $ensid wmctrl -a ".pdf ["         || ~/.local/bin/zathura
 # $bind $mod+Shift+p                                              $ensid transset-df -a -t 
 $bind $mod+Shift+p                                               $ensid zathura
 $bind $mod+Ctrl+p                                               $ensid wmctrl -a "LM-X410.F"      || adb connect 192.168.0.11:5555 && scrcpy -S ; workspace $ws16
