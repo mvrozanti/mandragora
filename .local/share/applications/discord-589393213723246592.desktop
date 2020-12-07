@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=Game 589393213723246592
-Exec=/usr/lib/jvm/java-8-openjdk/jre/bin/java %u
-Type=Application
-NoDisplay=true
-Categories=Discord;Games;
-MimeType=x-scheme-handler/discord-589393213723246592;

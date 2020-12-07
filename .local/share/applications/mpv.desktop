@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=mpv
-Comment=Launches mpv
-Icon=utilities-terminal
-Terminal=false
-Exec=mpv
-MimeType=audio/mpeg;
