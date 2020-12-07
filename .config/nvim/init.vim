@@ -84,6 +84,7 @@ Plug 'mogelbrod/vim-jsonpath'
 Plug 'itchyny/screensaver.vim'
 autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
 autocmd BufEnter *.pro :setlocal filetype=prolog
+autocmd BufEnter *.kt :setlocal filetype=kotlin
 autocmd BufEnter *.wl :setlocal filetype=wolframlanguage
 autocmd FileType prolog setlocal commentstring=%\ %s
 autocmd FileType perl setlocal commentstring=%\ %s
