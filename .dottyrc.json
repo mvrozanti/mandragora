@@ -42,7 +42,6 @@
     ".npmrc": "~/.npmrc",
     "arch-install": "~/arch-install",
     ".config/khal/config": "~/.config/khal/config",
-    ".local/share/applications": "~/.local/share/applications",
     ".ssh/rc": "~/.ssh/rc",
     ".zprofile": "~/.zprofile",
     ".local/bin/gmp": "~/.local/bin/gmp",
