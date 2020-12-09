@@ -48,7 +48,7 @@ def_key "D"
 def_key "D"
   delete_stored_playlist
 def_key "c"
-  toggle_consume
+  dummy
 def_key "R"
   toggle_random
 def_key "s"
