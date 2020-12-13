@@ -214,7 +214,7 @@ $bind $mod+b                                                    $ensid wmctrl -x
 #     -o background_opacity=.78 --title _ranger_ -e sh -c "stty -ixon && "$cat_seqs" && tmux new ranger ~/mackenzie/tcc1/resources"
 # $bind $mod+Tab                                                  $ensid notify-send kek 
 # $bind $mod+Shift+d                                              $ensid wmctrl -a "Netbeans "      || wmctrl -xa "Eclipse" || /usr/bin/netbeans
-$bind $mod+Shift+d                                              $ensid wmctrl -xa "jetbrains-idea-ce" || idea
+$bind $mod+Shift+d    workspace $ws7;                           $ensid wmctrl -xa "jetbrains-idea-ce" || idea
 $bind $mod+z          workspace $ws6;                           $ensid wmctrl -a "Zoom -"         || zoom
 $bind $mod+Shift+f    workspace $ws4;                           $ensid wmctrl -a  WhatsApp        || whatsapp
 # $bind $mod+Shift+s    workspace $ws8;                           $ensid wmctrl -a  \| Trello       || trello
