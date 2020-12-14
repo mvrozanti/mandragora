@@ -426,6 +426,7 @@ urldecode(){ e "$@" | awk -niord '{printf RT?$0chr("0x"substr(RT,2)):$0}' RS=%..
 oldf(){ ls -rsnew ~/Downloads | sed q1 | xargs -I{} xdg-open ~/Downloads/{} }
 Oldf(){ ls -rsnew ~/Downloads | sed q1 | xargs -I{} `sma sxiv` ~/Downloads/{} }
 alias lwcl='l | wc -l'
+wlwcl(){ watch 'ls | wc -l' }
 alias sum='python -c "import sys; print(sum(float(l) for l in sys.stdin))"'
 cC(){ trap "exit" INT; while :; do [[ ! -z `co` ]] && co | "$@" && e -n | c; done }
 alias rmr='rm -r'
