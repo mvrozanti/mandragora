@@ -18,6 +18,7 @@ nnoremap <A-p> o<A-p>
 " Automatically deletes all tralling whitespace on save.
 " let blacklist = ['txt']
 " autocmd BufWritePre  * if index(blacklist, &ft) < 0 | %s/\s\+$//e
+" autocmd BufWritePre  *.sh shellcheck-gb
 let g:tex_flavor = 'latex'
 autocmd BufWritePost *.tex silent! !pdflatex % ; pdflatex -synctex=1 % 
 " nnoremap <C-o> :call Synctex()<CR>
@@ -69,6 +70,7 @@ call plug#begin()
 Plug 'salsifis/vim-transpose' " Vim plugin - Transpose matrices of text (swap lines with columns). 
 Plug 'iberianpig/tig-explorer.vim'
 Plug 'Yggdroot/indentLine'
+Plug 'pearofducks/ansible-vim'
 let g:indentLine_enabled = 0
 let g:EclimSignLevel = 'error'
 Plug 'tomtom/tcomment_vim'
@@ -329,6 +331,8 @@ noremap <silent> <c-b> :call smooth_scroll#up   ( &scroll*2, 10, 4)<CR>
 noremap <silent> <c-f> :call smooth_scroll#down ( &scroll*2, 10, 4)<CR>
 
 Plug 'skwp/greplace.vim'
+Plug 'davidhalter/jedi-vim'
+autocmd BufEnter *.py execute "silent! CocDisable"
 
 Plug 'neoclide/coc.nvim'
 command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
