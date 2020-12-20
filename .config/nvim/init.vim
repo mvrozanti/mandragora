@@ -707,3 +707,4 @@ function! s:RemoveDiacritics(line1, line2)
   call setline(a:line1, split(tr(all, diacs, repls), "\n"))
 endfunction
 command! -range=% RemoveDiacritics call s:RemoveDiacritics(<line1>, <line2>)
+map <C-a> mz<ESC>ggVGy<ESC>'z
