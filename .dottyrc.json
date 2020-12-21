@@ -118,7 +118,12 @@
     ".Mathematica/SystemFiles/FrontEnd/StyleSheets/Dimad.nb": "~/.Mathematica/SystemFiles/FrontEnd/StyleSheets/Dimad.nb",
     ".Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelSolarized.nb": "~/.Mathematica/SystemFiles/FrontEnd/StyleSheets/pastelSolarized.nb",
     ".peaclock/config": "~/.peaclock/config",
-    ".local/bin/byzanz-record-window": "~/.local/bin/byzanz-record-window"
+    ".local/bin/byzanz-record-window": "~/.local/bin/byzanz-record-window",
+    ".config/JetBrains/IdeaIC2020.2/options/cachedDictionary.xml": "~/.config/JetBrains/IdeaIC2020.2/options/cachedDictionary.xml",
+    ".config/JetBrains/IdeaIC2020.2/options/keymap.xml": "~/.config/JetBrains/IdeaIC2020.2/options/keymap.xml",
+    ".config/JetBrains/IdeaIC2020.2/options/editor.xml": "~/.config/JetBrains/IdeaIC2020.2/options/editor.xml",
+    ".config/JetBrains/IdeaIC2020.2/options/vim_settings.xml": "~/.config/JetBrains/IdeaIC2020.2/options/vim_settings.xml",
+    ".config/JetBrains/IdeaIC2020.2/options/vim_settings_local.xml": "~/.config/JetBrains/IdeaIC2020.2/options/vim_settings_local.xml"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
