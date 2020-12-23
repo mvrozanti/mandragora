@@ -484,7 +484,6 @@ co/f(){ /f `co` }
 alias mvncas='mvn clean compile assembly:single'
 alias wh='watch head'
 unalias gpf
-alias gpf='git push -f'
 alias gpsu='git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)'
 alias gri='git rebase -i'
 alias wll='watch ls -lh'
