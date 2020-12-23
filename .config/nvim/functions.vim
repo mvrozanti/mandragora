@@ -4,10 +4,9 @@ fun! SetupCommandAlias(from, to)
         \ .'? ("'.a:to.'") : ("'.a:from.'"))'
 endfun
 
-
 " Remove diacritical signs from characters in specified range of lines.
 " Examples of characters replaced: á -> a, ç -> c, Á -> A, Ç -> C.
-function! s:RemoveDiacritics(line1, line2)
+function! RemoveDiacritics(line1, line2)
   let diacs = 'áâãàçéêíóôõüú'  " lowercase diacritical signs
   let repls = 'aaaaceeiooouu'  " corresponding replacements
   let diacs .= toupper(diacs)
@@ -34,12 +33,6 @@ function! Killit()
             :q
         endif
     endtry
-endfunction
-
-
-function! s:check_back_space() abort
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
 
 
