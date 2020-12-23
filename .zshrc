@@ -103,7 +103,6 @@ bindkey '^h' backward-delete-char
 bindkey '^[^l' delete-word
 
 run_ranger() { echo; ranger --choosedir=$HOME/.rangerdir < $TTY; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"; zle reset-prompt }
-run_cddotdot() { echo; cd ..; zle reset-prompt }
 run_lf() { echo; lf; zle reset-prompt }
 run_nnn() { echo; nnn < $TTY ; zle reset-prompt }
 run_W() { clear; echo; W; zle reset-prompt }
@@ -121,7 +120,6 @@ run_clock() { echo; peaclock; zle reset-prompt}
 
 zle -N run_clock
 zle -N run_ranger
-zle -N run_cddotdot
 # zle -N run_lf
 zle -N run_nnn
 zle -N run_weather
@@ -138,7 +136,6 @@ zle -N cd_fzf
 
 bindkey '^[R' 'run_nnn'
 bindkey '^[r' 'run_ranger'
-bindkey '^[h' 'run_cddotdot'
 # bindkey '^[r' 'run_lf'
 bindkey '^[w' 'run_W'
 bindkey '^[W' 'run_weather'
