@@ -123,7 +123,16 @@
     ".config/JetBrains/IdeaIC2020.2/options/keymap.xml": "~/.config/JetBrains/IdeaIC2020.2/options/keymap.xml",
     ".config/JetBrains/IdeaIC2020.2/options/editor.xml": "~/.config/JetBrains/IdeaIC2020.2/options/editor.xml",
     ".config/JetBrains/IdeaIC2020.2/options/vim_settings.xml": "~/.config/JetBrains/IdeaIC2020.2/options/vim_settings.xml",
-    ".config/JetBrains/IdeaIC2020.2/options/vim_settings_local.xml": "~/.config/JetBrains/IdeaIC2020.2/options/vim_settings_local.xml"
+    ".config/JetBrains/IdeaIC2020.2/options/vim_settings_local.xml": "~/.config/JetBrains/IdeaIC2020.2/options/vim_settings_local.xml",
+    ".config/nvim/autocommands.vim": "~/.config/nvim/autocommands.vim",
+    ".config/nvim/commands.vim": "~/.config/nvim/commands.vim",
+    ".config/nvim/functions.vim": "~/.config/nvim/functions.vim",
+    ".config/nvim/general.vim": "~/.config/nvim/general.vim",
+    ".config/nvim/let.vim": "~/.config/nvim/let.vim",
+    ".config/nvim/map.vim": "~/.config/nvim/map.vim",
+    ".config/nvim/plug.vim": "~/.config/nvim/plug.vim",
+    ".config/nvim/post-init.vim": "~/.config/nvim/post-init.vim",
+    ".config/nvim/settings.vim": "~/.config/nvim/settings.vim"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
