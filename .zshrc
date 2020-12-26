@@ -164,8 +164,8 @@ export GEM_HOME=$HOME/.gem
 export PATH="$GEM_HOME/bin:$PATH"
 export PATH="$PATH:$HOME/.gem/ruby/2.6.0/bin"
 export PATH="$PATH:$HOME/.gem/ruby/2.7.0/bin"
-export PATH="$PATH:$HOME/.rbenv/bin"
-eval "$(rbenv init -)"
+# export PATH="$PATH:$HOME/.rbenv/bin"
+# eval "$(rbenv init -)"
 
 # js
 export PATH=~/.npm/bin:$PATH
@@ -204,8 +204,8 @@ source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
 
 # turn off beep
 set bell-style none
-# export PATH="$HOME/.pyenv/bin:$PATH"
-# eval "$(pyenv init -)"
+export PATH="$HOME/.pyenv/bin:$PATH"
+eval "$(pyenv init -)"
 # eval "$(pyenv virtualenv-init -)"
 
 VISUAL=nvim; export VISUAL EDITOR=nvim; export EDITOR

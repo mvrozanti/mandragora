@@ -326,7 +326,8 @@
     "earlyoom",
     "lsscsi",
     "feedreader",
-    "pv"
+    "pv",
+    "webext"
   ],
   "excluded": [
     "hotmail.gpg",
