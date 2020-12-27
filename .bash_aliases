@@ -30,7 +30,6 @@ alias screenfetch="screenfetch -a ~/nexor.ascii -p"
 alias gfd='git fetch origin; git diff master'
 alias gc='git clone'
 alias gmc='git merge --continue'
-unalias gr
 gr(){ fileh="$@"; git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
 #gacdp(){ cm="${@:1}"; [[ -n "$cm" ]] || read "cm?Enter commit message: "; git add .; git commit -m "$cm"; gd; git push; }
 gdc(){ git diff HEAD HEAD~1; }
@@ -233,7 +232,6 @@ alias 2048='~/util/bash2048/bash2048.sh'
 alias ws='watch stat'
 vf(){ find . -iname "*$@*" | head -n1 | xargs nvim  }
 vg(){ grep -ril "*$@*" | head -n1 | xargs nvim  }
-unalias gg
 gg(){ git grep "$@" $(git rev-list --all) }
 alias nig='npm i -g'
 alias tron='ssh sshtron.zachlatta.com'
@@ -283,7 +281,6 @@ alias sS='servesingle'
 alias ctl='systemctl'
 alias sctl='sudo systemctl'
 alias GD='git daemon --base-path=. --export-all' # serve git repo on port 9418
-unalias gd
 gd(){ [[ "$#" -eq 1 ]] && git diff $@ || git diff }
 alias gdd='git diff HEAD~1'
 alias gddd='git diff HEAD~2'
@@ -468,7 +465,6 @@ alias pie.='pip install -e .'
 alias le='less'
 alias cm='offlineimap-notify'
 up2pypi(){ rm -r dist || : ; python setup.py bdist_wheel && twine upload dist/* }
-unalias gbd
 gbd(){ git branch -d "$@" && git push origin --delete "$@" }
 alias gsc='git stash clear'
 alias gsa='git stash apply'
@@ -483,7 +479,6 @@ aka(){ cat /etc/hosts | grep "$@" | cut -d' ' -f1 }
 co/f(){ /f `co` }
 alias mvncas='mvn clean compile assembly:single'
 alias wh='watch head'
-unalias gpf
 alias gpsu='git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)'
 alias gri='git rebase -i'
 alias wll='watch ls -lh'
@@ -565,7 +560,6 @@ shortenurl(){ curl https://is.gd/create.php\?format\=simple\&url\=$1 }
 alias gibberish='tr -cd "[:alnum:]" < /dev/urandom | head ; echo'
 alias cojq='co|jq'
 mvcd(){ mv $@;cd ${@:$#} }
-unalias gcd
 gcd(){ ! (( $1 % $2 )) && echo $2 || gcd $2 $(( $1 % $2 )) }
 wpa(){ watch 'ps aux | grep "'$@'" | head -n -1' }
 vX(){ e | vipe | xargs -0 zsh -c }
@@ -609,7 +603,6 @@ alias f.c='f.|c'
 alias mv='mv -iv'
 alias cp='cp -riv'
 alias md='mkdir -vp'
-unalias gcm
 gcm(){ git commit -m "$@" }
 alias spsyy='sps -yy'
 alias wgs='watch git status'
