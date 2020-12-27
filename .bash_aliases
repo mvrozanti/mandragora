@@ -619,3 +619,4 @@ alias gmm='git merge master'
 alias diincheck='./gradlew build detekt ktlint || beep'
 alias ducks='ls -a | xargs du -cks -- | sort -rn'
 alias sducks='sudo ls -a | xargs du -cks -- | sort -rn'
+linktcp(){ socat tcp-l:$1,fork,reuseaddr tcp:127.0.0.1:$2 }
