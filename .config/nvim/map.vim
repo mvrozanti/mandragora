@@ -4,6 +4,7 @@ map / /\c
 nnoremap < <<
 nnoremap > >>
 vnoremap / y/<C-r><C-w><CR>
+vnoremap p "_dP
 vnoremap ? y:%s/<C-r><C-w>//gn<CR>
 nnoremap <A-p> o<A-p>
 " nnoremap <C-o> :call Synctex()<CR>
