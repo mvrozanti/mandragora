@@ -13,6 +13,7 @@ au FileType java call SetupCommandAlias("PP!","ProjectProblems!")
 au FileType python set makeprg=python\ %
 au FileType c TagbarToggle
 au BufEnter *.py execute "silent! CocDisable"
+au BufEnter *.js execute "silent! CocDisable"
 au FileType javascript                                         let b:run_script = '!clear;xvkbd -window Firefox -text "\Cr" && xdotool keydown alt key Tab; sleep 2.001; xdotool keyup alt'
 au FileType python                                             let b:run_script = '! clear;python3 %'
 au FileType python                                             let g:pymode_python = 'python3'
