@@ -85,7 +85,7 @@ alias cogc='[[ -d .git ]] && git submodule add `co` || git clone `co`; cd `rev <
 # alias P='curl -sF "sprunge=<-" http://sprunge.us'
 # alias P='curl -sF "f:1=<-" ix.io'
 # alias P='curl -sF "f:1=<-" 0x0.st'
-P(){ kek=`cat -`;ls $kek 2>/dev/null && curl -sF"file=@$kek" 0x0.st || echo $kek | curl -sF "f:1=<-" ix.io }
+P(){ curl -sF "f:1=<-" ix.io }
 alias p='P | tr -d "\n" | c'
 alias feh='feh -B black --scale-down --auto-zoom --sort mtime -. --action2 "rm %F" --action1 "realpath $PWD/%F | xsel -i -b"'
 alias randip="dd if=/dev/urandom bs=4 count=1 2>/dev/null | od -An -tu1 | sed -e 's/^ *//;s/  */./g'"
@@ -614,4 +614,4 @@ alias ducks='ls -a | xargs du -cks -- | sort -rn'
 alias sducks='sudo ls -a | xargs du -cks -- | sort -rn'
 linktcp(){ socat tcp-l:$1,fork,reuseaddr tcp:127.0.0.1:$2 }
 alias first='sed 1q'
-git-obliterate(){ git filter-branch --index-filter "git rm -rf --cached --ignore-unmatch $@" HEAD }
+git-obliterate(){ git filter-branch -f --index-filter "git rm -rf --cached --ignore-unmatch $@" HEAD }
