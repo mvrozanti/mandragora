@@ -327,7 +327,8 @@
     "lsscsi",
     "feedreader",
     "pv",
-    "web-ext"
+    "web-ext",
+    "slimit"
   ],
   "excluded": [
     "hotmail.gpg",
