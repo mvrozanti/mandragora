@@ -186,10 +186,9 @@ $bind $mod+braceright workspace $ws2;                           $ensid wmctrl -a
     -o background_opacity=.78 -o font_size=13 --title khal_ -e sh  -c $cat_seqs" && khal interactive"
 $bind Ctrl+Shift+Escape                                         $ensid wmctrl -a  gotop           || kitty --title gotop \
     -o background_opacity=.78 -e sh -c $cat_seqs' && gotop'
-# $bind $mod+i                                                    $ensid wmctrl -a  _irssi_         || kitty --title _irssi_ \
 #     -o background_opacity=.78 sh -c $cat_seqs' && irssi'
-$bind $mod+i                                                    $ensid wmctrl -a  _irssi_          || kitty --title _irssi_ \
-    -o background_opacity=.78 sh -c "stty -ixon && "$cat_seqs" && tmux new irssi"
+$bind $mod+i                                                    $ensid wmctrl -a  _hexchat_text_          || kitty --title _hexchat_text_ \
+    -o background_opacity=.78 sh -c "stty -ixon && "$cat_seqs" && tmux new hexchat-text"
 # $bind $mod+Ctrl+c                                               $ensid vlc -Idummy http://192.168.0.11:8080/video/mjpeg
 $bind $mod+Ctrl+c                                               $ensid vlc -Idummy http://`echo -e 'ipaddress' | dmenu $dmenu_looks`:8080/video/mjpeg
 $bind $mod+Ctrl+Shift+c                                         $ensid vlc -Idummy http://192.168.0.11:8080/video/mjpeg
