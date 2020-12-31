@@ -1,5 +1,4 @@
 map <A-F> mzgg=G`zzz
-" xnoremap p "_dP
 map / /\c
 nnoremap < <<
 nnoremap > >>
@@ -7,8 +6,6 @@ vnoremap / y/<C-r><C-w><CR>
 vnoremap p "_dP
 vnoremap ? y:%s/<C-r><C-w>//gn<CR>
 nnoremap <A-p> o<A-p>
-" nnoremap <C-o> :call Synctex()<CR>
-" map <C-enter> :call Synctex()<CR>
 map Q <NOP>
 imap silent <C-h> <A-b>
 imap silent <C-l> <A-w>
@@ -32,8 +29,6 @@ inoremap <Insert> <Esc>
 autocmd FileType prolog inoremap she<tab> #!/usr/bin/swipl -q
 autocmd FileType wolframlanguage inoremap she<tab> #!/usr/bin/wolframscript -file
 autocmd FileType make inoremap al<tab> all:<CR>
-" autocmd FileType prolog map <F5> <ESC>:w<CR>:exec '!swipl -q %'<CR>
-" autocmd FileType perl   map <F5> <ESC>:w<CR>:exec '!swipl -q %'<CR>
 vmap <C-Space> gc
 nmap <C-Space> gcc
 nmap S ysiw
@@ -42,9 +37,6 @@ nnoremap <A-Left>  :TmuxNavigateLeft<cr>
 nnoremap <A-Down>  :TmuxNavigateDown<cr>
 nnoremap <A-Up>    :TmuxNavigateUp<cr>
 nnoremap <A-Right> :TmuxNavigateRight<cr>
-" vnoremap <silent> <C-c> :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:noh<CR>
-" nnoremap : q:i
-" nmap <silent> M    "_yiw:s/\(\%#\w\+\)\(\_W\+\)\(\w\+\)/\3\2\1/<CR><C-O> *N*<Esc><Esc>
 nnoremap yD y$
 nnoremap <A-i> f(a
 inoremap <A-i> <Esc>f(a
@@ -61,7 +53,6 @@ nnoremap c_ ct_
 nnoremap dA F(vbdf)xB
 nmap dS bysw<Space><Space>ds)
 vnoremap - $h
-" nnoremap <C-i> :mark x<CR>
 nnoremap <C-u> 'x
 inoremap {<CR> {<CR>}<Esc>k$o
 vnoremap <CR> c<CR>
@@ -94,8 +85,6 @@ autocmd FileType cs inoremap pu<tab> public<Space>
 autocmd FileType cs inoremap fa<tab> false
 autocmd FileType cs inoremap tr<tab> true
 autocmd FileType cs inoremap cw<tab> Console.WriteLine()<Esc>i
-" autocmd FileType cs inoremap <C-i> <Esc>l:OmniSharpFixUsings<CR>aa
-" autocmd FileType cs nnoremap <C-i> :OmniSharpFixUsings<CR>
 autocmd FileType java inoremap psvm<tab> public static void main(String args[]){<CR>}
 autocmd FileType java map <silent> <F6> :mvnexec<CR><CR>
 autocmd FileType java inoremap <c-space> <c-x><c-u>
@@ -111,7 +100,6 @@ autocmd FileType python inoremap ci<tab> code.interact(banner='', local=globals(
 autocmd FileType python inoremap enci<tab> curses.endwin() or code.interact(local=globals().update(locals()) or globals())<Esc>
 autocmd FileType python inoremap pdbt<tab> pdb.set_trace()<Esc>
 autocmd FileType python inoremap fori<tab> for <+> in<Space>
-" autocmd FileType python map <silent> <F6> :make<CR><CR>
 autocmd FileType python inoremap ld<tab> LOG.debug()<Esc>i
 autocmd FileType python inoremap pr<tab> print()<Esc>i
 autocmd FileType python inoremap dis<tab> def __init__(self, ):<CR><+><Esc>kWi
@@ -154,7 +142,6 @@ noremap <silent> <c-u> :call smooth_scroll#up   ( &scroll, 10, 2)<CR>
 noremap <silent> <c-d> :call smooth_scroll#down ( &scroll, 10, 2)<CR>
 noremap <silent> <c-b> :call smooth_scroll#up   ( &scroll*2, 10, 4)<CR>
 noremap <silent> <c-f> :call smooth_scroll#down ( &scroll*2, 10, 4)<CR>
-" inoremap <silent><expr> <c-space> coc#refresh()
 nmap <silent> <leader>w <Plug>(coc-diagnostic-next)
 inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
@@ -169,8 +156,6 @@ inoremap <silent><expr> <c-space>
       \ pumvisible() ? "\<C-n>" :
       \ <SID>check_back_space() ? "\<TAB>" :
       \ coc#refresh()
-" map y cp
-" map yy YY
 nnoremap <F5>   :VBGcontinue<CR>
 autocmd FileType c,cpp  nnoremap <F6>   :VBGstartGDB %:r<CR>
 autocmd FileType python nnoremap <F6>   :VBGstartPDB3 %<CR>
@@ -251,3 +236,13 @@ autocmd FileType tex inoremap col<Tab> \begin{columns}[T]<CR>\begin{column}{.5\t
 autocmd FileType tex inoremap rn<Tab> (\ref{})<+><Esc>F}i
 nmap <C-i> :CocAction<CR>
 map <C-a> mz<ESC>ggVGy<ESC>'z
+
+" very magic sector https://vim.fandom.com/wiki/Simplifying_regular_expressions_using_magic_and_no-magic
+nnoremap / /\v
+vnoremap / /\v
+cnoremap %s/ %smagic/
+cnoremap \>s/ \>smagic/
+nnoremap :g/ :g/\v
+nnoremap :g// :g//
+
+
