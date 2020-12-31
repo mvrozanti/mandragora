@@ -132,7 +132,8 @@
     ".config/nvim/map.vim": "~/.config/nvim/map.vim",
     ".config/nvim/plug.vim": "~/.config/nvim/plug.vim",
     ".config/nvim/post-init.vim": "~/.config/nvim/post-init.vim",
-    ".config/nvim/settings.vim": "~/.config/nvim/settings.vim"
+    ".config/nvim/settings.vim": "~/.config/nvim/settings.vim",
+    ".config/hexchat/hexchat.conf": "~/.config/hexchat/hexchat.conf"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
