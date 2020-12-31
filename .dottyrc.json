@@ -329,7 +329,8 @@
     "feedreader",
     "pv",
     "web-ext",
-    "slimit"
+    "slimit",
+    "hexchat"
   ],
   "excluded": [
     "hotmail.gpg",
