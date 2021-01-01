@@ -53,7 +53,7 @@ alias cfI='v ~/.irssi/config'
 alias cfp='~/mandragora/dotty/dotty.py -c -f -s'
 # alias cfP='ranger ~/.config/powerline/'
 alias cfP='v ~/.config/polybar/config'
-alias cfs='ranger ~/util/st/ && cd $_ && sudo make install'
+alias cfs='v ~/.config/sxhkd/sxhkdrc'
 alias cfS='v ~/.scimrc'
 alias cfr='v ~/.config/ranger'
 alias cfl='v ~/.config/lf'
@@ -615,3 +615,4 @@ alias sducks='sudo ls -a | xargs du -cks -- | sort -rn'
 linktcp(){ socat tcp-l:$1,fork,reuseaddr tcp:127.0.0.1:$2 }
 alias first='sed 1q'
 git-obliterate(){ git filter-branch -f --index-filter "git rm -rf --cached --ignore-unmatch $@" HEAD }
+alias cfb='v /home/nexor/.config/bspwm/bspwmrc'
