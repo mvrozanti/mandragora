@@ -18,4 +18,3 @@ bspc config external_rules_command /home/nexor/.config/bspwm/external_rules
 bspc   rule   -a   "firefox"                            desktop=^1
 bspc   rule   -a   "whats-app-nativefier-d52542"        desktop=^4
 bspc   rule   -a   "jetbrains-idea-ce"                  desktop=^7
-

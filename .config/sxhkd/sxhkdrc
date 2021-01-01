@@ -228,9 +228,6 @@ super + shift + c
         fi;\
     fi
 
-ctrl + shift + g
-    notify-send aaa
-
 ctrl + alt + {q,e}
     bspc desktop -f {prev.occupied,next.occupied}
 
