@@ -41,10 +41,6 @@ alt + b
 # alt + shift {a,s,d,f}
 # 	bspc window -w {left.manual,down.manual,up.manual,right.manual}
 
-# Select windows, or move
-# super + {_,shift + }{h,j,k,l}
-# 	bspc window -{f,s} {left,down,up,right} || bspc window -f {prev, prev, next, next}
-
 # Resize nodes
 # alt + {a,f}
 # 	$HOME/scripts/window_move.sh {-p,-n} -x -s 20
@@ -85,7 +81,7 @@ alt + {comma,period}
 
 # Toggle monocle
 super + f
-	bspc desktop -l next
+	bspc node -t \~fullscreen
 
 # Toggle pseudotiled (floating in tile)
 alt + shift + space

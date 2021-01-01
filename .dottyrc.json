@@ -353,6 +353,7 @@
     "_git clone https://github.com/emcrisostomo/fswatch ~/util/fswatch && cd $_ && ./configure && sudo make install",
     "git clone https://github.com/jesseduffield/lazygit ~/util/lazygit",
     "git clone https://gitlab.com/zsaleeba/picoc ~/util/picoc && cd $_ && make && cp picoc ~/.local/bin",
+    "git clone https://github.com/BrodieRobertson/cleanfullscreen ~/util/cleanfullscreen && cd $_ && cp cleanfullscreen ~/.local/bin",
     "git clone https://github.com/baskerville/xtitle ~/util/xtitle && cd $_ && sudo make install",
     "git clone https://github.com/andmarti1424/sc-im ~/util/sc-im && sudo make -C src install",
     "git clone https://github.com/mvrozanti/bash-tetris ~/util/bash-tetris",
