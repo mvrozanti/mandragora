@@ -1,5 +1,6 @@
 #!/bin/sh
 sxhkd &
+PATH=$PATH:~/.config/sxhkd
 wal --saturate 1.0 -a 299 -i `cat $HOME/.cache/wal/wal`
 pgrep -x mpd     || mpd &
 pgrep -x compton || compton -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
@@ -8,7 +9,7 @@ $HOME/.local/bin/cleanfullscreen
 
 bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX
 
-bspc config border_width         2
+bspc config border_width         0
 bspc config window_gap          12
 
 bspc config split_ratio          0.52
