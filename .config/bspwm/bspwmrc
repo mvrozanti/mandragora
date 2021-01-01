@@ -4,6 +4,7 @@ wal --saturate 1.0 -a 299 -i `cat $HOME/.cache/wal/wal`
 pgrep -x mpd     || mpd &
 pgrep -x compton || compton -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
 pgrep -x polybar || polybar . &
+$HOME/.local/bin/cleanfullscreen
 
 bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX
 

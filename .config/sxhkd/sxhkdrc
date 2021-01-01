@@ -1,29 +1,6 @@
 # bspwm hotkeys
-#
-
-# alt + shift + q
-# 	bspc quit 1 && pkill bar && pkill dzen2
-
-# # Toggle panels
-# alt + q
-# 	{pkill panel; pkill cat; pkill conky; bspc config top_padding 0 ,\
-	# bspc config top_padding 14; $HOME/.config/bspwm/panel/panel & }
-
-
-# Workstation Monitor
-# alt + w
-# 	bspc monitor -f next
-
-# Close window
 super + q
 	bspc node -c
-# 	bspc window -c
-# super + q
-# 	bspc window -c
-
-# # Kill window
-# alt + ctrl + shift + x
-# 	bspc window -k
 
 # Lock node
 alt + shift + p
@@ -134,6 +111,12 @@ alt + Tab
 super + Scroll_Lock 
     flameshot gui
 
+ctrl + Print
+    scrot -s -e 'xclip -selection clipboard -target image/png -i $f' && notify-send "Screenshot saved to clipboard"
+
+super + Print
+    scrot -u -e 'xclip -selection clipboard -target image/png -i $f' ~/.scrot.png && notify-send "Screenshot saved to clipboard" 
+
 Print
     scrot -e 'xclip -selection clipboard -target image/png -i $f' ~/.scrot.png && notify-send "Screenshot saved to clipboard"
 
@@ -177,18 +160,11 @@ super + shift + d
 super + r
     rofi -show run
 
-# super + d
-#     bspc node -d ^9 && bspc node -f next.local.!hidden.window
-
 super + p
     wmctrl -a ".pdf ["         || ~/.local/bin/zathura
 	
 super + shift + r
     notify-send 'Restarting bspwm' && bspc wm --restart
-
-# super + alt + {h,j,k,l}
-#     bspc node -z {left -20 0,
-#     bottom 0 20,top 0 -20,right 20 0}
 
 super + g
     ~/.local/bin/setbg
@@ -240,9 +216,12 @@ super + {equal,minus,plus,parenright}
 super + {_,shift + }{h,j,k,l}
 	bspc node -{f,s} {west,south,north,east}
 
-# super + alt + {h,j,k,l}
-# 	bspc node -z {left -20 0,bottom 0 20,top 0 -20,right 20 0}
+super + {_,ctrl + }{h,j,k,l}
+        bspc node -e {left -10,down +10,up -10,right +10}
 
-# super + {Left,Down,Up,Right}
-
-#     bspc node -v {-20 0,0 20,0 -20,20 0}
+super + d
+    if [ $(bspc query -D -d --names) = VII ]; then \
+        bspc node -f next.local.!hidden.window;\
+    else \                                                  
+        bspc desktop -f IX;\
+    fi
