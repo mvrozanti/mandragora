@@ -134,7 +134,8 @@
     ".config/nvim/post-init.vim": "~/.config/nvim/post-init.vim",
     ".config/nvim/settings.vim": "~/.config/nvim/settings.vim",
     ".config/hexchat/hexchat.conf": "~/.config/hexchat/hexchat.conf",
-    ".local/bin/gaps": "~/.local/bin/gaps"
+    ".local/bin/gaps": "~/.local/bin/gaps",
+    ".config/sxhkd/sxhkdrc": "~/.config/sxhkd/sxhkdrc"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [

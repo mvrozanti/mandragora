@@ -1,0 +1,246 @@
+# bspwm hotkeys
+#
+
+# alt + shift + q
+# 	bspc quit 1 && pkill bar && pkill dzen2
+
+# # Toggle panels
+# alt + q
+# 	{pkill panel; pkill cat; pkill conky; bspc config top_padding 0 ,\
+	# bspc config top_padding 14; $HOME/.config/bspwm/panel/panel & }
+
+
+# Workstation Monitor
+# alt + w
+# 	bspc monitor -f next
+
+# Close window
+super + q
+	bspc node -c
+# 	bspc window -c
+# super + q
+# 	bspc window -c
+
+# # Kill window
+# alt + ctrl + shift + x
+# 	bspc window -k
+
+# Lock node
+alt + shift + p
+	bspc window -t private
+
+# Balance tree
+alt + b
+	bspc desktop -B
+
+# Presel window for splitting
+# alt + ctrl + {h,j,k,l}
+# 	bspc window -p {left,down,up,right}
+
+# Move window into presel position
+# alt + shift {a,s,d,f}
+# 	bspc window -w {left.manual,down.manual,up.manual,right.manual}
+
+# Select windows, or move
+# super + {_,shift + }{h,j,k,l}
+# 	bspc window -{f,s} {left,down,up,right} || bspc window -f {prev, prev, next, next}
+
+# Resize nodes
+# alt + {a,f}
+# 	$HOME/scripts/window_move.sh {-p,-n} -x -s 20
+# alt + {s,d}
+# 	$HOME/scripts/window_move.sh {-p,-n} -y -s 20
+
+# Move floating windows (requires baskerville's xdo)
+# alt + {Left,Right,Up,Down}
+#     xdo move {-x -20,-x +20,-y -20,-y +20}
+
+# Resize floating windows
+alt + shift + {Left,Right,Up,Down}
+    xdo resize {-w -20,-w +20,-h -20,-h +20}    bspc window -e {left -10,down +10,up -10,right +10} || {right -10,up +10,down -10,left +10}
+
+# Move current window to largest space
+alt + Return
+	bspc window -s biggest
+
+# Mirror and flip leaves of tree
+alt + {comma,period}
+	bspc desktop -F {horizontal,vertical}
+
+# Rotate leaves of tree
+# alt + shift + {comma,period}
+# 	bspc desktop -R {90,270}
+
+# Select previous / next desktop
+# alt + {p,n}
+# 	bspc 
+# 	desktop -f {prev.occupied,next.occupied}
+
+# super + g
+# 	bspc node -s biggest.window
+
+# Lock a window from closing
+# alt + Escape
+# 	bspc window -t locked
+
+# Toggle monocle
+super + f
+	bspc desktop -l next
+
+# Toggle pseudotiled (floating in tile)
+alt + shift + space
+	bspc window -t pseudo_tiled
+
+# Focus on floating / tiled
+alt + e
+	bspc window -f {next.floating,next.tiled}
+
+# Change desktop padding
+alt + {_, shift} + bracketright
+	bspc config -d focused right_padding $((`bspc config -d focused right_padding` {+,-} 20 ))
+
+alt + {_, shift} + bracketleft
+	bspc config -d focused left_padding $((`bspc config -d focused left_padding` {+,-} 20 ))
+
+ctrl + {_, shift} + bracketright
+	bspc config -d focused bottom_padding $((`bspc config -d focused bottom_padding` {+,-} 20 ))
+
+ctrl + {_, shift} + bracketleft
+	bspc config -d focused top_padding $((`bspc config -d focused top_padding` {+,-} 20 ))
+
+alt + shift + {minus,equal}
+	bspc config -d focused right_padding $((`bspc config -d focused right_padding` {+,-} 20 )); \
+	bspc config -d focused left_padding $((`bspc config -d focused left_padding` {+,-} 20 )); \
+	bspc config -d focused bottom_padding $((`bspc config -d focused bottom_padding` {+,-} 20 )); \
+	bspc config -d focused top_padding $((`bspc config -d focused top_padding` {+,-} 20 ));
+
+
+# Change window gap
+alt + {minus,equal}
+	bspc config -d focused window_gap $((`bspc config -d focused window_gap` {+,-} 2 ))
+
+# # Set splitting ratio of windows
+# alt + ctrl + {1-9}
+# 	bspc window -r 0.{1-9}
+#
+# # Focus or move window to desktops
+# alt + {_,shift + }{1-9,0}
+#     bspc {desktop -f, window -d} $(bspc query -M -m)/{i,ii,iii,iv,v,vi,vii,viii,ix,x}
+
+super + Tab
+    bspc node -f next.local.!hidden.window
+
+alt + Tab
+    bspc desktop -f last
+    # bspc node -f 
+    # bspc node -f @{parent,brother,first,second}
+
+super + Scroll_Lock 
+    flameshot gui
+
+Print
+    scrot -e 'xclip -selection clipboard -target image/png -i $f' ~/.scrot.png && notify-send "Screenshot saved to clipboard"
+
+XF86AudioNext		  
+    mpc next
+XF86AudioPlay		  
+    mpc toggle
+XF86AudioPrev		  
+    mpc prev
+XF86AudioMute             
+    pamixer -t
+XF86AudioRaiseVolume      
+    amixer set 'Master' 4%+
+XF86AudioLowerVolume      
+    amixer set 'Master' 4%- 
+
+super + dead_grave
+    wmctrl -a ncmpcpp 		|| st -T 50 -e /usr/bin/ncmpcpp
+    
+super + 1
+    wmctrl -a Firefox         || firefox
+
+super + 2
+    wmctrl -a _ranger_        	|| kitty --title _ranger_ -e zsh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && tmux new ranger" 
+
+super + 3
+    wmctrl -a ZSH        	|| kitty
+
+super + 4
+    wmctrl -a telegram          || telegram
+
+super + shift + f
+    wmctrl -a  WhatsApp        	|| whatsapp
+
+super + r
+    rofi -show run
+
+super + p
+    wmctrl -a ".pdf ["         || ~/.local/bin/zathura
+	
+super + shift + r
+    notify-send 'Restarted wm' && pkill -USR1 -x sxhkd && {sxhkd & ; bspc wm --restart }
+
+# super + alt + {h,j,k,l}
+#     bspc node -z {left -20 0,
+#     bottom 0 20,top 0 -20,right 20 0}
+
+super + g
+    ~/.local/bin/setbg
+
+super + c
+    id=$(bspc query -N -n "focused");\
+    if [ -n "$id" ];then \
+        xprop -id $id -f _SCRATCH 32ii -set _SCRATCH $(date +%s,%N);\
+        bspc node -t "floating";\
+        xdotool windowunmap $id;\
+    fi
+
+super + shift + space
+    if [ -z "$(bspc query -N -n focused.floating)" ]; then \                    
+        bspc node focused -t floating; \                                        
+    else \                                                                      
+        bspc node focused -t tiled; \                                           
+    fi
+
+super + shift + c
+    i=$(bspc query -N -n "focused.floating");\
+    if [ -n "$i" ];then \
+        xprop -id $i -f _SCRATCH 32ii -set _SCRATCH $(date +%s,%N);\
+        xdotool windowunmap $i;\
+    else;\
+        i=$(for w in $(xwininfo -root -children | grep -e "^\s*0x[0-9a-f]\+" -o);do \
+            t=$(xprop -id $w _SCRATCH | grep ' = \(.*\)');\
+            if [ -n "$t" ];then \
+                echo $t $w;\
+            fi;\
+        done|sort -n|head -n1|cut -d" " -f 5);\
+        if [ -n "$i" ];then \
+            xprop -id $i -remove _SCRATCH;\
+            bspc rule -a \* state=tiled center=on --one-shot;\
+            xdotool windowmap $i;\
+            bspc node -f $i;\
+        fi;\
+    fi
+
+ctrl + alt + {q,e}
+    bspc desktop -f {prev,next}
+
+super + e
+    bspc node @/ -R 90
+
+# super + shift + {h,j,k,l}
+#     /home/nexor/.local/bin/bspwm_smart_move
+
+super + {plus,minus,equal}
+    /home/nexor/.local/bin/gaps {plus,minus,equal}
+
+super + {_,shift + }{h,j,k,l}
+	bspc node -{f,s} {west,south,north,east}
+
+# super + alt + {h,j,k,l}
+# 	bspc node -z {left -20 0,bottom 0 20,top 0 -20,right 20 0}
+
+# super + {Left,Down,Up,Right}
+
+#     bspc node -v {-20 0,0 20,0 -20,20 0}
