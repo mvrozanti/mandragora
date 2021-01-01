@@ -140,7 +140,7 @@ super + 1
     wmctrl -a Firefox         || firefox
 
 super + 2
-    wmctrl -a _ranger_        	|| kitty --title _ranger_ -e zsh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && tmux new ranger" 
+    wmctrl -a _ranger_        	|| kitty --title _ranger_ -e zsh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ranger" 
 
 super + 3
     wmctrl -a ZSH        	|| kitty --title _zsh_
@@ -211,16 +211,16 @@ super + e
     bspc node @/ -R 90
 
 super + {equal,minus,plus,parenright}
-    /home/nexor/.local/bin/gaps {plus,minus,equal,zero}
+    $HOME/.local/bin/gaps {plus,minus,equal,zero}
 
 super + {_,shift + }{h,j,k,l}
     bspc node -{f,s} {west,south,north,east}
 
 super + {_,ctrl + }{h,j,k,l}
-    bspc node -z {left -20 0 || bspc node -z right -20 0, \
-                    bottom 0 20 || bspc node -z top 0 20,\
-                    top 0 -20 || bspc node -z bottom 0 -20,\
-                    right 20 0 || bspc node -z left 20 0}
+    wm_action wresize {left,down,up,right}
+
+super + shift + g
+    $HOME/.local/bin/gaps zero
 
 super + d
     if [ $(bspc query -D -d --names) = IX ]; then \
