@@ -216,11 +216,9 @@ super + {equal,minus,plus,parenright}
 super + {_,shift + }{h,j,k,l}
     bspc node -{f,s} {west,south,north,east}
 
-super + {_,ctrl + }{h,j,k,l}
-    bspc node -z {left -20 0 || bspc node -z right -20 0, \
-                bottom 0 20 || bspc node -z top 0 20,\
-                top 0 -20 || bspc node -z bottom 0 -20,\
-                right 20 0 || bspc node -z left 20 0}
+super + ctrl + {h,j,k,l}
+    $HOME/.config/sxhkd/custom_resize {left,down,up,right}
+
 super + shift + g
     $HOME/.local/bin/gaps zero
 
