@@ -179,7 +179,7 @@ super + p
     wmctrl -a ".pdf ["         || ~/.local/bin/zathura
 	
 super + shift + r
-    notify-send 'Restarted wm' && pkill -USR1 -x sxhkd && {sxhkd & ; bspc wm --restart }
+    notify-send 'Restarting bspwm' && bspc wm --restart
 
 # super + alt + {h,j,k,l}
 #     bspc node -z {left -20 0,
@@ -232,8 +232,8 @@ super + e
 # super + shift + {h,j,k,l}
 #     /home/nexor/.local/bin/bspwm_smart_move
 
-super + {plus,minus,equal}
-    /home/nexor/.local/bin/gaps {plus,minus,equal}
+super + {plus,minus,equal,parenright}
+    /home/nexor/.local/bin/gaps {plus,minus,equal,zero}
 
 super + {_,shift + }{h,j,k,l}
 	bspc node -{f,s} {west,south,north,east}
