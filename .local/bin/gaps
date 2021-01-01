@@ -1,20 +1,15 @@
-#!/bin/sh
+#!/bin/bash
+window_gap="bspc config window_gap"
+delta=5
 
-{
-        window_gap="bspc config window_gap"
+case "$1" in
+        plus) $($window_gap $((`$window_gap` + $delta ))) ;;
 
-        case "$1" in
+        minus) if [ `$window_gap` -ne 0 ]; then
+                $($window_gap $((`$window_gap` - $delta )))
+                fi ;;
 
-                plus) "$($window_gap $((`$window_gap` + 2 )))"
-                        gapsize=`$window_gap` ;;
+        equal) $($window_gap 50) ;;
 
-                minus) if [ `$window_gap` -ne 0 ]; then
-                        "$($window_gap $((`$window_gap` - 2 )))"
-                        gapsize=`$window_gap`
-                        fi ;;
-
-                equal) "$($window_gap 50)" ;;
-
-                zero) "$($window_gap 0)" ;;
-        esac
-} 2>&1 >/dev/null
+        zero) $($window_gap 0) ;;
+esac
