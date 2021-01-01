@@ -238,8 +238,8 @@ nmap <C-i> :CocAction<CR>
 map <C-a> mz<ESC>ggVGy<ESC>'z
 
 " very magic sector https://vim.fandom.com/wiki/Simplifying_regular_expressions_using_magic_and_no-magic
-nnoremap / /\v
-vnoremap / /\v
+nnoremap / /\v\c
+vnoremap / /\v\c
 cnoremap %s/ %smagic/
 cnoremap \>s/ \>smagic/
 nnoremap :g/ :g/\v

@@ -130,16 +130,7 @@ nnoremap <S-U>      :5winc -<CR>
 "highlight Pmenu ctermfg=2 ctermbg=4 guifg=1 guibg=4
 
 set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
 
-Plugin 'godlygeek/tabular'
-
-Plugin 'junegunn/goyo.vim'
-
-Plugin 'realincubus/vim-clang-refactor'
-
-"Clipboard -> cp,cv
-Plugin 'christoomey/vim-system-copy'
 map y cp
 map yy YY
 set clipboard=unnamed,unnamedplus
@@ -147,71 +138,6 @@ set clipboard=unnamed,unnamedplus
 let g:system_copy#copy_command='xclip -sel clipboard -i'
 let g:system_copy#paste_command='xclip -sel clipboard -o'
 
-Plugin 'ehamberg/vim-cute-python'
-
-" C/C++ debugging
-Plugin 'Shougo/vimproc.vim'
-Plugin 'idanarye/vim-vebugger'
-" Plugin 'vim-scripts/Conque-Shell'
-" Plugin 'vim-scripts/Conque-GDB'
-
-"==== plugin manager
-Plugin 'VundleVim/Vundle.vim'
-
-Plugin 'pangloss/vim-javascript'
-set conceallevel=1
-let g:javascript_conceal_function = "ƒ"
-let g:javascript_plugin_jsdoc = 1
-let g:javascript_conceal_null                 = "ø"
-let g:javascript_conceal_this                 = "@"
-let g:javascript_conceal_return               = "⇚"
-let g:javascript_conceal_undefined            = "¿"
-let g:javascript_conceal_NaN                  = "ℕ"
-let g:javascript_conceal_prototype            = "¶"
-let g:javascript_conceal_static               = "•"
-let g:javascript_conceal_super                = "Ω"
-let g:javascript_conceal_arrow_function       = "⇒"
-let g:javascript_plugin_ngdoc = 1
-let g:javascript_plugin_flow = 1
-let g:CXXFLAGS='-std=c++11'
-
-" ==== File tree
-Plugin 'scrooloose/nerdtree'
-
-" ==== Refactoring for C-family
-Plugin 'bbchung/clighter8'
-
-" ==== overwrite vim banner
-Plugin 'mhinz/vim-startify'
-Plugin 'mhinz/vim-signify'
-
-" ==== Completion
-Plugin 'Valloric/YouCompleteMe'
-Plugin 'davidhalter/jedi-vim'
-
-" ==== Git
-Plugin 'airblade/vim-gitgutter'
-Plugin 'tpope/vim-fugitive'
-
-" ==== syntax helpers
-Plugin 'scrooloose/syntastic'
-let g:syntastic_javascript_checkers = ['eslint']
-let g:syntastic_java_checkers=['eclim']
-Plugin 'tpope/vim-surround'
-Plugin 'chrisbra/Colorizer'
-Plugin 'chrisbra/unicode.vim'
-
-Plugin 'othree/yajs.vim'
-Plugin 'mitsuhiko/vim-jinja'
-
-" ==== moving / seraching
-Plugin 'easymotion/vim-easymotion'
-Plugin 'kien/ctrlp.vim'
-
-" ==== snippets
-Plugin 'SirVer/ultisnips'
-
-call vundle#end()
 filetype plugin indent on
 
 " ==== Colors and other basic settings
