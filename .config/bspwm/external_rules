@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 wid=$1
 class=$2
 instance=$3
@@ -9,4 +9,8 @@ title=$(xtitle "$wid")
 
 if [ "$title" = _zsh_ ] ; then
 	echo "desktop=^3"
+fi
+
+if [ "$title" = _ranger_ ] ; then
+	echo "desktop=^2"
 fi

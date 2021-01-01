@@ -171,8 +171,14 @@ super + 4
 super + shift + f
     wmctrl -a  WhatsApp        	|| whatsapp
 
+super + shift + d
+    wmctrl -xa "jetbrains-idea-ce" || idea
+
 super + r
     rofi -show run
+
+# super + d
+#     bspc node -d ^9 && bspc node -f next.local.!hidden.window
 
 super + p
     wmctrl -a ".pdf ["         || ~/.local/bin/zathura
@@ -222,8 +228,11 @@ super + shift + c
         fi;\
     fi
 
+ctrl + shift + g
+    notify-send aaa
+
 ctrl + alt + {q,e}
-    bspc desktop -f {prev,next}
+    bspc desktop -f {prev.occupied,next.occupied}
 
 super + e
     bspc node @/ -R 90
