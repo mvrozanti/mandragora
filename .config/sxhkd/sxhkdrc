@@ -166,6 +166,9 @@ super + 2
 super + 3
     wmctrl -a ZSH        	|| kitty
 
+super + shift + 3
+    kitty
+
 super + 4
     wmctrl -a telegram          || telegram
 
