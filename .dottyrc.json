@@ -135,7 +135,8 @@
     ".config/nvim/settings.vim": "~/.config/nvim/settings.vim",
     ".config/hexchat/hexchat.conf": "~/.config/hexchat/hexchat.conf",
     ".local/bin/gaps": "~/.local/bin/gaps",
-    ".config/sxhkd/sxhkdrc": "~/.config/sxhkd/sxhkdrc"
+    ".config/sxhkd/sxhkdrc": "~/.config/sxhkd/sxhkdrc",
+    ".config/bspwm/bspwmrc": "~/.config/bspwm/bspwmrc"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
