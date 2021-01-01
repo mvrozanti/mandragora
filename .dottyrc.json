@@ -138,7 +138,8 @@
     ".config/sxhkd/sxhkdrc": "~/.config/sxhkd/sxhkdrc",
     ".config/bspwm/bspwmrc": "~/.config/bspwm/bspwmrc",
     ".config/bspwm/external_rules": "~/.config/bspwm/external_rules",
-    ".local/bin/cleanfullscreen": "~/.local/bin/cleanfullscreen"
+    ".local/bin/cleanfullscreen": "~/.local/bin/cleanfullscreen",
+    ".config/sxhkd/custom_resize": "~/.config/sxhkd/custom_resize"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
