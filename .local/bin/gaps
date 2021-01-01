@@ -14,5 +14,7 @@
                         fi ;;
 
                 equal) "$($window_gap 50)" ;;
+
+                zero) "$($window_gap 0)" ;;
         esac
 } 2>&1 >/dev/null
