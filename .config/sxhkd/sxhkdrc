@@ -164,7 +164,7 @@ super + 2
     wmctrl -a _ranger_        	|| kitty --title _ranger_ -e zsh -c "stty -ixon && cat /home/nexor/.cache/wal/sequences && tmux new ranger" 
 
 super + 3
-    wmctrl -a ZSH        	|| kitty
+    wmctrl -a ZSH        	|| kitty --title _zsh_
 
 super + shift + 3
     kitty
@@ -232,10 +232,7 @@ ctrl + alt + {q,e}
 super + e
     bspc node @/ -R 90
 
-# super + shift + {h,j,k,l}
-#     /home/nexor/.local/bin/bspwm_smart_move
-
-super + {plus,minus,equal,parenright}
+super + {equal,minus,plus,parenright}
     /home/nexor/.local/bin/gaps {plus,minus,equal,zero}
 
 super + {_,shift + }{h,j,k,l}
