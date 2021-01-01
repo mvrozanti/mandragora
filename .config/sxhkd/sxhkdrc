@@ -155,7 +155,7 @@ super + shift + f
     wmctrl -a  WhatsApp        	|| whatsapp
 
 super + shift + d
-    wmctrl -xa "jetbrains-idea-ce" || idea
+    wmctrl -xa "jetbrains-idea-ce" || _JAVA_AWT_WM_NONREPARENTING=1 idea
 
 super + r
     rofi -show run
@@ -217,8 +217,10 @@ super + {_,shift + }{h,j,k,l}
     bspc node -{f,s} {west,south,north,east}
 
 super + {_,ctrl + }{h,j,k,l}
-    wm_action wresize {left,down,up,right}
-
+    bspc node -z {left -20 0 || bspc node -z right -20 0, \
+                bottom 0 20 || bspc node -z top 0 20,\
+                top 0 -20 || bspc node -z bottom 0 -20,\
+                right 20 0 || bspc node -z left 20 0}
 super + shift + g
     $HOME/.local/bin/gaps zero
 
