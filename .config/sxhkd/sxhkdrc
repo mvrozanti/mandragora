@@ -16,35 +16,20 @@ alt + shift + {Left,Right,Up,Down}
 
 # Move current window to largest space
 alt + Return
-	bspc window -s biggest
+    bspc window -s biggest
 
 # Mirror and flip leaves of tree
 alt + {comma,period}
-	bspc desktop -F {horizontal,vertical}
+    bspc desktop -F {horizontal,vertical}
 
-# Select previous / next desktop
-# alt + {p,n}
-# 	bspc 
-# 	desktop -f {prev.occupied,next.occupied}
-
-# super + g
-# 	bspc node -s biggest.window
-
-# Lock a window from closing
-# alt + Escape
-# 	bspc window -t locked
-
-# Toggle monocle
 super + f
-	bspc node -t \~fullscreen
+    bspc node -t \~fullscreen
 
-# Toggle pseudotiled (floating in tile)
 alt + shift + space
-	bspc window -t pseudo_tiled
+    bspc window -t pseudo_tiled
 
-# Focus on floating / tiled
 alt + e
-	bspc window -f {next.floating,next.tiled}
+    bspc window -f {next.floating,next.tiled}
 
 # Change desktop padding
 alt + {_, shift} + bracketright
@@ -97,37 +82,40 @@ XF86AudioLowerVolume
     amixer set 'Master' 4%-
 
 super + dead_grave
-    wmctrl -a ncmpcpp 		|| st -T 50 -e /usr/bin/ncmpcpp
-    
+    wmctrl -a ncmpcpp                          || st -T 50 -e /usr/bin/ncmpcpp
+
 super + 1
-    wmctrl -a Firefox         || firefox
+    wmctrl -a Firefox                          || firefox
 
 super + 2
-    wmctrl -a _ranger_        	|| kitty --title _ranger_ -e zsh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ranger" 
+    wmctrl -a _ranger_                         || kitty --title _ranger_ -e zsh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ranger"
 
 super + 3
-    wmctrl -a ZSH        	|| kitty --title _zsh_
+    wmctrl -a ZSH                              || kitty --title _zsh_
+
+super + 4
+    wmctrl -a telegram                         || telegram
+
+super + shift + f
+    wmctrl -a  WhatsApp                        || whatsapp
+
+super + m
+    wmctrl -a  Mathematica                     || mathematica
+
+super + shift + d
+    wmctrl -xa "jetbrains-idea-ce"             || _JAVA_AWT_WM_NONREPARENTING=1 idea
+
+super + p
+    wmctrl -a ".pdf ["                         || ~/.local/bin/zathura
+
+super + r
+    rofi -show run
 
 super + shift + 3
     kitty
 
 super + alt + 3
     kitty --title _tmux-float_ -o font_size=10
-
-super + 4
-    wmctrl -a telegram          || telegram
-
-super + shift + f
-    wmctrl -a  WhatsApp        	|| whatsapp
-
-super + shift + d
-    wmctrl -xa "jetbrains-idea-ce" || _JAVA_AWT_WM_NONREPARENTING=1 idea
-
-super + r
-    rofi -show run
-
-super + p
-    wmctrl -a ".pdf ["         || ~/.local/bin/zathura
 	
 super + shift + r
     notify-send 'Restarting bspwm' && bspc wm --restart
