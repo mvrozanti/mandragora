@@ -19,7 +19,6 @@ echo "Starting imap idle client, logging in as $user at $server"
 while read -r line ; do
   if [[ `grep RECENT <<< $line` ]]; then
     new=`echo $line | sed -E 's/.*?([0-9]).*?/\1/g'`
-    /usr/bin/beep
-    notify-send " You have $new new emails."
+    [[ $new -gt 0 ]] && notify-send " You have $new new emails."
   fi
 done < <(openssl s_client -crlf -quiet -connect "$server" 2>/dev/null < <(start_idle))
