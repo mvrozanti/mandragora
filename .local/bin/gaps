@@ -12,4 +12,6 @@ case "$1" in
         equal) $($window_gap 50) ;;
 
         zero) $($window_gap 0) ;;
+
+        *) $($window_gap $1)
 esac
