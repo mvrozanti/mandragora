@@ -141,7 +141,8 @@
     ".local/bin/cleanfullscreen": "~/.local/bin/cleanfullscreen",
     ".config/sxhkd/custom_resize": "~/.config/sxhkd/custom_resize",
     ".local/bin/roman": "~/.local/bin/roman",
-    ".local/bin/lock": "~/.local/bin/lock"
+    ".local/bin/lock": "~/.local/bin/lock",
+    ".config/sxhkd/switch_nth_biggest_node": "~/.config/sxhkd/switch_nth_biggest_node"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
