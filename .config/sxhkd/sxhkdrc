@@ -1,26 +1,12 @@
 # bspwm hotkeys
 super + q
-	bspc node -c
-
-# Lock node
-alt + shift + p
-	bspc window -t private
-
-# Balance tree
-alt + b
-	bspc desktop -B
+    bspc node -c
 
 super + Return
     bspc node -s biggest.local
 
 super + f
     bspc node -t \~fullscreen
-
-alt + shift + space
-    bspc window -t pseudo_tiled
-
-alt + e
-    bspc window -f {next.floating,next.tiled}
 
 super + Tab
     bspc node -f next.local.!hidden.window
