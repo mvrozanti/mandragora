@@ -24,6 +24,6 @@ bspc   rule   -a   jetbrains-idea-ce           desktop=^7 follow=true
 bspc   rule   -a   Slack                       desktop=^8
 bspc   rule   -a   Gdmap                       desktop=^11
 bspc   rule   -a   Postman                     desktop=^13
-bspc   rule   -a   Zathura                     desktop=^19
+bspc   rule   -a   Zathura                     desktop=^19 follow=true state=tiled
 bspc   rule   -a   mpv                         state=floating
 bspc config external_rules_command $HOME/.config/bspwm/external_rules
