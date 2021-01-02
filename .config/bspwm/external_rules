@@ -19,6 +19,10 @@ if [ "$title" = _ranger_ ] ; then
 	echo "desktop=^2"
 fi
 
+if [ "$class" = firefox ] ; then
+	[[ -z `pgrep firefox` ]] && echo "desktop=^1"
+fi
+
 if [ "$title" = _tmux-float_ ] ; then
 	echo state=floating rectangle=400x300+1500+670 sticky=on
 fi
