@@ -22,12 +22,6 @@ alt + shift + space
 alt + e
     bspc window -f {next.floating,next.tiled}
 
-alt + shift + {minus,equal}
-	bspc config -d focused right_padding $((`bspc config -d focused right_padding` {+,-} 20 )); \
-	bspc config -d focused left_padding $((`bspc config -d focused left_padding` {+,-} 20 )); \
-	bspc config -d focused bottom_padding $((`bspc config -d focused bottom_padding` {+,-} 20 )); \
-	bspc config -d focused top_padding $((`bspc config -d focused top_padding` {+,-} 20 ));
-
 super + Tab
     bspc node -f next.local.!hidden.window
 
