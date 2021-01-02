@@ -14,3 +14,7 @@ fi
 if [ "$title" = _ranger_ ] ; then
 	echo "desktop=^2"
 fi
+
+if [ "$title" = _tmux-float_ ] ; then
+	echo state=floating rectangle=400x300+1000+500
+fi

@@ -241,7 +241,6 @@ map <C-a> mz<ESC>ggVGy<ESC>'z
 " nnoremap / /\v\c
 " vnoremap / /\v\c
 nnoremap / /\c
-vnoremap / /\c
 cnoremap %s/ %smagic/
 cnoremap \>s/ \>smagic/
 nnoremap :g/ :g/\v
