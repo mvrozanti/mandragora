@@ -10,24 +10,6 @@ alt + shift + p
 alt + b
 	bspc desktop -B
 
-# Presel window for splitting
-# alt + ctrl + {h,j,k,l}
-# 	bspc window -p {left,down,up,right}
-
-# Move window into presel position
-# alt + shift {a,s,d,f}
-# 	bspc window -w {left.manual,down.manual,up.manual,right.manual}
-
-# Resize nodes
-# alt + {a,f}
-# 	$HOME/scripts/window_move.sh {-p,-n} -x -s 20
-# alt + {s,d}
-# 	$HOME/scripts/window_move.sh {-p,-n} -y -s 20
-
-# Move floating windows (requires baskerville's xdo)
-# alt + {Left,Right,Up,Down}
-#     xdo move {-x -20,-x +20,-y -20,-y +20}
-
 # Resize floating windows
 alt + shift + {Left,Right,Up,Down}
     xdo resize {-w -20,-w +20,-h -20,-h +20}    bspc window -e {left -10,down +10,up -10,right +10} || {right -10,up +10,down -10,left +10}
@@ -39,10 +21,6 @@ alt + Return
 # Mirror and flip leaves of tree
 alt + {comma,period}
 	bspc desktop -F {horizontal,vertical}
-
-# Rotate leaves of tree
-# alt + shift + {comma,period}
-# 	bspc desktop -R {90,270}
 
 # Select previous / next desktop
 # alt + {p,n}
@@ -87,51 +65,36 @@ alt + shift + {minus,equal}
 	bspc config -d focused bottom_padding $((`bspc config -d focused bottom_padding` {+,-} 20 )); \
 	bspc config -d focused top_padding $((`bspc config -d focused top_padding` {+,-} 20 ));
 
-
-# Change window gap
-alt + {minus,equal}
-	bspc config -d focused window_gap $((`bspc config -d focused window_gap` {+,-} 2 ))
-
-# # Set splitting ratio of windows
-# alt + ctrl + {1-9}
-# 	bspc window -r 0.{1-9}
-#
-# # Focus or move window to desktops
-# alt + {_,shift + }{1-9,0}
-#     bspc {desktop -f, window -d} $(bspc query -M -m)/{i,ii,iii,iv,v,vi,vii,viii,ix,x}
-
 super + Tab
     bspc node -f next.local.!hidden.window
 
 alt + Tab
     bspc desktop -f last
-    # bspc node -f 
-    # bspc node -f @{parent,brother,first,second}
 
 super + Scroll_Lock 
     flameshot gui
 
 ctrl + Print
-    scrot -s -e 'xclip -selection clipboard -target image/png -i $f' && notify-send "Screenshot saved to clipboard"
+    flameshot gui
 
 super + Print
     scrot -u -e 'xclip -selection clipboard -target image/png -i $f' ~/.scrot.png && notify-send "Screenshot saved to clipboard" 
 
 Print
-    scrot -e 'xclip -selection clipboard -target image/png -i $f' ~/.scrot.png && notify-send "Screenshot saved to clipboard"
+    scrot    -e 'xclip -selection clipboard -target image/png -i $f' ~/.scrot.png && notify-send "Screenshot saved to clipboard"
 
-XF86AudioNext		  
+XF86AudioNext
     mpc next
-XF86AudioPlay		  
+XF86AudioPlay
     mpc toggle
-XF86AudioPrev		  
+XF86AudioPrev
     mpc prev
-XF86AudioMute             
+XF86AudioMute
     pamixer -t
-XF86AudioRaiseVolume      
+XF86AudioRaiseVolume
     amixer set 'Master' 4%+
-XF86AudioLowerVolume      
-    amixer set 'Master' 4%- 
+XF86AudioLowerVolume
+    amixer set 'Master' 4%-
 
 super + dead_grave
     wmctrl -a ncmpcpp 		|| st -T 50 -e /usr/bin/ncmpcpp
@@ -147,6 +110,9 @@ super + 3
 
 super + shift + 3
     kitty
+
+super + alt + 3
+    kitty --title _tmux-float_ -o font_size=10
 
 super + 4
     wmctrl -a telegram          || telegram
@@ -222,6 +188,12 @@ super + d
     else \
         bspc desktop -f IX; \
     fi
+
+super + {minus,equal}
+    bspc config -d focused window_gap $((`bspc config -d focused window_gap` {+,-} 5 ))
+
+super + parenright
+    bspc config -d focused window_gap 0 
 
 super + shift + g : {z,s,j,k,shift+i}
     $HOME/.local/bin/gaps {zero,100,minus,plus,50}
