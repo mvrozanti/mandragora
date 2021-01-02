@@ -108,6 +108,9 @@ super + shift + d
 super + p
     wmctrl -a ".pdf ["                         || ~/.local/bin/zathura
 
+ctrl + super + d
+    wmctrl -xa gdmap                           || gdmap -f /
+
 super + r
     rofi -show run
 

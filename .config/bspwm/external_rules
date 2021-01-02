@@ -5,7 +5,7 @@ instance=$3
 consequences=$4
 title=$(xtitle "$wid")
 
-# notify-send $title
+# notify-send "$title"
 
 if [ "$title" = _zsh_ ] ; then
 	echo "desktop=^3"
@@ -22,3 +22,7 @@ fi
 if [ "$class" = kmag ] ; then
 	echo state=floating rectangle=400x300+1500+670 sticky=on
 fi
+
+# if [ "$title" = "Graphical Disk Map 0.8.1" ] ; then
+# 	echo "desktop=^11"
+# fi
