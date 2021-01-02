@@ -186,7 +186,7 @@ super + {minus,equal}
 super + parenright
     bspc config -d focused window_gap 0 
 
-super + shift + g : {z,s,j,k,shift+i}
+super + shift + g ; {z,s,j,k,shift+i}
     $HOME/.local/bin/gaps {zero,100,minus,plus,50}
 
 super + ctrl + bracketleft                                       
