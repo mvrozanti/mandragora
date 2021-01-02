@@ -1,0 +1,39 @@
+#!/bin/bash
+# bspquerylocalnthbiggest
+# In scripts, use this as:
+#    #!/bin/bash
+#    second_biggest=$(bspquerylocalnthbiggest 2)
+#    do_something "$second_biggest"
+
+[ "$#" -eq 1 ] \
+    || exit 2
+[[ "$1" =~ ^[1-9][0-9]*$ ]] \
+    || exit 2
+n=$1
+
+(( n == 1 )) \
+    && exec bspc query -N -n biggest.local.window
+
+< <(bspc query -N -n '.local.!floating.!fullscreen.window') mapfile -t local_windows
+
+ok_windows=${#local_windows[@]}
+
+for window in "${local_windows[@]}"; do
+    (( ok_windows >= n )) \
+        || exit 1
+
+    size=$(bspc query -T -n "$window" | jq -r '
+        .rectangle | .width * .height
+    ')
+    if [ -n "$size" ]
+        then tiled_windows_ordered_by_size[$size]+="$window "
+        else (( --ok_windows ))
+    fi
+
+    false
+done \
+    && exit 1
+
+tiled_windows_ordered_by_size=( ${tiled_windows_ordered_by_size[@]} )
+
+bspc node -s "${tiled_windows_ordered_by_size[$((n - 1))]}"

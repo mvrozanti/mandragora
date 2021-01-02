@@ -5,6 +5,9 @@ super + q
 super + Return
     bspc node -s biggest.local
 
+super + shift + Return
+    $HOME/.config/sxhkd/switch_nth_biggest_node 2
+
 super + f
     bspc node -t \~fullscreen
 
@@ -61,7 +64,7 @@ super + 3
     wmctrl -a ZSH                || kitty --title _zsh_
 
 super + 4
-    wmctrl -a telegram           || xmodmap ~/.Xmodmap &; telegram
+    wmctrl -a telegram           || telegram
 
 super + shift + f
     wmctrl -a  WhatsApp          || whatsapp
@@ -145,10 +148,10 @@ super + e
     bspc node @/ -R 90
 
 super + shift + {h,j,k,l}
-    { dir=west  dx=-20 dy=0 \
-    , dir=south dx=0   dy=20 \
-    , dir=north dx=0   dy=-20 \
-    , dir=east  dx=20  dy=0 \
+    { dir=west  dx=-30 dy=0 \
+    , dir=south dx=0   dy=30 \
+    , dir=north dx=0   dy=-30 \
+    , dir=east  dx=30  dy=0 \
     }; \
     bspc node --move "$dx" "$dy" || bspc node --swap $dir
 
