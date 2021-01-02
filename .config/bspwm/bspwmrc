@@ -1,10 +1,11 @@
 #!/bin/sh
 sxhkd &
-PATH=$PATH:~/.config/sxhkd
 wal --saturate 1.0 -a 299 -i `cat $HOME/.cache/wal/wal`
 pgrep -x mpd     || mpd &
 pgrep -x compton || compton -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
 pgrep -x polybar || polybar . &
+
+nohup $HOME/.local/bin/imap-notify &
 $HOME/.local/bin/cleanfullscreen
 
 bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX
@@ -16,7 +17,8 @@ bspc config split_ratio          0.52
 bspc config borderless_monocle   true
 bspc config gapless_monocle      true
 
-bspc config external_rules_command /home/nexor/.config/bspwm/external_rules
 bspc   rule   -a   "firefox"                            desktop=^1
 bspc   rule   -a   "whats-app-nativefier-d52542"        desktop=^4
 bspc   rule   -a   "jetbrains-idea-ce"                  desktop=^7
+bspc   rule   -a   "Gdmap"                              desktop=^11
+bspc config external_rules_command /home/nexor/.config/bspwm/external_rules
