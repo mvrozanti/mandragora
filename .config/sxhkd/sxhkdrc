@@ -223,8 +223,8 @@ super + d
         bspc desktop -f IX; \
     fi
 
-super + shift + g : {z,s,j,k}
-    $HOME/.local/bin/gaps {zero,100,minus,plus}
+super + shift + g : {z,s,j,k,shift+i}
+    $HOME/.local/bin/gaps {zero,100,minus,plus,50}
 
 super + ctrl + bracketleft                                       
     $HOME/util/compton/dbus-examples/dbus-strength.sh -1
