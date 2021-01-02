@@ -148,6 +148,15 @@ ctrl + alt + {q,e}
 super + e
     bspc node @/ -R 90
 
+
+super + shift + {h,j,k,l}
+    { dir=west  dx=-20 dy=0 \
+    , dir=south dx=0   dy=20 \
+    , dir=north dx=0   dy=-20 \
+    , dir=east  dx=20  dy=0 \
+    }; \
+    bspc node --move "$dx" "$dy" || bspc node --swap $dir
+
 super + {_,shift + }{h,j,k,l}
     bspc node -{f,s} {west,south,north,east}
 

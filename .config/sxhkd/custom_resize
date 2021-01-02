@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# resize {up,down,east,west} delta
-
 delta=${2:-"30"}
 
 case $1 in
@@ -8,7 +6,7 @@ case $1 in
   left)   dim=w; sign=- ;;
   up)     dim=h; sign=- ;;
   down)   dim=h; sign=+ ;;
-  *) echo "Usage: resize {up,down,left,right} [delta]" && exit 1 ;;
+  *) echo "Usage: $0 {up,down,left,right} [delta]" && exit 1 ;;
 esac
 
 x=0; y=0;
