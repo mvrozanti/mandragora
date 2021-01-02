@@ -82,34 +82,37 @@ XF86AudioLowerVolume
     amixer set 'Master' 4%-
 
 super + dead_grave
-    wmctrl -a ncmpcpp                          || st -T 50 -e /usr/bin/ncmpcpp
+    wmctrl -a ncmpcpp            || st -T 50 -e /usr/bin/ncmpcpp
 
 super + 1
-    wmctrl -a Firefox                          || firefox
+    wmctrl -a Firefox            || firefox
 
 super + 2
-    wmctrl -a _ranger_                         || kitty --title _ranger_ -e zsh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ranger"
+    wmctrl -a _ranger_           || kitty --title _ranger_ -e zsh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ranger"
 
 super + 3
-    wmctrl -a ZSH                              || kitty --title _zsh_
+    wmctrl -a ZSH                || kitty --title _zsh_
 
 super + 4
-    wmctrl -a telegram                         || telegram
+    wmctrl -a telegram           || telegram
 
 super + shift + f
-    wmctrl -a  WhatsApp                        || whatsapp
+    wmctrl -a  WhatsApp          || whatsapp
 
 super + m
-    wmctrl -a  Mathematica                     || mathematica
+    wmctrl -a  Mathematica       || mathematica
 
 super + shift + d
-    wmctrl -xa "jetbrains-idea-ce"             || _JAVA_AWT_WM_NONREPARENTING=1 idea
+    wmctrl -xa jetbrains-idea-ce || _JAVA_AWT_WM_NONREPARENTING=1 idea
 
 super + p
-    wmctrl -a ".pdf ["                         || ~/.local/bin/zathura
+    wmctrl -a ".pdf ["           || ~/.local/bin/zathura
 
 ctrl + super + d
-    wmctrl -xa gdmap                           || gdmap -f /
+    wmctrl -xa gdmap             || gdmap -f /
+
+super + shift + s
+    wmctrl -a Slack              || slack
 
 super + r
     rofi -show run
