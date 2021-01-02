@@ -16,5 +16,9 @@ if [ "$title" = _ranger_ ] ; then
 fi
 
 if [ "$title" = _tmux-float_ ] ; then
-	echo state=floating rectangle=400x300+1000+500
+	echo state=floating rectangle=400x300+1500+670 sticky=on
+fi
+
+if [ "$class" = kmag ] ; then
+	echo state=floating rectangle=400x300+1500+670 sticky=on
 fi
