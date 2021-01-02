@@ -201,6 +201,12 @@ super + ctrl + bracketleft
 super + ctrl + bracketright                                      
     $HOME/util/compton/dbus-examples/dbus-strength.sh +1
 
+super + BackSpace
+    sleep 0.6; xset dpms force off
+
+super + Pause
+    poweroff
+
 # Now open, lock!
 # To the Dead Man's knock!
 # Fly, bolt, and bar, and band!
