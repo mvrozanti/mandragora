@@ -248,16 +248,7 @@ $bind --release Ctrl+Print        $ensid scrot -s -e 'xclip -selection clipboard
 $bind --release Shift+Print       $ensid scrot -s -e 'sxiv -N portal -b $f'                               $scrot_file && notify-send "Screenshot saved to clipboard" 
 $bind --release Ctrl+Shift+Print  $ensid scrot    -e 'pinta $f'                                           $scrot_file && notify-send
 $bind $mod+Scroll_Lock            $ensid flameshot gui
-# $bind Ctrl+$mod+Print             $ensid byzanz-record -d                            \
-#                                    `echo -e 'Seconds to record: '|dmenu $dmenu_looks` \
-#                                        ~/.scrot.gif && curl -s -X POST --url           \
-#                                        https://upload.giphy.com/v1/gifs -H              \
-#                                        "api_key: $giphy_client_id" -F "file=@"$_ |       \
-#                                        jq .data.id | xargs -i echo                        \
-#                                        https://i.giphy.com/media/{}/source.gif | xsel -i -b\
-#                                        && notify-send gif copied to clipboard               \
-$bind Ctrl+$mod+Print             $ensid ~/.local/bin/byzrec 
-# $bind Shift+Print             $ensid ~/.local/bin/byzrec `echo -e 'Seconds to record: '|dmenu $dmenu_looks` -r
+$bind Ctrl+$mod+Print             $ensid byzrec 
 
 #                                                 _
 #   _ __ ___   _____   _____ _ __ ___   ___ _ __ | |_
@@ -281,7 +272,6 @@ $bind $mod+f                   fullscreen toggle
 $bind $mod+c                   move scratchpad
 $bind $mod+Shift+c             scratchpad show;floating toggle
 $bind $mod+a                   focus parent
-# $bind $mod+s                   layout stacking
 $bind $mod+s                   sticky toggle
 $bind $mod+w                   layout tabbed
 $bind $mod+e                   layout toggle split
@@ -323,16 +313,9 @@ $bind XF86MonBrightnessDown     $ensid xbacklight -dec $bl_delta
 $bind XF86AudioNext		        $ensid mpc next  #$mpc $minty_remote next
 $bind XF86AudioPlay		        $ensid mpc toggle  #$mpc $minty_remote toggle
 $bind XF86AudioPrev		        $ensid mpc prev  #$mpc $minty_remote prev
-# $bind XF86AudioStop		        $ensid mpc stop
 $bind XF86AudioMute             $ensid pamixer -t
-# $bind XF86AudioRaiseVolume      $ensid amixer -c 0 -q set Master 4dB+ unmute 
 $bind XF86AudioRaiseVolume      $ensid amixer set 'Master' 4%+
 $bind XF86AudioLowerVolume      $ensid amixer set 'Master' 4%- 
-# $bind XF86AudioLowerVolume      $ensid amixer -c 0 -q set Master 4dB- unmute 
-# $bind XF86AudioRaiseVolume      $ensid pamixer -i 4
-# $bind XF86AudioLowerVolume      $ensid pamixer -d 4
-# $bind XF86AudioRaiseVolume    $ensid amixer -c 0 -q set Master 4dB+ unmute
-# $bind XF86AudioLowerVolume    $ensid amixer -c 0 -q set Master 4dB- unmute
 
 #                     _                             
 # __      _____  _ __| | _____ _ __   __ _  ___ ___ 
@@ -362,13 +345,6 @@ set $ws18 "18"
 set $ws19 "19"
 set $ws20 "20"
 
-# $bind $mod+Shift+4                          move container to workspace $ws4
-# $bind $mod+Shift+5                          move container to workspace $ws5
-# $bind $mod+Shift+6                          move container to workspace $ws6
-# $bind $mod+Shift+7                          move container to workspace $ws7
-# $bind $mod+Shift+8                          move container to workspace $ws8
-# $bind $mod+Shift+9                          move container to workspace $ws9
-# $bind $mod+Shift+0                          move container to workspace $ws10
 $bind $mod+Ctrl+Shift+Right                 move container to workspace next; workspace next
 $bind $mod+Ctrl+Shift+Left                  move container to workspace prev; workspace prev
 $bind $mod+Ctrl+Shift+l                     move container to workspace next; workspace next
@@ -391,7 +367,6 @@ font pango:Droid Sans Mono for Powerline11
 
 client.focused          $color1 $color1 $color1 $color1 $color1
 client.focused_inactive $color0 $color0 $color0 $color0 $color0
-# client.unfocused        $color9 $color9 $color9 $color9 $color9
 client.urgent           $color3   $color3 #ffffff #900000 #900000
 client.placeholder      #000000 #0c0c0c #ffffff #000000 #0c0c0c
 client.background       #ffffff
@@ -399,9 +374,7 @@ $bind $mod+KP_Home  $ensid redshift -g 1:0.5:0.5 -O 25000K
 $bind $mod+KP_Up    $ensid redshift -g 0.5:0.5:1 -O 25000K
 $bind $mod+KP_Prior $ensid redshift -g 1:1:1 -O 25000K
 
-# $bind --whole-window button2        $ensid $HOME/.local/bin/play_virtmic $HOME/F6.mp3 
 $bind $mod+BackSpace                $ensid $HOME/.local/bin/to_virtmic
-# $bind --release $mod+BackSpace      $ensid pkill [ -z `ps -eC aux|grep sox` ]sox
 $bind $mod+F1                       $ensid $HOME/.local/bin/play_virtmic $HOME/F1.mp3
 $bind $mod+F2                       $ensid $HOME/.local/bin/play_virtmic $HOME/F2.mp3
 $bind $mod+F3                       $ensid $HOME/.local/bin/play_virtmic $HOME/F3.mp3
@@ -425,7 +398,6 @@ $bind $mod+F12                      $ensid $HOME/.local/bin/play_virtmic $HOME/F
 gaps inner 25
 gaps outer 0
 
-# focused border width
 default_border pixel 0
 
 set $mode_gaps Gaps: (o) outer, (i) inner, (I|a) typical, (0|z) performance, (s) sexy, (k) increase, (j) decrease

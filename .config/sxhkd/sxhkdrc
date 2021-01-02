@@ -62,6 +62,9 @@ super + Scroll_Lock
 ctrl + Print
     flameshot gui
 
+ctrl + super + Print
+    byzrec
+
 super + Print
     scrot -u -e 'xclip -selection clipboard -target image/png -i $f' ~/.scrot.png && notify-send "Screenshot saved to clipboard" 
 
@@ -127,7 +130,7 @@ super + shift + r
     notify-send 'Restarting bspwm' && bspc wm --restart
 
 super + g
-    ~/.local/bin/setbg
+    setbg
 
 super + c
     id=$(bspc query -N -n "focused");\
@@ -190,7 +193,7 @@ super + parenright
     bspc config -d focused window_gap 0 
 
 super + shift + g ; {z,s,j,k,shift+i}
-    $HOME/.local/bin/gaps {zero,100,minus,plus,50}
+    gaps {zero,100,minus,plus,50}
 
 super + ctrl + bracketleft                                       
     $HOME/util/compton/dbus-examples/dbus-strength.sh -1
