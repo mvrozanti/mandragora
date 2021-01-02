@@ -10,17 +10,8 @@ alt + shift + p
 alt + b
 	bspc desktop -B
 
-# Resize floating windows
-alt + shift + {Left,Right,Up,Down}
-    xdo resize {-w -20,-w +20,-h -20,-h +20}    bspc window -e {left -10,down +10,up -10,right +10} || {right -10,up +10,down -10,left +10}
-
-# Move current window to largest space
-alt + Return
-    bspc window -s biggest
-
-# Mirror and flip leaves of tree
-alt + {comma,period}
-    bspc desktop -F {horizontal,vertical}
+super + Return
+    bspc node -s biggest.local
 
 super + f
     bspc node -t \~fullscreen
@@ -30,19 +21,6 @@ alt + shift + space
 
 alt + e
     bspc window -f {next.floating,next.tiled}
-
-# Change desktop padding
-alt + {_, shift} + bracketright
-	bspc config -d focused right_padding $((`bspc config -d focused right_padding` {+,-} 20 ))
-
-alt + {_, shift} + bracketleft
-	bspc config -d focused left_padding $((`bspc config -d focused left_padding` {+,-} 20 ))
-
-ctrl + {_, shift} + bracketright
-	bspc config -d focused bottom_padding $((`bspc config -d focused bottom_padding` {+,-} 20 ))
-
-ctrl + {_, shift} + bracketleft
-	bspc config -d focused top_padding $((`bspc config -d focused top_padding` {+,-} 20 ))
 
 alt + shift + {minus,equal}
 	bspc config -d focused right_padding $((`bspc config -d focused right_padding` {+,-} 20 )); \
@@ -88,7 +66,7 @@ super + dead_grave
     wmctrl -a ncmpcpp            || st -T 50 -e /usr/bin/ncmpcpp
 
 super + 0
-    wmctrl -a  _neomutt_         || kitty --title _neomutt_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new neomutt"
+    wmctrl -a  _neomutt_         || kitty --title _neomutt_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && mbsync hotmail && tmux new neomutt"
 
 super + 1
     wmctrl -a Firefox            || pgrep firefox || firefox
@@ -196,7 +174,7 @@ super + parenright
     bspc config -d focused window_gap 0 
 
 super + shift + g ; {z,s,j,k,shift+i}
-    gaps {zero,100,minus,plus,50}
+    $HOME/.local/bin/gaps {zero,100,minus,plus,50}
 
 super + ctrl + bracketleft                                       
     $HOME/util/compton/dbus-examples/dbus-strength.sh -1
