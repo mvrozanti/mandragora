@@ -68,6 +68,9 @@ super + 1
 super + 2
     wmctrl -a _ranger_           || kitty --title _ranger_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ranger"
 
+super + i
+    wmctrl -a _hexchat_text_     || kitty --title _hexchat_text_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new hexchat-text"
+
 super + 3
     wmctrl -a ZSH                || kitty --title _zsh_
 
@@ -147,7 +150,6 @@ ctrl + alt + {q,e}
 
 super + e
     bspc node @/ -R 90
-
 
 super + shift + {h,j,k,l}
     { dir=west  dx=-20 dy=0 \
