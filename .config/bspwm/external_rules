@@ -22,7 +22,3 @@ fi
 if [ "$class" = kmag ] ; then
 	echo state=floating rectangle=400x300+1500+670 sticky=on
 fi
-
-# if [ "$title" = "Graphical Disk Map 0.8.1" ] ; then
-# 	echo "desktop=^11"
-# fi
