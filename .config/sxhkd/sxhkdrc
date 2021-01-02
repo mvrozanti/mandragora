@@ -228,3 +228,9 @@ super + d
     else \
         bspc desktop -f IX; \
     fi
+
+super + ctrl + bracketleft                                       
+    $HOME/util/compton/dbus-examples/dbus-strength.sh -1
+
+super + ctrl + bracketright                                      
+    $HOME/util/compton/dbus-examples/dbus-strength.sh +1
