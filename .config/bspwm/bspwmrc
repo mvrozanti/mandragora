@@ -20,7 +20,7 @@ bspc config gapless_monocle      true
 bspc config pointer_modifier mod1
 
 bspc   rule   -a   whats-app-nativefier-d52542 desktop=^4
-bspc   rule   -a   jetbrains-idea-ce           desktop=^7
+bspc   rule   -a   jetbrains-idea-ce           desktop=^7 follow=true
 bspc   rule   -a   Slack                       desktop=^8
 bspc   rule   -a   Gdmap                       desktop=^11
 bspc   rule   -a   Postman                     desktop=^13

@@ -616,3 +616,4 @@ linktcp(){ socat tcp-l:$1,fork,reuseaddr tcp:127.0.0.1:$2 }
 alias first='sed 1q'
 git-obliterate(){ git filter-branch -f --index-filter "git rm -rf --cached --ignore-unmatch $@" HEAD }
 alias cfb='v /home/nexor/.config/bspwm'
+after(){ pid=; while [ -n $(pgrep $1) ] ; do sleep 1 done && ${@:2} }
