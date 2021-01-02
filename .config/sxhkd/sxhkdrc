@@ -61,7 +61,7 @@ super + 3
     wmctrl -a ZSH                || kitty --title _zsh_
 
 super + 4
-    wmctrl -a telegram           || telegram
+    wmctrl -a telegram           || xmodmap ~/.Xmodmap &; telegram
 
 super + shift + f
     wmctrl -a  WhatsApp          || whatsapp
@@ -104,11 +104,18 @@ super + c
         xdotool windowunmap $id;\
     fi
 
+super + space
+    if [ -z "$(bspc query -N -n focused.floating)" ]; then \
+        bspc node -f any.local.floating; \
+    else \
+        bspc node -f any.local.tiled; \
+    fi
+
 super + shift + space
-    if [ -z "$(bspc query -N -n focused.floating)" ]; then \                    
-        bspc node focused -t floating; \                                        
-    else \                                                                      
-        bspc node focused -t tiled; \                                           
+    if [ -z "$(bspc query -N -n focused.floating)" ]; then \
+        bspc node focused -t floating; \
+    else \
+        bspc node focused -t tiled; \
     fi
 
 super + shift + c
