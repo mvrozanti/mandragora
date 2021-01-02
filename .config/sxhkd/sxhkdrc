@@ -210,17 +210,11 @@ ctrl + alt + {q,e}
 super + e
     bspc node @/ -R 90
 
-super + {equal,minus,plus,parenright}
-    $HOME/.local/bin/gaps {plus,minus,equal,zero}
-
 super + {_,shift + }{h,j,k,l}
     bspc node -{f,s} {west,south,north,east}
 
 super + ctrl + {h,j,k,l}
     $HOME/.config/sxhkd/custom_resize {left,down,up,right}
-
-super + shift + g
-    $HOME/.local/bin/gaps zero
 
 super + d
     if [ $(bspc query -D -d --names) = IX ]; then \
@@ -228,6 +222,9 @@ super + d
     else \
         bspc desktop -f IX; \
     fi
+
+super + shift + g : {z,s,j,k}
+    $HOME/.local/bin/gaps {zero,100,minus,plus}
 
 super + ctrl + bracketleft                                       
     $HOME/util/compton/dbus-examples/dbus-strength.sh -1
