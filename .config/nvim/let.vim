@@ -1,3 +1,4 @@
+let g:tmux_navigator_no_mappings = 0
 let g:tex_flavor = 'latex'
 let vimDir = '$HOME/.vim'
 let &runtimepath.=','.vimDir
