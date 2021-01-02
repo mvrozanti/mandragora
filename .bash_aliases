@@ -42,7 +42,7 @@ alias asciimap='telnet mapscii.me'
 # tmux attach
 alias ta='task add'
 alias smv='sudo mv'
-alias msk='ncmpcpp'
+alias msk='/usr/local/bin/ncmpcpp'
 alias cfa='sudo -E nvim ~/.bash_aliases'
 #alias cfb='sudo -E nvim ~/.bashrc'
 alias cfc='sudo -E nvim ~/mandragora/.dottyrc.json'
