@@ -96,7 +96,7 @@ super + shift + r
     notify-send 'Restarting bspwm' && bspc wm --restart
 
 super + g
-    setbg
+    $HOME/.local/bin/setbg
 
 super + c
     id=$(bspc query -N -n "focused");\
@@ -145,6 +145,9 @@ ctrl + alt + {q,e}
 
 super + e
     bspc node @/ -R 90
+
+super + shift + e
+    bspc node @/ -R 270
 
 super + shift + {h,j,k,l}
     { dir=west  dx=-30 dy=0 \
