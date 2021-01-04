@@ -83,6 +83,9 @@ ctrl + super + d
 super + shift + s
     wmctrl -a Slack              || slack
 
+super + ctrl + p
+    wmctrl -a Postman            || postman
+
 super + r
     rofi -show run
 
@@ -148,6 +151,9 @@ super + e
 
 super + shift + e
     bspc node @/ -R 270
+
+super + t
+    bspc node @/ -B
 
 super + shift + {h,j,k,l}
     { dir=west  dx=-30 dy=0 \
