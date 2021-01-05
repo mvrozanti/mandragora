@@ -617,3 +617,4 @@ alias first='sed 1q'
 git-obliterate(){ git filter-branch -f --index-filter "git rm -rf --cached --ignore-unmatch $@" HEAD }
 alias cfb='v $HOME/.config/bspwm'
 after(){ [[ $1 =~ ^[0-9]+$ ]] && while [[ -n "$(ps -p $1 -o pid=)" ]]; do sleep .25; done || while [[ -n "$(pgrep $1)" ]]; do sleep .25; done && "${@:2}" }
+trdn(){ tr -d '\n' }

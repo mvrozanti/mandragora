@@ -197,6 +197,12 @@ super + ctrl + bracketleft
 super + ctrl + bracketright                                      
     $HOME/util/compton/dbus-examples/dbus-strength.sh +1
 
+super + alt + k
+    transset-df --inc 0.04 -a
+
+super + alt + j
+    transset-df --dec 0.04 -a
+
 super + BackSpace
     sleep 0.6; xset dpms force off
 
