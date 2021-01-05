@@ -16,6 +16,12 @@ super + Tab
 alt + Tab
     bspc desktop -f last
 
+alt + super + +shift + p
+    polybar-msg cmd hide
+
+alt + super + p
+    polybar-msg cmd show
+
 super + Scroll_Lock 
     flameshot gui
 

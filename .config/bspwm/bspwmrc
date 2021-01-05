@@ -8,7 +8,7 @@ pgrep -x polybar || polybar . &
 nohup $HOME/.local/bin/imap-notify &
 $HOME/.local/bin/cleanfullscreen
 
-bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX X
+bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX
 
 bspc config border_width         0
 bspc config window_gap          12
