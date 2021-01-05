@@ -82,6 +82,7 @@ map M feedkeys ":blist<Return>"
 map M [fullscreen] feedkeys ":blist<Return>" 
 map [fullscreen] d scroll half-down
 map b scroll half-up
+map w scroll half-down
 map <C-w> quit
 map [fullscreen] <C-w> quit
 map [fullscreen] b scroll half-up
