@@ -1,9 +1,9 @@
 #!/bin/sh
-sxhkd &
 wal --saturate 1.0 -a 299 -i `cat $HOME/.cache/wal/wal`
-pgrep -x mpd     || mpd &
 pgrep -x compton || compton -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
+pgrep -x mpd     || mpd &
 pgrep -x polybar || polybar . &
+pgrep -x sxhkd   || sxhkd &
 
 nohup $HOME/.local/bin/imap-notify &
 $HOME/.local/bin/cleanfullscreen
