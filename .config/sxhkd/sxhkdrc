@@ -16,7 +16,7 @@ super + Tab
 alt + Tab
     bspc desktop -f last
 
-alt + super + +shift + p
+alt + super + shift + p
     polybar-msg cmd hide
 
 alt + super + p
@@ -106,30 +106,6 @@ super + shift + r
 
 super + g
     $HOME/.local/bin/setbg
-
-super + c
-    id=$(bspc query -N -n "focused");\
-    if [ -n "$id" ];then \
-        xprop -id $id -f _SCRATCH 32ii -set _SCRATCH $(date +%s,%N);\
-        bspc node -t "floating";\
-        xdotool windowunmap $id;\
-    fi
-
-super + space
-    if [ -z "$(bspc query -N -n focused.floating)" ]; then \
-        bspc node -f any.local.floating; \
-    else \
-        bspc node -f any.local.tiled; \
-    fi
-
-super + shift + space
-    if [ -z "$(bspc query -N -n focused.floating)" ]; then \
-        bspc node focused -t floating; \
-    else \
-        bspc node focused -t tiled; \
-    fi
-
-super + shift + c
     i=$(bspc query -N -n "focused.floating");\
     if [ -n "$i" ];then \
         xprop -id $i -f _SCRATCH 32ii -set _SCRATCH $(date +%s,%N);\
