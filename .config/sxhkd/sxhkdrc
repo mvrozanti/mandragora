@@ -51,7 +51,7 @@ XF86AudioLowerVolume
     amixer set 'Master' 4%-
 
 super + dead_grave
-    wmctrl -a _ncmpcpp_            || st -T 50 -e /usr/bin/ncmpcpp
+    wmctrl -a _ncmpcpp_          || st -T 50 -e /usr/bin/ncmpcpp
 
 super + 0
     wmctrl -a  _neomutt_         || kitty --title _neomutt_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && mbsync hotmail && tmux new neomutt"
