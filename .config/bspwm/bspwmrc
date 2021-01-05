@@ -4,6 +4,7 @@ pgrep -x compton || compton -D 3 --blur-strength 10 --blur-method kawase -b --db
 pgrep -x mpd     || mpd &
 pgrep -x polybar || polybar . &
 pgrep -x sxhkd   || sxhkd &
+pgrep   ncmpcpp  || st -T 50 -e /usr/bin/ncmpcpp
 
 nohup $HOME/.local/bin/imap-notify &
 $HOME/.local/bin/cleanfullscreen
