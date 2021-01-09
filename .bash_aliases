@@ -282,7 +282,7 @@ alias sS='servesingle'
 alias ctl='systemctl'
 alias sctl='sudo systemctl'
 alias GD='git daemon --base-path=. --export-all' # serve git repo on port 9418
-gd(){ [[ "$#" -eq 1 ]] && git diff $@ || git diff }
+gd(){ [[ "$#" -eq 1 ]] && git diff $@ || git ls-files -o --exclude-standard | xargs git add; git add .; git diff --staged; git reset}
 alias gdd='git diff HEAD~1'
 alias gddd='git diff HEAD~2'
 alias gdddd='git diff HEAD~3'
@@ -619,6 +619,4 @@ alias time='date +%s.%N'
 alias rm='echo use D'
 d(){ trash "$@" }
 ud(){ trash-restore }
-gfp(){ [[ -z $1 ]] && n=1 || n=$1; git format-patch HEAD~$n --stdout | cat -  }
-alias gfpc='gfp|c'
-alias cogam='co|git am'
+alias cogap='co|git apply'
