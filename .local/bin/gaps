@@ -9,9 +9,18 @@ case "$1" in
                 $($window_gap $((`$window_gap` - $delta )))
                 fi ;;
 
-        equal) $($window_gap 50) ;;
+        equal) 
+                $($window_gap 50)
+                xdotool key Escape 
+                ;;
 
-        zero) $($window_gap 0) ;;
+        zero) 
+                $($window_gap 0) 
+                xdotool key Escape 
+                ;;
 
-        *) $($window_gap $1)
+        *) 
+                $($window_gap $1)
+                xdotool key Escape 
+                ;;
 esac
