@@ -4,7 +4,6 @@ alias rm='rm -f'
 # alias ll='ls -alFh'
 alias lt='ls -snew'
 alias la='exa --all'
-alias ls=exa
 alias l='exa --reverse --sort=modified'
 alias watch='watch --color -n1 --no-title '
 alias sps='sudo pacman -S'
