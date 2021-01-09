@@ -282,7 +282,7 @@ alias sS='servesingle'
 alias ctl='systemctl'
 alias sctl='sudo systemctl'
 alias GD='git daemon --base-path=. --export-all' # serve git repo on port 9418
-gd(){ [[ "$#" -eq 1 ]] && git diff $@ || git ls-files -o --exclude-standard | xargs git add; git add .; git diff --staged; git reset}
+gd(){ [[ "$#" -eq 1 ]] && git diff $@ || git ls-files -o --exclude-standard | xargs git add; git add .; git diff --staged; git reset 2>&1 >/dev/null }
 alias gdd='git diff HEAD~1'
 alias gddd='git diff HEAD~2'
 alias gdddd='git diff HEAD~3'
