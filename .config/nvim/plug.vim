@@ -51,5 +51,5 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'majutsushi/tagbar'
 Plug 'easymotion/vim-easymotion'
 Plug 'vim-scripts/JavaScript-Indent'
-Plug 'Kody-Quintana/bspwm_border_color'
+Plug 'mvrozanti/bspwm_border_color'
 call plug#end()

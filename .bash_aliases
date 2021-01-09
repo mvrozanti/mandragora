@@ -127,7 +127,7 @@ alias cutecat='awk "{print $0; system(\"sleep .001\");}"'
 #   text to speech:
 tts(){ printf "(SayText "`cat -`")" | festival -i;}
 spacescript(){ vapore="`cat -`"; n=1;if [[ "$1" == "-n" ]]; then n=$2;fi;for i in {1..$n};do vapore="`echo $vapore | sed -r 's/(.)/\1 /g'`";done;echo $vapore; }
-alias d='date "+%d-%m-%Y %H:%M"'
+alias D='date "+%d-%m-%Y %H:%M"'
 alias mbtc='/mnt/4ADE1465DE144C17/gdrive/Programming/bash/mbtc/alerter.sh'
 alias rp='realpath -z'
 # short whereis for scripting
@@ -617,3 +617,6 @@ git-obliterate(){ git filter-branch -f --index-filter "git rm -rf --cached --ign
 alias cfb='v $HOME/.config/bspwm'
 trdn(){ tr -d '\n' }
 alias time='date +%s.%N'
+alias rm='use D'
+d(){ trash }
+ud(){ trash-restore }
