@@ -3,4 +3,5 @@ rm .xsession-errors*
 yay -Scc 
 sudo journalctl --vacuum-size=1G 
 sudo pacman -Scc
+trash-empty
 sudo rm -r /var/lib/systemd/coredump/core.* 
