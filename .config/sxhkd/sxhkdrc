@@ -169,6 +169,9 @@ super + shift + {h,j,k,l}
     }; \
     bspc node --move "$dx" "$dy" || bspc node --swap $dir
 
+ctrl + alt + shift + {q,e}
+    bspc node -d {prev,next} --follow
+
 super + {_,shift + }{h,j,k,l}
     bspc node -{f,s} {west,south,north,east}
 
