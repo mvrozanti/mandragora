@@ -1,0 +1,18 @@
+#!/bin/bash
+interval=.25
+if [[ $1 =~ ^[0-9]+$ ]]; then
+    while [[ -z "$(ps -p $1 -o pid=)" ]]; do 
+        sleep $interval; 
+    done 
+    while [[ -n "$(ps -p $1 -o pid=)" ]]; do 
+        sleep $interval; 
+    done 
+else
+    while [[ -z "$(pgrep $1)" ]]; do 
+        sleep $interval; 
+    done 
+    while [[ -n "$(pgrep $1)" ]]; do 
+        sleep $interval; 
+    done 
+fi
+"${@:2}" 
