@@ -142,7 +142,8 @@
     ".config/sxhkd/custom_resize": "~/.config/sxhkd/custom_resize",
     ".local/bin/roman": "~/.local/bin/roman",
     ".local/bin/lock": "~/.local/bin/lock",
-    ".config/sxhkd/switch_nth_biggest_node": "~/.config/sxhkd/switch_nth_biggest_node"
+    ".config/sxhkd/switch_nth_biggest_node": "~/.config/sxhkd/switch_nth_biggest_node",
+    ".local/bin/after": "~/.local/bin/after"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
@@ -339,8 +340,7 @@
     "pv",
     "web-ext",
     "slimit",
-    "hexchat",
-    "after"
+    "hexchat"
   ],
   "excluded": [
     "hotmail.gpg",
