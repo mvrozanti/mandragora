@@ -619,4 +619,4 @@ alias time='date +%s.%N'
 alias rm='echo use D'
 d(){ trash "$@" }
 ud(){ trash-restore }
-alias cogap='co|git apply'
+alias coga='co|git apply'
