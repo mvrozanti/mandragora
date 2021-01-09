@@ -206,6 +206,9 @@ super + ctrl + bracketleft
 super + ctrl + bracketright                                      
     $HOME/util/compton/dbus-examples/dbus-strength.sh +1
 
+super + s
+    bspc node -g sticky
+
 super + alt + k
     transset-df --inc 0.04 -a
 
