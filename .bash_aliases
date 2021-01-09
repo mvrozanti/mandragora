@@ -618,5 +618,5 @@ alias cfb='v $HOME/.config/bspwm'
 trdn(){ tr -d '\n' }
 alias time='date +%s.%N'
 alias rm='echo use D'
-d(){ trash }
+d(){ trash "$@" }
 ud(){ trash-restore }
