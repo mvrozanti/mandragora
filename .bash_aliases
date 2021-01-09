@@ -620,3 +620,4 @@ alias rm='echo use d'
 d(){ trash "$@" }
 ud(){ trash-restore }
 alias coga='co|git apply'
+alias polybar-hide-ip='touch /tmp/hideip'
