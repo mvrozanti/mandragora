@@ -20,7 +20,9 @@ Plug 'scrooloose/vim-slumlord'
 Plug 'mikelue/vim-maven-plugin'
 Plug 'terryma/vim-smooth-scroll'
 Plug 'skwp/greplace.vim'
-Plug 'neoclide/coc.nvim'
+if has('nvim')
+  Plug 'neoclide/coc.nvim'
+endif
 Plug 'tommcdo/vim-exchange'
 Plug 'jiangmiao/auto-pairs'
 Plug 'godlygeek/tabular'
