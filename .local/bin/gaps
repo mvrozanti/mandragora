@@ -1,26 +1,32 @@
 #!/bin/bash
-window_gap="bspc config window_gap"
+is_local=$1
+arg=$2
+if [[ $is_local == all ]]; then
+    gap_command="bspc config window_gap"
+else
+    gap_command="bspc config -d focused window_gap"
+fi
 delta=5
 
-case "$1" in
-        plus) $($window_gap $((`$window_gap` + $delta ))) ;;
+case "$arg" in
+    plus) $($gap_command $((`$gap_command` + $delta ))) ;;
 
-        minus) if [ `$window_gap` -ne 0 ]; then
-                $($window_gap $((`$window_gap` - $delta )))
-                fi ;;
+    minus) if [ `$gap_command` -ne 0 ]; then
+        $($gap_command $((`$gap_command` - $delta )))
+        fi ;;
 
-        equal) 
-                $($window_gap 50)
-                xdotool key Escape 
-                ;;
+    equal) 
+        $($gap_command 50)
+        xdotool key Escape 
+        ;;
 
-        zero) 
-                $($window_gap 0) 
-                xdotool key Escape 
-                ;;
+    zero) 
+        $($gap_command 0) 
+        xdotool key Escape 
+        ;;
 
-        *) 
-                $($window_gap $1)
-                xdotool key Escape 
-                ;;
+    *) 
+        $($gap_command $arg)
+        xdotool key Escape 
+        ;;
 esac
