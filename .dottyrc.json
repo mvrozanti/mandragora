@@ -339,7 +339,8 @@
     "pv",
     "web-ext",
     "slimit",
-    "hexchat"
+    "hexchat",
+    "after"
   ],
   "excluded": [
     "hotmail.gpg",
