@@ -65,12 +65,9 @@ type = custom/script
 exec = curl -s http://checkip.dyndns.org/ | perl -pe 's/.*: (.*?)<.*/\1/' | ([[ ! -f /tmp/hideip ]] && sed 's/[0-9]/X/g' || xargs)
 click-left = [[ -f /tmp/hideip ]] && rm /tmp/hideip || touch /tmp/hideip
 format-underline = ${xrdb:color3}
-; format-prefix-underline = ${xrdb:color3}
 label-padding = 1
 interval = 1
 format-prefix = 
-; format-margin = 1
-; format-prefix-margin = 1
 label-font = 5
 prefix-font = 4
 

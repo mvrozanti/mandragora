@@ -222,7 +222,9 @@ alias wav2ogg='oggenc -q 3 -o file.ogg'
 # jpg2png(){ [[ $# -eq 1 ]] && convert "$1" "$(basename '$1' .jpg)" || [[ $# -eq 2 ]] && convert "$1" "$2" }
 alias ogg2wav='ffmpeg -i audio.ogg audio.wav'
 alias nudoku='nudoku -c'
-cdd(){ cd `dirname $1` }
+cdd(){ eval $(dirname $1) }
+cocd(){ le_co=`co`; echo $le_co; eval $le_co }
+cocdd(){ cdd `co` }
 alias pir='pip uninstall --no-cache-dir'
 up2imgur(){ curl -s -X POST --url https://api.imgur.com/3/image -H "Authorization: Client-ID $imgur_client_id" -F "image=@$@" | jq -r .data.link }
 up2giphy(){ curl -s -X POST --url https://upload.giphy.com/v1/gifs -H "api_key: $giphy_client_id" -F "file=@$@" | jq .data.id |xargs -i echo https://i.giphy.com/media/{}/source.gif }
@@ -357,8 +359,6 @@ _toggle_ssh_password_auth(){ grep 'PasswordAuthentication yes' /etc/ssh/sshd_con
 wetty(){ _toggle_ssh_password_auth; trap _toggle_ssh_password_auth SIGINT; node ~/util/wetty/index.js -p 2717 }
 xfix(){ xmodmap ~/.Xmodmap; xset r rate 200 30; setxkbmap us alt-intl }
 toggle_touchpad(){ [[ `xinput list-props 12 | grep "Device Enabled" | grep -o "[01]$"` -eq 1 ]] && xinput --disable 12 || xinput --enable 12 }
-cocd(){ cd ${!co} }
-alias cocdd='cdd `co`'
 other_mndrgr(){ [[ `hostname` == "mndrgr" ]] && echo mndrgr2 || echo mndrgr }
 diffmndrgr(){ [[ -z $@ ]] || diff $@ <(ssh $(other_mndrgr) 'cat '$(realpath $@)) }
 alias cosv='sv `co`'
