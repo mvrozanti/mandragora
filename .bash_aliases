@@ -617,6 +617,6 @@ git-obliterate(){ git filter-branch -f --index-filter "git rm -rf --cached --ign
 alias cfb='v $HOME/.config/bspwm'
 trdn(){ tr -d '\n' }
 alias time='date +%s.%N'
-alias rm='use D'
+alias rm='echo use D'
 d(){ trash }
 ud(){ trash-restore }
