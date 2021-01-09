@@ -156,6 +156,9 @@ super + e
     bspc node @/ -R 90
 
 super + shift + e
+    bspc node @parent -R 90
+
+super + ctrl + e
     bspc node @/ -R 270
 
 super + t
