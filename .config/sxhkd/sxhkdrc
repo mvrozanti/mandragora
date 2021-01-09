@@ -186,13 +186,13 @@ super + {minus,equal}
     bspc config -d focused window_gap $((`bspc config -d focused window_gap` {+,-} 5 ))
 
 super + parenright
-    bspc config -d focused window_gap 0 
+    bspc config -d focused window_gap 0
 
-super + shift + g ; {z,s,shift+i}
-    $HOME/.local/bin/gaps {zero,100,50}
+super + {alt,shift} + g ; {z,s,shift+i}
+    $HOME/.local/bin/gaps {all,local} {zero,100,50} 
 
-super + shift + g : {j,k}
-    $HOME/.local/bin/gaps {minus,plus}
+super + {alt,shift} + g : {j,k}
+    $HOME/.local/bin/gaps {all,local} {minus,plus} 
 
 super + ctrl + bracketleft                                       
     $HOME/util/compton/dbus-examples/dbus-strength.sh -1
