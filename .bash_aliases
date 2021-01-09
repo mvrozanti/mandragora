@@ -282,7 +282,7 @@ alias sS='servesingle'
 alias ctl='systemctl'
 alias sctl='sudo systemctl'
 alias GD='git daemon --base-path=. --export-all' # serve git repo on port 9418
-gd(){ [[ "$#" -eq 1 ]] && git diff $@ || git ls-files -o --exclude-standard | xargs git add; git add .; git diff --staged; git reset 2>&1 >/dev/null }
+gd(){ [[ "$#" -eq 1 ]] && git diff $@ || git ls-files -o --exclude-standard | xargs -I{} git add {} 2>&1 > /dev/null; git add .; git diff --staged; git reset 2>&1 >/dev/null }
 alias gdd='git diff HEAD~1'
 alias gddd='git diff HEAD~2'
 alias gdddd='git diff HEAD~3'
@@ -616,7 +616,7 @@ git-obliterate(){ git filter-branch -f --index-filter "git rm -rf --cached --ign
 alias cfb='v $HOME/.config/bspwm'
 trdn(){ tr -d '\n' }
 alias time='date +%s.%N'
-alias rm='echo use D'
+alias rm='echo use d'
 d(){ trash "$@" }
 ud(){ trash-restore }
 alias coga='co|git apply'
