@@ -619,3 +619,6 @@ alias time='date +%s.%N'
 alias rm='echo use D'
 d(){ trash "$@" }
 ud(){ trash-restore }
+gfp(){ [[ -z $1 ]] && n=1 || n=$1; git format-patch HEAD~$n --stdout | cat -  }
+alias gfpc='gfp|c'
+alias cogam='co|git am'
