@@ -3,7 +3,7 @@ unalias sp
 alias rm='rm -f'
 # alias ll='ls -alFh'
 alias lt='ls -snew'
-alias la='exa --all'
+alias -g la='ls -a --color'
 alias l='exa --reverse --sort=modified'
 alias watch='watch --color -n1 --no-title '
 alias sps='sudo pacman -S'
@@ -442,7 +442,7 @@ alias zat='zathura'
 alias cu='curl'
 alias tremc='transmission-remote-cli'
 # coz(){ wget -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36' "`co`" -O /tmp/html.pdf 2>&1 >/dev/null ; [[ "`file -ib /tmp/html.pdf`" =~ ".*pdf.*" ]] || cat $_ | wkhtmltopdf - $_ ; nohup zathura $_ 2>&1 >/dev/null & }
-alias wla='watch ls -a'
+alias wla='watch la'
 alias 2h='hh'
 cowat(){ co > /tmp/cowat.html ; waterfox --new-tab /tmp/cowat.html }
 alias cocurll='cocurl | less'
