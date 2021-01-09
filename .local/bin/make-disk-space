@@ -1,0 +1,6 @@
+#!/bin/bash
+rm .xsession-errors*
+s journalctl --vacuum-size=1G 
+sudo pacman -Scc
+yay -Scc 
+
