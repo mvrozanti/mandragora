@@ -69,7 +69,7 @@ super + 3
     wmctrl -a ZSH                || kitty --title _zsh_
 
 super + 4
-    wmctrl -a telegram           || QT_IM_MODULE=xim telegram-desktop
+    wmctrl -xa telegram-desktop   || QT_IM_MODULE=xim telegram-desktop
 
 super + shift + f
     wmctrl -a  WhatsApp          || whatsapp
