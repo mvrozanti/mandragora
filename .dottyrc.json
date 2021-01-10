@@ -395,6 +395,7 @@
     "stat /usr/lib/libwebp.so           || yay -S imlib2-webp-git",
     "command -v hamachi                 || yay -S logmein-hamachi",
     "command -v polybar                 || yay -S $_",
+    "command -v rgxg                    || yay -S $_",
     "command -v gotop                   || yay -S $_",
     "command -v ncpamixer               || yay -S $_",
     "command -v jmtpfs                  || yay -S $_",

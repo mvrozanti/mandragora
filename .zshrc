@@ -7,7 +7,9 @@ ZSH_TMUX_FIXTERM=true
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=12'
 ZSH_THEME="nexor"
 # ZSH_THEME="powerlevel9k/powerlevel9k"
-eval "$(dircolors)"
+eval "$(dircolors -p | \
+    sed 's/ 4[0-9];/ 01;/; s/;4[0-9];/;01;/g; s/;4[0-9] /;01 /' | \
+    dircolors /dev/stdin)"
 export HISTSIZE=1000000000
 export SAVEHIST=$HISTSIZE
 setopt EXTENDED_HISTORY
