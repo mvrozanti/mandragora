@@ -11,7 +11,7 @@
 ;==========================================================
 
 [colors]
-background = #001e1e1e
+; background = #001e1e1e
 background-alt = #001e1e1e
 foreground = #c1c1c1
 foreground-alt = #555
@@ -64,6 +64,16 @@ cursor-scroll = ns-resize
 type = custom/script
 exec = curl -s http://checkip.dyndns.org/ | perl -pe 's/.*: (.*?)<.*/\1/' | ([[ -f /tmp/hideip ]] && sed 's/[0-9]/X/g' || xargs)
 click-left = [[ -f /tmp/hideip ]] && rm /tmp/hideip || touch /tmp/hideip
+format-underline = ${xrdb:color3}
+label-padding = 1
+interval = 10
+format-prefix = 
+label-font = 5
+prefix-font = 4
+
+[module/portwatch]
+type = custom/script
+exec = sudo netstat -anp | grep :7664 | grep ESTABLISHED | wc -l 
 format-underline = ${xrdb:color3}
 label-padding = 1
 interval = 10
@@ -299,17 +309,17 @@ format-padding = 5
 label = %{A1:~/.local/bin/popup-calendar --popup:} %date% %time%
 format-prefix =  
 
-[module/news]
-format-underline = ${xrdb:color15}
-type = custom/text
-exec = ~/.config/polybar/scripts/news/news.sh download
-interval = 900
-click-left = ~/.config/polybar/scripts/news/news.sh show_menu
-content = 
-format-margin = 4
-format-prefix-margin = 4
-label-font = 5
-prefix-font = 2
+; [module/news]
+; format-underline = ${xrdb:color15}
+; type = custom/text
+; exec = ~/.config/polybar/scripts/news/news.sh download
+; interval = 900
+; click-left = ~/.config/polybar/scripts/news/news.sh show_menu
+; content = 
+; format-margin = 4
+; format-prefix-margin = 4
+; label-font = 5
+; prefix-font = 2
 
 ; [module/corona]
 ; type = custom/script
