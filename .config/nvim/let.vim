@@ -68,3 +68,4 @@ let g:syntastic_java_javac_config_file_enabled = 1
 let g:airline#extensions#tagbar#enabled = 1
 let g:airline_powerline_fonts = 1
 let g:airline_theme='atomic'
+let g:rainbow_active = 1
