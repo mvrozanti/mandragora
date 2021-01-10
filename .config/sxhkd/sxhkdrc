@@ -66,10 +66,10 @@ super + i
     wmctrl -a _hexchat_text_     || kitty --title _hexchat_text_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new hexchat-text"
 
 super + 3
-    wmctrl -a ZSH                || kitty --title _zsh_
+    wmctrl -a _zsh_              || kitty --title _zsh_
 
 super + 4
-    wmctrl -xa telegram-desktop   || QT_IM_MODULE=xim telegram-desktop
+    wmctrl -xa telegram-desktop  || QT_IM_MODULE=xim telegram-desktop
 
 super + shift + f
     wmctrl -a  WhatsApp          || whatsapp
