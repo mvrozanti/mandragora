@@ -81,7 +81,7 @@ bind <C-2> open youtube.com
 bind <C-3> open github.com
 bind t tabnew
 bind D tabduplicate
-bind <A-d> fillcmdline open
+bind <A-d> composite js window.location.href | fillcmdline open
 bind <C-o> fillcmdline open
 bind f hint
 unbind <C-a>
