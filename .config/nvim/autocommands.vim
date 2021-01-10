@@ -4,10 +4,12 @@ au FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
 au BufEnter *.pro :setlocal filetype=prolog
 au BufEnter *.kt :setlocal filetype=kotlin
 au BufEnter *.wl :setlocal filetype=wolframlanguage
+au BufEnter *polybar/config :setlocal filetype=polybar
 au FileType prolog setlocal commentstring=%\ %s
+au FileType polybar setlocal commentstring=\;\ %s
 au FileType perl setlocal commentstring=%\ %s
 au FileType jq setlocal commentstring=#\ %s
-au FileType perl   setlocal commentstring=%\ %s
+au FileType perl setlocal commentstring=%\ %s
 au FileType java call SetupCommandAlias("mvnexec","!mvnexec %")
 au FileType java call SetupCommandAlias("PP!","ProjectProblems!")
 au FileType python set makeprg=python\ %
