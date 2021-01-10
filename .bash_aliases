@@ -3,7 +3,7 @@ unalias sp
 alias rm='rm -f'
 # alias ll='ls -alFh'
 alias -g la='ls -a --color'
-alias l='ls -tl'
+alias l='ls -t1'
 alias watch='watch --color -n1 --no-title '
 alias sps='sudo pacman -S'
 alias spr='sudo pacman -Rns'
