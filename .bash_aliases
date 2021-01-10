@@ -2,9 +2,8 @@ unalias sd
 unalias sp
 alias rm='rm -f'
 # alias ll='ls -alFh'
-alias lt='ls -snew'
 alias -g la='ls -a --color'
-alias l='exa --reverse --sort=modified'
+alias l='ls -tl'
 alias watch='watch --color -n1 --no-title '
 alias sps='sudo pacman -S'
 alias spr='sudo pacman -Rns'
@@ -247,7 +246,6 @@ alias googlecloud='gcloud compute --project projeto-cloud-226116 ssh --zone us-e
 alias agi='sudo apt-get install'
 alias agr='sudo apt-get remove'
 alias tnsd='tmux new-session -d sh -c'
-# alias ls='[ -x "$(command -v exa)" ] && exa || ls'
 alias wdu='watch -n 1 du -sh "*"'
 alias lh='less ~/.zsh_history'
 alias make-gource-mandragora='git --no-pager log --date=raw|g "^\s+.+|Date"|sed -E "s/Date:\s+//g"|sed "N;s/\n//"|sed -E "s/(\S+)\s-\S+\s+(.+)/\1|\2/g" > caption_file'
