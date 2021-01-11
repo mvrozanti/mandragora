@@ -11,7 +11,7 @@
 ;==========================================================
 
 [colors]
-; background = #001e1e1e
+background = #001e1e1e
 background-alt = #001e1e1e
 foreground = #c1c1c1
 foreground-alt = #555
@@ -51,7 +51,7 @@ font-5 = "FontAwesome:size=13;2"
 
 modules-left = bspwm
 modules-center =
-modules-right = corona mpd xbacklight alsa filesystem memory cpu wlan eth ip news date battery
+modules-right = corona mpd xbacklight alsa filesystem memory cpu wlan eth ip portwatch date battery
 
 tray-position = right
 tray-padding = 2
@@ -74,10 +74,11 @@ prefix-font = 4
 [module/portwatch]
 type = custom/script
 exec = sudo netstat -anp | grep :7664 | grep ESTABLISHED | wc -l 
+click-left = ~/.local/bin/popup-connections 
 format-underline = ${xrdb:color3}
 label-padding = 1
 interval = 10
-format-prefix = 
+format-prefix = 
 label-font = 5
 prefix-font = 4
 
@@ -309,17 +310,17 @@ format-padding = 5
 label = %{A1:~/.local/bin/popup-calendar --popup:} %date% %time%
 format-prefix =  
 
-; [module/news]
-; format-underline = ${xrdb:color15}
-; type = custom/text
-; exec = ~/.config/polybar/scripts/news/news.sh download
-; interval = 900
-; click-left = ~/.config/polybar/scripts/news/news.sh show_menu
-; content = 
-; format-margin = 4
-; format-prefix-margin = 4
-; label-font = 5
-; prefix-font = 2
+[module/news]
+format-underline = ${xrdb:color15}
+type = custom/text
+exec = ~/.config/polybar/scripts/news/news.sh download
+interval = 900
+click-left = ~/.config/polybar/scripts/news/news.sh show_menu
+content = 
+format-margin = 4
+format-prefix-margin = 4
+label-font = 5
+prefix-font = 2
 
 ; [module/corona]
 ; type = custom/script
