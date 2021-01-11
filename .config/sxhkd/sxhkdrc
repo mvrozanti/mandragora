@@ -89,6 +89,9 @@ ctrl + super + d
 super + shift + s
     wmctrl -a Slack              || slack
 
+super + w
+    wmctrl -a Postman            || postman
+
 super + ctrl + p
     wmctrl -a Postman            || postman
 
