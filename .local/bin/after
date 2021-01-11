@@ -7,4 +7,4 @@ else
     while [[ -z "$(pgrep $1)" ]]; do sleep $interval; done 
     while [[ -n "$(pgrep $1)" ]]; do sleep $interval; done 
 fi
-"${@:2}" 
+eval "${@:2}" 
