@@ -446,7 +446,7 @@ alias cocurll='cocurl | less'
 trentr(){ e .travis.yml | entr echo /_ | xargs -I{} sh -c 'clear && travis lint {}' }
 alias wag='watch ag'
 alias f.='find .'
-pentr(){ ls | entr -c sh -c 'find test.* | xargs pytest' }
+pentr(){ find . | entr -c sh -c 'find . -iname "test*.py" | xargs pytest' }
 alias wls='watch ls'
 alias cosxiv='sxiv "`co`"'
 alias cogco='gco fix-non-existing-docker-image'
