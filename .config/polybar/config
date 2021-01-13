@@ -29,6 +29,7 @@ fixed-center = true
 background = ${colors.background}
 foreground = ${colors.foreground}
 enable-ipc = true
+wm-restack = bspwm
 
 line-size = 2
 line-color = #f00
