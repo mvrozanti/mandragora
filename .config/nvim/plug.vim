@@ -53,7 +53,7 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'majutsushi/tagbar'
 Plug 'easymotion/vim-easymotion'
 Plug 'vim-scripts/JavaScript-Indent'
-Plug 'luochen1990/rainbow'
+Plug 'frazrepo/vim-rainbow'
 " Plug 'amerlyq/vim-focus-autocmd'
 " Plug 'mvrozanti/bspwm_border_color'
 call plug#end()
