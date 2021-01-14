@@ -52,7 +52,7 @@ font-5 = "FontAwesome:size=13;2"
 
 modules-left = bspwm
 modules-center =
-modules-right = corona mpd xbacklight alsa filesystem memory cpu wlan eth ip news date battery redshift
+modules-right = corona redshift mpd xbacklight alsa filesystem memory cpu wlan eth ip news date battery 
 
 tray-position = right
 tray-padding = 2
