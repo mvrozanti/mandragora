@@ -29,9 +29,11 @@ case $1 in
     fi
     ;;
   increase)
+    changeMode "$REDSHIFT" on
     changeTemp $((REDSHIFT_TEMP)) $((REDSHIFT_TEMP+changeValue))
     ;;
   decrease)
+    changeMode "$REDSHIFT" on
     changeTemp $((REDSHIFT_TEMP)) $((REDSHIFT_TEMP-changeValue));
     ;;
   temperature)
