@@ -342,7 +342,8 @@
     "web-ext",
     "slimit",
     "hexchat",
-    "rmlint"
+    "rmlint",
+    "ecryptfs-utils"
   ],
   "excluded": [
     "hotmail.gpg",
