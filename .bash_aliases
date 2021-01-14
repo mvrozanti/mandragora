@@ -195,7 +195,7 @@ alias vc='co | v -'
 alias cv='cov'
 alias vh='nvim ~/.zsh_history'
 vx(){ xxd $@ | v - }
-ytdl(){ youtube-dl -4 -w --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" "$@"; ls -schanged /mnt/4ADE1465DE144C17/Musik/ | tail -n1 | xargs -I{} touch "/mnt/4ADE1465DE144C17/Musik/{}" }
+ytdl(){ youtube-dl -4 -w --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" "$@"; ls -c /mnt/4ADE1465DE144C17/Musik/ | sed 1q | xargs -I{} touch "/mnt/4ADE1465DE144C17/Musik/{}" }
 alias wt='watch -n 1 tree'
 wtg(){ watch -n 1 "tree | grep $@" }
 wcat(){ ls "$@" | entr -c cat /_ }
