@@ -1,5 +1,5 @@
 #!/bin/sh
-wal --saturate 1.0 -a 299 -i `cat $HOME/.cache/wal/wal`
+wal -a 299 -i `cat $HOME/.cache/wal/wal`
 pgrep -x compton     || compton -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
 pgrep -x mpd         || mpd &
 pgrep -x polybar     || polybar . &
