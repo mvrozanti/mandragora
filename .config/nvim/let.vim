@@ -69,3 +69,10 @@ let g:airline#extensions#tagbar#enabled = 1
 let g:airline_powerline_fonts = 1
 let g:airline_theme='atomic'
 let g:rainbow_active = 1
+let g:startify_files_number = 5
+let g:startify_update_oldfiles = 1
+let g:startify_enable_special = 0
+let g:startify_lists = [
+      \ { 'type': 'commands',  'header': ['   Commands']       },
+      \ { 'type': 'files',     'header': []                    },
+      \ ]
