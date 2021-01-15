@@ -128,6 +128,10 @@ super + space
 super + shift + space
     if [ -z "$(bspc query -N -n focused.floating)" ]; then \
         bspc node focused -t floating; \
+        bspc node -z bottom 0 -200;     \
+        bspc node -z top    0  200;      \
+        bspc node -z right  -200 0;       \
+        bspc node -z left    200 0;        \
     else \
         bspc node focused -t tiled; \
     fi

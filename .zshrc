@@ -242,3 +242,8 @@ export SYSTEMD_EDITOR=nvim
 source /home/nexor/.config/lf/lfcd.sh
 
 unsetopt hist_verify
+
+export COWPATH="/usr/share/cows"
+if [ -d "$HOME/.config/cowfiles" ] ; then
+    COWPATH="$COWPATH:$HOME/.config/cowfiles"
+fi
