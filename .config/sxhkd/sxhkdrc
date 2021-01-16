@@ -153,7 +153,6 @@ super + shift + c
         done|sort -n|head -n1|cut -d" " -f 5);\
         if [ -n "$i" ];then \
             xprop -id $i -remove _SCRATCH;\
-            bspc   rule   -r   "firefox"
             bspc rule -a \* state=tiled center=on --one-shot;\
             xdotool windowmap $i;\
             bspc node -f $i;\
