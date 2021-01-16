@@ -7,26 +7,30 @@ title=$(xtitle "$wid")
 
 # notify-send "$title"
 
-if [ "$title" = _neomutt_ ] ; then
+if [ "$title" = _neomutt_ ]; then
 	echo "desktop=^12"
 fi
 
-if [ "$title" = _zsh_ ] ; then
+if [ "$title" = _zsh_ ]; then
 	echo "desktop=^3; "
 fi
 
-if [ "$title" = _ranger_ ] ; then
+if [ "$title" = _ranger_ ]; then
 	echo "desktop=^2"
 fi
 
-if [ "$class" = firefox ] ; then
+if [ "$class" = firefox ]; then
 	[[ `pgrep firefox | wc -l` -eq 1 ]] && echo "desktop=^1"
 fi
 
-if [ "$title" = _tmux-float_ ] ; then
+if [ "$title" = _tmux-float_ ]; then
 	echo state=floating rectangle=400x300+1500+670 sticky=on
 fi
 
-if [ "$class" = kmag ] ; then
+if [ "$class" = kmag ]; then
 	echo state=floating rectangle=400x300+1500+670 sticky=on
+fi
+
+if [ "$class" = globoplay-assista-tv-globo-ao-vivo-nativefier-529bf2 ] ; then
+	echo state=floating rectangle=550x300+1358+738 sticky=on
 fi
