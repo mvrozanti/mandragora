@@ -503,7 +503,7 @@ alias rh='runhaskell'
 alias cof='f `co`'
 alias C='co'
 gbm(){ [[ "$#" -eq 1 ]] && git branch -m $2 }
-alias cas='/home/nexor/util/cas-1.0.1/run.sh'
+alias cas='$HOME/util/cas-1.0.1/run.sh'
 alias v0='nvim -c "normal '\''0"'
 alias v1='nvim -c "normal '\''1"'
 alias v2='nvim -c "normal '\''2"'
@@ -567,10 +567,10 @@ mp42gif(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.gif }
 coG(){ G "`co`" }
 alias grao='git remote add origin'
 corpc(){ co | xargs -I{} realpath -z "{}" | c }
-alias cfR='v /home/nexor/.config/rofi/config.rasi'
+alias cfR='v $HOME/.config/rofi/config.rasi'
 scov(){ sudoedit "`co`" }
 getpass(){ python -c 'from getpass import getpass;print(getpass("Password: "))' }
-alias cfpy='v /home/nexor/.ptpython/ptpythonrc.py'
+alias cfpy='v $HOME/.ptpython/ptpythonrc.py'
 wlg(){ watch "ls | grep $@" }
 alias dec2hex='printf "%x\n"'
 hex2dec(){ echo $@ | tr '[:lower:]' '[:upper:]' | xargs echo "obase=10; ibase=16;" | bc }

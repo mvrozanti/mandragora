@@ -4,9 +4,9 @@ set realname = "Marcelo"
 set from = "mvrozanti@hotmail.com"
 set sendmail = "msmtp -a hotmail"
 alias me Marcelo <mvrozanti@hotmail.com>
-set folder = "/home/nexor/.local/share/mail/hotmail"
-set header_cache = /home/nexor/.cache/mutt-wizard/hotmail/headers
-set message_cachedir = /home/nexor/.cache/mutt-wizard/hotmail/bodies
+set folder = "$HOME/.local/share/mail/hotmail"
+set header_cache = $HOME/.cache/mutt-wizard/hotmail/headers
+set message_cachedir = $HOME/.cache/mutt-wizard/hotmail/bodies
 set mbox_type = Maildir
 bind index,pager gg noop
 bind index,pager g noop
@@ -19,5 +19,5 @@ set record = "+Sent\ Items"
 set postponed = "+Drafts"
 set trash = "+Trash.Infected\ Items"
 mailboxes "=INBOX" "=Investimentos" "=RD|Essence" "=Mackenzie" "=Drafts" "=Sent\ Items" "=Junk" "=Sent" "=Armazenados"
-# /home/nexor/.local/share/mail
+# $HOME/.local/share/mail
 
