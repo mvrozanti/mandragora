@@ -222,24 +222,24 @@ if [[ ! $TERM =~ screen ]]; then
 fi
 
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '/home/nexor/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/home/nexor/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+if [ -f '$HOME/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '$HOME/Downloads/google-cloud-sdk/path.zsh.inc'; fi
 
 # The next line enables shell command completion for gcloud.
-if [ -f '/home/nexor/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/home/nexor/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+if [ -f '$HOME/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '$HOME/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
 
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 
 # dotnet
-export PATH="$PATH:/home/nexor/.dotnet/tools"
+export PATH="$PATH:$HOME/.dotnet/tools"
 
 export SYSTEMD_EDITOR=nvim
 
 # added by travis gem
-[ -f /home/nexor/.travis/travis.sh ] && source /home/nexor/.travis/travis.sh
+[ -f $HOME/.travis/travis.sh ] && source $HOME/.travis/travis.sh
 
-[[ -f /home/nexor/azure-cli/bin ]] && export PATH=$PATH:/home/nexor/azure-cli/bin && source '/home/nexor/azure-cli/az.completion'
+[[ -f $HOME/azure-cli/bin ]] && export PATH=$PATH:$HOME/azure-cli/bin && source '$HOME/azure-cli/az.completion'
 
-source /home/nexor/.config/lf/lfcd.sh
+source $HOME/.config/lf/lfcd.sh
 
 unsetopt hist_verify
 
