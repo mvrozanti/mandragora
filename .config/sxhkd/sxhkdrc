@@ -72,7 +72,7 @@ super + 4
     wmctrl -xa telegram-desktop  || QT_IM_MODULE=xim telegram-desktop
 
 super + shift + f
-    wmctrl -a  WhatsApp          || whatsapp
+    wmctrl -a  WhatsApp          || ~/.local/bin/whatsapp
 
 super + m
     wmctrl -a  Mathematica       || mathematica
