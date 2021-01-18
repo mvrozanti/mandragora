@@ -81,7 +81,7 @@ super + shift + d
     wmctrl -xa jetbrains-idea-ce || _JAVA_AWT_WM_NONREPARENTING=1 idea
 
 super + p
-    wmctrl -a ".pdf ["           || ~/.local/bin/zathura
+    wmctrl -a ".pdf ["           || zathura
 
 ctrl + super + d
     wmctrl -xa gdmap             || gdmap -f /
