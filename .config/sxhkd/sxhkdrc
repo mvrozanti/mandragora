@@ -130,11 +130,8 @@ super + space
 
 super + shift + space
     if [ -z "$(bspc query -N -n focused.floating)" ]; then \
+        wmctrl -ir $(xprop -root | grep _NET_ACTIVE_WINDOW | head -1 | awk '{print $5}' | sed 's/,//' | sed 's/^0x/0x0/') -e 0,260,140,1400,800; \
         bspc node focused -t floating; \
-        bspc node -z bottom 0 -200;     \
-        bspc node -z top    0  200;      \
-        bspc node -z right  -200 0;       \
-        bspc node -z left    200 0;        \
     else \
         bspc node focused -t tiled; \
     fi
@@ -145,6 +142,7 @@ super + shift + c
         xprop -id $i -f _SCRATCH 32ii -set _SCRATCH $(date +%s,%N);\
         xdotool windowunmap $i;\
     else;\
+
         i=$(for w in $(xwininfo -root -children | grep -e "^\s*0x[0-9a-f]\+" -o);do \
             t=$(xprop -id $w _SCRATCH | grep ' = \(.*\)');\
             if [ -n "$t" ];then \
