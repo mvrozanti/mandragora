@@ -144,7 +144,8 @@
     ".local/bin/lock": "~/.local/bin/lock",
     ".config/sxhkd/switch_nth_biggest_node": "~/.config/sxhkd/switch_nth_biggest_node",
     ".local/bin/after": "~/.local/bin/after",
-    ".local/bin/make-disk-space": "~/.local/bin/make-disk-space"
+    ".local/bin/make-disk-space": "~/.local/bin/make-disk-space",
+    ".local/bin/pentr": "~/.local/bin/pentr"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [

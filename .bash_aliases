@@ -174,7 +174,6 @@ xentr(){ ls * | entr -p /_ $@ }
 cntr(){ echo $1 | entr echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '${@:2}' {} -g -o "$noext" && clear && sh -c "$noext || :"'; }
 centr(){ ls *.c   | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; gcc '"$@"' {} -g -o "$noext" && clear && exec "$noext"'; }
 gentr(){ ls *.cpp | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; g++ '$@' {} -g -o "$noext" && clear && exec "$noext"'; }
-# pentr(){ [[ -z $1 ]] && ls *.py* | entr -rc /_ $@ || echo $1 | entr /_ }
 mentr(){ ls | entr -c make }
 mxentr(){ ls *.c   | entr -r echo /_ | xargs -I{} sh -c 'noext="`echo {}|cut -d. -f1`"; make && clear && exec "$noext"'; }
 jentr(){ ls *.java | entr -c javac * }
@@ -446,7 +445,6 @@ alias cocurll='cocurl | less'
 trentr(){ e .travis.yml | entr echo /_ | xargs -I{} sh -c 'clear && travis lint {}' }
 alias wag='watch ag'
 alias f.='find .'
-pentr(){ find . | entr -c sh -c 'find . -iname "test*.py" | xargs pytest' }
 alias wls='watch ls'
 alias cosxiv='sxiv "`co`"'
 alias cogco='gco fix-non-existing-docker-image'

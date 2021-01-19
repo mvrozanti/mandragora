@@ -1,0 +1,1 @@
+find . | entr -c sh -c 'find . -iname "test*.py" | xargs pytest' 
