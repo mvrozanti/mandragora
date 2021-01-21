@@ -76,3 +76,4 @@ let g:startify_lists = [
       \ { 'type': 'commands',  'header': ['   Commands']       },
       \ { 'type': 'files',     'header': []                    },
       \ ]
+let g:mkdp_browser = 'firefox'
