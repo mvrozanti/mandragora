@@ -618,3 +618,4 @@ ud(){ trash-restore }
 alias coga='co|git apply'
 alias polybar-hide-ip='touch /tmp/hideip'
 alias pi.='pip install .'
+alias wcc='wc -c'
