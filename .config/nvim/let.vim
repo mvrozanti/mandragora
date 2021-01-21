@@ -77,3 +77,5 @@ let g:startify_lists = [
       \ { 'type': 'files',     'header': []                    },
       \ ]
 let g:mkdp_browser = 'firefox'
+" let g:mkdp_markdown_css = expand('HOME/css/darkdown.css')
+let g:mkdp_highlight_css = expand('$HOME/css/darkdown.css')
