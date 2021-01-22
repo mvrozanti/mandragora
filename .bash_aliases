@@ -500,8 +500,7 @@ x1exe(){ mono `f exe|sed 1q` }
 alias wcl='wc -l'
 alias rh='runhaskell'
 alias cof='f `co`'
-alias C='tr -d "
-" | c'
+C(){ tr -d '\n' | c }
 gbm(){ [[ "$#" -eq 1 ]] && git branch -m $2 }
 alias cas='$HOME/util/cas-1.0.1/run.sh'
 alias v0='nvim -c "normal '\''0"'
