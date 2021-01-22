@@ -211,6 +211,7 @@ set bell-style none
 
 VISUAL=nvim; export VISUAL 
 EDITOR=nvim; export EDITOR
+BROWSER=firefox; export BROWSER
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export MANPAGER="nvim +set\ filetype=man -"
