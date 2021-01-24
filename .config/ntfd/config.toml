@@ -30,7 +30,7 @@ sync_frequency = 1800 # 30 minutes
 # - forecast_kelvin
 # - forecast_fahrenheit
 # - forecast_icon
-display = "{{ temp_icon }} {{ temp_celsius }}°C {{ trend }}"
+display = "{{ temp_icon }} {{ trend }}"
 
 # GitHub configuration
 [github]
