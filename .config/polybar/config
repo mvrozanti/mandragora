@@ -54,7 +54,7 @@ font-7 = "Material Icons"
 
 modules-left = bspwm
 modules-center =
-modules-right = weather mpd xbacklight alsa filesystem memory cpu wlan eth ip redshift news date battery 
+modules-right = mpd alsa xbacklight weather filesystem memory cpu wlan eth ip redshift news date battery 
 
 tray-position = right
 tray-padding = 2
