@@ -8,7 +8,7 @@ title=$(xtitle "$wid")
 # notify-send "$title"
 
 if [ "$title" = _visualizer-float_ ]; then
-	echo state=floating rectangle=500x400+1500+670 sticky=on
+	echo state=floating rectangle=500x400+1400+630 sticky=on
 fi
 
 if [ "$title" = _neomutt_ ]; then
