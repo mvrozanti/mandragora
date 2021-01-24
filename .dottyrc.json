@@ -345,7 +345,8 @@
     "slimit",
     "hexchat",
     "rmlint",
-    "ecryptfs-utils"
+    "ecryptfs-utils",
+    "gnome-weather"
   ],
   "excluded": [
     "hotmail.gpg",
