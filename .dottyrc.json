@@ -145,7 +145,8 @@
     ".config/sxhkd/switch_nth_biggest_node": "~/.config/sxhkd/switch_nth_biggest_node",
     ".local/bin/after": "~/.local/bin/after",
     ".local/bin/make-disk-space": "~/.local/bin/make-disk-space",
-    ".local/bin/pentr": "~/.local/bin/pentr"
+    ".local/bin/pentr": "~/.local/bin/pentr",
+    ".config/ntfd/config.toml": "~/.config/ntfd/config.toml"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
@@ -397,6 +398,8 @@
     "gem install --install-user word_wrap",
     "stat /usr/lib/libwebp.so           || yay -S imlib2-webp-git",
     "command -v hamachi                 || yay -S logmein-hamachi",
+    "command -v ntfd                    || yay -S ntfd-bin",
+    "fc-list | grep MaterialIcons       || yay -S ttf-material-icons-git",
     "command -v polybar                 || yay -S $_",
     "command -v rgxg                    || yay -S $_",
     "command -v gotop                   || yay -S $_",

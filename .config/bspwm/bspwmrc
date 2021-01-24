@@ -1,11 +1,12 @@
 #!/bin/sh
 wal -a 299 -i `cat $HOME/.cache/wal/wal`
-pgrep -x compton     || compton -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
-pgrep -x mpd         || mpd &
-pgrep -x polybar     || polybar . &
-pgrep -x sxhkd       || sxhkd &
+pgrep -x compton     || $_ -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
+pgrep -x mpd         || $_   &
+pgrep -x polybar     || $_ . &
+pgrep -x sxhkd       || $_   &
+pgrep -x ntfd        || $_   &
 pgrep -f imap-notify || nohup $HOME/.local/bin/imap-notify &
-pgrep -f imap-notify || nohup $HOME/.local/bin/cleanfullscreen
+pgrep -f imap-notify || nohup $HOME/.local/bin/cleanfullscreen &
 
 bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX
 

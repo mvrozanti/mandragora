@@ -49,10 +49,12 @@ font-2 = "xos4 Terminus:size=12;1"
 font-3 = fixed:pixelsize=10;1
 font-4 = Droid Sans Mono Slashed for Powerline:size=10
 font-5 = "FontAwesome:size=13;2"
+font-6 = "Weather Icons"
+font-7 = "Material Icons"
 
 modules-left = bspwm
 modules-center =
-modules-right = redshift mpd xbacklight alsa filesystem memory cpu wlan eth ip news date battery 
+modules-right = weather mpd xbacklight alsa filesystem memory cpu wlan eth ip redshift news date battery 
 
 tray-position = right
 tray-padding = 2
@@ -60,6 +62,12 @@ tray-background = ${colors.background}
 
 cursor-click = default
 cursor-scroll = ns-resize
+
+[module/weather]
+type = custom/script
+exec = busctl --user -j get-property io.ntfd /weather openweathermap.strings RenderedTemplate | jq -r .data
+interval = 60
+label-font = 7
 
 [module/ip]
 type = custom/script
