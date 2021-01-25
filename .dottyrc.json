@@ -146,7 +146,8 @@
     ".local/bin/after": "~/.local/bin/after",
     ".local/bin/make-disk-space": "~/.local/bin/make-disk-space",
     ".local/bin/pentr": "~/.local/bin/pentr",
-    ".config/ntfd/config.toml": "~/.config/ntfd/config.toml"
+    ".config/ntfd/config.toml": "~/.config/ntfd/config.toml",
+    ".xscreensaver": "/home/m/.xscreensaver"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
