@@ -347,7 +347,8 @@
     "hexchat",
     "rmlint",
     "ecryptfs-utils",
-    "gnome-weather"
+    "gnome-weather",
+    "xscreensaver"
   ],
   "excluded": [
     "hotmail.gpg",
