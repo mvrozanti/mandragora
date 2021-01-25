@@ -16,6 +16,9 @@ super + Tab
 alt + Tab
     bspc desktop -f last
 
+super + alt + l
+    xscreensaver-command -lock
+
 alt + super + shift + p
     polybar-msg cmd hide
 
