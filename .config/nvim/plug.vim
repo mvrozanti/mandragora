@@ -56,4 +56,5 @@ Plug 'vim-scripts/JavaScript-Indent'
 Plug 'frazrepo/vim-rainbow'
 " Plug 'amerlyq/vim-focus-autocmd'
 " Plug 'mvrozanti/bspwm_border_color'
+Plug 'nvie/vim-flake8'
 call plug#end()
