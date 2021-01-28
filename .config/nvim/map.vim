@@ -135,12 +135,6 @@ nn <C-A-h>      :5winc <<CR>
 nn <C-A-b>      :5winc +<CR>
 nn <C-A-l>      :5winc ><CR>
 nn <C-A-u>      :5winc -<CR>
-if has('nvim')
-  no <silent> <c-u> :call smooth_scroll#up   ( &scroll, 10, 2)<CR>
-  no <silent> <c-d> :call smooth_scroll#down ( &scroll, 10, 2)<CR>
-  no <silent> <c-b> :call smooth_scroll#up   ( &scroll*2, 10, 4)<CR>
-  no <silent> <c-f> :call smooth_scroll#down ( &scroll*2, 10, 4)<CR>
-endif
 nmap <silent> <leader>w <Plug>(coc-diagnostic-next)
 ino <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
 ino <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
