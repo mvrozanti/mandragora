@@ -87,7 +87,7 @@ super + shift + d
     wmctrl -xa jetbrains-idea-ce || _JAVA_AWT_WM_NONREPARENTING=1 idea
 
 super + a
-    wmctrl -xa workbench         || mysql-workbench-bin
+    wmctrl -xa workbench         || mysql-workbench
 
 super + p
     wmctrl -a ".pdf ["           || zathura
