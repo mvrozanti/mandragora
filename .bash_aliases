@@ -396,7 +396,7 @@ alias xlx='f -tnew | x file | g ELF | sed 1q | cut -d ":" -f1 | x -I{} zsh -c ./
 alias costat='co | x stat'
 preent(){ clear;e $@ | leet | lolcat;read }
 ren(){ e $@ | vipe | xargs -I{} mv $@ {} }
-gource2mp4(){ gource -s .06 -1280x720 --auto-skip-seconds .1 --multi-sampling --stop-at-end --key --highlight-users --hide mouse,progress,files,filenames,dirnames --file-idle-time 0 --max-files 0 --font-size 22 --title "$(basename `realpath .`)" --output-ppm-stream - --output-framerate 30 | ffmpeg -i - -b:v 3048780 -vcodec libx264 -crf 24 output.mp4 }
+gource2mp4(){ gource -s .06 -1280x720 --auto-skip-seconds .1 --multi-sampling --stop-at-end --key --highlight-users --hide mouse,progress,filenames,dirnames --file-idle-time 0 --max-files 0 --font-size 22 --title "$(basename `realpath .`)" --output-ppm-stream - --output-framerate 30 | ffmpeg -i - -b:v 3048780 -vcodec libx264 -crf 24 output.mp4 }
 alias vre='v README.md'
 wiki(){ `wis wiki` $@ | ww -w $COLUMNS }
 alias screenkey='screenkey --font-color white --opacity 0.3 --compr-cnt 3 --vis-shift -p fixed -g 865x213+1054+835 --multiline -s small'
