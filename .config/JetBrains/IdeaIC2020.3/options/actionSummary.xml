@@ -49,7 +49,7 @@
       <i c="6" l="1611713762563" />
     </e>
     <e n="CodeCompletion">
-      <i c="534" l="1611841534370" />
+      <i c="536" l="1611926736037" />
     </e>
     <e n="CommentByBlockComment">
       <i c="1" l="1611784154743" />
@@ -73,7 +73,7 @@
       <i c="3230" l="1611847938395" />
     </e>
     <e n="EditorChooseLookupItem">
-      <i c="670" l="1611926580844" />
+      <i c="673" l="1611926738002" />
     </e>
     <e n="EditorChooseLookupItemReplace">
       <i c="1" l="1611713263852" />
@@ -109,7 +109,7 @@
       <i c="2" l="1610723429196" />
     </e>
     <e n="EditorDown">
-      <i c="14430" l="1611926610078" />
+      <i c="14441" l="1611926735132" />
     </e>
     <e n="EditorDownWithSelection">
       <i c="1181" l="1611847921813" />
@@ -220,7 +220,7 @@
       <i c="58" l="1611925355592" />
     </e>
     <e n="EditorUp">
-      <i c="13839" l="1611926610817" />
+      <i c="13841" l="1611926717001" />
     </e>
     <e n="EditorUpWithSelection">
       <i c="784" l="1611847922819" />
@@ -379,7 +379,7 @@
       <i c="2" l="1611859212741" />
     </e>
     <e n="ShowSettings">
-      <i c="25" l="1611926635977" />
+      <i c="26" l="1611926753059" />
     </e>
     <e n="ShowSettingsAndFindUsages">
       <i c="1" l="1610022227735" />
@@ -487,7 +487,7 @@
       <i c="1" l="1610822862652" />
     </e>
     <e n="com.intellij.openapi.actionSystem.EmptyAction$MyDelegatingAction">
-      <i c="533" l="1611926614999" />
+      <i c="550" l="1611926752824" />
     </e>
     <e n="com.intellij.openapi.editor.impl.EditorGutterComponentImpl$CloseAnnotationsAction">
       <i c="1" l="1611066104283" />
