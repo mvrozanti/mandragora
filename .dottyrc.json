@@ -146,7 +146,8 @@
     ".config/JetBrains/IdeaIC2020.3/keymaps": "/home/m/.config/JetBrains/IdeaIC2020.3/keymaps",
     ".config/JetBrains/IdeaIC2020.3/options/keymap.xml": "/home/m/.config/JetBrains/IdeaIC2020.3/options/keymap.xml",
     ".config/JetBrains/IdeaIC2020.3/options/editor.xml": "/home/m/.config/JetBrains/IdeaIC2020.3/options/editor.xml",
-    ".config/JetBrains/IdeaIC2020.3/options/cachedDictionary.xml": "/home/m/.config/JetBrains/IdeaIC2020.3/options/cachedDictionary.xml"
+    ".config/JetBrains/IdeaIC2020.3/options/cachedDictionary.xml": "/home/m/.config/JetBrains/IdeaIC2020.3/options/cachedDictionary.xml",
+    ".config/JetBrains/IdeaIC2020.3/options/actionSummary.xml": "/home/m/.config/JetBrains/IdeaIC2020.3/options/actionSummary.xml"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
