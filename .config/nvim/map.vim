@@ -53,7 +53,9 @@ nn dA F(vbdf)xB
 nmap dS bysw<Space><Space>ds)
 vn - $h
 nn <C-u> 'x
-ino {<CR> {<CR>}<Esc>k$o
+if has('nvim')
+  ino {<CR> {<CR>}<Esc>k$o
+endif
 vn <CR> c<CR>
 nn <C-Tab> gK
 map <F2> :Goyo 200x200<CR>
