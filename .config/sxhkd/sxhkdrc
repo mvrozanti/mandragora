@@ -139,8 +139,9 @@ super + space
 
 super + shift + space
     if [ -z "$(bspc query -N -n focused.floating)" ]; then \
-        wmctrl -ir $(xprop -root | grep _NET_ACTIVE_WINDOW | head -1 | awk '{print $5}' | sed 's/,//' | sed 's/^0x/0x0/') -e 0,260,140,1400,800; \
         bspc node focused -t floating; \
+        win_id=$(bspc query -N -n .window.focused); \
+        wmctrl -ir $win_id -e 0,260,140,1400,800; \
     else \
         bspc node focused -t tiled; \
     fi

@@ -1,4 +1,4 @@
-<keymap version="1" name="NetBeans copy" parent="NetBeans 6.5">
+<keymap version="1" name="le_keymap" parent="NetBeans 6.5">
   <action id="CommentByLineComment">
     <keyboard-shortcut first-keystroke="shift ctrl c" />
   </action>
