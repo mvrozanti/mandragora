@@ -21,8 +21,7 @@
             "filetypes": ["c", "cpp", "objc", "objcpp"]
         },
         "kotlin": { 
-            "port": 49100,
-            "host": "127.0.0.1",
+            "command": "~/util/kotlin-language-server/server/build/install/server/bin/kotlin-language-server",
             "filetypes": ["kotlin"] 
         }
     }
