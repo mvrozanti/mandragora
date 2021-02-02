@@ -82,6 +82,15 @@
       <shortcut-conflict owner="ide">
         <text>ctrl pressed Q</text>
       </shortcut-conflict>
+      <shortcut-conflict owner="ide">
+        <text>pressed F8</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text>alt pressed RIGHT</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text>alt pressed LEFT</text>
+      </shortcut-conflict>
     </shortcut-conflicts>
   </component>
   <component name="VimSettings">

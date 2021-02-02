@@ -349,7 +349,8 @@
     "rmlint",
     "ecryptfs-utils",
     "gnome-weather",
-    "xscreensaver"
+    "xscreensaver",
+    "vnstat"
   ],
   "excluded": [
     "hotmail.gpg",
