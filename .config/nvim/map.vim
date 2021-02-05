@@ -42,7 +42,7 @@ ino <A-i> <Esc>f(a
 nn <A-I> <Esc>f,a
 ino <A-I> <Esc>f,a
 vn <C-f> y/<C-R>"<CR>
-" nn <CR> i<CR><Esc>
+nn <CR> i<CR><Esc>
 vn ( <Esc>a)<Esc>gvo<Esc>i(<Esc>i
 nn yF maggyG'a
 nn <Space><Space> <Esc>/<+><CR>"_3x:noh<CR>i

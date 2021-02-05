@@ -16,7 +16,7 @@
       <shortcut-conflict owner="ide">
         <text>ctrl pressed SPACE</text>
       </shortcut-conflict>
-      <shortcut-conflict owner="ide">
+      <shortcut-conflict owner="vim">
         <text>ctrl pressed V</text>
       </shortcut-conflict>
       <shortcut-conflict owner="vim">
@@ -90,6 +90,15 @@
       </shortcut-conflict>
       <shortcut-conflict owner="vim">
         <text>alt pressed LEFT</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text>alt pressed UP</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="ide">
+        <text>pressed F7</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text>ctrl pressed H</text>
       </shortcut-conflict>
     </shortcut-conflicts>
   </component>
