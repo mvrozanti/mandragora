@@ -42,7 +42,7 @@ case $1 in
         printf "%dK" "$REDSHIFT_TEMP"
         ;;
       off)
-        printf "⠀"
+        printf ""
         ;;
     esac
     ;;
