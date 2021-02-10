@@ -51,10 +51,11 @@ font-4 = Droid Sans Mono Slashed for Powerline:size=10
 font-5 = "FontAwesome:size=13;2"
 font-6 = "Weather Icons"
 font-7 = "Material Icons"
+font-8 = "Noto Sans Symbols2:style=Regular"
 
 modules-left = bspwm
 modules-center =
-modules-right = mpd alsa xbacklight weather filesystem memory cpu wlan eth ip redshift news battery date
+modules-right = mpd alsa xbacklight weather filesystem memory cpu wlan eth ip vpn redshift news battery date
 
 tray-position = right
 tray-padding = 2
@@ -62,6 +63,14 @@ tray-background = ${colors.background}
 
 cursor-click = default
 cursor-scroll = ns-resize
+
+[module/vpn]
+type = custom/script
+exec = ~/.config/polybar/scripts/vpn.sh
+interval = 1
+label-font = 8
+prefix-font = 8
+font = 8
 
 [module/weather]
 type = custom/script
@@ -327,8 +336,8 @@ exec = ~/.config/polybar/scripts/news/news.sh download
 interval = 900
 click-left = ~/.config/polybar/scripts/news/news.sh show_menu
 content = 
-format-margin = 4
-format-prefix-margin = 4
+; format-margin = 4
+; format-prefix-margin = 4
 label-font = 5
 prefix-font = 2
 
@@ -476,7 +485,7 @@ margin-bottom = 0
 
 [module/redshift]
 type = custom/script
-format-prefix = " "  
+format-prefix = ""
 exec = source ~/.config/polybar/scripts/env.sh && ~/.config/polybar/scripts/redshift.sh temperature 
 click-left = source ~/.config/polybar/scripts/env.sh && ~/.config/polybar/scripts/redshift.sh toggle 
 scroll-up = source ~/.config/polybar/scripts/env.sh && ~/.config/polybar/scripts/redshift.sh increase

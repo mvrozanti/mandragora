@@ -1,3 +1,4 @@
 #!/bin/bash
+[[ `pwd` =~ .*diin.* ]] && ./gradlew build ktlint detekt 
 gac "${@:1}"
 git push
