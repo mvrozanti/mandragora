@@ -103,6 +103,9 @@
       <shortcut-conflict owner="vim">
         <text>ctrl pressed OPEN_BRACKET</text>
       </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text>ctrl pressed X</text>
+      </shortcut-conflict>
     </shortcut-conflicts>
   </component>
   <component name="VimSettings">
