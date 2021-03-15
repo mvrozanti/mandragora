@@ -6,7 +6,7 @@ pgrep -x polybar          || $_ . &
 pgrep -x mpd              || $_   &
 pgrep -x sxhkd            || $_   &
 pgrep -x ntfd             || $_   &
-pgrep -f imap-notify      || nohup $HOME/.local/bin/imap-notify &
+# pgrep -f imap-notify      || nohup $HOME/.local/bin/imap-notify &
 pgrep -f cleanfullscreen  || nohup $HOME/.local/bin/cleanfullscreen &
 
 bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX
