@@ -15,6 +15,10 @@ if [ "$title" = _neomutt_ ]; then
 	echo "desktop=^12"
 fi
 
+if [ "$title" = "Mozilla Thunderbird" ]; then
+	echo "desktop=^12"
+fi
+
 if [ "$title" = _zsh_ ]; then
 	echo "desktop=^3; "
 fi

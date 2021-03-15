@@ -5,106 +5,109 @@
   <component name="VimKeySettings">
     <shortcut-conflicts>
       <shortcut-conflict owner="ide">
-        <text>ctrl pressed S</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIFM=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="vim">
-        <text>ctrl pressed E</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIEU=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="ide">
-        <text>ctrl pressed TAB</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIFRBQg==</text>
       </shortcut-conflict>
       <shortcut-conflict owner="ide">
-        <text>ctrl pressed SPACE</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIFNQQUNF</text>
       </shortcut-conflict>
       <shortcut-conflict owner="vim">
-        <text>ctrl pressed V</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIFY=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="vim">
-        <text>ctrl pressed A</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIEE=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="ide">
-        <text>pressed F5</text>
+        <text encoding="base64">cHJlc3NlZCBGNQ==</text>
       </shortcut-conflict>
       <shortcut-conflict owner="vim">
-        <text>ctrl pressed T</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIFQ=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="vim">
-        <text>ctrl pressed B</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIEI=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="vim">
-        <text>ctrl pressed D</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIEQ=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="ide">
-        <text>ctrl pressed R</text>
-      </shortcut-conflict>
-      <shortcut-conflict owner="vim">
-        <text>ctrl alt pressed B</text>
-      </shortcut-conflict>
-      <shortcut-conflict owner="vim">
-        <text>alt pressed DOWN</text>
-      </shortcut-conflict>
-      <shortcut-conflict owner="vim">
-        <text>ctrl pressed J</text>
-      </shortcut-conflict>
-      <shortcut-conflict owner="vim">
-        <text>ctrl pressed F</text>
-      </shortcut-conflict>
-      <shortcut-conflict owner="vim">
-        <text>alt pressed K</text>
-      </shortcut-conflict>
-      <shortcut-conflict owner="vim">
-        <text>alt pressed J</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIFI=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="ide">
-        <text>ctrl pressed W</text>
+        <text encoding="base64">Y3RybCBhbHQgcHJlc3NlZCBC</text>
       </shortcut-conflict>
       <shortcut-conflict owner="vim">
-        <text>ctrl pressed CLOSE_BRACKET</text>
+        <text encoding="base64">YWx0IHByZXNzZWQgRE9XTg==</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text encoding="base64">Y3RybCBwcmVzc2VkIEo=</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text encoding="base64">Y3RybCBwcmVzc2VkIEY=</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text encoding="base64">YWx0IHByZXNzZWQgSw==</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text encoding="base64">YWx0IHByZXNzZWQgSg==</text>
       </shortcut-conflict>
       <shortcut-conflict owner="ide">
-        <text>ctrl pressed P</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIFc=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="vim">
-        <text>ctrl pressed K</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIENMT1NFX0JSQUNLRVQ=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="ide">
-        <text>ctrl pressed F8</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIFA=</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text encoding="base64">Y3RybCBwcmVzc2VkIEs=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="ide">
-        <text>ctrl pressed C</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIEY4</text>
       </shortcut-conflict>
       <shortcut-conflict owner="ide">
-        <text>ctrl pressed Y</text>
-      </shortcut-conflict>
-      <shortcut-conflict owner="vim">
-        <text>ctrl pressed O</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIEM=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="ide">
-        <text>ctrl pressed Q</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIFk=</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text encoding="base64">Y3RybCBwcmVzc2VkIE8=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="ide">
-        <text>pressed F8</text>
-      </shortcut-conflict>
-      <shortcut-conflict owner="vim">
-        <text>alt pressed RIGHT</text>
-      </shortcut-conflict>
-      <shortcut-conflict owner="vim">
-        <text>alt pressed LEFT</text>
-      </shortcut-conflict>
-      <shortcut-conflict owner="vim">
-        <text>alt pressed UP</text>
+        <text encoding="base64">Y3RybCBwcmVzc2VkIFE=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="ide">
-        <text>pressed F7</text>
+        <text encoding="base64">cHJlc3NlZCBGOA==</text>
       </shortcut-conflict>
       <shortcut-conflict owner="vim">
-        <text>ctrl pressed H</text>
+        <text encoding="base64">YWx0IHByZXNzZWQgUklHSFQ=</text>
       </shortcut-conflict>
       <shortcut-conflict owner="vim">
-        <text>ctrl pressed OPEN_BRACKET</text>
+        <text encoding="base64">YWx0IHByZXNzZWQgTEVGVA==</text>
       </shortcut-conflict>
       <shortcut-conflict owner="vim">
-        <text>ctrl pressed X</text>
+        <text encoding="base64">YWx0IHByZXNzZWQgVVA=</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="ide">
+        <text encoding="base64">cHJlc3NlZCBGNw==</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text encoding="base64">Y3RybCBwcmVzc2VkIEg=</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text encoding="base64">Y3RybCBwcmVzc2VkIE9QRU5fQlJBQ0tFVA==</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text encoding="base64">Y3RybCBwcmVzc2VkIFg=</text>
+      </shortcut-conflict>
+      <shortcut-conflict owner="vim">
+        <text encoding="base64">Y3RybCBwcmVzc2VkIEJBQ0tfU0xBU0g=</text>
       </shortcut-conflict>
     </shortcut-conflicts>
   </component>

@@ -14,12 +14,11 @@ Flatten .
 
 Channel hotmail
 Expunge Both
-Master :hotmail-remote:
-Slave :hotmail-local:
+Far :hotmail-remote:
+Near :hotmail-local:
 Patterns * !"[Gmail]/All Mail"
 Create Both
 SyncState *
 MaxMessages 0
 ExpireUnread no
 # End profile
-

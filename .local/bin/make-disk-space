@@ -1,5 +1,5 @@
 #!/bin/bash
-rm .xsession-errors*
+rm ~/.xsession-errors*
 yay -Scc 
 trash-empty
 sudo journalctl --vacuum-size=1G 
