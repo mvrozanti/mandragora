@@ -7,7 +7,7 @@ do
                 xclip -selection clipboard "$file" -t image/jpeg
                 ;;
         "w")
-                setbg "$file"
+                /home/m/.local/bin/setbg "$file"
                 ;;
         esac
 done
