@@ -16,7 +16,7 @@ if [ "$title" = _neomutt_ ]; then
 fi
 
 if [ "$title" = "Mozilla Thunderbird" ]; then
-	echo "desktop=^12"
+	echo "desktop=^12 follow=true" 
 fi
 
 if [ "$title" = _zsh_ ]; then
