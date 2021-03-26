@@ -27,7 +27,7 @@ if has('nvim')
 endif
 Plug 'skwp/greplace.vim'
 if has('nvim')
-  Plug 'neoclide/coc.nvim'
+  Plug 'neoclide/coc.nvim', {'branch':'release'}
 endif
 Plug 'tommcdo/vim-exchange'
 Plug 'jiangmiao/auto-pairs'
