@@ -114,7 +114,7 @@ cd_disk() { echo; cd ~/disk; zle reset-prompt }
 cd_tcc() { echo; cd ~/mackenzie/TCC/; zle reset-prompt }
 cd_sys4bank() { echo; cd ~/sys4bank/prog; zle reset-prompt }
 cd_downloads() { echo; cd ~/Downloads; zle reset-prompt }
-cd_fzf() { echo; cd "`exa -D|fzf`"; zle reset-prompt }
+cd_fzf() { echo; cd "`ls|fzf`"; zle reset-prompt }
 run_ncmpcpp() { BUFFER="ncmpcpp"; zle accept-line }
 run_clock() { echo; peaclock; zle reset-prompt}
 
