@@ -5,3 +5,4 @@ trash-empty
 sudo journalctl --vacuum-size=1G 
 sudo rm -r /var/lib/systemd/coredump/core.* 
 sudo pacman -Scc
+docker system prune -a
