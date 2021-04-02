@@ -21,3 +21,4 @@ au FileType python                                             let b:run_script 
 au FileType python                                             let g:pymode_python = 'python3'
 au FileType cpp                                                let b:run_script = '! clear; make && !%:r'
 au FileType tex DittoOn
+au FileType sh set colorcolumn=120
