@@ -188,6 +188,8 @@ POWERLEVEL9K_SHORTEN_STRATEGY='truncate_middle'
 POWERLEVEL9K_HOME_ICON=''
 [ -f /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme ] && \
     source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+[ -f ~/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme ] && \
+    source ~/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme 
 
 #   ctrl + u     : clear line
 #   ctrl + w     : delete word backward
