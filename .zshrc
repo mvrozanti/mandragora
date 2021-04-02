@@ -83,10 +83,9 @@ export SSH_KEY_PATH="~/.ssh/rsa_id"
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 #
-source ~/.oh-my-zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
-source $HOME/.bash_aliases
-source $HOME/.ranger_aliases
-# source $HOME/.lf_aliases
+[ -f ~/.oh-my-zsh/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source ~/.oh-my-zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+[ -f $HOME/.bash_aliases ] && source $HOME/.bash_aliases
+[ -f $HOME/.ranger_aliases ] && source $HOME/.ranger_aliases
 stty -ixon
 
 bindkey '^ ' autosuggest-accept
@@ -187,7 +186,8 @@ POWERLEVEL9K_SHORTEN_DIR_LENGTH=2
 POWERLEVEL9K_SHORTEN_STRATEGY='truncate_middle'
 
 POWERLEVEL9K_HOME_ICON=''
-source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+[ -f /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme ] && \
+    source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
 
 #   ctrl + u     : clear line
 #   ctrl + w     : delete word backward
@@ -216,7 +216,7 @@ BROWSER=firefox; export BROWSER
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export MANPAGER="nvim +set\ filetype=man -"
 
-cat $HOME/.cache/wal/sequences
+[ -f $HOME/.cache/wal/sequences ] && cat $HOME/.cache/wal/sequences
 
 if [[ ! $TERM =~ screen ]]; then
     exec tmux
@@ -238,9 +238,9 @@ export SYSTEMD_EDITOR=nvim
 # added by travis gem
 [ -f $HOME/.travis/travis.sh ] && source $HOME/.travis/travis.sh
 
-[[ -f $HOME/azure-cli/bin ]] && export PATH=$PATH:$HOME/azure-cli/bin && source '$HOME/azure-cli/az.completion'
+[ -f $HOME/azure-cli/bin ] && export PATH=$PATH:$HOME/azure-cli/bin && source '$HOME/azure-cli/az.completion'
 
-source $HOME/.config/lf/lfcd.sh
+[ -f $HOME/.config/lf/lfcd.sh ] && source $HOME/.config/lf/lfcd.sh
 
 unsetopt hist_verify
 
@@ -254,3 +254,4 @@ PERL5LIB="/home/m/perl5/lib/perl5${PERL5LIB:+:${PERL5LIB}}"; export PERL5LIB;
 PERL_LOCAL_LIB_ROOT="/home/m/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOCAL_LIB_ROOT}}"; export PERL_LOCAL_LIB_ROOT;
 PERL_MB_OPT="--install_base \"/home/m/perl5\""; export PERL_MB_OPT;
 PERL_MM_OPT="INSTALL_BASE=/home/m/perl5"; export PERL_MM_OPT;
+[ -f ~/.local/bin/resty ] && . ~/.local/bin/resty
