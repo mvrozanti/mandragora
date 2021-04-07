@@ -54,14 +54,14 @@ XF86AudioLowerVolume
     amixer set 'Master' 4%-
 
 super + dead_grave
-    wmctrl -a _ncmpcpp_          || st -T 50 -e /usr/bin/ncmpcpp
+    wmctrl -a _ncmpcpp_          || kitty --title _ncmpcpp_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ncmpcpp" 
 
 super + alt + dead_grave
-    wmctrl -a _ncmpcpp_          || st -T 50 -t _visualizer-float_ -c _visualizer_ -e /usr/bin/ncmpcpp -s visualizer 
+    wmctrl -a _ncmpcpp_          || kitty --title _visualizer-float_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ncmpcpp"
 
 super + 0
     wmctrl -a thunderbird        || thunderbird
-# wmctrl -a  _neomutt_         || kitty --title _neomutt_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && mbsync hotmail && tmux new neomutt"
+  # wmctrl -a  _neomutt_         || kitty --title _neomutt_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && mbsync hotmail && tmux new neomutt"
 
 super + 1
     wmctrl -a Firefox            || pgrep firefox || firefox
