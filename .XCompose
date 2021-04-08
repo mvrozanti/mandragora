@@ -1,3 +1,5 @@
 include "%S/en_US.UTF-8/Compose"
 <dead_acute> <C>                        : "Ç"
 <dead_acute> <c>                        : "ç"
+<dead_acute> <space> : "'"
+<dead_acute> <dead_acute> : "´"
