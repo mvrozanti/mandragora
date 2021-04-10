@@ -148,7 +148,8 @@
     ".config/JetBrains/IdeaIC2020.3/options/editor.xml": "/home/m/.config/JetBrains/IdeaIC2020.3/options/editor.xml",
     ".config/JetBrains/IdeaIC2020.3/options/cachedDictionary.xml": "/home/m/.config/JetBrains/IdeaIC2020.3/options/cachedDictionary.xml",
     ".config/JetBrains/IdeaIC2020.3/keymaps/le_keymap": ".config/JetBrains/IdeaIC2020.3/keymaps/le_keymap.xml",
-    ".config/JetBrains/IdeaIC2020.3/options/vim_settings.xml": "/home/m/.config/JetBrains/IdeaIC2020.3/options/vim_settings.xml"
+    ".config/JetBrains/IdeaIC2020.3/options/vim_settings.xml": "/home/m/.config/JetBrains/IdeaIC2020.3/options/vim_settings.xml",
+    ".local/bin/ic": "/home/m/.local/bin/ic"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
