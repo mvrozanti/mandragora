@@ -634,3 +634,5 @@ alias lens='/usr/share/lens/AppRun'
 alias cojqv-='cojq|v-'
 alias sai='sudo apt install'
 throw(){ fullpath=`rp $1|cut -c9-`; (cd $HOME; rsync -R $fullpath $2:~) }
+comv.(){ mv "`co`" . }
+cocp.(){ cp "`co`" . }
