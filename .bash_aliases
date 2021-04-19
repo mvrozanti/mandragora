@@ -630,7 +630,6 @@ alias sisfinance='/mnt/4ADE1465DE144C17/Programming/python/sisfinance-mock-ctl/s
 alias cowcc='co | wcc'
 alias diingacp='./gradlew build ktlint detekt && gacp'
 alias yay='yay --removemake'
-alias lens='/usr/share/lens/AppRun'
 alias cojqv-='cojq|v-'
 alias sai='sudo apt install'
 throw(){ fullpath=`rp $1|cut -c9-`; (cd $HOME; rsync -R $fullpath $2:~) }
