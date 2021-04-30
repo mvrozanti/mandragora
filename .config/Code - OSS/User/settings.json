@@ -5,8 +5,8 @@
     "vim.enableNeovim": true,
     "vim.insertModeKeyBindings": [
         {
-            "before": ["jk"],
-                "after": ["<esc>"]
+            "before": ["j", "k"],
+            "after": ["<esc>", "jk"]
         }
     ],
     "razor.disabled": true,
