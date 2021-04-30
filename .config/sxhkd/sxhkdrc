@@ -85,7 +85,8 @@ super + m
     wmctrl -a  Mathematica       || mathematica
 
 super + shift + d
-    wmctrl -xa jetbrains-idea-ce || _JAVA_AWT_WM_NONREPARENTING=1 idea
+    bspc desktop -f ^7 
+    #wmctrl -xa jetbrains-idea-ce || _JAVA_AWT_WM_NONREPARENTING=1 idea
 
 super + a
     wmctrl -xa workbench         || mysql-workbench
