@@ -10,5 +10,6 @@
         }
     ],
     "razor.disabled": true,
-    "window.zoomLevel": 0
+    "window.zoomLevel": 0,
+    "files.autoSave": "afterDelay"
 }
