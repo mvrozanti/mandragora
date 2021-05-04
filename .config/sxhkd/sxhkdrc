@@ -85,7 +85,7 @@ super + m
     wmctrl -a  Mathematica       || mathematica
 
 super + shift + d
-    bspc desktop -f ^7 
+    wmctrl -xa jetbrains-idea-ce || wmctrl -a 'Code - OSS' || _JAVA_AWT_WM_NONREPARENTING=1 idea || bspc desktop -f ^7 
     #wmctrl -xa jetbrains-idea-ce || _JAVA_AWT_WM_NONREPARENTING=1 idea
 
 super + a
