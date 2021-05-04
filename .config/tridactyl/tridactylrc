@@ -91,3 +91,4 @@ unbind gd
 unbind gf
 colors unugly
 blacklistadd meet.google.com/
+blacklistadd app.diagrams.net/
