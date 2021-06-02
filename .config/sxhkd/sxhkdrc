@@ -97,8 +97,8 @@ super + p
 ctrl + super + d
     wmctrl -xa gdmap             || gdmap -f /
 
-super + shift + s
-    wmctrl -a Slack              || slack
+#super + shift + s
+#    wmctrl -a Slack              || slack
 
 super + ctrl + g
     wmctrl -a globoplay          || $HOME/.local/bin/globo
