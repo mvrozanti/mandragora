@@ -10,6 +10,7 @@
 (monitor-xresolution 305)
 (monitor-yresolution 305)
 (save-session-info no)
+(user-manual-online yes)
 (image-resize-fill-type foreground)
 (fill-options
     (style solid)

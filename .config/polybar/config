@@ -81,7 +81,7 @@ click-left = pgrep -x gnome-weather || $_
 
 [module/ip]
 type = custom/script
-exec = curl -s http://checkip.dyndns.org/ | perl -pe 's/.*: (.*?)<.*/\1/' | ([[ -f /tmp/hideip ]] && sed 's/[0-9]/X/g' || xargs)
+exec = curl -s http://checkip.dyndns.org/ | perl -pe 's/.*: (.*?)<.*/\1/' | ([[ -f /tmp/hideip ]] && sed 's/[0-9]/X/g' || xargs) | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)$/\1/g'
 click-left = [[ -f /tmp/hideip ]] && rm /tmp/hideip || touch /tmp/hideip
 format-underline = ${xrdb:color3}
 label-padding = 1
