@@ -64,7 +64,7 @@ super + 0
   # wmctrl -a  _neomutt_         || kitty --title _neomutt_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && mbsync hotmail && tmux new neomutt"
 
 super + 1
-    wmctrl -a Firefox            || pgrep firefox || firefox
+    wmctrl -a Firefox            || pgrep firefox || wmctrl -a Chromium || firefox
 
 super + 2
     wmctrl -a _ranger_           || kitty --title _ranger_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ranger"
@@ -103,8 +103,8 @@ ctrl + super + d
 super + ctrl + g
     wmctrl -a globoplay          || $HOME/.local/bin/globo
 
-#super + w
-#    wmctrl -a Postman            || postman
+super + w
+    wmctrl -a Postman            || postman
 
 super + ctrl + p                                               
     wmctrl -a "LM-X410.F"        || adb connect 192.168.0.4:5555 && scrcpy -S
