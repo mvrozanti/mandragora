@@ -563,6 +563,7 @@ vX(){ e | vipe | xargs -0 zsh -c }
 alias i3ws='i3-msg workspace'
 webm2mp3(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.mp3 }
 mkv2webm(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.webm }
+mkv2gif(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.gif }
 mp42gif(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.gif }
 coG(){ G "`co`" }
 alias grao='git remote add origin'
