@@ -614,7 +614,7 @@ alias first='sed 1q'
 git-obliterate(){ git filter-branch -f --index-filter "git rm -rf --cached --ignore-unmatch $@" HEAD }
 alias cfb='v $HOME/.config/bspwm'
 trdn(){ tr -d '\n' }
-alias time='date +%s.%N'
+# alias time='date +%s.%N'
 alias rm='echo use d'
 d(){ trash "$@" }
 ud(){ trash-restore }
@@ -636,3 +636,4 @@ alias sai='sudo apt install'
 throw(){ fullpath=`rp $1|cut -c9-`; (cd $HOME; rsync -R $fullpath $2:~) }
 comv.(){ mv "`co`" . }
 cocp.(){ cp "`co`" . }
+alias lst='ls -t'
