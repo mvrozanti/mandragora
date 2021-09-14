@@ -22,6 +22,9 @@ super + alt + l
 alt + super + shift + p
     polybar-msg cmd hide
 
+super+backslash                                                  
+    glava
+
 alt + super + p
     polybar-msg cmd show
 
