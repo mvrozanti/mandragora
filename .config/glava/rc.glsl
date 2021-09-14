@@ -110,7 +110,7 @@
    
    When the "fifo" backend is set, "auto" is interpreted as
    "/tmp/mpd.fifo". Otherwise, a valid path should be provided. */
-#request setsource 0
+#request setsource auto
 
 /* Buffer swap interval (vsync), set to '0' to prevent
    waiting for refresh, '1' (or more) to wait for the specified
