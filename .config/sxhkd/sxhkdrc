@@ -13,6 +13,12 @@ super + f
 super + Tab
     bspc node -f next.local.!hidden.window
 
+ctrl + shift + k
+    transset-df --inc 0.04 -a
+
+ctrl + shift + j
+    transset-df --dec 0.04 -a
+
 alt + Tab
     bspc desktop -f last
 
@@ -22,8 +28,8 @@ super + alt + l
 alt + super + shift + p
     polybar-msg cmd hide
 
-super+backslash                                                  
-    glava
+#super + backslash                                                  
+#    glava
 
 alt + super + p
     polybar-msg cmd show
@@ -125,7 +131,7 @@ super + shift + r
     notify-send 'Restarting bspwm' && bspc wm --restart
 
 super + g
-    $HOME/.local/bin/setbg
+    sudo -u m $HOME/.local/bin/setbg
 
 super + c
     id=$(bspc query -N -n "focused");\
