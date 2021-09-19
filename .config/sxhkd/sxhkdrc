@@ -13,12 +13,6 @@ super + f
 super + Tab
     bspc node -f next.local.!hidden.window
 
-ctrl + shift + k
-    transset-df --inc 0.04 -a
-
-ctrl + shift + j
-    transset-df --dec 0.04 -a
-
 alt + Tab
     bspc desktop -f last
 
