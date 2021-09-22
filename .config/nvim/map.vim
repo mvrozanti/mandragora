@@ -73,9 +73,9 @@ au FileType javascript ino tr<tab> true
 au FileType javascript ino fa<tab> false
 au FileType javascript ino fori<tab> for(i=0; i < ; i++){<CR>}<Esc>3Bla
 au FileType javascript ino wh<tab> while(){<CR><Tab><+><CR>}<Esc>2kf(a
-au FileType typescript,html,javascript ino cl<tab> console.log()<Esc>i
-au FileType typescript,html,javascript ino ok<tab> Object.keys()<Esc>i
-au FileType html,javascript ino fn<tab> function(){<CR><Tab><+><CR>}<Esc>2kf(a
+au FileType typescript,html,javascript,p5js ino cl<tab> console.log()<Esc>i
+au FileType typescript,html,javascript,p5js ino ok<tab> Object.keys()<Esc>i
+au FileType html,javascript,p5js ino fn<tab> function(){<CR><Tab><+><CR>}<Esc>2kf(a
 au FileType javascript ino she<tab> #!/usr/bin/env node
 au FileType typescript ino im<tab> import<Space>
 au FileType cs ino pr<tab> private<Space>

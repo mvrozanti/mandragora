@@ -2,6 +2,7 @@ au BufWritePost *.tex silent! !pdflatex % ; pdflatex -synctex=1 %
 au BufWritePost *.bib silent! !bibtex %:r ; pdflatex %:r.tex ; pdflatex -synctex=1 %:r.tex 
 au FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
 au BufEnter *.pro :setlocal filetype=prolog
+au BufEnter *.p5 :setlocal filetype=p5js
 au BufEnter *.kt :setlocal filetype=kotlin
 au BufEnter *.wl :setlocal filetype=wolframlanguage
 au BufEnter *polybar/config :setlocal filetype=polybar
