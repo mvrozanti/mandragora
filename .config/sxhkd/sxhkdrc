@@ -204,6 +204,32 @@ super + {_,shift + }{h,j,k,l}
 super + ctrl + {h,j,k,l}
     $HOME/.config/sxhkd/custom_resize {left,down,up,right}
 
+# super + BackSpace                $ensid $HOME/.local/bin/to_virtmic
+super + F1  
+    $HOME/.local/bin/play_virtmic $HOME/virtmic-sounds/F1
+super + F2  
+    $HOME/.local/bin/play_virtmic $HOME/virtmic-sounds/F2
+super + F3  
+    $HOME/.local/bin/play_virtmic $HOME/virtmic-sounds/F3
+super + F4  
+    $HOME/.local/bin/play_virtmic $HOME/virtmic-sounds/F4
+super + F5  
+    $HOME/.local/bin/play_virtmic $HOME/virtmic-sounds/F5
+super + F6  
+    $HOME/.local/bin/play_virtmic $HOME/virtmic-sounds/F6
+super + F7  
+    $HOME/.local/bin/play_virtmic $HOME/virtmic-sounds/F7
+super + F8  
+    $HOME/.local/bin/play_virtmic $HOME/virtmic-sounds/F8
+super + F9  
+    $HOME/.local/bin/play_virtmic $HOME/virtmic-sounds/F9
+super + F10 
+    $HOME/.local/bin/play_virtmic $HOME/virtmic-sounds/F10
+super + F11 
+    $HOME/.local/bin/play_virtmic $HOME/virtmic-sounds/F11
+super + F12 
+    $HOME/.local/bin/play_virtmic $HOME/virtmic-sounds/F12
+
 super + d
     if [ $(bspc query -D -d --names) = IX ]; then \
         bspc desktop -f last; \
