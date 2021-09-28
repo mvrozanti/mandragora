@@ -96,6 +96,8 @@ au FileType java ino fa<tab> false
 au FileType java ino tr<tab> true
 au FileType java ino st<tab> static<Space>
 au FileType python ino ii<tab> isinstance()<Esc>i
+au FileType python ino ty<tab> type()<Esc>i
+au FileType python ino sir<tab> sys.stdin.read()
 au FileType python ino im<tab> import<Space>
 au FileType python ino ci<tab> code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')<Esc>
 au FileType python ino enci<tab> curses.endwin() or code.interact(local=globals().update(locals()) or globals())<Esc>
