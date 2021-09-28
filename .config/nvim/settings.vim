@@ -1,3 +1,4 @@
+set listchars=eol:¬,tab:>·,trail:~,extends:>,precedes:<,space:·
 set visualbell
 set t_vb=
 set hlsearch

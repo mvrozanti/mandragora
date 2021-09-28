@@ -4,3 +4,4 @@ command  Jsonify execute ":%!python3 -m json.tool"
 command  JsBeautify execute ":%!slimit"
 command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
 command! -range=% RemoveDiacritics call s:RemoveDiacritics(<line1>, <line2>)
+command ShowWhitespace :set list
