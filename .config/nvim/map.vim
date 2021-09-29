@@ -170,6 +170,7 @@ nmap <silent> <A-Up> :wincmd k<CR>
 nmap <silent> <A-Down> :wincmd j<CR>
 nmap <silent> <A-Left> :wincmd h<CR>
 nmap <silent> <A-Right> :wincmd l<CR>
+" au FileType python ino <C-Space> <C-X><C-O>
 " ino <C-Space> <C-x><C-o>
 ino <A-Left> <ESC>h
 ino <A-Down> <ESC>j
@@ -239,4 +240,4 @@ cno %s/ %smagic/
 cno \>s/ \>smagic/
 nn :g/ :g/\v
 nn :g// :g//
-ino <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+" ino <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
