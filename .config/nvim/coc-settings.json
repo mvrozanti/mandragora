@@ -14,6 +14,7 @@
     "coc.preferences.diagnostic.infoSign": ">>",
     "coc.preferences.diagnostic.hintSign": ">>",
     "pyls.plugins.pycodestyle.enabled": false,
+    "python.jediEnabled": false,
     "languageserver": {
         "clangd": {
             "command": "clangd",
