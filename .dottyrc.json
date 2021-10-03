@@ -352,7 +352,8 @@
     "gnome-weather",
     "xscreensaver",
     "vnstat",
-    "xorg-xkill"
+    "xorg-xkill",
+    "proxychains-ng"
   ],
   "excluded": [
     "hotmail.gpg",
