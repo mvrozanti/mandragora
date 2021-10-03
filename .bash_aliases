@@ -637,3 +637,4 @@ throw(){ fullpath=`rp $1|cut -c9-`; (cd $HOME; rsync -R $fullpath $2:~) }
 comv.(){ mv "`co`" . }
 cocp.(){ cp "`co`" . }
 alias lst='ls -t'
+co2sxiv(){ xclip -selection clipboard -t image/png -o > /tmp/img; sxiv /tmp/img }
