@@ -42,6 +42,7 @@ hi DiffChange   ctermfg=4  ctermbg=5
 hi DiffDelete   ctermfg=2  ctermbg=3
 hi DiffText     ctermfg=1  ctermbg=8
 hi Visual       cterm=NONE ctermbg=0 ctermfg=NONE guibg=Grey40
+hi javascriptReserved ctermbg=none ctermfg=3
 set fillchars+=vert:│
 set guicursor=i:100-bCursor
 set conceallevel=0
