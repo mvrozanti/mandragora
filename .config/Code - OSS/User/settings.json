@@ -11,5 +11,6 @@
     ],
     "razor.disabled": true,
     "window.zoomLevel": 0,
-    "files.autoSave": "afterDelay"
+    "files.autoSave": "afterDelay",
+    "glassit.alpha": 255
 }

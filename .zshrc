@@ -216,7 +216,7 @@ EDITOR=nvim; export EDITOR
 BROWSER=firefox; export BROWSER
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-export MANPAGER="nvim +set\ filetype=man -"
+export MANPAGER="nvim +Man!"
 
 [ -f $HOME/.cache/wal/sequences ] && cat $HOME/.cache/wal/sequences
 
