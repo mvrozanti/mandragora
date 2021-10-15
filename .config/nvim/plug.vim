@@ -26,9 +26,9 @@ if has('nvim')
   no <silent> <c-f> :call smooth_scroll#down ( &scroll*2, 10, 4)<CR>
 endif
 Plug 'skwp/greplace.vim'
-" if has('nvim')
-"   Plug 'neoclide/coc.nvim', {'branch':'release'}
-" endif
+if has('nvim')
+  Plug 'neoclide/coc.nvim', {'branch':'release'}
+endif
 Plug 'tommcdo/vim-exchange'
 Plug 'jiangmiao/auto-pairs'
 Plug 'godlygeek/tabular'
