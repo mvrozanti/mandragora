@@ -14,6 +14,7 @@ im silent <C-Right> <A-w>
 nn <A-m> :tabe %<CR>
 ino <A-Backspace> <A-c>iw
 nn <A-Backspace> viwd
+ino <C-v> <Esc>pa
 ino jk <Esc>l
 ino jK <Esc>l
 ino Jk <Esc>l
