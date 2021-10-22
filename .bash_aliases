@@ -1,7 +1,6 @@
 unalias sd
 unalias sp
 alias rm='rm -f'
-# alias ll='ls -alFh'
 alias -g la='ls -a --color'
 alias l='ls -t1'
 alias watch='watch --color -n1 --no-title '
@@ -11,7 +10,6 @@ alias pss='pacman -Ss'
 alias pqo='pacman -Qo'
 alias spsyu='sudo pacman -Syu'
 alias py='ptpython --vi'
-# py(){ [[ $# -eq 0 ]] && ptpython --vi -i ~/.ptpython/ptpythonrc.py || ptpython --vi -i $@ }
 alias s='sudo'
 alias r.='ranger'
 r(){ ranger --choosedir=$HOME/.rangerdir --cmd="set preview_files=true";cd "`cat $HOME/.rangerdir`" }
@@ -20,9 +18,7 @@ alias u='unp -U'
 alias unp='unp -U'
 alias create-readme='cp ~/.README.md ./README.md && nvim README.md'
 alias E='emacs -nw'
-# test .Xresources colors
 alias showcolors='for a in {40..47}; do echo -ne "\e[0;30;$a""m  ""\e[0;37;39m "; done;'
-# alias neofetch='neofetch --backend ascii --source /mnt/4ADE1465DE144C17/gdrive/nexor.ascii'
 alias cutefetch='while true; do screenfetch_out="$(screenfetch -a ~/nexor.ascii -p)$(colors;echo;echo;echo)";sleep 1;clear;printf "$screenfetch_out"|lolcat;sleep 1; done'
 alias screenfetch="screenfetch -a ~/nexor.ascii -p"
 alias gfd='git fetch origin; git diff master'
@@ -35,21 +31,17 @@ alias gs='git status'
 alias gco='git checkout'
 alias srm='sudo rm'
 alias mkdir='mkdir -p'
-# terminal geographic map
 alias asciimap='telnet mapscii.me'
-# tmux attach
 alias ta='task add'
 alias smv='sudo mv'
 alias msk='/usr/bin/ncmpcpp'
 alias cfa='sudo -E nvim ~/.bash_aliases'
-#alias cfb='sudo -E nvim ~/.bashrc'
 alias cfc='sudo -E nvim ~/mandragora/.dottyrc.json'
 alias cfd='sh -c "cd ~/mandragora && git diff HEAD~1 HEAD"'
 alias cfe='sudo -E nvim ~/.emacs'
 alias cfi='sudo -E nvim ~/.config/i3/config'
 alias cfI='v ~/.irssi/config'
 alias cfp='~/mandragora/dotty/dotty.py -c -f -s'
-# alias cfP='ranger ~/.config/powerline/'
 alias cfP='v ~/.config/polybar/config'
 alias cfs='v ~/.config/sxhkd/sxhkdrc'
 alias cfS='v ~/.scimrc'
@@ -110,28 +102,19 @@ K9(){ pa "$@" | awk '{printf("%s ", $2);for(i=11;i<=NF;++i){ printf("%s ",$i) } 
 alias jsonify='echo use jq instead /dev/stderr'
 alias iftop='sudo iftop -Nlp'
 alias cava='cava -p ~/.config/cava/config'
-alias usdbrl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=USD_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
-alias eurbrl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=EUR_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
-alias btcbrl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=BTC_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
+alias usd2brl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=USD_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
+alias eur2brl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=EUR_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
+alias btc2brl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=BTC_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
 alias ali='apt list --installed'
 alias alsao2i='pacmd set-default-source "alsa_output.pci-0000_00_1b.0.analog-stereo.monitor"'
 alias alsai2i='pacmd set-default-source "alsa_input.pci-0000_00_1b.0.analog-stereo"'
 alias alsawat='pacmd list-sources|grep -A 5 \* '
-# alias giquo='re "\"([^\"]+)"'
-# alias gipar='re "\(([^\)]+)"'
-# alias gip='re "((\d{1,3}\.){3}\d{1,3})"'
-# Add an "alert" alias for long running commands.  Use like so:
-#   sleep 10; alert
-alias cutecat='awk "{print $0; system(\"sleep .001\");}"'
-#   text to speech:
 tts(){ printf "(SayText "`cat -`")" | festival -i;}
 spacescript(){ vapore="`cat -`"; n=1;if [[ "$1" == "-n" ]]; then n=$2;fi;for i in {1..$n};do vapore="`echo $vapore | sed -r 's/(.)/\1 /g'`";done;echo $vapore; }
 alias D='date "+%d-%m-%Y %H:%M"'
 alias mbtc='/mnt/4ADE1465DE144C17/gdrive/Programming/bash/mbtc/alerter.sh'
 alias rp='realpath -z'
-# short whereis for scripting
 wis(){ whereis "$1" | cut -d':' -f2 | cut -d' ' -f2;}
-# alias reip='re "\d+\.\d+\.\d+\.\d+"'
 alias ecdsa='ssh-keygen -l -f /etc/ssh/ssh_host_ecdsa_key.pub; ssh-keygen -l -f $_ -E md5'
 alias up2pi='rsync -a "`pwd`" torta:'
 # alias sumlines='python3 -c "import sys; print(eval("+".join(sys.stdin).replace("\n",""))"'
@@ -344,7 +327,6 @@ alias howtomake='o http://www.cs.colby.edu/maxwell/courses/tutorials/maketutor/'
 lix(){ curl -s ix.io/user/ | grep '<a href=' |sed 1q | sd -f m '.+?href=.(.+?).>.+' '$1' | xargs -I{} curl -s ix.io{} }
 alias spscc='s pacman -Scc'
 alias wmd5='watch md5sum'
-alias re='perl -pe'
 wco(){ watch xsel -o -b }
 v.(){ v . }
 alias cfC='v ~/.config/nvim/coc-settings.json'
@@ -491,8 +473,6 @@ append(){ [ "$#" -eq 2 ] && grep -FIxvf $2 $1 | head -n -1 >> $2 }
 alias a='ag'
 alias myMACs="ip a | grep -EB1 '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'"
 alias k9='kill -9'
-# alias q='pueue status || pueue --daemon; pueue'
-# alias qa='q add'
 hrmr(){ kek="$(basename $(pwd))";cd ..;rm -r "$kek" }
 alias piur='pip install --user -r requirements.txt'
 alias wcl='wc -l'
@@ -611,7 +591,6 @@ alias first='sed 1q'
 git-obliterate(){ git filter-branch -f --index-filter "git rm -rf --cached --ignore-unmatch $@" HEAD }
 alias cfb='v $HOME/.config/bspwm'
 trdn(){ tr -d '\n' }
-# alias time='date +%s.%N'
 alias rm='echo use d'
 d(){ trash "$@" }
 ud(){ trash-restore }
