@@ -33,7 +33,6 @@
     ".streamlinkrc": "~/.streamlinkrc",
     ".jupyter/custom/custom.css": "~/.jupyter/custom/custom.css",
     ".gdmap": "~/.gdmap",
-    ".bashrc": "~/.bashrc",
     ".zshrc": "~/.zshrc",
     ".urlview": "~/.urlview",
     ".vimfx": "~/.vimfx",
