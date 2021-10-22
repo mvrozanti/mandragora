@@ -54,7 +54,6 @@ alias cfP='v ~/.config/polybar/config'
 alias cfs='v ~/.config/sxhkd/sxhkdrc'
 alias cfS='v ~/.scimrc'
 alias cfr='v ~/.config/ranger'
-alias cfl='v ~/.config/lf'
 alias cft='v ~/.tmux.conf'
 alias cfv='nvim ~/.config/nvim/init.vim'
 alias cfV='sudo nvim -u NORC ~/.config/nvim'
@@ -585,7 +584,6 @@ mkv2mp4(){ ffmpeg -i "$1" -crf 26 "${1%.*}".mp4  }
 v2whatsapp(){ ffmpeg -i "$1" -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p "${1%.*}-whatsapp.${1##*.}" }
 alias en='e -n'
 epub2pdf(){ pandoc --pdf-engine=xelatex -f epub -t pdf $1 -o "${1%%.*}.pdf" }
-alias lf=lfcd
 alias nmutt='neomutt'
 alias gai='git add -i'
 alias F='fzf'
