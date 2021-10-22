@@ -496,7 +496,6 @@ alias k9='kill -9'
 # alias qa='q add'
 hrmr(){ kek="$(basename $(pwd))";cd ..;rm -r "$kek" }
 alias piur='pip install --user -r requirements.txt'
-x1exe(){ mono `f exe|sed 1q` }
 alias wcl='wc -l'
 alias rh='runhaskell'
 alias cof='f `co`'
