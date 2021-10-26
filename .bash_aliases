@@ -324,7 +324,7 @@ alias ve='v -c "let startify_disable_at_vimenter = 1" '
 alias V=ve
 alias vi=ve
 alias howtomake='o http://www.cs.colby.edu/maxwell/courses/tutorials/maketutor/'
-lix(){ curl -s ix.io/user/ | grep '<a href=' |sed 1q | sd -f m '.+?href=.(.+?).>.+' '$1' | xargs -I{} curl -s ix.io{} }
+lix(){ curl -s ix.io/user/ | grep '<a href=' |sed 1q | cut -d'"' -f2 | xargs -I{} curl -s ix.io{} }
 alias spscc='s pacman -Scc'
 alias wmd5='watch md5sum'
 wco(){ watch xsel -o -b }
