@@ -37,7 +37,7 @@ autocmd DocStart www.reddit.com js tri.excmds.urlmodify("-t", "www", "old")
 " Mosquito nets won't make themselves
 autocmd DocStart www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
 
-autocmd DocLoad github.com js document.querySelector("div.flash:nth-child(4)").remove()
+autocmd DocLoad github.com js document.querySelector("div.flash").remove()
 
 " YouTube
 ""bindurl https://www.youtube.com <C-f> hint -Jc a#thumbnail.yt-simple-endpoint.inline-block.style-scope.ytd-thumbnail
