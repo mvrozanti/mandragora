@@ -243,3 +243,4 @@ nn :g/ :g/\v
 nn :g// :g//
 map <F3> :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
 " ino <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+vmap A :%norm A

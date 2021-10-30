@@ -323,7 +323,6 @@ alias mp='jmtpfs ~/phone'
 alias ve='v -c "let startify_disable_at_vimenter = 1" '
 alias V=ve
 alias vi=ve
-alias howtomake='o http://www.cs.colby.edu/maxwell/courses/tutorials/maketutor/'
 lix(){ curl -s ix.io/user/ | grep '<a href=' |sed 1q | cut -d'"' -f2 | xargs -I{} curl -s ix.io{} }
 alias spscc='s pacman -Scc'
 alias wmd5='watch md5sum'
