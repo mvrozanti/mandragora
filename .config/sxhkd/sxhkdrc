@@ -16,6 +16,9 @@ super + Tab
 alt + Tab
     bspc desktop -f last
 
+super + Home
+    $HOME/custom-script
+
 super + alt + l
     xscreensaver-command -lock
 
@@ -72,10 +75,15 @@ super + 1
 super + 2
     wmctrl -a _ranger_           || kitty --title _ranger_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ranger"
 
+super + shift + 2
+    wmctrl -a nemo               || nemo
+
 super + i
     wmctrl -a _hexchat_text_     || kitty --title _hexchat_text_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new hexchat-text"
 
+
 super + 3
+    # wmctrl -a _zsh_              || cool-retro-term -T _zsh_ 
     wmctrl -a _zsh_              || kitty --title _zsh_ --listen-on=unix:@mykitty
 
 super + 4
