@@ -28,7 +28,7 @@ if [ "$title" = _ranger_ ]; then
 fi
 
 if [ "$class" = firefox ]; then
-	[[ `pgrep -f firefox` -gt 0 ]] && echo "desktop=^1"
+	[[ `pgrep -f firefox | wc -l` -gt 1 ]] && echo "desktop=^1"
 fi
 
 if [ "$title" = _tmux-float_ ]; then
