@@ -81,10 +81,9 @@ super + shift + 2
 super + i
     wmctrl -a _hexchat_text_     || kitty --title _hexchat_text_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new hexchat-text"
 
-
 super + 3
-    # wmctrl -a _zsh_              || cool-retro-term -T _zsh_ 
     wmctrl -a _zsh_              || kitty --title _zsh_ --listen-on=unix:@mykitty
+    # wmctrl -a _zsh_              || cool-retro-term -T _zsh_ 
 
 super + 4
     wmctrl -xa telegram-desktop  || QT_IM_MODULE=xim telegram-desktop
@@ -92,7 +91,7 @@ super + 4
 super + shift + f
     wmctrl -a  WhatsApp          || ~/.local/bin/whatsapp
 
-super + m
+super + ctrl + m
     wmctrl -a  Mathematica       || mathematica
 
 super + shift + d
@@ -277,6 +276,18 @@ super + BackSpace
 
 super + Pause
     poweroff
+
+super + m
+    dunstctl close
+
+super + shift + m
+    dunstctl close-all
+
+super + n
+    dunstctl history-pop
+
+super + shift + i
+    dunstctl context
 
 # Now open, lock!
 # To the Dead Man's knock!
