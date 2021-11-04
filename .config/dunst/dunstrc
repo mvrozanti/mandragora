@@ -24,6 +24,8 @@
 
     corner_radius = 5
 
+    origin = bottom-right
+
     # Sort messages by urgency
     sort = yes
 
@@ -109,6 +111,8 @@
     # horizontal padding
     horizontal_padding = 8
 
+    frame_width = 0
+
     # Define a color for the separator.
     # possible values are:
     #  * auto: dunst tries to find a color fitting to the background
@@ -131,24 +135,6 @@
 [frame]
     width = 1
     color = "#1e1e1e"
-
-[shortcuts]
-    # shortcuts are specified as [modifier+][modifier+]...key
-    # available modifiers are 'ctrl', 'mod1' (the alt-key), 'mod2', 'mod3'
-    # and 'mod4' (windows-key)
-    # xev might be helpful to find names for keys
-
-    # close notification
-    close = mod4+m
-
-    # close all notifications
-    close_all = mod4+shift+m
-
-    # redisplay last message(s)
-    history = mod4+n
-
-    # context menu
-    context = mod4+shift+i
 
 [urgency_low]
     # IMPORTANT: colors have to be defined in quotation marks.
