@@ -576,7 +576,7 @@ alias f.c='f.|c'
 alias mv='mv -iv'
 alias cp='cp -riv'
 alias md='mkdir -vp'
-gcm(){ git commit -m "$@" }
+gcm(){ git commit -m "$*" }
 alias spsyy='sps -yy'
 alias wgs='watch git status'
 alias dcub='docker-compose up --build'
