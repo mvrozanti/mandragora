@@ -7,7 +7,7 @@ fi
 if [ -z "`pactl list short modules | grep module-pipe-source`" ]; then
   pactl load-module module-pipe-source format=s16le rate=44100 channels=1 source_name=virtmic
   pactl set-default-source virtmic
-  echo "default-source = virtmic" > /home/nexor/.config/pulse/client.conf
+  echo "default-source = virtmic" > $HOME/.config/pulse/client.conf
 fi
 duration=`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1"`
 mplayer "$1" &
