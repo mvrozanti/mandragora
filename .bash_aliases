@@ -614,3 +614,5 @@ cocp.(){ cp "`co`" . }
 alias lst='ls -t'
 co2sxiv(){ xclip -selection clipboard -t image/png -o > /tmp/img; sxiv /tmp/img }
 alias gca='git commit -a'
+alias gcap='gca;git push'
+
