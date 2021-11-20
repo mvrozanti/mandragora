@@ -1,5 +1,0 @@
-#!/bin/zsh
-cm="${@:1}"
-[[ -n "$cm" ]] || read "cm?Enter commit message: "
-git add .
-git commit -m "$cm"
