@@ -613,5 +613,5 @@ comv.(){ mv "`co`" . }
 cocp.(){ cp "`co`" . }
 alias lst='ls -t'
 co2sxiv(){ xclip -selection clipboard -t image/png -o > /tmp/img; sxiv /tmp/img }
-gca(){ msg="$@"; [[ -z $msg ]] && gca || gca -m "$msg" }
+gca(){ msg="$@"; [[ -z $msg ]] && git commit -a || git commit -m "$msg" }
 gcap(){ gca "$@" && git push }
