@@ -19,6 +19,9 @@ alt + Tab
 super + Home
     $HOME/custom-script
 
+super + End
+    $HOME/.local/bin/polybar-compton-toggle
+
 super + alt + l
     xscreensaver-command -lock
 
