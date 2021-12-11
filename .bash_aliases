@@ -290,7 +290,6 @@ alias t1a='t1 ~/.bash_aliases'
 aa(){ [[ ! -z $1 && ! -z $2 ]] && echo "alias $1='${@:2}'" >> ~/.bash_aliases; t1a }
 alias sl='slack'
 alias cfT='v ~/.config/tridactyl/'
-alias burncd='i3-msg workspace 1 && o https://www.linuxquestions.org/questions/linux-newbie-8/how-to-burn-files-into-a-dvd-from-command-line-4175464968/'
 # alias enc='openssl aes-256-cbc -in - 2>/dev/null'
 # alias dec='enc -d 2>/dev/null'
 alias enc='openssl aes-256-cbc -in'
