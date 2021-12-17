@@ -40,7 +40,6 @@ configuration {
 	m: "-5";
 	line-margin: 2;
 	line-padding: 1;
-	/* filter: ; */
 	separator-style: "dash";
 	hide-scrollbar: false;
 	fullscreen: false;
@@ -53,23 +52,10 @@ configuration {
 	window-format: "{w}    {c}   {t}";
 	click-to-exit: true;
 	show-match: true;
-    theme: "~/.cache/wal/colors-rofi-dark.rasi";
-	/* color-normal: "#ffffff"; */
-	/* color-urgent: "#ffffff"; */
-	/* color-active: "#ffffff"; */
-	/* color-window: "#ffffff"; */
 	max-history-size: 25;
 	combi-hide-mode-prefix: false;
-	/* matching-negate-char: '-' /* unsupported */; */
-	/* cache-dir: ; */
 	pid: "/run/user/1000/rofi.pid";
-	/* display-window: ; */
-	/* display-windowcd: ; */
 	display-run: "";
-	/* display-ssh: ; */
-	/* display-drun: ; */
-	/* display-combi: ; */
-	/* display-keys: ; */
 	kb-primary-paste: "Control+V,Shift+Insert";
 	kb-secondary-paste: "Control+v,Insert";
 	kb-clear-line: "Control+c,Control+a";
@@ -143,3 +129,4 @@ configuration {
 	me-accept-entry: "MouseDPrimary";
 	me-accept-custom: "Control+MouseDPrimary";
 }
+@theme "~/.cache/wal/colors-rofi-dark.rasi"
