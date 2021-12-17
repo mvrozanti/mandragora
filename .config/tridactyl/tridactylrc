@@ -2,6 +2,7 @@
 " bind ;c hint -c [class*="expand"],[class="togg"]
 unbind ;c
 unbind D
+unbind <C-x>
 
 " GitHub pull request checkout command to clipboard (only works if you're a collaborator or above)
 bind yp composite js document.getElementById("clone-help-step-1").textContent.replace("git checkout -b", "git checkout -B").replace("git pull ", "git fetch ") + "git reset --hard " + document.getElementById("clone-help-step-1").textContent.split(" ")[3].replace("-","/") | yank
@@ -40,15 +41,30 @@ autocmd DocStart www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
 autocmd DocLoad github.com js document.querySelector("div.flash").remove()
 
 " YouTube
-""bindurl https://www.youtube.com <C-f> hint -Jc a#thumbnail.yt-simple-endpoint.inline-block.style-scope.ytd-thumbnail
+bindurl https://www.youtube.com X js try { document.evaluate('', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click(); } catch {}; document.evaluate('', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();  
+/html/body/ytd-app/div/ytd-page-manager/ytd-watch-flexy/div[3]/div/ytd-player/div/div/div[32]/div[2]/div[2]/button[8]
+
+/html/body/ytd-app/div/ytd-page-manager/ytd-watch-flexy/div[3]/div/ytd-player/div/div/div[31]/div[2]/div[2]/button[8]
+
+/html/body/ytd-app/div/ytd-page-manager/ytd-watch-flexy/div[5]/div[1]/div/div[1]/div/div/div/ytd-player/div/div/div[32]/div[2]/div[2]/button[8]
+
+""bindurl https://www.youtube.com S js try { document.evaluate('/html/body/ytd-app/div/ytd-page-manager/ytd-watch-flexy/div[5]/div[1]/div/div[7]/div[2]/ytd-video-secondary-info-renderer/div/ytd-expander/tp-yt-paper-button[2]/yt-formatted-string', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click(); } catch {}; try { document.evaluate('/html/body/ytd-app/div/ytd-page-manager/ytd-watch-flexy/div[5]/div[1]/div/div[7]/div[2]/ytd-video-secondary-info-renderer/div/ytd-expander/tp-yt-paper-button[1]/yt-formatted-string', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click(); } catch {}
+
+
 ""bindurl https://www.youtube.com/watch <C-f> hint -Jc button.ytp-button
-bindurl https://www.youtube.com 0 open https://www.youtube.com
+
 bindurl https://www.youtube.com ? js document.querySelector('ytd-searchbox form #search').focus()
+
 bindurl https://www.youtube.com f hint -Jc a#thumbnail.yt-simple-endpoint.inline-block.style-scope.ytd-thumbnail,ytd-comment-thread-renderer a,ytd-channel-name a,paper-button,a#logo,ytd-toggle-button-renderer.style-scope:nth-child(1) > a:nth-child(1) ytd-toggle-button-renderer,a,.yt-simple-endpoint.style-scope.ytd-toggle-button-renderer#menu-container
+
 bindurl https://www.youtube.com/watch l js document.querySelector('ytd-toggle-button-renderer.style-scope:nth-child(1) > a:nth-child(1)').click()
+
 bindurl https://www.youtube.com/watch D js document.querySelector('ytd-toggle-button-renderer.style-scope:nth-child(2) > a:nth-child(1)').click()
+
 bindurl https://www.youtube.com/watch <C-f> hint -Jc button.ytp-button
+
 bindurl https://www.youtube.com/ O js document.querySelector("html.TridactylThemeUnugly body ytd-app div#content.style-scope.ytd-app div#masthead-container.style-scope.ytd-app ytd-masthead#masthead.masthead-finish div#container.style-scope.ytd-masthead div#end.style-scope.ytd-masthead div#buttons.style-scope.ytd-masthead ytd-notification-topbar-button-renderer.style-scope.ytd-masthead.notification-button-style-type-default").click()
+
 bindurl https://www.youtube.com/watch c js document.querySelector("#simplebox-placeholder").focus()
 
 ""set hintdelay 100

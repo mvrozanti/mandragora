@@ -141,7 +141,7 @@ nn <C-A-b>      :5winc +<CR>
 nn <C-A-l>      :5winc ><CR>
 nn <C-A-u>      :5winc -<CR>
 nmap <silent> <leader>w <Plug>(coc-diagnostic-next)
-ino <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
+" ino <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
 ino <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 ino <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 nn <A-r> :call CocAction('rename')<CR>
