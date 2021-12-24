@@ -1,3 +1,4 @@
+nor $ $l
 map <A-F> mzgg=G`zzz
 map / /\c
 nn < <<
@@ -46,7 +47,6 @@ vn <C-f> y/<C-R>"<CR>
 nn <CR> i<CR><Esc>
 vn ( <Esc>a)<Esc>gvo<Esc>i(<Esc>i
 nn yF maggyG'a
-nn <Space><Space> <Esc>/<+><CR>"_3x:noh<CR>i
 nn ZZ <Esc>?<+><CR>"_3xi
 nn dl v$hxJhv0w"_x
 nn c_ ct_
@@ -54,9 +54,6 @@ nn dA F(vbdf)xB
 nmap dS bysw<Space><Space>ds)
 vn - $h
 nn <C-u> 'x
-" if has('nvim')
-"   ino {<CR> {<CR>}<Esc>k$o
-" endif
 vn <CR> c<CR>
 nn <C-Tab> gK
 map <F2> :Goyo 200x200<CR>
