@@ -18,13 +18,6 @@ Plug 'richq/vim-cmake-completion'
 Plug 'dbmrq/vim-ditto'
 Plug 'scrooloose/vim-slumlord'
 Plug 'mikelue/vim-maven-plugin'
-Plug 'terryma/vim-smooth-scroll'
-if has('nvim')
-  no <silent> <c-u> :call smooth_scroll#up   ( &scroll, 10, 2)<CR>
-  no <silent> <c-d> :call smooth_scroll#down ( &scroll, 10, 2)<CR>
-  no <silent> <c-b> :call smooth_scroll#up   ( &scroll*2, 10, 4)<CR>
-  no <silent> <c-f> :call smooth_scroll#down ( &scroll*2, 10, 4)<CR>
-endif
 Plug 'skwp/greplace.vim'
 if has('nvim')
   Plug 'neoclide/coc.nvim', {'branch':'release'}
