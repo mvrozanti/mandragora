@@ -178,12 +178,15 @@ export PATH=~/.local/bin:$PATH
 # bindkey -v
 
 # powerlevel9k
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs)
+
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs context)
 POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status)
 POWERLEVEL9K_SHORTEN_DIR_LENGTH=2
 POWERLEVEL9K_SHORTEN_STRATEGY='truncate_middle'
 
-[[ -n "$SSH_CONNECTION" ]] && POWERLEVEL9K_HOME_ICON='⎇' || POWERLEVEL9K_HOME_ICON=''
+DEFAULT_USER=$USER
+
+POWERLEVEL9K_HOME_ICON=''
 
 [ -f /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme ] && \
     source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
