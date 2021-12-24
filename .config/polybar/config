@@ -19,8 +19,8 @@ primary = #609e9e9e
 secondary = #e60053
 alert = ${xrdb:color14} 
 
-[bar/.]
-monitor = ${env:MONITOR:HDMI2}
+[bar/mybar]
+monitor = ${env:MONITOR:HDMI-0}
 width = 100%
 height = 30
 bottom = true
@@ -374,8 +374,8 @@ ramp-volume-2 = 
 ramp-volume-3 = 
 ramp-volume-4 = 
 format-muted =   <bar-volume>
-/* format-muted-foreground = ${colors.foreground-alt} */
-/* label-muted = <bar-volume> */
+; /* format-muted-foreground = ${colors.foreground-alt} */
+; /* label-muted = <bar-volume> */
 
 bar-volume-width = 10
 bar-volume-foreground-0 = ${xrdb:color7}
