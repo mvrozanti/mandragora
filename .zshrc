@@ -5,8 +5,6 @@ export ZSH=$HOME/.oh-my-zsh
 ZSH_TMUX_AUTOSTART=true
 ZSH_TMUX_FIXTERM=true
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=12'
-ZSH_THEME="nexor"
-# ZSH_THEME="powerlevel9k/powerlevel9k"
 eval "$(dircolors -p | \
     sed 's/ 4[0-9];/ 01;/; s/;4[0-9];/;01;/g; s/;4[0-9] /;01 /' | \
     dircolors /dev/stdin)"
@@ -185,7 +183,8 @@ POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status)
 POWERLEVEL9K_SHORTEN_DIR_LENGTH=2
 POWERLEVEL9K_SHORTEN_STRATEGY='truncate_middle'
 
-POWERLEVEL9K_HOME_ICON=''
+[[ -n "$SSH_CONNECTION" ]] && POWERLEVEL9K_HOME_ICON='⎇' || POWERLEVEL9K_HOME_ICON=''
+
 [ -f /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme ] && \
     source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
 [ -f ~/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme ] && \
