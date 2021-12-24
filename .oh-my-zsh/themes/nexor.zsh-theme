@@ -103,6 +103,7 @@ prompt_git() {
   () {
     local LC_ALL="" LC_CTYPE="en_US.UTF-8"
     PL_BRANCH_CHAR=$'\ue0a0'         # 
+    [[ -n "$SSH_CONNECTION" ]] && PL_BRANCH_CHAR+='\ue0a0'
   }
   local ref dirty mode repo_path
 
@@ -307,6 +308,7 @@ prompt_virtualenv() {
 # - was there an error
 # - am I root
 # - are there background jobs?
+# - am i using ssh?
 prompt_status() {
   local -a symbols
 
@@ -314,7 +316,7 @@ prompt_status() {
   [[ $UID -eq 0 ]] && symbols+="%{%F{yellow}%}⚡"
   [[ $(jobs -l | wc -l) -gt 0 ]] && symbols+="%{%F{cyan}%}⚙"
 
-  [[ -n "$symbols" ]] && prompt_segment black default "$symbols"
+  [[ "$symbols" ]] && prompt_segment black default "$symbols"
 }
 
 ## Main prompt
@@ -330,4 +332,4 @@ build_prompt() {
   prompt_end
 }
 
-PROMPT='%{%f%b%k%}$(build_prompt) '
+PROMPT='%{%f%b%k%}$(build_prompt)'
