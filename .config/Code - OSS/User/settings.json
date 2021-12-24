@@ -12,5 +12,6 @@
     "razor.disabled": true,
     "window.zoomLevel": 0,
     "files.autoSave": "afterDelay",
-    "glassit.alpha": 255
+    "glassit.alpha": 255,
+    "omnisharp.useGlobalMono": "never"
 }
