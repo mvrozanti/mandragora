@@ -1,3 +1,4 @@
+nn <Space><Space> <Esc>/<+><CR>"_3x:noh<CR>i
 nor $ $l
 map <A-F> mzgg=G`zzz
 map / /\c
@@ -98,7 +99,6 @@ au FileType python ino ty<tab> type()<Esc>i
 au FileType python ino sir<tab> sys.stdin.read()
 au FileType python ino im<tab> import<Space>
 au FileType python ino ci<tab> code.interact(banner='', local=globals().update(locals()) or globals(), exitmsg='')<Esc>
-au FileType python ino enci<tab> curses.endwin() or code.interact(local=globals().update(locals()) or globals())<Esc>
 au FileType python ino pdbt<tab> pdb.set_trace()<Esc>
 au FileType python ino fori<tab> for <+> in<Space>
 au FileType python ino ld<tab> LOG.debug()<Esc>i
