@@ -34,7 +34,7 @@ unbind --mode=ex <C-c>
 quickmark t https://github.com/cmcaine/tridactyl/issues?utf8=%E2%9C%93&q=sort%3Aupdated-desc+
 
 " New reddit is bad
-autocmd DocStart www.reddit.com js tri.excmds.urlmodify("-t", "www", "old")
+autocmd DocStart ^https?://www.reddit.com js tri.excmds.urlmodify("-t", "www", "old")
 " Mosquito nets won't make themselves
 autocmd DocStart www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
 
