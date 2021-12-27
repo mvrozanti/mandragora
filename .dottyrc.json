@@ -346,7 +346,8 @@
     "xscreensaver",
     "vnstat",
     "xorg-xkill",
-    "proxychains-ng"
+    "proxychains-ng",
+    "nvtop"
   ],
   "excluded": [
     "hotmail.gpg",
