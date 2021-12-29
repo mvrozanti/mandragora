@@ -95,7 +95,7 @@ super + shift + f
     wmctrl -a  WhatsApp          || ~/.local/bin/whatsapp
 
 super + ctrl + m
-    wmctrl -a  Mathematica       || mathematica
+    wmctrl -a  Mathematica       || ~/.local/bin/Mathematica
 
 super + shift + d
     wmctrl -xa jetbrains-idea-ce || wmctrl -a 'Code - OSS' || _JAVA_AWT_WM_NONREPARENTING=1 idea || bspc desktop -f ^7 
