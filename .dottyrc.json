@@ -142,7 +142,8 @@
     ".local/bin/pentr": "~/.local/bin/pentr",
     ".config/ntfd/config.toml": "~/.config/ntfd/config.toml",
     ".xscreensaver": "/home/m/.xscreensaver",
-    ".local/bin/ic": "/home/m/.local/bin/ic"
+    ".local/bin/ic": "/home/m/.local/bin/ic",
+    ".start-de": "/home/m/.start-de"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
