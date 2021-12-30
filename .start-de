@@ -1,0 +1,4 @@
+#!/bin/bash
+# used along with autologin.service
+. /etc/profile 
+startx
