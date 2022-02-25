@@ -55,7 +55,7 @@ font-8 = "Noto Sans Symbols2:style=Regular"
 
 modules-left = bspwm
 modules-center =
-modules-right = mpd alsa xbacklight weather filesystem memory cpu wlan eth ip vpn redshift news battery date
+modules-right = mpd alsa xbacklight weather filesystem memory cpu wlan eth mta ip vpn redshift news battery date
 
 tray-position = right
 tray-padding = 2
