@@ -1,5 +1,4 @@
-#!/bin/sh
-
+#!/bin/zsh
 AMOUNT=5
 WHAT=paras
 START=false

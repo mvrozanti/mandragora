@@ -10,7 +10,7 @@
         }
     ],
     "razor.disabled": true,
-    "window.zoomLevel": 0,
+    "window.zoomLevel": 1,
     "files.autoSave": "afterDelay",
     "glassit.alpha": 255,
     "omnisharp.useGlobalMono": "never"
