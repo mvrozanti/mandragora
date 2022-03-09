@@ -280,6 +280,9 @@ super + BackSpace
 super + Pause
     poweroff
 
+ctrl + super + Pause
+    notify-send 'Power off in 5 minutes'; sleep 300; poweroff
+
 super + m
     dunstctl close
 
