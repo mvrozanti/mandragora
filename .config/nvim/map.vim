@@ -6,7 +6,6 @@ map / /\c
 nn < <<
 nn > >>
 vn / y/<C-r><C-w><CR>
-vn / y/<C-r><C-w><CR>
 vn p "_dP
 vn ? y:%s/<C-r><C-w>//gn<CR>
 nn <A-p> o<A-p>
