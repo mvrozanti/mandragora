@@ -613,3 +613,4 @@ co2sxiv(){ xclip -selection clipboard -t image/png -o > /tmp/img; sxiv /tmp/img 
 gca(){ msg="$@"; git add .; [[ -z $msg ]] && git commit -a || git commit -m "$msg" }
 gcap(){ gca "$@" && git push }
 alias gv='g -v'
+alias spsk='sps archlinux-keyring'
