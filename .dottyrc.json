@@ -386,7 +386,6 @@
     "curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh | sh",
     "git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/zsh-autosuggestions && cd",
     "git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm",
-    "git clone https://git.sr.ht/~kennylevinsen/autologin ~/util/autologin && cd $_ && meson build && ninja -C build && sed 's/username/'$USER'/g;s/start-command//home/'$USER'/.start-de/g' autologin.service > /etc/systemd/system/autologin.service && systemctl enable autologin.service && mv build/autologin /usr/local/bin",
     "git clone https://github.com/alexanderjeurissen/ranger_devicons ~/util/ranger_devicons && cd $_ && make install && cd",
     "git clone https://github.com/rizsotto/Bear ~/util/Bear && cd $_ && cmake . && make all && sudo make install && cd",
     "_git clone https://github.com/themix-project/oomox.git --recursive ~/util/oomox && cd $_ && make -f po.mk install && sudo ln -s $(realpath gui.sh) /usr/local/bin/oomox",
