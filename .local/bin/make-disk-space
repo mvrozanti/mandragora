@@ -9,3 +9,4 @@ docker system prune -a
 pip cache purge
 yarn cache clean
 sudo pacman -Rns $(pacman -Qtdq)
+trash-empty
