@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+import re
+from colour import Color
+import rivalcfg
+
+def get_pywal_colors():
+    regex = r'(#[0-9a-fA-F]{6})'
+    sequences = open('/home/m/.cache/wal/sequences').read()
+    return re.findall(regex, sequences)
+
+def sort_hex_colors_by_saturation(color_strings):
+    colors = map(Color, color_strings)
+    colors = sorted(colors, key=lambda c: c.saturation, reverse=True)
+    return [c.hex_l for c in colors]
+
+color_strings = get_pywal_colors()
+pywal_colors = sort_hex_colors_by_saturation(color_strings)
+
+mouse = rivalcfg.get_first_mouse()
+pywal_colors = get_pywal_colors()
+mouse.set_z1_color(  pywal_colors[3])
+mouse.set_z2_color(  pywal_colors[4])
+mouse.set_z3_color(  pywal_colors[5])
+mouse.set_logo_color(pywal_colors[6])
