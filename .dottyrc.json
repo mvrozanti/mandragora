@@ -144,7 +144,8 @@
     ".xscreensaver": "/home/m/.xscreensaver",
     ".local/bin/ic": "/home/m/.local/bin/ic",
     ".start-de": "/home/m/.start-de",
-    ".pythonrc": "/home/m/.pythonrc"
+    ".pythonrc": "/home/m/.pythonrc",
+    ".local/bin/rivalcfg-wrapper": "/home/m/.local/bin/rivalcfg-wrapper"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
