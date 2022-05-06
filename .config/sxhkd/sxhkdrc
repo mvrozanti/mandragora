@@ -295,11 +295,11 @@ super + n
 super + shift + i
     dunstctl context
 
-button8
-    rivalcfg --z1 000 --z2 000 --z3 000 --z4 000
-
 button9
     $HOME/.local/bin/rivalcfg-wrapper
+
+button8
+    rivalcfg --z1 000 --z2 000 --z3 000 --z4 000
 
 # Now open, lock!
 # To the Dead Man's knock!
