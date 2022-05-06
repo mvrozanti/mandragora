@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-import re
 from colour import Color
 import rivalcfg
+import json
 
 def get_pywal_colors():
-    regex = r'(#[0-9a-fA-F]{6})'
-    sequences = open('/home/m/.cache/wal/sequences').read()
-    return re.findall(regex, sequences)
+    color_json = json.load(open('/home/m/.cache/wal/colors.json'))
+    return list(color_json['colors'].values())
 
 def sort_hex_colors_by_saturation(color_strings):
     colors = map(Color, color_strings)
+    colors = {sum(c.rgb):c for c in colors}.values()
     colors = sorted(colors, key=lambda c: c.hue, reverse=True)
     return [c.hex_l for c in colors]
 
