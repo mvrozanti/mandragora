@@ -614,3 +614,4 @@ gca(){ msg="$@"; git add .; [[ -z $msg ]] && git commit -a || git commit -m "$ms
 gcap(){ gca "$@" && git push }
 alias gv='g -v'
 alias spsk='sps archlinux-keyring'
+fixkeys(){ xset r rate 200 30 ; setxkbmap us alt-intl; xmodmap ~/.Xmodmap }
