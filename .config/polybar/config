@@ -228,7 +228,8 @@ icon-prev =
 icon-next = 
 icon-pause = 
 icon-stop = 
-label-song =   %title%
+label-song = %{A1:kitty --title _ncmpcpp_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new /usr/bin/ncmpcpp":}   %title% %{A}
+
 
 label-song-font = 5
 ; label-song-maxlen = 500
