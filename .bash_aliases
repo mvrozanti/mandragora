@@ -356,7 +356,7 @@ alias x='xargs'
 alias coag='ag "`co`"'
 alias pqi='pacman -Qi'
 xdiff(){ [[ "$#" -eq 2 ]] && nvimdiff <(xxd $1) <(xxd $2) }
-ca(){ le_line="$(sa $@)"; new_line="`echo $le_line | vipe`"; sed -i "s/$le_line/$new_line/g" ~/.bash_aliases }
+ca(){ alias_line="$(sa $@)"; new_alias_line="`vipe<<<$alias_line`"; replace -s "$alias_line" "$new_alias_line" -- ~/.bash_aliases }
 alias wstat='watch stat'
 alias md5='md5sum'
 alias lesss='less'
