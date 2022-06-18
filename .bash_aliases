@@ -348,7 +348,7 @@ alias up='sudo umount ~/phone'
 smp(){ diff <(ls ~/Musik/) <(ls "$HOME/phone/Internal storage/Music/") | grep mp3 | cut -c 3- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "$HOME/phone/Internal storage/Music/"; done }
 spp(){ [[ -d ~/phone/Internal\ storage/DCIM/Facebook ]] && mv ~/phone/Internal\ storage/DCIM/Facebook/* ~/gdrive/Levv/4chan/; [[ -d ~/phone/Internal\ storage/Pictures/Telegram/ ]] && mv ~/phone/Internal\ storage/Pictures/Telegram/* ~/gdrive/Levv/4chan/; [[ -d ~/phone/Internal\ storage/Pictures/Reddit ]] && mv ~/phone/Internal\ storage/Pictures/Reddit/* ~/gdrive/Levv/4chan/; [[ -d ~/phone/Internal\ storage/DCIM/Camera ]] && mv ~/phone/Internal\ storage/DCIM/Camera/* ~/gdrive/Levv/4chan/ }
 sp(){ spp;smp }
-cox(){ `co` }
+cox(){ `co` | x }
 sa(){ grep -E "^(alias )?$@(=|\()" ~/.bash_aliases }
 sma(){ sa "$@" | sd "alias.+='(.+)'|.+\(\)\{\s?(.+)\s?}" '$1$2' }
 alias I='sxiv'
@@ -356,7 +356,7 @@ alias x='xargs'
 alias coag='ag "`co`"'
 alias pqi='pacman -Qi'
 xdiff(){ [[ "$#" -eq 2 ]] && nvimdiff <(xxd $1) <(xxd $2) }
-ca(){ le_line="$(sa $@)"; new_line="`echo $le_line | vipe`"; sd -s -i "`echo $le_line`" "`echo $new_line`" ~/.bash_aliases }
+ca(){ le_line="$(sa $@)"; new_line="`echo $le_line | vipe`"; sed -i "s/$le_line/$new_line/g" ~/.bash_aliases }
 alias wstat='watch stat'
 alias md5='md5sum'
 alias lesss='less'
