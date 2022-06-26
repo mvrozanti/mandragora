@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 envFile=~/.config/polybar/scripts/env.sh
 changeValue=300
@@ -42,7 +42,7 @@ case $1 in
         printf "%dK" "$REDSHIFT_TEMP"
         ;;
       off)
-        printf ""
+        printf " "
         ;;
     esac
     ;;
