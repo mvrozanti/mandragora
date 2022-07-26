@@ -13,9 +13,6 @@ bind yp composite js document.getElementById("clone-help-step-1").textContent.re
 " I like wikiwand but I don't like the way it changes URLs
 " bindurl wikiwand.com yy composite js document.location.href.replace("wikiwand.com/en","wikipedia.org/wiki") | clipboard yank
 
-" Make gu take you back to subreddit from comments
-bindurl reddit.com gu urlparent 3
-
 " Allow Ctrl-a to select all in the commandline
 unbind --mode=ex <C-a>
 
@@ -33,9 +30,6 @@ unbind --mode=ex <C-c>
 " Make quickmarks for the sane Tridactyl issue view
 quickmark t https://github.com/cmcaine/tridactyl/issues?utf8=%E2%9C%93&q=sort%3Aupdated-desc+
 
-" New reddit is bad
-autocmd DocStart ^https?://www.reddit.com js tri.excmds.urlmodify("-t", "www", "old")
-" Mosquito nets won't make themselves
 autocmd DocStart www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
 
 autocmd DocLoad github.com js document.querySelector("div.flash").remove()
