@@ -18,7 +18,12 @@ pywal_colors = sort_hex_colors_by_saturation(color_strings)
 
 mouse = rivalcfg.get_first_mouse()
 pywal_colors = get_pywal_colors()
+import ptpython; ptpython.embed(globals(), locals())
 mouse.set_z1_color(  pywal_colors[0])
 mouse.set_z2_color(  pywal_colors[1])
 mouse.set_z3_color(  pywal_colors[2])
 mouse.set_logo_color(pywal_colors[3])
+
+print('rivalcfg colors:')
+for pc in pywal_colors[:4]:
+    print(pc)

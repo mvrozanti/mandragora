@@ -219,7 +219,7 @@ BROWSER=firefox; export BROWSER
 export MANPAGER="nvim +Man!"
 
 [ -f $HOME/.cache/wal/sequences ] && cat $HOME/.cache/wal/sequences
-if [ "$TMUX" = "" ]; then exec tmux; fi
+if [ "$TMUX" = "" ]; then exec command -v tmux && tmux; fi
 
 # if [[ ! $TERM =~ screen ]]; then
 #     exec tmux
