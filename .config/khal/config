@@ -9,7 +9,7 @@ bold_for_light_color = False
 [calendars]
 
     [[private]]
-    path = /home/nexor/.local/share/khal/calendars/private
+    path = /home/m/.local/share/khal/calendars/private
     type = calendar
 
 [locale]

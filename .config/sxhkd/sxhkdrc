@@ -63,7 +63,7 @@ XF86AudioLowerVolume
     amixer set 'Master' 4%-
 
 super + dead_grave
-    wmctrl -a _ncmpcpp_          || kitty --title _ncmpcpp_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new /usr/bin/ncmpcpp"
+    wmctrl -a _ncmpcpp_          || kitty --title _ncmpcpp_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ncmpcpp"
 
 super + alt + dead_grave
     wmctrl -a _ncmpcpp_          || kitty --title _visualizer-float_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ncmpcpp"
