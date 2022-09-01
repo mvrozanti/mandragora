@@ -99,7 +99,7 @@ au FileType python ino ii<tab> isinstance()<Esc>i
 au FileType python ino ty<tab> type()<Esc>i
 au FileType python ino sir<tab> sys.stdin.read()
 au FileType python ino im<tab> import<Space>
-au FileType python ino em<tab> import ptpython; ptpython.embed(globals(), locals())
+au FileType python ino pte<tab> import ptpython; ptpython.embed(globals(), locals())
 au FileType python ino pdbt<tab> pdb.set_trace()<Esc>
 au FileType python ino fori<tab> for <+> in<Space>
 au FileType python ino ld<tab> LOG.debug()<Esc>i
