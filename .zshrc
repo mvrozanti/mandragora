@@ -107,7 +107,6 @@ run_weather() { clear; echo; weather; zle reset-prompt }
 run_nvim_fast() { echo; nvim; zle reset-prompt }
 run_nvim() { echo; nvim -c 'Startify'; zle reset-prompt }
 run_khal() { echo; khal interactive < $TTY; zle reset-prompt }
-run_dotabuff() { echo; dotabuff; zle reset-prompt }
 cd_tcc() { echo; cd ~/mackenzie/TCC/; zle reset-prompt }
 cd_sys4bank() { echo; cd ~/sys4bank/prog; zle reset-prompt }
 cd_downloads() { echo; cd ~/Downloads; zle reset-prompt }
@@ -128,7 +127,6 @@ zle -N run_khal
 zle -N cd_tcc 
 zle -N cd_downloads 
 zle -N cd_fzf 
-zle -N run_dotabuff 
 
 bindkey '^[R' 'run_nnn'
 bindkey '^[r' 'run_ranger'
@@ -139,7 +137,6 @@ bindkey '^[v' 'run_nvim'
 bindkey '^[V' 'run_nvim_fast'
 bindkey '^[m' 'run_ncmpcpp'
 bindkey '^[K' 'run_khal'
-bindkey '^[d' 'run_dotabuff'
 bindkey '^[D' 'cd_downloads'
 bindkey '^[t' 'cd_tcc'
 bindkey '^f' 'cd_fzf'
