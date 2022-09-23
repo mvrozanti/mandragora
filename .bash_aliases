@@ -318,9 +318,8 @@ alias sk='screenkey --font-color red --opacity 0.2 --compr-cnt 3 -s small'
 alias U='sudo umount'
 alias cfM='v ~/.config/mpv/'
 alias mp='jmtpfs ~/phone'
-alias ve='v -c "let startify_disable_at_vimenter = 1" '
-alias V=ve
-alias vi=ve
+alias V='v -c "let startify_disable_at_vimenter = 1" '
+alias vi=V
 lix(){ curl -s ix.io/user/ | grep '<a href=' |sed 1q | cut -d'"' -f2 | xargs -I{} curl -s ix.io{} }
 alias spscc='s pacman -Scc'
 alias wmd5='watch md5sum'
