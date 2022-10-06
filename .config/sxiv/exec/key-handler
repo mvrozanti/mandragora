@@ -1,13 +1,15 @@
 #!/bin/sh
 # Press C-x to activate to key handler!
+
 while read file
 do
         case "$1" in
         "y")
                 xclip -selection clipboard "$file" -t image/jpeg
+                notify-send 'Copied to clipboard'
                 ;;
         "w")
-                /home/m/.local/bin/setbg "$file"
+                $HOME/.local/bin/setbg "$file"
                 ;;
         esac
 done
