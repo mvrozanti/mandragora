@@ -283,6 +283,9 @@ super + Pause
 ctrl + super + Pause
     notify-send 'Power off in 5 minutes'; sleep 300; poweroff
 
+super + alt + {underscore,plus}
+    $HOME/.local/bin/kk {0,1}
+
 super + m
     dunstctl close
 
