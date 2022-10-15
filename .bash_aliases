@@ -616,3 +616,4 @@ alias spsk='sps archlinux-keyring'
 fixkeys(){ xset r rate 200 30 ; setxkbmap us alt-intl; xmodmap ~/.Xmodmap }
 alias wjq='watch jq'
 alias wdfh='wdf -h'
+alias piuu='piu --upgrade'
