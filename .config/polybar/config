@@ -228,7 +228,7 @@ icon-prev =
 icon-next = 
 icon-pause = 
 icon-stop = 
-label-song = %{A1:kitty --title _ncmpcpp_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new /usr/bin/ncmpcpp":}   %title% %{A}
+label-song = %{A1:pkill -9 ncmpcpp || kitty --title _ncmpcpp_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ncmpcpp":}   %title% %{A}
 
 
 label-song-font = 5
