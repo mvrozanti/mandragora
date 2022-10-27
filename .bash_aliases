@@ -500,6 +500,7 @@ ogg2mp4(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.mp4 }
 mp42avi(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.avi }
 pdf2png(){ [[ $# -eq 1 ]] && pdftoppm "$1" /tmp/slicedPDF -png && convert /tmp/slicedPDF* -gravity center -append "${1%%.*}.png" && rm /tmp/slicedPDF* }
 pdf2jpg(){  [[ $# -eq 1 ]] && pdftoppm "$1" /tmp/slicedPDF -jpg && convert /tmp/slicedPDF* -gravity center -append "${1%%.*}.jpg" && rm /tmp/slicedPDF* }
+webp2png(){ dwebp $1 -o ${1%%.*}.png }
 ter2dec(){ e "$((3#`cat -`))" }
 alias gP='git pull'
 alias ga.='git add .'
