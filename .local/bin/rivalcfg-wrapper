@@ -11,6 +11,11 @@ def sort_hex_colors_by_saturation(color_strings):
     colors = list(map(Color, color_strings))
     colors = {sum(c.rgb):c for c in colors}.values()
     colors = sorted(colors, key=lambda c: c.saturation, reverse=True)
+    # import ptpython; ptpython.embed(globals(), locals())
+    for color in colors:
+        if color.saturation < .7:
+            color.saturation = color.saturation**.1
+            color.luminance = .1
     return [c.hex_l for c in colors]
 
 color_strings = get_pywal_colors()
@@ -30,6 +35,6 @@ mouse.set_z2_color(  pywal_colors[1])
 mouse.set_z3_color(  pywal_colors[2])
 mouse.set_logo_color(pywal_colors[3])
 
-print('rivalcfg colors:')
-for pc in pywal_colors[:4]:
-    print(pc)
+# print('rivalcfg colors:')
+# for pc in pywal_colors[:4]:
+#     print(pc)
