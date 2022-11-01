@@ -18,7 +18,7 @@ notification_timeout = 10
 notification_body = "Expected within the next 3 hours"
 # How often should we fetch weather data (in seconds)
 # Will default to 10 min for values under 10 min (600 seconds)
-sync_frequency = 1800 # 30 minutes
+sync_frequency = 600
 # Output format, using Handlebars syntax, meaning variables should be used like {{ this }}
 # Available tokens are:
 # - temp_celsius
@@ -30,7 +30,7 @@ sync_frequency = 1800 # 30 minutes
 # - forecast_kelvin
 # - forecast_fahrenheit
 # - forecast_icon
-display = "{{ temp_icon }} {{ trend }}"
+display = "{{ temp_icon }} {{ temp_celsius }} {{ trend }}"
 
 # GitHub configuration
 [github]

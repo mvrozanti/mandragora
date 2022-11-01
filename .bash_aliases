@@ -618,3 +618,5 @@ fixkeys(){ xset r rate 200 30 ; setxkbmap us alt-intl; xmodmap ~/.Xmodmap }
 alias wjq='watch jq'
 alias wdfh='wdf -h'
 alias piuu='piu --upgrade'
+when(){ ag --nocolor "$@" ~/.zsh_history | cut -d' ' -f2- | cut -d: -f1 | xargs -I{} date -d@{} }
+
