@@ -2,6 +2,10 @@ def_key "S"
   dummy
 def_key "A"
   dummy
+def_key "c"
+  dummy
+def_key "m"
+  dummy
 
 def_key "h"
   previous_column
@@ -49,8 +53,6 @@ def_key "D"
   delete_browser_items
 def_key "D"
   delete_stored_playlist
-def_key "c"
-  dummy
 def_key "R"
   toggle_random
 def_key "s"
