@@ -292,6 +292,9 @@ super + m
 super + shift + m
     dunstctl close-all
 
+super + alt + c
+    $HOME/.local/bin/cycle-audio-output
+
 super + n
     dunstctl history-pop
 
