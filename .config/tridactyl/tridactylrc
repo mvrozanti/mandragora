@@ -59,8 +59,6 @@ bindurl https://www.youtube.com/watch <C-f> hint -Jc button.ytp-button
 
 bindurl https://www.youtube.com/ O js document.querySelector("html.TridactylThemeUnugly body ytd-app div#content.style-scope.ytd-app div#masthead-container.style-scope.ytd-app ytd-masthead#masthead.masthead-finish div#container.style-scope.ytd-masthead div#end.style-scope.ytd-masthead div#buttons.style-scope.ytd-masthead ytd-notification-topbar-button-renderer.style-scope.ytd-masthead.notification-button-style-type-default").click()
 
-bindurl https://www.youtube.com/watch c js document.querySelector("#simplebox-placeholder").focus()
-
 ""set hintdelay 100
 ""ignoremaps = {
 ""    "<S-Insert>": "mode normal",
