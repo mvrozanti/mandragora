@@ -172,53 +172,6 @@ ws-icon-17 = XVIII; π
 ws-icon-18 = XIX; 
 format                   = <label-state> <label-mode>
 
-[module/i3]
-format                   = <label-state> <label-mode>
-icon-default             = ?
-index-sort               = true
-label-focused-background = ${module/bspwm.label-focused-background}
-label-focused-underline  = ${module/bspwm.label-focused-underline}
-label-mode-background    = ${colors.background}
-label-mode-foreground    = ${colors.foreground} 
-label-mode-font          = 5
-label-urgent-font        = 5
-label-mode-padding       = 5
-label-focused-padding    = 5
-label-unfocused-padding  = 5
-label-urgent-padding     = 5
-label-visible-padding    = 5
-label-focused            = %icon%
-label-unfocused          = %icon%
-label-urgent             = %icon%
-label-visible            = %icon%
-label-urgent-background  = ${module/bspwm.label-urgent-background}
-label-visible-background = ${self.label-focused-background}
-label-visible-underline  = ${self.label-focused-underline}
-type = internal/i3
-wrapping-scroll = false
-ws-icon-0  =  1;  
-ws-icon-1  =  2;  
-ws-icon-2  =  3;  
-ws-icon-3  =  4;  
-ws-icon-4  =  5; ♋
-ws-icon-5  =  6;  
-;ws-icon-6  =  7;  
-ws-icon-6  =  7; 
-;ws-icon-7  =  8; 
-ws-icon-7  =  8; 
-ws-icon-8  =  9; 
-ws-icon-9  = 10; ϰ
-ws-icon-10 = 11; 
-ws-icon-11 = 12; 
-ws-icon-12 = 13; ♟
-ws-icon-13 = 14; 
-ws-icon-14 = 15; 
-ws-icon-15 = 16; 
-ws-icon-16 = 17; 
-ws-icon-17 = 18; π
-ws-icon-18 = 19; 
-
-
 [module/mpd]
 type = internal/mpd
 format-online = <label-song> <icon-prev> <toggle> <icon-next>
