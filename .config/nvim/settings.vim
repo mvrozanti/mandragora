@@ -29,7 +29,7 @@ set shiftwidth=4
 set mouse=c
 set timeoutlen=300 ttimeoutlen=0
 set encoding=utf-8
-colorscheme peachpuff
+colorscheme default
 hi Search       cterm=NONE ctermbg=0 ctermfg=NONE guibg=Grey40
 hi Folded       ctermbg=none
 hi Pmenu        ctermbg=none
