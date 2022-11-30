@@ -98,7 +98,6 @@ set newtab about:blank
 unbind gd
 unbind gf
 colors unugly
-blacklistadd github.com/
 blacklistadd localhost:3000
 blacklistadd meet.google.com/
 blacklistadd app.diagrams.net/
