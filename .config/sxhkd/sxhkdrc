@@ -311,6 +311,16 @@ super + slash
         bspc node focused -t tiled; \
     fi
 
+super + shift + slash
+    if [ -z "$(bspc query -N -n focused.floating)" ]; then \
+        bspc node focused -t floating; \
+        win_id=$(bspc query -N -n .window.focused); \
+        wmctrl -ir $win_id -e 0,260,140,800,600; \
+        bspc node --move -300 -200; \
+    else \
+        bspc node focused -t tiled; \
+    fi
+
 button9
     $HOME/.local/bin/rivalcfg-wrapper
 
