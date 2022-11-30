@@ -78,7 +78,7 @@ alias p='P | tr -d "\n" | c'
 alias feh='feh -B black --scale-down --auto-zoom --sort mtime -. --action2 "rm %F" --action1 "realpath $PWD/%F | xsel -i -b"'
 alias randip="dd if=/dev/urandom bs=4 count=1 2>/dev/null | od -An -tu1 | sed -e 's/^ *//;s/  */./g'"
 uprandip(){ while true; do ping -c 1 -W 1 `randip`; if [ $? -eq 0 ]; then break; fi; done }
-eip(){ curl -s ipinfo.io | jq '.ip' | tr -d '"' }
+eip(){ curl -s ipinfo.io | jq -r '.ip' }
 lip(){ ip a|grep 192|cut -d' ' -f6|sed 's/\(.*\)\/.*/\1/g' }
 alias 2wmv='ffmpeg -c:v wmv2 -b:v 99M -c:a wmav2 -b:a 192k output.wmv -i'
 alias mp32wav='mpg123 -w output.wav'
@@ -620,4 +620,3 @@ alias wjq='watch jq'
 alias wdfh='wdf -h'
 alias piuu='piu --upgrade'
 when(){ ag --nocolor "$@" ~/.zsh_history | cut -d' ' -f2- | cut -d: -f1 | xargs -I{} date -d@{} }
-
