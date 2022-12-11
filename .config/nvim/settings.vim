@@ -30,13 +30,14 @@ set mouse=c
 set timeoutlen=300 ttimeoutlen=0
 set encoding=utf-8
 colorscheme default
-hi Search       cterm=NONE ctermbg=0 ctermfg=NONE guibg=Grey40
+hi Search       cterm=NONE ctermbg=0 ctermfg=NONE
 hi Folded       ctermbg=none
 hi Pmenu        ctermbg=none
+hi StatusLine   ctermfg=NONE  ctermbg=NONE
 hi PmenuSel     ctermbg=1
 hi Pmenu        ctermfg=3
 hi SpellBad     ctermbg=2
-hi SpellRare    ctermfg=1 ctermbg=none
+hi SpellRare    ctermfg=1  ctermbg=none
 hi ColorColumn  ctermbg=3
 hi DiffAdd      ctermfg=7  ctermbg=6
 hi DiffChange   ctermfg=4  ctermbg=5
