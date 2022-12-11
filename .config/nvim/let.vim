@@ -1,10 +1,9 @@
-let g:tmux_navigator_no_mappings = 0
+let g:tmux_navigator_no_mappings = 1
 let g:tex_flavor = 'latex'
 let vimDir = '$HOME/.vim'
 let &runtimepath.=','.vimDir
 let g:indentLine_enabled = 0
 let g:EclimSignLevel = 'error'
-let g:tmux_navigator_no_mappings = 0
 let g:colorizer_auto_color = 1
 let g:ycm_key_list_select_completion = ['<TAB>']
 let g:ycm_autoclose_preview_window_after_completion = 1

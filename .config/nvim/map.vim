@@ -10,10 +10,6 @@ vn / y/<C-r><C-w><CR>
 vn ? y:%s/<C-r><C-w>//gn<CR>
 nn <A-p> o<A-p>
 map Q <NOP>
-im silent <C-h> <A-b>
-im silent <C-l> <A-w>
-im silent <C-Left> <A-b>
-im silent <C-Right> <A-w>
 nn <A-m> :tabe %<CR>
 ino <A-Backspace> <A-c>iw
 nn <A-Backspace> viwd
@@ -36,6 +32,17 @@ au FileType make ino al<tab> all:<CR>
 vmap <C-Space> gc
 nmap <C-Space> gcc
 nmap S ysiw
+
+noremap <silent> <c-h> <Cmd>TmuxNavigateLeft<cr>
+noremap <silent> <c-j> <Cmd>TmuxNavigateDown<cr>
+noremap <silent> <c-k> <Cmd>TmuxNavigateUp<cr>
+noremap <silent> <c-l> <Cmd>TmuxNavigateRight<cr>
+noremap <silent> <c-\> <Cmd>TmuxNavigatePrevious<cr>
+
+nn <A-h> :<C-U>TmuxNavigateLeft<cr>
+nn <A-j> :<C-U>TmuxNavigateDown<cr>
+nn <A-k> :<C-U>TmuxNavigateUp<cr>
+nn <A-l> :<C-U>TmuxNavigateRight<cr>
 nn <A-Left>  :TmuxNavigateLeft<cr>
 nn <A-Down>  :TmuxNavigateDown<cr>
 nn <A-Up>    :TmuxNavigateUp<cr>
@@ -61,6 +68,12 @@ nn <C-Tab> gK
 map <F2> :Goyo 200x200<CR>
 vn <C-r> "hy:.,$s/<C-r>h//gc<left><left><left>
 vn <C-h> "hy:%s/<C-r>h//gc<left><left><left>
+" function! ReplaceVisualSelection()
+"   let selection = expand('<cword>')
+"   let replacement = input('Replace "'.selection.'" with: ')
+"   execute 'normal! c'.replacement
+" endfunction
+" vn <C-h> :echo test<CR>
 vn D "hy:%g!/<C-r>h/d"
 nn <Del> "_<Del>
 nn x "_x
@@ -124,7 +137,7 @@ au FileType c,cpp,lex ino fn<tab> <+> <+>(<+>){<CR>}<Esc>O
 au FileType c,cpp,java,lex ino sw<tab> switch(){<CR>case <+>:<CR>break;<CR>}<Esc>3kwa
 au FileType c,cpp,java,lex ino wh<tab> while(){<CR>}<Esc>kwa
 au FileType c,cpp,java,lex ino if<tab> if(){<CR>}<Esc>kwa
-nn <Esc><Esc> :noh<CR>
+nn <silent> <Esc><Esc> :noh<CR>
 nn gJ gT
 nn gK gt
 nn <C-N> :tabe<CR>
@@ -139,19 +152,21 @@ nn <C-A-b>      :5winc +<CR>
 nn <C-A-l>      :5winc ><CR>
 nn <C-A-u>      :5winc -<CR>
 nmap <silent> <leader>w <Plug>(coc-diagnostic-next)
-" ino <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
+
+ino <silent><expr> <C-Space>
+      \ coc#pum#visible() ? coc#pum#next(1) :
+      \ CheckBackspace() ? "\<Tab>" :
+      \ coc#refresh()
+
 ino <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 ino <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 nn <A-r> :call CocAction('rename')<CR>
 
-function! s:check_back_space() abort
+function! CheckBackspace() abort
   let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
-ino <silent><expr> <c-space>
-      \ pumvisible() ? "\<C-n>" :
-      \ <SID>check_back_space() ? "\<TAB>" :
-      \ coc#refresh()
+
 nn <F5>   :VBGcontinue<CR>
 au FileType c,cpp  nn <F6>   :VBGstartGDB %:r<CR>
 au FileType python nn <F6>   :VBGstartPDB3 %<CR>
@@ -169,8 +184,6 @@ nmap <silent> <A-Up> :wincmd k<CR>
 nmap <silent> <A-Down> :wincmd j<CR>
 nmap <silent> <A-Left> :wincmd h<CR>
 nmap <silent> <A-Right> :wincmd l<CR>
-" au FileType python ino <C-Space> <C-X><C-O>
-" ino <C-Space> <C-x><C-o>
 ino <A-Left> <ESC>h
 ino <A-Down> <ESC>j
 ino <A-Up> <ESC>k

@@ -42,7 +42,7 @@ Plug 'chrisbra/unicode.vim'
 Plug 'othree/yajs.vim'
 Plug 'kien/ctrlp.vim'
 Plug 'danro/rename.vim'
-Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app & yarn install'  }
+Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install' }
 Plug 'vim-scripts/argtextobj.vim'
 Plug 'terryma/vim-expand-region'
 Plug 'vim-airline/vim-airline'
@@ -51,8 +51,4 @@ Plug 'majutsushi/tagbar'
 Plug 'easymotion/vim-easymotion'
 Plug 'vim-scripts/JavaScript-Indent'
 Plug 'junegunn/rainbow_parentheses.vim'
-" Plug 'tpope/vim-sleuth' " this stuff is dangerous
-" Plug 'amerlyq/vim-focus-autocmd'
-" Plug 'mvrozanti/bspwm_border_color'
-" Plug 'nvie/vim-flake8'
 call plug#end()
