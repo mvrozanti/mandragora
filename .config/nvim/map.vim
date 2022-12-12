@@ -1,12 +1,11 @@
 nn <Space><Space> <Esc>/<+><CR>"_3x:noh<CR>i
-nor $ $l
 map <A-F> mzgg=G`zzz
 nor <C-_> /\V
 map / /\c
 nn < <<
 nn > >>
 vn / y/<C-r><C-w><CR>
-" vn p "_dP
+vn p "_dP
 vn ? y:%s/<C-r><C-w>//gn<CR>
 nn <A-p> o<A-p>
 map Q <NOP>
