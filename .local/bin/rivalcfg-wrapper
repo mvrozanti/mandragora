@@ -2,6 +2,19 @@
 from colour import Color
 import rivalcfg
 import json
+from pathlib import Path
+import sys
+
+turn_on = sys.argv[1] == '--on' if len(sys.argv) > 1 else False
+turn_off = sys.argv[1] == '--off' if len(sys.argv) > 1 else False
+
+Path('/home/m/.cache/rivalcfg-config').mkdir(exist_ok=True)
+state_file = Path('/home/m/.cache/rivalcfg-config/state')
+if not state_file.exists():
+    state_file.write_text('False')
+    is_on = False
+else:
+    is_on = state_file.read_text() == 'True'
 
 def get_pywal_colors():
     color_json = json.load(open('/home/m/.cache/wal/colors.json'))
@@ -22,19 +35,27 @@ color_strings = get_pywal_colors()
 pywal_colors = sort_hex_colors_by_saturation(color_strings)
 
 mouse = rivalcfg.get_first_mouse()
-# pywal_colors = get_pywal_colors()
-# import ptpython; ptpython.embed(globals(), locals())
+
+def turn_mouse_off(mouse):
+    mouse.set_z1_color('#000')
+    mouse.set_z2_color('#000')
+    mouse.set_z3_color('#000')
+    mouse.set_logo_color('#000')
+
+def turn_mouse_on(mouse, pywal_colors):
+    mouse.set_z1_color(  pywal_colors[0])
+    mouse.set_z2_color(  pywal_colors[1])
+    mouse.set_z3_color(  pywal_colors[2])
+    mouse.set_logo_color(pywal_colors[3])
 
 def intensify(color):
     # >127 gets hotter
     # <127 gets colder
     pass
 
-mouse.set_z1_color(  pywal_colors[0])
-mouse.set_z2_color(  pywal_colors[1])
-mouse.set_z3_color(  pywal_colors[2])
-mouse.set_logo_color(pywal_colors[3])
+if turn_on:
+    turn_mouse_on(mouse, pywal_colors)
+elif turn_off:
+    turn_mouse_off(mouse)
 
-# print('rivalcfg colors:')
-# for pc in pywal_colors[:4]:
-#     print(pc)
+state_file.write_text(str(not is_on))
