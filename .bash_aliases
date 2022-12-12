@@ -113,7 +113,7 @@ spacescript(){ vapore="`cat -`"; n=1;if [[ "$1" == "-n" ]]; then n=$2;fi;for i i
 alias D='date "+%d-%m-%Y %H:%M"'
 alias mbtc='/mnt/4ADE1465DE144C17/gdrive/Programming/bash/mbtc/alerter.sh'
 alias rp='realpath -z'
-wis(){ whereis "$1" | cut -d':' -f2 | cut -d' ' -f2;}
+wis(){ whereis "$1" | cut -d':' -f2 | cut -d' ' -f2 }
 alias ecdsa='ssh-keygen -l -f /etc/ssh/ssh_host_ecdsa_key.pub; ssh-keygen -l -f $_ -E md5'
 alias up2pi='rsync -a "`pwd`" torta:'
 # alias sumlines='python3 -c "import sys; print(eval("+".join(sys.stdin).replace("\n",""))"'
@@ -133,7 +133,7 @@ alias grip='wmctrl -a waterfox && st -e tmux -c "stty -ixon && nvim *.md" & grip
 cdt(){ wis_smth="`wis "$1"`"; abs_path="`readlink -f "$wis_smth"`"; cd `dirname "$abs_path"`; }
 alias filesize='du -h'
 domany() { if [[ "$1" == "-n" ]]; then n=$2; else n=99999; fi; cmd="${@:3}"; for i in {1..$n}; do sh -c $cmd; done; }
-vw() { nvim "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
+vw() { nvim `wis $1` }
 svw() { sudoedit "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
 wi(){ wal --saturate 1.0 -i "${@:1}"; }
 alias biggest-files='du -hsx *|sudo sort -rh|head -10'
