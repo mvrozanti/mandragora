@@ -18,7 +18,7 @@
   blue:       #6eaafb;
   magenta:    #d886f3;
   cyan:       #6cdcf7;
-  emphasis:   #50536b;
+  emphasis:   #3e3e3e;
   text:       #dfdfdf;
   text-alt:   #b2b2b2;
   fg:         #abb2bf;

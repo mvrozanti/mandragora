@@ -42,7 +42,6 @@ let g:netrw_banner=0
 let g:netrw_browse_split=4
 let g:netrw_altv=1
 let g:netrw_liststyle=3
-let g:startify_session_autoload = 1
 let g:ctrlp_show_hidden=1
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
@@ -68,11 +67,13 @@ let g:airline#extensions#tagbar#enabled = 1
 let g:airline_powerline_fonts = 1
 let g:airline_theme='atomic'
 let g:rainbow_active = 1
-let g:startify_files_number = 5
-let g:startify_update_oldfiles = 1
 let g:startify_enable_special = 0
+let g:startify_files_number = 5
+let g:startify_session_autoload = 1
+let g:startify_update_oldfiles = 1
+let g:startify_update_oldfiles = 1
 let g:startify_lists = [
-      \ { 'type': 'commands',  'header': ['   Commands']       },
+      \ { 'type': 'dir' },
       \ { 'type': 'files',     'header': []                    },
       \ ]
 let g:mkdp_browser = 'firefox'
