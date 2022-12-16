@@ -1,2 +1,1 @@
-url=`xsel -o -b`
-mpv "$url"
+mpv `xsel -o -b`
