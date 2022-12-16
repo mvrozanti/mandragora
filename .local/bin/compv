@@ -1,0 +1,2 @@
+url=`xsel -o -b`
+mpv "$url"
