@@ -59,6 +59,7 @@
     ".config/nvim/coc-settings.json": "~/.config/nvim/coc-settings.json",
     ".tigrc": "~/.tigrc",
     ".config/mpv/scripts": "~/.config/mpv/scripts",
+    ".local/bin/compv": "~/.local/bin/compv",
     ".local/bin/ait": "~/.local/bin/ait",
     ".local/bin/eit": "~/.local/bin/eit",
     ".local/bin/qit": "~/.local/bin/qit",
