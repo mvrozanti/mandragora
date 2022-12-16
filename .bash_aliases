@@ -460,7 +460,7 @@ co2i(){ xclip -selection clipboard -t image/png -o > co2i-`date +%s`.png }
 alias co2imgur='xclip -selection clipboard -t image/png -o > /tmp/img; up2imgur /tmp/img'
 alias v-='v -'
 alias gddv-='gdd|v-'
-alias coytdl='youtube-dl `co`'
+alias coytdl='yt-dlp `co`'
 alias uppercase="sed 's/[^ ]\+/\U&/g'"
 alias lowercase="sed 's/[^ ]\+/\L&/g'"
 alias capitalize="sed 's/[^ ]\+/\L\u&/g'"
