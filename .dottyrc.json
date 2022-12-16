@@ -147,7 +147,8 @@
     ".local/bin/ic": "/home/m/.local/bin/ic",
     ".start-de": "/home/m/.start-de",
     ".pythonrc": "/home/m/.pythonrc",
-    ".local/bin/rivalcfg-wrapper": "/home/m/.local/bin/rivalcfg-wrapper"
+    ".local/bin/rivalcfg-wrapper": "/home/m/.local/bin/rivalcfg-wrapper",
+    ".local/bin/move-to-corner": "/home/m/.local/bin/move-to-corner"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
