@@ -133,7 +133,7 @@ alias grip='wmctrl -a waterfox && st -e tmux -c "stty -ixon && nvim *.md" & grip
 cdt(){ wis_smth="`wis "$1"`"; abs_path="`readlink -f "$wis_smth"`"; cd `dirname "$abs_path"`; }
 alias filesize='du -h'
 domany() { if [[ "$1" == "-n" ]]; then n=$2; else n=99999; fi; cmd="${@:3}"; for i in {1..$n}; do sh -c $cmd; done; }
-vw() { nvim `wis $1` }
+vw() { nvim $(realpath $(wis $1)) }
 svw() { sudoedit "`whereis $1 | cut -d':' -f2 | cut -d' ' -f2;`"; }
 wi(){ wal --saturate 1.0 -i "${@:1}"; }
 alias biggest-files='du -hsx *|sudo sort -rh|head -10'
@@ -176,7 +176,7 @@ alias vc='co | v -'
 alias cv='cov'
 alias vh='nvim ~/.zsh_history'
 vx(){ xxd $@ | v - }
-ytdl(){ youtube-dl -4 -w --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" "$@"; ls -c /mnt/4ADE1465DE144C17/Musik/ | sed 1q | xargs -I{} touch "/mnt/4ADE1465DE144C17/Musik/{}" }
+ytdl(){ yt-dlp -4 -w --extract-audio --audio-format "mp3" -o "/mnt/4ADE1465DE144C17/Musik/%(title)s.%(ext)s" "$@"; ls -c /mnt/4ADE1465DE144C17/Musik/ | sed 1q | xargs -I{} touch "/mnt/4ADE1465DE144C17/Musik/{}" }
 alias wt='watch -n 1 tree'
 wtg(){ watch -n 1 "tree | grep $@" }
 wcat(){ ls "$@" | entr -c cat /_ }
