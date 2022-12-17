@@ -21,7 +21,11 @@ function! Killit()
     try
         if l:buf_count == 1
             try
-                :q
+                try
+                    :silent q
+                catch
+                    :echo 'There are contents still in the buffer.'
+                endtry
             catch
                 :wq
             endtry

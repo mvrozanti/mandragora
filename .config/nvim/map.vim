@@ -176,9 +176,6 @@ nn <F10>  :VBGstepOut<CR>
 map <C-t> :NERDTreeToggle<CR>
 map ; <Plug>(expand_region_expand)
 map + <Plug>(expand_region_shrink)
-" nmap <A-f> <Plug>(easymotion-s)
-" let g:EasyMotion_do_mapping = 0
-" nmap f <Plug>(easymotion-s)
 nmap <silent> <A-Up> :wincmd k<CR>
 nmap <silent> <A-Down> :wincmd j<CR>
 nmap <silent> <A-Left> :wincmd h<CR>
@@ -189,18 +186,12 @@ ino <A-Up> <ESC>k
 ino <A-Right> <ESC>l
 nn <C-W> :call Killit()<CR>
 ino <C-W> <Esc>:call Killit()<CR>
-" nn <C-W> <Esc>:q<CR>
-" ino <C-W> <Esc>:q<CR>
 nn <C-S> <Esc>:w<CR>
 ino <C-S> <Esc>:w<CR>
 nn _ :split<CR>
 vn _ :split<CR>
 nn \| :vsplit<CR>
 vn \| :vsplit<CR>
-" nn - $h
-" vn - $h
-" nn F gg=G''
-"             \ nn <buffer> l <Enter> |
 " au FileType   tex        ino   <F5>       <Esc>:!xelatex<space><c-r>%<Enter>a
 " au FileType   tex        nn   <F5>       :!xelatex<space><c-r>%<Enter>
 au FileType tex ino pb<Tab> \pagebreak
