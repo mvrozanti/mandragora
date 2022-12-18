@@ -64,7 +64,7 @@ vn - $h
 nn <C-u> 'x
 vn <CR> c<CR>
 nn <C-Tab> gK
-map <F2> :Goyo 200x200<CR>
+map <silent> <F2> :Goyo 50%x75%<CR>
 vn <C-r> "hy:.,$s/<C-r>h//gc<left><left><left>
 vn <C-h> "hy:%s/<C-r>h//gc<left><left><left>
 " function! ReplaceVisualSelection()
@@ -154,10 +154,6 @@ nmap <silent> <leader>w <Plug>(coc-diagnostic-next)
 
 ino <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 ino <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
-ino <expr> <CR>
-      \ coc#pum#visible() ? coc#_select_confirm() :
-      \ CheckBackspace() ? "\<CR>" :
-      \ coc#refresh()
 ino <expr> <C-Space>
       \ coc#pum#visible() ? coc#_select_confirm() :
       \ CheckBackspace() ? "\<Tab>" :
