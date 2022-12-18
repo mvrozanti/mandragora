@@ -1,3 +1,5 @@
+let g:goyo_width='85%'
+let g:goyo_height='90%'
 let g:tmux_navigator_no_mappings = 1
 let g:tex_flavor = 'latex'
 let vimDir = '$HOME/.vim'

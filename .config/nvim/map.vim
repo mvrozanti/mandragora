@@ -64,7 +64,7 @@ vn - $h
 nn <C-u> 'x
 vn <CR> c<CR>
 nn <C-Tab> gK
-map <silent> <F2> :Goyo 50%x75%<CR>
+map <silent> <F2> :Goyo <CR>
 vn <C-r> "hy:.,$s/<C-r>h//gc<left><left><left>
 vn <C-h> "hy:%s/<C-r>h//gc<left><left><left>
 " function! ReplaceVisualSelection()
@@ -174,7 +174,7 @@ nn <F7>   :VBGstepIn<CR>
 nn <F8>   :VBGstepOver<CR>
 nn <C-F8> :VBGtoggleBreakpointThisLine<CR>
 nn <F10>  :VBGstepOut<CR>
-map <C-t> :NERDTreeToggle<CR>
+map <silent> <C-t> :NERDTreeToggle<CR>
 map ; <Plug>(expand_region_expand)
 map + <Plug>(expand_region_shrink)
 nmap <silent> <A-Up> :wincmd k<CR>
@@ -185,8 +185,8 @@ ino <A-Left> <ESC>h
 ino <A-Down> <ESC>j
 ino <A-Up> <ESC>k
 ino <A-Right> <ESC>l
-nn <C-W> :call Killit()<CR>
-ino <C-W> <Esc>:call Killit()<CR>
+nn <silent> <C-W> :call Killit()<CR>
+ino <silent> <C-W> <Esc>:call Killit()<CR>
 nn <C-S> <Esc>:w<CR>
 ino <C-S> <Esc>:w<CR>
 nn _ :split<CR>
