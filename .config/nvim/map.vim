@@ -154,9 +154,9 @@ nmap <silent> <leader>w <Plug>(coc-diagnostic-next)
 
 ino <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 ino <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
-ino <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
-ino <silent><expr> <C-Space>
-      \ coc#pum#visible() ? coc#pum#next(1) :
+ino <expr> <CR> pumvisible() ? "\<C-y>" : "\<Tab>"
+ino <expr> <C-Space>
+      \ coc#pum#visible() ? coc#_select_confirm() :
       \ CheckBackspace() ? "\<Tab>" :
       \ coc#refresh()
 
