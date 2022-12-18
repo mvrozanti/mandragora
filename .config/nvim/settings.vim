@@ -11,7 +11,7 @@ set conceallevel=0
 set grepprg=ag
 set hidden
 set clipboard=unnamed,unnamedplus
-set completeopt=longest,menuone,preview
+set completeopt=longest,menuone
 filetype plugin indent on
 set laststatus=2
 set t_Co=256

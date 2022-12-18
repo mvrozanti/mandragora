@@ -152,13 +152,15 @@ nn <C-A-l>      :5winc ><CR>
 nn <C-A-u>      :5winc -<CR>
 nmap <silent> <leader>w <Plug>(coc-diagnostic-next)
 
+ino <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+ino <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+ino <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 ino <silent><expr> <C-Space>
       \ coc#pum#visible() ? coc#pum#next(1) :
       \ CheckBackspace() ? "\<Tab>" :
       \ coc#refresh()
 
-ino <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-ino <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+
 nn <A-r> :call CocAction('rename')<CR>
 
 function! CheckBackspace() abort
@@ -243,5 +245,4 @@ cno \>s/ \>smagic/
 nn :g/ :g/\v
 nn :g// :g//
 map <F3> :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
-" ino <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 vmap A :%norm A
