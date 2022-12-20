@@ -27,7 +27,6 @@
     ".tmux.conf": "~/.tmux.conf",
     ".bash_aliases": "~/.bash_aliases",
     ".bash_profile": "~/.bash_profile",
-    ".conky-i3bar": "~/.conky-i3bar",
     ".conkyrc": "~/.conkyrc",
     ".vimrc": "~/.vimrc",
     ".streamlinkrc": "~/.streamlinkrc",
