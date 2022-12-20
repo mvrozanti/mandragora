@@ -1,26 +1,135 @@
 conky.config = {
-    own_window = true,
-    own_window_transparent = false,
-    own_window_type = desktop,
-    out_to_x = false,
-    own_window = false,
-    out_to_console = true,
-    background = false,
-    max_text_width = 0,
-    update_interval = 2.0,
-    total_run_times = 0,
-    short_units = true,
-    if_up_strictness = 'address',
-    use_spacer = 'left',
-    override_utf8_locale = false,
-    cpu_avg_samples = 2,
-};
+
+-------------------------------------
+--  Generic Settings
+-------------------------------------
+background=true,
+update_interval=1,
+double_buffer=false,
+no_buffers=false,
+imlib_cache_size=10,
+draw_shades=false,
+draw_outline=false,
+draw_borders=false,
+draw_graph_borders=false,
+default_graph_height=26,
+default_graph_width=80,
+show_graph_scale=false,
+show_graph_range=false,
+
+
+-------------------------------------
+--  Window Specifications
+-------------------------------------
+gap_x=1600,
+gap_y=40,
+minimum_height=390,
+minimum_width=268,
+own_window=true,
+own_window_type="dock",
+own_window_class = 'Conky',
+own_window_transparent=false,
+own_window_hints="above,sticky,skip_taskbar,skip_pager",
+border_inner_margin=0,
+border_outer_margin=0,
+--alignment="middle_middle",
+own_window_argb_visual=true,
+own_window_argb_value=127,
+
+
+-------------------------------------
+--  Text Settings
+-------------------------------------
+use_xft=true,
+xftalpha=1,
+font="Droid Sans:size=10",
+text_buffer_size=256,
+override_utf8_locale=true,
+
+
+-------------------------------------
+--  Color Scheme
+-------------------------------------
+default_color="FFFFFF",
+color1="FFFFFF",
+color2="FFFFFF",
+
+
+-------------------------------------
+--  API Key
+-------------------------------------
+template6="2e9866f3f3e031c78b3bfca391276c4b",
+
+
+-------------------------------------
+--  City ID
+-------------------------------------
+template7="3448439",
+
+
+-------------------------------------
+--  Temp Unit (default, metric, imperial)
+-------------------------------------
+template8="metric",
+
+
+-------------------------------------
+--  Locale (e.g. "es_ES.UTF-8")
+--  Leave empty for default
+-------------------------------------
+template9=""
+
+}
+
+
+---------------------------------------------------
+---------------------------------------------------
+
 
 conky.text = [[
-[
-    { "full_text": "${mpd_smart} ${mpd_bar 5 100}",             "color": "\#990000" },
-    { "full_text": "I/O: ${diskio} F: ${fs_bar /}/${fs_size}" , "color": "\#999999" },
-    { "full_text": "RAM ${memperc}%",                           "color": ${if_match ${memperc}<90}"\#009900"${else}"\#990000"${endif} },
-    { "full_text": "${time %H:%M %d/%m}",                       "color": "\#44f4bb" }
-],
-]];
+\
+\
+${execi 300 ~/.harmattan-assets/get_weather ${template6} ${template7} ${template8} ${template9}}\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+${color2}${voffset 278}${alignc 90}${execi 300 LANG=${template9} LC_TIME=${template9} date +%^a}
+${color2}${voffset -15}${alignc}${execi 300 LANG=${template9} LC_TIME=${template9} date -d +1day +%^a}
+${color2}${voffset -15}${alignc -90}${execi 300 LANG=${template9} LC_TIME=${template9} date -d +2day +%^a}
+\
+\
+\
+\
+${color2}${voffset 53}${alignc 90}${execi 300 ~/.harmattan-assets/parse_weather 'avg' '.main.temp_min' '0'}${if_match "$template8" == "metric"} °C${else}${if_match "$template8" == "imperial"} °F${else}${if_match "$template8" == "default"} K${endif}${endif}${endif}/${execi 300 ~/.harmattan-assets/parse_weather 'avg' '.main.temp_max' '0'}${if_match "$template8" == "metric"} °C${else}${if_match "$template8" == "imperial"} °F${else}${if_match "$template8" == "default"} K${endif}${endif}${endif}
+${color2}${voffset -15}${alignc}${execi 300 ~/.harmattan-assets/parse_weather 'avg' '.main.temp_min' '1'}${if_match "$template8" == "metric"} °C${else}${if_match "$template8" == "imperial"} °F${else}${if_match "$template8" == "default"} K${endif}${endif}${endif}/${execi 300 ~/.harmattan-assets/parse_weather 'avg' '.main.temp_max' '1'}${if_match "$template8" == "metric"} °C${else}${if_match "$template8" == "imperial"} °F${else}${if_match "$template8" == "default"} K${endif}${endif}${endif}
+${color2}${voffset -15}${alignc -90}${execi 300 ~/.harmattan-assets/parse_weather 'avg' '.main.temp_min' '2'}${if_match "$template8" == "metric"} °C${else}${if_match "$template8" == "imperial"} °F${else}${if_match "$template8" == "default"} K${endif}${endif}${endif}/${execi 300 ~/.harmattan-assets/parse_weather 'avg' '.main.temp_max' '2'}${if_match "$template8" == "metric"} °C${else}${if_match "$template8" == "imperial"} °F${else}${if_match "$template8" == "default"} K${endif}${endif}${endif}
+\
+\
+\
+\
+${color1}${font Droid Sans:size=38}${goto 24}${voffset -214}${execi 300 jq -r .main.temp ~/.cache/harmattan-conky/weather.json | awk '{print int($1+0.5)}' # round num}${if_match "$template8" == "metric"} °C${else}${if_match "$template8" == "imperial"} °F${else}${if_match "$template8" == "default"} K${endif}${endif}${endif}${font}\
+${color2}${alignr 54}${voffset -162}
+${color2}${alignr 54}${voffset 20}${execi 300 jq -r .main.humidity ~/.cache/harmattan-conky/weather.json | awk '{print int($1+0.5)}' # round num} %
+${color2}${alignr 54}${voffset 20}${execi 300 jq -r .wind.speed ~/.cache/harmattan-conky/weather.json | awk '{print int($1+0.5)}' # round num}${if_match "$template8" == "metric"} m/s${else}${if_match "$template8" == "default"} m/s${else}${if_match "$template8" == "imperial"} mi/h${endif}${endif}${endif}
+${color2}${alignr 54}${voffset 20}${execi 300 date -d "@$(jq -r .sys.sunset ~/.cache/harmattan-conky/weather.json)" +%-I:%M\ %P}
+${color2}${alignr 54}${voffset 20}
+${color1}${font Droid Sans :size=12}${goto 24}${voffset 26}${execi 300 jq -r .weather[0].description ~/.cache/harmattan-conky/weather.json | sed "s|\<.|\U&|g"}${font}\
+\
+\
+\
+\
+\
+${image ~/.harmattan-assets/misc/Transparent/Comfortable/humidity.png -p 224,74 -s 16x16}\
+${image ~/.harmattan-assets/misc/Transparent/Comfortable/wind-2.png -p 224,111 -s 16x16}\
+${image ~/.harmattan-assets/misc/Transparent/Comfortable/sunset.png -p 224,148 -s 16x16}\
+${execi 300 cp -f ~/.harmattan-assets/icons/#fff__64/$(jq .weather[0].id ~/.cache/harmattan-conky/weather.json).png ~/.cache/harmattan-conky/weather.png}${image ~/.cache/harmattan-conky/weather.png -p 24,46 -s 128x128}\
+${execi 300 cp -f ~/.harmattan-assets/icons/#fff__32/$(~/.harmattan-assets/parse_weather 'first' '.weather[0].id' '0').png ~/.cache/harmattan-conky/weather-1.png}${image ~/.cache/harmattan-conky/weather-1.png -p 27,306 -s 32x32}\
+${execi 300 cp -f ~/.harmattan-assets/icons/#fff__32/$(~/.harmattan-assets/parse_weather 'first' '.weather[0].id' '1').png ~/.cache/harmattan-conky/weather-2.png}${image ~/.cache/harmattan-conky/weather-2.png -p 118,306 -s 32x32}\
+${execi 300 cp -f ~/.harmattan-assets/icons/#fff__32/$(~/.harmattan-assets/parse_weather 'first' '.weather[0].id' '2').png ~/.cache/harmattan-conky/weather-3.png}${image ~/.cache/harmattan-conky/weather-3.png -p 207,306 -s 32x32}${font}\
+]]

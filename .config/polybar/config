@@ -77,7 +77,7 @@ type = custom/script
 exec = busctl --user -j get-property io.ntfd /weather openweathermap.strings RenderedTemplate | jq -r .data
 interval = 60
 label-font = 7
-click-left = pgrep -x gnome-weather || $_
+click-left = transset-df -n conky -t 0
 
 [module/ip]
 type = custom/script
