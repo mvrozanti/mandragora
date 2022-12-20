@@ -6,7 +6,6 @@ pgrep -x polybar          || $_ mybar &
 pgrep -x mpd              || $_   &
 pgrep -x sxhkd            || $_   &
 pgrep -x ntfd             || $_   &
-pgrep -x conky            || $_   && transset-df -n conky --dec 1 
 # pgrep -f imap-notify      || nohup $HOME/.local/bin/imap-notify &
 pgrep -f cleanfullscreen  || nohup $HOME/.local/bin/cleanfullscreen &
 
