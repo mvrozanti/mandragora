@@ -352,7 +352,8 @@
     "vnstat",
     "xorg-xkill",
     "proxychains-ng",
-    "nvtop"
+    "nvtop",
+    "translate-shell"
   ],
   "excluded": [
     "hotmail.gpg",
