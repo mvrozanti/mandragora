@@ -6,8 +6,11 @@ pkill xwinwrap
     [[ -z $2 ]] && kitty @ --to unix:@mykitty set-colors background=#000 || kitty @ --to unix:@mykitty set-colors background=#fff
     wal -a 299 -i "$fpath" $2 
     python $HOME/.local/bin/rivalcfg-wrapper
-    [[ `identify "$fpath" | cut -d' ' -f3` == 1920x1080 ]] || gifsicle --resize 1920x1080 -i "$fpath" > /tmp/`basename "$fpath"`
-    fpath="/tmp/`basename "$fpath"`"
+    is_fs=$([[ `identify "$fpath" | cut -d' ' -f3` == 1920x1080 ]] && echo true)
+    [[ $is_fs ]] || gifsicle --resize 1920x1080 -i "$fpath" > /tmp/`basename "$fpath"` && fpath="/tmp/`basename "$fpath"`"
     sleep 1
-    [[ `echo $fpath | rev | cut -d"." -f1 | rev` = "gif" ]] && nohup xwinwrap -g `xrandr | awk '/\*/{printf $1" "}'` -ni -s -nf -b -un -argb -ov -- gifview -w WID "$fpath" -a >/dev/null
+    is_gif=$([[ "${fpath##*.}" = "gif" ]] && echo true)
+    is_mp4=$([[ "${fpath##*.}" = "mp4" ]] && echo true)
+    [[ $is_gif ]] && nohup xwinwrap -fs -ni -s -nf -b -un -argb -ov -- gifview -w WID "$fpath" -a >/dev/null
+    [[ $is_mp4 ]] && nohup xwinwrap -fs -ni -s -nf -b -un -argb -ov -- mpv -wid WID --loop --no-audio "$fpath" >/dev/null
 } 2>&1 &
