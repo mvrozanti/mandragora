@@ -78,8 +78,9 @@ let g:startify_lists = [
       \ { 'type': 'dir' },
       \ { 'type': 'files',     'header': []                    },
       \ ]
+
+let g:startify_skiplist = [ '/sss/*' ]
 let g:mkdp_browser = 'firefox'
-" let g:mkdp_markdown_css = expand('HOME/css/darkdown.css')
 let g:mkdp_highlight_css = expand('$HOME/css/darkdown.css')
 let g:coc_disable_startup_warning = 1
 let g:python_recommended_style = 1
