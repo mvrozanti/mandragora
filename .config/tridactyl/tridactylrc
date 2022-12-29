@@ -30,9 +30,9 @@ unbind --mode=ex <C-c>
 " Make quickmarks for the sane Tridactyl issue view
 quickmark t https://github.com/cmcaine/tridactyl/issues?utf8=%E2%9C%93&q=sort%3Aupdated-desc+
 
-autocmd DocStart www.amazon.co.uk js tri.excmds.urlmodify("-t", "www", "smile")
-
 autocmd DocLoad github.com js document.querySelector("div.flash").remove()
+
+unbindurl https://www.youtube.com m
 
 " YouTube
 bindurl https://www.youtube.com X js try { document.evaluate('', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click(); } catch {}; document.evaluate('', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();  
@@ -45,7 +45,8 @@ bindurl https://www.youtube.com X js try { document.evaluate('', document, null,
 ""bindurl https://www.youtube.com S js try { document.evaluate('/html/body/ytd-app/div/ytd-page-manager/ytd-watch-flexy/div[5]/div[1]/div/div[7]/div[2]/ytd-video-secondary-info-renderer/div/ytd-expander/tp-yt-paper-button[2]/yt-formatted-string', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click(); } catch {}; try { document.evaluate('/html/body/ytd-app/div/ytd-page-manager/ytd-watch-flexy/div[5]/div[1]/div/div[7]/div[2]/ytd-video-secondary-info-renderer/div/ytd-expander/tp-yt-paper-button[1]/yt-formatted-string', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click(); } catch {}
 
 
-bindurl https://www.youtube.com ? js document.querySelector('ytd-searchbox form #search').focus()
+bindurl https://www.youtube.com ? js document.getElementById('search').focus()
+
 
 bindurl https://www.youtube.com f hint -Jc a#thumbnail.yt-simple-endpoint.inline-block.style-scope.ytd-thumbnail,ytd-comment-thread-renderer a,ytd-channel-name a,paper-button,a#logo,ytd-toggle-button-renderer.style-scope:nth-child(1) > a:nth-child(1) ytd-toggle-button-renderer,a,.yt-simple-endpoint.style-scope.ytd-toggle-button-renderer#menu-container
 
