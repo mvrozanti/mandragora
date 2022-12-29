@@ -158,6 +158,10 @@ ino <expr> <C-Space>
       \ coc#pum#visible() ? coc#_select_confirm() :
       \ CheckBackspace() ? "\<Tab>" :
       \ coc#refresh()
+ino <expr> <CR>
+      \ coc#pum#visible() ? coc#_select_confirm() :
+      \ CheckBackspace() ? "\<Tab>" :
+      \ coc#refresh()
 
 
 nn <A-r> :call CocAction('rename')<CR>
