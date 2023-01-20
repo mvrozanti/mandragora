@@ -1,66 +1,12 @@
-" Comment toggler for Reddit and Hacker News
-" bind ;c hint -c [class*="expand"],[class="togg"]
 unbind ;c
 unbind D
 unbind <C-x>
-
-" GitHub pull request checkout command to clipboard (only works if you're a collaborator or above)
-bind yp composite js document.getElementById("clone-help-step-1").textContent.replace("git checkout -b", "git checkout -B").replace("git pull ", "git fetch ") + "git reset --hard " + document.getElementById("clone-help-step-1").textContent.split(" ")[3].replace("-","/") | yank
-
-" Git{Hub,Lab} git clone via SSH yank
-" bind yg composite js "git clone " + document.location.href.replace(/https?:\/\//,"git@").replace("/",":").replace(/$/,".git") | clipboard yank
-
-" I like wikiwand but I don't like the way it changes URLs
-" bindurl wikiwand.com yy composite js document.location.href.replace("wikiwand.com/en","wikipedia.org/wiki") | clipboard yank
-
-" Allow Ctrl-a to select all in the commandline
 unbind --mode=ex <C-a>
-
-" Let Ctrl-c to copy in the commandline
 unbind --mode=ex <C-c>
-
-" Sane hinting mode
-" set hintfiltermode vimperator-reflow
-" set hintnames numeric
-
-" Make Tridactyl work on more sites at the expense of some security
-" set csp clobber
-" fixamo_quiet
-
-" Make quickmarks for the sane Tridactyl issue view
-quickmark t https://github.com/cmcaine/tridactyl/issues?utf8=%E2%9C%93&q=sort%3Aupdated-desc+
-
 autocmd DocLoad github.com js document.querySelector("div.flash").remove()
-
 unbindurl https://www.youtube.com m
-
-" YouTube
-bindurl https://www.youtube.com X js try { document.evaluate('', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click(); } catch {}; document.evaluate('', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();  
-/html/body/ytd-app/div/ytd-page-manager/ytd-watch-flexy/div[3]/div/ytd-player/div/div/div[32]/div[2]/div[2]/button[8]
-
-/html/body/ytd-app/div/ytd-page-manager/ytd-watch-flexy/div[3]/div/ytd-player/div/div/div[31]/div[2]/div[2]/button[8]
-
-/html/body/ytd-app/div/ytd-page-manager/ytd-watch-flexy/div[5]/div[1]/div/div[1]/div/div/div/ytd-player/div/div/div[32]/div[2]/div[2]/button[8]
-
-""bindurl https://www.youtube.com S js try { document.evaluate('/html/body/ytd-app/div/ytd-page-manager/ytd-watch-flexy/div[5]/div[1]/div/div[7]/div[2]/ytd-video-secondary-info-renderer/div/ytd-expander/tp-yt-paper-button[2]/yt-formatted-string', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click(); } catch {}; try { document.evaluate('/html/body/ytd-app/div/ytd-page-manager/ytd-watch-flexy/div[5]/div[1]/div/div[7]/div[2]/ytd-video-secondary-info-renderer/div/ytd-expander/tp-yt-paper-button[1]/yt-formatted-string', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click(); } catch {}
-
-
 bindurl https://www.youtube.com ? js document.getElementById('search').focus()
-
-
 bindurl https://www.youtube.com f hint -Jc a#thumbnail.yt-simple-endpoint.inline-block.style-scope.ytd-thumbnail,ytd-comment-thread-renderer a,ytd-channel-name a,paper-button,a#logo,ytd-toggle-button-renderer.style-scope:nth-child(1) > a:nth-child(1) ytd-toggle-button-renderer,a,.yt-simple-endpoint.style-scope.ytd-toggle-button-renderer#menu-container
-
-bindurl https://www.youtube.com/watch <C-f> hint -Jc button.ytp-button
-
-bindurl https://www.youtube.com/ O js document.querySelector("html.TridactylThemeUnugly body ytd-app div#content.style-scope.ytd-app div#masthead-container.style-scope.ytd-app ytd-masthead#masthead.masthead-finish div#container.style-scope.ytd-masthead div#end.style-scope.ytd-masthead div#buttons.style-scope.ytd-masthead ytd-notification-topbar-button-renderer.style-scope.ytd-masthead.notification-button-style-type-default").click()
-
-""set hintdelay 100
-""ignoremaps = {
-""    "<S-Insert>": "mode normal",
-""    "<AC-Escape>": "mode normal",
-""    "<AC-`>": "mode normal",
-""    "<C-o>": "nmode normal 1 mode ignore",
-""}
 
 set modeindicator false
 set smoothscroll true
@@ -88,7 +34,8 @@ bind <A-d> composite js window.location.href | fillcmdline open
 bind <C-o> fillcmdline open
 bind f hint
 unbind <C-a>
-bind i js var css="html {-webkit-filter: invert(100%);-moz-filter: invert(100%);-o-filter: invert(100%);-ms-filter: invert(100%); }",head=document.getElementsByTagName("head")[0],style=document.createElement("style");if(window.counter){if(window.counter++,window.counter%2==0)var css="html {-webkit-filter: invert(0%); -moz-filter:    invert(0%); -o-filter: invert(0%); -ms-filter: invert(0%); }"}else window.counter=1;style.type="text/css",style.styleSheet?style.styleSheet.cssText=css:style.appendChild(document.createTextNode(css)),head.appendChild(style);
+bind i js var css="html { -webkit-filter: grayscale(100%) invert(100%); -moz-filter: grayscale(100%) invert(100%); -o-filter: grayscale(100%) invert(100%); -ms-filter: grayscale(100%) invert(100%); filter: grayscale(100%) invert(100%); }",head=document.getElementsByTagName("head")[0],style=document.createElement("style");if(window.counter){if(window.counter++,window.counter%2==0){var css="html { -webkit-filter: grayscale(0%) invert(0%); -moz-filter: grayscale(0%) invert(0%); -o-filter: grayscale(0%) invert(0%); -ms-filter: grayscale(0%) invert(0%); filter: grayscale(0%) invert(0%); }"}}else{window.counter=1}style.type="text/css";if(style.styleSheet){style.styleSheet.cssText=css}else{style.appendChild(document.createTextNode(css))}head.appendChild(style);
+
 set newtab about:blank
 unbind gd
 unbind gf
