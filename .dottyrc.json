@@ -21,6 +21,7 @@
     ".ideavimrc": "~/.ideavimrc",
     "_.waterfox/chrome": "_~/.waterfox/*.default*/chrome",
     "_etc/pulse/default.pa": "_/etc/pulse/default.pa",
+    ".config/pulse/default.pa": "~/.config/pulse/default.pa",
     "_usr/etc/netbeans.conf": "_/usr/etc/netbeans.conf",
     "etc/ly/config.ini": "/etc/ly/config.ini",
     ".config/nvim/plugged/vim-cute-python/after/syntax/python.vim": "~/.config/nvim/plugged/vim-cute-python/after/syntax/python.vim",
