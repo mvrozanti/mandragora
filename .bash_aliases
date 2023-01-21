@@ -621,3 +621,4 @@ alias wdfh='wdf -h'
 alias piuu='piu --upgrade'
 when(){ ag --nocolor "$@" ~/.zsh_history | cut -d' ' -f2- | cut -d: -f1 | xargs -I{} date -d@{} }
 alias base64='base64 -w0'
+alias tsv='t sv:'
