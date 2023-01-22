@@ -623,3 +623,4 @@ when(){ ag --nocolor "$@" ~/.zsh_history | cut -d' ' -f2- | cut -d: -f1 | xargs 
 alias base64='base64 -w0'
 alias tsv='t sv:'
 alias cotsv='co | tsv'
+alias t:sv='t :sv'
