@@ -354,8 +354,7 @@
     "xorg-xkill",
     "proxychains-ng",
     "nvtop",
-    "translate-shell",
-    "zsh-syntax-highlighting"
+    "translate-shell"
   ],
   "excluded": [
     "hotmail.gpg",
@@ -390,6 +389,7 @@
     "git clone https://github.com/mvrozanti/hx ~/util/hx && cd $_ && sudo make install",
     "git clone https://github.com/octobanana/peaclock ~/util/peaclock && cd $_ && sudo ./RUNME.sh --install",
     "curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh | sh",
+    "git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting",
     "git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/zsh-autosuggestions && cd",
     "git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm",
     "git clone https://github.com/alexanderjeurissen/ranger_devicons ~/util/ranger_devicons && cd $_ && make install && cd",
