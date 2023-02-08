@@ -132,7 +132,7 @@ super + shift + r
     notify-send 'Restarting bspwm' && bspc wm --restart
 
 super + g
-    sudo -u m $HOME/.local/bin/setbg
+    $HOME/.local/bin/setbg
 
 super + c
     id=$(bspc query -N -n "focused");\
