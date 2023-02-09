@@ -6,6 +6,7 @@ consequences=$4
 title=$(xtitle "$wid")
 
 # notify-send "$title"
+# notify-send "$class"
 
 if [ "$title" = _visualizer-float_ ]; then
 	echo state=floating rectangle=500x400+1400+630 sticky=on
@@ -25,6 +26,14 @@ fi
 
 if [ "$title" = _ranger_ ]; then
 	echo "desktop=^2"
+fi
+
+if [ "$class" = TelegramDesktop ]; then
+	echo "desktop=^5 follow=true"
+fi
+
+if [ "$class" = discord ]; then
+	echo "desktop=^17 follow=true"
 fi
 
 if [ "$class" = firefox ]; then

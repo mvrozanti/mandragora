@@ -53,6 +53,7 @@ font-6 = "Weather Icons"
 font-7 = "Material Icons"
 font-8 = "Noto Sans Symbols2:style=Regular"
 font-9 = "Font Awesome 6 Free Solid:style=Solid"
+font-10 = "Font Awesome 5 Brands Regular:style=Regular"
 
 modules-left = bspwm
 modules-center = 
@@ -135,8 +136,6 @@ label-unmounted-foreground = ${colors.foreground-alt}
 label-mounted-font = 5
 
 [module/bspwm]
-label-mode-font          = 5
-label-urgent-font        = 5
 label-empty-padding      = 5
 label-focused-padding    = 5
 label-occupied-padding   = 5
@@ -146,31 +145,38 @@ label-empty              =
 label-focused            = %icon%
 label-occupied           = %icon%
 label-urgent             = %icon%!
+
+label-focused-font       = 10
+label-unfocused-font     = 10
+label-urgent-font        = 10
+label-visible-font       = 10
+label-occupied-font      = 10
+
 label-empty-foreground   = ${colors.foreground-alt}
 label-focused-background = ${colors.background-alt}
 label-focused-underline  = ${colors.primary}
 label-urgent-background  = ${colors.alert}
 type                     = internal/bspwm
+format                   = <label-state> <label-mode>
 ws-icon-0  = I;  
 ws-icon-1  = II;  
 ws-icon-2  = III;  
 ws-icon-3  = IV;  
-ws-icon-4  = V; ♋
+ws-icon-4  = V;
 ws-icon-5  = VI; 
 ws-icon-6  = VII; 
 ws-icon-7  = VIII;
-ws-icon-8  = IX; 
-ws-icon-9  = X; ϰ
-ws-icon-10 = XI; 
+ws-icon-8  = IX;
+ws-icon-9  = X;ϰ
+ws-icon-10 = XI;
 ws-icon-11 = XII; 
 ws-icon-12 = XIII; 
 ws-icon-13 = XIV; 
 ws-icon-14 = XV; 
 ws-icon-15 = XVI; 
-ws-icon-16 = XVII; 
-ws-icon-17 = XVIII; π
-ws-icon-18 = XIX; 
-format                   = <label-state> <label-mode>
+ws-icon-16 = XVII;
+ws-icon-17 = XVIII;π
+ws-icon-18 = XIX;
 
 [module/mpd]
 type = internal/mpd
