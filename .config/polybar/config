@@ -54,7 +54,7 @@ font-7 = "Material Icons"
 font-8 = "Noto Sans Symbols2:style=Regular"
 font-9 = "Font Awesome 6 Free Solid:style=Solid"
 font-10 = "Font Awesome 5 Brands Regular:style=Regular"
-font-11 = "forkawesome:style=Regular"
+font-11 = "forkawesome:style=Regular:size=13"
 
 modules-left = bspwm
 modules-center = 
@@ -159,6 +159,7 @@ label-focused-underline  = ${colors.primary}
 label-urgent-background  = ${colors.alert}
 type                     = internal/bspwm
 format                   = <label-state> <label-mode>
+
 ws-icon-0  = I;  
 ws-icon-1  = II;  
 ws-icon-2  = III;  

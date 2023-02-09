@@ -81,6 +81,9 @@ super + 2
 super + shift + 2
     wmctrl -a nemo               || nemo
 
+super + x
+    wmctrl -a  discord           || discord
+
 super + i
     wmctrl -a _hexchat_text_     || kitty --title _hexchat_text_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new hexchat-text"
 
@@ -291,9 +294,6 @@ super + shift + m
 
 super + alt + c
     $HOME/.local/bin/cycle-audio-output
-
-super + n
-    wmctrl -a  discord          || discord
 
 super + shift + i
     dunstctl context
