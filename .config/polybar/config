@@ -52,10 +52,11 @@ font-5 = "FontAwesome:size=13;2"
 font-6 = "Weather Icons"
 font-7 = "Material Icons"
 font-8 = "Noto Sans Symbols2:style=Regular"
+font-9 = "Font Awesome 6 Free Solid:style=Solid"
 
 modules-left = bspwm
-modules-center =
-modules-right = mpd alsa xbacklight filesystem memory cpu wlan eth ip redshift battery weather date
+modules-center = 
+modules-right = mpd alsa xbacklight filesystem memory cpu wlan eth redshift ip battery weather date
 
 tray-position = right
 tray-padding = 2
@@ -78,6 +79,7 @@ exec = busctl --user -j get-property io.ntfd /weather openweathermap.strings Ren
 interval = 60
 label-font = 7
 click-left = pkill conky || conky
+format-underline = ${xrdb:color5}
 
 [module/ip]
 type = custom/script
@@ -125,13 +127,11 @@ label-indicator-underline = ${colors.secondary}
 [module/filesystem]
 type = internal/fs
 interval = 25
-
 mount-0 = /
 format-mounted-underline = ${xrdb:color15}
 label-mounted = %{F#ffffff}  %{F-} %percentage_free%%
 label-unmounted = %mountpoint% not mounted
 label-unmounted-foreground = ${colors.foreground-alt}
-
 label-mounted-font = 5
 
 [module/bspwm]
@@ -175,17 +175,13 @@ format                   = <label-state> <label-mode>
 [module/mpd]
 type = internal/mpd
 format-online = <label-song> <icon-prev> <toggle> <icon-next>
-
 icon-play = 
 icon-prev = 
 icon-next = 
 icon-pause = 
 icon-stop = 
 label-song = %{A1:pkill -9 ncmpcpp || kitty --title _ncmpcpp_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ncmpcpp":}   %title% %{A}
-
-
 label-song-font = 5
-; label-song-maxlen = 500
 label-song-ellipsis = true
 
 [module/xbacklight]
@@ -223,7 +219,8 @@ label-font = 5
 type = internal/memory
 interval = 2
 label-font = 5
-format-prefix = " "
+prefix-font = 9
+format-prefix = ""
 format-prefix-foreground = #fff
 format-underline = ${xrdb:color1}
 label = %percentage_used:3%%
@@ -271,10 +268,8 @@ format-disconnected =
 [module/date]
 type = internal/date
 interval = 5
-
 date =
 date-alt = " %Y-%m-%d"
-
 time = %H:%M
 time-alt = %H:%M:%S
 format-prefix-foreground = #fff
