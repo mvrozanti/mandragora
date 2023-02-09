@@ -54,6 +54,7 @@ font-7 = "Material Icons"
 font-8 = "Noto Sans Symbols2:style=Regular"
 font-9 = "Font Awesome 6 Free Solid:style=Solid"
 font-10 = "Font Awesome 5 Brands Regular:style=Regular"
+font-11 = "forkawesome:style=Regular"
 
 modules-left = bspwm
 modules-center = 
@@ -146,11 +147,11 @@ label-focused            = %icon%
 label-occupied           = %icon%
 label-urgent             = %icon%!
 
-label-focused-font       = 10
-label-unfocused-font     = 10
-label-urgent-font        = 10
-label-visible-font       = 10
-label-occupied-font      = 10
+label-focused-font       = 11
+label-unfocused-font     = 11
+label-urgent-font        = 11
+label-visible-font       = 11
+label-occupied-font      = 11
 
 label-empty-foreground   = ${colors.foreground-alt}
 label-focused-background = ${colors.background-alt}
@@ -166,7 +167,7 @@ ws-icon-4  = V;
 ws-icon-5  = VI; 
 ws-icon-6  = VII; 
 ws-icon-7  = VIII;
-ws-icon-8  = IX;
+ws-icon-8  = IX;
 ws-icon-9  = X;ϰ
 ws-icon-10 = XI;
 ws-icon-11 = XII; 
