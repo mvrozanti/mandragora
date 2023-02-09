@@ -42,7 +42,7 @@ def turn_mouse_off(mouse):
     mouse.set_z3_color('#000')
     mouse.set_logo_color('#000')
 
-def turn_mouse_on(mouse, pywal_colors):
+def set_colors(mouse, pywal_colors):
     mouse.set_z1_color(  pywal_colors[0])
     mouse.set_z2_color(  pywal_colors[1])
     mouse.set_z3_color(  pywal_colors[2])
@@ -53,8 +53,8 @@ def intensify(color):
     # <127 gets colder
     pass
 
-if turn_on:
-    turn_mouse_on(mouse, pywal_colors)
+if turn_on or is_on:
+    set_colors(mouse, pywal_colors)
 elif turn_off:
     turn_mouse_off(mouse)
 
