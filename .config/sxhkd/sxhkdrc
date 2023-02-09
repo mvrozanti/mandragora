@@ -293,7 +293,7 @@ super + alt + c
     $HOME/.local/bin/cycle-audio-output
 
 super + n
-    discord
+    wmctrl -a  discord          || discord
 
 super + shift + i
     dunstctl context
