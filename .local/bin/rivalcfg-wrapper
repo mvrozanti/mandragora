@@ -53,9 +53,11 @@ def intensify(color):
     # <127 gets colder
     pass
 
-if turn_on or is_on:
+if turn_on or (is_on and not turn_off):
     set_colors(mouse, pywal_colors)
+    is_on = True
 elif turn_off:
     turn_mouse_off(mouse)
+    is_on = False
 
-state_file.write_text(str(not is_on))
+state_file.write_text(str(is_on))
