@@ -293,7 +293,7 @@ super + alt + c
     $HOME/.local/bin/cycle-audio-output
 
 super + n
-    dunstctl history-pop
+    discord
 
 super + shift + i
     dunstctl context
