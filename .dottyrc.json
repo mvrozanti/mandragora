@@ -355,7 +355,8 @@
     "proxychains-ng",
     "nvtop",
     "translate-shell",
-    "thermald"
+    "thermald",
+    "inxi"
   ],
   "excluded": [
     "hotmail.gpg",
