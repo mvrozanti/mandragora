@@ -354,7 +354,8 @@
     "xorg-xkill",
     "proxychains-ng",
     "nvtop",
-    "translate-shell"
+    "translate-shell",
+    "thermald"
   ],
   "excluded": [
     "hotmail.gpg",
