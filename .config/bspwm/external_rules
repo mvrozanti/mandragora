@@ -32,6 +32,10 @@ if [ "$class" = TelegramDesktop ]; then
 	echo "desktop=^5 follow=true"
 fi
 
+if [ "$title" = WhatsAppWeb ]; then
+	echo "desktop=^4 follow=true"
+fi
+
 if [ "$class" = discord ]; then
 	echo "desktop=^17 follow=true"
 fi
