@@ -5,8 +5,8 @@ instance=$3
 consequences=$4
 title=$(xtitle "$wid")
 
-notify-send "$title"
-notify-send "$class"
+# notify-send "$title"
+# notify-send "$class"
 
 if [ "$title" = Nibbler ]; then
 	echo "desktop=^20"
