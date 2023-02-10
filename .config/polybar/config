@@ -160,25 +160,26 @@ label-urgent-background  = ${colors.alert}
 type                     = internal/bspwm
 format                   = <label-state> <label-mode>
 
-ws-icon-0  = I;  
-ws-icon-1  = II;  
-ws-icon-2  = III;  
+ws-icon-0  = I; 
+ws-icon-1  = II; 
+ws-icon-2  = III; 
 ws-icon-3  = IV; 
 ws-icon-4  = V;
-ws-icon-5  = VI; 
-ws-icon-6  = VII; 
+ws-icon-5  = VI;
+ws-icon-6  = VII;
 ws-icon-7  = VIII;
 ws-icon-8  = IX;
 ws-icon-9  = X;ϰ
 ws-icon-10 = XI;
-ws-icon-11 = XII; 
-ws-icon-12 = XIII; 
-ws-icon-13 = XIV; 
-ws-icon-14 = XV; 
-ws-icon-15 = XVI; 
+ws-icon-11 = XII;
+ws-icon-12 = XIII;
+ws-icon-13 = XIV;
+ws-icon-14 = XV;
+ws-icon-15 = XVI;
 ws-icon-16 = XVII;
 ws-icon-17 = XVIII;π
 ws-icon-18 = XIX;
+ws-icon-19 = XX;
 
 [module/mpd]
 type = internal/mpd
