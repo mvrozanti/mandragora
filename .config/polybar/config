@@ -179,6 +179,8 @@ ws-icon-16 = XVII;
 ws-icon-17 = XVIII;π
 ws-icon-18 = XIX;
 ws-icon-19 = XX;
+ws-icon-20 = XXI;
+ws-icon-21 = XXII;
 
 [module/mpd]
 type = internal/mpd

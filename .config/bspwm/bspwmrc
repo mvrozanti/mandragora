@@ -9,7 +9,7 @@ pgrep -x ntfd             || $_   &
 # pgrep -f imap-notify      || nohup $HOME/.local/bin/imap-notify &
 pgrep -f cleanfullscreen  || nohup $HOME/.local/bin/cleanfullscreen &
 
-bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX
+bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX XXI XXII
 
 bspc config border_width          0
 bspc config window_gap            12
