@@ -5,8 +5,12 @@ instance=$3
 consequences=$4
 title=$(xtitle "$wid")
 
-# notify-send "$title"
-# notify-send "$class"
+notify-send "$title"
+notify-send "$class"
+
+if [ "$title" = Nibbler ]; then
+	echo "desktop=^20"
+fi
 
 if [ "$title" = _visualizer-float_ ]; then
 	echo state=floating rectangle=500x400+1400+630 sticky=on
