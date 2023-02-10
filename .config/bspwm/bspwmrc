@@ -9,7 +9,7 @@ pgrep -x ntfd             || $_   &
 # pgrep -f imap-notify      || nohup $HOME/.local/bin/imap-notify &
 pgrep -f cleanfullscreen  || nohup $HOME/.local/bin/cleanfullscreen &
 
-bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX XXI XXII
+bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX XXI XXII XXIII XXIV XXV XXVI XXVII XXVIII XXIX XXX XXXI XXXII XXXIII XXXIV XXXV XXXVI XXXVII XXXVIII XXXIX XL
 
 bspc config border_width          0
 bspc config window_gap            12
@@ -20,9 +20,9 @@ bspc config gapless_monocle       true
 bspc config pointer_modifier mod1
 
 bspc   rule   -a   whats-app-nativefier-d52542 desktop=^4
-bspc   rule   -a   jetbrains-idea-ce           desktop=^7  follow=true
-bspc   rule   -a   code-oss                    desktop=^7  follow=true
-bspc   rule   -a   Slack                       desktop=^8
+bspc   rule   -a   jetbrains-idea-ce           desktop=^8  follow=true
+bspc   rule   -a   code-oss                    desktop=^8  follow=true
+bspc   rule   -a   Slack                       desktop=^9
 bspc   rule   -a   Gdmap                       desktop=^11 follow=true
 bspc   rule   -a   Postman                     desktop=^13
 bspc   rule   -a   Zathura                     desktop=^19 follow=true state=tiled

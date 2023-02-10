@@ -5,8 +5,13 @@ instance=$3
 consequences=$4
 title=$(xtitle "$wid")
 
+
 # notify-send "$title"
 # notify-send "$class"
+
+if [ "$title" = "SimpleScreenRecorder" ]; then
+	echo "desktop=^23 follow=true"
+fi
 
 if [ "$title" = "Tor Browser" ]; then
 	echo "desktop=^22 follow=true"
@@ -33,19 +38,19 @@ if [ "$title" = "Mozilla Thunderbird" ]; then
 fi
 
 if [ "$title" = _zsh_ ]; then
-	echo "desktop=^3; "
+	echo "desktop=^4; "
 fi
 
 if [ "$title" = _ranger_ ]; then
-	echo "desktop=^2"
+	echo "desktop=^3"
 fi
 
 if [ "$class" = TelegramDesktop ]; then
-	echo "desktop=^5 follow=true"
+	echo "desktop=^6 follow=true"
 fi
 
 if [ "$title" = WhatsAppWeb ]; then
-	echo "desktop=^4 follow=true"
+	echo "desktop=^5 follow=true"
 fi
 
 if [ "$class" = discord ]; then
@@ -53,7 +58,7 @@ if [ "$class" = discord ]; then
 fi
 
 if [ "$class" = firefox ]; then
-	[[ `pgrep -f firefox | wc -l` -gt 1 ]] && echo "desktop=^1"
+	[[ `pgrep -f firefox | wc -l` -gt 1 ]] && echo "desktop=^2"
 fi
 
 if [ "$title" = _tmux-float_ ]; then

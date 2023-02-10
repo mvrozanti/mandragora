@@ -42,18 +42,18 @@ padding-right = 0
 module-margin-left = 1
 module-margin-right = 1
 
-font-0 = "Ubuntu Condensed:size=17;2"
-font-1 = "icomoon\-feather:size=17;2"
-font-2 = "xos4 Terminus:size=17;1"
-font-3 = fixed:pixelsize=17;1
+font-0 = "Ubuntu Condensed:size=16;2"
+font-1 = "icomoon\-feather:size=16;2"
+font-2 = "xos4 Terminus:size=16;1"
+font-3 = fixed:pixelsize=16;1
 font-4 = Droid Sans Mono Slashed for Powerline:size=12
-font-5 = "FontAwesome:size=17;2"
-font-6 = "Weather Icons:size=17"
-font-7 = "Material Icons:size=17"
-font-8 = "Noto Sans Symbols2:size=17:style=Regular"
-font-9 = "Font Awesome 6 Free Solid:size=17:style=Solid"
-font-10 = "Font Awesome 5 Brands Regular:size=17:style=Regular"
-font-11 = "forkawesome:style=Regular:size=17"
+font-5 = "FontAwesome:size=16;2"
+font-6 = "Weather Icons:size=16"
+font-7 = "Material Icons:size=16"
+font-8 = "Noto Sans Symbols2:size=16:style=Regular"
+font-9 = "Font Awesome 6 Free Solid:size=16:style=Solid"
+font-10 = "Font Awesome 5 Brands Regular:size=16:style=Regular"
+font-11 = "forkawesome:style=Regular:size=16"
 
 modules-left = bspwm
 modules-center = 
@@ -159,28 +159,46 @@ label-urgent-background  = ${colors.alert}
 type                     = internal/bspwm
 format                   = <label-state> <label-mode>
 
-ws-icon-0  = I; 
-ws-icon-1  = II; 
-ws-icon-2  = III; 
-ws-icon-3  = IV; 
-ws-icon-4  = V;
-ws-icon-5  = VI;
-ws-icon-6  = VII;
-ws-icon-7  = VIII;
-ws-icon-8  = IX;
-ws-icon-9  = X;ϰ
+ws-icon-0  = I; 
+ws-icon-1  = II; 
+ws-icon-2  = III; 
+ws-icon-3  = IV; 
+ws-icon-4  = V;
+ws-icon-5  = VI;
+ws-icon-6  = VII;
+ws-icon-7  = VIII;
+ws-icon-8  = IX;
+ws-icon-9  = X;
 ws-icon-10 = XI;
 ws-icon-11 = XII;
-ws-icon-12 = XIII;
+ws-icon-12 = XIII;
 ws-icon-13 = XIV;
 ws-icon-14 = XV;
 ws-icon-15 = XVI;
 ws-icon-16 = XVII;
-ws-icon-17 = XVIII;π
+ws-icon-17 = XVIII;
 ws-icon-18 = XIX;
 ws-icon-19 = XX;
 ws-icon-20 = XXI;
 ws-icon-21 = XXII;
+ws-icon-22 = XXIII;
+ws-icon-23 = XXIV;
+ws-icon-24 = XXV ;
+ws-icon-25 = XXVI ;
+ws-icon-26 = XXVII ;
+ws-icon-27 = XXVIII ;
+ws-icon-28 = XXIX ;
+ws-icon-29 = XXX ;
+ws-icon-30 = XXXI ;
+ws-icon-31 = XXXII ;
+ws-icon-32 = XXXIII ;
+ws-icon-33 = XXXIV ;
+ws-icon-34 = XXXV ;
+ws-icon-35 = XXXVI ;
+ws-icon-36 = XXXVII ;
+ws-icon-37 = XXXVIII ;
+ws-icon-38 = XXXIX ;
+ws-icon-39 = XL;
 
 [module/mpd]
 type = internal/mpd
