@@ -238,10 +238,10 @@ super + F12
     $HOME/.local/bin/play_virtmic $HOME/virtmic-sounds/F12
 
 super + d
-    if [ $(bspc query -D -d --names) = IX ]; then \
+    if [ $(bspc query -D -d --names) = I ]; then \
         bspc desktop -f last; \
     else \
-        bspc desktop -f IX; \
+        bspc desktop -f I; \
     fi
 
 super + {minus,equal}
