@@ -105,7 +105,7 @@ super + a
     wmctrl -xa workbench         || mysql-workbench
 
 super + p
-    wmctrl -a ".pdf ["           || zathura
+    wmctrl -a org.pwmt.zathura   || zathura
 
 ctrl + super + d
     wmctrl -xa gdmap             || gdmap -f /

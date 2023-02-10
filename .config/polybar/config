@@ -22,9 +22,8 @@ alert = ${xrdb:color14}
 [bar/mybar]
 monitor = ${env:MONITOR:HDMI-0}
 width = 100%
-height = 30
+height = 40
 bottom = true
-radius = 0.0
 fixed-center = true
 background = ${colors.background}
 foreground = ${colors.foreground}
@@ -43,18 +42,18 @@ padding-right = 0
 module-margin-left = 1
 module-margin-right = 1
 
-font-0 = "Ubuntu Condensed:size=11;2"
-font-1 = "icomoon\-feather:size=13;2"
-font-2 = "xos4 Terminus:size=12;1"
-font-3 = fixed:pixelsize=10;1
-font-4 = Droid Sans Mono Slashed for Powerline:size=10
-font-5 = "FontAwesome:size=13;2"
-font-6 = "Weather Icons"
-font-7 = "Material Icons"
-font-8 = "Noto Sans Symbols2:style=Regular"
-font-9 = "Font Awesome 6 Free Solid:style=Solid"
-font-10 = "Font Awesome 5 Brands Regular:style=Regular"
-font-11 = "forkawesome:style=Regular:size=13"
+font-0 = "Ubuntu Condensed:size=17;2"
+font-1 = "icomoon\-feather:size=17;2"
+font-2 = "xos4 Terminus:size=17;1"
+font-3 = fixed:pixelsize=17;1
+font-4 = Droid Sans Mono Slashed for Powerline:size=12
+font-5 = "FontAwesome:size=17;2"
+font-6 = "Weather Icons:size=17"
+font-7 = "Material Icons:size=17"
+font-8 = "Noto Sans Symbols2:size=17:style=Regular"
+font-9 = "Font Awesome 6 Free Solid:size=17:style=Solid"
+font-10 = "Font Awesome 5 Brands Regular:size=17:style=Regular"
+font-11 = "forkawesome:style=Regular:size=17"
 
 modules-left = bspwm
 modules-center = 
