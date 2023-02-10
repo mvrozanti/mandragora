@@ -8,6 +8,10 @@ title=$(xtitle "$wid")
 # notify-send "$title"
 # notify-send "$class"
 
+if [ "$title" = "Tor Browser" ]; then
+	echo "desktop=^22 follow=true"
+fi
+
 if [ "$title" = Steam ]; then
 	echo "desktop=^15 follow=true"
 fi
