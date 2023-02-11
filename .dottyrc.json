@@ -356,7 +356,8 @@
     "nvtop",
     "translate-shell",
     "thermald",
-    "inxi"
+    "inxi",
+    "fisher"
   ],
   "excluded": [
     "hotmail.gpg",
