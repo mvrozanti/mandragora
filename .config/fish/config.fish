@@ -86,19 +86,8 @@ set __fish_git_prompt_char_upstream_diverged '  '
 set __fish_git_prompt_char_upstream_equal '  '
 set __fish_git_prompt_char_upstream_prefix ' '
 
-#
-### PROMPT
-#
-
 # Prevent directories names from being shortened
 set fish_prompt_pwd_dir_length 0
-
-# fish_prompt defined in ~/.config/fish/functions/fish_prompt.fish
-
-#####
-# https://github.com/oh-my-fish/theme-bobthefish
-
-bind -k nul 'do something'
 
 # https://github.com/oh-my-fish/theme-bobthefish
 
@@ -138,3 +127,4 @@ end
 
 function fish_greeting; end
 set -g theme_display_date no
+bind -k nul accept-autosuggestion
