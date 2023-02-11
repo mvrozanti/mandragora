@@ -42,18 +42,18 @@ padding-right = 0
 module-margin-left = 1
 module-margin-right = 1
 
-font-0 = "Ubuntu Condensed:size=16;2"
-font-1 = "icomoon\-feather:size=16;2"
-font-2 = "xos4 Terminus:size=16;1"
-font-3 = fixed:pixelsize=16;1
-font-4 = Droid Sans Mono Slashed for Powerline:size=12
-font-5 = "FontAwesome:size=16;2"
-font-6 = "Weather Icons:size=16"
-font-7 = "Material Icons:size=16"
-font-8 = "Noto Sans Symbols2:size=16:style=Regular"
-font-9 = "Font Awesome 6 Free Solid:size=16:style=Solid"
-font-10 = "Font Awesome 5 Brands Regular:size=16:style=Regular"
-font-11 = "forkawesome:style=Regular:size=16"
+font-0 = "Ubuntu Condensed:size=13;2"
+font-1 = "icomoon\-feather:size=13;2"
+font-2 = "xos4 Terminus:size=13;1"
+font-3 = fixed:pixelsize=13;1
+font-4 = Droid Sans Mono Slashed for Powerline:size=13
+font-5 = "FontAwesome:size=13;2"
+font-6 = "Weather Icons:size=13"
+font-7 = "Material Icons:size=13"
+font-8 = "Noto Sans Symbols2:size=13:style=Regular"
+font-9 = "Font Awesome 6 Free Solid:size=13:style=Solid"
+font-10 = "Font Awesome 5 Brands Regular:size=13:style=Regular"
+font-11 = "forkawesome:style=Regular:size=13"
 
 modules-left = bspwm
 modules-center = 
@@ -183,21 +183,21 @@ ws-icon-20 = XXI;
 ws-icon-21 = XXII;
 ws-icon-22 = XXIII;
 ws-icon-23 = XXIV;
-ws-icon-24 = XXV ;
-ws-icon-25 = XXVI ;
-ws-icon-26 = XXVII ;
-ws-icon-27 = XXVIII ;
-ws-icon-28 = XXIX ;
-ws-icon-29 = XXX ;
-ws-icon-30 = XXXI ;
-ws-icon-31 = XXXII ;
-ws-icon-32 = XXXIII ;
-ws-icon-33 = XXXIV ;
-ws-icon-34 = XXXV ;
-ws-icon-35 = XXXVI ;
-ws-icon-36 = XXXVII ;
-ws-icon-37 = XXXVIII ;
-ws-icon-38 = XXXIX ;
+ws-icon-24 = XXV;
+ws-icon-25 = XXVI;
+ws-icon-26 = XXVII;
+ws-icon-27 = XXVIII;
+ws-icon-28 = XXIX;
+ws-icon-29 = XXX;
+ws-icon-30 = XXXI;
+ws-icon-31 = XXXII;
+ws-icon-32 = XXXIII;
+ws-icon-33 = XXXIV;
+ws-icon-34 = XXXV;
+ws-icon-35 = XXXVI;
+ws-icon-36 = XXXVII;
+ws-icon-37 = XXXVIII;
+ws-icon-38 = XXXIX;
 ws-icon-39 = XL;
 
 [module/mpd]
