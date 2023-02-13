@@ -9,6 +9,14 @@ title=$(xtitle "$wid")
 # notify-send "$title"
 # notify-send "$class"
 
+if [ "$title" = Pinta ]; then
+	echo "desktop=^7 follow=true"
+fi
+
+if [ "$title" = "GNU Image Manipulation Program" ]; then
+	echo "desktop=^7 follow=true"
+fi
+
 if [ "$title" = "SimpleScreenRecorder" ]; then
 	echo "desktop=^23 follow=true"
 fi
