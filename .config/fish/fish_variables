@@ -1,6 +1,9 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
 SETUVAR __fish_initialized:3400
+SETUVAR _fisher_budimanjojo_2F_tmux_2E_fish_files:\x7e/\x2econfig/fish/conf\x2ed/tmux\x2eextra\x2econf\x1e\x7e/\x2econfig/fish/conf\x2ed/tmux\x2efish\x1e\x7e/\x2econfig/fish/conf\x2ed/tmux\x2eonly\x2econf\x1e\x7e/\x2econfig/fish/conf\x2ed/tmux_abbrs\x2efish
+SETUVAR _fisher_plugins:budimanjojo/tmux\x2efish
+SETUVAR _fisher_upgraded_to_4_4:\x1d
 SETUVAR background:\x230F0604
 SETUVAR color0:\x230F0604
 SETUVAR color1:\x2367392A
