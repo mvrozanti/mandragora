@@ -5,7 +5,6 @@ instance=$3
 consequences=$4
 title=$(xtitle "$wid")
 
-
 # notify-send "$title"
 # notify-send "$class"
 
@@ -26,7 +25,7 @@ if [ "$title" = "Tor Browser" ]; then
 fi
 
 if [ "$title" = Steam ]; then
-	echo "desktop=^15 follow=true"
+	echo "desktop=^15"
 fi
 
 if [ "$title" = Nibbler ]; then
