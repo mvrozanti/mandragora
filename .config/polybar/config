@@ -76,7 +76,7 @@ font = 8
 
 [module/weather]
 type = custom/script
-exec = busctl --user -j get-property io.ntfd /weather openweathermap.strings RenderedTemplate | jq -r .data
+exec = busctl --user -j get-property io.ntfd /weather openweathermap.strings RenderedTemplate | jq -r .data 
 interval = 60
 label-font = 7
 click-left = pkill conky || conky
@@ -166,8 +166,8 @@ ws-icon-3  = IV;
 ws-icon-4  = V;
 ws-icon-5  = VI;
 ws-icon-6  = VII;
-ws-icon-7  = VIII;
-ws-icon-8  = IX;
+ws-icon-7  = VIII;
+ws-icon-8  = IX;
 ws-icon-9  = X;
 ws-icon-10 = XI;
 ws-icon-11 = XII;
