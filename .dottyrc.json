@@ -148,7 +148,8 @@
     ".start-de": "/home/m/.start-de",
     ".pythonrc": "/home/m/.pythonrc",
     ".local/bin/rivalcfg-wrapper": "/home/m/.local/bin/rivalcfg-wrapper",
-    ".local/bin/move-to-corner": "/home/m/.local/bin/move-to-corner"
+    ".local/bin/move-to-corner": "/home/m/.local/bin/move-to-corner",
+    ".config/nvtop/interface.ini": "/home/m/.config/nvtop/interface.ini"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
