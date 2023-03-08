@@ -500,7 +500,7 @@ ogg2mp4(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.mp4 }
 mp42avi(){ [[ $# -eq 1 ]] && ffmpeg -i $1 ${1%%.*}.avi }
 pdf2png(){ [[ $# -eq 1 ]] && pdftoppm "$1" /tmp/slicedPDF -png && convert /tmp/slicedPDF* -gravity center -append "${1%%.*}.png" && rm /tmp/slicedPDF* }
 pdf2jpg(){  [[ $# -eq 1 ]] && pdftoppm "$1" /tmp/slicedPDF -jpg && convert /tmp/slicedPDF* -gravity center -append "${1%%.*}.jpg" && rm /tmp/slicedPDF* }
-webp2png(){ dwebp $1 -o ${1%%.*}.png }
+webp2png(){ dwebp $1 -o ${1%%.*}.png && rm $1 }
 ter2dec(){ e "$((3#`cat -`))" }
 alias gP='git pull'
 alias ga.='git add .'
@@ -626,3 +626,5 @@ alias cotsv='co | tsv'
 alias t:sv='t :sv'
 alias top='gtop'
 alias cff='v /home/m/.config/fish'
+alias wtail='watch tail'
+avif2png(){ avifdec $1 - | convert - ${1%%.*}.png }
