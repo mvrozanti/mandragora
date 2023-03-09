@@ -168,7 +168,7 @@ alias dotty='~/mandragora/dotty/dotty.py'
 alias mviz='ncmpcpp --screen visualizer'
 countdown(){ date1=$((`date +%s` + $1)); while [ "$date1" -ge `date +%s` ]; do clear; echo -ne "$(date -u --date @$(($date1 - `date +%s`)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
 stopwatch(){ date1=`date +%s`; while true; do clear; echo -ne "$(date -u --date @$((`date +%s` - $date1)) +%H:%M:%S)\r" | figlet; sleep 0.1; done; }
-timer(){ countdown "$1" && for i in {1..4}; do beep -l 400; sleep 0.5; done }
+timer(){ countdown "$1" && for i in {1..3}; do beep -l 300; sleep 0.5; done }
 alias sw='sudo wifi-menu'
 alias vtop='vtop -t seti'
 alias sv='sudoedit'
