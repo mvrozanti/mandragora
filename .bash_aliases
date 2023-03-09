@@ -627,4 +627,4 @@ alias t:sv='t :sv'
 alias top='gtop'
 alias cff='v /home/m/.config/fish'
 alias wtail='watch tail'
-avif2png(){ avifdec $1 ${1%%.*}.png }
+avif2png(){ avifdec "$1" "${1%%.*}.png" && trash "$1" }

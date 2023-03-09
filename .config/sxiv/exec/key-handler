@@ -5,7 +5,7 @@ while read file
 do
         case "$1" in
         "y")
-                xclip -selection clipboard "$file" -t image/jpeg
+                ic "$file"
                 notify-send 'Copied to clipboard'
                 ;;
         "w")
