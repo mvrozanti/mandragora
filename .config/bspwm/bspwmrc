@@ -2,12 +2,11 @@
 wal -a 299 -i "`cat $HOME/.cache/wal/wal`"
 pgrep -x compton          || $_ -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
 pgrep -x polybar          || $_ mybar &
-# pgrep -x xscreensaver     || $_   &
 pgrep -x mpd              || $_   &
 pgrep -x sxhkd            || $_   &
 pgrep -x ntfd             || $_   &
-# pgrep -f imap-notify      || nohup $HOME/.local/bin/imap-notify &
 pgrep -f cleanfullscreen  || nohup $HOME/.local/bin/cleanfullscreen &
+pgrep -x mpd-discord-rpc  || sleep 3 && nohup $HOME/.cargo/bin/mpd-discord-rpc &
 
 bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX XXI XXII XXIII XXIV XXV XXVI XXVII XXVIII XXIX XXX XXXI XXXII XXXIII XXXIV XXXV XXXVI XXXVII XXXVIII XXXIX XL
 
