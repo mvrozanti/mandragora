@@ -68,5 +68,7 @@ def_key "v"
   select_range
 def_key "ctrl-v"
   remove_selection
+def_key "Q"
+  quit
 #def_key "2"
 #  show_playlist_editor
