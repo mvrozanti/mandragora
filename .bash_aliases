@@ -1,7 +1,7 @@
 unalias sd
 unalias sp
 alias rm='rm -f'
-alias -g la='ls -a --color'
+alias -g la='ls -a'
 alias l='ls -t1'
 alias watch='watch --color -n1 --no-title '
 alias sps='sudo pacman -S'
