@@ -359,7 +359,8 @@
     "translate-shell",
     "thermald",
     "inxi",
-    "fisher"
+    "fisher",
+    "gthumb"
   ],
   "excluded": [
     "hotmail.gpg",
