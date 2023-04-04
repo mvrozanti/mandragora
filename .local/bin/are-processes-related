@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Check that two process IDs were provided
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <pid1> <pid2>"
+    exit 1
+fi
+
+# Get the process tree for the first process
+ptree1=$(pstree -p $1)
+
+# Check if the second process ID is present in the tree
+if [[ "$ptree1" == *"$2"* ]]; then
+    echo "Processes $1 and $2 are related"
+else
+    # If the second process ID is not found in the tree for the first process,
+    # get the process tree for the second process and check if the first process ID
+    # is present in the tree
+    ptree2=$(pstree -p $2)
+    if [[ "$ptree2" == *"$1"* ]]; then
+        echo "Processes $1 and $2 are related"
+    else
+        echo "Processes $1 and $2 are not related"
+    fi
+fi

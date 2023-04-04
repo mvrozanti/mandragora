@@ -150,7 +150,8 @@
     ".local/bin/rivalcfg-wrapper": "/home/m/.local/bin/rivalcfg-wrapper",
     ".local/bin/move-to-corner": "/home/m/.local/bin/move-to-corner",
     ".config/nvtop/interface.ini": "/home/m/.config/nvtop/interface.ini",
-    ".config/discord-rpc/config.toml": "/home/m/.config/discord-rpc/config.toml"
+    ".config/discord-rpc/config.toml": "/home/m/.config/discord-rpc/config.toml",
+    ".local/bin/are-processes-related": "/home/m/.local/bin/are-processes-related"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
