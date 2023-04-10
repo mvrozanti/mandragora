@@ -20,6 +20,10 @@ if [ "$title" = "SimpleScreenRecorder" ]; then
 	echo "desktop=^23 follow=true"
 fi
 
+if [ "$class" = "obs" ]; then
+	echo "desktop=^23 follow=true"
+fi
+
 if [ "$title" = "Tor Browser" ]; then
 	echo "desktop=^22 follow=true"
 fi
