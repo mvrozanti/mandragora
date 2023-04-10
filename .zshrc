@@ -256,3 +256,8 @@ PERL_MB_OPT="--install_base \"/home/m/perl5\""; export PERL_MB_OPT;
 PERL_MM_OPT="INSTALL_BASE=/home/m/perl5"; export PERL_MM_OPT;
 [ -f ~/.local/bin/resty ] && . ~/.local/bin/resty
 export PYTHONSTARTUP="$HOME/.pythonrc"
+
+[[ -s $HOME/.autojump/etc/profile.d/autojump.sh ]] && source $HOME/.autojump/etc/profile.d/autojump.sh
+
+autoload -U compinit && compinit -u
+
