@@ -87,17 +87,18 @@ export SSH_KEY_PATH="~/.ssh/rsa_id"
 stty -ixon
 
 bindkey '^ ' autosuggest-accept
-bindkey "\eOH" beginning-of-line
-bindkey "\eOF" end-of-line
+bindkey '\eOH' beginning-of-line
+bindkey '\eOF' end-of-line
 bindkey '\e[1~' beginning-of-line
 bindkey '\e[4~' end-of-line
-bindkey "\e[7~" beginning-of-line
-bindkey "\e[8~" end-of-line
+bindkey '\e[7~' beginning-of-line
+bindkey '\e[8~' end-of-line
 bindkey '^b' backward-word
 bindkey '^f' forward-word
 bindkey '^h' backward-delete-char
-# bindkey '^l' delete-char
 bindkey '^[^l' delete-word
+bindkey '^[^k' up-history
+bindkey '^[^j' down-history
 
 run_ranger() { echo; ranger --choosedir=$HOME/.rangerdir < $TTY; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"; zle reset-prompt }
 run_lf() { echo; lf; zle reset-prompt }
@@ -143,9 +144,19 @@ bindkey '^f' 'cd_fzf'
 bindkey '^[C' 'run_clock'
 bindkey -s '^[^M' '^M'
 
-# vi - thanks hoberto
-bindkey '\ek' up-history
-bindkey '\ej' down-history
+autoload -Uz increase-font
+autoload -Uz decrease-font
+function increase-font() {
+  xdotool key ctrl+shift+equal
+}
+function decrease-font() {
+  xdotool key ctrl+minus
+}
+
+zle -N increase-font
+zle -N decrease-font
+bindkey '^k' increase-font
+bindkey '^j' decrease-font
 
 # rust
 export PATH="$PATH:$HOME/.cargo/bin"
@@ -257,7 +268,7 @@ PERL_MM_OPT="INSTALL_BASE=/home/m/perl5"; export PERL_MM_OPT;
 [ -f ~/.local/bin/resty ] && . ~/.local/bin/resty
 export PYTHONSTARTUP="$HOME/.pythonrc"
 
-[[ -s $HOME/.autojump/etc/profile.d/autojump.sh ]] && source $HOME/.autojump/etc/profile.d/autojump.sh
-
-autoload -U compinit && compinit -u
-
+source /usr/share/autojump/autojump.zsh
+# [[ -s /home/m/.autojump/etc/profile.d/autojump.sh ]] && source /home/m/.autojump/etc/profile.d/autojump.sh
+#
+# autoload -U compinit && compinit -u
