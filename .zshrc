@@ -18,20 +18,6 @@ export SSH_KEY_PATH="~/.ssh/rsa_id"
 [ -f $HOME/.ranger_aliases ] && source $HOME/.ranger_aliases
 stty -ixon
 
-bindkey '^ ' autosuggest-accept
-bindkey '\eOH' beginning-of-line
-bindkey '\eOF' end-of-line
-bindkey '\e[1~' beginning-of-line
-bindkey '\e[4~' end-of-line
-bindkey '\e[7~' beginning-of-line
-bindkey '\e[8~' end-of-line
-bindkey '^b' backward-word
-bindkey '^f' forward-word
-bindkey '^h' backward-delete-char
-bindkey '^[^l' delete-word
-bindkey '^[^k' up-history
-bindkey '^[^j' down-history
-
 run_ranger() { echo; ranger --choosedir=$HOME/.rangerdir < $TTY; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"; zle reset-prompt }
 run_lf() { echo; lf; zle reset-prompt }
 run_nnn() { echo; nnn < $TTY ; zle reset-prompt }
@@ -63,7 +49,6 @@ zle -N cd_fzf
 
 bindkey '^[R' 'run_nnn'
 bindkey '^[r' 'run_ranger'
-
 bindkey '^[w' 'run_W'
 bindkey '^[W' 'run_weather'
 bindkey '^[v' 'run_nvim'
@@ -74,7 +59,22 @@ bindkey '^[D' 'cd_downloads'
 bindkey '^[t' 'cd_tcc'
 bindkey '^f' 'cd_fzf'
 bindkey '^[C' 'run_clock'
-bindkey -s '^[^M' '^M'
+bindkey '\ek' up-history
+bindkey '\ej' down-history
+
+bindkey '^ ' autosuggest-accept
+bindkey '\eOH' beginning-of-line
+bindkey '\eOF' end-of-line
+bindkey '\e[1~' beginning-of-line
+bindkey '\e[4~' end-of-line
+bindkey '\e[7~' beginning-of-line
+bindkey '\e[8~' end-of-line
+bindkey '^b' backward-word
+bindkey '^f' forward-word
+bindkey '^h' backward-delete-char
+bindkey '^[^l' delete-word
+bindkey '^[^k' up-history
+bindkey '^[^j' down-history
 
 autoload -Uz increase-font
 autoload -Uz decrease-font
@@ -89,6 +89,7 @@ zle -N increase-font
 zle -N decrease-font
 bindkey '^k' increase-font
 bindkey '^j' decrease-font
+bindkey '^[ ' accept-line
 
 export PATH="$PATH:$HOME/.cargo/bin"
 export PATH="$PATH:$HOME/.rvm/bin"
