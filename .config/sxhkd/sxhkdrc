@@ -86,8 +86,8 @@ super + i
     wmctrl -a _hexchat_text_     || kitty --title _hexchat_text_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new hexchat-text"
 
 super + 3
-    wmctrl -x -a cool-retro-term              || cool-retro-term -T _zsh_ 
-    # wmctrl -a _zsh_              || kitty --title _zsh_ --listen-on=unix:@zsh
+    wmctrl -a _zsh_              || kitty --title _zsh_ --listen-on=unix:@zsh
+    # wmctrl -x -a cool-retro-term              || cool-retro-term -T _zsh_ 
 
 super + 4
     wmctrl -xa telegram-desktop  || QT_IM_MODULE=xim telegram-desktop
