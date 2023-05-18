@@ -106,7 +106,7 @@ super + a
     wmctrl -xa workbench         || mysql-workbench
 
 super + p
-    wmctrl -a org.pwmt.zathura   || zathura
+    wmctrl -xa Zathura   || zathura
 
 ctrl + super + d
     wmctrl -xa gdmap             || gdmap -f /
