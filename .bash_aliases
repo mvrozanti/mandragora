@@ -254,8 +254,6 @@ alias f='fd -HI'
 alias nohup='nohup > /dev/null'
 alias SV='ffmpeg -f video4linux2  -i /dev/video0  -vcodec libx264 -preset fast -b 1000k -f matroska -y /dev/stdout | nc -lp 2717'
 alias SA='pacat -r | nc -l -p 2718'
-alias RA='nc `[[ $(hostname) == mndrgr2 ]] && echo mndrgr || echo mndrgr2` 2718 | aplay -c 2 -f S16_LE -r 44100'
-alias RV='nc mndrgr2 2717 | mpv - -cache 512'
 alias wS='watch du -sh'
 servesingle(){ [[ ! -z $1 ]] && { filepath=`realpath $1` &&  echo -ne "HTTP/1.0 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Disposition: filename=\"`basename $filepath`\"\nContent-Length: $(wc -c <$filepath)\r\n\r\n"; cat $filepath; } | nc -l -p 2717 }
 alias sS='servesingle'
@@ -334,8 +332,6 @@ _toggle_ssh_password_auth(){ grep 'PasswordAuthentication yes' /etc/ssh/sshd_con
 wetty(){ _toggle_ssh_password_auth; trap _toggle_ssh_password_auth SIGINT; node ~/util/wetty/index.js -p 2717 }
 xfix(){ xmodmap ~/.Xmodmap; xset r rate 200 30; setxkbmap us alt-intl }
 toggle_touchpad(){ [[ `xinput list-props 12 | grep "Device Enabled" | grep -o "[01]$"` -eq 1 ]] && xinput --disable 12 || xinput --enable 12 }
-other_mndrgr(){ [[ `hostname` == "mndrgr" ]] && echo mndrgr2 || echo mndrgr }
-diffmndrgr(){ [[ -z $@ ]] || diff $@ <(ssh $(other_mndrgr) 'cat '$(realpath $@)) }
 alias cosv='sv `co`'
 alias cos='sudo `co`'
 alias corm='rm `co`'
