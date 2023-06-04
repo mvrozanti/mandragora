@@ -1,0 +1,60 @@
+#! /bin/bash
+#################################################################################
+#     File Name           :     cycle_audio_output.sh
+#     Created By          :     jguer
+#     Creation Date       :     [2016-01-16 22:55]
+#     Last Modified       :     [2016-01-17 00:42]
+#     Description         :      Cycles audio output devices
+#################################################################################
+VERBOSITY=1
+NOTIFICATIONS=1
+
+function swap_sink {
+  o_pulseaudio=$(pacmd list-sinks | grep -e 'index' -e 'device.description')
+
+  nsinks=$(echo "$o_pulseaudio" | grep -c 'index') # Count the number of sinks
+
+  ssink=$(echo "$o_pulseaudio" | grep -e '* index' | cut -d: -f2) # Get the index of the currently selected sink
+
+  newsink=$((ssink + 1)) # Calculate the index of the new sink by incrementing the current index
+
+  if [ "$newsink" -ge "$nsinks" ]; then # Check if the new sink index exceeds the maximum index
+    newsink=0 # Wrap around to the first sink if it exceeds the maximum
+  fi
+
+  $(pacmd set-default-sink "$newsink")
+
+  inputs=$(pactl list sink-inputs short | cut -f 1)
+  for i in $inputs; do
+    $(pacmd move-sink-input "$i" "$newsink")
+  done
+}
+
+function send_notification {
+  o_pulseaudio=$(pacmd list-sinks| grep -e 'index' -e 'device.description')
+  device_name=$(echo "$o_pulseaudio" | sed -n '/* index/{n;p;}' | grep -o '".*"' | sed 's/"//g')
+  notify-send "Output cycle" "Changed output to ${device_name}" --icon=audio-headphones-symbolic
+}
+
+#MAIN
+while getopts "vn" opt; do
+  case "${opt}" in
+    v)
+      VERBOSITY=1
+      echo VERBOSE
+      ;;
+    n)
+      NOTIFICATIONS=1
+      ;;
+    *)
+      echo "Invalid option: -$OPTARG" >&2
+      ;;
+  esac
+done
+shift $((OPTIND-1))
+
+swap_sink
+
+if [ $NOTIFICATIONS == 1 ]; then
+  send_notification
+fi
