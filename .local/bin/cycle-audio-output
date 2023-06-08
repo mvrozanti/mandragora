@@ -16,23 +16,27 @@ function swap_sink {
 
   ssink=$(echo "$o_pulseaudio" | grep -e '* index' | cut -d: -f2) # Get the index of the currently selected sink
 
+  echo "Number of sinks: $nsinks"
+  echo "Currently selected sink: $ssink"
+
   newsink=$((ssink + 1)) # Calculate the index of the new sink by incrementing the current index
 
   if [ "$newsink" -ge "$nsinks" ]; then # Check if the new sink index exceeds the maximum index
     newsink=0 # Wrap around to the first sink if it exceeds the maximum
   fi
 
-  $(pacmd set-default-sink "$newsink")
+  eval "pacmd set-default-sink $newsink"
 
   inputs=$(pactl list sink-inputs short | cut -f 1)
   for i in $inputs; do
-    $(pacmd move-sink-input "$i" "$newsink")
+    eval "pacmd move-sink-input $i $newsink"
   done
 }
 
 function send_notification {
-  o_pulseaudio=$(pacmd list-sinks| grep -e 'index' -e 'device.description')
+  o_pulseaudio=$(pacmd list-sinks | grep -e 'index' -e 'device.description')
   device_name=$(echo "$o_pulseaudio" | sed -n '/* index/{n;p;}' | grep -o '".*"' | sed 's/"//g')
+  echo "Selected device: $device_name"
   notify-send "Output cycle" "Changed output to ${device_name}" --icon=audio-headphones-symbolic
 }
 
@@ -55,6 +59,7 @@ shift $((OPTIND-1))
 
 swap_sink
 
-if [ $NOTIFICATIONS == 1 ]; then
+if [ "$NOTIFICATIONS" == 1 ]; then
   send_notification
 fi
+
