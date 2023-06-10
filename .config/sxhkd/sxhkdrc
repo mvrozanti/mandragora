@@ -130,7 +130,7 @@ super + alt + 3
     kitty --title _tmux-float_ -o font_size=10
 	
 super + shift + r
-    notify-send 'Restarting bspwm' && bspc wm --restart
+    notify-send 'Restarting bspwm' && bspc wm --restart && kill -SIGUSR1 $(pgrep sxhkd)
 
 super + g
     $HOME/.local/bin/setbg
@@ -280,6 +280,9 @@ super + Pause
 
 ctrl + super + Pause
     notify-send 'Power off in 5 minutes'; sleep 300; poweroff
+
+super + ctrl + {E,R,W,Q,S}
+    $HOME/.local/bin/kk {0,1,2,3,4}
 
 super + m
     dunstctl close
