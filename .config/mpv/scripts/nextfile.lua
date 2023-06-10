@@ -2,8 +2,7 @@ local utils = require 'mp.utils'
 local settings = {
 
     --filetypes,{'mp4','mkv'} for specific or {''} for all filetypes
-    filetypes = {'mkv', 'avi', 'mp4', 'ogv', 'webm', 'rmvb', 'flv', 'wmv', 'mpeg', 'mpg', 'm4v', '3gp',
-'mp3', 'wav', 'ogv', 'flac', 'm4a', 'wma', 'jpg', 'gif', 'png', 'jpeg', 'webp'}, 
+    filetypes = {'mkv', 'avi', 'mp4', 'ogv', 'webm', 'rmvb', 'flv', 'wmv', 'mpeg', 'mpg', 'm4v', '3gp'}, 
 
     --linux(true)/windows(false)/auto(nil)
     linux_over_windows = nil,
