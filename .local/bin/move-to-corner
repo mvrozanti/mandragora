@@ -11,7 +11,8 @@ if [ -z "$(bspc query -N -n focused.floating)" ]; then
     x=$((screen_width - width))
     y=$((screen_height - height - 35))
     if [ $corner == 1 ]; then
-        wmctrl -r $win_id -e 0,$x,$y,$width,$height
+        notify-send 0,$x,$y,$screen_width,$screen_height
+        wmctrl -r $win_id -e 0,$x,$y,$screen_width,$screen_height
     else
         wmctrl -r $win_id -e 0,0,0,0,0,0
     fi
