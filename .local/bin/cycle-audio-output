@@ -10,19 +10,14 @@ VERBOSITY=1
 NOTIFICATIONS=1
 
 function swap_sink {
-  o_pulseaudio=$(pacmd list-sinks | grep -e 'index' -e 'device.description')
+  o_pulseaudio=$(pacmd list-sinks | grep -e '\* index' -e 'device.description')
 
-  nsinks=$(echo "$o_pulseaudio" | grep -c 'index') # Count the number of sinks
+  ssink=$(echo "$o_pulseaudio" | grep -e '\* index' | awk '{print $3}')
 
-  ssink=$(echo "$o_pulseaudio" | grep -e '* index' | cut -d: -f2) # Get the index of the currently selected sink
+  newsink=$(pacmd list-sinks | awk -v ssink="$ssink" '$1 == "index:" && !f { if ($2 == ssink) f = 1; next } f { print $2; exit }')
 
-  echo "Number of sinks: $nsinks"
-  echo "Currently selected sink: $ssink"
-
-  newsink=$((ssink + 1)) # Calculate the index of the new sink by incrementing the current index
-
-  if [ "$newsink" -ge "$nsinks" ]; then # Check if the new sink index exceeds the maximum index
-    newsink=0 # Wrap around to the first sink if it exceeds the maximum
+  if [ -z "$newsink" ]; then
+    newsink=$(pacmd list-sinks | awk '$1 == "index:" { print $2; exit }')
   fi
 
   eval "pacmd set-default-sink $newsink"
