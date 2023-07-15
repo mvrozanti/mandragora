@@ -57,7 +57,7 @@ font-11 = "forkawesome:style=Regular:size=13"
 
 modules-left = bspwm
 modules-center = 
-modules-right = mpd alsa xbacklight filesystem memory cpu wlan eth redshift ip battery weather date
+modules-right = mpd pulseaudio xbacklight filesystem memory cpu wlan eth redshift ip battery weather date
 
 tray-position = right
 tray-padding = 2
@@ -338,8 +338,10 @@ prefix-font = 2
 ; label-font = 5
 ; prefix-font = 2
 
-[module/alsa]
-type = internal/alsa
+[module/pulseaudio]
+type = internal/pulseaudio
+use-ui-max = false
+interval = 5
 
 format-volume = <ramp-volume> <bar-volume>
 label-volume = "∿"
@@ -350,8 +352,6 @@ ramp-volume-2 = 
 ramp-volume-3 = 
 ramp-volume-4 = 
 format-muted =   <bar-volume>
-; /* format-muted-foreground = ${colors.foreground-alt} */
-; /* label-muted = <bar-volume> */
 
 bar-volume-width = 10
 bar-volume-foreground-0 = ${xrdb:color7}
