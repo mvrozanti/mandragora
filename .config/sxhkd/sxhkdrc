@@ -299,12 +299,6 @@ super + alt + c
 super + shift + i
     dunstctl context
 
-super + slash
-    $HOME/.local/bin/move-to-corner 1
-
-super + shift + slash
-    $HOME/.local/bin/move-to-corner -1
-
 button9
     $HOME/.local/bin/rivalcfg-wrapper --on
 
