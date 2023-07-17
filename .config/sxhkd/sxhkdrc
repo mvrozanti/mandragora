@@ -281,6 +281,9 @@ super + Pause
 ctrl + super + Pause
     notify-send 'Power off in 5 minutes'; sleep 300; poweroff
 
+super + ctrl + shift + {h,j,k,l}
+    $HOME/.local/bin/window_to_corner {top-left, top-right, bottom-left, bottom-right}
+
 super + ctrl + {E,R,W,Q,S}
     $HOME/.local/bin/kk {0,1,2,3,4}
 
