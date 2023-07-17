@@ -1,1 +1,1 @@
-mpv `xsel -o -b`
+mpv "$(xsel -o -b)"
