@@ -1,0 +1,43 @@
+#!/bin/bash
+corner="$@"
+window_width=620
+window_height=400
+window_x_offset=10   # X offset from the corner
+window_y_offset=50   # Y offset from the corner
+
+screen_width=1920
+screen_height=1080
+
+case $corner in
+    top-left)
+        window_x=$((window_x_offset))
+        window_y=$((window_y_offset))
+        ;;
+    top-right)
+        window_x=$((screen_width - window_width - window_x_offset))
+        window_y=$((window_y_offset))
+        ;;
+    bottom-left)
+        window_x=$((window_x_offset))
+        window_y=$((screen_height - window_height - window_y_offset))
+        ;;
+    bottom-right)
+        window_x=$((screen_width - window_width - window_x_offset))
+        window_y=$((screen_height - window_height - window_y_offset))
+        ;;
+    *)
+        echo "Invalid corner position!"
+        exit 1
+        ;;
+esac
+
+window_id=$(xdotool getactivewindow)
+
+floating=$(bspc query -N -n "$window_id.floating")
+
+if [ -z "$floating" ]; then
+  bspc node "$window_id" -t floating
+fi
+
+xdotool windowsize "$window_id" "$window_width" "$window_height"
+xdotool windowmove "$window_id" "$window_x" "$window_y"
