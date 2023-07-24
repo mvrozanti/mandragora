@@ -114,9 +114,6 @@ ctrl + super + d
 super + ctrl + g
     wmctrl -a globoplay          || $HOME/.local/bin/globo
 
-super + w
-    wmctrl -a Postman            || postman
-
 super + ctrl + p                                               
     wmctrl -a "LM-X410.F"        || adb connect 192.168.0.4:5555 && scrcpy -S
 
