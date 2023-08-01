@@ -14,7 +14,6 @@
     "files.autoSave": "afterDelay",
     "glassit.alpha": 255,
     "omnisharp.useGlobalMono": "never",
-    "makefile.makefilePath": "/home/m/adata/util/ncmpcpp/Makefile.am",
     "explorer.confirmDragAndDrop": false,
     "explorer.confirmDelete": false,
     "git.openRepositoryInParentFolders": "never"
