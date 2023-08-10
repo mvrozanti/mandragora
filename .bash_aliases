@@ -228,7 +228,7 @@ alias googlecloud='gcloud compute --project projeto-cloud-226116 ssh --zone us-e
 alias agi='sudo apt-get install'
 alias agr='sudo apt-get remove'
 alias tnsd='tmux new-session -d sh -c'
-alias wdu='watch -n 1 du -sh "*"'
+alias wdu='watch -n 1 du -s "*"'
 alias lh='less ~/.zsh_history'
 alias make-gource-mandragora='git --no-pager log --date=raw|g "^\s+.+|Date"|sed -E "s/Date:\s+//g"|sed "N;s/\n//"|sed -E "s/(\S+)\s-\S+\s+(.+)/\1|\2/g" > caption_file'
 alias tfl='tf *.log'
@@ -624,3 +624,4 @@ alias top='gtop'
 alias cff='v /home/m/.config/fish'
 alias wtail='watch tail'
 avif2png(){ avifdec "$1" "${1%%.*}.png" && trash "$1" }
+alias wduh='watch du -sh'
