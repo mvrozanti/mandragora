@@ -8,7 +8,7 @@ yes | sudo pacman -Scc
 yes | docker system prune -a
 yes | pip cache purge
 yes | yarn cache clean
-if [ ! -z `pacman -Qtdq` ]; then
+if [[ ! -z `pacman -Qtdq` ]]; then
     yes | sudo pacman -Rns $(pacman -Qtdq)
 else
     echo 'No orphan packages.'
