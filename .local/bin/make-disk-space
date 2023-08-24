@@ -5,7 +5,7 @@ yes | trash-empty
 yes | sudo journalctl --vacuum-size=1G 
 yes | sudo rm -r /var/lib/systemd/coredump/core.* 
 yes | sudo pacman -Scc
-yes | docker system prune -a
+yes | docker system prune -a --volumes
 yes | pip cache purge
 yes | yarn cache clean
 if [[ ! -z `pacman -Qtdq` ]]; then
