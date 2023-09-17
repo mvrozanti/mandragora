@@ -7,7 +7,6 @@ pgrep -x sxhkd            || $_   &
 pgrep -x ntfd             || $_   &
 pgrep -f cleanfullscreen  || nohup $HOME/.local/bin/cleanfullscreen &
 pgrep -f mpd-discord-rpc  || sleep 3 && nohup $HOME/.cargo/bin/mpd-discord-rpc &
-pgrep -f twitch-indicator || sleep 3 && nohup twitch-indicator &
 
 bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX XXI XXII XXIII XXIV XXV XXVI XXVII XXVIII XXIX XXX XXXI XXXII XXXIII XXXIV XXXV XXXVI XXXVII XXXVIII XXXIX XL
 
