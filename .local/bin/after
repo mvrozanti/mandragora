@@ -1,10 +1,14 @@
 #!/bin/bash
-interval=.25
-if [[ $1 =~ ^[0-9]+$ ]]; then
-    while [[ -z "$(ps -p $1 -o pid=)" ]]; do sleep $interval; done 
-    while [[ -n "$(ps -p $1 -o pid=)" ]]; do sleep $interval; done 
-else
-    while [[ -z "$(pgrep $1)" ]]; do sleep $interval; done 
-    while [[ -n "$(pgrep $1)" ]]; do sleep $interval; done 
-fi
-eval "${@:2}" 
+process_name="$1"
+count=$(pgrep -af "$process_name" | grep -v "pgrep" | grep -v "grep" | wc -l)
+oldCount=$count
+
+while true; do
+    count=$(pgrep -af "$process_name" | grep -v "pgrep" | grep -v "grep" | wc -l)
+    if [ $count -eq $(($oldCount - 1)) ]; then
+        break
+    fi
+    sleep 1
+done
+$2
+
