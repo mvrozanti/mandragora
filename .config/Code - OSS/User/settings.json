@@ -1,20 +1,38 @@
 {
-    "keyboard.dispatch": "keyCode",
-    "vim.neovimPath": "/usr/bin/nvim",
-    "workbench.colorTheme": "Darcula Theme from IntelliJ",
-    "vim.enableNeovim": true,
-    "vim.insertModeKeyBindings": [
-        {
-            "before": ["j", "k"],
-            "after": ["<esc>", "jk"]
-        }
-    ],
-    "razor.disabled": true,
-    "window.zoomLevel": 1,
-    "files.autoSave": "afterDelay",
-    "glassit.alpha": 255,
-    "omnisharp.useGlobalMono": "never",
-    "explorer.confirmDragAndDrop": false,
-    "explorer.confirmDelete": false,
-    "git.openRepositoryInParentFolders": "never"
+  "editor.tokenColorCustomizations": {
+    "functions": "#C8760F",
+    "keywords": "#B18322",
+    "numbers": "#B38E33",
+    "strings": "#DCA01F",
+    "types": "#CB982A",
+    "variables": "#D8A52A",
+    "comments": "#a89a64"
+  },
+  "workbench.colorCustomizations": {
+    "editor.background": "#0c0d0d"
+  },
+  "keyboard.dispatch": "keyCode",
+  "vim.neovimPath": "/usr/bin/nvim",
+  "vim.enableNeovim": true,
+  "vim.insertModeKeyBindings": [
+    {
+      "before": [
+        "j",
+        "k"
+      ],
+      "after": [
+        "<esc>",
+        "jk"
+      ]
+    }
+  ],
+  "razor.disabled": true,
+  "window.zoomLevel": 1,
+  "files.autoSave": "afterDelay",
+  "glassit.alpha": 255,
+  "omnisharp.useGlobalMono": "never",
+  "explorer.confirmDragAndDrop": false,
+  "explorer.confirmDelete": false,
+  "git.openRepositoryInParentFolders": "never",
+  "window.autoDetectColorScheme": true
 }
