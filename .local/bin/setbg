@@ -6,6 +6,7 @@ pkill xwinwrap
     [[ -z $2 ]] && kitty @ --to unix:@mykitty set-colors background=#000 || kitty @ --to unix:@mykitty set-colors background=#fff
     wal -a 299 -i "$fpath" $2 
     python $HOME/.local/bin/rivalcfg-wrapper
+    jq -s '.[0] * .[1]' $HOME/.cache/wal/colors-vscode.json $HOME/.config/Code\ -\ OSS/User/settings.json | sponge $HOME/.config/Code\ -\ OSS/User/settings.json
     is_fs=$([[ `identify "$fpath" | cut -d' ' -f3` == 1920x1080 ]] && echo true)
     [[ $is_fs ]] || gifsicle --resize 1920x1080 -i "$fpath" > /tmp/`basename "$fpath"` && fpath="/tmp/`basename "$fpath"`"
     sleep 1
