@@ -203,7 +203,7 @@ alias wav2ogg='oggenc -q 3 -o file.ogg'
 # jpg2png(){ [[ $# -eq 1 ]] && convert "$1" "$(basename '$1' .jpg)" || [[ $# -eq 2 ]] && convert "$1" "$2" }
 alias ogg2wav='ffmpeg -i audio.ogg audio.wav'
 alias nudoku='nudoku -c'
-cdd(){ eval $(dirname "$1") }
+cdd(){ eval $(dirname $@) }
 cocd(){ le_co=`co`; echo $le_co; eval $le_co }
 cocdd(){ cdd `co` }
 alias pir='pip uninstall --no-cache-dir'
