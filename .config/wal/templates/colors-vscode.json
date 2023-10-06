@@ -1,0 +1,37 @@
+{{
+    "editor.tokenColorCustomizations": {{
+       "functions":    "{color1}", 
+        "keywords":     "{color2}",
+        "numbers":      "{color3}", 
+        "strings":      "{color4}", 
+        "types":        "{color5}", 
+        "variables":    "{color6}", 
+        "comments":     "{color8}",
+        "textMateRules": [
+            {{
+                "scope": "constant.language",
+                "settings": {{
+                    "foreground": "{color10}"
+                }} 
+            }},
+            {{
+                "scope": "keyword.operator.logical.python",
+                "settings": {{
+                      "foreground": "{color11}"
+                }}
+            }}
+        ]
+    }},
+    "editor.bracketPairColorization.enabled": true,
+    "workbench.colorCustomizations": {{
+        "editor.background": "{background}",
+        "editorBracketHighlight.foreground1": "{color1}",
+        "editorBracketHighlight.foreground2": "{color2}",
+        "editorBracketHighlight.foreground3": "{color3}",
+        "editorBracketHighlight.foreground4": "{color4}",
+        "editorBracketHighlight.foreground5": "{color5}",
+        "editorBracketHighlight.foreground6": "{color6}",
+        "editorBracketHighlight.unexpectedBracket.foreground": "{color8}",
+        "tab.activeBorderTop": "{color9}"
+    }}
+}}
