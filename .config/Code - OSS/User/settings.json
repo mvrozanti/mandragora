@@ -1,15 +1,38 @@
 {
   "editor.tokenColorCustomizations": {
-    "functions": "#C8760F",
-    "keywords": "#B18322",
-    "numbers": "#B38E33",
-    "strings": "#DCA01F",
-    "types": "#CB982A",
-    "variables": "#D8A52A",
-    "comments": "#a89a64"
+    "functions": "#AB6449",
+    "keywords": "#5E984E",
+    "numbers": "#BB9B6D",
+    "strings": "#677B83",
+    "types": "#6F9193",
+    "variables": "#5BCAB0",
+    "comments": "#878e8c",
+    "textMateRules": [
+      {
+        "scope": "constant.language",
+        "settings": {
+          "foreground": "#5E984E"
+        }
+      },
+      {
+        "scope": "keyword.operator.logical.python",
+        "settings": {
+          "foreground": "#BB9B6D"
+        }
+      }
+    ]
   },
+  "editor.semanticHighlighting.enabled": true,
   "workbench.colorCustomizations": {
-    "editor.background": "#0c0d0d"
+    "editor.background": "#0D0D10",
+    "editorBracketHighlight.foreground1": "#AB6449",
+    "editorBracketHighlight.foreground2": "#5E984E",
+    "editorBracketHighlight.foreground3": "#BB9B6D",
+    "editorBracketHighlight.foreground4": "#677B83",
+    "editorBracketHighlight.foreground5": "#6F9193",
+    "editorBracketHighlight.foreground6": "#5BCAB0",
+    "editorBracketHighlight.unexpectedBracket.foreground": "#878e8c",
+    "tab.activeBorderTop": "#AB6449"
   },
   "keyboard.dispatch": "keyCode",
   "vim.neovimPath": "/usr/bin/nvim",
@@ -34,5 +57,10 @@
   "explorer.confirmDragAndDrop": false,
   "explorer.confirmDelete": false,
   "git.openRepositoryInParentFolders": "never",
-  "window.autoDetectColorScheme": true
+  "window.autoDetectColorScheme": true,
+  "editor.bracketPairColorization.enabled": true,
+  "window.menuBarVisibility": "toggle",
+  "editor.fontFamily": "'Monocraft Nerd Font'",
+  "editor.fontSize": 13,
+  "editor.codeActionsOnSave": {}
 }
