@@ -62,17 +62,10 @@
   "editor.fontFamily": "'Monocraft Nerd Font'",
   "editor.fontSize": 13,
   "editor.codeActionsOnSave": {},
-  "python.defaultInterpreterPath": "",
+  "python.defaultInterpreterPath": "/usr/bin/python",
   "window.zoomLevel": 2,
   "editor.fontLigatures": false,
   "editor.snippetSuggestions": "top",
   "editor.tabCompletion": "on",
-  "python.languageServer": "Jedi",
-  "pylint.importStrategy": "fromEnvironment",
-  "pylint.interpreter": [
-    "/usr/bin/python"
-  ],
-  "pylint.path": [
-    "/usr/bin/pylint"
-  ]
+  "pylint.importStrategy": "fromEnvironment"
 }
