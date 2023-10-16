@@ -1,38 +1,38 @@
 {
   "editor.tokenColorCustomizations": {
-    "functions": "#C9AD30",
-    "keywords": "#DDA05D",
-    "numbers": "#F0E564",
-    "strings": "#B15B8F",
-    "types": "#D5A798",
-    "variables": "#F8F0A0",
-    "comments": "#abaa9c",
+    "functions": "#778819",
+    "keywords": "#A29719",
+    "numbers": "#A98F67",
+    "strings": "#CDA868",
+    "types": "#D6C048",
+    "variables": "#B59F8C",
+    "comments": "#9c9087",
     "textMateRules": [
       {
         "scope": "constant.language",
         "settings": {
-          "foreground": "#DDA05D"
+          "foreground": "#A29719"
         }
       },
       {
         "scope": "keyword.operator.logical.python",
         "settings": {
-          "foreground": "#F0E564"
+          "foreground": "#A98F67"
         }
       }
     ]
   },
   "editor.semanticHighlighting.enabled": true,
   "workbench.colorCustomizations": {
-    "editor.background": "#200305",
-    "editorBracketHighlight.foreground1": "#C9AD30",
-    "editorBracketHighlight.foreground2": "#DDA05D",
-    "editorBracketHighlight.foreground3": "#F0E564",
-    "editorBracketHighlight.foreground4": "#B15B8F",
-    "editorBracketHighlight.foreground5": "#D5A798",
-    "editorBracketHighlight.foreground6": "#F8F0A0",
-    "editorBracketHighlight.unexpectedBracket.foreground": "#abaa9c",
-    "tab.activeBorderTop": "#C9AD30"
+    "editor.background": "#1b130a",
+    "editorBracketHighlight.foreground1": "#778819",
+    "editorBracketHighlight.foreground2": "#A29719",
+    "editorBracketHighlight.foreground3": "#A98F67",
+    "editorBracketHighlight.foreground4": "#CDA868",
+    "editorBracketHighlight.foreground5": "#D6C048",
+    "editorBracketHighlight.foreground6": "#B59F8C",
+    "editorBracketHighlight.unexpectedBracket.foreground": "#9c9087",
+    "tab.activeBorderTop": "#778819"
   },
   "keyboard.dispatch": "keyCode",
   "vim.neovimPath": "/usr/bin/nvim",
@@ -62,11 +62,17 @@
   "editor.fontFamily": "'Monocraft Nerd Font'",
   "editor.fontSize": 13,
   "editor.codeActionsOnSave": {},
-  "pylint.importStrategy": "fromEnvironment",
-  "python.defaultInterpreterPath": "/usr/bin/python",
-  "python.languageServer": "Jedi",
+  "python.defaultInterpreterPath": "",
   "window.zoomLevel": 2,
   "editor.fontLigatures": false,
   "editor.snippetSuggestions": "top",
-  "editor.tabCompletion": "on"
+  "editor.tabCompletion": "on",
+  "python.languageServer": "Jedi",
+  "pylint.importStrategy": "fromEnvironment",
+  "pylint.interpreter": [
+    "/usr/bin/python"
+  ],
+  "pylint.path": [
+    "/usr/bin/pylint"
+  ]
 }
