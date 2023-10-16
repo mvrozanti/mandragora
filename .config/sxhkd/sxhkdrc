@@ -205,7 +205,7 @@ super + shift + {h,j,k,l}
     , dir=north dx=0   dy=-30 \
     , dir=east  dx=30  dy=0 \
     }; \
-    if [[ -n $(bspc query -N -n .focused -n focused.tiled) ]]; then bspc node --swap $dir --follow || bspc node -m "$dir"; else bspc node --move "$dx" "$dy"; fi
+    if [[ -n $(bspc query -N -n .focused -n focused.tiled) ]]; then bspc node --swap $dir --follow || bspc node -m "$dir" --follow; else bspc node --move "$dx" "$dy"; fi
 
 
 ctrl + alt + shift + {q,e}
