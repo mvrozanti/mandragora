@@ -1,38 +1,38 @@
 {
   "editor.tokenColorCustomizations": {
-    "functions": "#778819",
-    "keywords": "#A29719",
-    "numbers": "#A98F67",
-    "strings": "#CDA868",
-    "types": "#D6C048",
-    "variables": "#B59F8C",
-    "comments": "#9c9087",
+    "functions": "#748C37",
+    "keywords": "#729833",
+    "numbers": "#77894B",
+    "strings": "#8FA33B",
+    "types": "#9EAC4D",
+    "variables": "#B6C652",
+    "comments": "#969a73",
     "textMateRules": [
       {
         "scope": "constant.language",
         "settings": {
-          "foreground": "#A29719"
+          "foreground": "#729833"
         }
       },
       {
         "scope": "keyword.operator.logical.python",
         "settings": {
-          "foreground": "#A98F67"
+          "foreground": "#77894B"
         }
       }
     ]
   },
   "editor.semanticHighlighting.enabled": true,
   "workbench.colorCustomizations": {
-    "editor.background": "#1b130a",
-    "editorBracketHighlight.foreground1": "#778819",
-    "editorBracketHighlight.foreground2": "#A29719",
-    "editorBracketHighlight.foreground3": "#A98F67",
-    "editorBracketHighlight.foreground4": "#CDA868",
-    "editorBracketHighlight.foreground5": "#D6C048",
-    "editorBracketHighlight.foreground6": "#B59F8C",
-    "editorBracketHighlight.unexpectedBracket.foreground": "#9c9087",
-    "tab.activeBorderTop": "#778819"
+    "editor.background": "#131216",
+    "editorBracketHighlight.foreground1": "#748C37",
+    "editorBracketHighlight.foreground2": "#729833",
+    "editorBracketHighlight.foreground3": "#77894B",
+    "editorBracketHighlight.foreground4": "#8FA33B",
+    "editorBracketHighlight.foreground5": "#9EAC4D",
+    "editorBracketHighlight.foreground6": "#B6C652",
+    "editorBracketHighlight.unexpectedBracket.foreground": "#969a73",
+    "tab.activeBorderTop": "#748C37"
   },
   "keyboard.dispatch": "keyCode",
   "vim.neovimPath": "/usr/bin/nvim",
@@ -67,5 +67,6 @@
   "editor.fontLigatures": false,
   "editor.snippetSuggestions": "top",
   "editor.tabCompletion": "on",
-  "pylint.importStrategy": "fromEnvironment"
+  "pylint.importStrategy": "fromEnvironment",
+  "python.languageServer": "Jedi"
 }
