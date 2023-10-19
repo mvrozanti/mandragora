@@ -340,7 +340,7 @@ alias enhance='function ne() { docker run --rm -v "$(pwd)/`dirname ${@:$#}`":/ne
 alias gaca='git add .; git commit --amend'
 gacap(){ gaca; git push -f "$@" }
 alias up='sudo umount ~/phone'
-smp(){ diff <(ls ~/Musik/) <(ls "$HOME/phone/SD card/Music/") | grep mp3 | cut -c 3- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "$HOME/phone/SD card/Music/"; done }
+smp(){ diff <(ls ~/Musik/) <(ls "$HOME/phone/Internal storage/Music/") | grep mp3 | cut -c 3- | while read line; do line="/mnt/4ADE1465DE144C17/Musik/$line"; cp "$line" "$HOME/phone/Internal storage/Music/"; done }
 spp(){ [[ -d ~/phone/Internal\ storage/DCIM/Facebook ]] && mv ~/phone/Internal\ storage/DCIM/Facebook/* ~/gdrive/Levv/4chan/; [[ -d ~/phone/Internal\ storage/Pictures/Telegram/ ]] && mv ~/phone/Internal\ storage/Pictures/Telegram/* ~/gdrive/Levv/4chan/; [[ -d ~/phone/Internal\ storage/Pictures/Reddit ]] && mv ~/phone/Internal\ storage/Pictures/Reddit/* ~/gdrive/Levv/4chan/; [[ -d ~/phone/Internal\ storage/DCIM/Camera ]] && mv ~/phone/Internal\ storage/DCIM/Camera/* ~/gdrive/Levv/4chan/ }
 sp(){ spp;smp }
 cox(){ `co` | x }
