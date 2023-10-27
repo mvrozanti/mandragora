@@ -50,4 +50,5 @@ Plug 'majutsushi/tagbar'
 Plug 'easymotion/vim-easymotion'
 Plug 'vim-scripts/JavaScript-Indent'
 Plug 'junegunn/rainbow_parentheses.vim'
+Plug 'sindrets/diffview.nvim'
 call plug#end()
