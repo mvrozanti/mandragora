@@ -11,6 +11,7 @@
 (monitor-yresolution 305)
 (save-session-info no)
 (user-manual-online yes)
+(image-convert-indexed-max-colors 255)
 (image-resize-fill-type foreground)
 (fill-options
     (style solid)
