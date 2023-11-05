@@ -1,38 +1,38 @@
 {
   "editor.tokenColorCustomizations": {
-    "functions": "#A12511",
-    "keywords": "#924B15",
-    "numbers": "#904D25",
-    "strings": "#AB6020",
-    "types": "#CC512A",
-    "variables": "#D5A845",
-    "comments": "#a77e80",
+    "functions": "#6B5253",
+    "keywords": "#655D62",
+    "numbers": "#6F6B6B",
+    "strings": "#BA3A3D",
+    "types": "#966162",
+    "variables": "#957D82",
+    "comments": "#8c8787",
     "textMateRules": [
       {
         "scope": "constant.language",
         "settings": {
-          "foreground": "#924B15"
+          "foreground": "#655D62"
         }
       },
       {
         "scope": "keyword.operator.logical.python",
         "settings": {
-          "foreground": "#904D25"
+          "foreground": "#6F6B6B"
         }
       }
     ]
   },
   "editor.semanticHighlighting.enabled": true,
   "workbench.colorCustomizations": {
-    "editor.background": "#200e01",
-    "editorBracketHighlight.foreground1": "#A12511",
-    "editorBracketHighlight.foreground2": "#924B15",
-    "editorBracketHighlight.foreground3": "#904D25",
-    "editorBracketHighlight.foreground4": "#AB6020",
-    "editorBracketHighlight.foreground5": "#CC512A",
-    "editorBracketHighlight.foreground6": "#D5A845",
-    "editorBracketHighlight.unexpectedBracket.foreground": "#a77e80",
-    "tab.activeBorderTop": "#A12511"
+    "editor.background": "#090808",
+    "editorBracketHighlight.foreground1": "#6B5253",
+    "editorBracketHighlight.foreground2": "#655D62",
+    "editorBracketHighlight.foreground3": "#6F6B6B",
+    "editorBracketHighlight.foreground4": "#BA3A3D",
+    "editorBracketHighlight.foreground5": "#966162",
+    "editorBracketHighlight.foreground6": "#957D82",
+    "editorBracketHighlight.unexpectedBracket.foreground": "#8c8787",
+    "tab.activeBorderTop": "#6B5253"
   },
   "keyboard.dispatch": "keyCode",
   "vim.neovimPath": "/usr/bin/nvim",
@@ -64,11 +64,18 @@
   "editor.codeActionsOnSave": {},
   "window.zoomLevel": 1,
   "editor.fontLigatures": false,
+  "editor.trimAutoWhitespace": true,
   "editor.snippetSuggestions": "top",
   "editor.tabCompletion": "on",
   "pylint.importStrategy": "fromEnvironment",
   "python.languageServer": "Jedi",
+  "python.defaultInterpreterPath": "/usr/bin/python",
   "pylint.interpreter": [
-    "python"
+    "/usr/bin/python"
+  ],
+  "pylint.path": [
+    "~/.env/python",
+    "-m",
+    "pylint"
   ]
 }
