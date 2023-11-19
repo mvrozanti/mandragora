@@ -1,38 +1,38 @@
 {
   "editor.tokenColorCustomizations": {
-    "functions": "#6B5253",
-    "keywords": "#655D62",
-    "numbers": "#6F6B6B",
-    "strings": "#BA3A3D",
-    "types": "#966162",
-    "variables": "#957D82",
-    "comments": "#8c8787",
+    "functions": "#C9A576",
+    "keywords": "#777686",
+    "numbers": "#B6A489",
+    "strings": "#D2B68A",
+    "types": "#E6D3A6",
+    "variables": "#E9D7AE",
+    "comments": "#a7a39b",
     "textMateRules": [
       {
         "scope": "constant.language",
         "settings": {
-          "foreground": "#655D62"
+          "foreground": "#777686"
         }
       },
       {
         "scope": "keyword.operator.logical.python",
         "settings": {
-          "foreground": "#6F6B6B"
+          "foreground": "#B6A489"
         }
       }
     ]
   },
   "editor.semanticHighlighting.enabled": true,
   "workbench.colorCustomizations": {
-    "editor.background": "#090808",
-    "editorBracketHighlight.foreground1": "#6B5253",
-    "editorBracketHighlight.foreground2": "#655D62",
-    "editorBracketHighlight.foreground3": "#6F6B6B",
-    "editorBracketHighlight.foreground4": "#BA3A3D",
-    "editorBracketHighlight.foreground5": "#966162",
-    "editorBracketHighlight.foreground6": "#957D82",
-    "editorBracketHighlight.unexpectedBracket.foreground": "#8c8787",
-    "tab.activeBorderTop": "#6B5253"
+    "editor.background": "#140d0a",
+    "editorBracketHighlight.foreground1": "#C9A576",
+    "editorBracketHighlight.foreground2": "#777686",
+    "editorBracketHighlight.foreground3": "#B6A489",
+    "editorBracketHighlight.foreground4": "#D2B68A",
+    "editorBracketHighlight.foreground5": "#E6D3A6",
+    "editorBracketHighlight.foreground6": "#E9D7AE",
+    "editorBracketHighlight.unexpectedBracket.foreground": "#a7a39b",
+    "tab.activeBorderTop": "#C9A576"
   },
   "keyboard.dispatch": "keyCode",
   "vim.neovimPath": "/usr/bin/nvim",
@@ -51,7 +51,6 @@
   ],
   "razor.disabled": true,
   "files.autoSave": "afterDelay",
-  "glassit.alpha": 255,
   "omnisharp.useGlobalMono": "never",
   "explorer.confirmDragAndDrop": false,
   "explorer.confirmDelete": false,
@@ -67,15 +66,5 @@
   "editor.trimAutoWhitespace": true,
   "editor.snippetSuggestions": "top",
   "editor.tabCompletion": "on",
-  "pylint.importStrategy": "fromEnvironment",
-  "python.languageServer": "Jedi",
-  "python.defaultInterpreterPath": "/usr/bin/python",
-  "pylint.interpreter": [
-    "/usr/bin/python"
-  ],
-  "pylint.path": [
-    "~/.env/python",
-    "-m",
-    "pylint"
-  ]
+  "files.trimTrailingWhitespace": true
 }
