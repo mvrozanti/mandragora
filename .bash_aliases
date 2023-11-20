@@ -88,7 +88,7 @@ alias g='grep -i'
 alias swipl='swipl -q'
 alias prolog='swipl'
 alias T='date +%s'
-alias t='trans'
+alias t='trans -b'
 alias cot='co | trans'
 alias rsync='rsync -a --info=progress2'
 # open in existing browser window
