@@ -207,7 +207,7 @@ icon-prev =
 icon-next = 
 icon-pause = 
 icon-stop = 
-label-song = %{A3:$HOME/.local/bin/cycle-audio-output:}%{A1:pkill -9 ncmpcpp || kitty --title _ncmpcpp_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ncmpcpp":}   %title% %{A}%{A}
+label-song = %{A1:pkill -9 ncmpcpp || kitty --title _ncmpcpp_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ncmpcpp":}   %title% %{A}%{A}
 label-song-font = 5
 label-song-ellipsis = true
 
@@ -343,7 +343,7 @@ type = internal/pulseaudio
 use-ui-max = false
 interval = 5
 
-format-volume = <ramp-volume> <bar-volume>
+format-volume = %{A2:$HOME/.local/bin/cycle-audio-output:}<ramp-volume> <bar-volume>
 label-volume = "∿"
 label-volume-foreground = ${root.foreground}
 ramp-volume-0 = 
