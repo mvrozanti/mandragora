@@ -110,7 +110,7 @@ super + shift + d
     fi
 
 super + a
-    wmctrl -xa workbench         || mysql-workbench
+    wmctrl -xa workbench || wmctrl -xa 'MongoDB'
 
 super + p
     wmctrl -xa Zathura   || zathura
