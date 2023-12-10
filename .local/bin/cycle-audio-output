@@ -1,11 +1,4 @@
 #! /bin/bash
-#################################################################################
-#     File Name           :     cycle_audio_output.sh
-#     Created By          :     jguer
-#     Creation Date       :     [2016-01-16 22:55]
-#     Last Modified       :     [2016-01-17 00:42]
-#     Description         :      Cycles audio output devices
-#################################################################################
 VERBOSITY=1
 NOTIFICATIONS=1
 
@@ -14,7 +7,7 @@ function swap_sink {
 
   ssink=$(echo "$o_pulseaudio" | grep -e '\* index' | awk '{print $3}')
 
-  newsink=$(pacmd list-sinks | awk -v ssink="$ssink" '$1 == "index:" && !f { if ($2 == ssink) f = 1; next } f { print $2; exit }')
+  newsink=$(pacmd list-sinks | awk -v ssink="$ssink" '$1 == "index:" && f { print $2; exit } $2 == ssink { f = 1 }')
 
   if [ -z "$newsink" ]; then
     newsink=$(pacmd list-sinks | awk '$1 == "index:" { print $2; exit }')
