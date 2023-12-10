@@ -278,7 +278,7 @@ super + alt + j
     transset-df --dec 0.04 -a
 
 super + BackSpace
-    sleep 0.6; xset dpms force off
+    sleep 0.6; xset dpms force off; xset -dpms
 
 super + Pause
     poweroff
