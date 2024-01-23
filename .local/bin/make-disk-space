@@ -1,10 +1,8 @@
 #!/bin/bash
 rm ~/.xsession-errors*
-yes | yay -Scc 
 yes | trash-empty
 yes | sudo journalctl --vacuum-size=1G 
 yes | sudo rm -r /var/lib/systemd/coredump/core.* 
-yes | sudo pacman -Scc
 yes | docker system prune -a --volumes
 yes | pip cache purge
 yes | yarn cache clean
@@ -14,3 +12,5 @@ else
     echo 'No orphan packages.'
 fi
 yes | trash-empty
+yes | sudo pacman -Scc
+yes | yay -Scc 
