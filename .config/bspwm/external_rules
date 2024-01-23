@@ -16,6 +16,10 @@ if [ "$title" = Transmission ]; then
 	echo "desktop=^26"
 fi
 
+if [ "$title" = Spotify ]; then
+	echo "desktop=^27 follow=true"
+fi
+
 if [ "$title" = "GNU Image Manipulation Program" ]; then
 	echo "desktop=^7 follow=true"
 fi

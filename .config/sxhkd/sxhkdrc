@@ -48,7 +48,7 @@ Print
     scrot    -e 'xclip -selection clipboard -target image/png -i $f' ~/.scrot.png && notify-send "Screenshot saved to clipboard"
 
 XF86AudioNext
-    mpc next; mpc toggle
+    mpc next
 XF86AudioPlay
     mpc toggle
 XF86AudioPrev
