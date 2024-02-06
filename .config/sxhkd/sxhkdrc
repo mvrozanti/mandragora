@@ -38,6 +38,9 @@ alt + super + p
 super + Scroll_Lock 
     flameshot gui
 
+super + ctrl + Scroll_Lock 
+    sleep 3; flameshot gui
+
 ctrl + super + Print
     byzrec
 
