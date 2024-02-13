@@ -98,3 +98,5 @@ map <C-)> feedkeys ":exec sh -c \"transset-df -t -a;transset-df -t -a\"<Return>"
 map [fullscreen] <C-)> feedkeys ":exec sh -c \"transset-df -t -a;transset-df -t -a\"<Return>"
 map [fullscreen] <C-J> feedkeys ":exec sh -c \"transset-df --dec 0.03 -a\"<Return>"
 map [fullscreen] <C-K> feedkeys ":exec sh -c \"transset-df --inc 0.03 -a\"<Return>"
+map <Left> scroll full-up
+map <Right> scroll full-down
