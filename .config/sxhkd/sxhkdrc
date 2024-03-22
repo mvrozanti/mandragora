@@ -17,9 +17,6 @@ super + Tab
 alt + Tab
     bspc desktop -f last
 
-super + Home
-    $HOME/custom-script
-
 super + End
     $HOME/.local/bin/polybar-compton-toggle
 
