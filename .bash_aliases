@@ -340,7 +340,7 @@ alias enhance='function ne() { docker run --rm -v "$(pwd)/`dirname ${@:$#}`":/ne
 alias gaca='git add .; git commit --amend'
 gacap(){ gaca; git push -f "$@" }
 alias up='sudo umount ~/phone'
-smp(){ rsync -r --progress --checksum --files-from=<(comm -13 <(ls -1 ~/Musik/ | cut -c 3- | sort) <(ls -1 "$HOME/phone/SD card/Music/" | cut -c 3- | sort) | grep '\.mp3$') ~/Musik/ "$HOME/phone/SD card/Music/" }
+smp(){ rsync -vvvr --progress --checksum --files-from=<(comm -23 <(ls -1 ~/Musik/ | sort) <(ls -1 "$HOME/phone/SD card/Music/" | sort) | grep '\.mp3$') ~/Musik/ "$HOME/phone/SD card/Music/" }
 spp(){ [[ -d ~/phone/Internal\ storage/DCIM/Facebook ]] && mv ~/phone/Internal\ storage/DCIM/Facebook/* ~/gdrive/Levv/4chan/; [[ -d ~/phone/Internal\ storage/Pictures/Telegram/ ]] && mv ~/phone/Internal\ storage/Pictures/Telegram/* ~/gdrive/Levv/4chan/; [[ -d ~/phone/Internal\ storage/Pictures/Reddit ]] && mv ~/phone/Internal\ storage/Pictures/Reddit/* ~/gdrive/Levv/4chan/; [[ -d ~/phone/Internal\ storage/DCIM/Camera ]] && mv ~/phone/Internal\ storage/DCIM/Camera/* ~/gdrive/Levv/4chan/ }
 sp(){ spp;smp }
 cox(){ `co` | x }
