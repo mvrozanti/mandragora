@@ -286,7 +286,6 @@ arf(){ echo "$@" >> ~/.newsboat/urls }
 alias t1='tail -n1'
 alias t1a='t1 ~/.bash_aliases'
 aa(){ [[ ! -z $1 && ! -z $2 ]] && echo "alias $1='${@:2}'" >> ~/.bash_aliases; t1a }
-alias sl='slack'
 alias cfT='v ~/.config/tridactyl/'
 # alias enc='openssl aes-256-cbc -in - 2>/dev/null'
 # alias dec='enc -d 2>/dev/null'
