@@ -67,7 +67,8 @@ super + alt + dead_grave
     wmctrl -a _ncmpcpp_          || kitty --title _visualizer-float_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ncmpcpp"
 
 super + 0
-    wmctrl -a thunderbird        || thunderbird
+  wmctrl -a Geary                || geary
+  # wmctrl -a thunderbird        || thunderbird
   # wmctrl -a  _neomutt_         || kitty --title _neomutt_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && mbsync hotmail && tmux new neomutt"
 
 super + 1
