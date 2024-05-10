@@ -56,6 +56,10 @@ if [ "$title" = "Mozilla Thunderbird" ]; then
 	echo "desktop=^12 follow=true" 
 fi
 
+if [ "$class" = "Geary" ]; then
+	echo "desktop=^12 follow=true" 
+fi
+
 if [ "$title" = _zsh_ ]; then
 	echo "desktop=^4; "
 fi
