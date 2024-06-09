@@ -29,6 +29,7 @@ set shiftwidth=4
 set mouse=c
 set timeoutlen=300 ttimeoutlen=0
 set encoding=utf-8
+set notermguicolors
 colorscheme default
 hi Search       cterm=NONE ctermbg=0 ctermfg=NONE
 hi Folded       ctermbg=none
