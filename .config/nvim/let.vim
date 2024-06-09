@@ -65,7 +65,6 @@ let g:UltiSnipsJumpBackwardTrigger="<A-BACKSPACE>"
 let g:UltiSnipsEditSplit="vertical"
 let g:BASH_Ctrl_j = 'off'
 let g:syntastic_java_javac_config_file_enabled = 1
-let g:airline#themes#default#palette = 'system'
 let g:airline#extensions#tagbar#enabled = 1
 let g:airline_powerline_fonts = 1
 let g:airline_theme='atomic'
