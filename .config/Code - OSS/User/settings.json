@@ -1,38 +1,38 @@
 {
   "editor.tokenColorCustomizations": {
-    "functions": "#5E9352",
-    "keywords": "#A9AE3E",
-    "numbers": "#9FAA50",
-    "strings": "#DBDA5C",
-    "types": "#45738C",
-    "variables": "#5C98A5",
-    "comments": "#8f9994",
+    "functions": "#EA9768",
+    "keywords": "#63589F",
+    "numbers": "#4855AF",
+    "strings": "#996D98",
+    "types": "#6A90DD",
+    "variables": "#DEA697",
+    "comments": "#989193",
     "textMateRules": [
       {
         "scope": "constant.language",
         "settings": {
-          "foreground": "#A9AE3E"
+          "foreground": "#63589F"
         }
       },
       {
         "scope": "keyword.operator.logical.python",
         "settings": {
-          "foreground": "#9FAA50"
+          "foreground": "#4855AF"
         }
       }
     ]
   },
   "editor.semanticHighlighting.enabled": true,
   "workbench.colorCustomizations": {
-    "editor.background": "#0B1B17",
-    "editorBracketHighlight.foreground1": "#5E9352",
-    "editorBracketHighlight.foreground2": "#A9AE3E",
-    "editorBracketHighlight.foreground3": "#9FAA50",
-    "editorBracketHighlight.foreground4": "#DBDA5C",
-    "editorBracketHighlight.foreground5": "#45738C",
-    "editorBracketHighlight.foreground6": "#5C98A5",
-    "editorBracketHighlight.unexpectedBracket.foreground": "#8f9994",
-    "tab.activeBorderTop": "#5E9352"
+    "editor.background": "#0A0308",
+    "editorBracketHighlight.foreground1": "#EA9768",
+    "editorBracketHighlight.foreground2": "#63589F",
+    "editorBracketHighlight.foreground3": "#4855AF",
+    "editorBracketHighlight.foreground4": "#996D98",
+    "editorBracketHighlight.foreground5": "#6A90DD",
+    "editorBracketHighlight.foreground6": "#DEA697",
+    "editorBracketHighlight.unexpectedBracket.foreground": "#989193",
+    "tab.activeBorderTop": "#EA9768"
   },
   "keyboard.dispatch": "keyCode",
   "vim.neovimPath": "/usr/bin/nvim",
