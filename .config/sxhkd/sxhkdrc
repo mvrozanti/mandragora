@@ -127,7 +127,7 @@ ctrl + super + d
     if [ "$selected_option" = "gdmap" ]; then \
         gdmap -f /; \
     elif [ "$selected_option" = "mongodb-compass" ]; then \
-        mognodb-compass; \
+        mongodb-compass; \
     fi
 
 super + ctrl + g
