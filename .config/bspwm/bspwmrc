@@ -1,7 +1,7 @@
 #!/bin/sh
 wal -a 299 -i "`cat $HOME/.cache/wal/wal`"
 pgrep -x compton          || $_ -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
-pgrep -x polybar          || $_ mybar &
+pgrep -x polybar          || $_   &
 pgrep -x mpd              || $_   &
 pgrep -x sxhkd            || $_   &
 pgrep -x ntfd             || $_   &
