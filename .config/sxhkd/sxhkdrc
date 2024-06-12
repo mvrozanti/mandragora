@@ -120,7 +120,15 @@ super + p
     wmctrl -xa Zathura   || zathura
 
 ctrl + super + d
-    wmctrl -xa gdmap             || gdmap -f /
+    wmctrl -xa gdmap && exit; \
+    wmctrl -a 'mongodb' && exit; \
+    code_opts=("gdmap" "mongodb-compass"); \
+    selected_option=$(printf '%s\n' "${code_opts[@]}" | rofi -dmenu -p "Select a Database"); \
+    if [ "$selected_option" = "gdmap" ]; then \
+        gdmap -f /; \
+    elif [ "$selected_option" = "mongodb-compass" ]; then \
+        mognodb-compass; \
+    fi
 
 super + ctrl + g
     wmctrl -a globoplay          || $HOME/.local/bin/globo
