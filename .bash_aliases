@@ -626,3 +626,4 @@ avif2png(){ avifdec "$1" "${1%%.*}.png" && trash "$1" }
 alias wduh='watch du -sh'
 alias droidcam-mic='pacmd load-module module-alsa-source device=hw:Loopback,1,0'
 alias droidcam-cam='mpv av://v4l2:/dev/video0'
+replaceall(){ find . -type f -iname "$1" -print0 | xargs -0 sed -i "s|$2|$3|g" }
