@@ -121,7 +121,7 @@ super + p
 
 ctrl + super + d
     wmctrl -xa gdmap && exit; \
-    wmctrl -a 'mongodb' && exit; \
+    wmctrl -xa 'MongoDB' && exit; \
     code_opts=("gdmap" "mongodb-compass"); \
     selected_option=$(printf '%s\n' "${code_opts[@]}" | rofi -dmenu -p "Select a Database"); \
     if [ "$selected_option" = "gdmap" ]; then \
