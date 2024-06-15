@@ -1,38 +1,38 @@
 {
   "editor.tokenColorCustomizations": {
-    "functions": "#678F2A",
-    "keywords": "#719156",
-    "numbers": "#9FAA38",
-    "strings": "#95995D",
-    "types": "#738E92",
-    "variables": "#63B4AC",
-    "comments": "#868d8d",
+    "functions": "#1E8589",
+    "keywords": "#798B85",
+    "numbers": "#8A958E",
+    "strings": "#9CA69D",
+    "types": "#ACB6AD",
+    "variables": "#B9C3BB",
+    "comments": "#979793",
     "textMateRules": [
       {
         "scope": "constant.language",
         "settings": {
-          "foreground": "#719156"
+          "foreground": "#798B85"
         }
       },
       {
         "scope": "keyword.operator.logical.python",
         "settings": {
-          "foreground": "#9FAA38"
+          "foreground": "#8A958E"
         }
       }
     ]
   },
   "editor.semanticHighlighting.enabled": true,
   "workbench.colorCustomizations": {
-    "editor.background": "#151910",
-    "editorBracketHighlight.foreground1": "#678F2A",
-    "editorBracketHighlight.foreground2": "#719156",
-    "editorBracketHighlight.foreground3": "#9FAA38",
-    "editorBracketHighlight.foreground4": "#95995D",
-    "editorBracketHighlight.foreground5": "#738E92",
-    "editorBracketHighlight.foreground6": "#63B4AC",
-    "editorBracketHighlight.unexpectedBracket.foreground": "#868d8d",
-    "tab.activeBorderTop": "#678F2A"
+    "editor.background": "#060705",
+    "editorBracketHighlight.foreground1": "#1E8589",
+    "editorBracketHighlight.foreground2": "#798B85",
+    "editorBracketHighlight.foreground3": "#8A958E",
+    "editorBracketHighlight.foreground4": "#9CA69D",
+    "editorBracketHighlight.foreground5": "#ACB6AD",
+    "editorBracketHighlight.foreground6": "#B9C3BB",
+    "editorBracketHighlight.unexpectedBracket.foreground": "#979793",
+    "tab.activeBorderTop": "#1E8589"
   },
   "keyboard.dispatch": "keyCode",
   "vim.neovimPath": "/usr/bin/nvim",
@@ -74,5 +74,25 @@
     "**/__pycache__": true,
     "**/.pytest_cache": true
   },
-  "editor.detectIndentation": false
+  "editor.detectIndentation": false,
+  "vscode-openai.serviceProvider": "Custom-OpenAI",
+  "vscode-openai.baseUrl": "",
+  "vscode-openai.defaultModel": "",
+  "vscode-openai.azureDeployment": "setup-required",
+  "vscode-openai.scmModel": "",
+  "vscode-openai.scmDeployment": "setup-required",
+  "vscode-openai.embeddingModel": "setup-required",
+  "vscode-openai.embeddingsDeployment": "setup-required",
+"vscode-openai.azureApiVersion": "2023-05-15",
+"vscode-openai.conversation-configuration.colors": {
+
+    "lightUserColor": "#424242",
+    "lightUserBackground": "#f0f0f0",
+    "lightAssistantColor": "#107c10",
+    "lightAssistantBackground": "#f1faf1",
+    "darkUserColor": "#d6d6d6",
+    "darkUserBackground": "#0a0a0a",
+    "darkAssistantColor": "#9fd89f",
+    "darkAssistantBackground": "#052505"
+}
 }
