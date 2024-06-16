@@ -100,18 +100,15 @@ super + ctrl + m
     wmctrl -a  Mathematica       || ~/.local/bin/Mathematica
 
 super + shift + d
-    wmctrl -xa jetbrains-idea-ce && exit; \
-    wmctrl -a 'Code - OSS' && exit; \
+    wmctrl -xa jetbrains-idea-ce || \
+    wmctrl -xa jetbrains-pycharm-ce || \
+    wmctrl -a 'Code - OSS' || \
     wmctrl -xa 'jetbrains-studio' && exit; \
-    code_opts=("IntelliJ" "VSCode" "Android Studio"); \
-    selected_option=$(printf '%s\n' "${code_opts[@]}" | rofi -dmenu -p "Select an IDE"); \
-    if [ "$selected_option" = "VSCode" ]; then \
-        code; \
-    elif [ "$selected_option" = "IntelliJ" ]; then \
-        _JAVA_AWT_WM_NONREPARENTING=1 idea; \
-    elif [ "$selected_option" = "Android Studio" ]; then \
-        android-studio; \
-    fi
+    selected_option=$(printf 'IntelliJ\nVSCode\nAndroid Studio\nPyCharm' | rofi -dmenu -p "Select an IDE"); \
+    [ "$selected_option" = "VSCode" ] && code || \
+    [ "$selected_option" = "IntelliJ" ] && _JAVA_AWT_WM_NONREPARENTING=1 idea || \
+    [ "$selected_option" = "Android Studio" ] && android-studio || \
+    [ "$selected_option" = "PyCharm" ] && pycharm
 
 super + a
     wmctrl -xa workbench || wmctrl -xa 'MongoDB'
