@@ -1,38 +1,38 @@
 {
   "editor.tokenColorCustomizations": {
-    "functions": "#1E8589",
-    "keywords": "#798B85",
-    "numbers": "#8A958E",
-    "strings": "#9CA69D",
-    "types": "#ACB6AD",
-    "variables": "#B9C3BB",
-    "comments": "#979793",
+    "functions": "#BF3D56",
+    "keywords": "#53926D",
+    "numbers": "#D4AB64",
+    "strings": "#5A6C92",
+    "types": "#B35095",
+    "variables": "#40B5C1",
+    "comments": "#74a7a1",
     "textMateRules": [
       {
         "scope": "constant.language",
         "settings": {
-          "foreground": "#798B85"
+          "foreground": "#53926D"
         }
       },
       {
         "scope": "keyword.operator.logical.python",
         "settings": {
-          "foreground": "#8A958E"
+          "foreground": "#D4AB64"
         }
       }
     ]
   },
   "editor.semanticHighlighting.enabled": true,
   "workbench.colorCustomizations": {
-    "editor.background": "#060705",
-    "editorBracketHighlight.foreground1": "#1E8589",
-    "editorBracketHighlight.foreground2": "#798B85",
-    "editorBracketHighlight.foreground3": "#8A958E",
-    "editorBracketHighlight.foreground4": "#9CA69D",
-    "editorBracketHighlight.foreground5": "#ACB6AD",
-    "editorBracketHighlight.foreground6": "#B9C3BB",
-    "editorBracketHighlight.unexpectedBracket.foreground": "#979793",
-    "tab.activeBorderTop": "#1E8589"
+    "editor.background": "#070101",
+    "editorBracketHighlight.foreground1": "#BF3D56",
+    "editorBracketHighlight.foreground2": "#53926D",
+    "editorBracketHighlight.foreground3": "#D4AB64",
+    "editorBracketHighlight.foreground4": "#5A6C92",
+    "editorBracketHighlight.foreground5": "#B35095",
+    "editorBracketHighlight.foreground6": "#40B5C1",
+    "editorBracketHighlight.unexpectedBracket.foreground": "#74a7a1",
+    "tab.activeBorderTop": "#BF3D56"
   },
   "keyboard.dispatch": "keyCode",
   "vim.neovimPath": "/usr/bin/nvim",
@@ -83,9 +83,8 @@
   "vscode-openai.scmDeployment": "setup-required",
   "vscode-openai.embeddingModel": "setup-required",
   "vscode-openai.embeddingsDeployment": "setup-required",
-"vscode-openai.azureApiVersion": "2023-05-15",
-"vscode-openai.conversation-configuration.colors": {
-
+  "vscode-openai.azureApiVersion": "2023-05-15",
+  "vscode-openai.conversation-configuration.colors": {
     "lightUserColor": "#424242",
     "lightUserBackground": "#f0f0f0",
     "lightAssistantColor": "#107c10",
@@ -94,5 +93,6 @@
     "darkUserBackground": "#0a0a0a",
     "darkAssistantColor": "#9fd89f",
     "darkAssistantBackground": "#052505"
-}
+},
+"glassit.alpha": 220
 }
