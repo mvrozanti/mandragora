@@ -22,6 +22,7 @@ bspc config pointer_modifier mod1
 bspc   rule   -a   whats-app-nativefier-d52542 desktop=^4
 bspc   rule   -a   jetbrains-idea-ce           desktop=^8  follow=true
 bspc   rule   -a   jetbrains-studio            desktop=^8  follow=true
+bspc   rule   -a   jetbrains-pycharm-ce        desktop=^8  follow=true
 bspc   rule   -a   code-oss                    desktop=^8  follow=true
 bspc   rule   -a   Slack                       desktop=^9
 bspc   rule   -a   Gdmap                       desktop=^11 follow=true
