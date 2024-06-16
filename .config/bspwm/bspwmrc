@@ -5,8 +5,8 @@ pgrep -x polybar          || $_   &
 pgrep -x mpd              || $_   &
 pgrep -x sxhkd            || $_   &
 pgrep -x ntfd             || $_   &
-pgrep -f cleanfullscreen  || nohup $HOME/.local/bin/cleanfullscreen 2>&1 > /dev/null &
-pgrep -f mpd-discord-rpc  || nohup $HOME/.cargo/bin/mpd-discord-rpc 2>&1 > /dev/null &
+pgrep -f cleanfullscreen  || nohup /home/m/.local/bin/cleanfullscreen 2>&1 > /dev/null &
+pgrep -f mpd-discord-rpc  || nohup /home/m/.cargo/bin/mpd-discord-rpc 2>&1 > /dev/null &
 pgrep -f twitch-indicator || nohup /usr/bin/twitch-indicator 2>&1 > /dev/null &
 
 bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX XXI XXII XXIII XXIV XXV XXVI XXVII XXVIII XXIX XXX XXXI XXXII XXXIII XXXIV XXXV XXXVI XXXVII XXXVIII XXXIX XL
