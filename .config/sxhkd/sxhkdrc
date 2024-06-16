@@ -108,13 +108,21 @@ super + shift + d
     [ "$selected_option" = "VSCode" ] && code || \
     [ "$selected_option" = "IntelliJ" ] && _JAVA_AWT_WM_NONREPARENTING=1 idea || \
     [ "$selected_option" = "Android Studio" ] && android-studio || \
-    [ "$selected_option" = "PyCharm" ] && pycharm
+    [ "$selected_option" = "PyCharm" ] && _JAVA_AWT_WM_NONREPARENTING=1 pycharm
 
 super + a
     wmctrl -xa workbench || wmctrl -xa 'MongoDB'
 
 super + p
-    wmctrl -xa Zathura   || zathura
+    wmctrl -xa postman && exit; \
+    wmctrl -xa Zathura && exit; \
+    code_opts=("zathura" "Postman"); \
+    selected_option=$(printf '%s\n' "${code_opts[@]}" | rofi -dmenu -p); \
+    if [ "$selected_option" = "zathura" ]; then \
+        zathura; \
+    elif [ "$selected_option" = "Postman" ]; then \
+        postman; \
+    fi
 
 ctrl + super + d
     wmctrl -xa gdmap && exit; \
