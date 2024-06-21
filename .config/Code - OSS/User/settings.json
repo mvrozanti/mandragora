@@ -1,38 +1,38 @@
 {
   "editor.tokenColorCustomizations": {
-    "functions": "#E53069",
-    "keywords": "#A05C59",
-    "numbers": "#F15B65",
-    "strings": "#F09C6E",
-    "types": "#D4B86B",
-    "variables": "#B01F8B",
-    "comments": "#a79181",
+    "functions": "#E5521A",
+    "keywords": "#916856",
+    "numbers": "#9C6855",
+    "strings": "#738B3A",
+    "types": "#A88974",
+    "variables": "#EDA148",
+    "comments": "#918983",
     "textMateRules": [
       {
         "scope": "constant.language",
         "settings": {
-          "foreground": "#A05C59"
+          "foreground": "#916856"
         }
       },
       {
         "scope": "keyword.operator.logical.python",
         "settings": {
-          "foreground": "#F15B65"
+          "foreground": "#9C6855"
         }
       }
     ]
   },
   "editor.semanticHighlighting.enabled": true,
   "workbench.colorCustomizations": {
-    "editor.background": "#0C0E3B",
-    "editorBracketHighlight.foreground1": "#E53069",
-    "editorBracketHighlight.foreground2": "#A05C59",
-    "editorBracketHighlight.foreground3": "#F15B65",
-    "editorBracketHighlight.foreground4": "#F09C6E",
-    "editorBracketHighlight.foreground5": "#D4B86B",
-    "editorBracketHighlight.foreground6": "#B01F8B",
-    "editorBracketHighlight.unexpectedBracket.foreground": "#a79181",
-    "tab.activeBorderTop": "#E53069"
+    "editor.background": "#130b09",
+    "editorBracketHighlight.foreground1": "#E5521A",
+    "editorBracketHighlight.foreground2": "#916856",
+    "editorBracketHighlight.foreground3": "#9C6855",
+    "editorBracketHighlight.foreground4": "#738B3A",
+    "editorBracketHighlight.foreground5": "#A88974",
+    "editorBracketHighlight.foreground6": "#EDA148",
+    "editorBracketHighlight.unexpectedBracket.foreground": "#918983",
+    "tab.activeBorderTop": "#E5521A"
   },
   "keyboard.dispatch": "keyCode",
   "vim.neovimPath": "/usr/bin/nvim",
@@ -94,5 +94,6 @@
     "darkAssistantColor": "#9fd89f",
     "darkAssistantBackground": "#052505"
   },
-  "glassit.alpha": 220
+  "glassit.alpha": 220,
+  "python.createEnvironment.trigger": "off"
 }
