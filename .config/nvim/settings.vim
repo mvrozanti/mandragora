@@ -20,8 +20,6 @@ syntax enable
 set lbr
 set ruler
 set hidden
-set number
-set relativenumber
 set laststatus=2
 set smartindent
 set tabstop=4 sw=4 et
