@@ -89,7 +89,7 @@ alias swipl='swipl -q'
 alias prolog='swipl'
 alias T='date +%s'
 alias t='trans -b'
-alias cot='co | trans'
+alias cot='co | trans -b'
 alias rsync='rsync -a --info=progress2'
 # open in existing browser window
 alias waterfox='[[ $(ps aux|grep -c waterfox) -eq 1 ]] && waterfox || waterfox -new-tab'
