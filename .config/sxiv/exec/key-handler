@@ -11,6 +11,10 @@ do
         "w")
                 $HOME/.local/bin/setbg "$file"
                 ;;
+        "p")
+                realpath -z "$file" | xsel -i -b
+                notify-send 'Copied path to clipboard'
+                ;;
         "r")
                 name="$(rofi -dmenu -p  "rename $file to: ")" 2> /dev/null
                 if ! [ -z "$name" ]; then
