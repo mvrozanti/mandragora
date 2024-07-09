@@ -1,38 +1,38 @@
 {
   "editor.tokenColorCustomizations": {
-    "functions": "#961200",
-    "keywords": "#9f1f00",
-    "numbers": "#bb2100",
-    "strings": "#e92600",
-    "types": "#bb4800",
-    "variables": "#fd5000",
-    "comments": "#aa895b",
+    "functions": "#710086",
+    "keywords": "#b0008c",
+    "numbers": "#e64b00",
+    "strings": "#74e500",
+    "types": "#d8ff08",
+    "variables": "#fee217",
+    "comments": "#797785",
     "textMateRules": [
       {
         "scope": "constant.language",
         "settings": {
-          "foreground": "#9f1f00"
+          "foreground": "#b0008c"
         }
       },
       {
         "scope": "keyword.operator.logical.python",
         "settings": {
-          "foreground": "#bb2100"
+          "foreground": "#e64b00"
         }
       }
     ]
   },
   "editor.semanticHighlighting.enabled": true,
   "workbench.colorCustomizations": {
-    "editor.background": "#000000",
-    "editorBracketHighlight.foreground1": "#961200",
-    "editorBracketHighlight.foreground2": "#9f1f00",
-    "editorBracketHighlight.foreground3": "#bb2100",
-    "editorBracketHighlight.foreground4": "#e92600",
-    "editorBracketHighlight.foreground5": "#bb4800",
-    "editorBracketHighlight.foreground6": "#fd5000",
-    "editorBracketHighlight.unexpectedBracket.foreground": "#aa895b",
-    "tab.activeBorderTop": "#961200"
+    "editor.background": "#0d0b12",
+    "editorBracketHighlight.foreground1": "#710086",
+    "editorBracketHighlight.foreground2": "#b0008c",
+    "editorBracketHighlight.foreground3": "#e64b00",
+    "editorBracketHighlight.foreground4": "#74e500",
+    "editorBracketHighlight.foreground5": "#d8ff08",
+    "editorBracketHighlight.foreground6": "#fee217",
+    "editorBracketHighlight.unexpectedBracket.foreground": "#797785",
+    "tab.activeBorderTop": "#710086"
   },
   "keyboard.dispatch": "keyCode",
   "vim.neovimPath": "/usr/bin/nvim",
@@ -95,5 +95,9 @@
     "darkAssistantBackground": "#052505"
   },
   "glassit.alpha": 220,
-  "python.createEnvironment.trigger": "off"
+  "python.createEnvironment.trigger": "off",
+  "flake8.severity": {
+    "E": "Warning",
+    "F": "Warning"
+  }
 }
