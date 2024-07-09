@@ -289,6 +289,9 @@ super + ctrl + {E,R,W,Q,S}
 super + m
     dunstctl close
 
+super + shift + n
+    dunstctl history-pop
+
 super + shift + m
     dunstctl close-all
 
