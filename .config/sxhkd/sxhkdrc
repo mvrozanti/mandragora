@@ -20,9 +20,6 @@ alt + Tab
 super + End
     $HOME/.local/bin/polybar-compton-toggle
 
-super + alt + l
-    $HOME/.local/bin/lock
-
 alt + super + shift + p
     polybar-msg cmd hide
 
@@ -276,6 +273,9 @@ super + BackSpace
 
 super + Pause
     poweroff
+
+super + alt + Pause
+    $HOME/.local/bin/lock
 
 ctrl + super + Pause
     notify-send 'Power off in 5 minutes'; sleep 300; poweroff
