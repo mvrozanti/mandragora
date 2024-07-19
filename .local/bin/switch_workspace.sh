@@ -1,0 +1,50 @@
+#!/bin/bash
+
+BOTTOM_RIGHT_X=$(xdotool getdisplaygeometry | awk '{print $1}')
+BOTTOM_RIGHT_Y=$(xdotool getdisplaygeometry | awk '{print $2}')
+
+TOLERANCE=10
+
+get_mouse_position() {
+    eval $(xdotool getmouselocation --shell)
+}
+
+get_current_workspace() {
+    bspc query -D -d --names
+}
+
+is_any_window_fullscreen() {
+    wmctrl -lG | awk '$6 == 0 && $7 == 0 && $8 == '"$BOTTOM_RIGHT_X"' && $9 == '"$BOTTOM_RIGHT_Y"'' | grep -q 'Fullscreen'
+}
+
+PREV_WORKSPACE=$(get_current_workspace)
+IN_CORNER=false
+
+while true; do
+    get_mouse_position
+
+    CURRENT_WORKSPACE=$(get_current_workspace)
+
+    if is_any_window_fullscreen || [ $CURRENT_WORKSPACE == IX ]; then
+        sleep 0.1
+        continue
+    fi
+
+    if (( X >= BOTTOM_RIGHT_X - TOLERANCE && Y >= BOTTOM_RIGHT_Y - TOLERANCE )); then
+        if [[ "$IN_CORNER" == false ]]; then
+            PREV_WORKSPACE=$CURRENT_WORKSPACE
+            bspc desktop -f '^1'
+            IN_CORNER=true
+            echo "Switched to workspace ^1, previous was $PREV_WORKSPACE"
+        fi
+    else
+        if [[ "$IN_CORNER" == true ]]; then
+            bspc desktop -f "$PREV_WORKSPACE"
+            IN_CORNER=false
+            echo "Switched back to $PREV_WORKSPACE"
+        fi
+    fi
+
+    sleep 0.1
+done
+
