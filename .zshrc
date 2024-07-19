@@ -156,3 +156,5 @@ PERL_MM_OPT="INSTALL_BASE=/home/m/perl5"; export PERL_MM_OPT;
 [ -f ~/.local/bin/resty ] && . ~/.local/bin/resty
 export PYTHONSTARTUP="$HOME/.pythonrc"
 source /usr/share/autojump/autojump.zsh
+
+[ -f /opt/miniconda3/etc/profile.d/conda.sh ] && source /opt/miniconda3/etc/profile.d/conda.sh
