@@ -9,6 +9,14 @@ title=$(xtitle "$wid")
 # notify-send "$class"
 
 
+if [[ "$class" = "Minecraft "* ]]; then
+	echo "desktop=^9 follow=true"
+fi
+
+if [ "$class" = "Minecraft Launcher" ]; then
+	echo "desktop=^9 follow=true"
+fi
+
 if [[ "$class" = "steam_app"* ]]; then
 	echo "desktop=^9 follow=true"
 fi
