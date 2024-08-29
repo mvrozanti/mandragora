@@ -8,7 +8,6 @@ title=$(xtitle "$wid")
 # notify-send "$title"
 # notify-send "$class"
 
-
 if [[ "$class" = "Minecraft "* ]]; then
 	echo "desktop=^9 follow=true"
 fi
@@ -58,6 +57,10 @@ if [ "$title" = Nibbler ]; then
 fi
 
 if [ "$title" = _visualizer-float_ ]; then
+	echo state=floating rectangle=500x400+1400+630 sticky=on
+fi
+
+if [[ "$class" = "Matplotlib" ]]; then
 	echo state=floating rectangle=500x400+1400+630 sticky=on
 fi
 
