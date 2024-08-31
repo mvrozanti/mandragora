@@ -154,7 +154,8 @@
     ".config/discord-rpc/config.toml": "/home/m/.config/discord-rpc/config.toml",
     ".local/bin/are-processes-related": "/home/m/.local/bin/are-processes-related",
     ".config/wal/templates/colors-vscode.json": "/home/m/.config/wal/templates/colors-vscode.json",
-    ".local/bin/switch_workspace.sh": "/home/m/.local/bin/switch_workspace.sh"
+    ".local/bin/switch_workspace.sh": "/home/m/.local/bin/switch_workspace.sh",
+    ".local/bin/light": "/home/m/.local/bin/light"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
