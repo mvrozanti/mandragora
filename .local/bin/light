@@ -1,0 +1,143 @@
+#!/usr/bin/env python
+
+import requests
+import colorsys
+import sys
+import json
+import subprocess
+import re
+import os
+import signal
+import time
+
+PID_FILE = "/tmp/light.pid"
+LAMP_URL = "http://192.168.0.143/"
+running = True
+
+def signal_handler(signum, frame):
+    global running
+    print("Signal received, shutting down...")
+    running = False
+
+def check_and_kill_existing_process():
+    if os.path.exists(PID_FILE):
+        with open(PID_FILE, "r") as pid_file:
+            try:
+                existing_pid = int(pid_file.read().strip())
+                os.kill(existing_pid, 0)
+            except ProcessLookupError:
+                pass
+            except ValueError:
+                pass
+            else:
+                print(f"Terminating existing process with PID {existing_pid}")
+                os.kill(existing_pid, signal.SIGTERM)
+                time.sleep(1)
+    
+    with open(PID_FILE, "w") as pid_file:
+        pid_file.write(str(os.getpid()))
+
+def hex_to_hsvh(hex_color):
+    hex_color = hex_color.lstrip('#')
+    r = int(hex_color[0:2], 16) / 255.0
+    g = int(hex_color[2:4], 16) / 255.0
+    b = int(hex_color[4:6], 16) / 255.0
+    h, s, v = colorsys.rgb_to_hsv(r, g, b)
+    return int(h * 360)
+
+def rgb_to_hsv(r, g, b):
+    r_scaled, g_scaled, b_scaled = r / 255.0, g / 255.0, b / 255.0
+    h, s, v = colorsys.rgb_to_hsv(r_scaled, g_scaled, b_scaled)
+    h = h * 360
+    s = s * 100
+    v = v * 100
+    return h, s, v
+
+def yad_color_picker():
+    geometry = "--geometry=300x300+center"
+    result = subprocess.run(
+        ['yad', '--color', geometry, '--fixed', '--undecorated'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    if result.returncode != 0:
+        return None
+    color_code = result.stdout.decode().strip()
+    return color_code
+
+def extract_rgb_values(rgb_string):
+    match = re.search(r'rgb\((\d+),(\d+),(\d+)\)', rgb_string)
+    if match:
+        r, g, b = map(int, match.groups())
+        return r, g, b
+    else:
+        raise ValueError("The rgb string is not in the expected format.")
+
+def calc_c():
+    c = '#'
+    offsets = [(ord('F') - ord('0'), ord('F') - ord('0')),
+               (ord('6') - ord('0'), ord('9') - ord('0')),
+               (ord('B') - ord('A'), ord('4') - ord('0'))]
+    for first, second in offsets:
+        c += chr(ord('0') + first) + chr(ord('0') + second)
+    return c
+
+print(calc_c())
+
+def main():
+    global running
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
+    
+    check_and_kill_existing_process()
+
+    with open('/home/m/.cache/wal/colors.json', 'r') as config_file:
+        data = json.load(config_file)
+
+    arg = sys.argv[1] if len(sys.argv) > 1 else None
+    params = {}
+
+    if arg == 'toggle':
+        params = {'m': 1, 'o': 1}
+    elif arg == 'hightemp':
+        params = {'m': 1, 't0': 153}
+    elif arg == 'lowtemp':
+        params = {'m': 1, 't0': 500}
+    elif arg == 'color':
+        selected_color = yad_color_picker()
+        if selected_color:
+            h = hex_to_hsvh(selected_color)
+            params = {'m': 1, 'h0': h}
+    elif arg == 'rainbow':
+        while running:
+            for h in range(360):
+                if not running:
+                    break
+                params = {'m': 1, 'h0': h}
+                response = requests.get(LAMP_URL, params)
+                time.sleep(0.1)
+            if not running:
+                break
+        return
+    elif arg == 'bg':
+        h = hex_to_hsvh(data['colors']['color15'])
+        with open('/home/m/.cache/wal/wal', 'r') as wal:
+            if '/sss/' in wal.read():
+                h = hex_to_hsvh(calc_c())
+        assert 0 < h < 360 
+        params = {'m': 1, 'h0': h}
+
+    if params:
+        response = requests.get(LAMP_URL, params)
+        print(response.text)
+    
+    if os.path.exists(PID_FILE):
+        os.remove(PID_FILE)
+
+if __name__ == "__main__":
+    try:
+        main()
+    finally:
+        if os.path.exists(PID_FILE):
+            os.remove(PID_FILE)
+
