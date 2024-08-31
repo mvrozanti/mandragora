@@ -7,6 +7,7 @@ pkill xwinwrap
     wal -a 299 --saturate 1.0 -i "$fpath" $2 
     python $HOME/.local/bin/rivalcfg-wrapper
     python $HOME/.local/bin/keyledsd-wrapper
+    python $HOME/.local/bin/light bg
     jq -s '.[0] * .[1]' $HOME/.config/Code\ -\ OSS/User/settings.json $HOME/.cache/wal/colors-vscode.json | sponge $HOME/.config/Code\ -\ OSS/User/settings.json
     is_fs=$([[ `identify "$fpath" | cut -d' ' -f3` == 1920x1080 ]] && echo true)
     [[ $is_fs ]] || gifsicle --resize 1920x1080 -i "$fpath" > /tmp/`basename "$fpath"` && fpath="/tmp/`basename "$fpath"`"
