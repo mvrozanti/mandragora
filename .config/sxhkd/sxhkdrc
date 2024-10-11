@@ -311,14 +311,7 @@ super + button9
     $HOME/.local/bin/light toggle
 
 super + button8
-    selected_option=$(printf 'High\nLow\nColor' | rofi -dmenu -p "Light temperature:"); \
-    if [ "$selected_option" = "High" ]; then \
-      $HOME/.local/bin/light hightemp; \
-    elif [ "$selected_option" = "Low" ]; then \
-      $HOME/.local/bin/light lowtemp; \
-    elif [ "$selected_option" = "Color" ]; then \
-      $HOME/.local/bin/light color; \
-    fi
+    $HOME/.local/bin/light $(printf 'High\nLow\nColor\nRainbow' | rofi -dmenu -p "Light temperature:");
 
 # Now open, lock!
 # To the Dead Man's knock!
