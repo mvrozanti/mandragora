@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import requests
 import colorsys
 import sys
@@ -9,10 +8,15 @@ import re
 import os
 import signal
 import time
+import struct
+import numpy as np
+import music_visualization
 
 PID_FILE = "/tmp/light.pid"
 LAMP_URL = "http://192.168.0.143/"
 running = True
+
+from collections import deque
 
 def signal_handler(signum, frame):
     global running
@@ -45,14 +49,6 @@ def hex_to_hsvh(hex_color):
     h, s, v = colorsys.rgb_to_hsv(r, g, b)
     return int(h * 360)
 
-def rgb_to_hsv(r, g, b):
-    r_scaled, g_scaled, b_scaled = r / 255.0, g / 255.0, b / 255.0
-    h, s, v = colorsys.rgb_to_hsv(r_scaled, g_scaled, b_scaled)
-    h = h * 360
-    s = s * 100
-    v = v * 100
-    return h, s, v
-
 def yad_color_picker():
     geometry = "--geometry=300x300+center"
     result = subprocess.run(
@@ -65,25 +61,6 @@ def yad_color_picker():
     color_code = result.stdout.decode().strip()
     return color_code
 
-def extract_rgb_values(rgb_string):
-    match = re.search(r'rgb\((\d+),(\d+),(\d+)\)', rgb_string)
-    if match:
-        r, g, b = map(int, match.groups())
-        return r, g, b
-    else:
-        raise ValueError("The rgb string is not in the expected format.")
-
-def calc_c():
-    c = '#'
-    offsets = [(ord('F') - ord('0'), ord('F') - ord('0')),
-               (ord('6') - ord('0'), ord('9') - ord('0')),
-               (ord('B') - ord('A'), ord('4') - ord('0'))]
-    for first, second in offsets:
-        c += chr(ord('0') + first) + chr(ord('0') + second)
-    return c
-
-print(calc_c())
-
 def main():
     global running
     signal.signal(signal.SIGTERM, signal_handler)
@@ -94,30 +71,32 @@ def main():
     with open('/home/m/.cache/wal/colors.json', 'r') as config_file:
         data = json.load(config_file)
 
-    arg = sys.argv[1] if len(sys.argv) > 1 else None
+    arg = sys.argv[1].lower() if len(sys.argv) > 1 else None
     params = {}
 
     if arg == 'toggle':
         params = {'m': 1, 'o': 1}
-    elif arg == 'hightemp':
-        params = {'m': 1, 't0': 153}
-    elif arg == 'lowtemp':
-        params = {'m': 1, 't0': 500}
+    elif arg == 'high':
+        params = {'m': 1, 't0': 153, 'd0': 100}
+    elif arg == 'low':
+        params = {'m': 1, 't0': 500, 'd0': 100}
     elif arg == 'color':
         selected_color = yad_color_picker()
+        print(selected_color)
         if selected_color:
             h = hex_to_hsvh(selected_color)
-            params = {'m': 1, 'h0': h}
+            params = {'m': 1, 'h0': h, 'd0': 100}
     elif arg == 'rainbow':
         while running:
             for h in range(360):
                 if not running:
                     break
-                params = {'m': 1, 'h0': h}
+                assert 0 <= h <= 360 
+                params = {'m': 1, 'h0': h, 'd0': 100}
                 response = requests.get(LAMP_URL, params)
-                time.sleep(0.1)
-            if not running:
-                break
+        return
+    elif arg == 'mpd':
+        music_visualization.handle_audio(LAMP_URL, '/tmp/mpd.fifo')
         return
     elif arg == 'bg':
         h = hex_to_hsvh(data['colors']['color15'])
@@ -127,9 +106,9 @@ def main():
         assert 0 < h < 360 
         params = {'m': 1, 'h0': h}
 
-    if params:
-        response = requests.get(LAMP_URL, params)
-        print(response.text)
+    import ptpython; ptpython.embed(globals(), locals())
+    response = requests.get(LAMP_URL, params)
+    print(response.text)
     
     if os.path.exists(PID_FILE):
         os.remove(PID_FILE)

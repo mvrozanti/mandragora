@@ -8,6 +8,10 @@ title=$(xtitle "$wid")
 # notify-send "$title"
 # notify-send "$class"
 
+if [[ "$class" = "TradingView" ]]; then
+	echo "desktop=^18 follow=true"
+fi
+
 if [[ "$class" = "Minecraft "* ]]; then
 	echo "desktop=^9 follow=true"
 fi
