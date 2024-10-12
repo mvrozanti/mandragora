@@ -11,6 +11,7 @@ if [[ ! -z `pacman -Qtdq` ]]; then
 else
     echo 'No orphan packages.'
 fi
+cargo cache -a
 yes | trash-empty
 yes | sudo pacman -Scc
 yes | yay -Scc 
