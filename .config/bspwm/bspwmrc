@@ -6,8 +6,8 @@ pgrep -x mpd                 || $_   &
 pgrep -x sxhkd               || $_   &
 pgrep -x ntfd                || $_   &
 pgrep -f cleanfullscreen     || nohup /home/m/.local/bin/cleanfullscreen 2>&1 > /dev/null &
-pgrep -f mpd-discord-rpc     || nohup /home/m/.cargo/bin/mpd-discord-rpc 2>&1 > /dev/null &
-pgrep -f switch_workspace.sh || nohup /home/m/.local/bin/switch_workspace.sh 2>&1 > /dev/null &
+pgrep -f mpd-discord-rpc     || (until pgrep -x mpd > /dev/null; do sleep 1; done && nohup /home/m/.cargo/bin/mpd-discord-rpc > /dev/null 2>&1 &)
+pgrep -f switch_workspace    || nohup /home/m/.local/bin/switch_workspace 2>&1 > /dev/null &
 pgrep -f twitch-indicator    || nohup /usr/bin/twitch-indicator 2>&1 > /dev/null &
 pgrep -f kdeconnectd         || nohup /usr/bin/kdeconnectd 2>&1 > /dev/null &
 pgrep -f keyledsd            || nohup /usr/bin/keyledsd 2>&1 > /dev/null &

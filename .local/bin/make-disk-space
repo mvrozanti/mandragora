@@ -12,6 +12,7 @@ else
     echo 'No orphan packages.'
 fi
 cargo cache -a
+conda clean -a -y 
 yes | trash-empty
 yes | sudo pacman -Scc
 yes | yay -Scc 
