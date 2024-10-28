@@ -2,6 +2,7 @@
 yes | sudo journalctl --vacuum-size=1G 
 yes | sudo rm -r /var/lib/systemd/coredump/core.* 
 yes | trash-empty
+yes | sudo rm -rf /var/lib/snapd/cache/*
 rm ~/.xsession-errors*
 yes | docker system prune -a --volumes
 yes | pip cache purge
