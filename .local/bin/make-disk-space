@@ -1,9 +1,9 @@
 #!/bin/bash
 yes | sudo journalctl --vacuum-size=1G 
 yes | sudo rm -r /var/lib/systemd/coredump/core.* 
+yes | sudo flatpak uninstall --unused
 yes | trash-empty
 yes | sudo rm -rf /var/lib/snapd/cache/*
-rm ~/.xsession-errors*
 yes | docker system prune -a --volumes
 yes | pip cache purge
 yes | yarn cache clean
@@ -17,3 +17,4 @@ conda clean -a -y
 yes | trash-empty
 yes | sudo pacman -Scc
 yes | yay -Scc 
+rm ~/.xsession-errors*
