@@ -4,6 +4,18 @@ from collections import deque
 import os
 fd_deq = deque()
 
+class bulkrename(Command):
+    """:bulkrename
+
+    This command calls the 'brn2' executable with a list of selected files
+    passed as arguments after the '--' separator.
+    """
+    def execute(self):
+        from ranger.container.file import File
+        filenames = [f.relative_path for f in self.fm.thistab.get_selection()]
+        command = ['brn2', '--'] + filenames
+        self.fm.run(command)
+
 class ag(Command):
     import re
     """:ag 'regex'
