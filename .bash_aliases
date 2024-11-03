@@ -195,7 +195,7 @@ alias gsi='git ls-files . --ignored --exclude-standard --others'
 gdm(){ [[ $# -eq 0 ]] && gdmap -f . || gdmap -f "$@" }
 sgdm(){ [[ $# -eq 0 ]] && sudo gdmap -f . || sudo gdmap -f "$@" }
 alias H='cd -'
-alias piu='pip install --user --break-system-packages'
+alias piu='pip install --user --upgrade --break-system-packages'
 lo(){ libreoffice $1 2>&1 > /dev/null & }
 alias jn='jupyter notebook'
 alias wav2ogg='oggenc -q 3 -o file.ogg'

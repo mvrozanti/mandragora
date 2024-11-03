@@ -253,6 +253,12 @@ super + {alt,shift} + g ; {z,s,shift+i}
 super + {alt,shift} + g : {j,k}
     $HOME/.local/bin/gaps {all,local} {minus,plus} 
 
+ctrl + super + space
+    $HOME/util/compton/dbus-examples/dbus-strength.sh -1
+
+ctrl + super + alt + space 
+    $HOME/util/compton/dbus-examples/dbus-strength.sh +1
+
 super + ctrl + bracketleft                                       
     $HOME/util/compton/dbus-examples/dbus-strength.sh -1
 
