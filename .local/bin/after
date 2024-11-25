@@ -1,14 +1,33 @@
 #!/bin/bash
-process_name="$1"
-count=$(pgrep -af "$process_name" | grep -v "pgrep" | grep -v "grep" | wc -l)
-oldCount=$count
 
-while true; do
-    count=$(pgrep -af "$process_name" | grep -v "pgrep" | grep -v "grep" | wc -l)
-    if [ $count -eq $(($oldCount - 1)) ]; then
-        break
+if [ "$#" -lt 2 ]; then
+    echo "Usage: $0 <process_name_or_pid> <command_to_run> [args...]"
+    exit 1
+fi
+
+identifier="$1"
+shift
+command_to_run="$@"
+
+if [[ "$identifier" =~ ^[0-9]+$ ]]; then
+    process_pid="$identifier"
+    if ! ps -p "$process_pid" > /dev/null 2>&1; then
+        echo "Error: No process found with PID $process_pid."
+        exit 1
     fi
+    echo "Waiting for process with PID: $process_pid to finish..."
+else
+    process_pid=$(pgrep -o -f "$identifier")
+    if [ -z "$process_pid" ]; then
+        echo "Error: Process '$identifier' not found."
+        exit 1
+    fi
+    echo "Waiting for process '$identifier' (PID: $process_pid) to finish..."
+fi
+
+while ps -p "$process_pid" > /dev/null 2>&1; do
     sleep 1
 done
-${@:2}
+
+$command_to_run
 
