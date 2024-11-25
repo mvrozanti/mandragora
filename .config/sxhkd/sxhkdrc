@@ -94,6 +94,9 @@ super + 3
 super + 4
     wmctrl -xa telegram-desktop  || QT_IM_MODULE=xim telegram-desktop
 
+super + v
+    wmctrl -xa tradingview       || snap run tradingview
+
 super + shift + f
     wmctrl -a  WhatsApp          || ~/.local/bin/whatsapp
 
