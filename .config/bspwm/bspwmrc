@@ -29,6 +29,7 @@ bspc   rule   -a   jetbrains-studio            desktop=^8  follow=true
 bspc   rule   -a   jetbrains-pycharm-ce        desktop=^8  follow=true
 bspc   rule   -a   code-oss                    desktop=^8  follow=true
 bspc   rule   -a   Slack                       desktop=^9
+bspc   rule   -a   beekeeper-studio            desktop=^11 follow=true
 bspc   rule   -a   Gdmap                       desktop=^11 follow=true
 bspc   rule   -a   Postman                     desktop=^13
 bspc   rule   -a   Zathura                     desktop=^19 follow=true state=tiled

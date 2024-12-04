@@ -364,7 +364,8 @@
     "thermald",
     "inxi",
     "fisher",
-    "gthumb"
+    "gthumb",
+    "xprintidle"
   ],
   "excluded": [
     "hotmail.gpg",
