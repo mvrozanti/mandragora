@@ -1,5 +1,6 @@
 #!/bin/sh
 wal -a 299 -i "`cat $HOME/.cache/wal/wal`"
+sshfs opc@oracle:/home/opc/drive oracle 
 pgrep -x compton             || $_ -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
 pgrep -x polybar             || $_   &
 pgrep -x mpd                 || $_   &
@@ -27,7 +28,7 @@ bspc   rule   -a   whats-app-nativefier-d52542 desktop=^4
 bspc   rule   -a   jetbrains-idea-ce           desktop=^8  follow=true
 bspc   rule   -a   jetbrains-studio            desktop=^8  follow=true
 bspc   rule   -a   jetbrains-pycharm-ce        desktop=^8  follow=true
-bspc   rule   -a   code-oss                    desktop=^8  follow=true
+bspc   rule   -a   Code                        desktop=^8  follow=true
 bspc   rule   -a   Slack                       desktop=^9
 bspc   rule   -a   beekeeper-studio            desktop=^11 follow=true
 bspc   rule   -a   Gdmap                       desktop=^11 follow=true

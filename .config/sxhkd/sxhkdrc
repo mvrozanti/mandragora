@@ -104,7 +104,7 @@ super + ctrl + m
     wmctrl -a  Mathematica       || ~/.local/bin/Mathematica
 
 super + shift + d
-    wmctrl -a 'Code - OSS' || \
+    wmctrl -a code || \
     wmctrl -xa 'jetbrains-idea-ce' && exit; \
     selected_option=$(printf 'IntelliJ\nVSCode' | rofi -dmenu -p "Select an IDE"); \
     if [ "$selected_option" = "VSCode" ]; then \
