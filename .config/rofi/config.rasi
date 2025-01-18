@@ -58,7 +58,7 @@ configuration {
 	display-run: "";
 	kb-primary-paste: "Control+V,Shift+Insert";
 	kb-secondary-paste: "Control+v,Insert";
-	kb-clear-line: "Control+c,Control+a";
+	kb-clear-line: "Alt+BackSpace";
 	kb-move-front: "";
 	kb-move-end: "Control+e";
 	kb-move-word-back: "Alt+b,Control+Left";
