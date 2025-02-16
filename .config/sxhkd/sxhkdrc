@@ -311,10 +311,10 @@ super + shift + i
     dunstctl context
 
 button9
-    $HOME/.local/bin/rivalcfg-wrapper --on
+    $HOME/.local/bin/hid-wrapper --on
 
 button8
-    $HOME/.local/bin/rivalcfg-wrapper --off
+    $HOME/.local/bin/hid-wrapper --off
 
 super + button9
     $HOME/.local/bin/light toggle

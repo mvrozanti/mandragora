@@ -4,12 +4,13 @@ import rivalcfg
 import json
 from pathlib import Path
 import sys
+import re
 
 turn_on = sys.argv[1] == '--on' if len(sys.argv) > 1 else False
 turn_off = sys.argv[1] == '--off' if len(sys.argv) > 1 else False
 
-Path('/home/m/.cache/rivalcfg-config').mkdir(exist_ok=True)
-state_file = Path('/home/m/.cache/rivalcfg-config/state')
+Path('/home/m/.cache/hid-config').mkdir(exist_ok=True)
+state_file = Path('/home/m/.cache/hid-config/state')
 if not state_file.exists():
     state_file.write_text('False')
     is_on = False
@@ -24,7 +25,6 @@ def sort_hex_colors_by_saturation(color_strings):
     colors = list(map(Color, color_strings))
     colors = {sum(c.rgb):c for c in colors}.values()
     colors = sorted(colors, key=lambda c: c.hsl[0], reverse=True)
-    # import ptpython; ptpython.embed(globals(), locals())
     for color in colors:
         if color.saturation < .7:
             color.saturation = color.saturation**.1
@@ -48,10 +48,30 @@ def set_colors(mouse, pywal_colors):
     mouse.set_z3_color(  pywal_colors[2])
     mouse.set_logo_color(pywal_colors[3])
 
-def intensify(color):
-    # >127 gets hotter
-    # <127 gets colder
-    pass
+def toggle_effects(file_path):
+    with open(file_path, "r") as file:
+        content = file.read()
+    
+    wave_pattern = r"(?s)(# BEGIN wave\n)(.*?)(# END wave)"
+    lightning_pattern = r"(?s)(# BEGIN lightning\n)(.*?)(# END lightning)"
+    
+    wave_match = re.search(wave_pattern, content)
+    lightning_match = re.search(lightning_pattern, content)
+    
+    if wave_match and lightning_match:
+        if "# " in wave_match.group(2):
+            content = re.sub(wave_pattern, lambda m: m.group(1) + m.group(2).replace("# ", "") + m.group(3), content)
+            content = re.sub(lightning_pattern, lambda m: m.group(1) + "# " + m.group(2).replace("\n", "\n# ") + m.group(3), content)
+        else:
+            content = re.sub(lightning_pattern, lambda m: m.group(1) + m.group(2).replace("# ", "") + m.group(3), content)
+            content = re.sub(wave_pattern, lambda m: m.group(1) + "# " + m.group(2).replace("\n", "\n# ") + m.group(3), content)
+    
+    with open(file_path, "w") as file:
+        file.write(content)
+    
+    print("Switched wave and lightning effects under keyleds-default/plugins using markers.")
+
+config_file = "/home/m/.config/keyledsd.conf"
 
 if turn_on or (is_on and not turn_off):
     set_colors(mouse, pywal_colors)
@@ -60,4 +80,5 @@ elif turn_off:
     turn_mouse_off(mouse)
     is_on = False
 
+toggle_effects(config_file)
 state_file.write_text(str(is_on))
