@@ -48,7 +48,7 @@ def set_colors(mouse, pywal_colors):
     mouse.set_z3_color(  pywal_colors[2])
     mouse.set_logo_color(pywal_colors[3])
 
-def toggle_effects(file_path):
+def toggle_effects(file_path, is_on):
     with open(file_path, "r") as file:
         content = file.read()
     
@@ -59,7 +59,7 @@ def toggle_effects(file_path):
     lightning_match = re.search(lightning_pattern, content)
     
     if wave_match and lightning_match:
-        if "# " in wave_match.group(2):
+        if is_on:
             content = re.sub(wave_pattern, lambda m: m.group(1) + m.group(2).replace("# ", "") + m.group(3), content)
             content = re.sub(lightning_pattern, lambda m: m.group(1) + "# " + m.group(2).replace("\n", "\n# ") + m.group(3), content)
         else:
@@ -80,5 +80,6 @@ elif turn_off:
     turn_mouse_off(mouse)
     is_on = False
 
-toggle_effects(config_file)
+toggle_effects(config_file, is_on)
+
 state_file.write_text(str(is_on))
