@@ -7,7 +7,7 @@ fi
 
 identifier="$1"
 shift
-command_to_run="$@"
+command_to_run=("$@")
 
 if [[ "$identifier" =~ ^[0-9]+$ ]]; then
     process_pid="$identifier"
@@ -17,7 +17,7 @@ if [[ "$identifier" =~ ^[0-9]+$ ]]; then
     fi
     echo "Waiting for process with PID: $process_pid to finish..."
 else
-    process_pid=$(pgrep -o -f "$identifier")
+    process_pid=$(pgrep -x "$identifier")
     if [ -z "$process_pid" ]; then
         echo "Error: Process '$identifier' not found."
         exit 1
@@ -29,5 +29,5 @@ while ps -p "$process_pid" > /dev/null 2>&1; do
     sleep 1
 done
 
-$command_to_run
+"${command_to_run[@]}"
 
