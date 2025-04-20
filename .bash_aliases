@@ -630,3 +630,4 @@ alias droidcam-cam='mpv av://v4l2:/dev/video0'
 replaceall(){ find . -type f -iname "$1" -print0 | xargs -0 sed -i "s|$2|$3|g" }
 alias cocat='cat "`co`"'
 alias cozat='zat "`co`"'
+alias wtree='watch tree'
