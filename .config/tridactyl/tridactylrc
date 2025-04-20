@@ -1,3 +1,4 @@
+unbind <F1>
 unbind ;c
 unbind D
 unbind <C-x>
