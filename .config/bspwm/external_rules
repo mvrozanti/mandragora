@@ -29,6 +29,10 @@ if [ "$title" = Pinta ]; then
 	echo "desktop=^7 follow=true"
 fi
 
+if [ "$title" = galculator ]; then
+	echo "state=floating"
+fi
+
 if [ "$title" = Transmission ]; then
 	echo "desktop=^26"
 fi
