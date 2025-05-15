@@ -103,7 +103,6 @@ K9(){ pa "$@" | awk '{printf("%s ", $2);for(i=11;i<=NF;++i){ printf("%s ",$i) } 
 alias jsonify='echo use jq instead /dev/stderr'
 alias iftop='sudo iftop -Nlp'
 alias cava='cava -p ~/.config/cava/config'
-alias usd2brl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=USD_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
 alias eur2brl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=EUR_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
 alias btc2brl='curl "http://free.currencyconverterapi.com/api/v5/convert?q=BTC_BRL&compact=y" 2>&1 | re "\:(\d[^}]+)}" | e R\$ $(cat -)'
 alias ali='apt list --installed'
@@ -631,3 +630,4 @@ replaceall(){ find . -type f -iname "$1" -print0 | xargs -0 sed -i "s|$2|$3|g" }
 alias cocat='cat "`co`"'
 alias cozat='zat "`co`"'
 alias wtree='watch tree'
+alias spsy='sudo pacman -Sy'

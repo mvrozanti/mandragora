@@ -98,7 +98,7 @@ super + v
     wmctrl -xa tradingview       || snap run tradingview
 
 super + shift + f
-    wmctrl -a  WhatsApp          || ~/.local/bin/whatsapp
+    wmctrl -a  ZapZap          || ~/.local/bin/whatsapp
 
 super + ctrl + m
     wmctrl -a  Mathematica       || ~/.local/bin/Mathematica
