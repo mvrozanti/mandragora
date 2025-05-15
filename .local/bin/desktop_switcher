@@ -35,12 +35,14 @@ while true; do
             PREV_WORKSPACE=$CURRENT_WORKSPACE
             bspc desktop -f '^1'
             IN_CORNER=true
+            hid-wrapper --on
             echo "Switched to workspace ^1, previous was $PREV_WORKSPACE"
         fi
     else
         if [[ "$IN_CORNER" == true ]]; then
             bspc desktop -f "$PREV_WORKSPACE"
             IN_CORNER=false
+            hid-wrapper --off
             echo "Switched back to $PREV_WORKSPACE"
         fi
     fi
