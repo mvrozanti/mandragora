@@ -5,6 +5,7 @@ pkill xwinwrap
     [[ -z $2 ]] && sed -i -e 's/background #fff/background #000/' ~/.config/kitty/kitty.conf || sed -i -e 's/background #000/background #fff/' ~/.config/kitty/kitty.conf
     [[ -z $2 ]] && kitty @ --to unix:@mykitty set-colors background=#000 || kitty @ --to unix:@mykitty set-colors background=#fff
     wal -a 299 --saturate 1.0 -i "$fpath" $2 
+    plasma-apply-wallpaperimage "$fpath"
     python $HOME/.local/bin/hid-wrapper
     python $HOME/.local/bin/keyledsd-wrapper
     python $HOME/.local/bin/light bg
