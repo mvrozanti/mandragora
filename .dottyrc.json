@@ -155,7 +155,8 @@
     ".local/bin/are-processes-related": "/home/m/.local/bin/are-processes-related",
     ".config/wal/templates/colors-vscode.json": "/home/m/.config/wal/templates/colors-vscode.json",
     ".local/bin/desktop_switcher": "/home/m/.local/bin/desktop_switcher",
-    ".local/bin/light": "/home/m/.local/bin/light"
+    ".local/bin/light": "/home/m/.local/bin/light",
+    ".config/picom.conf": "/home/m/.config/picom.conf"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
