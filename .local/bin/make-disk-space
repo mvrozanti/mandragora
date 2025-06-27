@@ -17,4 +17,4 @@ conda clean -a -y
 yes | trash-empty
 yes | sudo pacman -Scc
 yes | yay -Scc 
-rm ~/.xsession-errors*
+rm ~/.xsession-errors* || true

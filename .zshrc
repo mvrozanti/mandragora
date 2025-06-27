@@ -159,6 +159,3 @@ export NODE_PATH=/usr/lib/node_modules/
 autoload -U compinit && compinit -u
 
 [ -f /opt/miniconda3/etc/profile.d/conda.sh ] && source /opt/miniconda3/etc/profile.d/conda.sh
-
-export LANG="en_US.UTF-8"
-export LC_ALL="en_US.UTF-8"
