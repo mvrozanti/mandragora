@@ -1,4 +1,3 @@
-
 super + q
     bspc node -c
 
@@ -92,13 +91,13 @@ super + 3
     # wmctrl -x -a cool-retro-term              || cool-retro-term -T _zsh_ 
 
 super + 4
-    wmctrl -xa telegram-desktop  || QT_IM_MODULE=xim telegram-desktop
+    wmctrl -xa Telegram          || QT_IM_MODULE=xim Telegram
 
 super + v
     wmctrl -xa tradingview       || snap run tradingview
 
 super + shift + f
-    wmctrl -a  ZapZap          || ~/.local/bin/whatsapp
+    wmctrl -a  ZapZap            || flatpak run com.rtosta.zapzap
 
 super + ctrl + m
     wmctrl -a  Mathematica       || ~/.local/bin/Mathematica

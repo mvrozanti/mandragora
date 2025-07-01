@@ -1,17 +1,18 @@
-#!/bin/sh
+#!/usr/bin/zsh
 wal -a 299 -i "`cat $HOME/.cache/wal/wal`"
-sshfs opc@oracle:/home/opc/drive oracle 
+sshfs opc@oracle:/home/opc/drive oracle &
 pgrep -x compton             || $_ -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
-pgrep -x polybar             || $_   &
-pgrep -x mpd                 || $_   &
+# pgrep -x mpd                 || $_   &
 pgrep -x sxhkd               || $_   &
 pgrep -x ntfd                || $_   &
 pgrep -f cleanfullscreen     || nohup /home/m/.local/bin/cleanfullscreen 2>&1 > /dev/null &
-pgrep -f mpd-discord-rpc     || (sleep 10 && nohup /home/m/.cargo/bin/mpd-discord-rpc > /dev/null 2>&1 &)
-pgrep -f twitch-indicator    || nohup /usr/bin/twitch-indicator 2>&1 > /dev/null &
+pgrep -f mpd-discord-rpc     || (sleep 10 && nohup /home/m/.cargo/bin/mpd-discord-rpc > /dev/null 2>&1 )
+# pgrep -f twitch-indicator    || nohup /usr/bin/twitch-indicator 2>&1 > /dev/null &
 pgrep -f kdeconnectd         || nohup /usr/bin/kdeconnectd 2>&1 > /dev/null &
 pgrep -f keyledsd            || nohup /usr/bin/keyledsd 2>&1 > /dev/null &
 pgrep -f desktop_switcher    || nohup /home/m/.local/bin/desktop_switcher 2>&1 > /dev/null &
+pgrep -x polybar             || polybar mybar &
+
 
 
 bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX XXI XXII XXIII XXIV XXV XXVI XXVII XXVIII XXIX XXX XXXI XXXII XXXIII XXXIV XXXV XXXVI XXXVII XXXVIII XXXIX XL
@@ -24,7 +25,7 @@ bspc config gapless_monocle       true
 # bspc config focus_follows_pointer true
 bspc config pointer_modifier mod1
 
-bspc   rule   -a   whats-app-nativefier-d52542 desktop=^4
+bspc   rule   -a   ZapZap                      desktop=^4
 bspc   rule   -a   jetbrains-idea-ce           desktop=^8  follow=true
 bspc   rule   -a   jetbrains-studio            desktop=^8  follow=true
 bspc   rule   -a   jetbrains-pycharm-ce        desktop=^8  follow=true
