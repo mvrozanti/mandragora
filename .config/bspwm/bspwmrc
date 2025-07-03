@@ -2,7 +2,7 @@
 wal -a 299 -i "`cat $HOME/.cache/wal/wal`"
 sshfs opc@oracle:/home/opc/drive oracle &
 pgrep -x compton             || $_ -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
-# pgrep -x mpd                 || $_   &
+pgrep -x mpd                 || $_   &
 pgrep -x sxhkd               || $_   &
 pgrep -x ntfd                || $_   &
 pgrep -f cleanfullscreen     || nohup /home/m/.local/bin/cleanfullscreen 2>&1 > /dev/null &

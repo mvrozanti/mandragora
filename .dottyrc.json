@@ -156,7 +156,8 @@
     ".config/wal/templates/colors-vscode.json": "/home/m/.config/wal/templates/colors-vscode.json",
     ".local/bin/desktop_switcher": "/home/m/.local/bin/desktop_switcher",
     ".local/bin/light": "/home/m/.local/bin/light",
-    ".config/picom.conf": "/home/m/.config/picom.conf"
+    ".config/picom.conf": "/home/m/.config/picom.conf",
+    ".xinitrc": "/home/m/.xinitrc"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
