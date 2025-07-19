@@ -7,10 +7,6 @@ alias me mvrozanti <mvrozanti@hotmail.com>
 set folder = "/home/m/.local/share/mail/mvrozanti@hotmail.com"
 set message_cachedir = "/home/m/.cache/mutt-wizard/mvrozanti_hotmail.com/bodies"
 set mbox_type = Maildir
-bind index,pager gg noop
-bind index,pager g noop
-bind index,pager M noop
-bind index,pager C noop
 macro index o "<shell-escape>mailsync -V hotmail<enter>" "run mbsync to sync hotmail"
 unmailboxes *
 set spoolfile = "+INBOX"
