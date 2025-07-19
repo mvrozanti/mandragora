@@ -53,7 +53,6 @@
     ".oh-my-zsh/themes/nexor.zsh-theme": "~/.oh-my-zsh/themes/nexor.zsh-theme",
     ".scimrc": "~/.scimrc",
     ".config/mutt/muttrc": "~/.config/mutt/muttrc",
-    ".config/mutt/etc/mailcap": "~/.config/mutt/etc/mailcap",
     ".config/mpv/input.conf": "~/.config/mpv/input.conf",
     ".ranger_aliases": "~/.ranger_aliases",
     ".config/nvim/coc-settings.json": "~/.config/nvim/coc-settings.json",
@@ -99,7 +98,6 @@
     ".irssi/config": "~/.irssi/config",
     ".config/shellinabox/dark.css": "~/.config/shellinabox/dark.css",
     ".local/bin/resty": "~/.local/bin/resty",
-    "usr/local/share/mutt-wizard/mutt-wizard.muttrc": "/usr/local/share/mutt-wizard/mutt-wizard.muttrc",
     ".config/twmn/twmn.conf": "~/.config/twmn/twmn.conf",
     ".config/rofi/config.rasi": "~/.config/rofi/config.rasi",
     ".config/rofi/theme.rasi": "~/.config/rofi/theme.rasi",
@@ -110,7 +108,6 @@
     ".local/bin/cycle-kbd-layouts": "~/.local/bin/cycle-kbd-layouts",
     ".local/bin/corona-bar": "~/.local/bin/corona-bar",
     ".mostrc": "~/.mostrc",
-    ".config/mutt/accounts/1-hotmail.muttrc": "~/.config/mutt/accounts/1-hotmail.muttrc",
     ".lf_aliases": "~/.lf_aliases",
     ".local/bin/make-ranger-aliases": "~/.local/bin/make-ranger-aliases",
     ".local/bin/make-lf-aliases": "~/.local/bin/make-lf-aliases",
@@ -157,7 +154,8 @@
     ".local/bin/desktop_switcher": "/home/m/.local/bin/desktop_switcher",
     ".local/bin/light": "/home/m/.local/bin/light",
     ".config/picom.conf": "/home/m/.config/picom.conf",
-    ".xinitrc": "/home/m/.xinitrc"
+    ".xinitrc": "/home/m/.xinitrc",
+    ".config/mutt/accounts/mvrozanti@hotmail.com.muttrc": "/home/m/.config/mutt/accounts/mvrozanti@hotmail.com.muttrc"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [

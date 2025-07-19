@@ -1,22 +1,22 @@
-IMAPStore hotmail-remote
-Host imap-mail.outlook.com
-Port  993
+IMAPStore mvrozanti@hotmail.com-remote
+Host outlook.office365.com
+Port 993
 User mvrozanti@hotmail.com
-PassCmd "pass mutt-wizard-hotmail"
-SSLType IMAPS
+PassCmd "/usr/share/neomutt/oauth2/mutt_oauth2.py $HOME/.config/mutt/email-token"
+AuthMechs XOAUTH2
+TLSType IMAPS
 CertificateFile /etc/ssl/certs/ca-certificates.crt
 
-MaildirStore hotmail-local
+MaildirStore mvrozanti@hotmail.com-local
 Subfolders Verbatim
-Path ~/.local/share/mail/hotmail/
-Inbox ~/.local/share/mail/hotmail/INBOX
-Flatten .
+Path /home/m/.local/share/mail/mvrozanti@hotmail.com/
+Inbox /home/m/.local/share/mail/mvrozanti@hotmail.com/INBOX
 
-Channel hotmail
+Channel mvrozanti@hotmail.com
 Expunge Both
-Far :hotmail-remote:
-Near :hotmail-local:
-Patterns * !"[Gmail]/All Mail"
+Far :mvrozanti@hotmail.com-remote:
+Near :mvrozanti@hotmail.com-local:
+Patterns * !"[Gmail]/All Mail" !"*fts-flatcurve*" !"*virtual*"
 Create Both
 SyncState *
 MaxMessages 0
