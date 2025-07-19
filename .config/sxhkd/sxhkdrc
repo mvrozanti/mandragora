@@ -118,12 +118,15 @@ super + a
 super + p
     wmctrl -xa postman && exit; \
     wmctrl -xa Zathura && exit; \
-    code_opts=("zathura" "Postman"); \
+    wmctrl -xa bruno && exit; \
+    code_opts=("zathura" "Postman" "bruno"); \
     selected_option=$(printf '%s\n' "${code_opts[@]}" | rofi -dmenu -p); \
     if [ "$selected_option" = "zathura" ]; then \
         zathura; \
     elif [ "$selected_option" = "Postman" ]; then \
         postman; \
+    elif [ "$selected_option" = "bruno" ]; then \
+        /home/m/Downloads/bruno_2.7.0_x86_64_linux.AppImage; \
     fi
 
 ctrl + super + d

@@ -5,8 +5,9 @@ unbind <C-x>
 unbind --mode=ex <C-a>
 unbind --mode=ex <C-c>
 autocmd DocLoad github.com js document.querySelector("div.flash").remove()
+unbindurl https://www.youtube.com /
+unbindurl https://www.youtube.com ?
 unbindurl https://www.youtube.com m
-bindurl https://www.youtube.com ? js document.getElementById('search').focus()
 bindurl https://www.youtube.com f hint -Jc a#thumbnail.yt-simple-endpoint.inline-block.style-scope.ytd-thumbnail,ytd-comment-thread-renderer a,ytd-channel-name a,paper-button,a#logo,ytd-toggle-button-renderer.style-scope:nth-child(1) > a:nth-child(1) ytd-toggle-button-renderer,a,.yt-simple-endpoint.style-scope.ytd-toggle-button-renderer#menu-container
 
 set modeindicator false
@@ -26,9 +27,6 @@ bind <C-V> viewsource
 bind yu composite js document.URL | yank
 bind yf hint -y
 bind ec hint -A
-bind <C-1> open reddit.com
-bind <C-2> open youtube.com
-bind <C-3> open github.com
 bind t tabnew
 bind D tabduplicate
 bind <A-d> composite js window.location.href | fillcmdline open
@@ -41,6 +39,7 @@ set newtab about:blank
 unbind gd
 unbind gf
 colors unugly
+unbindurl https://www.youtube.com /
 blacklistadd localhost:3000
 blacklistadd meet.google.com/
 blacklistadd app.diagrams.net/
