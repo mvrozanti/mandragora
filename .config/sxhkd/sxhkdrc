@@ -66,6 +66,9 @@ super + dead_grave
 super + alt + dead_grave
     wmctrl -a _ncmpcpp_          || kitty --title _visualizer-float_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ncmpcpp"
 
+super + shift + 4
+    kitty -e zsh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new 'source ~/.zshrc; neomutt'"
+
 super + 4
     wmctrl -a _neomutt_           || kitty --title _neomutt_ -e zsh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new 'source ~/.zshrc; neomutt'"
   # wmctrl -a Geary                || geary
