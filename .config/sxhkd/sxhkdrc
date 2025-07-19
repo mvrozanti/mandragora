@@ -66,10 +66,10 @@ super + dead_grave
 super + alt + dead_grave
     wmctrl -a _ncmpcpp_          || kitty --title _visualizer-float_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ncmpcpp"
 
-super + 0
-  wmctrl -a Geary                || geary
+super + 4
+    wmctrl -a _neomutt_           || kitty --title _neomutt_ -e zsh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new 'source ~/.zshrc; neomutt'"
+  # wmctrl -a Geary                || geary
   # wmctrl -a thunderbird        || thunderbird
-  # wmctrl -a  _neomutt_         || kitty --title _neomutt_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && mbsync hotmail && tmux new neomutt"
 
 super + 1
     wmctrl -a Firefox            || pgrep firefox || wmctrl -a Chromium || firefox
@@ -90,7 +90,7 @@ super + 3
     wmctrl -a _zsh_              || kitty --title _zsh_ --listen-on=unix:@zsh
     # wmctrl -x -a cool-retro-term              || cool-retro-term -T _zsh_ 
 
-super + 4
+super + 0
     wmctrl -xa Telegram          || QT_IM_MODULE=xim Telegram
 
 super + v

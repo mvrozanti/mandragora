@@ -1,0 +1,21 @@
+# vim: filetype=neomuttrc
+# muttrc file for account mvrozanti@hotmail.com
+set realname = "mvrozanti"
+set from = "mvrozanti@hotmail.com"
+set sendmail = "msmtp -a mvrozanti@hotmail.com"
+alias me mvrozanti <mvrozanti@hotmail.com>
+set folder = "/home/m/.local/share/mail/mvrozanti@hotmail.com"
+set message_cachedir = "/home/m/.cache/mutt-wizard/mvrozanti_hotmail.com/bodies"
+set mbox_type = Maildir
+bind index,pager gg noop
+bind index,pager g noop
+bind index,pager M noop
+bind index,pager C noop
+macro index o "<shell-escape>mailsync -V hotmail<enter>" "run mbsync to sync hotmail"
+unmailboxes *
+set spoolfile = "+INBOX"
+set record = "+Sent\ Items"
+set postponed = "+Drafts"
+set trash = "+Trash.Infected\ Items"
+macro index o "<shell-escape>mailsync mvrozanti@hotmail.com<enter>" "sync mvrozanti@hotmail.com"
+mailboxes "=INBOX" "=Junk" "=Drafts" "=Sent" "=Trash" "=Archive" "=Pessoal" "=Investimentos" "=Governo" "=NTT Data|C6"
