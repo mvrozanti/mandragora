@@ -19,15 +19,9 @@ export SSH_KEY_PATH="~/.ssh/rsa_id"
 stty -ixon
 
 run_ranger() { echo; ranger --choosedir=$HOME/.rangerdir < $TTY; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"; zle reset-prompt }
-run_lf() { echo; lf; zle reset-prompt }
-run_nnn() { echo; nnn < $TTY ; zle reset-prompt }
-run_W() { clear; echo; W; zle reset-prompt }
-run_weather() { clear; echo; weather; zle reset-prompt }
 run_nvim_fast() { echo; nvim; zle reset-prompt }
 run_nvim() { echo; nvim -c 'Startify'; zle reset-prompt }
 run_khal() { echo; khal interactive < $TTY; zle reset-prompt }
-cd_tcc() { echo; cd ~/mackenzie/TCC/; zle reset-prompt }
-cd_sys4bank() { echo; cd ~/sys4bank/prog; zle reset-prompt }
 cd_downloads() { echo; cd ~/Downloads; zle reset-prompt }
 cd_fzf() { echo; cd "`ls|fzf`"; zle reset-prompt }
 run_ncmpcpp() { BUFFER="ncmpcpp"; zle accept-line }
@@ -35,15 +29,10 @@ run_clock() { echo; peaclock; zle reset-prompt}
 
 zle -N run_clock
 zle -N run_ranger
-
-zle -N run_nnn
-zle -N run_weather
-zle -N run_W
 zle -N run_nvim
 zle -N run_nvim_fast
 zle -N run_ncmpcpp
 zle -N run_khal
-zle -N cd_tcc 
 zle -N cd_downloads 
 zle -N cd_fzf 
 

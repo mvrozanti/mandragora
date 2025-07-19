@@ -1,18 +1,19 @@
 #!/usr/bin/zsh
+wmname LG3D
 wal -a 299 -i "`cat $HOME/.cache/wal/wal`"
 sshfs opc@oracle:/home/opc/drive oracle &
-pgrep -x compton             || $_ -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
+# pgrep -x compton             || $_ -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
+pgrep -x picom               || $_ &
 pgrep -x mpd                 || $_   &
 pgrep -x sxhkd               || $_   &
 pgrep -x ntfd                || $_   &
 pgrep -f cleanfullscreen     || nohup /home/m/.local/bin/cleanfullscreen 2>&1 > /dev/null &
-pgrep -f mpd-discord-rpc     || (sleep 10 && nohup /home/m/.cargo/bin/mpd-discord-rpc > /dev/null 2>&1 )
+pgrep -f mpd-discord-rpc     || nohup /home/m/.cargo/bin/mpd-discord-rpc 2>&1 > /dev/null &
 # pgrep -f twitch-indicator    || nohup /usr/bin/twitch-indicator 2>&1 > /dev/null &
 pgrep -f kdeconnectd         || nohup /usr/bin/kdeconnectd 2>&1 > /dev/null &
 pgrep -f keyledsd            || nohup /usr/bin/keyledsd 2>&1 > /dev/null &
 pgrep -f desktop_switcher    || nohup /home/m/.local/bin/desktop_switcher 2>&1 > /dev/null &
 pgrep -x polybar             || polybar mybar &
-
 
 
 bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX XXI XXII XXIII XXIV XXV XXVI XXVII XXVIII XXIX XXX XXXI XXXII XXXIII XXXIV XXXV XXXVI XXXVII XXXVIII XXXIX XL
@@ -34,6 +35,7 @@ bspc   rule   -a   Slack                       desktop=^9
 bspc   rule   -a   beekeeper-studio            desktop=^11 follow=true
 bspc   rule   -a   Gdmap                       desktop=^11 follow=true
 bspc   rule   -a   Postman                     desktop=^13
+bspc   rule   -a   bruno                       desktop=^13
 bspc   rule   -a   Zathura                     desktop=^19 follow=true state=tiled
 bspc   rule   -a   mpv                                                 state=floating
 bspc   rule   -a   Mysql-workbench-bin         desktop=^11 follow=true

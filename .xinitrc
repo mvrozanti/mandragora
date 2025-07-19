@@ -18,7 +18,6 @@ if [[ "$SSH_AGENT_PID" == "" ]]; then
 fi
 dbus-update-activation-environment DISPLAY XAUTHORITY
 touch /tmp/sxhkd.fifo
-echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor 
 sxhkd -s /tmp/sxhkd.fifo &
 xrandr --dpi 100
 exec bspwm > $HOME/bspwm.log 2>&1
