@@ -159,7 +159,7 @@ super + alt + 3
     kitty --title _tmux-float_ -o font_size=10
 	
 super + shift + r
-    notify-send 'Restarting bspwm' && bspc wm --restart && kill -SIGUSR1 $(pgrep sxhkd)
+    notify-send 'Restarting bspwm!!' && killall sxhkd && bspc wm --restart
 
 super + g
     $HOME/.local/bin/setbg
