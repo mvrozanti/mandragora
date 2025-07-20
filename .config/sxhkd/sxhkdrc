@@ -93,7 +93,7 @@ super + 3
     wmctrl -a _zsh_              || kitty --title _zsh_ --listen-on=unix:@zsh
     # wmctrl -x -a cool-retro-term              || cool-retro-term -T _zsh_ 
 
-super + 0
+super + 5
     wmctrl -xa Telegram          || QT_IM_MODULE=xim Telegram
 
 super + v
