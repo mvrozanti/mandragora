@@ -164,6 +164,13 @@ super + shift + r
 super + g
     $HOME/.local/bin/setbg
 
+super + alt + g
+    rofi -no-config -theme fullscreen-preview.rasi \
+             -show filebrowser -filebrowser-command 'setbg' \
+             -filebrowser-directory "/mnt/4ADE1465DE144C17/gdrive/Levv/wllpps" \
+             -filebrowser-sorting-method mtime \
+             -selected-row 1 >/dev/null
+
 super + c
     id=$(bspc query -N -n "focused");\
     if [ -n "$id" ];then \

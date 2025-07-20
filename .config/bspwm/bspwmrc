@@ -3,10 +3,10 @@ wmname LG3D
 wal -a 299 -i "`cat $HOME/.cache/wal/wal`"
 sshfs opc@oracle:/home/opc/drive oracle &
 # pgrep -x compton             || $_ -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
-pgrep -x picom               || $_ &
-pgrep -x mpd                 || $_   &
-pgrep -x sxhkd               || $_   &
-pgrep -x ntfd                || $_   &
+pgrep -x picom               || $_ --dbus &
+pgrep -x mpd                 || $_ &
+pgrep -x sxhkd               || $_ -s /tmp/sxhkd.fifo & 
+pgrep -x ntfd                || $_ &
 pgrep -f cleanfullscreen     || nohup /home/m/.local/bin/cleanfullscreen 2>&1 > /dev/null &
 pgrep -f mpd-discord-rpc     || nohup /home/m/.cargo/bin/mpd-discord-rpc 2>&1 > /dev/null &
 # pgrep -f twitch-indicator    || nohup /usr/bin/twitch-indicator 2>&1 > /dev/null &
