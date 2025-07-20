@@ -3,8 +3,9 @@
 # SETTINGS vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
 # API settings ________________________________________________________________
+import os
 
-APIKEY=2e9866f3f3e031c78b3bfca391276c4b
+APIKEY=os.env['OPEN_WEATHER_MAP_KEY']
 # if you leave these empty location will be picked based on your ip-adres
 CITY_NAME=''
 COUNTRY_CODE=''
@@ -43,10 +44,10 @@ COLOR_TEXT=""
 # Polybar settings ____________________________________________________________
 
 # Font for the weather icons
-WEATHER_FONT_CODE=7
+WEATHER_FONT_CODE=4
 
 # Font for the thermometer icon
-TEMP_FONT_CODE=7
+TEMP_FONT_CODE=2
 
 # Wind settings _______________________________________________________________
 
@@ -300,7 +301,7 @@ function setIcons {
 }
 
 function outputCompact {
-    OUTPUT="$WIND %{T$WEATHER_FONT_CODE}%{F$ICON_COLOR}$ICON%{F-}%{T-} $ERR_MSG$TEMP°C"
+    OUTPUT="$WIND %{T$WEATHER_FONT_CODE}%{F$ICON_COLOR}$ICON%{F-}%{T-} $ERR_MSG$COLOR_TEXT_BEGIN$DESCRIPTION$COLOR_TEXT_END| $TEMP"
     # echo "Output: $OUTPUT" >> "$HOME/.weather.log"
     echo "$OUTPUT"
 }
