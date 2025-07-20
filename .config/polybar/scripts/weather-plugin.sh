@@ -42,7 +42,7 @@ get_icon() {
 }
 
 KEY="$OPEN_WEATHER_MAP_KEY"
-CITY=""
+CITY="3448439"
 UNITS="metric"
 SYMBOL="°"
 
