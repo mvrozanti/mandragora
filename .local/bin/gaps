@@ -9,24 +9,27 @@ fi
 delta=5
 
 case "$arg" in
-    plus) $($gap_command $((`$gap_command` + $delta ))) ;;
+    plus) 
+        $($gap_command $((`$gap_command` + $delta ))) 
+        ;;
 
-    minus) if [ `$gap_command` -ne 0 ]; then
-        $($gap_command $((`$gap_command` - $delta )))
-        fi ;;
+    minus) 
+        if [ `$gap_command` -ne 0 ]; then
+            $($gap_command $((`$gap_command` - $delta )))
+        fi 
+        ;;
 
     equal) 
         $($gap_command 50)
-        xdotool key Escape 
         ;;
 
     zero) 
         $($gap_command 0) 
-        xdotool key Escape 
         ;;
 
     *) 
         $($gap_command $arg)
-        xdotool key Escape 
+        sleep 0.1 && xdotool key Escape
         ;;
 esac
+sleep 0.1 && xdotool key Escape
