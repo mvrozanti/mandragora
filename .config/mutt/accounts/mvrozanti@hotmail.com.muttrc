@@ -12,6 +12,6 @@ unmailboxes *
 set spoolfile = "+INBOX"
 set record = "+Sent\ Items"
 set postponed = "+Drafts"
-set trash = "+Trash.Infected\ Items"
+set trash = "+Trash"
 macro index o "<shell-escape>mailsync mvrozanti@hotmail.com<enter>" "sync mvrozanti@hotmail.com"
 mailboxes "=INBOX" "=Junk" "=Drafts" "=Sent" "=Trash" "=Archive" "=Pessoal" "=Investimentos" "=Governo" "=NTT Data|C6"
