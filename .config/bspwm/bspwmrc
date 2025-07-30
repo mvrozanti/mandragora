@@ -1,5 +1,5 @@
 #!/usr/bin/zsh
-wmname LG3D
+wmname LG3D # fixed IntelliJ flickering
 wal -a 299 -i "`cat $HOME/.cache/wal/wal`"
 sshfs opc@oracle:/home/opc/drive oracle &
 # pgrep -x compton             || $_ -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
