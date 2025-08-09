@@ -129,6 +129,10 @@ if [ "$class" = Org.gnome.Weather ]; then
 	echo state=floating rectangle=400x300+1160+470 sticky=on
 fi
 
+if [ "$class" = zenity ]; then
+	echo state=floating rectangle=400x300+1400+720 sticky=on
+fi
+
 if [ "$class" = globoplay-assista-tv-globo-ao-vivo-nativefier-529bf2 ] ; then
 	echo state=floating rectangle=550x300+1358+738 sticky=on
 fi
