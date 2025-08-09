@@ -2,6 +2,7 @@
 wmname LG3D # fixed IntelliJ flickering
 wal -a 299 -i "`cat $HOME/.cache/wal/wal`"
 sshfs opc@oracle:/home/opc/drive oracle &
+/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 # pgrep -x compton             || $_ -D 3 --blur-strength 10 --blur-method kawase -b --dbus &
 pgrep -x picom               || $_ --dbus &
 pgrep -x mpd                 || $_ &
