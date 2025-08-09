@@ -18,3 +18,4 @@ yes | trash-empty
 yes | sudo pacman -Scc
 yes | yay -Scc 
 rm ~/.xsession-errors* || true
+rm -rf /home/m/.gradle/caches
