@@ -107,12 +107,15 @@ super + ctrl + m
 
 super + shift + d
     wmctrl -a "Visual Studio Code" || \
+    wmctrl -xa "jetbrains-pycharm-ce" || \
     wmctrl -xa 'jetbrains-idea-ce' && exit; \
-    selected_option=$(printf 'IntelliJ\nVSCode' | rofi -dmenu -p "Select an IDE"); \
+    selected_option=$(printf 'IntelliJ\nVSCode\nPyCharm' | rofi -dmenu -p "Select an IDE"); \
     if [ "$selected_option" = "VSCode" ]; then \
       code; \
     elif [ "$selected_option" = "IntelliJ" ]; then \
       _JAVA_AWT_WM_NONREPARENTING=1 idea; \
+    elif [ "$selected_option" = "PyCharm" ]; then \
+      _JAVA_AWT_WM_NONREPARENTING=1 pycharm; \
     fi
 
 super + a
