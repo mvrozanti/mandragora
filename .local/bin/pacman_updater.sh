@@ -33,7 +33,7 @@ fi
         current=$((current+1))
         echo $((current * 100 / total))
         echo "# Installing $pkg"
-        echo "$PASSWORD" | sudo -S pacman -S --noconfirm "$pkg" >/dev/null 2>&1
+        echo "$PASSWORD" | sudo -S pacman -Su --noconfirm "$pkg" >/dev/null 2>&1
         if [ $? -ne 0 ]; then
             echo "# Failed to install $pkg"
         fi
@@ -41,7 +41,7 @@ fi
 
     echo 100
     echo "# Update complete"
-) | zenity --progress --title="Updating Packages" --auto-close --no-cancel --width=400
+) | zenity --progress --title="Updating Packages" --auto-close --no-cancel --width=300
 
 if [ $? -eq 0 ]; then
     zenity --info --text="Update complete!" --width=300
