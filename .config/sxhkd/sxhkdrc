@@ -165,7 +165,7 @@ super + shift + r
     notify-send 'Restarting bspwm!!' && killall sxhkd && bspc wm --restart
 
 super + g
-    $HOME/.local/bin/setbg > $HOME/setbg.log
+    $HOME/.local/bin/setbg
 
 super + alt + g
     rofi -no-config -theme fullscreen-preview.rasi \
