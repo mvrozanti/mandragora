@@ -105,6 +105,9 @@ super + shift + f
 super + ctrl + m
     wmctrl -a  Mathematica       || ~/.local/bin/Mathematica
 
+super + o
+    wmctrl -xa "libreoffice"      || libreoffice
+
 super + shift + d
     wmctrl -a "Visual Studio Code" || \
     wmctrl -xa "jetbrains-pycharm-ce" || \
