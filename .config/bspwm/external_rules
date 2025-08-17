@@ -97,6 +97,10 @@ if [ "$title" = _ranger_ ]; then
 	echo "desktop=^3"
 fi
 
+if [[ "$class" = "libreoffice"* ]]; then
+	echo "desktop=^21 follow=true"
+fi
+
 if [ "$class" = TelegramDesktop ]; then
 	echo "desktop=^6 follow=true"
 fi
