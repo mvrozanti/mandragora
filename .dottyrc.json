@@ -157,7 +157,8 @@
     ".xinitrc": "/home/m/.xinitrc",
     ".config/mutt/accounts/mvrozanti@hotmail.com.muttrc": "/home/m/.config/mutt/accounts/mvrozanti@hotmail.com.muttrc",
     ".config/polybar/scripts/updates-pacman.sh": "/home/m/.config/polybar/scripts/updates-pacman.sh",
-    ".local/bin/pacman_updater.sh": "/home/m/.local/bin/pacman_updater.sh"
+    ".local/bin/pacman_updater.sh": "/home/m/.local/bin/pacman_updater.sh",
+    ".config/polybar/scripts/cpu-temp.sh": "/home/m/.config/polybar/scripts/cpu-temp.sh"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
