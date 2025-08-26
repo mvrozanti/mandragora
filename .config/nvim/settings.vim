@@ -14,7 +14,6 @@ set clipboard=unnamed,unnamedplus
 set completeopt=longest,menuone
 filetype plugin indent on
 set laststatus=2
-set t_Co=256
 set fillchars+=vert:\$
 syntax enable
 set lbr
@@ -27,8 +26,12 @@ set shiftwidth=4
 set mouse=c
 set timeoutlen=300 ttimeoutlen=0
 set encoding=utf-8
-set notermguicolors
-colorscheme default
+
+set t_Co=256
+set termguicolors
+colorscheme pywal
+hi Normal ctermbg=NONE guibg=NONE
+hi NormalNC ctermbg=NONE guibg=NONE
 hi Search       cterm=NONE ctermbg=0 ctermfg=NONE
 hi Folded       ctermbg=none
 hi Pmenu        ctermbg=none
@@ -45,6 +48,7 @@ hi DiffText     ctermfg=1  ctermbg=0
 hi Visual       cterm=NONE ctermbg=0 ctermfg=NONE guibg=Grey40
 hi SignColumn   guibg=1 ctermbg=NONE
 hi javascriptReserved ctermbg=none ctermfg=3
+
 set fillchars+=vert:│
 set guicursor=i:100-bCursor
 set conceallevel=0

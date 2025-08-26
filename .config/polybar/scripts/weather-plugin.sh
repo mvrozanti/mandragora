@@ -44,7 +44,7 @@ get_icon() {
 KEY="$OPEN_WEATHER_MAP_KEY"
 CITY="3448439"
 UNITS="metric"
-SYMBOL="°"
+SYMBOL="°C"
 
 API="https://api.openweathermap.org/data/2.5"
 
