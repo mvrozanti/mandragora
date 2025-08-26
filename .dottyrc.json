@@ -158,7 +158,8 @@
     ".config/mutt/accounts/mvrozanti@hotmail.com.muttrc": "/home/m/.config/mutt/accounts/mvrozanti@hotmail.com.muttrc",
     ".config/polybar/scripts/updates-pacman.sh": "/home/m/.config/polybar/scripts/updates-pacman.sh",
     ".local/bin/pacman_updater.sh": "/home/m/.local/bin/pacman_updater.sh",
-    ".config/polybar/scripts/cpu-temp.sh": "/home/m/.config/polybar/scripts/cpu-temp.sh"
+    ".config/polybar/scripts/cpu-temp.sh": "/home/m/.config/polybar/scripts/cpu-temp.sh",
+    ".config/nvim/colors/pywal.vim": "/home/m/.config/nvim/colors/pywal.vim"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
