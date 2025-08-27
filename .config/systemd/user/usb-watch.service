@@ -1,0 +1,9 @@
+[Unit]
+Description=Reapply X keyboard settings on USB add
+
+[Service]
+ExecStart=%h/.local/bin/usb-watch.sh
+Restart=always
+
+[Install]
+WantedBy=default.target
