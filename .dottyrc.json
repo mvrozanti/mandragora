@@ -159,7 +159,8 @@
     ".config/polybar/scripts/updates-pacman.sh": "/home/m/.config/polybar/scripts/updates-pacman.sh",
     ".local/bin/pacman_updater.sh": "/home/m/.local/bin/pacman_updater.sh",
     ".config/polybar/scripts/cpu-temp.sh": "/home/m/.config/polybar/scripts/cpu-temp.sh",
-    ".config/nvim/colors/pywal.vim": "/home/m/.config/nvim/colors/pywal.vim"
+    ".config/nvim/colors/pywal.vim": "/home/m/.config/nvim/colors/pywal.vim",
+    ".local/bin/usb-watch.sh": "/home/m/.local/bin/usb-watch.sh"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [

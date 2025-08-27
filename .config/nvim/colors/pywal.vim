@@ -52,21 +52,35 @@ let s:text_groups = [
       \ ]
 
 function! s:apply_dynamic_pywal() abort
+    let current_mode = mode()
+    let in_visual = current_mode ==# 'v' || current_mode ==# 'V' || current_mode ==# "\<C-V>"
+
     for group in getcompletion('', 'highlight')
         if index(s:text_groups, group) >= 0
             let fg = s:pick_color_for_group(group, s:wal_colors_light)
         else
             let fg = s:pick_color_for_group(group, s:wal_colors)
         endif
-        let bg = 'NONE'
+
+        if in_visual
+            let bg = '#444444'  " pick a pywal-ish visual background
+        else
+            let bg = 'NONE'
+        endif
+
         execute 'hi ' . group . ' guifg=' . fg . ' guibg=' . bg
     endfor
+
+    " Ensure message lines are readable
+    if len(s:wal_colors_light) > 0
+        let msg_fg = s:wal_colors_light[0]
+    else
+        let msg_fg = '#ffffff'
+    endif
+    execute 'hi MsgArea guifg=' . msg_fg . ' guibg=NONE'
+    execute 'hi ModeMsg guifg=' . msg_fg . ' guibg=NONE'
 endfunction
 
 call s:apply_dynamic_pywal()
 autocmd ColorScheme * call s:apply_dynamic_pywal()
-
-if exists("g:airline_theme")
-    let g:airline_theme = 'auto'
-endif
 
