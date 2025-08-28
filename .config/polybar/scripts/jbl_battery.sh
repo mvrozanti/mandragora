@@ -8,16 +8,16 @@ BAT=$(printf '%s' "$INFO" | grep "Battery Percentage" | grep -oP '\(\K[0-9]+')
 
 if [ "$CONNECTED" -eq 1 ]; then
   ICON="%{F#2196f3}%{F-}"
-  CMD="bluetoothctl disconnect $DEVICE"
+  CMD="printf 'select %s\ndisconnect %s\n' "$ADAPTER" "$DEVICE" | bluetoothctl"
 else
   ICON=""
-  CMD="bluetoothctl connect $DEVICE"
+  CMD="printf 'select %s\nconnect %s\n' "$ADAPTER" "$DEVICE" | bluetoothctl"
 fi
 
 if [ -n "$BAT" ]; then
   TEXT="$ICON $BAT%"
 else
-  TEXT="$ICON ?%"
+  TEXT="$ICON"
 fi
 
 CMD_B64=$(printf '%s' "$CMD" | base64 -w0)
