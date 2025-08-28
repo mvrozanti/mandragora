@@ -161,7 +161,8 @@
     ".config/polybar/scripts/cpu-temp.sh": "/home/m/.config/polybar/scripts/cpu-temp.sh",
     ".config/nvim/colors/pywal.vim": "/home/m/.config/nvim/colors/pywal.vim",
     ".local/bin/usb-watch.sh": "/home/m/.local/bin/usb-watch.sh",
-    ".config/systemd/user/usb-watch.service": "/home/m/.config/systemd/user/usb-watch.service"
+    ".config/systemd/user/usb-watch.service": "/home/m/.config/systemd/user/usb-watch.service",
+    ".config/systemd/user": "/home/m/.config/systemd/user"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
