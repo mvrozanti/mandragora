@@ -4,8 +4,7 @@ Description=Reapply X keyboard settings on USB add
 [Service]
 Type=simple
 ExecStart=%h/.local/bin/usb-watch.sh
-Restart=on-failure
-RestartSec=5
+Restart=no
 
 [Install]
 WantedBy=default.target
