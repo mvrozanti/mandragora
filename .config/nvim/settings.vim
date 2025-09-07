@@ -59,3 +59,7 @@ set fillchars+=vert:│
 set guicursor=i:100-bCursor
 set conceallevel=0
 set ve+=onemore
+
+
+
+
