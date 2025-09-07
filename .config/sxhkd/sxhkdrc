@@ -269,7 +269,7 @@ super + parenright
     bspc config -d focused window_gap 0
 
 super + {alt,shift} + g ; {z,s,shift+i}
-    $HOME/.local/bin/gaps {all,local} {zero,100,50} 
+    $HOME/.local/bin/gaps {all,local} {zero,100,40} 
 
 super + {alt,shift} + g : {j,k}
     $HOME/.local/bin/gaps {all,local} {minus,plus} 
