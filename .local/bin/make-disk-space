@@ -17,5 +17,6 @@ conda clean -a -y
 yes | trash-empty
 yes | sudo pacman -Scc
 yes | yay -Scc 
+npm cache clean --force
 rm ~/.xsession-errors* || true
 rm -rf /home/m/.gradle/caches
