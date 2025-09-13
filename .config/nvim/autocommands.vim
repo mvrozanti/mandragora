@@ -8,7 +8,6 @@ au BufEnter *.wl :setlocal filetype=wolframlanguage
 au BufEnter *polybar/config :setlocal filetype=polybar
 au FileType prolog setlocal commentstring=%\ %s
 au FileType polybar setlocal commentstring=\;\ %s
-au FileType perl setlocal commentstring=%\ %s
 au FileType jq setlocal commentstring=#\ %s
 au FileType perl setlocal commentstring=%\ %s
 au FileType java call SetupCommandAlias("mvnexec","!mvnexec %")

@@ -27,9 +27,9 @@ set mouse=c
 set timeoutlen=300 ttimeoutlen=0
 set encoding=utf-8
 
-set t_Co=256
-set termguicolors
-colorscheme pywal
+" set t_Co=256
+" set termguicolors
+" colorscheme pywal
 
 " hi MsgArea guifg=#ffffff guibg=NONE
 " hi ModeMsg guifg=#ffffff guibg=NONE
@@ -58,7 +58,15 @@ colorscheme pywal
 set fillchars+=vert:│
 set guicursor=i:100-bCursor
 set conceallevel=0
-set ve+=onemore
+" set ve+=onemore
+
+
+
+
+
+
+
+
 
 
 
