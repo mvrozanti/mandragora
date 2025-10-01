@@ -10,6 +10,9 @@ super + shift + Return
 super + f
     bspc node -t \~fullscreen
 
+ctrl + super + f
+    $HOME/.local/bin/resize-window.sh 1920 1080 && $HOME/.local/bin/center-window.sh
+
 super + Tab
     bspc node -f next.local.!hidden.window
 
