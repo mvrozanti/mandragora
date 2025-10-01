@@ -22,12 +22,15 @@ case "$arg" in
         ;;
     equal)
         $gap_command 50
+        xdotool key Escape
         ;;
     zero)
         $gap_command 0
+        xdotool key Escape
         ;;
     *)
         $gap_command $arg
+        xdotool key Escape
         ;;
 esac
 
