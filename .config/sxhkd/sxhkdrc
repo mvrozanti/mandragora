@@ -123,11 +123,11 @@ super + shift + d
     if [ "$selected_option" = "VSCode" ]; then \
       code; \
     elif [ "$selected_option" = "IntelliJ" ]; then \
-      _JAVA_AWT_WM_NONREPARENTING=1 idea; \
+      idea; \
     elif [ "$selected_option" = "PyCharm" ]; then \
-      _JAVA_AWT_WM_NONREPARENTING=1 pycharm; \
+      pycharm; \
     elif [ "$selected_option" = "Cursor" ]; then \
-      ~/.local/bin/cursor; \
+      /home/m/.local/bin/cursor; \
     fi
 
 super + a
