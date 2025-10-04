@@ -13,6 +13,9 @@ super + f
 ctrl + super + f
     $HOME/.local/bin/resize-window.sh 1920 1080 && $HOME/.local/bin/center-window.sh
 
+super + dead_grave
+    bspc desktop -f next.local
+
 super + Tab
     bspc node -f next.local.!hidden.window
 
@@ -63,10 +66,10 @@ super + F1
 super + F2
     amixer -D pulse sset Master 4%+
 
-super + dead_grave
+super + w
     wmctrl -a _ncmpcpp_          || kitty --title _ncmpcpp_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ncmpcpp"
 
-super + alt + dead_grave
+super + alt + w
     wmctrl -a _ncmpcpp_          || kitty --title _visualizer-float_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new ncmpcpp"
 
 super + shift + 4
