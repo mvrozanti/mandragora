@@ -127,7 +127,7 @@ super + shift + d
     elif [ "$selected_option" = "PyCharm" ]; then \
       _JAVA_AWT_WM_NONREPARENTING=1 pycharm; \
     elif [ "$selected_option" = "Cursor" ]; then \
-      cursor; \
+      ~/.local/bin/cursor; \
     fi
 
 super + a
