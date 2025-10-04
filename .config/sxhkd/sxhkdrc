@@ -112,6 +112,7 @@ super + o
     wmctrl -xa "libreoffice"      || libreoffice
 
 super + shift + d
+    wmctrl -a "cursor" || \
     wmctrl -a "Visual Studio Code" || \
     wmctrl -xa "jetbrains-pycharm-ce" || \
     wmctrl -xa 'jetbrains-idea-ce' && exit; \
@@ -122,6 +123,8 @@ super + shift + d
       _JAVA_AWT_WM_NONREPARENTING=1 idea; \
     elif [ "$selected_option" = "PyCharm" ]; then \
       _JAVA_AWT_WM_NONREPARENTING=1 pycharm; \
+    elif [ "$selected_option" = "cursor" ]; then \
+      cursor; \
     fi
 
 super + a
