@@ -438,6 +438,7 @@
     "command -v jmtpfs                  || yay -S $_",
     "command -v browsh                  || yay -S $_",
     "command -v googler                 || yay -S $_",
+    "command -v rofimoji                || yay -S $_",
     "command -v downgrade               || yay -S $_",
     "command -v transmission-remote-cli || yay -S $_ ",
     "command -v lf                      || yay -S $_ ",
