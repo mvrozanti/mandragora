@@ -313,7 +313,7 @@ super + BackSpace
 super + Pause
     poweroff
 
-super + alt + Pause
+super + Home
     $HOME/.local/bin/lock
 
 ctrl + super + Pause
