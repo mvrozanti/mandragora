@@ -84,7 +84,7 @@ super + 1
     wmctrl -a Firefox            || pgrep firefox || wmctrl -a Chromium || firefox
 
 super + 2
-    wmctrl -a _ranger_           || kitty --title _ranger_ -e zsh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new 'source ~/.zshrc; ranger'"
+    wmctrl -a _ranger_           || kitty --title _ranger_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new 'source ~/.zshrc; ranger'"
 
 super + shift + 2
     wmctrl -a nemo               || nemo
@@ -205,13 +205,7 @@ super + space
     fi
 
 super + shift + space
-    if [ -z "$(bspc query -N -n focused.floating)" ]; then \
-        bspc node focused -t floating; \
-        win_id=$(bspc query -N -n .window.focused); \
-        wmctrl -ir $win_id -e 0,260,140,1400,800; \
-    else \
-        bspc node focused -t tiled; \
-    fi
+    $HOME/.local/bin/pop
 
 super + shift + c
     i=$(bspc query -N -n "focused.floating");\
