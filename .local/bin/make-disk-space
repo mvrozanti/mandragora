@@ -21,3 +21,4 @@ yes | yay -Scc
 npm cache clean --force
 rm ~/.xsession-errors* || true
 rm -rf /home/m/.gradle/caches
+rm -rf /home/m/.cache/ueberzugpp
