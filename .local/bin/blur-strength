@@ -1,0 +1,60 @@
+#!/bin/sh
+
+if [ "$#" -ne 1 ]; then
+  echo "Usage: $0 [+N|-N|N]"
+  exit 1
+fi
+
+arg="$1"
+
+# Parse the argument to determine action and amount
+case "$arg" in
+  +*) action="add"; amount="${arg#+}" ;;
+  -*) action="add"; amount="${arg#-}"
+      # Make it negative by prepending minus
+      amount="-${amount}" ;;
+  *)  action="set"; amount="$arg" ;;
+esac
+
+# Validate that amount is a number (can be negative for add, but not for set)
+if [ "$action" = "set" ]; then
+  # For set, must be non-negative integer
+  if ! echo "$amount" | grep -qE '^[0-9]+$'; then
+    echo "Amount must be a non-negative integer"
+    exit 1
+  fi
+else
+  # For add, can be positive or negative integer
+  if ! echo "$amount" | grep -qE '^-?[0-9]+$'; then
+    echo "Amount must be an integer"
+    exit 1
+  fi
+fi
+
+[ -z "$SED" ] && SED="sed"
+command -v gsed >/dev/null 2>&1 && SED="gsed"
+
+dpy=$(printf "%s" "$DISPLAY" | tr -c '[:alnum:]' _)
+[ -z "$dpy" ] && { echo "Cannot find display."; exit 1; }
+
+service="com.github.chjj.compton.${dpy}"
+interface='com.github.chjj.compton'
+object='/com/github/chjj/compton'
+type_win='uint32'
+
+dbus-send --print-reply --dest="$service" "$object" "${interface}.opts_set" string:track_focus boolean:true
+
+focused=$(dbus-send --print-reply --dest="$service" "$object" "${interface}.find_win" string:focused | $SED -n "s/^[[:space:]]*${type_win}[[:space:]]*\\([0-9]*\\).*/\\1/p")
+
+[ -z "$focused" ] && { echo "No focused window."; exit 1; }
+
+# Use opts_set for global blur strength changes
+if [ "$action" = "set" ]; then
+  # Set blur strength to absolute value
+  dbus-send --print-reply --dest="$service" "$object" "${interface}.opts_set" string:blur_strength "int32:${amount}"
+else
+  # Add/subtract from current blur strength
+  dbus-send --print-reply --dest="$service" "$object" "${interface}.opts_set" string:add_blur_strength "int32:${amount}"
+fi
+
+
