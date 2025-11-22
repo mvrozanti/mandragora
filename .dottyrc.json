@@ -84,7 +84,7 @@
     ".local/bin/gacp": "~/.local/bin/gacp",
     ".config/mpv/mpv.conf": "~/.config/mpv/mpv.conf",
     ".local/bin/mvnexec": "~/.local/bin/mvnexec",
-    ".config/kdeconnect/4867d0d0cc3048f8/kdeconnect_runcommand/config": "~/.config/kdeconnect/4867d0d0cc3048f8/kdeconnect_runcommand/config",
+    ".config/kdeconnect/4867d0d0cc3048f8/kdeconnect_runcommand/config": "/home/m/.config/kdeconnect/4867d0d0cc3048f8/kdeconnect_runcommand/config",
     ".config/pueue/pueue.ini": "~/.config/pueue/pueue.ini",
     ".local/bin/polyb": "~/.local/bin/polyb",
     ".local/bin/cursivescript": "~/.local/bin/cursivescript",
