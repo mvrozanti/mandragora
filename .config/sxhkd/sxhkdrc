@@ -10,9 +10,6 @@ super + shift + Return
 super + f
     bspc node -t \~fullscreen
 
-ctrl + super + f
-    $HOME/.local/bin/resize-window.sh 1920 1080 && $HOME/.local/bin/center-window.sh
-
 super + dead_grave
     bspc desktop -f next.local
 
@@ -21,9 +18,6 @@ super + Tab
 
 alt + Tab
     bspc desktop -f last
-
-super + End
-    $HOME/.local/bin/polybar-compton-toggle
 
 alt + super + shift + p
     polybar-msg cmd hide
@@ -158,9 +152,6 @@ ctrl + super + d
         mongodb-compass; \
     fi
 
-super + ctrl + g
-    wmctrl -a globoplay          || $HOME/.local/bin/globo
-
 super + ctrl + p                                               
     wmctrl -a "LM-X410.F"        || adb connect 192.168.0.4:5555 && scrcpy -S
 
@@ -178,9 +169,6 @@ super + alt + 3
 	
 super + shift + r
     notify-send 'Restarting bspwm!!' && killall sxhkd && bspc wm --restart
-
-super + g
-    $HOME/.local/bin/setbg
 
 super + alt + g
     rofi -no-config -theme fullscreen-preview.rasi \
@@ -204,11 +192,8 @@ super + space
         bspc node -f any.local.tiled; \
     fi
 
-super + shift + space
-    $HOME/.local/bin/pop
-
-super + shift + c
-    $HOME/.local/bin/scratchpad
+super + d
+    $HOME/.local/desktop
 
 ctrl + alt + {q,e}
     bspc desktop -f {prev.occupied,next.occupied}
@@ -243,24 +228,11 @@ super + {_,shift + }{h,j,k,l}
 super + ctrl + {h,j,k,l}
     $HOME/.config/sxhkd/custom_resize {left,down,up,right}
 
-super + d
-    if [ $(bspc query -D -d --names) = I ]; then \
-        bspc desktop -f last; \
-    else \
-        bspc desktop -f I; \
-    fi
-
 super + {minus,equal}
     bspc config -d focused window_gap $((`bspc config -d focused window_gap` {+,-} 5 ))
 
 super + parenright
     bspc config -d focused window_gap 0
-
-super + {alt,shift} + g ; {z,s,shift+i}
-    $HOME/.local/bin/gaps {all,local} {zero,100,40} 
-
-super + {alt,shift} + g : {j,k}
-    $HOME/.local/bin/gaps {all,local} {minus,plus} 
 
 ctrl + super + space
     $HOME/util/compton/dbus-examples/dbus-strength.sh -1
@@ -289,17 +261,8 @@ super + BackSpace
 super + Pause
     poweroff
 
-super + Home
-    $HOME/.local/bin/lock
-
 ctrl + super + Pause
     notify-send 'Power off in 5 minutes'; sleep 300; poweroff
-
-super + ctrl + shift + {1,2,3,4}
-    $HOME/.local/bin/window_to_corner {top-left, top-right, bottom-left, bottom-right}
-
-super + ctrl + {E,R,W,Q,S}
-    $HOME/.local/bin/kk {0,1,2,3,4}
 
 super + m
     dunstctl close
@@ -310,11 +273,29 @@ super + shift + n
 super + shift + m
     dunstctl close-all
 
-super + alt + c
-    $HOME/.local/bin/cycle-audio-output
-
 super + shift + i
     dunstctl context
+
+ctrl + super + f
+    $HOME/.local/bin/resize-window.sh 1920 1080 && $HOME/.local/bin/center-window.sh
+
+super + End
+    $HOME/.local/bin/polybar-compton-toggle
+
+super + g
+    $HOME/.local/bin/setbg
+
+super + ctrl + shift + {1,2,3,4}
+    $HOME/.local/bin/window_to_corner {top-left, top-right, bottom-left, bottom-right}
+
+super + ctrl + {E,R,W,Q,S}
+    $HOME/.local/bin/kk {0,1,2,3,4}
+
+super + Home
+    $HOME/.local/bin/lock
+
+super + alt + c
+    $HOME/.local/bin/cycle-audio-output
 
 button9
     $HOME/.local/bin/hid-wrapper --on
@@ -327,6 +308,18 @@ super + button9
 
 super + button8
     $HOME/.local/bin/light $(printf 'High\nLow\nColor\nRainbow' | rofi -dmenu -p "Light temperature:");
+
+super + {alt,shift} + g ; {z,s,shift+i}
+    $HOME/.local/bin/gaps {all,local} {zero,100,40} 
+
+super + {alt,shift} + g : {j,k}
+    $HOME/.local/bin/gaps {all,local} {minus,plus} 
+
+super + shift + space
+    $HOME/.local/bin/pop
+
+super + shift + c
+    $HOME/.local/bin/scratchpad
 
 # Now open, lock!
 # To the Dead Man's knock!
