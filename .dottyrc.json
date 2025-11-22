@@ -169,7 +169,8 @@
     ".local/bin/center-window.sh": "/home/m/.local/bin/center-window.sh",
     ".config/kdeconnect/b38a6258_3ef6_47c4_89a0_0606288c3507/kdeconnect_runcommand/config": "/home/m/.config/kdeconnect/b38a6258_3ef6_47c4_89a0_0606288c3507/kdeconnect_runcommand/config",
     ".local/bin/pop": "/home/m/.local/bin/pop",
-    ".local/bin/scratchpad": "/home/m/.local/bin/scratchpad"
+    ".local/bin/scratchpad": "/home/m/.local/bin/scratchpad",
+    "adata/util/whisper-experiments/desktop": "/home/m/adata/util/whisper-experiments/desktop"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
