@@ -25,6 +25,7 @@
     ".config/pulse/default.pa": "~/.config/pulse/default.pa",
     "_usr/etc/netbeans.conf": "_/usr/etc/netbeans.conf",
     "etc/ly/config.ini": "/etc/ly/config.ini",
+    "etc/pacman.conf": "/etc/pacman.conf",
     ".config/nvim/plugged/vim-cute-python/after/syntax/python.vim": "~/.config/nvim/plugged/vim-cute-python/after/syntax/python.vim",
     ".tmux.conf": "~/.tmux.conf",
     ".bash_aliases": "~/.bash_aliases",
