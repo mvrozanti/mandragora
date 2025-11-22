@@ -1,60 +1,28 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-VERBOSITY=1
-NOTIFICATIONS=1
+# Get all sink names in an array
+sinks=( $(pactl list short sinks | awk '{print $2}') )
 
-function get_current_sink {
-    wpctl status | awk '/\* Default Sink/ {print $NF}'
-}
+# Get current default sink
+current=$(pactl info | grep "Default Sink" | awk '{print $3}')
 
-function get_all_sinks {
-    wpctl status | awk '/Sink/ {print $2}'
-}
-
-function get_next_sink {
-    local current="$1"
-    local sinks=($(get_all_sinks))
-    for i in "${!sinks[@]}"; do
-        if [[ "${sinks[$i]}" == "$current" ]]; then
-            next_index=$(( (i + 1) % ${#sinks[@]} ))
-            echo "${sinks[$next_index]}"
-            return
-        fi
-    done
-    # fallback
-    echo "${sinks[0]}"
-}
-
-function move_streams_to_sink {
-    local sink="$1"
-    for stream in $(wpctl status | awk '/Stream/ {print $2}'); do
-        wpctl set-route "$stream" "$sink"
-    done
-}
-
-function send_notification {
-    local sink="$1"
-    local name
-    name=$(wpctl inspect "$sink" | awk -F: '/Name/ {print $2}' | xargs)
-    notify-send "Output switched" "Changed output to $name" --icon=audio-headphones-symbolic
-    [[ $VERBOSITY -eq 1 ]] && echo "Selected device: $name"
-}
-
-# MAIN
-while getopts "vn" opt; do
-    case "$opt" in
-        v) VERBOSITY=1 ;;
-        n) NOTIFICATIONS=1 ;;
-        *) echo "Invalid option: -$OPTARG" >&2 ;;
-    esac
+# Find index of current sink and calculate next
+for i in "${!sinks[@]}"; do
+    if [[ "${sinks[$i]}" == "$current" ]]; then
+        next_index=$(( (i+1) % ${#sinks[@]} ))
+        break
+    fi
 done
-shift $((OPTIND-1))
 
-CURRENT=$(get_current_sink)
-NEXT=$(get_next_sink "$CURRENT")
+# Set the next sink as default
+next_sink="${sinks[$next_index]}"
+pactl set-default-sink "$next_sink"
 
-wpctl set-default "$NEXT"
-move_streams_to_sink "$NEXT"
+# Move all playing streams to the new sink
+for stream in $(pactl list short sink-inputs | awk '{print $1}'); do
+    pactl move-sink-input "$stream" "$next_sink"
+done
 
-[[ "$NOTIFICATIONS" -eq 1 ]] && send_notification "$NEXT"
+# Send notification with the new sink name
+notify-send "Audio Output Switched" "Current sink: $next_sink"
 
