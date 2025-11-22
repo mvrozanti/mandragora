@@ -1,19 +1,59 @@
-i=$(bspc query -N -n "focused.floating");\
-if [ -n "$i" ];then \
-    xprop -id $i -f _SCRATCH 32ii -set _SCRATCH $(date +%s,%N);\
-    xdotool windowunmap $i;\
-else;\
+#!/usr/bin/env bash
+set -euo pipefail
 
-    i=$(for w in $(xwininfo -root -children | grep -e "^\s*0x[0-9a-f]\+" -o);do \
-        t=$(xprop -id $w _SCRATCH | grep ' = \(.*\)');\
-        if [ -n "$t" ];then \
-            echo $t $w;\
-        fi;\
-    done|sort -n|head -n1|cut -d" " -f 5);\
-    if [ -n "$i" ];then \
-        xprop -id $i -remove _SCRATCH;\
-        bspc rule -a \* state=tiled center=on --one-shot;\
-        xdotool windowmap $i;\
-        bspc node -f $i;\
-    fi;\
+cmd=${1:-}
+if [[ "$cmd" == "show" ]]; then
+    i=$(bspc query -N -n "focused.floating" 2>/dev/null || true)
+    if [[ -n "$i" ]]; then
+        xprop -id "$i" -f _SCRATCH 32ii -set _SCRATCH "$(date +%s,%N)"
+        xdotool windowunmap "$i"
+        exit 0
+    fi
+
+    mapfile -t wins < <(xwininfo -root -children | grep -oE '0x[0-9a-f]+' || true)
+    if [[ ${#wins[@]} -eq 0 ]]; then
+        exit 0
+    fi
+
+    candidates=()
+    for w in "${wins[@]}"; do
+        t=$(xprop -id "$w" _SCRATCH 2>/dev/null || true)
+        val=$(printf '%s' "$t" | sed -n 's/^[^=]*= //p' || true)
+        if [[ -n "$val" ]]; then
+            ts=${val%%,*}
+            candidates+=("$ts|$w")
+        fi
+    done
+
+    if [[ ${#candidates[@]} -eq 0 ]]; then
+        exit 0
+    fi
+
+    IFS=$'\n' sorted=($(printf '%s\n' "${candidates[@]}" | sort -t'|' -k1,1n))
+    for entry in "${sorted[@]}"; do
+        w=${entry#*|}
+        if ! xprop -id "$w" >/dev/null 2>&1; then
+            continue
+        fi
+        xprop -id "$w" -remove _SCRATCH 2>/dev/null || true
+        bspc rule -a '*' state=tiled center=on --one-shot
+        if xdotool windowmap "$w" >/dev/null 2>&1; then
+            bspc node -f "$w"
+            exit 0
+        fi
+    done
+
+    exit 0
+
+elif [[ "$cmd" == "hide" ]]; then
+    id=$(bspc query -N -n focused 2>/dev/null || true)
+    if [[ -n "$id" ]]; then
+        xprop -id "$id" -f _SCRATCH 32ii -set _SCRATCH "$(date +%s,%N)"
+        bspc node "$id" -t floating
+        xdotool windowunmap "$id"
+    fi
+else
+    echo "usage: $0 {show|hide}" >&2
+    exit 2
 fi
+
