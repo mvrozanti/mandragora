@@ -1,53 +1,60 @@
-#! /bin/bash
+#!/usr/bin/env bash
+
 VERBOSITY=1
 NOTIFICATIONS=1
 
-function swap_sink {
-  o_pulseaudio=$(pacmd list-sinks | grep -e '\* index' -e 'device.description')
+function get_current_sink {
+    wpctl status | awk '/\* Default Sink/ {print $NF}'
+}
 
-  ssink=$(echo "$o_pulseaudio" | grep -e '\* index' | awk '{print $3}')
+function get_all_sinks {
+    wpctl status | awk '/Sink/ {print $2}'
+}
 
-  newsink=$(pacmd list-sinks | awk -v ssink="$ssink" '$1 == "index:" && f { print $2; exit } $2 == ssink { f = 1 }')
+function get_next_sink {
+    local current="$1"
+    local sinks=($(get_all_sinks))
+    for i in "${!sinks[@]}"; do
+        if [[ "${sinks[$i]}" == "$current" ]]; then
+            next_index=$(( (i + 1) % ${#sinks[@]} ))
+            echo "${sinks[$next_index]}"
+            return
+        fi
+    done
+    # fallback
+    echo "${sinks[0]}"
+}
 
-  if [ -z "$newsink" ]; then
-    newsink=$(pacmd list-sinks | awk '$1 == "index:" { print $2; exit }')
-  fi
-
-  eval "pacmd set-default-sink $newsink"
-
-  inputs=$(pactl list sink-inputs short | cut -f 1)
-  for i in $inputs; do
-    eval "pacmd move-sink-input $i $newsink"
-  done
+function move_streams_to_sink {
+    local sink="$1"
+    for stream in $(wpctl status | awk '/Stream/ {print $2}'); do
+        wpctl set-route "$stream" "$sink"
+    done
 }
 
 function send_notification {
-  o_pulseaudio=$(pacmd list-sinks | grep -e 'index' -e 'device.description')
-  device_name=$(echo "$o_pulseaudio" | sed -n '/* index/{n;p;}' | grep -o '".*"' | sed 's/"//g')
-  echo "Selected device: $device_name"
-  notify-send "Output cycle" "Changed output to ${device_name}" --icon=audio-headphones-symbolic
+    local sink="$1"
+    local name
+    name=$(wpctl inspect "$sink" | awk -F: '/Name/ {print $2}' | xargs)
+    notify-send "Output switched" "Changed output to $name" --icon=audio-headphones-symbolic
+    [[ $VERBOSITY -eq 1 ]] && echo "Selected device: $name"
 }
 
-#MAIN
+# MAIN
 while getopts "vn" opt; do
-  case "${opt}" in
-    v)
-      VERBOSITY=1
-      echo VERBOSE
-      ;;
-    n)
-      NOTIFICATIONS=1
-      ;;
-    *)
-      echo "Invalid option: -$OPTARG" >&2
-      ;;
-  esac
+    case "$opt" in
+        v) VERBOSITY=1 ;;
+        n) NOTIFICATIONS=1 ;;
+        *) echo "Invalid option: -$OPTARG" >&2 ;;
+    esac
 done
 shift $((OPTIND-1))
 
-swap_sink
+CURRENT=$(get_current_sink)
+NEXT=$(get_next_sink "$CURRENT")
 
-if [ "$NOTIFICATIONS" == 1 ]; then
-  send_notification
-fi
+wpctl set-default "$NEXT"
+move_streams_to_sink "$NEXT"
+
+[[ "$NOTIFICATIONS" -eq 1 ]] && send_notification "$NEXT"
 
