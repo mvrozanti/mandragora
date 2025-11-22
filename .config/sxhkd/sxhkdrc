@@ -150,7 +150,7 @@ super + p
 ctrl + super + d
     wmctrl -xa baobab && exit; \
     wmctrl -xa 'MongoDB' && exit; \
-    code_opts=("gdmap" "mongodb-compass"); \
+    code_opts=("baobab" "mongodb-compass"); \
     selected_option=$(printf '%s\n' "${code_opts[@]}" | rofi -dmenu -p "Select a Database"); \
     if [ "$selected_option" = "baobab" ]; then \
         baobab; \
