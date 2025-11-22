@@ -4,6 +4,7 @@ yes | sudo rm -r /var/lib/systemd/coredump/core.*
 yes | sudo flatpak uninstall --unused
 yes | trash-empty
 yes | sudo rm -rf /var/lib/snapd/cache/*
+# yes | sudo rm -rf /var/cache/pacman/pkg/download-*
 yes | docker system prune -a --volumes
 yes | pip cache purge
 yes | yarn cache clean
