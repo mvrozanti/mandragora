@@ -22,3 +22,9 @@ npm cache clean --force
 rm ~/.xsession-errors* || true
 rm -rf /home/m/.gradle/caches
 rm -rf /home/m/.cache/ueberzugpp
+flatpak uninstall --delete-data
+rm -rf /home/m/.config/discord/Cache
+rm -rf /home/m/.config/whatsappweb-nativefier-d40211/Cache
+rm -rf /home/m/.config/whatsappweb-nativefier-d40211/Code Cache
+rm -rf /home/m/.config/Code - OSS/Cache
+rm -rf /home/m/.config/Code/Cache
