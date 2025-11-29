@@ -19,4 +19,5 @@ fi
 dbus-update-activation-environment DISPLAY XAUTHORITY
 touch /tmp/sxhkd.fifo
 xrandr --dpi 100
+fcitx5 &
 exec bspwm
