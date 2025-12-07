@@ -14,11 +14,12 @@ servers = (
     tls_verify = "yes";
   },
   {
-    address = "irc.freenode.net";
+    address = "chat.freenode.net";
     chatnet = "Freenode";
     port = "6697";
     use_tls = "yes";
     tls_verify = "yes";
+    autoconnect = "yes";
   },
   {
     address = "irc.gamesurge.net";
@@ -64,29 +65,17 @@ servers = (
     port = "6667";
   },
   {
-    address = "irc.freenode.net";
-    chatnet = "Freenode";
-    port = "6667";
-    use_tls = "no";
-    tls_verify = "no";
-    autoconnect = "yes";
-  },
-  {
-    address = "irc.freenode.net";
-    chatnet = "fn";
-    port = "6667";
-    use_tls = "no";
-    tls_verify = "no";
-    autoconnect = "yes";
-  },
-  {
-    address = "chat.freenode.net";
-    chatnet = "Freenode";
+    address = "libera-test";
     port = "6697";
     use_tls = "yes";
-    tls_cert = "~/.irssi/irssi.pem";
     tls_verify = "yes";
-    autoconnect = "yes";
+  },
+  {
+    address = "irc.eu.libera.chat";
+    chatnet = "libera";
+    port = "6697";
+    use_tls = "yes";
+    tls_verify = "yes";
   }
 );
 
@@ -153,8 +142,8 @@ chatnets = {
     max_msgs = "1";
     max_whois = "1";
   };
-  fn = { type = "IRC"; };
   Freenode = { type = "IRC"; };
+  libera = { type = "IRC"; };
 };
 
 channels = (
@@ -162,13 +151,13 @@ channels = (
   { name = "#freenode"; chatnet = "Freenode"; autojoin = "No"; },
   { name = "#irssi"; chatnet = "Freenode"; autojoin = "No"; },
   { name = "#gamesurge"; chatnet = "GameSurge"; autojoin = "No"; },
-  { name = "#irssi"; chatnet = "IRCNet"; autojoin = "No"; },
+  { name = "#irssi"; chatnet = "IRCnet"; autojoin = "No"; },
   { name = "#ircsource"; chatnet = "IRCSource"; autojoin = "No"; },
   { name = "#netfuze"; chatnet = "NetFuze"; autojoin = "No"; },
   { name = "#oftc"; chatnet = "OFTC"; autojoin = "No"; },
   { name = "silc"; chatnet = "SILC"; autojoin = "No"; },
-  { name = "##c"; chatnet = "freenode"; autojoin = "No"; },
-  { name = "#channel"; chatnet = "fn"; autojoin = "yes"; }
+  { name = "##c"; chatnet = "Freenode"; autojoin = "No"; },
+  { name = "#channel"; chatnet = "Freenode"; autojoin = "yes"; }
 );
 
 aliases = {
@@ -181,7 +170,7 @@ aliases = {
   C = "CLEAR";
   CALC = "EXEC - if command -v bc >/dev/null 2>&1\\; then printf '%s=' '$*'\\; echo '$*' | bc -l\\; else echo bc was not found\\; fi";
   CHAT = "DCC CHAT";
-  CUBES = "SCRIPT EXEC Irssi::active_win->print(\"%_bases\", MSGLEVEL_CLIENTCRAP) \\; Irssi::active_win->print( do { join '', map { \"%x0\\${_}0\\$_\" } '0'..'9','A'..'F' }, MSGLEVEL_NEVER | MSGLEVEL_CLIENTCRAP) \\; Irssi::active_win->print(\"%_cubes\", MSGLEVEL_CLIENTCRAP) \\; Irssi::active_win->print( do { my \\$y = \\$_*6 \\; join '', map { my \\$x = \\$_ \\; map { \"%x\\$x\\$_\\$x\\$_\" } @{['0'..'9','A'..'Z']}[\\$y .. \\$y+5] } 1..6 }, MSGLEVEL_NEVER | MSGLEVEL_CLIENTCRAP) for 0..5 \\; Irssi::active_win->print(\"%_grays\", MSGLEVEL_CLIENTCRAP) \\; Irssi::active_win->print( do { join '', map { \"%x7\\${_}7\\$_\" } 'A'..'X' }, MSGLEVEL_NEVER | MSGLEVEL_CLIENTCRAP) \\; Irssi::active_win->print(\"%_mIRC extended colours\", MSGLEVEL_CLIENTCRAP) \\; my \\$x \\; \\$x .= sprintf \"\00399,%02d%02d\",\\$_,\\$_ for 0..15 \\; Irssi::active_win->print(\\$x, MSGLEVEL_NEVER | MSGLEVEL_CLIENTCRAP) \\; for my \\$z (0..6) { my \\$x \\; \\$x .= sprintf \"\00399,%02d%02d\",\\$_,\\$_ for 16+(\\$z*12)..16+(\\$z*12)+11 \\; Irssi::active_win->print(\\$x, MSGLEVEL_NEVER | MSGLEVEL_CLIENTCRAP) }";
+  CUBES = "SCRIPT EXEC Irssi::active_win->print(\"%_bases\", MSGLEVEL_CLIENTCRAP) \\; Irssi::active_win->print( do { join '', map { \"%x0\\${_}0\\$_\" } '0'..'9','A'..'Z'} , MSGLEVEL_NEVER | MSGLEVEL_CLIENTCRAP) \\; Irssi::active_win->print(\"%_cubes\", MSGLEVEL_CLIENTCRAP) \\; Irssi::active_win->print( do { my \\$y = \\$_*6 \\; join '', map { my \\$x = \\$_ \\; map { \"%x\\$x\\$_\\$x\\$_\" } @{['0'..'9','A'..'Z']}[\\$y .. \\$y+5] } 1..6 }, MSGLEVEL_NEVER | MSGLEVEL_CLIENTCRAP) for 0..5 \\; Irssi::active_win->print(\"%_grays\", MSGLEVEL_CLIENTCRAP) \\; for my \\$z (0..6) { my \\$x \\; \\$x .= sprintf \"\00399,%02d%02d\",\\$_,\\$_ for 0..15 \\; Irssi::active_win->print(\\$x, MSGLEVEL_NEVER | MSGLEVEL_CLIENTCRAP) }";
   DATE = "TIME";
   DEHIGHLIGHT = "DEHILIGHT";
   DESCRIBE = "ACTION";
@@ -217,10 +206,7 @@ aliases = {
   UMODE = "MODE $N";
   UNSET = "SET -clear";
   W = "WHO";
-  WC = "WINDOW CLOSE";
-  WG = "WINDOW GOTO";
-  WJOIN = "JOIN -window";
-  WI = "WHOIS";
+  WC = "WHO";
   WII = "WHOIS $0 $0";
   WL = "WINDOW LIST";
   WN = "WINDOW NEW HIDDEN";
@@ -424,6 +410,11 @@ statusbar = {
   };
 };
 settings = {
-  core = { real_name = "Unknown"; user_name = "nexor"; nick = "nexor"; };
+  core = {
+    real_name = "Unknown";
+    user_name = "mvrozanti";
+    nick = "mvrozanti";
+  };
   "fe-text" = { actlist_sort = "refnum"; };
 };
+

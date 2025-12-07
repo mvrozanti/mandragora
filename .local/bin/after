@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -euo pipefail
 
 if [ "$#" -lt 2 ]; then
@@ -11,135 +10,60 @@ process_name="$1"
 shift
 command_to_run=("$@")
 
-echo "Waiting for '$process_name' process tree to finish completely..."
+echo "=== Waiting for '$process_name' ==="
+echo ""
 
-# Get the root process ID of the entire process tree
-get_root_pid() {
-    # Get all PIDs matching the process name
-    pgrep -f "$process_name" | while read pid; do
-        # Walk up the process tree until we find a process that's NOT matched by our name
-        # or until we hit PID 1 (init/systemd)
-        current_pid="$pid"
-        while true; do
-            ppid=$(ps -o ppid= -p "$current_pid" 2>/dev/null | tr -d ' ')
-            
-            # Stop at init/systemd
-            if [ "$ppid" -eq 1 ] || [ -z "$ppid" ]; then
-                echo "$current_pid"
-                break
-            fi
-            
-            # Check if parent also matches our process name
-            if pgrep -f "$process_name" | grep -q "^${ppid}$"; then
-                current_pid="$ppid"
-            else
-                # Parent doesn't match, so this is a root process in our tree
-                echo "$current_pid"
-                break
-            fi
-        done
-    done | sort -u | tail -1  # Get the newest root process
+# Method 1: Try pidof first (safest, doesn't match command line)
+wait_with_pidof() {
+    echo "Using exact process name matching..."
+    while true; do
+        pids=$(pidof "$process_name" 2>/dev/null || true)
+        if [ -z "$pids" ]; then
+            return 0
+        fi
+        echo -ne "\rWaiting for $(echo $pids | wc -w) process(es)... "
+        sleep 1
+    done
 }
 
-# Wait for entire process tree to finish
-wait_for_tree() {
-    local root_pid="$1"
-    
-    # Get all PIDs in the tree (root + all descendants)
-    get_all_tree_pids() {
-        echo "$root_pid"
-        # Use pstree if available, otherwise use ps
-        if command -v pstree >/dev/null 2>&1; then
-            pstree -p "$root_pid" | grep -o '([0-9]\+)' | tr -d '()'
-        else
-            # Fallback: get children recursively (less accurate but works)
-            local pid_list="$root_pid"
-            local children
-            while true; do
-                children=$(ps -eo ppid,pid | awk -v pids="$pid_list" '
-                    BEGIN { split(pids, arr, " "); for (i in arr) parents[arr[i]]=1 }
-                    $1 in parents {print $2}
-                ')
-                
-                if [ -z "$children" ]; then
+# Method 2: Fallback to checking /proc (no grep processes)
+wait_with_proc() {
+    echo "Checking /proc for processes..."
+    while true; do
+        found=0
+        for pid in /proc/[0-9]*/; do
+            pid=${pid%/}
+            pid=${pid##*/}
+            
+            # Skip our own PID
+            [ "$pid" -eq $$ ] && continue
+            
+            # Check cmdline
+            if [ -f "/proc/$pid/cmdline" ]; then
+                cmdline=$(cat "/proc/$pid/cmdline" 2>/dev/null | tr '\0' ' ')
+                if [[ "$cmdline" == *"$process_name"* ]]; then
+                    found=1
                     break
                 fi
-                
-                echo "$children"
-                pid_list="$pid_list $children"
-            done
-        fi
-    }
-    
-    # Wait until ALL PIDs in the tree are gone
-    while true; do
-        all_pids=$(get_all_tree_pids)
-        alive_count=0
-        
-        for pid in $all_pids; do
-            if ps -p "$pid" >/dev/null 2>&1; then
-                alive_count=$((alive_count + 1))
-                last_alive="$pid"
             fi
         done
         
-        if [ "$alive_count" -eq 0 ]; then
-            break
-        elif [ "$alive_count" -eq 1 ] && [ "$last_alive" -eq "$root_pid" ]; then
-            # Special case: only root process left, wait a bit more for cleanup
-            sleep 2
-        else
-            echo -ne "\rStill waiting on $alive_count processes... (Last active: $last_alive)    "
-            sleep 1
+        if [ "$found" -eq 0 ]; then
+            return 0
         fi
+        
+        echo -ne "\rProcess still running... "
+        sleep 1
     done
-    
-    echo -ne "\r                                                          \r"
 }
 
-# Main execution
-root_pid=$(get_root_pid)
-
-if [ -n "$root_pid" ]; then
-    echo "Found root process ID: $root_pid"
-    echo "Waiting for entire process tree to finish..."
-    
-    wait_for_tree "$root_pid"
-    
-    # Extra safety: double-check no processes with the name remain
-    sleep 2
-    if pgrep -f "$process_name" >/dev/null; then
-        echo "WARNING: Still found processes with name '$process_name'!"
-        echo "This might be a new instance. Double-check before proceeding."
-        read -p "Continue anyway? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            echo "Aborted."
-            exit 1
-        fi
-    fi
-else
-    echo "No process found with name: $process_name"
-    echo "Proceeding immediately..."
+# Try pidof first, fallback to /proc method
+if ! wait_with_pidof; then
+    wait_with_proc
 fi
 
-echo "'$process_name' completely finished. Running your command..."
-echo "Command: ${command_to_run[*]}"
-echo "---"
-
-# Add a safety confirmation for dangerous commands
-dangerous_patterns=("reboot" "shutdown" "pacman.*-S" "rm.*-rf" "mkfs" "dd")
-for pattern in "${dangerous_patterns[@]}"; do
-    if [[ "${command_to_run[*]}" =~ $pattern ]]; then
-        echo "⚠️  WARNING: This command appears to be dangerous!"
-        echo "Pattern matched: $pattern"
-        read -p "Are you absolutely sure? (Type 'YES' to continue): " -r
-        if [ "$REPLY" != "YES" ]; then
-            echo "Aborted."
-            exit 1
-        fi
-        break
-    fi
-done
-
+echo ""
+echo "✅ All processes finished!"
+echo ""
+echo "=== Running: ${command_to_run[*]} ==="
 "${command_to_run[@]}"
