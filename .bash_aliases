@@ -284,7 +284,7 @@ arf(){ echo "$@" >> ~/.newsboat/urls }
 # alias help='echo no && read'
 alias t1='tail -n1'
 alias t1a='t1 ~/.bash_aliases'
-aa(){ [[ ! -z $1 && ! -z $2 ]] && echo "alias $1='${@:2}'" >> ~/.bash_aliases; source ~/.bash_aliases; t1a }
+aa(){ [[ ! -z $1 && ! -z $2 ]] && echo "alias $1='${@:2}'" >> ~/.bash_aliases; source ~/.bash_aliases 2>&1 > /dev/null; t1a }
 alias cfT='v ~/.config/tridactyl/'
 # alias enc='openssl aes-256-cbc -in - 2>/dev/null'
 # alias dec='enc -d 2>/dev/null'
@@ -636,3 +636,4 @@ alias dcd='docker-compose down'
 alias dush.='du -sh .'
 alias grao='git remote add origin'
 alias mds='make-disk-space'
+alias wdush.='wdu -sh .'
