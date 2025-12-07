@@ -19,7 +19,7 @@ servers = (
     port = "6697";
     use_tls = "yes";
     tls_verify = "yes";
-    autoconnect = "yes";
+    autoconnect = "no";
   },
   {
     address = "irc.gamesurge.net";
@@ -65,17 +65,12 @@ servers = (
     port = "6667";
   },
   {
-    address = "libera-test";
-    port = "6697";
-    use_tls = "yes";
-    tls_verify = "yes";
-  },
-  {
     address = "irc.eu.libera.chat";
     chatnet = "libera";
     port = "6697";
     use_tls = "yes";
     tls_verify = "yes";
+    autoconnect = "yes";
   }
 );
 
@@ -162,7 +157,7 @@ channels = (
 
 aliases = {
   ATAG = "WINDOW SERVER";
-  ADDALLCHANS = "SCRIPT EXEC foreach my \\$channel (Irssi::channels()) { Irssi::command(\"CHANNEL ADD -auto \\$channel->{name} \\$channel->{server}->{tag} \\$channel->{key}\")\\;}";
+  ADDALLCHANS = "SCRIPT EXEC foreach my \\\ $channel (Irssi::channels()) { Irssi::command(\"CHANNEL ADD -auto \\\$channel->{name} \\\$channel->{server}->{tag} \\\$channel->{key}\")\\;}";
   B = "BAN";
   BACK = "AWAY";
   BANS = "BAN";
@@ -170,7 +165,7 @@ aliases = {
   C = "CLEAR";
   CALC = "EXEC - if command -v bc >/dev/null 2>&1\\; then printf '%s=' '$*'\\; echo '$*' | bc -l\\; else echo bc was not found\\; fi";
   CHAT = "DCC CHAT";
-  CUBES = "SCRIPT EXEC Irssi::active_win->print(\"%_bases\", MSGLEVEL_CLIENTCRAP) \\; Irssi::active_win->print( do { join '', map { \"%x0\\${_}0\\$_\" } '0'..'9','A'..'Z'} , MSGLEVEL_NEVER | MSGLEVEL_CLIENTCRAP) \\; Irssi::active_win->print(\"%_cubes\", MSGLEVEL_CLIENTCRAP) \\; Irssi::active_win->print( do { my \\$y = \\$_*6 \\; join '', map { my \\$x = \\$_ \\; map { \"%x\\$x\\$_\\$x\\$_\" } @{['0'..'9','A'..'Z']}[\\$y .. \\$y+5] } 1..6 }, MSGLEVEL_NEVER | MSGLEVEL_CLIENTCRAP) for 0..5 \\; Irssi::active_win->print(\"%_grays\", MSGLEVEL_CLIENTCRAP) \\; for my \\$z (0..6) { my \\$x \\; \\$x .= sprintf \"\00399,%02d%02d\",\\$_,\\$_ for 0..15 \\; Irssi::active_win->print(\\$x, MSGLEVEL_NEVER | MSGLEVEL_CLIENTCRAP) }";
+  CUBES = "SCRIPT EXEC Irssi::active_win->print(\"%_bases\", MSGLEVEL_CLIENTCRAP) \\\; Irssi::active_win->print( do { join '', map { \"%x0\\${_}0\\$_\" } '0'..'9','A'..'Z'} , MSGLEVEL_NEVER | MSGLEVEL_CLIENTCRAP) \\\; Irssi::active_win->print(\"%_cubes\", MSGLEVEL_CLIENTCRAP) \\\; Irssi::active_win->print( do { my \\\ $y = \\\ $_*6 \\\; join '', map { my \\\ $x = \\\ $_ \\\; map { \"%x\\$x\\$_\\$x\\$_\" } @{['0'..'9','A'..'Z']}[\\$y .. \\\$y+5] } 1..6 }, MSGLEVEL_NEVER | MSGLEVEL_CLIENTCRAP) for 0..5 \\\; Irssi::active_win->print(\"%_grays\", MSGLEVEL_CLIENTCRAP) \\\; for my \\\ $z (0..6) { my \\\ $x \\\; \\\ $x .= sprintf \"\00399,%02d%02d\",\\$_,\\$_ for 0..15 \\\; Irssi::active_win->print(\\$x, MSGLEVEL_NEVER | MSGLEVEL_CLIENTCRAP) }";
   DATE = "TIME";
   DEHIGHLIGHT = "DEHILIGHT";
   DESCRIBE = "ACTION";
