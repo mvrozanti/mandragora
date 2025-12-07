@@ -155,9 +155,6 @@ ctrl + super + d
 super + ctrl + p                                               
     wmctrl -a "LM-X410.F"        || adb connect 192.168.0.4:5555 && scrcpy -S
 
-super + space
-    rofimoji
-
 super + r
     rofi -show run
 
