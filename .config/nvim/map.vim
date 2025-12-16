@@ -31,7 +31,6 @@ au FileType make ino al<tab> all:<CR>
 vmap <C-Space> gc
 nmap <C-Space> gcc
 nmap S ysiw
-nmap _ f_
 
 noremap <silent> <c-h> <Cmd>TmuxNavigateLeft<cr>
 noremap <silent> <c-j> <Cmd>TmuxNavigateDown<cr>
@@ -193,8 +192,6 @@ nn <silent> <C-W> :call Killit()<CR>
 ino <silent> <C-W> <Esc>:call Killit()<CR>
 nn <C-S> <Esc>:w<CR>
 ino <C-S> <Esc>:w<CR>
-nn _ :split<CR>
-vn _ :split<CR>
 nn \| :vsplit<CR>
 vn \| :vsplit<CR>
 " au FileType   tex        ino   <F5>       <Esc>:!xelatex<space><c-r>%<Enter>a
@@ -249,3 +246,4 @@ nn :g/ :g/\v
 nn :g// :g//
 map <F3> :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
 vmap A :%norm A
+nn _ f_
