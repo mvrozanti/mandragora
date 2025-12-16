@@ -2,68 +2,87 @@
 set -euo pipefail
 
 if [ "$#" -lt 2 ]; then
-    echo "Usage: $0 <process_name> <command_to_run> [args...]"
+    echo "Usage: $0 <search_string> <command_to_run> [args...]"
     exit 1
 fi
 
-process_name="$1"
+search_string="$1"
 shift
 command_to_run=("$@")
 
-echo "=== Waiting for '$process_name' ==="
+echo "=== Waiting for processes with '$search_string' ==="
 echo ""
 
-# Method 1: Try pidof first (safest, doesn't match command line)
-wait_with_pidof() {
-    echo "Using exact process name matching..."
-    while true; do
-        pids=$(pidof "$process_name" 2>/dev/null || true)
-        if [ -z "$pids" ]; then
-            return 0
+# Simple loop: check every second for processes with the search string
+# Exclude: 1. Our PID, 2. grep/awk processes, 3. Any process containing "after" in its cmdline
+while true; do
+    # Get list of matching PIDs
+    matching_pids=()
+    
+    # Read /proc directly - no grep/awk in pipeline!
+    for pid_dir in /proc/[0-9]*/; do
+        pid=$(basename "$pid_dir")
+        
+        # Skip our own PID
+        if [ "$pid" -eq $$ ]; then
+            continue
         fi
-        echo -ne "\rWaiting for $(echo $pids | wc -w) process(es)... "
-        sleep 1
-    done
-}
-
-# Method 2: Fallback to checking /proc (no grep processes)
-wait_with_proc() {
-    echo "Checking /proc for processes..."
-    while true; do
-        found=0
-        for pid in /proc/[0-9]*/; do
-            pid=${pid%/}
-            pid=${pid##*/}
+        
+        # Read cmdline if it exists
+        if [ -f "/proc/$pid/cmdline" ]; then
+            cmdline=$(cat "/proc/$pid/cmdline" 2>/dev/null | tr '\0' ' ')
             
-            # Skip our own PID
-            [ "$pid" -eq $$ ] && continue
+            # Skip if cmdline is empty
+            [ -z "$cmdline" ] && continue
             
-            # Check cmdline
-            if [ -f "/proc/$pid/cmdline" ]; then
-                cmdline=$(cat "/proc/$pid/cmdline" 2>/dev/null | tr '\0' ' ')
-                if [[ "$cmdline" == *"$process_name"* ]]; then
-                    found=1
-                    break
+            # Check if it contains our search string
+            if [[ "$cmdline" == *"$search_string"* ]]; then
+                # Skip if it's a grep/awk for our search string
+                if [[ "$cmdline" == *"grep"*"$search_string"* ]] || \
+                   [[ "$cmdline" == *"awk"*"$search_string"* ]]; then
+                    continue
                 fi
+                
+                # Skip if it's THIS SCRIPT
+                if [[ "$cmdline" == *"after"* ]]; then
+                    # Check if this is actually our script by comparing full command
+                    # If the cmdline contains both "after" AND our search string, it's probably us
+                    if [[ "$cmdline" == *"after"*"$search_string"* ]]; then
+                        continue
+                    fi
+                fi
+                
+                # Valid match - add to list
+                matching_pids+=("$pid")
             fi
-        done
-        
-        if [ "$found" -eq 0 ]; then
-            return 0
         fi
-        
-        echo -ne "\rProcess still running... "
-        sleep 1
     done
-}
-
-# Try pidof first, fallback to /proc method
-if ! wait_with_pidof; then
-    wait_with_proc
-fi
+    
+    # If no matches, we're done
+    if [ ${#matching_pids[@]} -eq 0 ]; then
+        echo "✅ No matching processes found."
+        break
+    fi
+    
+    # Show what we're waiting for
+    echo "Found ${#matching_pids[@]} process(es):"
+    for pid in "${matching_pids[@]}"; do
+        if [ -f "/proc/$pid/cmdline" ]; then
+            cmdline=$(cat "/proc/$pid/cmdline" 2>/dev/null | tr '\0' ' ')
+            echo "  PID $pid: $(echo "$cmdline" | head -c 100)"
+        else
+            echo "  PID $pid: (process ended)"
+        fi
+    done
+    
+    echo ""
+    echo "Waiting 1 second..."
+    sleep 1
+    echo ""
+done
 
 echo ""
-echo "✅ All processes finished!"
+echo "=== Running command ==="
+echo "${command_to_run[*]}"
 echo ""
-echo "=== Running: ${command_to_run[*]} ==="
 "${command_to_run[@]}"

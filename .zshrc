@@ -113,7 +113,11 @@ export MANPAGER="nvim +Man!"
 
 [ -f $HOME/.cache/wal/sequences ] && cat $HOME/.cache/wal/sequences
 
-if [ "$TMUX" = "" ]; then exec tmux; fi
+if [[ -n "$CURSOR_AGENT" ]]; then
+    :
+else
+    if [ "$TMUX" = "" ]; then exec tmux; fi
+fi
 
 if [ -f '$HOME/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '$HOME/Downloads/google-cloud-sdk/path.zsh.inc'; fi
 

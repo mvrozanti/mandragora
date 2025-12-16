@@ -31,6 +31,7 @@ au FileType make ino al<tab> all:<CR>
 vmap <C-Space> gc
 nmap <C-Space> gcc
 nmap S ysiw
+nmap _ f_
 
 noremap <silent> <c-h> <Cmd>TmuxNavigateLeft<cr>
 noremap <silent> <c-j> <Cmd>TmuxNavigateDown<cr>
