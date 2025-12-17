@@ -452,6 +452,8 @@ alias wmd5.='watch md5sum *'
 alias cd/='/'
 alias gcfd='git clean -f -d'
 co2i(){ xclip -selection clipboard -t image/png -o > co2i-`date +%s`.png }
+co2ip(){ xclip -selection clipboard -t image/png -o > /tmp/co2i-`date +%s`.png; echo /tmp/co2i-`date +%s`.png }
+co2ipc(){ co2ip | c }
 alias co2imgur='xclip -selection clipboard -t image/png -o > /tmp/img; up2imgur /tmp/img'
 alias v-='v -'
 alias gddv-='gdd|v-'
