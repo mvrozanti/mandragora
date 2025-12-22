@@ -381,7 +381,8 @@
     "inxi",
     "fisher",
     "gthumb",
-    "xprintidle"
+    "xprintidle",
+    "hwinfo"
   ],
   "excluded": [
     "hotmail.gpg",
