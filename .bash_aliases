@@ -622,7 +622,7 @@ alias base64='base64 -w0'
 alias tsv='t sv:'
 alias cotsv='co | tsv'
 alias t:sv='t :sv'
-alias top='gtop'
+alias top='bpytop'
 alias cff='v /home/m/.config/fish'
 alias wtail='watch tail'
 avif2png(){ avifdec "$1" "${1%%.*}.png" && trash "$1" }
