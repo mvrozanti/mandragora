@@ -383,7 +383,8 @@
     "gthumb",
     "xprintidle",
     "hwinfo",
-    "bpytop"
+    "bpytop",
+    "glances"
   ],
   "excluded": [
     "hotmail.gpg",
