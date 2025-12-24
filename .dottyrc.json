@@ -382,7 +382,8 @@
     "fisher",
     "gthumb",
     "xprintidle",
-    "hwinfo"
+    "hwinfo",
+    "bpytop"
   ],
   "excluded": [
     "hotmail.gpg",
