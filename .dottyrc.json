@@ -383,7 +383,6 @@
     "gthumb",
     "xprintidle",
     "hwinfo",
-    "bpytop",
     "glances"
   ],
   "excluded": [
