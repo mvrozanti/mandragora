@@ -383,7 +383,8 @@
     "gthumb",
     "xprintidle",
     "hwinfo",
-    "glances"
+    "glances",
+    "btop"
   ],
   "excluded": [
     "hotmail.gpg",
