@@ -184,8 +184,11 @@ super + space
 super + d
     $HOME/.local/bin/desktop
 
-ctrl + alt + {q,e}
+super + alt + {q,e}
     bspc desktop -f {prev.occupied,next.occupied}
+
+super + alt + shift + {q,e}
+    bspc node -d {prev,next} --follow
 
 super + e
     bspc node @/ -R 90
@@ -206,10 +209,6 @@ super + shift + {h,j,k,l}
     , dir=east  dx=30  dy=0 \
     }; \
     if [[ -n $(bspc query -N -n .focused -n focused.tiled) ]]; then bspc node --swap $dir --follow || bspc node -m "$dir" --follow; else bspc node --move "$dx" "$dy"; fi
-
-
-ctrl + alt + shift + {q,e}
-    bspc node -d {prev,next} --follow
 
 super + {_,shift + }{h,j,k,l}
     bspc node -{f,s} {west,south,north,east}
