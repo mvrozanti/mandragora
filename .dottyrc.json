@@ -164,7 +164,7 @@
     ".local/bin/usb-watch.sh": "/home/m/.local/bin/usb-watch.sh",
     ".config/systemd/user/usb-watch.service": "/home/m/.config/systemd/user/usb-watch.service",
     ".config/systemd/user": "/home/m/.config/systemd/user",
-    ".config/polybar/scripts/jbl_battery.sh": "/home/m/.config/polybar/scripts/jbl_battery.sh",
+    ".config/polybar/scripts/bluetooth_audio": "/home/m/.config/polybar/scripts/bluetooth_audio",
     ".local/bin/resize-window.sh": "/home/m/.local/bin/resize-window.sh",
     ".local/bin/center-window.sh": "/home/m/.local/bin/center-window.sh",
     ".config/kdeconnect/b38a6258_3ef6_47c4_89a0_0606288c3507/kdeconnect_runcommand/config": "/home/m/.config/kdeconnect/b38a6258_3ef6_47c4_89a0_0606288c3507/kdeconnect_runcommand/config",
