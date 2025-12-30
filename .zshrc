@@ -161,3 +161,4 @@ export NNN_FIFO=/tmp/nnn.fifo
 export NNN_PLUG='p:preview-tui'
 export NNN_PREVIEWDIR="$HOME/.cache/nnn"
 export NNN_PREVIEWIMGPROG=ueberzug
+export NNN_TRASH=1
