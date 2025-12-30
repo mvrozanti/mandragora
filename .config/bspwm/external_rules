@@ -97,6 +97,10 @@ if [ "$class" = cool-retro-term ]; then
 	echo "desktop=^4 follow=true"
 fi
 
+if [ "$title" = _nnn_ ]; then
+	echo "desktop=^3"
+fi
+
 if [ "$title" = _ranger_ ]; then
 	echo "desktop=^3"
 fi
