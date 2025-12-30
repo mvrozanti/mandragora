@@ -1,1 +1,0 @@
-grep "^map g" ~/.config/ranger/rc.conf | grep -v '\?' | grep cd | awk '{printf "alias z"substr($2, 2)"='\''"; $1=$2=""; print substr($0, 1)"'\''"}' | sed -E 's/\s{2}//g' > ~/.ranger_aliases;

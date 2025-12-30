@@ -247,3 +247,5 @@ nn :g// :g//
 map <F3> :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
 vmap A :%norm A
 nn _ f_
+im <Find>   <C-o>^
+im <Select> <C-o>$
