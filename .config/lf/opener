@@ -1,0 +1,30 @@
+#!/bin/sh
+
+mime=$(file --mime-type -Lb -- "$LF_F")
+
+case "$mime" in
+  image/*)
+    sxiv -n "$((LF_I - 1))" $LF_FS
+    ;;
+
+  video/*|audio/*)
+    setsid mpv -- "$LF_F" >/dev/null 2>&1 &
+    ;;
+
+  application/pdf|application/epub+zip)
+    setsid zathura -- "$LF_F" >/dev/null 2>&1 &
+    ;;
+
+  text/*)
+    exec ${VISUAL:-${EDITOR:-vi}} -- "$LF_F"
+    ;;
+
+  application/zip|application/x-tar|application/x-7z-compressed|application/x-rar)
+    atool --list -- "$LF_F" | ${PAGER:-less}
+    ;;
+
+  *)
+    setsid xdg-open -- "$LF_F" >/dev/null 2>&1 &
+    ;;
+esac
+

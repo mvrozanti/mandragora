@@ -10,7 +10,7 @@ vn ? y:%s/<C-r><C-w>//gn<CR>
 nn <A-p> o<A-p>
 map Q <NOP>
 nn <A-m> :tabe %<CR>
-ino <A-Backspace> <A-c>iw
+" ino <A-Backspace> <A-c>iw
 nn <A-Backspace> viwd
 ino <C-v> <Esc>pa
 ino jk <Esc>l
@@ -249,3 +249,4 @@ vmap A :%norm A
 nn _ f_
 im <Find>   <C-o>^
 im <Select> <C-o>$
+im <Esc><BS> <Esc>bdwa
