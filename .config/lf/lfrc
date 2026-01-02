@@ -1,6 +1,7 @@
 # Ueberzug setup
 set previewer ~/.config/lf/preview
 set cleaner ~/.config/lf/cleaner
+set opener ~/.config/lf/opener
 set preview true
 
 # ===================================================================
@@ -73,6 +74,7 @@ map a rename
 map cw rename
 map A :rename
 map I $ file $fx
+cmd open %~/.config/
 
 # Yank operations (LF uses 'y' for yank)
 map yd $ echo -n $fx | xclip -selection clipboard  # yank dir
@@ -157,9 +159,9 @@ map bW $ ~/.local/bin/setbg $fx -l &
 # Git operations
 cmd git-pull $ git pull
 cmd git-push $ git push
-map pg git-pull
-map Pg git-push
-map og :git checkout
+# map pg git-pull
+# map Pg git-push
+# map og :git checkout
 
 # File operations
 map du $ du -h --max-depth=1 $fx | sort -rh
@@ -196,9 +198,6 @@ map md $ mkdir
 # map zf :set hiddenfiles
 # map zd set info
 
-map <f3> open-media $fx
-map f open-media $fx
-
 set incsearch true
 set incfilter true
 set mouse true
@@ -206,3 +205,4 @@ set shellopts "-eu"
 set timefmt '2006 Jan _2 15:04:05'
 set ifs "\n"
 set period 0
+
