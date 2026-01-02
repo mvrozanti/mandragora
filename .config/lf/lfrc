@@ -32,6 +32,7 @@ map k up
 map j down
 map h updir
 map l open
+map <enter> open
 
 map gh cd ~
 map gE cd /etc
@@ -73,13 +74,16 @@ map a rename
 map cw rename
 map A :rename
 map I $ file $fx
-cmd open %~/.config/
+cmd open %~/.config/lf/opener
 
-# Yank operations (LF uses 'y' for yank)
-map yd $ echo -n $fx | xclip -selection clipboard  # yank dir
-map yn $ echo -n $(basename $fx) | xclip -selection clipboard  # yank name
-map yp $ echo -n $PWD/$fx | xclip -selection clipboard  # yank path
-map yb $ xclip -selection clipboard -t image/png -i $fx  # yank image
+# Yank operations 
+cmd yank-path $printf '%s' "$f" | xsel -i -b
+cmd yank-name $printf '%s' "$(basename "$f")" | xsel -i -b
+cmd yank-bytes %{{ ~/.local/bin/ic "$f" }}
+
+map Yp yank-path
+map Yn yank-name
+map Yb yank-bytes
 
 # Marking/Selection (LF uses space for toggle)
 map <space> toggle
@@ -163,8 +167,8 @@ map dU $ du -h --max-depth=1 --apparent-size $fx | sort -rh
 map _ $ lf -remote "send $id set ratios 1:1:1"  # flat view approximation
 
 # Clipboard operations
-cmd paste-image $ xclip -selection clipboard -target image/png -o > "$(dirname $fx)/$(date +%s).png"
-cmd paste-jpeg $ xclip -selection clipboard -target image/jpeg -o > "$(dirname $fx)/$(date +%s).jpg"
+cmd paste-image $ xsel -i -b -target image/png -o > "$(dirname $fx)/$(date +%s).png"
+cmd paste-jpeg $ xsel -i -b -target image/jpeg -o > "$(dirname $fx)/$(date +%s).jpg"
 map pB paste-image
 map pb paste-jpeg
 
