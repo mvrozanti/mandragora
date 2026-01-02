@@ -24,6 +24,7 @@ Plug 'tommcdo/vim-exchange'
 Plug 'jiangmiao/auto-pairs'
 Plug 'godlygeek/tabular', {'on': 'Tabularize'}
 Plug 'junegunn/goyo.vim', {'on': 'Goyo'}
+Plug 'junegunn/fzf.vim'
 Plug 'realincubus/vim-clang-refactor'
 Plug 'sakhnik/nvim-gdb', { 'do': ':!./install.sh \| UpdateRemotePlugins', 'on': 'GdbStart' }
 Plug 'Shougo/vimproc.vim', {'do' : 'make'}

@@ -177,7 +177,7 @@ nn <F7>   :VBGstepIn<CR>
 nn <F8>   :VBGstepOver<CR>
 nn <C-F8> :VBGtoggleBreakpointThisLine<CR>
 nn <F10>  :VBGstepOut<CR>
-map <silent> <C-t> :NERDTreeToggle<CR>
+map <silent> <A-Enter> :History<CR>
 map ; <Plug>(expand_region_expand)
 map + <Plug>(expand_region_shrink)
 nmap <silent> <A-Up> :wincmd k<CR>
