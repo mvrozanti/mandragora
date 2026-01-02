@@ -1,0 +1,205 @@
+# Ueberzug setup
+set previewer ~/.config/lf/preview
+set cleaner ~/.config/lf/cleaner
+set preview true
+
+# ===================================================================
+# LF Configuration - Translated from Ranger config
+# ===================================================================
+
+# ===================================================================
+# == Basic Options (Direct translations)
+# ===================================================================
+
+# UI Settings
+set ratios 1:2:3
+# set hiddenfiles "^\.|\.(?:pyc|pyo|bak|swp)$|^lost\+found$|^__(py)?cache__$"
+set drawbox false
+set scrolloff 8
+
+# Sorting (ranger defaults to ctime)
+set sortby ctime
+set ignorecase true
+set dirfirst true
+
+# ===================================================================
+# == Keybindings Translation
+# ===================================================================
+
+# Basic navigation (ranger uses hjkl, LF uses arrow keys by default)
+# Add hjkl navigation similar to ranger
+map k up
+map j down
+map h updir
+map l open
+map gh cd ~
+map gE cd /etc
+map gR cd ~/.config/ranger
+map gd cd ~/disk
+map gt cd ~/.local/share/Trash
+map gT cd ~/.config/tridactyl
+map gG cd ~/gdrive
+map gu cd ~/util
+map gL cd ~/gdrive/library/
+map gA cd ~/gdrive/library/abstracts
+map ga cd ~/adata
+map gb cd ~/gdrive/library/books
+map gP cd ~/prog
+map gc cd ~/.config
+map gM cd ~/disk/Musik
+map gf cd ~/sandisk/Filmes
+map gm cd ~/macrovip
+map gD cd ~/Downloads
+map gs cd ~/sandisk/sss
+map gS cd ~/sandisk
+
+# Page navigation
+map <pagedown> down 50%
+map <pageup> up 50%
+map <C-f> down 50%
+map <C-b> up 50%
+
+# File operations
+map dd cut
+map yy copy
+map pp paste
+map <delete> delete
+map D $ trash -v $fx 2>&1
+map <C-e> $ rm -rf $fx
+map a rename
+map cw rename
+map A :rename
+map I $ file $fx
+
+# Yank operations (LF uses 'y' for yank)
+map yd $ echo -n $fx | xclip -selection clipboard  # yank dir
+map yn $ echo -n $(basename $fx) | xclip -selection clipboard  # yank name
+map yp $ echo -n $PWD/$fx | xclip -selection clipboard  # yank path
+map yb $ xclip -selection clipboard -t image/png -i $fx  # yank image
+
+# Marking/Selection (LF uses space for toggle)
+map <space> toggle
+map v toggleall
+map uv unmark
+
+# Search (LF uses '/' for search by default)
+map / search
+map n search-next
+map N search-prev
+
+map ; set hidden!
+
+# ===================================================================
+# == Tabs Support
+# ===================================================================
+
+# LF has tab support but different keybindings
+map <C-t> tab-new
+map <C-w> tab-close
+map gn tab-new
+map gt tab-next
+map gT tab-prev
+map <tab> tab-next
+map <s-tab> tab-prev
+
+# Tab numbers (LF doesn't have direct tab number support, use this workaround)
+cmd tab-one $ lf -remote "send $id tab-select 1"
+cmd tab-two $ lf -remote "send $id tab-select 2"
+cmd tab-three $ lf -remote "send $id tab-select 3"
+map <a-1> tab-one
+map <a-2> tab-two
+map <a-3> tab-three
+
+# ===================================================================
+# == Sorting Modes (like ranger's 'o' commands)
+# ===================================================================
+
+cmd sort-size $ set sortby size; set info size
+cmd sort-name $ set sortby name; set info name
+cmd sort-time $ set sortby time; set info time
+cmd sort-ctime $ set sortby ctime; set info ctime
+cmd sort-mtime $ set sortby mtime; set info mtime
+cmd sort-atime $ set sortby atime; set info atime
+cmd sort-ext $ set sortby ext; set info ext
+cmd sort-reverse $ set reverse!
+
+map or set reverse!
+map os sort-size
+map ob sort-name
+map om sort-mtime
+map oc sort-ctime
+map oa sort-atime
+map oe sort-ext
+
+# Reverse sorting variants
+map oS sort-size; set reverse!
+map oB sort-name; set reverse!
+map oM sort-mtime; set reverse!
+map oC sort-ctime; set reverse!
+map oA sort-atime; set reverse!
+map oE sort-ext; set reverse!
+
+# ===================================================================
+# == External Programs Integration
+# ===================================================================
+
+# Editor
+map e $EDITOR $fx
+map <f4> $EDITOR $fx
+
+# Image viewing/set as wallpaper
+map bw $ ~/.local/bin/setbg $fx &
+map bW $ ~/.local/bin/setbg $fx -l &
+
+# Git operations
+cmd git-pull $ git pull
+cmd git-push $ git push
+map pg git-pull
+map Pg git-push
+map og :git checkout
+
+# File operations
+map du $ du -h --max-depth=1 $fx | sort -rh
+map dU $ du -h --max-depth=1 --apparent-size $fx | sort -rh
+map _ $ lf -remote "send $id set ratios 1:1:1"  # flat view approximation
+
+# Clipboard operations
+cmd paste-image $ xclip -selection clipboard -target image/png -o > "$(dirname $fx)/$(date +%s).png"
+cmd paste-jpeg $ xclip -selection clipboard -target image/jpeg -o > "$(dirname $fx)/$(date +%s).jpg"
+map pB paste-image
+map pb paste-jpeg
+
+# ===================================================================
+# == Custom Commands
+# ===================================================================
+
+cmd file-info $ file $fx | less
+map I file-info
+
+# ===================================================================
+# == Console/Shell Integration
+# ===================================================================
+
+# Directory creation
+map mk $ mkdir
+map md $ mkdir
+
+# ===================================================================
+# == UI Toggles (like ranger's 'z' commands)
+# ===================================================================
+
+# map zh set hidden!
+# map zi set preview!
+# map zf :set hiddenfiles
+# map zd set info
+
+map <f3> open-media $fx
+map f open-media $fx
+
+set incsearch true
+set incfilter true
+set mouse true
+set shellopts "-eu"
+set timefmt "%Y-%m-%d %H:%M:%S"
+set ifs "\n"
+set period 0

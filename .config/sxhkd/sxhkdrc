@@ -78,7 +78,7 @@ super + 1
     wmctrl -a Firefox            || pgrep firefox || wmctrl -a Chromium || firefox
 
 super + 2
-    wmctrl -a _nnn_             || kitty --title _nnn_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new 'source ~/.zshrc; nnn -P p'" 
+    wmctrl -a _lf_               || kitty --title _lf_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new 'source ~/.zshrc; lf'" 
   # wmctrl -a _ranger_           || kitty --title _ranger_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new 'source ~/.zshrc; ranger'"
 
 super + shift + 2
@@ -91,7 +91,7 @@ super + i
     wmctrl -a _hexchat_text_     || kitty --title _hexchat_text_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new hexchat-text"
 
 super + 3
-    wmctrl -a _zsh_              || kitty --title _zsh_ --listen-on=unix:@zsh
+    wmctrl -a _zsh_              || kitty --title _zsh_
     # wmctrl -x -a cool-retro-term              || cool-retro-term -T _zsh_ 
 
 super + 5

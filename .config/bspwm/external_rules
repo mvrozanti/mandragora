@@ -101,6 +101,10 @@ if [ "$title" = _nnn_ ]; then
 	echo "desktop=^3"
 fi
 
+if [ "$title" = _lf_ ]; then
+	echo "desktop=^3"
+fi
+
 if [ "$title" = _ranger_ ]; then
 	echo "desktop=^3"
 fi
