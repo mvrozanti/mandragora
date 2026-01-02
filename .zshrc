@@ -21,6 +21,7 @@ run_ranger() { echo; ranger --choosedir=$HOME/.rangerdir < $TTY; LASTDIR=`cat $H
 run_nvim_fast() { echo; nvim; zle reset-prompt }
 run_nvim() { echo; nvim -c 'Startify'; zle reset-prompt }
 run_nnn() { echo; BUFFER="nnn -P p"; zle accept-line }
+run_lf() { echo; BUFFER="lf"; zle accept-line }
 run_khal() { echo; khal interactive < $TTY; zle reset-prompt }
 cd_downloads() { echo; cd ~/Downloads; zle reset-prompt }
 cd_fzf() { echo; cd "`ls|fzf`"; zle reset-prompt }
@@ -30,6 +31,7 @@ run_clock() { echo; peaclock; zle reset-prompt}
 zle -N run_clock
 zle -N run_ranger
 zle -N run_nnn
+zle -N run_lf
 zle -N run_nvim
 zle -N run_nvim_fast
 zle -N run_ncmpcpp
@@ -37,7 +39,7 @@ zle -N run_khal
 zle -N cd_downloads 
 zle -N cd_fzf 
 
-bindkey '^[r' 'run_nnn'
+bindkey '^[r' 'run_lf'
 bindkey '^[w' 'run_W'
 bindkey '^[W' 'run_weather'
 bindkey '^[v' 'run_nvim'
@@ -156,9 +158,3 @@ autoload -U compinit && compinit -u
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-export NNN_FIFO=/tmp/nnn.fifo
-export NNN_PLUG='p:preview-tui'
-export NNN_PREVIEWDIR="$HOME/.cache/nnn"
-export NNN_PREVIEWIMGPROG=ueberzug
-export NNN_TRASH=1

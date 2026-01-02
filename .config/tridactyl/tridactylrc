@@ -51,4 +51,4 @@ unbindurl https://www.youtube.com /
 blacklistadd localhost:3000
 blacklistadd meet.google.com/
 blacklistadd app.diagrams.net/
-blacklistadd https://slither.com/io/
+blacklistadd slither.com/io
