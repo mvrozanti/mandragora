@@ -1,7 +1,6 @@
 # Ueberzug setup
 set previewer ~/.config/lf/preview
 set cleaner ~/.config/lf/cleaner
-set opener ~/.config/lf/opener
 set preview true
 
 # ===================================================================
@@ -119,30 +118,25 @@ map <a-3> tab-three
 # == Sorting Modes (like ranger's 'o' commands)
 # ===================================================================
 
-cmd sort-size $ set sortby size; set info size
-cmd sort-name $ set sortby name; set info name
-cmd sort-time $ set sortby time; set info time
-cmd sort-ctime $ set sortby ctime; set info ctime
-cmd sort-mtime $ set sortby mtime; set info mtime
-cmd sort-atime $ set sortby atime; set info atime
-cmd sort-ext $ set sortby ext; set info ext
-cmd sort-reverse $ set reverse!
+cmd sort-size  :set sortby size;  set info size
+cmd sort-mtime :set sortby mtime; set info time
+cmd sort-ctime :set sortby ctime; set info ctime
+cmd sort-atime :set sortby atime; set info atime
+cmd sort-name  :set sortby name
+cmd sort-ext   :set sortby ext
 
-map or set reverse!
-map os sort-size
-map ob sort-name
-map om sort-mtime
-map oc sort-ctime
-map oa sort-atime
-map oe sort-ext
-
-# Reverse sorting variants
-map oS sort-size; set reverse!
-map oB sort-name; set reverse!
-map oM sort-mtime; set reverse!
-map oC sort-ctime; set reverse!
-map oA sort-atime; set reverse!
-map oE sort-ext; set reverse!
+map os :sort-size;  set reverse false
+map oS :sort-size;  set reverse true
+map om :sort-mtime; set reverse false
+map oM :sort-mtime; set reverse true
+map oc :sort-ctime; set reverse false
+map oC :sort-ctime; set reverse true
+map oa :sort-atime; set reverse false
+map oA :sort-atime; set reverse true
+map ob :sort-name;  set reverse false
+map oB :sort-name;  set reverse true
+map oe :sort-ext;   set reverse false
+map oE :sort-ext;   set reverse true
 
 # ===================================================================
 # == External Programs Integration
