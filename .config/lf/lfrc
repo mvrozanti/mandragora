@@ -32,6 +32,7 @@ map k up
 map j down
 map h updir
 map l open
+
 map gh cd ~
 map gE cd /etc
 map gR cd ~/.config/ranger
@@ -39,6 +40,8 @@ map gd cd ~/disk
 map gt cd ~/.local/share/Trash
 map gT cd ~/.config/tridactyl
 map gG cd ~/gdrive
+map g4 cd ~/gdrive/Levv/4chan
+map gw cd ~/gdrive/Levv/wllpps
 map gu cd ~/util
 map gL cd ~/gdrive/library/
 map gA cd ~/gdrive/library/abstracts
@@ -200,6 +203,6 @@ set incsearch true
 set incfilter true
 set mouse true
 set shellopts "-eu"
-set timefmt "%Y-%m-%d %H:%M:%S"
+set timefmt '2006 Jan _2 15:04:05'
 set ifs "\n"
 set period 0

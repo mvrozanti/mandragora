@@ -1,5 +1,5 @@
-unalias sd
-unalias sp
+unalias sp 2> /dev/null 
+unalias sd 2> /dev/null
 alias rm='rm -f'
 alias -g la='ls -a'
 alias l='ls -t1'
@@ -642,4 +642,4 @@ alias mds='make-disk-space'
 alias wdush.='wdu -sh .'
 lfcd () { cd "$(command lf-ueberzug -print-last-dir "$@")" }
 alias lf='lfcd'
-alias cfl='v ~/.config/lf'
+alias cfl='v ~/.config/lf/lfrc'
