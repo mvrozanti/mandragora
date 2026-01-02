@@ -7,10 +7,7 @@
     ".config/nvim/init.vim": "~/.config/nvim/init.vim",
     ".config/polybar": "~/.config/polybar",
     ".config/ranger": "~/.config/ranger",
-    ".config/lf/lfrc": "~/.config/lf/lfrc",
-    ".config/lf/preview": "~/.config/lf/preview",
-    ".config/lf/lfcd.sh": "~/.config/lf/lfcd.sh",
-    ".config/lf/image": "~/.config/lf/image",
+    ".config/lf": "~/.config/lf",
     ".config/mpd/mpd.conf": "~/.config/mpd/mpd.conf",
     ".config/dunst/dunstrc": "~/.config/dunst/dunstrc",
     ".config/kitty/kitty.conf": "~/.config/kitty/kitty.conf",
@@ -170,7 +167,8 @@
     ".local/bin/pop": "/home/m/.local/bin/pop",
     ".local/bin/scratchpad": "/home/m/.local/bin/scratchpad",
     ".local/bin/desktop": "/home/m/.local/bin/desktop",
-    ".local/bin/blur-strength": "/home/m/.local/bin/blur-strength"
+    ".local/bin/blur-strength": "/home/m/.local/bin/blur-strength",
+    ".local/bin/lf-ueberzug": "/home/m/.local/bin/lf-ueberzug"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
@@ -383,7 +381,8 @@
     "xprintidle",
     "hwinfo",
     "glances",
-    "btop"
+    "btop",
+    "lf"
   ],
   "excluded": [
     "hotmail.gpg",
