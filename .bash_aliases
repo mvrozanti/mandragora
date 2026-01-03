@@ -641,5 +641,4 @@ alias grao='git remote add origin'
 alias mds='make-disk-space'
 alias wdush.='wdu -sh .'
 lfcd () { cd "$(command lf-ueberzug -print-last-dir "$@")" }
-alias lf='lfcd'
 alias cfl='v ~/.config/lf/lfrc'

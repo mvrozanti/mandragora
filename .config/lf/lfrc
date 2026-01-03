@@ -73,9 +73,7 @@ map A :rename
 map I $ file $fx
 cmd open %~/.config/lf/opener
 
-cmd on-cd %{{
-    [ -n "${TMUX-}" ] && printf '\033]7;file://%s%s\033\\' "$(hostname)" "$PWD" > /dev/tty
-    }}
+cmd on-cd %{{ lf -remote "send $id cd \"$PWD\"" }}
 
 # Yank operations 
 cmd yank-path $printf '%s' "$f" | xsel -i -b
@@ -104,16 +102,6 @@ map <C-w> tab-close
 map gn tab-new
 map gt tab-next
 map gT tab-prev
-map <tab> tab-next
-map <s-tab> tab-prev
-
-# Tab numbers (LF doesn't have direct tab number support, use this workaround)
-cmd tab-one $ lf -remote "send $id tab-select 1"
-cmd tab-two $ lf -remote "send $id tab-select 2"
-cmd tab-three $ lf -remote "send $id tab-select 3"
-map <a-1> tab-one
-map <a-2> tab-two
-map <a-3> tab-three
 
 # ===================================================================
 # == Sorting Modes (like ranger's 'o' commands)
@@ -199,4 +187,3 @@ set shellopts "-eu"
 set timefmt '2006 Jan _2 15:04:05'
 set ifs "\n"
 set period 0
-
