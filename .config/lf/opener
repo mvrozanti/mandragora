@@ -1,30 +1,30 @@
 #!/bin/sh
-
-mime=$(file --mime-type -Lb -- "$LF_F")
-
+mime=$(file --mime-type -Lb -- "$f")
+notify-send "$f"
 case "$mime" in
   image/*)
-    sxiv -n "$((LF_I - 1))" $LF_FS
+    printf '%s\n' "$fs" |
+      setsid sxiv -n "$((i - 1))" - >/dev/null 2>&1 &
     ;;
 
   video/*|audio/*)
-    setsid mpv -- "$LF_F" >/dev/null 2>&1 &
+    setsid mpv -- "$f" >/dev/null 2>&1 &
     ;;
 
   application/pdf|application/epub+zip)
-    setsid zathura -- "$LF_F" >/dev/null 2>&1 &
+    setsid zathura -- "$f" >/dev/null 2>&1 &
     ;;
 
   text/*)
-    exec ${VISUAL:-${EDITOR:-vi}} -- "$LF_F"
+    exec ${VISUAL:-${EDITOR:-vi}} -- "$f"
     ;;
 
   application/zip|application/x-tar|application/x-7z-compressed|application/x-rar)
-    atool --list -- "$LF_F" | ${PAGER:-less}
+    atool --list -- "$f" | ${PAGER:-less}
     ;;
 
   *)
-    setsid xdg-open -- "$LF_F" >/dev/null 2>&1 &
+    setsid xdg-open -- "$f" >/dev/null 2>&1 &
     ;;
 esac
 

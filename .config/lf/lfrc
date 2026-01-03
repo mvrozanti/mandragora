@@ -17,8 +17,8 @@ set ratios 1:2:3
 set drawbox false
 set scrolloff 8
 
-# Sorting (ranger defaults to ctime)
-set sortby ctime
+# Sorting
+set sortby ctime; set reverse true
 set ignorecase true
 set dirfirst true
 
@@ -64,9 +64,6 @@ map <C-f> down 50%
 map <C-b> up 50%
 
 # File operations
-map dd cut
-map yy copy
-map pp paste
 map <delete> delete
 map D $ trash -v $fx 2>&1
 map <C-e> $ rm -rf $fx
@@ -75,6 +72,10 @@ map cw rename
 map A :rename
 map I $ file $fx
 cmd open %~/.config/lf/opener
+
+cmd on-cd %{{
+    [ -n "${TMUX-}" ] && printf '\033]7;file://%s%s\033\\' "$(hostname)" "$PWD" > /dev/tty
+    }}
 
 # Yank operations 
 cmd yank-path $printf '%s' "$f" | xsel -i -b
@@ -87,13 +88,9 @@ map Yb yank-bytes
 
 # Marking/Selection (LF uses space for toggle)
 map <space> toggle
-map v toggleall
-map uv unmark
 
-# Search (LF uses '/' for search by default)
-map / search
-map n search-next
-map N search-prev
+# Search
+map | :filter<space>
 
 map ; set hidden!
 
@@ -152,7 +149,6 @@ map <f4> $EDITOR $fx
 
 # Image viewing/set as wallpaper
 map bw $ ~/.local/bin/setbg $fx &
-map bW $ ~/.local/bin/setbg $fx -l &
 
 # Git operations
 cmd git-pull $ git pull
