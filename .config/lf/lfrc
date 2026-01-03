@@ -75,7 +75,9 @@ cmd open %~/.config/lf/opener
 
 cmd on-cd %{{ 
     lf -remote "send $id cd \"$PWD\"" 
-    autojump --add $PWD
+    notify-send $(wc -l < ~/.z) 
+    zsh -c "source ~/.oh-my-zsh/plugins/z/z.sh && z --add \"$PWD\"" > /dev/null
+    # zsh -c 'source ~/.oh-my-zsh/plugins/z/z.sh && z --add "$PWD"' &
 }}
 
 # Yank operations 
@@ -116,6 +118,7 @@ cmd sort-ctime :set sortby ctime; set info ctime
 cmd sort-atime :set sortby atime; set info atime
 cmd sort-name  :set sortby name
 cmd sort-ext   :set sortby ext
+cmd sort-rand  :!lf -remote "send $ID $(ls | shuf)"
 
 map os :sort-size;  set reverse false
 map oS :sort-size;  set reverse true
@@ -129,6 +132,7 @@ map ob :sort-name;  set reverse false
 map oB :sort-name;  set reverse true
 map oe :sort-ext;   set reverse false
 map oE :sort-ext;   set reverse true
+map oz :sort-rand;  set reverse false
 
 # ===================================================================
 # == External Programs Integration

@@ -382,7 +382,8 @@
     "hwinfo",
     "glances",
     "btop",
-    "lf"
+    "lf",
+    "zoxide"
   ],
   "excluded": [
     "hotmail.gpg",
