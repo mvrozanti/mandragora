@@ -185,7 +185,7 @@ super + space
 super + d
     $HOME/.local/bin/desktop
 
-super + alt + {q,e}
+super + ctrl + {q,e}
     bspc desktop -f {prev.occupied,next.occupied}
 
 super + alt + shift + {q,e}

@@ -113,14 +113,16 @@ cmd sort-name  :set sortby name
 cmd sort-ext   :set sortby ext
 
 cmd shuffle ${{
-  # Directly run a loop over all files without selection
-  lf -remote "send $id cmd -hidden 'for f in *; do [ -n \"\$f\" ] && addcustominfo \"\$f\" \"\$(od -An -N4 -tu4 /dev/urandom | tr -d \\\" \\\")\"; done; set sortby custom'"
+  find . -maxdepth 1 -mindepth 1 -print0 | while IFS= read -r -d '' file; do
+    f=$(basename "$file")
+    rand=$(od -An -N4 -tu4 /dev/urandom | tr -d ' ')
+    lf -remote "send $id addcustominfo '$f' '$rand'"
+  done
+  
+  lf -remote "send $id set sortby custom"
 }}
 
 map oz :shuffle
-
-
-
 
 map os :sort-size;  set reverse false
 map oS :sort-size;  set reverse true
