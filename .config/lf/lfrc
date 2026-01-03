@@ -172,14 +172,12 @@ cmd mkdir %{{
 
 map M mkdir
 
-
-cmd z %{{
-    result="$(zoxide query --exclude "$PWD" "$@" | sed 's/\\/\\\\/g;s/"/\\"/g')"
-    lf -remote "send $id cd \"$result\""
+cmd unzip %{{
+    unp -U $@
 }}
 
-cmd zi ${{
-    result="$(zoxide query -i | sed 's/\\/\\\\/g;s/"/\\"/g')"
+cmd z ${{
+    result="$(zoxide query -i | grep -v "$PWD" | sed 's/\\/\\\\/g;s/"/\\"/g')"
     lf -remote "send $id cd \"$result\""
 }}
 
@@ -187,7 +185,7 @@ cmd on-cd &{{
     zoxide add "$PWD"
 }}
 
-map z z
+map z :z
 
 
 
