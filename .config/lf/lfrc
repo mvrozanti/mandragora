@@ -75,9 +75,6 @@ cmd open %~/.config/lf/opener
 
 cmd on-cd %{{ 
     lf -remote "send $id cd \"$PWD\"" 
-    notify-send $(wc -l < ~/.z) 
-    zsh -c "source ~/.oh-my-zsh/plugins/z/z.sh && z --add \"$PWD\"" > /dev/null
-    # zsh -c 'source ~/.oh-my-zsh/plugins/z/z.sh && z --add "$PWD"' &
 }}
 
 # Yank operations 
@@ -175,9 +172,19 @@ cmd mkdir %{{
 
 map M mkdir
 
-cmd z ${{
-    path=$(awk -F'|' '{print $1}' ~/.z | fzf --height 40% --reverse --prompt="z> ")
-    [ -n "$path" ] && lf -remote "send $id cd '$path'"
+
+cmd z %{{
+    result="$(zoxide query --exclude "$PWD" "$@" | sed 's/\\/\\\\/g;s/"/\\"/g')"
+    lf -remote "send $id cd \"$result\""
+}}
+
+cmd zi ${{
+    result="$(zoxide query -i | sed 's/\\/\\\\/g;s/"/\\"/g')"
+    lf -remote "send $id cd \"$result\""
+}}
+
+cmd on-cd &{{
+    zoxide add "$PWD"
 }}
 
 map z z
