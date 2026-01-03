@@ -10,7 +10,19 @@ export SAVEHIST=$HISTSIZE
 setopt EXTENDED_HISTORY
 plugins=(zsh-syntax-highlighting)
 eval "$(zoxide init zsh)"
+
+ZSH_DISABLE_COMPFIX="true"
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path ~/.zsh/cache
+zstyle ':completion:*' accept-exact-dirs true
+
+DISABLE_AUTO_UPDATE="true"
+DISABLE_UPDATE_PROMPT="true"
 source $ZSH/oh-my-zsh.sh
+
+
+
+
 export EDITOR='nvim'
 export SSH_KEY_PATH="~/.ssh/rsa_id"
 
@@ -104,8 +116,6 @@ POWERLEVEL9K_HOME_ICON=''
 
 [ -f /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme ] && \
     source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
-[ -f ~/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme ] && \
-    source ~/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme 
 set bell-style none
 VISUAL=nvim; export VISUAL 
 EDITOR=nvim; export EDITOR
@@ -151,14 +161,17 @@ PERL_MM_OPT="INSTALL_BASE=/home/m/perl5"; export PERL_MM_OPT;
 [ -f ~/.local/bin/resty ] && . ~/.local/bin/resty
 export PYTHONSTARTUP="$HOME/.pythonrc"
 export NODE_PATH=/usr/lib/node_modules/
-autoload -U compinit && compinit -u
 
 [ -f /opt/miniconda3/etc/profile.d/conda.sh ] && source /opt/miniconda3/etc/profile.d/conda.sh
-
+# Replace your current nvm setup with lazy loading:
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+lazynvm() {
+  unset -f nvm node npm npx
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+}
 
-for i in {0..9}; do
-    bindkey -r "^[${i}"
-done
+nvm() { lazynvm; nvm "$@"; }
+node() { lazynvm; node "$@"; }
+npm() { lazynvm; npm "$@"; }
+npx() { lazynvm; npx "$@"; }

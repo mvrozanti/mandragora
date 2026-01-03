@@ -17,9 +17,9 @@ Plug 'dbmrq/vim-ditto'
 Plug 'scrooloose/vim-slumlord'
 Plug 'mikelue/vim-maven-plugin'
 Plug 'skwp/greplace.vim'
-if has('nvim')
-  Plug 'neoclide/coc.nvim', {'branch':'release'}
-endif
+" if has('nvim')
+"   Plug 'neoclide/coc.nvim', {'branch':'release', 'for': ['c', 'cpp', 'python', 'javascript', 'typescript', 'java', 'lua'], 'do': 'yarn install --frozen-lockfile', 'on': 'InsertEnter'}
+" endif
 Plug 'tommcdo/vim-exchange'
 Plug 'jiangmiao/auto-pairs'
 Plug 'godlygeek/tabular', {'on': 'Tabularize'}
@@ -49,6 +49,5 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'majutsushi/tagbar', {'on': 'TagbarToggle'}
 Plug 'easymotion/vim-easymotion'
 Plug 'vim-scripts/JavaScript-Indent', {'for': 'javascript'}
-Plug 'junegunn/rainbow_parentheses.vim'
 Plug 'sindrets/diffview.nvim', {'on': 'DiffviewOpen'}
 call plug#end()

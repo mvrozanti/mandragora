@@ -5,12 +5,13 @@ map / /\c
 nn < <<
 nn > >>
 vn / y/<C-r><C-w><CR>
-vn p "_dP
+xnoremap p "_dP
+xnoremap P "_dP
 vn ? y:%s/<C-r><C-w>//gn<CR>
 nn <A-p> o<A-p>
 map Q <NOP>
 nn <A-m> :tabe %<CR>
-" ino <A-Backspace> <A-c>iw
+inoremap <A-BS> <C-R>=nr2char(23)<CR>
 nn <A-Backspace> viwd
 ino <C-v> <Esc>pa
 ino jk <Esc>l
@@ -67,12 +68,6 @@ nn <C-Tab> gK
 map <silent> <F2> :Goyo <CR>
 vn <C-r> "hy:.,$s/<C-r>h//gc<left><left><left>
 vn <C-h> "hy:%s/<C-r>h//gc<left><left><left>
-" function! ReplaceVisualSelection()
-"   let selection = expand('<cword>')
-"   let replacement = input('Replace "'.selection.'" with: ')
-"   execute 'normal! c'.replacement
-" endfunction
-" vn <C-h> :echo test<CR>
 vn D "hy:%g!/<C-r>h/d"
 nn <Del> "_<Del>
 nn x "_x
@@ -150,20 +145,9 @@ nn <C-A-h>      :5winc <<CR>
 nn <C-A-b>      :5winc +<CR>
 nn <C-A-l>      :5winc ><CR>
 nn <C-A-u>      :5winc -<CR>
-nmap <silent> <leader>w <Plug>(coc-diagnostic-next)
 
 ino <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 ino <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
-ino <expr> <C-Space>
-      \ coc#pum#visible() ? coc#_select_confirm() :
-      \ CheckBackspace() ? "\<Tab>" :
-      \ coc#refresh()
-ino <expr> <CR>
-      \ coc#pum#visible() ? coc#_select_confirm() :
-      \ "\<CR>"
-
-
-nn <A-r> :call CocAction('rename')<CR>
 
 function! CheckBackspace() abort
   let col = col('.') - 1
@@ -195,8 +179,6 @@ nn <C-S> <Esc>:w<CR>
 ino <C-S> <Esc>:w<CR>
 nn \| :vsplit<CR>
 vn \| :vsplit<CR>
-" au FileType   tex        ino   <F5>       <Esc>:!xelatex<space><c-r>%<Enter>a
-" au FileType   tex        nn   <F5>       :!xelatex<space><c-r>%<Enter>
 au FileType tex ino pb<Tab> \pagebreak
 au FileType tex ino fr<Tab> \begin{frame}<CR>\frametitle{}<CR><CR><+><CR><CR>\end{frame}<CR><CR><+><Esc>6kf}i
 au FileType tex ino fi<Tab> \begin{fitch}<CR><CR>\end{fitch}<CR><CR><+><Esc>3kA
@@ -237,7 +219,6 @@ au FileType tex ino bt<Tab> {\blindtext}
 au FileType tex ino nu<Tab> $\varnothing$
 au FileType tex ino col<Tab> \begin{columns}[T]<CR>\begin{column}{.5\textwidth}<CR><CR>\end{column}<CR>\begin{column}{.5\textwidth}<CR><+><CR>\end{column}<CR>\end{columns}<Esc>5kA
 au FileType tex ino rn<Tab> (\ref{})<+><Esc>F}i
-nmap <C-i> :CocAction<CR>
 map <C-a> mz<ESC>ggVGy<ESC>'z
 
 nn / /\c
@@ -250,4 +231,4 @@ vmap A :%norm A
 nn _ f_
 im <Find>   <C-o>^
 im <Select> <C-o>$
-im <Esc><BS> <Esc>bdwa
+nmap <A-f> <Plug>(easymotion-s)
