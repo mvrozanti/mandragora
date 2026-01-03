@@ -73,10 +73,6 @@ map A :rename
 map I $ file $fx
 cmd open %~/.config/lf/opener
 
-cmd on-cd %{{ 
-    lf -remote "send $id cd \"$PWD\"" 
-}}
-
 # Yank operations 
 cmd yank-path $printf '%s' "$f" | xsel -i -b
 cmd yank-name $printf '%s' "$(basename "$f")" | xsel -i -b
@@ -180,12 +176,19 @@ cmd z ${{
     result="$(zoxide query -i | grep -v "$PWD" | sed 's/\\/\\\\/g;s/"/\\"/g')"
     lf -remote "send $id cd \"$result\""
 }}
-cmd on-cd &{{
-    zoxide add "$PWD"
-}}
+cmd on-cd &{{ zoxide add "$PWD" }}
 map z z
 
 
+cmd on-cd ${{
+    # Kill previous watchers for THIS lf instance
+    pkill -f "watchdir.sh $id" 2>/dev/null
+    # Start new watcher, passing $id as first argument
+    ~/.config/lf/watchdir.sh "$id" "$PWD" &
+}}
+
+# Force initial trigger (simulate directory change at startup)
+${{ lf -remote "send $id cd '$PWD'" }}
 
 # ===================================================================
 # == UI Toggles (like ranger's 'z' commands)
@@ -198,3 +201,51 @@ set shellopts "-eu"
 set timefmt '2006 Jan _2 15:04:05'
 set ifs "\n"
 set period 0
+
+
+
+
+
+
+
+
+
+
+
+cmd on-cd &{{
+    # Kill previous watcher
+    if [ -f /tmp/lf-watcher-$id.pid ]; then
+        kill $(cat /tmp/lf-watcher-$id.pid) 2>/dev/null
+    fi
+    
+    # Start new watcher with debounce
+    (
+        # Use a simple lock to debounce rapid changes
+        last_reload=0
+        min_interval=0.5  # Minimum seconds between reloads
+        
+        if type inotifywait >/dev/null 2>&1; then
+            inotifywait -m -e modify,create,delete,move . 2>/dev/null | \
+                while read; do
+                    now=$(date +%s.%N)
+                    if (( $(echo "$now - $last_reload >= $min_interval" | bc -l) )); then
+                        lf -remote "send $id reload"
+                        last_reload=$now
+                    fi
+                done
+        elif type fswatch >/dev/null 2>&1; then
+            fswatch -o . 2>/dev/null | \
+                while read; do
+                    now=$(date +%s.%N)
+                    if (( $(echo "$now - $last_reload >= $min_interval" | bc -l) )); then
+                        lf -remote "send $id reload"
+                        last_reload=$now
+                    fi
+                done
+        fi
+    ) &
+    
+    echo $! > /tmp/lf-watcher-$id.pid
+}}
+
+on-cd
