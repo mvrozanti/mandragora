@@ -113,18 +113,29 @@ cmd sort-name  :set sortby name;  set info
 cmd sort-ext   :set sortby ext;   set info
 
 cmd shuffle ${{
-  tmpfile=$(mktemp)
-  for f in *; do
-    [ -n "$f" ] && {
-      rand=$RANDOM$RANDOM$RANDOM$RANDOM
-      echo "addcustominfo '$f' '$rand'" >> "$tmpfile"
+  # Most optimized version - single find + awk pipeline
+  find . -maxdepth 1 -mindepth 1 -printf '%f\0' | 
+    awk 'BEGIN{RS="\0"; srand();} 
+         {printf "addcustominfo \"%s\" \"%d\"\n", $0, int(rand()*1000000000)}' |
+    {
+      # Read and batch commands
+      batch=""
+      count=0
+      while IFS= read -r cmd; do
+        batch="$batch;$cmd"
+        count=$((count + 1))
+        # Send batches of 200 to avoid command line limits
+        if [ $count -eq 200 ]; then
+          lf -remote "send $id ${batch#;}"
+          batch=""
+          count=0
+        fi
+      done
+      [ -n "$batch" ] && lf -remote "send $id ${batch#;}"
+      
+      # Final sort command
+      lf -remote "send $id set sortby custom"
     }
-  done
-  echo "set sortby custom" >> "$tmpfile"
-  while IFS= read -r line; do
-    lf -remote "send $id $line"
-  done < "$tmpfile"
-  rm -f "$tmpfile"
 }}
 
 map oz :shuffle;    set info
