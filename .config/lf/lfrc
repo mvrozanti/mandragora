@@ -169,23 +169,21 @@ cmd mkdir %{{
     [ -n "$dir" ] && mkdir -p "$dir"
     lf -remote "send $id reload"
 }}
-
 map M mkdir
 
 cmd unzip %{{
-    unp -U $@
+    unp -U "$fx"
 }}
+map U unzip
 
 cmd z ${{
     result="$(zoxide query -i | grep -v "$PWD" | sed 's/\\/\\\\/g;s/"/\\"/g')"
     lf -remote "send $id cd \"$result\""
 }}
-
 cmd on-cd &{{
     zoxide add "$PWD"
 }}
-
-map z :z
+map z z
 
 
 
