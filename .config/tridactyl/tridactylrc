@@ -52,3 +52,4 @@ blacklistadd localhost:3000
 blacklistadd meet.google.com/
 blacklistadd app.diagrams.net/
 blacklistadd slither.com/io
+blacklistadd chatgpt.com
