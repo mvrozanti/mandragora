@@ -86,7 +86,7 @@ map Yb yank-bytes
 map <space> toggle
 
 # Search
-map | :filter<space>
+map | :filter 
 
 map ; set hidden!
 
@@ -111,7 +111,16 @@ cmd sort-ctime :set sortby ctime; set info ctime
 cmd sort-atime :set sortby atime; set info atime
 cmd sort-name  :set sortby name
 cmd sort-ext   :set sortby ext
-cmd sort-rand  :!lf -remote "send $ID $(ls | shuf)"
+
+cmd shuffle ${{
+  # Directly run a loop over all files without selection
+  lf -remote "send $id cmd -hidden 'for f in *; do [ -n \"\$f\" ] && addcustominfo \"\$f\" \"\$(od -An -N4 -tu4 /dev/urandom | tr -d \\\" \\\")\"; done; set sortby custom'"
+}}
+
+map oz :shuffle
+
+
+
 
 map os :sort-size;  set reverse false
 map oS :sort-size;  set reverse true
@@ -125,7 +134,6 @@ map ob :sort-name;  set reverse false
 map oB :sort-name;  set reverse true
 map oe :sort-ext;   set reverse false
 map oE :sort-ext;   set reverse true
-map oz :sort-rand;  set reverse false
 
 # ===================================================================
 # == External Programs Integration
@@ -140,7 +148,6 @@ map bw $ ~/.local/bin/setbg $fx &
 # File operations
 # map du $ du -h --max-depth=1 $fx | sort -rh
 # map dU $ du -h --max-depth=1 --apparent-size $fx | sort -rh
-map _ $ lf -remote "send $id set ratios 1:1:1"  # flat view approximation
 
 # Clipboard operations
 cmd paste-image $ xsel -i -b -target image/png -o > "$(dirname $fx)/$(date +%s).png"
@@ -179,17 +186,6 @@ cmd z ${{
 cmd on-cd &{{ zoxide add "$PWD" }}
 map z z
 
-
-cmd on-cd ${{
-    # Kill previous watchers for THIS lf instance
-    pkill -f "watchdir.sh $id" 2>/dev/null
-    # Start new watcher, passing $id as first argument
-    ~/.config/lf/watchdir.sh "$id" "$PWD" &
-}}
-
-# Force initial trigger (simulate directory change at startup)
-${{ lf -remote "send $id cd '$PWD'" }}
-
 # ===================================================================
 # == UI Toggles (like ranger's 'z' commands)
 # ===================================================================
@@ -202,16 +198,7 @@ set timefmt '2006 Jan _2 15:04:05'
 set ifs "\n"
 set period 0
 
-
-
-
-
-
-
-
-
-
-
+# dynamic directory reloads
 cmd on-cd &{{
     # Kill previous watcher
     if [ -f /tmp/lf-watcher-$id.pid ]; then
@@ -248,4 +235,4 @@ cmd on-cd &{{
     echo $! > /tmp/lf-watcher-$id.pid
 }}
 
-on-cd
+cmd on-cd %{{ echo "$PWD" > /tmp/lf_current_dir }}
