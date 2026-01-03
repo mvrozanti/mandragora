@@ -8,7 +8,8 @@ eval "$(dircolors -p | \
 export HISTSIZE=1000000000
 export SAVEHIST=$HISTSIZE
 setopt EXTENDED_HISTORY
-plugins=(rails z zsh-syntax-highlighting)
+plugins=(zsh-syntax-highlighting)
+eval "$(zoxide init zsh)"
 source $ZSH/oh-my-zsh.sh
 export EDITOR='nvim'
 export SSH_KEY_PATH="~/.ssh/rsa_id"
@@ -150,7 +151,6 @@ PERL_MM_OPT="INSTALL_BASE=/home/m/perl5"; export PERL_MM_OPT;
 [ -f ~/.local/bin/resty ] && . ~/.local/bin/resty
 export PYTHONSTARTUP="$HOME/.pythonrc"
 export NODE_PATH=/usr/lib/node_modules/
-[[ -s /usr/share/autojump/autojump.zsh ]] && . /usr/share/autojump/autojump.zsh
 autoload -U compinit && compinit -u
 
 [ -f /opt/miniconda3/etc/profile.d/conda.sh ] && source /opt/miniconda3/etc/profile.d/conda.sh
