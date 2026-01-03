@@ -185,10 +185,10 @@ super + space
 super + d
     $HOME/.local/bin/desktop
 
-super + ctrl + {q,e}
+super + shift + {a,s}
     bspc desktop -f {prev.occupied,next.occupied}
 
-super + alt + shift + {q,e}
+super + alt + shift + {a,s}
     bspc node -d {prev,next} --follow
 
 super + e
