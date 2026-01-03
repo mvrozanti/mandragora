@@ -18,7 +18,10 @@ zstyle ':completion:*' accept-exact-dirs true
 
 DISABLE_AUTO_UPDATE="true"
 DISABLE_UPDATE_PROMPT="true"
+
+# =====================
 source $ZSH/oh-my-zsh.sh
+# =====================
 
 
 
@@ -163,7 +166,7 @@ export PYTHONSTARTUP="$HOME/.pythonrc"
 export NODE_PATH=/usr/lib/node_modules/
 
 [ -f /opt/miniconda3/etc/profile.d/conda.sh ] && source /opt/miniconda3/etc/profile.d/conda.sh
-# Replace your current nvm setup with lazy loading:
+
 export NVM_DIR="$HOME/.nvm"
 lazynvm() {
   unset -f nvm node npm npx
