@@ -106,34 +106,38 @@ map gT tab-prev
 # ===================================================================
 
 cmd sort-size  :set sortby size;  set info size
-cmd sort-mtime :set sortby mtime; set info time
+cmd sort-mtime :set sortby time;  set info time
 cmd sort-ctime :set sortby ctime; set info ctime
 cmd sort-atime :set sortby atime; set info atime
-cmd sort-name  :set sortby name
-cmd sort-ext   :set sortby ext
+cmd sort-name  :set sortby name;  set info 
+cmd sort-ext   :set sortby ext;   set info
 
 cmd shuffle ${{
-  find . -maxdepth 1 -mindepth 1 -print0 | while IFS= read -r -d '' file; do
-    f=$(basename "$file")
-    rand=$(od -An -N4 -tu4 /dev/urandom | tr -d ' ')
-    lf -remote "send $id addcustominfo '$f' '$rand'"
+  tmpfile=$(mktemp)
+  for f in *; do
+    [ -n "$f" ] && {
+      rand=$RANDOM$RANDOM$RANDOM$RANDOM
+      echo "addcustominfo '$f' '$rand'" >> "$tmpfile"
+    }
   done
-  
-  lf -remote "send $id set sortby custom"
+  echo "set sortby custom" >> "$tmpfile"
+  while IFS= read -r line; do
+    lf -remote "send $id $line"
+  done < "$tmpfile"
+  rm -f "$tmpfile"
 }}
 
-map oz :shuffle
-
-map os :sort-size;  set reverse false
-map oS :sort-size;  set reverse true
+map oz :shuffle;    set info
+map os :sort-size;  set reverse true
+map oS :sort-size;  set reverse false
 map om :sort-mtime; set reverse false
 map oM :sort-mtime; set reverse true
 map oc :sort-ctime; set reverse false
 map oC :sort-ctime; set reverse true
 map oa :sort-atime; set reverse false
 map oA :sort-atime; set reverse true
-map ob :sort-name;  set reverse false
-map oB :sort-name;  set reverse true
+map on :sort-name;  set reverse false
+map oN :sort-name;  set reverse true
 map oe :sort-ext;   set reverse false
 map oE :sort-ext;   set reverse true
 
