@@ -1,0 +1,34 @@
+#!/bin/bash
+# Watch the current directory of an lf instance and reload on changes.
+# Usage: watchdir.sh <lf_instance_id> <directory_to_watch>
+
+LF_ID="$1"
+DIR_TO_WATCH="$2"
+
+# Ensure the directory exists
+cd "$DIR_TO_WATCH" || exit 1
+
+# Function to send reload command
+reload_lf() {
+    lf -remote "send $LF_ID reload"
+}
+
+# Choose tool based on OS
+case "$(uname -s)" in
+    Linux*)
+        # Use inotify-tools (install via package manager, e.g., 'sudo apt install inotify-tools')
+        while true; do
+            inotifywait -r -e modify,create,delete,move . 2>/dev/null && reload_lf
+        done
+        ;;
+    Darwin*)
+        # Use fswatch (install via Homebrew: 'brew install fswatch')
+        fswatch . | while read -r event; do
+            reload_lf
+        done
+        ;;
+    *)
+        echo "Unsupported OS" >&2
+        exit 1
+        ;;
+esac
