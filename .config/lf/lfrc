@@ -113,21 +113,31 @@ cmd sort-name  :set sortby name;  set info
 cmd sort-ext   :set sortby ext;   set info
 
 cmd shuffle ${{
-  tmpfile=$(mktemp)
+  batch=""
+  count=0
   for f in *; do
     [ -n "$f" ] && {
-      rand=$RANDOM$RANDOM$RANDOM$RANDOM
-      echo "addcustominfo '$f' '$rand'" >> "$tmpfile"
+      if [ -z "$batch" ]; then
+        batch="addcustominfo '$f' '$RANDOM'"
+      else
+        batch="$batch; addcustominfo '$f' '$RANDOM'"
+      fi
+      count=$((count + 1))
+      
+      if [ $count -eq 50 ]; then
+        lf -remote "send $id $batch"
+        batch=""
+        count=0
+        # sleep 0.001 2>/dev/null || true
+      fi
     }
   done
-  echo "set sortby custom" >> "$tmpfile"
-  while IFS= read -r line; do
-    lf -remote "send $id $line"
-  done < "$tmpfile"
-  rm -f "$tmpfile"
+  [ -n "$batch" ] && lf -remote "send $id $batch"
+  lf -remote "send $id set sortby custom"
 }}
 
-map oz :shuffle;    set info
+map oz :shuffle
+
 map os :sort-size;  set reverse true
 map oS :sort-size;  set reverse false
 map om :sort-mtime; set reverse false
