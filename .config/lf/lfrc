@@ -73,7 +73,10 @@ map A :rename
 map I $ file $fx
 cmd open %~/.config/lf/opener
 
-cmd on-cd %{{ lf -remote "send $id cd \"$PWD\"" }}
+cmd on-cd %{{ 
+    lf -remote "send $id cd \"$PWD\"" 
+    autojump --add $PWD
+}}
 
 # Yank operations 
 cmd yank-path $printf '%s' "$f" | xsel -i -b
@@ -132,22 +135,14 @@ map oE :sort-ext;   set reverse true
 # ===================================================================
 
 # Editor
-map e $EDITOR $fx
-map <f4> $EDITOR $fx
+map e $ sh -c '$EDITOR "$fx"'
 
 # Image viewing/set as wallpaper
 map bw $ ~/.local/bin/setbg $fx &
 
-# Git operations
-cmd git-pull $ git pull
-cmd git-push $ git push
-# map pg git-pull
-# map Pg git-push
-# map og :git checkout
-
 # File operations
-map du $ du -h --max-depth=1 $fx | sort -rh
-map dU $ du -h --max-depth=1 --apparent-size $fx | sort -rh
+# map du $ du -h --max-depth=1 $fx | sort -rh
+# map dU $ du -h --max-depth=1 --apparent-size $fx | sort -rh
 map _ $ lf -remote "send $id set ratios 1:1:1"  # flat view approximation
 
 # Clipboard operations
@@ -167,18 +162,27 @@ map I file-info
 # == Console/Shell Integration
 # ===================================================================
 
-# Directory creation
-map mk $ mkdir
-map md $ mkdir
+cmd mkdir %{{
+    echo "Directory name: "
+    read dir
+    [ -n "$dir" ] && mkdir -p "$dir"
+    lf -remote "send $id reload"
+}}
+
+map M mkdir
+
+cmd z ${{
+    path=$(awk -F'|' '{print $1}' ~/.z | fzf --height 40% --reverse --prompt="z> ")
+    [ -n "$path" ] && lf -remote "send $id cd '$path'"
+}}
+
+map z z
+
+
 
 # ===================================================================
 # == UI Toggles (like ranger's 'z' commands)
 # ===================================================================
-
-# map zh set hidden!
-# map zi set preview!
-# map zf :set hiddenfiles
-# map zd set info
 
 set incsearch true
 set incfilter true
