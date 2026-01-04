@@ -1,89 +1,44 @@
 #!/bin/sh
 
-# Get the absolute path of the current file
 file="$1"
 [ -z "$file" ] && exit 1
 
-# Get MIME type
 mime=$(file --mime-type -Lb -- "$file")
 
 case "$mime" in
-    image/*)
-        # Get the directory containing the image
+       image/*)
+        # Get directory and filename
         dir=$(dirname -- "$file")
+        current=$(basename -- "$file")
         
-        # Change to that directory
+        # Change to the image's directory
         cd -- "$dir" || exit 1
         
-        # Get the current file's basename for finding its position
-        current_file=$(basename -- "$file")
+        # 1. Get ALL image files in directory, sorted by modification time (newest first)
+        #    This matches LF's default 'ctime reverse' sorting
+        img_files=$(ls -1t -- *.jpg *.jpeg *.png *.gif *.bmp *.tiff *.webp 2>/dev/null)
         
-        # We need to get files in the same order LF displays them
-        # This is complex because LF doesn't expose its current file list easily
-        
-        # Approach 1: Use lf's remote command to get current file list
-        # (This requires lf to be running with server mode)
-        
-        # Approach 2: Simulate LF's sorting in the shell
-        # Let's try to replicate the sorting from your lfrc:
-        # set sortby ctime; set reverse true
-        
-        # Get image files, sorted by ctime (newest first due to reverse)
-        # Using find to get all images in current directory
-        image_files=$(find . -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" \
-            -o -iname "*.png" -o -iname "*.gif" -o -iname "*.bmp" \
-            -o -iname "*.tiff" -o -iname "*.webp" \) -exec stat -c "%Y %n" {} \; | \
-            sort -rn | cut -d' ' -f2- | sed 's|^\./||')
-        
-        # If no images found via extension, try MIME type detection
-        if [ -z "$image_files" ]; then
-            image_files=""
-            for f in *; do
-                if [ -f "$f" ]; then
-                    file_mime=$(file --mime-type -b -- "$f" 2>/dev/null)
-                    case "$file_mime" in
-                        image/*)
-                            # Get ctime for sorting
-                            ctime=$(stat -c "%Y" -- "$f" 2>/dev/null || echo "0")
-                            image_files="${image_files}${ctime} ${f}\n"
-                            ;;
-                    esac
-                fi
-            done
-            image_files=$(printf "%b" "$image_files" | sort -rn | cut -d' ' -f2-)
+        # 2. If no files found, fallback to just the current file
+        if [ -z "$img_files" ]; then
+            setsid sxiv -- "$current" >/dev/null 2>&1 &
+            exit 0
         fi
         
-        # Find the position of current file
+        # 3. Find the position of the current file in the list
         index=0
-        found=0
-        OLDIFS=$IFS
-        IFS='
-'
-        for img in $image_files; do
-            if [ "$img" = "$current_file" ]; then
-                found=1
+        counter=0
+        for f in $img_files; do
+            if [ "$f" = "$current" ]; then
+                index=$counter
                 break
             fi
-            index=$((index + 1))
+            counter=$((counter + 1))
         done
-        IFS=$OLDIFS
         
-        # If we found the file, start sxiv at its position
-        if [ $found -eq 1 ]; then
-            # Convert list to array for sxiv
-            img_array=""
-            for img in $image_files; do
-                img_array="$img_array \"$img\""
-            done
-            
-            # Launch sxiv with all images, starting at current position
-            eval "setsid sxiv -n $index -- $img_array" >/dev/null 2>&1 &
-        else
-            # Fallback: just open the single file
-            setsid sxiv -- "$current_file" >/dev/null 2>&1 &
-        fi
-        ;;
-    
+        # 4. Launch sxiv with ALL images, starting at the current file
+        eval "setsid sxiv -n $index -- $img_files" >/dev/null 2>&1 &
+        ;; 
+    # Keep your existing cases for other file types
     video/*|audio/*)
         setsid mpv -- "$file" >/dev/null 2>&1 &
         ;;
@@ -93,7 +48,7 @@ case "$mime" in
         ;;
     
     text/*)
-        exec "${VISUAL:-${EDITOR:-vi}}" -- "$file"
+        nvim "$file"
         ;;
     
     application/zip|application/x-tar|application/x-7z-compressed|application/x-rar)
