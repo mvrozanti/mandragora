@@ -32,7 +32,6 @@ map k up
 map j down
 map h updir
 map l open
-map <enter> open
 
 map gh cd ~
 map gE cd /etc
@@ -70,8 +69,9 @@ map <C-e> $ rm -rf $fx
 map a rename
 map cw rename
 map A :rename
-map I $ file $fx
-cmd open %~/.config/lf/opener
+map I $ file "$fx"
+map i %{{ sxiv -ab -- $(dirname "$fx") }}
+cmd open $/home/m/.config/lf/opener "$f"
 
 # Yank operations 
 cmd yank-path $printf '%s' "$f" | xsel -i -b
@@ -197,6 +197,7 @@ map U unzip
 
 cmd z ${{
     result="$(zoxide query -i | grep -v "$PWD" | sed 's/\\/\\\\/g;s/"/\\"/g')"
+    notify-send $id
     lf -remote "send $id cd \"$result\""
 }}
 cmd on-cd &{{ zoxide add "$PWD" }}
@@ -252,3 +253,65 @@ cmd on-cd &{{
 }}
 
 cmd on-cd %{{ echo "$PWD" > /tmp/lf_current_dir }}
+
+cmd on-cd &{{
+    export LF_ID="$id"
+}}
+
+
+
+
+
+
+
+
+
+
+
+map <enter> ${{
+    # Only for images
+    mime=$(file --mime-type -b -- "$fx" 2>/dev/null)
+    case "$mime" in
+        image/*)
+            # Get current directory
+            dir="$PWD"
+            current="$fx"
+            
+            # Get files as LF sees them (but we can't use $ft in mapping)
+            # So we'll use shell to get files sorted by modification time
+            # This captures the state AT THE MOMENT we press enter
+            
+            # Change to directory
+            cd -- "$dir"
+            
+            # Get image files sorted by modification time (newest first)
+            img_files=$(find . -maxdepth 1 -type f -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.gif" -o -name "*.bmp" -o -name "*.tiff" -o -name "*.webp" 2>/dev/null | xargs -I {} stat -c "%Y %n" {} | sort -rn | cut -d' ' -f2- | sed 's|^\./||')
+            
+            # Find current position
+            index=0
+            counter=0
+            for f in $img_files; do
+                if [ "$f" = "$(basename -- "$current")" ]; then
+                    index=$counter
+                    break
+                fi
+                counter=$((counter + 1))
+            done
+            
+            # Launch sxiv
+            if [ -n "$img_files" ]; then
+                eval "setsid sxiv -n $index -- $img_files" >/dev/null 2>&1 &
+            else
+                setsid sxiv -- "$(basename -- "$current")" >/dev/null 2>&1 &
+            fi
+            ;;
+        *)
+            # Non-images: use default opener
+            ~/.config/lf/opener "$fx"
+            ;;
+    esac
+}}
+
+map ? ${{
+    lf -remote "send $id echo $id"
+}}
