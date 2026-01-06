@@ -70,7 +70,7 @@ map a rename
 map cw rename
 map A :rename
 map I $ file "$fx"
-map i %{{ sxiv -ab -- $(dirname "$fx") }}
+map i %{{ sxiv -ab -- $(dirname "$f") }}
 cmd open $/home/m/.config/lf/opener "$f"
 
 # Yank operations 
@@ -202,6 +202,8 @@ cmd z ${{
 }}
 cmd on-cd &{{ zoxide add "$PWD" }}
 map z z
+
+map R $$printf '%s\n' $fx | nvim -c 'set noreadonly' -
 
 # ===================================================================
 # == UI Toggles (like ranger's 'z' commands)
