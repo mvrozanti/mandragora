@@ -204,18 +204,40 @@ cmd on-cd &{{ zoxide add "$PWD" }}
 map z z
 
 map R ${{
-    sel=$(mktemp)
-    printf '%s\n' $fx > "$sel"
+    sel=$(mktemp --suffix=.txt)
+    # Save original names
+    printf '%s\n' "$fx" > "$sel"
+    
+    # Read original names into array
+    oldnames=()
+    while IFS= read -r line; do
+        oldnames+=("$line")
+    done < "$sel"
+    
+    # Edit the file
     nvim "$sel"
-    cat "$sel" | while read oldname; do
-        read newname
-        if [ -n "$newname" ] && [ "$oldname" != "$newname" ]; then
-            mv -i -- "$oldname" "$newname"
-        fi
-    done
-    # Clean up
+    
+    # Read new names into array
+    newnames=()
+    while IFS= read -r line; do
+        newnames+=("$line")
+    done < "$sel"
+    
+    # Check if arrays have same length
+    if [ ${#oldnames[@]} -ne ${#newnames[@]} ]; then
+        echo "Error: Number of files changed!" >&2
+    else
+        # Rename files
+        for i in "${!oldnames[@]}"; do
+            if [ "${oldnames[i]}" != "${newnames[i]}" ]; then
+                mv -i -- "${oldnames[i]}" "${newnames[i]}"
+            fi
+        done
+    fi
+    
     rm -f "$sel"
 }}
+
 # ===================================================================
 # == UI Toggles (like ranger's 'z' commands)
 # ===================================================================
