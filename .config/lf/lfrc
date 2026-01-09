@@ -140,8 +140,8 @@ map oz :shuffle
 
 map os :sort-size;  set reverse true
 map oS :sort-size;  set reverse false
-map om :sort-mtime; set reverse false
-map oM :sort-mtime; set reverse true
+map om :sort-mtime; set reverse true
+map oM :sort-mtime; set reverse false
 map oc :sort-ctime; set reverse false
 map oC :sort-ctime; set reverse true
 map oa :sort-atime; set reverse false
@@ -203,8 +203,19 @@ cmd z ${{
 cmd on-cd &{{ zoxide add "$PWD" }}
 map z z
 
-map R $$printf '%s\n' $fx | nvim -c 'set noreadonly' -
-
+map R ${{
+    sel=$(mktemp)
+    printf '%s\n' $fx > "$sel"
+    nvim "$sel"
+    cat "$sel" | while read oldname; do
+        read newname
+        if [ -n "$newname" ] && [ "$oldname" != "$newname" ]; then
+            mv -i -- "$oldname" "$newname"
+        fi
+    done
+    # Clean up
+    rm -f "$sel"
+}}
 # ===================================================================
 # == UI Toggles (like ranger's 'z' commands)
 # ===================================================================
@@ -314,6 +325,14 @@ map <enter> ${{
     esac
 }}
 
-map ? ${{
-    lf -remote "send $id echo $id"
+cmd on-cd %{{
+    pane_id="${LF_TMUX_PANE:-default}"
+    sync_file="$HOME/.cache/lf/cwd_${pane_id}"
+    echo "$PWD" > "$sync_file"
+}}
+
+cmd on-quit %{{
+    pane_id="${LF_TMUX_PANE:-default}"
+    sync_file="$HOME/.cache/lf/cwd_${pane_id}"
+    rm -f "$sync_file"
 }}
