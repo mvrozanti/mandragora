@@ -641,11 +641,3 @@ alias grao='git remote add origin'
 alias mds='make-disk-space'
 alias wdush.='wdu -sh .'
 alias cfl='v ~/.config/lf/lfrc'
-lf() {
-    local pane_id=$(tmux display-message -p '#{pane_id}' 2>/dev/null)
-    if [ -n "$pane_id" ]; then
-        export LF_TMUX_PANE="$pane_id"
-    fi
-    cd "$(lf-ueberzug -print-last-dir "$@")"
-    unset LF_TMUX_PANE 2>/dev/null
-}
