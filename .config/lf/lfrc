@@ -34,7 +34,6 @@ map h updir
 map l open
 
 map gh jump ~
-map gE jump /etc
 map gc jump ~/.config
 map gl jump ~/.config/lf
 map gt jump ~/.local/share/Trash
@@ -193,7 +192,6 @@ map U unzip
 
 cmd z ${{
     result="$(zoxide query -i | grep -v "$PWD" | sed 's/\\/\\\\/g;s/"/\\"/g')"
-    notify-send $id
     lf -remote "send $id cd \"$result\""
 }}
 cmd on-cd &{{ zoxide add "$PWD" }}
@@ -279,8 +277,6 @@ cmd on-cd &{{
     export LF_ID="$id"
 }}
 
-# map ? %{{ notify-send $id }}
-
 map <enter> ${{
     # Only for images
     mime=$(file --mime-type -b -- "$fx" 2>/dev/null)
@@ -346,9 +342,9 @@ cmd cd- ${{
     prev_dir="$(cat /tmp/lf-prev-dir-$id 2>/dev/null)"
     if [ -n "$prev_dir" ]; then
         lf -remote "send $id cd \"$prev_dir\""
-    else
-        echo "No previous directory saved"
     fi
 }}
 
 map H cd-
+
+map ? %{{ trash-restore }}
