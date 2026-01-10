@@ -167,7 +167,7 @@ cmd unzip %{{
 map U unzip
 
 cmd z ${{
-    result="$(zoxide query -i | grep -v "$PWD" | sed 's/\\/\\\\/g;s/"/\\"/g')"
+    result="$(zoxide query -i)"
     lf -remote "send $id cd \"$result\""
 }}
 cmd on-cd &{{ zoxide add "$PWD" }}
