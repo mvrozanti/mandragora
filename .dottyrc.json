@@ -52,7 +52,6 @@
     ".scimrc": "~/.scimrc",
     ".config/mutt/muttrc": "~/.config/mutt/muttrc",
     ".config/mpv/input.conf": "~/.config/mpv/input.conf",
-    ".ranger_aliases": "~/.ranger_aliases",
     ".config/nvim/coc-settings.json": "~/.config/nvim/coc-settings.json",
     ".tigrc": "~/.tigrc",
     ".config/mpv/scripts": "~/.config/mpv/scripts",
