@@ -33,28 +33,24 @@ map j down
 map h updir
 map l open
 
-map gh cd ~
-map gE cd /etc
-map gR cd ~/.config/ranger
-map gd cd ~/disk
-map gt cd ~/.local/share/Trash
-map gT cd ~/.config/tridactyl
-map gG cd ~/gdrive
-map g4 cd ~/gdrive/Levv/4chan
-map gw cd ~/gdrive/Levv/wllpps
-map gu cd ~/util
-map gL cd ~/gdrive/library/
-map gA cd ~/gdrive/library/abstracts
-map ga cd ~/adata
-map gb cd ~/gdrive/library/books
-map gP cd ~/prog
-map gc cd ~/.config
-map gM cd ~/disk/Musik
-map gf cd ~/sandisk/Filmes
-map gm cd ~/macrovip
-map gD cd ~/Downloads
-map gs cd ~/sandisk/sss
-map gS cd ~/sandisk
+map gh jump ~
+map gE jump /etc
+map gc jump ~/.config
+map gl jump ~/.config/lf
+map gt jump ~/.local/share/Trash
+map gG jump ~/gdrive
+map g4 jump ~/gdrive/Levv/4chan
+map gw jump ~/gdrive/Levv/wllpps
+map gu jump ~/util
+map gL jump ~/gdrive/library/
+map gp jump ~/prog
+map gM jump ~/disk/Musik
+map gf jump ~/sandisk/Filmes
+map gm jump ~/macrovip
+map gs jump ~/sandisk/sss
+map ga jump ~/adata
+map gd jump ~/disk
+map gS jump ~/sandisk
 
 # Page navigation
 map <pagedown> down 50%
@@ -205,29 +201,19 @@ map z z
 
 map R ${{
     sel=$(mktemp --suffix=.txt)
-    # Save original names
     printf '%s\n' "$fx" > "$sel"
-    
-    # Read original names into array
     oldnames=()
     while IFS= read -r line; do
         oldnames+=("$line")
     done < "$sel"
-    
-    # Edit the file
     nvim "$sel"
-    
-    # Read new names into array
     newnames=()
     while IFS= read -r line; do
         newnames+=("$line")
     done < "$sel"
-    
-    # Check if arrays have same length
     if [ ${#oldnames[@]} -ne ${#newnames[@]} ]; then
         echo "Error: Number of files changed!" >&2
     else
-        # Rename files
         for i in "${!oldnames[@]}"; do
             if [ "${oldnames[i]}" != "${newnames[i]}" ]; then
                 mv -i -- "${oldnames[i]}" "${newnames[i]}"
@@ -293,15 +279,7 @@ cmd on-cd &{{
     export LF_ID="$id"
 }}
 
-
-
-
-
-
-
-
-
-
+# map ? %{{ notify-send $id }}
 
 map <enter> ${{
     # Only for images
@@ -358,3 +336,19 @@ cmd on-quit %{{
     sync_file="$HOME/.cache/lf/cwd_${pane_id}"
     rm -f "$sync_file"
 }}
+
+cmd jump %{{
+    echo "$(pwd)" > "/tmp/lf-prev-dir-$id"
+    lf -remote "send $id cd $1"
+}}
+
+cmd cd- ${{
+    prev_dir="$(cat /tmp/lf-prev-dir-$id 2>/dev/null)"
+    if [ -n "$prev_dir" ]; then
+        lf -remote "send $id cd \"$prev_dir\""
+    else
+        echo "No previous directory saved"
+    fi
+}}
+
+map H cd-
