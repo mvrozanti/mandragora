@@ -167,7 +167,8 @@
     ".local/bin/scratchpad": "/home/m/.local/bin/scratchpad",
     ".local/bin/desktop": "/home/m/.local/bin/desktop",
     ".local/bin/blur-strength": "/home/m/.local/bin/blur-strength",
-    ".local/bin/lf-ueberzug": "/home/m/.local/bin/lf-ueberzug"
+    ".local/bin/lf-ueberzug": "/home/m/.local/bin/lf-ueberzug",
+    ".config/imv": "/home/m/.config/imv"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [

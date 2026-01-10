@@ -1,0 +1,25 @@
+[options]
+background = #000000
+fullscreen = false
+recursive = true
+
+[binds]
+<q> = quit
+<Return> = fullscreen
+<Space> = overlay
+<f> = fullscreen
+<Left> = prev
+<b> = prev
+<Right> = next
+<w> = next
+<plus> = zoom in
+<minus> = zoom out
+<0> = zoom actual
+<h> = pan left
+<j> = pan down
+<k> = pan up
+<l> = pan right
+<y> = exec imv -p | xclip -sel clipboard -t image/png
+<p> = exec printf '%s' "$imv_current_file" | xclip -selection clipboard
+<W> = exec $HOME/.local/bin/setbg "$imv_current_file"
+<r> = exec bash -c 'name=$(rofi -dmenu -p "rename $imv_current_file to: ") && if [ -n "$name" ]; then mv "$imv_current_file" "$name"; fi'
