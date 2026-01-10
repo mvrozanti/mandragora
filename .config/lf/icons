@@ -1,9 +1,9 @@
 # basics
 di 
-fi 
+# fi 
 ln 
-or 
-ex 
+# or 
+# ex 
 
 # archives
 *.zip 
@@ -49,6 +49,8 @@ ex 
 *.lua 
 *.java 
 *.kt 
+*.html 
+*.xhtml 
 
 # config / data
 *.json 
