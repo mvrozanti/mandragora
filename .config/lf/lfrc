@@ -16,8 +16,6 @@ set ratios 1:2:3
 set drawbox false
 set scrolloff 8
 set icons true
-set iconseparator " "
-set iconsfile ~/.config/lf/icons
 
 # Sorting
 set sortby ctime; set reverse true
