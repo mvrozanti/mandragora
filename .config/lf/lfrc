@@ -34,6 +34,7 @@ map h updir
 map l open
 
 map gh jump ~
+map gD jump ~/Downloads
 map gc jump ~/.config
 map gl jump ~/.config/lf
 map gt jump ~/.local/share/Trash
@@ -66,6 +67,7 @@ map cw rename
 map A :rename
 map I $ file "$fx"
 map i %{{ sxiv -ab -- $(dirname "$f") }}
+
 cmd open $/home/m/.config/lf/opener "$f"
 
 # Yank operations 
@@ -76,9 +78,6 @@ cmd yank-bytes %{{ ~/.local/bin/ic "$f" }}
 map Yp yank-path
 map Yn yank-name
 map Yb yank-bytes
-
-# Marking/Selection (LF uses space for toggle)
-map <space> toggle
 
 # Search
 map | :filter 
@@ -119,7 +118,7 @@ cmd shuffle ${{
       fi
       count=$((count + 1))
       
-      if [ $count -eq 50 ]; then
+      if [ $count -eq 100 ]; then
         lf -remote "send $id $batch"
         batch=""
         count=0
@@ -192,6 +191,7 @@ map U unzip
 
 cmd z ${{
     result="$(zoxide query -i | grep -v "$PWD" | sed 's/\\/\\\\/g;s/"/\\"/g')"
+    notify-send $id
     lf -remote "send $id cd \"$result\""
 }}
 cmd on-cd &{{ zoxide add "$PWD" }}
@@ -277,6 +277,8 @@ cmd on-cd &{{
     export LF_ID="$id"
 }}
 
+# map ? %{{ notify-send $id }}
+
 map <enter> ${{
     # Only for images
     mime=$(file --mime-type -b -- "$fx" 2>/dev/null)
@@ -346,5 +348,3 @@ cmd cd- ${{
 }}
 
 map H cd-
-
-map ? %{{ trash-restore }}
