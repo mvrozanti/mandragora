@@ -1,7 +1,3 @@
-# Ueberzug setup
-set previewer ~/.config/lf/preview
-set cleaner ~/.config/lf/cleaner
-set preview true
 
 # ===================================================================
 # LF Configuration - Translated from Ranger config
@@ -10,12 +6,18 @@ set preview true
 # ===================================================================
 # == Basic Options (Direct translations)
 # ===================================================================
+set previewer ~/.config/lf/preview
+set cleaner ~/.config/lf/cleaner
+set preview true
 
 # UI Settings
 set ratios 1:2:3
 # set hiddenfiles "^\.|\.(?:pyc|pyo|bak|swp)$|^lost\+found$|^__(py)?cache__$"
 set drawbox false
 set scrolloff 8
+set icons true
+set iconseparator " "
+set iconsfile ~/.config/lf/icons
 
 # Sorting
 set sortby ctime; set reverse true
@@ -32,6 +34,7 @@ map k up
 map j down
 map h updir
 map l open
+map <enter> open
 
 map gh jump ~
 map gD jump ~/Downloads
@@ -99,51 +102,27 @@ map gT tab-prev
 # == Sorting Modes (like ranger's 'o' commands)
 # ===================================================================
 
-cmd sort-size  :set sortby size;  set info size
-cmd sort-mtime :set sortby time;  set info time
-cmd sort-ctime :set sortby ctime; set info ctime
-cmd sort-atime :set sortby atime; set info atime
-cmd sort-name  :set sortby name;  set info 
-cmd sort-ext   :set sortby ext;   set info
+cmd sort-size   :set sortby size;   set info size
+cmd sort-mtime  :set sortby time;   set info time
+cmd sort-ctime  :set sortby ctime;  set info ctime
+cmd sort-atime  :set sortby atime;  set info atime
+cmd sort-name   :set sortby name;   set info 
+cmd sort-ext    :set sortby ext;    set info
+cmd sort-random :set sortby random; set info
 
-cmd shuffle ${{
-  batch=""
-  count=0
-  for f in *; do
-    [ -n "$f" ] && {
-      if [ -z "$batch" ]; then
-        batch="addcustominfo '$f' '$RANDOM'"
-      else
-        batch="$batch; addcustominfo '$f' '$RANDOM'"
-      fi
-      count=$((count + 1))
-      
-      if [ $count -eq 100 ]; then
-        lf -remote "send $id $batch"
-        batch=""
-        count=0
-        # sleep 0.001 2>/dev/null || true
-      fi
-    }
-  done
-  [ -n "$batch" ] && lf -remote "send $id $batch"
-  lf -remote "send $id set sortby custom"
-}}
-
-map oz :shuffle
-
-map os :sort-size;  set reverse true
-map oS :sort-size;  set reverse false
-map om :sort-mtime; set reverse true
-map oM :sort-mtime; set reverse false
-map oc :sort-ctime; set reverse false
-map oC :sort-ctime; set reverse true
-map oa :sort-atime; set reverse false
-map oA :sort-atime; set reverse true
-map on :sort-name;  set reverse false
-map oN :sort-name;  set reverse true
-map oe :sort-ext;   set reverse false
-map oE :sort-ext;   set reverse true
+map oz :sort-random;  set reverse false
+map os :sort-size;    set reverse true
+map oS :sort-size;    set reverse false
+map om :sort-mtime;   set reverse true
+map oM :sort-mtime;   set reverse false
+map oc :sort-ctime;   set reverse false
+map oC :sort-ctime;   set reverse true
+map oa :sort-atime;   set reverse false
+map oA :sort-atime;   set reverse true
+map on :sort-name;    set reverse false
+map oN :sort-name;    set reverse true
+map oe :sort-ext;     set reverse false
+map oE :sort-ext;     set reverse true
 
 # ===================================================================
 # == External Programs Integration
@@ -191,7 +170,6 @@ map U unzip
 
 cmd z ${{
     result="$(zoxide query -i | grep -v "$PWD" | sed 's/\\/\\\\/g;s/"/\\"/g')"
-    notify-send $id
     lf -remote "send $id cd \"$result\""
 }}
 cmd on-cd &{{ zoxide add "$PWD" }}
