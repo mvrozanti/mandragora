@@ -255,50 +255,6 @@ cmd on-cd &{{
 
 # map ? %{{ notify-send $id }}
 
-map <enter> ${{
-    # Only for images
-    mime=$(file --mime-type -b -- "$fx" 2>/dev/null)
-    case "$mime" in
-        image/*)
-            # Get current directory
-            dir="$PWD"
-            current="$fx"
-            
-            # Get files as LF sees them (but we can't use $ft in mapping)
-            # So we'll use shell to get files sorted by modification time
-            # This captures the state AT THE MOMENT we press enter
-            
-            # Change to directory
-            cd -- "$dir"
-            
-            # Get image files sorted by modification time (newest first)
-            img_files=$(find . -maxdepth 1 -type f -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.gif" -o -name "*.bmp" -o -name "*.tiff" -o -name "*.webp" 2>/dev/null | xargs -I {} stat -c "%Y %n" {} | sort -rn | cut -d' ' -f2- | sed 's|^\./||')
-            
-            # Find current position
-            index=0
-            counter=0
-            for f in $img_files; do
-                if [ "$f" = "$(basename -- "$current")" ]; then
-                    index=$counter
-                    break
-                fi
-                counter=$((counter + 1))
-            done
-            
-            # Launch sxiv
-            if [ -n "$img_files" ]; then
-                eval "setsid sxiv -n $index -- $img_files" >/dev/null 2>&1 &
-            else
-                setsid sxiv -- "$(basename -- "$current")" >/dev/null 2>&1 &
-            fi
-            ;;
-        *)
-            # Non-images: use default opener
-            ~/.config/lf/opener "$fx"
-            ;;
-    esac
-}}
-
 cmd on-cd %{{
     pane_id="${LF_TMUX_PANE:-default}"
     sync_file="$HOME/.cache/lf/cwd_${pane_id}"
@@ -311,16 +267,88 @@ cmd on-quit %{{
     rm -f "$sync_file"
 }}
 
+# ===================================================================
+# == Directory History Stack
+# ===================================================================
+
+# Initialize history on LF start
+${{ 
+    export LF_HISTORY_FILE="/tmp/lf-history-$id"
+    export LF_HISTORY_INDEX_FILE="/tmp/lf-history-index-$id"
+    [ ! -f "$LF_HISTORY_FILE" ] && echo "$PWD" > "$LF_HISTORY_FILE"
+    [ ! -f "$LF_HISTORY_INDEX_FILE" ] && echo "0" > "$LF_HISTORY_INDEX_FILE"
+}}
+
+# Jump with history tracking (replaces your existing jump command)
 cmd jump %{{
-    echo "$(pwd)" > "/tmp/lf-prev-dir-$id"
+    history_file="/tmp/lf-history-$id"
+    index_file="/tmp/lf-history-index-$id"
+    
+    # Read current state
+    history_array=()
+    while IFS= read -r line; do
+        history_array+=("$line")
+    done < "$history_file"
+    current_index=$(cat "$index_file")
+    
+    # Truncate future history if not at latest
+    if [ "$current_index" -lt "$((${#history_array[@]} - 1))" ]; then
+        for ((i=${#history_array[@]}-1; i>current_index; i--)); do
+            unset "history_array[$i]"
+        done
+        printf "%s\n" "${history_array[@]}" > "$history_file"
+    fi
+    
+    # Add new directory
+    echo "$(pwd)" >> "$history_file"
+    new_index=$((${#history_array[@]}))
+    echo "$new_index" > "$index_file"
+    
+    # Execute jump
     lf -remote "send $id cd $1"
 }}
 
-cmd cd- ${{
-    prev_dir="$(cat /tmp/lf-prev-dir-$id 2>/dev/null)"
-    if [ -n "$prev_dir" ]; then
-        lf -remote "send $id cd \"$prev_dir\""
+# History back
+cmd history-back %{{
+    history_file="/tmp/lf-history-$id"
+    index_file="/tmp/lf-history-index-$id"
+    
+    history_array=()
+    while IFS= read -r line; do
+        history_array+=("$line")
+    done < "$history_file"
+    current_index=$(cat "$index_file")
+    
+    if [ "$current_index" -gt 0 ]; then
+        new_index=$((current_index - 1))
+        target_dir="${history_array[$new_index]}"
+        echo "$new_index" > "$index_file"
+        lf -remote "send $id cd \"$target_dir\""
     fi
 }}
 
-map H cd-
+# History forward
+cmd history-forward %{{
+    history_file="/tmp/lf-history-$id"
+    index_file="/tmp/lf-history-index-$id"
+    
+    history_array=()
+    while IFS= read -r line; do
+        history_array+=("$line")
+    done < "$history_file"
+    current_index=$(cat "$index_file")
+    max_index=$((${#history_array[@]} - 1))
+    
+    if [ "$current_index" -lt "$max_index" ]; then
+        new_index=$((current_index + 1))
+        target_dir="${history_array[$new_index]}"
+        echo "$new_index" > "$index_file"
+        lf -remote "send $id cd \"$target_dir\""
+    fi
+}}
+
+# ===================================================================
+# == Keybindings
+# ===================================================================
+map H history-back
+map L history-forward
