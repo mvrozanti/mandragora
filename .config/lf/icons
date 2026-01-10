@@ -1,0 +1,71 @@
+# basics
+di 
+fi 
+ln 
+or 
+ex 
+
+# archives
+*.zip 
+*.tar 
+*.gz  
+*.xz  
+*.7z  
+*.rar 
+
+# images
+*.jpg 
+*.jpeg 
+*.png 
+*.gif 
+*.webp 
+*.bmp 
+*.tiff 
+
+# video
+*.mp4 
+*.mkv 
+*.avi 
+*.mov 
+*.webm 
+
+# audio
+*.mp3 
+*.flac 
+*.wav 
+*.ogg 
+*.m4a 
+
+# code
+*.c 
+*.h 
+*.cpp 
+*.rs 
+*.go 
+*.py 
+*.js 
+*.ts 
+*.sh 
+*.lua 
+*.java 
+*.kt 
+
+# config / data
+*.json 
+*.yaml 
+*.yml 
+*.toml 
+*.ini 
+*.conf 
+
+# docs
+*.md 
+*.txt 
+*.pdf 
+*.epub 
+
+# disk / images
+*.iso 
+*.img 
+*.bin 
+
