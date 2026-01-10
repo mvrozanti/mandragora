@@ -6,39 +6,51 @@ file="$1"
 mime=$(file --mime-type -Lb -- "$file")
 
 case "$mime" in
-       image/*)
+    image/*)
         # Get directory and filename
         dir=$(dirname -- "$file")
-        current=$(basename -- "$file")
+        current="$file"
         
-        # Change to the image's directory
+        # Check if we're being called from lf (has $id env var)
+        if [ -n "$id" ] && command -v lf >/dev/null 2>&1; then
+            # Get fresh file list in display order from lf
+            files=$(lf -remote "query $id files-fresh" 2>/dev/null)
+            
+            if [ -n "$files" ]; then
+                # Filter for image files only
+                image_files=$(echo "$files" | grep -iE '\.(jpg|jpeg|png|gif|bmp|tiff|tif|svg|webp|xpm|ico)$')
+                
+                # Find index of current file in the filtered list (1-based for sxiv)
+                index=$(echo "$image_files" | grep -nFx "$current" | cut -d: -f1)
+                
+                # Launch sxiv with images via stdin, starting at current file
+                if [ -n "$index" ] && [ -n "$image_files" ]; then
+                    echo "$image_files" | setsid sxiv -n "$index" -i >/dev/null 2>&1 &
+                    exit 0
+                fi
+            fi
+        fi
+        
+        # Fallback: if not in lf context or query failed, use directory-based approach
         cd -- "$dir" || exit 1
-        
-        # 1. Get ALL image files in directory, sorted by modification time (newest first)
-        #    This matches LF's default 'ctime reverse' sorting
-        img_files=$(ls -1t -- *.jpg *.jpeg *.png *.gif *.bmp *.tiff *.webp 2>/dev/null)
-        
-        # 2. If no files found, fallback to just the current file
+        img_files=$(ls -1t -- *.jpg *.jpeg *.png *.gif *.bmp *.tiff *.webp 2>/dev/null | head -100)
         if [ -z "$img_files" ]; then
             setsid sxiv -- "$current" >/dev/null 2>&1 &
             exit 0
         fi
         
-        # 3. Find the position of the current file in the list
         index=0
         counter=0
         for f in $img_files; do
-            if [ "$f" = "$current" ]; then
+            if [ "$(basename -- "$f")" = "$(basename -- "$current")" ]; then
                 index=$counter
                 break
             fi
             counter=$((counter + 1))
         done
         
-        # 4. Launch sxiv with ALL images, starting at the current file
         eval "setsid sxiv -n $index -- $img_files" >/dev/null 2>&1 &
         ;; 
-    # Keep your existing cases for other file types
     video/*|audio/*)
         setsid mpv -- "$file" >/dev/null 2>&1 &
         ;;
