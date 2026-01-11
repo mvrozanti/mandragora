@@ -162,30 +162,97 @@ augroup END
 function! MyAirline_Setup() abort
   " ensure symbols dict exists and change executable icon
   if !exists('g:airline_symbols') | let g:airline_symbols = {} | endif
-  let g:airline_symbols['executable'] = '🔥'
+  let g:airline_symbols['executable'] = ''
 
   " Rightmost compact position section
-  let g:airline_section_z = '⚡ %p%% %l:%c'
+  let g:airline_section_z = '%p%% %l:%c'
 
   " --- helpers (GLOBAL functions so %{...} can call them) ---
 
   " filetype icon
   function! MyAirline_GetFileIcon() abort
-    if &filetype ==# 'python'
-      return '🐍'
-    elseif &filetype ==# 'sh' || &filetype ==# 'bash'
-      return '⚙️'
-    elseif &filetype ==# 'markdown'
-      return '✍'
-    elseif &filetype ==# 'lua'
-      return '🌙'
-    elseif &filetype ==# 'tex'
-      return '📄'
-    elseif &filetype ==# 'javascript' || &filetype ==# 'typescript'
-      return '🟨'
-    else
-      return '📄'
-    endif
+      let l:ext = expand('%:e')
+
+      " directories (netrw, oil, etc.)
+      if &buftype ==# 'nofile' || &filetype ==# 'netrw'
+          return ''
+      endif
+
+      " executables
+      if executable(expand('%:p'))
+          return ''
+      endif
+
+      " archives
+      if l:ext =~? '^\(zip\|tar\|gz\|xz\|7z\|rar\)$'
+          return ''
+      endif
+
+      " images / video
+      if l:ext =~? '^\(jpg\|jpeg\|png\|gif\|webp\|bmp\|tiff\|mp4\|mkv\|avi\|mov\|webm\)$'
+          return ''
+      endif
+
+      " audio
+      if l:ext =~? '^\(mp3\|flac\|wav\|ogg\|m4a\)$'
+          return ''
+      endif
+
+      " code
+      if l:ext ==# 'c' || l:ext ==# 'h'
+          return ''
+      elseif l:ext ==# 'cpp'
+          return ''
+      elseif l:ext ==# 'rs'
+          return ''
+      elseif l:ext ==# 'go'
+          return ''
+      elseif l:ext ==# 'py'
+          return ''
+      elseif l:ext ==# 'js'
+          return ''
+      elseif l:ext ==# 'ts'
+          return ''
+      elseif l:ext ==# 'sh'
+          return ''
+      elseif l:ext ==# 'lua'
+          return ''
+      elseif l:ext ==# 'java'
+          return ''
+      elseif l:ext ==# 'kt'
+          return ''
+      elseif l:ext ==# 'html' || l:ext ==# 'xhtml'
+          return ''
+      endif
+
+      " config / data
+      if l:ext =~? '^\(json\|yaml\|yml\|toml\|ini\|conf\)$'
+          return ''
+      endif
+
+      " docs
+      if l:ext ==# 'md'
+          return ''
+      elseif l:ext ==# 'txt'
+          return ''
+      elseif l:ext ==# 'pdf'
+          return ''
+      elseif l:ext ==# 'epub'
+          return ''
+      endif
+
+      " disk images
+      if l:ext =~? '^\(iso\|img\|bin\)$'
+          return ''
+      endif
+
+      " symlink
+      if getftype(expand('%:p')) ==# 'link'
+          return ''
+      endif
+
+      " fallback file
+      return ''
   endfunction
 
   " git branch + dirty flag (prefer fugitive if available)
