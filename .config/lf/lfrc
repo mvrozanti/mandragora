@@ -258,7 +258,7 @@ cmd on-cd &{{
 cmd on-cd %{{
     pane_id="${LF_TMUX_PANE:-default}"
     sync_file="$HOME/.cache/lf/cwd_${pane_id}"
-    echo "$PWD" > "$sync_file"
+    echo "$(pwd)" > "$sync_file"
 }}
 
 cmd on-quit %{{
