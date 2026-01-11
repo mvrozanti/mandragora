@@ -152,3 +152,95 @@ endfunction
 
 command! ForceAirlineLook call s:ApplyAirlineLook()
 
+autocmd VimEnter * let g:airline_symbols['executable'] = '🔥' | AirlineRefresh
+
+augroup MyAirlineOverrides
+  autocmd!
+  autocmd VimEnter * ++once call MyAirline_Setup()
+augroup END
+
+function! MyAirline_Setup() abort
+  " ensure symbols dict exists and change executable icon
+  if !exists('g:airline_symbols') | let g:airline_symbols = {} | endif
+  let g:airline_symbols['executable'] = '🔥'
+
+  " Rightmost compact position section
+  let g:airline_section_z = '⚡ %p%% %l:%c'
+
+  " --- helpers (GLOBAL functions so %{...} can call them) ---
+
+  " filetype icon
+  function! MyAirline_GetFileIcon() abort
+    if &filetype ==# 'python'
+      return '🐍'
+    elseif &filetype ==# 'sh' || &filetype ==# 'bash'
+      return '⚙️'
+    elseif &filetype ==# 'markdown'
+      return '✍'
+    elseif &filetype ==# 'lua'
+      return '🌙'
+    elseif &filetype ==# 'tex'
+      return '📄'
+    elseif &filetype ==# 'javascript' || &filetype ==# 'typescript'
+      return '🟨'
+    else
+      return '📄'
+    endif
+  endfunction
+
+  " git branch + dirty flag (prefer fugitive if available)
+  function! MyAirline_GetGitBranch() abort
+    if exists('*fugitive#head')
+      let l:branch = fugitive#head()
+      if empty(l:branch)
+        return ''
+      endif
+      let l:dirty = &modified ? '⚡' : ''
+      return l:branch . l:dirty
+    endif
+
+    " Fallback: try a cheap git check (avoid calling in non-git dirs)
+    if stridx(system('git rev-parse --is-inside-work-tree 2>/dev/null'), 'true') >= 0
+      let l = substitute(system('git rev-parse --abbrev-ref HEAD 2>/dev/null'), '\n', '', 'g')
+      if empty(l) | return '' | endif
+      let ldirty = &modified ? '⚡' : ''
+      return l . ldirty
+    endif
+
+    return ''
+  endfunction
+
+  " LSP / diagnostics summary:
+  " - If using coc.nvim, use coc#status()
+  " - If using Neovim builtin LSP, use luaeval diagnostic counts
+  function! MyAirline_GetLSPStatus() abort
+    " coc.nvim
+    if exists('*coc#status')
+      return substitute(coc#status(), '\n', ' ', 'g')
+    endif
+
+    " Neovim builtin LSP (uses luaeval; only works in nvim)
+    if has('nvim')
+      try
+        let errors = luaeval('vim.lsp.diagnostic.get_count(0, "Error")')
+        let warns  = luaeval('vim.lsp.diagnostic.get_count(0, "Warning")')
+        if (errors == 0 && warns == 0)
+          return ''
+        endif
+        return printf('E:%d W:%d', errors, warns)
+      catch
+        return ''
+      endtry
+    endif
+
+    return ''
+  endfunction
+
+  " --- set the section C using the functions above ---
+  " note: %{Func()} is evaluated by statusline
+  let g:airline_section_c = '%{MyAirline_GetFileIcon()} %{MyAirline_GetGitBranch()} %{MyAirline_GetLSPStatus()}'
+
+  " redraw airline to apply changes immediately
+  silent! AirlineRefresh
+endfunction
+
