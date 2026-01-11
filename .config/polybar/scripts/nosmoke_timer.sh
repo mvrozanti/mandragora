@@ -41,7 +41,7 @@ if [ "$1" == "click-middle" ]; then
             HOURS=$((REM/3600))
             MIN=$(( (REM%3600)/60 ))
             SEC=$((REM%60))
-            notify-send "Smoke Timer" "Next smoke in: $HOURS h $MIN m $SEC s"
+            notify-send "$HOURS h $MIN m $SEC s left"
         fi
     else
         notify-send "Smoke Timer" "Unlocked! You can smoke now."
