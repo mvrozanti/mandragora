@@ -180,7 +180,7 @@ npm() { lazynvm; npm "$@"; }
 npx() { lazynvm; npx "$@"; }
 
 alias zh='~'
-alias zd='~/Downloads'
+alias zD='~/Downloads'
 alias zc='~/.config'
 alias zl='~/.config/lf'
 alias zt='~/.local/share/Trash'
