@@ -4,7 +4,7 @@ STATE_FILE="/tmp/smoke_timer.state"
 END_FILE="/tmp/smoke_timer.end"
 INCREMENT_FILE="/tmp/smoke_timer.increment"
 
-BASE_LOCK=$((40*60))
+BASE_LOCK=$((45*60))
 
 if [ ! -f "$STATE_FILE" ]; then
     echo "unlocked" > "$STATE_FILE"
