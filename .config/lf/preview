@@ -25,6 +25,17 @@ height="$3"
 x="$4"
 y="$5"
 
+
+if [ -d "$file" ]; then
+    tree_width=$((width / 8 - 2))  # Approximate character width
+    if command -v tree >/dev/null 2>&1; then
+        tree -a -C -L 2 --dirsfirst "$file" 2>/dev/null | head -$((height - 2))
+    else
+        ls -la --color=always "$file" 2>/dev/null | head -$((height - 2))
+    fi
+    exit 0
+fi
+
 case "$(file -Lb --mime-type -- "$file")" in
   image/*)
     if [ -p "$FIFO_UEBERZUG" ]; then

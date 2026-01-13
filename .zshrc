@@ -37,7 +37,7 @@ run_ranger() { echo; ranger --choosedir=$HOME/.rangerdir < $TTY; LASTDIR=`cat $H
 run_nvim_fast() { echo; nvim; zle reset-prompt }
 run_nvim() { echo; nvim -c 'Startify'; zle reset-prompt }
 run_nnn() { echo; BUFFER="nnn -P p"; zle accept-line }
-run_lf() { lf-ueberzug; zle reset-prompt }
+run_lf() { lf; zle reset-prompt }
 run_khal() { echo; khal interactive < $TTY; zle reset-prompt }
 cd_downloads() { echo; cd ~/Downloads; zle reset-prompt }
 cd_fzf() { echo; cd "`ls|fzf`"; zle reset-prompt }
