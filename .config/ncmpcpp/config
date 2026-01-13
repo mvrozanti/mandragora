@@ -89,3 +89,4 @@ follow_now_playing_lyrics = "yes"
 ignore_leading_the = "yes"
 empty_tag_marker = ""
 show_duplicate_tags = no
+connected_message_on_startup = no
