@@ -352,3 +352,5 @@ cmd history-forward %{{
 # ===================================================================
 map H history-back
 map L history-forward
+
+map T set dirpreviews!
