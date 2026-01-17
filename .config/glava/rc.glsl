@@ -13,7 +13,7 @@
    as a 2D sampler.
    
    See documentation for more details. */
-#request mod radial
+#request mod wave
 
 /* Window hints */
 #request setfloating  true
@@ -56,6 +56,7 @@
 /* #define COLOR mix(#ff0000, #000000, clamp(d / 80, 0, 1)) */
 #define BACKGROUND @bg:(@fg:#3C3CA8 * 0.4)
 #define COLOR @fg:#3C3CA8
+
 
 
 /* (X11 only) EWMH Window type. Possible values are:
@@ -110,7 +111,8 @@
    
    When the "fifo" backend is set, "auto" is interpreted as
    "/tmp/mpd.fifo". Otherwise, a valid path should be provided. */
-#request setsource auto
+#request setsource 0
+#request setsource /tmp/mpd.fifo
 
 /* Buffer swap interval (vsync), set to '0' to prevent
    waiting for refresh, '1' (or more) to wait for the specified

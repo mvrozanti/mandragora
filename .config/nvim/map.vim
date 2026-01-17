@@ -55,7 +55,6 @@ vn <C-f> y/<C-R>"<CR>
 nn <CR> i<CR><Esc>
 vn ( <Esc>a)<Esc>gvo<Esc>i(<Esc>i
 nn yF maggyG'a
-nn ZZ <Esc>?<+><CR>"_3xi
 nn dl v$hxJhv0w"_x
 nn c_ ct_
 nn dA F(vbdf)xB
@@ -74,14 +73,11 @@ ino she<tab> #!/bin/bash<Esc>o
 ino re<tab> return<Space>
 ino fori<tab> for(int i=0; i < ; i++){<CR>}<Esc>3Bla
 ino forj<tab> for(int j=0; j < ; j++){<CR>}<Esc>3Bla
-au FileType javascript ino repl<tab> require('repl').start('> ').context.<+> = <+>;<Esc>
 au FileType javascript ino tr<tab> true
 au FileType javascript ino fa<tab> false
 au FileType javascript ino fori<tab> for(i=0; i < ; i++){<CR>}<Esc>3Bla
-au FileType javascript ino wh<tab> while(){<CR><Tab><+><CR>}<Esc>2kf(a
 au FileType typescript,html,javascript,p5js ino cl<tab> console.log()<Esc>i
 au FileType typescript,html,javascript,p5js ino ok<tab> Object.keys()<Esc>i
-au FileType html,javascript,p5js ino fn<tab> function(){<CR><Tab><+><CR>}<Esc>2kf(a
 au FileType javascript ino she<tab> #!/usr/bin/env node
 au FileType typescript ino im<tab> import<Space>
 au FileType cs ino pr<tab> private<Space>
@@ -107,27 +103,20 @@ au FileType python ino sir<tab> sys.stdin.read()
 au FileType python ino im<tab> import<Space>
 au FileType python ino pte<tab> import ptpython; ptpython.embed(globals(), locals())
 au FileType python ino pdbt<tab> pdb.set_trace()<Esc>
-au FileType python ino fori<tab> for <+> in<Space>
 au FileType python ino ld<tab> LOG.debug()<Esc>i
 au FileType python ino pr<tab> print()<Esc>i
-au FileType python ino dis<tab> def __init__(self, ):<CR><+><Esc>kWi
 au FileType python ino inm<tab> if __name__ == '__main__':<CR>
 au FileType python ino she<tab> #!/usr/bin/env python
 au FileType python ino Fa<tab> False
 au FileType python ino Tr<tab> True
 au FileType python ino wh<tab> while :<Esc>i
 au FileType python ino en<tab> enumerate
-au FileType python ino tc<tab> try:<CR><+><CR>except Exception as e: print(e)
-au FileType python ino agp<tab> parser = argparse.ArgumentParser(description='<+>')<CR>parsed = parser.parse_args()<CR><+>
 au FileType c,cpp,lex ino st<tab> static 
 au FileType c,cpp,lex nn <A-e> :VBGevalWordUnderCursor
 au FileType c,cpp,lex ino psvm<tab> int main(int argc, char **argv){}<Esc>i<CR><Esc>O
 au FileType c,cpp,lex ino uns<tab> using namespace std;<CR>
 au FileType c,cpp,lex ino in<tab> #include<><Esc>i
 au FileType c,lex ino so<tab> sizeof()<Esc>i
-au FileType c,cpp,lex ino pr<tab> printf("\n", <+>);<Esc>9hi
-au FileType c,cpp,lex ino fn<tab> <+> <+>(<+>){<CR>}<Esc>O
-au FileType c,cpp,java,lex ino sw<tab> switch(){<CR>case <+>:<CR>break;<CR>}<Esc>3kwa
 au FileType c,cpp,java,lex ino wh<tab> while(){<CR>}<Esc>kwa
 au FileType c,cpp,java,lex ino if<tab> if(){<CR>}<Esc>kwa
 nn <silent> <Esc><Esc> :noh<CR>
@@ -162,6 +151,7 @@ nn <C-F8> :VBGtoggleBreakpointThisLine<CR>
 nn <F10>  :VBGstepOut<CR>
 map <silent> <C-t> :NERDTreeToggle<CR>
 map <silent> <A-Enter> :History<CR>
+map <silent> Z :History<CR>
 map ; <Plug>(expand_region_expand)
 map + <Plug>(expand_region_shrink)
 nmap <silent> <A-Up> :wincmd k<CR>
