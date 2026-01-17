@@ -78,7 +78,7 @@ super + 1
     wmctrl -a Firefox            || pgrep firefox || wmctrl -a Chromium || firefox
 
 super + 2
-    wmctrl -a _lf_               || kitty --title _lf_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new 'source ~/.zshrc; lf'" 
+    wmctrl -a _lf_               || kitty --title _lf_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new 'source ~/.zshrc; lf-ueberzug'" 
   # wmctrl -a _ranger_           || kitty --title _ranger_ -e sh -c "stty -ixon && cat $HOME/.cache/wal/sequences && tmux new 'source ~/.zshrc; ranger'"
 
 super + shift + 2
