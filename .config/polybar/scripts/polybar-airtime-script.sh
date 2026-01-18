@@ -110,12 +110,25 @@ abacus_get() {
 abacus_create() {
     local key="$1"
     local url="${ABACUS_BASE_URL}/create/${ABACUS_NAMESPACE}/${key}"
-    local response=$(curl -s --connect-timeout 5 --max-time 5 -X POST "$url" 2>/dev/null)
+    local http_code
+    local response
+    local admin_key
+    
+    # Get HTTP status code and response
+    response=$(curl -s -w "\n%{http_code}" --connect-timeout 5 --max-time 5 -X POST "$url" 2>/dev/null)
+    http_code=$(echo "$response" | tail -n1)
+    response=$(echo "$response" | sed '$d')
+    
+    # If counter already exists (409), we can't get admin key this way
+    if [ "$http_code" = "409" ]; then
+        echo "Counter ${key} already exists but no admin key available" >&2
+        return 1
+    fi
     
     # Check if response contains an admin key
     if [ -n "$response" ]; then
         # Try to extract admin key from JSON or use as-is
-        local admin_key=$(echo "$response" | grep -oE '"admin_key"\s*:\s*"[^"]+"' | grep -oE '"[^"]+"' | tr -d '"')
+        admin_key=$(echo "$response" | grep -oE '"admin_key"\s*:\s*"[^"]+"' | grep -oE '"[^"]+"' | tr -d '"')
         if [ -z "$admin_key" ]; then
             # Not JSON, might be plain text admin key
             admin_key=$(echo "$response" | grep -v "error" | head -1)
@@ -160,47 +173,53 @@ abacus_set() {
     local admin_key=$(abacus_get_admin_key "$key")
     if [ -z "$admin_key" ]; then
         # Try to create counter to get admin key
-        admin_key=$(abacus_create "$key")
-        if [ -n "$admin_key" ]; then
+        admin_key=$(abacus_create "$key" 2>&1)
+        if [ -n "$admin_key" ] && [ "${admin_key:0:7}" != "Counter" ]; then
+            # Got valid admin key (not an error message)
             abacus_store_admin_key "$key" "$admin_key"
         else
-            # Can't write without admin key, fail
+            # Can't write without admin key - log error
+            echo "ERROR: Cannot set ${key}: Counter exists but no admin key available. Use Android app to lock first." >&2
             return 1
         fi
     fi
     
     # Use admin key to write
-    local response=$(curl -s --connect-timeout 5 --max-time 5 -X POST \
+    local http_code
+    local response
+    response=$(curl -s -w "\n%{http_code}" --connect-timeout 5 --max-time 5 -X POST \
         -H "Authorization: Bearer ${admin_key}" \
         "$url" 2>/dev/null)
+    http_code=$(echo "$response" | tail -n1)
+    response=$(echo "$response" | sed '$d')
     
     # Check if we got a 401 (invalid token) - clear admin key and retry
-    if echo "$response" | grep -q "401\|invalid\|token"; then
+    if [ "$http_code" = "401" ] || echo "$response" | grep -q "invalid\|token"; then
         # Clear stored admin key
         grep -v "^${key}=" "$ADMIN_KEYS_FILE" > "${ADMIN_KEYS_FILE}.tmp" 2>/dev/null || true
         mv "${ADMIN_KEYS_FILE}.tmp" "$ADMIN_KEYS_FILE" 2>/dev/null || true
         # Try to recreate
-        admin_key=$(abacus_create "$key")
-        if [ -n "$admin_key" ]; then
+        admin_key=$(abacus_create "$key" 2>&1)
+        if [ -n "$admin_key" ] && [ "${admin_key:0:7}" != "Counter" ]; then
             abacus_store_admin_key "$key" "$admin_key"
             # Retry with new key
-            curl -s --connect-timeout 5 --max-time 5 -X POST \
+            response=$(curl -s -w "\n%{http_code}" --connect-timeout 5 --max-time 5 -X POST \
                 -H "Authorization: Bearer ${admin_key}" \
-                "$url" >/dev/null 2>&1
-            return $?
+                "$url" 2>/dev/null)
+            http_code=$(echo "$response" | tail -n1)
+        else
+            echo "ERROR: Cannot set ${key}: Invalid admin key and cannot recreate" >&2
+            return 1
         fi
-        return 1
     fi
     
-    # If successful, update cache
-    if [ $? -eq 0 ] || [ -z "$response" ]; then
+    # Check if successful (2xx HTTP status)
+    if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
         cache_set "$key" "$value"
-    fi
-    
-    # Check if successful (2xx response)
-    if echo "$response" | grep -qE '^[0-9]+$' || [ -z "$response" ]; then
         return 0
     fi
+    
+    echo "ERROR: Failed to set ${key}: HTTP ${http_code}" >&2
     return 1
 }
 
@@ -210,46 +229,93 @@ abacus_track() {
     curl -s --connect-timeout 5 --max-time 5 "$url" >/dev/null 2>&1
 }
 
+# Convert timestamp to seconds (handles both ms and s)
+to_seconds() {
+    local ts="$1"
+    if [ -z "$ts" ] || [ "$ts" = "0" ]; then
+        echo "0"
+    elif [ "$ts" -gt 10000000000 ] 2>/dev/null; then
+        # Milliseconds - convert to seconds
+        echo "$((ts / 1000))"
+    else
+        # Already in seconds
+        echo "$ts"
+    fi
+}
+
 # Get current state directly from Abacus (with cache fallback)
 get_state_from_abacus() {
-    # Get lock state from Abacus - source of truth
-    local locked_value=$(abacus_get "${PLACE_NAME}_is_locked")
-    if [ $? -ne 0 ] || [ -z "$locked_value" ]; then
+    local lock_sequence=""
+    local end_time_raw=""
+    local end_time=""
+    local increment=""
+    local old_locked=""
+    local state=""
+    
+    # Get lock sequence from Abacus - source of truth (increment-only counter)
+    # Odd = locked, even = unlocked
+    lock_sequence=$(abacus_get "${PLACE_NAME}_lock_sequence" 2>/dev/null)
+    
+    # Check if we got a valid numeric value
+    if [ -z "$lock_sequence" ] || ! echo "$lock_sequence" | grep -qE '^[0-9]+$'; then
         # Abacus unavailable or key not found - try cache
-        locked_value=$(cache_get "${PLACE_NAME}_is_locked" 2>/dev/null || echo "")
-        if [ -z "$locked_value" ]; then
-            # No cache either - default to unlocked (key doesn't exist yet)
-            locked_value="0"
+        lock_sequence=$(cache_get "${PLACE_NAME}_lock_sequence" 2>/dev/null)
+        
+        if [ -z "$lock_sequence" ] || ! echo "$lock_sequence" | grep -qE '^[0-9]+$'; then
+            # No cache either - try backward compatibility with old is_locked key
+            old_locked=$(abacus_get "${PLACE_NAME}_is_locked" 2>/dev/null)
+            
+            if [ -n "$old_locked" ] && echo "$old_locked" | grep -qE '^[01]$'; then
+                # Old key exists - convert to lock_sequence format (1 = locked = odd, 0 = unlocked = even)
+                if [ "$old_locked" = "1" ]; then
+                    lock_sequence="1"  # Odd = locked
+                else
+                    lock_sequence="0"  # Even = unlocked
+                fi
+            else
+                # No old key either - default to unlocked (0 = even = unlocked)
+                lock_sequence="0"
+            fi
         fi
     fi
     
-    # Get lock end timestamp from Abacus
-    local end_time=$(abacus_get "${PLACE_NAME}_lock_end_timestamp")
-    if [ $? -ne 0 ] || [ -z "$end_time" ] || [ "$end_time" = "0" ]; then
+    # Get lock end timestamp from Abacus (stored in MILLISECONDS, return in SECONDS)
+    end_time_raw=$(abacus_get "${PLACE_NAME}_lock_end_timestamp" 2>/dev/null)
+    
+    if [ -z "$end_time_raw" ] || [ "$end_time_raw" = "0" ] || ! echo "$end_time_raw" | grep -qE '^[0-9]+$'; then
         # Try cache
-        end_time=$(cache_get "${PLACE_NAME}_lock_end_timestamp" 2>/dev/null || echo "0")
-        if [ -z "$end_time" ] || [ "$end_time" = "0" ]; then
-            end_time=0
+        end_time_raw=$(cache_get "${PLACE_NAME}_lock_end_timestamp" 2>/dev/null)
+        if [ -z "$end_time_raw" ]; then
+            end_time_raw="0"
         fi
     fi
-    
-    # Convert from milliseconds to seconds if needed
-    if [ "$end_time" -gt 10000000000 ] 2>/dev/null; then
-        end_time=$((end_time / 1000))
-    fi
+    end_time=$(to_seconds "$end_time_raw")
     
     # Get increment from Abacus
-    local increment=$(abacus_get "${PLACE_NAME}_increment")
-    if [ $? -ne 0 ] || [ -z "$increment" ]; then
+    increment=$(abacus_get "${PLACE_NAME}_increment" 2>/dev/null)
+    
+    if [ -z "$increment" ] || ! echo "$increment" | grep -qE '^[0-9]+$'; then
         # Try cache
-        increment=$(cache_get "${PLACE_NAME}_increment" 2>/dev/null || echo "0")
-        if [ -z "$increment" ]; then
-            increment=0
+        increment=$(cache_get "${PLACE_NAME}_increment" 2>/dev/null)
+        if [ -z "$increment" ] || ! echo "$increment" | grep -qE '^[0-9]+$'; then
+            increment="0"
         fi
     fi
     
-    # Return state
-    if [ "$locked_value" = "1" ] || [ "$locked_value" = "true" ]; then
+    # Determine state from lock_sequence: odd = locked, even = unlocked
+    # Ensure lock_sequence is numeric (default to 0 if not)
+    if ! echo "$lock_sequence" | grep -qE '^[0-9]+$'; then
+        lock_sequence="0"
+    fi
+    
+    if [ $((lock_sequence % 2)) -eq 1 ]; then
+        state="locked"
+    else
+        state="unlocked"
+    fi
+    
+    # Return state (end_time is in SECONDS)
+    if [ "$state" = "locked" ]; then
         echo "locked|$end_time|$increment"
     else
         echo "unlocked|0|$increment"
@@ -334,17 +400,28 @@ BASE_LOCK=$((BASE_DURATION_MINUTES * 60))
 if [ "$1" == "click-left" ] && [ "$STATE" == "unlocked" ]; then
     # Calculate lock duration: base + (increment * increment_step)
     LOCK_DURATION=$((BASE_LOCK + (INCREMENT * INCREMENT_STEP_SECONDS)))
-    END_TIME=$(( $(date +%s) + LOCK_DURATION ))
+    END_TIME_SEC=$(( $(date +%s) + LOCK_DURATION ))  # In SECONDS
     NEW_INCREMENT=$((INCREMENT + 1))
     
-    # Write to Abacus immediately
-    abacus_set "${PLACE_NAME}_is_locked" "1" || exit 1
-    abacus_set "${PLACE_NAME}_lock_end_timestamp" "$((END_TIME * 1000))" || exit 1  # Convert to milliseconds
-    abacus_set "${PLACE_NAME}_increment" "$NEW_INCREMENT" || exit 1
+    # Increment lock_sequence (no admin key needed!) - odd = locked
+    # Clear cache first so we get fresh value after increment
+    rm -f "${CACHE_DIR}/${PLACE_NAME}_lock_sequence" 2>/dev/null || true
+    abacus_track "${PLACE_NAME}_lock_sequence"
+    
+    # Invalidate cache so next read gets fresh value
+    rm -f "${CACHE_DIR}/${PLACE_NAME}_lock_sequence" 2>/dev/null || true
+    
+    # Store lock_end_timestamp in MILLISECONDS (to match Android app)
+    abacus_set "${PLACE_NAME}_lock_end_timestamp" "$((END_TIME_SEC * 1000))" 2>/dev/null || true
+    
+    # Also update increment if we have admin key (optional)
+    abacus_set "${PLACE_NAME}_increment" "$NEW_INCREMENT" 2>/dev/null || true
+    
     abacus_track "${PLACE_NAME}_locks"
     
-    # Update state
+    # Update state (lock_sequence is now odd, so locked)
     STATE="locked"
+    END_TIME="$END_TIME_SEC"  # Keep in seconds for display
 fi
 
 if [ "$1" == "click-middle" ]; then
@@ -356,15 +433,29 @@ if [ "$1" == "click-middle" ]; then
     fi
     
     STATE=$(echo "$STATE_INFO" | cut -d'|' -f1)
-    END_TIME=$(echo "$STATE_INFO" | cut -d'|' -f2)
+    END_TIME_SEC=$(echo "$STATE_INFO" | cut -d'|' -f2)  # Already in SECONDS from get_state_from_abacus
+    INCREMENT=$(echo "$STATE_INFO" | cut -d'|' -f3)
     
-    if [ "$STATE" == "locked" ] && [ "$END_TIME" != "0" ]; then
+    if [ "$STATE" == "locked" ]; then
+        # If END_TIME_SEC is 0 or missing, calculate it from config
+        if [ "$END_TIME_SEC" = "0" ] || [ -z "$END_TIME_SEC" ]; then
+            # Calculate default lock duration
+            CONFIG_INFO=$(get_config_from_abacus)
+            BASE_DURATION_MINUTES=$(echo "$CONFIG_INFO" | cut -d'|' -f1)
+            INCREMENT_STEP_SECONDS=$(echo "$CONFIG_INFO" | cut -d'|' -f2)
+            BASE_LOCK=$((BASE_DURATION_MINUTES * 60))
+            LOCK_DURATION=$((BASE_LOCK + (INCREMENT * INCREMENT_STEP_SECONDS)))
+            END_TIME_SEC=$(( $(date +%s) + LOCK_DURATION ))
+        fi
+        
         NOW=$(date +%s)
-        REM=$((END_TIME - NOW))
+        REM=$((END_TIME_SEC - NOW))
         if [ "$REM" -le 0 ]; then
-            # Lock expired, unlock in Abacus
-            abacus_set "${PLACE_NAME}_is_locked" "0" || exit 1
-            abacus_set "${PLACE_NAME}_lock_end_timestamp" "0" || exit 1
+            # Lock expired, unlock in Abacus by incrementing lock_sequence to make it even
+            rm -f "${CACHE_DIR}/${PLACE_NAME}_lock_sequence" 2>/dev/null || true
+            abacus_track "${PLACE_NAME}_lock_sequence"
+            rm -f "${CACHE_DIR}/${PLACE_NAME}_lock_sequence" 2>/dev/null || true
+            abacus_set "${PLACE_NAME}_lock_end_timestamp" "0" 2>/dev/null || true
             notify-send "Smoke Timer" "Unlocked! You can smoke now."
             STATE="unlocked"
         else
