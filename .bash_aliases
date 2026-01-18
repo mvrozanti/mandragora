@@ -641,3 +641,28 @@ alias grao='git remote add origin'
 alias mds='make-disk-space'
 alias wdush.='wdu -sh .'
 alias cfl='v ~/.config/lf/lfrc'
+lf() {
+    local pane_id
+    if [ -n "${TMUX-}" ]; then
+        pane_id=$(tmux display-message -p '#{pane_id}' 2>/dev/null)
+        [ -n "$pane_id" ] && export LF_TMUX_PANE="$pane_id"
+    fi
+    
+    if [ -n "${DISPLAY-}" ] && [ -z "${FIFO_UEBERZUG-}" ]; then
+        export FIFO_UEBERZUG="${TMPDIR:-/tmp}/lf-ueberzug-$$"
+        cleanup() {
+            exec 3>&-
+            rm -f -- "$FIFO_UEBERZUG" 2>/dev/null
+        }
+        mkfifo -- "$FIFO_UEBERZUG" 2>/dev/null
+        ueberzug layer -s <"$FIFO_UEBERZUG" &>/dev/null &
+        exec 3>"$FIFO_UEBERZUG"
+        trap cleanup EXIT
+    fi
+    local last_dir
+    if last_dir=$(command lf -print-last-dir "$@" 3>&-); then
+        [ -n "$last_dir" ] && cd -- "$last_dir"
+    fi
+    unset LF_TMUX_PANE 2>/dev/null
+    [ -n "${FIFO_UEBERZUG-}" ] && unset FIFO_UEBERZUG
+}
