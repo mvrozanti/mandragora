@@ -154,7 +154,7 @@ map I file-info
 # ===================================================================
 
 cmd mkdir %{{
-    echo "Directory name: "
+    echo ":!mkdir "
     read dir
     [ -n "$dir" ] && mkdir -p "$dir"
     lf -remote "send $id reload"

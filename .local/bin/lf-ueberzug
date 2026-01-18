@@ -65,3 +65,4 @@ if [ -n "${DISPLAY-}" ] && [ -z "${FIFO_UEBERZUG-}" ]; then
 else
   exec lf "$@"
 fi
+
