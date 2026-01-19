@@ -43,6 +43,7 @@ cd_downloads() { echo; cd ~/Downloads; zle reset-prompt }
 cd_fzf() { echo; cd "`ls|fzf`"; zle reset-prompt }
 run_ncmpcpp() { BUFFER="ncmpcpp"; zle accept-line }
 run_clock() { echo; peaclock; zle reset-prompt}
+run_gemini() { echo; gemini </dev/tty; zle reset-prompt }
 
 zle -N run_clock
 zle -N run_ranger
@@ -54,6 +55,7 @@ zle -N run_ncmpcpp
 zle -N run_khal
 zle -N cd_downloads 
 zle -N cd_fzf 
+zle -N run_gemini
 
 bindkey '^[r' 'run_lf'
 bindkey '^[w' 'run_W'
@@ -67,6 +69,7 @@ bindkey '^f' 'cd_fzf'
 bindkey '^[C' 'run_clock'
 bindkey '\ek' up-history
 bindkey '\ej' down-history
+bindkey '^[^M' run_gemini
 
 bindkey '^ ' autosuggest-accept
 bindkey '\eOH' beginning-of-line
