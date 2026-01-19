@@ -12,12 +12,27 @@
 # Configuration
 ABACUS_BASE_URL="https://abacus.jasoncameron.dev"
 ABACUS_NAMESPACE="airtime"
-# Place name - hardcoded to "Unknown" (must match Android app's STATE_PLACE)
-PLACE_NAME="Unknown"
+# Place name - must match Android app's STATE_PLACE
+# Use "Home" since desktop/polybar is at home
+PLACE_NAME="Home"
+
+# State version - must match Android app's STATE_VERSION
+# Increment to get fresh counters (avoids admin key conflicts)
+STATE_VERSION="v3"
 
 ADMIN_KEYS_FILE="/tmp/smoke_timer_admin_keys"  # Store admin keys for writing to Abacus
 CACHE_DIR="/tmp/smoke_timer_cache"
 CACHE_TTL=30  # Cache TTL in seconds
+
+# Debug mode - set to 1 to enable debug logging
+DEBUG=0
+DEBUG_LOG="/tmp/smoke_timer_debug.log"
+
+debug_log() {
+    if [ "$DEBUG" = "1" ]; then
+        echo "[$(date '+%H:%M:%S')] $*" >> "$DEBUG_LOG"
+    fi
+}
 
 # Ensure cache directory exists
 mkdir -p "$CACHE_DIR" 2>/dev/null || true
@@ -226,7 +241,33 @@ abacus_set() {
 abacus_track() {
     local key="$1"
     local url="${ABACUS_BASE_URL}/hit/${ABACUS_NAMESPACE}/${key}"
-    curl -s --connect-timeout 5 --max-time 5 "$url" >/dev/null 2>&1
+    local response
+    local retry_count=0
+    local max_retries=3
+    
+    while [ $retry_count -lt $max_retries ]; do
+        response=$(curl -s --connect-timeout 5 --max-time 5 "$url" 2>/dev/null)
+        
+        # Check if rate limited
+        if echo "$response" | grep -q "Too many requests"; then
+            retry_count=$((retry_count + 1))
+            if [ $retry_count -lt $max_retries ]; then
+                sleep 2  # Wait before retry
+            fi
+        elif echo "$response" | grep -q '"value"'; then
+            # Success - got value back
+            return 0
+        else
+            # Some other error or empty response, try again
+            retry_count=$((retry_count + 1))
+            if [ $retry_count -lt $max_retries ]; then
+                sleep 1
+            fi
+        fi
+    done
+    
+    # Failed after retries
+    return 1
 }
 
 # Convert timestamp to seconds (handles both ms and s)
@@ -254,12 +295,12 @@ get_state_from_abacus() {
     
     # Get lock sequence from Abacus - source of truth (increment-only counter)
     # Odd = locked, even = unlocked
-    lock_sequence=$(abacus_get "${PLACE_NAME}_lock_sequence" 2>/dev/null)
+    lock_sequence=$(abacus_get "${PLACE_NAME}_lock_sequence_${STATE_VERSION}" 2>/dev/null)
     
     # Check if we got a valid numeric value
     if [ -z "$lock_sequence" ] || ! echo "$lock_sequence" | grep -qE '^[0-9]+$'; then
         # Abacus unavailable or key not found - try cache
-        lock_sequence=$(cache_get "${PLACE_NAME}_lock_sequence" 2>/dev/null)
+        lock_sequence=$(cache_get "${PLACE_NAME}_lock_sequence_${STATE_VERSION}" 2>/dev/null)
         
         if [ -z "$lock_sequence" ] || ! echo "$lock_sequence" | grep -qE '^[0-9]+$'; then
             # No cache either - try backward compatibility with old is_locked key
@@ -280,11 +321,11 @@ get_state_from_abacus() {
     fi
     
     # Get lock end timestamp from Abacus (stored in MILLISECONDS, return in SECONDS)
-    end_time_raw=$(abacus_get "${PLACE_NAME}_lock_end_timestamp" 2>/dev/null)
+    end_time_raw=$(abacus_get "${PLACE_NAME}_lock_end_timestamp_${STATE_VERSION}" 2>/dev/null)
     
     if [ -z "$end_time_raw" ] || [ "$end_time_raw" = "0" ] || ! echo "$end_time_raw" | grep -qE '^[0-9]+$'; then
         # Try cache
-        end_time_raw=$(cache_get "${PLACE_NAME}_lock_end_timestamp" 2>/dev/null)
+        end_time_raw=$(cache_get "${PLACE_NAME}_lock_end_timestamp_${STATE_VERSION}" 2>/dev/null)
         if [ -z "$end_time_raw" ]; then
             end_time_raw="0"
         fi
@@ -292,11 +333,11 @@ get_state_from_abacus() {
     end_time=$(to_seconds "$end_time_raw")
     
     # Get increment from Abacus
-    increment=$(abacus_get "${PLACE_NAME}_increment" 2>/dev/null)
+    increment=$(abacus_get "${PLACE_NAME}_increment_${STATE_VERSION}" 2>/dev/null)
     
     if [ -z "$increment" ] || ! echo "$increment" | grep -qE '^[0-9]+$'; then
         # Try cache
-        increment=$(cache_get "${PLACE_NAME}_increment" 2>/dev/null)
+        increment=$(cache_get "${PLACE_NAME}_increment_${STATE_VERSION}" 2>/dev/null)
         if [ -z "$increment" ] || ! echo "$increment" | grep -qE '^[0-9]+$'; then
             increment="0"
         fi
@@ -405,19 +446,23 @@ if [ "$1" == "click-left" ] && [ "$STATE" == "unlocked" ]; then
     
     # Increment lock_sequence (no admin key needed!) - odd = locked
     # Clear cache first so we get fresh value after increment
-    rm -f "${CACHE_DIR}/${PLACE_NAME}_lock_sequence" 2>/dev/null || true
-    abacus_track "${PLACE_NAME}_lock_sequence"
+    rm -f "${CACHE_DIR}/${PLACE_NAME}_lock_sequence_${STATE_VERSION}" 2>/dev/null || true
+    
+    if ! abacus_track "${PLACE_NAME}_lock_sequence_${STATE_VERSION}"; then
+        notify-send "Smoke Timer" "Error: Failed to lock (rate limited?). Try again."
+        exit 1
+    fi
     
     # Invalidate cache so next read gets fresh value
-    rm -f "${CACHE_DIR}/${PLACE_NAME}_lock_sequence" 2>/dev/null || true
+    rm -f "${CACHE_DIR}/${PLACE_NAME}_lock_sequence_${STATE_VERSION}" 2>/dev/null || true
     
     # Store lock_end_timestamp in MILLISECONDS (to match Android app)
-    abacus_set "${PLACE_NAME}_lock_end_timestamp" "$((END_TIME_SEC * 1000))" 2>/dev/null || true
+    abacus_set "${PLACE_NAME}_lock_end_timestamp_${STATE_VERSION}" "$((END_TIME_SEC * 1000))" 2>/dev/null || true
     
     # Also update increment if we have admin key (optional)
-    abacus_set "${PLACE_NAME}_increment" "$NEW_INCREMENT" 2>/dev/null || true
+    abacus_set "${PLACE_NAME}_increment_${STATE_VERSION}" "$NEW_INCREMENT" 2>/dev/null || true
     
-    abacus_track "${PLACE_NAME}_locks"
+    abacus_track "${PLACE_NAME}_locks_${STATE_VERSION}" 2>/dev/null || true  # Optional tracking
     
     # Update state (lock_sequence is now odd, so locked)
     STATE="locked"
@@ -425,7 +470,9 @@ if [ "$1" == "click-left" ] && [ "$STATE" == "unlocked" ]; then
 fi
 
 if [ "$1" == "click-middle" ]; then
-    # Get fresh state from Abacus
+    debug_log "=== MIDDLE CLICK ==="
+    
+    # Get state first (need lock_sequence for state check)
     STATE_INFO=$(get_state_from_abacus)
     if [ $? -ne 0 ]; then
         notify-send "Smoke Timer" "Error: Cannot connect to Abacus"
@@ -433,29 +480,75 @@ if [ "$1" == "click-middle" ]; then
     fi
     
     STATE=$(echo "$STATE_INFO" | cut -d'|' -f1)
-    END_TIME_SEC=$(echo "$STATE_INFO" | cut -d'|' -f2)  # Already in SECONDS from get_state_from_abacus
     INCREMENT=$(echo "$STATE_INFO" | cut -d'|' -f3)
+    debug_log "STATE=$STATE, INCREMENT=$INCREMENT"
     
     if [ "$STATE" == "locked" ]; then
-        # If END_TIME_SEC is 0 or missing, calculate it from config
-        if [ "$END_TIME_SEC" = "0" ] || [ -z "$END_TIME_SEC" ]; then
-            # Calculate default lock duration
+        # Try fresh read from API (don't delete cache first - we need it as fallback!)
+        api_response=$(curl -s --connect-timeout 5 --max-time 5 "${ABACUS_BASE_URL}/get/${ABACUS_NAMESPACE}/${PLACE_NAME}_lock_end_timestamp_${STATE_VERSION}" 2>/dev/null)
+        debug_log "API response: $api_response"
+        
+        # Extract value from JSON response
+        end_time_raw=""
+        if [ -n "$api_response" ] && echo "$api_response" | grep -q '"value"'; then
+            # Extract the numeric value from {"value":123456}
+            end_time_raw=$(echo "$api_response" | grep -oE '"value"\s*:\s*[0-9]+' | grep -oE '[0-9]+')
+            if [ -z "$end_time_raw" ]; then
+                end_time_raw=$(echo "$api_response" | grep -oE '"value":[0-9]+' | grep -oE '[0-9]+')
+            fi
+            debug_log "Extracted from JSON: end_time_raw=$end_time_raw"
+            # Cache the successful value
+            if [ -n "$end_time_raw" ] && [ "$end_time_raw" != "0" ]; then
+                cache_set "${PLACE_NAME}_lock_end_timestamp_${STATE_VERSION}" "$end_time_raw"
+                debug_log "Cached timestamp: $end_time_raw"
+            fi
+        fi
+        
+        # If we got an error response or empty, try cache as fallback
+        if [ -z "$end_time_raw" ] || echo "$api_response" | grep -q '"error"'; then
+            debug_log "Using cache fallback (API failed or returned error)"
+            # Read cache directly (bypass TTL for fallback)
+            cache_file="${CACHE_DIR}/${PLACE_NAME}_lock_end_timestamp_${STATE_VERSION}"
+            if [ -f "$cache_file" ]; then
+                end_time_raw=$(cat "$cache_file")
+                debug_log "Cache file value: $end_time_raw"
+            else
+                end_time_raw="0"
+                debug_log "No cache file found"
+            fi
+        fi
+        
+        debug_log "end_time_raw before to_seconds: $end_time_raw"
+        END_TIME_SEC=$(to_seconds "$end_time_raw")
+        debug_log "END_TIME_SEC after to_seconds: $END_TIME_SEC"
+        
+        NOW=$(date +%s)
+        debug_log "NOW=$NOW"
+        
+        # Only calculate from config if timestamp is truly 0 or invalid
+        if [ -z "$END_TIME_SEC" ] || [ "$END_TIME_SEC" = "0" ] || [ "$END_TIME_SEC" -lt "$NOW" ]; then
+            debug_log "Timestamp invalid/expired, using config fallback"
+            # Fallback: calculate from config (but this is an estimate)
             CONFIG_INFO=$(get_config_from_abacus)
             BASE_DURATION_MINUTES=$(echo "$CONFIG_INFO" | cut -d'|' -f1)
             INCREMENT_STEP_SECONDS=$(echo "$CONFIG_INFO" | cut -d'|' -f2)
             BASE_LOCK=$((BASE_DURATION_MINUTES * 60))
             LOCK_DURATION=$((BASE_LOCK + (INCREMENT * INCREMENT_STEP_SECONDS)))
-            END_TIME_SEC=$(( $(date +%s) + LOCK_DURATION ))
+            debug_log "Config: base=$BASE_DURATION_MINUTES min, step=$INCREMENT_STEP_SECONDS s, increment=$INCREMENT"
+            debug_log "Calculated LOCK_DURATION=$LOCK_DURATION"
+            # Calculate estimated end time (not accurate without start time)
+            END_TIME_SEC=$(( NOW + LOCK_DURATION ))
+            debug_log "Fallback END_TIME_SEC=$END_TIME_SEC"
         fi
         
-        NOW=$(date +%s)
         REM=$((END_TIME_SEC - NOW))
+        debug_log "REM=$REM seconds"
         if [ "$REM" -le 0 ]; then
             # Lock expired, unlock in Abacus by incrementing lock_sequence to make it even
-            rm -f "${CACHE_DIR}/${PLACE_NAME}_lock_sequence" 2>/dev/null || true
-            abacus_track "${PLACE_NAME}_lock_sequence"
-            rm -f "${CACHE_DIR}/${PLACE_NAME}_lock_sequence" 2>/dev/null || true
-            abacus_set "${PLACE_NAME}_lock_end_timestamp" "0" 2>/dev/null || true
+            rm -f "${CACHE_DIR}/${PLACE_NAME}_lock_sequence_${STATE_VERSION}" 2>/dev/null || true
+            abacus_track "${PLACE_NAME}_lock_sequence_${STATE_VERSION}"
+            rm -f "${CACHE_DIR}/${PLACE_NAME}_lock_sequence_${STATE_VERSION}" 2>/dev/null || true
+            abacus_set "${PLACE_NAME}_lock_end_timestamp_${STATE_VERSION}" "0" 2>/dev/null || true
             notify-send "Smoke Timer" "Unlocked! You can smoke now."
             STATE="unlocked"
         else
