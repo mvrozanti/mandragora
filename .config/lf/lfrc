@@ -59,14 +59,10 @@ map <pageup> up 50%
 map <C-f> down 50%
 map <C-b> up 50%
 
-# File operations
-map <delete> delete
-map D $ trash -v $fx 2>&1
-map <C-e> $ rm -rf $fx
 map a rename
 map cw rename
 map A :rename
-map I $ file "$fx"
+map I $ file $fx
 map i %{{ sxiv -ab -- $(dirname "$f") }}
 
 cmd open $/home/m/.config/lf/opener "$f"
@@ -76,9 +72,9 @@ cmd yank-path $printf '%s' "$f" | xsel -i -b
 cmd yank-name $printf '%s' "$(basename "$f")" | xsel -i -b
 cmd yank-bytes %{{ ~/.local/bin/ic "$f" }}
 
-map Yp yank-path
-map Yn yank-name
-map Yb yank-bytes
+map P yank-path
+map N yank-name
+map B yank-bytes
 
 # Search
 map | :filter 
@@ -195,7 +191,7 @@ map R ${{
         done
     fi
     
-    rm -f "$sel"
+    #rm -f "$sel"
 }}
 
 # ===================================================================
@@ -209,43 +205,6 @@ set shellopts "-eu"
 set timefmt '2006 Jan _2 15:04:05'
 set ifs "\n"
 set period 0
-
-# dynamic directory reloads
-cmd on-cd &{{
-    # Kill previous watcher
-    if [ -f /tmp/lf-watcher-$id.pid ]; then
-        kill $(cat /tmp/lf-watcher-$id.pid) 2>/dev/null
-    fi
-    
-    # Start new watcher with debounce
-    (
-        # Use a simple lock to debounce rapid changes
-        last_reload=0
-        min_interval=0.5  # Minimum seconds between reloads
-        
-        if type inotifywait >/dev/null 2>&1; then
-            inotifywait -m -e modify,create,delete,move . 2>/dev/null | \
-                while read; do
-                    now=$(date +%s.%N)
-                    if (( $(echo "$now - $last_reload >= $min_interval" | bc -l) )); then
-                        lf -remote "send $id reload"
-                        last_reload=$now
-                    fi
-                done
-        elif type fswatch >/dev/null 2>&1; then
-            fswatch -o . 2>/dev/null | \
-                while read; do
-                    now=$(date +%s.%N)
-                    if (( $(echo "$now - $last_reload >= $min_interval" | bc -l) )); then
-                        lf -remote "send $id reload"
-                        last_reload=$now
-                    fi
-                done
-        fi
-    ) &
-    
-    echo $! > /tmp/lf-watcher-$id.pid
-}}
 
 cmd on-cd %{{ echo "$PWD" > /tmp/lf_current_dir }}
 
@@ -348,3 +307,13 @@ map H history-back
 map L history-forward
 
 map T set dirpreviews!
+
+cmd watch-here &{{
+    pkill -P $$ 2>/dev/null || true
+    while inotifywait -qq -e create,delete,move . 2>/dev/null; do
+        lf -remote "send $id reload" 2>/dev/null || break
+        sleep 0.2
+    done &
+}}
+&{{ (sleep 0.2 && lf -remote "send $id watch-here") & }}
+cmd on-cd &{{ lf -remote "send $id watch-here" }}
