@@ -308,12 +308,18 @@ map L history-forward
 
 map T set dirpreviews!
 
-cmd watch-here &{{
-    pkill -P $$ 2>/dev/null || true
-    while inotifywait -qq -e create,delete,move . 2>/dev/null; do
-        lf -remote "send $id reload" 2>/dev/null || break
-        sleep 0.2
-    done &
-}}
-&{{ (sleep 0.2 && lf -remote "send $id watch-here") & }}
-cmd on-cd &{{ lf -remote "send $id watch-here" }}
+# cmd watch-here ${{
+#     sh -c '
+#     pkill -P $$ 2>/dev/null || true
+#     while inotifywait -qq -e create,delete,move . 2>/dev/null; do
+#         lf -remote "send $id reload" 2>/dev/null || break
+#         sleep 0.2
+#     done
+#     ' & echo $! > /tmp/lf-watch.pid
+# }}
+# &{{ (sleep 0.2 && lf -remote "send $id watch-here") & }}
+# cmd on-cd &{{ lf -remote "send $id watch-here" }}
+# cmd on-quit %{{
+#     [ -f /tmp/lf-watch.pid ] && kill "$(cat /tmp/lf-watch.pid)" 2>/dev/null
+#     rm -f /tmp/lf-watch.pid
+# %}}

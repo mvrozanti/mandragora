@@ -650,19 +650,24 @@ lf() {
     
     if [ -n "${DISPLAY-}" ] && [ -z "${FIFO_UEBERZUG-}" ]; then
         export FIFO_UEBERZUG="${TMPDIR:-/tmp}/lf-ueberzug-$$"
+        mkfifo -- "$FIFO_UEBERZUG" 2>/dev/null
+        (
+            set +m
+            ueberzug layer -s <"$FIFO_UEBERZUG" &>/dev/null &
+        ) 2>/dev/null
+        exec 3>"$FIFO_UEBERZUG"
         cleanup() {
-            exec 3>&-
+            exec 3>&- 2>/dev/null
             command rm -f -- "$FIFO_UEBERZUG" 2>/dev/null
         }
-        mkfifo -- "$FIFO_UEBERZUG" 2>/dev/null
-        ueberzug layer -s <"$FIFO_UEBERZUG" &>/dev/null & disown
-        exec 3>"$FIFO_UEBERZUG"
         trap cleanup EXIT
     fi
+    
     local last_dir
     if last_dir=$(command lf -print-last-dir "$@" 3>&-); then
         [ -n "$last_dir" ] && cd -- "$last_dir"
     fi
+    
     unset LF_TMUX_PANE 2>/dev/null
     [ -n "${FIFO_UEBERZUG-}" ] && unset FIFO_UEBERZUG
 }
