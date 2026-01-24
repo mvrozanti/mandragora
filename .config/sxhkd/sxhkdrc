@@ -166,7 +166,7 @@ super + alt + 3
     kitty --title _tmux-float_ -o font_size=10
 	
 super + shift + r
-    notify-send 'Restarting bspwm!!' && killall sxhkd && bspc wm --restart
+    notify-send 'Restarting bspwm!!' && bspc wm --restart && pkill -USR1 sxhkd
 
 super + alt + g
     rofi -no-config -theme fullscreen-preview.rasi \

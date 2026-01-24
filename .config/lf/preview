@@ -57,8 +57,11 @@ case "$(file -Lb --mime-type -- "$file")" in
       cache ffmpegthumbnailer -i "$file" -o "$cache" -s 0
     fi
     ;;
+  application/json)
+      jq -C . "$file"
+    ;;
   text/*)
-    exec cat "$file"
+      fold -s -w "$width" "$file" | head -n "$height"
     ;;
 esac
 
