@@ -9,7 +9,7 @@ pgrep -x mpd                 || $_ &
 pgrep -x sxhkd               || $_ -s /tmp/sxhkd.fifo &
 pgrep -x ntfd                || $_ &
 pgrep -f cleanfullscreen     || nohup /home/m/.local/bin/cleanfullscreen 2>&1 > /dev/null &
-# pgrep -f mpd-discord-rpc     || nohup /home/m/.cargo/bin/mpd-discord-rpc 2>&1 > /dev/null &
+pgrep -f mpd-discord-rpc     || nohup /home/m/.cargo/bin/mpd-discord-rpc 2>&1 > /dev/null &
 # pgrep -f twitch-indicator    || nohup /usr/bin/twitch-indicator 2>&1 > /dev/null &
 pgrep -f kdeconnectd         || nohup /usr/bin/kdeconnectd 2>&1 > /dev/null &
 pgrep -f keyledsd            || nohup /usr/bin/keyledsd 2>&1 > /dev/null &

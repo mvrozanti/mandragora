@@ -652,10 +652,10 @@ lf() {
         export FIFO_UEBERZUG="${TMPDIR:-/tmp}/lf-ueberzug-$$"
         cleanup() {
             exec 3>&-
-            rm -f -- "$FIFO_UEBERZUG" 2>/dev/null
+            command rm -f -- "$FIFO_UEBERZUG" 2>/dev/null
         }
         mkfifo -- "$FIFO_UEBERZUG" 2>/dev/null
-        ueberzug layer -s <"$FIFO_UEBERZUG" &>/dev/null &
+        ueberzug layer -s <"$FIFO_UEBERZUG" &>/dev/null & disown
         exec 3>"$FIFO_UEBERZUG"
         trap cleanup EXIT
     fi
