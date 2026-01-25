@@ -14,6 +14,8 @@ pgrep -f mpd-discord-rpc     || nohup /home/m/.cargo/bin/mpd-discord-rpc 2>&1 > 
 pgrep -f kdeconnectd         || nohup /usr/bin/kdeconnectd 2>&1 > /dev/null &
 pgrep -f keyledsd            || nohup /usr/bin/keyledsd 2>&1 > /dev/null &
 pgrep -f desktop_switcher    || nohup /home/m/.local/bin/desktop_switcher 2>&1 > /dev/null &
+pgrep -f border_highlight    || nohup python /home/m/.config/bspwm/border_highlight.py 2>&1 > /dev/null &
+
 pgrep -x polybar             || polybar mybar &
 
 
@@ -24,8 +26,11 @@ bspc config window_gap            12
 bspc config split_ratio           0.52
 bspc config borderless_monocle    true
 bspc config gapless_monocle       true
-# bspc config focus_follows_pointer true
 bspc config pointer_modifier mod1
+[ -f "$HOME/.cache/wal/colors.sh" ] && . "$HOME/.cache/wal/colors.sh"
+bspc config normal_border_color  "$color1"
+bspc config active_border_color  "$color2"
+bspc config focused_border_color "$color15"
 
 bspc   rule   -a   ZapZap                      desktop=^4
 bspc   rule   -a   jetbrains-idea-ce           desktop=^8  follow=true

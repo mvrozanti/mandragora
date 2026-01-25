@@ -15,4 +15,8 @@ pkill xwinwrap
     is_mp4=$([[ "${fpath##*.}" = "mp4" ]] && echo true)
     [[ $is_gif ]] && nohup xwinwrap -fs -ni -s -nf -b -un -argb -ov -- gifview -w WID "$fpath" -a >/dev/null
     [[ $is_mp4 ]] && nohup xwinwrap -fs -ni -s -nf -b -un -argb -ov -- mpv -wid WID --loop --no-audio "$fpath" >/dev/null
+    [ -f "$HOME/.cache/wal/colors.sh" ] && . "$HOME/.cache/wal/colors.sh"
+    bspc config normal_border_color  "$color1"
+    bspc config active_border_color  "$color2"
+    bspc config focused_border_color "$color15"
 } 2>&1 &
