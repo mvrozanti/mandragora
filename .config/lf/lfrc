@@ -167,7 +167,6 @@ cmd z ${{
     result="$(zoxide query -i)"
     lf -remote "send $id cd \"$result\""
 }}
-cmd on-cd &{{ zoxide add "$PWD" }}
 map z z
 
 map R ${{
@@ -192,7 +191,7 @@ map R ${{
         done
     fi
     
-    m -f "$sel"
+    rm -f "$sel"
 }}
 
 # ===================================================================
@@ -207,19 +206,7 @@ set timefmt '2006 Jan _2 15:04:05'
 set ifs "\n"
 set period 0
 
-cmd on-cd %{{ echo "$PWD" > /tmp/lf_current_dir }}
-
-cmd on-cd &{{
-    export LF_ID="$id"
-}}
-
 # map ? %{{ notify-send $id }}
-
-cmd on-cd %{{
-    pane_id="${LF_TMUX_PANE:-default}"
-    sync_file="$HOME/.cache/lf/cwd_${pane_id}"
-    echo "$(pwd)" > "$sync_file"
-}}
 
 # ===================================================================
 # == Directory History Stack
@@ -319,7 +306,15 @@ cmd watch-here ${{
     ' & echo $! > /tmp/lf-watch.pid
 }}
 &{{ (sleep 0.2 && lf -remote "send $id watch-here") & }}
-cmd on-cd &{{ lf -remote "send $id watch-here" }}
+cmd on-cd &{{ 
+    export LF_ID="$id"
+    lf -remote "send $id watch-here" 
+    zoxide add "$PWD" 
+    echo "$PWD" > /tmp/lf_current_dir 
+    pane_id="${LF_TMUX_PANE:-default}"
+    sync_file="$HOME/.cache/lf/cwd_${pane_id}"
+    echo "$(pwd)" > "$sync_file"
+}}
 cmd on-quit %{{
     [ -f /tmp/lf-watch.pid ] && kill "$(cat /tmp/lf-watch.pid)" 2>/dev/null
     rm -f /tmp/lf-watch.pid
