@@ -668,3 +668,4 @@ lf() {
     [ -n "${FIFO_UEBERZUG-}" ] && unset FIFO_UEBERZUG
     set -m
 }
+alias dfh='df -h'
