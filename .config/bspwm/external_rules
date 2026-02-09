@@ -41,6 +41,10 @@ if [ "$title" = Transmission ]; then
 	echo "desktop=^26"
 fi
 
+if [ "$class" = qBittorrent ]; then
+	echo "desktop=^26"
+fi
+
 if [ "$title" = Spotify ]; then
 	echo "desktop=^27 follow=true"
 fi
