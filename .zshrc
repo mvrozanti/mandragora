@@ -44,6 +44,7 @@ cd_fzf() { echo; cd "`ls|fzf`"; zle reset-prompt }
 run_ncmpcpp() { BUFFER="ncmpcpp"; zle accept-line }
 run_clock() { echo; peaclock; zle reset-prompt}
 run_gemini() { echo; gemini </dev/tty; zle reset-prompt }
+run_zoxide_query() { echo; zoxide query -i </dev/tty; zle reset-prompt }
 
 zle -N run_clock
 zle -N run_ranger
@@ -56,6 +57,7 @@ zle -N run_khal
 zle -N cd_downloads 
 zle -N cd_fzf 
 zle -N run_gemini
+zle -N run_zoxide_query
 
 bindkey '^[r' 'run_lf'
 bindkey '^[w' 'run_W'
@@ -70,7 +72,7 @@ bindkey '^[C' 'run_clock'
 bindkey '\ek' up-history
 bindkey '\ej' down-history
 bindkey '^[^M' run_gemini
-
+bindkey '\e^M' run_zoxide_query
 bindkey '^ ' autosuggest-accept
 bindkey '\eOH' beginning-of-line
 bindkey '\eOF' end-of-line
