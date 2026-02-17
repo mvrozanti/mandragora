@@ -9,15 +9,6 @@ set folder      = "imaps://mvrozanti@hotmail.com@outlook.office365.com"
 set spoolfile   = "+INBOX"
 set smtp_url    = "smtp://mvrozanti@hotmail.com@smtp.office365.com:587"
 set imap_authenticators = "xoauth2"
-#    /usr/share/neomutt/oauth2/mutt_oauth2.py \
-#        -v \
-#        -t \
-#        --authorize \
-#        --client-id "9e5f94bc-e8a4-4e73-b8be-63364c29d753" \
-#        --client-secret "" \
-#        --email "mvrozanti@hotmail.com" \
-#        --provider microsoft \
-#        $HOME/.config/mutt/email-token
 set imap_oauth_refresh_command = "/usr/share/neomutt/oauth2/mutt_oauth2.py $HOME/.config/mutt/email-token "
 set smtp_authenticators = ${imap_authenticators}
 set smtp_oauth_refresh_command = ${imap_oauth_refresh_command}
