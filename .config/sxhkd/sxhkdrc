@@ -10,6 +10,9 @@ super + shift + Return
 super + f
     bspc node -t \~fullscreen
 
+super + Delete
+    bspc quit
+
 super + dead_grave
     bspc desktop -f next.local
 
