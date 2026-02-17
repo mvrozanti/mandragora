@@ -669,3 +669,4 @@ lf() {
     set -m
 }
 alias dfh='df -h'
+@() { nohup "$@" 2>&1 > /dev/null & disown }
