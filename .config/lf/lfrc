@@ -44,6 +44,7 @@ map g4 jump ~/gdrive/Levv/4chan
 map gw jump ~/gdrive/Levv/wllpps
 map gu jump ~/util
 map gL jump ~/gdrive/library/
+map gb jump ~/gdrive/library/books
 map gp jump ~/prog
 map gM jump ~/disk/Musik
 map gf jump ~/sandisk/Filmes
