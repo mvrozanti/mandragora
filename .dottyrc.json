@@ -382,7 +382,8 @@
     "glances",
     "btop",
     "lf",
-    "zoxide"
+    "zoxide",
+    "brightnessctl"
   ],
   "excluded": [
     "hotmail.gpg",

@@ -6,8 +6,8 @@ import os
 import signal
 
 # Configuration
-HOLD_DURATION = 0.064  # seconds to hold highlight before fading
-FADE_DURATION = 0.064  # seconds for fade effect
+HOLD_DURATION = 0.016  # seconds to hold highlight before fading
+FADE_DURATION = 0.016  # seconds for fade effect
 HIGHLIGHT_COLOR = "#ffffff"
 NORMAL_COLOR = "#00000000"
 HIGHLIGHT_WIDTH = 3      
