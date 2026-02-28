@@ -66,7 +66,6 @@ bindkey '^[v' 'run_nvim'
 bindkey '^[V' 'run_nvim_fast'
 bindkey '^[K' 'run_khal'
 bindkey '^[D' 'cd_downloads'
-bindkey '^[t' 'cd_tcc'
 bindkey '^f' 'cd_fzf'
 bindkey '^[C' 'run_clock'
 bindkey '\ek' up-history
