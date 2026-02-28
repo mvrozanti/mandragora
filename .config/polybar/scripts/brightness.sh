@@ -13,27 +13,42 @@ fi
 : "${BRIGHTNESS:=on}"
 : "${BRIGHTNESS_VAL:=50}"
 
-# Function to actually change brightness using available tools
+# Function to get all connected outputs (exclude disconnected ones)
+get_outputs() {
+    xrandr --current | grep " connected" | awk '{print $1}'
+}
+
+# Function to set brightness using xrandr
+set_brightness_xrandr() {
+    local percent=$1
+    # Convert percent (0-100) to float (0.0-1.0) with bc
+    local float_val
+    float_val=$(echo "scale=2; $percent / 100" | bc)
+
+    for output in $(get_outputs); do
+        xrandr --output "$output" --brightness "$float_val"
+    done
+}
+
+# Function to actually change brightness (auto‑choose method)
 set_brightness() {
     local percent=$1
-    if command -v brightnessctl &>/dev/null; then
-        brightnessctl set "${percent}%"
-    # elif command -v xrandr &>/dev/null; then
-    #     # Fallback: set gamma brightness for the first connected output
-    #     local output
-    #     output=$(xrandr --current | grep " connected" | awk '{print $1}' | head -1)
-    #     if [ -n "$output" ]; then
-    #         # Convert percent (0-100) to float (0.0-1.0)
-    #         local float_val
-    #         float_val=$(echo "scale=2; $percent/100" | bc)
-    #         xrandr --output "$output" --brightness "$float_val"
-    #     else
-    #         echo "No connected output found for xrandr" >&2
-    #         return 1
-    #     fi
+
+    # Clamp between 0 and 100
+    [ "$percent" -lt 0 ] && percent=0
+    [ "$percent" -gt 100 ] && percent=100
+
+    # Prefer brightnessctl if a backlight device exists, otherwise use xrandr
+    if command -v brightnessctl &>/dev/null && brightnessctl -l 2>/dev/null | grep -qi backlight; then
+        # Use the first backlight device found
+        local device
+        device=$(brightnessctl -l | grep -i backlight | head -1 | awk -F"'" '{print $2}')
+        brightnessctl --device="$device" set "${percent}%" >/dev/null 2>&1
+    elif command -v xrandr &>/dev/null; then
+        set_brightness_xrandr "$percent"
     else
-        echo "No brightness control tool found (install brightnessctl)" >&2
-        return 1
+        echo "No brightness control method available (install brightnessctl or xrandr)" >&2
+        exit 1
     fi
 }
 
@@ -60,13 +75,12 @@ apply_brightness() {
     if [ "$new_mode" = "on" ]; then
         set_brightness "$new_val"
     else
-        set_brightness 0   # off → brightness 0%
+        set_brightness 0   # off → brightness 0% (screen black)
     fi
 }
 
 # Change mode (on/off) while keeping the stored value
 changeMode() {
-    # $1 = old mode (unused), $2 = new mode
     apply_brightness "$2" "$BRIGHTNESS_VAL"
 }
 
