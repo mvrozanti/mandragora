@@ -1,5 +1,5 @@
 # XScreenSaver Preferences File
-# Written by xscreensaver-settings 6.09 for m on Wed Jul 10 16:50:06 2024.
+# Written by xscreensaver-demo 6.13 for m on Tue Feb 17 22:51:13 2026.
 # https://www.jwz.org/xscreensaver/
 
 timeout:	0:05:00
@@ -29,7 +29,7 @@ chooseRandomImages: False
 imageDirectory:	
 
 mode:		one
-selected:	88
+selected:	73
 
 textMode:	file
 textLiteral:	XScreenSaver
@@ -37,7 +37,7 @@ textFile:
 textProgram:	fortune
 textURL:	https://en.wikipedia.org/w/index.php?title=Special:NewPages&feed=rss
 dialogTheme:	default
-settingsGeom:	998,0 -1,-1
+settingsGeom:	0,0 271,299
 
 programs:								      \
 				maze --root				    \n\
@@ -114,7 +114,7 @@ programs:								      \
 				ccurve --root				    \n\
 				compass --root				    \n\
 				deluxe --root				    \n\
--				demon --root				    \n\
+-				demon --root --delay 33607 --size 30	    \n\
 - GL: 				extrusion --root			    \n\
 -				loop --root				    \n\
 				penetrate --root			    \n\
@@ -296,6 +296,10 @@ programs:								      \
   GL: 				skulloop --root				    \n\
   GL: 				highvoltage --root			    \n\
   GL: 				kallisti --root				    \n\
+  GL: 				klondike --root				    \n\
+  GL: 				dumpsterfire --root			    \n\
+  GL: 				hopffibration --root			    \n\
+  GL: 				platonicfolding --root			    \n\
 
 
 pointerHysteresis:  10

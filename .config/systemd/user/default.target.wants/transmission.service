@@ -1,0 +1,11 @@
+[Unit]
+Description=Transmission Daemon (user)
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/transmission-daemon --config-dir /home/m/.config/transmission --foreground
+ExecStop=/usr/bin/transmission-remote --exit
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
