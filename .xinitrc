@@ -1,14 +1,15 @@
 #!/bin/sh
 xrdb $HOME/.Xresources
 xsetroot -cursor_name left_ptr
-source /etc/X11/xinit/xinitrc.d/50-systemd-user.sh
+#source /etc/X11/xinit/xinitrc.d/50-systemd-user.sh
 xset s off
 xset -dpms
 xset s off -dpms
 xset r rate 200 30
 xset led named "Scroll Lock"
 setxkbmap us alt-intl
-xrandr -s 1920x1080@60
+#xrandr -s 1920x1080@60
+xrandr --auto
 xmodmap ~/.Xmodmap
 if ! pgrep -u "$USER" ssh-agent > /dev/null; then
     ssh-agent > ~/.ssh-agent-thing
@@ -18,6 +19,6 @@ if [[ "$SSH_AGENT_PID" == "" ]]; then
 fi
 dbus-update-activation-environment DISPLAY XAUTHORITY
 touch /tmp/sxhkd.fifo
-xrandr --dpi 100
+#xrandr --dpi 100
 fcitx5 &
 exec bspwm
