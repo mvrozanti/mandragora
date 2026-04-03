@@ -63,7 +63,7 @@ alias W='curl -s v2.wttr.in | head -n -1'
 alias h='cd ..'
 alias hh='h;h'
 alias cd..='cd ..'
-alias ka='killall'
+alias ka='killall -I'
 alias e='echo'
 alias c='xsel -i -b'
 alias co='xsel -o -b'
@@ -97,8 +97,14 @@ alias waterfox='[[ $(ps aux|grep -c waterfox) -eq 1 ]] && waterfox || waterfox -
 alias R='R --silent '
 alias acs='apt-cache search'
 alias lisp='clisp --silent'
-pa(){ ps aux | grep "$@" | head -n -1 }
-K9(){ pa "$@" | awk '{printf("%s ", $2);for(i=11;i<=NF;++i){ printf("%s ",$i) } print("") }' | fzf | awk '{print $1}' | xargs kill -9  }
+pa(){ ps aux | grep -v grep | grep -i "${1:-.}"; }
+K9(){
+    local selected
+    selected=$(pa "$@" | awk '{printf("%s ", $2);for(i=11;i<=NF;++i){ printf("%s ",$i) } print("") }' | fzf -m --header='[kill -9] TAB to multi-select' --preview 'echo {}' --preview-window=down:3:wrap)
+    if [[ -n "$selected" ]]; then
+        echo "$selected" | awk '{print $1}' | xargs -r kill -9
+    fi
+}
 # alias jsonify='python -m json.tool --sort-keys'
 alias jsonify='echo use jq instead /dev/stderr'
 alias iftop='sudo iftop -Nlp'
@@ -461,7 +467,15 @@ alias capitalize="sed 's/[^ ]\+/\L\u&/g'"
 append(){ [ "$#" -eq 2 ] && grep -FIxvf $2 $1 | head -n -1 >> $2 }
 alias a='ag'
 alias myMACs="ip a | grep -EB1 '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'"
-alias k9='kill -9'
+k9(){
+    if [[ $# -eq 0 ]]; then
+        K9
+    elif [[ "$1" =~ ^[0-9]+$ ]]; then
+        kill -9 "$1"
+    else
+        pkill -9 -i -f "$@"
+    fi
+}
 hrmr(){ kek="$(basename $(pwd))";cd ..;rm -r "$kek" }
 alias piur='pip install --user -r requirements.txt'
 alias wcl='wc -l'
@@ -655,6 +669,7 @@ lf() {
         }
         mkfifo -- "$FIFO_UEBERZUG" 2>/dev/null
         ueberzug layer -s <"$FIFO_UEBERZUG" &>/dev/null &
+        disown
         exec 3>"$FIFO_UEBERZUG"
         trap cleanup EXIT
     fi
