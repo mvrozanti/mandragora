@@ -98,11 +98,36 @@ alias R='R --silent '
 alias acs='apt-cache search'
 alias lisp='clisp --silent'
 pa(){ ps aux | grep -v grep | grep -i "${1:-.}"; }
+K(){
+    local selected
+    selected=$(pa "$@" | awk '{printf("%s ", $2);for(i=11;i<=NF;++i){ printf("%s ",$i) } print("") }' | fzf -m --header='[kill] TAB to multi-select' --preview 'echo {}' --preview-window=down:3:wrap)
+    if [[ -n "$selected" ]]; then
+        echo "$selected" | awk '{print $1}' | xargs -r kill
+    fi
+}
 K9(){
     local selected
     selected=$(pa "$@" | awk '{printf("%s ", $2);for(i=11;i<=NF;++i){ printf("%s ",$i) } print("") }' | fzf -m --header='[kill -9] TAB to multi-select' --preview 'echo {}' --preview-window=down:3:wrap)
     if [[ -n "$selected" ]]; then
         echo "$selected" | awk '{print $1}' | xargs -r kill -9
+    fi
+}
+k(){
+    if [[ $# -eq 0 ]]; then
+        K
+    elif [[ "$1" =~ ^[0-9]+$ ]]; then
+        kill "$1"
+    else
+        pkill -i -f "$@"
+    fi
+}
+k9(){
+    if [[ $# -eq 0 ]]; then
+        K9
+    elif [[ "$1" =~ ^[0-9]+$ ]]; then
+        kill -9 "$1"
+    else
+        pkill -9 -i -f "$@"
     fi
 }
 # alias jsonify='python -m json.tool --sort-keys'
@@ -246,7 +271,6 @@ alias cfrc='nvim ~/.config/ranger/rc.conf'
 alias cfri='nvim ~/.config/ranger/rifle.conf'
 alias cfrs='nvim ~/.config/ranger/scope.sh'
 alias cfrd='nvim ~/.config/ranger/devicons.sh'
-alias k='khal interactive'
 # cfcr(){ trackedf=`realpath $1`; [[ $trackedf == ~* ]] && lefths=`echo $trackedf|xargs readlink -f|sd ~'/(.*)' '$1'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == ~*  ]] && echo $trackedf|sd ~'(.*)' '~$1' || echo $trackedf)'"}' ~"/mandragora/.dottyrc.json" | sponge ~"/mandragora/.dottyrc.json" }
 cfcf(){ trackedf=`realpath $1`; [[ $trackedf == $HOME* ]] && lefths=`echo $trackedf|xargs readlink -f|sed 's/\/home\/'$USER'\/\(.\+\)/\1/g'` || lefths="${trackedf:1}"; jq '.copy |= . + {"'$lefths'":"'$([[ $trackedf == $HOME*  ]] && echo $trackedf || echo $trackedf)'"}' $HOME"/mandragora/.dottyrc.json" | sponge $HOME"/mandragora/.dottyrc.json" }
 cfcu(){ to_remove="$1"; [[ ! -z $to_remove ]] && removed_array="`jq '.install|map(select(.!="'$to_remove'"))' ~"/mandragora/.dottyrc.json"`" && jq .install="$removed_array" ~"/mandragora/.dottyrc.json" | sponge ~/mandragora/.dottyrc.json }
@@ -346,7 +370,7 @@ smp(){ rsync -vvvr --progress --checksum --files-from=<(comm -13 <(ls -1 ~/Musik
 spp(){ [[ -d ~/phone/Internal\ storage/DCIM/Facebook ]] && mv ~/phone/Internal\ storage/DCIM/Facebook/* ~/gdrive/Levv/4chan/; [[ -d ~/phone/Internal\ storage/Pictures/Telegram/ ]] && mv ~/phone/Internal\ storage/Pictures/Telegram/* ~/gdrive/Levv/4chan/; [[ -d ~/phone/Internal\ storage/Pictures/Reddit ]] && mv ~/phone/Internal\ storage/Pictures/Reddit/* ~/gdrive/Levv/4chan/; [[ -d ~/phone/Internal\ storage/DCIM/Camera ]] && mv ~/phone/Internal\ storage/DCIM/Camera/* ~/gdrive/Levv/4chan/ }
 sp(){ spp;smp }
 cox(){ `co` | x }
-sa(){ grep -E "^(alias )?$@(=|\()" ~/.bash_aliases }
+sa(){ awk -v name="$*" 'BEGIN{re="^(alias )?"name"(=|\\()"} $0~re{p=1;print;if($0~"^alias "||$0~"}.*;? *$")p=0;next} p{print;if($0~"^} *;? *$")p=0}' ~/.bash_aliases }
 sma(){ sa "$@" | sd "alias.+='(.+)'|.+\(\)\{\s?(.+)\s?}" '$1$2' }
 alias I='sxiv'
 alias x='xargs'
@@ -467,15 +491,6 @@ alias capitalize="sed 's/[^ ]\+/\L\u&/g'"
 append(){ [ "$#" -eq 2 ] && grep -FIxvf $2 $1 | head -n -1 >> $2 }
 alias a='ag'
 alias myMACs="ip a | grep -EB1 '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'"
-k9(){
-    if [[ $# -eq 0 ]]; then
-        K9
-    elif [[ "$1" =~ ^[0-9]+$ ]]; then
-        kill -9 "$1"
-    else
-        pkill -9 -i -f "$@"
-    fi
-}
 hrmr(){ kek="$(basename $(pwd))";cd ..;rm -r "$kek" }
 alias piur='pip install --user -r requirements.txt'
 alias wcl='wc -l'
@@ -495,7 +510,6 @@ alias v7='nvim -c "normal '\''7"'
 alias v8='nvim -c "normal '\''8"'
 alias v9='nvim -c "normal '\''9"'
 alias hhhh='3h;h'
-alias K='kill'
 alias se='s -E'
 bin2dec(){ e "$((2#`cat -`))" }
 alias wdf='watch df'
