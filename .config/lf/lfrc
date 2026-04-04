@@ -1,6 +1,8 @@
 
 # ===================================================================
 # LF Configuration - Translated from Ranger config
+${{ touch /tmp/lfrc-top-level-test }}
+
 # ===================================================================
 
 # ===================================================================
@@ -313,16 +315,27 @@ cmd on-cd &{{
     zoxide add "$PWD" 
     echo "$PWD" > /tmp/lf_current_dir 
     if [ -n "$LF_TMUX_PANE" ]; then
-        echo "$PWD" > "$HOME/.cache/lf/cwd_$LF_TMUX_PANE"
+        printf "%s" "$PWD" > "$HOME/.cache/lf/cwd_$LF_TMUX_PANE"
     fi
 }}
 
 cmd on-quit %{{
     [ -f /tmp/lf-watch.pid ] && kill "$(cat /tmp/lf-watch.pid)" 2>/dev/null
     rm -f /tmp/lf-watch.pid
-    [ -n "$LF_TMUX_PANE" ] && rm -f "$HOME/.cache/lf/cwd_$LF_TMUX_PANE"
+    if [ -n "$LF_TMUX_PANE" ]; then
+        rm -f "$HOME/.cache/lf/cwd_$LF_TMUX_PANE"
+    fi
 }}
 
 # Initialize sync file on startup
-on-cd
+${{
+    touch /tmp/lf-started
+    if [ -n "$LF_TMUX_PANE" ]; then
+        printf "%s" "$PWD" > "$HOME/.cache/lf/cwd_$LF_TMUX_PANE"
+    fi
+}}
+
+
+# Trigger on-cd for other hooks
+cd .
 

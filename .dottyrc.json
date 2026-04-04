@@ -383,7 +383,8 @@
     "btop",
     "lf",
     "zoxide",
-    "brightnessctl"
+    "brightnessctl",
+    "gdisk"
   ],
   "excluded": [
     "hotmail.gpg",
