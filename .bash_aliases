@@ -669,12 +669,6 @@ alias wdush.='wdu -sh .'
 alias cfl='v ~/.config/lf/lfrc'
 lf() {
     set +m
-    local pane_id
-    if [ -n "${TMUX-}" ]; then
-        pane_id=$(tmux display-message -p '#{pane_id}' 2>/dev/null)
-        [ -n "$pane_id" ] && export LF_TMUX_PANE="$pane_id"
-    fi
-    
     if [ -n "${DISPLAY-}" ] && [ -z "${FIFO_UEBERZUG-}" ]; then
         export FIFO_UEBERZUG="${TMPDIR:-/tmp}/lf-ueberzug-$$"
         cleanup() {
@@ -691,7 +685,6 @@ lf() {
     if last_dir=$(command lf -print-last-dir "$@" 3>&-); then
         [ -n "$last_dir" ] && cd -- "$last_dir"
     fi
-    unset LF_TMUX_PANE 2>/dev/null
     [ -n "${FIFO_UEBERZUG-}" ] && unset FIFO_UEBERZUG
     set -m
 }

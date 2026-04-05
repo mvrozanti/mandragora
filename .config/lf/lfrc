@@ -300,40 +300,32 @@ map L history-forward
 map T set dirpreviews!
 
 cmd watch-here ${{
-    sh -c '
-    pkill -P $$ 2>/dev/null || true
+    pid_file="/tmp/lf-watch-$id.pid"
+    [ -f "$pid_file" ] && kill "$(cat "$pid_file")" 2>/dev/null
+    sh -c "
     while inotifywait -qq -e create,delete,move . 2>/dev/null; do
-        lf -remote "send $id reload" 2>/dev/null || break
+        lf -remote 'send $id reload' 2>/dev/null || break
         sleep 0.2
     done
-    ' & echo $! > /tmp/lf-watch.pid
+    rm -f /tmp/lf-watch-$id.pid
+    " &
+    echo $! > "$pid_file"
 }}
 &{{ (sleep 0.2 && lf -remote "send $id watch-here") & }}
-cmd on-cd &{{ 
+cmd on-cd &{{
     export LF_ID="$id"
-    lf -remote "send $id watch-here" 
-    zoxide add "$PWD" 
-    echo "$PWD" > /tmp/lf_current_dir 
-    if [ -n "$LF_TMUX_PANE" ]; then
-        printf "%s" "$PWD" > "$HOME/.cache/lf/cwd_$LF_TMUX_PANE"
-    fi
+    lf -remote "send $id watch-here"
+    zoxide add "$PWD"
+    echo "$PWD" > /tmp/lf_current_dir
 }}
 
 cmd on-quit %{{
-    [ -f /tmp/lf-watch.pid ] && kill "$(cat /tmp/lf-watch.pid)" 2>/dev/null
-    rm -f /tmp/lf-watch.pid
-    if [ -n "$LF_TMUX_PANE" ]; then
-        rm -f "$HOME/.cache/lf/cwd_$LF_TMUX_PANE"
-    fi
+    pid_file="/tmp/lf-watch-$id.pid"
+    [ -f "$pid_file" ] && kill "$(cat "$pid_file")" 2>/dev/null
+    rm -f "$pid_file"
 }}
 
-# Initialize sync file on startup
-${{
-    touch /tmp/lf-started
-    if [ -n "$LF_TMUX_PANE" ]; then
-        printf "%s" "$PWD" > "$HOME/.cache/lf/cwd_$LF_TMUX_PANE"
-    fi
-}}
+${{ touch /tmp/lf-started }}
 
 
 # Trigger on-cd for other hooks
