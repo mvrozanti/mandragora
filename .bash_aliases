@@ -1,9 +1,10 @@
 unalias sp 2> /dev/null 
 unalias sd 2> /dev/null
 alias rm='rm -f'
+alias ls='eza --git --icons'
 alias -g la='ls -a'
 alias l='ls -t1'
-alias watch='watch --color -n1 --no-title '
+alias watch='watch --color -n1 --no-title'
 alias sps='sudo pacman -S'
 alias spr='sudo pacman -Rns'
 alias pss='pacman -Ss'
