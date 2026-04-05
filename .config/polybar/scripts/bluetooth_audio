@@ -1,25 +1,55 @@
 #!/usr/bin/env bash
-ADAPTER="8C:88:4B:06:2B:14"
 DEVICE="04:57:91:D1:38:20"
 SINK_BT="bluez_output.04_57_91_D1_38_20.1"
 SINK_HDMI="alsa_output.pci-0000_01_00.1.hdmi-stereo"
+CACHE_FILE="/tmp/polybar_bt_cache_$$"
+CACHE_TTL=5  # seconds
 
-INFO=$(printf 'select %s\ninfo %s\n' "$ADAPTER" "$DEVICE" | bluetoothctl 2>/dev/null)
-CONNECTED=$(printf '%s' "$INFO" | grep -q "Connected: yes" && printf 1 || printf 0)
-BAT=$(printf '%s' "$INFO" | grep "Battery Percentage" | grep -oP '\(\K[0-9]+')
-CURRENT_SINK=$(pactl info | grep "Default Sink" | awk '{print $3}')
+# Use cached connection state if fresh, otherwise query bluetoothctl
+get_connected() {
+    if [[ -f "$CACHE_FILE" ]] && [[ $(( $(date +%s) - $(stat -c %Y "$CACHE_FILE" 2>/dev/null || echo 0) )) -lt $CACHE_TTL ]]; then
+        cat "$CACHE_FILE"
+    else
+        # Use bluetoothctl info but with timeout to prevent hangs
+        local info
+        info=$(timeout 2 bluetoothctl info "$DEVICE" 2>/dev/null || true)
+        if echo "$info" | grep -q "Connected: yes"; then
+            echo "1" > "$CACHE_FILE"
+            echo "1"
+        else
+            echo "0" > "$CACHE_FILE"
+            echo "0"
+        fi
+    fi
+}
+
+# Get battery from cached or udev (more reliable than bluetoothctl)
+get_battery() {
+    local bat_path="/sys/class/power_supply/${DEVICE//:/_}/capacity"
+    if [[ -f "$bat_path" ]]; then
+        cat "$bat_path"
+    else
+        # Fallback to bluetoothctl with timeout
+        local info
+        info=$(timeout 2 bluetoothctl info "$DEVICE" 2>/dev/null || true)
+        echo "$info" | grep "Battery Percentage" | grep -oP '\(\K[0-9]+' || echo ""
+    fi
+}
+
+CONNECTED=$(get_connected)
+BAT=$(get_battery)
+CURRENT_SINK=$(pactl info 2>/dev/null | grep "Default Sink" | awk '{print $3}' || echo "")
 
 if [ "$CONNECTED" -eq 1 ]; then
     ICON="%{F#2196f3}%{F-}"
     if [ "$CURRENT_SINK" = "$SINK_BT" ]; then
-        CMD="printf 'select %s\ndisconnect %s\n' \"$ADAPTER\" \"$DEVICE\" | bluetoothctl && pactl set-default-sink $SINK_HDMI"
+        CMD="bluetoothctl disconnect $DEVICE && pactl set-default-sink $SINK_HDMI"
     else
-        # inline wait loop for the subshell
-        CMD="for i in {1..10}; do pactl list short sinks | grep -q '$SINK_BT' && break; sleep 1; done; pactl set-default-sink $SINK_BT"
+        CMD="bluetoothctl connect $DEVICE; sleep 3; pactl set-default-sink $SINK_BT"
     fi
 else
     ICON=""
-    CMD="printf 'select %s\nconnect %s\n' \"$ADAPTER\" \"$DEVICE\" | bluetoothctl; for i in {1..10}; do pactl list short sinks | grep -q '$SINK_BT' && break; sleep 1; done; pactl set-default-sink $SINK_BT"
+    CMD="bluetoothctl connect $DEVICE; sleep 3; pactl set-default-sink $SINK_BT"
 fi
 
 if [ -n "$BAT" ]; then
