@@ -384,7 +384,8 @@
     "lf",
     "zoxide",
     "brightnessctl",
-    "gdisk"
+    "gdisk",
+    "impala"
   ],
   "excluded": [
     "hotmail.gpg",
