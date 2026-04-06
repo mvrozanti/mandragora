@@ -286,15 +286,16 @@ function! MyAirline_Setup() abort
       return substitute(coc#status(), '\n', ' ', 'g')
     endif
 
-    " Neovim builtin LSP (uses luaeval; only works in nvim)
+    " Neovim builtin LSP (modern vim.diagnostic API)
     if has('nvim')
       try
-        let errors = luaeval('vim.lsp.diagnostic.get_count(0, "Error")')
-        let warns  = luaeval('vim.lsp.diagnostic.get_count(0, "Warning")')
-        if (errors == 0 && warns == 0)
+        let l:diags = vim.diagnostic.get(0)
+        let l:errors = len(filter(copy(l:diags), 'v:val.severity == 1'))
+        let l:warns  = len(filter(copy(l:diags), 'v:val.severity == 2'))
+        if (l:errors == 0 && l:warns == 0)
           return ''
         endif
-        return printf('E:%d W:%d', errors, warns)
+        return printf('E:%d W:%d', l:errors, l:warns)
       catch
         return ''
       endtry
@@ -305,7 +306,8 @@ function! MyAirline_Setup() abort
 
   " --- set the section C using the functions above ---
   " note: %{Func()} is evaluated by statusline
-  let g:airline_section_c = '%{MyAirline_GetFileIcon()} %{MyAirline_GetGitBranch()} %{MyAirline_GetLSPStatus()}'
+  " %t = tail of filename (just the name, no path)
+  let g:airline_section_c = '%{MyAirline_GetFileIcon()} %t %{MyAirline_GetGitBranch()} %{MyAirline_GetLSPStatus()}'
 
   " redraw airline to apply changes immediately
   silent! AirlineRefresh

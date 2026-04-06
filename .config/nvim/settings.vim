@@ -18,8 +18,6 @@ set fillchars+=vert:\$
 syntax enable
 set lbr
 set ruler
-set hidden
-set laststatus=2
 set smartindent
 set tabstop=4 sw=4 et
 set shiftwidth=4
@@ -28,7 +26,6 @@ set timeoutlen=300 ttimeoutlen=0
 set encoding=utf-8
 set fillchars+=vert:│
 set guicursor=i:100-bCursor
-set conceallevel=0
 " set ve+=onemore
 
 

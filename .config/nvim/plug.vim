@@ -14,7 +14,6 @@ Plug 'mogelbrod/vim-jsonpath', {'for': 'json'}
 Plug 'itchyny/screensaver.vim'
 Plug 'richq/vim-cmake-completion', {'for': 'cmake'}
 Plug 'dbmrq/vim-ditto'
-Plug 'scrooloose/vim-slumlord'
 Plug 'mikelue/vim-maven-plugin'
 Plug 'skwp/greplace.vim'
 " if has('nvim')
@@ -39,7 +38,7 @@ Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-fugitive', {'on': 'G'}
 Plug 'chrisbra/unicode.vim', {'on': 'UnicodeSearch'}
 Plug 'othree/yajs.vim'
-Plug 'kien/ctrlp.vim', {'on': 'CtrlP'}
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'danro/rename.vim', {'on': 'Rename'}
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install', 'for': 'markdown' }
 Plug 'vim-scripts/argtextobj.vim'
