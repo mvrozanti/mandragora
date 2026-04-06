@@ -7,3 +7,4 @@ so $HOME/.config/nvim/general.vim
 so $HOME/.config/nvim/plug.vim
 so $HOME/.config/nvim/map.vim
 so $HOME/.config/nvim/post-init.vim
+so $HOME/.config/nvim/treesitter.vim
