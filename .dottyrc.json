@@ -385,7 +385,8 @@
     "zoxide",
     "brightnessctl",
     "gdisk",
-    "impala"
+    "impala",
+    "github-cli"
   ],
   "excluded": [
     "hotmail.gpg",

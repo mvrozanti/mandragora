@@ -75,9 +75,9 @@ cmd yank-path $printf '%s' "$f" | xsel -i -b
 cmd yank-name $printf '%s' "$(basename "$f")" | xsel -i -b
 cmd yank-bytes %{{ ~/.local/bin/ic "$f" }}
 
-map P yank-path
-map N yank-name
-map B yank-bytes
+map P     yank-path
+map <c-n> yank-name
+map B     yank-bytes
 
 # Search
 map | :filter 
@@ -166,11 +166,10 @@ cmd unzip %{{
 }}
 map U unzip
 
-cmd z ${{
+map z ${{
     result="$(zoxide query -i)"
     lf -remote "send $id cd \"$result\""
 }}
-map z z
 
 map R ${{
     sel=$(mktemp --suffix=.txt)
