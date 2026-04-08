@@ -714,3 +714,5 @@ lf() {
 alias dfh='df -h'
 @() { nohup "$@" 2>&1 > /dev/null & disown }
 alias claude='claude --enable-auto-mode'
+alias gemini='gemini -y'
+alias qwen='qwen -y'
