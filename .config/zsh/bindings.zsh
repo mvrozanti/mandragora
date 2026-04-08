@@ -25,6 +25,7 @@ bindkey '\e[7~' beginning-of-line
 bindkey '\e[8~' end-of-line
 bindkey '^b' backward-word
 bindkey '^f' forward-word
+bindkey '^w' forward-word
 bindkey '^h' backward-delete-char
 bindkey '^[^l' delete-word
 bindkey '^[^k' up-history
