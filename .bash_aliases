@@ -66,7 +66,6 @@ alias hh='h;h'
 alias cd..='cd ..'
 alias ka='killall -I'
 alias e='echo'
-# Cross-platform clipboard functions
 c() {
     if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
         # Windows: read from stdin, copy to clipboard using clip.exe
@@ -79,7 +78,6 @@ c() {
         pbcopy
     fi
 }
-
 co() {
     if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
         # Windows: get clipboard contents using PowerShell
