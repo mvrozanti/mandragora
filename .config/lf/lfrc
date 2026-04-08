@@ -301,13 +301,10 @@ map T set dirpreviews!
 cmd watch-here ${{
     pid_file="/tmp/lf-watch-$id.pid"
     [ -f "$pid_file" ] && kill "$(cat "$pid_file")" 2>/dev/null
-    sh -c "
-    while inotifywait -qq -e create,delete,move . 2>/dev/null; do
-        lf -remote 'send $id load' 2>/dev/null || break
-        sleep 0.2
-    done
-    rm -f /tmp/lf-watch-$id.pid
-    " &
+    inotifywait -m -q -e create,delete,move . 2>/dev/null |
+    while read -r _; do
+        lf -remote "send $id load" 2>/dev/null || break
+    done &
     echo $! > "$pid_file"
 }}
 &{{ (sleep 0.2 && lf -remote "send $id watch-here") & }}
@@ -316,6 +313,7 @@ cmd on-cd &{{
     lf -remote "send $id watch-here"
     zoxide add "$PWD"
     echo "$PWD" > /tmp/lf_current_dir
+    lf -remote "send $id tty-write \"\033]7;file://$HOSTNAME$PWD\007\""
 }}
 
 cmd on-quit %{{
