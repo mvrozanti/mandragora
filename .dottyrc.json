@@ -168,7 +168,8 @@
     ".local/bin/blur-strength": "/home/m/.local/bin/blur-strength",
     ".local/bin/lf-ueberzug": "/home/m/.local/bin/lf-ueberzug",
     ".config/imv": "/home/m/.config/imv",
-    ".config/zsh": "/home/m/.config/zsh"
+    ".config/zsh": "/home/m/.config/zsh",
+    ".p10k.zsh": "/home/m/.p10k.zsh"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [

@@ -14,4 +14,4 @@ source $ZSH/oh-my-zsh.sh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # Stty fix (must be after OMZ)
-stty -ixon
+[[ -t 0 ]] && stty -ixon
