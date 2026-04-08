@@ -169,7 +169,8 @@
     ".local/bin/lf-ueberzug": "/home/m/.local/bin/lf-ueberzug",
     ".config/imv": "/home/m/.config/imv",
     ".config/zsh": "/home/m/.config/zsh",
-    ".p10k.zsh": "/home/m/.p10k.zsh"
+    ".p10k.zsh": "/home/m/.p10k.zsh",
+    ".config/tmux": "/home/m/.config/tmux"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
