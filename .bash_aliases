@@ -66,8 +66,32 @@ alias hh='h;h'
 alias cd..='cd ..'
 alias ka='killall -I'
 alias e='echo'
-alias c='xsel -i -b'
-alias co='xsel -o -b'
+# Cross-platform clipboard functions
+c() {
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+        # Windows: read from stdin, copy to clipboard using clip.exe
+        cat | clip.exe
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        # Linux: use xsel
+        xsel -i -b
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS: use pbcopy
+        pbcopy
+    fi
+}
+
+co() {
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+        # Windows: get clipboard contents using PowerShell
+        powershell.exe -NoProfile -Command 'Get-Clipboard'
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        # Linux: use xsel
+        xsel -o -b
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS: use pbpaste
+        pbpaste
+    fi
+}
 alias cow='co | xargs wget'
 cov() { nvim "$(eval echo $(co))"; }
 alias cogc='[[ -d .git ]] && git submodule add `co` || git clone `co`; cd `rev <(co) | cut -d '/' -f1 | rev`'
