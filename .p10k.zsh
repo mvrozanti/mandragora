@@ -19,33 +19,32 @@
 [[ ! -o 'no_brace_expand' ]] || p10k_config_opts+=('no_brace_expand')
 'builtin' 'setopt' 'no_aliases' 'no_sh_glob' 'brace_expand'
 
+# Source pywal colors globally so they are available to all functions.
+[[ -f ~/.cache/wal/colors.sh ]] && . ~/.cache/wal/colors.sh
+
+# Function to pick a foreground color that contrasts with the given background.
+# Uses absolute ANSI colors (232/255) to break "hue sameness" from generated themes.
+_p10k_contrast() {
+  local bg_idx=$1
+  local color_var="color$bg_idx"
+  local hex="${(P)color_var}"
+  [[ -z "$hex" ]] && { echo 255; return }
+  hex="${hex#\#}"
+  local r=$(( 16#${hex:0:2} ))
+  local g=$(( 16#${hex:2:2} ))
+  local b=$(( 16#${hex:4:2} ))
+  # Perceptive luminance
+  local lum=$(( 0.299 * r + 0.587 * g + 0.114 * b ))
+  
+  if (( lum > 120 )); then
+    echo 232 # Absolute grey-black
+  else
+    echo 255 # Absolute pure white
+  fi
+}
+
 () {
   emulate -L zsh -o extended_glob
-
-  # Source pywal colors if they exist.
-  [[ -f ~/.cache/wal/colors.sh ]] && . ~/.cache/wal/colors.sh
-
-  # Function to pick a foreground color that contrasts with the given background.
-  _p10k_contrast() {
-    local bg_idx=$1
-    local color_var="color$bg_idx"
-    local hex="${(P)color_var}"
-    [[ -z "$hex" ]] && { echo 255; return }
-    hex="${hex#\#}"
-    local r=$(( 16#${hex:0:2} ))
-    local g=$(( 16#${hex:2:2} ))
-    local b=$(( 16#${hex:4:2} ))
-    # Perceptive luminance
-    local lum=$(( 0.299 * r + 0.587 * g + 0.114 * b ))
-    
-    # We use absolute ANSI colors 232 (near black) and 255 (pure white).
-    # These are NOT modified by pywal, which breaks the "hue sameness" problem.
-    if (( lum > 120 )); then
-      echo 232 # Absolute grey-black
-    else
-      echo 255 # Absolute pure white
-    fi
-  }
 
   # Unset all configuration options. This allows you to apply configuration changes without
   # restarting zsh. Edit ~/.p10k.zsh and type `source ~/.p10k.zsh`.
