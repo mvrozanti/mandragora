@@ -170,7 +170,10 @@
     ".config/imv": "/home/m/.config/imv",
     ".config/zsh": "/home/m/.config/zsh",
     ".p10k.zsh": "/home/m/.p10k.zsh",
-    ".config/tmux": "/home/m/.config/tmux"
+    ".config/tmux": "/home/m/.config/tmux",
+    ".claude/CLAUDE.md": "/home/m/.claude/CLAUDE.md",
+    ".claude/settings.json": "/home/m/.claude/settings.json",
+    ".claude/plugins/installed_plugins.json": "/home/m/.claude/plugins/installed_plugins.json"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
