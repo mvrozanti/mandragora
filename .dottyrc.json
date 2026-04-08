@@ -388,7 +388,8 @@
     "brightnessctl",
     "gdisk",
     "impala",
-    "github-cli"
+    "github-cli",
+    "nyxt"
   ],
   "excluded": [
     "hotmail.gpg",
