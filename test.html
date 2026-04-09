@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body style="background:#0a0e17">
+<canvas id="c" style="height:300px"></canvas>
+<script>
+fetch('stats_data.json')
+.then(r => r.json())
+.then(d => {
+    let data = [];
+    d.raw_commits.forEach(c => {
+        c.files.forEach(f => {
+            data.push({ date: c.date.slice(0,13), ba: f.bytes_added, br: f.bytes_removed });
+        });
+    });
+    // aggregate by hour
+    let b = {};
+    data.forEach(x => { if(!b[x.date]) b[x.date]=[0,0]; b[x.date][0]+=x.ba; b[x.date][1]+=x.br; });
+    let entries = Object.entries(b).sort((a,b)=>a[0].localeCompare(b[0]));
+    let labels = entries.map(e=>e[0]);
+    let added = entries.map(e=>e[1][0]);
+    let removed = entries.map(e=>e[1][1]);
+    
+    document.body.innerHTML += `<div style="color:#94a3b8;font-size:12px;padding:1rem">${entries.length} hourly buckets. Max added: ${Math.max(...added)}, Max removed: ${Math.max(...removed)}</div>`;
+    
+    new Chart(document.getElementById('c'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Added', data: added, backgroundColor: 'rgba(16,185,129,0.6)' },
+                { label: 'Removed', data: removed, backgroundColor: 'rgba(239,68,68,0.6)' }
+            ]
+        },
+        options: {
+            responsive: true,
+            animation: false,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+})
+.catch(e => document.body.innerHTML += `<div style="color:red">${e}</div>`);
+</script>
+</body>
+</html>
