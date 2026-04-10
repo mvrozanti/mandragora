@@ -142,18 +142,16 @@ function! CheckBackspace() abort
   return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
 
-nn <F5>   :VBGcontinue<CR>
-au FileType c,cpp  nn <F6>   :VBGstartGDB %:r<CR>
-au FileType python nn <F6>   :VBGstartPDB3 %<CR>
-nn <F7>   :VBGstepIn<CR>
-nn <F8>   :VBGstepOver<CR>
-nn <C-F8> :VBGtoggleBreakpointThisLine<CR>
-nn <F10>  :VBGstepOut<CR>
+nn <F5>   :lua require('dap').continue()<CR>
+au FileType c,cpp  nn <F6>   :lua require('dap').toggle_breakpoint()<CR>
+au FileType python nn <F6>   :lua require('dap').toggle_breakpoint()<CR>
+nn <F7>   :lua require('dap').step_into()<CR>
+nn <F8>   :lua require('dap').step_over()<CR>
+nn <C-F8> :lua require('dap').toggle_breakpoint()<CR>
+nn <F10>  :lua require('dap').step_out()<CR>
 map <silent> <C-t> :NERDTreeToggle<CR>
-map <silent> <A-Enter> :History<CR>
-map <silent> Z :History<CR>
-map ; <Plug>(expand_region_expand)
-map + <Plug>(expand_region_shrink)
+map <silent> <A-Enter> :Telescope oldfiles<CR>
+map <silent> Z :Telescope oldfiles<CR>
 nmap <silent> <A-Up> :wincmd k<CR>
 nmap <silent> <A-Down> :wincmd j<CR>
 nmap <silent> <A-Left> :wincmd h<CR>
@@ -220,4 +218,3 @@ vmap A :%norm A
 nn _ f_
 im <Find>   <C-o>^
 im <Select> <C-o>$
-nmap <A-f> <Plug>(easymotion-s)
