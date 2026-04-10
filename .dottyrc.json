@@ -393,7 +393,8 @@
     "gdisk",
     "impala",
     "github-cli",
-    "nyxt"
+    "nyxt",
+    "nix"
   ],
   "excluded": [
     "hotmail.gpg",
