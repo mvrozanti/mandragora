@@ -19,7 +19,7 @@ pgrep -f border_highlight    || nohup python /home/m/.config/bspwm/border_highli
 pgrep -x polybar             || polybar mybar &
 
 
-bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX XXI XXII XXIII XXIV XXV XXVI XXVII XXVIII XXIX XXX XXXI XXXII XXXIII XXXIV XXXV XXXVI XXXVII XXXVIII XXXIX XL
+bspc monitor -d I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX XXI XXII XXIII XXIV XXV XXVI XXVII XXVIII XXIX XXX XXXI XXXII XXXIII XXXIV XXXV XXXVI XXXVII XXXVIII XXXIX XL XLI
 
 bspc config border_width          0
 bspc config window_gap            12
