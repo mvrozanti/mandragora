@@ -388,7 +388,8 @@
     "github-cli",
     "nyxt",
     "nix",
-    "criu"
+    "criu",
+    "aerc"
   ],
   "excluded": [
     "hotmail.gpg",
