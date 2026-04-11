@@ -1,47 +1,20 @@
 #!/usr/bin/env bash
+CACHE_FILE="/tmp/polybar_bt_status"
 DEVICE="04:57:91:D1:38:20"
 SINK_BT="bluez_output.04_57_91_D1_38_20.1"
 SINK_HDMI="alsa_output.pci-0000_01_00.1.hdmi-stereo"
-CACHE_FILE="/tmp/polybar_bt_cache_$$"
-CACHE_TTL=5  # seconds
 
-# Use cached connection state if fresh, otherwise query bluetoothctl
-get_connected() {
-    if [[ -f "$CACHE_FILE" ]] && [[ $(( $(date +%s) - $(stat -c %Y "$CACHE_FILE" 2>/dev/null || echo 0) )) -lt $CACHE_TTL ]]; then
-        cat "$CACHE_FILE"
-    else
-        # Use bluetoothctl info but with timeout to prevent hangs
-        local info
-        info=$(timeout 2 bluetoothctl info "$DEVICE" 2>/dev/null || true)
-        if echo "$info" | grep -q "Connected: yes"; then
-            echo "1" > "$CACHE_FILE"
-            echo "1"
-        else
-            echo "0" > "$CACHE_FILE"
-            echo "0"
-        fi
-    fi
-}
-
-# Get battery from cached or udev (more reliable than bluetoothctl)
-get_battery() {
-    local bat_path="/sys/class/power_supply/${DEVICE//:/_}/capacity"
-    if [[ -f "$bat_path" ]]; then
-        cat "$bat_path"
-    else
-        # Fallback to bluetoothctl with timeout
-        local info
-        info=$(timeout 2 bluetoothctl info "$DEVICE" 2>/dev/null || true)
-        echo "$info" | grep "Battery Percentage" | grep -oP '\(\K[0-9]+' || echo ""
-    fi
-}
-
-CONNECTED=$(get_connected)
-BAT=$(get_battery)
-CURRENT_SINK=$(pactl info 2>/dev/null | grep "Default Sink" | awk '{print $3}' || echo "")
+# Read 2-line cache file: line1=connected, line2=battery (instant, no subprocesses)
+if [[ -f "$CACHE_FILE" ]]; then
+    { read -r CONNECTED; read -r BAT; } < "$CACHE_FILE"
+else
+    CONNECTED=0
+    BAT=""
+fi
 
 if [ "$CONNECTED" -eq 1 ]; then
     ICON="%{F#2196f3}%{F-}"
+    CURRENT_SINK=$(pactl info 2>/dev/null | grep "Default Sink" | awk '{print $3}' || echo "")
     if [ "$CURRENT_SINK" = "$SINK_BT" ]; then
         CMD="bluetoothctl disconnect $DEVICE && pactl set-default-sink $SINK_HDMI"
     else
@@ -61,4 +34,3 @@ fi
 CMD_B64=$(printf '%s' "$CMD" | base64 -w0)
 ACTION="sh -c \"echo -n '$CMD_B64' | base64 -d | bash\""
 printf "%%{A1:%s:}%s%%{A}\n" "$ACTION" "$TEXT"
-
