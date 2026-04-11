@@ -1,3 +1,6 @@
+# tmux autostart — MUST be before p10k instant prompt to avoid race
+if [[ -z "$TMUX" && -t 0 ]]; then exec tmux; fi
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.

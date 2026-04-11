@@ -164,14 +164,9 @@
     ".config/zsh": "/home/m/.config/zsh",
     ".p10k.zsh": "/home/m/.p10k.zsh",
     ".config/tmux": "/home/m/.config/tmux",
-    ".qwen/QWEN.md": "/home/m/.qwen/QWEN.md",
-    ".qwen/SKILL.md": "/home/m/.qwen/SKILL.md",
-    ".gemini/SKILL.md": "/home/m/.gemini/SKILL.md",
-    ".claude/SKILL.md": "/home/m/.claude/SKILL.md",
     ".qwen/output-language.md": "/home/m/.qwen/output-language.md",
-    ".claude/CLAUDE.md": "/home/m/.claude/CLAUDE.md",
     ".claude/plugins/installed_plugins.json": "/home/m/.claude/plugins/installed_plugins.json",
-    ".gemini/GEMINI.md": "/home/m/.gemini/GEMINI.md"
+    "ai-shared/": "~/.ai-shared/"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [
@@ -473,6 +468,17 @@
     "command -v jiq                     || go get github.com/fiatjaf/jiq/cmd/$_",
     "command -v translate               || pip install --user googletrans",
     "command -v github-linguist         || gem install $_",
-    "systemctl enable ntpd.service"
-  ]
+    "systemctl enable ntpd.service",
+    "ln -sfn ~/.ai-shared/skills/bspwm-workspace ~/.claude/skills/bspwm-workspace",
+    "ln -sfn ~/.ai-shared/skills/bspwm-workspace ~/.qwen/skills/bspwm-workspace",
+    "ln -sfn ~/.ai-shared/skills/bspwm-workspace ~/.gemini/skills/bspwm-workspace"
+  ],
+  "link": {
+    "_Claude Code": "",
+    "~/.ai-shared/templates/CLAUDE.md": "~/.claude/CLAUDE.md",
+    "_Qwen Code": "",
+    "~/.ai-shared/templates/QWEN.md": "~/.qwen/QWEN.md",
+    "_Gemini CLI": "",
+    "~/.ai-shared/templates/GEMINI.md": "~/.gemini/GEMINI.md"
+  }
 }
