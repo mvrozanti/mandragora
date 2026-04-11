@@ -1,0 +1,10 @@
+[Unit]
+Description=Run mailsync every 10 minutes
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=10min
+Unit=mailsync.service
+
+[Install]
+WantedBy=timers.target

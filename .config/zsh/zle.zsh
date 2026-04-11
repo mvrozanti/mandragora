@@ -15,7 +15,5 @@ zle -N cd_downloads
 zle -N cd_fzf
 zle -N run_gemini
 zle -N run_zoxide_query
-zle -N zoxide_cd_interactive
-zle -N zoxide_insert_path
 zle -N increase-font
 zle -N decrease-font
