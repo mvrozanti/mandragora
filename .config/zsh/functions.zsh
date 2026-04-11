@@ -16,6 +16,27 @@ run_clock() { echo; peaclock; zle reset-prompt}
 run_gemini() { echo; gemini </dev/tty; zle reset-prompt }
 run_zoxide_query() { echo; zoxide query -i </dev/tty; zle reset-prompt }
 
+# Interactive zoxide: cd to selected directory
+zoxide_cd_interactive() {
+  local dir
+  dir=$(zoxide query -i 2>/dev/tty)
+  if [[ -n "$dir" ]]; then
+    cd "$dir"
+    zle reset-prompt
+    zle redisplay
+  fi
+}
+
+# Interactive zoxide: insert selected path into command line
+zoxide_insert_path() {
+  local dir
+  dir=$(zoxide query -i 2>/dev/tty)
+  if [[ -n "$dir" ]]; then
+    LBUFFER+="${(q)dir}"
+    zle redisplay
+  fi
+}
+
 function increase-font() {
   xdotool key ctrl+shift+equal
 }
