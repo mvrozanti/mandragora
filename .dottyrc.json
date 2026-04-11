@@ -170,7 +170,6 @@
     ".claude/SKILL.md": "/home/m/.claude/SKILL.md",
     ".qwen/output-language.md": "/home/m/.qwen/output-language.md",
     ".claude/CLAUDE.md": "/home/m/.claude/CLAUDE.md",
-    ".claude/settings.json": "/home/m/.claude/settings.json",
     ".claude/plugins/installed_plugins.json": "/home/m/.claude/plugins/installed_plugins.json",
     ".gemini/GEMINI.md": "/home/m/.gemini/GEMINI.md"
   },
