@@ -160,11 +160,14 @@ return {
 
       alpha.setup(startify.config)
 
-      vim.schedule(function()
-        if vim.fn.argc() == 0 then
-          require('alpha').start(false)
-        end
-      end)
+      vim.api.nvim_create_autocmd('VimEnter', {
+        callback = function()
+          local has_stdin = vim.api.nvim_get_vvar('stdin') ~= ''
+          if vim.fn.argc() == 0 and not has_stdin then
+            require('alpha').start(false)
+          end
+        end,
+      })
 
       vim.api.nvim_create_autocmd('User', {
         pattern = 'AlphaReady',

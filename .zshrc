@@ -11,8 +11,7 @@ fi
 # To rollback: cp ~/.zshrc.backup ~/.zshrc && source ~/.zshrc
 # =====================
 
-export ZSH_CONFIG="$HOME/.config/zsh"
-source $ZSH_CONFIG/init.zsh
+source $HOME/.config/zsh/init.zsh
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

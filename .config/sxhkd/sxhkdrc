@@ -109,8 +109,11 @@ super + shift + f
 super + ctrl + m
     wmctrl -a  Mathematica       || ~/.local/bin/Mathematica
 
-super + o
+super + O
     wmctrl -xa "libreoffice"      || libreoffice
+
+super + o
+    wmctrl -xa "obsidian"        || obsidian
 
 super + shift + d
     wmctrl -a "Cursor" || \

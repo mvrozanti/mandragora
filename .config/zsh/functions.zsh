@@ -5,7 +5,7 @@
 
 run_ranger() { echo; ranger --choosedir=$HOME/.rangerdir < $TTY; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"; zle reset-prompt }
 run_nvim_fast() { echo; nvim; zle reset-prompt }
-run_nvim() { echo; nvim -c 'Startify'; zle reset-prompt }
+run_nvim() { echo; nvim; zle reset-prompt }
 run_nnn() { echo; BUFFER="nnn -P p"; zle accept-line }
 run_lf() { lf; zle send-break }
 run_khal() { echo; khal interactive < $TTY; zle reset-prompt }
