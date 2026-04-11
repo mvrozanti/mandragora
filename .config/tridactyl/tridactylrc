@@ -53,8 +53,7 @@ bind yf hint -y
 bind ec hint -A
 
 " ── Yank / Paste ─────────────────────────────────────────────────────────────
-bind yu composite js document.URL | yank
-bind y clipboard yankshort
+bind y composite js document.URL | yank
 bind p clipboard open
 bind P clipboard tabopen
 
