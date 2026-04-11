@@ -121,6 +121,8 @@ map on :sort-name;    set reverse false
 map oN :sort-name;    set reverse true
 map oe :sort-ext;     set reverse false
 map oE :sort-ext;     set reverse true
+map od :sort-duration; set reverse false
+map oD :sort-duration; set reverse true
 
 # ===================================================================
 # == External Programs Integration
@@ -322,6 +324,36 @@ cmd on-quit %{{
 
 ${{ touch /tmp/lf-started }}
 
+
+# ===================================================================
+# == Media Duration Sorting
+# ===================================================================
+
+cmd sort-duration %{{
+    set sortby custom
+    set info size:custom
+}}
+
+cmd on-load &{{
+    cmds=""
+    for file in "$@"; do
+        case "$file" in
+            *.mp3|*.mp4|*.m4a|*.mkv|*.avi|*.flv|*.webm|*.ogg|*.wav|*.flac|*.mov|*.wmv|*.mpg|*.mpeg|*.ts)
+                dur=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 "$file" 2>/dev/null)
+                if [ -n "$dur" ]; then
+                    secs=$(printf '%010d' "${dur%%.*}")
+                    cmds="${cmds}addcustominfo \"${file}\" \"${secs}\"; "
+                else
+                    cmds="${cmds}addcustominfo \"${file}\" \"\"; "
+                fi
+                ;;
+            *)
+                cmds="${cmds}addcustominfo \"${file}\" \"\"; "
+                ;;
+        esac
+    done
+    [ -n "$cmds" ] && lf -remote "send $id :$cmds"
+}}
 
 # Trigger on-cd for other hooks
 cd .
