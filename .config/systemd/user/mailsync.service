@@ -1,0 +1,12 @@
+[Unit]
+Description=Mail Sync Service
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/mailsync
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

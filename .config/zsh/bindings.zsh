@@ -14,13 +14,8 @@ bindkey '^f' 'cd_fzf'
 bindkey '^[C' 'run_clock'
 bindkey '\ek' up-history
 bindkey '\ej' down-history
-# Alt+z: insert zoxide path into command line
-bindkey '^[z' zoxide_insert_path
-# Alt+Z: jump to selected directory
-bindkey '^[Z' zoxide_cd_interactive
-# Fallback: if kitty reload works, Ctrl+Enter/Alt+Enter also work
-bindkey '\e[13;5u' zoxide_insert_path
-bindkey '\e[13;3u' zoxide_cd_interactive
+bindkey '^[^M' run_gemini
+bindkey '\e^M' run_zoxide_query
 bindkey '^ ' autosuggest-accept
 bindkey '\eOH' beginning-of-line
 bindkey '\eOF' end-of-line
