@@ -61,8 +61,14 @@ bind index,pager \Cj sidebar-next
 bind index,pager \Co sidebar-open
 
 # Utils
-macro index O "<shell-escape>mailsync mvrozanti@hotmail.com<enter>" "sync mail"
+# Auto-sync on startup - wait for sync to finish before showing index
+macro index,pager S "<shell-escape>mailsync mvrozanti@hotmail.com<enter>" "sync mail"
 macro index \Cr "T~U<enter><tag-prefix><clear-flag>N<untag-pattern>.<enter>" "mark all as read"
+
+# Auto-sync on startup
+# This macro runs sync when neomutt first starts
+macro index \Ca "<shell-escape>mailsync mvrozanti@hotmail.com<enter>"
+push "\Ca"
 
 # --- Theme & Account ---
 source ~/.config/mutt/catppuccin.muttrc

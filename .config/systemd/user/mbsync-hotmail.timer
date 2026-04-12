@@ -1,0 +1,10 @@
+[Unit]
+Description=Auto-sync Hotmail every 5 minutes
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=5min
+Persistent=false
+
+[Install]
+WantedBy=timers.target

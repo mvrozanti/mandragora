@@ -5,3 +5,4 @@
 #eval `keychain --agents ssh --eval id_rsa`
 [[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && exec startx
 export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+export GPG_TTY=$(tty)
