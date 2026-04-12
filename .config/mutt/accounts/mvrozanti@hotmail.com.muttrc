@@ -3,6 +3,7 @@
 set realname = "mvrozanti"
 set from = "mvrozanti@hotmail.com"
 set sendmail = "msmtp -a mvrozanti@hotmail.com"
+set delete = yes
 alias me mvrozanti <mvrozanti@hotmail.com>
 set folder = "/home/m/.local/share/mail/mvrozanti@hotmail.com"
 set message_cachedir = "/home/m/.cache/mutt-wizard/mvrozanti_hotmail.com/bodies"

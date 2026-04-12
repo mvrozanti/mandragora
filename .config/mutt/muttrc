@@ -55,6 +55,9 @@ bind index,pager h exit
 bind index,pager n next-unread
 bind index,pager p previous-unread
 
+# Delete + auto-sync: purge thread, expunge/sync mailbox, then push to server
+macro index D "<purge-thread><sync-mailbox><shell-escape>mailsync mvrozanti@hotmail.com<enter>" "Purge thread, expunge, and sync to server"
+
 # Sidebar Navigation
 bind index,pager \Ck sidebar-prev
 bind index,pager \Cj sidebar-next
