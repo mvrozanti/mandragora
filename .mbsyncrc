@@ -2,7 +2,7 @@ IMAPStore mvrozanti@hotmail.com-remote
 Host outlook.office365.com
 Port 993
 User mvrozanti@hotmail.com
-PassCmd "/usr/share/neomutt/oauth2/mutt_oauth2.py --encryption-pipe 'gpg -qe -r mvrozanti@hotmail.com' --provider microsoft --client-id 9e5f94bc-e8a4-4e73-b8be-63364c29d753 --client-secret '' --format token /home/m/.cache/mutt/mvrozanti@hotmail.com.tokens"
+PassCmd "/usr/share/neomutt/oauth2/mutt_oauth2.py --decryption-pipe 'cat' --encryption-pipe 'cat' --provider microsoft --client-id 9e5f94bc-e8a4-4e73-b8be-63364c29d753 --client-secret '' --format token /home/m/.cache/mutt/mvrozanti@hotmail.com.tokens.plain"
 AuthMechs XOAUTH2
 TLSType IMAPS
 CertificateFile /etc/ssl/certs/ca-certificates.crt
