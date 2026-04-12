@@ -1,145 +1,22 @@
 #!/usr/bin/env bash
-#
-# setbg — Set wallpaper, generate color scheme via wal, and propagate
-#         colors to kitty, bspwm, VS Codium, HID/keyboard LEDs.
-#
-# Usage:
-#   setbg [image_path]       # omit for random wallpaper (dark mode)
-#   setbg [image_path] -l    # light mode variant
-#
-
-set -euo pipefail
-
-# ── Configuration ────────────────────────────────────────────────────────────
-WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/gdrive/Levv/wllpps}"
-TARGET_WIDTH="${TARGET_WIDTH:-1920}"
-TARGET_HEIGHT="${TARGET_HEIGHT:-1080}"
-KITTYPANT_SOCKET="${KITTY_LISTEN_ON:-unix:@mykitty}"
-TMP_DIR="${TMPDIR:-/tmp}"
-LOG_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/setbg/setbg.log"
-
-mkdir -p "$(dirname "$LOG_FILE")"
-
-# ── Logging ──────────────────────────────────────────────────────────────────
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG_FILE"
-}
-
-# Redirect all stderr to log when backgrounded.
-exec 2>> "$LOG_FILE"
-
-# ── Kill any existing animated wallpaper ─────────────────────────────────────
-pkill xwinwrap 2>/dev/null || true
-
-# ── Resolve wallpaper path ───────────────────────────────────────────────────
-if [[ -z "${1:-}" ]]; then
-    if [[ ! -d "$WALLPAPER_DIR" ]]; then
-        log "ERROR: Wallpaper directory not found: $WALLPAPER_DIR"
-        exit 1
-    fi
-    fpath="$(find "$WALLPAPER_DIR" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) -print0 | shuf -z -n 1 | tr -d '\0')"
-    if [[ -z "$fpath" ]]; then
-        log "ERROR: No wallpaper images found in $WALLPAPER_DIR"
-        exit 1
-    fi
-else
-    if [[ ! -f "$1" ]]; then
-        log "ERROR: File not found: $1"
-        exit 1
-    fi
-    fpath="$(realpath "$1")"
-fi
-
-# ── Light / dark mode toggle ─────────────────────────────────────────────────
-# $2 present (e.g. -l) → light mode; absent → dark mode
-kitty_conf="$HOME/.config/kitty/kitty.conf"
-
-if [[ -z "${2:-}" ]]; then
-    # Dark mode
-    sed -i -e 's/background #\(f\{3,\}\|ffffff\)/background #000000/' "$kitty_conf" 2>/dev/null || true
-    kitty @ --to "$KITTYPANT_SOCKET" set-colors background='#000000' foreground='#ffffff' 2>/dev/null || \
-        log "WARN: Could not set kitty colors (kitty daemon may not be running)"
-else
-    # Light mode
-    sed -i -e 's/background #\(0\{3,\}\|000000\)/background #ffffff/' "$kitty_conf" 2>/dev/null || true
-    kitty @ --to "$KITTYPANT_SOCKET" set-colors background='#ffffff' foreground='#000000' 2>/dev/null || \
-        log "WARN: Could not set kitty colors (kitty daemon may not be running)"
-fi
-
-# ── Generate palette with wal ────────────────────────────────────────────────
-log "Running wal on: $fpath"
-if [[ -n "${2:-}" ]]; then
-    wal -a 299 --saturate 1.0 -i "$fpath" "$2"
-else
-    wal -a 299 --saturate 1.0 -i "$fpath"
-fi
-
-# ── Source generated wal colors ──────────────────────────────────────────────
-colors_file="$HOME/.cache/wal/colors.sh"
-if [[ -f "$colors_file" ]]; then
-    # shellcheck source=/dev/null
-    . "$colors_file"
-else
-    log "ERROR: wal did not produce $colors_file"
-    exit 1
-fi
-
-# ── Apply colors to peripheral tools ─────────────────────────────────────────
-python "$HOME/.local/bin/hid-wrapper" 2>/dev/null || log "WARN: hid-wrapper failed"
-python "$HOME/.local/bin/keyledsd-wrapper" 2>/dev/null || log "WARN: keyledsd-wrapper failed"
-
-# ── Apply colors to VS Codium ────────────────────────────────────────────────
-vscode_settings="$HOME/.config/Code - OSS/User/settings.json"
-vscode_colors="$HOME/.cache/wal/colors-vscode.json"
-if [[ -f "$vscode_colors" ]]; then
-    if [[ -f "$vscode_settings" ]] && command -v jq &>/dev/null && command -v sponge &>/dev/null; then
-        jq -s '.[0] * .[1]' "$vscode_settings" "$vscode_colors" | sponge "$vscode_settings"
-    fi
-fi
-
-# ── Resize non-native-resolution images ──────────────────────────────────────
-img_dims="$(identify -format '%wx%h' "$fpath" 2>/dev/null | head -n1)" || true
-target_dims="${TARGET_WIDTH}x${TARGET_HEIGHT}"
-
-if [[ "$img_dims" != "$target_dims" ]]; then
-    ext="${fpath##*.}"
-    tmp_wallpaper="$TMP_DIR/setbg_resized_$$.$ext"
-    if [[ "$ext" == "gif" ]] && command -v gifsicle &>/dev/null; then
-        log "Resizing GIF: $fpath → $target_dims"
-        gifsicle --resize "$target_dims" -i "$fpath" > "$tmp_wallpaper" 2>/dev/null && fpath="$tmp_wallpaper"
-    elif [[ "$ext" != "gif" && "$ext" != "mp4" ]]; then
-        # For static images, let bspwm/handle it via feh/nitrogen if needed;
-        # wal already generated a resized wallpaper in ~/.cache/wal/.
-        :
-    fi
-fi
-
-# ── Set animated / video wallpapers via xwinwrap ────────────────────────────
-ext="${fpath##*.}"
-
-if [[ "$ext" == "gif" ]]; then
-    if command -v gifview &>/dev/null; then
-        log "Setting animated GIF wallpaper: $fpath"
-        nohup xwinwrap -fs -ni -s -nf -b -un -argb -ov -- \
-            gifview -w WID "$fpath" -a >/dev/null 2>&1 &
-    else
-        log "WARN: gifview not found, cannot set GIF wallpaper"
-    fi
-elif [[ "$ext" == "mp4" ]]; then
-    if command -v mpv &>/dev/null; then
-        log "Setting video wallpaper: $fpath"
-        nohup xwinwrap -fs -ni -s -nf -b -un -argb -ov -- \
-            mpv -wid WID --loop --no-audio "$fpath" >/dev/null 2>&1 &
-    else
-        log "WARN: mpv not found, cannot set video wallpaper"
-    fi
-fi
-
-# ── Apply border colors to bspwm ─────────────────────────────────────────────
-if command -v bspc &>/dev/null; then
-    bspc config normal_border_color  "${color1:-#000000}"
-    bspc config active_border_color  "${color2:-#333333}"
-    bspc config focused_border_color "${color15:-#ffffff}"
-fi
-
-log "Done. Wallpaper: $fpath"
+pkill xwinwrap
+{
+    [[ -z $1 ]] && fpath=`find ~/gdrive/Levv/wllpps -maxdepth 1 -type f | grep "jpe\?g\|png" | shuf | sed 1q` || fpath=`realpath "$1"`
+    [[ -z $2 ]] && sed -i -e 's/background #fff/background #000/' ~/.config/kitty/kitty.conf || sed -i -e 's/background #000/background #fff/' ~/.config/kitty/kitty.conf
+    [[ -z $2 ]] && kitty @ --to unix:@mykitty set-colors background=#000 || kitty @ --to unix:@mykitty set-colors background=#fff
+    wal -a 299 --saturate 1.0 -i "$fpath" $2
+    python $HOME/.local/bin/hid-wrapper
+    python $HOME/.local/bin/keyledsd-wrapper
+    jq -s '.[0] * .[1]' $HOME/.config/Code\ -\ OSS/User/settings.json $HOME/.cache/wal/colors-vscode.json | sponge $HOME/.config/Code\ -\ OSS/User/settings.json
+    is_fs=$([[ `identify "$fpath" | cut -d' ' -f3` == 1920x1080 ]] && echo true)
+    [[ $is_fs ]] || gifsicle --resize 1920x1080 -i "$fpath" > /tmp/`basename "$fpath"` && fpath="/tmp/`basename "$fpath"`"
+    sleep 1
+    is_gif=$([[ "${fpath##*.}" = "gif" ]] && echo true)
+    is_mp4=$([[ "${fpath##*.}" = "mp4" ]] && echo true)
+    [[ $is_gif ]] && nohup xwinwrap -fs -ni -s -nf -b -un -argb -ov -- gifview -w WID "$fpath" -a >/dev/null
+    [[ $is_mp4 ]] && nohup xwinwrap -fs -ni -s -nf -b -un -argb -ov -- mpv -wid WID --loop --no-audio "$fpath" >/dev/null
+    [ -f "$HOME/.cache/wal/colors.sh" ] && . "$HOME/.cache/wal/colors.sh"
+    bspc config normal_border_color  "$color1"
+    bspc config active_border_color  "$color2"
+    bspc config focused_border_color "$color15"
+} 2>&1 &
