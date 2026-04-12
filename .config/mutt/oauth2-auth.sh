@@ -93,9 +93,8 @@ token_json = {
     'client_secret': '',
 }
 
-enc = subprocess.run(['gpg', '-qe', '-r', 'mvrozanti@hotmail.com'], input=json.dumps(token_json).encode(), capture_output=True)
-with open(token_file, 'wb') as f:
-    f.write(enc.stdout)
+with open(token_file, 'w') as f:
+    f.write(json.dumps(token_json))
 
 print(f"\nToken saved to {token_file}")
 print(f"Expires: {token_json['access_token_expiration']}")
@@ -106,7 +105,8 @@ echo "============================================"
 echo " Testing the connection..."
 echo "============================================"
 python3 ~/.config/mutt/mutt_oauth2.py \
-  --encryption-pipe "gpg -qe -r mvrozanti@hotmail.com" \
+  --encryption-pipe '' \
+  --decryption-pipe '' \
   --provider microsoft \
   --client-id "$CLIENT_ID" \
   --client-secret "" \

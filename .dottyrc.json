@@ -58,7 +58,10 @@
     ".config/mutt/accounts/mvrozanti@hotmail.com.muttrc": "/home/m/.config/mutt/accounts/mvrozanti@hotmail.com.muttrc",
     ".config/mutt/catppuccin.muttrc": "/home/m/.config/mutt/catppuccin.muttrc",
     ".config/mutt/mailcap": "/home/m/.config/mutt/mailcap",
+    ".config/mutt/mutt_oauth2.py": "/home/m/.config/mutt/mutt_oauth2.py",
     ".config/mutt/oauth2-auth.sh": "/home/m/.config/mutt/oauth2-auth.sh",
+    ".config/mutt/reauthorize.sh": "/home/m/.config/mutt/reauthorize.sh",
+    ".config/mutt/OAUTH2-README.md": "/home/m/.config/mutt/OAUTH2-README.md",
     ".msmtprc": "~/.msmtprc",
     ".config/mpv/input.conf": "~/.config/mpv/input.conf",
     ".tigrc": "~/.tigrc",
@@ -398,7 +401,10 @@
   "excluded": [
     "hotmail.gpg",
     "__pycache__",
-    ".cache/mutt/"
+    ".cache/mutt/",
+    "email-token",
+    ".mailsynclastrun",
+    "mutt_oauth2.py.bak"
   ],
   "commands": [
     "mkdir -p ~/util",
