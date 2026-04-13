@@ -10,7 +10,6 @@ unbind --mode=ex <C-c>
 " ── Settings ─────────────────────────────────────────────────────────────────
 set modeindicator false
 set smoothscroll true
-set newtab about:blank
 set hintchars asdertgbvcxzq
 set hintfiltermode vimperator-reflow
 set hintdelay 100
@@ -23,8 +22,8 @@ bind / fillcmdline find
 bind ? fillcmdline find -?
 bind n findnext 1
 bind N findnext --reverse 1
-bind h back
-bind H forward
+bind H back
+bind L back
 
 " ── Tabs ─────────────────────────────────────────────────────────────────────
 bind J tabnext
@@ -32,8 +31,6 @@ bind K tabprev
 bind t tabnew
 bind x tabclose
 bind D tabduplicate
-bind tn tabmove -1
-bind te tabmove +1
 
 " ── Open / URL ───────────────────────────────────────────────────────────────
 bind o fillcmdline open
@@ -49,7 +46,6 @@ bind d scrollpage 0.5
 
 " ── Hinting ──────────────────────────────────────────────────────────────────
 bind f hint
-bind yf hint -y
 bind ec hint -A
 
 " ── Yank / Paste ─────────────────────────────────────────────────────────────
@@ -89,3 +85,9 @@ blacklistadd slither.com
 blacklistadd chatgpt.com
 blacklistadd web.whatsapp.com
 blacklistadd teams.microsoft.com
+
+bind <C-e> fillcmdline tab
+bind <C-1> open https://chess.com
+bind <C-2> open https://youtube.com
+bind <C-3> open https://github.com
+bind <C-4> open https://deepseek.com
