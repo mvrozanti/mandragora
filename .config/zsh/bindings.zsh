@@ -14,10 +14,7 @@ bindkey '^f' 'cd_fzf'
 bindkey '^[C' 'run_clock'
 bindkey '\ek' up-history
 bindkey '\ej' down-history
-bindkey '^[^M' run_gemini
-# Alt+;: cd to zoxide selection
 bindkey '^[;' zoxide_cd_interactive
-# Alt+,: insert zoxide path into command line
 bindkey '^[,' zoxide_insert_path
 bindkey '^ ' autosuggest-accept
 bindkey '\eOH' beginning-of-line

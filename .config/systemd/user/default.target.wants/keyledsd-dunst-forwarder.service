@@ -1,0 +1,10 @@
+[Unit]
+Description=Forward dunst notifications to keyledsd via DBus
+
+[Service]
+ExecStart=%h/.local/bin/keyledsd-dunst-forwarder
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
