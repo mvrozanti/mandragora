@@ -10,6 +10,16 @@
         "lastUpdated": "2026-04-02T22:33:27.600Z",
         "gitCommitSha": "eafe962b18f6c5dc70fb7c8cc7e83e61f4cdde06"
       }
+    ],
+    "claude-hud@claude-hud": [
+      {
+        "scope": "user",
+        "installPath": "/home/m/.claude/plugins/cache/claude-hud/claude-hud/0.0.12",
+        "version": "0.0.12",
+        "installedAt": "2026-04-14T22:49:14.024Z",
+        "lastUpdated": "2026-04-14T22:49:14.024Z",
+        "gitCommitSha": "bfde7cfd9689faa35fca1aacb08960de3c837ffc"
+      }
     ]
   }
 }
