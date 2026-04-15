@@ -347,9 +347,6 @@ cmd on-load &{{
                     cmds="${cmds}addcustominfo \"${file}\" \"\"; "
                 fi
                 ;;
-            *)
-                cmds="${cmds}addcustominfo \"${file}\" \"\"; "
-                ;;
         esac
     done
     [ -n "$cmds" ] && lf -remote "send $id :$cmds"
