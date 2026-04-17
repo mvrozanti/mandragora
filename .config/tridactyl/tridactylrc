@@ -38,8 +38,6 @@ bind o fillcmdline open
 bind O fillcmdline tabopen
 bind <C-o> fillcmdline open
 bind <A-d> composite js window.location.href | fillcmdline open
-bind c current_url open
-bind C current_url tabopen
 
 " ── Scroll ───────────────────────────────────────────────────────────────────
 bind b scrollpage -0.5
