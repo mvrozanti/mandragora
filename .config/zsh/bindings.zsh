@@ -32,4 +32,4 @@ bindkey '^[^k' up-history
 bindkey '^[^j' down-history
 bindkey '^k' increase-font
 bindkey '^j' decrease-font
-bindkey '^[ ' accept-line
+# bindkey '^[ ' accept-line
