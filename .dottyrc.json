@@ -396,7 +396,8 @@
     "nyxt",
     "nix",
     "criu",
-    "aerc"
+    "aerc",
+    "clipmenu"
   ],
   "excluded": [
     "hotmail.gpg",
