@@ -1,0 +1,25 @@
+{
+    "control": [
+        { "VTOY_DEFAULT_SEARCH_ROOT": "/isos" }
+    ],
+    "persistence": [
+        {
+            "image": "/isos/mandragora-arch.iso",
+            "backend": ["/persistence/arch_persistence.dat"]
+        },
+        {
+            "image": "/isos/mandragora-nixos.iso",
+            "backend": ["/persistence/nixos_persistence.dat"]
+        }
+    ],
+    "menu_alias": [
+        {
+            "image": "/isos/mandragora-arch.iso",
+            "alias": "Arch Linux \u2014 Mandragora (Persistent)"
+        },
+        {
+            "image": "/isos/mandragora-nixos.iso",
+            "alias": "NixOS \u2014 Mandragora (Persistent)"
+        }
+    ]
+}

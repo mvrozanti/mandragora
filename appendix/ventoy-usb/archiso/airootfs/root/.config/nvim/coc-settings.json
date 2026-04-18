@@ -1,0 +1,29 @@
+{
+    "javascript.validate.enable": false,
+    "coc.preferences.autoTrigger": "always",
+    "coc.preferences.triggerAfterInsertEnter": false,
+    "coc.preferences.timeout": 100,
+    "suggest.triggerCompletionWait": 50,
+    "coc.preferences.noselect": true,
+    "coc.preferences.formatOnType": false,
+    "coc.preferences.jumpCommand": "edit",
+    "coc.preferences.diagnostic.enable": true,
+    "coc.preferences.diagnostic.signOffset": 1000,
+    "coc.preferences.diagnostic.warningSign": "⚠",
+    "coc.preferences.diagnostic.errorSign": ">>",
+    "coc.preferences.diagnostic.infoSign": ">>",
+    "coc.preferences.diagnostic.hintSign": ">>",
+    "pyls.plugins.pycodestyle.enabled": false,
+    "python.jediEnabled": false,
+    "languageserver": {
+        "clangd": {
+            "command": "clangd",
+            "rootPatterns": ["compile_flags.txt", "compile_commands.json", ".vim/", ".git/", ".hg/"],
+            "filetypes": ["c", "cpp", "objc", "objcpp"]
+        },
+        "kotlin": { 
+            "command": "~/util/kotlin-language-server/server/build/install/server/bin/kotlin-language-server",
+            "filetypes": ["kotlin"] 
+        }
+    }
+}
