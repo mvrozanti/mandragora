@@ -1,32 +1,73 @@
-# Mandragora Bootstrap USB
+# Mandragora Bootstrap USB (Arch)
 
-## WiFi
-    nmtui                  open WiFi picker (TUI)
+## First: Connect to Network
 
-## AI
-    claude                 Claude Code (login on first run)
-    gemini                 Gemini CLI (login on first run)
+    nmtui                       WiFi picker (TUI)
+    ping -c1 archlinux.org      verify connection
+
+## What's Where
+
+    /mnt/ventoy/                USB drive (mount -L Ventoy /mnt/ventoy if not mounted)
+    /mnt/ventoy/docs/mandragora-nixos/   NixOS flake
+    /mnt/ventoy/toolbox/        Scripts: format-drive, hw-diag, gpu-stress
+    ~/MANDRAGORA.md             This file
+
+## Available Tools
+
+    claude / gemini / qwen      AI assistants (npm i -g @anthropic-ai/claude-code @google/gemini-cli @qwen-code/qwen-code)
+    nvim                        Editor
+    tmux                        Terminal multiplexer
+    diag                        Full hardware diagnostics → /tmp/mandragora-hw-diag.log
+    gpucheck                    GPU stress test menu
+    sensors                     CPU/chipset temperatures
+    htop / btop                 Process monitor
+    fastfetch                   System info
+    nmtui                       WiFi manager
+    lf                          File manager (TUI)
+
+## Install NixOS — Step by Step
+
+### 1. Identify target disk
+
+    lsblk -f
+
+### 2. Partition + format + mount
+
+    /mnt/ventoy/toolbox/format-drive.sh /dev/nvme0n1
+
+### 3. Review hardware config
+
+    nvim /mnt/etc/nixos/mandragora-nixos/hosts/mandragora-desktop/hardware-configuration.nix
+
+### 4. Install
+
+    nixos-install --flake /mnt/etc/nixos/mandragora-nixos#mandragora-desktop --no-root-passwd
+
+### 5. Set passwords
+
+    nixos-enter --root /mnt -c 'passwd m'
+    nixos-enter --root /mnt -c 'passwd'
+
+### 6. Reboot
+
+    umount -R /mnt && reboot
 
 ## Diagnostics
-    diag                   full hardware report → /tmp/mandragora-hw-diag.log
-    gpucheck               GPU stress test menu
-    sensors                CPU / chipset temps
-    nvtop                  GPU live monitor (TUI)
-    htop / btop            process monitor
 
-## RGB
-    openrgb --list-devices check RGB hardware detection
-    openrgb --gui          GUI (needs display)
+    diag                        full hw report
+    gpucheck                    GPU stress test
+    sensors                     temperatures
+    smartctl -a /dev/nvme0n1    NVMe health
+    openrgb --list-devices      RGB detection
 
-## Storage
-    lsblk -f               disk overview
-    smartctl -a /dev/nvme0n1   NVMe health
-    nvme smart-log /dev/nvme0n1
+## Troubleshooting
 
-## USB (this drive)
-    ventoy                 cd /mnt/ventoy
-    ls ~/toolbox           shared scripts
+### Ventoy partition not mounted
 
-## NixOS install (when ready)
-    nixos-install          after mounting target partition
-    nixos-generate-config --root /mnt
+    mount -L Ventoy /mnt/ventoy
+
+### Need nixos-install on Arch
+
+    curl -L https://nixos.org/nix/install | sh
+    . ~/.nix-profile/etc/profile.d/nix.sh
+    nix-env -iA nixos.nixos-install-tools

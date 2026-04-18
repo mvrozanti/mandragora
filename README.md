@@ -10,12 +10,8 @@ A "second skin" Linux workstation — NVIDIA RTX 5070 Ti, Hyprland, impermanent 
 flowchart TD
     A[UEFI Firmware] --> B[systemd-boot]
     B -->|timeout 0, Space=menu| C[Linux Zen Kernel]
-    C -->|systemd initrd| D[Plymouth splash?]
-    D -->|NVIDIA modeset race condition| E[SDDM login]
-    E -->|Hyprland session| F[PipeWire + OpenRGB + Firefox]
-
-    style D fill:#f66,stroke:#333,stroke-width:2px
-    click D "#boot-splash--open-issue" "Open technical question"
+    C -->|systemd initrd| D[SDDM login]
+    D -->|Hyprland session| E[PipeWire + OpenRGB + Firefox]
 ```
 
 ## Impermanence Lifecycle
