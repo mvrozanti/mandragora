@@ -76,7 +76,7 @@ bindurl https://www.youtube.com A focusinput
 bindurl https://www.youtube.com , focusinput
 bindurl https://www.youtube.com f hint -Jc a#thumbnail.yt-simple-endpoint,ytd-comment-thread-renderer a,ytd-channel-name a,paper-button,a#logo,a,.yt-simple-endpoint.style-scope.ytd-toggle-button-renderer#menu-container
 bindurl https://www.youtube.com gt js (function(){ const v = e => e && !e.hasAttribute("hidden") && (e.offsetWidth || e.offsetHeight || e.getClientRects().length) && getComputedStyle(e).display !== "none" && getComputedStyle(e).visibility !== "hidden" && parseFloat(getComputedStyle(e).opacity || "1") > 0; const btn = [...document.querySelectorAll("button.ytp-size-button, button[title*='Theater'], button[title*='teatro'], button[aria-label*='Theater'], button[aria-label*='teatro']")].find(v); if (btn) btn.click(); else console.warn("gt: theater mode button not found"); })()
-bindurl https://www.youtube.com <A-n> js document.querySelector('ytd-notification-topbar-button-renderer button').click()
+bindurl https://www.youtube.com gn js document.querySelector('ytd-notification-topbar-button-renderer button').click()
 
 " ── Blacklist ────────────────────────────────────────────────────────────────
 blacklistadd localhost:3000
