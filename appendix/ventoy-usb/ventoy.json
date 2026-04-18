@@ -6,10 +6,6 @@
         {
             "image": "/isos/mandragora-arch.iso",
             "backend": ["/persistence/arch_persistence.dat"]
-        },
-        {
-            "image": "/isos/mandragora-nixos.iso",
-            "backend": ["/persistence/nixos_persistence.dat"]
         }
     ],
     "menu_alias": [
@@ -19,7 +15,7 @@
         },
         {
             "image": "/isos/mandragora-nixos.iso",
-            "alias": "NixOS \u2014 Mandragora (Persistent)"
+            "alias": "NixOS \u2014 Mandragora"
         }
     ]
 }

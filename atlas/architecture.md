@@ -25,7 +25,7 @@ The system utilizes a Btrfs-heavy layout optimized for impermanence and strict p
 
 ## 4. Graphics, Display, and Theming Pipeline
 *   **Hardware Stack:** NVIDIA RTX 5070 Ti (Proprietary 570.x drivers) + Wayland (GBM backend). Strict "No X11 Fallback" policy for the desktop session.
-*   **Race Condition Mitigation:** Due to a known race condition between Plymouth, NVIDIA 570.x, and SDDM on Wayland, the animated Plymouth splash screen is **excluded** from the initial build phase. Boot sequence goes directly from firmware splash to SDDM.
+*   **Boot Sequence:** Firmware splash → SDDM directly. No Plymouth.
 *   **Theming Engine:** Pywal-style dynamic palette. A source wallpaper drives color extraction, generating a `colors.json` that injects variables into Hyprland, Kitty, Neovim, Waybar, and GTK via Home Manager.
 
 ## 5. Security & Secrets
