@@ -78,28 +78,13 @@ Backups and arch-slave sync logic — designed after the system is running.
 | Audio | PipeWire |
 | Browser | Firefox (Wayland-native, Home Manager extensions) |
 | Terminal | Kitty (migrate existing config) |
-| Shell | TBD (existing Arch config migrated) |
+| Shell | zsh |
 | Font | IosevkaTerm Nerd Font Mono |
 | Status bar | Waybar (translate Polybar config later) |
 | Theming | Pywal-style dynamic palette (`colors.json`) |
 | Gaming | Steam + Wine + Proton pre-configured |
 | Flatpak | No. Nix-only, period. |
 | Package manager philosophy | Nix-only. `nix shell` for temporary, `home.packages` for permanent. |
-
----
-
-## Boot Splash — Open Issue
-
-Plymouth (animated 1920x1080 GIF) conflicts with NVIDIA 570.x driver on Wayland: Plymouth occupies the framebuffer during initrd, SDDM starts before the NVIDIA kernel module is fully loaded, login screen freezes black.
-
-| Option | Status |
-|--------|--------|
-| A. Drop Plymouth | Safest. Lose the GIF. |
-| B. Plymouth → text handoff | May still flicker/stall. |
-| C. `nvidia-drm.modeset=1` early load | Untested with this combo. |
-| D. `EnableAggressiveVblank` | CachyOS reports fix. Untested on NixOS. |
-
-**Decision deferred.** Test Option D first. If it fails, drop Plymouth.
 
 ---
 

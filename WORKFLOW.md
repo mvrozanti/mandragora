@@ -20,8 +20,3 @@ To prevent "Split Brain" scenarios, the `mandragora-switch` alias will perform:
 - **Media/Bulk:** Mounted on-demand from the `arch-slave` node.
 - **Shadow Media:** Strictly local to the encrypted Shadow Drive; **NEVER** synced to Seafile or the VPS.
 
-## 3. The AI Interface
-- **The "Tailor" Alias:** A command (e.g., `skin-check`) that triggers the AI to:
-    - Compare current UI state against `theming.nix`.
-    - Review the latest `audits/` diffs.
-    - Propose optimizations for the `migration/` translations.

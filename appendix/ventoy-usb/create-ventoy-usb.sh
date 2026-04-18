@@ -142,6 +142,16 @@ cp "$SCRIPT_DIR/ventoy.json" "$MOUNT_POINT/ventoy/ventoy.json"
 cp "$SCRIPT_DIR/toolbox/"*.sh "$MOUNT_POINT/toolbox/"
 chmod +x "$MOUNT_POINT/toolbox/"*.sh
 
+# ---- Copy mandragora-nixos repo ----
+REPO_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+if [[ -f "$REPO_DIR/flake.nix" || -d "$REPO_DIR/hosts" ]]; then
+    log "Copying Mandragora NixOS repo to docs/..."
+    rm -rf "$MOUNT_POINT/docs/mandragora-nixos"
+    cp -r "$REPO_DIR" "$MOUNT_POINT/docs/mandragora-nixos"
+else
+    warn "Could not find mandragora-nixos repo at $REPO_DIR. Skipping repo copy."
+fi
+
 # ---- Done ----
 sync
 echo ""
@@ -150,6 +160,8 @@ echo "  Mandragora USB — Ready"
 echo "════════════════════════════════════════"
 du -sh "$MOUNT_POINT/isos"        | awk '{print "  ISOs:        " $1}'
 du -sh "$MOUNT_POINT/persistence" | awk '{print "  Persistence: " $1}'
+[[ -d "$MOUNT_POINT/docs/mandragora-nixos" ]] && \
+    du -sh "$MOUNT_POINT/docs/mandragora-nixos" | awk '{print "  Flake repo:  " $1}'
 df -h "$MOUNT_POINT" | awk 'NR==2{print "  Free:        " $4}'
 echo ""
 

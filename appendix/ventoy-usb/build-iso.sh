@@ -70,10 +70,10 @@ build_arch() {
 }
 
 # ======================== NixOS ISO ========================
-# Prefer building a custom ISO via nix if available on the host.
-# Falls back to downloading the stock NixOS minimal ISO — which is perfectly
-# fine for installation and has nix-shell for anything else needed live.
-# NOTE: do NOT install nix on your main machine just for this. Use the fallback.
+# Builds a custom NixOS ISO via nix if available on the host.
+# Falls back to downloading the stock NixOS minimal ISO.
+# To install nix on Arch: sh <(curl -L https://nixos.org/nix/install) --daemon
+# Nix coexists with pacman — uses its own /nix store, doesn't interfere.
 build_nixos() {
     local NIXOS_CHANNEL="${NIXOS_CHANNEL:-25.05}"
     local DEST="$ISO_CACHE/mandragora-nixos.iso"
