@@ -20,7 +20,7 @@ return {
         mid     = 236,   -- separator bg
         text    = 231,   -- bright white foreground
         dim     = 250,   -- dimmed text for inactive
-        insert  = 33,    -- AirlineInsert  ctermbg=33
+        insert  = 14,    -- AirlineInsert  ctermbg=14 (bright cyan, system color)
         visual  = 136,   -- AirlineVisual  ctermbg=136
         replace = 160,   -- AirlineReplace ctermbg=160
         command = 61,    -- AirlineCommand ctermbg=61

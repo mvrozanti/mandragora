@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# implode_tmux.sh
+# Moves all windows from all other sessions into the current session.
+
+if [ -z "$TMUX" ]; then
+    echo "Error: Must be run from inside a tmux session!"
+    exit 1
+fi
+
+CURRENT_SESSION=$(tmux display-message -p "#{session_id}")
+
+mapfile -t OTHER_SESSIONS < <(tmux list-sessions -F "#{session_id}" | grep -v "^${CURRENT_SESSION}$")
+
+if [ ${#OTHER_SESSIONS[@]} -eq 0 ]; then
+    echo "Nothing to implode: no other sessions found."
+    exit 0
+fi
+
+for SESS in "${OTHER_SESSIONS[@]}"; do
+    mapfile -t WINDOWS < <(tmux list-windows -t "$SESS" -F "#{window_id}")
+    for WIN in "${WINDOWS[@]}"; do
+        tmux move-window -d -s "$WIN" -t "$CURRENT_SESSION:"
+    done
+done

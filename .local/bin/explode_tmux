@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# explode_tmux.sh
+# Detaches all panes from the current tmux session and opens each in a new kitty instance.
+
+if [ -z "$TMUX" ]; then
+    echo "Error: Must be run from inside a tmux session!"
+    exit 1
+fi
+
+# Get all pane IDs in the current session
+ALL_PANES=$(tmux list-panes -s -F "#{pane_id}")
+
+if [ -z "$ALL_PANES" ]; then
+    echo "No panes found."
+    exit 1
+fi
+
+# Put the current pane at the end of the list so it moves last
+# This ensures the original terminal stays attached until the very end
+OTHER_PANES=$(echo "$ALL_PANES" | grep -v "^${TMUX_PANE}$")
+mapfile -t PANES <<< "$(echo -e "${OTHER_PANES}\n${TMUX_PANE}" | grep -v '^$')"
+
+for PANE in "${PANES[@]}"; do
+    SESS_NAME="exploded_${PANE//%}"
+
+    # Remove any stale session with this name
+    tmux kill-session -t "$SESS_NAME" 2>/dev/null
+
+    # Create a new detached session and capture the placeholder pane ID before joining
+    tmux new-session -d -s "$SESS_NAME"
+    PLACEHOLDER=$(tmux list-panes -t "${SESS_NAME}:0" -F "#{pane_id}")
+
+    # Join the pane to the new session, then kill the placeholder by ID
+    tmux join-pane -s "$PANE" -t "${SESS_NAME}:0"
+    tmux kill-pane -t "$PLACEHOLDER"
+
+    # Launch a new kitty window attaching to the new session
+    if command -v hyprctl >/dev/null 2>&1; then
+        hyprctl dispatch exec "kitty tmux attach -t $SESS_NAME" >/dev/null 2>&1
+    else
+        kitty tmux attach -t "$SESS_NAME" >/dev/null 2>&1 &
+        disown
+    fi
+done
