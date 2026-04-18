@@ -15,6 +15,7 @@ pgrep -f kdeconnectd         || nohup /usr/bin/kdeconnectd 2>&1 > /dev/null &
 pgrep -f keyledsd            || nohup /usr/bin/keyledsd 2>&1 > /dev/null &
 pgrep -f desktop_switcher    || nohup /home/m/.local/bin/desktop_switcher 2>&1 > /dev/null &
 pgrep -f border_highlight    || nohup python /home/m/.config/bspwm/border_highlight.py 2>&1 > /dev/null &
+pgrep -x clipmenud           || clipmenud &
 
 pgrep -x polybar             || polybar mybar &
 

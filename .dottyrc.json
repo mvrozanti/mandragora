@@ -173,7 +173,9 @@
     ".config/tmux": "/home/m/.config/tmux",
     ".qwen/output-language.md": "/home/m/.qwen/output-language.md",
     ".claude/plugins/installed_plugins.json": "/home/m/.claude/plugins/installed_plugins.json",
-    "ai-shared/": "~/.ai-shared/"
+    "ai-shared/": "~/.ai-shared/",
+    ".local/bin/explode_tmux": "/home/m/.local/bin/explode_tmux",
+    ".local/bin/implode_tmux": "/home/m/.local/bin/implode_tmux"
   },
   "install_cmd": "sudo pacman --needed --noconfirm -S",
   "install": [

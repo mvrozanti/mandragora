@@ -103,6 +103,9 @@ super + 5
 super + v
     wmctrl -xa tradingview       || snap run tradingview
 
+super + shift + v
+    clipmenu
+
 super + shift + f
     wmctrl -a  ZapZap            || flatpak run com.rtosta.zapzap
 

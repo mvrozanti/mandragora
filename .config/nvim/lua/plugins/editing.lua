@@ -176,6 +176,13 @@ return {
           vim.opt.laststatus = 0
         end,
       })
+
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'AlphaClosed',
+        callback = function()
+          vim.opt.laststatus = 2
+        end,
+      })
     end,
   },
 

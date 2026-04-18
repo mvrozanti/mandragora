@@ -26,3 +26,5 @@ done
 # Send notification with the new sink name
 notify-send "Audio Output Switched" "Current sink: $next_sink"
 
+echo 'Triggered' >> /tmp/cycle-audio.log
+env > /tmp/cycle-env.log
