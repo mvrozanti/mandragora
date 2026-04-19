@@ -1,10 +1,8 @@
 { config, pkgs, lib, ... }:
 
 {
-  # Core Global Definitions
   networking.hostName = "mandragora";
 
-  # Main User Definition
   users.users.m = {
     isNormalUser = true;
     description = "Mandragora Primary User";
@@ -12,10 +10,10 @@
     shell = pkgs.zsh;
   };
 
-  # Enable zsh globally so it can be set as the default shell
   programs.zsh.enable = true;
 
-  # Essential Core Packages
+  programs.nix-ld.enable = true;
+
   environment.systemPackages = with pkgs; [
     git
     vim
@@ -25,5 +23,18 @@
     htop
     btop
     tree
+    jq
+    claude-code
+    nodejs
+    rofi
+    wl-clipboard
+    grim
+    slurp
+    playerctl
+    brightnessctl
+    pamixer
+    mpc
+    pavucontrol
+    crosspipe
   ];
 }
