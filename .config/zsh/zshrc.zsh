@@ -119,7 +119,7 @@ P()   { curl -sF "file=@-" https://0x0.st }
 gr()  { git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
 gdc() { git diff HEAD HEAD~1 }
 
-[ -f "$HOME/.config/lf/lfcd.sh" ] && source "$HOME/.config/lf/lfcd.sh"
+[ -n "$(command -v lf-ueberzug)" ] && source "$(command -v lf-ueberzug)"
 [ -f "$HOME/.local/bin/resty" ] && source "$HOME/.local/bin/resty" >/dev/null 2>&1
 
 eval "$(zoxide init zsh)"
