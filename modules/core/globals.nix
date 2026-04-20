@@ -31,6 +31,7 @@
     wl-clipboard
     grim
     slurp
+    wf-recorder
     playerctl
     brightnessctl
     pamixer
