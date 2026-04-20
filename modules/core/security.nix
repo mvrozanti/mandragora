@@ -38,7 +38,7 @@
 
   security.sudo = {
     execWheelOnly = true;
-    extraConfig = builtins.readFile ../../snippets/sudo.conf;
+    extraConfig = builtins.readFile ../../etc/sudo.conf;
     extraRules = [{
       users = [ "m" ];
       commands = [{
@@ -46,6 +46,12 @@
         options = [ "NOPASSWD" ];
       }];
     }];
+  };
+
+  services.earlyoom = {
+    enable = true;
+    freeMemThreshold = 5;
+    freeSwapThreshold = 10;
   };
 
   boot.kernel.sysctl = {

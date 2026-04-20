@@ -66,9 +66,9 @@ appendix/                  Self-contained subprojects; ignore unless explicitly 
 
 **Secrets:** Never print, log, or repeat anything from `secrets/` or `SECRETS.md`. Treat the `secrets/` directory as opaque.
 
-**Declarative supremacy:** Never propose an imperative command (`chmod`, `systemctl`, `pacman -S` on the main system) as a solution. All changes are Nix expressions. Shell scripts belong in `snippets/`.
+**Declarative supremacy:** Never propose an imperative command (`chmod`, `systemctl`, `pacman -S` on the main system) as a solution. All changes are Nix expressions.
 
-**Snippet isolation:** Non-Nix logic (shell, Python, Lua, CSS) must live in `snippets/` and be referenced from Nix. Never embed raw strings in `.nix` files.
+**File isolation:** Non-Nix logic (shell, Python, Lua, CSS) lives in XDG-mirrored directories at the repo root (`.local/bin/`, `.config/<app>/`, `etc/`) and is referenced from Nix via `builtins.readFile`. The `snippets/` directory no longer exists — it was removed 2026-04-20.
 
 **Persistence check:** Any change touching `/home` must be reconciled with `DECISIONS.md` before proposing.
 
