@@ -1,5 +1,7 @@
 # ── Extra Zsh Configuration ──────────────────────────────────────
 
+printf '\e[1 q'
+
 # tmux autostart
 if [[ -z "$TMUX" && -t 0 ]]; then exec tmux; fi
 
