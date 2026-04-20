@@ -99,7 +99,7 @@
       SSH_KEY_PATH = "$HOME/.ssh/rsa_id";
     };
 
-    initExtra = builtins.readFile ../../.config/zsh/zshrc.zsh;
+    initExtra = builtins.readFile ../../.config/zsh/zshrc.zsh + "\n" + builtins.readFile ../../snippets/aliases.zsh;
 
     plugins = [
       {
