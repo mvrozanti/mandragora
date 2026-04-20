@@ -72,6 +72,8 @@ appendix/                  Self-contained subprojects; ignore unless explicitly 
 
 **Persistence check:** Any change touching `/home` must be reconciled with `DECISIONS.md` before proposing.
 
+**Never rewrite files from scratch.** Before editing any file another agent may have touched, read its current on-disk state. Use targeted edits — patch only the blocks you are changing. A full rewrite silently drops every change made by other agents in the same session. If a full rewrite is unavoidable, read the file first, preserve every section you are not explicitly replacing, and log the rewrite in `TASKS.md`.
+
 ---
 
 ## Communication Contract
