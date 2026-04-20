@@ -158,6 +158,13 @@ in
     mkvtoolnix
     jiq
 
+    telegram-desktop
+    discord
+    spotify
+    obsidian
+    zapzap
+    tradingview
+
     (pkgs.writeShellScriptBin "smart-launch" (builtins.readFile ../../.local/bin/smart-launch.sh))
     (pkgs.writeShellScriptBin "mandragora-switch" (builtins.readFile ../../.local/bin/mandragora-switch.sh))
     (pkgs.writeShellScriptBin "rofi-ide-picker" (builtins.readFile ../../.local/bin/rofi-ide-picker.sh))
