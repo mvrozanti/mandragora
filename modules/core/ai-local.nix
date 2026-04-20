@@ -14,8 +14,8 @@ let
       '';
     };
 
-  gemma = mkPythonBin "gemma" ../../snippets/gemma.py;
-  local-ai-mcp-server = mkPythonBin "local-ai-mcp-server" ../../snippets/local-ai-mcp-server.py;
+  gemma = mkPythonBin "gemma" ../../.local/bin/gemma.py;
+  local-ai-mcp-server = mkPythonBin "local-ai-mcp-server" ../../.local/bin/local-ai-mcp-server.py;
 in
 
 {

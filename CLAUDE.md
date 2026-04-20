@@ -67,9 +67,12 @@ The alias `mandragora-switch` (to be implemented in zsh config) will automate st
 
 ## Language Purity Rule
 
-Non-Nix code (shell, Python, CSS, Lua) must live in `snippets/` and be referenced from `.nix` files using:
-- `builtins.readFile ../../snippets/file.sh` — embed file contents as string
-- `pkgs.writeShellScript "name" (builtins.readFile ...)` — compile to a runnable Nix store path
+Non-Nix code (shell, Python, CSS, Lua) lives in XDG-mirrored directories at the repo root and is referenced from `.nix` files:
+- `builtins.readFile ../../.local/bin/script.sh` — scripts/binaries
+- `builtins.readFile ../../.config/<app>/file.conf` — app configs
+- `pkgs.writeShellScript "name" (builtins.readFile ...)` — compile to runnable Nix store path
+
+**`snippets/` no longer exists** — removed 2026-04-20 in favor of XDG structure mirroring `~/projects/mandragora`.
 
 Never embed shell/config strings directly in `.nix` files via `extraConfig`, `postShellInit`, or similar. No comments in any code. Logic must be self-documenting.
 
@@ -99,7 +102,8 @@ Full list: `atlas/non-negotiables.md`. Summary:
 | System packages + nix-ld | `modules/core/globals.nix` |
 | Hyprland compositor setup | `modules/desktop/hyprland.nix` |
 | User home + keybindings + mpd | `modules/user/home.nix` |
-| Keybinding scripts | `snippets/` |
+| Scripts and binaries | `.local/bin/` |
+| App configs | `.config/<app>/` |
 | Session history | `SESSIONS.md` |
 
 ---

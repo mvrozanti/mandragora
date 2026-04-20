@@ -51,7 +51,7 @@
       SSH_KEY_PATH = "$HOME/.ssh/rsa_id";
     };
 
-    initExtra = builtins.readFile ../../snippets/zshrc.zsh;
+    initExtra = builtins.readFile ../../.config/zsh/zshrc.zsh;
 
     plugins = [
       {
@@ -62,5 +62,5 @@
     ];
   };
   
-  home.file.".p10k.zsh".source = ../../snippets/p10k.zsh;
+  home.file.".p10k.zsh".source = ../../.config/zsh/p10k.zsh;
 }

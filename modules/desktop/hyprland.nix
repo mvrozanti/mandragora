@@ -40,7 +40,7 @@
       enable = true;
       configPackages = [
         (pkgs.writeTextDir "share/wireplumber/wireplumber.conf.d/99-hdmi-default.conf"
-          (builtins.readFile ../../snippets/wireplumber-hdmi-default.conf))
+          (builtins.readFile ../../.config/wireplumber/hdmi-default.conf))
       ];
     };
     alsa.enable = true;

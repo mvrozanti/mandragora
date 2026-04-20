@@ -1,10 +1,10 @@
 { config, pkgs, ... }:
 
 let
-  smart-launch = pkgs.writeShellScript "smart-launch" (builtins.readFile ../../snippets/smart-launch.sh);
-  rofi-ide-picker = pkgs.writeShellScript "rofi-ide-picker" (builtins.readFile ../../snippets/rofi-ide-picker.sh);
-  rofi-tool-picker = pkgs.writeShellScript "rofi-tool-picker" (builtins.readFile ../../snippets/rofi-tool-picker.sh);
-  rofi-db-picker = pkgs.writeShellScript "rofi-db-picker" (builtins.readFile ../../snippets/rofi-db-picker.sh);
+  smart-launch = pkgs.writeShellScript "smart-launch" (builtins.readFile ../../.local/bin/smart-launch.sh);
+  rofi-ide-picker = pkgs.writeShellScript "rofi-ide-picker" (builtins.readFile ../../.local/bin/rofi-ide-picker.sh);
+  rofi-tool-picker = pkgs.writeShellScript "rofi-tool-picker" (builtins.readFile ../../.local/bin/rofi-tool-picker.sh);
+  rofi-db-picker = pkgs.writeShellScript "rofi-db-picker" (builtins.readFile ../../.local/bin/rofi-db-picker.sh);
 in
 {
   imports = [
@@ -17,9 +17,7 @@ in
   home.homeDirectory = "/home/m";
   home.stateVersion = "23.11";
 
-  # Packages that should be installed to the user profile.
   home.packages = with pkgs; [
-    # Utils
     ripgrep
     fd
     fzf
@@ -34,47 +32,40 @@ in
     atool
     file
     tree
-    
-    # Media
+
     mpv
     sxiv
     zathura
     imagemagick
     ffmpegthumbnailer
-    
-    # Tools
+
     git
     gh
     gh-dash
     neovim
     python3
     zoxide
-    
-    # Custom scripts
-    (pkgs.writeShellScriptBin "smart-launch" (builtins.readFile ../../snippets/smart-launch.sh))
-    (pkgs.writeShellScriptBin "rofi-ide-picker" (builtins.readFile ../../snippets/rofi-ide-picker.sh))
-    (pkgs.writeShellScriptBin "rofi-tool-picker" (builtins.readFile ../../snippets/rofi-tool-picker.sh))
-    (pkgs.writeShellScriptBin "rofi-db-picker" (builtins.readFile ../../snippets/rofi-db-picker.sh))
+    gnupg
+
+    (pkgs.writeShellScriptBin "smart-launch" (builtins.readFile ../../.local/bin/smart-launch.sh))
+    (pkgs.writeShellScriptBin "mandragora-switch" (builtins.readFile ../../.local/bin/mandragora-switch.sh))
+    (pkgs.writeShellScriptBin "rofi-ide-picker" (builtins.readFile ../../.local/bin/rofi-ide-picker.sh))
+    (pkgs.writeShellScriptBin "rofi-tool-picker" (builtins.readFile ../../.local/bin/rofi-tool-picker.sh))
+    (pkgs.writeShellScriptBin "rofi-db-picker" (builtins.readFile ../../.local/bin/rofi-db-picker.sh))
   ];
 
-  # Session Variables
   home.sessionVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";
     BROWSER = "firefox";
-    
-    # Cedilla and Accents
     GTK_IM_MODULE = "cedilla";
     QT_IM_MODULE = "cedilla";
     XMODIFIERS = "@im=cedilla";
-    
-    # Global Font Scaling / DPI
     GDK_DPI_SCALE = "1.0";
     QT_AUTO_SCREEN_SCALE_FACTOR = "1";
     QT_ENABLE_HIGHDPI_SCALING = "1";
   };
 
-  # GTK Configuration
   gtk = {
     enable = true;
     font = {
@@ -87,7 +78,6 @@ in
     };
   };
 
-  # Kitty Configuration
   programs.kitty = {
     enable = true;
     font = {
@@ -151,21 +141,22 @@ in
     };
   };
 
-  # Hyprland
   wayland.windowManager.hyprland = {
     enable = true;
-    extraConfig = builtins.readFile ../../snippets/hyprland.conf;
+    extraConfig = builtins.readFile ../../.config/hypr/hyprland.conf;
   };
 
-  # Services
   services.mako.enable = true;
-  
-  # Programs
+
   programs.home-manager.enable = true;
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
   };
 
-  home.file.".XCompose".source = ../../snippets/XCompose;
+  home.file.".XCompose".source = ../../.XCompose;
+  home.file.".config/nvim" = {
+    source = ../../.config/nvim;
+    recursive = true;
+  };
 }
