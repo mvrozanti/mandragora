@@ -13,26 +13,30 @@ if [ -z "$DIFF" ]; then
   echo "==> No uncommitted changes."
 fi
 
-TMPFILE=$(mktemp /tmp/mandragora-commit-XXXXXX)
-trap 'rm -f "$TMPFILE"' EXIT
+if [ -n "$1" ]; then
+  MSG="$1"
+else
+  TMPFILE=$(mktemp /tmp/mandragora-commit-XXXXXX)
+  trap 'rm -f "$TMPFILE"' EXIT
 
-{
-  echo "switch"
-  echo ""
-  echo "# Changes (save with message to apply, empty file to abort):"
-  echo "#"
-  echo "$STAT" | sed 's/^/# /'
-  echo "#"
-  echo "$DIFF" | sed 's/^/# /'
-} > "$TMPFILE"
+  {
+    echo "switch"
+    echo ""
+    echo "# Changes (save with message to apply, empty file to abort):"
+    echo "#"
+    echo "$STAT" | sed 's/^/# /'
+    echo "#"
+    echo "$DIFF" | sed 's/^/# /'
+  } > "$TMPFILE"
 
-${EDITOR:-nano} "$TMPFILE"
+  ${EDITOR:-nano} "$TMPFILE"
 
-MSG=$(grep -v '^#' "$TMPFILE" | sed '/^[[:space:]]*$/d')
-if [ -z "$MSG" ]; then
-  echo "==> Aborted."
-  git restore --staged .
-  exit 0
+  MSG=$(grep -v '^#' "$TMPFILE" | sed '/^[[:space:]]*$/d')
+  if [ -z "$MSG" ]; then
+    echo "==> Aborted."
+    git restore --staged .
+    exit 0
+  fi
 fi
 
 git commit -m "$MSG"
