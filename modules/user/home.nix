@@ -16,6 +16,7 @@ in
     ./zsh.nix
     ./tmux.nix
     ./lf.nix
+    ./services.nix
   ];
 
   home.username = "m";
@@ -37,6 +38,9 @@ in
     atool
     file
     tree
+    isync
+    transmission_4
+    libnotify
 
     mpv
     sxiv
@@ -51,9 +55,108 @@ in
     gh
     gh-dash
     neovim
-    python3
+    (python3.withPackages (ps: with ps; [ pynvim grip psutil ]))
     zoxide
     gnupg
+
+    ncmpcpp
+
+    gdb
+    go
+    cargo
+    rustc
+    maven
+    shellcheck
+    universal-ctags
+    tokei
+    meson
+    git-lfs
+    upx
+    kubectl
+    mediainfo
+    img2pdf
+    asciidoc
+    biber
+
+    nmap
+    radare2
+    valgrind
+    nasm
+    sqlmap
+    binwalk
+    steghide
+    gocryptfs
+    bettercap
+    aflplusplus
+    p7zip
+    ddrescue
+
+    socat
+    sshfs
+    rclone
+    rsync
+    traceroute
+    torsocks
+    proxychains
+    iftop
+    iptraf-ng
+    ipcalc
+    vnstat
+    whois
+
+    figlet
+    lolcat
+    tig
+    most
+    pv
+    parallel
+    lynx
+    ack
+    translate-shell
+    glances
+    inxi
+    fdupes
+    ncdu
+    lsof
+    urlscan
+    inotify-tools
+    rmlint
+    newsboat
+    irssi
+    silver-searcher
+
+    gptfdisk
+    gparted
+    nvtopPackages.nvidia
+    pass
+    macchanger
+    gnuplot
+    taskwarrior3
+
+    vlc
+    inkscape
+    gifsicle
+    yt-dlp
+    streamlink
+    retroarch
+
+    khal
+    calcurse
+    clisp
+    php
+    tldr
+    gucharmap
+    baobab
+    nnn
+    ranger
+    yq
+    pdfgrep
+    sqlitebrowser
+    libreoffice
+    lazygit
+    pueue
+    mkvtoolnix
+    jiq
 
     (pkgs.writeShellScriptBin "smart-launch" (builtins.readFile ../../.local/bin/smart-launch.sh))
     (pkgs.writeShellScriptBin "mandragora-switch" (builtins.readFile ../../.local/bin/mandragora-switch.sh))
