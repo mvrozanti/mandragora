@@ -1,9 +1,9 @@
 { pkgs, ... }:
 
 let
-  preview = pkgs.writeShellScriptBin "lf-preview" (builtins.readFile ../../snippets/preview);
-  cleaner = pkgs.writeShellScriptBin "lf-cleaner" (builtins.readFile ../../snippets/cleaner);
-  opener = pkgs.writeShellScriptBin "lf-opener" (builtins.readFile ../../snippets/opener);
+  preview = pkgs.writeShellScriptBin "lf-preview" (builtins.readFile ../../.config/lf/preview);
+  cleaner = pkgs.writeShellScriptBin "lf-cleaner" (builtins.readFile ../../.config/lf/cleaner);
+  opener = pkgs.writeShellScriptBin "lf-opener" (builtins.readFile ../../.config/lf/opener);
 in
 {
   programs.lf = {

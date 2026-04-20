@@ -7,15 +7,15 @@ let
     text = builtins.replaceStrings
       [ "@VAULT@" "@USER_HOME@" ]
       [ "/persistent" "/home/m" ]
-      (builtins.readFile ../../snippets/strays.sh);
+      (builtins.readFile ../../.local/bin/strays.sh);
   };
 
-  healthCheckWatch = pkgs.replaceVars ../../snippets/health-check.sh {
+  healthCheckWatch = pkgs.replaceVars ../../.local/bin/health-check.sh {
     diskWarnThreshold = "85";
     logFile = "/persistent/logs/strays/watch-$(date +%Y-%m-%d).log";
   };
 
-  healthCheckDigest = pkgs.replaceVars ../../snippets/health-check.sh {
+  healthCheckDigest = pkgs.replaceVars ../../.local/bin/health-check.sh {
     diskWarnThreshold = "75";
     logFile = "/persistent/logs/strays/digest-$(date +%Y-%m-%d).log";
   };

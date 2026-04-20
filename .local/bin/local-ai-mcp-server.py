@@ -29,22 +29,22 @@ TOOLS = [
         },
     },
     {
-        "name": "ask_deepseek_r1_70b",
+        "name": "ask_dolphin",
         "description": (
-            "Ask the local DeepSeek R1 70B Abliterated (Llama 3.1 based) model running on Ollama. "
-            "This is the SMARTES available local model. It uses Chain-of-Thought reasoning. "
-            "Use for: extreme logic, complex coding, and tasks where accuracy is the only priority."
+            "Ask the local Dolphin 70B Uncensored model (Llama 3.1 based) running on Ollama. "
+            "This is the most compliant and obedient 70B model available. "
+            "Use for: high-quality reasoning without any refusals, moralizing, or lectures."
         ),
         "inputSchema": {
             "type": "object",
             "properties": {
                 "prompt": {
                     "type": "string",
-                    "description": "The prompt or question to send to DeepSeek R1",
+                    "description": "The prompt or question to send to Dolphin",
                 },
                 "system": {
                     "type": "string",
-                    "description": "Optional system prompt to guide behavior",
+                    "description": "Optional system prompt to guide Dolphin's behavior",
                 },
             },
             "required": ["prompt"],
@@ -114,8 +114,8 @@ def main():
             model = None
             if name == "ask_gemma":
                 model = "gemma3:27b"
-            elif name == "ask_miqu":
-                model = "vanilj/midnight-miqu-70b-v1.5"
+            elif name == "ask_dolphin":
+                model = "dolphin-llama3:70b"
             else:
                 error(id, -32601, f"Unknown tool: {name}")
                 continue

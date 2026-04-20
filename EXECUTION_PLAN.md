@@ -35,6 +35,7 @@ Check off tasks as they're completed. Reference: [`DECISIONS.md`](DECISIONS.md) 
 - [ ] **Constraint Verification:** Ensure Shadow has no sudo, no terminal execution (or restricted shell), and no AI audits.
 
 ## Phase 6: Observability & Polish
+- [ ] **EarlyOOM:** Enable `services.earlyoom` with 5% RAM/10% swap thresholds to prevent freezes.
 - [ ] **Audit Scripts:** Implement `modules/audits/strays.sh` for disk/network monitoring, restricting them to the Mandragora profile.
 - [ ] **Seafile/Backup:** Configure Seafile client pointing to the arch-slave.
 

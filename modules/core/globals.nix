@@ -44,5 +44,9 @@
     polkit_gnome
     zoxide
     xsel
+    gnumake
+    gcc
+    yarn
+    gawk
   ];
 }
