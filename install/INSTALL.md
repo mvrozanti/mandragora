@@ -50,9 +50,4 @@ Log in as `m` with the password you set in step 5.
 
 ---
 
-## After first boot — Shadow profile (optional)
-
-To initialize the encrypted Shadow home image:
-```bash
-sudo bash snippets/setup-shadow.sh
-```
+Second profile details: see SHADOW.md

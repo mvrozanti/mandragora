@@ -18,11 +18,8 @@ To create a "second skin" Linux environment—a perfectly tailored, high-perform
 *   **Observability:** AI-driven audits (Disk & Network) restricted to this profile.
 
 ## 3. The Appendix (Shadow Profile)
-*   **The Shadow:** A contained, private environment for consumption.
-    *   **Isolation (Boot-level):** Accessible only via a hidden boot entry (systemd-boot/Grub). No runtime visibility in Main.
-    *   **Constraints:** No terminal, no sudo, no power management.
-    *   **Volume Sovereignty:** Automatic mount of the isolated, LUKS-encrypted Shadow Drive.
-    *   **Aesthetics:** Custom theme; no AI or audit awareness.
+
+Second profile details: see SHADOW.md
 
 ## 4. Non-Negotiable Directives
 *   **Multi-Machine Sovereignty:** Hardware profiles for Desktop and Notebook.
@@ -33,11 +30,10 @@ To create a "second skin" Linux environment—a perfectly tailored, high-perform
 *   **Zero-Secret Commits:** No plain-text secrets; `sops-nix` mandatory.
 *   **Pure Linux Sovereignty:** No Windows; machine is a dedicated NixOS environment.
 *   **Storage Hierarchy:** Desktop/Notebook (Main) + Arch-Slave (Bulk Storage/Compute).
-*   **LUKS Encryption:** Mandatory encryption for the Shadow profile's private volume.
 
 ## 5. Wishlist (Future Integration)
 *   **Nyxt Browser:** Investigation into [Nyxt](https://nyxt.atlas.engineer/) as the primary workstation browser (Lisp-powered, highly hackable, fits the "Second Skin" ethos).
-*   **System Haptics & Audio:** Declarative soundscapes (e.g., notification chimes for Shadow).
+*   **System Haptics & Audio:** Declarative soundscapes.
 *   **AI Infusion:** "Self-aware" hooks for LLM-driven ricing and optimization.
 
 ## 6. Success Metrics
@@ -59,5 +55,4 @@ To create a "second skin" Linux environment—a perfectly tailored, high-perform
 *   [ ] NVIDIA & Wayland base module.
 *   [ ] Dynamic Theming Engine (Wallpaper-to-Home-Manager pipeline).
 *   [ ] Home Manager integration (linking existing dots).
-*   [ ] Shadow Profile (Hidden boot entry & isolation).
 *   [ ] Audit subsystem (Disk/Network diff scripts).

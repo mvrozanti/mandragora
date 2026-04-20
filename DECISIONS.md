@@ -49,7 +49,7 @@ Full details in [`atlas/PARTITION_PLAN.md`](atlas/PARTITION_PLAN.md).
 | `nix` | `/nix` | Nix store, packages, generations |
 | `persistent` | `/persistent` | Home, secrets, system state |
 
-`/persistent/shadow.img` (50GB, LUKS2 loop) provides encrypted `/home/shadow`.
+Second profile details: see SHADOW.md
 
 ---
 

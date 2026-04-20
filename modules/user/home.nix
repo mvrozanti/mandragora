@@ -177,6 +177,7 @@ in
     (pkgs.writeShellScriptBin "gap-adjust" (builtins.readFile ../../.local/bin/gap-adjust.sh))
     (pkgs.writeShellScriptBin "opacity-adjust" (builtins.readFile ../../.local/bin/opacity-adjust.sh))
     (pkgs.writeShellScriptBin "rofi-wallpaper-picker" (builtins.readFile ../../.local/bin/rofi-wallpaper-picker.sh))
+    (pkgs.writeShellScriptBin "rofi-run-or-term" (builtins.readFile ../../.local/bin/rofi-run-or-term.sh))
     (pkgs.writeShellScriptBin "compv" (builtins.readFile ../../.local/bin/compv.sh))
     (pkgs.writeShellScriptBin "ic" (builtins.readFile ../../.local/bin/ic.sh))
     (pkgs.writeShellScriptBin "setbg" (builtins.readFile ../../.local/bin/setbg.sh))
@@ -199,6 +200,7 @@ in
     (pkgs.writeShellScriptBin "sinon" ''exec ${pySinonEnv}/bin/python3 ${../../.local/bin/sinon.py} "$@"'')
     (pkgs.writeShellScriptBin "biggest-pane" (builtins.readFile ../../.local/bin/biggest-pane.sh))
     (pkgs.writeShellScriptBin "desktop-toggle" (builtins.readFile ../../.local/bin/desktop-toggle.sh))
+    (pkgs.writeShellScriptBin "pop" (builtins.readFile ../../.local/bin/pop.sh))
     (pkgs.writeShellScriptBin "screenshot-window" (builtins.readFile ../../.local/bin/screenshot-window.sh))
   ];
 

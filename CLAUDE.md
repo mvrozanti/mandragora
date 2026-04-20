@@ -174,17 +174,6 @@ sops /etc/nixos/mandragora-nixos/secrets/secrets.yaml
 
 The age decryption key is at `/persistent/secrets/keys.txt` (root-only, survives reboots).
 
-## Full Disk Encryption (Critical Gap)
-
-**The main NVMe drive is NOT encrypted.** Physical access = data access. The shadow LUKS2 loop is encrypted, but the host btrfs is not.
-
-Remediation requires a dedicated session with the Ventoy USB:
-1. Boot Ventoy ISO
-2. Backup `/persistent` data
-3. Reformat nvme0n1p2 as LUKS2 → btrfs inside
-4. Restore data and update `modules/core/storage.nix`
-
-Do not attempt this mid-session. Schedule as a dedicated migration.
 
 ## Old Reference Repo
 
