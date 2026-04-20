@@ -14,7 +14,7 @@ configuration {
 	terminal: "kitty";
 	ssh-client: "ssh";
 	ssh-command: "{terminal} -e {ssh-client} {host} [-p {port}]";
-	run-command: "{cmd}";
+	run-command: "rofi-run-or-term {cmd}";
 	run-list-command: "";
 	run-shell-command: "{terminal} -e {cmd}";
 	window-command: "hyprctl dispatch focuswindow address:{window}";
