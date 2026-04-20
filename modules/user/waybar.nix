@@ -13,7 +13,7 @@
 
         modules-left = [ "hyprland/workspaces" ];
         modules-center = [ "mpd" ];
-        modules-right = [ "pulseaudio" "disk" "memory" "temperature" "cpu" "network" "clock" "tray" ];
+        modules-right = [ "privacy" "idle_inhibitor" "pulseaudio" "disk" "memory" "temperature" "cpu" "network" "clock" "tray" ];
 
         "hyprland/workspaces" = {
           format = "{icon}";
@@ -103,6 +103,26 @@
           format-alt = " {:%Y-%m-%d %H:%M}";
           interval = 1;
           tooltip-format = "<tt>{calendar}</tt>";
+        };
+
+        idle_inhibitor = {
+          format = "{icon}";
+          format-icons = {
+            activated = "󰒳";
+            deactivated = "󰒲";
+          };
+          tooltip-format-activated = "Idle inhibited";
+          tooltip-format-deactivated = "Idle allowed";
+        };
+
+        privacy = {
+          icon-spacing = 4;
+          icon-size = 14;
+          transition-duration = 250;
+          modules = [
+            { type = "screenshare"; tooltip = true; tooltip-icon-size = 24; }
+            { type = "audio-in"; tooltip = true; tooltip-icon-size = 24; }
+          ];
         };
 
         tray = {
