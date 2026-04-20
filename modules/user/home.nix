@@ -236,6 +236,8 @@ in
         (builtins.readFile ../../.local/bin/strays.sh)
     ))
 
+    (pkgs.writeShellScriptBin "blur-strength" (builtins.readFile ../../.local/bin/blur-strength.sh))
+    (pkgs.writeShellScriptBin "record-window" (builtins.readFile ../../.local/bin/record-window.sh))
     (pkgs.writeShellScriptBin "center-window" (builtins.readFile ../../.local/bin/center-window.sh))
     (pkgs.writeShellScriptBin "cycle-kbd-layouts" (builtins.readFile ../../.local/bin/cycle-kbd-layouts.sh))
     (pkgs.writeShellScriptBin "resize-window" (builtins.readFile ../../.local/bin/resize-window.sh))
@@ -275,30 +277,74 @@ in
       size = 11.5;
     };
     settings = {
+      confirm_os_window_close = 0;
       cursor = "#cccccc";
       cursor_text_color = "#111111";
       cursor_shape = "block";
+      cursor_blink_interval = "0.5";
+      cursor_stop_blinking_after = "15.0";
       scrollback_lines = 2000;
+      scrollback_pager = "less --chop-long-lines --RAW-CONTROL-CHARS +INPUT_LINE_NUMBER";
+      wheel_scroll_multiplier = "5.0";
       url_color = "#0087BD";
       url_style = "curly";
+      copy_on_select = "no";
+      select_by_word_characters = ":@-./_~?&=%+#";
+      mouse_hide_wait = "3.0";
+      focus_follows_mouse = "no";
       repaint_delay = 16;
       input_delay = 6;
       sync_to_monitor = "no";
       enable_audio_bell = "yes";
+      visual_bell_duration = "0.0";
+      window_alert_on_bell = "yes";
+      bell_on_tab = "yes";
       remember_window_size = "yes";
       initial_window_width = 640;
       initial_window_height = 400;
+      enabled_layouts = "*";
+      window_resize_step_cells = 2;
+      window_resize_step_lines = 2;
       window_border_width = "1.0";
       draw_minimal_borders = "yes";
+      window_margin_width = "0.0";
+      window_padding_width = "0.0";
       active_border_color = "#00ff00";
       inactive_border_color = "#cccccc";
+      bell_border_color = "#ff5a00";
+      inactive_text_alpha = "1.0";
+      hide_window_decorations = "no";
+      tab_bar_edge = "bottom";
       tab_bar_style = "fade";
+      tab_fade = "0.25 0.5 0.75 1";
+      tab_separator = " ┇";
+      active_tab_foreground = "#000";
+      active_tab_background = "#eee";
+      active_tab_font_style = "bold-italic";
+      inactive_tab_foreground = "#444";
+      inactive_tab_background = "#999";
+      inactive_tab_font_style = "normal";
       foreground = "#dddddd";
       background = "#000";
       background_opacity = "0.88";
+      dynamic_background_opacity = "yes";
+      dim_opacity = "0.75";
+      selection_foreground = "#000000";
+      selection_background = "#FFFACD";
+      color0 = "#000000"; color8 = "#767676";
+      color1 = "#cc0403"; color9 = "#f2201f";
+      color2 = "#19cb00"; color10 = "#23fd00";
+      color3 = "#cecb00"; color11 = "#fffd00";
+      color4 = "#0d73cc"; color12 = "#1a8fff";
+      color5 = "#cb1ed1"; color13 = "#fd28ff";
+      color6 = "#0dcdcd"; color14 = "#14ffff";
+      color7 = "#dddddd"; color15 = "#ffffff";
+      close_on_child_death = "no";
       allow_remote_control = "yes";
       listen_on = "unix:@kitty";
+      clipboard_control = "write-clipboard write-primary";
       term = "xterm-kitty";
+      alt_send_esc = "yes";
     };
     keybindings = {
       "ctrl+shift+c" = "copy_to_clipboard";
@@ -306,9 +352,7 @@ in
       "ctrl+shift+s" = "paste_from_selection";
       "shift+insert" = "paste_from_selection";
       "ctrl+shift+up" = "scroll_line_up";
-      "ctrl+shift+k" = "scroll_line_up";
       "ctrl+shift+down" = "scroll_line_down";
-      "ctrl+shift+j" = "scroll_line_down";
       "ctrl+shift+page_up" = "scroll_page_up";
       "ctrl+shift+page_down" = "scroll_page_down";
       "ctrl+shift+home" = "scroll_home";
@@ -321,14 +365,38 @@ in
       "ctrl+shift+[" = "previous_window";
       "ctrl+shift+f" = "move_window_forward";
       "ctrl+shift+b" = "move_window_backward";
+      "ctrl+shift+`" = "move_window_to_top";
       "ctrl+shift+right" = "next_tab";
       "ctrl+shift+left" = "previous_tab";
       "ctrl+shift+t" = "new_tab";
       "ctrl+shift+q" = "no_op";
-      "ctrl+shift+l" = "next_layout";
+      "ctrl+shift+." = "move_tab_forward";
+      "ctrl+shift+," = "move_tab_backward";
+      "ctrl+shift+alt+t" = "set_tab_title";
       "ctrl+k" = "change_font_size all +1.0";
       "ctrl+j" = "change_font_size all -1.0";
+      "ctrl+equal" = "change_font_size all +1.0";
+      "ctrl+minus" = "change_font_size all -1.0";
       "ctrl+0" = "change_font_size all 0";
+      "ctrl+shift+k" = "set_background_opacity +0.05";
+      "ctrl+shift+j" = "set_background_opacity -0.05";
+      "ctrl+shift+l" = "set_background_opacity 1";
+      "ctrl+shift+0" = "set_background_opacity default";
+      "ctrl+shift+e" = "kitten hints";
+      "ctrl+shift+p>f" = "kitten hints --type path --program -";
+      "ctrl+shift+p>shift+f" = "kitten hints --type path";
+      "ctrl+shift+p>l" = "kitten hints --type line --program -";
+      "ctrl+shift+p>w" = "kitten hints --type word --program -";
+      "ctrl+shift+p>h" = "kitten hints --type hash --program -";
+      "alt+1" = "send_text all \\x1b1";
+      "alt+2" = "send_text all \\x1b2";
+      "alt+3" = "send_text all \\x1b3";
+      "alt+4" = "send_text all \\x1b4";
+      "alt+5" = "send_text all \\x1b5";
+      "alt+6" = "send_text all \\x1b6";
+      "alt+7" = "send_text all \\x1b7";
+      "alt+8" = "send_text all \\x1b8";
+      "alt+9" = "send_text all \\x1b9";
     };
   };
 
