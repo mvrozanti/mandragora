@@ -26,7 +26,7 @@ if is_sourced; then
       }
 
       mkfifo -- "$FIFO_UEBERZUG"
-      while [ -p "$FIFO_UEBERZUG" ] && ! ueberzug layer -s <"$FIFO_UEBERZUG"; do :; done &
+      while [ -p "$FIFO_UEBERZUG" ] && ! ueberzugpp layer --silent <"$FIFO_UEBERZUG"; do :; done &
       exec 3>"$FIFO_UEBERZUG"
       trap cleanup EXIT
 
@@ -57,7 +57,7 @@ if [ -n "${DISPLAY-}" ] && [ -z "${FIFO_UEBERZUG-}" ]; then
   }
 
   mkfifo -- "$FIFO_UEBERZUG"
-  while [ -p "$FIFO_UEBERZUG" ] && ! ueberzug layer -s <"$FIFO_UEBERZUG"; do :; done &
+  while [ -p "$FIFO_UEBERZUG" ] && ! ueberzugpp layer --silent <"$FIFO_UEBERZUG"; do :; done &
   exec 3>"$FIFO_UEBERZUG"
   trap cleanup EXIT
 

@@ -51,6 +51,7 @@ in
 
     mpv
     sxiv
+    ueberzugpp
     zathura
     imagemagick
     ffmpeg
