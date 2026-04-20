@@ -81,8 +81,8 @@ bindkey '^[^l' delete-word
 bindkey '^[^k' up-history
 bindkey '^[^j' down-history
 
-[ -f "$HOME/.cache/wal/sequences" ] && cat "$HOME/.cache/wal/sequences"
 [ -f "$HOME/.config/lf/lfcd.sh" ] && source "$HOME/.config/lf/lfcd.sh"
+[ -f "$HOME/.local/bin/resty" ] && source "$HOME/.local/bin/resty" >/dev/null 2>&1
 
 eval "$(zoxide init zsh)"
 

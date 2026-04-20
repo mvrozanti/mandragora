@@ -51,5 +51,15 @@
 
   fonts.packages = with pkgs; [
     nerd-fonts.iosevka
+    noto-fonts
+    noto-fonts-color-emoji
   ];
+
+  fonts.fontconfig.defaultFonts = {
+    sansSerif = [ "Noto Sans" ];
+    serif = [ "Noto Serif" ];
+    monospace = [ "Iosevka Nerd Font Mono" ];
+    emoji = [ "Noto Color Emoji" ];
+
+  };
 }

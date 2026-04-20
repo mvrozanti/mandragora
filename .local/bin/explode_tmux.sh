@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+if [ -z "$TMUX" ]; then
+    echo "Error: Must be run from inside a tmux session!" >&2
+    exit 1
+fi
+
+CURRENT_SESSION=$(tmux display-message -p '#{session_name}')
+ALL_PANES=$(tmux list-panes -s -F "#{pane_id}")
+
+if [ -z "$ALL_PANES" ]; then
+    echo "No panes found." >&2
+    exit 1
+fi
+
+PANE_COUNT=$(echo "$ALL_PANES" | wc -l)
+if [ "$PANE_COUNT" -eq 1 ]; then
+    echo "Only one pane, nothing to explode."
+    exit 0
+fi
+
+OTHER_PANES=$(echo "$ALL_PANES" | grep -v "^${TMUX_PANE}$")
+FAILED=()
+
+launch_kitty() {
+    local sess="$1"
+    if command -v hyprctl >/dev/null 2>&1; then
+        hyprctl dispatch exec -- "kitty tmux attach -t $sess" >/dev/null 2>&1
+    else
+        kitty tmux attach -t "$sess" &
+        disown
+    fi
+}
+
+for PANE in $OTHER_PANES; do
+    SESS_NAME="exploded_${PANE//%}"
+    tmux kill-session -t "$SESS_NAME" 2>/dev/null
+    if ! tmux new-session -d -s "$SESS_NAME"; then
+        echo "Failed to create session for pane $PANE" >&2
+        FAILED+=("$PANE")
+        continue
+    fi
+    PLACEHOLDER=$(tmux list-panes -t "${SESS_NAME}:0" -F "#{pane_id}")
+    if ! tmux join-pane -s "$PANE" -t "${SESS_NAME}:0"; then
+        echo "Failed to move pane $PANE" >&2
+        tmux kill-session -t "$SESS_NAME" 2>/dev/null
+        FAILED+=("$PANE")
+        continue
+    fi
+    tmux kill-pane -t "$PLACEHOLDER" 2>/dev/null
+    launch_kitty "$SESS_NAME"
+done
+
+if [ ${#FAILED[@]} -eq 0 ]; then
+    CURRENT_EXPLODED="exploded_${TMUX_PANE//%}"
+    tmux kill-session -t "$CURRENT_EXPLODED" 2>/dev/null
+    tmux rename-session -t "$CURRENT_SESSION" "$CURRENT_EXPLODED"
+fi
+
+if [ ${#FAILED[@]} -gt 0 ]; then
+    echo "Failed to explode ${#FAILED[@]} pane(s): ${FAILED[*]}" >&2
+    exit 1
+fi
