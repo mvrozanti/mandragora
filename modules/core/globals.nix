@@ -48,5 +48,6 @@
     gcc
     yarn
     gawk
+    dmidecode
   ];
 }

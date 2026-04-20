@@ -163,6 +163,7 @@ in
     obsidian
     zapzap
     tradingview
+    openrgb
 
     (pkgs.writeShellScriptBin "smart-launch" (builtins.readFile ../../.local/bin/smart-launch.sh))
     (pkgs.writeShellScriptBin "mandragora-switch" (builtins.readFile ../../.local/bin/mandragora-switch.sh))
@@ -340,4 +341,5 @@ in
     source = ../../.config/tridactyl;
     recursive = true;
   };
+  home.file.".config/keyledsd.conf".source = ../../.config/keyledsd/keyledsd.conf;
 }
