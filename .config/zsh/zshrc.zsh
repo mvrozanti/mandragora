@@ -81,6 +81,44 @@ bindkey '^[^l' delete-word
 bindkey '^[^k' up-history
 bindkey '^[^j' down-history
 
+run_nnn()     { echo; BUFFER="nnn -P p"; zle accept-line }
+run_ncmpcpp() { echo; BUFFER="ncmpcpp"; zle accept-line }
+zle -N run_nnn
+zle -N run_ncmpcpp
+bindkey '^[n' run_nnn
+bindkey '^[w' run_ncmpcpp
+
+c()   { wl-copy }
+co()  { wl-paste }
+cov() { nvim "$(co)" }
+
+pa()  { ps aux | grep -v grep | grep -i "${1:-.}" }
+eip() { curl -s ipinfo.io | jq -r '.ip' }
+lip() { ip a | grep 192 | cut -d' ' -f6 | sed 's/\(.*\)\/.*/\1/g' }
+
+K() {
+  local selected
+  selected=$(pa "$@" | awk '{printf("%s ",$2);for(i=11;i<=NF;++i){printf("%s ",$i)};print("")}' \
+    | fzf -m --header='[kill] TAB=multi' --preview 'echo {}' --preview-window=down:3:wrap)
+  [[ -n "$selected" ]] && echo "$selected" | awk '{print $1}' | xargs -r kill
+}
+K9() {
+  local selected
+  selected=$(pa "$@" | awk '{printf("%s ",$2);for(i=11;i<=NF;++i){printf("%s ",$i)};print("")}' \
+    | fzf -m --header='[kill -9] TAB=multi' --preview 'echo {}' --preview-window=down:3:wrap)
+  [[ -n "$selected" ]] && echo "$selected" | awk '{print $1}' | xargs -r kill -9
+}
+k() {
+  if [[ $# -eq 0 ]]; then K
+  elif [[ "$1" =~ ^[0-9]+$ ]]; then kill "$1"
+  else pkill -i -f "$@"
+  fi
+}
+
+P()   { curl -sF "file=@-" https://0x0.st }
+gr()  { git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
+gdc() { git diff HEAD HEAD~1 }
+
 [ -f "$HOME/.config/lf/lfcd.sh" ] && source "$HOME/.config/lf/lfcd.sh"
 [ -f "$HOME/.local/bin/resty" ] && source "$HOME/.local/bin/resty" >/dev/null 2>&1
 

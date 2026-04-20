@@ -12,6 +12,8 @@
     ../../modules/core/ai-local.nix
     ../../modules/desktop/hyprland.nix
     ../../modules/desktop/kdeconnect.nix
+    ../../modules/desktop/keyledsd.nix
+    ../../modules/desktop/openrgb.nix
     ../../modules/desktop/rgb.nix
     ../../modules/desktop/seafile.nix
     ../../modules/user/home-manager.nix
