@@ -42,6 +42,19 @@ Every boot, `/` (root) is deleted and recreated from a clean Btrfs snapshot. Onl
 
 ---
 
+## Multi-Agent File Safety Rule
+
+**Never rewrite a file from scratch.** Other agents may have edited the same file earlier in the session or in a prior session. Always read the current on-disk state before making any change. Use targeted edits — patch only the blocks relevant to your task. A full rewrite silently clobbers every other agent's work.
+
+If a full rewrite is unavoidable:
+1. Read the file first.
+2. Preserve every section you are not explicitly replacing.
+3. Log the rewrite in `~/.ai-shared/TASKS.md`.
+
+This rule exists because on 2026-04-20, a rewrite of `home.nix` dropped `programs.firefox` (with Tridactyl native messaging), making Firefox unlaunchable.
+
+---
+
 ## The Edit → Rebuild → Verify → Commit Workflow
 
 ```

@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+from bs4 import BeautifulSoup
+import requests
+import unidecode
+import sys
+
+SIN_URL = 'https://www.sinonimos.com.br/'
+ANT_URL = 'https://www.antonimos.com.br/'
+
+def main(palavra):
+    palavra = unidecode.unidecode(palavra)
+    sess = requests.session()
+
+    le_html = sess.get(SIN_URL + palavra, timeout=10).text
+    bs_obj = BeautifulSoup(le_html, 'lxml')
+    s_wrapper_divs = bs_obj.find_all('div', {'class': 's-wrapper'})
+    for div in s_wrapper_divs:
+        div_sentido = div.find('div', {'class': 'sentido'})
+        if div_sentido:
+            print(div_sentido.text)
+        sinonimos = div.find_all('span') + div.find_all('a')
+        txt_sinonimos = ''
+        for sinonimo in sinonimos:
+            if sinonimo.text:
+                if (sinonimo.has_attr('class') and sinonimo['class'] == ['sinonimo']) \
+                        or not sinonimo.has_attr('class'):
+                    txt_sinonimos += sinonimo.text + ', '
+        print('\t' + txt_sinonimos[:-2] + '.\n')
+
+    print('\nAntônimos:\n')
+    le_html = sess.get(ANT_URL + palavra, timeout=10).text
+    bs_obj = BeautifulSoup(le_html, 'lxml')
+    s_wrapper_divs = bs_obj.find_all('div', {'class': 's-wrapper'})
+    for div in s_wrapper_divs:
+        print('\t' + div.text + '\n')
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        main(sys.argv[1])
+    else:
+        print('Uso: sinon <palavra>')

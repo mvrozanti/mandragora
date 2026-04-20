@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+[[ $# -eq 1 ]] && ffmpeg -i "$1" "${1%%.*}.gif"
