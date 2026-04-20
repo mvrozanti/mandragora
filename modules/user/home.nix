@@ -195,6 +195,8 @@ in
     (pkgs.writeShellScriptBin "dict" ''exec ${pyDictEnv}/bin/python3 ${../../.local/bin/dict.py} "$@"'')
     (pkgs.writeShellScriptBin "sinon" ''exec ${pySinonEnv}/bin/python3 ${../../.local/bin/sinon.py} "$@"'')
     (pkgs.writeShellScriptBin "biggest-pane" (builtins.readFile ../../.local/bin/biggest-pane.sh))
+    (pkgs.writeShellScriptBin "desktop-toggle" (builtins.readFile ../../.local/bin/desktop-toggle.sh))
+    (pkgs.writeShellScriptBin "screenshot-window" (builtins.readFile ../../.local/bin/screenshot-window.sh))
   ];
 
   home.file.".local/bin/resty".source = ../../.local/bin/resty;
