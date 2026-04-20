@@ -80,3 +80,25 @@ System is hours old. Fourth NixOS generation. Hyprland is running (Wayland confi
 **Next Steps:**
 - Execute Phase 7: Categorize and "Nixify" the 56 scripts in `~/projects/mandragora/.local/bin/`.
 - Group 1 to migrate: UI/Window Management utilities (`center-window.sh`, `blur-strength`, etc.).
+
+---
+
+## Session 2026-04-20
+
+### Done
+- Implemented `biggest-pane` script (hyprctl-based replacement for `bspc node -f biggest.local`); wired to `SUPER+Return` in hyprland.conf
+- Confirmed local LLM (Ollama+CUDA) already working via `ai-local.nix`
+- Committed and pushed all Phase A+B work (GUI apps, ncmpcpp, zathura, mpv, rofi) to GitHub
+- Waybar CSS: aligned to One Dark palette (#282c34 bg, full rofi color set for module underlines); added workspace 18 (TradingView) icon
+- Ported tridactyl `hints.css`; added `home.file` link for `.config/tridactyl`
+- Removed `ranger` from packages (using `lf` instead)
+- Saved feedback memory: autonomous work mode — no stopping between tasks
+
+### What broke
+- Nothing
+
+### Next
+- Task #6: Import SSH/GPG keys into sops vault
+- Task #11: Shadow profile encryption scope
+- Task #15: Firefox Sync re-login
+- Audit remaining `.config/` dirs in old dotfiles not yet ported (khal, mutt, cava)
