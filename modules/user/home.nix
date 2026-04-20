@@ -416,7 +416,22 @@ in
     extraConfig = builtins.readFile ../../.config/hypr/hyprland.conf;
   };
 
-  services.mako.enable = true;
+  services.mako = {
+    enable = true;
+    settings = {
+      font = "Iosevka Nerd Font Mono 11";
+      background-color = "#282c34";
+      text-color = "#abb2bf";
+      border-color = "#61afef";
+      border-size = 2;
+      border-radius = 8;
+      default-timeout = 5000;
+      padding = "8";
+      margin = "8";
+      width = 360;
+      layer = "overlay";
+    };
+  };
 
   programs.firefox = {
     enable = true;
@@ -455,6 +470,10 @@ in
     recursive = true;
   };
   home.file.".config/keyledsd.conf".source = ../../.config/keyledsd/keyledsd.conf;
+  home.file.".config/sxiv" = {
+    source = ../../.config/sxiv;
+    recursive = true;
+  };
   home.file.".config/cava" = {
     source = ../../.config/cava;
     recursive = true;

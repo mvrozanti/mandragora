@@ -1,5 +1,4 @@
 #!/bin/sh
-set -euf
 
 is_sourced() {
   if [ -n "${BASH_VERSION-}" ]; then
@@ -47,6 +46,8 @@ if is_sourced; then
 
   return 0
 fi
+
+set -euf
 
 if [ -n "${DISPLAY-}" ] && [ -z "${FIFO_UEBERZUG-}" ]; then
   export FIFO_UEBERZUG="${TMPDIR:-/tmp}/lf-ueberzug-$$"
