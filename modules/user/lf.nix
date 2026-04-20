@@ -29,7 +29,7 @@ in
       open = "$${opener}/bin/lf-opener \"$f\"";
       yank-path = "$printf '%s' \"$f\" | wl-copy";
       yank-name = "$printf '%s' \"$(basename \"$f\")\" | wl-copy";
-      yank-bytes = "%{{ ~/.local/bin/ic \"$f\" }}";
+      yank-bytes = "%{{ ic \"$f\" }}";
       
       sort-size = ":set sortby size; set info size";
       sort-mtime = ":set sortby time; set info time";
@@ -106,7 +106,7 @@ in
       "oC" = "sort-ctime; set reverse true";
       
       "e" = "$$EDITOR \"$fx\"";
-      "bw" = "$~/.local/bin/setbg \"$fx\" &";
+      "bw" = "$setbg \"$fx\" &";
       "pB" = "paste-image";
       "pb" = "paste-jpeg";
       "M" = "mkdir";
