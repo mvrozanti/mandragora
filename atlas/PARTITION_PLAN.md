@@ -22,7 +22,6 @@ All subvolumes share the ~1.9TB pool. No fixed allocations.
 ### What lives in `/persistent`
 - `/persistent/home/m` — all user data (~500GB)
 - `/persistent/secrets/` — age key for sops-nix
-- `/persistent/shadow.img` — 50GB LUKS2 loop → `/home/shadow`
 - `/persistent/var/log` — system logs
 - `/persistent/var/lib/nixos` — NixOS state
 - `/persistent/etc/NetworkManager/system-connections` — wifi credentials
@@ -57,6 +56,5 @@ All subvolumes share the ~1.9TB pool. No fixed allocations.
 
 ## Notes
 - `/persistent` is plain Btrfs — no encryption.
-- Shadow data is encrypted via LUKS2 loop-mounted image file inside `/persistent`.
 - Swap supports hibernation.
 - Install sequence is fully scripted in `snippets/INSTALL.md`.

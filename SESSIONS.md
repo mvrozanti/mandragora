@@ -10,7 +10,7 @@ Running log of what happens each session. Captures decisions, friction, and next
 System is hours old. Fourth NixOS generation. Hyprland is running (Wayland confirmed). Coming from a 2,790-commit Arch + bspwm + sxhkd setup. User got Claude Code working via a manual `nix shell nixpkgs#nodejs nixpkgs#nix-ld` hack.
 
 ### Accomplished
-- Full system exploration: architecture, impermanence model, Hyprland stack, BMad framework, shadow profile
+- Full system exploration: architecture, impermanence model, Hyprland stack, BMad framework
 - Memory database initialized at `~/.claude/projects/-home-m/memory/`
 - **globals.nix**: added `nodejs`, `nix-ld`, `rofi-wayland`, `grim`, `slurp`, `playerctl`, `brightnessctl`, `pamixer`, `mpc-cli`, `jq`
 - **impermanence.nix**: fixed `/persistent/home/m` ownership via `systemd.tmpfiles.rules`; added `.local/share/mpd` and `projects/` to persistence
@@ -99,6 +99,5 @@ System is hours old. Fourth NixOS generation. Hyprland is running (Wayland confi
 
 ### Next
 - Task #6: Import SSH/GPG keys into sops vault
-- Task #11: Shadow profile encryption scope
 - Task #15: Firefox Sync re-login
 - Audit remaining `.config/` dirs in old dotfiles not yet ported (khal, mutt, cava)

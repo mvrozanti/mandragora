@@ -30,9 +30,8 @@ Check off tasks as they're completed. Reference: [`DECISIONS.md`](DECISIONS.md) 
 - [x] **Dotfile Translation:** Convert legacy Arch configs (Polybar -> Waybar, bspwm -> Hyprland).
 
 ## Phase 5: The Shadow (Shadow Profile)
-- [ ] **LUKS2 Setup:** Create the isolated `/persistent/shadow` container.
-- [ ] **Hidden Boot Entry:** Configure systemd-boot to add an alternative generation that unlocks the Shadow volume and loads a separate profile.
-- [ ] **Constraint Verification:** Ensure Shadow has no sudo, no terminal execution (or restricted shell), and no AI audits.
+
+Second profile details: see SHADOW.md
 
 ## Phase 6: Observability & Polish
 - [ ] **EarlyOOM:** Enable `services.earlyoom` with 5% RAM/10% swap thresholds to prevent freezes.

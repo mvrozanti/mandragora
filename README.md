@@ -44,16 +44,13 @@ flowchart TD
     BTRFS --> persistent["persistent → /persistent (home, secrets, state)"]
 
     persistent --> home["home/m (~500GB, all user data)"]
-    persistent --> shadow_img["shadow.img (50GB, LUKS2 loop → /home/shadow)"]
     persistent --> secrets["secrets/ (age key)"]
 
     classDef ephemeral fill:#f99,stroke:#333,stroke-width:1px
     classDef persistent fill:#9f9,stroke:#333,stroke-width:1px
-    classDef isolated fill:#99f,stroke:#333,stroke-width:1px
 
     class root_blank,root_active ephemeral
     class home,nix,secrets persistent
-    class shadow_img isolated
 ```
 
 ## Data Persistence Flow

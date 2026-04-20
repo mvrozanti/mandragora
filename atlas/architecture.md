@@ -17,7 +17,6 @@ The system utilizes a Btrfs-heavy layout optimized for impermanence and strict p
     *   `root-active` → `/`: Ephemeral root, wiped on boot.
     *   `nix` → `/nix`: Nix store, packages, generations.
     *   `persistent` → `/persistent`: Home, secrets, system state.
-*   **Shadow:** `/persistent/shadow.img` (50GB LUKS2 loop → `/home/shadow`).
 
 ## 3. Impermanence & State Management
 *   **Philosophy:** "Erase your darlings" — root partition is wiped/restored, ensuring no lingering imperative state.
@@ -30,7 +29,7 @@ The system utilizes a Btrfs-heavy layout optimized for impermanence and strict p
 
 ## 5. Security & Secrets
 *   **Secrets Management:** `sops-nix` using the **Age** format. The master key file resides on an external USB drive (backed up to Seafile/Oracle VPS). No plain-text secrets are committed to the git repository.
-*   **Encryption:** LUKS2 for the isolated Shadow profile only (loop-mounted image file).
+Second profile details: see SHADOW.md
 
 ## 6. Codebase Structure & Language Purity
 *   **Repository Layout:** Standard flake architecture (`flake.nix`, `hosts/`, `modules/`).
