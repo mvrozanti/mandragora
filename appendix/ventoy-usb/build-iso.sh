@@ -5,8 +5,11 @@ set -euo pipefail
 # Build Mandragora custom ISOs (Arch + NixOS)
 # =============================================================================
 # Output: ~/iso_cache/mandragora-arch.iso, ~/iso_cache/mandragora-nixos.iso
-# Requires: archiso (for Arch), nix (for NixOS). Builds whichever is possible.
-# Usage: sudo ./build-iso.sh
+# Requires: archiso (for Arch), nix or docker (for NixOS). Builds whichever is possible.
+# Usage: sudo ./build-iso.sh              # build both
+#        sudo BUILD=nixos ./build-iso.sh   # NixOS only (skip Arch)
+# Note:  Claude auth token must be in nixos-iso/root-dotfiles/.claude_env before building.
+#        See appendix/ventoy-usb/README.md for setup.
 # =============================================================================
 
 ISO_CACHE="${ISO_CACHE:-$HOME/iso_cache}"
@@ -70,18 +73,14 @@ build_arch() {
 }
 
 # ======================== NixOS ISO ========================
-# Builds a custom NixOS ISO via nix if available on the host.
-# Falls back to downloading the stock NixOS minimal ISO.
-# To install nix on Arch: sh <(curl -L https://nixos.org/nix/install) --daemon
-# Nix coexists with pacman — uses its own /nix store, doesn't interfere.
+# Builds a custom NixOS ISO. Tries: native nix → Docker → stock download.
 build_nixos() {
     local NIXOS_CHANNEL="${NIXOS_CHANNEL:-25.05}"
     local DEST="$ISO_CACHE/mandragora-nixos.iso"
+    local NIXOS_DIR="$SCRIPT_DIR/nixos-iso"
 
-    # Custom build path (only if nix already exists on host)
     if command -v nix &>/dev/null; then
-        log "Building custom NixOS ISO..."
-        local NIXOS_DIR="$SCRIPT_DIR/nixos-iso"
+        log "Building custom NixOS ISO (native nix)..."
         nix build "${NIXOS_DIR}#nixosConfigurations.mandragora-usb.config.system.build.isoImage" \
             --out-link /tmp/mandragora-nixos-result \
             --extra-experimental-features "nix-command flakes"
@@ -93,27 +92,45 @@ build_nixos() {
             log "NixOS ISO: $DEST ($(du -sh "$DEST" | cut -f1))"
             return 0
         fi
-        warn "Custom NixOS build failed. Falling back to stock ISO download."
-    else
-        log "nix not on host. Downloading stock NixOS $NIXOS_CHANNEL minimal ISO..."
-        log "(Stock ISO is fine for installation — nix-shell handles anything else live.)"
+        warn "Native nix build failed. Trying Docker..."
     fi
 
-    # Stock download fallback
+    if command -v docker &>/dev/null; then
+        log "Building custom NixOS ISO (Docker)..."
+        rm -f "$DEST"
+        local DOCKER_CMD="docker"
+        [[ $EUID -eq 0 ]] && DOCKER_CMD="runuser -u ${SUDO_USER:-$USER} -- docker"
+        $DOCKER_CMD run --rm \
+            -v "${NIXOS_DIR}:/build" \
+            -v "${ISO_CACHE}:/out" \
+            nixos/nix:latest \
+            sh -c 'cd /build && nix --extra-experimental-features "nix-command flakes" build .#nixosConfigurations.mandragora-usb.config.system.build.isoImage --out-link /tmp/result && cp /tmp/result/iso/*.iso /out/mandragora-nixos.iso'
+        if [[ -f "$DEST" ]]; then
+            log "NixOS ISO: $DEST ($(du -sh "$DEST" | cut -f1))"
+            return 0
+        fi
+        warn "Docker build produced no output. Falling back to stock ISO."
+    else
+        warn "Neither nix nor docker found."
+    fi
+
+    log "Downloading stock NixOS $NIXOS_CHANNEL minimal ISO (no custom config)..."
     local URL="https://channels.nixos.org/nixos-${NIXOS_CHANNEL}/latest-nixos-minimal-x86_64-linux.iso"
     curl -L --retry 3 --progress-bar -o "$DEST" "$URL" \
         || { warn "NixOS ISO download failed."; return 1; }
     [[ $(stat -c%s "$DEST") -gt 500000000 ]] \
         || { warn "NixOS ISO download too small — likely a bad URL or redirect."; return 1; }
-    log "NixOS ISO: $DEST ($(du -sh "$DEST" | cut -f1))"
+    log "NixOS ISO (stock): $DEST ($(du -sh "$DEST" | cut -f1))"
 }
 
 # ======================== Run ========================
+# BUILD=nixos  → skip Arch.  BUILD=arch → skip NixOS.  Unset → build both.
+BUILD="${BUILD:-all}"
 ARCH_OK=false
 NIXOS_OK=false
 
-build_arch  && ARCH_OK=true
-build_nixos && NIXOS_OK=true
+[[ "$BUILD" == "all" || "$BUILD" == "arch" ]]  && build_arch  && ARCH_OK=true
+[[ "$BUILD" == "all" || "$BUILD" == "nixos" ]] && build_nixos && NIXOS_OK=true
 
 echo ""
 echo "════════════════════════════════════════"
