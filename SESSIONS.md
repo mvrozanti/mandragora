@@ -101,3 +101,27 @@ System is hours old. Fourth NixOS generation. Hyprland is running (Wayland confi
 - Task #6: Import SSH/GPG keys into sops vault
 - Task #15: Firefox Sync re-login
 - Audit remaining `.config/` dirs in old dotfiles not yet ported (khal, mutt, cava)
+
+---
+
+## Session 2026-04-20 (continued)
+
+### Done
+- **keyledsd lightning**: Confirmed custom `lightning.lua` is injected into the running derivation and loading cleanly (no errors since 18:05). Effect is active.
+- **git history audit**: Confirmed SHADOW.md was never committed to git. "girly", "pink" terms exist only in untracked SHADOW.md — not in public repo. filter-repo already cleaned ***REMOVED***→shadow, ***REMOVED***→media across all 35 commits.
+- **lf fixes**: nsxiv→sxiv, ueberzug→ueberzugpp, nixified path references in lf.nix, zshrc, aliases.zsh
+- **cava config**: Ported from old dotfiles with 120fps, custom One Dark-ish gradient
+- **khal config**: Ported with local calendar path and date format preferences
+- **mako styling**: One Dark palette (bg #282c34, text #abb2bf, border #61afef)
+- **sxiv key-handler**: Ported and Wayland-ified (xsel→wl-copy)
+- **hyprlock**: Set up with One Dark clock+input field, 5-min idle lock
+- **hypridle**: 5min→lock, 10min→display off
+
+### What broke
+- Nothing
+
+### Next
+- Task #6: Import SSH/GPG keys into sops vault (requires locating key material on Ventoy USB)
+- Task #15: Firefox Sync re-login (UI task, user does manually)
+- mutt/neomutt: complex OAuth2 setup, defer until needed
+- Seafile: needs server URL + auth token before enabling
