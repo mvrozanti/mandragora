@@ -148,7 +148,6 @@ in
     gucharmap
     baobab
     nnn
-    ranger
     yq
     pdfgrep
     sqlitebrowser
@@ -332,6 +331,10 @@ in
   };
   home.file.".config/rofi" = {
     source = ../../.config/rofi;
+    recursive = true;
+  };
+  home.file.".config/tridactyl" = {
+    source = ../../.config/tridactyl;
     recursive = true;
   };
 }
