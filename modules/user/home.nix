@@ -17,6 +17,7 @@ in
     ./tmux.nix
     ./lf.nix
     ./services.nix
+    ./waybar.nix
   ];
 
   home.username = "m";
