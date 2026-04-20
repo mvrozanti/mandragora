@@ -154,6 +154,7 @@ in
     libreoffice
     lazygit
     pueue
+    gource
     mkvtoolnix
     jiq
 

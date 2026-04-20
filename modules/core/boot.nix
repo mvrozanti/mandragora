@@ -8,7 +8,11 @@
 
   boot.kernelPackages = pkgs.linuxPackages_zen;
 
-  boot.kernelParams = [ "sp5100_tco.nowayout=1" "usbcore.autosuspend=-1" "usbcore.old_scheme_first=1" ];
+  boot.kernelParams = [ "usbcore.autosuspend=-1" "usbcore.old_scheme_first=1" "acpi_enforce_resources=lax" ];
+
+  boot.blacklistedKernelModules = [ "sp5100_tco" ];
+
+  boot.kernelModules = [ "i2c_piix4" "i2c_dev" ];
 
   boot.initrd.kernelModules = [ "nvidia" "nvidia_modeset" "nvidia_uvm" "nvidia_drm" ];
 }
