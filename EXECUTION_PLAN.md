@@ -37,3 +37,9 @@ Check off tasks as they're completed. Reference: [`DECISIONS.md`](DECISIONS.md) 
 ## Phase 6: Observability & Polish
 - [ ] **Audit Scripts:** Implement `modules/audits/strays.sh` for disk/network monitoring, restricting them to the Mandragora profile.
 - [ ] **Seafile/Backup:** Configure Seafile client pointing to the arch-slave.
+
+## Phase 7: Scripts & Local Binaries
+- [ ] **Categorize Scripts:** Group scripts in `~/projects/mandragora/.local/bin/` into categories (UI, Media, System, Utils, etc.).
+- [ ] **Nixify Binaries:** Convert each script into a Home Manager `home.packages` entry using `pkgs.writeShellScriptBin` or move them to `snippets/` if they are large.
+- [ ] **Dependency Mapping:** Identify and declare all external dependencies (e.g., `byzanz`, `xsel`, `ffmpeg`) in Nix.
+- [ ] **Cleanup PATH:** Ensure `$HOME/.local/bin` is deprecated in favor of Nix-managed binaries.

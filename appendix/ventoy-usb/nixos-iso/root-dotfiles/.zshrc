@@ -4,8 +4,13 @@ export HISTSIZE=10000
 export SAVEHIST=10000
 setopt HIST_IGNORE_DUPS SHARE_HISTORY
 
-export PATH="$HOME/.npm-global/bin:$PATH"
-export npm_config_prefix="$HOME/.npm-global"
+if [ -d /persist/npm-global ]; then
+  export npm_config_prefix="/persist/npm-global"
+  export PATH="/persist/npm-global/bin:$PATH"
+else
+  export npm_config_prefix="$HOME/.npm-global"
+  export PATH="$HOME/.npm-global/bin:$PATH"
+fi
 
 PROMPT='[%F{cyan}MANDRAGORA%f] %~ %# '
 

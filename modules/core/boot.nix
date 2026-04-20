@@ -8,5 +8,7 @@
 
   boot.kernelPackages = pkgs.linuxPackages_zen;
 
-  boot.kernelParams = [ "video=efifb:off" ];
+  boot.kernelParams = [ "usbcore.autosuspend=-1" "usbcore.old_scheme_first=1" ];
+
+  boot.initrd.kernelModules = [ "nvidia" "nvidia_modeset" "nvidia_uvm" "nvidia_drm" ];
 }

@@ -11,8 +11,8 @@ Boot into Arch or NixOS with tools, persistence, and the full NixOS flake.
 │   ├── mandragora-arch.iso
 │   └── mandragora-nixos.iso
 ├── persistence/
-│   ├── arch_persistence.dat      2GB ext4, Ventoy cow persistence
-│   └── nixos_persistence.dat     2GB ext4, Ventoy cow persistence
+│   ├── arch_persistence.dat      2GB ext4, Ventoy cow persistence (Arch)
+│   └── nixos_persistence.dat     2GB ext4, loop-mounted at /persist (NixOS)
 ├── ventoy/
 │   └── ventoy.json               Boot config, persistence mapping, menu aliases
 ├── toolbox/
@@ -26,13 +26,14 @@ Boot into Arch or NixOS with tools, persistence, and the full NixOS flake.
 
 ## Building
 
-### 1. Build custom ISOs (optional — falls back to stock downloads)
+### 1. Build custom ISOs
 
 ```bash
 sudo ./build-iso.sh
 ```
 
-Needs `archiso` (Arch) and/or `nix` (NixOS) on the host. Stock ISOs work fine.
+Builds both Arch and NixOS ISOs. The NixOS build tries: native nix → Docker → stock download.
+On Arch without nix installed, Docker is the primary path (requires `docker` running).
 
 ### 2. Create the USB
 
@@ -42,72 +43,27 @@ sudo ./create-ventoy-usb.sh /dev/sdX
 
 Installs Ventoy, copies ISOs, creates persistence images, copies toolbox + flake repo.
 
-### 3. Building the NixOS ISO from Arch
-
-The custom NixOS ISO requires the `nix` package manager. It coexists with pacman —
-uses its own `/nix` store, doesn't interfere with anything.
+### 3. Updating an existing USB
 
 ```bash
-# install nix (one-time, multi-user daemon)
-sh <(curl -L https://nixos.org/nix/install) --daemon
-# open a new shell to pick up nix in PATH
-
-# build the ISO
-nix build ./nixos-iso#nixosConfigurations.mandragora-usb.config.system.build.isoImage \
-    --extra-experimental-features "nix-command flakes"
-
-# ISO is at result/iso/mandragora-nixos-*.iso
-cp result/iso/mandragora-nixos-*.iso ~/iso_cache/mandragora-nixos.iso
+sudo ./build-iso.sh                    # rebuild ISOs
+sudo ./update-usb.sh /dev/sdX         # push everything to USB
 ```
 
-### 4. Updating an existing USB
-
-**Quick update** (toolbox scripts + repo only, no ISO rebuild):
-
-```bash
-sudo mount /dev/sdX1 /mnt
-sudo cp toolbox/*.sh /mnt/toolbox/ && sudo chmod +x /mnt/toolbox/*.sh
-sudo rm -rf /mnt/docs/mandragora-nixos && sudo cp -a ../.. /mnt/docs/mandragora-nixos
-sudo umount /mnt
-```
-
-This gets you the latest format-drive.sh and repo, but the live boot environment
-stays unchanged (stock ISO, no flakes, no sops/age pre-installed).
-
-**Full update** (rebuild ISO + update everything):
-
-```bash
-# 1. build the custom NixOS ISO (see step 3 above)
-nix build ./nixos-iso#nixosConfigurations.mandragora-usb.config.system.build.isoImage \
-    --extra-experimental-features "nix-command flakes"
-
-# 2. mount the USB
-sudo mount /dev/sdX1 /mnt
-
-# 3. replace the ISO
-sudo cp result/iso/mandragora-nixos-*.iso /mnt/isos/mandragora-nixos.iso
-
-# 4. update toolbox + repo
-sudo cp toolbox/*.sh /mnt/toolbox/ && sudo chmod +x /mnt/toolbox/*.sh
-sudo rm -rf /mnt/docs/mandragora-nixos && sudo cp -a ../.. /mnt/docs/mandragora-nixos
-
-# 5. done
-sudo umount /mnt
-```
-
-The full update gives you: flakes enabled, sops+age pre-installed, ~/README.md on
-login, AI tools auto-install, zsh+tmux shell — the complete experience.
+`update-usb.sh` copies: ISO, toolbox scripts, ventoy.json, repo, and
+Claude credentials + SSH keys into the NixOS persistence image.
 
 ## Files
 
 | File | Purpose |
 |------|---------|
 | `create-ventoy-usb.sh` | Formats USB with Ventoy, copies everything |
-| `build-iso.sh` | Builds custom Arch + NixOS ISOs |
+| `update-usb.sh` | Updates existing USB: ISOs, toolbox, repo, credentials |
+| `build-iso.sh` | Builds custom Arch + NixOS ISOs (nix, docker, or stock) |
 | `ventoy.json` | Ventoy config: ISO paths, persistence mapping, menu aliases |
 | `nixos-iso/configuration.nix` | NixOS live ISO system config |
 | `nixos-iso/flake.nix` | NixOS ISO flake wrapper |
-| `nixos-iso/root-dotfiles/` | Dotfiles + README placed in /root on boot |
+| `nixos-iso/root-dotfiles/` | Dotfiles + README placed in /home/nixos and /root on boot |
 | `archiso/` | Arch ISO overlay: packages, dotfiles, profile scripts |
 | `archiso/packages-extra.txt` | Extra packages merged into Arch releng profile |
 | `toolbox/` | Scripts shipped on the USB at `/mnt/ventoy/toolbox/` |
@@ -116,19 +72,61 @@ login, AI tools auto-install, zsh+tmux shell — the complete experience.
 
 1. Power on, hold boot menu key, select USB
 2. Ventoy menu: pick "Arch Linux — Mandragora" or "NixOS — Mandragora"
-3. Live shell opens: zsh + tmux, MOTD with available commands
+3. Live shell opens: zsh, MOTD with available commands
 4. `cat ~/README.md` — full step-by-step install guide
 5. `/mnt/ventoy` auto-mounted read/write (the USB's exFAT partition)
 6. Flake at `/mnt/ventoy/docs/mandragora-nixos`
 7. `nix shell`, `nix build`, `sops`, `age` all work without extra flags
 
-## Persistence
+## NixOS Persistence
 
-Ventoy persistence images keep changes between boots within the same ISO session.
-npm global installs, shell history, config edits persist automatically.
+`nixos_persistence.dat` is an ext4 image loop-mounted at `/persist` by the
+`mount-persist` systemd service on boot. It stores:
 
-The persistence images are created by `create-ventoy-usb.sh` (default 2GB each).
-To increase: change `ARCH_PERSIST_MB` / `NIXOS_PERSIST_MB` at the top of the script.
+- `/persist/npm-global/` — npm global installs (claude, gemini, qwen) survive reboots
+- `/persist/claude/` — Claude OAuth credentials (symlinked to ~/.claude/)
+- `/persist/ssh/` — SSH keys (symlinked to ~/.ssh/)
+- `/persist/zsh-history/` — shell history
+
+Credentials and SSH keys are copied into the persist image by `update-usb.sh`.
+Ventoy cow persistence is used for Arch only (not NixOS).
+
+## Claude Authentication
+
+Claude Code authenticates via a long-lived OAuth token baked into the ISO.
+
+### Setup (one-time)
+
+    claude auth oauth-token --long-lived
+
+Save the token, then:
+
+    echo "export CLAUDE_CODE_OAUTH_TOKEN='sk-ant-...'" > appendix/ventoy-usb/nixos-iso/root-dotfiles/.claude_env
+
+Rebuild the ISO for it to take effect. The file is gitignored (contains a secret).
+
+### How it works
+
+`.claude_env` follows the same path as `.bash_aliases`:
+
+    environment.etc → /etc/skel/.claude_env → provision-dotfiles → ~/.claude_env → shell init sources it
+
+No mounts, no symlinks, no timing dependencies. The token is part of the ISO.
+
+### Rotating the token
+
+Generate a new token, overwrite `.claude_env`, rebuild the ISO, update the USB.
+
+## NixOS Dotfile Delivery
+
+Dotfiles (README.md, .zshrc, .tmux.conf, .claude_env, etc.) are placed in
+`/etc/skel/` via `environment.etc` and copied to user homes by the
+`provision-dotfiles` systemd service before login. Shell init has a fallback
+copy mechanism.
+
+If dotfiles don't appear on boot, check the service log:
+
+    journalctl -u provision-dotfiles --no-pager
 
 ## Key Design Decisions
 

@@ -34,7 +34,8 @@ cmd_adopt() {
         exit 1
     fi
 
-    local abs_path=$(realpath "$target")
+    local abs_path
+    abs_path=$(realpath "$target")
     
     if is_persistent "$abs_path"; then
         return

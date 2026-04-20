@@ -6,7 +6,7 @@
   users.users.m = {
     isNormalUser = true;
     description = "Mandragora Primary User";
-    extraGroups = [ "networkmanager" "wheel" "video" "audio" ];
+    extraGroups = [ "networkmanager" "wheel" "video" "audio" "i2c" "plugdev" ];
     shell = pkgs.zsh;
   };
 
@@ -25,6 +25,7 @@
     tree
     jq
     claude-code
+    gemini-cli
     nodejs
     rofi
     wl-clipboard
@@ -36,5 +37,12 @@
     mpc
     pavucontrol
     crosspipe
+    cliphist
+    nemo
+    lf
+    scrcpy
+    polkit_gnome
+    zoxide
+    xsel
   ];
 }

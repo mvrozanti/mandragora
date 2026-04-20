@@ -1,8 +1,6 @@
 { config, pkgs, lib, ... }:
 
 let
-  # Use readFile on the source (not a derivation) to avoid Import-From-Derivation,
-  # then substitute placeholders with replaceStrings at eval time.
   strayscli = pkgs.writeShellApplication {
     name = "strays";
     runtimeInputs = [ pkgs.findutils pkgs.util-linux ];
@@ -12,15 +10,12 @@ let
       (builtins.readFile ../../snippets/strays.sh);
   };
 
-  # substituteAll maps Nix attribute names to @camelCase@ placeholders.
-  healthCheckWatch = pkgs.substituteAll {
-    src = ../../snippets/health-check.sh;
+  healthCheckWatch = pkgs.replaceVars ../../snippets/health-check.sh {
     diskWarnThreshold = "85";
     logFile = "/persistent/logs/strays/watch-$(date +%Y-%m-%d).log";
   };
 
-  healthCheckDigest = pkgs.substituteAll {
-    src = ../../snippets/health-check.sh;
+  healthCheckDigest = pkgs.replaceVars ../../snippets/health-check.sh {
     diskWarnThreshold = "75";
     logFile = "/persistent/logs/strays/digest-$(date +%Y-%m-%d).log";
   };
