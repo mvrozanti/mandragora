@@ -16,7 +16,8 @@ in
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
     serviceConfig = {
-      ExecStart = "${keyleds-patched}/bin/keyledsd -m ${keyleds-patched}/lib/keyledsd";
+      ExecStartPre = "${pkgs.openrgb}/bin/openrgb --device 0 --mode direct --color 000000";
+      ExecStart = "${keyleds-patched}/bin/keyledsd -m ${keyleds-patched}/lib/keyledsd -m ${keyleds-patched}/share/keyledsd/effects";
       Restart = "on-failure";
       RestartSec = "3s";
     };
