@@ -1,0 +1,73 @@
+set adjust-open "best-fit"
+set pages-per-row 1
+set window-title-page true
+set scroll-page-aware "true"
+set scroll-full-overlap 0.01
+set scroll-step 1
+set zoom-min 10
+set guioptions ""
+
+set font "Fira Mono for Powerline 11"
+set default-bg "#000000"
+set default-fg "#F7F7F6"
+set statusbar-fg "#B0B0B0"
+set statusbar-bg "#202020"
+set inputbar-bg "#151515"
+set inputbar-fg "#FFFFFF"
+set notification-error-bg "#AC4142"
+set notification-error-fg "#151515"
+set notification-warning-bg "#AC4142"
+set notification-warning-fg "#151515"
+set highlight-color "#F43305"
+set highlight-active-color "#CC2805"
+set completion-highlight-fg "#151515"
+set completion-highlight-bg "#e33300"
+set completion-bg "#303030"
+set completion-fg "#E0E0E0"
+set notification-bg "#e33300"
+set notification-fg "#151515"
+
+set window-title-basename true
+set recolor "true"
+set recolor-lightcolor "#00000000"
+set recolor-darkcolor "#E0E0E0"
+set recolor-reverse-video "true"
+set recolor-keephue "true"
+set render-loading "false"
+set scroll-step 50
+set selection-clipboard clipboard
+
+unmap f
+map f toggle_fullscreen
+map [fullscreen] f toggle_fullscreen
+map <C-0> adjust_window width
+map B toggle_statusbar
+map [fullscreen] B toggle_statusbar
+map <C-k> zoom in
+map <C-j> zoom out
+map [fullscreen] <C-k> zoom in
+map [fullscreen] <C-j> zoom out
+map = adjust_window best-fit
+map [fullscreen] = adjust_window best-fit
+map C set recolor true
+map [fullscreen] C set recolor true
+map c set recolor true
+map [fullscreen] c set recolor true
+map D toggle_page_mode 2
+map [fullscreen] D toggle_page_mode 2
+map d scroll half-down
+map [fullscreen] d scroll half-down
+map b scroll half-up
+map [fullscreen] b scroll half-up
+map w scroll half-down
+map <C-w> quit
+map [fullscreen] <C-w> quit
+map M feedkeys ":blist<Return>"
+map [fullscreen] M feedkeys ":blist<Return>"
+map ,<Space> feedkeys "'"
+map <C-i> feedkeys ":info<Return>"
+map <C-O> feedkeys ":open <Tab><Return>"
+map <C-o> feedkeys ":open <Tab>"
+map H feedkeys ":exec sh -c \"cat ~/.local/share/zathura/history | grep -Po '\\[\\K[^\\]]*' | rofi -dmenu | xargs zathura\""
+map <Left> scroll full-up
+map <Right> scroll full-down

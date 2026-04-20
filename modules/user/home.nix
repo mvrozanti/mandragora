@@ -321,4 +321,16 @@ in
     source = ../../.config/ncmpcpp;
     recursive = true;
   };
+  home.file.".config/zathura" = {
+    source = ../../.config/zathura;
+    recursive = true;
+  };
+  home.file.".config/mpv" = {
+    source = ../../.config/mpv;
+    recursive = true;
+  };
+  home.file.".config/rofi" = {
+    source = ../../.config/rofi;
+    recursive = true;
+  };
 }
