@@ -317,4 +317,8 @@ in
     source = ../../.config/nvim;
     recursive = true;
   };
+  home.file.".config/ncmpcpp" = {
+    source = ../../.config/ncmpcpp;
+    recursive = true;
+  };
 }
