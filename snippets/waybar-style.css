@@ -1,3 +1,9 @@
+@keyframes pulse {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
 * {
     font-family: "Iosevka Nerd Font", "FontAwesome";
     font-size: 13px;
@@ -84,6 +90,7 @@ tooltip {
 #temperature.critical {
     color: #eb6e67;
     border-bottom: 2px solid #eb6e67;
+    animation: pulse 1.5s ease-in-out infinite;
 }
 
 #disk {
@@ -103,6 +110,32 @@ tooltip {
 
 #mpd.paused {
     color: #f8c456;
+}
+
+#idle-inhibitor {
+    padding: 0 8px;
+    color: #4b5263;
+}
+
+#idle-inhibitor.activated {
+    color: #e5c07b;
+    border-bottom: 2px solid #e5c07b;
+}
+
+#privacy {
+    padding: 0 4px;
+}
+
+#privacy-item {
+    padding: 0 4px;
+}
+
+#privacy-item.screenshare {
+    color: #e06c75;
+}
+
+#privacy-item.audio-in {
+    color: #e5c07b;
 }
 
 #tray {
