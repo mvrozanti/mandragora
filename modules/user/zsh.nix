@@ -110,5 +110,10 @@
     ];
   };
   
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
   home.file.".p10k.zsh".source = ../../.config/zsh/p10k.zsh;
 }
