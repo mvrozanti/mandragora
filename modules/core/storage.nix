@@ -1,6 +1,7 @@
 { config, lib, pkgs, ... }:
 
 {
+  boot.supportedFilesystems = [ "ntfs" ];
   fileSystems."/" = {
     device = "/dev/disk/by-label/NIXOS";
     fsType = "btrfs";
@@ -24,6 +25,18 @@
     device = "/dev/disk/by-label/BOOT";
     fsType = "vfat";
     options = [ "fmask=0022" "dmask=0022" ];
+  };
+
+  fileSystems."/mnt/toshiba" = {
+    device = "/dev/disk/by-uuid/B40C6DD40C6D9262";
+    fsType = "ntfs-3g";
+    options = [ "noauto" "nofail" "x-systemd.automount" "x-systemd.device-timeout=5" "x-systemd.idle-timeout=300" "uid=1000" "gid=100" "remove_hiberfile" ];
+  };
+
+  fileSystems."/mnt/adata" = {
+    device = "/dev/disk/by-uuid/8f573b56-3312-44b2-abcf-21b4bff1996d";
+    fsType = "ext4";
+    options = [ "noauto" "nofail" "x-systemd.automount" "x-systemd.device-timeout=5" "x-systemd.idle-timeout=300" ];
   };
 
   swapDevices = [

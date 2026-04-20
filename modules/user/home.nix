@@ -284,6 +284,7 @@ in
       "ctrl+shift+right" = "next_tab";
       "ctrl+shift+left" = "previous_tab";
       "ctrl+shift+t" = "new_tab";
+      "ctrl+shift+q" = "no_op";
       "ctrl+shift+l" = "next_layout";
       "ctrl+k" = "change_font_size all +1.0";
       "ctrl+j" = "change_font_size all -1.0";
