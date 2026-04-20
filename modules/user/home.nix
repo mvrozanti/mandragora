@@ -149,6 +149,7 @@ in
     retroarch
 
     khal
+    cava
     calcurse
     clisp
     php
@@ -454,4 +455,12 @@ in
     recursive = true;
   };
   home.file.".config/keyledsd.conf".source = ../../.config/keyledsd/keyledsd.conf;
+  home.file.".config/cava" = {
+    source = ../../.config/cava;
+    recursive = true;
+  };
+  home.file.".config/khal" = {
+    source = ../../.config/khal;
+    recursive = true;
+  };
 }
