@@ -10,6 +10,11 @@ let
 
   pyDictEnv = pkgs.python3.withPackages (ps: with ps; [ requests beautifulsoup4 lxml ]);
   pySinonEnv = pkgs.python3.withPackages (ps: with ps; [ requests beautifulsoup4 lxml unidecode ]);
+  hidWrapperEnv = pkgs.python3.withPackages (ps: [
+    ps.colour
+    (pkgs.python3.pkgs.toPythonModule pkgs.rivalcfg)
+  ]);
+  lightEnv = pkgs.python3.withPackages (ps: with ps; [ requests numpy ]);
 in
 {
   imports = [
@@ -201,6 +206,9 @@ in
     (pkgs.writeShellScriptBin "biggest-pane" (builtins.readFile ../../.local/bin/biggest-pane.sh))
     (pkgs.writeShellScriptBin "desktop-toggle" (builtins.readFile ../../.local/bin/desktop-toggle.sh))
     (pkgs.writeShellScriptBin "pop" (builtins.readFile ../../.local/bin/pop.sh))
+    (pkgs.writeShellScriptBin "hid-wrapper" ''exec ${hidWrapperEnv}/bin/python3 ${../../.local/bin/hid-wrapper.py} "$@"'')
+    (pkgs.writeShellScriptBin "light" ''exec ${lightEnv}/bin/python3 ${../../.local/bin/light.py} "$@"'')
+    yad
     (pkgs.writeShellScriptBin "screenshot-window" (builtins.readFile ../../.local/bin/screenshot-window.sh))
   ];
 
