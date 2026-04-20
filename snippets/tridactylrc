@@ -1,0 +1,94 @@
+" ── Unbinds ──────────────────────────────────────────────────────────────────
+unbind <F1>
+unbind ;c
+unbind D
+unbind <C-x>
+unbind <C-a>
+unbind --mode=ex <C-a>
+unbind --mode=ex <C-c>
+unbind gt
+
+" ── Settings ─────────────────────────────────────────────────────────────────
+set modeindicator false
+set smoothscroll true
+set hintchars asdertgbvcxzq
+set hintfiltermode vimperator-reflow
+set hintdelay 100
+
+" ── Theme ────────────────────────────────────────────────────────────────────
+colors unugly
+
+" ── Navigation & Find ────────────────────────────────────────────────────────
+bind / fillcmdline find
+bind ? fillcmdline find -?
+bind n findnext 1
+bind N findnext --reverse 1
+bind H back
+bind L back
+
+" ── Tabs ─────────────────────────────────────────────────────────────────────
+bind J tabnext
+bind K tabprev
+bind t tabnew
+bind x tabclose
+bind D tabduplicate
+
+" ── Open / URL ───────────────────────────────────────────────────────────────
+bind o fillcmdline open
+bind O fillcmdline tabopen
+bind <C-o> fillcmdline open
+bind <A-d> composite js window.location.href | fillcmdline open
+
+" ── Scroll ───────────────────────────────────────────────────────────────────
+bind b scrollpage -0.5
+bind d scrollpage 0.5
+
+" ── Hinting ──────────────────────────────────────────────────────────────────
+bind f hint
+bind ec hint -A
+
+" ── Yank / Paste ─────────────────────────────────────────────────────────────
+bind y composite js document.URL | yank
+bind p clipboard open
+bind P clipboard tabopen
+
+" ── Misc ─────────────────────────────────────────────────────────────────────
+bind <C-V> viewsource
+bind i jsb (() => { const key = "__tri_grayscale"; const current = document.documentElement.getAttribute(key) === "1"; const val = current ? "0" : "1"; document.documentElement.setAttribute(key, val); let style = document.getElementById("tri-grayscale-toggle"); if (!style) { style = document.createElement("style"); style.id = "tri-grayscale-toggle"; document.head.appendChild(style); } style.textContent = val === "1" ? "html { filter: grayscale(100%) invert(100%); }" : ""; })()
+
+" ── GitHub ───────────────────────────────────────────────────────────────────
+autocmd DocLoad github.com js document.querySelector("div.flash")?.remove()
+
+" ── YouTube ──────────────────────────────────────────────────────────────────
+unbindurl https://www.youtube.com /
+unbindurl https://www.youtube.com ?
+unbindurl https://www.youtube.com m
+
+bindurl https://www.youtube.com gl js document.querySelector('button[aria-label*="like" i], ytd-toggle-button-renderer #button-shape button')?.click()
+bindurl https://www.youtube.com gd js document.querySelector('button[aria-label*="dislike" i], ytd-toggle-button-renderer #button-shape button:nth-child(2)')?.click()
+bindurl https://www.youtube.com gc js document.querySelector('ytd-comment-simplebox-renderer #placeholder-area, #contenteditable-root')?.click()
+bindurl https://www.youtube.com gf js setTimeout(() => document.querySelector('.ytp-fullscreen-button')?.click(), 500)
+bindurl https://www.youtube.com gs js (document.querySelector('button[aria-label^="Subscribe"]') || document.querySelector('ytd-subscribe-button-renderer button'))?.click()
+bindurl https://www.youtube.com gm js (function(){ const v = e => e && !e.hasAttribute("hidden") && (e.offsetWidth || e.offsetHeight || e.getClientRects().length) && getComputedStyle(e).display !== "none" && getComputedStyle(e).visibility !== "hidden" && parseFloat(getComputedStyle(e).opacity || "1") > 0; const btn = [...document.querySelectorAll("tp-yt-paper-button#expand, tp-yt-paper-button#collapse")].find(v) || [...document.querySelectorAll("tp-yt-paper-button, tp-yt-paper-button button")].find(e => /more|show less|expand|collapse|mais|mostrar|ver mais/i.test((e.textContent || "").trim()) && v(e)); if (btn) btn.click(); else console.warn("gm: description toggle not found"); })()
+bindurl https://www.youtube.com gk js (function(){ const v = e => e && !e.hidden && (e.offsetWidth || e.offsetHeight) && getComputedStyle(e).display !== "none" && getComputedStyle(e).visibility !== "hidden"; const btn = [...document.querySelectorAll("button.ytp-play-button, button[aria-keyshortcuts=k], button[aria-label*='Play'], button[aria-label*='Pause']")].find(v); if (btn) { btn.click(); return; } document.querySelector("video")?.paused ? document.querySelector("video")?.play() : document.querySelector("video")?.pause(); })()
+bindurl https://www.youtube.com ? focusinput
+bindurl https://www.youtube.com A focusinput
+bindurl https://www.youtube.com , focusinput
+bindurl https://www.youtube.com f hint -Jc a#thumbnail.yt-simple-endpoint,ytd-comment-thread-renderer a,ytd-channel-name a,paper-button,a#logo,a,.yt-simple-endpoint.style-scope.ytd-toggle-button-renderer#menu-container
+bindurl https://www.youtube.com gt js (function(){ const v = e => e && !e.hasAttribute("hidden") && (e.offsetWidth || e.offsetHeight || e.getClientRects().length) && getComputedStyle(e).display !== "none" && getComputedStyle(e).visibility !== "hidden" && parseFloat(getComputedStyle(e).opacity || "1") > 0; const btn = [...document.querySelectorAll("button.ytp-size-button, button[title*='Theater'], button[title*='teatro'], button[aria-label*='Theater'], button[aria-label*='teatro']")].find(v); if (btn) btn.click(); else console.warn("gt: theater mode button not found"); })()
+bindurl https://www.youtube.com gn js document.querySelector('ytd-notification-topbar-button-renderer button').click()
+
+" ── Blacklist ────────────────────────────────────────────────────────────────
+blacklistadd localhost:3000
+blacklistadd meet.google.com
+blacklistadd app.diagrams.net
+blacklistadd slither.com
+blacklistadd chatgpt.com
+blacklistadd web.whatsapp.com
+blacklistadd teams.microsoft.com
+
+bind <C-e> fillcmdline tab
+bind <C-1> open https://chess.com
+bind <C-2> open https://youtube.com
+bind <C-3> open https://github.com
+bind <C-4> open https://deepseek.com

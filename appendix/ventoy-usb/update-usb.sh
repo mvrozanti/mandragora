@@ -4,10 +4,11 @@ set -euo pipefail
 # =============================================================================
 # Update Mandragora USB with latest ISO, toolbox, repo, and credentials
 # =============================================================================
-# Usage: sudo ./update-usb.sh /dev/sdX
+# Usage: sudo ./update-usb.sh /dev/sdX [oauth-token]
 # =============================================================================
 
 USB_DEV="${1:-}"
+OAUTH_TOKEN_ARG="${2:-}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 ISO_CACHE="${ISO_CACHE:-$HOME/iso_cache}"
@@ -95,16 +96,23 @@ else
     chmod 755 "$PERSIST_MNT" "$PERSIST_MNT"/npm-global "$PERSIST_MNT"/npm-global/bin "$PERSIST_MNT"/zsh-history
     chmod 700 "$PERSIST_MNT"/claude "$PERSIST_MNT"/ssh
 
+    OAUTH_TOKEN="${OAUTH_TOKEN_ARG:-}"
+    [[ -z "$OAUTH_TOKEN" ]] && [[ -f "$PERSIST_MNT/claude/oauth_token" ]] && OAUTH_TOKEN=$(cat "$PERSIST_MNT/claude/oauth_token")
+
+    if [[ -n "$OAUTH_TOKEN" ]]; then
+        log "Storing Claude OAuth token..."
+        echo "$OAUTH_TOKEN" > "$PERSIST_MNT/claude/oauth_token"
+        chmod 600 "$PERSIST_MNT/claude/oauth_token"
+    fi
+
     if [[ -n "$SUDO_CREDS" ]] && [[ -f "$SUDO_CREDS" ]]; then
         log "Copying Claude credentials from $SUDO_CREDS..."
         cp "$SUDO_CREDS" "$PERSIST_MNT/claude/.credentials.json"
-        chmod 644 "$PERSIST_MNT/claude/.credentials.json"
+        chmod 600 "$PERSIST_MNT/claude/.credentials.json"
     elif [[ -f "$CREDS" ]]; then
         log "Copying Claude credentials from $CREDS..."
         cp "$CREDS" "$PERSIST_MNT/claude/.credentials.json"
-        chmod 644 "$PERSIST_MNT/claude/.credentials.json"
-    else
-        warn "No Claude credentials found. Run 'claude' to authenticate on the USB."
+        chmod 600 "$PERSIST_MNT/claude/.credentials.json"
     fi
 
     # ---- Copy SSH keys ----
@@ -137,6 +145,7 @@ echo "════════════════════════�
 [[ -f "$ISO" ]] && echo "  ISO:         $(du -sh "$USB_MNT/isos/mandragora-nixos.iso" | cut -f1)"
 echo "  Toolbox:     updated"
 echo "  Repo:        updated"
+echo "  OAuth token: $([[ -n "${OAUTH_TOKEN_ARG:-}" ]] && echo "stored" || echo "NOT SET — pass token as 2nd arg")"
 echo "  Credentials: $([ -f "$PERSIST_IMG" ] && echo "copied" || echo "skipped")"
 df -h "$USB_MNT" | awk 'NR==2{print "  Free:        " $4}'
 echo ""
