@@ -1,0 +1,1 @@
+[[ $# -eq 2 ]] && exiftool -Comment="`qit $1`;"$2 $1

@@ -49,5 +49,6 @@
     yarn
     gawk
     dmidecode
+    iotop
   ];
 }

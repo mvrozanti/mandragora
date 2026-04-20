@@ -15,6 +15,7 @@ let
     (pkgs.python3.pkgs.toPythonModule pkgs.rivalcfg)
   ]);
   lightEnv = pkgs.python3.withPackages (ps: with ps; [ requests numpy ]);
+  walToRgbEnv = pkgs.python3.withPackages (ps: with ps; [ openrgb-python ]);
 in
 {
   imports = [
@@ -210,6 +211,35 @@ in
     (pkgs.writeShellScriptBin "light" ''exec ${lightEnv}/bin/python3 ${../../.local/bin/light.py} "$@"'')
     yad
     (pkgs.writeShellScriptBin "screenshot-window" (builtins.readFile ../../.local/bin/screenshot-window.sh))
+
+    (pkgs.writeShellScriptBin "ait" (builtins.readFile ../../.local/bin/ait.sh))
+    (pkgs.writeShellScriptBin "am" (builtins.readFile ../../.local/bin/am.sh))
+    (pkgs.writeShellScriptBin "bonsai" (builtins.readFile ../../.local/bin/bonsai.sh))
+    (pkgs.writeShellScriptBin "eit" (builtins.readFile ../../.local/bin/eit.sh))
+    (pkgs.writeShellScriptBin "filedropper" (builtins.readFile ../../.local/bin/filedropper.sh))
+    (pkgs.writeShellScriptBin "imap-notify" (builtins.readFile ../../.local/bin/imap-notify.sh))
+    (pkgs.writeShellScriptBin "lf-ueberzug" (builtins.readFile ../../.local/bin/lf-ueberzug.sh))
+    (pkgs.writeShellScriptBin "make-lf-aliases" (builtins.readFile ../../.local/bin/make-lf-aliases.sh))
+    (pkgs.writeShellScriptBin "mbsync-notify" (builtins.readFile ../../.local/bin/mbsync-notify.sh))
+    (pkgs.writeShellScriptBin "mvnexec" (builtins.readFile ../../.local/bin/mvnexec.sh))
+    (pkgs.writeShellScriptBin "pentr" (builtins.readFile ../../.local/bin/pentr.sh))
+    (pkgs.writeShellScriptBin "qit" (builtins.readFile ../../.local/bin/qit.sh))
+    (pkgs.writeShellScriptBin "shfthue" (builtins.readFile ../../.local/bin/shfthue.sh))
+    (pkgs.writeShellScriptBin "sit" (builtins.readFile ../../.local/bin/sit.sh))
+
+    (pkgs.writeShellScriptBin "health-check" (builtins.readFile ../../.local/bin/health-check.sh))
+    (pkgs.writeShellScriptBin "theme-engine" (builtins.readFile ../../.local/bin/theme-engine.sh))
+    (pkgs.writeShellScriptBin "gemma" ''exec ${pkgs.python3}/bin/python3 ${../../.local/bin/gemma.py} "$@"'')
+    (pkgs.writeShellScriptBin "wal-to-rgb" ''exec ${walToRgbEnv}/bin/python3 ${../../.local/bin/wal-to-rgb.py} "$@"'')
+    (pkgs.writeShellScriptBin "strays" (
+      builtins.replaceStrings ["@VAULT@" "@USER_HOME@"] ["/persistent" "/home/m"]
+        (builtins.readFile ../../.local/bin/strays.sh)
+    ))
+
+    (pkgs.writeShellScriptBin "center-window" (builtins.readFile ../../.local/bin/center-window.sh))
+    (pkgs.writeShellScriptBin "cycle-kbd-layouts" (builtins.readFile ../../.local/bin/cycle-kbd-layouts.sh))
+    (pkgs.writeShellScriptBin "resize-window" (builtins.readFile ../../.local/bin/resize-window.sh))
+    (pkgs.writeShellScriptBin "scratchpad" (builtins.readFile ../../.local/bin/scratchpad.sh))
   ];
 
   home.file.".local/bin/resty".source = ../../.local/bin/resty;
