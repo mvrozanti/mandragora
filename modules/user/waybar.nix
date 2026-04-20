@@ -3,18 +3,111 @@
 {
   programs.waybar = {
     enable = true;
+    style = builtins.readFile ../../snippets/waybar-style.css;
     settings = {
       mainBar = {
         layer = "top";
-        position = "top";
-        height = 30;
+        position = "bottom";
+        height = 34;
+        spacing = 0;
+
         modules-left = [ "hyprland/workspaces" ];
-        modules-center = [ "hyprland/window" ];
-        modules-right = [ "network" "pulseaudio" "clock" ];
-        # Dotfile Translation: Add converted polybar logic here
+        modules-center = [ "mpd" ];
+        modules-right = [ "pulseaudio" "disk" "memory" "temperature" "cpu" "network" "clock" "tray" ];
+
+        "hyprland/workspaces" = {
+          format = "{icon}";
+          format-icons = {
+            "1" = "";
+            "2" = "";
+            "3" = "";
+            "4" = "";
+            "5" = "";
+            "6" = "";
+            "8" = "";
+            "9" = "";
+            "15" = "";
+            "17" = "";
+            "27" = "";
+            "41" = "";
+            default = "";
+          };
+          persistent-workspaces = {
+            "1" = [];
+            "2" = [];
+            "3" = [];
+          };
+        };
+
+        mpd = {
+          format = "  {title} {stateIcon}";
+          format-stopped = "";
+          format-disconnected = "";
+          state-icons = {
+            playing = "";
+            paused = "";
+          };
+          tooltip-format = "{artist} — {album} ({elapsedTime:%M:%S}/{totalTime:%M:%S})";
+          on-click = "mpc toggle";
+          on-click-right = "kitty --class ncmpcpp -o close_on_child_death=yes -e ncmpcpp";
+          on-scroll-up = "mpc next";
+          on-scroll-down = "mpc prev";
+        };
+
+        pulseaudio = {
+          format = "{icon} {volume}%";
+          format-muted = " muted";
+          format-icons = {
+            default = [ "" "" "" ];
+          };
+          on-click = "pamixer -t";
+          on-scroll-up = "pamixer -i 2";
+          on-scroll-down = "pamixer -d 2";
+          on-click-right = "pavucontrol";
+        };
+
+        disk = {
+          format = " {percentage_free}%";
+          path = "/";
+          interval = 30;
+        };
+
+        memory = {
+          format = " {percentage}%";
+          interval = 5;
+          tooltip-format = "{used:0.1f}G / {total:0.1f}G";
+        };
+
+        temperature = {
+          critical-threshold = 85;
+          format = " {temperatureC}°";
+          hwmon-path-abs = "/sys/devices/pci0000:00/0000:00:18.3/hwmon";
+          input-filename = "temp1_input";
+        };
+
+        cpu = {
+          format = " {usage}%";
+          interval = 5;
+        };
+
+        network = {
+          format-ethernet = "↑{bandwidthUpBits} ↓{bandwidthDownBits}";
+          format-disconnected = "disconnected";
+          tooltip-format = "{ifname}: {ipaddr}/{cidr}";
+          interval = 2;
+        };
+
+        clock = {
+          format = " {:%H:%M:%S}";
+          format-alt = " {:%Y-%m-%d %H:%M}";
+          interval = 1;
+          tooltip-format = "<tt>{calendar}</tt>";
+        };
+
+        tray = {
+          spacing = 8;
+        };
       };
     };
-    # CSS styling would be injected or included here
-    # style = "...";
   };
 }
