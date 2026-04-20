@@ -1,0 +1,20 @@
+#!/bin/sh
+while read file; do
+    case "$1" in
+    "y")
+        ic "$file"
+        notify-send 'Copied to clipboard'
+        ;;
+    "w")
+        setbg "$file"
+        ;;
+    "p")
+        realpath "$file" | wl-copy
+        notify-send 'Copied path to clipboard'
+        ;;
+    "r")
+        name="$(rofi -dmenu -p "rename $file to: ")" 2>/dev/null
+        [ -n "$name" ] && mv "$file" "$name"
+        ;;
+    esac
+done
