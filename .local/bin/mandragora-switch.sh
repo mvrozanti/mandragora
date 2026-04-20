@@ -13,8 +13,8 @@ if [ -z "$DIFF" ]; then
   echo "==> No uncommitted changes."
 fi
 
-if [ -n "$1" ]; then
-  MSG="$1"
+if [ -n "$*" ]; then
+  MSG="$*"
 else
   TMPFILE=$(mktemp /tmp/mandragora-commit-XXXXXX)
   trap 'rm -f "$TMPFILE"' EXIT
