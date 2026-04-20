@@ -1,0 +1,10 @@
+--- a/keyledsd/src/tools/XWindow.cxx
++++ b/keyledsd/src/tools/XWindow.cxx
+@@ -272,6 +272,9 @@ std::string Device::getProperty(Atom atom, Atom type) const
+ {
++    if (atom == None) {
++        return std::string();
++    }
+     Atom actualType;
+     int actualFormat;
+     unsigned long nItems, bytesAfter;
