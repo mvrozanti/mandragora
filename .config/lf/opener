@@ -35,8 +35,8 @@ case "$mime" in
                 fi
             fi
         fi
-        
-        ;; 
+        setsid sxiv -ab -- "$file" >/dev/null 2>&1 &
+        ;;
     video/*|audio/*)
         setsid mpv -- "$file" >/dev/null 2>&1 &
         ;;
