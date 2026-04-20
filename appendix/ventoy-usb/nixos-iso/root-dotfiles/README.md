@@ -101,20 +101,66 @@ Flakes and nix-command are enabled globally. These just work:
 
 ## Troubleshooting
 
-### "command not found: claude" (or gemini/qwen)
-AI tools auto-install on first boot with internet. Manual install:
+### Full diagnostic dump
 
+    mandragora-debug
+
+Dumps shell, mounts, credentials, services, dmesg to screen and /tmp/mandragora-debug.log.
+
+### Nothing under /mnt/ventoy
+
+The USB exFAT partition should auto-mount. If empty:
+
+    ls /dev/disk/by-label/                     # is "Ventoy" listed?
+    journalctl -u mnt-ventoy.automount --no-pager
+    mount -L Ventoy /mnt/ventoy                # manual mount
+    ls /mnt/ventoy/
+
+If "Ventoy" label is missing, find the partition manually:
+
+    lsblk -f                                   # look for exfat partition
+    mount /dev/sdX1 /mnt/ventoy                # mount it by device
+
+### /persist not mounted (no credentials, no claude)
+
+Persistence requires /mnt/ventoy to be mounted first:
+
+    mount -L Ventoy /mnt/ventoy                # mount USB if needed
+    ls /mnt/ventoy/persistence/                # nixos_persistence.dat must exist
+    losetup --find --show /mnt/ventoy/persistence/nixos_persistence.dat
+    mkdir -p /persist && mount /dev/loopN /persist   # use loop device from above
+    ls /persist/                               # should have: claude/ ssh/ npm-global/
+
+Then wire credentials and SSH into your home:
+
+    ln -sfn /persist/npm-global ~/.npm-global
+    [ -f /persist/claude/.credentials.json ] && mkdir -p ~/.claude && \
+      ln -sfn /persist/claude/.credentials.json ~/.claude/.credentials.json
+    [ -d /persist/ssh ] && mkdir -p ~/.ssh && ln -sfn /persist/ssh/* ~/.ssh/
+
+### "command not found: claude" (or gemini/qwen)
+
+AI tools install to /persist/npm-global on first boot with internet.
+If persist isn't mounted, fix that first (above). Then:
+
+    export npm_config_prefix="/persist/npm-global"
+    export PATH="/persist/npm-global/bin:$PATH"
     npm install -g @anthropic-ai/claude-code @google/gemini-cli @qwen-code/qwen-code
 
-### Ventoy partition not mounted
+### Claude won't authenticate (no browser)
 
-    mount -L Ventoy /mnt/ventoy
+Credentials must be pre-loaded from the host machine via update-usb.sh.
+Check if they're in the persist image:
+
+    ls -la /persist/claude/.credentials.json
+    ls -la ~/.claude/.credentials.json         # should be symlink to above
 
 ### Can't write to Ventoy partition
 
     mount -o remount,rw /mnt/ventoy
 
 ### nixos-install fails with "flake not found"
+
 Make sure format-drive.sh copied the flake, or clone manually:
 
     git clone <your-repo-url> /mnt/etc/nixos/mandragora-nixos

@@ -2,245 +2,170 @@
 
 let
   smart-launch = pkgs.writeShellScript "smart-launch" (builtins.readFile ../../snippets/smart-launch.sh);
+  rofi-ide-picker = pkgs.writeShellScript "rofi-ide-picker" (builtins.readFile ../../snippets/rofi-ide-picker.sh);
+  rofi-tool-picker = pkgs.writeShellScript "rofi-tool-picker" (builtins.readFile ../../snippets/rofi-tool-picker.sh);
+  rofi-db-picker = pkgs.writeShellScript "rofi-db-picker" (builtins.readFile ../../snippets/rofi-db-picker.sh);
 in
-
 {
   imports = [
-    ./waybar.nix
+    ./zsh.nix
+    ./tmux.nix
+    ./lf.nix
   ];
 
   home.username = "m";
   home.homeDirectory = "/home/m";
-  home.stateVersion = "24.05";
+  home.stateVersion = "23.11";
 
-  home.file.".XCompose".source = ../../snippets/XCompose;
-
-  programs.home-manager.enable = true;
-
-  programs.kitty = {
-    enable = true;
-    settings = {
-      font_family = "IosevkaTerm Nerd Font Mono";
-    };
-  };
-
-  programs.firefox.enable = true;
-
-  home.packages = [
-    (pkgs.writeShellScriptBin "mandragora-switch" (builtins.readFile ../../snippets/mandragora-switch.sh))
+  # Packages that should be installed to the user profile.
+  home.packages = with pkgs; [
+    # Utils
+    ripgrep
+    fd
+    fzf
+    jq
+    bat
+    eza
+    htop
+    btop
+    trash-cli
+    unzip
+    unp
+    atool
+    file
+    tree
+    
+    # Media
+    mpv
+    sxiv
+    zathura
+    imagemagick
+    ffmpegthumbnailer
+    
+    # Tools
+    git
+    gh
+    gh-dash
+    neovim
+    python3
+    zoxide
+    
+    # Custom scripts
+    (pkgs.writeShellScriptBin "smart-launch" (builtins.readFile ../../snippets/smart-launch.sh))
+    (pkgs.writeShellScriptBin "rofi-ide-picker" (builtins.readFile ../../snippets/rofi-ide-picker.sh))
+    (pkgs.writeShellScriptBin "rofi-tool-picker" (builtins.readFile ../../snippets/rofi-tool-picker.sh))
+    (pkgs.writeShellScriptBin "rofi-db-picker" (builtins.readFile ../../snippets/rofi-db-picker.sh))
   ];
 
-  programs.zsh = {
-    enable = true;
-    autosuggestion.enable = true;
-    syntaxHighlighting.enable = true;
-    history = {
-      size = 50000;
-      save = 50000;
-      path = "${config.home.homeDirectory}/.local/state/zsh/history";
-      ignoreDups = true;
-      share = true;
-    };
-    shellAliases = {
-      switch = "mandragora-switch";
-      ll = "ls -lah";
-      la = "ls -A";
-      nix-shell = "nix shell nixpkgs#";
-      rebuild = "mandragora-switch";
-    };
-    initContent = builtins.readFile ../../snippets/zshrc.zsh;
+  # Session Variables
+  home.sessionVariables = {
+    EDITOR = "nvim";
+    VISUAL = "nvim";
+    BROWSER = "firefox";
+    
+    # Cedilla and Accents
+    GTK_IM_MODULE = "cedilla";
+    QT_IM_MODULE = "cedilla";
+    XMODIFIERS = "@im=cedilla";
+    
+    # Global Font Scaling / DPI
+    GDK_DPI_SCALE = "1.0";
+    QT_AUTO_SCREEN_SCALE_FACTOR = "1";
+    QT_ENABLE_HIGHDPI_SCALING = "1";
   };
 
-  programs.hyprlock = {
+  # GTK Configuration
+  gtk = {
     enable = true;
+    font = {
+      name = "Iosevka Nerd Font";
+      size = 11;
+    };
+    theme = {
+      name = "Adwaita-dark";
+      package = pkgs.gnome-themes-extra;
+    };
+  };
+
+  # Kitty Configuration
+  programs.kitty = {
+    enable = true;
+    font = {
+      name = "Iosevka Nerd Font Mono";
+      size = 11.5;
+    };
     settings = {
-      general = {
-        hide_cursor = true;
-        grace = 0;
-      };
-      background = [{
-        monitor = "";
-        path = "screenshot";
-        blur_passes = 3;
-        blur_size = 7;
-      }];
-      input-field = [{
-        monitor = "";
-        size = "200, 50";
-        outline_thickness = 3;
-        outer_color = "rgb(cba6f7)";
-        inner_color = "rgb(20, 20, 20)";
-        font_color = "rgb(220, 220, 220)";
-        fade_on_empty = true;
-        placeholder_text = "";
-        position = "0, -80";
-        halign = "center";
-        valign = "center";
-      }];
+      cursor = "#cccccc";
+      cursor_text_color = "#111111";
+      cursor_shape = "block";
+      scrollback_lines = 2000;
+      url_color = "#0087BD";
+      url_style = "curly";
+      repaint_delay = 16;
+      input_delay = 6;
+      sync_to_monitor = "no";
+      enable_audio_bell = "yes";
+      remember_window_size = "yes";
+      initial_window_width = 640;
+      initial_window_height = 400;
+      window_border_width = "1.0";
+      draw_minimal_borders = "yes";
+      active_border_color = "#00ff00";
+      inactive_border_color = "#cccccc";
+      tab_bar_style = "fade";
+      foreground = "#dddddd";
+      background = "#000";
+      background_opacity = "1.0";
+      allow_remote_control = "yes";
+      listen_on = "unix:@kitty";
+      term = "xterm-kitty";
+    };
+    keybindings = {
+      "ctrl+shift+c" = "copy_to_clipboard";
+      "ctrl+shift+v" = "paste_from_clipboard";
+      "ctrl+shift+s" = "paste_from_selection";
+      "shift+insert" = "paste_from_selection";
+      "ctrl+shift+up" = "scroll_line_up";
+      "ctrl+shift+k" = "scroll_line_up";
+      "ctrl+shift+down" = "scroll_line_down";
+      "ctrl+shift+j" = "scroll_line_down";
+      "ctrl+shift+page_up" = "scroll_page_up";
+      "ctrl+shift+page_down" = "scroll_page_down";
+      "ctrl+shift+home" = "scroll_home";
+      "ctrl+shift+end" = "scroll_end";
+      "ctrl+shift+h" = "show_scrollback";
+      "ctrl+alt+k" = "send_text all \\x1b[A";
+      "ctrl+alt+j" = "send_text all \\x1b[B";
+      "ctrl+shift+n" = "new_os_window";
+      "ctrl+shift+]" = "next_window";
+      "ctrl+shift+[" = "previous_window";
+      "ctrl+shift+f" = "move_window_forward";
+      "ctrl+shift+b" = "move_window_backward";
+      "ctrl+shift+right" = "next_tab";
+      "ctrl+shift+left" = "previous_tab";
+      "ctrl+shift+t" = "new_tab";
+      "ctrl+shift+l" = "next_layout";
+      "ctrl+k" = "change_font_size all +1.0";
+      "ctrl+j" = "change_font_size all -1.0";
+      "ctrl+0" = "change_font_size all 0";
     };
   };
 
-  services.hypridle = {
-    enable = true;
-    settings = {
-      general = {
-        lock_cmd = "hyprlock";
-        before_sleep_cmd = "hyprlock";
-        after_sleep_cmd = "hyprctl dispatch dpms on";
-        ignore_dbus_inhibit = false;
-      };
-      listener = [
-        {
-          timeout = 300;
-          on-timeout = "hyprlock";
-        }
-        {
-          timeout = 600;
-          on-timeout = "hyprctl dispatch dpms off";
-          on-resume = "hyprctl dispatch dpms on";
-        }
-      ];
-    };
-  };
-
-  programs.ncmpcpp = {
-    enable = true;
-    settings = {
-      mpd_connection_timeout = "5";
-      progressbar_look = "=>-";
-      user_interface = "alternative";
-    };
-  };
-
-  services.mpd = {
-    enable = true;
-    musicDirectory = "${config.home.homeDirectory}/Music";
-    extraConfig = builtins.readFile ../../snippets/mpd.conf;
-  };
-
+  # Hyprland
   wayland.windowManager.hyprland = {
     enable = true;
-
-    settings = {
-      monitor = [ ", preferred, auto, 1" ];
-
-      general = {
-        border_size = 2;
-        gaps_in = 6;
-        gaps_out = 12;
-        layout = "dwindle";
-        "col.active_border" = "rgb(cba6f7)";
-        "col.inactive_border" = "rgb(313244)";
-      };
-
-      input = {
-        kb_layout = "us";
-        kb_variant = "intl";
-        repeat_delay = 200;
-        repeat_rate = 30;
-        follow_mouse = 1;
-        sensitivity = 0;
-      };
-
-      dwindle = {
-        pseudotile = true;
-        preserve_split = true;
-      };
-
-      decoration = {
-        rounding = 8;
-        blur = {
-          enabled = true;
-          size = 5;
-          passes = 2;
-        };
-        shadow = {
-          enabled = true;
-          range = 10;
-        };
-      };
-
-      animations = {
-        enabled = true;
-        bezier = [ "snappy, 0.05, 0.9, 0.1, 1.0" ];
-        animation = [
-          "windows, 1, 4, snappy"
-          "windowsOut, 1, 4, snappy"
-          "fade, 1, 4, snappy"
-          "workspaces, 1, 3, snappy"
-        ];
-      };
-
-      "exec-once" = [ "waybar" ];
-
-      bind = [
-        "SUPER, Return, exec, kitty"
-        "SUPER, Q, killactive,"
-        "SUPER, F, fullscreen,"
-        "SUPER, space, togglefloating,"
-        "SUPER, E, togglesplit,"
-        "SUPER, S, pin,"
-        "SUPER, R, exec, rofi -show drun"
-
-        "SUPER, 1, exec, ${smart-launch} firefox firefox"
-        "SUPER, 2, exec, ${smart-launch} lf 'kitty --class lf -e lf'"
-        "SUPER, 3, exec, kitty"
-        "SUPER, 4, exec, ${smart-launch} neomutt 'kitty --class neomutt -e neomutt'"
-        "SUPER, 5, exec, ${smart-launch} org.telegram.desktop telegram-desktop"
-        "SUPER, W, exec, ${smart-launch} ncmpcpp 'kitty --class ncmpcpp -e ncmpcpp'"
-        "SUPER, O, exec, ${smart-launch} obsidian obsidian"
-        "SUPER, X, exec, ${smart-launch} discord discord"
-
-        "SUPER, H, movefocus, l"
-        "SUPER, J, movefocus, d"
-        "SUPER, K, movefocus, u"
-        "SUPER, L, movefocus, r"
-
-        "SUPER SHIFT, H, movewindow, l"
-        "SUPER SHIFT, J, movewindow, d"
-        "SUPER SHIFT, K, movewindow, u"
-        "SUPER SHIFT, L, movewindow, r"
-
-        "SUPER CTRL, H, resizeactive, -20 0"
-        "SUPER CTRL, J, resizeactive, 0 20"
-        "SUPER CTRL, K, resizeactive, 0 -20"
-        "SUPER CTRL, L, resizeactive, 20 0"
-
-        "SUPER SHIFT, A, workspace, e-1"
-        "SUPER SHIFT, S, workspace, e+1"
-        "ALT, Tab, workspace, previous"
-        "SUPER, grave, workspace, e+1"
-
-        ", XF86AudioRaiseVolume, exec, pamixer -i 5"
-        ", XF86AudioLowerVolume, exec, pamixer -d 5"
-        ", XF86AudioMute, exec, pamixer -t"
-        ", XF86AudioPlay, exec, playerctl play-pause"
-        ", XF86AudioNext, exec, playerctl next"
-        ", XF86AudioPrev, exec, playerctl previous"
-
-        ''SUPER, Print, exec, grim -g "$(slurp)" - | wl-copy''
-        "SUPER, Home, exec, hyprlock"
-        "SUPER, BackSpace, exec, hyprctl dispatch dpms off"
-        "SUPER, F5, exec, kitty --class rebuild -e mandragora-switch"
-      ];
-
-      bindm = [
-        "SUPER, mouse:272, movewindow"
-        "SUPER, mouse:273, resizewindow"
-      ];
-
-      windowrule = [
-        "float, class:^(rebuild)$"
-        "size 900 500, class:^(rebuild)$"
-        "center, class:^(rebuild)$"
-        "workspace 2, class:^(lf)$"
-        "workspace 4, class:^(neomutt)$"
-        "workspace 5, class:^(org.telegram.desktop)$"
-        "workspace 8, class:^(jetbrains-.*)$"
-        "workspace 8, class:^(code)$"
-        "workspace 9, class:^(Slack)$"
-        "float, class:^(mpv)$"
-      ];
-    };
+    extraConfig = builtins.readFile ../../snippets/hyprland.conf;
   };
+
+  # Services
+  services.mako.enable = true;
+  
+  # Programs
+  programs.home-manager.enable = true;
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+  };
+
+  home.file.".XCompose".source = ../../snippets/XCompose;
 }
