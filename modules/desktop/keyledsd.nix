@@ -1,8 +1,12 @@
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 
 let
   keyleds-patched = pkgs.keyleds.overrideAttrs (old: {
     patches = (old.patches or []) ++ [ ./keyleds-xwayland.patch ];
+    postInstall = (old.postInstall or "") + ''
+      cp ${pkgs.writeText "lightning.lua" (builtins.readFile ../../snippets/lightning.lua)} \
+         $out/share/keyledsd/effects/lightning.lua
+    '';
   });
 in
 {
@@ -17,7 +21,7 @@ in
     after = [ "graphical-session.target" ];
     serviceConfig = {
       ExecStartPre = "${pkgs.openrgb}/bin/openrgb --device 0 --mode direct --color 000000";
-      ExecStart = "${keyleds-patched}/bin/keyledsd -m ${keyleds-patched}/lib/keyledsd -m ${keyleds-patched}/share/keyledsd/effects";
+      ExecStart = "${keyleds-patched}/bin/keyledsd -m ${keyleds-patched}/lib/keyledsd";
       Restart = "on-failure";
       RestartSec = "3s";
     };
