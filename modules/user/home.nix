@@ -240,7 +240,7 @@ in
       tab_bar_style = "fade";
       foreground = "#dddddd";
       background = "#000";
-      background_opacity = "1.0";
+      background_opacity = "0.88";
       allow_remote_control = "yes";
       listen_on = "unix:@kitty";
       term = "xterm-kitty";
