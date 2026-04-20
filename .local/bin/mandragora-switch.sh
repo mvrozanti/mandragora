@@ -35,18 +35,23 @@ if [ -z "$MSG" ]; then
   exit 0
 fi
 
-git commit -m "$MSG"
+if [ "$MSG" = "!" ]; then
+  echo "==> Skipping commit."
+  git restore --staged .
+else
+  git commit -m "$MSG"
+fi
 
 echo ""
 echo "==> Building..."
 if sudo nixos-rebuild switch --flake "$FLAKE#mandragora-desktop" 2>&1 | tee /tmp/nixos-rebuild.log | grep --line-buffered -E "^(error:|building|activating|warning:)"; then
   echo ""
   echo "==> Switch successful. Pushing..."
-  git push
+  [ "$MSG" != "!" ] && git push
   echo "==> Done."
 else
   echo ""
-  echo "==> FAILED. Rolling back commit. Full log: /tmp/nixos-rebuild.log" >&2
-  git reset HEAD~1
+  echo "==> FAILED. Full log: /tmp/nixos-rebuild.log" >&2
+  [ "$MSG" != "!" ] && git reset HEAD~1
   exit 1
 fi
