@@ -5,6 +5,11 @@ let
   rofi-ide-picker = pkgs.writeShellScript "rofi-ide-picker" (builtins.readFile ../../.local/bin/rofi-ide-picker.sh);
   rofi-tool-picker = pkgs.writeShellScript "rofi-tool-picker" (builtins.readFile ../../.local/bin/rofi-tool-picker.sh);
   rofi-db-picker = pkgs.writeShellScript "rofi-db-picker" (builtins.readFile ../../.local/bin/rofi-db-picker.sh);
+  cycle-audio-output = pkgs.writeShellScript "cycle-audio-output" (builtins.readFile ../../.local/bin/cycle-audio-output.sh);
+  window-to-corner = pkgs.writeShellScript "window-to-corner" (builtins.readFile ../../.local/bin/window-to-corner.sh);
+
+  pyDictEnv = pkgs.python3.withPackages (ps: with ps; [ requests beautifulsoup4 lxml ]);
+  pySinonEnv = pkgs.python3.withPackages (ps: with ps; [ requests beautifulsoup4 lxml unidecode ]);
 in
 {
   imports = [
@@ -37,7 +42,10 @@ in
     sxiv
     zathura
     imagemagick
+    ffmpeg
     ffmpegthumbnailer
+    psmisc
+    awww
 
     git
     gh
@@ -52,7 +60,31 @@ in
     (pkgs.writeShellScriptBin "rofi-ide-picker" (builtins.readFile ../../.local/bin/rofi-ide-picker.sh))
     (pkgs.writeShellScriptBin "rofi-tool-picker" (builtins.readFile ../../.local/bin/rofi-tool-picker.sh))
     (pkgs.writeShellScriptBin "rofi-db-picker" (builtins.readFile ../../.local/bin/rofi-db-picker.sh))
+    (pkgs.writeShellScriptBin "cycle-audio-output" (builtins.readFile ../../.local/bin/cycle-audio-output.sh))
+    (pkgs.writeShellScriptBin "window-to-corner" (builtins.readFile ../../.local/bin/window-to-corner.sh))
+    (pkgs.writeShellScriptBin "compv" (builtins.readFile ../../.local/bin/compv.sh))
+    (pkgs.writeShellScriptBin "ic" (builtins.readFile ../../.local/bin/ic.sh))
+    (pkgs.writeShellScriptBin "setbg" (builtins.readFile ../../.local/bin/setbg.sh))
+    (pkgs.writeShellScriptBin "make-disk-space" (builtins.readFile ../../.local/bin/make-disk-space.sh))
+    (pkgs.writeShellScriptBin "gmp" (builtins.readFile ../../.local/bin/gmp.sh))
+    (pkgs.writeShellScriptBin "mkv2gif" (builtins.readFile ../../.local/bin/mkv2gif.sh))
+    (pkgs.writeShellScriptBin "mov2gif" (builtins.readFile ../../.local/bin/mov2gif.sh))
+    (pkgs.writeShellScriptBin "mp42gif" (builtins.readFile ../../.local/bin/mp42gif.sh))
+    (pkgs.writeShellScriptBin "roman" (builtins.readFile ../../.local/bin/roman.sh))
+    (pkgs.writeShellScriptBin "lipsum" (builtins.readFile ../../.local/bin/lipsum.sh))
+    (pkgs.writeShellScriptBin "wiki" (builtins.readFile ../../.local/bin/wiki.sh))
+    (pkgs.writeShellScriptBin "after" (builtins.readFile ../../.local/bin/after.sh))
+    (pkgs.writeShellScriptBin "are-processes-related" (builtins.readFile ../../.local/bin/are-processes-related.sh))
+    (pkgs.writeShellScriptBin "explode_tmux" (builtins.readFile ../../.local/bin/explode_tmux.sh))
+    (pkgs.writeShellScriptBin "implode_tmux" (builtins.readFile ../../.local/bin/implode_tmux.sh))
+    (pkgs.writeShellScriptBin "superscript" ''exec ${pkgs.python3}/bin/python3 ${../../.local/bin/superscript.py} "$@"'')
+    (pkgs.writeShellScriptBin "vaporscript" ''exec ${pkgs.python3}/bin/python3 ${../../.local/bin/vaporscript.py} "$@"'')
+    (pkgs.writeShellScriptBin "cursivescript" ''exec ${pkgs.python3}/bin/python3 ${../../.local/bin/cursivescript.py} "$@"'')
+    (pkgs.writeShellScriptBin "dict" ''exec ${pyDictEnv}/bin/python3 ${../../.local/bin/dict.py} "$@"'')
+    (pkgs.writeShellScriptBin "sinon" ''exec ${pySinonEnv}/bin/python3 ${../../.local/bin/sinon.py} "$@"'')
   ];
+
+  home.file.".local/bin/resty".source = ../../.local/bin/resty;
 
   home.sessionVariables = {
     EDITOR = "nvim";
@@ -69,7 +101,7 @@ in
   gtk = {
     enable = true;
     font = {
-      name = "Iosevka Nerd Font";
+      name = "Noto Sans";
       size = 11;
     };
     theme = {
@@ -143,10 +175,23 @@ in
 
   wayland.windowManager.hyprland = {
     enable = true;
+    settings = {
+      exec-once = [
+        "awww-daemon"
+        "waybar"
+        "wl-paste --watch cliphist store"
+        "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
+      ];
+    };
     extraConfig = builtins.readFile ../../.config/hypr/hyprland.conf;
   };
 
   services.mako.enable = true;
+
+  programs.firefox = {
+    enable = true;
+    nativeMessagingHosts = [ pkgs.tridactyl-native ];
+  };
 
   programs.home-manager.enable = true;
   programs.direnv = {
