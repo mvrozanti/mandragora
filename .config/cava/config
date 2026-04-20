@@ -1,0 +1,24 @@
+[general]
+framerate = 120
+sensitivity = 110
+bars = 0
+bar_width = 1
+bar_spacing = 0
+
+[smoothing]
+gravity = 200
+
+[output]
+data_format = binary
+
+[color]
+gradient = 1
+gradient_count = 8
+gradient_color_1 = '#0f0f10'
+gradient_color_2 = '#896bff'
+gradient_color_3 = '#9f7fff'
+gradient_color_4 = '#9c83ff'
+gradient_color_5 = '#b2b2ff'
+gradient_color_6 = '#cfbfff'
+gradient_color_7 = '#cfc3ff'
+gradient_color_8 = '#e7e7e7'
