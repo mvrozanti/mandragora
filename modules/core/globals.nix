@@ -24,7 +24,7 @@
     btop
     tree
     jq
-    claude-code
+    # claude-code  # broken in nixpkgs 2.1.116 (cli.js missing), installed via npm
     gemini-cli
     nodejs
     rofi
