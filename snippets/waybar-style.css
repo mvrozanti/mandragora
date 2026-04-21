@@ -66,6 +66,7 @@ tooltip {
 
 #network {
     padding: 0 8px;
+    min-width: 200px;
     border-bottom: 2px solid #f8c456;
 }
 
