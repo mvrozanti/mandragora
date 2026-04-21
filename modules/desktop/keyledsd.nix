@@ -3,6 +3,10 @@
 let
   keyleds-patched = pkgs.keyleds.overrideAttrs (old: {
     patches = (old.patches or []) ++ [ ./keyleds-xwayland.patch ];
+    postInstall = (old.postInstall or "") + ''
+      cp ${pkgs.writeText "lightning.lua" (builtins.readFile ../../snippets/lightning.lua)} \
+         $out/share/keyledsd/effects/lightning.lua
+    '';
   });
 in
 {
