@@ -13,15 +13,15 @@ get_icon() {
   esac
 }
 
-KEY="$OPEN_WEATHER_MAP_KEY"
+KEY_FILE="/run/secrets/openweather/api_key"
 CITY="3448439"
 UNITS="metric"
 
 API="https://api.openweathermap.org/data/2.5"
 
-if [[ -z "$KEY" ]]; then
-  exit 0
-fi
+[[ -r "$KEY_FILE" ]] || exit 0
+KEY=$(cat "$KEY_FILE")
+[[ -z "$KEY" ]] && exit 0
 
 if [[ -n "$CITY" ]]; then
   weather=$(curl -sf "$API/weather?appid=$KEY&id=$CITY&units=$UNITS")

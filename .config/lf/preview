@@ -1,40 +1,31 @@
 #!/bin/sh
-# Images use kitty's Unicode-placeholder mode: icat writes PUA placeholder
-# characters to stdout (captured by lf into the preview pane), kitty renders
-# the image over those cells. When lf later draws text into the same cells,
-# the placeholders vanish and kitty stops rendering the image automatically.
-# No cleaner / APC-delete required.
+# lf previewer. Images/video thumbs are rendered by ueberzugpp (wayland output)
+# as an overlay above kitty — independent of kitty's graphics layer, so no
+# clear-bug to fight. The cleaner sends a "remove" to the same daemon.
 printf '[%s] preview file=%s\n' "$(date +%H:%M:%S.%N)" "$1" >> /tmp/lf-cleaner.log
-
-draw() {
-  kitty +kitten icat \
-    --stdin no \
-    --transfer-mode file \
-    --unicode-placeholder \
-    --place "${width}x${height}@${x}x${y}" \
-    --scale-up \
-    --silent \
-    "$1"
-}
-
-hash() {
-  cache="$HOME/.cache/lf/$(stat --printf '%n\0%i\0%F\0%s\0%W\0%Y' -- "$(readlink -f -- "$1")" | sha256sum | cut -d' ' -f1).jpg"
-}
-
-cache() {
-  if ! [ -f "$cache" ]; then
-    dir="$(dirname -- "$cache")"
-    [ -d "$dir" ] || mkdir -p -- "$dir"
-    "$@"
-  fi
-  draw "$cache"
-}
 
 file="$1"
 width="$2"
 height="$3"
 x="$4"
 y="$5"
+
+show_image() {
+  [ -n "${UEBERZUG_SOCKET:-}" ] || return 1
+  ueberzugpp cmd \
+    -s "$UEBERZUG_SOCKET" \
+    -a add \
+    -i lf-preview \
+    -x "$x" \
+    -y "$y" \
+    --max-width "$width" \
+    --max-height "$height" \
+    -f "$1" 2>>/tmp/lf-cleaner.log
+}
+
+hash() {
+  cache="$HOME/.cache/lf/$(stat --printf '%n\0%i\0%F\0%s\0%W\0%Y' -- "$(readlink -f -- "$1")" | sha256sum | cut -d' ' -f1).jpg"
+}
 
 if [ -d "$file" ]; then
   if command -v tree >/dev/null 2>&1; then
@@ -52,16 +43,24 @@ case "$(file -Lb --mime-type -- "$file")" in
         && [ "$orientation" != Undefined ] \
         && [ "$orientation" != TopLeft ]; then
       hash "$file"
-      cache magick -- "$file[0]" -auto-orient "$cache"
+      if [ ! -f "$cache" ]; then
+        mkdir -p "$(dirname -- "$cache")"
+        magick -- "$file[0]" -auto-orient "$cache"
+      fi
+      show_image "$cache"
     else
-      draw "$file"
+      show_image "$file"
     fi
-    exit 0
+    exit 1
     ;;
   video/*)
     hash "$file"
-    cache ffmpegthumbnailer -i "$file" -o "$cache" -s 0
-    exit 0
+    if [ ! -f "$cache" ]; then
+      mkdir -p "$(dirname -- "$cache")"
+      ffmpegthumbnailer -i "$file" -o "$cache" -s 0 2>/dev/null
+    fi
+    show_image "$cache"
+    exit 1
     ;;
   application/json)
     jq -C . "$file"
