@@ -16,7 +16,6 @@
     ../../modules/desktop/kdeconnect.nix
     ../../modules/desktop/keyledsd.nix
     ../../modules/desktop/openrgb.nix
-    ../../modules/desktop/rgb.nix
     ../../modules/desktop/seafile.nix
     ../../modules/desktop/steam.nix
     ../../modules/user/home-manager.nix

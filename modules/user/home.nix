@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   smart-launch = pkgs.writeShellScript "smart-launch" (builtins.readFile ../../.local/bin/smart-launch.sh);
@@ -186,6 +186,7 @@ in
     zapzap
     tradingview
     openrgb
+    pywal
 
     (pkgs.writeShellScriptBin "smart-launch" (builtins.readFile ../../.local/bin/smart-launch.sh))
     (pkgs.writeShellScriptBin "mandragora-switch" (builtins.readFile ../../.local/bin/mandragora-switch.sh))
@@ -243,7 +244,8 @@ in
     (pkgs.writeShellScriptBin "sit" (builtins.readFile ../../.local/bin/sit.sh))
 
     (pkgs.writeShellScriptBin "health-check" (builtins.readFile ../../.local/bin/health-check.sh))
-    (pkgs.writeShellScriptBin "theme-engine" (builtins.readFile ../../.local/bin/theme-engine.sh))
+    (pkgs.writeShellScriptBin "keyledsd-reload" (builtins.readFile ../../.local/bin/keyledsd-reload.sh))
+    (pkgs.writeShellScriptBin "restore-theme" (builtins.readFile ../../.local/bin/restore-theme.sh))
     (pkgs.writeShellScriptBin "gemma" ''exec ${pkgs.python3}/bin/python3 ${../../.local/bin/gemma.py} "$@"'')
     (pkgs.writeShellScriptBin "wal-to-rgb" ''exec ${walToRgbEnv}/bin/python3 ${../../.local/bin/wal-to-rgb.py} "$@"'')
     (pkgs.writeShellScriptBin "strays" (
@@ -272,6 +274,7 @@ in
     GDK_DPI_SCALE = "1.0";
     QT_AUTO_SCREEN_SCALE_FACTOR = "1";
     QT_ENABLE_HIGHDPI_SCALING = "1";
+    WALLPAPER_DIR = "${config.home.homeDirectory}/Pictures/wllpps";
   };
 
   gtk = {
@@ -454,6 +457,7 @@ in
     settings = {
       exec-once = [
         "awww-daemon"
+        "restore-theme"
         "wl-paste --watch cliphist store"
         "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
         "kdeconnect-indicator"
@@ -586,7 +590,15 @@ in
     source = ../../.config/tridactyl;
     recursive = true;
   };
-  home.file.".config/keyledsd.conf".source = ../../.config/keyledsd/keyledsd.conf;
+  home.file.".config/wal/templates/keyledsd.conf".source = ../../.config/wal/templates/keyledsd.conf;
+  home.file.".config/wal/templates/colors-rofi.rasi".source = ../../.config/wal/templates/colors-rofi.rasi;
+
+  home.activation.seedKeyledsd = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ ! -e "$HOME/.config/keyledsd.conf" ]; then
+      install -Dm644 ${../../.config/keyledsd/keyledsd.conf} "$HOME/.config/keyledsd.conf"
+    fi
+  '';
+
   home.file.".config/sxiv" = {
     source = ../../.config/sxiv;
     recursive = true;
