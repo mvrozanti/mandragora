@@ -8,7 +8,7 @@ echo "Searching for: $IDENTIFIER" >> "$LOG"
 
 # Try to find window by any field matching the identifier
 ID_LOWER=$(echo "$IDENTIFIER" | tr '[:upper:]' '[:lower:]')
-READ=$(hyprctl clients -j | jq -r --arg id "$ID_LOWER" '.[] | select((.class | ascii_downcase) == $id or (.initialClass | ascii_downcase) == $id or (.title | ascii_downcase) == $id or (.initialTitle | ascii_downcase) == $id or (.title | ascii_downcase | contains($id))) | [.address, (.workspace.id | tostring), .class, .title] | @tsv' | head -1)
+READ=$(hyprctl clients -j | jq -r --arg id "$ID_LOWER" '.[] | select((.class | ascii_downcase) == $id or (.initialClass | ascii_downcase) == $id or (.title | ascii_downcase) == $id or (.initialTitle | ascii_downcase) == $id) | [.address, (.workspace.id | tostring), .class, .title] | @tsv' | head -1)
 
 if [ -n "$READ" ]; then
     ADDR=$(echo "$READ" | cut -f1)
