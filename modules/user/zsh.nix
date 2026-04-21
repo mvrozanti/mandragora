@@ -1,8 +1,13 @@
 { config, pkgs, lib, ... }:
 
 let
+  # zX directory shortcuts: edit ./zx-dirs.nix — it's the single source
+  # of truth shared with modules/user/lf.nix. Do not add z<letter> aliases here.
   zxDirs = import ./zx-dirs.nix;
-  zxAliases = lib.mapAttrs' (k: v: lib.nameValuePair "z${k}" v) zxDirs;
+  normalize = v: if builtins.isString v then { path = v; zshPrefix = "z"; } else { zshPrefix = "z"; } // v;
+  zxAliases = lib.mapAttrs' (k: v:
+    let e = normalize v; in lib.nameValuePair "${e.zshPrefix}${k}" e.path
+  ) zxDirs;
 in
 {
   programs.zsh = {

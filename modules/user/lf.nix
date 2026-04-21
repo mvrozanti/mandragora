@@ -1,9 +1,13 @@
 { pkgs, lib, ... }:
 
 let
+  # zX directory shortcuts: edit ./zx-dirs.nix — it's the single source
+  # of truth shared with modules/user/zsh.nix. Do not add z<letter> bindings here.
   zxDirs = import ./zx-dirs.nix;
-  zxDirsForLf = lib.filterAttrs (k: _: k != "/") zxDirs;
-  zxBindings = lib.mapAttrs' (k: v: lib.nameValuePair "z${k}" "cd ${v}") zxDirsForLf;
+  normalize = v: if builtins.isString v then { path = v; lfPrefix = "z"; } else { lfPrefix = "z"; } // v;
+  zxBindings = lib.mapAttrs' (k: v:
+    let e = normalize v; in lib.nameValuePair "${e.lfPrefix}${k}" "cd ${e.path}"
+  ) zxDirs;
 
   lf-ub = pkgs.buildGoModule rec {
     pname = "lf-ub";
@@ -82,8 +86,6 @@ in
     };
 
     keybindings = zxBindings // {
-      "g/" = "cd /";
-
       k = "up";
       j = "down";
       h = "updir";

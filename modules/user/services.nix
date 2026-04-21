@@ -4,6 +4,7 @@
   services.mpd = {
     enable = true;
     musicDirectory = "~/Music";
+    network.listenAddress = "any";
     extraConfig = builtins.readFile ../../.config/mpd/mpd.conf;
   };
 
