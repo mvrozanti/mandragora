@@ -7,10 +7,7 @@ This document identifies the specific, non-obvious failure points in the transit
 - **The Friction:** While `zsh script.sh` works, any hotkey or script that calls another script via `./script.sh` will fail because the kernel cannot find the interpreter defined in the shebang.
 - **The Fix:** We will use `programs.nix-ld.enable = true;` and `services.envfs.enable = true;` to provide an Arch-like compatibility layer, ensuring your 10-year script library doesn't need a total rewrite on Day 1.
 
-## 2. The "Helpful" Leak (Automounting)
-- **Solution:** Explicit `udev` rules (`ENV{UDISKS_IGNORE}="1"`) to hide the drive from the Main profile.
-
-## 3. The "State" & Seafile Integration
+## 2. The "State" & Seafile Integration
 - **Problem:** Seafile manages files, but browser profiles and app states are "impure" state.
 - **Decision:** We will use Btrfs subvolumes for `~/.config` and `~/.local` to persist this state, while the *configuration* of the apps remains in Nix.
 
