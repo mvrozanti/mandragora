@@ -1,5 +1,0 @@
-if [ $(bspc query -D -d --names) = I ]; then \
-    bspc desktop -f last; \
-else \
-    bspc desktop -f I; \
-fi

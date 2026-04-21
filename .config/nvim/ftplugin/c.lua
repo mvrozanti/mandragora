@@ -1,2 +1,0 @@
--- Tagbar auto-open is disabled by default.
--- Use :TagbarToggle to open manually.

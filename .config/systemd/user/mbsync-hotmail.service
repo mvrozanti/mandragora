@@ -1,9 +1,0 @@
-[Unit]
-Description=Sync Hotmail with mbsync
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=oneshot
-Environment=GPG_TTY=/dev/tty
-ExecStart=/usr/bin/mbsync mvrozanti@hotmail.com
