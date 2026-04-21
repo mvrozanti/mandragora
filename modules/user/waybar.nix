@@ -13,7 +13,7 @@
         spacing = 0;
 
         modules-left = [ "hyprland/workspaces" ];
-        modules-center = [ "mpd" ];
+        modules-center = [ "custom/mpd" ];
         modules-right = [ "custom/obs" "custom/volume" "disk" "memory" "temperature" "cpu" "network" "custom/weather" "clock" "tray" ];
 
         "hyprland/workspaces" = {
@@ -37,7 +37,17 @@
           };
         };
 
-        mpd = {
+        "custom/mpd" = {
+          exec = "~/.config/waybar/scripts/mpd-status.sh";
+          return-type = "json";
+          on-click = "mpc toggle";
+          on-click-right = "kitty --class ncmpcpp -o close_on_child_death=yes -e ncmpcpp";
+          on-scroll-up = "mpc next";
+          on-scroll-down = "mpc prev";
+        };
+
+        /* removed: old polling mpd module
+        mpd_disabled = {
           format = "  {title} {stateIcon}";
           format-stopped = "";
           format-disconnected = "";
@@ -50,7 +60,7 @@
           on-click-right = "kitty --class ncmpcpp -o close_on_child_death=yes -e ncmpcpp";
           on-scroll-up = "mpc next";
           on-scroll-down = "mpc prev";
-        };
+        }; */
 
         "custom/volume" = {
           exec = "~/.config/waybar/scripts/volume-ramp.sh";
