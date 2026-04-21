@@ -152,4 +152,6 @@ in
       set cleaner ${cleaner}/bin/lf-cleaner
     '';
   };
+
+  xdg.configFile."lf/icons".source = ../../.config/lf/icons;
 }
