@@ -78,7 +78,7 @@ in
     zoxide
     gnupg
 
-    ncmpcpp
+    (ncmpcpp.override { visualizerSupport = true; })
 
     gdb
     go
