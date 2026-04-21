@@ -3,6 +3,20 @@
 {
   networking.hostName = "mandragora";
 
+  networking.useDHCP = false;
+  networking.interfaces.enp8s0 = {
+    useDHCP = false;
+    ipv4.addresses = [{ address = "192.168.0.27"; prefixLength = 24; }];
+    tempAddress = "default";
+  };
+  networking.interfaces.wlp7s0.useDHCP = true;
+  networking.defaultGateway = "192.168.0.1";
+
+  boot.kernel.sysctl = {
+    "net.ipv6.conf.enp8s0.accept_ra" = 2;
+    "net.ipv6.conf.enp8s0.autoconf" = 1;
+  };
+
   users.users.m = {
     isNormalUser = true;
     description = "Mandragora Primary User";
