@@ -8,7 +8,7 @@
 
   boot.kernelPackages = pkgs.linuxPackages_zen;
 
-  boot.kernelParams = [ "usbcore.autosuspend=-1" "usbcore.old_scheme_first=1" "acpi_enforce_resources=lax" ];
+  boot.kernelParams = [ "i2c_piix4.force=1"  "usbcore.autosuspend=-1" "usbcore.old_scheme_first=1" "acpi_enforce_resources=lax" ];
 
   boot.blacklistedKernelModules = [ "sp5100_tco" ];
 
