@@ -1,10 +1,5 @@
 #!/bin/sh
-printf '[%s] cleaner args=%s\n' "$(date +%H:%M:%S.%N)" "$*" >> /tmp/lf-cleaner.log
-# Clear all kitty images: a=d (delete), d=A (all visible placements + free storage).
-# Matches exactly what `kitty +kitten icat --clear` emits, but sent straight to
-# the tty without spawning a kitten subprocess — avoids races where lf draws
-# the next preview before the kitten has finished clearing.
-printf '\033_Ga=d,d=A\033\\' >/dev/tty
-rc=$?
-printf '[%s] clear rc=%s\n' "$(date +%H:%M:%S.%N)" "$rc" >> /tmp/lf-cleaner.log
+# No-op: images are rendered via kitty's Unicode-placeholder mode, so replacing
+# the placeholder cells with text (which lf does on its next preview) removes
+# the image automatically. No graphics-protocol clear needed.
 exit 0

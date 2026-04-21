@@ -18,14 +18,21 @@ def from_hex(h):
     return RGBColor(int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
 
 
-def is_keyboard(device):
+def is_owned_elsewhere(device):
+    # keyledsd owns the keyboard; hid-wrapper (rivalcfg) owns steelseries mice
     try:
         if device.type == DeviceType.KEYBOARD:
             return True
     except Exception:
         pass
     name = (device.name or "").lower()
-    return "keyboard" in name or "logitech" in name or "g910" in name
+    return (
+        "keyboard" in name
+        or "logitech" in name
+        or "g910" in name
+        or "steelseries" in name
+        or "rival" in name
+    )
 
 
 try:
@@ -34,8 +41,8 @@ except Exception as exc:
     raise SystemExit(f"wal-to-rgb: cannot reach openrgb daemon: {exc}")
 
 for idx, device in enumerate(client.devices):
-    if is_keyboard(device):
-        continue  # keyledsd owns the keyboard; two daemons fight otherwise
+    if is_owned_elsewhere(device):
+        continue
     color = from_hex(slots[idx % len(slots)])
     for mode in ("Direct", "direct"):
         try:

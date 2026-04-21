@@ -1,14 +1,20 @@
 #!/bin/sh
+# Images use kitty's Unicode-placeholder mode: icat writes PUA placeholder
+# characters to stdout (captured by lf into the preview pane), kitty renders
+# the image over those cells. When lf later draws text into the same cells,
+# the placeholders vanish and kitty stops rendering the image automatically.
+# No cleaner / APC-delete required.
+printf '[%s] preview file=%s\n' "$(date +%H:%M:%S.%N)" "$1" >> /tmp/lf-cleaner.log
+
 draw() {
-  printf '[%s] preview-draw file=%s\n' "$(date +%H:%M:%S.%N)" "$1" >> /tmp/lf-cleaner.log
   kitty +kitten icat \
     --stdin no \
     --transfer-mode file \
+    --unicode-placeholder \
     --place "${width}x${height}@${x}x${y}" \
     --scale-up \
     --silent \
-    "$1" </dev/tty >/dev/tty
-  exit 1
+    "$1"
 }
 
 hash() {
@@ -30,13 +36,7 @@ height="$3"
 x="$4"
 y="$5"
 
-# Emitted at the top of every non-image preview so kitty deletes any prior
-# inline image before rendering text. Going through lf's stdout pipe avoids
-# the /dev/tty race we hit with the cleaner.
-clear_kitty_images() { printf '\033_Ga=d,d=A\033\\'; }
-
 if [ -d "$file" ]; then
-  clear_kitty_images
   if command -v tree >/dev/null 2>&1; then
     tree -a -C -L 2 --dirsfirst "$file" 2>/dev/null | head -$((height - 2))
   else
@@ -47,7 +47,7 @@ fi
 
 case "$(file -Lb --mime-type -- "$file")" in
   image/*)
-    orientation="$(magick identify -format '%[orientation]\n' -- "$file[0]")"
+    orientation="$(magick identify -format '%[orientation]\n' -- "$file[0]" 2>/dev/null)"
     if [ -n "$orientation" ] \
         && [ "$orientation" != Undefined ] \
         && [ "$orientation" != TopLeft ]; then
@@ -56,23 +56,22 @@ case "$(file -Lb --mime-type -- "$file")" in
     else
       draw "$file"
     fi
+    exit 0
     ;;
   video/*)
     hash "$file"
     cache ffmpegthumbnailer -i "$file" -o "$cache" -s 0
+    exit 0
     ;;
   application/json)
-    clear_kitty_images
     jq -C . "$file"
     exit 0
     ;;
   text/*)
-    clear_kitty_images
     fold -s -w "$width" "$file" | head -n "$height"
     exit 0
     ;;
 esac
 
-clear_kitty_images
 file -Lb -- "$file" | fold -s -w "$width"
 exit 0
