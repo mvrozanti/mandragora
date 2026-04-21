@@ -80,6 +80,8 @@ bindkey '^b' backward-word
 bindkey '^w' forward-word
 bindkey '^h' backward-delete-char
 bindkey '^[[127;5u' backward-kill-word
+bindkey '^[[127;3u' backward-kill-word
+bindkey '^[^?' backward-kill-word
 bindkey '^H' backward-kill-word
 bindkey '^[^l' delete-word
 bindkey '^[^k' up-history

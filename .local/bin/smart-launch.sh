@@ -22,4 +22,14 @@ if [ -n "$READ" ]; then
 else
     echo "Not found. Executing: $CMD" >> "$LOG"
     hyprctl dispatch exec "$CMD"
+    for _ in $(seq 1 20); do
+        sleep 0.2
+        WS=$(hyprctl clients -j | jq -r --arg id "$ID_LOWER" '.[] | select((.class | ascii_downcase) == $id or (.initialClass | ascii_downcase) == $id) | .workspace.id' | head -1)
+        if [ -n "$WS" ] && [ "$WS" != "null" ]; then
+            echo "Window appeared on WS $WS, switching" >> "$LOG"
+            hyprctl dispatch workspace "$WS"
+            hyprctl dispatch focuswindow "class:$IDENTIFIER"
+            break
+        fi
+    done
 fi
