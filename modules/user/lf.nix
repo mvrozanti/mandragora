@@ -1,6 +1,24 @@
 { pkgs, ... }:
 
 let
+  lf-ub = pkgs.buildGoModule rec {
+    pname = "lf-ub";
+    version = "master";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "mvrozanti";
+      repo = "lf";
+      rev = "master";
+      sha256 = "10d08b87gvizsyzy8pq0bdc06lmkk78p8609563bdl7xy5njcyyb";
+    };
+
+    vendorHash = "sha256-U2D+VAAj26s4Dz1JU4hv/xoZaVfOMIcVBWKLNUhlYxA=";
+
+    ldflags = [ "-s" "-w" "-X main.gVersion=${version}" ];
+
+    doCheck = false;
+  };
+
   preview = pkgs.writeShellScriptBin "lf-preview" (builtins.readFile ../../.config/lf/preview);
   cleaner = pkgs.writeShellScriptBin "lf-cleaner" (builtins.readFile ../../.config/lf/cleaner);
   opener = pkgs.writeShellScriptBin "lf-opener" (builtins.readFile ../../.config/lf/opener);
@@ -8,6 +26,7 @@ in
 {
   programs.lf = {
     enable = true;
+    package = lf-ub;
     
     settings = {
       preview = true;
@@ -53,8 +72,8 @@ in
       unzip = "%{{ unp -U \"$fx\" }}";
       
       on-cd = ''&{{
-        zoxide add "$PWD"
-        echo "$PWD" > /tmp/lf_current_dir
+        zoxide add \"$PWD\"
+        echo \"$PWD\" > /tmp/lf_current_dir
       }}'';
     };
 
@@ -113,8 +132,8 @@ in
       "U" = "unzip";
       
       "z" = ''%{{
-        result="$(zoxide query -i)"
-        lf -remote "send $id cd \"$result\""
+        result=\"$(zoxide query -i)\"
+        lf -remote \"send $id cd \\"$result\\"\"
       }}'';
     };
 
