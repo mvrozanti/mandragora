@@ -17,7 +17,7 @@ output() {
   album=$(mpc current -f "%album%")
   times=$(mpc status | sed -n '2s/.*[[:space:]]\+\([0-9:]*\/[0-9:]*\).*/\1/p')
 
-  [[ "$state" == "playing" ]] && icon="" || icon=""
+  [[ "$state" == "playing" ]] && icon=$'\uf04b' || icon=$'\uf04c'
   class="$state"
 
   # Escape for JSON
@@ -25,8 +25,9 @@ output() {
   artist=${artist//\\/\\\\}; artist=${artist//\"/\\\"}
   album=${album//\\/\\\\}; album=${album//\"/\\\"}
 
-  printf '{"text": "  %s %s", "tooltip": "%s — %s (%s)", "class": "%s"}\n' \
-    "$title" "$icon" "$artist" "$album" "$times" "$class"
+  music=$'\uf001'
+  printf '{"text": "%s  %s %s", "tooltip": "%s — %s (%s)", "class": "%s"}\n' \
+    "$music" "$title" "$icon" "$artist" "$album" "$times" "$class"
 }
 
 output
