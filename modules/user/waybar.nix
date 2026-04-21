@@ -55,10 +55,11 @@
         "custom/volume" = {
           exec = "~/.config/waybar/scripts/volume-ramp.sh";
           return-type = "json";
-          interval = 1;
-          on-click = "pamixer -t";
-          on-scroll-up = "pamixer -i 2";
-          on-scroll-down = "pamixer -d 2";
+          interval = 5;
+          signal = 10;
+          on-click = "pamixer -t && pkill -RTMIN+10 waybar";
+          on-scroll-up = "pamixer -i 2 && pkill -RTMIN+10 waybar";
+          on-scroll-down = "pamixer -d 2 && pkill -RTMIN+10 waybar";
           on-click-right = "pavucontrol";
         };
 
