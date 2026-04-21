@@ -18,5 +18,4 @@ To prevent "Split Brain" scenarios, the `mandragora-switch` alias will perform:
 ### Hierarchy Sync
 - **Documents/Photos:** Perpetual sync via `seafile-client`.
 - **Media/Bulk:** Mounted on-demand from the `arch-slave` node.
-- **Shadow Media:** Strictly local to the encrypted Shadow Drive; **NEVER** synced to Seafile or the VPS.
 

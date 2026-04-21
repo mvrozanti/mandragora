@@ -8,7 +8,6 @@ This document identifies the specific, non-obvious failure points in the transit
 - **The Fix:** We will use `programs.nix-ld.enable = true;` and `services.envfs.enable = true;` to provide an Arch-like compatibility layer, ensuring your 10-year script library doesn't need a total rewrite on Day 1.
 
 ## 2. The "Helpful" Leak (Automounting)
-- **Problem:** GUI file managers (Thunar/Dolphin) will show the isolated Shadow drive UUID in the sidebar.
 - **Solution:** Explicit `udev` rules (`ENV{UDISKS_IGNORE}="1"`) to hide the drive from the Main profile.
 
 ## 3. The "State" & Seafile Integration

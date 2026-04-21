@@ -31,7 +31,6 @@
 ├── DATA_HIERARCHY.md          ← 5-tier persistence/backup matrix
 ├── WORKFLOW.md                ← Sync ritual: Flake=Git, Seafile=user data
 ├── SECRETS.md                 ← sops-nix vault strategy
-├── SHADOW.md                  ← Shadow profile architecture
 ├── STRUCTURE.md               ← This file
 └── atlas/
     ├── PARTITION_PLAN.md      ← Disk layout, Btrfs subvolumes

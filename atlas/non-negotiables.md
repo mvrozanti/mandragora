@@ -32,16 +32,12 @@ This document defines the core constraints, architectural "must-haves," and the 
 ### **Zero-Secret Commits**
 - **Constraint**: Use `sops-nix` or equivalent for all secrets. Never commit a plain-text API key, password, or SSH key.
 
-## 4. The Profile Paradox (Mandragora vs. Shadow)
 
 ### **Mandragora (The Creator)**
 - **Value**: High-performance, creative, audited, AI-integrated.
 - **Role**: The "Serious" workstation.
 
-### **Shadow (The Consumer)**
 - **Value**: Casual, isolated, aesthetic, private.
-- **Role**: The "Shadow" environment.
-- **Constraint**: Zero visibility or crossover between Shadow and Mandragora (boot-level isolation).
 
 ## 5. Physical Isolation & Sovereignty
 
