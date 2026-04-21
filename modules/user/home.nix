@@ -275,6 +275,7 @@ in
 
   programs.kitty = {
     enable = true;
+    shellIntegration.mode = "no-rc no-cursor";
     font = {
       name = "Iosevka Nerd Font Mono";
       size = 11.5;
@@ -499,9 +500,10 @@ in
   programs.firefox = {
     enable = true;
     nativeMessagingHosts = [ pkgs.tridactyl-native ];
-    profiles.m = {
+    profiles.default = {
       isDefault = true;
       id = 0;
+      path = "iwwxmo01.default";
     };
     profiles.whatsapp = {
       id = 1;
