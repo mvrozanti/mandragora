@@ -30,6 +30,7 @@ hid-wrapper &
 keyledsd-reload &
 pkill -SIGUSR2 waybar 2>/dev/null || true
 makoctl reload 2>/dev/null || pkill -SIGUSR1 dunst 2>/dev/null || true
+hyprctl reload 2>/dev/null || true
 wait
 
 notify-send -t 2500 "Theme" "$(basename "$fpath")" 2>/dev/null || true
