@@ -34,9 +34,9 @@
   };
 
   fileSystems."/mnt/toshiba" = {
-    device = "/dev/disk/by-uuid/B40C6DD40C6D9262";
-    fsType = "ntfs-3g";
-    options = [ "noauto" "nofail" "x-systemd.automount" "x-systemd.device-timeout=5" "x-systemd.idle-timeout=300" "uid=1000" "gid=100" "remove_hiberfile" ];
+    device = "/dev/disk/by-uuid/14fdc735-6642-4688-b0b3-1deb3170490e";
+    fsType = "ext4";
+    options = [ "noauto" "nofail" "x-systemd.automount" "x-systemd.device-timeout=5" "x-systemd.idle-timeout=300" ];
   };
 
   fileSystems."/mnt/adata" = {
