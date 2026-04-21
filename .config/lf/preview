@@ -1,5 +1,6 @@
 #!/bin/sh
 draw() {
+  printf '[%s] preview-draw file=%s\n' "$(date +%H:%M:%S.%N)" "$1" >> /tmp/lf-cleaner.log
   kitty +kitten icat \
     --stdin no \
     --transfer-mode file \

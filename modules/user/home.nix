@@ -270,8 +270,8 @@ in
       size = 11;
     };
     theme = {
-      name = "Adwaita-dark";
-      package = pkgs.gnome-themes-extra;
+      name = "Materia-dark";
+      package = pkgs.materia-theme-transparent;
     };
   };
 
