@@ -1,3 +1,5 @@
+@import url("../../.cache/wal/colors-waybar.css");
+
 @keyframes pulse {
     0%   { opacity: 1; }
     50%  { opacity: 0.6; }
@@ -11,7 +13,7 @@
 }
 
 window#waybar {
-    background: rgba(40, 44, 52, 0.90);
+    background: rgba(30, 30, 30, 0.3);
     color: #abb2bf;
 }
 
@@ -148,4 +150,25 @@ tooltip {
 
 #tray > .needs-attention {
     -gtk-icon-effect: highlight;
+}
+
+#custom-obs.recording {
+    color: #e06c75;
+    padding: 0 8px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+#custom-volume {
+    padding: 0 8px;
+    border-bottom: 2px solid #6eaafb;
+}
+
+#custom-volume.muted {
+    color: #4b5263;
+    border-bottom: 2px solid #4b5263;
+}
+
+#custom-weather {
+    padding: 0 8px;
+    border-bottom: 2px solid #d886f3;
 }

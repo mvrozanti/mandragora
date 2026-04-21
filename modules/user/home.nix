@@ -544,4 +544,16 @@ in
     source = ../../.config/khal;
     recursive = true;
   };
+  home.file.".config/waybar/scripts/obs-recording.sh" = {
+    source = ../../snippets/waybar-obs-recording.sh;
+    executable = true;
+  };
+  home.file.".config/waybar/scripts/volume-ramp.sh" = {
+    source = ../../snippets/waybar-volume-ramp.sh;
+    executable = true;
+  };
+  home.file.".config/waybar/scripts/weather.sh" = {
+    source = ../../snippets/waybar-weather.sh;
+    executable = true;
+  };
 }
