@@ -349,6 +349,7 @@ in
       alt_send_esc = "yes";
     };
     keybindings = {
+      "ctrl+backspace" = "send_text all \\x1b[127;5u";
       "ctrl+shift+c" = "copy_to_clipboard";
       "ctrl+shift+v" = "paste_from_clipboard";
       "ctrl+shift+s" = "paste_from_selection";

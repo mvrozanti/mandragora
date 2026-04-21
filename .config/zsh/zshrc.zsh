@@ -79,6 +79,8 @@ bindkey '\e[8~' end-of-line
 bindkey '^b' backward-word
 bindkey '^w' forward-word
 bindkey '^h' backward-delete-char
+bindkey '^[[127;5u' backward-kill-word
+bindkey '^H' backward-kill-word
 bindkey '^[^l' delete-word
 bindkey '^[^k' up-history
 bindkey '^[^j' down-history
