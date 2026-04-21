@@ -1,5 +1,0 @@
-nnoremap "Q" ":q!<CR>"
-nnoremap "<CR>" "\"
-nnoremap "y" ":ccopy<cr>"
-nnoremap "p" ":cpaste<cr>"
-nnoremap "<C-w>" ":wq "

@@ -1,9 +1,0 @@
-source $HOME/.config/zsh/settings.zsh
-source $HOME/.config/zsh/plugins.zsh
-source $HOME/.config/zsh/env.zsh
-source $HOME/.config/zsh/functions.zsh
-source $HOME/.config/zsh/zle.zsh
-source $HOME/.config/zsh/bindings.zsh
-source $HOME/.config/zsh/integrations.zsh
-source $HOME/.config/zsh/aliases.zsh
-source $HOME/.config/zsh/post-init.zsh

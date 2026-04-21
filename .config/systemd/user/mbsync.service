@@ -1,9 +1,0 @@
-[Unit]
-Description=Sync mail with mailsync
-After=network-online.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/mailsync
-Nice=10
-IOSchedulingClass=idle
