@@ -498,6 +498,14 @@ in
   programs.firefox = {
     enable = true;
     nativeMessagingHosts = [ pkgs.tridactyl-native ];
+    profiles.m = {
+      isDefault = true;
+      id = 0;
+    };
+    profiles.whatsapp = {
+      id = 1;
+      name = "whatsapp";
+    };
   };
 
   programs.home-manager.enable = true;
