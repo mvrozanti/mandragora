@@ -124,6 +124,7 @@
 
         tray = {
           spacing = 8;
+          show-passive-items = true;
         };
       };
     };
