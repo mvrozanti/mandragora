@@ -6,6 +6,8 @@
     allowedTCPPorts = [];
     allowedUDPPorts = [];
     logRefusedConnections = false;
+    interfaces.enp8s0.allowedTCPPorts = [ 6600 ];
+    checkReversePath = "loose";
   };
 
   networking.networkmanager.dns = "systemd-resolved";
