@@ -5,15 +5,19 @@
     enable = true;
     defaultKeymap = "emacs";
     completionInit = "autoload -U compinit && compinit -u";
-    autosuggestion.enable = true;
+    autosuggestion = {
+      enable = true;
+      highlight = "fg=12";
+    };
     syntaxHighlighting.enable = true;
-    
+
     history = {
-      size = 50000;
-      save = 50000;
+      size = 1000000000;
+      save = 1000000000;
       path = "${config.home.homeDirectory}/.local/state/zsh/history";
       ignoreDups = true;
       share = true;
+      extended = true;
     };
 
     shellAliases = {

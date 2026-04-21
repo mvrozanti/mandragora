@@ -51,6 +51,7 @@
 
   fonts.packages = with pkgs; [
     nerd-fonts.iosevka
+    font-awesome
     noto-fonts
     noto-fonts-color-emoji
   ];
