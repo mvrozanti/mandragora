@@ -30,8 +30,48 @@ let
   preview = pkgs.writeShellScriptBin "lf-preview" (builtins.readFile ../../.config/lf/preview);
   cleaner = pkgs.writeShellScriptBin "lf-cleaner" (builtins.readFile ../../.config/lf/cleaner);
   opener = pkgs.writeShellScriptBin "lf-opener" (builtins.readFile ../../.config/lf/opener);
+
+  # Wrapper that starts an ueberzugpp daemon, runs lf, and tears it down on exit.
+  # Exports UEBERZUG_SOCKET so the previewer/cleaner can send add/remove commands.
+  lfub = pkgs.writeShellScriptBin "lfub" ''
+    #!${pkgs.bash}/bin/bash
+    LOG=/tmp/lf-cleaner.log
+    export UB_PID_FILE="/tmp/.$(uuidgen).ueberzug-pid"
+    : > "$UB_PID_FILE"
+    cleanup() {
+      if [ -n "''${UB_PID:-}" ] && [ -S "''${UEBERZUG_SOCKET:-}" ]; then
+        ${pkgs.ueberzugpp}/bin/ueberzugpp cmd -s "$UEBERZUG_SOCKET" -a exit 2>/dev/null
+      fi
+      rm -f "$UB_PID_FILE" 2>/dev/null
+    }
+    trap cleanup HUP INT QUIT TERM PWR EXIT
+
+    printf '[%s] lfub launch (WAYLAND_DISPLAY=%s DISPLAY=%s)\n' "$(date +%H:%M:%S.%N)" "''${WAYLAND_DISPLAY:-unset}" "''${DISPLAY:-unset}" >> "$LOG"
+
+    # Start the ueberzugpp daemon; --no-stdin daemonizes and writes the pid
+    # to --pid-file. Errors from the startup itself are captured below.
+    ${pkgs.ueberzugpp}/bin/ueberzugpp layer \
+      --no-stdin \
+      --use-escape-codes \
+      --output wayland \
+      --pid-file "$UB_PID_FILE" \
+      >>"$LOG" 2>&1
+
+    UB_PID=$(cat "$UB_PID_FILE" 2>/dev/null)
+    if [ -z "$UB_PID" ]; then
+      printf '[%s] lfub: ueberzugpp failed to start (output=wayland)\n' "$(date +%H:%M:%S.%N)" >> "$LOG"
+    else
+      export UB_PID
+      export UEBERZUG_SOCKET="/tmp/ueberzugpp-$UB_PID.socket"
+      printf '[%s] lfub: ueberzugpp pid=%s socket=%s\n' "$(date +%H:%M:%S.%N)" "$UB_PID" "$UEBERZUG_SOCKET" >> "$LOG"
+    fi
+
+    ${lf-ub}/bin/lf "$@"
+  '';
 in
 {
+  home.packages = [ lfub ];
+
   programs.lf = {
     enable = true;
     package = lf-ub;
