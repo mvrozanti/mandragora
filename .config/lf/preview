@@ -1,31 +1,32 @@
 #!/bin/sh
-# lf previewer. Images/video thumbs are rendered by ueberzugpp (wayland output)
-# as an overlay above kitty — independent of kitty's graphics layer, so no
-# clear-bug to fight. The cleaner sends a "remove" to the same daemon.
+# lf previewer. On kitty, images are drawn via the graphics protocol with
+# --transfer-mode memory (stdin data piped in, nothing written through lf's
+# captured stdout) and we exit 1 so lf doesn't cache the preview. The lfrc
+# `on-select` command triggers a redraw after every selection move, which is
+# the only reliable way to clear a previous kitty image on Wayland
+# (see lf#1845, ueberzugpp#131 — ueberzugpp-wayland is effectively abandoned
+# for lf).
 printf '[%s] preview file=%s\n' "$(date +%H:%M:%S.%N)" "$1" >> /tmp/lf-cleaner.log
+
+draw() {
+  kitty +kitten icat \
+    --stdin no \
+    --transfer-mode memory \
+    --place "${width}x${height}@${x}x${y}" \
+    --scale-up \
+    --silent \
+    "$1" </dev/null >/dev/tty
+}
+
+hash() {
+  cache="$HOME/.cache/lf/$(stat --printf '%n\0%i\0%F\0%s\0%W\0%Y' -- "$(readlink -f -- "$1")" | sha256sum | cut -d' ' -f1).jpg"
+}
 
 file="$1"
 width="$2"
 height="$3"
 x="$4"
 y="$5"
-
-show_image() {
-  [ -n "${UEBERZUG_SOCKET:-}" ] || return 1
-  ueberzugpp cmd \
-    -s "$UEBERZUG_SOCKET" \
-    -a add \
-    -i lf-preview \
-    -x "$x" \
-    -y "$y" \
-    --max-width "$width" \
-    --max-height "$height" \
-    -f "$1" 2>>/tmp/lf-cleaner.log
-}
-
-hash() {
-  cache="$HOME/.cache/lf/$(stat --printf '%n\0%i\0%F\0%s\0%W\0%Y' -- "$(readlink -f -- "$1")" | sha256sum | cut -d' ' -f1).jpg"
-}
 
 if [ -d "$file" ]; then
   if command -v tree >/dev/null 2>&1; then
@@ -47,9 +48,9 @@ case "$(file -Lb --mime-type -- "$file")" in
         mkdir -p "$(dirname -- "$cache")"
         magick -- "$file[0]" -auto-orient "$cache"
       fi
-      show_image "$cache"
+      draw "$cache"
     else
-      show_image "$file"
+      draw "$file"
     fi
     exit 1
     ;;
@@ -59,7 +60,7 @@ case "$(file -Lb --mime-type -- "$file")" in
       mkdir -p "$(dirname -- "$cache")"
       ffmpegthumbnailer -i "$file" -o "$cache" -s 0 2>/dev/null
     fi
-    show_image "$cache"
+    draw "$cache"
     exit 1
     ;;
   application/json)
