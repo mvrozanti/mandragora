@@ -16,3 +16,9 @@ This document identifies the specific, non-obvious failure points in the transit
 
 ## 5. Permissive Power Management
 - **Decision:** We will allow `reboot` and `poweroff` to be accessible from both profiles for now, prioritizing ease of movement over the "Trap" complexity.
+
+## 6. super+shift+N moves focused window — watch out on non-default workspaces
+- **Problem:** `$mainMod SHIFT, N` is bound to `movetoworkspace, N+1`. If a non-terminal window (e.g. vesktop/Discord) is focused and the user presses super+shift+3 intending to open kitty, the focused window gets moved to workspace 4 (kitty's workspace) instead.
+- **Observed:** While on the Discord workspace, pressing super+shift+3 moved the Discord window to workspace 4 alongside the new kitty window.
+- **Root cause:** The movetoworkspace binds operate on whatever window is currently focused — there's no guard for "only move if a terminal is focused."
+- **To investigate:** Consider whether smart-launch for kitty (super+3) should also be the bind for super+shift+3, or add a guard. Also note: the Discord workspace number was still unresolved when this was logged (vesktop windowrule was being debugged).

@@ -408,7 +408,6 @@ in
     settings = {
       exec-once = [
         "awww-daemon"
-        "waybar"
         "wl-paste --watch cliphist store"
         "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
         "kdeconnect-indicator"
