@@ -41,7 +41,7 @@ System is hours old. Fourth NixOS generation. Hyprland is running (Wayland confi
 - `Super+Home` → hyprlock, `Super+BackSpace` → display off (matches old sxhkd)
 - `hosts/mandragora-desktop/default.nix`: imports security.nix
 - Old mandragora repo cloned to `~/projects/mandragora`
-- CLAUDE.md documented: SSH key import process, full disk encryption gap
+- CLAUDE.md documented: SSH key import process
 
 ### NOT YET DONE (Next Session)
 - [ ] Run `sudo nixos-rebuild switch --flake /etc/nixos/mandragora-nixos#mandragora-desktop` and fix any errors
@@ -56,9 +56,7 @@ System is hours old. Fourth NixOS generation. Hyprland is running (Wayland confi
 - [ ] Verify `us-intl` dead keys work (apostrophe+c = ç)
 - [ ] Commit and push all these changes to GitHub
 - [ ] Import SSH/GPG keys into sops vault (user needs to locate key material — Ventoy USB or old machine)
-- [ ] Full disk encryption (dedicated session with Ventoy USB — major operation)
 - [ ] Locate old SSH/GPG keys (Ventoy USB needs mounting: `sudo mount -o ro /dev/sda1 /mnt`) and import into sops
-- [ ] Full disk encryption (dedicated session with Ventoy USB)
 - [ ] Ollama: pull a model after rebuild (`ollama pull qwen2.5-coder:14b` or `ollama pull gemma3:27b`)
 - [ ] Configure MCP server for Ollama → Claude Code integration
 - [ ] Fuse mandragora and mandragora-nixos repos (long-term, post-migration)
