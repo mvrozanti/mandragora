@@ -147,6 +147,7 @@ in
     yt-dlp
     streamlink
     retroarch
+    prismlauncher
 
     khal
     cava
@@ -564,4 +565,13 @@ in
     source = ../../snippets/waybar-weather.sh;
     executable = true;
   };
+  home.file.".local/share/applications/whatsapp-web.desktop".text = ''
+[Desktop Entry]
+Name=WhatsApp
+Exec=env MOZ_APP_REMOTINGNAME=whatsapp-web firefox -P whatsapp --new-instance --url https://web.whatsapp.com
+Icon=${pkgs.zapzap}/share/icons/hicolor/scalable/apps/com.rtosta.zapzap.svg
+Type=Application
+Categories=Network;InstantMessaging;
+StartupWMClass=whatsapp-web
+'';
 }
