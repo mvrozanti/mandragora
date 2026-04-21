@@ -3,6 +3,8 @@
 {
   programs.zsh = {
     enable = true;
+    defaultKeymap = "emacs";
+    completionInit = "autoload -U compinit && compinit -u";
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     
