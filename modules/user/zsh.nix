@@ -37,7 +37,6 @@ in
 
       vim = "nvim";
       cat = "bat";
-      lf = "lfub";
       ls = "eza --git --icons";
       l = "eza -t1";
       ll = "eza -la --git --icons";

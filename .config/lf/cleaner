@@ -1,9 +1,11 @@
 #!/bin/sh
-# Tell ueberzugpp to remove the current preview image, if any.
+# Best-effort image clear. On Wayland this isn't reliable (lf#1845) — the
+# actual clearing is triggered by the `on-select` redraw command in lfrc.
 printf '[%s] cleaner args=%s\n' "$(date +%H:%M:%S.%N)" "$*" >> /tmp/lf-cleaner.log
-[ -n "${UEBERZUG_SOCKET:-}" ] || exit 0
-ueberzugpp cmd \
-  -s "$UEBERZUG_SOCKET" \
-  -a remove \
-  -i lf-preview 2>>/tmp/lf-cleaner.log
+kitty +kitten icat \
+  --clear \
+  --stdin no \
+  --silent \
+  --transfer-mode memory \
+  </dev/null >/dev/tty 2>>/tmp/lf-cleaner.log
 exit 0
