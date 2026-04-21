@@ -57,6 +57,8 @@ zle -N run_gemini
 zle -N zoxide_cd_interactive
 zle -N zoxide_insert_path
 
+bindkey -e
+
 bindkey '^[r' run_lf
 bindkey '^[v' run_nvim
 bindkey '^[V' run_nvim_fast

@@ -3,6 +3,7 @@
 {
   programs.zsh = {
     enable = true;
+    defaultKeymap = "emacs";
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     
