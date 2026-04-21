@@ -110,7 +110,7 @@ in
       "|" = ":filter";
       ";" = "set hidden!";
       
-      "D" = "$${pkgs.trash-cli}/bin/trash-put \"$fx\"";
+      "D" = ''%echo "$fx" | xargs -d '\n' -r ${pkgs.trash-cli}/bin/trash-put --'';
       "<C-t>" = "tab-new";
       "<C-w>" = "tab-close";
       "gn" = "tab-new";
