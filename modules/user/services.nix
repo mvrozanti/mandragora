@@ -35,19 +35,14 @@
       Type = "oneshot";
       Environment = "GPG_TTY=/dev/tty";
       ExecStart = pkgs.writeShellScript "mbsync-hotmail-script" ''
-        ${pkgs.isync}/bin/mbsync mvrozanti@hotmail.com
-        
-        # Simple notification logic inspired by mbsync-notify.sh
-        # (Assuming the user has a working mbsync config for 'hotmail')
-        sync_output=/run/current-system/sw/bin/bash: line 2: ${pkgs.isync}/bin/mbsync: No such file or directory
-        
-        # Extract counts (rough approximation of the logic in mbsync-notify.sh)
-        # Note: This might need tuning based on actual mbsync output
+        sync_output=$(${pkgs.isync}/bin/mbsync mvrozanti@hotmail.com 2>&1)
+        echo "$sync_output"
+
         slave_count=$(grep 'Inbox' -A6 <<< "$sync_output" | grep -E '^slave' | cut -d',' -f1 | tr -cd '[[:digit:]]' || echo 0)
         master_count=$(grep 'Inbox' -A6 <<< "$sync_output" | grep -E '^master' | cut -d',' -f1 | tr -cd '[[:digit:]]' || echo 0)
-        
-        new_mail_count=$((master_count - slave_count))
-        
+
+        new_mail_count=$((''${master_count:-0} - ''${slave_count:-0}))
+
         if [ "$new_mail_count" -gt 0 ]; then
           ${pkgs.libnotify}/bin/notify-send "Mail" "You have $new_mail_count new email(s)."
         fi

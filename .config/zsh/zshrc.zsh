@@ -99,11 +99,15 @@ bindkey '^[[1;5C' forward-word
 bindkey -M viins '^[[1;5D' backward-word
 bindkey -M viins '^[[1;5C' forward-word
 bindkey '^h' backward-delete-char
-bindkey '^[[127;5u' backward-kill-word
-bindkey '^[[127;3u' backward-kill-word
-bindkey '^[^?' backward-kill-word
-bindkey '^H' backward-kill-word
-bindkey '^[^l' delete-word
+_backward-kill-word-punct() { local WORDCHARS=''; zle backward-kill-word }
+_forward-kill-word-punct()  { local WORDCHARS=''; zle delete-word }
+zle -N _backward-kill-word-punct
+zle -N _forward-kill-word-punct
+bindkey '^[[127;5u' _backward-kill-word-punct
+bindkey '^[[127;3u' _backward-kill-word-punct
+bindkey '^[^?'      _backward-kill-word-punct
+bindkey '^H'        _backward-kill-word-punct
+bindkey '^[^l'      _forward-kill-word-punct
 bindkey '^[^k' up-history
 bindkey '^[^j' down-history
 

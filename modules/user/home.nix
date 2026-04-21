@@ -45,7 +45,18 @@ in
     atool
     file
     tree
-    isync
+    (pkgs.symlinkJoin {
+      name = "isync-xoauth2";
+      paths = [ pkgs.isync ];
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        wrapProgram $out/bin/mbsync \
+          --set SASL_PATH ${pkgs.cyrus_sasl}/lib/sasl2:${pkgs.cyrus-sasl-xoauth2}/lib/sasl2
+      '';
+    })
+    neomutt
+    msmtp
+    mutt-wizard
     transmission_4
     libnotify
 
@@ -273,6 +284,37 @@ in
       name = "Materia-dark";
       package = pkgs.materia-theme-transparent;
     };
+    gtk3.extraCss = ''
+      window.background,
+      window.background.csd,
+      window.background.solid-csd,
+      .background,
+      window.background decoration,
+      window.background headerbar,
+      window.background .titlebar,
+      window.background box,
+      window.background grid,
+      window.background stack,
+      window.background scrolledwindow,
+      window.background viewport,
+      window.background notebook,
+      window.background notebook > stack,
+      window.background paned,
+      window.background paned > separator {
+        background-color: transparent;
+        background-image: none;
+      }
+    '';
+    gtk4.extraCss = ''
+      window, window.background, window.background.csd, .background,
+      headerbar, .titlebar, windowhandle,
+      box, grid, stack, scrolledwindow, viewport,
+      notebook, notebook > stack,
+      paned, paned > separator {
+        background-color: rgba(0, 0, 0, 0) !important;
+        background-image: none !important;
+      }
+    '';
   };
 
   programs.kitty = {

@@ -30,7 +30,13 @@ height="$3"
 x="$4"
 y="$5"
 
+# Emitted at the top of every non-image preview so kitty deletes any prior
+# inline image before rendering text. Going through lf's stdout pipe avoids
+# the /dev/tty race we hit with the cleaner.
+clear_kitty_images() { printf '\033_Ga=d,d=A\033\\'; }
+
 if [ -d "$file" ]; then
+  clear_kitty_images
   if command -v tree >/dev/null 2>&1; then
     tree -a -C -L 2 --dirsfirst "$file" 2>/dev/null | head -$((height - 2))
   else
