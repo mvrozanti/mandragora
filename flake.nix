@@ -37,16 +37,6 @@
             impermanence.nixosModules.impermanence
           ];
         };
-
-          inherit system;
-          specialArgs = { inherit inputs; };
-          modules = [
-
-            home-manager.nixosModules.home-manager
-            sops-nix.nixosModules.sops
-            impermanence.nixosModules.impermanence
-          ];
-        };
       };
     };
 }

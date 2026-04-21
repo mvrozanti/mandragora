@@ -19,9 +19,7 @@ Mandragora uses `sops-nix` for its native integration with the NixOS module syst
 | **Seafile Creds** | User Age Key          | `sops.secrets."seafile/token"`         |
 | **Oracle SSH**    | Master Age Key        | `sops.secrets."ssh/oracle-vps"`       |
 
-- This directory is encrypted with a key that is **NEVER** present on the Main profile's accessible filesystem.
-
-## 5. Agent Instructions for Secrets
+## 4. Agent Instructions for Secrets
 - **NEVER** ask for a password in plain text.
 - **NEVER** propose a Nix module that contains a string like `password = "123456";`.
 - **ALWAYS** check for the existence of a corresponding `sops.secrets` entry before configuring a service that requires authentication.
