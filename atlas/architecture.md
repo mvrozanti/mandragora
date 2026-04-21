@@ -29,7 +29,6 @@ The system utilizes a Btrfs-heavy layout optimized for impermanence and strict p
 
 ## 5. Security & Secrets
 *   **Secrets Management:** `sops-nix` using the **Age** format. The master key file resides on an external USB drive (backed up to Seafile/Oracle VPS). No plain-text secrets are committed to the git repository.
-Second profile details: see SHADOW.md
 
 ## 6. Codebase Structure & Language Purity
 *   **Repository Layout:** Standard flake architecture (`flake.nix`, `hosts/`, `modules/`).

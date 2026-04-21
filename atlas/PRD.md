@@ -17,9 +17,7 @@ To create a "second skin" Linux environment—a perfectly tailored, high-perform
     *   **Theming:** Unified visual identity across all applications (Kitty, Neovim, Waybar, GTK).
 *   **Observability:** AI-driven audits (Disk & Network) restricted to this profile.
 
-## 3. The Appendix (Shadow Profile)
 
-Second profile details: see SHADOW.md
 
 ## 4. Non-Negotiable Directives
 *   **Multi-Machine Sovereignty:** Hardware profiles for Desktop and Notebook.

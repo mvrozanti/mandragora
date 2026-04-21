@@ -17,14 +17,9 @@ Mandragora uses `sops-nix` for its native integration with the NixOS module syst
 |-------------------|-----------------------|----------------------------------------|
 | **Wi-Fi / Network**| Host SSH Key          | `sops.secrets."wireless.env"`          |
 | **Seafile Creds** | User Age Key          | `sops.secrets."seafile/token"`         |
-| **Shadow Drive**  | Dedicated Key (Hide)  | LUKS Keyfile managed by sops-nix       |
 | **Oracle SSH**    | Master Age Key        | `sops.secrets."ssh/oracle-vps"`       |
 
-## 4. The "Shadow" Secret Strategy
-To maintain the "Shadow" profile's invisibility:
-- The `flake.nix` in the **Shadow** profile uses its own separate `secrets/` directory.
 - This directory is encrypted with a key that is **NEVER** present on the Main profile's accessible filesystem.
-- The decryption key for Shadow is either provided at boot or stored on the encrypted Shadow Drive itself.
 
 ## 5. Agent Instructions for Secrets
 - **NEVER** ask for a password in plain text.

@@ -29,9 +29,7 @@ Check off tasks as they're completed. Reference: [`DECISIONS.md`](DECISIONS.md) 
 - [x] **RGB Control:** Setup `services.hardware.openrgb.enable = true`. Include a startup script for Kingston RAM and MSI cooler.
 - [x] **Dotfile Translation:** Convert legacy Arch configs (Polybar -> Waybar, bspwm -> Hyprland).
 
-## Phase 5: The Shadow (Shadow Profile)
 
-Second profile details: see SHADOW.md
 
 ## Phase 6: Observability & Polish
 - [ ] **EarlyOOM:** Enable `services.earlyoom` with 5% RAM/10% swap thresholds to prevent freezes.

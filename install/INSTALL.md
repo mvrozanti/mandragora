@@ -50,4 +50,3 @@ Log in as `m` with the password you set in step 5.
 
 ---
 
-Second profile details: see SHADOW.md

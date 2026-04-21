@@ -38,12 +38,9 @@
           ];
         };
 
-        shadow-desktop = nixpkgs.lib.nixosSystem {
           inherit system;
           specialArgs = { inherit inputs; };
           modules = [
-            ./hosts/shadow-desktop/default.nix
-            ./hosts/shadow-desktop/hardware-configuration.nix
 
             home-manager.nixosModules.home-manager
             sops-nix.nixosModules.sops
