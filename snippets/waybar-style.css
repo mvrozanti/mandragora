@@ -100,17 +100,17 @@ tooltip {
     border-bottom: 2px solid #abb2bf;
 }
 
-#mpd {
+#custom-mpd {
     padding: 0 12px;
     color: #95ee8f;
 }
 
-#mpd.stopped,
-#mpd.disconnected {
+#custom-mpd.stopped,
+#custom-mpd.disconnected {
     color: #4b5263;
 }
 
-#mpd.paused {
+#custom-mpd.paused {
     color: #f8c456;
 }
 

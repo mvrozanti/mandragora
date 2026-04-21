@@ -559,6 +559,10 @@ in
     source = ../../snippets/waybar-obs-recording.sh;
     executable = true;
   };
+  home.file.".config/waybar/scripts/mpd-status.sh" = {
+    source = ../../snippets/waybar-mpd.sh;
+    executable = true;
+  };
   home.file.".config/waybar/scripts/volume-ramp.sh" = {
     source = ../../snippets/waybar-volume-ramp.sh;
     executable = true;
