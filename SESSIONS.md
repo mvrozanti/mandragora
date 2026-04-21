@@ -140,3 +140,21 @@ System is hours old. Fourth NixOS generation. Hyprland is running (Wayland confi
 - **Missing mbsync config**: no `.mbsyncrc` or `~/.config/mbsync/config` found on toshiba — syncing won't work until one is written (or run `mw -a mvrozanti@hotmail.com` to have mutt-wizard generate one)
 - **Missing Maildir**: the actual mail data lived on the sandisk drive (`/home/m/sandisk/mail` symlink target); sandisk is not currently mounted. Either mount sandisk or accept a fresh sync from the IMAP server once mbsyncrc exists
 - **OAuth client secret**: msmtp config uses `--client-secret ''` with Thunderbird's public client ID — should still work but may need re-auth via `~/.config/mutt/reauthorize.sh` if tokens have expired
+
+## Session 2026-04-21 (neomutt sync working)
+
+### Done
+- Created full Maildir skeleton at `~/.local/share/mail/mvrozanti@hotmail.com/` (INBOX, Junk, Drafts, Sent, Sent Items, Trash, Archive, Pessoal, Investimentos, Governo, NTT Data|C6)
+- Wrote `~/.config/mbsync/config` (+ `~/.mbsyncrc` symlink) for Office365 IMAPS with XOAUTH2, keyed to `mutt_oauth2.py` + token file at `~/.cache/mutt/mvrozanti@hotmail.com.tokens`
+- Discovered `isync` from nixpkgs lacks XOAUTH2 SASL plugin by default. Fixed by replacing plain `isync` in `modules/user/home.nix` with a `symlinkJoin` wrapper that sets `SASL_PATH` to include `cyrus-sasl-xoauth2` alongside `cyrus_sasl`
+- Swapped encrypted `.tokens` for `.tokens.plain` (GPG private key not yet imported — Task #6 blocker). Set `--encryption-pipe ''` and `--decryption-pipe ''` on the mutt_oauth2.py calls in both mbsync and msmtp configs
+- Full initial sync: 38 mailboxes, 16043 messages, 1.7 GB
+
+### What broke
+- One folder `Deleted/Trash.Infected Items` failed with "canonical mailbox name contains flattened hierarchy delimiter" — the nested `.` conflicts with mbsync's `Flatten .` setting. Harmless for the user's active folders
+- The systemd user timer `mbsync-hotmail.timer` still fires every 5 min but the service's `ExecStart` writes to a non-TTY, so its oauth-token refresh output is invisible; sync works manually via `mailsync` or `mbsync`
+
+### Next
+- Import GPG private key (Task #6) so tokens can be re-encrypted — then restore `--encryption-pipe 'gpg -qe -r mvrozanti@hotmail.com'` in both configs
+- Fix the one flattened-hierarchy conflict in mbsync (probably `Patterns * !"Deleted/Trash*"` or switch `Flatten` delimiter)
+- Verify `msmtp` send flow works end-to-end once a real outgoing mail is needed

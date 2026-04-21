@@ -7,6 +7,10 @@ import sys
 turn_on = sys.argv[1] == '--on' if len(sys.argv) > 1 else False
 turn_off = sys.argv[1] == '--off' if len(sys.argv) > 1 else False
 
+colors_path = Path('/home/m/.cache/wal/colors.json')
+if not colors_path.exists():
+    raise SystemExit(0)
+
 Path('/home/m/.cache/hid-config').mkdir(exist_ok=True)
 state_file = Path('/home/m/.cache/hid-config/state')
 if not state_file.exists():
@@ -16,7 +20,7 @@ else:
     is_on = state_file.read_text() == 'True'
 
 def get_pywal_colors():
-    color_json = json.load(open('/home/m/.cache/wal/colors.json'))
+    color_json = json.loads(colors_path.read_text())
     return list(color_json['colors'].values())
 
 def sort_hex_colors_by_saturation(color_strings):
