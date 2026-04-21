@@ -277,6 +277,15 @@ in
     WALLPAPER_DIR = "${config.home.homeDirectory}/Pictures/wllpps";
   };
 
+  home.pointerCursor = {
+    name = "Bibata-Modern-Classic";
+    package = pkgs.bibata-cursors;
+    size = 24;
+    gtk.enable = true;
+    x11.enable = true;
+    hyprcursor.enable = true;
+  };
+
   gtk = {
     enable = true;
     font = {
