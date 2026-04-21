@@ -24,6 +24,7 @@ stdenv.mkDerivation (finalAttrs: {
   buildInputs = [ stdenv.cc.libc ];
 
   dontBuild = true;
+  dontStrip = true;
 
   installPhase = ''
     runHook preInstall
