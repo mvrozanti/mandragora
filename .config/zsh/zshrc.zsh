@@ -57,8 +57,6 @@ zle -N run_gemini
 zle -N zoxide_cd_interactive
 zle -N zoxide_insert_path
 
-bindkey -e
-
 bindkey '^[r' run_lf
 bindkey '^[v' run_nvim
 bindkey '^[V' run_nvim_fast
@@ -80,6 +78,10 @@ bindkey '\e[7~' beginning-of-line
 bindkey '\e[8~' end-of-line
 bindkey '^b' backward-word
 bindkey '^w' forward-word
+bindkey '^[[1;5D' backward-word
+bindkey '^[[1;5C' forward-word
+bindkey -M viins '^[[1;5D' backward-word
+bindkey -M viins '^[[1;5C' forward-word
 bindkey '^h' backward-delete-char
 bindkey '^[[127;5u' backward-kill-word
 bindkey '^[[127;3u' backward-kill-word
