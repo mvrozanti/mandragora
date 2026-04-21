@@ -7,7 +7,7 @@ if [[ -z "$TMUX" && -t 0 ]]; then exec tmux; fi
 
 setopt AUTO_CD
 setopt CORRECT
-setopt HIST_VERIFY
+unsetopt HIST_VERIFY
 setopt AUTO_MENU
 setopt COMPLETE_IN_WORD
 setopt ALWAYS_TO_END
@@ -18,6 +18,7 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' accept-exact-dirs true
 
 stty -ixon
 
