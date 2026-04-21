@@ -114,7 +114,7 @@ in
       "<C-t>" = "tab-new";
       "<C-w>" = "tab-close";
       "gn" = "tab-new";
-      "gt" = "tab-next";
+      "gt" = "cd /mnt/toshiba";
       "gT" = "tab-prev";
       
       "oz" = ":set sortby random; set reverse false";
