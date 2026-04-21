@@ -30,7 +30,12 @@ output() {
     "$music" "$title" "$icon" "$artist" "$album" "$times" "$class"
 }
 
-output
-while mpc idle player 2>/dev/null; do
-  output
+while true; do
+  if mpc status &>/dev/null; then
+    output
+    mpc idle player 2>/dev/null
+  else
+    echo '{"text": "", "class": "stopped"}'
+    sleep 2
+  fi
 done
