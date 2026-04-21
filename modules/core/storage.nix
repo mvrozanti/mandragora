@@ -21,6 +21,12 @@
     neededForBoot = true;
   };
 
+  fileSystems."/home/m/Games" = {
+    device = "/dev/disk/by-label/NIXOS";
+    fsType = "btrfs";
+    options = [ "subvol=games" "compress=zstd:1" "noatime" "ssd" "space_cache=v2" ];
+  };
+
   fileSystems."/boot" = {
     device = "/dev/disk/by-label/BOOT";
     fsType = "vfat";
