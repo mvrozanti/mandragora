@@ -158,3 +158,27 @@ System is hours old. Fourth NixOS generation. Hyprland is running (Wayland confi
 - Import GPG private key (Task #6) so tokens can be re-encrypted — then restore `--encryption-pipe 'gpg -qe -r mvrozanti@hotmail.com'` in both configs
 - Fix the one flattened-hierarchy conflict in mbsync (probably `Patterns * !"Deleted/Trash*"` or switch `Flatten` delimiter)
 - Verify `msmtp` send flow works end-to-end once a real outgoing mail is needed
+
+## Session 2026-04-21 (pywal ricing cascade)
+
+### Done
+- Unified `setbg` as the one-button ricing pipeline: `setbg [path?]` → `awww img` (cursor-origin grow) → `wal -i` → parallel fan-out to `wal-to-rgb`, `hid-wrapper`, `keyledsd-reload`, waybar SIGUSR2, mako/dunst reload → `notify-send` toast. Bound to Super+G; rofi picker feeds it.
+- Added `WALLPAPER_DIR` sessionVariable pointing at `~/Pictures/wllpps`; scripts default there instead of bare `~/Pictures`.
+- Created pywal template `.config/wal/templates/keyledsd.conf` — every `{color*}` placeholder drives lightning/wave/mpd/feedback/notification colors from the current palette. Rofi got the same treatment at `colors-rofi.rasi`.
+- New `keyledsd-reload` script: `install` the pywal-rendered keyledsd.conf into `~/.config/keyledsd.conf` and `systemctl --user restart keyledsd`. Works because the static home-manager symlink was removed and replaced with a first-boot-only `seedKeyledsd` activation (installs a writable copy of the in-repo default if no file exists yet).
+- New `restore-theme` script (hyprland `exec-once` after `awww-daemon`): waits for daemon, reads `~/.cache/wal/wal`, reapplies last wallpaper; palette comes back after every login instead of devices flashing red on boot.
+- `wal-to-rgb.py` now maps distinct palette slots (colors 1–6) round-robin across OpenRGB devices, sets Direct mode, and skips devices owned by other daemons (keyboard → keyledsd, SteelSeries mice → rivalcfg/hid-wrapper). Added colors.json guard so it's a no-op before first pywal run.
+- Deleted `systemd.services.openrgb-ram-color` (hardcoded red on boot) from `modules/desktop/openrgb.nix`; merged `rgb.nix` extras (`openrgb-with-all-plugins`, `hardware.i2c`, `i2c-dev` kernel module) into it and dropped `rgb.nix` from imports.
+- Added `pywal` to `home.packages` — it was missing entirely (only the stale `colors-waybar.css` in `~/.cache/wal/` from a previous install).
+- `hid-wrapper.py` now bails out cleanly when `colors.json` is absent.
+
+### What broke
+- First `setbg` run failed: `wal: command not found`. pywal had never been packaged into the nix profile despite being referenced everywhere. Fixed by adding `pywal` to `home.packages`.
+- First rebuild errored with `Path '.config/wal/templates/keyledsd.conf' is not tracked by Git`. Flake evaluation is git-aware; `git add` on every new file resolved it.
+- OpenRGB listed SteelSeries Rival 3 as device 1, which would fight `hid-wrapper`'s rivalcfg writes. Added `steelseries`/`rival` to the skip-list in `wal-to-rgb.py`.
+
+### Next
+- Waybar CSS (`snippets/waybar-style.css`) already `@import`s `colors-waybar.css` but still uses hardcoded hex throughout — replace the hex with `@color*` references so the bar fully follows pywal.
+- Consider a pywal-driven zathura include in `.config/zathura/zathurarc` (pywal already generates `colors-zathura` automatically).
+- `.local/bin/theme-engine.sh` and `modules/desktop/rgb.nix` are now orphaned (no Nix references). Worth a cleanup commit.
+- Motherboard actually exposes a B650M AORUS HID controller (not the ENE DRAM i2c path the old systemd service assumed) — confirm which devices the user actually wants different palette slots on and consider mapping explicitly by name/type rather than iteration order.
