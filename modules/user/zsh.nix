@@ -37,6 +37,7 @@
 
       switch = "mandragora-switch";
       rebuild = "mandragora-switch";
+      rebuild-boot = "sudo nixos-rebuild boot --flake /etc/nixos/mandragora#mandragora-desktop";
       nix-shell = "nix shell nixpkgs#";
 
       vim = "nvim";
