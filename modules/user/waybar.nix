@@ -30,7 +30,7 @@
             "15" = "";
             "17" = "";
             "18" = "";
-            "60" = "<span size=\"large\"></span>";
+            "7" = "<span size=\"large\"></span>";
             "27" = "";
             "41" = "";
             default = "";
@@ -65,11 +65,10 @@
         "custom/volume" = {
           exec = "~/.config/waybar/scripts/volume-ramp.sh";
           return-type = "json";
-          interval = 5;
-          signal = 10;
-          on-click = "pamixer -t && pkill -RTMIN+10 waybar";
-          on-scroll-up = "pamixer -i 2 && pkill -RTMIN+10 waybar";
-          on-scroll-down = "pamixer -d 2 && pkill -RTMIN+10 waybar";
+          # Streaming: script emits on pactl subscribe events; no polling, no signal.
+          on-click = "pamixer -t";
+          on-scroll-up = "pamixer -i 2";
+          on-scroll-down = "pamixer -d 2";
           on-click-right = "pavucontrol";
         };
 
@@ -101,7 +100,7 @@
           format-ethernet = "↑ {bandwidthUpBits} ↓ {bandwidthDownBits}";
           format-disconnected = "disconnected";
           tooltip-format = "{ifname}: {ipaddr}/{cidr}";
-          interval = 2;
+          interval = 5;
         };
 
         clock = {
@@ -114,7 +113,7 @@
         "custom/obs" = {
           exec = "~/.config/waybar/scripts/obs-recording.sh";
           return-type = "json";
-          interval = 3;
+          interval = 10;
         };
 
         "custom/weather" = {
