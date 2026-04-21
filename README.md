@@ -8,7 +8,7 @@
 
 [![NixOS Unstable](https://img.shields.io/badge/NixOS-unstable-5277C3?style=for-the-badge&logo=nixos&logoColor=white)](https://nixos.org)
 [![Hyprland](https://img.shields.io/badge/Hyprland-Wayland-58E1FF?style=for-the-badge&logo=wayland&logoColor=white)](https://hyprland.org)
-[![NVIDIA](https://img.shields.io/badge/RTX_5070_Ti-570.x-76B900?style=for-the-badge&logo=nvidia&logoColor=white)](https://nvidia.com)
+[![BMAD](https://img.shields.io/badge/BMAD-METHOD-blueviolet?style=for-the-badge&logo=github&logoColor=white)](https://github.com/bmad-code-org/BMAD-METHOD)
 [![Flakes](https://img.shields.io/badge/Nix_Flakes-enabled-7EBAE4?style=for-the-badge&logo=snowflake&logoColor=white)]()
 [![Impermanence](https://img.shields.io/badge/Root-ephemeral-FF6B6B?style=for-the-badge)]()
 [![sops-nix](https://img.shields.io/badge/Secrets-sops--nix-F5A623?style=for-the-badge&logo=gnuprivacyguard&logoColor=white)](https://github.com/Mic92/sops-nix)
@@ -37,7 +37,7 @@
 ├─────────────────────────────────────────────────────────────────┤
 │  snippets/        Non-Nix logic (shell, Lua, CSS, Python)       │
 │  secrets/         Age-encrypted vaults (sops-nix)               │
-│  atlas/           Hardware specs, constraints, partition plan    │
+│  atlas/           Architecture, constraints, partition plan     │
 │  appendix/        Self-contained subprojects (Ventoy, WSL)      │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -50,7 +50,7 @@
 | **Declarative everything** | All state is a Nix expression — zero imperative setup |
 | **Language purity** | Non-Nix code lives in `snippets/`, referenced via `builtins.readFile` |
 | **Zero plaintext secrets** | sops-nix with age encryption, decryption key on persistent volume |
-| **Wayland-only** | Hyprland + proprietary NVIDIA 570.x, no X11 fallback |
+| **Wayland-only** | Hyprland-based desktop, no X11 fallback |
 
 ## Impermanence Lifecycle
 
@@ -74,25 +74,11 @@ flowchart LR
 
 ```mermaid
 block-beta
-    columns 3
-
-    block:nvme:3
-        columns 3
-        header["2TB Kingston NV3 — PCIe 4.0"]:3
-        esp["ESP\n4GB FAT32"]
-        btrfs["NIXOS\n~1.9TB Btrfs zstd:1"]
-        swap["swap\n32GB"]
-    end
-
-    space:3
-
-    block:subvols:3
-        columns 4
-        rb["root-blank\n(seed)"]
-        ra["root-active\n(ephemeral)"]
-        nix["/nix\n(store)"]
-        pers["/persistent\n(state)"]
-    end
+    columns 4
+    rb["root-blank\n(seed)"]
+    ra["root-active\n(ephemeral)"]
+    nix["/nix\n(store)"]
+    pers["/persistent\n(state)"]
 
     style rb fill:#553333,stroke:#FF6B6B,color:#fff
     style ra fill:#553333,stroke:#FF6B6B,color:#fff
@@ -122,19 +108,6 @@ block-beta
      ╰──────────────────────────────────────────────────╯
 ```
 
-## Hardware
-
-```
- CPU     AMD Ryzen 9 7900X          12C / 24T
- GPU     NVIDIA RTX 5070 Ti         16GB GDDR7
- RAM     32GB DDR5                  6000MHz CL30
- Board   Gigabyte B650M AORUS       ELITE AX WiFi
- Cool    MSI MAG Coreliquid A13     360mm AIO ARGB
- PSU     Thermaltake GF A3          850W ATX 3.0
- Drive   Kingston NV3               2TB PCIe 4.0
- Case    Lian Li A3-mATX
-```
-
 ## Module Map
 
 ```
@@ -145,10 +118,10 @@ modules/
 │   ├── impermanence.nix ........ root wipe + bind mounts
 │   ├── persistence.nix ......... declarative persist paths
 │   ├── storage.nix ............. Btrfs mounts, fstab
-│   ├── graphics.nix ............ NVIDIA 570.x, Wayland env
+│   ├── graphics.nix ............ Graphics drivers, Wayland env
 │   ├── secrets.nix ............. sops-nix declarations
 │   ├── security.nix ............ firewall, hardening
-│   ├── ai-local.nix ............ Ollama + CUDA models
+│   ├── ai-local.nix ............ Local LLM + acceleration
 │   └── vm.nix .................. QEMU/libvirt
 ├── desktop/
 │   ├── hyprland.nix ............ compositor config
@@ -197,7 +170,7 @@ This stages all changes, rebuilds, and pushes on success — rolling back the co
 | [`DATA_HIERARCHY.md`](DATA_HIERARCHY.md) | 5-tier persistence/backup matrix |
 | [`WORKFLOW.md`](WORKFLOW.md) | Sync ritual and rebuild workflow |
 | [`SECRETS.md`](SECRETS.md) | sops-nix vault strategy |
-| [`atlas/`](atlas/) | Hardware, constraints, partition plan |
+| [`atlas/`](atlas/) | Architecture, constraints, partition plan |
 
 ---
 
