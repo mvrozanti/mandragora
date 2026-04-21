@@ -1,120 +1,215 @@
-# Mandragora NixOS
+<div align="center">
 
-A "second skin" Linux workstation — NVIDIA RTX 5070 Ti, Hyprland, impermanent root, and a 2TB NVMe carved into ranked persistence tiers.
+```
+                          ╔══════════════════════════════════════╗
+                          ║                                      ║
+                          ║   ┏┳┓┏━┓┏┓╻╺┳┓┏━┓┏━┓┏━╸┏━┓┏━┓┏━┓  ║
+                          ║   ┃┃┃┣━┫┃┗┫ ┃┃┣┳┛┣━┫┃╺┓┃ ┃┣┳┛┣━┫  ║
+                          ║   ╹ ╹╹ ╹╹ ╹╺┻┛╹┗╸╹ ╹┗━┛┗━┛╹┗╸╹ ╹  ║
+                          ║                                      ║
+                          ║          T H E   S E C O N D         ║
+                          ║                S K I N                ║
+                          ║                                      ║
+                          ╚══════════════════════════════════════╝
+```
+
+[![NixOS Unstable](https://img.shields.io/badge/NixOS-unstable-5277C3?style=for-the-badge&logo=nixos&logoColor=white)](https://nixos.org)
+[![Hyprland](https://img.shields.io/badge/Hyprland-Wayland-58E1FF?style=for-the-badge&logo=wayland&logoColor=white)](https://hyprland.org)
+[![NVIDIA](https://img.shields.io/badge/RTX_5070_Ti-570.x-76B900?style=for-the-badge&logo=nvidia&logoColor=white)](https://nvidia.com)
+[![Flakes](https://img.shields.io/badge/Nix_Flakes-enabled-7EBAE4?style=for-the-badge&logo=snowflake&logoColor=white)]()
+[![Impermanence](https://img.shields.io/badge/Root-ephemeral-FF6B6B?style=for-the-badge)]()
+[![sops-nix](https://img.shields.io/badge/Secrets-sops--nix-F5A623?style=for-the-badge&logo=gnuprivacyguard&logoColor=white)](https://github.com/Mic92/sops-nix)
 
 ---
 
-## Boot Chain
+**A declarative NixOS workstation that wipes itself clean on every boot.**
 
-```mermaid
-flowchart TD
-    A[UEFI Firmware] --> B[systemd-boot]
-    B -->|timeout 0, Space=menu| C[Linux Zen Kernel]
-    C -->|systemd initrd| D[SDDM login]
-    D -->|Hyprland session| E[PipeWire + OpenRGB + Firefox]
+*Reproducible from scratch in under 30 minutes. No imperative state. No drift.*
+
+</div>
+
+---
+
+## Architecture
+
 ```
+┌─────────────────────────────────────────────────────────────────┐
+│  flake.nix                                                      │
+│  └── hosts/mandragora-desktop/                                  │
+│       ├── hardware-configuration.nix                            │
+│       └── default.nix ──┬── modules/core/     System backbone   │
+│                         ├── modules/desktop/  Hyprland + gaming │
+│                         ├── modules/user/     Home Manager      │
+│                         └── modules/audits/   Health checks     │
+├─────────────────────────────────────────────────────────────────┤
+│  snippets/        Non-Nix logic (shell, Lua, CSS, Python)       │
+│  secrets/         Age-encrypted vaults (sops-nix)               │
+│  atlas/           Hardware specs, constraints, partition plan    │
+│  appendix/        Self-contained subprojects (Ventoy, WSL)      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Key Principles
+
+| Principle | Implementation |
+|:----------|:---------------|
+| **Ephemeral root** | Btrfs snapshot rotation wipes `/` on every boot |
+| **Declarative everything** | All state is a Nix expression — zero imperative setup |
+| **Language purity** | Non-Nix code lives in `snippets/`, referenced via `builtins.readFile` |
+| **Zero plaintext secrets** | sops-nix with age encryption, decryption key on persistent volume |
+| **Wayland-only** | Hyprland + proprietary NVIDIA 570.x, no X11 fallback |
 
 ## Impermanence Lifecycle
 
-Every boot rotates the root subvolume and rebuilds from the last successful NixOS generation.
-
-```mermaid
-flowchart TD
-    A[Boot begins] --> B["systemd initrd service: rollback"]
-    B --> C["Delete root-active"]
-    C --> D["Snapshot root-blank → root-active"]
-    D --> E["Mount root-active as /"]
-    E --> F["Mount /nix (subvolume)"]
-    F --> G["Mount /persistent (subvolume)"]
-    G --> H["System starts"]
-```
-
-## Disk Layout — Btrfs Subvolume Tree
-
-```mermaid
-flowchart TD
-    NVMe["2TB Kingston NVMe PCIe 4.0"]
-    NVMe --> ESP["ESP (4GB, FAT32)"]
-    NVMe --> BTRFS["NIXOS (~1.9TB, Btrfs zstd:1)"]
-    NVMe --> SWAP["swap (32GB)"]
-
-    BTRFS --> root_blank["root-blank (clean seed, never mounted)"]
-    BTRFS --> root_active["root-active → / (ephemeral, wiped each boot)"]
-    BTRFS --> nix["nix → /nix (store, packages, generations)"]
-    BTRFS --> persistent["persistent → /persistent (home, secrets, state)"]
-
-    persistent --> home["home/m (~500GB, all user data)"]
-    persistent --> secrets["secrets/ (age key)"]
-
-    classDef ephemeral fill:#f99,stroke:#333,stroke-width:1px
-    classDef persistent fill:#9f9,stroke:#333,stroke-width:1px
-
-    class root_blank,root_active ephemeral
-    class home,nix,secrets persistent
-```
-
-## Data Persistence Flow
-
 ```mermaid
 flowchart LR
-    subgraph "Ephemeral — dies on reboot"
-    A["/ (root)"]
-    B["/tmp (tmpfs)"]
-    C["/run (tmpfs)"]
-    end
+    A["Boot"] --> B["initrd: delete root-active"]
+    B --> C["Snapshot root-blank → root-active"]
+    C --> D["Mount as /"]
+    D --> E["Mount /nix + /persistent"]
+    E --> F["System ready"]
 
-    subgraph "Persistent — survives"
-    D["/persistent/home (all user data)"]
-    E["/persistent/log (system logs)"]
-    F["/persistent/etc (NetworkManager, SSH keys)"]
-    G["/persistent/var/lib (Bluetooth, NixOS state)"]
-    H["/nix/store (packages, 7-day GC)"]
-    end
-
-    subgraph "Remote — synced"
-    I["arch-slave (Seafile, Documents)"]
-    J["arch-slave (rsync, Rank 1 photos)"]
-    end
-
-    D -. "deferred" .-> J
-    D -. "Seafile" .-> I
-
-    style A fill:#f99,stroke:#333
-    style B fill:#f99,stroke:#333
-    style C fill:#f99,stroke:#333
-    style D fill:#9f9,stroke:#333
-    style E fill:#9f9,stroke:#333
-    style F fill:#9f9,stroke:#333
-    style G fill:#9f9,stroke:#333
-    style H fill:#9f9,stroke:#333
-    style I fill:#99f,stroke:#333
-    style J fill:#99f,stroke:#333
+    style A fill:#2d2d2d,stroke:#58E1FF,color:#fff
+    style B fill:#2d2d2d,stroke:#FF6B6B,color:#fff
+    style C fill:#2d2d2d,stroke:#FF6B6B,color:#fff
+    style D fill:#2d2d2d,stroke:#58E1FF,color:#fff
+    style E fill:#2d2d2d,stroke:#76B900,color:#fff
+    style F fill:#2d2d2d,stroke:#76B900,color:#fff
 ```
 
-## Quick Reference
+## Disk Layout
 
-| Topic | File |
-|-------|------|
-| All resolved decisions | [`DECISIONS.md`](DECISIONS.md) |
-| Disk partition plan | [`atlas/PARTITION_PLAN.md`](atlas/PARTITION_PLAN.md) |
-| Day-to-day situations | [`SITUATIONS.md`](SITUATIONS.md) |
-| Build checklist | [`EXECUTION_PLAN.md`](EXECUTION_PLAN.md) |
-| Hardware specs | [`atlas/hardware.md`](atlas/hardware.md) |
-| Hard constraints | [`atlas/non-negotiables.md`](atlas/non-negotiables.md) |
-| Routing for AI sessions | [`AGENTS.md`](AGENTS.md) |
-| Secrets strategy | [`SECRETS.md`](SECRETS.md) |
-| Hardware assembly status | [`atlas/README.md`](atlas/README.md) |
-| Windows/WSL adaptation | [`appendix/wsl/README.md`](appendix/wsl/README.md) |
+```mermaid
+block-beta
+    columns 3
+
+    block:nvme:3
+        columns 3
+        header["2TB Kingston NV3 — PCIe 4.0"]:3
+        esp["ESP\n4GB FAT32"]
+        btrfs["NIXOS\n~1.9TB Btrfs zstd:1"]
+        swap["swap\n32GB"]
+    end
+
+    space:3
+
+    block:subvols:3
+        columns 4
+        rb["root-blank\n(seed)"]
+        ra["root-active\n(ephemeral)"]
+        nix["/nix\n(store)"]
+        pers["/persistent\n(state)"]
+    end
+
+    style rb fill:#553333,stroke:#FF6B6B,color:#fff
+    style ra fill:#553333,stroke:#FF6B6B,color:#fff
+    style nix fill:#335533,stroke:#76B900,color:#fff
+    style pers fill:#335533,stroke:#76B900,color:#fff
+```
+
+## What Survives Reboot
+
+```
+     ╭──────────────────────────────────────────────────╮
+     │            P E R S I S T E N T                    │
+     │                                                  │
+     │  /nix ··········· packages, store, generations   │
+     │  /persistent/home/m ··········· all user data    │
+     │  /persistent/secrets ··········· age key         │
+     │  /persistent/var/lib ··········· BT, NixOS       │
+     │  /persistent/etc ··········· NM, machine-id      │
+     ╰──────────────────────────────────────────────────╯
+
+     ╭──────────────────────────────────────────────────╮
+     │            E P H E M E R A L                     │
+     │                                                  │
+     │  / ··········· wiped every boot                  │
+     │  /tmp ··········· tmpfs                          │
+     │  /run ··········· tmpfs                          │
+     ╰──────────────────────────────────────────────────╯
+```
 
 ## Hardware
 
-| Component | Choice |
-|-----------|--------|
-| CPU | AMD Ryzen 9 7900X (12C/24T) |
-| GPU | RTX 5070 Ti (16GB GDDR7) |
-| RAM | 32GB DDR5 6000MHz CL30 |
-| Motherboard | Gigabyte B650M AORUS ELITE AX WIFI |
-| Case | Lian Li A3-mATX |
-| Cooler | MSI MAG Coreliquid A13 (360mm ARGB) |
-| PSU | Thermaltake Toughpower GF A3 850W (ATX 3.0) |
-| Storage | 2TB Kingston NV3 PCIe 4.0 |
+```
+ CPU     AMD Ryzen 9 7900X          12C / 24T
+ GPU     NVIDIA RTX 5070 Ti         16GB GDDR7
+ RAM     32GB DDR5                  6000MHz CL30
+ Board   Gigabyte B650M AORUS       ELITE AX WiFi
+ Cool    MSI MAG Coreliquid A13     360mm AIO ARGB
+ PSU     Thermaltake GF A3          850W ATX 3.0
+ Drive   Kingston NV3               2TB PCIe 4.0
+ Case    Lian Li A3-mATX
+```
+
+## Module Map
+
+```
+modules/
+├── core/
+│   ├── globals.nix ............. system packages, nix settings
+│   ├── boot.nix ................ systemd-boot, kernel params
+│   ├── impermanence.nix ........ root wipe + bind mounts
+│   ├── persistence.nix ......... declarative persist paths
+│   ├── storage.nix ............. Btrfs mounts, fstab
+│   ├── graphics.nix ............ NVIDIA 570.x, Wayland env
+│   ├── secrets.nix ............. sops-nix declarations
+│   ├── security.nix ............ firewall, hardening
+│   ├── ai-local.nix ............ Ollama + CUDA models
+│   └── vm.nix .................. QEMU/libvirt
+├── desktop/
+│   ├── hyprland.nix ............ compositor config
+│   ├── openrgb.nix ............. peripheral RGB control
+│   ├── steam.nix ............... gaming + Proton
+│   ├── seafile.nix ............. file sync client
+│   └── keyledsd.nix ............ keyboard LEDs
+└── user/
+    ├── home-manager.nix ........ HM entry point
+    ├── home.nix ................ packages, dotfiles
+    ├── zsh.nix ................. shell config
+    ├── tmux.nix ................ terminal multiplexer
+    ├── waybar.nix .............. status bar
+    └── lf.nix .................. file manager
+```
+
+## Deploy
+
+```bash
+sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora-desktop
+```
+
+Or use the integrated workflow:
+
+```bash
+mandragora-switch "commit message"
+```
+
+This stages all changes, rebuilds, and pushes on success — rolling back the commit on failure.
+
+## Flake Inputs
+
+| Input | Purpose |
+|:------|:--------|
+| [`nixpkgs`](https://github.com/NixOS/nixpkgs) (unstable) | Package set + NixOS modules |
+| [`home-manager`](https://github.com/nix-community/home-manager) | Dotfile management as Nix |
+| [`sops-nix`](https://github.com/Mic92/sops-nix) | Declarative secret decryption |
+| [`impermanence`](https://github.com/nix-community/impermanence) | Stateless root with opt-in persistence |
+
+## Documentation
+
+| Document | Purpose |
+|:---------|:--------|
+| [`DECISIONS.md`](DECISIONS.md) | All resolved technical choices |
+| [`STRUCTURE.md`](STRUCTURE.md) | Repo layout and module map |
+| [`DATA_HIERARCHY.md`](DATA_HIERARCHY.md) | 5-tier persistence/backup matrix |
+| [`WORKFLOW.md`](WORKFLOW.md) | Sync ritual and rebuild workflow |
+| [`SECRETS.md`](SECRETS.md) | sops-nix vault strategy |
+| [`atlas/`](atlas/) | Hardware, constraints, partition plan |
+
+---
+
+<div align="center">
+
+*Built with obsessive declarativity on NixOS unstable.*
+
+</div>
