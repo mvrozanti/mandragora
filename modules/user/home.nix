@@ -168,7 +168,7 @@ in
     jiq
 
     telegram-desktop
-    discord
+    vesktop
     spotify
     obsidian
     zapzap
