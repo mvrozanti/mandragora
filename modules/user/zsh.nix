@@ -1,5 +1,9 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+  zxDirs = import ./zx-dirs.nix;
+  zxAliases = lib.mapAttrs' (k: v: lib.nameValuePair "z${k}" v) zxDirs;
+in
 {
   programs.zsh = {
     enable = true;
@@ -20,26 +24,7 @@
       extended = true;
     };
 
-    shellAliases = {
-      zh = "~";
-      zD = "~/Downloads";
-      zc = "~/.config";
-      zl = "~/.config/lf";
-      zt = "~/.local/share/Trash";
-      zp = "~/projects";
-      zu = "~/util";
-      zG = "~/gdrive";
-      z4 = "~/gdrive/Levv/4chan";
-      zw = "~/gdrive/Levv/wllpps";
-      zL = "~/gdrive/library";
-      zM = "~/Music";
-      zf = "~/sandisk/Filmes";
-      zm = "~/macrovip";
-      zs = "~/sandisk/sss";
-      za = "~/adata";
-      zd = "~/disk";
-      zS = "~/sandisk";
-
+    shellAliases = zxAliases // {
       switch = "mandragora-switch";
       rebuild = "mandragora-switch";
       rebuild-boot = "sudo nixos-rebuild boot --flake /etc/nixos/mandragora#mandragora-desktop";
