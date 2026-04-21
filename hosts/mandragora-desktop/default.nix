@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ../../pkgs/overlays.nix
     ../../modules/core/globals.nix
     ../../modules/core/vm.nix
     ../../modules/core/storage.nix
