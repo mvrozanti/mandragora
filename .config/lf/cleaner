@@ -1,3 +1,10 @@
 #!/bin/sh
-kitty +kitten icat --clear --stdin no --silent </dev/tty >/dev/tty
+printf '[%s] cleaner args=%s\n' "$(date +%H:%M:%S.%N)" "$*" >> /tmp/lf-cleaner.log
+kitty +kitten icat \
+  --clear \
+  --stdin no \
+  --silent \
+  --transfer-mode file \
+  </dev/null >/dev/tty 2>>/tmp/lf-cleaner.log
+printf '[%s] kitty --clear rc=%s\n' "$(date +%H:%M:%S.%N)" "$?" >> /tmp/lf-cleaner.log
 exit 0
