@@ -122,3 +122,21 @@ System is hours old. Fourth NixOS generation. Hyprland is running (Wayland confi
 - Task #15: Firefox Sync re-login (UI task, user does manually)
 - mutt/neomutt: complex OAuth2 setup, defer until needed
 - Seafile: needs server URL + auth token before enabling
+
+## Session 2026-04-21 (neomutt port)
+
+### Done
+- Copied OAuth tokens `/mnt/toshiba/.cache-mutt/` → `~/.cache/mutt/` (600 perms)
+- Copied neomutt config `/mnt/toshiba/.config/mutt/` → `~/.config/mutt/`
+- Wrote `~/.config/msmtp/config` with NixOS-adjusted paths (mutt_oauth2.py at `~/.config/mutt/`, tokens at `~/.cache/mutt/`)
+- Added `neomutt`, `msmtp`, `mutt-wizard` to `modules/user/home.nix` packages
+- Fixed corrupted `mbsync-hotmail` systemd service in `modules/user/services.nix` (line 42 had a literal shell error message pasted as `sync_output=` value — another parallel-AI-conflict artifact)
+- Rebuilt; `neomutt`, `mailsync`, `msmtp`, `mbsync`, `mw` all on PATH
+
+### What broke
+- `neomutt` config parse warns about missing Maildir at `~/.local/share/mail/mvrozanti@hotmail.com/INBOX` — expected, see Next
+
+### Next
+- **Missing mbsync config**: no `.mbsyncrc` or `~/.config/mbsync/config` found on toshiba — syncing won't work until one is written (or run `mw -a mvrozanti@hotmail.com` to have mutt-wizard generate one)
+- **Missing Maildir**: the actual mail data lived on the sandisk drive (`/home/m/sandisk/mail` symlink target); sandisk is not currently mounted. Either mount sandisk or accept a fresh sync from the IMAP server once mbsyncrc exists
+- **OAuth client secret**: msmtp config uses `--client-secret ''` with Thunderbird's public client ID — should still work but may need re-auth via `~/.config/mutt/reauthorize.sh` if tokens have expired
