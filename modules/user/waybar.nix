@@ -55,7 +55,6 @@
         "custom/volume" = {
           exec = "~/.config/waybar/scripts/volume-ramp.sh";
           return-type = "json";
-          format = "{}";
           interval = 1;
           on-click = "pamixer -t";
           on-scroll-up = "pamixer -i 2";

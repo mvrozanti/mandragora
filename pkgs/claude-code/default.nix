@@ -1,60 +1,50 @@
 {
   lib,
   stdenv,
-  buildNpmPackage,
   fetchzip,
-  versionCheckHook,
-  writableTmpDirAsHomeHook,
+  autoPatchelfHook,
+  makeWrapper,
   bubblewrap,
   procps,
   socat,
 }:
-buildNpmPackage (finalAttrs: {
+# claude-code 2.1.116+ ships as a native ELF binary via platform-specific
+# npm optional deps. We fetch the linux-x64 binary directly and bypass npm.
+stdenv.mkDerivation (finalAttrs: {
   pname = "claude-code";
   version = "2.1.116";
 
+  # The actual native binary package
   src = fetchzip {
-    url = "https://registry.npmjs.org/@anthropic-ai/claude-code/-/claude-code-${finalAttrs.version}.tgz";
-    hash = "sha256-GJm/wjxhFdPcSpQbRhWXen/j6UrVzspXJodnsvqz4KM=";
+    url = "https://registry.npmjs.org/@anthropic-ai/claude-code-linux-x64/-/claude-code-linux-x64-${finalAttrs.version}.tgz";
+    hash = "sha256-QEjJ4CRk35TubDNW02Dzcu+EMRLLndJUXJeP3BFT3b8=";
   };
 
-  npmDepsHash = "sha256-EP/4wXhq10O9zA3o8szTVKiaNY+Qq3xqy8T1eilKwFA=";
+  nativeBuildInputs = [ autoPatchelfHook makeWrapper ];
+  buildInputs = [ stdenv.cc.libc ];
 
-  strictDeps = true;
+  dontBuild = true;
 
-  postPatch = ''
-    cp ${./package-lock.json} package-lock.json
+  installPhase = ''
+    runHook preInstall
+    install -Dm755 claude $out/lib/claude-code/claude
+    runHook postInstall
   '';
 
-  dontNpmBuild = true;
-
-  env.AUTHORIZED = "1";
-
-  postInstall = ''
-    wrapProgram $out/bin/claude \
+  postFixup = ''
+    makeWrapper $out/lib/claude-code/claude $out/bin/claude \
       --set DISABLE_AUTOUPDATER 1 \
       --set-default FORCE_AUTOUPDATE_PLUGINS 1 \
       --set DISABLE_INSTALLATION_CHECKS 1 \
       --unset DEV \
       --prefix PATH : ${
-        lib.makeBinPath (
-          [
-            procps
-          ]
-          ++ lib.optionals stdenv.hostPlatform.isLinux [
-            bubblewrap
-            socat
-          ]
-        )
+        lib.makeBinPath [
+          procps
+          bubblewrap
+          socat
+        ]
       }
   '';
-
-  doInstallCheck = true;
-  nativeInstallCheckInputs = [
-    writableTmpDirAsHomeHook
-    versionCheckHook
-  ];
-  versionCheckKeepEnvironment = [ "HOME" ];
 
   meta = {
     description = "Agentic coding tool that lives in your terminal, understands your codebase, and helps you code faster";
@@ -63,5 +53,6 @@ buildNpmPackage (finalAttrs: {
     license = lib.licenses.unfree;
     mainProgram = "claude";
     sourceProvenance = with lib.sourceTypes; [ binaryBytecode ];
+    platforms = [ "x86_64-linux" ];
   };
 })
