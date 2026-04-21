@@ -190,7 +190,7 @@ in
     (pkgs.writeShellScriptBin "compv" (builtins.readFile ../../.local/bin/compv.sh))
     (pkgs.writeShellScriptBin "ic" (builtins.readFile ../../.local/bin/ic.sh))
     (pkgs.writeShellScriptBin "setbg" (builtins.readFile ../../.local/bin/setbg.sh))
-    (pkgs.writeShellScriptBin "make-disk-space" (builtins.readFile ../../.local/bin/make-disk-space.sh))
+    (pkgs.writeShellScriptBin "clean" (builtins.readFile ../../.local/bin/clean.sh))
     (pkgs.writeShellScriptBin "gmp" (builtins.readFile ../../.local/bin/gmp.sh))
     (pkgs.writeShellScriptBin "mkv2gif" (builtins.readFile ../../.local/bin/mkv2gif.sh))
     (pkgs.writeShellScriptBin "mov2gif" (builtins.readFile ../../.local/bin/mov2gif.sh))
