@@ -1,6 +1,10 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 let
+  zxDirs = import ./zx-dirs.nix;
+  zxDirsForLf = lib.filterAttrs (k: _: k != "/") zxDirs;
+  zxBindings = lib.mapAttrs' (k: v: lib.nameValuePair "z${k}" "cd ${v}") zxDirsForLf;
+
   lf-ub = pkgs.buildGoModule rec {
     pname = "lf-ub";
     version = "master";
@@ -77,20 +81,15 @@ in
       }}'';
     };
 
-    keybindings = {
+    keybindings = zxBindings // {
+      "g/" = "cd /";
+
       k = "up";
       j = "down";
       h = "updir";
       l = "open";
       "<enter>" = "open";
-      
-      "gh" = "cd ~";
-      "gD" = "cd ~/Downloads";
-      "gc" = "cd ~/.config";
-      "gl" = "cd ~/.config/lf";
-      "gp" = "cd ~/projects";
-      "gd" = "cd ~/disk";
-      
+
       "<pagedown>" = "down 50%";
       "<pageup>" = "up 50%";
       "<C-f>" = "down 50%";
@@ -131,7 +130,7 @@ in
       "M" = "mkdir";
       "U" = "unzip";
       
-      "z" = ''%{{
+      "Z" = ''%{{
         result=\"$(zoxide query -i)\"
         lf -remote \"send $id cd \\"$result\\"\"
       }}'';
