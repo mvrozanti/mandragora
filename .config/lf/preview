@@ -62,14 +62,17 @@ case "$(file -Lb --mime-type -- "$file")" in
     cache ffmpegthumbnailer -i "$file" -o "$cache" -s 0
     ;;
   application/json)
+    clear_kitty_images
     jq -C . "$file"
     exit 0
     ;;
   text/*)
+    clear_kitty_images
     fold -s -w "$width" "$file" | head -n "$height"
     exit 0
     ;;
 esac
 
+clear_kitty_images
 file -Lb -- "$file" | fold -s -w "$width"
 exit 0

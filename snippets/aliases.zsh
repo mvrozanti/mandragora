@@ -356,3 +356,58 @@ sa() { awk -v name="$*" 'BEGIN{re="^(alias )?"name"(=|\\()"} $0~re{p=1;print;if(
 
 alias claude='claude --enable-auto-mode'
 alias gemini='gemini -y'
+alias qwen='qwen -y'
+
+alias hhh='cd ../../..'
+alias hhhh='cd ../../../..'
+alias hhhhh='cd ../../../../..'
+alias 2h='hh'
+alias 3h='hhh'
+alias 4h='hhhh'
+
+alias wh='watch head'
+alias wjq='watch jq'
+wlg() { watch "ls | grep $@" }
+wtg() { watch "tree | grep $@" }
+
+alias wav2ogg='oggenc -q 3 -o file.ogg'
+mp32wav() { mpg123 -w "${1%.*}.wav" "$1" }
+
+alias gai='git add -i'
+alias gcfd='git clean -f -d'
+gbm() { [[ "$#" -eq 2 ]] && git branch -m "$1" "$2" }
+
+v.()      { nvim . }
+alias vc='cv'
+ec()      { eval "$*"; echo $? }
+www()     { ww -w $COLUMNS }
+getpass() { python3 -c 'from getpass import getpass; print(getpass("Password: "))' }
+
+alias G='googler -l en -n 6'
+coG()     { G "$(co)" }
+
+cof()      { f "$(co)" }
+coag()     { ag "$(co)" }
+costat()   { stat "$(co)" }
+cowcc()    { co | wc -c }
+alias cox='co | xargs'
+cosrm()    { sudo rm "$(co)" }
+scov()     { sudoedit "$(co)" }
+covipec()  { co | vipe | c }
+cogc()     { [[ -d .git ]] && git submodule add "$(co)" || git clone "$(co)"; cd "$(basename "$(co)" .git)" }
+cogacp()   { gaca; git push -f "$@" }
+alias cotra='transmission-remote -a "$(co)"'
+
+alias sducks='sudo ls -a | xargs du -cks -- | sort -rn'
+lnb()     { ln -s "$(realpath "$1")" "$HOME/.local/bin/${2:-$(basename "$1" | cut -d. -f1)}" }
+mvcd()    { mv "$@"; cd "${@: -1}" }
+ter2dec() { echo "$((3#$(cat -)))" }
+xlx()     { f -tnew | xargs file | grep ELF | sed 1q | cut -d':' -f1 | xargs -I{} zsh -c ./{} }
+vX()      { echo | vipe | xargs -0 zsh -c }
+
+k9() {
+  if [[ $# -eq 0 ]]; then K9
+  elif [[ "$1" =~ ^[0-9]+$ ]]; then kill -9 "$1"
+  else pkill -9 -i -f "$@"
+  fi
+}
