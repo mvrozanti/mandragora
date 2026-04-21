@@ -68,6 +68,5 @@
     gawk
     dmidecode
     iotop
-    ueberzugpp
   ];
 }

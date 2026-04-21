@@ -565,6 +565,17 @@ in
     profiles.whatsapp = {
       id = 1;
       name = "whatsapp";
+      settings = {
+        "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
+        "browser.tabs.inTitlebar" = 0;
+        "browser.uidensity" = 1;
+      };
+      userChrome = ''
+        #TabsToolbar { visibility: collapse !important; }
+        #nav-bar { visibility: collapse !important; }
+        #sidebar-box { display: none !important; }
+        #titlebar { display: none !important; }
+      '';
     };
   };
 
