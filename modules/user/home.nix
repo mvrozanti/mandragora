@@ -184,6 +184,7 @@ in
     (pkgs.writeShellScriptBin "cycle-audio-output" (builtins.readFile ../../.local/bin/cycle-audio-output.sh))
     (pkgs.writeShellScriptBin "window-to-corner" (builtins.readFile ../../.local/bin/window-to-corner.sh))
     (pkgs.writeShellScriptBin "gap-adjust" (builtins.readFile ../../.local/bin/gap-adjust.sh))
+    (pkgs.writeShellScriptBin "blur-adjust" (builtins.readFile ../../.local/bin/blur-adjust.sh))
     (pkgs.writeShellScriptBin "opacity-adjust" (builtins.readFile ../../.local/bin/opacity-adjust.sh))
     (pkgs.writeShellScriptBin "rofi-wallpaper-picker" (builtins.readFile ../../.local/bin/rofi-wallpaper-picker.sh))
     (pkgs.writeShellScriptBin "rofi-run-or-term" (builtins.readFile ../../.local/bin/rofi-run-or-term.sh))
