@@ -69,7 +69,7 @@
         };
 
         memory = {
-          format = " {percentage}%";
+          format = " {percentage}%";
           interval = 5;
           tooltip-format = "{used:0.1f}G / {total:0.1f}G";
         };
