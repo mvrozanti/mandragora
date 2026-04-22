@@ -538,17 +538,29 @@ in
     enable = true;
     settings = {
       font = "Iosevka Nerd Font Mono 11";
-      background-color = "#282c34";
+      background-color = "#282c34e6";
       text-color = "#abb2bf";
       border-color = "#61afef";
-      border-size = 2;
-      border-radius = 8;
-      default-timeout = 5000;
-      padding = "8";
-      margin = "8";
-      width = 360;
+      border-size = 1;
+      border-radius = 10;
+      default-timeout = 10000;
+      padding = "10";
+      margin = "10";
+      width = 400;
       layer = "overlay";
+      anchor = "top-right";
+      max-icon-size = 64;
+      max-visible = 5;
+      markup = 1;
+      actions = 1;
+      sort = "-time";
+      ignore-timeout = 0;
     };
+    extraConfig = ''
+      [urgency=high]
+      border-color=#e06c75
+      default-timeout=0
+    '';
   };
 
   programs.firefox = {
