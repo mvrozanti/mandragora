@@ -3,6 +3,7 @@
 {
   services.prometheus = {
     enable = true;
+    listenAddress = "127.0.0.1:9090";
     retentionTime = "90d";
     scrapeConfigs = [
       {
@@ -15,6 +16,7 @@
 
   services.prometheus.exporters.node = {
     enable = true;
+    listenAddress = "127.0.0.1";
     enabledCollectors = [ "textfile" ];
     extraFlags = [
       "--collector.textfile.directory=/var/lib/prometheus-node-exporter-textfiles"
@@ -23,6 +25,8 @@
 
   systemd.services.du-exporter = {
     description = "Directory size Prometheus textfile exporter";
+    after = [ "systemd-tmpfiles-setup.service" ];
+    requires = [ "systemd-tmpfiles-setup.service" ];
     serviceConfig = {
       Type = "oneshot";
       User = "root";
