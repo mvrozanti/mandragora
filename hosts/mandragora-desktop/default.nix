@@ -12,6 +12,7 @@
     ../../modules/core/secrets.nix
     ../../modules/core/security.nix
     ../../modules/core/ai-local.nix
+    ../../modules/core/monitoring.nix
     ../../modules/desktop/hyprland.nix
     ../../modules/desktop/kdeconnect.nix
     ../../modules/desktop/keyledsd.nix
