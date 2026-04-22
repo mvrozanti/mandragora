@@ -66,7 +66,10 @@ in
     $DRY_RUN_CMD mkdir -p "$MODS"
     $DRY_RUN_CMD ln -sf ${baritone} "$MODS/baritone.jar"
 
-    FORK_JAR=$(ls "$HOME/dev/meteor-client/build/libs"/meteor-client-*.jar 2>/dev/null | sort -V | tail -1)
+    FORK_JAR=""
+    if [ -d "$HOME/dev/meteor-client/build/libs" ]; then
+      FORK_JAR=$(find "$HOME/dev/meteor-client/build/libs" -name "meteor-client-*.jar" | sort -V | tail -1)
+    fi
     if [ -n "$FORK_JAR" ]; then
       $DRY_RUN_CMD ln -sf "$FORK_JAR" "$MODS/meteor-client.jar"
     else

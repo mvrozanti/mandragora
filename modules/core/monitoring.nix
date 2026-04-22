@@ -3,7 +3,8 @@
 {
   services.prometheus = {
     enable = true;
-    listenAddress = "127.0.0.1:9090";
+    listenAddress = "127.0.0.1";
+    port = 9090;
     retentionTime = "90d";
     scrapeConfigs = [
       {
@@ -30,6 +31,7 @@
     serviceConfig = {
       Type = "oneshot";
       User = "root";
+      UMask = "0022";
       ExecStart = "${pkgs.du-exporter}/bin/du-exporter";
     };
   };
