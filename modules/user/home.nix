@@ -1,13 +1,6 @@
 { config, lib, pkgs, ... }:
 
 let
-  smart-launch = pkgs.writeShellScript "smart-launch" (builtins.readFile ../../.local/bin/smart-launch.sh);
-  rofi-ide-picker = pkgs.writeShellScript "rofi-ide-picker" (builtins.readFile ../../.local/bin/rofi-ide-picker.sh);
-  rofi-tool-picker = pkgs.writeShellScript "rofi-tool-picker" (builtins.readFile ../../.local/bin/rofi-tool-picker.sh);
-  rofi-db-picker = pkgs.writeShellScript "rofi-db-picker" (builtins.readFile ../../.local/bin/rofi-db-picker.sh);
-  cycle-audio-output = pkgs.writeShellScript "cycle-audio-output" (builtins.readFile ../../.local/bin/cycle-audio-output.sh);
-  window-to-corner = pkgs.writeShellScript "window-to-corner" (builtins.readFile ../../.local/bin/window-to-corner.sh);
-
   pyDictEnv = pkgs.python3.withPackages (ps: with ps; [ requests beautifulsoup4 lxml ]);
   pySinonEnv = pkgs.python3.withPackages (ps: with ps; [ requests beautifulsoup4 lxml unidecode ]);
   hidWrapperEnv = pkgs.python3.withPackages (ps: [
