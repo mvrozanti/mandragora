@@ -17,6 +17,7 @@ in
     ./lf.nix
     ./services.nix
     ./waybar.nix
+    ./minecraft.nix
   ];
 
   home.username = "m";
