@@ -541,8 +541,6 @@ in
     settings = {
       font = "Iosevka Nerd Font Mono 11";
       background-color = "#00000001";
-      text-color = "#dddddd";
-      border-color = "#00ff00";
       border-size = 1;
       border-radius = 10;
       default-timeout = 10000;
@@ -559,6 +557,8 @@ in
       ignore-timeout = 0;
     };
     extraConfig = ''
+      include=/home/m/.cache/wal/colors-mako
+      background-color=#00000001
       [urgency=high]
       border-color=#e06c75
       default-timeout=0
