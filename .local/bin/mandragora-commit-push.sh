@@ -4,6 +4,17 @@ FLAKE="/etc/nixos/mandragora"
 
 cd "$FLAKE"
 
+echo "==> Fetching origin..."
+if ! git fetch origin; then
+  echo "==> WARNING: git fetch failed. Proceeding without sync check." >&2
+elif [ "$(git rev-list --count HEAD..origin/master)" -gt 0 ]; then
+  echo "==> Remote is ahead by $(git rev-list --count HEAD..origin/master) commit(s). Rebasing..."
+  if ! git pull --rebase --autostash origin master; then
+    echo "==> FAILED: rebase conflict. Resolve manually then re-run." >&2
+    exit 1
+  fi
+fi
+
 git add -A
 
 DIFF=$(git diff --cached)
@@ -38,5 +49,9 @@ fi
 
 git commit -m "$MSG"
 echo "==> Pushing..."
-git push
+if ! git push; then
+  echo "==> FAILED: push was rejected. Your local commit is NOT on origin." >&2
+  echo "==> Run: git pull --rebase && git push" >&2
+  exit 1
+fi
 echo "==> Done."
