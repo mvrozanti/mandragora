@@ -4,16 +4,17 @@ writeShellApplication {
   runtimeInputs = [ coreutils ];
   text = ''
     OUTDIR="/var/lib/prometheus-node-exporter-textfiles"
+    TMPFILE=""
     TMPFILE=$(mktemp "$OUTDIR/.dirsize.prom.XXXXXX")
     THRESHOLD=104857600
 
-    cleanup() { rm -f "$TMPFILE"; }
+    cleanup() { [ -n "$TMPFILE" ] && rm -f "$TMPFILE"; }
     trap cleanup EXIT
 
-    if ! du_output=$(du --block-size=1 -d5 /home/m 2>&1); then
-      echo "du-exporter: du failed: $du_output" >&2
+    du_output=$(du --block-size=1 -d5 /home/m 2>/dev/null) || {
+      echo "du-exporter: du failed (exit code $?)" >&2
       exit 1
-    fi
+    }
 
     printf '# HELP dirsize_bytes Disk usage of directory in bytes\n' > "$TMPFILE"
     printf '# TYPE dirsize_bytes gauge\n' >> "$TMPFILE"
