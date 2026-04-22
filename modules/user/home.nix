@@ -184,6 +184,7 @@ in
     spotify
     obsidian
     zapzap
+    gnome-chess
     tradingview
     openrgb
     pywal
@@ -460,6 +461,7 @@ in
       "alt+8" = "send_text all \\x1b8";
       "alt+9" = "send_text all \\x1b9";
     };
+    extraConfig = "include ~/.cache/wal/colors-kitty.conf";
   };
 
   wayland.windowManager.hyprland = {
@@ -563,6 +565,21 @@ in
       id = 0;
       path = "iwwxmo01.default";
     };
+    profiles.chess = {
+      id = 2;
+      name = "chess";
+      settings = {
+        "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
+        "browser.tabs.inTitlebar" = 0;
+        "browser.uidensity" = 1;
+      };
+      userChrome = ''
+        #TabsToolbar { visibility: collapse !important; }
+        #nav-bar { visibility: collapse !important; }
+        #sidebar-box { display: none !important; }
+        #titlebar { display: none !important; }
+      '';
+    };
     profiles.whatsapp = {
       id = 1;
       name = "whatsapp";
@@ -648,6 +665,15 @@ in
     source = ../../snippets/waybar-weather.sh;
     executable = true;
   };
+  home.file.".local/share/applications/chess-com.desktop".text = ''
+[Desktop Entry]
+Name=Chess.com
+Exec=env MOZ_APP_REMOTINGNAME=chess-com firefox -P chess --new-instance --url https://www.chess.com
+Icon=${pkgs.gnome-chess}/share/icons/hicolor/scalable/apps/org.gnome.Chess.svg
+Type=Application
+Categories=Game;BoardGame;
+StartupWMClass=chess-com
+'';
   home.file.".local/share/applications/whatsapp-web.desktop".text = ''
 [Desktop Entry]
 Name=WhatsApp

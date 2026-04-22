@@ -182,3 +182,13 @@ System is hours old. Fourth NixOS generation. Hyprland is running (Wayland confi
 - Consider a pywal-driven zathura include in `.config/zathura/zathurarc` (pywal already generates `colors-zathura` automatically).
 - `.local/bin/theme-engine.sh` and `modules/desktop/rgb.nix` are now orphaned (no Nix references). Worth a cleanup commit.
 - Motherboard actually exposes a B650M AORUS HID controller (not the ENE DRAM i2c path the old systemd service assumed) — confirm which devices the user actually wants different palette slots on and consider mapping explicitly by name/type rather than iteration order.
+
+## 2026-04-21 — keyledsd custom effects + lf.nix fix
+
+**Done:**
+- Created `snippets/keyledsd-effects/` with all 18 custom Lua effects from `~/.local/share/keyledsd/effects/` (including the revamped 193-line graph-based `lightning.lua`)
+- Updated `keyledsd.nix` to iterate over the directory and install all `.lua` files in `postInstall`, replacing the single `lightning.lua` postInstall line
+- Fixed pre-existing `lf.nix:145` parse error (`${{` → `''${` in Nix `''` string to produce literal `${` for lf multiline shell command syntax)
+- Rebuilt successfully; keyledsd running with full effect library
+
+**State:** Lightning effect working; all custom effects available to keyledsd profiles.

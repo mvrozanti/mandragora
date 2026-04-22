@@ -1,11 +1,14 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 let
+  effectsDir = ../../snippets/keyledsd-effects;
+  effectFiles = builtins.readDir effectsDir;
   keyleds-patched = pkgs.keyleds.overrideAttrs (old: {
     patches = (old.patches or []) ++ [ ./keyleds-xwayland.patch ];
     postInstall = (old.postInstall or "") + ''
-      cp ${pkgs.writeText "lightning.lua" (builtins.readFile ../../snippets/lightning.lua)} \
-         $out/share/keyledsd/effects/lightning.lua
+      ${lib.concatStringsSep "\n" (map (name:
+        "cp ${pkgs.writeText name (builtins.readFile (effectsDir + "/${name}"))} $out/share/keyledsd/effects/${name}"
+      ) (builtins.attrNames effectFiles))}
     '';
   });
 in
