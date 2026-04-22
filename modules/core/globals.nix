@@ -64,6 +64,7 @@
     xsel
     gnumake
     gcc
+    cmake
     yarn
     gawk
     dmidecode
