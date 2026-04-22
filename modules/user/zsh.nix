@@ -31,6 +31,12 @@ in
 
     shellAliases = zxAliases // {
       switch = "mandragora-switch";
+      nrd = "mandragora-diff";
+      nrs = "mandragora-switch !";
+      nrc = "mandragora-switch";
+      nrp = "mandragora-commit-push";
+      nrb = "sudo nixos-rebuild boot --flake /etc/nixos/mandragora#mandragora-desktop";
+      nrt = "sudo nixos-rebuild test --flake /etc/nixos/mandragora#mandragora-desktop";
       rebuild = "mandragora-switch";
       rebuild-boot = "sudo nixos-rebuild boot --flake /etc/nixos/mandragora#mandragora-desktop";
       nix-shell = "nix shell nixpkgs#";
