@@ -456,6 +456,15 @@ in
       "alt+7" = "send_text all \\x1b7";
       "alt+8" = "send_text all \\x1b8";
       "alt+9" = "send_text all \\x1b9";
+      "ctrl+1" = "send_text all \\x1b[49;5u";
+      "ctrl+2" = "send_text all \\x1b[50;5u";
+      "ctrl+3" = "send_text all \\x1b[51;5u";
+      "ctrl+4" = "send_text all \\x1b[52;5u";
+      "ctrl+5" = "send_text all \\x1b[53;5u";
+      "ctrl+6" = "send_text all \\x1b[54;5u";
+      "ctrl+7" = "send_text all \\x1b[55;5u";
+      "ctrl+8" = "send_text all \\x1b[56;5u";
+      "ctrl+9" = "send_text all \\x1b[57;5u";
     };
     extraConfig = "include ~/.cache/wal/colors-kitty.conf";
   };
@@ -544,9 +553,9 @@ in
       border-size = 1;
       border-radius = 10;
       default-timeout = 10000;
-      padding = "15";
+      padding = "10";
       margin = "20";
-      width = 400;
+      width = 280;
       layer = "overlay";
       anchor = "bottom-right";
       max-icon-size = 48;
