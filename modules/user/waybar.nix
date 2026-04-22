@@ -14,7 +14,7 @@
 
         modules-left = [ "hyprland/workspaces" ];
         modules-center = [ "custom/mpd" ];
-        modules-right = [ "custom/obs" "custom/volume" "disk" "memory" "temperature" "cpu" "network" "custom/weather" "clock" "tray" ];
+        modules-right = [ "custom/obs" "custom/volume" "disk" "memory" "temperature" "cpu" "custom/network" "custom/weather" "clock" "tray" ];
 
         "hyprland/workspaces" = {
           format = "{icon}";
@@ -97,10 +97,32 @@
           interval = 5;
         };
 
-        network = {
-          format-ethernet = "↑ {bandwidthUpBits} ↓ {bandwidthDownBits}";
-          format-disconnected = "disconnected";
-          tooltip-format = "{ifname}: {ipaddr}/{cidr}";
+        "custom/network" = {
+          exec = toString (pkgs.writeShellScript "net-rate" ''
+            iface=$(ip route show default 2>/dev/null | awk '/default/ {print $5; exit}')
+            if [ -z "$iface" ]; then echo "disconnected"; exit; fi
+            rx=$(cat /sys/class/net/$iface/statistics/rx_bytes 2>/dev/null || echo 0)
+            tx=$(cat /sys/class/net/$iface/statistics/tx_bytes 2>/dev/null || echo 0)
+            now=$(date +%s)
+            prev=/tmp/net-rate-$iface
+            if [ -f "$prev" ]; then
+              read -r prx ptx pt < "$prev"
+              dt=$(( now - pt ))
+              if [ "$dt" -gt 0 ]; then
+                drx=$(( (rx - prx) / dt ))
+                dtx=$(( (tx - ptx) / dt ))
+              else drx=0; dtx=0; fi
+            else drx=0; dtx=0; fi
+            printf "%s %s %s\n" "$rx" "$tx" "$now" > "$prev"
+            human() {
+              local b=$1
+              if   [ "$b" -ge 1073741824 ]; then echo "$(( b / 1073741824 )) GB/s"
+              elif [ "$b" -ge 1048576 ];    then echo "$(( b / 1048576 )) MB/s"
+              elif [ "$b" -ge 1024 ];       then echo "$(( b / 1024 )) KB/s"
+              else echo "$b B/s"; fi
+            }
+            echo "↑ $(human "$dtx") ↓ $(human "$drx")"
+          '');
           interval = 5;
         };
 
