@@ -16,6 +16,12 @@ get_ws_id() {
     hyprctl activeworkspace -j 2>/dev/null \
         | grep -oP '"id":\s*\K-?[0-9]+' | head -1
 }
+get_local_out() {
+    local ws
+    ws=$(get_ws_id)
+    hyprctl workspacerules 2>/dev/null \
+        | awk "/Workspace rule $ws:/{found=1} found && /gapsOut:/{print \$2; exit}"
+}
 
 apply() {
     local scope=$1 out=$2
@@ -24,6 +30,12 @@ apply() {
         local ws
         ws=$(get_ws_id)
         hyprctl keyword workspace "$ws, gapsout:$out, gapsin:$in" >/dev/null
+        # Workspace rules don't apply until re-entering the workspace; bounce to force it
+        local bounce=$(( ws % 9 + 1 ))
+        [[ $bounce -eq $ws ]] && bounce=$(( ws - 1 ))
+        hyprctl keyword animations:enabled 0 >/dev/null 2>&1
+        hyprctl --batch "dispatch workspace $bounce ; dispatch workspace $ws" >/dev/null 2>&1
+        hyprctl keyword animations:enabled 1 >/dev/null 2>&1
     else
         hyprctl keyword general:gaps_out "$out" >/dev/null
         hyprctl keyword general:gaps_in  "$in"  >/dev/null
@@ -44,7 +56,13 @@ if [[ $# -eq 1 ]]; then
 else
     scope=$1
     arg=$2
-    cur=$(get_global_out); cur=${cur:-20}
+    if [[ $scope == local ]]; then
+        cur=$(get_local_out)
+        [[ -z $cur ]] && cur=$(get_global_out)
+    else
+        cur=$(get_global_out)
+    fi
+    cur=${cur:-20}
     case "$arg" in
         plus)   value=$(( cur + delta )) ;;
         minus)  value=$(( cur - delta )); (( value < 0 )) && value=0 ;;
