@@ -33,12 +33,12 @@
 
     export TMUX_POWERLINE_THEME='default'
 
-    # Gruvbox dark: bg0=235, fg=223, yellow=214
-    export TMUX_POWERLINE_DEFAULT_BACKGROUND_COLOR='235'
+    # Gruvbox dark: fg=223, yellow=214. Background is transparent (terminal default).
+    export TMUX_POWERLINE_DEFAULT_BACKGROUND_COLOR='default'
     export TMUX_POWERLINE_DEFAULT_FOREGROUND_COLOR='223'
 
     export TMUX_POWERLINE_LEFT_STATUS_SEGMENTS=(
-      "tmux_session_info 214 235"
+      "tmux_session_info 214 default"
     )
 
     export TMUX_POWERLINE_RIGHT_STATUS_SEGMENTS=()

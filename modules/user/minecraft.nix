@@ -76,13 +76,13 @@ in
     $DRY_RUN_CMD ln -sf ${seus} "$SHADERPACKS/SEUS-Renewed-v1.0.1.zip"
 
     FORK_JAR=""
-    if [ -d "$HOME/projects/meteor-client/build/libs" ]; then
-      FORK_JAR=$(find "$HOME/projects/meteor-client/build/libs" -name "meteor-client-*.jar" | sort -V | tail -1)
+    if [ -d "$HOME/Projects/meteor-client/build/libs" ]; then
+      FORK_JAR=$(find "$HOME/Projects/meteor-client/build/libs" -name "meteor-client-*.jar" | sort -V | tail -1)
     fi
     if [ -n "$FORK_JAR" ]; then
       $DRY_RUN_CMD ln -sf "$FORK_JAR" "$MODS/meteor-client.jar"
     else
-      echo "Note: run ./gradlew build in ~/projects/meteor-client to install the mod" >&2
+      echo "Note: run ./gradlew build in ~/Projects/meteor-client to install the mod" >&2
     fi
   '';
 }

@@ -6,7 +6,7 @@
 {
   h = "~";
   m = "/etc/nixos/mandragora";
-  p = "~/projects";
+  p = "~/Projects";
   c = "~/.config";
   t = "~/.local/share/Trash";
   "/" = { path = "/"; lfPrefix = "g"; };
