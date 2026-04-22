@@ -18,6 +18,7 @@
     ../../modules/desktop/openrgb.nix
     ../../modules/desktop/seafile.nix
     ../../modules/desktop/steam.nix
+    ../../modules/desktop/minecraft.nix
     ../../modules/user/home-manager.nix
     ../../modules/audits/default.nix
   ];

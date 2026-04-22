@@ -13,91 +13,91 @@
 }
 
 window#waybar {
-    background: rgba(30, 30, 30, 0.3);
-    color: #abb2bf;
+    background: alpha(@background, 0.6);
+    color: @foreground;
 }
 
 tooltip {
-    background: #282c34;
-    border: 1px solid #3e4451;
+    background: @background;
+    border: 1px solid @color8;
     border-radius: 4px;
-    color: #abb2bf;
+    color: @foreground;
 }
 
 #workspaces button {
     padding: 0 8px;
-    color: #4b5263;
+    color: @color8;
     border-bottom: 2px solid transparent;
     border-radius: 0;
     background: transparent;
 }
 
 #workspaces button.active {
-    color: #abb2bf;
-    border-bottom: 2px solid #6eaafb;
+    color: @foreground;
+    border-bottom: 2px solid @color4;
 }
 
 #workspaces button.urgent {
-    color: #eb6e67;
-    border-bottom: 2px solid #eb6e67;
+    color: @color1;
+    border-bottom: 2px solid @color1;
 }
 
 #workspaces button:hover {
     background: rgba(255, 255, 255, 0.05);
     box-shadow: none;
-    border-bottom: 2px solid #3e4451;
+    border-bottom: 2px solid @color8;
 }
 
 #clock {
     padding: 0 12px;
-    border-bottom: 2px solid #6cdcf7;
+    border-bottom: 2px solid @color6;
 }
 
 #pulseaudio {
     padding: 0 8px;
-    border-bottom: 2px solid #6eaafb;
+    border-bottom: 2px solid @color4;
 }
 
 #pulseaudio.muted {
-    color: #4b5263;
-    border-bottom: 2px solid #4b5263;
+    color: @color8;
+    border-bottom: 2px solid @color8;
 }
 
 #network {
     padding: 0 8px;
     min-width: 200px;
-    border-bottom: 2px solid #f8c456;
+    border-bottom: 2px solid @color3;
 }
 
 #network.disconnected {
-    color: #4b5263;
-    border-bottom: 2px solid #4b5263;
+    color: @color8;
+    border-bottom: 2px solid @color8;
 }
 
 #cpu {
     padding: 0 8px;
-    border-bottom: 2px solid #95ee8f;
+    border-bottom: 2px solid @color2;
 }
 
 #memory {
     padding: 0 8px;
-    border-bottom: 2px solid #eb6e67;
+    border-bottom: 2px solid @color1;
 }
 
 #temperature {
     padding: 0 8px;
-    border-bottom: 2px solid #d886f3;
+    border-bottom: 2px solid @color5;
 }
 
 #temperature.critical {
-    color: #eb6e67;
-    border-bottom: 2px solid #eb6e67;
+    color: @color1;
+    border-bottom: 2px solid @color1;
     animation: pulse 1.5s ease-in-out infinite;
 }
 
 #disk {
     padding: 0 8px;
-    border-bottom: 2px solid #abb2bf;
+    border-bottom: 2px solid @foreground;
 }
 
 #custom-mpd {
@@ -106,21 +106,21 @@ tooltip {
 
 #custom-mpd.stopped,
 #custom-mpd.disconnected {
-    color: #4b5263;
+    color: @color8;
 }
 
 #custom-mpd.paused {
-    color: #f8c456;
+    color: @color3;
 }
 
 #idle-inhibitor {
     padding: 0 8px;
-    color: #4b5263;
+    color: @color8;
 }
 
 #idle-inhibitor.activated {
-    color: #e5c07b;
-    border-bottom: 2px solid #e5c07b;
+    color: @color3;
+    border-bottom: 2px solid @color3;
 }
 
 #privacy {
@@ -132,11 +132,11 @@ tooltip {
 }
 
 #privacy-item.screenshare {
-    color: #e06c75;
+    color: @color1;
 }
 
 #privacy-item.audio-in {
-    color: #e5c07b;
+    color: @color3;
 }
 
 #tray {
@@ -152,7 +152,7 @@ tooltip {
 }
 
 #custom-obs.recording {
-    color: #e06c75;
+    color: @color1;
     padding: 0 8px;
     animation: pulse 1.5s ease-in-out infinite;
 }
@@ -166,33 +166,33 @@ tooltip {
 }
 
 #custom-volume.muted {
-    color: #4b5263;
-    background-image: linear-gradient(to right, #4b5263 100%, #4b5263 100%);
+    color: @color8;
+    background-image: linear-gradient(to right, @color8 100%, @color8 100%);
 }
 
-#custom-volume.v0   { background-image: linear-gradient(to right, #6eaafb   0%, #3b4048   0%); }
-#custom-volume.v5   { background-image: linear-gradient(to right, #6eaafb   5%, #3b4048   5%); }
-#custom-volume.v10  { background-image: linear-gradient(to right, #6eaafb  10%, #3b4048  10%); }
-#custom-volume.v15  { background-image: linear-gradient(to right, #6eaafb  15%, #3b4048  15%); }
-#custom-volume.v20  { background-image: linear-gradient(to right, #6eaafb  20%, #3b4048  20%); }
-#custom-volume.v25  { background-image: linear-gradient(to right, #6eaafb  25%, #3b4048  25%); }
-#custom-volume.v30  { background-image: linear-gradient(to right, #6eaafb  30%, #3b4048  30%); }
-#custom-volume.v35  { background-image: linear-gradient(to right, #6eaafb  35%, #3b4048  35%); }
-#custom-volume.v40  { background-image: linear-gradient(to right, #6eaafb  40%, #3b4048  40%); }
-#custom-volume.v45  { background-image: linear-gradient(to right, #6eaafb  45%, #3b4048  45%); }
-#custom-volume.v50  { background-image: linear-gradient(to right, #6eaafb  50%, #3b4048  50%); }
-#custom-volume.v55  { background-image: linear-gradient(to right, #6eaafb  55%, #3b4048  55%); }
-#custom-volume.v60  { background-image: linear-gradient(to right, #6eaafb  60%, #3b4048  60%); }
-#custom-volume.v65  { background-image: linear-gradient(to right, #6eaafb  65%, #3b4048  65%); }
-#custom-volume.v70  { background-image: linear-gradient(to right, #6eaafb  70%, #3b4048  70%); }
-#custom-volume.v75  { background-image: linear-gradient(to right, #6eaafb  75%, #3b4048  75%); }
-#custom-volume.v80  { background-image: linear-gradient(to right, #6eaafb  80%, #3b4048  80%); }
-#custom-volume.v85  { background-image: linear-gradient(to right, #6eaafb  85%, #3b4048  85%); }
-#custom-volume.v90  { background-image: linear-gradient(to right, #6eaafb  90%, #3b4048  90%); }
-#custom-volume.v95  { background-image: linear-gradient(to right, #6eaafb  95%, #3b4048  95%); }
-#custom-volume.v100 { background-image: linear-gradient(to right, #6eaafb 100%, #3b4048 100%); }
+#custom-volume.v0   { background-image: linear-gradient(to right, @color4   0%, @color0   0%); }
+#custom-volume.v5   { background-image: linear-gradient(to right, @color4   5%, @color0   5%); }
+#custom-volume.v10  { background-image: linear-gradient(to right, @color4  10%, @color0  10%); }
+#custom-volume.v15  { background-image: linear-gradient(to right, @color4  15%, @color0  15%); }
+#custom-volume.v20  { background-image: linear-gradient(to right, @color4  20%, @color0  20%); }
+#custom-volume.v25  { background-image: linear-gradient(to right, @color4  25%, @color0  25%); }
+#custom-volume.v30  { background-image: linear-gradient(to right, @color4  30%, @color0  30%); }
+#custom-volume.v35  { background-image: linear-gradient(to right, @color4  35%, @color0  35%); }
+#custom-volume.v40  { background-image: linear-gradient(to right, @color4  40%, @color0  40%); }
+#custom-volume.v45  { background-image: linear-gradient(to right, @color4  45%, @color0  45%); }
+#custom-volume.v50  { background-image: linear-gradient(to right, @color4  50%, @color0  50%); }
+#custom-volume.v55  { background-image: linear-gradient(to right, @color4  55%, @color0  55%); }
+#custom-volume.v60  { background-image: linear-gradient(to right, @color4  60%, @color0  60%); }
+#custom-volume.v65  { background-image: linear-gradient(to right, @color4  65%, @color0  65%); }
+#custom-volume.v70  { background-image: linear-gradient(to right, @color4  70%, @color0  70%); }
+#custom-volume.v75  { background-image: linear-gradient(to right, @color4  75%, @color0  75%); }
+#custom-volume.v80  { background-image: linear-gradient(to right, @color4  80%, @color0  80%); }
+#custom-volume.v85  { background-image: linear-gradient(to right, @color4  85%, @color0  85%); }
+#custom-volume.v90  { background-image: linear-gradient(to right, @color4  90%, @color0  90%); }
+#custom-volume.v95  { background-image: linear-gradient(to right, @color4  95%, @color0  95%); }
+#custom-volume.v100 { background-image: linear-gradient(to right, @color4 100%, @color0 100%); }
 
 #custom-weather {
     padding: 0 8px;
-    border-bottom: 2px solid #d886f3;
+    border-bottom: 2px solid @color5;
 }

@@ -141,15 +141,16 @@ in
       "M" = "mkdir";
       "U" = "unzip";
       
-      "Z" = ''%{{
-        result=\"$(zoxide query -i)\"
-        lf -remote \"send $id cd \\"$result\\"\"
-      }}'';
     };
 
     extraConfig = ''
       set previewer ${preview}/bin/lf-preview
       set cleaner ${cleaner}/bin/lf-cleaner
+      cmd zoxide-jump ''${{
+        result=$(zoxide query -i)
+        [ -n "$result" ] && lf -remote "send $id cd \"$result\""
+      }}
+      map z zoxide-jump
     '';
   };
 
