@@ -52,6 +52,12 @@
   };
 
   fonts.packages = with pkgs; [
+    ubuntu-classic
+    icomoon-feather
+    nerd-fonts.terminess-ttf
+    nerd-fonts.droid-sans-mono
+    weather-icons
+    material-icons
     nerd-fonts.iosevka
     font-awesome
     noto-fonts
