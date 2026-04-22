@@ -63,8 +63,8 @@ progressbar_elapsed_color = "white"
 
 now_playing_prefix = "$b"
 now_playing_suffix = "$/b"
-current_item_prefix = $b$(white)
-current_item_suffix = $/b$9
+current_item_prefix = $b$r
+current_item_suffix = $/r$/b$9
 autocenter_mode = "yes"
 
 display_bitrate = "no"
