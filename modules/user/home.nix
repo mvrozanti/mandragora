@@ -185,6 +185,8 @@ in
 
     (pkgs.writeShellScriptBin "smart-launch" (builtins.readFile ../../.local/bin/smart-launch.sh))
     (pkgs.writeShellScriptBin "mandragora-switch" (builtins.readFile ../../.local/bin/mandragora-switch.sh))
+    (pkgs.writeShellScriptBin "mandragora-commit-push" (builtins.readFile ../../.local/bin/mandragora-commit-push.sh))
+    (pkgs.writeShellScriptBin "mandragora-diff" (builtins.readFile ../../.local/bin/mandragora-diff.sh))
     (pkgs.writeShellScriptBin "rofi-ide-picker" (builtins.readFile ../../.local/bin/rofi-ide-picker.sh))
     (pkgs.writeShellScriptBin "rofi-tool-picker" (builtins.readFile ../../.local/bin/rofi-tool-picker.sh))
     (pkgs.writeShellScriptBin "rofi-db-picker" (builtins.readFile ../../.local/bin/rofi-db-picker.sh))
@@ -538,18 +540,18 @@ in
     enable = true;
     settings = {
       font = "Iosevka Nerd Font Mono 11";
-      background-color = "#282c34e6";
-      text-color = "#abb2bf";
-      border-color = "#61afef";
+      background-color = "#00000001";
+      text-color = "#dddddd";
+      border-color = "#00ff00";
       border-size = 1;
       border-radius = 10;
       default-timeout = 10000;
-      padding = "10";
-      margin = "10";
+      padding = "15";
+      margin = "20";
       width = 400;
       layer = "overlay";
-      anchor = "top-right";
-      max-icon-size = 64;
+      anchor = "bottom-right";
+      max-icon-size = 48;
       max-visible = 5;
       markup = 1;
       actions = 1;
