@@ -5,12 +5,11 @@ from pathlib import Path
 from openrgb import OpenRGBClient
 from openrgb.utils import RGBColor
 
-FAN_LEDS = 12
-STOPS_PER_FAN = 3
+FAN_LEDS = 8
+STOPS_PER_FAN = 4
 CHAIN_LENGTH = 60
-PALETTE_INDICES = [2, 6, 5, 1, 4, 3]
 RAM_LEDS_PER_STOP = 2
-RAM_STOPS = 4
+RAM_PALETTE_INDICES = [2, 6, 5, 1]
 
 def from_hex(h):
     r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
@@ -20,6 +19,36 @@ def from_hex(h):
     r, g, b = colorsys.hsv_to_rgb(h_val, s_val, v_val)
     return RGBColor(int(r * 255), int(g * 255), int(b * 255))
 
+def hue_of(h):
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)[0]
+
+def pick_distinct_stops(palette_hex, n):
+    candidates = sorted(
+        [(hue_of(palette_hex[i]), i) for i in range(1, 9)]
+    )
+    step = len(candidates) / n
+    chosen = [candidates[int(k * step)][1] for k in range(n)]
+    return [from_hex(palette_hex[i]) for i in chosen]
+
+def fan_band_indices():
+    base = FAN_LEDS // STOPS_PER_FAN
+    sizes = [base] * STOPS_PER_FAN
+    remainder = FAN_LEDS - base * STOPS_PER_FAN
+    left, right = 0, STOPS_PER_FAN - 1
+    while remainder > 0:
+        sizes[left] += 1
+        remainder -= 1
+        left += 1
+        if remainder > 0:
+            sizes[right] += 1
+            remainder -= 1
+            right -= 1
+    indices = []
+    for stop_idx, size in enumerate(sizes):
+        indices.extend([stop_idx] * size)
+    return indices
+
 colors_path = Path.home() / ".cache/wal/colors.json"
 if not colors_path.exists():
     sys.exit(0)
@@ -27,7 +56,8 @@ if not colors_path.exists():
 try:
     data = json.loads(colors_path.read_text())
     palette = [data["colors"][f"color{i}"].lstrip("#") for i in range(16)]
-    contrast_stops = [from_hex(palette[i]) for i in PALETTE_INDICES]
+    fan_stops = pick_distinct_stops(palette, STOPS_PER_FAN)
+    ram_stops = [from_hex(palette[i]) for i in RAM_PALETTE_INDICES]
 except Exception:
     sys.exit(1)
 
@@ -37,20 +67,16 @@ except Exception:
     sys.exit(1)
 
 def fan_chain_colors():
+    band = fan_band_indices()
     out = []
     for i in range(CHAIN_LENGTH):
-        fan_idx = i // FAN_LEDS
-        within_fan = i % FAN_LEDS
-        stop_in_fan = (within_fan * STOPS_PER_FAN) // FAN_LEDS
-        color_idx = (fan_idx * STOPS_PER_FAN + stop_in_fan) % len(contrast_stops)
-        out.append(contrast_stops[color_idx])
+        out.append(fan_stops[band[i % FAN_LEDS]])
     return out
 
 def ram_colors(led_count):
     out = []
     for i in range(led_count):
-        color_idx = (i // RAM_LEDS_PER_STOP) % RAM_STOPS
-        out.append(contrast_stops[color_idx])
+        out.append(ram_stops[(i // RAM_LEDS_PER_STOP) % len(ram_stops)])
     return out
 
 for device in client.devices:
@@ -74,7 +100,7 @@ for device in client.devices:
         for zone in device.zones:
             zone.set_colors(ram_colors(len(zone.leds)))
     else:
-        device.set_color(contrast_stops[0])
+        device.set_color(fan_stops[0])
 
     try:
         device.show()

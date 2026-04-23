@@ -20,6 +20,11 @@ awww img "$fpath" --transition-type grow --transition-pos "$pos" --transition-du
 
 wal -i "$fpath" -n -q
 
+if tmux info &>/dev/null; then
+    tmux source-file ~/.cache/wal/colors-tmux.conf
+    tmux refresh-client -S 2>/dev/null || true
+fi
+
 if ! systemctl is-active --quiet openrgb; then
     sudo systemctl start openrgb
     sleep 1
