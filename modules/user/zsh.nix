@@ -37,6 +37,7 @@ in
       nrp = "mandragora-commit-push";
       nrb = "sudo nixos-rebuild boot --flake /etc/nixos/mandragora#mandragora-desktop";
       nrt = "sudo nixos-rebuild test --flake /etc/nixos/mandragora#mandragora-desktop";
+      sss = "sudo SOPS_AGE_KEY_FILE=/persistent/secrets/keys.txt sops /etc/nixos/mandragora/secrets/secrets.yaml";
       rebuild = "mandragora-switch";
       rebuild-boot = "sudo nixos-rebuild boot --flake /etc/nixos/mandragora#mandragora-desktop";
       nix-shell = "nix shell nixpkgs#";
