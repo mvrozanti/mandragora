@@ -1,0 +1,22 @@
+(defwidget screencap-menu-body []
+  (box :class "screencap-menu" :orientation "v" :space-evenly false :spacing 6
+    (label :class "screencap-title" :text "Record screen")
+    (box :orientation "h" :space-evenly true :spacing 8
+      (button :class "screencap-btn"
+              :onclick "~/.local/bin/screencap fullscreen &"
+        (box :orientation "v" :space-evenly false :spacing 2
+          (label :class "screencap-icon" :text "󰍹")
+          (label :class "screencap-label" :text "Fullscreen")))
+      (button :class "screencap-btn"
+              :onclick "~/.local/bin/screencap region &"
+        (box :orientation "v" :space-evenly false :spacing 2
+          (label :class "screencap-icon" :text "󰒉")
+          (label :class "screencap-label" :text "Region"))))))
+
+(defwindow screencap-menu
+  :monitor 0
+  :stacking "overlay"
+  :focusable true
+  :geometry (geometry :anchor "bottom right" :x 12 :y 56 :width 280 :height 120)
+  :namespace "eww-screencap"
+  (screencap-menu-body))

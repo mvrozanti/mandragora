@@ -151,10 +151,22 @@ tooltip {
     -gtk-icon-effect: highlight;
 }
 
-#custom-obs.recording {
+#custom-screencap {
+    padding: 0 10px;
+    color: @foreground;
+    border-bottom: 2px solid transparent;
+    transition: color 120ms ease, border-bottom-color 120ms ease;
+}
+
+#custom-screencap.idle:hover {
+    color: @color4;
+    border-bottom: 2px solid @color4;
+}
+
+#custom-screencap.recording {
     color: @color1;
-    padding: 0 8px;
-    animation: pulse 1.5s ease-in-out infinite;
+    border-bottom: 2px solid @color1;
+    animation: pulse 1.2s ease-in-out infinite;
 }
 
 #custom-volume {
@@ -196,3 +208,26 @@ tooltip {
     padding: 0 8px;
     border-bottom: 2px solid @color5;
 }
+
+#custom-lock,
+#custom-suspend,
+#custom-hibernate,
+#custom-reboot,
+#custom-poweroff {
+    padding: 0 8px;
+    font-size: 15px;
+    border-bottom: 2px solid transparent;
+    transition: color 120ms ease, border-bottom-color 120ms ease;
+}
+
+#custom-lock       { color: @foreground; }
+#custom-suspend    { color: @color5; }
+#custom-hibernate  { color: @color3; }
+#custom-reboot     { color: @color4; }
+#custom-poweroff   { color: @color1; }
+
+#custom-lock:hover       { border-bottom: 2px solid @foreground; }
+#custom-suspend:hover    { border-bottom: 2px solid @color5; }
+#custom-hibernate:hover  { border-bottom: 2px solid @color3; }
+#custom-reboot:hover     { border-bottom: 2px solid @color4; }
+#custom-poweroff:hover   { border-bottom: 2px solid @color1; }
