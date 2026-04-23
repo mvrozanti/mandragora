@@ -17,10 +17,7 @@ fi
 
 git add -A
 
-DIFF=$(git diff --cached)
-STAT=$(git diff --cached --stat)
-
-if [ -z "$DIFF" ]; then
+if git diff --cached --quiet; then
   echo "==> No uncommitted changes."
 fi
 
@@ -49,14 +46,13 @@ else
   {
     echo "$MSG"
     echo ""
-    echo "# Changes (save with message to apply, empty file to abort):"
-    echo "#"
-    echo "$STAT" | sed 's/^/# /'
-    echo "#"
-    echo "$DIFF" | sed 's/^/# /'
+    echo "# Changes shown in split above. Save with message to apply, empty file to abort."
   } > "$TMPFILE"
 
-  ${EDITOR:-nvim} "$TMPFILE"
+  nvim -c "terminal git diff --cached" \
+       -c "3split $TMPFILE" \
+       -c "wincmd j" \
+       -c "autocmd BufWinLeave <buffer> qall"
 
   MSG=$(grep -v '^#' "$TMPFILE" | sed '/^[[:space:]]*$/d')
   if [ -z "$MSG" ]; then

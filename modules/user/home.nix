@@ -153,6 +153,8 @@ in
     streamlink
     retroarch
     prismlauncher
+    remmina
+    freerdp
 
     khal
     cava
