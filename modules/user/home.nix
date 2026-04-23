@@ -248,6 +248,7 @@ in
     (pkgs.writeShellScriptBin "restore-theme" (builtins.readFile ../../.local/bin/restore-theme.sh))
     (pkgs.writeShellScriptBin "gemma" ''exec ${pkgs.python3}/bin/python3 ${../../.local/bin/gemma.py} "$@"'')
     (pkgs.writeShellScriptBin "wal-to-rgb" ''exec ${walToRgbEnv}/bin/python3 ${../../.local/bin/wal-to-rgb.py} "$@"'')
+    (pkgs.writeShellScriptBin "wal-to-rgb-daemon" ''exec ${walToRgbEnv}/bin/python3 ${../../.local/bin/wal-to-rgb-daemon.py} "$@"'')
     (pkgs.writeShellScriptBin "strays" (
       builtins.replaceStrings ["@VAULT@" "@USER_HOME@"] ["/persistent" "/home/m"]
         (builtins.readFile ../../.local/bin/strays.sh)
