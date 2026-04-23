@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 get_icon() {
   case $1 in
-    01d) echo "" ;; 01n) echo "" ;;
-    02d) echo "" ;; 02n) echo "" ;;
-    03*)  echo "" ;; 04*)  echo "" ;;
-    09d) echo "" ;; 09n) echo "" ;;
-    10d) echo "" ;; 10n) echo "" ;;
-    11d) echo "" ;; 11n) echo "" ;;
-    13d) echo "" ;; 13n) echo "" ;;
-    50d) echo "" ;; 50n) echo "" ;;
-    *)    echo "" ;;
+    01d) echo "" ;; 01n) echo "" ;;
+    02d) echo "" ;; 02n) echo "" ;;
+    03*)  echo "" ;; 04*)  echo "" ;;
+    09d) echo "" ;; 09n) echo "" ;;
+    10d) echo "" ;; 10n) echo "" ;;
+    11d) echo "" ;; 11n) echo "" ;;
+    13d) echo "" ;; 13n) echo "" ;;
+    50d) echo "" ;; 50n) echo "" ;;
+    *)    echo "" ;;
   esac
 }
 
-KEY_FILE="/run/secrets/openweather/api_key"
+KEY_FILE="/run/secrets/weather/api_key"
 CITY="3448439"
 UNITS="metric"
 
