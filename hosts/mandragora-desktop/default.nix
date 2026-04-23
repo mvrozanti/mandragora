@@ -5,6 +5,7 @@
     ../../pkgs/overlays.nix
     ../../modules/core/globals.nix
     ../../modules/core/vm.nix
+    ../../modules/core/persistence-vms.nix
     ../../modules/core/storage.nix
     ../../modules/core/impermanence.nix
     ../../modules/core/boot.nix
