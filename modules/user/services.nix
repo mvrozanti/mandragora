@@ -65,6 +65,19 @@
     };
   };
 
+  systemd.user.services.wal-to-rgb-daemon = {
+    Unit = {
+      Description = "Animate RAM RGB colors from pywal palette";
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = "${config.home.profileDirectory}/bin/wal-to-rgb-daemon";
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+  };
+
   # USB Watch Service (Hyprland version)
   systemd.user.services.usb-watch = {
     Unit = {

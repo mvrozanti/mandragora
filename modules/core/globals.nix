@@ -11,6 +11,9 @@
   };
   networking.interfaces.wlp7s0.useDHCP = true;
   networking.defaultGateway = "192.168.0.1";
+  networking.hosts = {
+    "REDACTED" = [ "oracle" ];
+  };
 
   boot.kernel.sysctl = {
     "net.ipv6.conf.enp8s0.accept_ra" = 2;

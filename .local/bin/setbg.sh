@@ -31,6 +31,7 @@ if ! systemctl is-active --quiet openrgb; then
 fi
 
 wal-to-rgb &
+systemctl --user start wal-to-rgb-daemon 2>/dev/null || true
 hid-wrapper &
 keyledsd-reload &
 pkill -SIGUSR2 waybar 2>/dev/null || true
