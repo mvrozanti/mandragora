@@ -2,7 +2,7 @@
 
 {
   # NVIDIA & Wayland Base
-  services.xserver.videoDrivers = [ "nvidia" ];
+  services.xserver.videoDrivers = [ "nvidia" "amdgpu" ];
 
   hardware.nvidia = {
     open = true;
