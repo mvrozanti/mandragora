@@ -5,7 +5,7 @@ from pathlib import Path
 from openrgb import OpenRGBClient
 from openrgb.utils import RGBColor
 
-FAN_LEDS = 8
+FAN_LEDS = 12
 STOPS_PER_FAN = 3
 CHAIN_LENGTH = 60
 PALETTE_INDICES = [2, 6, 5, 1, 4, 3]
