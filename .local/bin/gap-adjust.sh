@@ -24,7 +24,7 @@ get_local_out() {
 }
 
 apply() {
-    local scope=$1 out=$2
+    local scope=$1 out=$2 incremental=$3
     local in=$(( out / 4 > 0 ? out / 4 : 0 ))
     if [[ $scope == local ]]; then
         local ws
@@ -33,15 +33,20 @@ apply() {
         # Workspace rules don't apply until re-entering the workspace; bounce to force it
         local bounce=$(( ws % 9 + 1 ))
         [[ $bounce -eq $ws ]] && bounce=$(( ws - 1 ))
-        hyprctl keyword animations:enabled 0 >/dev/null 2>&1
-        hyprctl --batch "dispatch workspace $bounce ; dispatch workspace $ws" >/dev/null 2>&1
-        hyprctl keyword animations:enabled 1 >/dev/null 2>&1
+        if [[ $incremental == 1 ]]; then
+            hyprctl keyword animations:enabled 0 >/dev/null 2>&1
+            hyprctl --batch "dispatch workspace $bounce ; dispatch workspace $ws" >/dev/null 2>&1
+            hyprctl keyword animations:enabled 1 >/dev/null 2>&1
+        else
+            hyprctl --batch "dispatch workspace $bounce ; dispatch workspace $ws" >/dev/null 2>&1
+        fi
     else
         hyprctl keyword general:gaps_out "$out" >/dev/null
         hyprctl keyword general:gaps_in  "$in"  >/dev/null
     fi
 }
 
+incremental=0
 if [[ $# -eq 1 ]]; then
     # back-compat: single numeric arg = delta against global (0 = zero)
     scope=all
@@ -52,6 +57,7 @@ if [[ $# -eq 1 ]]; then
         cur=$(get_global_out); cur=${cur:-20}
         value=$(( cur + a ))
         (( value < 0 )) && value=0
+        incremental=1
     fi
 else
     scope=$1
@@ -64,19 +70,19 @@ else
     fi
     cur=${cur:-20}
     case "$arg" in
-        plus)   value=$(( cur + delta )) ;;
-        minus)  value=$(( cur - delta )); (( value < 0 )) && value=0 ;;
+        plus)   value=$(( cur + delta )); incremental=1 ;;
+        minus)  value=$(( cur - delta )); (( value < 0 )) && value=0; incremental=1 ;;
         zero)   value=0 ;;
         ''|*[!0-9-]*)
             echo "usage: gap-adjust [all|local] <N|plus|minus|zero>" >&2
             exit 1 ;;
         *)
             if (( arg < 0 )); then
-                value=$(( cur + arg )); (( value < 0 )) && value=0
+                value=$(( cur + arg )); (( value < 0 )) && value=0; incremental=1
             else
                 value=$arg
             fi ;;
     esac
 fi
 
-apply "$scope" "$value"
+apply "$scope" "$value" "$incremental"
