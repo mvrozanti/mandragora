@@ -51,7 +51,8 @@ else
 
   nvim -c "terminal git --no-pager diff --cached" \
        -c "belowright 3split $TMPFILE" \
-       -c "autocmd BufWinLeave <buffer> qall"
+       -c "autocmd BufWritePost <buffer> qall" \
+       -c "nnoremap <buffer> QQ :%d<CR>:w<CR>"
 
   MSG=$(grep -v '^#' "$TMPFILE" | sed '/^[[:space:]]*$/d')
   if [ -z "$MSG" ]; then
