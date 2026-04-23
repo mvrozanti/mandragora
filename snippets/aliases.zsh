@@ -354,7 +354,7 @@ rpc() { realpath "$@" | c }
 
 sa() { awk -v name="$*" 'BEGIN{re="^(alias )?"name"(=|\\()"} $0~re{p=1;print;if($0~"^alias "||$0~"}.*;? *$")p=0;next} p{print;if($0~"^} *;? *$")p=0}' "${BASH_SOURCE[0]:-${(%):-%x}}" }
 
-alias claude='claude -c'
+alias claude='claude -c || claude'
 alias gemini='gemini -y'
 alias qwen='qwen -y'
 

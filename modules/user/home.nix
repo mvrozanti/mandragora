@@ -177,6 +177,7 @@ in
 
     telegram-desktop
     vesktop
+    obs-studio
     spotify
     obsidian
     zapzap
@@ -404,7 +405,7 @@ in
       listen_on = "unix:@kitty";
       clipboard_control = "write-clipboard write-primary";
       term = "xterm-kitty";
-      alt_send_esc = "yes";
+      alt_send_esc = "no";
     };
     keybindings = {
       "ctrl+backspace" = "send_text all \\x1b[127;5u";

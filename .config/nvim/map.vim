@@ -37,6 +37,10 @@ noremap <silent> <c-j> <Cmd>TmuxNavigateDown<cr>
 noremap <silent> <c-k> <Cmd>TmuxNavigateUp<cr>
 noremap <silent> <c-l> <Cmd>TmuxNavigateRight<cr>
 noremap <silent> <c-\> <Cmd>TmuxNavigatePrevious<cr>
+noremap <silent> <A-h> <Cmd>TmuxNavigateLeft<cr>
+noremap <silent> <A-j> <Cmd>TmuxNavigateDown<cr>
+noremap <silent> <A-k> <Cmd>TmuxNavigateUp<cr>
+noremap <silent> <A-l> <Cmd>TmuxNavigateRight<cr>
 
 nn yD y$
 nn <A-i> f(a
