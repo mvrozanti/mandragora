@@ -14,7 +14,7 @@
 
         modules-left = [ "hyprland/workspaces" ];
         modules-center = [ "custom/mpd" ];
-        modules-right = [ "custom/obs" "custom/volume" "disk" "memory" "temperature" "cpu" "custom/network" "custom/weather" "clock" "tray" ];
+        modules-right = [ "custom/screencap" "custom/volume" "disk" "memory" "temperature" "cpu" "custom/network" "custom/weather" "clock" "tray" "custom/lock" "custom/suspend" "custom/hibernate" "custom/reboot" "custom/poweroff" ];
 
         "hyprland/workspaces" = {
           format = "{icon}";
@@ -133,10 +133,13 @@
           tooltip-format = "<tt>{calendar}</tt>";
         };
 
-        "custom/obs" = {
-          exec = "~/.config/waybar/scripts/obs-recording.sh";
+        "custom/screencap" = {
+          exec = "~/.local/bin/screencap status";
           return-type = "json";
-          interval = 10;
+          interval = 2;
+          signal = 11;
+          on-click = "~/.local/bin/screencap toggle";
+          on-click-right = "~/.local/bin/screencap stop";
         };
 
         "custom/weather" = {
@@ -148,6 +151,36 @@
         tray = {
           spacing = 8;
           show-passive-items = true;
+        };
+
+        "custom/lock" = {
+          format = "󰌾";
+          tooltip = false;
+          on-click = "hyprlock";
+        };
+
+        "custom/suspend" = {
+          format = "󰒲";
+          tooltip = false;
+          on-click = "systemctl suspend";
+        };
+
+        "custom/hibernate" = {
+          format = "󰜗";
+          tooltip = false;
+          on-click = "systemctl hibernate";
+        };
+
+        "custom/reboot" = {
+          format = "󰜉";
+          tooltip = false;
+          on-click = "systemctl reboot";
+        };
+
+        "custom/poweroff" = {
+          format = "󰐥";
+          tooltip = false;
+          on-click = "systemctl poweroff";
         };
       };
     };

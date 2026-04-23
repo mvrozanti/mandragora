@@ -52,6 +52,9 @@
     grim
     slurp
     wf-recorder
+    gpu-screen-recorder
+    eww
+    jq
     playerctl
     brightnessctl
     pamixer
