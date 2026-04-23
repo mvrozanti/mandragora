@@ -50,8 +50,7 @@ else
   } > "$TMPFILE"
 
   nvim -c "terminal git diff --cached" \
-       -c "3split $TMPFILE" \
-       -c "wincmd j" \
+       -c "belowright 3split $TMPFILE" \
        -c "autocmd BufWinLeave <buffer> qall"
 
   MSG=$(grep -v '^#' "$TMPFILE" | sed '/^[[:space:]]*$/d')
