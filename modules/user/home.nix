@@ -514,16 +514,52 @@ in
         dots_spacing = 0.15;
         dots_center = true;
       }];
-      label = [{
-        monitor = "";
-        text = "$TIME";
-        color = "rgb(abb2bf)";
-        font_size = 64;
-        font_family = "Iosevka Nerd Font Mono";
-        position = "0, 80";
-        halign = "center";
-        valign = "center";
-      }];
+      shape = let
+        btn = { x, color, cmd }: {
+          monitor = "";
+          size = "52, 52";
+          rounding = 26;
+          border_size = 0;
+          color = "rgba(${color}cc)";
+          position = "${toString x}, 40";
+          halign = "right";
+          valign = "bottom";
+          onclick = cmd;
+        };
+      in [
+        (btn { x = -250; color = "c678dd"; cmd = "systemctl suspend"; })
+        (btn { x = -180; color = "e5c07b"; cmd = "systemctl hibernate"; })
+        (btn { x = -110; color = "61afef"; cmd = "systemctl reboot"; })
+        (btn { x =  -40; color = "e06c75"; cmd = "systemctl poweroff"; })
+      ];
+      label = let
+        icon = { x, glyph, cmd }: {
+          monitor = "";
+          text = glyph;
+          color = "rgb(282c34)";
+          font_size = 22;
+          font_family = "Iosevka Nerd Font Mono";
+          position = "${toString x}, 40";
+          halign = "right";
+          valign = "bottom";
+          onclick = cmd;
+        };
+      in [
+        {
+          monitor = "";
+          text = "$TIME";
+          color = "rgb(abb2bf)";
+          font_size = 64;
+          font_family = "Iosevka Nerd Font Mono";
+          position = "0, 80";
+          halign = "center";
+          valign = "center";
+        }
+        (icon { x = -250; glyph = "󰒲"; cmd = "systemctl suspend"; })
+        (icon { x = -180; glyph = "󰜗"; cmd = "systemctl hibernate"; })
+        (icon { x = -110; glyph = "󰜉"; cmd = "systemctl reboot"; })
+        (icon { x =  -40; glyph = "󰐥"; cmd = "systemctl poweroff"; })
+      ];
     };
   };
 
