@@ -42,20 +42,10 @@ require('lazy').setup({
   -- vim-tmux-navigator: pane navigation between vim and tmux
   {
     'christoomey/vim-tmux-navigator',
+    lazy = false,
     init = function()
       vim.g.tmux_navigator_no_mappings = 1
     end,
-    keys = {
-      { '<c-h>',  '<Cmd>TmuxNavigateLeft<cr>' },
-      { '<c-j>',  '<Cmd>TmuxNavigateDown<cr>' },
-      { '<c-k>',  '<Cmd>TmuxNavigateUp<cr>' },
-      { '<c-l>',  '<Cmd>TmuxNavigateRight<cr>' },
-      { '<c-\\>', '<Cmd>TmuxNavigatePrevious<cr>' },
-      { '<A-h>',  '<Cmd>TmuxNavigateLeft<cr>' },
-      { '<A-j>',  '<Cmd>TmuxNavigateDown<cr>' },
-      { '<A-k>',  '<Cmd>TmuxNavigateUp<cr>' },
-      { '<A-l>',  '<Cmd>TmuxNavigateRight<cr>' },
-    },
   },
 
   -- vim-surround: surround motion

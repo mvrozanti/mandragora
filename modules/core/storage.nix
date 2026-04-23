@@ -49,6 +49,8 @@
     { device = "/dev/disk/by-label/SWAP"; }
   ];
 
+  boot.resumeDevice = "/dev/disk/by-uuid/35f1250b-3b82-45bb-abab-62236e91fe26";
+
   # The "Erase Your Darlings" Rollback Script
   boot.initrd.systemd.services.rollback = {
     description = "Rollback BTRFS root subvolume to a pristine state";
