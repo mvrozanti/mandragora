@@ -49,7 +49,7 @@ else
     echo "# Changes shown in split above. Save with message to apply, empty file to abort."
   } > "$TMPFILE"
 
-  nvim -c "terminal git diff --cached" \
+  nvim -c "terminal git --no-pager diff --cached" \
        -c "belowright 3split $TMPFILE" \
        -c "autocmd BufWinLeave <buffer> qall"
 
