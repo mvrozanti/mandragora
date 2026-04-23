@@ -30,8 +30,7 @@ if ! systemctl is-active --quiet openrgb; then
     sleep 1
 fi
 
-# Use the LIVE script instead of the Nix Store version
-/nix/store/i8yf9ydgwv72jsswmj0qh6a4ifn9kamz-python3-3.13.12-env/bin/python3 /etc/nixos/mandragora/.local/bin/wal-to-rgb.py &
+wal-to-rgb &
 hid-wrapper &
 keyledsd-reload &
 pkill -SIGUSR2 waybar 2>/dev/null || true
