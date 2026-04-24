@@ -147,11 +147,13 @@ tooltip {
 #custom-powermenu {
     padding: 0 10px;
     font-size: 15px;
-    color: @color1;
+    color: @foreground;
+    border-bottom: 2px solid transparent;
+    transition: border-bottom-color 120ms ease;
 }
 
 #custom-powermenu:hover {
-    border-bottom: 2px solid @color1;
+    border-bottom: 2px solid @color6;
 }
 
 #tray {

@@ -51,6 +51,8 @@ else
 
   nvim -c "terminal git --no-pager diff --cached" \
        -c "belowright 3split $TMPFILE" \
+       -c "setlocal winfixheight" \
+       -c "autocmd VimResized * let w=winnr() | execute bufwinnr('$TMPFILE').'wincmd w' | resize 3 | execute w.'wincmd w'" \
        -c "autocmd BufWritePost <buffer> qall" \
        -c "nnoremap <buffer> QQ :%d<CR>:w<CR>"
 
