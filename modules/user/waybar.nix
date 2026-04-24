@@ -14,7 +14,7 @@
 
         modules-left = [ "hyprland/workspaces" ];
         modules-center = [ "custom/mpd" ];
-        modules-right = [ "custom/screencap" "custom/volume" "disk" "memory" "temperature" "cpu" "custom/network" "custom/weather" "clock" "tray" "custom/lock" "custom/suspend" "custom/hibernate" "custom/reboot" "custom/poweroff" ];
+        modules-right = [ "custom/screencap" "custom/volume" "disk" "memory" "temperature" "cpu" "custom/network" "custom/weather" "clock" "tray" "custom/powermenu" ];
 
         "hyprland/workspaces" = {
           format = "{icon}";
@@ -46,22 +46,6 @@
           on-scroll-up = "mpc next";
           on-scroll-down = "mpc prev";
         };
-
-        /* removed: old polling mpd module
-        mpd_disabled = {
-          format = "  {title} {stateIcon}";
-          format-stopped = "";
-          format-disconnected = "";
-          state-icons = {
-            playing = "";
-            paused = "";
-          };
-          tooltip-format = "{artist} — {album} ({elapsedTime:%M:%S}/{totalTime:%M:%S})";
-          on-click = "mpc toggle";
-          on-click-right = "kitty --class ncmpcpp -o close_on_child_death=yes -e ncmpcpp";
-          on-scroll-up = "mpc next";
-          on-scroll-down = "mpc prev";
-        }; */
 
         "custom/volume" = {
           exec = "~/.config/waybar/scripts/volume-ramp.sh";
@@ -153,34 +137,10 @@
           show-passive-items = true;
         };
 
-        "custom/lock" = {
-          format = "󰌾";
+        "custom/powermenu" = {
+          format = "";
           tooltip = false;
-          on-click = "hyprlock";
-        };
-
-        "custom/suspend" = {
-          format = "󰒲";
-          tooltip = false;
-          on-click = "systemctl suspend";
-        };
-
-        "custom/hibernate" = {
-          format = "󰜗";
-          tooltip = false;
-          on-click = "systemctl hibernate";
-        };
-
-        "custom/reboot" = {
-          format = "󰜉";
-          tooltip = false;
-          on-click = "systemctl reboot";
-        };
-
-        "custom/poweroff" = {
-          format = "󰐥";
-          tooltip = false;
-          on-click = "systemctl poweroff";
+          on-click = "eww -c ~/.config/eww open --toggle powermenu";
         };
       };
     };
