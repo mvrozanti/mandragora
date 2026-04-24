@@ -22,34 +22,35 @@
   (screencap-menu-body))
 
 (defwidget powermenu-body []
-  (box :class "powermenu" :orientation "v" :space-evenly false :spacing 6
-    (label :class "powermenu-title" :text "Power Menu")
-    (box :orientation "h" :space-evenly true :spacing 8
-      (button :class "powermenu-btn lock"
-              :onclick "hyprlock && eww -c ~/.config/eww close powermenu"
-        (box :orientation "v" :space-evenly false :spacing 2
-          (label :class "powermenu-icon" :text "󰌾")
-          (label :class "powermenu-label" :text "Lock")))
-      (button :class "powermenu-btn suspend"
-              :onclick "systemctl suspend && eww -c ~/.config/eww close powermenu"
-        (box :orientation "v" :space-evenly false :spacing 2
-          (label :class "powermenu-icon" :text "󰒲")
-          (label :class "powermenu-label" :text "Suspend")))
-      (button :class "powermenu-btn hibernate"
-              :onclick "systemctl hibernate && eww -c ~/.config/eww close powermenu"
-        (box :orientation "v" :space-evenly false :spacing 2
-          (label :class "powermenu-icon" :text "󰜗")
-          (label :class "powermenu-label" :text "Hibernate")))
-      (button :class "powermenu-btn reboot"
-              :onclick "systemctl reboot"
-        (box :orientation "v" :space-evenly false :spacing 2
-          (label :class "powermenu-icon" :text "󰜉")
-          (label :class "powermenu-label" :text "Reboot")))
-      (button :class "powermenu-btn poweroff"
-              :onclick "systemctl poweroff"
-        (box :orientation "v" :space-evenly false :spacing 2
-          (label :class "powermenu-icon" :text "󰐥")
-          (label :class "powermenu-label" :text "Poweroff"))))))
+  (eventbox :onhoverlost "eww -c ~/.config/eww close powermenu"
+    (box :class "powermenu" :orientation "v" :space-evenly false :spacing 6
+      (label :class "powermenu-title" :text "Power Menu")
+      (box :orientation "h" :space-evenly true :spacing 8
+        (button :class "powermenu-btn lock"
+                :onclick "hyprlock && eww -c ~/.config/eww close powermenu"
+          (box :orientation "v" :space-evenly false :spacing 2
+            (label :class "powermenu-icon" :text "󰌾")
+            (label :class "powermenu-label" :text "Lock")))
+        (button :class "powermenu-btn suspend"
+                :onclick "systemctl suspend && eww -c ~/.config/eww close powermenu"
+          (box :orientation "v" :space-evenly false :spacing 2
+            (label :class "powermenu-icon" :text "󰒲")
+            (label :class "powermenu-label" :text "Suspend")))
+        (button :class "powermenu-btn hibernate"
+                :onclick "systemctl hibernate && eww -c ~/.config/eww close powermenu"
+          (box :orientation "v" :space-evenly false :spacing 2
+            (label :class "powermenu-icon" :text "󰜗")
+            (label :class "powermenu-label" :text "Hibernate")))
+        (button :class "powermenu-btn reboot"
+                :onclick "systemctl reboot"
+          (box :orientation "v" :space-evenly false :spacing 2
+            (label :class "powermenu-icon" :text "󰜉")
+            (label :class "powermenu-label" :text "Reboot")))
+        (button :class "powermenu-btn poweroff"
+                :onclick "systemctl poweroff"
+          (box :orientation "v" :space-evenly false :spacing 2
+            (label :class "powermenu-icon" :text "󰐥")
+            (label :class "powermenu-label" :text "Poweroff")))))))
 
 (defwindow powermenu
   :monitor 0
