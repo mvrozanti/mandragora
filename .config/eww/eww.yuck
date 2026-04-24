@@ -16,46 +16,47 @@
 (defwindow screencap-menu
   :monitor 0
   :stacking "overlay"
-  :focusable true
+  :focusable false
   :geometry (geometry :anchor "bottom right" :x 12 :y 56 :width 280 :height 120)
   :namespace "eww-screencap"
   (screencap-menu-body))
 
 (defwidget powermenu-body []
-  (eventbox :onhoverlost "eww -c ~/.config/eww close powermenu"
-    (box :class "powermenu" :orientation "v" :space-evenly false :spacing 6
-      (label :class "powermenu-title" :text "Power Menu")
-      (box :orientation "h" :space-evenly true :spacing 8
+  (box :class "powermenu" :orientation "v" :space-evenly false :spacing 6
+    (label :class "powermenu-title" :text "Power Menu")
+    (box :orientation "h" :space-evenly true :spacing 8
+      (box :orientation "v" :space-evenly true :spacing 8
         (button :class "powermenu-btn lock"
                 :onclick "hyprlock && eww -c ~/.config/eww close powermenu"
           (box :orientation "v" :space-evenly false :spacing 2
             (label :class "powermenu-icon" :text "󰌾")
             (label :class "powermenu-label" :text "Lock")))
-        (button :class "powermenu-btn suspend"
-                :onclick "systemctl suspend && eww -c ~/.config/eww close powermenu"
-          (box :orientation "v" :space-evenly false :spacing 2
-            (label :class "powermenu-icon" :text "󰒲")
-            (label :class "powermenu-label" :text "Suspend")))
         (button :class "powermenu-btn hibernate"
                 :onclick "systemctl hibernate && eww -c ~/.config/eww close powermenu"
           (box :orientation "v" :space-evenly false :spacing 2
             (label :class "powermenu-icon" :text "󰜗")
             (label :class "powermenu-label" :text "Hibernate")))
-        (button :class "powermenu-btn reboot"
-                :onclick "systemctl reboot"
-          (box :orientation "v" :space-evenly false :spacing 2
-            (label :class "powermenu-icon" :text "󰜉")
-            (label :class "powermenu-label" :text "Reboot")))
         (button :class "powermenu-btn poweroff"
                 :onclick "systemctl poweroff"
           (box :orientation "v" :space-evenly false :spacing 2
             (label :class "powermenu-icon" :text "󰐥")
-            (label :class "powermenu-label" :text "Poweroff")))))))
+            (label :class "powermenu-label" :text "Poweroff"))))
+      (box :orientation "v" :space-evenly true :spacing 8
+        (button :class "powermenu-btn suspend"
+                :onclick "systemctl suspend && eww -c ~/.config/eww close powermenu"
+          (box :orientation "v" :space-evenly false :spacing 2
+            (label :class "powermenu-icon" :text "󰒲")
+            (label :class "powermenu-label" :text "Suspend")))
+        (button :class "powermenu-btn reboot"
+                :onclick "systemctl reboot"
+          (box :orientation "v" :space-evenly false :spacing 2
+            (label :class "powermenu-icon" :text "󰜉")
+            (label :class "powermenu-label" :text "Reboot")))))))
 
 (defwindow powermenu
   :monitor 0
   :stacking "overlay"
-  :focusable true
-  :geometry (geometry :anchor "bottom right" :x 150 :y 56 :width 400 :height 120)
+  :focusable false
+  :geometry (geometry :anchor "bottom right" :x 150 :y 56 :width 280 :height 320)
   :namespace "eww-powermenu"
   (powermenu-body))
