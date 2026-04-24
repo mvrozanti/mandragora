@@ -56,6 +56,6 @@
   :monitor 0
   :stacking "overlay"
   :focusable true
-  :geometry (geometry :anchor "bottom right" :x 12 :y 56 :width 500 :height 120)
+  :geometry (geometry :anchor "bottom right" :x 80 :y 56 :width 480 :height 120)
   :namespace "eww-powermenu"
   (powermenu-body))
