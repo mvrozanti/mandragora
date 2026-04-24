@@ -49,6 +49,7 @@ in
       incsearch = true;
       incfilter = true;
       mouse = true;
+      watch = true;
       timefmt = "2006 Jan _2 15:04:05";
     };
 
