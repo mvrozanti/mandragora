@@ -105,16 +105,16 @@ done
 if [[ -n "$FLAKE_SRC" ]]; then
     log "Copying Mandragora flake from USB..."
     mkdir -p /mnt/etc/nixos
-    cp -a "$FLAKE_SRC" /mnt/etc/nixos/mandragora-nixos
-    log "Flake at /mnt/etc/nixos/mandragora-nixos"
+    cp -a "$FLAKE_SRC" /mnt/etc/nixos/mandragora
+    log "Flake at /mnt/etc/nixos/mandragora"
 else
     warn "Flake not found on USB. Clone it manually:"
-    warn "  git clone <repo-url> /mnt/etc/nixos/mandragora-nixos"
+    warn "  git clone <repo-url> /mnt/etc/nixos/mandragora"
 fi
 
 # ---- Generate hardware config ----
 log "Generating hardware-configuration.nix..."
-HWCONF_DIR="/mnt/etc/nixos/mandragora-nixos/hosts/mandragora-desktop"
+HWCONF_DIR="/mnt/etc/nixos/mandragora/hosts/mandragora-desktop"
 if [[ -d "$HWCONF_DIR" ]]; then
     nixos-generate-config --root /mnt --dir "$HWCONF_DIR" 2>/dev/null \
         && log "Hardware config written to $HWCONF_DIR" \
@@ -136,10 +136,10 @@ echo ""
 echo "  NEXT STEPS:"
 echo ""
 echo "  1. Review hardware config:"
-echo "     nvim /mnt/etc/nixos/mandragora-nixos/hosts/mandragora-desktop/hardware-configuration.nix"
+echo "     nvim /mnt/etc/nixos/mandragora/hosts/mandragora-desktop/hardware-configuration.nix"
 echo ""
 echo "  2. Install NixOS:"
-echo "     nixos-install --flake /mnt/etc/nixos/mandragora-nixos#mandragora-desktop --no-root-passwd"
+echo "     nixos-install --flake /mnt/etc/nixos/mandragora#mandragora-desktop --no-root-passwd"
 echo ""
 echo "  3. Set passwords:"
 echo "     nixos-enter --root /mnt -c 'passwd m'"

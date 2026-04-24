@@ -200,6 +200,8 @@ in
     (pkgs.writeShellScriptBin "opacity-adjust" (builtins.readFile ../../.local/bin/opacity-adjust.sh))
     (pkgs.writeShellScriptBin "rofi-wallpaper-picker" (builtins.readFile ../../.local/bin/rofi-wallpaper-picker.sh))
     (pkgs.writeShellScriptBin "rofi-run-or-term" (builtins.readFile ../../.local/bin/rofi-run-or-term.sh))
+    (pkgs.writeShellScriptBin "powermenu-toggle" (builtins.readFile ../../.local/bin/powermenu-toggle.sh))
+    (pkgs.writeShellScriptBin "powermenu-close" (builtins.readFile ../../.local/bin/powermenu-close.sh))
     (pkgs.writeShellScriptBin "screencap" (builtins.readFile ../../.local/bin/screencap.sh))
     (pkgs.writeShellScriptBin "compv" (builtins.readFile ../../.local/bin/compv.sh))
     (pkgs.writeShellScriptBin "ic" (builtins.readFile ../../.local/bin/ic.sh))
@@ -262,6 +264,9 @@ in
     (pkgs.writeShellScriptBin "resize-window" (builtins.readFile ../../.local/bin/resize-window.sh))
     (pkgs.writeShellScriptBin "scratchpad" (builtins.readFile ../../.local/bin/scratchpad.sh))
     (pkgs.writeShellScriptBin "scratchpad-summon" (builtins.readFile ../../.local/bin/scratchpad-summon.sh))
+    (pkgs.writeShellScriptBin "powermenu-toggle" (builtins.readFile ../../.local/bin/powermenu-toggle.sh))
+    (pkgs.writeShellScriptBin "powermenu-close" (builtins.readFile ../../.local/bin/powermenu-close.sh))
+    (pkgs.writeShellScriptBin "powermenu-outside-click" (builtins.readFile ../../.local/bin/powermenu-outside-click.sh))
   ];
 
   home.file.".local/bin/resty".source = ../../.local/bin/resty;
@@ -565,6 +570,32 @@ in
       isDefault = true;
       id = 0;
       path = "iwwxmo01.default";
+      settings = {
+        "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
+        "widget.gtk.native-context-menus" = false;
+      };
+      userChrome = ''
+        menupopup,
+        panel,
+        .menupopup-arrowscrollbox {
+          background-color: rgba(0, 0, 0, 0.18) !important;
+          --panel-background: rgba(0, 0, 0, 0.18) !important;
+          --arrowpanel-background: rgba(0, 0, 0, 0.18) !important;
+          backdrop-filter: blur(20px);
+        }
+        menupopup menuitem,
+        menupopup menu {
+          background-color: transparent !important;
+          color: #ffffff !important;
+        }
+        menupopup menuitem[_moz-menuactive="true"],
+        menupopup menu[_moz-menuactive="true"] {
+          background-color: rgba(255, 255, 255, 0.15) !important;
+        }
+        menupopup menuseparator {
+          border-color: rgba(255, 255, 255, 0.15) !important;
+        }
+      '';
     };
     profiles.chess = {
       id = 2;

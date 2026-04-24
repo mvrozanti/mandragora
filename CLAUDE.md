@@ -91,7 +91,7 @@ Never embed shell/config strings directly in `.nix` files via `extraConfig`, `po
 
 ## Non-Negotiables (Hard Constraints)
 
-Full list: `atlas/non-negotiables.md`. Summary:
+Full list: `AGENTS.md` (canonical). Summary:
 
 - All changes are Nix expressions — no imperative commands (`pacman`, `chmod`, `systemctl enable`) as solutions
 - No comments in code
@@ -107,7 +107,7 @@ Full list: `atlas/non-negotiables.md`. Summary:
 |---|---|
 | AI routing table | `AGENTS.md` |
 | All resolved decisions | `DECISIONS.md` |
-| Hard constraints | `atlas/non-negotiables.md` |
+| Hard constraints | `AGENTS.md` (canonical), landmark at `atlas/non-negotiables.md` |
 | Hardware specs | `atlas/hardware.md` |
 | What persists across reboots | `modules/core/impermanence.nix` |
 | System packages + nix-ld | `modules/core/globals.nix` |

@@ -1,5 +1,7 @@
 * { all: unset; font-family: "Iosevka Nerd Font"; }
 
+window { background: transparent; }
+
 .screencap-menu {
   background: rgba(20, 20, 28, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -39,7 +41,6 @@
 }
 
 .powermenu {
-  margin-right: 20px;
   background: rgba(20, 20, 28, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;

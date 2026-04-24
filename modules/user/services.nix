@@ -34,19 +34,11 @@
     Service = {
       Type = "oneshot";
       Environment = "GPG_TTY=/dev/tty";
-      ExecStart = pkgs.writeShellScript "mbsync-hotmail-script" ''
-        sync_output=$(${pkgs.isync}/bin/mbsync mvrozanti@hotmail.com 2>&1)
-        echo "$sync_output"
-
-        slave_count=$(grep 'Inbox' -A6 <<< "$sync_output" | grep -E '^slave' | cut -d',' -f1 | tr -cd '[[:digit:]]' || echo 0)
-        master_count=$(grep 'Inbox' -A6 <<< "$sync_output" | grep -E '^master' | cut -d',' -f1 | tr -cd '[[:digit:]]' || echo 0)
-
-        new_mail_count=$((''${master_count:-0} - ''${slave_count:-0}))
-
-        if [ "$new_mail_count" -gt 0 ]; then
-          ${pkgs.libnotify}/bin/notify-send "Mail" "You have $new_mail_count new email(s)."
-        fi
-      '';
+      ExecStart = "${pkgs.writeShellApplication {
+        name = "mbsync-hotmail-sync";
+        runtimeInputs = with pkgs; [ isync libnotify gnugrep coreutils ];
+        text = builtins.readFile ../../.local/bin/mbsync-hotmail-sync.sh;
+      }}/bin/mbsync-hotmail-sync";
     };
   };
 
