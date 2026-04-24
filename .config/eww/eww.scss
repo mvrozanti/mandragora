@@ -37,3 +37,47 @@
   font-size: 11px;
   color: rgba(230, 230, 238, 0.82);
 }
+
+.powermenu {
+  background: rgba(20, 20, 28, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px 14px 12px 14px;
+  color: #e6e6ee;
+}
+
+.powermenu-title {
+  font-size: 12px;
+  color: rgba(230, 230, 238, 0.7);
+  padding-bottom: 4px;
+}
+
+.powermenu-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 10px 14px;
+  min-width: 80px;
+  transition: background 120ms ease, border-color 120ms ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+
+  &.lock:hover { color: #61afef; }
+  &.suspend:hover { color: #98c379; }
+  &.hibernate:hover { color: #c678dd; }
+  &.reboot:hover { color: #e5c07b; }
+  &.poweroff:hover { color: #e06c75; }
+}
+
+.powermenu-icon {
+  font-size: 22px;
+  color: inherit;
+}
+
+.powermenu-label {
+  font-size: 11px;
+  color: rgba(230, 230, 238, 0.82);
+}
