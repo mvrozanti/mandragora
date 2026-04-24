@@ -8,6 +8,7 @@
   ];
 
   environment.etc."machine-id".source = "/persistent/etc/machine-id";
+  environment.etc."nixos/mandragora".source = "/persistent/mandragora";
 
   environment.persistence."/persistent" = {
     hideMounts = true;

@@ -37,7 +37,7 @@ in
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
     serviceConfig = {
-      ExecStart = "${keyleds-ticpu}/bin/keyledsd -m ${keyleds-ticpu}/lib/keyledsd -m ${keyleds-ticpu}/share/keyledsd/effects";
+      ExecStart = "${keyleds-ticpu}/bin/keyledsd -c %h/.config/keyledsd.conf -m ${keyleds-ticpu}/lib/keyledsd -m ${keyleds-ticpu}/share/keyledsd/effects";
       Restart = "on-failure";
       RestartSec = "3s";
     };
