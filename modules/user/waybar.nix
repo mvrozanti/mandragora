@@ -14,7 +14,7 @@
 
         modules-left = [ "hyprland/workspaces" ];
         modules-center = [ "custom/mpd" ];
-        modules-right = [ "custom/screencap" "custom/volume" "disk" "memory" "temperature" "cpu" "custom/network" "custom/weather" "clock" "tray" "custom/powermenu" ];
+        modules-right = [ "custom/screencap" "custom/volume" "disk" "memory" "temperature" "cpu" "custom/network" "custom/weather" "clock" "custom/powermenu" "tray" ];
 
         "hyprland/workspaces" = {
           format = "{icon}";
