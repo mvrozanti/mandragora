@@ -14,6 +14,9 @@
       "user/password" = {
         neededForUsers = true;
       };
+      "weather/api_key" = {
+        mode = "0444";
+      };
     };
   };
 

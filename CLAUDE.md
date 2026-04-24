@@ -58,10 +58,10 @@ This rule exists because on 2026-04-20, a rewrite of `home.nix` dropped `program
 ## The Edit → Rebuild → Verify → Commit Workflow
 
 ```
-1. Edit:    vim /etc/nixos/mandragora-nixos/modules/...
-2. Rebuild: sudo nixos-rebuild switch --flake /etc/nixos/mandragora-nixos#mandragora-desktop
+1. Edit:    vim /etc/nixos/mandragora/modules/...
+2. Rebuild: sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora-desktop
 3. Verify:  test the change actually works
-4. Commit:  cd /etc/nixos/mandragora-nixos && git add -A && git commit && git push
+4. Commit:  cd /etc/nixos/mandragora && git add -A && git commit && git push
 ```
 
 Remote: `https://github.com/mvrozanti/mandragora-nixos.git`
@@ -72,7 +72,7 @@ The alias `mandragora-switch` (to be implemented in zsh config) will automate st
 
 ## File Permissions & Sudo Context
 
-- `/etc/nixos/mandragora-nixos/` is owned by `m:users` — Claude Code can edit files directly
+- `/etc/nixos/mandragora/` is owned by `m:users` — Claude Code can edit files directly
 - `nixos-rebuild switch` requires `sudo` — Claude Code cannot run this; tell the user to run it
 - To run sudo commands from Claude Code prompt: user types `! sudo <command>`
 
@@ -84,8 +84,6 @@ Non-Nix code (shell, Python, CSS, Lua) lives in XDG-mirrored directories at the 
 - `builtins.readFile ../../.local/bin/script.sh` — scripts/binaries
 - `builtins.readFile ../../.config/<app>/file.conf` — app configs
 - `pkgs.writeShellScript "name" (builtins.readFile ...)` — compile to runnable Nix store path
-
-**`snippets/` no longer exists** — removed 2026-04-20 in favor of XDG structure mirroring `~/projects/mandragora`.
 
 Never embed shell/config strings directly in `.nix` files via `extraConfig`, `postShellInit`, or similar. No comments in any code. Logic must be self-documenting.
 
@@ -157,7 +155,7 @@ When the user is ready to import SSH keys into sops:
 
 ```bash
 # 1. Edit the secrets vault
-sops /etc/nixos/mandragora-nixos/secrets/secrets.yaml
+sops /etc/nixos/mandragora/secrets/secrets.yaml
 
 # 2. Add under 'ssh:' key:
 #    id_ed25519: |

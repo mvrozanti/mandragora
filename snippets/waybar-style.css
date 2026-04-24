@@ -144,6 +144,16 @@ tooltip {
     color: @color3;
 }
 
+#custom-powermenu {
+    padding: 0 10px;
+    font-size: 15px;
+    color: @color1;
+}
+
+#custom-powermenu:hover {
+    border-bottom: 2px solid @color1;
+}
+
 #tray {
     padding: 0 8px;
 }
