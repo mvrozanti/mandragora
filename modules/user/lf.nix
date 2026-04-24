@@ -121,11 +121,7 @@ in
       ";" = "set hidden!";
       
       "D" = ''%echo "$fx" | xargs -d '\n' -r ${pkgs.trash-cli}/bin/trash-put --'';
-      "<C-t>" = "tab-new";
-      "<C-w>" = "tab-close";
-      "gn" = "tab-new";
       "gt" = "cd /mnt/toshiba";
-      "gT" = "tab-prev";
       
       "oz" = ":set sortby random; set reverse false";
       "os" = "sort-size; set reverse true";
