@@ -43,10 +43,24 @@
     extraConfig = builtins.readFile ../../etc/sudo.conf;
     extraRules = [{
       users = [ "m" ];
-      commands = [{
-        command = "/run/current-system/sw/bin/nixos-rebuild";
-        options = [ "NOPASSWD" ];
-      }];
+      commands = [
+        {
+          command = "/run/current-system/sw/bin/nixos-rebuild";
+          options = [ "NOPASSWD" ];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl start openrgb";
+          options = [ "NOPASSWD" ];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl stop openrgb";
+          options = [ "NOPASSWD" ];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl restart openrgb";
+          options = [ "NOPASSWD" ];
+        }
+      ];
     }];
   };
 
