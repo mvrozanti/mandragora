@@ -10,6 +10,7 @@
     font-family: "Iosevka Nerd Font", "Font Awesome 7 Free Solid", "Font Awesome 7 Brands";
     font-size: 13px;
     min-height: 0;
+    text-shadow: 0 0 2px rgba(0,0,0,0.8);
 }
 
 window#waybar {
@@ -26,7 +27,9 @@ tooltip {
 
 #workspaces button {
     padding: 0 8px;
-    color: @color8;
+    color: @foreground;
+    opacity: 0.5;
+    text-shadow: 1px 1px 0 @background, -1px 1px 0 @background, 1px -1px 0 @background, -1px -1px 0 @background;
     border-bottom: 2px solid transparent;
     border-radius: 0;
     background: transparent;
@@ -34,6 +37,8 @@ tooltip {
 
 #workspaces button.active {
     color: @foreground;
+    opacity: 1.0;
+    text-shadow: 1px 1px 0 @background, -1px 1px 0 @background, 1px -1px 0 @background, -1px -1px 0 @background, 0 0 5px @color4;
     border-bottom: 2px solid @color4;
 }
 
