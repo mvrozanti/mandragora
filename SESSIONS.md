@@ -44,7 +44,7 @@ System is hours old. Fourth NixOS generation. Hyprland is running (Wayland confi
 - CLAUDE.md documented: SSH key import process
 
 ### NOT YET DONE (Next Session)
-- [ ] Run `sudo nixos-rebuild switch --flake /etc/nixos/mandragora-nixos#mandragora-desktop` and fix any errors
+- [ ] Run `sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora-desktop` and fix any errors
 - [ ] Verify keybindings work in live session
 - [ ] Verify music plays (mpd → ncmpcpp → PipeWire)
 - [ ] Clone old mandragora repo to `~/projects/mandragora`
