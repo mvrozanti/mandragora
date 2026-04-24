@@ -4,7 +4,7 @@ let
   # zX directory shortcuts: edit ./zx-dirs.nix — it's the single source
   # of truth shared with modules/user/zsh.nix. Do not add z<letter> bindings here.
   zxDirs = import ./zx-dirs.nix;
-  normalize = v: if builtins.isString v then { path = v; lfPrefix = "z"; } else { lfPrefix = "z"; } // v;
+  normalize = v: if builtins.isString v then { path = v; lfPrefix = "g"; } else { lfPrefix = "g"; } // v;
   zxBindings = lib.mapAttrs' (k: v:
     let e = normalize v; in lib.nameValuePair "${e.lfPrefix}${k}" "cd ${e.path}"
   ) zxDirs;
