@@ -60,23 +60,25 @@
     serviceConfig.Type = "oneshot";
     script = ''
       mkdir -p /mnt
-      
-      # Mount the btrfs root
-      mount -o subvol=/ /dev/disk/by-label/NIXOS /mnt
-      
-      # Delete current root-active if it exists
+
+      # -t btrfs required: initrd mount cannot auto-detect filesystem type
+      mount -t btrfs -o subvol=/ /dev/disk/by-label/NIXOS /mnt
+
+      # Delete nested subvols first (systemd creates these on every successful boot)
       if [ -e "/mnt/root-active" ]; then
+          subvols=$(btrfs subvolume list -o /mnt/root-active | awk '{print $NF}')
+          for subvol in $subvols; do
+              btrfs subvolume delete "/mnt/$subvol"
+          done
           btrfs subvolume delete -c "/mnt/root-active"
       fi
-      
-      # Snapshot the blank seed (assuming we create a seed at install/shutdown)
-      # For now, we snapshot a 'root-blank' subvolume if it exists, or create a new empty one
+
       if [ -e "/mnt/root-blank" ]; then
           btrfs subvolume snapshot "/mnt/root-blank" "/mnt/root-active"
       else
           btrfs subvolume create "/mnt/root-active"
       fi
-      
+
       umount /mnt
     '';
   };
