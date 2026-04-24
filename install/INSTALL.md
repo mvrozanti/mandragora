@@ -15,12 +15,12 @@ cd /tmp/mandragora
 
 ### 2. Partition the drive
 ```bash
-sudo bash snippets/format-drive.sh /dev/nvme0n1
+sudo bash install/format-drive.sh /dev/nvme0n1
 ```
 
 ### 3. Mount subvolumes
 ```bash
-sudo bash snippets/mount-install.sh
+sudo bash install/mount-install.sh
 ```
 
 ### 4. Get required tools
@@ -30,7 +30,7 @@ nix shell nixpkgs#age nixpkgs#sops
 
 ### 5. Generate age key and encrypt secrets
 ```bash
-sudo bash snippets/bootstrap-age-key.sh
+sudo bash install/bootstrap-age-key.sh
 ```
 You will be prompted for a password for user `m`. This is your login password.
 
@@ -38,7 +38,7 @@ The encrypted secrets file is written to `secrets/secrets.yaml`. The age key liv
 
 ### 6. Install NixOS
 ```bash
-sudo bash snippets/install.sh
+sudo bash install/install.sh
 ```
 
 ### 7. Reboot
