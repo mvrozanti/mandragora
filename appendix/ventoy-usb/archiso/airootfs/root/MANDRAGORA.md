@@ -37,11 +37,11 @@
 
 ### 3. Review hardware config
 
-    nvim /mnt/etc/nixos/mandragora-nixos/hosts/mandragora-desktop/hardware-configuration.nix
+    nvim /mnt/etc/nixos/mandragora/hosts/mandragora-desktop/hardware-configuration.nix
 
 ### 4. Install
 
-    nixos-install --flake /mnt/etc/nixos/mandragora-nixos#mandragora-desktop --no-root-passwd
+    nixos-install --flake /mnt/etc/nixos/mandragora#mandragora-desktop --no-root-passwd
 
 ### 5. Set passwords
 

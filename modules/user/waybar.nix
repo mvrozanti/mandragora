@@ -10,7 +10,7 @@
         layer = "top";
         position = "bottom";
         height = 40;
-        spacing = 0;
+        spacing = 6;
 
         modules-left = [ "hyprland/workspaces" ];
         modules-center = [ "custom/mpd" ];
@@ -140,7 +140,7 @@
         "custom/powermenu" = {
           format = "";
           tooltip = false;
-          on-click = "eww -c ~/.config/eww open --toggle powermenu";
+          on-click = "powermenu-toggle";
         };
       };
     };
