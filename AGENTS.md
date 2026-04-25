@@ -53,6 +53,22 @@ Any program added to this system must work correctly from first launch with zero
 **9. No Full Disk Encryption**
 FDE is explicitly not wanted. The main drive is intentionally unencrypted. Never propose or recommend enabling FDE.
 
+**10. Agent Lock Before Editing**
+Before touching any file under `/etc/nixos/mandragora/`, check `/dev/shm/mandragora-agent-lock`. If it exists and `expires` is in the future and `agent` isn't you, stop and surface this to the user. Otherwise claim the lock by writing the file with this format:
+
+```
+agent: <your-id e.g. claude-opus-4-7>
+pid: <your-pid>
+started: <ISO-8601 UTC>
+expires: <ISO-8601 UTC, default +15min>
+scope: <path glob, e.g. modules/core/monitoring.nix or *>
+```
+
+Extend `expires` if still working past it. Delete the file when done. The lock is RAM-backed (`/dev/shm`), so reboots auto-clear stale state. It is advisory — atomic locking on shared FS isn't reliable from agent tools — but the rule means every agent reads it before editing, and the user can `cat /dev/shm/mandragora-agent-lock` to see who's working.
+
+**11. Post-Edit Syntax Check**
+After every edit to a `.nix` file, run `nix-instantiate --parse <file> >/dev/null`. If it fails, revert the edit immediately rather than handing off broken state to the next agent or the next rebuild. Most "parallel-AI corruption" incidents have been syntactically broken Nix (unescaped quotes, INI-section nesting confusion, attrset/list mix-ups) — this catches them at the source.
+
 ---
 
 ## The Impermanence Rule (Expanded)
