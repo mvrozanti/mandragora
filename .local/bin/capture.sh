@@ -56,7 +56,10 @@ notify() {
 }
 
 shot_region() {
-  XDG_CURRENT_DESKTOP=sway flameshot gui --path "$shots_dir" --clipboard
+  local file="$shots_dir/region-$(ts).png"
+  grim -g "$(slurp -d)" "$file" || return 0
+  wl-copy < "$file"
+  notify -i "$file" "Screenshot" "$(basename "$file")"
 }
 
 shot_full() {

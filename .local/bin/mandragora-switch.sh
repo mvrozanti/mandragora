@@ -46,25 +46,27 @@ if git diff --cached --quiet; then
   echo "==> No uncommitted changes."
 fi
 
-# Handle the "skip interactive diff" flag
 SKIP_EDIT=0
-if [[ "$*" == *"!"* ]]; then
+ARGS=()
+for arg in "$@"; do
+  case "$arg" in
+    -y|--no-edit) SKIP_EDIT=1 ;;
+    *) ARGS+=("$arg") ;;
+  esac
+done
+
+if [ "${#ARGS[@]}" -eq 1 ] && [ "${ARGS[0]}" = "!" ]; then
   SKIP_EDIT=1
-  # Remove the ! from the arguments
-  ARGS=("${@/!/}")
+  MSG="!"
+elif [[ "${ARGS[*]}" == *"!"* ]]; then
+  SKIP_EDIT=1
+  ARGS=("${ARGS[@]/!/}")
   MSG="${ARGS[*]:-switch}"
 else
-  MSG="${*:-switch}"
+  MSG="${ARGS[*]:-switch}"
 fi
 
-if [ "$SKIP_EDIT" -eq 1 ]; then
-  # If ! is passed, we treat it as a "just switch" or "fast switch"
-  # Per user request: "skip the interactive diff"
-  # We'll set MSG to a special value to skip commit if only ! was passed
-  if [ "$*" = "!" ]; then
-    MSG="!"
-  fi
-else
+if [ "$SKIP_EDIT" -eq 0 ]; then
   TMPFILE=$(mktemp /tmp/mandragora-commit-XXXXXX)
   SAVED_FLAG="${TMPFILE}.saved"
   trap 'rm -f "$TMPFILE" "$SAVED_FLAG"' EXIT
