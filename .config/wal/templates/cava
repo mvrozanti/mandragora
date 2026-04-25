@@ -1,0 +1,27 @@
+[general]
+live-config = 1
+framerate = 144
+sensitivity = 100
+bars = 0
+bar_width = 3
+bar_spacing = 1
+sleep_timer = 10
+
+[smoothing]
+monstercat = 1
+waves = 0
+gravity = 100
+integral = 85
+
+[output]
+method = ncurses
+
+[color]
+gradient = 1
+gradient_count = 6
+gradient_color_1 = 'red'
+gradient_color_2 = 'green'
+gradient_color_3 = 'yellow'
+gradient_color_4 = 'blue'
+gradient_color_5 = 'magenta'
+gradient_color_6 = 'cyan'

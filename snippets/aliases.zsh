@@ -66,16 +66,49 @@ alias nvimdiff='nvim -d'
 alias vimdiff='nvim -d'
 vx() { xxd "$@" | v - }
 
-alias cfl='v ~/.config/lf/lfrc'
-alias cfN='v ~/.config/ncmpcpp/'
-alias cfmu='v ~/.config/ncmpcpp/'
-alias cfK='v ~/.config/keyledsd.template.conf'
-alias cfZ='v ~/.config/zathura/zathurarc'
-alias cfM='v ~/.config/mpv/'
-alias cfC='v ~/.config/nvim/coc-settings.json'
-alias cfR='v ~/.config/rofi/config.rasi'
-alias cfpy='v ~/.config/ptpython/config.py'
-alias cfpa='nvim ~/.config/alacritty/alacritty.toml'
+alias cfv='v /etc/nixos/mandragora/.config/nvim/init.lua'
+alias cfz='v /etc/nixos/mandragora/.config/zsh/zshrc.zsh'
+alias cfh='v /etc/nixos/mandragora/.config/hypr/hyprland.conf'
+alias cft='v /etc/nixos/mandragora/.config/tmux/tmux.conf'
+alias cfw='v /etc/nixos/mandragora/modules/user/waybar.nix'
+alias cfm='v /etc/nixos/mandragora/modules/user/home.nix'
+alias cfl='v /etc/nixos/mandragora/.config/lf/'
+alias cfN='v /etc/nixos/mandragora/.config/ncmpcpp/'
+alias cfmu='v /etc/nixos/mandragora/.config/ncmpcpp/'
+alias cfK='v /etc/nixos/mandragora/.config/keyledsd/keyledsd.conf'
+alias cfZ='v /etc/nixos/mandragora/.config/zathura/zathurarc'
+alias cfM='v /etc/nixos/mandragora/.config/mpv/mpv.conf'
+alias cfC='v /etc/nixos/mandragora/.config/nvim/lua/config/'
+alias cfR='v /etc/nixos/mandragora/.config/rofi/'
+alias cfpy='v /etc/nixos/mandragora/.config/ptpython/config.py'
+alias cfpa='v /etc/nixos/mandragora/modules/user/zsh.nix'
+alias cfD='sh -c "cd /etc/nixos/mandragora && git diff"'
+
+# "cf"-tabbing descriptions
+_cf_aliases() {
+    local -a configs
+    configs=(
+        'cfv:Neovim init.lua'
+        'cfz:Zsh shell config (zshrc.zsh)'
+        'cfh:Hyprland main config'
+        'cft:Tmux config'
+        'cfw:Waybar Nix module'
+        'cfm:Home Manager main module'
+        'cfl:lf file manager config dir'
+        'cfN:ncmpcpp config dir'
+        'cfmu:ncmpcpp config dir (alias)'
+        'cfK:keyledsd config'
+        'cfZ:zathura PDF viewer config'
+        'cfM:mpv player config'
+        'cfC:Neovim lua/config/ dir'
+        'cfR:rofi menu config dir'
+        'cfpy:ptpython config'
+        'cfpa:Zsh Nix module'
+        'cfD:NixOS repo git diff'
+    )
+    _describe -t configs 'config aliases' configs
+}
+compdef _cf_aliases -P 'cf*'
 
 d() { trash "$@" }
 ud() { trash-restore }

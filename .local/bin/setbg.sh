@@ -40,5 +40,6 @@ keyledsd-reload &>/dev/null &
 pkill -SIGUSR2 waybar 2>/dev/null || true
 makoctl reload 2>/dev/null || true
 hyprctl reload &>/dev/null || true
+pkill -SIGUSR2 cava 2>/dev/null || true
 wait
 
