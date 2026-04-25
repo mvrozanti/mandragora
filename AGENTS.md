@@ -54,35 +54,44 @@ Any program added to this system must work correctly from first launch with zero
 FDE is explicitly not wanted. The main drive is intentionally unencrypted. Never propose or recommend enabling FDE.
 
 **10. Agent Lock Before Editing**
-Before touching any file under `/etc/nixos/mandragora/`, check `/dev/shm/mandragora-agent-lock`. If the file exists and was not written by *this exact session*, **stop and surface to the user — wait for explicit permission before claiming it**. Only proceed when the file is absent or the user tells you to take it. **No exceptions.**
-
-The following are **not** valid reasons to overwrite a foreign lock — each was rationalized once and corrected:
-- The locking PID is dead. (Process may have crashed mid-edit; the work is still in flight from the user's perspective.)
-- The `expires` timestamp is near or past. (Treat expiry as a hint to *check in with the user*, not as auto-release.)
-- The `scope` looks unrelated to your task. (You may be wrong about overlap; the other agent may broaden scope.)
-- The `agent` field matches your agent-id. (Same model, *different session* — still foreign. "You" means this conversation, not your model name.)
-
-If the lock is absent or the user has cleared you to proceed, claim it by writing the file with this format:
+Use `mandragora-lock` to claim a scope-based lock before touching any file under `/etc/nixos/mandragora/`. Multiple agents may work in parallel as long as their declared paths don't overlap.
 
 ```
-agent: <your-id e.g. claude-opus-4-7>
-pid: <your-pid>
-started: <ISO-8601 UTC>
-expires: <ISO-8601 UTC, default +15min>
-scope: <path glob, e.g. modules/core/monitoring.nix or *>
+session=$(mandragora-lock claim \
+  --paths "modules/desktop/hyprland.nix .config/hypr/" \
+  --scope "border tweaks" \
+  --agent claude-opus-4-7 \
+  --ttl 15min)
+# ...edit...
+mandragora-lock release "$session"
 ```
 
-Extend `expires` if still working past it.
+`claim` exits non-zero and prints the conflicting locks if any of the following holds:
+- Your declared paths share at least one tracked file with an active `phase=edit` lock.
+- A `phase=commit` lock is held (commit/rebuild is exclusive — see `mandragora-switch` below).
+- The legacy single-file lock at `/dev/shm/mandragora-agent-lock` is present (treated as whole-repo).
 
-**Releasing the lock is as non-negotiable as claiming it.** The moment your edits + post-edit syntax check are finished — *before* writing your end-of-turn summary to the user — `rm /dev/shm/mandragora-agent-lock`. Specifically:
+`mandragora-lock list` shows all active locks; `--phase commit` is what `mandragora-switch` uses internally and conflicts with everything.
+
+**Never overwrite a foreign lock**, regardless of:
+- The locking PID being dead. (Process may have crashed mid-edit; the work is still in flight from the user's perspective.)
+- The `expires` timestamp being near or past. (Treat expiry as a hint to *check in with the user*, not as auto-release. `mandragora-lock prune` is opt-in, not automatic.)
+- The paths or scope looking unrelated to your task. (You may be wrong about overlap; the other agent may broaden scope.)
+- The `agent` field matching your model id. (Same model, *different session* — still foreign. "You" means this conversation, not your model name.)
+
+If `claim` fails, **stop and surface to the user**. Wait for them to either give explicit permission to clear the conflicting lock or release it themselves.
+
+**Releasing your lock is as non-negotiable as claiming it.** The moment your edits + post-edit syntax check are finished — *before* writing your end-of-turn summary — `mandragora-lock release "$session"`. Specifically:
 - Release on success, on failure, and on giving up.
 - Release before handing back to the user, even mid-task — if you're done editing for now, you're done with the lock. Re-claim later if you resume.
-- Never end a turn holding the lock unless you're *actively mid-edit* and the next tool call will continue that edit. "I might come back to this" is not active.
+- Never end a turn holding the lock unless your next tool call will continue an active edit. "I might come back to this" is not active.
 - If you do leave a lock held intentionally across turns, say so out loud in your reply so the user knows.
 
-A held-but-unused lock blocks every other agent and every other session of *you* from working on this repo. The RAM-backing only saves us across reboots — between reboots, a forgotten lock is a hard stop for everyone else.
+**Commit/rebuild is exclusive.** `mandragora-switch` automatically claims a `--phase commit` lock that conflicts with every other lock; release your edit lock before invoking it. If `mandragora-switch` aborts because of an active edit lock, the holder is still working — back off, do not steal.
 
-The lock is RAM-backed (`/dev/shm`), so reboots auto-clear stale state. It is advisory — atomic locking on shared FS isn't reliable from agent tools — but the rule means every agent reads it before editing, and the user can `cat /dev/shm/mandragora-agent-lock` to see who's working.
+The lock dir (`/dev/shm/mandragora-locks/`) is RAM-backed, so reboots auto-clear stale state. Locks are advisory — atomic locking on shared FS isn't reliable from agent tools — but every agent reads them before editing, and `mandragora-lock list` shows the user who's working. The legacy single-file lock at `/dev/shm/mandragora-agent-lock` is honored as a whole-repo lock during the transition; new claims must use `mandragora-lock`.
+
+A held-but-unused lock blocks any agent whose paths overlap. Don't be that agent.
 
 **11. Post-Edit Syntax Check**
 After every edit to a `.nix` file, run `nix-instantiate --parse <file> >/dev/null`. If it fails, revert the edit immediately rather than handing off broken state to the next agent or the next rebuild. Most "parallel-AI corruption" incidents have been syntactically broken Nix (unescaped quotes, INI-section nesting confusion, attrset/list mix-ups) — this catches them at the source.
