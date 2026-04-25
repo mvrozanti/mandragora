@@ -18,6 +18,7 @@
     ../../modules/desktop/kdeconnect.nix
     ../../modules/desktop/keyd.nix
     ../../modules/desktop/keyledsd.nix
+    ../../modules/desktop/ydotool.nix
     ../../modules/desktop/openrgb.nix
     ../../modules/desktop/seafile.nix
     ../../modules/desktop/steam.nix
