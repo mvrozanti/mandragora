@@ -182,7 +182,6 @@ in
     gnome-chess
     tradingview
     openrgb
-    pywal
     matugen
 
     (pkgs.writeShellScriptBin "smart-launch" (builtins.readFile ../../.local/bin/smart-launch.sh))
@@ -488,7 +487,7 @@ in
       "ctrl+8" = "send_text all \\x1b[56;5u";
       "ctrl+9" = "send_text all \\x1b[57;5u";
     };
-    extraConfig = "include ~/.cache/wal/colors-kitty.conf";
+    extraConfig = "include ~/.cache/matugen/colors-kitty.conf";
   };
 
   wayland.windowManager.hyprland = {
@@ -567,7 +566,7 @@ in
       ignore-timeout = 0;
     };
     extraConfig = ''
-      include=/home/m/.cache/wal/colors-mako
+      include=/home/m/.cache/matugen/colors-mako
       background-color=#00000001
       [urgency=high]
       border-color=#e06c75
@@ -689,11 +688,6 @@ in
     source = ../../.config/tridactyl;
     recursive = true;
   };
-  home.file.".config/wal/templates/keyledsd.conf".source = ../../.config/wal/templates/keyledsd.conf;
-  home.file.".config/wal/templates/colors-rofi.rasi".source = ../../.config/wal/templates/colors-rofi.rasi;
-  home.file.".config/wal/templates/colors-tmux.conf".source = ../../.config/wal/templates/colors-tmux.conf;
-  home.file.".config/wal/templates/cava".source = ../../.config/wal/templates/cava;
-
   home.file.".config/matugen" = {
     source = ../../.config/matugen;
     recursive = true;
@@ -710,7 +704,7 @@ in
     recursive = true;
   };
   home.file.".config/cava/config".source =
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.cache/wal/cava";
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.cache/matugen/cava";
   home.file.".config/khal" = {
     source = ../../.config/khal;
     recursive = true;

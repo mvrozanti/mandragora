@@ -7,7 +7,7 @@ from openrgb.utils import RGBColor
 
 FPS = 20
 STOPS_PER_SECOND = 0.4
-COLORS_PATH = Path.home() / ".cache/wal/colors.json"
+COLORS_PATH = Path.home() / ".cache/matugen/colors.json"
 RAM_PALETTE_INDICES = [2, 6, 5, 1]
 RAM_LEDS_PER_STOP = 2
 CONNECT_BACKOFF_SECONDS = 3
