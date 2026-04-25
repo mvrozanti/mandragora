@@ -78,6 +78,7 @@ in
     go
     cargo
     rustc
+    uv
     maven
     shellcheck
     universal-ctags
@@ -649,7 +650,6 @@ in
   };
 
   home.file.".XCompose".source = ../../.XCompose;
-  home.file.".claude/settings.json".source = ../../.config/claude/settings.json;
   home.file.".config/nvim" = {
     source = ../../.config/nvim;
     recursive = true;
@@ -677,6 +677,7 @@ in
   home.file.".config/wal/templates/keyledsd.conf".source = ../../.config/wal/templates/keyledsd.conf;
   home.file.".config/wal/templates/colors-rofi.rasi".source = ../../.config/wal/templates/colors-rofi.rasi;
   home.file.".config/wal/templates/colors-tmux.conf".source = ../../.config/wal/templates/colors-tmux.conf;
+  home.file.".config/wal/templates/cava".source = ../../.config/wal/templates/cava;
 
   home.activation.seedKeyledsd = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ ! -e "$HOME/.config/keyledsd.conf" ]; then
@@ -688,10 +689,7 @@ in
     source = ../../.config/sxiv;
     recursive = true;
   };
-  home.file.".config/cava" = {
-    source = ../../.config/cava;
-    recursive = true;
-  };
+  home.file.".config/cava/config".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.cache/wal/cava";
   home.file.".config/khal" = {
     source = ../../.config/khal;
     recursive = true;
