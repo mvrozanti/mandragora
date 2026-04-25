@@ -7,7 +7,7 @@ for _ in $(seq 1 20); do
     sleep 0.25
 done
 
-last="$HOME/.cache/wal/wal"
+last="$HOME/.cache/matugen/last-wallpaper"
 if [[ -s "$last" ]]; then
     wp="$(head -1 "$last")"
     [[ -e "$wp" ]] && exec setbg "$wp"

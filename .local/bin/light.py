@@ -54,7 +54,7 @@ def main():
 
     check_and_kill_existing_process()
 
-    with open('/home/m/.cache/wal/colors.json', 'r') as config_file:
+    with open('/home/m/.cache/matugen/colors.json', 'r') as config_file:
         data = json.load(config_file)
 
     arg = sys.argv[1].lower() if len(sys.argv) > 1 else None

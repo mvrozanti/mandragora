@@ -7,7 +7,7 @@ import sys
 turn_on = sys.argv[1] == '--on' if len(sys.argv) > 1 else False
 turn_off = sys.argv[1] == '--off' if len(sys.argv) > 1 else False
 
-colors_path = Path('/home/m/.cache/wal/colors.json')
+colors_path = Path('/home/m/.cache/matugen/colors.json')
 if not colors_path.exists():
     raise SystemExit(0)
 

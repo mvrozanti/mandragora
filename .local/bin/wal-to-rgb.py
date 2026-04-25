@@ -49,7 +49,7 @@ def fan_band_indices():
         indices.extend([stop_idx] * size)
     return indices
 
-colors_path = Path.home() / ".cache/wal/colors.json"
+colors_path = Path.home() / ".cache/matugen/colors.json"
 if not colors_path.exists():
     sys.exit(0)
 
