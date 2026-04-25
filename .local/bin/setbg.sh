@@ -14,10 +14,9 @@ fi
 fpath="$(realpath "$fpath")"
 
 # hyprctl prints errors to stdout when it can't connect to the socket
-pos="$(hyprctl cursorpos 2>/dev/null | grep -vE "Couldn't connect|Error" | tr -d ' ' || true)"
-if [[ ! "$pos" =~ ^[0-9]+(\.[0-9]+)?,[0-9]+(\.[0-9]+)?$ ]]; then
-    pos="960,540"
-fi
+pos_x=$(printf "0.%02d" $((RANDOM % 100)))
+pos_y=$(printf "0.%02d" $((RANDOM % 100)))
+pos="$pos_x,$pos_y"
 awww img "$fpath" --transition-type grow --transition-pos "$pos" --transition-duration 1
 
 wal -i "$fpath" -n -q 2>/dev/null || true
@@ -40,6 +39,6 @@ keyledsd-reload &>/dev/null &
 pkill -SIGUSR2 waybar 2>/dev/null || true
 makoctl reload 2>/dev/null || true
 hyprctl reload &>/dev/null || true
-pkill -SIGUSR2 cava 2>/dev/null || true
+pkill -SIGUSR1 cava 2>/dev/null || true
 wait
 

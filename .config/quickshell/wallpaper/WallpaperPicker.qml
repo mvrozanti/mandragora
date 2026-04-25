@@ -99,6 +99,7 @@ Item {
         const escapeBash = (str) => String(str).replace(/(["\\$`])/g, '\\$1');
         
         const randomTransition = window.transitions[Math.floor(Math.random() * window.transitions.length)];
+        const randomPos = Math.random().toFixed(2) + "," + Math.random().toFixed(2);
         
         // 3. AUTO-REVIVE COMMAND: Ensure daemon is alive before sending IPC commands
         const ensureDaemonCmd = `if ! pgrep -x "awww-daemon" > /dev/null; then awww-daemon >/dev/null 2>&1 & sleep 0.2; fi`;
@@ -131,9 +132,9 @@ Item {
                         
                         # GRACEFUL FALLBACK LOOP: Try Vulkan first, fallback to default immediately if it fails
                         for i in {1..20}; do
-                            if env WGPU_BACKEND=vulkan awww img "$DEST_FILE" --transition-type ${randomTransition} --transition-pos 0.5,0.5 --transition-fps 144 --transition-duration 1 >/dev/null 2>&1; then
+                            if env WGPU_BACKEND=vulkan awww img "$DEST_FILE" --transition-type ${randomTransition} --transition-pos ${randomPos} --transition-fps 144 --transition-duration 1 >/dev/null 2>&1; then
                                 break
-                            elif awww img "$DEST_FILE" --transition-type ${randomTransition} --transition-pos 0.5,0.5 --transition-fps 144 --transition-duration 1 >/dev/null 2>&1; then
+                            elif awww img "$DEST_FILE" --transition-type ${randomTransition} --transition-pos ${randomPos} --transition-fps 144 --transition-duration 1 >/dev/null 2>&1; then
                                 break
                             fi
                             sleep 0.05
@@ -182,9 +183,9 @@ Item {
                             
                             # GRACEFUL FALLBACK LOOP
                             for i in {1..20}; do
-                                if env WGPU_BACKEND=vulkan awww img "$DEST_FILE" --transition-type ${randomTransition} --transition-pos 0.5,0.5 --transition-fps 144 --transition-duration 1 >/dev/null 2>&1; then
+                                if env WGPU_BACKEND=vulkan awww img "$DEST_FILE" --transition-type ${randomTransition} --transition-pos ${randomPos} --transition-fps 144 --transition-duration 1 >/dev/null 2>&1; then
                                     break
-                                elif awww img "$DEST_FILE" --transition-type ${randomTransition} --transition-pos 0.5,0.5 --transition-fps 144 --transition-duration 1 >/dev/null 2>&1; then
+                                elif awww img "$DEST_FILE" --transition-type ${randomTransition} --transition-pos ${randomPos} --transition-fps 144 --transition-duration 1 >/dev/null 2>&1; then
                                     break
                                 fi
                                 sleep 0.05
@@ -217,9 +218,9 @@ Item {
                 ${ensureDaemonCmd}
                 # GRACEFUL FALLBACK LOOP
                 for i in {1..20}; do
-                    if env WGPU_BACKEND=vulkan awww img "$WALL_FILE" --transition-type ${randomTransition} --transition-pos 0.5,0.5 --transition-fps 144 --transition-duration 1 >/dev/null 2>&1; then
+                    if env WGPU_BACKEND=vulkan awww img "$WALL_FILE" --transition-type ${randomTransition} --transition-pos ${randomPos} --transition-fps 144 --transition-duration 1 >/dev/null 2>&1; then
                         break
-                    elif awww img "$WALL_FILE" --transition-type ${randomTransition} --transition-pos 0.5,0.5 --transition-fps 144 --transition-duration 1 >/dev/null 2>&1; then
+                    elif awww img "$WALL_FILE" --transition-type ${randomTransition} --transition-pos ${randomPos} --transition-fps 144 --transition-duration 1 >/dev/null 2>&1; then
                         break
                     fi
                     sleep 0.05
