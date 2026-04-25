@@ -1,25 +1,33 @@
-(defwidget screencap-menu-body []
-  (box :class "screencap-menu" :orientation "v" :space-evenly false :spacing 6
-    (label :class "screencap-title" :text "Record screen")
-    (box :orientation "h" :space-evenly true :spacing 8
-      (button :class "screencap-btn"
-              :onclick "~/.local/bin/screencap fullscreen &"
-        (box :orientation "v" :space-evenly false :spacing 2
-          (label :class "screencap-icon" :text "󰍹")
-          (label :class "screencap-label" :text "Fullscreen")))
-      (button :class "screencap-btn"
-              :onclick "~/.local/bin/screencap region &"
-        (box :orientation "v" :space-evenly false :spacing 2
-          (label :class "screencap-icon" :text "󰒉")
-          (label :class "screencap-label" :text "Region"))))))
+(defwidget capture-tile [icon label cls cmd]
+  (button :class "capture-btn ${cls}"
+          :onclick "${cmd} &"
+    (box :orientation "v" :space-evenly false :spacing 2
+      (label :class "capture-icon" :text icon)
+      (label :class "capture-label" :text label))))
 
-(defwindow screencap-menu
+(defwidget capture-menu-body []
+  (box :class "capture-menu" :orientation "v" :space-evenly false :spacing 8
+    (label :class "capture-title" :text "Capture")
+    (box :class "capture-section-label" :orientation "h" :space-evenly false
+      (label :text "Screenshot"))
+    (box :orientation "h" :space-evenly true :spacing 8
+      (capture-tile :icon "󰒉" :label "Region"     :cls "shot" :cmd "capture shot-region")
+      (capture-tile :icon "󰍹" :label "Full"       :cls "shot" :cmd "capture shot-full")
+      (capture-tile :icon "󱂬" :label "Window"     :cls "shot" :cmd "capture shot-window"))
+    (box :class "capture-section-label" :orientation "h" :space-evenly false
+      (label :text "Record"))
+    (box :orientation "h" :space-evenly true :spacing 8
+      (capture-tile :icon "󰕧" :label "Region"     :cls "rec" :cmd "capture rec-region")
+      (capture-tile :icon "󰦨" :label "Region 󰍬"  :cls "rec" :cmd "capture rec-region-a")
+      (capture-tile :icon "󰑊" :label "Full 󰍬"    :cls "rec" :cmd "capture rec-full-a"))))
+
+(defwindow capture-menu
   :monitor 0
   :stacking "overlay"
   :focusable false
-  :geometry (geometry :anchor "bottom right" :x 12 :y 56 :width 280 :height 120)
-  :namespace "eww-screencap"
-  (screencap-menu-body))
+  :geometry (geometry :anchor "bottom right" :x 12 :y 56 :width 460 :height 280)
+  :namespace "eww-capture"
+  (capture-menu-body))
 
 (defwidget powermenu-body []
   (box :class "powermenu" :orientation "v" :space-evenly false :spacing 8

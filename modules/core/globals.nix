@@ -53,6 +53,7 @@
     slurp
     wf-recorder
     gpu-screen-recorder
+    flameshot
     eww
     jq
     playerctl

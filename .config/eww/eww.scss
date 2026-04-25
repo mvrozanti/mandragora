@@ -1,8 +1,8 @@
-* { all: unset; font-family: "Iosevka Nerd Font"; }
+* { all: unset; font-family: "Iosevka Nerd Font", "Font Awesome 7 Free Solid", "Font Awesome 7 Brands"; }
 
 window { background: transparent; }
 
-.screencap-menu {
+.capture-menu {
   background: rgba(20, 20, 28, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
@@ -10,32 +10,41 @@ window { background: transparent; }
   color: #e6e6ee;
 }
 
-.screencap-title {
-  font-size: 12px;
-  color: rgba(230, 230, 238, 0.7);
-  padding-bottom: 4px;
+.capture-title {
+  font-size: 13px;
+  color: rgba(230, 230, 238, 0.85);
+  padding-bottom: 2px;
 }
 
-.screencap-btn {
+.capture-section-label {
+  font-size: 10px;
+  color: rgba(230, 230, 238, 0.5);
+  padding: 4px 2px 2px 2px;
+}
+
+.capture-btn {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   padding: 10px 14px;
-  min-width: 110px;
-  transition: background 120ms ease, border-color 120ms ease;
+  min-width: 120px;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 
   &:hover {
     background: rgba(255, 255, 255, 0.09);
     border-color: rgba(255, 255, 255, 0.14);
   }
+
+  &.shot:hover { color: #98c379; }
+  &.rec:hover  { color: #e06c75; }
 }
 
-.screencap-icon {
+.capture-icon {
   font-size: 22px;
-  color: #e6e6ee;
+  color: inherit;
 }
 
-.screencap-label {
+.capture-label {
   font-size: 11px;
   color: rgba(230, 230, 238, 0.82);
 }

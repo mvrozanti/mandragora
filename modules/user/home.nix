@@ -203,6 +203,7 @@ in
     (pkgs.writeShellScriptBin "powermenu-toggle" (builtins.readFile ../../.local/bin/powermenu-toggle.sh))
     (pkgs.writeShellScriptBin "powermenu-close" (builtins.readFile ../../.local/bin/powermenu-close.sh))
     (pkgs.writeShellScriptBin "screencap" (builtins.readFile ../../.local/bin/screencap.sh))
+    (pkgs.writeShellScriptBin "capture" (builtins.readFile ../../.local/bin/capture.sh))
     (pkgs.writeShellScriptBin "compv" (builtins.readFile ../../.local/bin/compv.sh))
     (pkgs.writeShellScriptBin "ic" (builtins.readFile ../../.local/bin/ic.sh))
     (pkgs.writeShellScriptBin "setbg" (builtins.readFile ../../.local/bin/setbg.sh))
@@ -303,6 +304,10 @@ in
     theme = {
       name = "Materia-dark";
       package = pkgs.materia-theme-transparent;
+    };
+    iconTheme = {
+      name = "Papirus-Dark";
+      package = pkgs.papirus-icon-theme;
     };
     gtk3.extraCss = ''
       window.background,

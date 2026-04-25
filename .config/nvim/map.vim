@@ -214,3 +214,23 @@ vmap A :%norm A
 nn _ f_
 im <Find>   <C-o>^
 im <Select> <C-o>$
+
+
+" Navigation in insert and terminal modes (Vim-Tmux Navigator propagation)
+inoremap <A-h> <Cmd>TmuxNavigateLeft<cr>
+inoremap <A-j> <Cmd>TmuxNavigateDown<cr>
+inoremap <A-k> <Cmd>TmuxNavigateUp<cr>
+inoremap <A-l> <Cmd>TmuxNavigateRight<cr>
+inoremap <C-h> <Cmd>TmuxNavigateLeft<cr>
+inoremap <C-j> <Cmd>TmuxNavigateDown<cr>
+inoremap <C-k> <Cmd>TmuxNavigateUp<cr>
+inoremap <C-l> <Cmd>TmuxNavigateRight<cr>
+
+tnoremap <A-h> <C-\><C-n><Cmd>TmuxNavigateLeft<cr>
+tnoremap <A-j> <C-\><C-n><Cmd>TmuxNavigateDown<cr>
+tnoremap <A-k> <C-\><C-n><Cmd>TmuxNavigateUp<cr>
+tnoremap <A-l> <C-\><C-n><Cmd>TmuxNavigateRight<cr>
+tnoremap <C-h> <C-\><C-n><Cmd>TmuxNavigateLeft<cr>
+tnoremap <C-j> <C-\><C-n><Cmd>TmuxNavigateDown<cr>
+tnoremap <C-k> <C-\><C-n><Cmd>TmuxNavigateUp<cr>
+tnoremap <C-l> <C-\><C-n><Cmd>TmuxNavigateRight<cr>
