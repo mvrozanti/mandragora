@@ -14,7 +14,7 @@ if type(keys) ~= "table" then
 end
 
 local function readFile()
-    local handle = io.popen("cat /home/m/.cache/wal/wal")
+    local handle = io.popen("cat /home/m/.cache/matugen/wal")
     if not handle then return nil end
     local result = handle:read("*a")
     handle:close()

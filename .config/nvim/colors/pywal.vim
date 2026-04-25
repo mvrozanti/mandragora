@@ -3,7 +3,7 @@ if exists('g:colors_name')
 endif
 let g:colors_name = 'pywal'
 
-let s:wal_file = fnamemodify('~/.cache/wal/colors-wal.vim', ':p')
+let s:wal_file = fnamemodify('~/.cache/matugen/colors-wal.vim', ':p')
 if filereadable(s:wal_file)
     execute 'source ' . s:wal_file
 else
