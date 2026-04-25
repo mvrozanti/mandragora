@@ -215,6 +215,37 @@ let
         } ];
         fieldConfig = { defaults = { unit = "short"; }; };
       }
+
+      # ── Row: CPU ──────────────────────────────────────────────────────────────
+      {
+        id = 18; type = "row"; title = "CPU"; collapsed = false;
+        gridPos = { x = 0; y = 46; w = 24; h = 1; };
+      }
+      {
+        id = 19; type = "timeseries"; title = "CPU Usage by Mode";
+        gridPos = { x = 0; y = 47; w = 24; h = 9; };
+        targets = [ {
+          datasource = { type = "prometheus"; uid = "prometheus"; };
+          expr = ''avg by (mode) (rate(node_cpu_seconds_total{mode!~"idle|guest|guest_nice"}[5m])) * 100'';
+          legendFormat = "{{mode}}";
+          refId = "A";
+        } ];
+        fieldConfig = {
+          defaults = {
+            unit = "percent";
+            min = 0;
+            max = 100;
+            custom = {
+              fillOpacity = 20;
+              stacking = { group = "A"; mode = "normal"; };
+            };
+          };
+        };
+        options = {
+          legend = { displayMode = "list"; placement = "bottom"; };
+          tooltip = { mode = "multi"; sort = "desc"; };
+        };
+      }
     ];
   };
 
