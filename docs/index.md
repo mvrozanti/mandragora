@@ -34,7 +34,9 @@ git remote is the persistence mechanism for the configuration source.
 
 ### AI Context
 
-- [project-context.md](./project-context.md) — LLM-optimized rules distillate (load this first when acting as an agent)
+- **Load first:** [`../AGENTS.md`](../AGENTS.md) — canonical hard constraints, workflow, AI bridge, per-agent policy variances.
+- Then your agent's delta: [`../CLAUDE.md`](../CLAUDE.md) (Claude Code), [`../GEMINI.md`](../GEMINI.md) (Gemini CLI).
+- [project-context.md](./project-context.md) — _retired 2026-04-25; now a pointer to AGENTS.md_
 
 ### Plans & Specs (`superpowers/`)
 
@@ -110,9 +112,10 @@ See [deployment-guide.md](./deployment-guide.md) and
 ## For AI-Assisted Development
 
 This documentation is generated specifically to enable AI agents to
-understand and extend this codebase. Load `project-context.md` first — it
-is the LLM-optimized rules distillate. `AGENTS.md` at the repo root is the
-canonical statement of hard constraints.
+understand and extend this codebase. Load [`../AGENTS.md`](../AGENTS.md)
+first — it is the canonical statement of hard constraints, workflow, AI
+bridge, and per-agent policy variances. Then load your agent's delta file
+(`../CLAUDE.md` for Claude Code, `../GEMINI.md` for Gemini CLI).
 
 ### When Planning Changes
 

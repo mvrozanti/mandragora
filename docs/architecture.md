@@ -319,7 +319,7 @@ These cannot be relaxed without changing the project's fundamental shape:
 8. **No FDE** — main drive intentionally unencrypted.
 
 The canonical statement is in `../AGENTS.md`. The LLM-optimized distillate
-is in `./project-context.md`.
+is in `../AGENTS.md`.
 
 ## 15. References
 
@@ -330,7 +330,7 @@ is in `./project-context.md`.
 - `../atlas/hardware.md` — hardware specs
 - `../atlas/software.md` — software inventory
 - `../atlas/non-negotiables.md` — landmark for hard constraints
-- `./project-context.md` — LLM-optimized rules distillate
+- `./project-context.md` — _retired; pointer to AGENTS.md_
 - `./source-tree-analysis.md` — annotated directory layout
 - `./development-guide.md` — dev workflow
 - `./deployment-guide.md` — install / reinstall procedure

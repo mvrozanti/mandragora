@@ -687,10 +687,8 @@ in
     source = ../../.config/sxiv;
     recursive = true;
   };
-  home.file.".config/cava" = {
-    source = ../../.config/cava;
-    recursive = true;
-  };
+  home.file.".config/cava/config".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.cache/wal/cava";
   home.file.".config/khal" = {
     source = ../../.config/khal;
     recursive = true;

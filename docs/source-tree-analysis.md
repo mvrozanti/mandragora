@@ -144,7 +144,7 @@ mandragora-nixos/
 │   ├── architecture.md           # Detailed technical architecture
 │   ├── development-guide.md      # Dev workflow
 │   ├── deployment-guide.md       # Bootstrap / reinstall
-│   ├── project-context.md        # LLM-optimized rules distillate
+│   ├── project-context.md        # Retired 2026-04-25 — pointer to AGENTS.md
 │   └── superpowers/              # Plans + design specs (per-feature)
 │       ├── plans/
 │       └── specs/
@@ -275,9 +275,12 @@ is the design overview; `non-negotiables.md` lists hard constraints (with
 
 ### `docs/`
 
-This directory. AI-facing generated documentation. `project-context.md` is
-the LLM-optimized rules distillate that agents load before acting.
-`superpowers/` holds per-feature plans and design specs.
+This directory. AI-facing generated documentation. Agents should load
+`../AGENTS.md` first (canonical hard constraints) and the appropriate
+agent-specific delta (`../CLAUDE.md` or `../GEMINI.md`).
+`project-context.md` was retired on 2026-04-25 — its rules now live in
+`../AGENTS.md` to eliminate triple-write drift. `superpowers/` holds
+per-feature plans and design specs.
 
 ## Entry Points
 
