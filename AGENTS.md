@@ -208,8 +208,12 @@ hidden in agent-specific files) so a human reading AGENTS.md can audit them.
 
 - **Gemini CLI** is mandated to run `mandragora-switch` immediately after
   every file modification, with autonomous commit explicitly authorized for
-  this purpose (see `GEMINI.md`). Claude Code and other agents follow the
-  default rule: do not commit without explicit user instruction.
+  this purpose (see `GEMINI.md`).
+- **Claude Code** must run `mandragora-switch` itself after edits to
+  `/etc/nixos/mandragora/`. Never ask the user to rebuild — if you can
+  invoke it, you own it. This is autonomous commit authorization for the
+  rebuild path; it does not extend to unrelated `git commit`/`git push`
+  operations, which still require explicit user instruction.
 - **Claude Code** has a memory system at `~/.claude/projects/-home-m/memory/`
   for cross-session preference persistence (see `CLAUDE.md`). Other agents
   use `~/.ai-shared/TASKS.md` for handoff state instead.
