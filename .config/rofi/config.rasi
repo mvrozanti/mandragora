@@ -3,7 +3,7 @@ configuration {
 	width: 30;
 	lines: 15;
 	columns: 3;
-	font: "FontAwesome 12";
+	font: "Iosevka Nerd Font 12";
 	bw: 1;
 	location: 0;
 	padding: 5;
