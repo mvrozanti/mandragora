@@ -5,8 +5,6 @@
     xwayland.enable = true;
   };
 
-  services.xserver.xkb.options = "caps:swapescape";
-
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
     LIBVA_DRIVER_NAME = "nvidia";
