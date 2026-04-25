@@ -21,6 +21,10 @@
         owner = "m";
         mode = "0400";
       };
+      "huggingface/read_token" = {
+        owner = "m";
+        mode = "0400";
+      };
     };
   };
 
