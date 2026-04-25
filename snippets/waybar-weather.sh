@@ -40,4 +40,4 @@ icon_code=$(echo "$weather" | jq -r ".weather[0].icon")
 desc=$(echo "$weather" | jq -r ".weather[0].description")
 icon=$(get_icon "$icon_code")
 
-printf '{"text": "%s %s°C", "tooltip": "%s"}\n' "$icon" "$temp" "$desc"
+printf '{"text": "%s  %s°C", "tooltip": "%s"}\n' "$icon" "$temp" "$desc"
