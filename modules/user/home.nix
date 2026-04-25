@@ -363,6 +363,7 @@ in
       cursor_shape = "block";
       cursor_blink_interval = "0.5";
       cursor_stop_blinking_after = "15.0";
+      cursor_trail = 3;
       scrollback_lines = 2000;
       scrollback_pager = "less --chop-long-lines --RAW-CONTROL-CHARS +INPUT_LINE_NUMBER";
       wheel_scroll_multiplier = "5.0";
