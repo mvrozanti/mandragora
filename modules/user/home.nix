@@ -183,6 +183,7 @@ in
     tradingview
     openrgb
     pywal
+    matugen
 
     (pkgs.writeShellScriptBin "smart-launch" (builtins.readFile ../../.local/bin/smart-launch.sh))
     (pkgs.writeShellScriptBin "mandragora-switch" (builtins.readFile ../../.local/bin/mandragora-switch.sh))
@@ -693,6 +694,11 @@ in
   home.file.".config/wal/templates/colors-tmux.conf".source = ../../.config/wal/templates/colors-tmux.conf;
   home.file.".config/wal/templates/cava".source = ../../.config/wal/templates/cava;
 
+  home.file.".config/matugen" = {
+    source = ../../.config/matugen;
+    recursive = true;
+  };
+
   home.activation.seedKeyledsd = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ ! -e "$HOME/.config/keyledsd.conf" ]; then
       install -Dm644 ${../../.config/keyledsd/keyledsd.conf} "$HOME/.config/keyledsd.conf"
@@ -747,25 +753,25 @@ Type=Application
 Categories=Network;InstantMessaging;
 StartupWMClass=whatsapp-web
 '';
-  # AI Bridge and Agent Settings 
-  home.file.".ai-shared/TASKS.md".source = 
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/TASKS.md"; 
-  home.file.".ai-shared/GEMINI.md".source = 
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/GEMINI.md"; 
-  home.file.".ai-shared/CLAUDE.md".source = 
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/CLAUDE.md"; 
-  home.file.".ai-shared/skills".source = 
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/.claude/skills"; 
- 
-  home.file.".claude/settings.json".source = 
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/.claude/settings.json"; 
-  home.file.".claude/settings.local.json".source = 
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/.claude/settings.local.json"; 
-  home.file.".claude/skills".source = 
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/.claude/skills"; 
- 
-  home.file.".gemini/settings.json".source = 
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/.gemini/settings.json"; 
-  home.file.".gemini/skills".source = 
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/.gemini/skills";
+  # AI Bridge and Agent Settings
+  home.file.".ai-shared/TASKS.md".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/TASKS.md";
+  home.file.".ai-shared/GEMINI.md".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/GEMINI.md";
+  home.file.".ai-shared/CLAUDE.md".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/CLAUDE.md";
+  home.file.".ai-shared/skills".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/skills";
+
+  home.file.".claude/settings.json".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/settings.json";
+  home.file.".claude/settings.local.json".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/settings.local.json";
+  home.file.".claude/skills".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/skills";
+
+  home.file.".gemini/settings.json".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/settings.json";
+  home.file.".gemini/skills".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/skills";
 }
