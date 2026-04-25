@@ -226,7 +226,7 @@ reconstruct context.
 
 - `../AGENTS.md` — canonical hard constraints
 - `../CLAUDE.md` — Claude Code specifics
-- `./project-context.md` — LLM-optimized rules distillate
+- `./project-context.md` — _retired; pointer to AGENTS.md_
 - `./architecture.md` — technical architecture
 - `./source-tree-analysis.md` — annotated directory layout
 - `./deployment-guide.md` — install / reinstall procedure

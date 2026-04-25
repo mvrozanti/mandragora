@@ -139,7 +139,7 @@ verification on the actual hardware.
 - `../atlas/PARTITION_PLAN.md` — disk layout design
 - `./architecture.md` — system architecture (storage, impermanence, secrets)
 - `./development-guide.md` — day-to-day rebuild workflow
-- `./project-context.md` — LLM-optimized rules distillate
+- `./project-context.md` — _retired; pointer to AGENTS.md_
 
 ---
 

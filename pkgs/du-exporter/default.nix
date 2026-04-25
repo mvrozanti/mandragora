@@ -25,7 +25,8 @@ writeShellApplication {
       fi
     done <<< "$du_output"
 
-    trap - EXIT
+        trap - EXIT
+    chmod 644 "$TMPFILE"
     mv "$TMPFILE" "$OUTDIR/dirsize.prom"
   '';
 }
