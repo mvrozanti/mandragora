@@ -78,13 +78,13 @@ tooltip {
     border-bottom: 2px solid @color8;
 }
 
-#network {
+#custom-network {
     padding: 0 8px;
-    min-width: 200px;
+    min-width: 180px;
     border-bottom: 2px solid @color3;
 }
 
-#network.disconnected {
+#custom-network.disconnected {
     color: @color8;
     border-bottom: 2px solid @color8;
 }
