@@ -591,11 +591,18 @@ in
       userChrome = ''
         menupopup,
         panel,
-        .menupopup-arrowscrollbox {
+        .menupopup-arrowscrollbox,
+        #PopupAutoCompleteRichResult,
+        #PopupAutoCompleteRichResult .autocomplete-richlistbox,
+        #urlbar-results,
+        #urlbar .urlbarView,
+        #urlbar[open] > .urlbarView {
           background-color: rgba(0, 0, 0, 0.18) !important;
           --panel-background: rgba(0, 0, 0, 0.18) !important;
           --arrowpanel-background: rgba(0, 0, 0, 0.18) !important;
-          backdrop-filter: blur(20px);
+          --autocomplete-popup-background: rgba(0, 0, 0, 0.18) !important;
+          --urlbarView-background: rgba(0, 0, 0, 0.18) !important;
+          backdrop-filter: blur(20px) !important;
         }
         menupopup menuitem,
         menupopup menu {
