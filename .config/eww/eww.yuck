@@ -1,5 +1,7 @@
-(defwidget capture-tile [icon label cls cmd]
-  (button :class "capture-btn ${cls}"
+(defpoll capture-selected :interval "100ms" :initial 0 "cat ${EWW_CONFIG_DIR}/.capture-selected 2>/dev/null || echo 0")
+
+(defwidget capture-tile [icon label cls cmd index]
+  (button :class "capture-btn ${cls} ${capture-selected == index ? 'selected' : ''}"
           :onclick "${cmd} &"
     (box :orientation "v" :space-evenly false :spacing 2
       (label :class "capture-icon" :text icon)
@@ -11,15 +13,15 @@
     (box :class "capture-section-label" :orientation "h" :space-evenly false
       (label :text "Screenshot"))
     (box :orientation "h" :space-evenly true :spacing 8
-      (capture-tile :icon "󰒉" :label "Region"     :cls "shot" :cmd "capture shot-region")
-      (capture-tile :icon "󰍹" :label "Full"       :cls "shot" :cmd "capture shot-full")
-      (capture-tile :icon "󱂬" :label "Window"     :cls "shot" :cmd "capture shot-window"))
+      (capture-tile :icon "󰒉" :label "Region"     :cls "shot" :cmd "capture shot-region" :index 0)
+      (capture-tile :icon "󰍹" :label "Full"       :cls "shot" :cmd "capture shot-full"   :index 1)
+      (capture-tile :icon "󱂬" :label "Window"     :cls "shot" :cmd "capture shot-window" :index 2))
     (box :class "capture-section-label" :orientation "h" :space-evenly false
       (label :text "Record"))
     (box :orientation "h" :space-evenly true :spacing 8
-      (capture-tile :icon "󰕧" :label "Region"     :cls "rec" :cmd "capture rec-region")
-      (capture-tile :icon "󰦨" :label "Region 󰍬"  :cls "rec" :cmd "capture rec-region-a")
-      (capture-tile :icon "󰑊" :label "Full 󰍬"    :cls "rec" :cmd "capture rec-full-a"))))
+      (capture-tile :icon "󰕧" :label "Region"     :cls "rec" :cmd "capture rec-region"   :index 3)
+      (capture-tile :icon "󰦨" :label "Region 󰍬"  :cls "rec" :cmd "capture rec-region-a" :index 4)
+      (capture-tile :icon "󰑊" :label "Full 󰍬"    :cls "rec" :cmd "capture rec-full-a"   :index 5))))
 
 (defwindow capture-menu
   :monitor 0
