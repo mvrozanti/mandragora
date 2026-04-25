@@ -11,6 +11,11 @@ let
     hash = "sha256-Pox6uGt8AUj4cRyi58tghxLbwqlyU94PEx7D20GivTw=";
   };
 
+  distant-horizons = pkgs.fetchurl {
+    url = "https://cdn.modrinth.com/data/uCdwusMi/versions/mVAIpNz9/DistantHorizons-3.0.2-b-1.21.11-fabric-neoforge.jar";
+    hash = "sha256-e09suXafrxNcoURXKq4XJKESAPzVKQbzEK3PmSKZWnk=";
+  };
+
   instanceCfg = pkgs.writeText "meteor-instance.cfg" ''
     [General]
     ConfigVersion=1.3
@@ -70,6 +75,7 @@ in
 
     $DRY_RUN_CMD mkdir -p "$MODS"
     $DRY_RUN_CMD ln -sf ${baritone} "$MODS/baritone.jar"
+    $DRY_RUN_CMD ln -sf ${distant-horizons} "$MODS/distant-horizons.jar"
 
     SHADERPACKS="$INST/minecraft/shaderpacks"
     $DRY_RUN_CMD mkdir -p "$SHADERPACKS"
