@@ -38,6 +38,17 @@ case "$mime" in
         setsid sxiv -ab -- "$file" >/dev/null 2>&1 &
         ;;
     video/*|audio/*)
+        if [ -n "$id" ] && command -v lf >/dev/null 2>&1; then
+            _vfiles=$(lf -remote "query $id files-fresh" 2>/dev/null | grep -iE '\.(mp4|mkv|avi|mov|webm|flv|wmv|m4v|ts|m2ts|ogv|3gp|mpg|mpeg|vob|mp3|flac|ogg|aac|wav|opus|m4a)$')
+            _vidx=$(echo "$_vfiles" | grep -nFx "$file" | cut -d: -f1)
+            if [ -n "$_vidx" ] && [ -n "$_vfiles" ]; then
+                _vstart=$(($_vidx - 1))
+                _vtmp=$(mktemp /tmp/mpv-pl.XXXXXX)
+                echo "$_vfiles" > "$_vtmp"
+                setsid sh -c 'mpv --playlist-start="$1" --playlist="$2" >/dev/null 2>&1; rm -f "$2"' _ "$_vstart" "$_vtmp" &
+                exit 0
+            fi
+        fi
         setsid mpv -- "$file" >/dev/null 2>&1 &
         ;;
     
@@ -54,6 +65,17 @@ case "$mime" in
         ;;
     
     *)
-        setsid xdg-open -- "$file" >/dev/null 2>&1 &
+        _ext=$(printf '%s' "${file##*.}" | tr '[:upper:]' '[:lower:]')
+        case "$_ext" in
+            mp4|mkv|avi|mov|webm|flv|wmv|m4v|ts|m2ts|ogv|3gp|mpg|mpeg|vob)
+                setsid mpv -- "$file" >/dev/null 2>&1 &
+                ;;
+            mp3|flac|ogg|aac|wav|opus|m4a)
+                setsid mpv -- "$file" >/dev/null 2>&1 &
+                ;;
+            *)
+                setsid xdg-open -- "$file" >/dev/null 2>&1 &
+                ;;
+        esac
         ;;
 esac
