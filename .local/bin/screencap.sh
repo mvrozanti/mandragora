@@ -30,7 +30,9 @@ start_record() {
 
   args=(-w "$target" -f 60 -k h264 -q very_high -o "$file")
   [[ -n "$region" ]] && args+=(-region "$region")
-  [[ -n "$sink"   ]] && args+=(-a "$sink")
+  if [[ "${CAPTURE_NO_AUDIO:-0}" != "1" && -n "$sink" ]]; then
+    args+=(-a "$sink")
+  fi
 
   setsid gpu-screen-recorder "${args[@]}" >"$state_dir/screencap.log" 2>&1 &
   echo $! > "$pidfile"
@@ -73,12 +75,12 @@ start_region() {
 }
 
 toggle_menu() {
-  eww -c "$HOME/.config/eww" open --toggle screencap-menu
+  eww -c "$HOME/.config/eww" open --toggle capture-menu
 }
 
 case "${1:-status}" in
-  fullscreen) eww -c "$HOME/.config/eww" close screencap-menu 2>/dev/null; start_fullscreen ;;
-  region)     eww -c "$HOME/.config/eww" close screencap-menu 2>/dev/null; start_region ;;
+  fullscreen) eww -c "$HOME/.config/eww" close capture-menu 2>/dev/null; start_fullscreen ;;
+  region)     eww -c "$HOME/.config/eww" close capture-menu 2>/dev/null; start_region ;;
   stop)       stop_record ;;
   toggle)
     if is_recording; then stop_record; else toggle_menu; fi

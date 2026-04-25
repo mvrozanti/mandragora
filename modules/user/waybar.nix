@@ -122,8 +122,8 @@
           return-type = "json";
           interval = 2;
           signal = 11;
-          on-click = "~/.local/bin/screencap toggle";
-          on-click-right = "~/.local/bin/screencap stop";
+          on-click = "~/.local/bin/capture toggle";
+          on-click-right = "~/.local/bin/capture stop";
         };
 
         "custom/weather" = {

@@ -28,8 +28,13 @@ tooltip {
 #workspaces button {
     padding: 0 8px;
     color: @foreground;
-    opacity: 0.5;
-    text-shadow: 1px 1px 0 @background, -1px 1px 0 @background, 1px -1px 0 @background, -1px -1px 0 @background;
+    opacity: 0.65;
+    text-shadow: 
+        1px 1px 0 @background,
+       -1px 1px 0 @background,
+        1px -1px 0 @background,
+       -1px -1px 0 @background,
+        0px 0px 2px @background;
     border-bottom: 2px solid transparent;
     border-radius: 0;
     background: transparent;
@@ -38,7 +43,12 @@ tooltip {
 #workspaces button.active {
     color: @foreground;
     opacity: 1.0;
-    text-shadow: 1px 1px 0 @background, -1px 1px 0 @background, 1px -1px 0 @background, -1px -1px 0 @background, 0 0 5px @color4;
+    text-shadow: 
+        1px 1px 0 @background,
+       -1px 1px 0 @background,
+        1px -1px 0 @background,
+       -1px -1px 0 @background,
+        0 0 5px @color4;
     border-bottom: 2px solid @color4;
 }
 
