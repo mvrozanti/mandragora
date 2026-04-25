@@ -1,0 +1,59 @@
+--- a/keyledsd/src/service/DeviceManager_util.cxx
++++ b/keyledsd/src/service/DeviceManager_util.cxx
+@@ -22,6 +22,9 @@
+ #include "keyledsd/logging.h"
+ #include "keyledsd/tools/DeviceWatcher.h"
+ #include <algorithm>
++#include <cstdlib>
++#include <filesystem>
++#include <fstream>
+ #include <iomanip>
+ #include <sstream>
+
+@@ -71,6 +74,46 @@ std::vector<std::string> findEventDevices(const tools::device::Description & des
+             result.emplace_back(std::forward<decltype(devNode)>(devNode));
+         }
+     }
++
++    if (const char * extra = std::getenv("KEYLEDS_EXTRA_INPUT_NAMES")) {
++        std::vector<std::string> wantNames;
++        std::string buf;
++        for (const char * p = extra; ; ++p) {
++            if (*p == ',' || *p == '\0') {
++                if (!buf.empty()) {
++                    wantNames.push_back(std::move(buf));
++                    buf.clear();
++                }
++                if (*p == '\0') { break; }
++            } else {
++                buf.push_back(*p);
++            }
++        }
++
++        std::error_code ec;
++        for (auto & entry : std::filesystem::directory_iterator("/sys/devices/virtual/input", ec)) {
++            if (ec) { break; }
++            if (!entry.is_directory(ec)) { continue; }
++            std::ifstream nf(entry.path() / "name");
++            std::string name;
++            if (!std::getline(nf, name)) { continue; }
++            bool match = false;
++            for (const auto & wn : wantNames) {
++                if (name == wn) { match = true; break; }
++            }
++            if (!match) { continue; }
++            for (auto & sub : std::filesystem::directory_iterator(entry.path(), ec)) {
++                if (ec) { break; }
++                auto fname = sub.path().filename().string();
++                if (fname.compare(0, 5, "event") != 0) { continue; }
++                std::string devNode = "/dev/input/" + fname;
++                if (std::find(result.begin(), result.end(), devNode) == result.end()) {
++                    INFO("adding extra evdev <", name, "> at ", devNode);
++                    result.emplace_back(std::move(devNode));
++                }
++            }
++        }
++    }
+     return result;
+ }
+
