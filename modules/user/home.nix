@@ -649,6 +649,7 @@ in
   };
 
   home.file.".XCompose".source = ../../.XCompose;
+  home.file.".claude/settings.json".source = ../../.config/claude/settings.json;
   home.file.".config/nvim" = {
     source = ../../.config/nvim;
     recursive = true;
