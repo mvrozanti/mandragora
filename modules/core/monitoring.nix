@@ -9,20 +9,16 @@ let
     refresh = "5m";
     time = { from = "now-24h"; to = "now"; };
     panels = [
-
-      # ── Row: Directory Growth ──────────────────────────────────────────────
       {
-        id = 1; type = "row"; title = "Directory Growth"; collapsed = false;
+        id = 1; type = "row"; title = "Directory Activity"; collapsed = false;
         gridPos = { x = 0; y = 0; w = 24; h = 1; };
       }
-
-      # Stacked area: top 15 dirs by current size
       {
-        id = 2; type = "timeseries"; title = "Directory Sizes Over Time";
+        id = 2; type = "timeseries"; title = "Top 10 Directory Changes (abs)";
         gridPos = { x = 0; y = 1; w = 16; h = 9; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "topk(15, dirsize_bytes)";
+          expr = "topk(10, abs(delta(dirsize_bytes[24h])))";
           legendFormat = "{{path}}";
           refId = "A";
         } ];
@@ -32,54 +28,43 @@ let
             custom = {
               fillOpacity = 20;
               gradientMode = "none";
-              stacking = { mode = "normal"; group = "A"; };
             };
           };
-          overrides = [ ];
         };
         options = {
-          legend = { displayMode = "list"; placement = "bottom"; calcs = [ ]; };
+          legend = { displayMode = "list"; placement = "bottom"; };
           tooltip = { mode = "multi"; sort = "desc"; };
         };
       }
-
-      # Table: all tracked dirs sorted by size
       {
-        id = 3; type = "table"; title = "Directory Sizes";
+        id = 3; type = "table"; title = "Change Magnitude (24h)";
         gridPos = { x = 16; y = 1; w = 8; h = 9; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "sort_desc(dirsize_bytes)";
+          expr = "sort_desc(topk(10, abs(delta(dirsize_bytes[24h]))))";
           instant = true;
           format = "table";
           refId = "A";
         } ];
-        fieldConfig = {
-          defaults = { unit = "bytes"; };
-          overrides = [ ];
-        };
+        fieldConfig = { defaults = { unit = "bytes"; }; };
         transformations = [
           {
             id = "organize";
             options = {
               excludeByName = { Time = true; "__name__" = true; instance = true; job = true; };
-              renameByName = { path = "Directory"; Value = "Size"; };
+              renameByName = { path = "Directory"; Value = "Change"; };
             };
           }
         ];
         options = {
-          sortBy = [ { desc = true; displayName = "Size"; } ];
+          sortBy = [ { desc = true; displayName = "Change"; } ];
           footer = { show = false; };
         };
       }
-
-      # ── Row: Network ───────────────────────────────────────────────────────
       {
         id = 4; type = "row"; title = "Network"; collapsed = false;
         gridPos = { x = 0; y = 10; w = 24; h = 1; };
       }
-
-      # Network rx/tx time series
       {
         id = 5; type = "timeseries"; title = "Network Traffic";
         gridPos = { x = 0; y = 11; w = 18; h = 8; };
@@ -97,14 +82,12 @@ let
             refId = "B";
           }
         ];
-        fieldConfig = { defaults = { unit = "Bps"; }; overrides = [ ]; };
+        fieldConfig = { defaults = { unit = "Bps"; }; };
         options = {
-          legend = { displayMode = "list"; placement = "bottom"; calcs = [ ]; };
+          legend = { displayMode = "list"; placement = "bottom"; };
           tooltip = { mode = "multi"; sort = "none"; };
         };
       }
-
-      # RX today (stat)
       {
         id = 6; type = "stat"; title = "RX Today";
         gridPos = { x = 18; y = 11; w = 6; h = 4; };
@@ -113,14 +96,8 @@ let
           expr = ''sum(increase(node_network_receive_bytes_total{device!~"lo|veth.*"}[24h]))'';
           refId = "A";
         } ];
-        fieldConfig = { defaults = { unit = "bytes"; }; overrides = [ ]; };
-        options = {
-          reduceOptions = { calcs = [ "lastNotNull" ]; fields = ""; values = false; };
-          colorMode = "value"; graphMode = "none"; justifyMode = "auto"; textMode = "auto";
-        };
+        fieldConfig = { defaults = { unit = "bytes"; }; };
       }
-
-      # TX today (stat)
       {
         id = 7; type = "stat"; title = "TX Today";
         gridPos = { x = 18; y = 15; w = 6; h = 4; };
@@ -129,20 +106,12 @@ let
           expr = ''sum(increase(node_network_transmit_bytes_total{device!~"lo|veth.*"}[24h]))'';
           refId = "A";
         } ];
-        fieldConfig = { defaults = { unit = "bytes"; }; overrides = [ ]; };
-        options = {
-          reduceOptions = { calcs = [ "lastNotNull" ]; fields = ""; values = false; };
-          colorMode = "value"; graphMode = "none"; justifyMode = "auto"; textMode = "auto";
-        };
+        fieldConfig = { defaults = { unit = "bytes"; }; };
       }
-
-      # ── Row: Disk I/O ──────────────────────────────────────────────────────
       {
         id = 8; type = "row"; title = "Disk I/O"; collapsed = false;
         gridPos = { x = 0; y = 19; w = 24; h = 1; };
       }
-
-      # Disk read/write throughput
       {
         id = 9; type = "timeseries"; title = "Disk I/O (nvme0n1)";
         gridPos = { x = 0; y = 20; w = 24; h = 8; };
@@ -160,20 +129,12 @@ let
             refId = "B";
           }
         ];
-        fieldConfig = { defaults = { unit = "Bps"; }; overrides = [ ]; };
-        options = {
-          legend = { displayMode = "list"; placement = "bottom"; calcs = [ ]; };
-          tooltip = { mode = "multi"; sort = "none"; };
-        };
+        fieldConfig = { defaults = { unit = "Bps"; }; };
       }
-
-      # ── Row: System Health ─────────────────────────────────────────────────
       {
         id = 10; type = "row"; title = "System Health"; collapsed = false;
         gridPos = { x = 0; y = 28; w = 24; h = 1; };
       }
-
-      # CPU + memory time series
       {
         id = 11; type = "timeseries"; title = "CPU & Memory";
         gridPos = { x = 0; y = 29; w = 18; h = 8; };
@@ -193,15 +154,8 @@ let
         ];
         fieldConfig = {
           defaults = { unit = "percent"; min = 0; max = 100; };
-          overrides = [ ];
-        };
-        options = {
-          legend = { displayMode = "list"; placement = "bottom"; calcs = [ ]; };
-          tooltip = { mode = "multi"; sort = "none"; };
         };
       }
-
-      # Uptime (stat)
       {
         id = 12; type = "stat"; title = "Uptime";
         gridPos = { x = 18; y = 29; w = 3; h = 4; };
@@ -210,14 +164,8 @@ let
           expr = "time() - node_boot_time_seconds";
           refId = "A";
         } ];
-        fieldConfig = { defaults = { unit = "s"; }; overrides = [ ]; };
-        options = {
-          reduceOptions = { calcs = [ "lastNotNull" ]; fields = ""; values = false; };
-          colorMode = "none"; graphMode = "none"; justifyMode = "auto"; textMode = "auto";
-        };
+        fieldConfig = { defaults = { unit = "s"; }; };
       }
-
-      # Load average 1m (stat)
       {
         id = 13; type = "stat"; title = "Load (1m)";
         gridPos = { x = 21; y = 29; w = 3; h = 4; };
@@ -226,13 +174,8 @@ let
           expr = "node_load1";
           refId = "A";
         } ];
-        fieldConfig = { defaults = { unit = "short"; }; overrides = [ ]; };
-        options = {
-          reduceOptions = { calcs = [ "lastNotNull" ]; fields = ""; values = false; };
-          colorMode = "value"; graphMode = "none"; justifyMode = "auto"; textMode = "auto";
-        };
+        fieldConfig = { defaults = { unit = "short"; }; };
       }
-
     ];
   };
 
@@ -267,18 +210,17 @@ in
     enable = true;
     settings = {
       server = {
-        protocol = "https";
-        cert_file = "/var/lib/grafana/cert.pem";
-        cert_key = "/var/lib/grafana/key.pem";
+        protocol = "http";
         http_addr = "0.0.0.0";
         http_port = 3000;
       };
       analytics.reporting_enabled = false;
       security.secret_key = "SW2YcwTIb9zpOOhoPsMm";
-      security.admin_user = "m";
-      auth.anonymous.enabled = true;
-      auth.anonymous.org_name = "Main Org.";
-      auth.anonymous.org_role = "Admin";
+      "auth.anonymous" = {
+        enabled = true;
+        org_name = "Main Org.";
+        org_role = "Admin";
+      };
     };
     provision = {
       enable = true;
@@ -304,19 +246,10 @@ in
     };
   };
 
-  systemd.services.grafana.preStart = ''
-    if [ ! -f /var/lib/grafana/cert.pem ]; then
-      ${pkgs.openssl}/bin/openssl req -x509 -newkey rsa:4096 \
-        -keyout /var/lib/grafana/key.pem -out /var/lib/grafana/cert.pem \
-        -days 365 -nodes -subj "/CN=localhost"
-    fi
-  '';
-
   systemd.services.du-exporter = {
     description = "Directory size Prometheus textfile exporter";
     after = [ "systemd-tmpfiles-setup.service" ];
     requires = [ "systemd-tmpfiles-setup.service" ];
-  systemd.services.grafana.preStart = "${pkgs.openssl}/bin/openssl req -x509 -newkey rsa:4096 -keyout /var/lib/grafana/key.pem -out /var/lib/grafana/cert.pem -days 365 -nodes -subj "/CN=localhost"";
     serviceConfig = {
       Type = "oneshot";
       User = "root";
