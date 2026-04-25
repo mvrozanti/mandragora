@@ -19,7 +19,7 @@ This is an **isolated subagent** running in parallel with E2E red-phase test gen
 - Config: test framework, Playwright Utils enabled/disabled, Pact.js Utils enabled/disabled (`use_pactjs_utils`), Pact MCP mode (`pact_mcp`)
 - Provider Endpoint Map (if `use_pactjs_utils` enabled and provider source accessible)
 
-**If `use_pactjs_utils` is enabled:** Also generate consumer contract tests alongside API tests. Use the loaded pactjs-utils fragments (`pactjs-utils-overview`, `pactjs-utils-consumer-helpers`, `pactjs-utils-provider-verifier`, `pactjs-utils-request-filter`, `pact-consumer-di`) for patterns. If `pact_mcp` is `"mcp"`, use SmartBear MCP tools (Fetch Provider States, Generate Pact Tests) to inform test generation.
+**If `use_pactjs_utils` is enabled:** Also generate consumer contract tests alongside API tests. Use the loaded pactjs-utils fragments (`pactjs-utils-overview`, `pactjs-utils-consumer-helpers`, `pactjs-utils-provider-verifier`, `pactjs-utils-request-filter`, `pact-consumer-di`, `pact-consumer-framework-setup`) for patterns. When generating consumer tests, enforce **one `pact.addInteraction()` per `it()` block** (see `pactjs-utils-consumer-helpers.md` Example 6) — PactV4's Rust FFI non-deterministically drops interactions if multiple are chained in one test. If `pact_mcp` is `"mcp"`, use SmartBear MCP tools (Fetch Provider States, Generate Pact Tests) to inform test generation.
 
 **Your task:** Generate API test scaffolds for the feature's expected behavior. They stay in `test.skip()` until the developer activates them for the current task (TDD RED PHASE).
 

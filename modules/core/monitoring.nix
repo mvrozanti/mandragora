@@ -66,13 +66,13 @@ let
         targets = [
           {
             datasource = { type = "prometheus"; uid = "prometheus"; };
-            expr = "nvidia_gpu_utilization";
+            expr = "nvidia_smi_utilization_gpu_ratio * 100";
             legendFormat = "GPU Core %";
             refId = "A";
           }
           {
             datasource = { type = "prometheus"; uid = "prometheus"; };
-            expr = "nvidia_gpu_memory_utilization";
+            expr = "nvidia_smi_utilization_memory_ratio * 100";
             legendFormat = "GPU Mem %";
             refId = "B";
           }
@@ -85,7 +85,7 @@ let
         gridPos = { x = 18; y = 11; w = 6; h = 8; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "nvidia_gpu_temperature_celsius";
+          expr = "nvidia_smi_temperature_gpu";
           refId = "A";
         } ];
         fieldConfig = {
