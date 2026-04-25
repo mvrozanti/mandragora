@@ -594,6 +594,12 @@ in
         .menupopup-arrowscrollbox,
         #PopupAutoCompleteRichResult,
         #PopupAutoCompleteRichResult .autocomplete-richlistbox,
+        #PopupAutoComplete,
+        #PopupAutoComplete .autocomplete-richlistbox,
+        #PopupSearchAutoComplete,
+        #PopupSearchAutoComplete .autocomplete-richlistbox,
+        .autocomplete-richlistbox,
+        .autocomplete-richlistitem,
         #urlbar-results,
         #urlbar .urlbarView,
         #urlbar[open] > .urlbarView {
