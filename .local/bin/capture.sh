@@ -9,6 +9,7 @@ GEOM_Y=56
 GEOM_W=460
 GEOM_H=280
 STAMP="${XDG_RUNTIME_DIR:-/tmp}/capture-last-closed"
+STATE_FILE="$HOME/.config/eww/.capture-selected"
 
 shots_dir="$HOME/Pictures/Screenshots"
 mkdir -p "$shots_dir"
@@ -32,6 +33,7 @@ remove_outside_binds() {
 }
 
 open_menu() {
+  echo 0 > "$STATE_FILE"
   "${EWW[@]}" open "$WIN"
   hyprctl dispatch submap capture >/dev/null
   install_outside_binds
@@ -100,6 +102,27 @@ case "${1:-toggle}" in
       close_menu
     fi
     ;;
+  next)
+    curr=$(cat "$STATE_FILE" 2>/dev/null || echo 0)
+    next=$(( (curr + 1) % 6 ))
+    echo "$next" > "$STATE_FILE"
+    ;;
+  prev)
+    curr=$(cat "$STATE_FILE" 2>/dev/null || echo 0)
+    prev=$(( (curr + 5) % 6 ))
+    echo "$prev" > "$STATE_FILE"
+    ;;
+  select)
+    curr=$(cat "$STATE_FILE" 2>/dev/null || echo 0)
+    case "$curr" in
+      0) "$SELF" shot-region ;;
+      1) "$SELF" shot-full ;;
+      2) "$SELF" shot-window ;;
+      3) "$SELF" rec-region ;;
+      4) "$SELF" rec-region-a ;;
+      5) "$SELF" rec-full-a ;;
+    esac
+    ;;
   shot-region)  close_menu; shot_region ;;
   shot-full)    close_menu; shot_full ;;
   shot-window)  close_menu; shot_window ;;
@@ -108,5 +131,5 @@ case "${1:-toggle}" in
   rec-full)     close_menu; CAPTURE_NO_AUDIO=1 screencap fullscreen ;;
   rec-full-a)   close_menu; screencap fullscreen ;;
   stop)         close_menu; screencap stop ;;
-  *) echo "usage: $0 {toggle|close|outside-click|shot-region|shot-full|shot-window|rec-region|rec-region-a|rec-full|rec-full-a|stop}" >&2; exit 2 ;;
+  *) echo "usage: $0 {toggle|close|outside-click|next|prev|select|shot-region|shot-full|shot-window|rec-region|rec-region-a|rec-full|rec-full-a|stop}" >&2; exit 2 ;;
 esac
