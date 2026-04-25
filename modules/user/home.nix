@@ -305,6 +305,7 @@ in
       name = "Materia-dark";
       package = pkgs.materia-theme-transparent;
     };
+    gtk4.theme = config.gtk.theme;
     iconTheme = {
       name = "breeze-dark";
       package = pkgs.kdePackages.breeze-icons;

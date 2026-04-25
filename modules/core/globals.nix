@@ -69,7 +69,7 @@
     polkit_gnome
     zoxide
     xsel
-    xorg.xev
+    xev
     wev
     gnumake
     gcc
