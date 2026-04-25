@@ -17,6 +17,10 @@
       "weather/api_key" = {
         mode = "0444";
       };
+      "oracle/ip" = {
+        owner = "m";
+        mode = "0400";
+      };
     };
   };
 
