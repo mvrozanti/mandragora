@@ -258,7 +258,6 @@ in
     listenAddress = "0.0.0.0";
     port = 9090;
     retentionTime = "90d";
-    extraFlags = [ "--web.enable-admin-api" ];
     scrapeConfigs = [
       {
         job_name = "node";
