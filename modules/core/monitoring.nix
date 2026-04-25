@@ -19,7 +19,7 @@ let
         gridPos = { x = 0; y = 1; w = 12; h = 9; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "topk(10, abs(delta(dirsize_bytes[24h])))";
+          expr = "topk(10, abs(delta(dirsize_bytes[1h])))";
           legendFormat = "{{path}}";
           refId = "A";
         } ];
@@ -39,7 +39,7 @@ let
         gridPos = { x = 12; y = 1; w = 12; h = 9; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "topk(10, abs(delta(dir_inode_count[24h])))";
+          expr = "topk(10, abs(delta(dir_inode_count[1h])))";
           legendFormat = "{{path}}";
           refId = "A";
         } ];
@@ -230,7 +230,7 @@ in
     scrapeConfigs = [
       {
         job_name = "node";
-        scrape_interval = "5m";
+        scrape_interval = "15s";
         static_configs = [ { targets = [ "localhost:9100" ]; } ];
       }
       {
