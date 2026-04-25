@@ -32,6 +32,7 @@ in
     shellAliases = zxAliases // {
       switch = "mandragora-switch";
       nrd = "mandragora-diff";
+      nrdd = "mandragora-diff-last";
       nrs = "mandragora-switch !";
       nrc = "mandragora-switch";
       nrp = "mandragora-commit-push";

@@ -36,28 +36,28 @@
       (button :class "powermenu-btn lock"
               :onclick "powermenu-close; hyprlock"
         (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
+          (label :class "powermenu-icon" :text "")
           (label :class "powermenu-label" :text "Lock")))
       (button :class "powermenu-btn suspend"
               :onclick "powermenu-close; systemctl suspend"
         (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
+          (label :class "powermenu-icon" :text "")
           (label :class "powermenu-label" :text "Suspend")))
       (button :class "powermenu-btn hibernate"
               :onclick "powermenu-close; systemctl hibernate"
         (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
+          (label :class "powermenu-icon" :text "")
           (label :class "powermenu-label" :text "Hibernate"))))
     (box :orientation "h" :space-evenly true :spacing 10
       (button :class "powermenu-btn reboot"
               :onclick "powermenu-close; systemctl reboot"
         (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
+          (label :class "powermenu-icon" :text "")
           (label :class "powermenu-label" :text "Reboot")))
       (button :class "powermenu-btn poweroff"
               :onclick "powermenu-close; systemctl poweroff"
         (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
+          (label :class "powermenu-icon" :text "")
           (label :class "powermenu-label" :text "Poweroff"))))))
 
 (defwidget powermenu-body []
