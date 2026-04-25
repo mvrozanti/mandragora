@@ -586,29 +586,15 @@ in
       settings = {
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "widget.gtk.native-context-menus" = false;
-        "widget.wayland.opaque-region.enabled" = false;
       };
       userChrome = ''
         menupopup,
         panel,
-        .menupopup-arrowscrollbox,
-        #PopupAutoCompleteRichResult,
-        #PopupAutoCompleteRichResult .autocomplete-richlistbox,
-        #PopupAutoComplete,
-        #PopupAutoComplete .autocomplete-richlistbox,
-        #PopupSearchAutoComplete,
-        #PopupSearchAutoComplete .autocomplete-richlistbox,
-        .autocomplete-richlistbox,
-        .autocomplete-richlistitem,
-        #urlbar-results,
-        #urlbar .urlbarView,
-        #urlbar[open] > .urlbarView {
+        .menupopup-arrowscrollbox {
           background-color: rgba(0, 0, 0, 0.18) !important;
           --panel-background: rgba(0, 0, 0, 0.18) !important;
           --arrowpanel-background: rgba(0, 0, 0, 0.18) !important;
-          --autocomplete-popup-background: rgba(0, 0, 0, 0.18) !important;
-          --urlbarView-background: rgba(0, 0, 0, 0.18) !important;
-          backdrop-filter: blur(20px) !important;
+          backdrop-filter: blur(20px);
         }
         menupopup menuitem,
         menupopup menu {
