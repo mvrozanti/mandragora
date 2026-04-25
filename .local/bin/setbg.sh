@@ -9,7 +9,6 @@ if [[ -z "$fpath" ]]; then
            -o -iname '*.gif' -o -iname '*.webp' \) 2>/dev/null | shuf | head -1)"
 fi
 if [[ -z "$fpath" || ! -e "$fpath" ]]; then
-    notify-send -u critical "setbg" "No wallpaper found in $dir" 2>/dev/null || true
     exit 1
 fi
 fpath="$(realpath "$fpath")"
@@ -43,4 +42,3 @@ makoctl reload 2>/dev/null || true
 hyprctl reload &>/dev/null || true
 wait
 
-notify-send -t 2500 "Theme" "$(basename "$fpath")" 2>/dev/null || true
