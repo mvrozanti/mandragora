@@ -79,10 +79,7 @@ let
     value = { source = e.s; };
   }) bmadSkills);
 
-  localExtras = {
-    ".claude/skills/nrp".source = ../../.claude/skills/nrp;
-    ".claude/skills/gemma.md".source = ../../.claude/skills/gemma.md;
-  };
+  localExtras = { };
 in
 {
   home.file =
