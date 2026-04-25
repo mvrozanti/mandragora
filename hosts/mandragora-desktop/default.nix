@@ -16,6 +16,7 @@
     ../../modules/core/monitoring.nix
     ../../modules/desktop/hyprland.nix
     ../../modules/desktop/kdeconnect.nix
+    ../../modules/desktop/keyd.nix
     ../../modules/desktop/keyledsd.nix
     ../../modules/desktop/openrgb.nix
     ../../modules/desktop/seafile.nix
