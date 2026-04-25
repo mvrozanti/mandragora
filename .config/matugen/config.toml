@@ -1,0 +1,51 @@
+[config]
+reload_apps = false
+set_wallpaper = false
+
+[templates.colors_json]
+input_path = "templates/colors.json"
+output_path = "~/.cache/matugen/colors.json"
+
+[templates.colors_kitty]
+input_path = "templates/colors-kitty.conf"
+output_path = "~/.cache/matugen/colors-kitty.conf"
+
+[templates.colors_hyprland]
+input_path = "templates/colors-hyprland.conf"
+output_path = "~/.cache/matugen/colors-hyprland.conf"
+
+[templates.colors_mako]
+input_path = "templates/colors-mako"
+output_path = "~/.cache/matugen/colors-mako"
+
+[templates.colors_rofi]
+input_path = "templates/colors-rofi.rasi"
+output_path = "~/.cache/matugen/colors-rofi.rasi"
+
+[templates.colors_tmux]
+input_path = "templates/colors-tmux.conf"
+output_path = "~/.cache/matugen/colors-tmux.conf"
+
+[templates.colors_wal_vim]
+input_path = "templates/colors-wal.vim"
+output_path = "~/.cache/matugen/colors-wal.vim"
+
+[templates.colors_waybar]
+input_path = "templates/colors-waybar.css"
+output_path = "~/.cache/matugen/colors-waybar.css"
+
+[templates.cava]
+input_path = "templates/cava"
+output_path = "~/.cache/matugen/cava"
+
+[templates.keyledsd]
+input_path = "templates/keyledsd.conf"
+output_path = "~/.cache/matugen/keyledsd.conf"
+
+[templates.wal]
+input_path = "templates/wal"
+output_path = "~/.cache/matugen/wal"
+
+[templates.qs_colors]
+input_path = "templates/qs_colors.json"
+output_path = "/tmp/qs_colors.json"

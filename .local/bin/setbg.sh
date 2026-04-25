@@ -20,6 +20,9 @@ pos="$pos_x,$pos_y"
 awww img "$fpath" --transition-type grow --transition-pos "$pos" --transition-duration 1
 
 wal -i "$fpath" -n -q 2>/dev/null || true
+mkdir -p ~/.cache/matugen
+echo "$fpath" > ~/.cache/matugen/last-wallpaper
+matugen image "$fpath" --source-color-index 0 --quiet 2>/dev/null || true
 
 if tmux info &>/dev/null; then
     tmux source-file ~/.cache/wal/colors-tmux.conf

@@ -19,7 +19,7 @@ let
         gridPos = { x = 0; y = 1; w = 12; h = 9; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "topk(10, abs(delta(dirsize_bytes[1h])))";
+          expr = "topk(10, abs(delta(dirsize_bytes[5m])))";
           legendFormat = "{{path}}";
           refId = "A";
         } ];
@@ -39,7 +39,7 @@ let
         gridPos = { x = 12; y = 1; w = 12; h = 9; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "topk(10, abs(delta(dir_inode_count[1h])))";
+          expr = "topk(10, abs(delta(dir_inode_count[5m])))";
           legendFormat = "{{path}}";
           refId = "A";
         } ];
@@ -300,6 +300,10 @@ in
     after = [ "systemd-tmpfiles-setup.service" ];
     requires = [ "systemd-tmpfiles-setup.service" ];
     serviceConfig = {
+      CPUQuota = "5%";
+      Nice = 19;
+      CPUSchedulingPolicy = "idle";
+      IOSchedulingClass = "idle";
       Type = "oneshot";
       User = "root";
       UMask = "0022";
@@ -310,9 +314,8 @@ in
   systemd.timers.du-exporter = {
     wantedBy = [ "timers.target" ];
     timerConfig = {
-      OnCalendar = "*-*-* 00,06,12,18:00:00";
-      OnBootSec = "5min";
-      RandomizedDelaySec = "30min";
+      OnUnitActiveSec = "1min";
+      OnBootSec = "1min";
       Persistent = true;
     };
   };
