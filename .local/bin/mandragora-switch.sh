@@ -4,6 +4,31 @@ FLAKE="/etc/nixos/mandragora"
 
 cd "$FLAKE"
 
+LOCK_SESSION="switch-$$-$(date -u +%s)"
+LOCK_RELEASED=0
+release_lock() {
+  if [ "$LOCK_RELEASED" -eq 0 ] && command -v mandragora-lock >/dev/null 2>&1; then
+    mandragora-lock release "$LOCK_SESSION" >/dev/null 2>&1 || true
+    LOCK_RELEASED=1
+  fi
+}
+trap release_lock EXIT INT TERM
+
+if command -v mandragora-lock >/dev/null 2>&1; then
+  if ! mandragora-lock claim \
+        --session "$LOCK_SESSION" \
+        --phase commit \
+        --paths "*" \
+        --scope "nixos-rebuild switch" \
+        --ttl 30min \
+        --agent "${MANDRAGORA_AGENT:-mandragora-switch}" >/dev/null; then
+    echo "==> ABORTED: another agent holds an active lock on this repo." >&2
+    echo "==> Run 'mandragora-lock list' to see who, then retry." >&2
+    LOCK_RELEASED=1
+    exit 1
+  fi
+fi
+
 echo "==> Fetching origin..."
 if ! git fetch origin; then
   echo "==> WARNING: git fetch failed. Proceeding without sync check." >&2
