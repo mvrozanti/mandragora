@@ -11,7 +11,6 @@
     GBM_BACKEND = "nvidia-drm";
     __GLX_VENDOR_LIBRARY_NAME = "nvidia";
     XDG_SESSION_TYPE = "wayland";
-    AQ_DRM_DEVICES = "/dev/dri/by-path/pci-0000:01:00.0-card";
   };
 
   xdg.portal = {
