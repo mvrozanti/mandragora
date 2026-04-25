@@ -29,7 +29,7 @@
   :namespace "eww-capture"
   (capture-menu-body))
 
-(defwidget powermenu-body []
+(defwidget powermenu-card []
   (box :class "powermenu" :orientation "v" :space-evenly false :spacing 8
     (label :class "powermenu-title" :text "Power Menu")
     (box :orientation "h" :space-evenly true :spacing 10
@@ -60,10 +60,18 @@
           (label :class "powermenu-icon" :text "")
           (label :class "powermenu-label" :text "Poweroff"))))))
 
+(defwidget powermenu-body []
+  (eventbox :class "powermenu-catcher" :onclick "powermenu-close"
+    (box :orientation "v" :hexpand true :vexpand true
+         :valign "end" :halign "end"
+      (box :orientation "v" :space-evenly false
+        (powermenu-card)
+        (box :class "powermenu-spacer-bottom")))))
+
 (defwindow powermenu
   :monitor 0
   :stacking "overlay"
   :focusable false
-  :geometry (geometry :anchor "bottom right" :x 20 :y 60 :width 380 :height 230)
+  :geometry (geometry :anchor "top left" :x 0 :y 0 :width "100%" :height "100%")
   :namespace "eww-powermenu"
   (powermenu-body))
