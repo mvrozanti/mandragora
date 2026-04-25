@@ -12,6 +12,23 @@
 
 ---
 
+## Status (resumable)
+
+- **Started:** 2026-04-25 (Claude session "virt")
+- **Branch:** `master` (no feature branch by user preference)
+- **Last completed:** plan written and committed (`475b82da`). No implementation tasks done.
+- **Next action:** start M1.1. Read its section below verbatim and execute.
+- **Execution mode:** hybrid — mechanical tasks inline, substantive via subagent, risky refactors via subagent + 2 reviewers. (Full subagent-driven mode is overkill for the ~30 small tasks in this plan.)
+- **Implementation rules from CLAUDE.md that apply at commit time, not in the plan text:**
+  - Rule #3: strip all explanatory comments from scripts/Nix derivations before commit. The plan's commentary is for plan readers, not the final code. Shebangs and shellcheck directives stay.
+  - Rule #11: after every `.nix` edit, run `nix-instantiate --parse <file> >/dev/null`; revert if it fails.
+  - Multi-agent file safety: read the current on-disk state of any existing file before targeted-editing it. No full rewrites.
+- **Real-hardware step (M1.7):** not a blocking gate. Do when convenient before declaring v1 done.
+- **Manual user-in-loop steps:** M3.7 (boot target after install), M9 first run (verify expect script).
+- **Handoff note:** `~/.ai-shared/TASKS.md` has the cross-session record.
+
+---
+
 ## Pre-flight
 
 Before starting any task: this work modifies your daily-driver desktop config. Discipline:
