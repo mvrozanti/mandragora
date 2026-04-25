@@ -1,5 +1,73 @@
 {
   "nodes": {
+    "bmad-builder": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1776730033,
+        "narHash": "sha256-pEuaVqrBByyVvDNM+E9gQ9nT+x1CVy0J4lETW9D8Lvw=",
+        "owner": "bmad-code-org",
+        "repo": "bmad-builder",
+        "rev": "a6ee3bf2e42f5c25fa54a55c15b2b6d4f96dbcb8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "bmad-code-org",
+        "ref": "v1.6.0",
+        "repo": "bmad-builder",
+        "type": "github"
+      }
+    },
+    "bmad-cis": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1776747742,
+        "narHash": "sha256-k84Vvjzs0sTr/oyGflEYHyQN8WM+Rf3VSieIFhsnErY=",
+        "owner": "bmad-code-org",
+        "repo": "bmad-module-creative-intelligence-suite",
+        "rev": "14a63b893c07173b7a6cfe0fb6a9a72ba51d3cf1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "bmad-code-org",
+        "ref": "v0.2.0",
+        "repo": "bmad-module-creative-intelligence-suite",
+        "type": "github"
+      }
+    },
+    "bmad-method": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777088042,
+        "narHash": "sha256-KR/6I9VqT3Zn/zS6nVNraPSPkL8oGoR3h0w3HzKRTj8=",
+        "owner": "bmad-code-org",
+        "repo": "BMAD-METHOD",
+        "rev": "119712200115c835521b1a72f209f4a8f1b10901",
+        "type": "github"
+      },
+      "original": {
+        "owner": "bmad-code-org",
+        "ref": "v6.4.0",
+        "repo": "BMAD-METHOD",
+        "type": "github"
+      }
+    },
+    "bmad-tea": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777052503,
+        "narHash": "sha256-bNA1JERpkTq8hh7QvKrpmexjsjyWcqQJcEvmQZCXBTA=",
+        "owner": "bmad-code-org",
+        "repo": "bmad-method-test-architecture-enterprise",
+        "rev": "7c94bdc6e3d2c8c3cad09eb0a32a42fade0e9079",
+        "type": "github"
+      },
+      "original": {
+        "owner": "bmad-code-org",
+        "ref": "v1.15.1",
+        "repo": "bmad-method-test-architecture-enterprise",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -94,6 +162,10 @@
     },
     "root": {
       "inputs": {
+        "bmad-builder": "bmad-builder",
+        "bmad-cis": "bmad-cis",
+        "bmad-method": "bmad-method",
+        "bmad-tea": "bmad-tea",
         "home-manager": "home-manager",
         "impermanence": "impermanence",
         "nixpkgs": "nixpkgs_2",
