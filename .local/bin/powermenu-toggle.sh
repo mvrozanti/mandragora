@@ -16,6 +16,3 @@ fi
 
 eww -c "$HOME/.config/eww" open powermenu
 hyprctl dispatch submap powermenu >/dev/null
-hyprctl keyword bindn ",mouse:272,exec,powermenu-outside-click" >/dev/null
-hyprctl keyword bindn ",mouse:273,exec,powermenu-outside-click" >/dev/null
-hyprctl keyword bindn ",mouse:274,exec,powermenu-outside-click" >/dev/null
