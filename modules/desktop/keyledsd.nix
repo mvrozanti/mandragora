@@ -29,6 +29,7 @@ in
 
   services.udev.extraRules = ''
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c339", MODE="0660", TAG+="uaccess"
+    KERNEL=="event*", SUBSYSTEM=="input", ATTRS{name}=="keyd virtual keyboard", TAG+="uaccess"
   '';
 
   systemd.user.services.keyledsd = {
