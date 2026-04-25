@@ -49,7 +49,7 @@ in
       incsearch = true;
       incfilter = true;
       mouse = true;
-      watch = true;
+      watch = false;
       timefmt = "2006 Jan _2 15:04:05";
     };
 
@@ -80,14 +80,7 @@ in
       
       unzip = "%{{ unp -U \"$fx\" }}";
 
-      # Force lf to repaint the preview pane each time the selection moves.
-      # On kitty+Wayland the cleaner doesn't fire reliably (lf#1845), so this
-      # redraw is what actually displaces a previous kitty-protocol image when
-      # switching to a text file. Paired with `exit 1` in the image previewer
-      # branch (which disables lf's preview cache) it gives clean transitions.
-      on-select = ''&{{
-        lf -remote "send $id redraw"
-      }}'';
+      on-select = "redraw";
 
       on-cd = ''&{{
         zoxide add \"$PWD\"
