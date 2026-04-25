@@ -2,7 +2,7 @@
 name: 'step-01-preflight-and-context'
 description: 'Verify prerequisites and load story, framework, and knowledge base'
 outputFile: '{test_artifacts}/atdd-checklist-{story_key}.md'
-nextStepFile: './step-02-generation-mode.md'
+nextStepFile: '{skill-root}/steps-c/step-02-generation-mode.md'
 knowledgeIndex: './resources/tea-index.csv'
 ---
 
@@ -128,7 +128,7 @@ Load fragments based on their `tier` classification in `tea-index.csv`:
 
 **If `tea_use_pactjs_utils` is enabled** (and `{detected_stack}` is `backend` or `fullstack`, or microservices indicators detected):
 
-Load: `pactjs-utils-overview.md`, `pactjs-utils-consumer-helpers.md`, `pactjs-utils-provider-verifier.md`, `pactjs-utils-request-filter.md`, `pact-consumer-di.md`
+Load: `pactjs-utils-overview.md`, `pactjs-utils-consumer-helpers.md`, `pactjs-utils-provider-verifier.md`, `pactjs-utils-request-filter.md`, `pact-consumer-di.md`, `pact-consumer-framework-setup.md`, `pact-broker-webhooks.md`
 
 **If `tea_use_pactjs_utils` is disabled** but contract testing is relevant:
 
@@ -181,7 +181,7 @@ Use `{knowledgeIndex}` to load:
 
 **Pact.js Utils (if enabled):**
 
-- `pactjs-utils-overview.md`, `pactjs-utils-consumer-helpers.md`, `pactjs-utils-provider-verifier.md`, `pactjs-utils-request-filter.md`, `pact-consumer-di.md`
+- `pactjs-utils-overview.md`, `pactjs-utils-consumer-helpers.md`, `pactjs-utils-provider-verifier.md`, `pactjs-utils-request-filter.md`, `pact-consumer-di.md`, `pact-consumer-framework-setup.md`, `pact-broker-webhooks.md`
 
 **Contract Testing (if pactjs-utils disabled but relevant):**
 
