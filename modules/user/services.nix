@@ -8,6 +8,20 @@
     extraConfig = builtins.readFile ../../.config/mpd/mpd.conf;
   };
 
+  services.mpd-discord-rpc = {
+    enable = true;
+    settings = {
+      hosts = [ "localhost:6600" ];
+      format = {
+        details = "$title";
+        state = "$artist / $album";
+        timestamp = "both";
+        large_image = "notes";
+        small_image = "notes";
+      };
+    };
+  };
+
   # Transmission Daemon Service
   systemd.user.services.transmission = {
     Unit = {
