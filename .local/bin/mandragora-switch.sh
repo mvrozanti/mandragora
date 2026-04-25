@@ -41,20 +41,26 @@ if [ "$SKIP_EDIT" -eq 1 ]; then
   fi
 else
   TMPFILE=$(mktemp /tmp/mandragora-commit-XXXXXX)
-  trap 'rm -f "$TMPFILE"' EXIT
+  SAVED_FLAG="${TMPFILE}.saved"
+  trap 'rm -f "$TMPFILE" "$SAVED_FLAG"' EXIT
 
   {
     echo "$MSG"
     echo ""
-    echo "# Changes shown in split above. Save with message to apply, empty file to abort."
+    echo "# Changes shown in split above. Save with message to apply, empty file or force-quit (QQ / :q!) to abort."
   } > "$TMPFILE"
 
   nvim -c "terminal git --no-pager diff --cached" \
        -c "belowright 3split $TMPFILE" \
        -c "setlocal winfixheight" \
        -c "autocmd VimResized * let w=winnr() | execute bufwinnr('$TMPFILE').'wincmd w' | resize 3 | execute w.'wincmd w'" \
-       -c "autocmd BufWritePost <buffer> qall" \
-       -c "nnoremap <buffer> QQ :%d<CR>:w<CR>"
+       -c "autocmd BufWritePost <buffer> call writefile([], '$SAVED_FLAG') | qall"
+
+  if [ ! -f "$SAVED_FLAG" ]; then
+    echo "==> Aborted (force-quit)."
+    git restore --staged .
+    exit 0
+  fi
 
   MSG=$(grep -v '^#' "$TMPFILE" | sed '/^[[:space:]]*$/d')
   if [ -z "$MSG" ]; then
