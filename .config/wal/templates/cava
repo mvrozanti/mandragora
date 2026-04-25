@@ -19,9 +19,9 @@ method = ncurses
 [color]
 gradient = 1
 gradient_count = 6
-gradient_color_1 = 'red'
-gradient_color_2 = 'green'
-gradient_color_3 = 'yellow'
-gradient_color_4 = 'blue'
-gradient_color_5 = 'magenta'
-gradient_color_6 = 'cyan'
+gradient_color_1 = '{color1}'
+gradient_color_2 = '{color2}'
+gradient_color_3 = '{color3}'
+gradient_color_4 = '{color4}'
+gradient_color_5 = '{color5}'
+gradient_color_6 = '{color6}'
