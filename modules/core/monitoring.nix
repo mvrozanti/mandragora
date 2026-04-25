@@ -300,7 +300,6 @@ in
     after = [ "systemd-tmpfiles-setup.service" ];
     requires = [ "systemd-tmpfiles-setup.service" ];
     serviceConfig = {
-      CPUQuota = "5%";
       Nice = 19;
       CPUSchedulingPolicy = "idle";
       IOSchedulingClass = "idle";
@@ -314,8 +313,8 @@ in
   systemd.timers.du-exporter = {
     wantedBy = [ "timers.target" ];
     timerConfig = {
-      OnUnitActiveSec = "1min";
-      OnBootSec = "1min";
+      OnUnitActiveSec = "2min";
+      OnBootSec = "2min";
       Persistent = true;
     };
   };
