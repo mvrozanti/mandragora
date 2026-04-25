@@ -21,7 +21,7 @@ writeShellApplication {
     printf '# TYPE dirsize_bytes gauge\n' >> "$TMPFILE"
     while IFS=$'\t' read -r size path; do
       if [ "$size" -ge "$SIZE_THRESHOLD" ]; then
-        path=''${path/#\/home\/m/~}
+        path=''${path/#\/home\/m/\~}
         printf 'dirsize_bytes{path="%s"} %s\n' "$path" "$size" >> "$TMPFILE"
       fi
     done <<< "$du_size"
@@ -30,7 +30,7 @@ writeShellApplication {
     printf '# TYPE dir_inode_count gauge\n' >> "$TMPFILE"
     while IFS=$'\t' read -r count path; do
       if [ "$count" -ge "$INODE_THRESHOLD" ]; then
-        path=''${path/#\/home\/m/~}
+        path=''${path/#\/home\/m/\~}
         printf 'dir_inode_count{path="%s"} %s\n' "$path" "$count" >> "$TMPFILE"
       fi
     done <<< "$du_inodes"
