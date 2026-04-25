@@ -20,7 +20,7 @@
           format = "{icon}";
           format-icons = {
             "1" = "";
-            "2" = "<span size=\"large\"></span>";
+            "2" = "<span size=\"x-large\"></span>";
             "3" = "";
             "4" = "";
             "5" = "";
