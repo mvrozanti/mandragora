@@ -247,7 +247,7 @@ cdt() { cd "$(dirname "$(readlink -f "$(which "$1")")")" }
 wf() { watch fd -HI "$@" }
 wlwcl() { watch 'ls | wc -l' }
 mdcd() { mkdir -p "$@"; cd "$_" }
-cdd() { local p="$(dirname "$@")"; cd "${~p}" }
+cdd() { local p="$(dirname "$@")"; cd "${p/#\~/$HOME}" }
 cocdd() { cdd "$(co)" }
 hrmr() { local d="$(basename "$(pwd)")"; cd ..; command rm -r "$d" }
 xdiff() { [[ "$#" -eq 2 ]] && nvim -d <(xxd "$1") <(xxd "$2") }
