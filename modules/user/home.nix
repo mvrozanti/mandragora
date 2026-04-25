@@ -342,6 +342,12 @@ in
     '';
   };
 
+  dconf.settings = {
+    "org/nemo/window-state" = {
+      start-with-menu-bar = false;
+    };
+  };
+
   programs.kitty = {
     enable = true;
     shellIntegration.mode = "no-rc no-cursor";
@@ -689,6 +695,10 @@ in
   };
   home.file.".config/eww" = {
     source = ../../.config/eww;
+    recursive = true;
+  };
+  home.file.".config/flameshot" = {
+    source = ../../.config/flameshot;
     recursive = true;
   };
   home.file.".config/waybar/scripts/mpd-status.sh" = {
