@@ -4,5 +4,9 @@ set -u
 src="$HOME/.cache/matugen/keyledsd.conf"
 dst="$HOME/.config/keyledsd.conf"
 [[ -f "$src" ]] || exit 0
-install -Dm644 "$src" "$dst"
+mkdir -p "$(dirname "$dst")"
+tmp="$(mktemp -p "$(dirname "$dst")" .keyledsd.XXXXXX)"
+cp "$src" "$tmp"
+chmod 644 "$tmp"
+mv -f "$tmp" "$dst"
 systemctl --user restart keyledsd 2>/dev/null || true
