@@ -304,6 +304,14 @@ in
     };
   };
 
+  systemd.services.grafana.preStart = ''
+    if [ ! -f /var/lib/grafana/cert.pem ]; then
+      ${pkgs.openssl}/bin/openssl req -x509 -newkey rsa:4096 \
+        -keyout /var/lib/grafana/key.pem -out /var/lib/grafana/cert.pem \
+        -days 365 -nodes -subj "/CN=localhost"
+    fi
+  '';
+
   systemd.services.du-exporter = {
     description = "Directory size Prometheus textfile exporter";
     after = [ "systemd-tmpfiles-setup.service" ];
