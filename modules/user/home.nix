@@ -676,6 +676,7 @@ in
   home.file.".config/wal/templates/keyledsd.conf".source = ../../.config/wal/templates/keyledsd.conf;
   home.file.".config/wal/templates/colors-rofi.rasi".source = ../../.config/wal/templates/colors-rofi.rasi;
   home.file.".config/wal/templates/colors-tmux.conf".source = ../../.config/wal/templates/colors-tmux.conf;
+  home.file.".config/wal/templates/cava".source = ../../.config/wal/templates/cava;
 
   home.activation.seedKeyledsd = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ ! -e "$HOME/.config/keyledsd.conf" ]; then
