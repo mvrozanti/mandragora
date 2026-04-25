@@ -82,8 +82,8 @@ toggle_menu() {
 }
 
 case "${1:-status}" in
-  fullscreen) eww -c "$HOME/.config/eww" close capture-menu 2>/dev/null; start_fullscreen ;;
-  region)     eww -c "$HOME/.config/eww" close capture-menu 2>/dev/null; start_region ;;
+  fullscreen) eww -c "$HOME/.config/eww" close capture-menu 2>/dev/null || true; start_fullscreen ;;
+  region)     eww -c "$HOME/.config/eww" close capture-menu 2>/dev/null || true; start_region ;;
   stop)       stop_record ;;
   toggle)
     if is_recording; then stop_record; else toggle_menu; fi
