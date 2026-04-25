@@ -69,17 +69,17 @@ mandragora-lock release "$session"
 `claim` exits non-zero and prints the conflicting locks if any of the following holds:
 - Your declared paths share at least one tracked file with an active `phase=edit` lock.
 - A `phase=commit` lock is held (commit/rebuild is exclusive — see `mandragora-switch` below).
-- The legacy single-file lock at `/dev/shm/mandragora-agent-lock` is present (treated as whole-repo).
 
 `mandragora-lock list` shows all active locks; `--phase commit` is what `mandragora-switch` uses internally and conflicts with everything.
 
-**Never overwrite a foreign lock**, regardless of:
-- The locking PID being dead. (Process may have crashed mid-edit; the work is still in flight from the user's perspective.)
-- The `expires` timestamp being near or past. (Treat expiry as a hint to *check in with the user*, not as auto-release. `mandragora-lock prune` is opt-in, not automatic.)
+**Liveness-aware auto-prune.** Locks may record `owner_pid:` (the long-lived process holding the lock — `mandragora-switch` does this). When that PID is verifiably dead AND the lock file is >30s old, the lock is automatically pruned during the next `claim`/`check`/`prune` operation. PID liveness is verifiable; expiry alone is not. Tool-call agents (where each shell invocation is ephemeral) omit `owner_pid` and rely on TTL — those locks are NOT auto-pruned.
+
+**Never overwrite a foreign lock with a live `owner_pid`**, regardless of:
+- The `expires` timestamp being near or past. (Treat expiry as a hint to *check in with the user*, not as auto-release. `mandragora-lock prune` removes stale-pid + expired locks; `--force` removes everything and is break-glass only.)
 - The paths or scope looking unrelated to your task. (You may be wrong about overlap; the other agent may broaden scope.)
 - The `agent` field matching your model id. (Same model, *different session* — still foreign. "You" means this conversation, not your model name.)
 
-If `claim` fails, **stop and surface to the user**. Wait for them to either give explicit permission to clear the conflicting lock or release it themselves.
+If `claim` fails with a live conflict, **stop and surface to the user**. Wait for them to either give explicit permission to clear the conflicting lock or release it themselves.
 
 **Releasing your lock is as non-negotiable as claiming it.** The moment your edits + post-edit syntax check are finished — *before* writing your end-of-turn summary — `mandragora-lock release "$session"`. Specifically:
 - Release on success, on failure, and on giving up.
@@ -89,7 +89,7 @@ If `claim` fails, **stop and surface to the user**. Wait for them to either give
 
 **Commit/rebuild is exclusive.** `mandragora-switch` automatically claims a `--phase commit` lock that conflicts with every other lock; release your edit lock before invoking it. If `mandragora-switch` aborts because of an active edit lock, the holder is still working — back off, do not steal.
 
-The lock dir (`/dev/shm/mandragora-locks/`) is RAM-backed, so reboots auto-clear stale state. Locks are advisory — atomic locking on shared FS isn't reliable from agent tools — but every agent reads them before editing, and `mandragora-lock list` shows the user who's working. The legacy single-file lock at `/dev/shm/mandragora-agent-lock` is honored as a whole-repo lock during the transition; new claims must use `mandragora-lock`.
+The lock dir (`/dev/shm/mandragora-locks/`) is RAM-backed, so reboots auto-clear stale state. Claim/release sequences are serialized by an `flock` on `$LOCK_DIR/.claim.lock`, closing the prior check-then-write race. Every agent reads `mandragora-lock list` before editing to see who's working.
 
 A held-but-unused lock blocks any agent whose paths overlap. Don't be that agent.
 
