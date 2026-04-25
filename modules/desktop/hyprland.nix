@@ -13,12 +13,7 @@
     GBM_BACKEND = "nvidia-drm";
     __GLX_VENDOR_LIBRARY_NAME = "nvidia";
     XDG_SESSION_TYPE = "wayland";
-    AQ_DRM_DEVICES = "/dev/dri/card1";
-    
-    # Cedilla and Accents
-    GTK_IM_MODULE = "cedilla";
-    QT_IM_MODULE = "cedilla";
-    XMODIFIERS = "@im=cedilla";
+    AQ_DRM_DEVICES = "/dev/dri/by-path/pci-0000:01:00.0-card";
   };
 
   xdg.portal = {
@@ -69,6 +64,5 @@
     serif = [ "Noto Serif" ];
     monospace = [ "Iosevka Nerd Font Mono" ];
     emoji = [ "Noto Color Emoji" ];
-
   };
 }

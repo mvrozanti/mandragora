@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(python -m venv *)",
+      "Bash(python3 -m venv *)",
+      "Bash(python3.* -m venv *)",
+      "Bash(virtualenv *)",
+      "Bash(uv venv *)",
+      "Bash(pip install *)",
+      "Bash(pip3 install *)",
+      "Bash(python -m pip install *)",
+      "Bash(python3 -m pip install *)",
+      "Bash(python -m ensurepip *)",
+      "Bash(python3 -m ensurepip *)",
+      "Bash(uv pip install *)",
+      "Bash(poetry install *)",
+      "Bash(pipx install *)",
+      "Bash(conda install *)",
+      "Bash(conda create *)"
+    ]
+  }
+}
