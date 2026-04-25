@@ -28,6 +28,8 @@
 
   programs.nix-ld.enable = true;
 
+  programs.gpu-screen-recorder.enable = true;
+
   environment.systemPackages = with pkgs; [
     git
     vim
@@ -49,7 +51,6 @@
     grim
     slurp
     wf-recorder
-    gpu-screen-recorder
     flameshot
     eww
     jq
