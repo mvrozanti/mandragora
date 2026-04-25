@@ -77,6 +77,8 @@ If a full rewrite is unavoidable:
 2. Preserve every section you are not explicitly replacing.
 3. Log the rewrite in `~/.ai-shared/TASKS.md`.
 
+**Why this rule exists:** on 2026-04-20, a full rewrite of `modules/user/home.nix` dropped the `programs.firefox` block (with Tridactyl native-messaging wiring), making Firefox unlaunchable until restored from git. The rule is incident-driven, not theoretical.
+
 ---
 
 ## Security Model
@@ -105,14 +107,44 @@ If a full rewrite is unavoidable:
 
 ---
 
-## The Edit → Rebuild → Verify Workflow
+## The Edit → Rebuild → Verify → Commit Workflow
 
 ```
 1. Edit    /etc/nixos/mandragora/...
-2. Rebuild sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora-desktop
+2. Rebuild + Commit + Push: mandragora-switch [optional commit message]
 3. Verify  test the change actually works
-4. Commit  mandragora-switch [optional commit message]
 ```
+
+`mandragora-switch` (defined in `.local/bin/mandragora-switch.sh`, exposed via
+`modules/user/home.nix`) does, in order: `git fetch` → rebase if behind →
+`git add -A` → open staged-diff editor for commit message (skip with `!`) →
+`sudo nixos-rebuild switch` → `git push`. Aliases in `modules/user/zsh.nix`:
+`switch` / `nrc` / `rebuild` → `mandragora-switch`; `nrs` → `mandragora-switch !`
+(skip diff editor); `nrp` → `mandragora-commit-push` (commit + push only, no
+rebuild — used when only docs/markdown changed).
+
+If `mandragora-switch` is unavailable (e.g., during initial install or
+recovery), the manual equivalent is:
+
+```
+sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora-desktop \
+  && cd /etc/nixos/mandragora && git add -A && git commit && git push
+```
+
+---
+
+## Per-Agent Policy Variances
+
+These are explicit policy differences between agents. They live here (not
+hidden in agent-specific files) so a human reading AGENTS.md can audit them.
+
+- **Gemini CLI** is mandated to run `mandragora-switch` immediately after
+  every file modification, with autonomous commit explicitly authorized for
+  this purpose (see `GEMINI.md`). Claude Code and other agents follow the
+  default rule: do not commit without explicit user instruction.
+- **Claude Code** has a memory system at `~/.claude/projects/-home-m/memory/`
+  for cross-session preference persistence (see `CLAUDE.md`). Other agents
+  use `~/.ai-shared/TASKS.md` for handoff state instead.
 
 ---
 

@@ -144,7 +144,7 @@ For detailed information, see:
 - [source-tree-analysis.md](./source-tree-analysis.md) — Annotated directory structure
 - [development-guide.md](./development-guide.md) — Edit → Rebuild → Verify → Commit workflow
 - [deployment-guide.md](./deployment-guide.md) — Bootstrap and reinstall procedure
-- [project-context.md](./project-context.md) — LLM-optimized rules distillate (canonical for AI)
+- [project-context.md](./project-context.md) — _retired 2026-04-25; consolidated into [`../AGENTS.md`](../AGENTS.md)_
 
 Upstream design references:
 

@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 let
   dashboard = {
@@ -242,7 +242,7 @@ in
 {
   services.prometheus = {
     enable = true;
-    listenAddress = "127.0.0.1";
+    listenAddress = "0.0.0.0";
     port = 9090;
     retentionTime = "90d";
     scrapeConfigs = [
@@ -256,7 +256,7 @@ in
 
   services.prometheus.exporters.node = {
     enable = true;
-    listenAddress = "127.0.0.1";
+    listenAddress = "0.0.0.0";
     enabledCollectors = [ "textfile" ];
     extraFlags = [
       "--collector.textfile.directory=/var/lib/prometheus-node-exporter-textfiles"
@@ -267,11 +267,18 @@ in
     enable = true;
     settings = {
       server = {
-        http_addr = "127.0.0.1";
+        protocol = "https";
+        cert_file = "/var/lib/grafana/cert.pem";
+        cert_key = "/var/lib/grafana/key.pem";
+        http_addr = "0.0.0.0";
         http_port = 3000;
       };
       analytics.reporting_enabled = false;
       security.secret_key = "SW2YcwTIb9zpOOhoPsMm";
+      security.admin_user = "m";
+      auth.anonymous.enabled = true;
+      auth.anonymous.org_name = "Main Org.";
+      auth.anonymous.org_role = "Admin";
     };
     provision = {
       enable = true;
@@ -301,6 +308,7 @@ in
     description = "Directory size Prometheus textfile exporter";
     after = [ "systemd-tmpfiles-setup.service" ];
     requires = [ "systemd-tmpfiles-setup.service" ];
+  systemd.services.grafana.preStart = "${pkgs.openssl}/bin/openssl req -x509 -newkey rsa:4096 -keyout /var/lib/grafana/key.pem -out /var/lib/grafana/cert.pem -days 365 -nodes -subj "/CN=localhost"";
     serviceConfig = {
       Type = "oneshot";
       User = "root";
