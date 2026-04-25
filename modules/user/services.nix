@@ -87,7 +87,6 @@
                 ${pkgs.hyprland}/bin/hyprctl keyword input:repeat_delay 300
                 ${pkgs.hyprland}/bin/hyprctl keyword input:kb_layout us
                 ${pkgs.hyprland}/bin/hyprctl keyword input:kb_variant intl
-                ${pkgs.hyprland}/bin/hyprctl keyword input:kb_options caps:swapescape
             fi
         done
       '';
