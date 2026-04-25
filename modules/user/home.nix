@@ -276,9 +276,9 @@ in
     EDITOR = "nvim";
     VISUAL = "nvim";
     BROWSER = "firefox";
-    GTK_IM_MODULE = "cedilla";
-    QT_IM_MODULE = "cedilla";
-    XMODIFIERS = "@im=cedilla";
+    GTK_IM_MODULE = "xim";
+    QT_IM_MODULE = "xim";
+    XMODIFIERS = "@im=xim";
     GDK_DPI_SCALE = "1.0";
     QT_AUTO_SCREEN_SCALE_FACTOR = "1";
     QT_ENABLE_HIGHDPI_SCALING = "1";
