@@ -49,6 +49,15 @@ window { background: transparent; }
   color: rgba(230, 230, 238, 0.82);
 }
 
+.powermenu-catcher {
+  background: transparent;
+  padding: 0 20px 60px 0;
+}
+
+.powermenu-spacer-bottom {
+  min-height: 0;
+}
+
 .powermenu {
   background: rgba(20, 20, 28, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.08);

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -eu
 
+echo "[$(date +%T.%N)] fired" >> /tmp/powermenu-outside.log
+
 WIN=powermenu
 GEOM_X=20
 GEOM_Y=60

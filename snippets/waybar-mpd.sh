@@ -20,10 +20,11 @@ output() {
   [[ "$state" == "playing" ]] && icon=$'\uf04b' || icon=$'\uf04c'
   class="$state"
 
-  # Escape for JSON
-  title=${title//\\/\\\\}; title=${title//\"/\\\"}
-  artist=${artist//\\/\\\\}; artist=${artist//\"/\\\"}
-  album=${album//\\/\\\\}; album=${album//\"/\\\"}
+  for var in title artist album; do
+    declare -n ref=$var
+    ref=${ref//\\/\\\\}; ref=${ref//\"/\\\"}
+    ref=${ref//&/&amp;}; ref=${ref//</&lt;}; ref=${ref//>/&gt;}
+  done
 
   music=$'\uf001'
   printf '{"text": "%s  %s %s", "tooltip": "%s — %s (%s)", "class": "%s"}\n' \
@@ -33,7 +34,7 @@ output() {
 while true; do
   if mpc status &>/dev/null; then
     output
-    mpc idle player 2>/dev/null
+    mpc idle player &>/dev/null
   else
     echo '{"text": "", "class": "stopped"}'
     sleep 2

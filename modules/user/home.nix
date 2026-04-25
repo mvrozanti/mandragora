@@ -267,7 +267,6 @@ in
     (pkgs.writeShellScriptBin "scratchpad-summon" (builtins.readFile ../../.local/bin/scratchpad-summon.sh))
     (pkgs.writeShellScriptBin "powermenu-toggle" (builtins.readFile ../../.local/bin/powermenu-toggle.sh))
     (pkgs.writeShellScriptBin "powermenu-close" (builtins.readFile ../../.local/bin/powermenu-close.sh))
-    (pkgs.writeShellScriptBin "powermenu-outside-click" (builtins.readFile ../../.local/bin/powermenu-outside-click.sh))
   ];
 
   home.file.".local/bin/resty".source = ../../.local/bin/resty;
@@ -306,8 +305,8 @@ in
       package = pkgs.materia-theme-transparent;
     };
     iconTheme = {
-      name = "Papirus-Dark";
-      package = pkgs.papirus-icon-theme;
+      name = "breeze-dark";
+      package = pkgs.kdePackages.breeze-icons;
     };
     gtk3.extraCss = ''
       window.background,
