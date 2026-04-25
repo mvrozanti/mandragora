@@ -18,6 +18,7 @@ in
     ./services.nix
     ./waybar.nix
     ./minecraft.nix
+    ./skills.nix
   ];
 
   home.username = "m";
@@ -649,9 +650,10 @@ in
 
   programs.git = {
     enable = true;
-    userName = "mvrozanti";
-    userEmail = "mvrozanti@hotmail.com";
-    extraConfig = {
+    signing.format = null;
+    settings = {
+      user.name = "mvrozanti";
+      user.email = "mvrozanti@hotmail.com";
       safe.directory = [
         "/mnt/ventoy/docs/mandragora-nixos"
         "/persistent/mandragora"
@@ -748,25 +750,11 @@ Type=Application
 Categories=Network;InstantMessaging;
 StartupWMClass=whatsapp-web
 '';
-  # AI Bridge and Agent Settings
-  home.file.".ai-shared/TASKS.md".source =
-    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/TASKS.md";
-  home.file.".ai-shared/GEMINI.md".source =
-    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/GEMINI.md";
-  home.file.".ai-shared/CLAUDE.md".source =
-    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/CLAUDE.md";
-  home.file.".ai-shared/skills".source =
-    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/skills";
-
   home.file.".claude/settings.json".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/settings.json";
   home.file.".claude/settings.local.json".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/settings.local.json";
-  home.file.".claude/skills".source =
-    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/skills";
 
   home.file.".gemini/settings.json".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/settings.json";
-  home.file.".gemini/skills".source =
-    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/skills";
 }
