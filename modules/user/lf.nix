@@ -54,7 +54,7 @@ in
     };
 
     commands = {
-      open = "$${opener}/bin/lf-opener \"$f\"";
+      open = "\$${opener}/bin/lf-opener \"$f\"";
       yank-path = "$printf '%s' \"$f\" | wl-copy";
       yank-name = "$printf '%s' \"$(basename \"$f\")\" | wl-copy";
       yank-bytes = "%{{ ic \"$f\" }}";
