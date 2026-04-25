@@ -64,8 +64,6 @@ in
     psmisc
     awww
 
-    git
-    gh
     gh-dash
     neovim
     (python3.withPackages (ps: with ps; [ pynvim grip psutil ]))
@@ -648,6 +646,23 @@ in
     nix-direnv.enable = true;
   };
 
+  programs.git = {
+    enable = true;
+    userName = "mvrozanti";
+    userEmail = "mvrozanti@hotmail.com";
+    extraConfig = {
+      safe.directory = [
+        "/mnt/ventoy/docs/mandragora-nixos"
+        "/persistent/mandragora"
+      ];
+    };
+  };
+
+  programs.gh = {
+    enable = true;
+    gitCredentialHelper.enable = true;
+  };
+
   home.file.".XCompose".source = ../../.XCompose;
   home.file.".config/nvim" = {
     source = ../../.config/nvim;
@@ -732,4 +747,25 @@ Type=Application
 Categories=Network;InstantMessaging;
 StartupWMClass=whatsapp-web
 '';
+  # AI Bridge and Agent Settings 
+  home.file.".ai-shared/TASKS.md".source = 
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/TASKS.md"; 
+  home.file.".ai-shared/GEMINI.md".source = 
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/GEMINI.md"; 
+  home.file.".ai-shared/CLAUDE.md".source = 
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/CLAUDE.md"; 
+  home.file.".ai-shared/skills".source = 
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/.claude/skills"; 
+ 
+  home.file.".claude/settings.json".source = 
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/.claude/settings.json"; 
+  home.file.".claude/settings.local.json".source = 
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/.claude/settings.local.json"; 
+  home.file.".claude/skills".source = 
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/.claude/skills"; 
+ 
+  home.file.".gemini/settings.json".source = 
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/.gemini/settings.json"; 
+  home.file.".gemini/skills".source = 
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/projects/mandragora/.gemini/skills";
 }
