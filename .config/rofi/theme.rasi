@@ -1,4 +1,4 @@
-@import "~/.cache/wal/colors-rofi.rasi"
+@import "~/.cache/matugen/colors-rofi.rasi"
 
 * {
   spacing: 0;

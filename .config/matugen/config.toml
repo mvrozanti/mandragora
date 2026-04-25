@@ -49,3 +49,7 @@ output_path = "~/.cache/matugen/wal"
 [templates.qs_colors]
 input_path = "templates/qs_colors.json"
 output_path = "/tmp/qs_colors.json"
+
+[templates.sequences]
+input_path = "templates/sequences"
+output_path = "~/.cache/matugen/sequences"
