@@ -614,10 +614,10 @@ in
         #PopupAutoCompleteRichResult .autocomplete-richlistbox,
         #PopupSearchAutoComplete,
         #PopupSearchAutoComplete .autocomplete-richlistbox {
-          background-color: rgba(0, 0, 0, 0.80) !important;
-          --panel-background: rgba(0, 0, 0, 0.80) !important;
-          --autocomplete-popup-background: rgba(0, 0, 0, 0.80) !important;
-          --urlbarView-background: rgba(0, 0, 0, 0.80) !important;
+          background-color: rgba(0, 0, 0, 0.50) !important;
+          --panel-background: rgba(0, 0, 0, 0.50) !important;
+          --autocomplete-popup-background: rgba(0, 0, 0, 0.50) !important;
+          --urlbarView-background: rgba(0, 0, 0, 0.50) !important;
         }
       '';
     };
