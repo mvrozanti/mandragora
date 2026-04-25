@@ -586,6 +586,7 @@ in
       settings = {
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "widget.gtk.native-context-menus" = false;
+        "widget.wayland.opaque-region.enabled" = false;
       };
       userChrome = ''
         menupopup,
