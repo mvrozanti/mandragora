@@ -4,7 +4,7 @@
   spacing: 0;
   background-color: transparent;
 
-  font: "FontAwesome 14";
+  font: "Iosevka Nerd Font 14";
   text-color: @text;
 }
 
