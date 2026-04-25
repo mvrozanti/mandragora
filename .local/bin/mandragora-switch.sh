@@ -20,7 +20,8 @@ if command -v mandragora-lock >/dev/null 2>&1; then
         --phase commit \
         --paths "*" \
         --scope "nixos-rebuild switch" \
-        --ttl 30min \
+        --ttl 10min \
+        --owner-pid "$$" \
         --agent "${MANDRAGORA_AGENT:-mandragora-switch}" >/dev/null; then
     echo "==> ABORTED: another agent holds an active lock on this repo." >&2
     echo "==> Run 'mandragora-lock list' to see who, then retry." >&2

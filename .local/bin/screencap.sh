@@ -28,8 +28,11 @@ start_record() {
   file="$outdir/screencap-$ts.mp4"
   sink=$(default_sink_monitor || true)
 
-  args=(-w "$target" -f 60 -k h264 -q very_high -o "$file")
-  [[ -n "$region" ]] && args+=(-region "$region")
+  if [[ -n "$region" ]]; then
+    args=(-w region -region "$region" -f 60 -k h264 -q very_high -o "$file")
+  else
+    args=(-w "$target" -f 60 -k h264 -q very_high -o "$file")
+  fi
   if [[ "${CAPTURE_NO_AUDIO:-0}" != "1" && -n "$sink" ]]; then
     args+=(-a "$sink")
   fi
