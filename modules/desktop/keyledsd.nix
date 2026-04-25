@@ -25,11 +25,19 @@ in
 {
   environment.systemPackages = [ keyleds-ticpu ];
 
-  services.udev.packages = [ keyleds-ticpu ];
+  services.udev.packages = [
+    keyleds-ticpu
+    (pkgs.writeTextFile {
+      name = "keyleds-keyd-uaccess-rules";
+      destination = "/etc/udev/rules.d/65-keyleds-keyd.rules";
+      text = ''
+        KERNEL=="event*", SUBSYSTEM=="input", ATTRS{name}=="keyd virtual keyboard", TAG+="uaccess"
+      '';
+    })
+  ];
 
   services.udev.extraRules = ''
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c339", MODE="0660", TAG+="uaccess"
-    KERNEL=="event*", SUBSYSTEM=="input", ATTRS{name}=="keyd virtual keyboard", TAG+="uaccess"
   '';
 
   systemd.user.services.keyledsd = {
