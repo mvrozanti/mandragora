@@ -29,7 +29,7 @@ start_record() {
   sink=$(default_sink_monitor || true)
 
   if [[ -n "$region" ]]; then
-    args=(-w region -region "$region" -f 60 -k h264 -q very_high -o "$file")
+    args=(-w "$region" -f 60 -k h264 -q very_high -o "$file")
   else
     args=(-w "$target" -f 60 -k h264 -q very_high -o "$file")
   fi
