@@ -27,6 +27,7 @@ in
   home.stateVersion = "23.11";
 
   home.packages = with pkgs; [
+    (pkgs.runCommand "firefox-alias" {} "mkdir -p $out/bin; ln -s ${pkgs.firefox-esr}/bin/firefox-esr $out/bin/firefox")
     ripgrep
     fd
     fzf
