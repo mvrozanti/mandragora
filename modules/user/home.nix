@@ -723,6 +723,7 @@ in
     source = ../../.config/khal;
     recursive = true;
   };
+  home.file.".config/crush/crush.json".source = ../../.config/crush/crush.json;
   home.file.".config/eww" = {
     source = ../../.config/eww;
     recursive = true;
