@@ -1,0 +1,18 @@
+metrics:
+  counters:
+    - name: cgroup_tcp_send_bytes_total
+      help: TCP bytes sent (tcp_sendmsg size) attributed to the originating cgroup
+      labels:
+        - name: cgroup
+          size: 8
+          decoders:
+            - name: uint
+            - name: cgroup
+    - name: cgroup_tcp_recv_bytes_total
+      help: TCP bytes received (tcp_cleanup_rbuf copied) attributed to the consuming cgroup
+      labels:
+        - name: cgroup
+          size: 8
+          decoders:
+            - name: uint
+            - name: cgroup

@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 let
   dashboard = {
@@ -146,14 +146,50 @@ let
         fieldConfig = { defaults = { unit = "bytes"; }; };
       }
 
-      # ── Row: Disk I/O ──────────────────────────────────────────────────────
+      # ── Row: Per-cgroup network ────────────────────────────────────────────
       {
-        id = 8; type = "row"; title = "Disk I/O"; collapsed = false;
+        id = 20; type = "row"; title = "Network by cgroup (eBPF)"; collapsed = false;
         gridPos = { x = 0; y = 28; w = 24; h = 1; };
       }
       {
+        id = 21; type = "timeseries"; title = "Top 10 cgroups — TCP RX";
+        gridPos = { x = 0; y = 29; w = 12; h = 9; };
+        targets = [ {
+          datasource = { type = "prometheus"; uid = "prometheus"; };
+          expr = "topk(10, rate(ebpf_exporter_cgroup_tcp_recv_bytes_total[5m]))";
+          legendFormat = "{{cgroup}}";
+          refId = "A";
+        } ];
+        fieldConfig = { defaults = { unit = "Bps"; custom = { fillOpacity = 20; }; }; };
+        options = {
+          legend = { displayMode = "list"; placement = "bottom"; };
+          tooltip = { mode = "multi"; sort = "desc"; };
+        };
+      }
+      {
+        id = 22; type = "timeseries"; title = "Top 10 cgroups — TCP TX";
+        gridPos = { x = 12; y = 29; w = 12; h = 9; };
+        targets = [ {
+          datasource = { type = "prometheus"; uid = "prometheus"; };
+          expr = "topk(10, rate(ebpf_exporter_cgroup_tcp_send_bytes_total[5m]))";
+          legendFormat = "{{cgroup}}";
+          refId = "A";
+        } ];
+        fieldConfig = { defaults = { unit = "Bps"; custom = { fillOpacity = 20; }; }; };
+        options = {
+          legend = { displayMode = "list"; placement = "bottom"; };
+          tooltip = { mode = "multi"; sort = "desc"; };
+        };
+      }
+
+      # ── Row: Disk I/O ──────────────────────────────────────────────────────
+      {
+        id = 8; type = "row"; title = "Disk I/O"; collapsed = false;
+        gridPos = { x = 0; y = 38; w = 24; h = 1; };
+      }
+      {
         id = 9; type = "timeseries"; title = "Disk I/O (nvme0n1)";
-        gridPos = { x = 0; y = 29; w = 24; h = 8; };
+        gridPos = { x = 0; y = 39; w = 24; h = 8; };
         targets = [
           {
             datasource = { type = "prometheus"; uid = "prometheus"; };
@@ -174,11 +210,11 @@ let
       # ── Row: System Health ─────────────────────────────────────────────────
       {
         id = 10; type = "row"; title = "System Health"; collapsed = false;
-        gridPos = { x = 0; y = 37; w = 24; h = 1; };
+        gridPos = { x = 0; y = 47; w = 24; h = 1; };
       }
       {
         id = 11; type = "timeseries"; title = "CPU & Memory";
-        gridPos = { x = 0; y = 38; w = 18; h = 8; };
+        gridPos = { x = 0; y = 48; w = 18; h = 8; };
         targets = [
           {
             datasource = { type = "prometheus"; uid = "prometheus"; };
@@ -197,7 +233,7 @@ let
       }
       {
         id = 12; type = "stat"; title = "Uptime";
-        gridPos = { x = 18; y = 38; w = 3; h = 8; };
+        gridPos = { x = 18; y = 48; w = 3; h = 8; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
           expr = "time() - node_boot_time_seconds";
@@ -207,7 +243,7 @@ let
       }
       {
         id = 13; type = "stat"; title = "Load (1m)";
-        gridPos = { x = 21; y = 38; w = 3; h = 8; };
+        gridPos = { x = 21; y = 48; w = 3; h = 8; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
           expr = "node_load1";
@@ -219,11 +255,11 @@ let
       # ── Row: CPU ──────────────────────────────────────────────────────────────
       {
         id = 18; type = "row"; title = "CPU"; collapsed = false;
-        gridPos = { x = 0; y = 46; w = 24; h = 1; };
+        gridPos = { x = 0; y = 56; w = 24; h = 1; };
       }
       {
         id = 19; type = "timeseries"; title = "CPU Usage by Mode";
-        gridPos = { x = 0; y = 47; w = 24; h = 9; };
+        gridPos = { x = 0; y = 57; w = 24; h = 9; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
           expr = ''avg by (mode) (rate(node_cpu_seconds_total{mode!~"idle|guest|guest_nice"}[5m])) * 100'';
@@ -269,6 +305,11 @@ in
         scrape_interval = "1m";
         static_configs = [ { targets = [ "localhost:9835" ]; } ];
       }
+      {
+        job_name = "ebpf";
+        scrape_interval = "15s";
+        static_configs = [ { targets = [ "localhost:9435" ]; } ];
+      }
     ];
   };
 
@@ -285,6 +326,19 @@ in
     enable = true;
     listenAddress = "0.0.0.0";
   };
+
+  services.prometheus.exporters.ebpf = {
+    enable = true;
+    listenAddress = "0.0.0.0";
+    names = [ "network-cgroup" ];
+  };
+
+  systemd.services.prometheus-ebpf-exporter.serviceConfig.ExecStart = lib.mkForce ''
+    ${pkgs.prometheus-ebpf-exporter}/bin/ebpf_exporter \
+      --config.dir=${pkgs.ebpf-network-config} \
+      --config.names=network-cgroup \
+      --web.listen-address 0.0.0.0:9435
+  '';
 
   services.grafana = {
     enable = true;
