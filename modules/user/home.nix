@@ -56,7 +56,7 @@ in
     libnotify
 
     mpv
-    imv
+    nsxiv
     ueberzugpp
     zathura
     imagemagick
@@ -210,7 +210,6 @@ in
     (pkgs.writeShellScriptBin "compv" (builtins.readFile ../../.local/bin/compv.sh))
     (pkgs.writeShellScriptBin "ic" (builtins.readFile ../../.local/bin/ic.sh))
     (pkgs.writeShellScriptBin "setbg" (builtins.readFile ../../.local/bin/setbg.sh))
-    (pkgs.writeShellScriptBin "imv-dir-open" (builtins.readFile ../../.local/bin/imv-dir-open.sh))
     (pkgs.writeShellScriptBin "clean" (builtins.readFile ../../.local/bin/clean.sh))
     (pkgs.writeShellScriptBin "gmp" (builtins.readFile ../../.local/bin/gmp.sh))
     (pkgs.writeShellScriptBin "mkv2gif" (builtins.readFile ../../.local/bin/mkv2gif.sh))
@@ -733,8 +732,8 @@ EOF
     fi
   '';
 
-  home.file.".config/imv" = {
-    source = ../../.config/imv;
+  home.file.".config/nsxiv" = {
+    source = ../../.config/nsxiv;
     recursive = true;
   };
   home.file.".config/cava/config".source =
