@@ -108,7 +108,6 @@ in
       "cw" = "rename";
       "A" = ":rename";
       "I" = "file-info";
-      "cs" = "calcdirsize";
       "i" = "%{{ sxiv -ab -- $(dirname \"$f\") }}";
       
       "P" = "yank-path";
