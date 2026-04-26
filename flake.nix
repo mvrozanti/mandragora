@@ -59,6 +59,16 @@
             impermanence.nixosModules.impermanence
           ];
         };
+
+        mandragora-usb = nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = { inherit inputs; };
+          modules = [
+            ./hosts/mandragora-usb/default.nix
+            "${nixpkgs}/nixos/modules/profiles/installation-device.nix"
+            sops-nix.nixosModules.sops
+          ];
+        };
       };
     };
 }
