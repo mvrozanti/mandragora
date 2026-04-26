@@ -584,6 +584,7 @@ in
   };
 
   programs.firefox = {
+    package = pkgs.firefox-esr;
     enable = true;
     nativeMessagingHosts = [ pkgs.tridactyl-native ];
     policies = {
