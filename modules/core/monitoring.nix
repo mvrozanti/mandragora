@@ -148,15 +148,15 @@ let
 
       # ── Row: Per-cgroup network ────────────────────────────────────────────
       {
-        id = 20; type = "row"; title = "Network by cgroup (eBPF)"; collapsed = false;
+        id = 20; type = "row"; title = "WAN traffic by cgroup (eBPF)"; collapsed = false;
         gridPos = { x = 0; y = 28; w = 24; h = 1; };
       }
       {
-        id = 21; type = "timeseries"; title = "Top 10 cgroups — TCP RX";
+        id = 21; type = "timeseries"; title = "Top 10 cgroups — WAN TCP RX";
         gridPos = { x = 0; y = 29; w = 12; h = 9; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "topk(10, rate(ebpf_exporter_cgroup_tcp_recv_bytes_total[5m]))";
+          expr = "topk(10, rate(ebpf_exporter_cgroup_wan_tcp_recv_bytes_total[5m]))";
           legendFormat = "{{cgroup}}";
           refId = "A";
         } ];
@@ -167,11 +167,11 @@ let
         };
       }
       {
-        id = 22; type = "timeseries"; title = "Top 10 cgroups — TCP TX";
+        id = 22; type = "timeseries"; title = "Top 10 cgroups — WAN TCP TX";
         gridPos = { x = 12; y = 29; w = 12; h = 9; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "topk(10, rate(ebpf_exporter_cgroup_tcp_send_bytes_total[5m]))";
+          expr = "topk(10, rate(ebpf_exporter_cgroup_wan_tcp_send_bytes_total[5m]))";
           legendFormat = "{{cgroup}}";
           refId = "A";
         } ];
