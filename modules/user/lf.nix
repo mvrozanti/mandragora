@@ -87,8 +87,59 @@ in
       on-select = "redraw";
 
       on-cd = ''&{{
-        zoxide add \"$PWD\"
-        echo \"$PWD\" > /tmp/lf_current_dir
+        history_file="/tmp/lf-history-$id"
+        index_file="/tmp/lf-history-index-$id"
+        nav_flag="/tmp/lf-history-nav-$id"
+        [ ! -f "$history_file" ] && echo "$PWD" > "$history_file"
+        [ ! -f "$index_file" ] && echo "0" > "$index_file"
+        if [ -f "$nav_flag" ]; then
+          rm -f "$nav_flag"
+        else
+          mapfile -t history_array < "$history_file"
+          current_index=$(cat "$index_file")
+          if [ "$current_index" -lt "$(( ''${#history_array[@]} - 1 ))" ]; then
+            history_array=("''${history_array[@]:0:$((current_index + 1))}")
+            printf "%s\n" "''${history_array[@]}" > "$history_file"
+          fi
+          echo "$PWD" >> "$history_file"
+          new_index=$(( ''${#history_array[@]} ))
+          echo "$new_index" > "$index_file"
+        fi
+        zoxide add "$PWD"
+        echo "$PWD" > /tmp/lf_current_dir
+      }}'';
+
+      history-back = ''%{{
+        history_file="/tmp/lf-history-$id"
+        index_file="/tmp/lf-history-index-$id"
+        nav_flag="/tmp/lf-history-nav-$id"
+        [ -f "$history_file" ] || exit 0
+        mapfile -t history_array < "$history_file"
+        current_index=$(cat "$index_file")
+        if [ "$current_index" -gt 0 ]; then
+          new_index=$((current_index - 1))
+          echo "$new_index" > "$index_file"
+          touch "$nav_flag"
+          target_dir="''${history_array[$new_index]}"
+          lf -remote "send $id cd \"$target_dir\""
+        fi
+      }}'';
+
+      history-forward = ''%{{
+        history_file="/tmp/lf-history-$id"
+        index_file="/tmp/lf-history-index-$id"
+        nav_flag="/tmp/lf-history-nav-$id"
+        [ -f "$history_file" ] || exit 0
+        mapfile -t history_array < "$history_file"
+        current_index=$(cat "$index_file")
+        max_index=$(( ''${#history_array[@]} - 1 ))
+        if [ "$current_index" -lt "$max_index" ]; then
+          new_index=$((current_index + 1))
+          echo "$new_index" > "$index_file"
+          touch "$nav_flag"
+          target_dir="''${history_array[$new_index]}"
+          lf -remote "send $id cd \"$target_dir\""
+        fi
       }}'';
     };
 
@@ -135,7 +186,8 @@ in
       "pb" = "paste-jpeg";
       "M" = "mkdir";
       "U" = "unzip";
-      
+      "H" = "history-back";
+      "L" = "history-forward";
     };
 
     extraConfig = ''
