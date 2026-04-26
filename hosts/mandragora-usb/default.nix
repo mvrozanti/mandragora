@@ -44,7 +44,6 @@
   ];
 
   networking.networkmanager.enable = true;
-  networking.wireless.enable = false;
 
   services.openssh = {
     enable = true;
