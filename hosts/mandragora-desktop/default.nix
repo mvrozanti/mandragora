@@ -20,6 +20,7 @@
     ../../modules/desktop/keyledsd.nix
     ../../modules/desktop/ydotool.nix
     ../../modules/desktop/openrgb.nix
+    ../../modules/desktop/rival-mouse.nix
     ../../modules/desktop/seafile.nix
     ../../modules/desktop/steam.nix
     ../../modules/desktop/minecraft.nix
