@@ -16,6 +16,3 @@ Claude Code runs `sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandra
 
 ---
 
-## Session Log
-
-Append to `SESSIONS.md` at the end of every session. Include: what was done, what broke, what friction was encountered, and what is next.
