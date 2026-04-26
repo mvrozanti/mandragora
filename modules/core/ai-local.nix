@@ -32,7 +32,7 @@ in
       enable = lib.mkEnableOption "Local agentic LLM stack (Qwen3-30B-A3B + OpenCode TUI)";
       model = lib.mkOption {
         type = lib.types.str;
-        default = "qwen2.5-coder:14b";
+        default = "devstral:24b";
         description = "Ollama tag for the primary agentic model.";
       };
     };
