@@ -111,6 +111,7 @@ in
       "i" = "%{{ nsxiv -ab -- $(dirname \"$f\") }}";
       
       "P" = "yank-path";
+      "N" = "yank-name";
       "<c-n>" = "yank-name";
       "B" = "yank-bytes";
       
