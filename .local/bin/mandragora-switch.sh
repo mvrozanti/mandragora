@@ -43,32 +43,52 @@ fi
 
 git add -A
 
-if git diff --cached --quiet; then
-  echo "==> No uncommitted changes."
-fi
-
 SKIP_EDIT=0
+SKIP_COMMIT=0
 ARGS=()
 for arg in "$@"; do
   case "$arg" in
-    !) SKIP_EDIT=1 ;;
+    !) SKIP_EDIT=1; SKIP_COMMIT=1 ;;
     -y|--no-edit) SKIP_EDIT=1 ;;
     *) ARGS+=("$arg") ;;
   esac
 done
 
-if [ "${#ARGS[@]}" -gt 0 ] && [ "${ARGS[*]}" = "!" ]; then
+if [ "$SKIP_EDIT" -eq 0 ] && { [ ! -t 0 ] || [ ! -t 1 ]; }; then
+  echo "==> No TTY detected; skipping editor."
   SKIP_EDIT=1
-  MSG="!"
-elif [[ "${ARGS[*]}" == *"!"* ]]; then
-  SKIP_EDIT=1
-  ARGS=("${ARGS[@]/!/}")
-  MSG="${ARGS[*]:-switch}"
-else
-  MSG="${ARGS[*]:-switch}"
 fi
 
-if [ "$SKIP_EDIT" -eq 0 ]; then
+if git diff --cached --quiet; then
+  echo "==> No staged changes; skipping commit."
+  SKIP_COMMIT=1
+fi
+
+MSG="${ARGS[*]}"
+COMMIT_SKIPPED=0
+
+if [ "$SKIP_COMMIT" -eq 1 ]; then
+  COMMIT_SKIPPED=1
+  git restore --staged . 2>/dev/null || true
+elif [ "$SKIP_EDIT" -eq 1 ]; then
+  if [ -z "$MSG" ] && command -v claude >/dev/null 2>&1; then
+    echo "==> Generating commit message with claude (haiku)..."
+    RECENT=$(git log --oneline -20)
+    DIFF=$(git diff --cached)
+    PROMPT_SYSTEM='You write a single git commit subject for a personal NixOS+Hyprland dotfiles repo. The user message contains the recent commit log (for style) followed by the staged diff. Mirror the log'\''s style exactly: if the log uses Conventional Commits prefixes, use one; if it doesn'\''t, don'\''t invent one. Output exactly ONE line, <=72 chars, imperative mood, no trailing period, no quotes, no preamble, no body. Nothing else.'
+    PAYLOAD=$(printf '## RECENT LOG (style reference)\n%s\n\n## STAGED DIFF\n%s\n' "$RECENT" "$DIFF")
+    if GENERATED=$(printf '%s' "$PAYLOAD" | timeout 60 claude -p --model claude-haiku-4-5 --no-session-persistence --system-prompt "$PROMPT_SYSTEM" "Write the commit subject for the staged diff." 2>/dev/null); then
+      MSG=$(printf '%s' "$GENERATED" | sed -n '1p' | tr -d '\r')
+    fi
+  fi
+  if [ -z "$MSG" ]; then
+    echo "==> FAILED: no commit message and no AI generation available." >&2
+    git restore --staged .
+    exit 1
+  fi
+  git commit -m "$MSG"
+else
+  [ -n "$MSG" ] || MSG="switch"
   TMPFILE=$(mktemp /tmp/mandragora-commit-XXXXXX)
   SAVED_FLAG="${TMPFILE}.saved"
   trap 'rm -f "$TMPFILE" "$SAVED_FLAG"' EXIT
@@ -97,14 +117,6 @@ if [ "$SKIP_EDIT" -eq 0 ]; then
     git restore --staged .
     exit 0
   fi
-fi
-
-COMMIT_SKIPPED=0
-if [ "$MSG" = "!" ]; then
-  echo "==> Skipping commit (just switching)."
-  COMMIT_SKIPPED=1
-  git restore --staged .
-else
   git commit -m "$MSG"
 fi
 

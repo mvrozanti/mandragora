@@ -187,9 +187,9 @@ If a full rewrite is unavoidable:
 `modules/user/home.nix`) does, in order: `git fetch` → rebase if behind →
 `git add -A` → open staged-diff editor for commit message (skip with `!`) →
 `sudo nixos-rebuild switch` → `git push`. Aliases in `modules/user/zsh.nix`:
-`switch` / `nrc` / `rebuild` → `mandragora-switch`; `nrs` → `mandragora-switch !`
-(skip diff editor); `nrp` → `mandragora-commit-push` (commit + push only, no
-rebuild — used when only docs/markdown changed).
+`nrc` → `mandragora-switch`; `nrs` → `mandragora-switch !` (skip diff editor,
+no commit); `nrp` → `mandragora-commit-push` (commit + push only, no rebuild —
+used when only docs/markdown changed); `nrb` → rebuild boot; `nrt` → rebuild test.
 
 If `mandragora-switch` is unavailable (e.g., during initial install or
 recovery), the manual equivalent is:
