@@ -190,6 +190,7 @@ in
     (pkgs.writeShellScriptBin "mandragora-switch" (builtins.readFile ../../.local/bin/mandragora-switch.sh))
     (pkgs.writeShellScriptBin "mandragora-lock" (builtins.readFile ../../.local/bin/mandragora-lock.sh))
     (pkgs.writeShellScriptBin "mandragora-commit-push" (builtins.readFile ../../.local/bin/mandragora-commit-push.sh))
+    (pkgs.writeShellScriptBin "sss" (builtins.readFile ../../.local/bin/sss.sh))
     (pkgs.writeShellScriptBin "mandragora-diff" (builtins.readFile ../../.local/bin/mandragora-diff.sh))
     (pkgs.writeShellScriptBin "mandragora-diff-last" (builtins.readFile ../../.local/bin/mandragora-diff-last.sh))
     (pkgs.writeShellScriptBin "rofi-ide-picker" (builtins.readFile ../../.local/bin/rofi-ide-picker.sh))
