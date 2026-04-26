@@ -176,6 +176,6 @@ This stages all changes, rebuilds, and pushes on success — rolling back the co
 
 <div align="center">
 
-*Built with obsessive declarativity on NixOS unstable.*
+*If a system is to serve the creative spirit, it must be entirely comprehensible to a single individual.*
 
 </div>
