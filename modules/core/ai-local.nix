@@ -62,7 +62,7 @@ in
         '';
       }];
 
-      environment.systemPackages = [ pkgs.opencode ];
+      environment.systemPackages = [ pkgs.crush ];
 
       systemd.services.ollama-pull-agentic = {
         description = "Pre-pull primary agentic model (${cfg.agentic.model})";
