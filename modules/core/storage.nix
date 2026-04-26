@@ -30,7 +30,7 @@
   fileSystems."/boot" = {
     device = "/dev/disk/by-label/BOOT";
     fsType = "vfat";
-    options = [ "fmask=0022" "dmask=0022" ];
+    options = [ "fmask=0077" "dmask=0077" ];
   };
 
   fileSystems."/mnt/toshiba" = {
@@ -51,7 +51,6 @@
 
   boot.resumeDevice = "/dev/disk/by-uuid/35f1250b-3b82-45bb-abab-62236e91fe26";
 
-  # The "Erase Your Darlings" Rollback Script
   boot.initrd.systemd.services.rollback = {
     description = "Rollback BTRFS root subvolume to a pristine state";
     wantedBy = [ "initrd.target" ];
@@ -59,6 +58,7 @@
     before = [ "sysroot.mount" ];
     unitConfig.DefaultDependencies = "no";
     serviceConfig.Type = "oneshot";
+    path = [ pkgs.gawk pkgs.btrfs-progs pkgs.util-linux pkgs.coreutils ];
     script = ''
       mkdir -p /mnt
 

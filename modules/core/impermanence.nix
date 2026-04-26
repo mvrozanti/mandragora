@@ -7,7 +7,7 @@
     "d /persistent/home/m 0750 m users - -"
   ] ++ lib.optionals config.services.ollama.enable [
     "d /persistent/var/lib/private 0700 root root - -"
-    "d /persistent/var/lib/private/ollama 0700 ollama ollama - -"
+    "d /persistent/var/lib/private/ollama 0700 - - - -"
   ];
 
   environment.etc."machine-id".source = "/persistent/etc/machine-id";

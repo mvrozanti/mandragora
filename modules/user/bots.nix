@@ -17,6 +17,7 @@
       Type = "simple";
       WorkingDirectory = "/home/m/Projects/llm-via-telegram";
       ExecStart = "${pkgs.uv}/bin/uv run python main.py";
+      Environment = "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin";
       Restart = "on-failure";
       RestartSec = 10;
     };
