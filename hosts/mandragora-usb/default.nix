@@ -52,6 +52,9 @@
   };
 
   hardware.enableRedistributableFirmware = true;
+  hardware.enableAllHardware = true;
+
+  boot.initrd.systemd.emergencyAccess = true;
 
   system.stateVersion = "25.05";
 }
