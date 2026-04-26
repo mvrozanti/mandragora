@@ -81,5 +81,7 @@ in
     "d /persist/npm-global 0755 m users - -"
   ];
 
+  environment.etc."nixos/mandragora".source = ../..;
+
   system.stateVersion = "25.05";
 }

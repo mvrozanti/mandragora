@@ -75,14 +75,14 @@ fi
 log_info "Formatting $TARGET..."
 bash "$DIR/format.sh" "$TARGET"
 
+log_info "Copying flake..."
+mkdir -p /mnt/etc/nixos
+cp -a /etc/nixos/mandragora /mnt/etc/nixos/mandragora
+
 log_info "Rendering host config..."
 render_args=( --hostname "$HOSTNAME" --user "$USER_NAME" --keymap "$KEYMAP" )
 [[ -n "$GPU" ]] && render_args+=( --gpu "$GPU" )
 bash "$DIR/render-config.sh" "${render_args[@]}"
-
-log_info "Copying flake..."
-mkdir -p /mnt/etc/nixos
-cp -a /etc/nixos/mandragora /mnt/etc/nixos/mandragora
 
 log_info "Running nixos-install..."
 nixos-install --no-root-passwd --flake "/mnt/etc/nixos/mandragora#$HOSTNAME"
