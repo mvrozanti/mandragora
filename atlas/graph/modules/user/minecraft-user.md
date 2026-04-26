@@ -15,4 +15,4 @@ User-side Minecraft mod/Meteor-client config.
 ## Connections
 - Up: [[../_index|Modules]]
 - Imported by: [[home]]
-- Pairs with: [[../desktop/minecraft]] (system-side launcher + JDK)
+- Pairs with: [[../desktop/minecraft-desktop|../desktop/minecraft]] (system-side launcher + JDK)
