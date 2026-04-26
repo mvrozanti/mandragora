@@ -718,8 +718,8 @@ in
     source = ../../.config/matugen;
     recursive = true;
   };
-  home.file.".local/share/TelegramDesktop/amoled.tdesktop-palette".source =
-    ../../.local/share/TelegramDesktop/amoled.tdesktop-palette;
+  home.file.".local/share/TelegramDesktop/matugen.tdesktop-palette".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.cache/matugen/telegram.tdesktop-palette";
 
   home.activation.seedKeyledsd = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ ! -e "$HOME/.config/keyledsd.conf" ]; then
