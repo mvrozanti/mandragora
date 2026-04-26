@@ -1,5 +1,8 @@
 { config, pkgs, lib, ... }:
 
+let
+  botPython = import ../../pkgs/bot-python.nix { inherit pkgs; };
+in
 {
   systemd.user.services.im-gen-bot = {
     Unit = {
@@ -40,7 +43,7 @@
     Service = {
       Type = "simple";
       WorkingDirectory = "/home/m/Projects/llm-via-telegram";
-      ExecStart = "${pkgs.uv}/bin/uv run python main.py";
+      ExecStart = "${botPython}/bin/python3 /home/m/Projects/llm-via-telegram/main.py";
       Environment = "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin";
       Restart = "on-failure";
       RestartSec = 10;
