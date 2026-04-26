@@ -210,18 +210,6 @@ For risky changes (boot, kernel, GPU driver, impermanence list), prefer
 `nixos-rebuild test` first — it activates the new config but does not change
 the default boot generation, so a reboot rolls back.
 
-## Session Logging
-
-At the end of every session, append to `SESSIONS.md`:
-
-- What was done.
-- What broke.
-- What friction was encountered.
-- What is next.
-
-This is the running log future-you (and future agents) will read to
-reconstruct context.
-
 ## Related Documents
 
 - `../AGENTS.md` — canonical hard constraints
@@ -231,7 +219,6 @@ reconstruct context.
 - `./source-tree-analysis.md` — annotated directory layout
 - `./deployment-guide.md` — install / reinstall procedure
 - `../WORKFLOW.md` — workflow notes
-- `../SESSIONS.md` — running session log
 - `../FRICTION_LOG.md` — open issues
 
 ---

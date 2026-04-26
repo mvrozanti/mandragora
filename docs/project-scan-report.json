@@ -21,7 +21,7 @@
       "step": "step_2",
       "status": "completed",
       "timestamp": "2026-04-25T00:00:00Z",
-      "summary": "Found extensive existing docs at repo root (AGENTS.md, CLAUDE.md, GEMINI.md, DECISIONS.md, README.md, SESSIONS.md, atlas/*.md, install/INSTALL.md). Strategy: complement, do not duplicate."
+      "summary": "Found extensive existing docs at repo root (AGENTS.md, CLAUDE.md, GEMINI.md, DECISIONS.md, README.md, atlas/*.md, install/INSTALL.md). Strategy: complement, do not duplicate."
     },
     {
       "step": "step_3",
