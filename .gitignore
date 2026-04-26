@@ -1,6 +1,7 @@
 appendix/ventoy-usb/nixos-iso/root-dotfiles/.claude_env
 .claude/*
 !.claude/skills/
+.claude/skills/bmad-*
 .gemini/
 result
 _bmad/config.user.yaml
