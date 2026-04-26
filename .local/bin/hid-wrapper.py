@@ -1,8 +1,8 @@
-from colour import Color
-import rivalcfg
+import fcntl
 import json
-from pathlib import Path
+import signal
 import sys
+from pathlib import Path
 
 turn_on = sys.argv[1] == '--on' if len(sys.argv) > 1 else False
 turn_off = sys.argv[1] == '--off' if len(sys.argv) > 1 else False
@@ -12,6 +12,19 @@ if not colors_path.exists():
     raise SystemExit(0)
 
 Path('/home/m/.cache/hid-config').mkdir(exist_ok=True)
+lock_path = Path('/home/m/.cache/hid-config/lock')
+lock_fd = open(lock_path, 'w')
+try:
+    fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+except BlockingIOError:
+    raise SystemExit(0)
+
+signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(TimeoutError('hid-wrapper hung talking to mouse')))
+signal.alarm(5)
+
+from colour import Color
+import rivalcfg
+
 state_file = Path('/home/m/.cache/hid-config/state')
 if not state_file.exists():
     state_file.write_text('False')
