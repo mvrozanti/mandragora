@@ -108,7 +108,7 @@ in
       "cw" = "rename";
       "A" = ":rename";
       "I" = "file-info";
-      "i" = "%{{ sxiv -ab -- $(dirname \"$f\") }}";
+      "i" = "%{{ imv -- $(dirname \"$f\") }}";
       
       "P" = "yank-path";
       "<c-n>" = "yank-name";

@@ -134,7 +134,7 @@ alias cocd='eval "$(co)"'
 cocp.() { cp "$(co)" . }
 co2ip() { f=/tmp/co2i-$(date +%s).png; wl-paste --type image/png > "$f" && echo -n "$f" }
 co2ipc() { co2ip | c }
-co2sxiv() { wl-paste --type image/png > /tmp/img; sxiv /tmp/img }
+co2imv() { wl-paste --type image/png > /tmp/img; imv /tmp/img }
 alias cov='nvim "$(co)"'
 
 alias p='P | tr -d "\n" | c'
@@ -301,10 +301,11 @@ coy() { ytdl "$(co)" }
 ytpl() { mpv --script-opts=ytdl_hook-try_ytdl_first=yes "ytdl://ytsearch:$*" }
 alias yts='ytpl'
 
-alias sxiv='sxiv -ab'
-alias i='sxiv -ft *'
-alias I='sxiv'
-alias cosxiv='sxiv "$(co)"'
+alias imv='imv'
+alias i='imv'
+alias I='imv'
+alias sxiv='imv'
+alias cosimv='imv "$(co)"'
 
 alias msk='ncmpcpp'
 alias mviz='ncmpcpp --screen visualizer'

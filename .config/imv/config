@@ -1,0 +1,33 @@
+[options]
+background = 000000
+fullscreen = false
+recursive = true
+
+[binds]
+q = quit
+<Return> = exec imv-dir-open ; quit
+<Space> = overlay
+f = fullscreen
+<Left> = prev
+b = prev
+<Right> = next
+w = next
+<plus> = zoom in
+<minus> = zoom out
+0 = zoom actual
+h = pan left
+j = pan down
+k = pan up
+l = pan right
+
+y = exec ic "$imv_current_file" && notify-send 'Copied to clipboard'
+p = exec realpath "$imv_current_file" | wl-copy && notify-send 'Copied path to clipboard'
+W = exec setbg "$imv_current_file"
+r = exec bash -c 'name=$(rofi -dmenu -p "rename $imv_current_file to: ") && if [ -n "$name" ]; then mv "$imv_current_file" "$name"; fi'
+
+# Internal sxiv-like mappings from fork
+<less> = rotate by 270
+<greater> = rotate by 90
+<question> = rotate by 180
+<bar> = flip horizontal
+<underscore> = flip vertical
