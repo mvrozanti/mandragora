@@ -296,7 +296,7 @@ There is no automated test suite. The closest things are:
 - **`nixos-rebuild dry-run`** / `dry-activate` — validates the configuration
   evaluates and would activate.
 - **Empirical verification** — for any change, the user tests the feature
-  directly and notes the result in `SESSIONS.md`.
+  directly and notes the result in the handoff system (`~/.ai-shared/handoffs/`).
 
 The deliberate absence of CI is appropriate for a single-host config: there
 is no team, no PR review pipeline, and the only "production" is the user's

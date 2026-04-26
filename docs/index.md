@@ -64,7 +64,6 @@ directory are derived from them or complement them.
 - [`../README.md`](../README.md) — Reader-facing summary
 - [`../STRUCTURE.md`](../STRUCTURE.md) — High-level orientation
 - [`../WORKFLOW.md`](../WORKFLOW.md) — Workflow notes
-- [`../SESSIONS.md`](../SESSIONS.md) — Append-only session log
 - [`../FRICTION_LOG.md`](../FRICTION_LOG.md) — Open issues
 - [`../SITUATIONS.md`](../SITUATIONS.md) — Runbook scenarios
 - [`../SECRETS.md`](../SECRETS.md) — Secrets wiring notes
