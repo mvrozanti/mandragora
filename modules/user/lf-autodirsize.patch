@@ -1,0 +1,112 @@
+--- a/nav.go
++++ b/nav.go
+@@ -14,9 +14,11 @@
+ 	"os/exec"
+ 	"path/filepath"
+ 	"regexp"
++	"runtime"
+ 	"slices"
+ 	"strconv"
+ 	"strings"
++	"sync"
+ 	"time"
+ 
+ 	"github.com/djherbis/times"
+@@ -438,6 +440,11 @@
+ 	mode  clipboardMode
+ }
+ 
++type dirSizeEntry struct {
++	size  int64
++	mtime time.Time
++}
++
+ type nav struct {
+ 	dirPaths        []string
+ 	copyJobs        int
+@@ -460,6 +467,10 @@
+ 	preloadChan     chan string
+ 	previewChan     chan string
+ 	dirChan         chan *dir
++	dirSizeChan     chan struct{}
++	dirSizeCache    map[string]dirSizeEntry
++	dirSizeCacheMu  sync.Mutex
++	dirSizeSem      chan struct{}
+ 	regChan         chan *reg
+ 	fileChan        chan *file
+ 	delChan         chan string
+@@ -593,6 +604,9 @@
+ 		preloadChan:     make(chan string, 1024),
+ 		previewChan:     make(chan string, 1024),
+ 		dirChan:         make(chan *dir),
++		dirSizeChan:     make(chan struct{}, 1),
++		dirSizeCache:    make(map[string]dirSizeEntry),
++		dirSizeSem:      make(chan struct{}, runtime.NumCPU()),
+ 		regChan:         make(chan *reg),
+ 		fileChan:        make(chan *file),
+ 		delChan:         make(chan string),
+@@ -2027,3 +2041,44 @@
+ 
+ 	return nil
+ }
++
++func (nav *nav) autoCalcDirSizes(d *dir) {
++	if d == nil {
++		return
++	}
++	for _, f := range d.allFiles {
++		if !f.IsDir() {
++			continue
++		}
++		path := f.path
++		mtime := f.ModTime()
++
++		nav.dirSizeCacheMu.Lock()
++		entry, ok := nav.dirSizeCache[path]
++		nav.dirSizeCacheMu.Unlock()
++		if ok && entry.mtime.Equal(mtime) {
++			f.dirSize = entry.size
++			continue
++		}
++
++		go func(f *file, path string, mtime time.Time) {
++			nav.dirSizeSem <- struct{}{}
++			defer func() { <-nav.dirSizeSem }()
++
++			total, err := copySize([]string{path})
++			if err != nil {
++				return
++			}
++			f.dirSize = total
++
++			nav.dirSizeCacheMu.Lock()
++			nav.dirSizeCache[path] = dirSizeEntry{size: total, mtime: mtime}
++			nav.dirSizeCacheMu.Unlock()
++
++			select {
++			case nav.dirSizeChan <- struct{}{}:
++			default:
++			}
++		}(f, path, mtime)
++	}
++}
+--- a/app.go
++++ b/app.go
+@@ -414,6 +414,8 @@
+ 
+ 			app.watchDir(d)
+ 
++			go app.nav.autoCalcDirSizes(d)
++
+ 			// Avoid flickering UI and multiple, unnecessary `on-load` calls
+ 			// triggered by Git commands executed inside the users `on-load`
+ 			// command (often used to add git symbols using `addcustominfo`).
+@@ -513,6 +515,8 @@
+ 			app.ui.draw(app.nav)
+ 		case <-app.nav.preloadTimer.C:
+ 			app.nav.preload()
++		case <-app.nav.dirSizeChan:
++			app.ui.draw(app.nav)
+ 		}
+ 	}
+ }
