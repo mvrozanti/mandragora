@@ -79,5 +79,13 @@
           sops-nix.nixosModules.sops
         ];
       };
+
+      apps.${system}.refiner = {
+        type = "app";
+        program = "${(import ./refiner/default.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+          usbImage = self.packages.${system}.usbImage;
+        })}/bin/refiner";
+      };
     };
 }
