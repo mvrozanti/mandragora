@@ -51,12 +51,13 @@ SKIP_EDIT=0
 ARGS=()
 for arg in "$@"; do
   case "$arg" in
+    !) SKIP_EDIT=1 ;;
     -y|--no-edit) SKIP_EDIT=1 ;;
     *) ARGS+=("$arg") ;;
   esac
 done
 
-if [ "${#ARGS[@]}" -eq 1 ] && [ "${ARGS[0]}" = "!" ]; then
+if [ "${#ARGS[@]}" -gt 0 ] && [ "${ARGS[*]}" = "!" ]; then
   SKIP_EDIT=1
   MSG="!"
 elif [[ "${ARGS[*]}" == *"!"* ]]; then
