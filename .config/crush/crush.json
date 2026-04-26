@@ -8,8 +8,8 @@
       "api_key": "ollama",
       "models": [
         {
-          "id": "qwen3:30b-a3b",
-          "name": "Qwen3 30B A3B",
+          "id": "qwen2.5-coder:14b",
+          "name": "Qwen2.5 Coder 14B",
           "cost_per_1m_in": 0,
           "cost_per_1m_out": 0,
           "cost_per_1m_in_cached": 0,
@@ -17,15 +17,15 @@
           "context_window": 32768,
           "default_max_tokens": 8192,
           "supports_attachments": false,
-          "can_reason": true,
+          "can_reason": false,
           "options": {}
         }
       ]
     }
   },
   "models": {
-    "large": { "model": "qwen3:30b-a3b", "provider": "ollama" },
-    "small": { "model": "qwen3:30b-a3b", "provider": "ollama" }
+    "large": { "model": "qwen2.5-coder:14b", "provider": "ollama" },
+    "small": { "model": "qwen2.5-coder:14b", "provider": "ollama" }
   },
   "options": {
     "context_paths": [
@@ -38,7 +38,7 @@
     "initialize_as": "AGENTS.md"
   },
   "permissions": {
-    "allowed_tools": ["bash", "view", "ls", "grep", "edit", "write", "fetch", "sourcegraph"]
+    "allowed_tools": ["bash", "view", "ls", "grep", "edit", "write", "fetch", "sourcegraph", "glob", "multiedit", "todos", "download"]
   },
   "tools": {
     "ls": { "max_depth": 4, "max_items": 500 },
