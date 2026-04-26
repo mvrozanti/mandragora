@@ -8,8 +8,8 @@
       "api_key": "ollama",
       "models": [
         {
-          "id": "devstral:24b",
-          "name": "Devstral 24B",
+          "id": "qwen3:30b-a3b",
+          "name": "Qwen3 30B A3B",
           "cost_per_1m_in": 0,
           "cost_per_1m_out": 0,
           "cost_per_1m_in_cached": 0,
@@ -17,15 +17,15 @@
           "context_window": 32768,
           "default_max_tokens": 8192,
           "supports_attachments": false,
-          "can_reason": false,
+          "can_reason": true,
           "options": {}
         }
       ]
     }
   },
   "models": {
-    "large": { "model": "devstral:24b", "provider": "ollama" },
-    "small": { "model": "devstral:24b", "provider": "ollama" }
+    "large": { "model": "qwen3:30b-a3b", "provider": "ollama" },
+    "small": { "model": "qwen3:30b-a3b", "provider": "ollama" }
   },
   "options": {
     "context_paths": [
