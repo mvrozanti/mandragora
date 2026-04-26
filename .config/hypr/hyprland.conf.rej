@@ -1,0 +1,11 @@
+--- .config/hypr/hyprland.conf
++++ .config/hypr/hyprland.conf
+@@ -107,7 +107,7 @@
+ bind = $mainMod SHIFT, Space, exec, pop
+ bind = $mainMod SHIFT, 2, exec, smart-launch nemo nemo
+ bind = $mainMod SHIFT, V, exec, cliphist list | rofi -dmenu | cliphist decode | wl-copy
+-bind = $mainMod SHIFT, F, exec, smart-launch whatsapp-web "env MOZ_APP_REMOTINGNAME=whatsapp-web firefox -P whatsapp --new-instance --url https://web.whatsapp.com"
++bind = $mainMod SHIFT, F, exec, smart-launch whatsapp-web "env MOZ_ENABLE_WAYLAND=0 MOZ_APP_REMOTINGNAME=whatsapp-web firefox -P whatsapp --new-instance --url https://web.whatsapp.com"
+ bind = $mainMod SHIFT, O, exec, smart-launch libreoffice libreoffice
+ bind = $mainMod SHIFT, D, exec, rofi-ide-picker
+ bind = $mainMod SHIFT, E, exec, hyprctl dispatch layoutmsg togglesplit
