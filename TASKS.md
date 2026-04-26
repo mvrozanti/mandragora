@@ -36,11 +36,13 @@ This file persists tasks, states, and workflows across different AI agents (Clau
 **Spec:** `/etc/nixos/mandragora/docs/superpowers/specs/2026-04-25-mandragora-usb-refiner-design.md` (commit `a7e8d1eb`)
 **Plan:** `/etc/nixos/mandragora/docs/superpowers/plans/2026-04-25-mandragora-usb-refiner.md` (commit `475b82da`)
 
-### Progress through 2026-04-25 evening
+### Progress through 2026-04-26
 
-M1 (minimal USB host) and M2 (refiner harness) are DONE. `nix run .#refiner`
-boots the USB image in QEMU+KVM with a blank 40 GB target disk attached;
-login prompt reaches `mandragora-usb login:` in ~15s.
+M1 (USB host), M2 (refiner harness), and M3.1-M3.6 (install pipeline) DONE.
+`nix run .#refiner` boots the USB image in QEMU+KVM with a blank 40 GB
+target disk attached; login prompt at `mandragora-usb login:` in ~15s.
+Install scripts (`mandragora-{install,detect,format,render-config}`) are
+PATH-accessible inside the live system.
 
 Commits:
 - `c2f79d41` M1.1 flake: add nixos-generators input
@@ -52,6 +54,12 @@ Commits:
 - `2f7d981b` M2.1 refiner/lib.sh
 - `b589028a` M2.2 refiner/run-vm.sh
 - `6c986feb` M2.3 wrap refiner as flake app
+- `90a77df2` M3.1 bats bootstrap stub
+- `c053a29d` M3.2 install/lib.sh (log/die/require_root/confirm_typed)
+- `7864cd8f` M3.3 install/detect.sh (boot-media filter)
+- `23bc622d` M3.4 install/format.sh (sgdisk + mkfs)
+- `a9ac6224` M3.5 install/render-config.sh + host-template.nix
+- `b578f2fd` M3.6 install/install.sh + wire bundle into host
 
 **Bugs caught by VM testing (deviations from plan):**
 - M1.3 wireless conflict: NetworkManager forces `wireless.enable = true` (NM
@@ -71,6 +79,14 @@ Commits:
   `exec ${./run-vm.sh}` which puts the script alone in /nix/store/, so
   its `dirname`-relative source for `lib.sh` finds nothing. Fix: bundle
   both scripts via `pkgs.runCommand` into one store dir.
+- M3.3+ source path: plan's `dirname "$(readlink -f "$0")"` only works
+  when scripts are *executed*. When sourced for tests, `$0` is the shell
+  name and the relative `lib.sh` path resolves against CWD. Replaced
+  with `${BASH_SOURCE[0]}` in detect.sh / format.sh / render-config.sh /
+  install.sh — works for both source and exec.
+- M3.3 test regex `/dev/.*[0-9]+$` for "exclude partitions" was too
+  loose; whole NVMe disks like `/dev/nvme0n1` end in a digit too. Fixed
+  to a partition-shape pattern (sd[a-z]+[0-9]+, nvme...p[0-9]+, etc).
 
 **Deprecation notice:** `nixos-generators` is upstreamed into nixpkgs as
 of NixOS 25.05 (now `system.image` in modern flow). Plan still uses
@@ -84,14 +100,25 @@ of NixOS 25.05 (now `system.image` in modern flow). Plan still uses
 
 ### Next when resuming
 
-Start **M3.1** — install pipeline minimal (`hosts/mandragora-usb/install/`
-scripts: lib.sh, detect.sh, format.sh, render-config.sh, install.sh).
-M3.7 needs human in the loop for the first end-to-end install run inside
-the refiner.
+**M3.7** — manual end-to-end install in the refiner. Human-in-loop:
+1. `nix run /etc/nixos/mandragora#refiner`
+2. log in as `m`/`mandragora`
+3. `sudo mandragora-install` and walk through the prompts (target = `/dev/vdb`)
+4. let it run nixos-install on the 40 GB target.qcow2
+5. shut down VM, restart QEMU pointing only at target.qcow2 to verify the
+   installed system boots.
+
+After M3.7 passes: M4 — shared modules with `mandragora.profile = "desktop"|"live"`.
+This is a substantive refactor of `modules/desktop/`, `modules/user/home.nix`,
+`modules/core/impermanence.nix`. **High blast radius for the desktop config.**
+Use subagent + 2 reviewers per the hybrid execution rule.
 
 **Decisions beyond the spec/plan (still apply):**
 - Stay on `master`, no feature branch.
 - Hybrid execution: mechanical tasks inline, substantive via subagent.
 - Strip plan-comments at commit (CLAUDE.md Rule #3).
 - `nix-instantiate --parse <file>` after every .nix edit (Rule #11).
+- Always `git diff --cached --stat` before committing — parallel agents
+  running `mandragora-switch` periodically `git add -A` and leak
+  home-manager symlink updates into your commit if you don't check.
 - Lock identity flaw still unfixed; coarse "someone is working" signal.
