@@ -79,11 +79,20 @@ let
     value = { source = e.s; };
   }) bmadSkills);
 
-  localExtras = { };
+  crossAgentSkills = [
+    { n = "handoff"; s = ../../.claude/skills/handoff; }
+    { n = "pickup";  s = ../../.claude/skills/pickup; }
+  ];
+
+  mkCrossAgentEntries = prefix: lib.listToAttrs (map (e: {
+    name = "${prefix}/${e.n}";
+    value = { source = e.s; };
+  }) crossAgentSkills);
 in
 {
   home.file =
     mkSkillEntries ".claude/skills"
     // mkSkillEntries ".gemini/skills"
-    // localExtras;
+    // mkCrossAgentEntries ".claude/skills"
+    // mkCrossAgentEntries ".gemini/skills";
 }
