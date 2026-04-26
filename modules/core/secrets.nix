@@ -30,6 +30,10 @@
         mode = "0400";
       };
     };
+
+    templates."hosts-oracle".content = ''
+      ${config.sops.placeholder."oracle/ip"} oracle
+    '';
   };
 
   users.users.m.hashedPasswordFile = config.sops.secrets."user/password".path;
