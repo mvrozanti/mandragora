@@ -70,6 +70,8 @@ in
       paste-jpeg = "$wl-paste -t image/jpeg > \"$(dirname $fx)/$(date +%s).jpg\"";
       
       file-info = "$file $fx | less";
+
+      calc-size = ''!{{ du -sh -- $fx | sed 's/\t/  /' }}'';
       
       mkdir = ''%{{
         echo ":!mkdir "
@@ -104,6 +106,7 @@ in
       "cw" = "rename";
       "A" = ":rename";
       "I" = "file-info";
+      "cs" = "calc-size";
       "i" = "%{{ sxiv -ab -- $(dirname \"$f\") }}";
       
       "P" = "yank-path";
