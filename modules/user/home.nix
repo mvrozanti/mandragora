@@ -586,6 +586,14 @@ in
   programs.firefox = {
     enable = true;
     nativeMessagingHosts = [ pkgs.tridactyl-native ];
+    policies = {
+      ExtensionSettings = {
+        "{d1399635-a397-4ee7-bc61-d917bd5e1010}" = {
+          installation_mode = "force_installed";
+          install_url = "file://${pkgs.claude-sidebar}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}/{d1399635-a397-4ee7-bc61-d917bd5e1010}.xpi";
+        };
+      };
+    };
     profiles.default = {
       isDefault = true;
       id = 0;
