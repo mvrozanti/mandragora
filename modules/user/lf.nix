@@ -22,6 +22,8 @@ let
 
     vendorHash = "sha256-U2D+VAAj26s4Dz1JU4hv/xoZaVfOMIcVBWKLNUhlYxA=";
 
+    patches = [ ./lf-autodirsize.patch ];
+
     ldflags = [ "-s" "-w" "-X main.gVersion=${version}" ];
 
     doCheck = false;

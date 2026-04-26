@@ -27,6 +27,8 @@
     ../../modules/audits/default.nix
   ];
 
+  mandragora.ai.agentic.enable = true;
+
   nixpkgs.hostPlatform = "x86_64-linux";
   nixpkgs.config.allowUnfree = true;
 
