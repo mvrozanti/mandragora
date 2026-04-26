@@ -46,6 +46,8 @@ in
       ratios = "1:2:3";
       sortby = "ctime";
       reverse = true;
+      info = "size";
+      dircounts = false;
       incsearch = true;
       incfilter = true;
       mouse = true;
@@ -60,25 +62,16 @@ in
       yank-bytes = "%{{ ic \"$f\" }}";
       
       sort-size = ":set sortby size; set info size";
-      sort-mtime = ":set sortby time; set info time";
-      sort-ctime = ":set sortby ctime; set info ctime";
-      sort-atime = ":set sortby atime; set info atime";
-      sort-name = ":set sortby name; set info";
-      sort-ext = ":set sortby ext; set info";
+      sort-mtime = ":set sortby time; set info size:time";
+      sort-ctime = ":set sortby ctime; set info size:ctime";
+      sort-atime = ":set sortby atime; set info size:atime";
+      sort-name = ":set sortby name; set info size";
+      sort-ext = ":set sortby ext; set info size";
       
       paste-image = "$wl-paste -t image/png > \"$(dirname $fx)/$(date +%s).png\"";
       paste-jpeg = "$wl-paste -t image/jpeg > \"$(dirname $fx)/$(date +%s).jpg\"";
       
       file-info = "$file $fx | less";
-
-      calc-size = ''!{{ du -sh -- $fx | sed 's/\t/  /' }}'';
-
-      dir-size-recompute = ''&{{
-        cache="/tmp/lf-dirsize-$USER"
-        key=$(printf '%s' "$f" | sha1sum | cut -c1-16)
-        rm -f "$cache/$key"
-        lf -remote "send $id reload"
-      }}'';
       
       mkdir = ''%{{
         echo ":!mkdir "
@@ -113,8 +106,7 @@ in
       "cw" = "rename";
       "A" = ":rename";
       "I" = "file-info";
-      "cs" = "calc-size";
-      "cS" = "dir-size-recompute";
+      "cs" = "calcdirsize";
       "i" = "%{{ sxiv -ab -- $(dirname \"$f\") }}";
       
       "P" = "yank-path";
