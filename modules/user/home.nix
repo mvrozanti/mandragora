@@ -715,6 +715,23 @@ in
     fi
   '';
 
+  home.activation.seedObsStudio = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    OBS_PROFILE_DIR="$HOME/.config/obs-studio/basic/profiles/Untitled"
+    if [ ! -e "$OBS_PROFILE_DIR/basic.ini" ]; then
+      mkdir -p "$OBS_PROFILE_DIR"
+      cat <<EOF > "$OBS_PROFILE_DIR/basic.ini"
+[General]
+Name=Untitled
+
+[SimpleOutput]
+FilePath=$HOME/Videos
+
+[AdvOut]
+RecFilePath=$HOME/Videos
+EOF
+    fi
+  '';
+
   home.file.".config/sxiv" = {
     source = ../../.config/sxiv;
     recursive = true;
