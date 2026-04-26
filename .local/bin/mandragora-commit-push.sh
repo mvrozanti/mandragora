@@ -22,8 +22,18 @@ if git diff --cached --quiet; then
   exit 0
 fi
 
-if [ -n "$*" ]; then
-  MSG="$*"
+SKIP_EDIT=0
+ARGS=()
+for arg in "$@"; do
+  case "$arg" in
+    -y|--no-edit) SKIP_EDIT=1 ;;
+    !) SKIP_EDIT=1 ;;
+    *) ARGS+=("$arg") ;;
+  esac
+done
+
+if [ "${#ARGS[@]}" -gt 0 ]; then
+  MSG="${ARGS[*]}"
 else
   MSG=""
   if command -v claude >/dev/null 2>&1; then
@@ -39,6 +49,23 @@ else
   if [ -z "$MSG" ]; then
     echo "==> (pre-fill blank; save empty to abort)"
   fi
+fi
+
+if [ "$SKIP_EDIT" -eq 1 ]; then
+  if [ -z "$MSG" ]; then
+    echo "==> FAILED: --no-edit requested but no commit message and no AI generation available." >&2
+    git restore --staged .
+    exit 1
+  fi
+  git commit -m "$MSG"
+  echo "==> Pushing..."
+  if ! git push; then
+    echo "==> FAILED: push was rejected. Your local commit is NOT on origin." >&2
+    echo "==> Run: git pull --rebase && git push" >&2
+    exit 1
+  fi
+  echo "==> Done."
+  exit 0
 fi
 
 TMPFILE=$(mktemp /tmp/mandragora-commit-XXXXXX)
