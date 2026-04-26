@@ -8,8 +8,8 @@
       "api_key": "ollama",
       "models": [
         {
-          "id": "qwen3:30b-a3b",
-          "name": "Qwen3 30B A3B",
+          "id": "qwen3:14b",
+          "name": "Qwen3 14B",
           "cost_per_1m_in": 0,
           "cost_per_1m_out": 0,
           "cost_per_1m_in_cached": 0,
@@ -24,8 +24,8 @@
     }
   },
   "models": {
-    "large": { "model": "qwen3:30b-a3b", "provider": "ollama" },
-    "small": { "model": "qwen3:30b-a3b", "provider": "ollama" }
+    "large": { "model": "qwen3:14b", "provider": "ollama" },
+    "small": { "model": "qwen3:14b", "provider": "ollama" }
   },
   "options": {
     "context_paths": [
