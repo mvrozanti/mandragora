@@ -90,8 +90,6 @@ in
         history_file="/tmp/lf-history-$id"
         index_file="/tmp/lf-history-index-$id"
         nav_flag="/tmp/lf-history-nav-$id"
-        [ ! -f "$history_file" ] && echo "$PWD" > "$history_file"
-        [ ! -f "$index_file" ] && echo "0" > "$index_file"
         if [ -f "$nav_flag" ]; then
           rm -f "$nav_flag"
         else
@@ -193,6 +191,10 @@ in
     extraConfig = ''
       set previewer ${preview}/bin/lf-preview
       set cleaner ${cleaner}/bin/lf-cleaner
+      ''${{
+        [ ! -f "/tmp/lf-history-$id" ] && echo "$PWD" > "/tmp/lf-history-$id"
+        [ ! -f "/tmp/lf-history-index-$id" ] && echo "0" > "/tmp/lf-history-index-$id"
+      }}
       cmd zoxide-jump ''${{
         result=$(zoxide query -i)
         [ -n "$result" ] && lf -remote "send $id cd \"$result\""
