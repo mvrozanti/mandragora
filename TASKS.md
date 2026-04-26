@@ -33,20 +33,65 @@ This file persists tasks, states, and workflows across different AI agents (Clau
 
 ## Active: mandragora-usb + refiner (2026-04-25, Claude)
 
-Brainstorming + spec + plan complete. Implementation NOT yet started.
-
 **Spec:** `/etc/nixos/mandragora/docs/superpowers/specs/2026-04-25-mandragora-usb-refiner-design.md` (commit `a7e8d1eb`)
 **Plan:** `/etc/nixos/mandragora/docs/superpowers/plans/2026-04-25-mandragora-usb-refiner.md` (commit `475b82da`)
 
-**Last left off:** about to start M1.1 (add `nixos-generators` flake input). User had to reboot.
+### Progress through 2026-04-25 evening
 
-**Decisions beyond the spec/plan (not in either file):**
+M1 (minimal USB host) and M2 (refiner harness) are DONE. `nix run .#refiner`
+boots the USB image in QEMU+KVM with a blank 40 GB target disk attached;
+login prompt reaches `mandragora-usb login:` in ~15s.
+
+Commits:
+- `c2f79d41` M1.1 flake: add nixos-generators input
+- `5a252d49` M1.2 hosts/mandragora-usb: minimal skeleton
+- `f47a7a41` M1.3 wire mandragora-usb into nixosConfigurations
+- `862a7cdc` M1.4 packages.usbImage via nixos-generators raw-efi
+- `76fa4e34` M1.5 fix: enableAllHardware + initrd emergency access
+- `f8b8467d` M1.6 stub /persist mount with nofail
+- `2f7d981b` M2.1 refiner/lib.sh
+- `b589028a` M2.2 refiner/run-vm.sh
+- `6c986feb` M2.3 wrap refiner as flake app
+
+**Bugs caught by VM testing (deviations from plan):**
+- M1.3 wireless conflict: NetworkManager forces `wireless.enable = true` (NM
+  manages wpa_supplicant via DBus). Plan's `wireless.enable = false` had
+  to be dropped, not mkForce'd, so wireless still works on portable USB.
+- M1.5 boot hang: `nixos-generators raw-efi` only adds `uas` to initrd
+  modules. With QEMU's `-drive if=virtio` the disk is invisible (no
+  virtio_blk) and boot hangs 90s waiting for `/dev/disk/by-label/nixos`
+  before dropping to (locked-root) emergency mode. Fix:
+  `hardware.enableAllHardware = true` + `boot.initrd.systemd.emergencyAccess = true`.
+- M1.3 step 3 (toplevel build of `mandragora-usb`) is impossible; that
+  config has no `fileSystems` or bootloader (those come from
+  nixos-generators). `nix flake show` covers eval; the actual buildable
+  target is `#usbImage`. Skipped step 3.
+- M2.3 `nix run` failed twice: (a) `flake.nix` references a new file —
+  must `git add --intent-to-add` before nix sees it; (b) wrapper had
+  `exec ${./run-vm.sh}` which puts the script alone in /nix/store/, so
+  its `dirname`-relative source for `lib.sh` finds nothing. Fix: bundle
+  both scripts via `pkgs.runCommand` into one store dir.
+
+**Deprecation notice:** `nixos-generators` is upstreamed into nixpkgs as
+of NixOS 25.05 (now `system.image` in modern flow). Plan still uses
+`nixos-generators`; refactor candidate post-MVP.
+
+### Skipped / deferred
+
+- **M1.7** (flash to real 16 GB USB and boot a machine): explicit user
+  decision — no longer a hard exit gate. Do when convenient.
+- **M1.8** (manual /persist partition on flashed USB): depends on M1.7.
+
+### Next when resuming
+
+Start **M3.1** — install pipeline minimal (`hosts/mandragora-usb/install/`
+scripts: lib.sh, detect.sh, format.sh, render-config.sh, install.sh).
+M3.7 needs human in the loop for the first end-to-end install run inside
+the refiner.
+
+**Decisions beyond the spec/plan (still apply):**
 - Stay on `master`, no feature branch.
-- Hybrid execution: mechanical tasks inline (~30), substantive via subagent (~15), risky desktop-module refactors via subagent + 2 reviewers (~5). The full subagent-driven mode (150 dispatches) is overkill for the many tiny tasks in this plan.
-- The plan's scripts and Nix derivations have explanatory comments for plan readers; CLAUDE.md Rule #3 (no comments in code) applies when implementing — strip them at commit time.
-- Apply Rule #11 after each `.nix` edit (`nix-instantiate --parse <file>`).
-- M1.7 (real-USB flash + boot one machine) is no longer a hard exit gate; do it when convenient before v1 declared done. VM-driven work (M2 onward) proceeds independently.
-- M3.7 (manual end-to-end install in refiner) and M9 `--auto` test require human in the loop for first runs.
-- Lock-protocol identity verification flaw discussed (`agent: claude-opus-4-7` is a model ID, not a per-instance ID; `pid` not accessible from agent). Refactor deferred. Filed as future work; current rule remains a coarse "someone is working" signal.
-
-**Next concrete action when resuming:** start M1.1. Read the plan's M1.1 section, add `nixos-generators` to `flake.nix` inputs and outputs signature, run `nix flake check --no-build`, commit. Then M1.2.
+- Hybrid execution: mechanical tasks inline, substantive via subagent.
+- Strip plan-comments at commit (CLAUDE.md Rule #3).
+- `nix-instantiate --parse <file>` after every .nix edit (Rule #11).
+- Lock identity flaw still unfixed; coarse "someone is working" signal.
