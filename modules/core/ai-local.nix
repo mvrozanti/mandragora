@@ -29,7 +29,7 @@ in
     };
 
     ai.agentic = {
-      enable = lib.mkEnableOption "Local agentic LLM stack (Qwen3-30B-A3B + OpenCode TUI)";
+      enable = lib.mkEnableOption "Local agentic LLM stack (Qwen3-30B-A3B + Crush TUI)";
       model = lib.mkOption {
         type = lib.types.str;
         default = "qwen3:14b";
@@ -55,6 +55,8 @@ in
 
 
       environment.systemPackages = [
+        pkgs.crush
+        pkgs.beep
         pkgs.oterm
         gemma
         local-ai-mcp-server
@@ -71,7 +73,7 @@ in
         '';
       }];
 
-      environment.systemPackages = [ pkgs.crush pkgs.beep ];
+      environment.systemPackages = [ ];
 
       systemd.services.ollama-pull-agentic = {
         description = "Pre-pull primary agentic model (${cfg.agentic.model})";
