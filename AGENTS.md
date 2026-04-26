@@ -120,6 +120,9 @@ Subcommands to route through rtk by default (full set as of v0.37.2 — call `rt
 3. The Bash tool auto-allows the `rtk <subcmd> *` patterns currently in `~/.claude/settings.local.json`; new subcommands may prompt the first time — approve and continue.
 4. Don't bother with `rtk` for commands that already produce minimal output (e.g. `hyprctl`, single-unit `systemctl status`) — the proxy overhead is wasted there.
 
+**14. Conventional Commits**
+All commit messages must follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/): `<type>[optional scope]: <description>`. Types: `feat`, `fix`, `docs`, `refactor`, `chore`, `build`, `ci`, `test`, `perf`, `style`, `revert`. Scope is the affected module/area (e.g. `feat(waybar): …`, `fix(hyprland): …`, `docs(agents): …`). Breaking changes append `!` after type/scope (`feat!:`) or carry a `BREAKING CHANGE:` footer. Description is imperative, lowercase, no trailing period. This applies to commits authored by humans, by `mandragora-switch`'s AI fallback, and by any agent invoking `git commit` directly.
+
 
 ---
 
