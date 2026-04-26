@@ -16,5 +16,7 @@
     enable32Bit = true;
   };
 
+  boot.kernelModules = [ "nvidia" "nvidia_modeset" "nvidia_drm" "nvidia_uvm" ];
+
   mandragora.hardware.gpu.vramGB = 16;
 }
