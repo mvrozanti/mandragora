@@ -2,7 +2,7 @@
   "$schema": "https://charm.land/crush.json",
   "providers": {
     "ollama": {
-      "type": "openai",
+      "type": "openai-compat",
       "name": "Ollama (local)",
       "base_url": "http://127.0.0.1:11434/v1",
       "api_key": "ollama",
