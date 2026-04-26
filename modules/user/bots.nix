@@ -28,7 +28,7 @@
 
   systemd.user.services.llm-via-telegram = {
     Unit = {
-      Description = "LLM-via-Telegram bot (Ollama-backed Qwen, GPU-coordinated)";
+      Description = "LLM-via-Telegram bot (Ollama-backed gpt-oss:20b, GPU-coordinated)";
       After = [ "graphical-session.target" "network-online.target" ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [

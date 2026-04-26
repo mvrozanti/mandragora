@@ -29,10 +29,10 @@ in
     };
 
     ai.agentic = {
-      enable = lib.mkEnableOption "Local agentic LLM stack (Qwen3-30B-A3B + Crush TUI)";
+      enable = lib.mkEnableOption "Local agentic LLM stack (gpt-oss:20b + Crush TUI)";
       model = lib.mkOption {
         type = lib.types.str;
-        default = "qwen3:14b";
+        default = "gpt-oss:20b";
         description = "Ollama tag for the primary agentic model.";
       };
     };
@@ -68,8 +68,7 @@ in
         assertion = gpu.vramGB != null && gpu.vramGB >= 16;
         message = ''
           mandragora.ai.agentic.enable requires mandragora.hardware.gpu.vramGB >= 16.
-          Qwen3-30B-A3B at Q4_K_M needs ~18GB total with partial CPU offload of idle experts;
-          16GB VRAM + 32GB RAM is the documented minimum for this host.
+          gpt-oss:20b (MoE 21B/3.6B active) fits fully in 16GB VRAM at Q4.
         '';
       }];
 
