@@ -58,29 +58,26 @@
     before = [ "sysroot.mount" ];
     unitConfig.DefaultDependencies = "no";
     serviceConfig.Type = "oneshot";
-    path = [ pkgs.gawk pkgs.btrfs-progs pkgs.util-linux pkgs.coreutils ];
     script = ''
-      mkdir -p /mnt
+      ${pkgs.coreutils}/bin/mkdir -p /mnt
 
-      # -t btrfs required: initrd mount cannot auto-detect filesystem type
-      mount -t btrfs -o subvol=/ /dev/disk/by-label/NIXOS /mnt
+      ${pkgs.util-linux}/bin/mount -t btrfs -o subvol=/ /dev/disk/by-label/NIXOS /mnt
 
-      # Delete nested subvols first (systemd creates these on every successful boot)
       if [ -e "/mnt/root-active" ]; then
-          subvols=$(btrfs subvolume list -o /mnt/root-active | awk '{print $NF}')
+          subvols=$(${pkgs.btrfs-progs}/bin/btrfs subvolume list -o /mnt/root-active | ${pkgs.gawk}/bin/awk '{print $NF}')
           for subvol in $subvols; do
-              btrfs subvolume delete "/mnt/$subvol"
+              ${pkgs.btrfs-progs}/bin/btrfs subvolume delete "/mnt/$subvol"
           done
-          btrfs subvolume delete -c "/mnt/root-active"
+          ${pkgs.btrfs-progs}/bin/btrfs subvolume delete -c "/mnt/root-active"
       fi
 
       if [ -e "/mnt/root-blank" ]; then
-          btrfs subvolume snapshot "/mnt/root-blank" "/mnt/root-active"
+          ${pkgs.btrfs-progs}/bin/btrfs subvolume snapshot "/mnt/root-blank" "/mnt/root-active"
       else
-          btrfs subvolume create "/mnt/root-active"
+          ${pkgs.btrfs-progs}/bin/btrfs subvolume create "/mnt/root-active"
       fi
 
-      umount /mnt
+      ${pkgs.util-linux}/bin/umount /mnt
     '';
   };
 }
