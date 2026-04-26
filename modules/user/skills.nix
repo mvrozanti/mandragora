@@ -80,19 +80,24 @@ let
   }) bmadSkills);
 
   crossAgentSkills = [
-    { n = "handoff"; s = ../../.claude/skills/handoff; }
-    { n = "pickup";  s = ../../.claude/skills/pickup; }
+    { n = "handoff"; s = ../../agent-skills/handoff; }
+    { n = "pickup";  s = ../../agent-skills/pickup; }
   ];
 
-  mkCrossAgentEntries = prefix: lib.listToAttrs (map (e: {
+  claudeOnlySkills = [
+    { n = "nrp"; s = ../../agent-skills/nrp; }
+  ];
+
+  mkEntries = prefix: skills: lib.listToAttrs (map (e: {
     name = "${prefix}/${e.n}";
     value = { source = e.s; };
-  }) crossAgentSkills);
+  }) skills);
 in
 {
   home.file =
     mkSkillEntries ".claude/skills"
     // mkSkillEntries ".gemini/skills"
-    // mkCrossAgentEntries ".claude/skills"
-    // mkCrossAgentEntries ".gemini/skills";
+    // mkEntries ".claude/skills" crossAgentSkills
+    // mkEntries ".gemini/skills" crossAgentSkills
+    // mkEntries ".claude/skills" claudeOnlySkills;
 }
