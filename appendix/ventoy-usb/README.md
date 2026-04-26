@@ -9,7 +9,7 @@ Boot into Arch or NixOS with tools, persistence, and the full NixOS flake.
 /
 ├── isos/
 │   ├── mandragora-arch.iso
-│   └── mandragora-nixos.iso
+│   └── mandragora.iso
 ├── persistence/
 │   ├── arch_persistence.dat      2GB ext4, Ventoy cow persistence (Arch)
 │   └── nixos_persistence.dat     2GB ext4, loop-mounted at /persist (NixOS)
@@ -20,7 +20,7 @@ Boot into Arch or NixOS with tools, persistence, and the full NixOS flake.
 │   ├── hw-diag.sh                Full hardware diagnostics
 │   └── gpu-stress.sh             GPU stress test menu
 ├── docs/
-│   └── mandragora-nixos/         Full flake repo (copied by create-ventoy-usb.sh)
+│   └── mandragora/         Full flake repo (copied by create-ventoy-usb.sh)
 └── keys/                         Age keys, secrets (user-managed)
 ```
 
@@ -75,7 +75,7 @@ Claude credentials + SSH keys into the NixOS persistence image.
 3. Live shell opens: zsh, MOTD with available commands
 4. `cat ~/README.md` — full step-by-step install guide
 5. `/mnt/ventoy` auto-mounted read/write (the USB's exFAT partition)
-6. Flake at `/mnt/ventoy/docs/mandragora-nixos`
+6. Flake at `/mnt/ventoy/docs/mandragora`
 7. `nix shell`, `nix build`, `sops`, `age` all work without extra flags
 
 ## NixOS Persistence

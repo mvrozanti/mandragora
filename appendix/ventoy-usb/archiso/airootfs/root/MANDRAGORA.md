@@ -8,7 +8,7 @@
 ## What's Where
 
     /mnt/ventoy/                USB drive (mount -L Ventoy /mnt/ventoy if not mounted)
-    /mnt/ventoy/docs/mandragora-nixos/   NixOS flake
+    /mnt/ventoy/docs/mandragora/   NixOS flake
     /mnt/ventoy/toolbox/        Scripts: format-drive, hw-diag, gpu-stress
     ~/MANDRAGORA.md             This file
 

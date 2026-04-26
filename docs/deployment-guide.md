@@ -1,4 +1,4 @@
-# mandragora-nixos — Deployment Guide
+# mandragora — Deployment Guide
 
 **Date:** 2026-04-25
 
@@ -57,7 +57,7 @@ section is the AI-facing summary.
 
 ```bash
 # 1. Clone the repo into the live environment
-git clone https://github.com/mvrozanti/mandragora-nixos.git /tmp/mandragora
+git clone https://github.com/mvrozanti/mandragora.git /tmp/mandragora
 cd /tmp/mandragora
 
 # 2. Partition + Btrfs subvolumes

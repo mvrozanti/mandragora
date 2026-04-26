@@ -17,7 +17,7 @@ This file is the single source of truth for all AI agents (Claude, Gemini, local
 ## The System Config
 
 **Repo:** `/etc/nixos/mandragora/` — git-tracked, owned by `m:users`
-**GitHub remote:** `https://github.com/mvrozanti/mandragora-nixos.git`
+**GitHub remote:** `https://github.com/mvrozanti/mandragora.git`
 **Old Arch dotfiles (reference):** `/home/m/projects/mandragora/` and `https://github.com/mvrozanti/mandragora`
 
 ---

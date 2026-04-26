@@ -1,7 +1,7 @@
 { config, pkgs, lib, ... }:
 
 {
-  isoImage.isoBaseName = lib.mkForce "mandragora-nixos";
+  isoImage.isoBaseName = lib.mkForce "mandragora";
   nixpkgs.config.allowUnfree = true;
   networking.hostName = "mandragora-usb";
 
@@ -216,7 +216,7 @@
 
         NHOME="/home/nixos"
         [ -d "$NHOME" ] || exit 0
-        ln -sfn /mnt/ventoy/docs/mandragora-nixos "$NHOME/mandragora-nixos"
+        ln -sfn /mnt/ventoy/docs/mandragora "$NHOME/mandragora"
         ln -sfn "$MNT/npm-global" "$NHOME/.npm-global"
         mkdir -p "$NHOME/.claude"
         [ -f "$MNT/claude/.credentials.json" ] && \
@@ -304,7 +304,7 @@
     alias diag='/mnt/ventoy/toolbox/hw-diag.sh'
     alias gpucheck='/mnt/ventoy/toolbox/gpu-stress.sh'
     alias ventoy='cd /mnt/ventoy'
-    alias repo='cd /mnt/ventoy/docs/mandragora-nixos'
+    alias repo='cd /mnt/ventoy/docs/mandragora'
 
     mandragora-debug() {
       local OUT="/tmp/mandragora-debug.log"
@@ -414,7 +414,7 @@
     alias diag='/mnt/ventoy/toolbox/hw-diag.sh'
     alias gpucheck='/mnt/ventoy/toolbox/gpu-stress.sh'
     alias ventoy='cd /mnt/ventoy'
-    alias repo='cd /mnt/ventoy/docs/mandragora-nixos'
+    alias repo='cd /mnt/ventoy/docs/mandragora'
 
     mandragora-debug() {
       local OUT="/tmp/mandragora-debug.log"

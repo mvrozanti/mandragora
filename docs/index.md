@@ -1,4 +1,4 @@
-# mandragora-nixos Documentation Index
+# mandragora Documentation Index
 
 **Type:** monolith (single-host NixOS flake)
 **Primary Language:** Nix (with Bash, Python, Lua, CSS as XDG-mirrored snippets)
@@ -7,7 +7,7 @@
 
 ## Project Overview
 
-`mandragora-nixos` is the complete declarative system configuration for the
+`mandragora` is the complete declarative system configuration for the
 Mandragora workstation — a single host (`mandragora-desktop`), single user
 (`m`), single nixosConfiguration. Every runtime concern is expressed as a
 Nix module under `modules/`. The host's root filesystem is wiped on every
