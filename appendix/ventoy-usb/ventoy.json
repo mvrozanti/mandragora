@@ -14,7 +14,7 @@
             "alias": "Arch Linux \u2014 Mandragora (Persistent)"
         },
         {
-            "image": "/isos/mandragora-nixos.iso",
+            "image": "/isos/mandragora.iso",
             "alias": "NixOS \u2014 Mandragora"
         }
     ]

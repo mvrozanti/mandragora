@@ -55,10 +55,10 @@ log "Mounting $DATA_PART at $USB_MNT..."
 mount "$DATA_PART" "$USB_MNT"
 
 # ---- Copy ISO ----
-ISO="$ISO_CACHE/mandragora-nixos.iso"
+ISO="$ISO_CACHE/mandragora.iso"
 if [[ -f "$ISO" ]]; then
     log "Copying ISO ($(du -sh "$ISO" | cut -f1))... this takes a minute."
-    cp "$ISO" "$USB_MNT/isos/mandragora-nixos.iso"
+    cp "$ISO" "$USB_MNT/isos/mandragora.iso"
 else
     warn "No ISO found at $ISO. Skipping."
 fi
@@ -74,8 +74,8 @@ cp "$SCRIPT_DIR/ventoy.json" "$USB_MNT/ventoy/ventoy.json"
 
 # ---- Copy repo ----
 log "Updating repo in docs/..."
-rm -rf "$USB_MNT/docs/mandragora-nixos"
-cp -r "$REPO_DIR" "$USB_MNT/docs/mandragora-nixos"
+rm -rf "$USB_MNT/docs/mandragora"
+cp -r "$REPO_DIR" "$USB_MNT/docs/mandragora"
 
 # ---- Copy credentials into persist image ----
 PERSIST_IMG="$USB_MNT/persistence/nixos_persistence.dat"
@@ -142,7 +142,7 @@ echo ""
 echo "════════════════════════════════════════"
 echo "  USB updated."
 echo "════════════════════════════════════════"
-[[ -f "$ISO" ]] && echo "  ISO:         $(du -sh "$USB_MNT/isos/mandragora-nixos.iso" | cut -f1)"
+[[ -f "$ISO" ]] && echo "  ISO:         $(du -sh "$USB_MNT/isos/mandragora.iso" | cut -f1)"
 echo "  Toolbox:     updated"
 echo "  Repo:        updated"
 echo "  OAuth token: $([[ -n "${OAUTH_TOKEN_ARG:-}" ]] && echo "stored" || echo "NOT SET — pass token as 2nd arg")"

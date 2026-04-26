@@ -1,4 +1,4 @@
-# mandragora-nixos — Architecture
+# mandragora — Architecture
 
 **Date:** 2026-04-25
 **Type:** infra (NixOS flake, single host)

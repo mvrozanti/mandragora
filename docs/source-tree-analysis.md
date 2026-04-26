@@ -1,4 +1,4 @@
-# mandragora-nixos — Source Tree Analysis
+# mandragora — Source Tree Analysis
 
 **Date:** 2026-04-25
 
@@ -16,7 +16,7 @@ running system.
 ## Complete Directory Structure
 
 ```
-mandragora-nixos/
+mandragora/
 ├── flake.nix                     # Flake entry — defines nixosConfigurations.mandragora-desktop
 ├── flake.lock                    # Pinned input revisions
 ├── README.md                     # Quick reader-facing summary

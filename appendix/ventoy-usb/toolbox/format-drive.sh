@@ -95,7 +95,7 @@ mkdir -p /mnt/persistent/var/{lib/nixos,lib/bluetooth,lib/NetworkManager,log}
 
 # ---- Copy flake from USB if available ----
 FLAKE_SRC=""
-for candidate in /mnt/ventoy/docs/mandragora-nixos /run/media/*/docs/mandragora-nixos; do
+for candidate in /mnt/ventoy/docs/mandragora /run/media/*/docs/mandragora; do
     if [[ -d "$candidate/hosts" ]]; then
         FLAKE_SRC="$candidate"
         break
