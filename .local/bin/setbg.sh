@@ -13,7 +13,6 @@ if [[ -z "$fpath" || ! -e "$fpath" ]]; then
 fi
 fpath="$(realpath "$fpath")"
 
-# hyprctl prints errors to stdout when it can't connect to the socket
 pos_x=$(printf "0.%02d" $((RANDOM % 100)))
 pos_y=$(printf "0.%02d" $((RANDOM % 100)))
 pos="$pos_x,$pos_y"
@@ -29,7 +28,6 @@ if tmux info &>/dev/null; then
 fi
 
 if ! systemctl is-active --quiet openrgb; then
-    # We now have NOPASSWD for this in security.nix
     sudo systemctl start openrgb
     sleep 1
 fi
