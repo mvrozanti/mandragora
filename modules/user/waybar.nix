@@ -82,7 +82,7 @@
           interval = 5;
         };
         "custom/gpu" = {
-          format = "  {}%";
+          format = "󰢯  {}%";
           exec = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits";
           interval = 5;
         };
