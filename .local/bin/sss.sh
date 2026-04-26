@@ -3,31 +3,34 @@ set -euo pipefail
 
 SECRETS_FILE=/etc/nixos/mandragora/secrets/secrets.yaml
 AGE_KEY=/persistent/secrets/keys.txt
+OBS_LOG_DIR="${HOME}/.config/obs-studio/logs"
 
-obs_recording_pid() {
-  local pids pid fd target
-  pids=$(pgrep -x obs 2>/dev/null || true)
-  [[ -z "$pids" ]] && return 1
-  for pid in $pids; do
-    [[ -d /proc/$pid/fd ]] || continue
-    for fd in /proc/$pid/fd/*; do
-      [[ -L "$fd" ]] || continue
-      target=$(readlink "$fd" 2>/dev/null || true)
-      case "${target,,}" in
-        *.mkv|*.mp4|*.flv|*.mov|*.ts|*.m4a|*.webm|*.fragmented_mp4)
-          [[ "$target" == /* && "$target" != /dev/* && "$target" != /proc/* ]] || continue
-          echo "$pid $target"
-          return 0
-          ;;
-      esac
-    done
-  done
-  return 1
+obs_recording_status() {
+  pgrep -x obs >/dev/null 2>&1 || return 1
+  [[ -d "$OBS_LOG_DIR" ]] || return 1
+
+  local log
+  log=$(find "$OBS_LOG_DIR" -maxdepth 1 -type f -name '*.txt' -printf '%T@\t%p\n' 2>/dev/null \
+        | sort -rn | head -1 | cut -f2-)
+  [[ -n "$log" && -f "$log" ]] || return 1
+
+  local last
+  last=$(grep -E '==== Recording (Start|Stop)' "$log" | tail -1)
+  [[ "$last" == *"Recording Start"* ]] || return 1
+
+  local file_line
+  file_line=$(grep -E "Writing .* file '" "$log" | tail -1)
+  if [[ "$file_line" =~ \'([^\']+)\' ]]; then
+    echo "${BASH_REMATCH[1]}"
+  else
+    echo "unknown output file"
+  fi
+  return 0
 }
 
-if hit=$(obs_recording_pid); then
-  echo "sss: OBS appears to be recording (${hit}) — refusing to open ${SECRETS_FILE}." >&2
-  echo "     Stop the recording first, then re-run sss." >&2
+if hit=$(obs_recording_status); then
+  echo "sss: OBS is recording (${hit}) — refusing to open ${SECRETS_FILE} in nvim." >&2
+  echo "     Stop the recording in OBS first, then re-run sss." >&2
   exit 1
 fi
 
