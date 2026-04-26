@@ -56,5 +56,16 @@
 
   boot.initrd.systemd.emergencyAccess = true;
 
+  fileSystems."/persist" = {
+    device = "/dev/disk/by-label/mandragora-persist";
+    fsType = "ext4";
+    options = [ "nofail" "x-systemd.device-timeout=10" ];
+  };
+
+  systemd.tmpfiles.rules = [
+    "d /persist 0755 root root - -"
+    "d /persist/npm-global 0755 m users - -"
+  ];
+
   system.stateVersion = "25.05";
 }
