@@ -1,5 +1,5 @@
 {
-  description = "Mandragora NixOS bootstrap USB ISO";
+  description = "Mandragora bootstrap USB ISO";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
 

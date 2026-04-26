@@ -1,6 +1,6 @@
 # Mandragora Inspiration: The External Horizon
 
-This document logs external configurations, repositories, and projects that serve as technical or aesthetic inspiration for the Mandragora NixOS ecosystem.
+This document logs external configurations, repositories, and projects that serve as technical or aesthetic inspiration for the Mandragora ecosystem.
 
 ## 1. Repositories
 
