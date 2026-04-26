@@ -31,9 +31,12 @@
       };
     };
 
-    templates."hosts-oracle".content = ''
-      ${config.sops.placeholder."oracle/ip"} oracle
-    '';
+    templates."hosts-oracle" = {
+      content = ''
+        ${config.sops.placeholder."oracle/ip"} oracle
+      '';
+      mode = "0444";
+    };
   };
 
   users.users.m.hashedPasswordFile = config.sops.secrets."user/password".path;
