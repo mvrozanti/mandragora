@@ -15,4 +15,6 @@
     enable = true;
     enable32Bit = true;
   };
+
+  mandragora.hardware.gpu.vramGB = 16;
 }
