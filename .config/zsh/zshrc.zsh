@@ -1,7 +1,10 @@
 # ── Extra Zsh Configuration ──────────────────────────────────────
 
-# Apply matugen terminal palette
-(cat ~/.cache/matugen/sequences 2>/dev/null &)
+# Apply matugen terminal palette (skip inside tmux: OSC 11 forces an opaque
+# pane background and breaks the terminal's transparency).
+if [[ -z "$TMUX" ]]; then
+  (cat ~/.cache/matugen/sequences 2>/dev/null &)
+fi
 
 printf '\e[1 q'
 
