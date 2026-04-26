@@ -1,5 +1,9 @@
 { config, pkgs, lib, ... }:
 
+let
+  oracleHostsInject = pkgs.writeShellScript "oracle-hosts-inject"
+    (builtins.readFile ../../.local/bin/oracle-hosts-inject.sh);
+in
 {
   sops = {
     defaultSopsFile = ../../secrets/secrets.yaml;
@@ -40,4 +44,9 @@
   };
 
   users.users.m.hashedPasswordFile = config.sops.secrets."user/password".path;
+
+  system.activationScripts.oracle-in-hosts = {
+    text = "${oracleHostsInject}";
+    deps = [ "setupSecrets" ];
+  };
 }
