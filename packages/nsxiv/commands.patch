@@ -1,0 +1,40 @@
+--- a/commands.h
++++ b/commands.h
+@@ -38,6 +38,7 @@
+ bool ci_scroll_to_center(arg_t);
+ bool ci_scroll_to_edge(arg_t);
+ bool ci_set_zoom(arg_t);
++bool ci_copy_to_clipboard(arg_t);
+ bool ci_slideshow(arg_t);
+ bool ci_toggle_alpha(arg_t);
+ bool ci_toggle_animation(arg_t);
+@@ -79,6 +80,7 @@
+ #define i_scroll_to_center { ci_scroll_to_center, MODE_IMAGE }
+ #define i_scroll_to_edge { ci_scroll_to_edge, MODE_IMAGE }
+ #define i_set_zoom { ci_set_zoom, MODE_IMAGE }
++#define i_copy_to_clipboard { ci_copy_to_clipboard, MODE_IMAGE }
+ #define i_slideshow { ci_slideshow, MODE_IMAGE }
+ #define i_toggle_alpha { ci_toggle_alpha, MODE_IMAGE }
+ #define i_toggle_animation { ci_toggle_animation, MODE_IMAGE }
+--- a/commands.c
++++ b/commands.c
+@@ -211,6 +211,18 @@
+        return img_zoom(&img, (prefix ? prefix : zl) / 100.0);
+ }
+ 
++bool ci_copy_to_clipboard(arg_t _)
++{
++	char le_program[512];
++	snprintf(le_program, sizeof(le_program), "ic '%s' &", file_realpath(&files[fileidx]));
++	int le_failure = system(le_program);
++	if (le_failure != 0) {
++		/* Fallback to name if realpath fails or something */
++		snprintf(le_program, sizeof(le_program), "ic '%s' &", files[fileidx].name);
++		le_failure = system(le_program);
++	}
++	return le_failure == 0;
++}
++
+ bool ci_slideshow(arg_t _)
+ {
+        if (prefix > 0) {
