@@ -8,8 +8,8 @@
       "api_key": "ollama",
       "models": [
         {
-          "id": "qwen2.5-coder:14b",
-          "name": "Qwen2.5 Coder 14B",
+          "id": "devstral:24b",
+          "name": "Devstral 24B",
           "cost_per_1m_in": 0,
           "cost_per_1m_out": 0,
           "cost_per_1m_in_cached": 0,
@@ -24,8 +24,8 @@
     }
   },
   "models": {
-    "large": { "model": "qwen2.5-coder:14b", "provider": "ollama" },
-    "small": { "model": "qwen2.5-coder:14b", "provider": "ollama" }
+    "large": { "model": "devstral:24b", "provider": "ollama" },
+    "small": { "model": "devstral:24b", "provider": "ollama" }
   },
   "options": {
     "context_paths": [
@@ -41,7 +41,7 @@
     "allowed_tools": ["bash", "view", "ls", "grep", "edit", "write", "fetch", "sourcegraph", "glob", "multiedit", "todos", "download"]
   },
   "tools": {
-    "ls": { "max_depth": 4, "max_items": 500 },
+    "ls": { "max_depth": 0, "max_items": 1000 },
     "grep": { "timeout": 30 }
   }
 }
