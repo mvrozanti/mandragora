@@ -17,6 +17,16 @@
     "net.ipv6.conf.enp8s0.autoconf" = 1;
   };
 
+  services.dnsmasq = {
+    enable = true;
+    settings = {
+      server = [ "1.1.1.1" "1.0.0.1" ];
+      addn-hosts = [ config.sops.templates."hosts-oracle".path ];
+      interface = "lo";
+      bind-interfaces = true;
+    };
+  };
+
   users.users.m = {
     isNormalUser = true;
     description = "Mandragora Primary User";
@@ -78,5 +88,6 @@
     gawk
     dmidecode
     iotop
+    dnsmasq
   ];
 }
