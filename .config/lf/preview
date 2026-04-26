@@ -29,14 +29,15 @@ x="$4"
 y="$5"
 
 if [ -d "$file" ]; then
+  resolved=$(readlink -f -- "$file")
   cache_dir="/tmp/lf-dirsize-$USER"
   mkdir -p "$cache_dir"
-  key=$(printf '%s' "$file" | sha1sum | cut -c1-16)
+  key=$(printf '%s' "$resolved" | sha1sum | cut -c1-16)
   cf="$cache_dir/$key"
-  if [ -s "$cf" ] && [ "$cf" -nt "$file" ]; then
+  if [ -s "$cf" ] && [ "$cf" -nt "$resolved" ]; then
     sz=$(cat "$cf")
   else
-    sz=$(timeout 8 du -sh -- "$file" 2>/dev/null | cut -f1)
+    sz=$(timeout 8 du -sh -- "$resolved" 2>/dev/null | cut -f1)
     [ -n "$sz" ] && printf '%s' "$sz" > "$cf"
   fi
   printf '\033[1;33msize:\033[0m %s\n\n' "${sz:-?}"
