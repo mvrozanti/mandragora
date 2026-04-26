@@ -598,7 +598,7 @@ in
       isDefault = true;
       id = 0;
       path = "iwwxmo01.default";
-      extensions = [ pkgs.claude-sidebar ];
+      extensions.packages = [ pkgs.claude-sidebar ];
       settings = {
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "widget.gtk.native-context-menus" = false;
