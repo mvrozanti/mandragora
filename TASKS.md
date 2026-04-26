@@ -98,20 +98,41 @@ of NixOS 25.05 (now `system.image` in modern flow). Plan still uses
   decision — no longer a hard exit gate. Do when convenient.
 - **M1.8** (manual /persist partition on flashed USB): depends on M1.7.
 
+### M3.7 result (2026-04-26, partial)
+
+Drove the install pipeline via SSH+`--auto` against the live VM. Stages
+1-7 (network probe, candidate detect, format, mount, render hardware
+config + host file, copy flake to /mnt) **all green** after two fixes
+landed in commit `36541c65`:
+
+- `environment.etc."nixos/mandragora".source = ../..;` on the host so
+  the live USB has a flake source at `/etc/nixos/mandragora` (it's a
+  symlink into the Nix store copy). Without this, `cp /etc/nixos/...`
+  in step 7 failed with "No such file or directory".
+- Reorder `install.sh`: copy flake → render-config (was: render → copy,
+  which nested the source inside the pre-existing hosts/<host>/ dir).
+
+Stage 8 (`nixos-install --flake .#testbox`) **still fails** because
+render-config writes `hosts/testbox/default.nix` but does NOT patch
+`flake.nix` to add `nixosConfigurations.testbox`. This is M4-class
+architecture work (auto-register all `hosts/*` into the flake, plus the
+`mandragora.profile` enum so the rendered host can opt into the right
+shared modules). Documented as a known boundary; not fixed in M3.
+
 ### Next when resuming
 
-**M3.7** — manual end-to-end install in the refiner. Human-in-loop:
-1. `nix run /etc/nixos/mandragora#refiner`
-2. log in as `m`/`mandragora`
-3. `sudo mandragora-install` and walk through the prompts (target = `/dev/vdb`)
-4. let it run nixos-install on the 40 GB target.qcow2
-5. shut down VM, restart QEMU pointing only at target.qcow2 to verify the
-   installed system boots.
+**M4** — shared modules with `mandragora.profile = "desktop" | "live"`.
+This is the substantive refactor of `modules/desktop/`, `modules/user/home.nix`,
+`modules/core/impermanence.nix` to gate desktop-only pieces, plus the
+auto-host-registration in `flake.nix`. **High blast radius for the
+desktop config.** Use subagent + 2 reviewers per the hybrid execution rule.
 
-After M3.7 passes: M4 — shared modules with `mandragora.profile = "desktop"|"live"`.
-This is a substantive refactor of `modules/desktop/`, `modules/user/home.nix`,
-`modules/core/impermanence.nix`. **High blast radius for the desktop config.**
-Use subagent + 2 reviewers per the hybrid execution rule.
+After M4: re-run M3.7's --auto smoke, expect end-to-end success including
+nixos-install. Then M5 (npm + claude-bootstrap.service) and onward.
+
+The M9 `--auto` driver is now exercised informally — building the formal
+expect-based wrapper at M9 is mostly recording the working command line
+rather than discovering it.
 
 **Decisions beyond the spec/plan (still apply):**
 - Stay on `master`, no feature branch.
