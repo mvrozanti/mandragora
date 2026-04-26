@@ -16,5 +16,5 @@ Steam + Proton-GE for gaming.
 
 ## Connections
 - Up: [[../_index|Modules]]
-- Pairs with: [[../core/graphics]] (32-bit graphics enabled), [[minecraft]] (gaming sibling)
+- Pairs with: [[../core/graphics]] (32-bit graphics enabled), [[minecraft-desktop|minecraft]] (gaming sibling)
 - Touches: [[../../concepts/nvidia]]
