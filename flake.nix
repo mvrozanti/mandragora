@@ -16,6 +16,11 @@
 
     impermanence.url = "github:nix-community/impermanence";
 
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     bmad-method = {
       url = "github:bmad-code-org/BMAD-METHOD/v6.4.0";
       flake = false;
@@ -34,7 +39,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, sops-nix, impermanence, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, sops-nix, impermanence, nixos-generators, ... }@inputs:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
