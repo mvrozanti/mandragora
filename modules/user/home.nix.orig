@@ -635,8 +635,6 @@ in
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "browser.tabs.inTitlebar" = 0;
         "browser.uidensity" = 1;
-        "widget.wayland.vsync.enabled" = false;
-        "gfx.webrender.compositor" = false;
       };
       userChrome = ''
         #TabsToolbar { visibility: collapse !important; }
@@ -652,8 +650,6 @@ in
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "browser.tabs.inTitlebar" = 0;
         "browser.uidensity" = 1;
-        "widget.wayland.vsync.enabled" = false;
-        "gfx.webrender.compositor" = false;
       };
       userChrome = ''
         #TabsToolbar { visibility: collapse !important; }
@@ -778,7 +774,7 @@ EOF
   home.file.".local/share/applications/chess-com.desktop".text = ''
 [Desktop Entry]
 Name=Chess.com
-Exec=env MOZ_ENABLE_WAYLAND=0 MOZ_APP_REMOTINGNAME=chess-com firefox -P chess --new-instance --url https://www.chess.com
+Exec=env MOZ_APP_REMOTINGNAME=chess-com firefox -P chess --new-instance --url https://www.chess.com
 Icon=${pkgs.gnome-chess}/share/icons/hicolor/scalable/apps/org.gnome.Chess.svg
 Type=Application
 Categories=Game;BoardGame;
@@ -787,7 +783,7 @@ StartupWMClass=chess-com
   home.file.".local/share/applications/whatsapp-web.desktop".text = ''
 [Desktop Entry]
 Name=WhatsApp
-Exec=env MOZ_ENABLE_WAYLAND=0 MOZ_APP_REMOTINGNAME=whatsapp-web firefox -P whatsapp --new-instance --url https://web.whatsapp.com
+Exec=env MOZ_APP_REMOTINGNAME=whatsapp-web firefox -P whatsapp --new-instance --url https://web.whatsapp.com
 Icon=${pkgs.zapzap}/share/icons/hicolor/scalable/apps/com.rtosta.zapzap.svg
 Type=Application
 Categories=Network;InstantMessaging;
