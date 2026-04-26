@@ -70,5 +70,14 @@
           ];
         };
       };
+
+      packages.${system}.usbImage = nixos-generators.nixosGenerate {
+        inherit system;
+        format = "raw-efi";
+        modules = [
+          ./hosts/mandragora-usb/default.nix
+          sops-nix.nixosModules.sops
+        ];
+      };
     };
 }
