@@ -51,6 +51,14 @@
 
   boot.resumeDevice = "/dev/disk/by-uuid/35f1250b-3b82-45bb-abab-62236e91fe26";
 
+  boot.initrd.systemd.storePaths = [
+    "${pkgs.util-linux}/bin/mount"
+    "${pkgs.util-linux}/bin/umount"
+    "${pkgs.btrfs-progs}/bin/btrfs"
+    "${pkgs.gawk}/bin/awk"
+    "${pkgs.coreutils}/bin/mkdir"
+  ];
+
   boot.initrd.systemd.services.rollback = {
     description = "Rollback BTRFS root subvolume to a pristine state";
     wantedBy = [ "initrd.target" ];
