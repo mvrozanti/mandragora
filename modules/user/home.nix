@@ -16,6 +16,7 @@ in
     ./tmux.nix
     ./lf.nix
     ./services.nix
+    ./bots.nix
     ./waybar.nix
     ./minecraft.nix
     ./skills.nix
