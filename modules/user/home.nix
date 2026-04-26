@@ -27,7 +27,6 @@ in
   home.stateVersion = "23.11";
 
   home.packages = with pkgs; [
-    (pkgs.runCommand "firefox-alias" {} "mkdir -p $out/bin; ln -s ${pkgs.firefox-esr}/bin/firefox-esr $out/bin/firefox")
     ripgrep
     fd
     fzf
@@ -585,28 +584,15 @@ in
   };
 
   programs.firefox = {
-    package = pkgs.firefox-esr;
     enable = true;
     nativeMessagingHosts = [ pkgs.tridactyl-native ];
-    policies = {
-      ExtensionSettings = {
-        "{d1399635-a397-4ee7-bc61-d917bd5e1010}" = {
-          installation_mode = "force_installed";
-          install_url = "file://${pkgs.claude-sidebar}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}/{d1399635-a397-4ee7-bc61-d917bd5e1010}.xpi";
-        };
-      };
-    };
     profiles.default = {
       isDefault = true;
       id = 0;
       path = "iwwxmo01.default";
-      extensions.packages = [ pkgs.claude-sidebar ];
       settings = {
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "widget.gtk.native-context-menus" = false;
-        "xpinstall.signatures.required" = false;
-        "extensions.autoDisableScopes" = 0;
-        "extensions.enabledScopes" = 15;
       };
       userChrome = ''
         menupopup,
@@ -692,7 +678,7 @@ in
       user.email = "mvrozanti@hotmail.com";
       push.autoSetupRemote = true;
       safe.directory = [
-        "/mnt/ventoy/docs/mandragora"
+        "/mnt/ventoy/docs/mandragora-nixos"
         "/persistent/mandragora"
       ];
     };

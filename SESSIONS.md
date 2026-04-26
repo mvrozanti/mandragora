@@ -59,7 +59,7 @@ System is hours old. Fourth NixOS generation. Hyprland is running (Wayland confi
 - [ ] Locate old SSH/GPG keys (Ventoy USB needs mounting: `sudo mount -o ro /dev/sda1 /mnt`) and import into sops
 - [ ] Ollama: pull a model after rebuild (`ollama pull qwen2.5-coder:14b` or `ollama pull gemma3:27b`)
 - [ ] Configure MCP server for Ollama → Claude Code integration
-- [x] Unified repository name to mandragora
+- [ ] Fuse mandragora and mandragora-nixos repos (long-term, post-migration)
 
 ## Session: 2026-04-19 — Core Migration & Syntax Stabilization
 **Status:** Success (after stabilization)
