@@ -44,7 +44,7 @@ in
         enable = true;
         package = pkgs.ollama-cuda;
         environmentVariables = {
-          OLLAMA_CONTEXT_LENGTH = "32768";
+          OLLAMA_CONTEXT_LENGTH = "40960";
         };
       };
 
