@@ -43,7 +43,14 @@ in
       services.ollama = {
         enable = true;
         package = pkgs.ollama-cuda;
+        environmentVariables = {
+          OLLAMA_CONTEXT_LENGTH = "32768";
+        };
       };
+
+      systemd.tmpfiles.rules = [
+        "d /var/lib/private 0700 root root - -"
+      ];
 
       environment.systemPackages = [
         pkgs.oterm
