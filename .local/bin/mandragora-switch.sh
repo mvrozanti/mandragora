@@ -4,6 +4,17 @@ FLAKE="/etc/nixos/mandragora"
 
 cd "$FLAKE"
 
+TOTAL_START=$(date +%s)
+PHASE_START=$TOTAL_START
+phase() {
+  local now elapsed_total elapsed_phase
+  now=$(date +%s)
+  elapsed_total=$((now - TOTAL_START))
+  elapsed_phase=$((now - PHASE_START))
+  printf '==> [+%3ds total, %3ds phase] %s\n' "$elapsed_total" "$elapsed_phase" "$*"
+  PHASE_START=$now
+}
+
 LOCK_SESSION="switch-$$-$(date -u +%s)"
 LOCK_RELEASED=0
 release_lock() {
@@ -30,6 +41,8 @@ if command -v mandragora-lock >/dev/null 2>&1; then
   fi
 fi
 
+phase "lock acquired"
+
 echo "==> Fetching origin..."
 if ! git fetch origin; then
   echo "==> WARNING: git fetch failed. Proceeding without sync check." >&2
@@ -40,6 +53,7 @@ elif [ "$(git rev-list --count HEAD..origin/master)" -gt 0 ]; then
     exit 1
   fi
 fi
+phase "git fetch/rebase"
 
 git add -A
 
@@ -120,25 +134,47 @@ else
   git commit -m "$MSG"
 fi
 
+phase "commit prepared"
+
 echo ""
 echo "==> Building..."
-if sudo nixos-rebuild switch --flake "$FLAKE#mandragora-desktop" 2>&1 | tee /tmp/nixos-rebuild.log | grep --line-buffered -E "^(error:|building|activating|warning:)"; then
+set +e
+sudo nixos-rebuild switch --flake "$FLAKE#mandragora-desktop" 2>&1 | tee /tmp/nixos-rebuild.log | grep --line-buffered -E "^(error:|building|activating|warning:|Failed|systemctl|Done\.)"
+RC=${PIPESTATUS[0]}
+set -e
+phase "nixos-rebuild switch (rc=$RC)"
+
+ACTIVATED=0
+if grep -q "^Done\. The new configuration is " /tmp/nixos-rebuild.log; then
+  ACTIVATED=1
+fi
+
+if [ "$RC" -eq 0 ]; then
   echo ""
   echo "==> Switch successful."
-  if [ "$COMMIT_SKIPPED" -eq 0 ]; then
-    echo "==> Pushing..."
-    if ! git push; then
-      echo "==> FAILED: push was rejected. Your local commit is NOT on origin." >&2
-      echo "==> Run: git pull --rebase && git push" >&2
-      exit 1
-    fi
-  fi
-  echo "==> Done."
+elif [ "$ACTIVATED" -eq 1 ]; then
+  echo ""
+  echo "==> Switch ACTIVATED (new generation is live), but rebuild exited rc=$RC." >&2
+  echo "==> Some unit(s) failed during start. Commit kept; review failures:" >&2
+  grep -E "(failed to start|Failed to start|the following units failed|Job .* failed|systemctl status)" /tmp/nixos-rebuild.log | tail -20 >&2 || true
 else
   echo ""
-  echo "==> FAILED. Full log: /tmp/nixos-rebuild.log" >&2
+  echo "==> FAILED before activation completed (rc=$RC). Full log: /tmp/nixos-rebuild.log" >&2
   if [ "$COMMIT_SKIPPED" -eq 0 ]; then
     git reset HEAD~1
   fi
-  exit 1
+  exit "$RC"
 fi
+
+if [ "$COMMIT_SKIPPED" -eq 0 ]; then
+  echo "==> Pushing..."
+  if ! git push; then
+    echo "==> FAILED: push was rejected. Your local commit is NOT on origin." >&2
+    echo "==> Run: git pull --rebase && git push" >&2
+    exit 1
+  fi
+  phase "git push"
+fi
+
+phase "done"
+exit "$RC"
