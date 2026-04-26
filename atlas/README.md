@@ -10,6 +10,7 @@ This directory is the "Source of Truth" for the physical and conceptual architec
 - **`inspiration.md`**: External configurations, repositories, and hardware references.
 - **`non-negotiables.md`**: Core constraints, architectural decisions, and the "Soul" of the system.
 - **`METADATA.md`**: Routing instructions for LLMs (how to read and update this directory).
+- **`graph/`**: Obsidian-graph vault of small interlinked nodes — modules, configs, scripts, packages, and concept hubs. Open this directory in Obsidian and switch to Graph view to see how every part of the system wires together. Entry point: [`graph/_MOC.md`](graph/_MOC.md).
 
 ## 2. The Build Context (New PC)
 
