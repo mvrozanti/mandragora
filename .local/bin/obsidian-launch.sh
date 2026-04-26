@@ -6,5 +6,5 @@ if [ -n "$ADDR" ]; then
     hyprctl dispatch focuswindow "address:$ADDR"
     hyprctl dispatch bringactivetotop
 else
-    hyprctl dispatch exec '[workspace 41 silent] obsidian'
+    hyprctl dispatch exec '[workspace 41] obsidian'
 fi
