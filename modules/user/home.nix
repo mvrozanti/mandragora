@@ -594,6 +594,9 @@ in
       settings = {
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "widget.gtk.native-context-menus" = false;
+        "xpinstall.signatures.required" = false;
+        "extensions.autoDisableScopes" = 0;
+        "extensions.enabledScopes" = 15;
       };
       userChrome = ''
         menupopup,
