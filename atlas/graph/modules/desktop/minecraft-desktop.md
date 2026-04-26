@@ -14,4 +14,4 @@ System-level Minecraft tooling — launcher and JDK.
 
 ## Connections
 - Up: [[../_index|Modules]]
-- Pairs with: [[../user/minecraft]] (user-side mod config), [[steam]]
+- Pairs with: [[../user/minecraft-user|../user/minecraft]] (user-side mod config), [[steam]]
