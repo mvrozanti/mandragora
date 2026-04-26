@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+# shellcheck source=./lib.sh
+source "$DIR/lib.sh"
+
+AUTO=0
+HOSTNAME=""
+USER_NAME=""
+TARGET=""
+GPU=""
+KEYMAP="us"
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --auto)     AUTO=1; shift ;;
+        --hostname) HOSTNAME="$2"; shift 2 ;;
+        --user)     USER_NAME="$2"; shift 2 ;;
+        --target)   TARGET="$2"; shift 2 ;;
+        --gpu)      GPU="$2"; shift 2 ;;
+        --keymap)   KEYMAP="$2"; shift 2 ;;
+        *) die "unknown arg: $1" ;;
+    esac
+done
+
+require_root
+
+if ping -c1 -W3 github.com >/dev/null 2>&1; then
+    log_info "Network detected; attempting flake refresh..."
+    git -C /etc/nixos/mandragora pull --ff-only origin master 2>/dev/null \
+        || git -C /etc/nixos/mandragora pull --ff-only origin main 2>/dev/null \
+        || log_warn "git pull skipped or failed; using baked flake."
+else
+    log_info "No network; using baked flake."
+fi
+
+log_info "Detecting target disks..."
+CANDIDATES=$(bash "$DIR/detect.sh" 2>/dev/null) || die "no candidate target disks"
+
+if [[ -z "$TARGET" ]]; then
+    if (( AUTO )); then die "--auto requires --target"; fi
+    log_info "Available targets:"
+    select dev in $CANDIDATES "abort"; do
+        case "$dev" in
+            "" ) log_warn "invalid choice"; continue ;;
+            abort) die "aborted by user" ;;
+            *) TARGET="$dev"; break ;;
+        esac
+    done
+else
+    if ! grep -qx "$TARGET" <<< "$CANDIDATES"; then
+        die "target $TARGET is not in the candidate list (boot media filtered out)"
+    fi
+fi
+log_info "Target: $TARGET"
+
+if [[ -z "$HOSTNAME" ]]; then
+    HOSTNAME="mandragora-$(tr -dc 'a-z0-9' </dev/urandom | head -c6)"
+    if (( ! AUTO )); then
+        read -rp "Hostname [$HOSTNAME]: " input; HOSTNAME="${input:-$HOSTNAME}"
+    fi
+fi
+if [[ -z "$USER_NAME" ]]; then
+    USER_NAME="m"
+    if (( ! AUTO )); then
+        read -rp "User [$USER_NAME]: " input; USER_NAME="${input:-$USER_NAME}"
+    fi
+fi
+if (( ! AUTO )); then
+    read -rp "Keymap [$KEYMAP]: " input; KEYMAP="${input:-$KEYMAP}"
+fi
+
+log_info "Formatting $TARGET..."
+bash "$DIR/format.sh" "$TARGET"
+
+log_info "Rendering host config..."
+render_args=( --hostname "$HOSTNAME" --user "$USER_NAME" --keymap "$KEYMAP" )
+[[ -n "$GPU" ]] && render_args+=( --gpu "$GPU" )
+bash "$DIR/render-config.sh" "${render_args[@]}"
+
+log_info "Copying flake..."
+mkdir -p /mnt/etc/nixos
+cp -a /etc/nixos/mandragora /mnt/etc/nixos/mandragora
+
+log_info "Running nixos-install..."
+nixos-install --no-root-passwd --flake "/mnt/etc/nixos/mandragora#$HOSTNAME"
+
+log_info "Install complete. Reboot, remove the USB, and select the target disk."
