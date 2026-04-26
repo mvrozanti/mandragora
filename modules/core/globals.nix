@@ -19,10 +19,11 @@
 
   services.dnsmasq = {
     enable = true;
+    resolveLocalQueries = false;
     settings = {
       server = [ "1.1.1.1" "1.0.0.1" ];
       addn-hosts = [ config.sops.templates."hosts-oracle".path ];
-      interface = "lo";
+      listen-address = "127.0.0.1";
       bind-interfaces = true;
     };
   };
