@@ -57,7 +57,7 @@ read -rp "Type YES to continue: " confirm
 # ---- Check ISOs exist ----
 mkdir -p "$LOCAL_CACHE"
 ARCH_ISO="$LOCAL_CACHE/mandragora-arch.iso"
-NIXOS_ISO="$LOCAL_CACHE/mandragora-nixos.iso"
+NIXOS_ISO="$LOCAL_CACHE/mandragora.iso"
 
 if [[ ! -f "$ARCH_ISO" ]] || [[ ! -f "$NIXOS_ISO" ]]; then
     warn "Custom ISOs not found in $LOCAL_CACHE."
@@ -122,7 +122,7 @@ mkdir -p "$MOUNT_POINT"/{isos,persistence,ventoy,toolbox,docs,keys}
 log "Copying Arch ISO..."
 cp "$ARCH_ISO" "$MOUNT_POINT/isos/mandragora-arch.iso"
 log "Copying NixOS ISO..."
-cp "$NIXOS_ISO" "$MOUNT_POINT/isos/mandragora-nixos.iso"
+cp "$NIXOS_ISO" "$MOUNT_POINT/isos/mandragora.iso"
 
 # ---- Persistence ----
 VENTOY_DIR="$WORK_DIR/ventoy-${VENTOY_VERSION}"
@@ -142,14 +142,14 @@ cp "$SCRIPT_DIR/ventoy.json" "$MOUNT_POINT/ventoy/ventoy.json"
 cp "$SCRIPT_DIR/toolbox/"*.sh "$MOUNT_POINT/toolbox/"
 chmod +x "$MOUNT_POINT/toolbox/"*.sh
 
-# ---- Copy mandragora-nixos repo ----
+# ---- Copy mandragora repo ----
 REPO_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 if [[ -f "$REPO_DIR/flake.nix" || -d "$REPO_DIR/hosts" ]]; then
     log "Copying Mandragora NixOS repo to docs/..."
-    rm -rf "$MOUNT_POINT/docs/mandragora-nixos"
-    cp -r "$REPO_DIR" "$MOUNT_POINT/docs/mandragora-nixos"
+    rm -rf "$MOUNT_POINT/docs/mandragora"
+    cp -r "$REPO_DIR" "$MOUNT_POINT/docs/mandragora"
 else
-    warn "Could not find mandragora-nixos repo at $REPO_DIR. Skipping repo copy."
+    warn "Could not find mandragora repo at $REPO_DIR. Skipping repo copy."
 fi
 
 # ---- Done ----
@@ -160,8 +160,8 @@ echo "  Mandragora USB — Ready"
 echo "════════════════════════════════════════"
 du -sh "$MOUNT_POINT/isos"        | awk '{print "  ISOs:        " $1}'
 du -sh "$MOUNT_POINT/persistence" | awk '{print "  Persistence: " $1}'
-[[ -d "$MOUNT_POINT/docs/mandragora-nixos" ]] && \
-    du -sh "$MOUNT_POINT/docs/mandragora-nixos" | awk '{print "  Flake repo:  " $1}'
+[[ -d "$MOUNT_POINT/docs/mandragora" ]] && \
+    du -sh "$MOUNT_POINT/docs/mandragora" | awk '{print "  Flake repo:  " $1}'
 df -h "$MOUNT_POINT" | awk 'NR==2{print "  Free:        " $4}'
 echo ""
 
