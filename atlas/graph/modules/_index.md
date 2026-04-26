@@ -35,7 +35,7 @@ Up: [[../_MOC|Atlas MOC]]
 - [[desktop/rival-mouse]] — SteelSeries mouse driver
 - [[desktop/seafile]] — self-hosted file sync
 - [[desktop/steam]] — gaming
-- [[desktop/minecraft]] — Java edition launcher
+- [[desktop/minecraft-desktop|desktop/minecraft]] — Java edition launcher
 
 ## user/ — home-manager (user `m`)
 
@@ -49,7 +49,7 @@ Up: [[../_MOC|Atlas MOC]]
 - [[user/bots]] — Telegram bot service
 - [[user/waybar]] — top bar
 - [[user/skills]] — BMAD skill ecosystem
-- [[user/minecraft]] — user-side mc config
+- [[user/minecraft-user|user/minecraft]] — user-side mc config
 
 ## audits/ — health checks
 
