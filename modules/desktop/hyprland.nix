@@ -22,11 +22,6 @@
     config.common.default = "*";
   };
 
-  services.displayManager.sddm = {
-    enable = true;
-    wayland.enable = true;
-  };
-
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;

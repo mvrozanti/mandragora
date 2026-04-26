@@ -15,6 +15,7 @@
     ../../modules/core/ai-local.nix
     ../../modules/core/monitoring.nix
     ../../modules/desktop/hyprland.nix
+    ../../modules/desktop/sddm.nix
     ../../modules/desktop/kdeconnect.nix
     ../../modules/desktop/keyd.nix
     ../../modules/desktop/keyledsd.nix

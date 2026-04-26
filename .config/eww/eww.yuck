@@ -1,4 +1,4 @@
-(defpoll capture-selected :interval "100ms" :initial 0 "cat ${EWW_CONFIG_DIR}/.capture-selected 2>/dev/null || echo 0")
+(defpoll capture-selected :interval "100ms" :initial 0 "cat $EWW_CONFIG_DIR/.capture-selected 2>/dev/null || echo 0")
 
 (defwidget capture-tile [icon label cls cmd index]
   (button :class "capture-btn ${cls} ${capture-selected == index ? 'selected' : ''}"
