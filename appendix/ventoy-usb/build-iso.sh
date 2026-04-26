@@ -4,7 +4,7 @@ set -euo pipefail
 # =============================================================================
 # Build Mandragora custom ISOs (Arch + NixOS)
 # =============================================================================
-# Output: ~/iso_cache/mandragora-arch.iso, ~/iso_cache/mandragora-nixos.iso
+# Output: ~/iso_cache/mandragora-arch.iso, ~/iso_cache/mandragora.iso
 # Requires: archiso (for Arch), nix or docker (for NixOS). Builds whichever is possible.
 # Usage: sudo ./build-iso.sh              # build both
 #        sudo BUILD=nixos ./build-iso.sh   # NixOS only (skip Arch)
@@ -76,19 +76,19 @@ build_arch() {
 # Builds a custom NixOS ISO. Tries: native nix → Docker → stock download.
 build_nixos() {
     local NIXOS_CHANNEL="${NIXOS_CHANNEL:-25.05}"
-    local DEST="$ISO_CACHE/mandragora-nixos.iso"
+    local DEST="$ISO_CACHE/mandragora.iso"
     local NIXOS_DIR="$SCRIPT_DIR/nixos-iso"
 
     if command -v nix &>/dev/null; then
         log "Building custom NixOS ISO (native nix)..."
         nix build "${NIXOS_DIR}#nixosConfigurations.mandragora-usb.config.system.build.isoImage" \
-            --out-link /tmp/mandragora-nixos-result \
+            --out-link /tmp/mandragora-result \
             --extra-experimental-features "nix-command flakes"
         local BUILT
-        BUILT=$(find /tmp/mandragora-nixos-result/iso -name "*.iso" 2>/dev/null | head -1)
+        BUILT=$(find /tmp/mandragora-result/iso -name "*.iso" 2>/dev/null | head -1)
         if [[ -n "$BUILT" ]]; then
             cp "$BUILT" "$DEST"
-            rm -f /tmp/mandragora-nixos-result
+            rm -f /tmp/mandragora-result
             log "NixOS ISO: $DEST ($(du -sh "$DEST" | cut -f1))"
             return 0
         fi
@@ -104,7 +104,7 @@ build_nixos() {
             -v "${NIXOS_DIR}:/build" \
             -v "${ISO_CACHE}:/out" \
             nixos/nix:latest \
-            sh -c 'cd /build && nix --extra-experimental-features "nix-command flakes" build .#nixosConfigurations.mandragora-usb.config.system.build.isoImage --out-link /tmp/result && cp /tmp/result/iso/*.iso /out/mandragora-nixos.iso'
+            sh -c 'cd /build && nix --extra-experimental-features "nix-command flakes" build .#nixosConfigurations.mandragora-usb.config.system.build.isoImage --out-link /tmp/result && cp /tmp/result/iso/*.iso /out/mandragora.iso'
         if [[ -f "$DEST" ]]; then
             log "NixOS ISO: $DEST ($(du -sh "$DEST" | cut -f1))"
             return 0
@@ -136,7 +136,7 @@ echo ""
 echo "════════════════════════════════════════"
 echo "  Build results:"
 $ARCH_OK  && echo "  Arch:  $ISO_CACHE/mandragora-arch.iso"  || echo "  Arch:  SKIPPED"
-$NIXOS_OK && echo "  NixOS: $ISO_CACHE/mandragora-nixos.iso" || echo "  NixOS: SKIPPED"
+$NIXOS_OK && echo "  NixOS: $ISO_CACHE/mandragora.iso" || echo "  NixOS: SKIPPED"
 echo "════════════════════════════════════════"
 
 $ARCH_OK || $NIXOS_OK || err "No ISOs were built."

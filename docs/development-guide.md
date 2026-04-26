@@ -1,4 +1,4 @@
-# mandragora-nixos — Development Guide
+# mandragora — Development Guide
 
 **Date:** 2026-04-25
 
@@ -26,7 +26,7 @@ Both point at the exact same files. Edit anywhere; commit anywhere.
 Owner: `m:users`. No sudo is required to edit files. Sudo _is_ required to
 rebuild.
 
-Remote: `https://github.com/mvrozanti/mandragora-nixos.git`.
+Remote: `https://github.com/mvrozanti/mandragora.git`.
 
 ## The Edit → Rebuild → Verify → Commit Workflow
 

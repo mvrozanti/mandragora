@@ -1,4 +1,4 @@
-# mandragora-nixos — Project Overview
+# mandragora — Project Overview
 
 **Date:** 2026-04-25
 **Type:** infra (declarative system configuration)
@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-`mandragora-nixos` is the complete, declarative system configuration for the
+`mandragora` is the complete, declarative system configuration for the
 Mandragora workstation — a single-host NixOS flake that defines the OS, the
 desktop environment, the user home, and every service that runs on the
 machine. The repository is the source of truth: the box itself is disposable
@@ -53,7 +53,7 @@ template.
 ## Key Features
 
 - **Impermanence by design** — root is wiped every boot; only declared
-  persistent paths survive. The git remote (`mandragora-nixos`) is the
+  persistent paths survive. The git remote (`mandragora`) is the
   persistence mechanism for the configuration source itself.
 - **Strict language purity** — no shell/CSS/Lua/Python embedded inside `.nix`
   files. Non-Nix code lives at the repo root in XDG-mirrored directories

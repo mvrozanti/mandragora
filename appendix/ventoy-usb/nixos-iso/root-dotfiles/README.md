@@ -10,7 +10,7 @@ You booted from the Mandragora USB. Everything you need is here.
 ## What's Where
 
     /mnt/ventoy/                USB drive (auto-mounted, read/write)
-    /mnt/ventoy/docs/mandragora-nixos/   NixOS flake (your system config)
+    /mnt/ventoy/docs/mandragora/   NixOS flake (your system config)
     /mnt/ventoy/toolbox/        Scripts: format-drive, hw-diag, gpu-stress
     ~/README.md                 This file
 
