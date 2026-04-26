@@ -48,6 +48,11 @@ in
         };
       };
 
+      systemd.services.ollama = {
+        restartIfChanged = false;
+        stopIfChanged = false;
+      };
+
 
       environment.systemPackages = [
         pkgs.oterm
