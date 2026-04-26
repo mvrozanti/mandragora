@@ -1,5 +1,5 @@
 #!/bin/sh
-IMG_VIEWER="sxiv"
+IMG_VIEWER="imv"
 file="$1"
 [ -z "$file" ] && exit 1
 
@@ -35,7 +35,7 @@ case "$mime" in
                 fi
             fi
         fi
-        setsid sxiv -ab -- "$file" >/dev/null 2>&1 &
+        setsid imv -- "$file" >/dev/null 2>&1 &
         ;;
     video/*|audio/*)
         if [ -n "$id" ] && command -v lf >/dev/null 2>&1; then
