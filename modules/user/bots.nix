@@ -33,13 +33,13 @@
       ConditionPathExists = [
         "/dev/nvidia0"
         "/home/m/Projects/llm-via-telegram/.env"
-        "/home/m/Projects/llm-via-telegram/.venv/bin/python"
+        "/home/m/Projects/llm-via-telegram/pyproject.toml"
       ];
     };
     Service = {
       Type = "simple";
       WorkingDirectory = "/home/m/Projects/llm-via-telegram";
-      ExecStart = "/home/m/Projects/llm-via-telegram/.venv/bin/python main.py";
+      ExecStart = "${pkgs.uv}/bin/uv run python main.py";
       Restart = "on-failure";
       RestartSec = 10;
     };
