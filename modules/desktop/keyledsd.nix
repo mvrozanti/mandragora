@@ -56,6 +56,7 @@ in
       ExecStart = "${keyleds-ticpu}/bin/keyledsd -c %h/.config/keyledsd.conf -m ${keyleds-ticpu}/lib/keyledsd -m ${keyleds-ticpu}/share/keyledsd/effects";
       Restart = "on-failure";
       RestartSec = "3s";
+      TimeoutStopSec = "5s";
     };
   };
 
