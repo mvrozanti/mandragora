@@ -590,6 +590,7 @@ in
       isDefault = true;
       id = 0;
       path = "iwwxmo01.default";
+      extensions = [ pkgs.claude-sidebar ];
       settings = {
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "widget.gtk.native-context-menus" = false;
@@ -678,7 +679,7 @@ in
       user.email = "mvrozanti@hotmail.com";
       push.autoSetupRemote = true;
       safe.directory = [
-        "/mnt/ventoy/docs/mandragora-nixos"
+        "/mnt/ventoy/docs/mandragora"
         "/persistent/mandragora"
       ];
     };

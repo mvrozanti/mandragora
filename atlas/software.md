@@ -1,6 +1,6 @@
 # Mandragora Software: The Linux Sovereignty Stack
 
-This document defines the software stack for the Mandragora NixOS environment, focusing on hardware-specific drivers, peripheral control, and optimization.
+This document defines the software stack for the Mandragora environment, focusing on hardware-specific drivers, peripheral control, and optimization.
 
 ## 1. Graphics Stack (NVIDIA + Wayland)
 

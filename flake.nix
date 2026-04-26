@@ -1,5 +1,5 @@
 {
-  description = "Mandragora NixOS - The Second Skin";
+  description = "Mandragora - The Second Skin";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";

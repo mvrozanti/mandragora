@@ -1,6 +1,6 @@
 # Mandragora Atlas: The Knowledge Base
 
-This directory is the "Source of Truth" for the physical and conceptual architecture of the Mandragora NixOS system. It infuses years of hardware research and software ideation into a structured, AI-readable format.
+This directory is the "Source of Truth" for the physical and conceptual architecture of the Mandragora system. It infuses years of hardware research and software ideation into a structured, AI-readable format.
 
 ## 1. Directory Structure
 

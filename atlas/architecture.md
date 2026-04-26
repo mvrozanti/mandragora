@@ -1,4 +1,4 @@
-# Architecture Document: Mandragora NixOS
+# Architecture Document: Mandragora
 
 ## 1. System Overview
 *   **Operating System:** NixOS (Flake-based, purely declarative).
