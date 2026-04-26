@@ -30,6 +30,7 @@ in
     ripgrep
     fd
     fzf
+    uv
     jq
     bat
     eza
