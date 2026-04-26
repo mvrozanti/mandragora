@@ -1,5 +1,18 @@
 { config, pkgs, lib, ... }:
 
+let
+  installScripts = pkgs.runCommand "mandragora-install-scripts" { } ''
+    mkdir -p $out/libexec/mandragora-install
+    cp ${./install}/*.sh $out/libexec/mandragora-install/
+    cp ${./install}/host-template.nix $out/libexec/mandragora-install/
+    chmod +x $out/libexec/mandragora-install/*.sh
+    mkdir -p $out/bin
+    ln -s $out/libexec/mandragora-install/install.sh        $out/bin/mandragora-install
+    ln -s $out/libexec/mandragora-install/detect.sh         $out/bin/mandragora-detect
+    ln -s $out/libexec/mandragora-install/format.sh         $out/bin/mandragora-format
+    ln -s $out/libexec/mandragora-install/render-config.sh  $out/bin/mandragora-render-config
+  '';
+in
 {
   networking.hostName = "mandragora-usb";
 
@@ -24,7 +37,7 @@
   programs.tmux.enable = true;
   programs.nix-ld.enable = true;
 
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages = (with pkgs; [
     git
     neovim
     sops
@@ -41,7 +54,8 @@
     dosfstools
     e2fsprogs
     util-linux
-  ];
+    nixos-install-tools
+  ]) ++ [ installScripts ];
 
   networking.networkmanager.enable = true;
 
