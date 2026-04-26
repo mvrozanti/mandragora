@@ -176,7 +176,6 @@ If a full rewrite is unavoidable:
 | User home + keybindings + mpd | `modules/user/home.nix` |
 | Scripts and binaries | `.local/bin/` |
 | App configs | `.config/<app>/` |
-| Session history | `SESSIONS.md` |
 
 ---
 

@@ -28,7 +28,6 @@ mandragora/
 ├── EXECUTION_PLAN.md             # Roadmap for outstanding work
 ├── FRICTION_LOG.md               # Open issues / things that don't yet work
 ├── SECRETS.md                    # Notes on how secrets are wired
-├── SESSIONS.md                   # Append-only session log (what was done, what broke)
 ├── SITUATIONS.md                 # Runbook-style scenarios
 ├── STRUCTURE.md                  # High-level orientation
 ├── WORKFLOW.md                   # Edit → Rebuild → Verify → Commit workflow notes
