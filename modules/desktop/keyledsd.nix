@@ -3,6 +3,11 @@
 let
   effectsDir = ../../snippets/keyledsd-effects;
   effectFiles = builtins.readDir effectsDir;
+  workspaceWatcher = pkgs.writeShellApplication {
+    name = "keyleds-workspace-watcher";
+    runtimeInputs = [ pkgs.socat pkgs.jq pkgs.systemd pkgs.hyprland ];
+    text = builtins.readFile ../../.local/bin/keyleds-workspace-watcher.sh;
+  };
   keyleds-ticpu = pkgs.keyleds.overrideAttrs (old: {
     pname = "keyleds-ticpu";
     version = "unstable-2026-03-24";
@@ -23,7 +28,7 @@ let
   });
 in
 {
-  environment.systemPackages = [ keyleds-ticpu ];
+  environment.systemPackages = [ keyleds-ticpu workspaceWatcher ];
 
   services.udev.packages = [
     keyleds-ticpu
@@ -49,6 +54,19 @@ in
     serviceConfig = {
       ExecStartPre = "${pkgs.python3}/bin/python3 ${../../snippets/keyleds-host-mode.py}";
       ExecStart = "${keyleds-ticpu}/bin/keyledsd -c %h/.config/keyledsd.conf -m ${keyleds-ticpu}/lib/keyledsd -m ${keyleds-ticpu}/share/keyledsd/effects";
+      Restart = "on-failure";
+      RestartSec = "3s";
+    };
+  };
+
+  systemd.user.services.keyleds-workspace-watcher = {
+    description = "Forward Hyprland workspace events to keyledsd context";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" "keyledsd.service" ];
+    requires = [ "keyledsd.service" ];
+    serviceConfig = {
+      ExecStart = "${workspaceWatcher}/bin/keyleds-workspace-watcher";
       Restart = "on-failure";
       RestartSec = "3s";
     };
