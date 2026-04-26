@@ -34,7 +34,7 @@
             "10" = "♟";
             "23" = "";
             "27" = "";
-            "41" = "<span font_family=\"Font Awesome 7 Brands\"></span>";
+            "41" = "<span font_family=\"Font Awesome 7 Brands\" size=\"x-large\"></span>";
             default = "";
           };
         };
