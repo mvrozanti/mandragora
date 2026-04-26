@@ -58,9 +58,7 @@ in
     mpv
     (pkgs.nsxiv.overrideAttrs (oldAttrs: {
       patches = (oldAttrs.patches or []) ++ [ ../../packages/nsxiv/commands.patch ];
-      postPatch = (oldAttrs.postPatch or "") + '''
-        cp ${../../packages/nsxiv/config.h} config.def.h
-      ''';
+      postPatch = (oldAttrs.postPatch or "") + "cp ${../../packages/nsxiv/config.h} config.def.h";
     }))
     ueberzugpp
     zathura
