@@ -36,7 +36,7 @@ Non-Nix code (shell, Python, CSS, Lua) lives in XDG-mirrored directories at the 
 Logic must be self-documenting through clean naming and structure. Existing comments must be removed, not preserved.
 
 **4. Zero Plain-Text Secrets**
-sops-nix with age encryption for everything. Never propose a Nix module with `password = "..."`. Never print or log anything from `secrets/`.
+sops-nix with age encryption for everything. Never propose a Nix module with `password = "..."`. Never print or log anything from `secrets/`. Agents must never attempt to open, read, or otherwise access files containing secrets (e.g., `/etc/nixos/mandragora/secrets/secrets.yaml`).
 
 **5. Impermanence Awareness**
 The root filesystem is wiped on every boot. Only `/nix`, `/persistent`, and `/home/m` (bind-mounted from `/persistent/home/m`) survive. Any proposed change that creates state outside these paths is broken by design and must be rejected. Check `modules/core/impermanence.nix` before touching anything in `/home`.
