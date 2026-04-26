@@ -1,6 +1,5 @@
 alias -g la='eza -a'
 
-alias rm='echo use d'
 alias mv='mv -iv'
 alias cp='cp -riv'
 alias md='mkdir -vp'
