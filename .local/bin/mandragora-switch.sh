@@ -68,9 +68,14 @@ for arg in "$@"; do
   esac
 done
 
-if [ "$SKIP_EDIT" -eq 0 ] && { [ ! -t 0 ] || [ ! -t 1 ]; }; then
-  echo "==> No TTY detected; skipping editor."
-  SKIP_EDIT=1
+if [ "$SKIP_EDIT" -eq 0 ]; then
+  if [ -n "$GEMINI_CLI" ]; then
+    echo "==> Gemini CLI detected; skipping editor."
+    SKIP_EDIT=1
+  elif { [ ! -t 0 ] || [ ! -t 1 ]; }; then
+    echo "==> No TTY detected; skipping editor."
+    SKIP_EDIT=1
+  fi
 fi
 
 if git diff --cached --quiet; then
@@ -85,6 +90,16 @@ if [ "$SKIP_COMMIT" -eq 1 ]; then
   COMMIT_SKIPPED=1
   git restore --staged . 2>/dev/null || true
 elif [ "$SKIP_EDIT" -eq 1 ]; then
+  if [ -z "$MSG" ] && [ -n "$GEMINI_CLI" ]; then
+    echo "==> Generating commit message with gemini..."
+    RECENT=$(git log --oneline -20)
+    DIFF=$(git diff --cached)
+    PROMPT_SYSTEM="You write a single git commit subject for a personal NixOS+Hyprland dotfiles repo. The user message contains the recent commit log (for style) followed by the staged diff. Mirror the log style exactly: if the log uses Conventional Commits prefixes, use one; if it doesn t, don t invent one. Output exactly ONE line, <=72 chars, imperative mood, no trailing period, no quotes, no preamble, no body. Nothing else."
+    PAYLOAD=$(printf "## RECENT LOG (style reference)\n%s\n\n## STAGED DIFF\n%s\n" "$RECENT" "$DIFF")
+    if GENERATED=$(echo "$PAYLOAD" | timeout 60 gemini --prompt "$PROMPT_SYSTEM" 2>/dev/null); then
+       MSG=$(echo "$GENERATED" | sed -n "1p" | tr -d "\r")
+    fi
+  fi
   if [ -z "$MSG" ] && command -v claude >/dev/null 2>&1; then
     echo "==> Generating commit message with claude (haiku)..."
     RECENT=$(git log --oneline -20)
