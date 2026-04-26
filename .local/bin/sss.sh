@@ -5,8 +5,19 @@ SECRETS_FILE=/etc/nixos/mandragora/secrets/secrets.yaml
 AGE_KEY=/persistent/secrets/keys.txt
 OBS_LOG_DIR="${HOME}/.config/obs-studio/logs"
 
+obs_running() {
+  local pid
+  for pid in $(pgrep -x obs 2>/dev/null) $(pgrep -x .obs-wrapped 2>/dev/null); do
+    [[ -n "$pid" ]] && return 0
+  done
+  for pid in /proc/[0-9]*; do
+    [[ "$(readlink "$pid/exe" 2>/dev/null)" == */bin/obs ]] && return 0
+  done
+  return 1
+}
+
 obs_recording_status() {
-  pgrep -x obs >/dev/null 2>&1 || return 1
+  obs_running || return 1
   [[ -d "$OBS_LOG_DIR" ]] || return 1
 
   local log
