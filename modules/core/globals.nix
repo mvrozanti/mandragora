@@ -30,6 +30,8 @@
 
   programs.gpu-screen-recorder.enable = true;
 
+  systemd.settings.Manager.DefaultTimeoutStopSec = "20s";
+
   environment.systemPackages = with pkgs; [
     git
     vim
