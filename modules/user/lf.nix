@@ -72,6 +72,14 @@ in
       file-info = "$file $fx | less";
 
       calc-size = ''!{{ du -sh -- $fx | sed 's/\t/  /' }}'';
+
+      dir-size-recompute = ''&{{
+        cache="/tmp/lf-dirsize-$USER"
+        mkdir -p "$cache"
+        key=$(printf '%s' "$f" | sha1sum | cut -c1-16)
+        rm -f "$cache/$key"
+        lf -remote "send $id on-select"
+      }}'';
       
       mkdir = ''%{{
         echo ":!mkdir "
@@ -82,7 +90,21 @@ in
       
       unzip = "%{{ unp -U \"$fx\" }}";
 
-      on-select = "redraw";
+      on-select = ''&{{
+        lf -remote "send $id redraw"
+        [ -d "$f" ] || exit 0
+        cache="/tmp/lf-dirsize-$USER"
+        mkdir -p "$cache"
+        key=$(printf '%s' "$f" | sha1sum | cut -c1-16)
+        cf="$cache/$key"
+        if [ -s "$cf" ] && [ "$cf" -nt "$f" ]; then
+          sz=$(cat "$cf")
+        else
+          sz=$(timeout 8 du -sh -- "$f" 2>/dev/null | cut -f1)
+          [ -n "$sz" ] && printf '%s' "$sz" > "$cf"
+        fi
+        [ -n "$sz" ] && lf -remote "send $id echomsg \"$(basename -- "$f"): $sz\""
+      }}'';
 
       on-cd = ''&{{
         zoxide add \"$PWD\"
@@ -107,6 +129,7 @@ in
       "A" = ":rename";
       "I" = "file-info";
       "cs" = "calc-size";
+      "cS" = "dir-size-recompute";
       "i" = "%{{ sxiv -ab -- $(dirname \"$f\") }}";
       
       "P" = "yank-path";
