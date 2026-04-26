@@ -93,6 +93,11 @@ tooltip {
     padding: 0 8px;
     border-bottom: 2px solid @color2;
 }
+#custom-gpu {
+    padding: 0 8px;
+    border-bottom: 2px solid @color4;
+}
+
 
 #memory {
     padding: 0 8px;
