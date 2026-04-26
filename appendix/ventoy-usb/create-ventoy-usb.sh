@@ -145,7 +145,7 @@ chmod +x "$MOUNT_POINT/toolbox/"*.sh
 # ---- Copy mandragora repo ----
 REPO_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 if [[ -f "$REPO_DIR/flake.nix" || -d "$REPO_DIR/hosts" ]]; then
-    log "Copying Mandragora repo to docs/..."
+    log "Copying Mandragora NixOS repo to docs/..."
     rm -rf "$MOUNT_POINT/docs/mandragora"
     cp -r "$REPO_DIR" "$MOUNT_POINT/docs/mandragora"
 else

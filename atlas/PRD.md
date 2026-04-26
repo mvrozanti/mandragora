@@ -1,8 +1,8 @@
-# Mandragora: The Last System (PRD)
+# Mandragora NixOS: The Last System (PRD)
 
 > "If a system is to serve the creative spirit, it must be entirely comprehensible to a single individual."
 
-This document defines the core architecture, non-negotiable constraints, and the evolving vision for the Mandragora ecosystem.
+This document defines the core architecture, non-negotiable constraints, and the evolving vision for the Mandragora NixOS ecosystem.
 
 ## 1. Core Vision
 To create a "second skin" Linux environment—a perfectly tailored, high-performance NVIDIA/Wayland workstation that serves as the final destination for system design and ricing.
