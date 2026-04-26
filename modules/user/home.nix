@@ -192,6 +192,7 @@ in
 
     (pkgs.writeShellScriptBin "smart-launch" (builtins.readFile ../../.local/bin/smart-launch.sh))
     (pkgs.writeShellScriptBin "obsidian-launch" (builtins.readFile ../../.local/bin/obsidian-launch.sh))
+    (pkgs.writeShellScriptBin "obsidian-workspace-watcher" (builtins.readFile ../../.local/bin/obsidian-workspace-watcher.sh))
     (pkgs.writeShellScriptBin "mandragora-switch" (builtins.readFile ../../.local/bin/mandragora-switch.sh))
     (pkgs.writeShellScriptBin "mandragora-lock" (builtins.readFile ../../.local/bin/mandragora-lock.sh))
     (pkgs.writeShellScriptBin "mandragora-commit-push" (builtins.readFile ../../.local/bin/mandragora-commit-push.sh))
