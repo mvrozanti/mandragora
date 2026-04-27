@@ -5,6 +5,7 @@
     enable = true;
     shortcut = "a";
     mouse = true;
+    historyLimit = 100000;
     baseIndex = 0;
     escapeTime = 0;
     keyMode = "vi";
