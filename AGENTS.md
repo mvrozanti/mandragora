@@ -57,8 +57,6 @@ FDE is explicitly not wanted. The main drive is intentionally unencrypted. Never
 Before any edit under `/etc/nixos/mandragora/`: `pgrep -af "nixos-rebuild switch"` and `pgrep -af "mandragora-switch"` — if either returns a PID, stop and surface to the user. For parallel-agent work, isolate edits in a `git worktree`. Single-agent with no concurrent session: edit the main tree directly. Full protocol (worktree recipe, cleanup, stale-worktree handling) in [`docs/worktrees.md`](docs/worktrees.md).
 
 **11. Post-Edit Syntax Check**
-After every edit to a `.nix` file, run `nix-instantiate --parse <file> >/dev/null`. If it fails, revert the edit immediately rather than handing off broken state to the next agent or the next rebuild. Most "parallel-AI corruption" incidents have been syntactically broken Nix (unescaped quotes, INI-section nesting confusion, attrset/list mix-ups) — this catches them at the source.
-
 After every edit to `.config/hypr/*.conf` (and after every `mandragora-switch` / `hyprctl reload` that touches Hyprland config), run `hyprctl configerrors` and confirm empty output. A successful rebuild and `hyprctl reload ok` do not imply a valid config — Hyprland silently drops unknown fields (e.g. `match:initialTitle` instead of snake_case `match:initial_title`) and keeps running. The task is not done until `hyprctl configerrors` is empty. This has been missed repeatedly; treat it as a hard checklist item, not a discretionary smoke test.
 
 **12. Prompt Injection Awareness**
