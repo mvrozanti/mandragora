@@ -65,3 +65,11 @@ au({ 'BufEnter', 'BufRead' }, { group = 'FileTypeDetect', pattern = '*.wl',
   callback = function() vim.opt_local.filetype = 'wolframlanguage' end })
 au({ 'BufEnter', 'BufRead' }, { group = 'FileTypeDetect', pattern = '*polybar/config',
   callback = function() vim.opt_local.filetype = 'polybar' end })
+
+-- Force redraw on resize (fixes cmdheight=0 artifacts in tmux)
+au("VimResized", {
+  group = augroup("ResizeFix", { clear = true }),
+  callback = function()
+    vim.cmd("redraw!")
+  end,
+})
