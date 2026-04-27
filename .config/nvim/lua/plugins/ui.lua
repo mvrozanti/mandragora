@@ -95,7 +95,7 @@ return {
           -- Use nr2char since Lua 5.1 has no \uXXXX escape sequences
           section_separators   = { left = vim.fn.nr2char(0xe0b0), right = vim.fn.nr2char(0xe0b2) },
           component_separators = { left = vim.fn.nr2char(0xe0b1), right = vim.fn.nr2char(0xe0b3) },
-          globalstatus         = false,  -- keep per-window; notermguicolors
+          globalstatus         = true,  -- keep per-window; notermguicolors
           disabled_filetypes   = { statusline = { 'alpha', 'NvimTree' } },
         },
         sections = {
