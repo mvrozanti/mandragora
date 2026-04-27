@@ -89,10 +89,10 @@ Backups and arch-slave sync logic — designed after the system is running.
 | Login manager | SDDM |
 | Audio | PipeWire |
 | Browser | Firefox (Wayland-native, Home Manager extensions) |
-| Terminal | Kitty (migrate existing config) |
+| Terminal | Kitty |
 | Shell | zsh |
 | Font | IosevkaTerm Nerd Font Mono |
-| Status bar | Waybar (translate Polybar config later) |
+| Status bar | Waybar |
 | Theming | Pywal-style dynamic palette (`colors.json`) |
 | Gaming | Steam + Wine + Proton pre-configured |
 | Flatpak | No. Nix-only, period. |
@@ -109,7 +109,7 @@ Backups and arch-slave sync logic — designed after the system is running.
 | Primary network | Ethernet (RJ45), zero config |
 | Fallback network | WiFi 6E (motherboard built-in), SSID/passphrase in flake |
 | Install media | Standard NixOS ISO |
-| Partitioning | Script in `snippets/` handles partitioning, formatting, subvolume creation, mounting. Stops there. Manual `nixos-install` and flake clone. |
+| Partitioning | Scripts in `install/` (`format-drive.sh`, `mount-install.sh`) handle partitioning, formatting, subvolume creation, mounting. `install/install.sh` runs `nixos-install --flake .#mandragora-desktop`. |
 | WiFi setup at store | Manual `iwctl` at live USB prompt |
 | SSH keys | Migrate from Arch reference machine via LAN (post-install) |
 

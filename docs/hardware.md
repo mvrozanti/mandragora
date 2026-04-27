@@ -29,16 +29,24 @@ The Mandragora workstation. Single SFF build; one entry per piece.
 
 ## NVIDIA + Wayland tuning
 
-Required kernel params and env vars (declared in `modules/core/graphics.nix`
-and `modules/core/boot.nix`):
+Declarative config in `modules/core/graphics.nix`:
 
-- `nvidia_drm.modeset=1` (kernel cmdline)
-- `nvidia.NVreg_PreserveVideoMemoryAllocations=1` (mitigates suspend/resume
-  video-memory corruption)
-- `__GLX_VENDOR_LIBRARY_NAME=nvidia` (hardware acceleration for GLX clients)
-- `WLR_NO_HARDWARE_CURSORS=1` (apply only if cursor flicker occurs)
+- `hardware.nvidia.open = true` — open-source kernel modules (matches the
+  RTX 5070 Ti's Blackwell architecture, which the open driver supports).
+- `hardware.nvidia.modesetting.enable = true` — sets `nvidia_drm.modeset=1`
+  internally; required for Wayland.
+- `hardware.nvidia.powerManagement.enable = true`.
+- `hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta`
+  — 570.x beta from `nixos-unstable`.
+- `boot.kernelModules = [ "nvidia" "nvidia_modeset" "nvidia_drm" "nvidia_uvm" ]`.
+- `services.xserver.videoDrivers = [ "nvidia" "amdgpu" ]` — `amdgpu` is
+  for the Ryzen 7900X iGPU (used during the initial-boot ritual above).
 
-Known driver quirks: explicit-sync issues causing flicker in XWayland apps;
-suspend/resume state corruption mitigated by the `PreserveVideoMemoryAllocations`
-flag above. Driver version pinned to `nvidiaPackages.beta` (570.x branch from
-`nixos-unstable`) — see [`DECISIONS.md`](../DECISIONS.md).
+Per-session env in `modules/desktop/hyprland.nix`:
+
+- `__GLX_VENDOR_LIBRARY_NAME=nvidia` — hardware acceleration for GLX clients.
+
+`WLR_NO_HARDWARE_CURSORS=1` and `NVreg_PreserveVideoMemoryAllocations` are
+**not currently set**. Add them only if cursor flicker or suspend/resume
+video-memory corruption shows up; the open kernel module has historically
+not needed them.

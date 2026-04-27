@@ -15,36 +15,20 @@ Before proposing any fix: ask "does this survive reboot without touching
 Nix?" If no — it must go in the flake. The whitelist of bind-mounted
 persistent paths lives in `modules/core/impermanence.nix`.
 
-## 1. The persistence matrix
+## 1. User-data ranking (intent)
 
-| Rank | Data Category       | Priority      | Strategy                           | Location / Mirroring             |
-|------|---------------------|---------------|------------------------------------|----------------------------------|
-| **1**| **Childhood Photos**| **Invulnerable**| Triple-redundancy + Mirroring      | Local Btrfs RAID1 + Seafile + Slave |
-| **3**| **Movies/Media**    | **Bulk**      | Remote Mount / On-demand           | Hosted on `arch-slave` (SSHFS/NFS)|
-| **4**| **Documents**       | **Resilient** | Real-time Sync + History           | Seafile (arch-slave)             |
-| **5**| **Public Git**      | **Ephemeral** | Version Control Only               | Local / Re-clonable              |
+A four-tier ranking for user data by replaceability. None of the
+mirroring/backup automation below has shipped yet — the actual state today
+is "everything under `/persistent/home/m` survives reboot; nothing is
+mirrored off-host." This table records the design target.
 
-## 2. Technical Implementation
+| Tier | Data | Strategy | Location |
+|------|------|----------|----------|
+| Invulnerable | Photos, irreplaceable archives | Local + remote mirror | Btrfs subvolume + Seafile + arch-slave + (eventually) Oracle VPS |
+| Resilient | Documents | Real-time sync + history | Seafile on arch-slave |
+| Bulk | Movies, media | Remote mount / on-demand | arch-slave (SSHFS / NFS) |
+| Ephemeral | Public git, scratch | Version control only | Local / re-clonable |
 
-### Rank 1: The "Invulnerable" Layer
-- **Local:** Btrfs RAID1 (if dual-drive) or redundant subvolume snapshots.
-- **Remote:** Automated `rsync` or `rclone` to the `arch-slave` node and the Oracle VPS.
-- **Constraint:** This data must survive even a catastrophic failure of the primary SSD.
-
-
-### Rank 3: The "Bulk" Layer
-- **Logic:** Does not live on the 2TB primary SSD.
-- **Mounting:** Dynamically mounted from the `arch-slave` node via SSHFS or NFS when needed.
-
-### Rank 4: The "Sync" Layer (Seafile)
-- **Tool:** `seafile-client` managed via Home Manager.
-- **Server:** Self-hosted on the `arch-slave` machine — plenty of storage, local network.
-- **Behavior:** Documents are locally cached for speed but are perpetually versioned on `arch-slave`.
-
-## 3. Home Manager Integration
-Home Manager will be responsible for ensuring these paths are consistent across both the Desktop and Notebook:
-- `~/` — Lives entirely on `/persistent/home` (survives reboots)
-- `~/Documents` -> Linked to Seafile sync subvolume.
-- `~/Projects` -> Linked to Rank 5 subvolume (clean, no-sync).
-- `~/Photos` -> Linked to Rank 1 subvolume (triple redundancy).
-- `~/Media` -> Linked to Rank 3 remote mount.
+`~/Documents`, `~/Projects`, `~/Photos`, `~/Media` are the intended mount
+points for the four tiers respectively. Until the Seafile / arch-slave /
+mirror plumbing is wired, they are plain directories under `/persistent/home/m`.
