@@ -1,0 +1,29 @@
+[project]
+name = "llm-via-telegram"
+version = "0.1.0"
+description = "System-wide Telegram bot acting as an Intelligent Command Center, integrating local + cloud LLMs with system-level operations."
+readme = "AGENTS.md"
+requires-python = ">=3.10"
+dependencies = [
+    "python-telegram-bot>=21.0",
+    "python-dotenv>=1.0.0",
+    "pexpect>=4.9.0",
+    "marionette-driver>=0.1.0",
+    "httpx>=0.27.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.1.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+
+[tool.uv]
+package = false
