@@ -30,7 +30,7 @@ LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO").upper()
 # ── Data directories ──────────────────────────────────────────────
 
 BASE_DIR: str = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR: str = os.path.join(BASE_DIR, "data")
+DATA_DIR: str = os.getenv("LLM_VIA_TELEGRAM_DATA_DIR", os.path.join(BASE_DIR, "data"))
 DB_PATH: str = os.path.join(DATA_DIR, "bot.db")
 
 os.makedirs(DATA_DIR, exist_ok=True)

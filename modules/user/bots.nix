@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, osConfig, pkgs, lib, ... }:
 
 let
   botPython = import ../../pkgs/bot-python.nix { inherit pkgs; };
@@ -7,12 +7,13 @@ let
   llmViaTelegramState = "/home/m/.local/share/llm-via-telegram";
 in
 {
-  systemd.tmpfiles.rules = [
-    "d ${llmViaTelegramState} 0755 m users -"
-    "d ${llmViaTelegramState}/data 0755 m users -"
-    "d ${llmViaTelegramState}/logs 0755 m users -"
-    "L+ /home/m/Projects/gpu-lock - - - - ${gpuLockRoot}"
-  ];
+  home.activation.botsState = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    mkdir -p ${llmViaTelegramState}/data ${llmViaTelegramState}/logs
+    if [ -e /home/m/Projects/gpu-lock ] && [ ! -L /home/m/Projects/gpu-lock ]; then
+      rm -rf /home/m/Projects/gpu-lock
+    fi
+    ln -sfn ${gpuLockRoot} /home/m/Projects/gpu-lock
+  '';
 
   systemd.user.services.im-gen-bot = {
     Unit = {
@@ -50,10 +51,12 @@ in
       Type = "simple";
       WorkingDirectory = llmViaTelegramState;
       ExecStart = "${botPython}/bin/python3 ${llmViaTelegramRoot}/main.py";
-      EnvironmentFile = config.sops.secrets."llm_via_telegram/env".path;
+      EnvironmentFile = osConfig.sops.secrets."llm_via_telegram/env".path;
       Environment = [
         "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
         "PYTHONPATH=${gpuLockRoot}:${llmViaTelegramRoot}"
+        "LLM_VIA_TELEGRAM_DATA_DIR=${llmViaTelegramState}/data"
+        "LLM_VIA_TELEGRAM_LOG_DIR=${llmViaTelegramState}/logs"
       ];
       Restart = "on-failure";
       RestartSec = 10;

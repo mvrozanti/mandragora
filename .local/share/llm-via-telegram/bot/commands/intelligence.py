@@ -19,7 +19,7 @@ from gpu_lock import gpu_lock
 
 logger = logging.getLogger(__name__)
 
-_log_dir = os.path.join(config.BASE_DIR, "logs")
+_log_dir = os.getenv("LLM_VIA_TELEGRAM_LOG_DIR", os.path.join(config.BASE_DIR, "logs"))
 os.makedirs(_log_dir, exist_ok=True)
 _chat_log = logging.getLogger("chat_log")
 _chat_log.setLevel(logging.INFO)
