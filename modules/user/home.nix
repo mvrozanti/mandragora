@@ -282,6 +282,8 @@ in
     EDITOR = "nvim";
     VISUAL = "nvim";
     BROWSER = "firefox";
+    GOPATH = "${config.home.homeDirectory}/.local/share/go";
+    GOBIN = "${config.home.homeDirectory}/.local/share/go/bin";
     GTK_IM_MODULE = "cedilla";
     QT_IM_MODULE = "cedilla";
     XMODIFIERS = "@im=cedilla";
