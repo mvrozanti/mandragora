@@ -109,6 +109,20 @@ meaning every file under `~` survives, but `~` itself is _structurally_ not
 on the root subvolume. This is intentional: it means an accidental wipe of
 `/` cannot take user data with it.
 
+### What lives in `/persistent`
+
+| Path | Content |
+| ---- | ------- |
+| `/persistent/home/m` | All user data (~500 GB) |
+| `/persistent/secrets/` | age key for sops-nix (`keys.txt`) |
+| `/persistent/var/log` | System logs |
+| `/persistent/var/lib/nixos` | NixOS state |
+| `/persistent/etc/NetworkManager/system-connections` | WiFi credentials |
+| `/persistent/etc/machine-id` | Stable systemd machine identity |
+| `/persistent/var/lib/bluetooth` | Bluetooth pairing state |
+
+The authoritative whitelist is `modules/core/impermanence.nix`.
+
 ## 5. Impermanence Mechanism
 
 On every boot:
@@ -330,10 +344,17 @@ These cannot be relaxed without changing the project's fundamental shape:
 
 The canonical statement is in [`../AGENTS.md`](../AGENTS.md).
 
-## 15. References
+## 15. External Systems
+
+| System | Relationship |
+| ------ | ------------ |
+| `arch-slave` | Reference machine + bulk storage + Seafile server. Stays Arch+pacman; not managed by this flake. Seafile runs here; Mandragora connects as a client. Backup logic lives in Mandragora Nix config (push, not pull). |
+| Oracle VPS | Future use — not currently hosting anything. Intended as off-site mirror for critical data. |
+| Notebook | Future NixOS host — not yet defined in the flake. |
+
+## 16. References
 
 - [`../AGENTS.md`](../AGENTS.md) — hard constraints (load first)
-- [`../DECISIONS.md`](../DECISIONS.md) — resolved-choices log
 - [`./hardware.md`](./hardware.md) — hardware specs and peripheral control
 - [`./workflow.md`](./workflow.md) — edit/rebuild/verify/commit workflow
 - [`./persistence.md`](./persistence.md) — what survives reboot, why
