@@ -110,33 +110,9 @@ block-beta
 
 ## Module Map
 
-```
-modules/
-├── core/
-│   ├── globals.nix ............. system packages, nix settings
-│   ├── boot.nix ................ systemd-boot, kernel params
-│   ├── impermanence.nix ........ root wipe + bind mounts
-│   ├── persistence.nix ......... declarative persist paths
-│   ├── storage.nix ............. Btrfs mounts, fstab
-│   ├── graphics.nix ............ Graphics drivers, Wayland env
-│   ├── secrets.nix ............. sops-nix declarations
-│   ├── security.nix ............ firewall, hardening
-│   ├── ai-local.nix ............ Local LLM + acceleration
-│   └── vm.nix .................. QEMU/libvirt
-├── desktop/
-│   ├── hyprland.nix ............ compositor config
-│   ├── openrgb.nix ............. peripheral RGB control
-│   ├── steam.nix ............... gaming + Proton
-│   ├── seafile.nix ............. file sync client
-│   └── keyledsd.nix ............ keyboard LEDs
-└── user/
-    ├── home-manager.nix ........ HM entry point
-    ├── home.nix ................ packages, dotfiles
-    ├── zsh.nix ................. shell config
-    ├── tmux.nix ................ terminal multiplexer
-    ├── waybar.nix .............. status bar
-    └── lf.nix .................. file manager
-```
+Full inventory (one row per module, with responsibility) lives in
+[`docs/architecture.md`](docs/architecture.md) §9. The directory shape:
+`modules/{core,desktop,user,audits}/<thing>.nix`.
 
 ## Deploy
 
