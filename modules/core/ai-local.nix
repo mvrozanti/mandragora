@@ -19,6 +19,7 @@ let
 
   gemma = mkPythonBin "gemma" ../../.local/bin/gemma.py;
   local-ai-mcp-server = mkPythonBin "local-ai-mcp-server" ../../.local/bin/local-ai-mcp-server.py;
+  gpu-lock = import ../../pkgs/gpu-lock.nix { inherit pkgs; };
 in
 {
   options.mandragora = {
@@ -62,6 +63,7 @@ in
         pkgs.oterm
         gemma
         local-ai-mcp-server
+        gpu-lock
       ];
     }
 
