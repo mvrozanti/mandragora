@@ -33,6 +33,43 @@ if pgrep -x nixos-rebuild > /dev/null 2>&1; then
   exit 1
 fi
 
+FORCE=0
+PASSTHRU_ARGS=()
+for arg in "$@"; do
+  case "$arg" in
+    -f|--force) FORCE=1 ;;
+    *) PASSTHRU_ARGS+=("$arg") ;;
+  esac
+done
+set -- "${PASSTHRU_ARGS[@]}"
+[ -n "$MANDRAGORA_SWITCH_FORCE" ] && FORCE=1
+
+FRESH_THRESHOLD=${MANDRAGORA_SWITCH_FRESH_SECONDS:-30}
+if [ "$FORCE" -eq 0 ] && [ "$FRESH_THRESHOLD" -gt 0 ]; then
+  NOW=$(date +%s)
+  FRESH_FILES=()
+  while IFS= read -r line; do
+    path="${line:3}"
+    [ -z "$path" ] && continue
+    case "$line" in
+      'R '*|R*) path="${path##* -> }" ;;
+    esac
+    [ -e "$path" ] || continue
+    mtime=$(stat -c %Y -- "$path" 2>/dev/null) || continue
+    age=$((NOW - mtime))
+    if [ "$age" -lt "$FRESH_THRESHOLD" ]; then
+      FRESH_FILES+=("    $path (modified ${age}s ago)")
+    fi
+  done < <(git status --porcelain=v1 -uall)
+  if [ "${#FRESH_FILES[@]}" -gt 0 ]; then
+    echo "==> ABORTED: working-tree files modified within ${FRESH_THRESHOLD}s — another editor may be mid-write:" >&2
+    printf '%s\n' "${FRESH_FILES[@]}" >&2
+    echo "==> Wait for the editor to finish, or override with: --force / MANDRAGORA_SWITCH_FORCE=1." >&2
+    echo "==> Tune via MANDRAGORA_SWITCH_FRESH_SECONDS (set 0 to disable)." >&2
+    exit 1
+  fi
+fi
+
 echo "==> Fetching origin..."
 if ! git fetch origin; then
   echo "==> WARNING: git fetch failed. Proceeding without sync check." >&2
