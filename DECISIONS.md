@@ -32,7 +32,8 @@ Every resolved choice for the `mandragora-desktop` build. If it's not here, it's
 
 ## Disk Layout
 
-Full details in [`atlas/PARTITION_PLAN.md`](atlas/PARTITION_PLAN.md).
+Target disk: Kingston NV3 PCIe 4.0 (2 TB). All subvolumes share the
+single ~1.9 TB Btrfs pool — no fixed allocations.
 
 | Partition | Size | Filesystem | Purpose |
 |-----------|------|------------|---------|
@@ -45,9 +46,21 @@ Full details in [`atlas/PARTITION_PLAN.md`](atlas/PARTITION_PLAN.md).
 | Subvolume | Mounted at | Purpose |
 |-----------|-----------|---------|
 | `root-blank` | *(never mounted)* | Clean seed for impermanence wipe |
-| `root-active` | `/` | Ephemeral root, wiped on boot |
+| `root-active` | `/` | Ephemeral root, wiped on every boot |
 | `nix` | `/nix` | Nix store, packages, generations |
 | `persistent` | `/persistent` | Home, secrets, system state |
+
+### What lives in `/persistent`
+
+- `/persistent/home/m` — all user data (~500 GB)
+- `/persistent/secrets/` — age key for sops-nix
+- `/persistent/var/log` — system logs
+- `/persistent/var/lib/nixos` — NixOS state
+- `/persistent/etc/NetworkManager/system-connections` — wifi credentials
+- `/persistent/etc/machine-id` — stable systemd machine identity
+
+`/persistent` is plain Btrfs — no encryption. Swap supports hibernation.
+Install sequence is scripted in `install/` (see `install/INSTALL.md`).
 
 
 ---
