@@ -215,9 +215,13 @@ file.
 | Module             | Responsibility                                        |
 | ------------------ | ----------------------------------------------------- |
 | `hyprland.nix`     | Compositor enable + config wiring                     |
+| `sddm.nix`         | Display manager (Wayland session, autologin → Hyprland, sddm-mandragora theme) |
 | `kdeconnect.nix`   | Phone bridge                                          |
+| `keyd.nix`         | Capslock ↔ Esc remap (kernel-level)                  |
 | `keyledsd.nix`     | Logitech keyboard LED control                         |
 | `openrgb.nix`      | Generic RGB device control                            |
+| `rival-mouse.nix`  | SteelSeries Rival USB power-state udev rule           |
+| `ydotool.nix`      | uinput-based input synthesis (Wayland-safe xdotool)   |
 | `seafile.nix`      | Self-hosted sync client                               |
 | `steam.nix`        | Steam + gamemode                                      |
 | `minecraft.nix`    | Minecraft launcher / server                           |
@@ -233,6 +237,8 @@ file.
 | `waybar.nix`         | Waybar config (consumes `.config/waybar/`, `snippets/waybar-*`) |
 | `lf.nix`             | lf file manager                                             |
 | `services.nix`       | User systemd services                                       |
+| `bots.nix`           | Telegram-bridged bots (im-gen Flux, llm-via-telegram)       |
+| `skills.nix`         | BMAD skill packaging from flake inputs                      |
 | `minecraft.nix`      | User-side Minecraft (PrismLauncher etc.)                    |
 | `zx-dirs.nix`        | XDG user directories                                        |
 
