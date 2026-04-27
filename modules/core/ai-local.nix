@@ -45,6 +45,8 @@ in
         package = pkgs.ollama-cuda;
         environmentVariables = {
           OLLAMA_CONTEXT_LENGTH = "40960";
+          OLLAMA_MAX_LOADED_MODELS = "1";
+          OLLAMA_NUM_PARALLEL = "1";
         };
       };
 
