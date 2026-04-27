@@ -20,8 +20,16 @@ Single LLM router. Every survivor doc is one hop from here.
 | What survives reboot (impermanence + user-data ranking) | [`persistence.md`](persistence.md) |
 | Secrets contract (sops-nix, age, agent rules) | [`secrets.md`](secrets.md) |
 | Worktree isolation + mid-switch guard (Rule 10 detail) | [`worktrees.md`](worktrees.md) |
-| Routing through `rtk` (Rule 13 detail, full subcommand list) | [`rtk.md`](rtk.md) |
-| Cross-agent handoff protocol (`/handoff`, `/pickup`) | [`handoff.md`](handoff.md) |
+
+## Cross-cutting agent rules (outside repo)
+
+These describe AI-agent behavior, not the system itself. They follow the
+user across projects, so they live in `~/.ai-shared/rules/` rather than
+in this repo.
+
+- `~/.ai-shared/rules/rtk.md` — token-savings proxy routing (Rule 13 detail).
+- `~/.ai-shared/rules/handoff.md` — cross-agent handoff protocol (`/handoff`, `/pickup`).
+- `~/.ai-shared/rules/hyprland-validation.md` — pre-existing Hyprland config validation rule.
 
 ## Reference
 
