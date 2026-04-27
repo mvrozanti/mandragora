@@ -1,14 +1,17 @@
-# mandragora — Architecture
+# Architecture
 
-**Date:** 2026-04-25
 **Type:** infra (NixOS flake, single host)
-**Architecture Pattern:** Modular flake with strict separation of concerns
+**Architecture pattern:** Modular flake with strict separation of concerns
 
-> This document is the AI-facing technical architecture. The human-facing
-> design overview is at `../atlas/architecture.md`. The two are
-> complementary — atlas describes the _why_, this describes the _shape_.
+## 0. Vision
 
-## 1. Executive Summary
+A "second skin" Linux environment — a perfectly tailored, high-performance
+NVIDIA/Wayland workstation built for creative production, development, and
+system sovereignty. Hardware and software are in a continuous loop of
+aesthetic and functional refinement. The metric of success is that the
+whole system is comprehensible to a single individual.
+
+## 1. Executive summary
 
 The system is a single-host NixOS flake. There is one machine
 (`mandragora-desktop`), one user (`m`), and one nixosConfiguration. Every
@@ -162,8 +165,9 @@ Plain-text secrets in `.nix` files are **forbidden**. There is no exception.
 
 A single source wallpaper drives the entire color scheme:
 
-1. Wallpaper file is selected (manually or via a wallpaper picker — see
-   `docs/superpowers/specs/2026-04-21-wallpaper-picker-design.md`).
+1. Wallpaper file is selected (manually or via a wallpaper picker; partial
+   QuickShell-based picker — design notes archived to
+   `~/wallpaper-picker-notes.md`, completion uncertain).
 2. A pywal-style extractor produces a `colors.json` palette.
 3. Templates injected via home-manager render that palette into:
    - Hyprland (`.config/hypr/`)
@@ -283,7 +287,7 @@ the procedure is:
 5. Run `install/install.sh` (`nixos-install --flake .#mandragora-desktop`).
 6. Reboot, log in, verify.
 
-See `docs/deployment-guide.md` and `install/INSTALL.md` for the runbook.
+See [`../install/INSTALL.md`](../install/INSTALL.md) for the runbook.
 
 ## 13. Testing Strategy
 
@@ -302,7 +306,7 @@ The deliberate absence of CI is appropriate for a single-host config: there
 is no team, no PR review pipeline, and the only "production" is the user's
 own desktop, where empirical verification is immediate.
 
-## 14. Hard Constraints (Architectural Invariants)
+## 14. Hard constraints (architectural invariants)
 
 These cannot be relaxed without changing the project's fundamental shape:
 
@@ -318,23 +322,13 @@ These cannot be relaxed without changing the project's fundamental shape:
 7. **Out of the box** — every program works on first launch with zero setup.
 8. **No FDE** — main drive intentionally unencrypted.
 
-The canonical statement is in `../AGENTS.md`. The LLM-optimized distillate
-is in `../AGENTS.md`.
+The canonical statement is in [`../AGENTS.md`](../AGENTS.md).
 
 ## 15. References
 
-- `../AGENTS.md` — canonical hard constraints (load first)
-- `../CLAUDE.md` — Claude Code specifics
-- `../DECISIONS.md` — resolved-choices log
-- `../atlas/architecture.md` — human-facing design overview
-- `../atlas/hardware.md` — hardware specs
-- `../atlas/software.md` — software inventory
-- `../atlas/non-negotiables.md` — landmark for hard constraints
-- `./project-context.md` — _retired; pointer to AGENTS.md_
-- `./source-tree-analysis.md` — annotated directory layout
-- `./development-guide.md` — dev workflow
-- `./deployment-guide.md` — install / reinstall procedure
-
----
-
-_Generated using BMAD Method `document-project` workflow._
+- [`../AGENTS.md`](../AGENTS.md) — hard constraints (load first)
+- [`../DECISIONS.md`](../DECISIONS.md) — resolved-choices log
+- [`./hardware.md`](./hardware.md) — hardware specs and peripheral control
+- [`./workflow.md`](./workflow.md) — edit/rebuild/verify/commit workflow
+- [`./persistence.md`](./persistence.md) — what survives reboot, why
+- [`./secrets.md`](./secrets.md) — sops-nix wiring

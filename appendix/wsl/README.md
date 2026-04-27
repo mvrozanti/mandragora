@@ -1,6 +1,6 @@
 # Appendix: NixOS on Windows Subsystem for Linux (WSL)
 
-While the Mandragora project is explicitly designed as a pure, bare-metal NixOS environment (see [Non-Negotiables](../../atlas/non-negotiables.md)), there are scenarios—such as corporate work laptops—where installing bare-metal Linux is impossible. In these cases, you can adapt your Mandragora profile to run under WSL (Windows Subsystem for Linux).
+While the Mandragora project is explicitly designed as a pure, bare-metal NixOS environment (see [Non-Negotiables in AGENTS.md](../../AGENTS.md#non-negotiables-absolute-rules)), there are scenarios—such as corporate work laptops—where installing bare-metal Linux is impossible. In these cases, you can adapt your Mandragora profile to run under WSL (Windows Subsystem for Linux).
 
 This appendix details how to achieve this using the `nixos-wsl` module.
 
