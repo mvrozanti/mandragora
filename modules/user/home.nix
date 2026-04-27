@@ -496,7 +496,7 @@ in
       "ctrl+8" = "send_text all \\x1b[56;5u";
       "ctrl+9" = "send_text all \\x1b[57;5u";
     };
-    extraConfig = "include ~/.cache/matugen/colors-kitty.conf";
+    extraConfig = "";
   };
 
   wayland.windowManager.hyprland = {
@@ -575,7 +575,7 @@ in
       ignore-timeout = 0;
     };
     extraConfig = ''
-      include=/home/m/.cache/matugen/colors-mako
+      
       background-color=#00000001
       [urgency=high]
       border-color=#e06c75
