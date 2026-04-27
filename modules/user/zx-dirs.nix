@@ -14,6 +14,6 @@
   D = "~/Documents";
   M = "~/Music";
   P = "~/Pictures";
-  V = "~/Videos";
+  v = "~/Videos";
   G = "~/Games";
 }
