@@ -4,6 +4,19 @@ FLAKE="/etc/nixos/mandragora"
 
 cd "$FLAKE"
 
+LOCKDIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+mkdir -p "$LOCKDIR"
+LOCKFILE="$LOCKDIR/mandragora-switch.lock"
+exec 9>"$LOCKFILE"
+if ! flock -n 9; then
+  HOLDER=$(cat "${LOCKFILE}.pid" 2>/dev/null || echo "?")
+  echo "==> ABORTED: another mandragora-switch is in progress (pid $HOLDER)." >&2
+  echo "==> If that is stale, remove $LOCKFILE and ${LOCKFILE}.pid." >&2
+  exit 1
+fi
+echo "$$" > "${LOCKFILE}.pid"
+trap 'rm -f "${LOCKFILE}.pid"' EXIT
+
 TOTAL_START=$(date +%s)
 PHASE_START=$TOTAL_START
 phase() {
@@ -33,6 +46,11 @@ fi
 phase "git fetch/rebase"
 
 git add -A
+
+if ! git diff --cached --quiet; then
+  echo "==> Staged for this switch:"
+  git diff --cached --stat | sed 's/^/    /'
+fi
 
 SKIP_EDIT=0
 SKIP_COMMIT=0
