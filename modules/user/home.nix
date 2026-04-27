@@ -194,7 +194,6 @@ in
     (pkgs.writeShellScriptBin "obsidian-launch" (builtins.readFile ../../.local/bin/obsidian-launch.sh))
     (pkgs.writeShellScriptBin "obsidian-workspace-watcher" (builtins.readFile ../../.local/bin/obsidian-workspace-watcher.sh))
     (pkgs.writeShellScriptBin "mandragora-switch" (builtins.readFile ../../.local/bin/mandragora-switch.sh))
-    (pkgs.writeShellScriptBin "mandragora-lock" (builtins.readFile ../../.local/bin/mandragora-lock.sh))
     (pkgs.writeShellScriptBin "mandragora-commit-push" (builtins.readFile ../../.local/bin/mandragora-commit-push.sh))
     (pkgs.writeShellScriptBin "sss" (builtins.readFile ../../.local/bin/sss.sh))
     (pkgs.writeShellScriptBin "mandragora-diff" (builtins.readFile ../../.local/bin/mandragora-diff.sh))
@@ -284,9 +283,9 @@ in
     EDITOR = "nvim";
     VISUAL = "nvim";
     BROWSER = "firefox";
-    GTK_IM_MODULE = "xim";
-    QT_IM_MODULE = "xim";
-    XMODIFIERS = "@im=xim";
+    GTK_IM_MODULE = "cedilla";
+    QT_IM_MODULE = "cedilla";
+    XMODIFIERS = "@im=cedilla";
     GDK_DPI_SCALE = "1.0";
     QT_AUTO_SCREEN_SCALE_FACTOR = "1";
     QT_ENABLE_HIGHDPI_SCALING = "1";
