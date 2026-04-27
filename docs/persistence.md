@@ -1,8 +1,21 @@
-# Mandragora Data Hierarchy: Ranked Value
+# Persistence
 
-This document defines the persistence and protection strategy for all data within the Mandragora ecosystem, from "Invulnerable" to "Ephemeral."
+What survives reboot, what doesn't, and how user data is ranked.
 
-## 1. The Persistence Matrix
+## 0. The impermanence rule
+
+| Survives reboot | Path | Why |
+|-----------------|------|-----|
+| Packages + system | `/nix` | Nix store, dedicated subvolume |
+| User home | `/home/m` | Bind-mount from `/persistent/home/m` |
+| System state | `/persistent` | Dedicated Btrfs subvolume |
+| **Everything else** | `/`, `/tmp`, `/run` | **Wiped every boot** |
+
+Before proposing any fix: ask "does this survive reboot without touching
+Nix?" If no — it must go in the flake. The whitelist of bind-mounted
+persistent paths lives in `modules/core/impermanence.nix`.
+
+## 1. The persistence matrix
 
 | Rank | Data Category       | Priority      | Strategy                           | Location / Mirroring             |
 |------|---------------------|---------------|------------------------------------|----------------------------------|
