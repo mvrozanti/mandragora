@@ -9,7 +9,7 @@
     baseIndex = 0;
     escapeTime = 0;
     keyMode = "vi";
-    terminal = "xterm-kitty";
+    terminal = "tmux-256color";
 
     plugins = with pkgs.tmuxPlugins; [
       sensible
