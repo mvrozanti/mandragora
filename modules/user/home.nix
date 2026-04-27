@@ -500,6 +500,7 @@ in
       "ctrl+7" = "send_text all \\x1b[55;5u";
       "ctrl+8" = "send_text all \\x1b[56;5u";
       "ctrl+9" = "send_text all \\x1b[57;5u";
+      "alt+space" = "send_text all \\r";
     };
     extraConfig = "include ~/.cache/matugen/colors-kitty.conf";
   };
