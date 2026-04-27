@@ -79,7 +79,6 @@ in
     (ncmpcpp.override { visualizerSupport = true; })
 
     gdb
-    go
     cargo
     rustc
     maven
@@ -687,6 +686,12 @@ in
   programs.gh = {
     enable = true;
     gitCredentialHelper.enable = true;
+  };
+
+  programs.go = {
+    enable = true;
+    goPath = ".local/share/go";
+    goBin = ".local/share/go/bin";
   };
 
   home.file.".XCompose".source = ../../.XCompose;
