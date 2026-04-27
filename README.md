@@ -37,7 +37,7 @@
 ├─────────────────────────────────────────────────────────────────┤
 │  snippets/        Non-Nix logic (shell, Lua, CSS, Python)       │
 │  secrets/         Age-encrypted vaults (sops-nix)               │
-│  atlas/           Architecture, constraints, partition plan     │
+│  docs/            Architecture, hardware, workflow, secrets     │
 │  appendix/        Self-contained subprojects (Ventoy, WSL)      │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -165,12 +165,15 @@ This stages all changes, rebuilds, and pushes on success — rolling back the co
 
 | Document | Purpose |
 |:---------|:--------|
+| [`AGENTS.md`](AGENTS.md) | Hard constraints, file safety, per-agent policy (load first for any AI session) |
+| [`docs/index.md`](docs/index.md) | Single doc router — every survivor doc one hop away |
 | [`DECISIONS.md`](DECISIONS.md) | All resolved technical choices |
-| [`STRUCTURE.md`](STRUCTURE.md) | Repo layout and module map |
-| [`DATA_HIERARCHY.md`](DATA_HIERARCHY.md) | 5-tier persistence/backup matrix |
-| [`WORKFLOW.md`](WORKFLOW.md) | Sync ritual and rebuild workflow |
-| [`SECRETS.md`](SECRETS.md) | sops-nix vault strategy |
-| [`atlas/`](atlas/) | Architecture, constraints, partition plan |
+| [`docs/architecture.md`](docs/architecture.md) | Composition, modules, theming, boot, audits |
+| [`docs/hardware.md`](docs/hardware.md) | Build, peripheral control, NVIDIA tuning |
+| [`docs/workflow.md`](docs/workflow.md) | Edit → rebuild → verify → commit (common tasks) |
+| [`docs/persistence.md`](docs/persistence.md) | What survives reboot, user-data ranking |
+| [`docs/secrets.md`](docs/secrets.md) | sops-nix + age contract |
+| [`install/INSTALL.md`](install/INSTALL.md) | Fresh-install runbook |
 
 ---
 

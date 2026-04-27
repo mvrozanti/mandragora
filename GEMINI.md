@@ -8,7 +8,7 @@
 
 You are part of a multi-agent ecosystem collaborating alongside Claude Code, local Qwen models, and others.
 
-- **Central Context:** ALWAYS read and update `~/.ai-shared/TASKS.md` to track active goals, completed work, and handoffs between agents.
+- **Cross-agent handoffs:** see [`docs/handoff.md`](docs/handoff.md). Tasks are not tracked under version control; ad-hoc state lives in `~/.ai-shared/handoffs/` (transient) and is consumed via `/pickup`.
 - **Skills & Workflows:** Check `~/.ai-shared/skills/` for `SKILL.md` files describing multi-agent procedures.
 - **Rules & Templates:** Follow constraints in `~/.ai-shared/rules/` and `~/.ai-shared/templates/`.
 - **Knowledge Transfer:** If you discover a system quirk or define a new pattern, document it in the bridge so other agents can read it.
