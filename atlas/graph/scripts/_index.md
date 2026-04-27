@@ -14,7 +14,6 @@ Up: [[../_MOC|Atlas MOC]] · See: [[../modules/_index|Modules]]
 - [[mandragora-switch]] — rebuild + commit + push (the master ritual)
 - [[mandragora-commit-push]] — docs-only commit (no rebuild)
 - [[mandragora-diff]] — staged-diff preview
-- [[mandragora-lock]] — multi-agent edit lock
 - [[health-check]] — audit script
 - [[strays]] — find orphaned/uncommitted files
 

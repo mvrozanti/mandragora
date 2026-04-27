@@ -37,7 +37,7 @@ Up: [[../_MOC|Atlas MOC]]
 
 ## Workflow & invariants
 
-- [[agent-locks]] — `mandragora-lock` multi-agent safety
+- [[agent-worktrees]] — git worktree isolation + mid-switch guard
 - [[declarative-supremacy]] — every change is Nix
 - [[language-purity]] — XDG-mirrored non-Nix files via `readFile`
 - [[rebuild-workflow]] — `mandragora-switch` flow

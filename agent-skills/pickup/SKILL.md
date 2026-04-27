@@ -34,7 +34,7 @@ The full protocol — file naming, frontmatter schema, status lifecycle — live
                  - Confirm "Files touched" still exist on disk.
                  - Re-run `git status` if a project path is given —
                    compare to "Rebuild status".
-                 - Re-run `mandragora-lock list` if locks were claimed.
+                 - Re-run `git -C /etc/nixos/mandragora worktree list` to check for open worktrees.
                  If state diverges materially, surface the divergence
                  to the user before continuing.
 4. Mark        Edit the handoff frontmatter:

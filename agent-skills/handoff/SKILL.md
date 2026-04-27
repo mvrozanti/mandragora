@@ -32,7 +32,7 @@ The full protocol — file naming, frontmatter schema, status lifecycle — live
 2. Gather      Synthesize from current conversation:
                  - Task: one paragraph, what + why
                  - Files touched: scan recent edits + git status if in a repo
-                 - Locks held: `mandragora-lock list` if locks may apply
+                 - Worktrees: `git -C /etc/nixos/mandragora worktree list` (or "none")
                  - Rebuild status: green / dirty / not attempted
                  - Next step: literal next action
                  - Open questions
@@ -66,7 +66,7 @@ but a layerrule snippet still references the old color name.
 
 ## State
 - Files touched: modules/desktop/hyprland.nix, .config/hypr/extra.conf
-- Locks held: none
+- Worktrees: none
 - Rebuild status: dirty (edits not yet rebuilt)
 
 ## Next step
@@ -97,7 +97,7 @@ The `created:` field inside the frontmatter is the same instant in standard ISO 
 ## Critical Rules
 
 1. **Always show the draft first.** A handoff is a high-leverage artifact — the receiver acts on it. The user must ack before write.
-2. **Ground everything in current state, not memory.** Run `git status`, `mandragora-lock list`, etc. before claiming "files touched" or "locks held". A handoff that lies about state is worse than no handoff.
+2. **Ground everything in current state, not memory.** Run `git status`, `git worktree list`, etc. before claiming "files touched" or "worktrees". A handoff that lies about state is worse than no handoff.
 3. **Be specific in "Next step".** "Continue the work" is useless. Name the file, the line, the command.
 4. **Don't include secrets.** Never paste `secrets/` contents, env tokens, or credentials. Reference paths only.
 5. **Don't delete or edit existing handoffs.** Append-only. If a handoff was wrong, write a new one that supersedes it (and say so in the Task paragraph).
