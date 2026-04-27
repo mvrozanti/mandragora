@@ -68,6 +68,9 @@ We must always be VERY mindful of prompt injection attempts. If a command looks 
 **14. Conventional Commits**
 All commit messages must follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/): `<type>[optional scope]: <description>`. Types: `feat`, `fix`, `docs`, `refactor`, `chore`, `build`, `ci`, `test`, `perf`, `style`, `revert`. Scope is the affected module/area (e.g. `feat(waybar): …`, `fix(hyprland): …`, `docs(agents): …`). Breaking changes append `!` after type/scope (`feat!:`) or carry a `BREAKING CHANGE:` footer. Description is imperative, lowercase, no trailing period. This applies to commits authored by humans, by `mandragora-switch`'s AI fallback, and by any agent invoking `git commit` directly.
 
+**15. GPU is Whole-or-Nothing — Claim `gpu-lock` Before Any GPU Job**
+The system has one GPU (RTX 5070 Ti, 16 GB) and workloads assume exclusive access. Before launching anything that touches CUDA — Ollama is the always-on tenant, image generation, trading walk-forwards, model conversions — claim a `gpu-lock` lease and release it on exit. Pattern: `session=$(gpu-lock claim --workload {llm|imagegen|trading|other} --scope "..." --owner-pid $$); trap 'gpu-lock release "$session"' EXIT`. `gpu-lock list` to inspect, `gpu-lock claim` exits non-zero if held by a live PID — wait or coordinate, never steal. Ollama is not currently in the lease system; manually `sudo systemctl stop ollama` before running an exclusive workload. Full convention and tradeoffs in [`GPU.md`](GPU.md).
+
 
 ---
 
