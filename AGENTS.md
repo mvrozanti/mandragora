@@ -53,45 +53,37 @@ Any program added to this system must work correctly from first launch with zero
 **9. No Full Disk Encryption**
 FDE is explicitly not wanted. The main drive is intentionally unencrypted. Never propose or recommend enabling FDE.
 
-**10. Agent Lock Before Editing**
-Use `mandragora-lock` to claim a scope-based lock before touching any file under `/etc/nixos/mandragora/`. Multiple agents may work in parallel as long as their declared paths don't overlap.
+**10. Worktree Isolation + Mid-Switch Guard**
 
-```
-session=$(mandragora-lock claim \
-  --paths "modules/desktop/hyprland.nix .config/hypr/" \
-  --scope "border tweaks" \
-  --agent claude-opus-4-7 \
-  --ttl 15min)
-# ...edit...
-mandragora-lock release "$session"
+Before touching any file under `/etc/nixos/mandragora/`, every agent must:
+
+**1. Check for an active switch.** If `nixos-rebuild switch` or `mandragora-switch` is running, stop and surface to the user before proceeding:
+
+```bash
+pgrep -a -f "nixos-rebuild switch" 2>/dev/null
+pgrep -a -f "mandragora-switch" 2>/dev/null
 ```
 
-`claim` exits non-zero and prints the conflicting locks if any of the following holds:
-- Your declared paths share at least one tracked file with an active `phase=edit` lock.
-- A `phase=commit` lock is held (commit/rebuild is exclusive — see `mandragora-switch` below).
+If either returns a PID, do not start edits.
 
-`mandragora-lock list` shows all active locks; `--phase commit` is what `mandragora-switch` uses internally and conflicts with everything.
+**2. Use a git worktree for parallel work.** When another agent session may be editing the repo concurrently, create an isolated branch instead of editing the main tree directly:
 
-**Liveness-aware auto-prune.** Locks may record `owner_pid:` (the long-lived process holding the lock — `mandragora-switch` does this). When that PID is verifiably dead AND the lock file is >30s old, the lock is automatically pruned during the next `claim`/`check`/`prune` operation. PID liveness is verifiable; expiry alone is not. Tool-call agents (where each shell invocation is ephemeral) omit `owner_pid` and rely on TTL — those locks are NOT auto-pruned.
+```bash
+wt=/home/m/.local/share/mandragora-worktrees/agent-$(date -u +%s)
+git -C /etc/nixos/mandragora worktree add -b agent/$(date -u +%s) "$wt" HEAD
+```
 
-**Never overwrite a foreign lock with a live `owner_pid`**, regardless of:
-- The `expires` timestamp being near or past. (Treat expiry as a hint to *check in with the user*, not as auto-release. `mandragora-lock prune` removes stale-pid + expired locks; `--force` removes everything and is break-glass only.)
-- The paths or scope looking unrelated to your task. (You may be wrong about overlap; the other agent may broaden scope.)
-- The `agent` field matching your model id. (Same model, *different session* — still foreign. "You" means this conversation, not your model name.)
+Edit inside `$wt`. After syntax-check (Rule 11), merge back and clean up:
 
-If `claim` fails with a live conflict, **stop and surface to the user**. Wait for them to either give explicit permission to clear the conflicting lock or release it themselves.
+```bash
+git -C /etc/nixos/mandragora merge --ff-only agent/<branch>
+git -C /etc/nixos/mandragora worktree remove "$wt"
+git -C /etc/nixos/mandragora branch -d agent/<branch>
+```
 
-**Releasing your lock is as non-negotiable as claiming it.** The moment your edits + post-edit syntax check are finished — *before* writing your end-of-turn summary — `mandragora-lock release "$session"`. Specifically:
-- Release on success, on failure, and on giving up.
-- Release before handing back to the user, even mid-task — if you're done editing for now, you're done with the lock. Re-claim later if you resume.
-- Never end a turn holding the lock unless your next tool call will continue an active edit. "I might come back to this" is not active.
-- If you do leave a lock held intentionally across turns, say so out loud in your reply so the user knows.
+For single-agent work with no parallel session active, editing `/etc/nixos/mandragora/` directly is fine — no worktree needed.
 
-**Commit/rebuild is exclusive.** `mandragora-switch` automatically claims a `--phase commit` lock that conflicts with every other lock; release your edit lock before invoking it. If `mandragora-switch` aborts because of an active edit lock, the holder is still working — back off, do not steal.
-
-The lock dir (`/dev/shm/mandragora-locks/`) is RAM-backed, so reboots auto-clear stale state. Claim/release sequences are serialized by an `flock` on `$LOCK_DIR/.claim.lock`, closing the prior check-then-write race. Every agent reads `mandragora-lock list` before editing to see who's working.
-
-A held-but-unused lock blocks any agent whose paths overlap. Don't be that agent.
+`git -C /etc/nixos/mandragora worktree list` shows all open worktrees. Stale worktrees from prior sessions indicate unfinished work — surface to the user before proceeding.
 
 **11. Post-Edit Syntax Check**
 After every edit to a `.nix` file, run `nix-instantiate --parse <file> >/dev/null`. If it fails, revert the edit immediately rather than handing off broken state to the next agent or the next rebuild. Most "parallel-AI corruption" incidents have been syntactically broken Nix (unescaped quotes, INI-section nesting confusion, attrset/list mix-ups) — this catches them at the source.
@@ -270,7 +262,7 @@ One paragraph: what we're doing and why.
 
 ## State
 - Files touched: paths (or "none")
-- Locks held: scope (or "none")
+- Worktrees: branch/path (or "none")
 - Rebuild status: green | dirty | not attempted
 
 ## Next step
