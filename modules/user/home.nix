@@ -294,6 +294,10 @@ in
     _ZO_EXCLUDE_DIRS = "/mnt/toshiba/sss:/mnt/toshiba/sss/*";
   };
 
+  home.sessionPath = [
+    "${config.home.homeDirectory}/.local/share/go/bin"
+  ];
+
   home.pointerCursor = {
     name = "Bibata-Modern-Classic";
     package = pkgs.bibata-cursors;
