@@ -44,10 +44,10 @@ done
 set -- "${PASSTHRU_ARGS[@]}"
 [ -n "$MANDRAGORA_SWITCH_FORCE" ] && FORCE=1
 
-FRESH_THRESHOLD=${MANDRAGORA_SWITCH_FRESH_SECONDS:-30}
-if [ "$FORCE" -eq 0 ] && [ "$FRESH_THRESHOLD" -gt 0 ]; then
-  NOW=$(date +%s)
-  FRESH_FILES=()
+STABILITY_WAIT=${MANDRAGORA_SWITCH_STABILITY_SECONDS:-2}
+if [ "$FORCE" -eq 0 ] && [ "$STABILITY_WAIT" -gt 0 ]; then
+  SNAP_BEFORE=$(git status --porcelain=v1 -uall)
+  SNAP_BEFORE_MTIMES=""
   while IFS= read -r line; do
     path="${line:3}"
     [ -z "$path" ] && continue
@@ -55,17 +55,31 @@ if [ "$FORCE" -eq 0 ] && [ "$FRESH_THRESHOLD" -gt 0 ]; then
       'R '*|R*) path="${path##* -> }" ;;
     esac
     [ -e "$path" ] || continue
-    mtime=$(stat -c %Y -- "$path" 2>/dev/null) || continue
-    age=$((NOW - mtime))
-    if [ "$age" -lt "$FRESH_THRESHOLD" ]; then
-      FRESH_FILES+=("    $path (modified ${age}s ago)")
-    fi
-  done < <(git status --porcelain=v1 -uall)
-  if [ "${#FRESH_FILES[@]}" -gt 0 ]; then
-    echo "==> ABORTED: working-tree files modified within ${FRESH_THRESHOLD}s — another editor may be mid-write:" >&2
-    printf '%s\n' "${FRESH_FILES[@]}" >&2
+    m=$(stat -c %Y -- "$path" 2>/dev/null) || continue
+    SNAP_BEFORE_MTIMES+="$m $path"$'\n'
+  done <<< "$SNAP_BEFORE"
+
+  sleep "$STABILITY_WAIT"
+
+  SNAP_AFTER=$(git status --porcelain=v1 -uall)
+  SNAP_AFTER_MTIMES=""
+  while IFS= read -r line; do
+    path="${line:3}"
+    [ -z "$path" ] && continue
+    case "$line" in
+      'R '*|R*) path="${path##* -> }" ;;
+    esac
+    [ -e "$path" ] || continue
+    m=$(stat -c %Y -- "$path" 2>/dev/null) || continue
+    SNAP_AFTER_MTIMES+="$m $path"$'\n'
+  done <<< "$SNAP_AFTER"
+
+  if [ "$SNAP_BEFORE" != "$SNAP_AFTER" ] || [ "$SNAP_BEFORE_MTIMES" != "$SNAP_AFTER_MTIMES" ]; then
+    echo "==> ABORTED: working tree changed during ${STABILITY_WAIT}s stability window — another editor is active:" >&2
+    diff <(printf '%s' "$SNAP_BEFORE") <(printf '%s' "$SNAP_AFTER") | sed 's/^/    /' >&2
+    diff <(printf '%s' "$SNAP_BEFORE_MTIMES") <(printf '%s' "$SNAP_AFTER_MTIMES") | sed 's/^/    /' >&2
     echo "==> Wait for the editor to finish, or override with: --force / MANDRAGORA_SWITCH_FORCE=1." >&2
-    echo "==> Tune via MANDRAGORA_SWITCH_FRESH_SECONDS (set 0 to disable)." >&2
+    echo "==> Tune via MANDRAGORA_SWITCH_STABILITY_SECONDS (set 0 to disable)." >&2
     exit 1
   fi
 fi
