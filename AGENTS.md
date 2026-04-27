@@ -107,8 +107,7 @@ If a full rewrite is unavoidable:
 [`secrets.md`](docs/secrets.md),
 [`worktrees.md`](docs/worktrees.md). Cross-cutting agent rules (outside
 repo, follow the user not the project): `~/.ai-shared/rules/rtk.md`,
-`~/.ai-shared/rules/handoff.md`. Resolved choices:
-[`DECISIONS.md`](DECISIONS.md). Install runbook:
+`~/.ai-shared/rules/handoff.md`. Install runbook:
 [`install/INSTALL.md`](install/INSTALL.md).
 
 ---

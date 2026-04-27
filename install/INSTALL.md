@@ -69,6 +69,11 @@ the impermanence wipe → snapshot cycle; subsequent boots are clean.
 - Verify Hyprland session: log in, check NVIDIA + Wayland is functional.
 - Run `modules/audits/strays.sh` once manually to confirm no unexpected
   state.
+- If on a new network without saved credentials: at the live USB prompt before
+  install, connect with `iwctl` (interactive WiFi tool from `iwd`). The
+  NetworkManager credentials persist in `/persistent/etc/NetworkManager/`.
+- SSH keys from a previous machine: scp them over the LAN post-install, or
+  generate new ones and update any remotes.
 
 ## Backup critical material
 
@@ -85,7 +90,7 @@ Two pieces of state are not in the repo and **cannot be regenerated**:
 | Failure mode                              | Recovery                                                                           |
 | ----------------------------------------- | ---------------------------------------------------------------------------------- |
 | Bad config switched in, system still boots | `sudo nixos-rebuild switch --rollback` or boot menu → previous generation         |
-| Bad config, boot fails                    | systemd-boot menu → previous generation (up to 10 retained)                       |
+| Bad config, boot fails                    | Hold **Space** at boot to open the systemd-boot menu; select a previous generation (up to 10 retained). Default boots instantly (`timeout 0`). |
 | Disk failure                              | Replace disk, reinstall via the steps above, restore age key from backup          |
 | Lost age key                              | Secrets are unrecoverable; rotate every secret manually, regenerate, re-encrypt   |
 | `/persistent` corruption                  | Restore from Btrfs snapshot if available; otherwise manual recovery                |

@@ -143,8 +143,7 @@ This stages all changes, rebuilds, and pushes on success — rolling back the co
 |:---------|:--------|
 | [`AGENTS.md`](AGENTS.md) | Hard constraints, file safety, per-agent policy (load first for any AI session) |
 | [`docs/index.md`](docs/index.md) | Single doc router — every survivor doc one hop away |
-| [`DECISIONS.md`](DECISIONS.md) | All resolved technical choices |
-| [`docs/architecture.md`](docs/architecture.md) | Composition, modules, theming, boot, audits |
+| [`docs/architecture.md`](docs/architecture.md) | Composition, modules, disk layout, external systems, audits |
 | [`docs/hardware.md`](docs/hardware.md) | Build, peripheral control, NVIDIA tuning |
 | [`docs/workflow.md`](docs/workflow.md) | Edit → rebuild → verify → commit (common tasks) |
 | [`docs/persistence.md`](docs/persistence.md) | What survives reboot, user-data ranking |

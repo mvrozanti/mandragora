@@ -33,8 +33,6 @@ in this repo.
 
 ## Reference
 
-- [`../DECISIONS.md`](../DECISIONS.md) — every resolved technical choice
-  (identity, boot, disk, display, hardware, secrets, external systems).
 - [`../install/INSTALL.md`](../install/INSTALL.md) — fresh-install runbook
   (partition → mount → bootstrap age key → install → reboot).
 
