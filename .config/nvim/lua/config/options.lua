@@ -6,7 +6,8 @@
 
 local opt = vim.opt
 
-opt.scrolloff    = 999
+opt.scrolloff    = 10
+opt.cmdheight    = 0
 opt.listchars    = { eol = '¬', tab = '»»', trail = '~', extends = '>', precedes = '<', space = '·' }
 opt.visualbell   = true
 opt.hlsearch     = true
@@ -28,7 +29,7 @@ opt.mouse        = 'c'
 opt.timeoutlen   = 300
 opt.ttimeoutlen  = 0
 opt.updatetime   = 300   -- faster git signs and cursor hold
-opt.lazyredraw   = true  -- skip redraw during macros/scrolling
+opt.lazyredraw   = false  -- skip redraw during macros/scrolling
 opt.redrawtime   = 500   -- cap expensive regex operations
 opt.guicursor    = 'i:100-bCursor'
 opt.showmode     = false  -- lualine handles mode display
