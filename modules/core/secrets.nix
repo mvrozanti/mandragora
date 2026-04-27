@@ -29,6 +29,10 @@ in
         owner = "m";
         mode = "0400";
       };
+      "llm_via_telegram/env" = {
+        owner = "m";
+        mode = "0400";
+      };
     };
 
     templates."hosts-oracle" = {
