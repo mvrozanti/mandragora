@@ -158,6 +158,20 @@ return {
 
       startify.config.opts.autostart = true
 
+      -- Maximize space at the top: remove default vertical centering
+      startify.config.layout = {
+        { type = "padding", val = 0 },
+        startify.section.header,
+        { type = "padding", val = 2 },
+        startify.section.top_buttons,
+        { type = "padding", val = 1 },
+        startify.section.mru_cwd,
+        { type = "padding", val = 1 },
+        startify.section.mru,
+        { type = "padding", val = 2 },
+        startify.section.bottom_buttons,
+        startify.section.footer,
+      }
       alpha.setup(startify.config)
 
       vim.api.nvim_create_autocmd('VimEnter', {
