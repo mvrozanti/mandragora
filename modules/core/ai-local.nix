@@ -33,7 +33,7 @@ in
       enable = lib.mkEnableOption "Local agentic LLM stack";
       model = lib.mkOption {
         type = lib.types.str;
-        default = "qwen2.5:14b";
+        default = "gpt-oss:20b";
         description = "Ollama tag for the primary local model.";
       };
     };
