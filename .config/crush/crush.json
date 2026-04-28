@@ -34,7 +34,7 @@
           "options": {}
         },
         {
-          "id": "qwen2.5:14b",
+          "id": "gpt-oss:20b",
           "name": "Qwen 2.5 7B",
           "cost_per_1m_in": 0,
           "cost_per_1m_out": 0,
@@ -51,11 +51,11 @@
   },
   "models": {
     "large": {
-      "model": "qwen2.5:14b",
+      "model": "gpt-oss:20b",
       "provider": "ollama"
     },
     "small": {
-      "model": "qwen2.5:14b",
+      "model": "gpt-oss:20b",
       "provider": "ollama"
     }
   },
