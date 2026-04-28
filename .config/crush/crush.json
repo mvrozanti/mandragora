@@ -8,8 +8,8 @@
       "api_key": "ollama",
       "models": [
         {
-          "id": "qwen3.6:27b",
-          "name": "Qwen 3.6 27B",
+          "id": "gpt-oss:20b",
+          "name": "GPT-OSS 20B",
           "cost_per_1m_in": 0,
           "cost_per_1m_out": 0,
           "cost_per_1m_in_cached": 0,
@@ -37,8 +37,8 @@
     }
   },
   "models": {
-    "large": { "model": "qwen3.6:27b", "provider": "ollama" },
-    "small": { "model": "qwen3.6:27b", "provider": "ollama" }
+    "large": { "model": "gpt-oss:20b", "provider": "ollama" },
+    "small": { "model": "gpt-oss:20b", "provider": "ollama" }
   },
   "options": {
     "context_paths": [
