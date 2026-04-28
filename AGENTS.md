@@ -8,7 +8,7 @@ This file is the single source of truth for all AI agents (Claude, Gemini, local
 
 **User:** m (mvrozanti)
 **System:** Mandragora — NixOS workstation (AMD Ryzen 9 7900X, RTX 5070 Ti 16GB, 32GB DDR5)
-**Background:** Linux power user, 10+ years on Arch+bspwm. Now migrating that entire setup to declarative NixOS+Hyprland.
+**Background:** Linux power user, 15+ years on Arch+bspwm. Now migrating that entire setup to declarative NixOS+Hyprland.
 **Comfort level:** Expert in Linux, ricing, and system administration. Still learning the Nix language and NixOS module system specifically.
 **Communication:** Direct and technical. ELI5 only for NixOS-specific concepts (declarative paradigm, module system, flakes). No filler.
 
