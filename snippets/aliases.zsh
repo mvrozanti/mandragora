@@ -411,7 +411,6 @@ alias gcfd='git clean -f -d'
 gbm() { [[ "$#" -eq 2 ]] && git branch -m "$1" "$2" }
 
 v.()      { nvim . }
-alias vc='cv'
 ec()      { eval "$*"; echo $? }
 www()     { ww -w $COLUMNS }
 getpass() { python3 -c 'from getpass import getpass; print(getpass("Password: "))' }
