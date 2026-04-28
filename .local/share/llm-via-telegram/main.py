@@ -49,7 +49,7 @@ def _guard(handler):
 HELP_TEXT = (
     "\U0001f916 LLM via Telegram -- Command Reference\n\n"
     "LLM\n"
-    "  Plain text -- Send to local LLM (qwen3.6:27b via Ollama)\n"
+    "  Plain text -- Send to local LLM (gpt-oss:20b via Ollama)\n"
     "  /context   -- Show model, system prompt sizes, history, token budget\n"
     "  /clear     -- Clear conversation history\n"
     "  /think     -- Toggle thinking display (enabled/disabled)\n\n"
