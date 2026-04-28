@@ -20,23 +20,6 @@
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    bmad-method = {
-      url = "github:bmad-code-org/BMAD-METHOD/v6.4.0";
-      flake = false;
-    };
-    bmad-cis = {
-      url = "github:bmad-code-org/bmad-module-creative-intelligence-suite/v0.2.0";
-      flake = false;
-    };
-    bmad-tea = {
-      url = "github:bmad-code-org/bmad-method-test-architecture-enterprise/v1.15.1";
-      flake = false;
-    };
-    bmad-builder = {
-      url = "github:bmad-code-org/bmad-builder/v1.6.0";
-      flake = false;
-    };
   };
 
   outputs = { self, nixpkgs, home-manager, sops-nix, impermanence, nixos-generators, ... }@inputs:
