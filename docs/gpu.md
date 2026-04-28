@@ -118,7 +118,9 @@ This is intentional. The system is one user, one GPU, and a small number of well
 
 ## See also
 
-- [`AGENTS.md`](AGENTS.md) rule 15 — Non-Negotiable: claim `gpu-lock` before launching any GPU job.
-- [`local-llm.md`](local-llm.md) — peer doc; what the local LLM agent should know about its environment.
-- [`modules/core/ai-local.nix`](modules/core/ai-local.nix) — Ollama service definition.
-- [`.local/bin/gpu-lock.sh`](.local/bin/gpu-lock.sh) — the implementation.
+- [`../AGENTS.md`](../AGENTS.md) rule 15 — Non-Negotiable: hold `gpu-lock` around any GPU job.
+- `~/.ai-shared/rules/gpu-lock.md` — short cross-agent rule (always loaded), points here for the long form.
+- `~/.claude/skills/gpu-lock/SKILL.md` and `~/.gemini/skills/gpu-lock/SKILL.md` — full contract loaded on demand when the agent recognizes a GPU-related task. Source: [`../agent-skills/gpu-lock/SKILL.md`](../agent-skills/gpu-lock/SKILL.md).
+- [`../local-llm.md`](../local-llm.md) — peer doc; what the local LLM agent should know about its environment.
+- [`../modules/core/ai-local.nix`](../modules/core/ai-local.nix) — Ollama service definition.
+- [`../pkgs/gpu-lock.nix`](../pkgs/gpu-lock.nix) — the package; implementation lives at `.local/share/gpu-lock/`.
