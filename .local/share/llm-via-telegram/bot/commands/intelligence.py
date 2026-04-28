@@ -259,7 +259,7 @@ async def cmd_context(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
     lines = [
         f"*Model*: `{config.OLLAMA_MODEL}`",
-        f"*Context window*: num_ctx={num_ctx}",
+        f"*Context window*: `num_ctx={num_ctx}`",
         "",
         "*System prompt*",
         f"  AGENTS.md:    {agents_chars:,} chars",
