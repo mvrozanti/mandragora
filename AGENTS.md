@@ -87,6 +87,17 @@ If a full rewrite is unavoidable:
 
 ---
 
+## Model Migration Protocol
+
+When migrating to a new local LLM (e.g., Qwen -> DeepSeek), the agent MUST update all following references:
+1. **Ollama:** Pull the new model (`ollama pull <model>`).
+2. **Projects/thought:** Update `RunConfig` in `thought/config.py` (default model) and any existing `config.yaml` files.
+3. **Telegram Bot:** Update `OLLAMA_MODEL` in `/etc/nixos/mandragora/.local/share/llm-via-telegram/config.py` (default) and any associated secrets/env files.
+4. **Crush:** Update `/etc/nixos/mandragora/.config/crush/crush.json` (provider models and default mappings).
+5. **Documentation:** Ensure `AGENTS.md` and `local-llm.md` remain accurate. `local-llm.md` should use generic identity strings to avoid stale references.
+6. **Persistence:** Run `mandragora-switch` to commit changes to the repo and sync the live environment.
+
+
 ## Security Model
 
 - `/etc/nixos/mandragora/` owned by `m:users` — agents can edit files directly
