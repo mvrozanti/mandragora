@@ -9,7 +9,7 @@
       "models": [
         {
           "id": "gpt-oss:20b",
-          "name": "GPT-OSS 20B",
+          "name": "Local Model",
           "cost_per_1m_in": 0,
           "cost_per_1m_out": 0,
           "cost_per_1m_in_cached": 0,
@@ -22,7 +22,7 @@
         },
         {
           "id": "qwen3:14b",
-          "name": "Qwen3 14B",
+          "name": "Local Model (secondary)",
           "cost_per_1m_in": 0,
           "cost_per_1m_out": 0,
           "cost_per_1m_in_cached": 0,
@@ -34,7 +34,7 @@
           "options": {}
         },
         {
-          "id": "qwen2.5:7b",
+          "id": "qwen2.5:14b",
           "name": "Qwen 2.5 7B",
           "cost_per_1m_in": 0,
           "cost_per_1m_out": 0,
@@ -51,11 +51,11 @@
   },
   "models": {
     "large": {
-      "model": "qwen2.5:7b",
+      "model": "qwen2.5:14b",
       "provider": "ollama"
     },
     "small": {
-      "model": "qwen2.5:7b",
+      "model": "qwen2.5:14b",
       "provider": "ollama"
     }
   },

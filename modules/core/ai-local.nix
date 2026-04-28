@@ -30,11 +30,11 @@ in
     };
 
     ai.agentic = {
-      enable = lib.mkEnableOption "Local agentic LLM stack (qwen2.5:7b + Crush TUI)";
+      enable = lib.mkEnableOption "Local agentic LLM stack";
       model = lib.mkOption {
         type = lib.types.str;
-        default = "qwen2.5:7b";
-        description = "Ollama tag for the primary agentic model.";
+        default = "qwen2.5:14b";
+        description = "Ollama tag for the primary local model.";
       };
     };
   };
@@ -72,14 +72,14 @@ in
         assertion = gpu.vramGB != null && gpu.vramGB >= 16;
         message = ''
           mandragora.ai.agentic.enable requires mandragora.hardware.gpu.vramGB >= 16.
-          Qwen 2.5 7B (dense) fits fully in 16GB VRAM at Q4.
+          The local model fits in VRAM.
         '';
       }];
 
       environment.systemPackages = [ ];
 
       systemd.services.ollama-pull-agentic = {
-        description = "Pre-pull primary agentic model (${cfg.agentic.model})";
+        description = "Pre-pull primary local model";
         after = [ "ollama.service" "network-online.target" ];
         requires = [ "ollama.service" ];
         wants = [ "network-online.target" ];
