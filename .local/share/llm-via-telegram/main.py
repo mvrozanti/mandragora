@@ -51,7 +51,8 @@ HELP_TEXT = (
     "LLM\n"
     "  Plain text -- Send to local LLM (qwen3.6:27b via Ollama)\n"
     "  /context   -- Show model, system prompt sizes, history, token budget\n"
-    "  /clear     -- Clear conversation history\n\n"
+    "  /clear     -- Clear conversation history\n"
+    "  /think     -- Toggle thinking display (enabled/disabled)\n\n"
     "Personas\n"
     "  /p <name> <query> -- Query using a registered persona\n\n"
     "System\n"
@@ -95,7 +96,7 @@ async def cmd_catch_all(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     known_prefixes = (
         "/sh", "/p", "/ff", "/browser", "/mpv", "/term",
         "/reg", "/run", "/sudo", "/hotkey", "/screenshot",
-        "/context", "/clear",
+        "/context", "/clear", "/think",
     )
     if text.startswith("/"):
         matches = [p for p in known_prefixes if text.startswith(p)]
@@ -123,6 +124,7 @@ def build_application() -> Application:
     # -- Intelligence --
     app.add_handler(CommandHandler("context", _guard(intelligence.cmd_context)))
     app.add_handler(CommandHandler("clear", _guard(intelligence.cmd_clear)))
+    app.add_handler(CommandHandler("think", _guard(intelligence.cmd_think)))
     app.add_handler(CommandHandler("p", _guard(intelligence.cmd_p)))
 
     # -- System --
@@ -221,6 +223,7 @@ def main() -> None:
             BotCommand("help", "Show command reference"),
             BotCommand("context", "Show model, system prompt, history, token use"),
             BotCommand("clear", "Clear conversation history"),
+            BotCommand("think", "Toggle thinking display"),
             BotCommand("p", "Query with persona"),
             BotCommand("sh", "Run shell command"),
             BotCommand("sudopass", "Cache sudo password"),

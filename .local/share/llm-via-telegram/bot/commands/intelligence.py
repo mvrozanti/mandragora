@@ -73,7 +73,12 @@ _TOOLS = [
 _THINK_RE = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
 
 
-def _strip_thinking(text: str) -> str:
+_think_mode = False
+
+
+def _maybe_strip_thinking(text: str) -> str:
+    if _think_mode:
+        return text.strip()
     return _THINK_RE.sub("", text).strip()
 
 
@@ -162,7 +167,7 @@ async def _run_agentic(
         tool_calls = msg.get("tool_calls") or []
 
         if not tool_calls:
-            return _strip_thinking(msg.get("content", "").strip()) or "(empty response)"
+            return _maybe_strip_thinking(msg.get("content", "").strip()) or "(empty response)"
 
         messages.append({
             "role": "assistant",
@@ -236,6 +241,14 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             await typing_task
         except (asyncio.CancelledError, Exception):
             pass
+
+
+
+async def cmd_think(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    global _think_mode
+    _think_mode = not _think_mode
+    status = "enabled" if _think_mode else "disabled"
+    await update.message.reply_text(f"Think mode {status}.")
 
 
 async def cmd_clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
