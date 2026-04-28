@@ -252,7 +252,7 @@ file.
 | `lf.nix`             | lf file manager                                             |
 | `services.nix`       | User systemd services                                       |
 | `bots.nix`           | Telegram-bridged bots (im-gen Flux, llm-via-telegram)       |
-| `skills.nix`         | BMAD skill packaging from flake inputs                      |
+| `skills.nix`         | Wires `agent-skills/{handoff,pickup,nrp}` into `~/.claude/skills` and `~/.gemini/skills` |
 | `minecraft.nix`      | User-side Minecraft (PrismLauncher etc.)                    |
 | `zx-dirs.nix`        | XDG user directories                                        |
 
