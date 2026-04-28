@@ -8,6 +8,19 @@
       "api_key": "ollama",
       "models": [
         {
+          "id": "qwen3.6:27b",
+          "name": "Qwen 3.6 27B",
+          "cost_per_1m_in": 0,
+          "cost_per_1m_out": 0,
+          "cost_per_1m_in_cached": 0,
+          "cost_per_1m_out_cached": 0,
+          "context_window": 131072,
+          "default_max_tokens": 16384,
+          "supports_attachments": false,
+          "can_reason": true,
+          "options": {}
+        },
+        {
           "id": "qwen3:14b",
           "name": "Qwen3 14B",
           "cost_per_1m_in": 0,
@@ -19,26 +32,13 @@
           "supports_attachments": false,
           "can_reason": true,
           "options": {}
-        },
-        {
-          "id": "gpt-oss:20b",
-          "name": "GPT-OSS 20B",
-          "cost_per_1m_in": 0,
-          "cost_per_1m_out": 0,
-          "cost_per_1m_in_cached": 0,
-          "cost_per_1m_out_cached": 0,
-          "context_window": 131072,
-          "default_max_tokens": 16384,
-          "supports_attachments": false,
-          "can_reason": true,
-          "options": {}
         }
       ]
     }
   },
   "models": {
-    "large": { "model": "qwen3:14b", "provider": "ollama" },
-    "small": { "model": "qwen3:14b", "provider": "ollama" }
+    "large": { "model": "qwen3.6:27b", "provider": "ollama" },
+    "small": { "model": "qwen3.6:27b", "provider": "ollama" }
   },
   "options": {
     "context_paths": [
