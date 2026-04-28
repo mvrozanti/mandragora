@@ -32,13 +32,32 @@
           "supports_attachments": false,
           "can_reason": true,
           "options": {}
+        },
+        {
+          "id": "qwen2.5:7b",
+          "name": "Qwen 2.5 7B",
+          "cost_per_1m_in": 0,
+          "cost_per_1m_out": 0,
+          "cost_per_1m_in_cached": 0,
+          "cost_per_1m_out_cached": 0,
+          "context_window": 131072,
+          "default_max_tokens": 16384,
+          "supports_attachments": false,
+          "can_reason": true,
+          "options": {}
         }
       ]
     }
   },
   "models": {
-    "large": { "model": "gpt-oss:20b", "provider": "ollama" },
-    "small": { "model": "gpt-oss:20b", "provider": "ollama" }
+    "large": {
+      "model": "qwen2.5:7b",
+      "provider": "ollama"
+    },
+    "small": {
+      "model": "qwen2.5:7b",
+      "provider": "ollama"
+    }
   },
   "options": {
     "context_paths": [
@@ -51,10 +70,28 @@
     "initialize_as": "AGENTS.md"
   },
   "permissions": {
-    "allowed_tools": ["bash", "view", "ls", "grep", "edit", "write", "fetch", "sourcegraph", "glob", "multiedit", "todos", "download"]
+    "allowed_tools": [
+      "bash",
+      "view",
+      "ls",
+      "grep",
+      "edit",
+      "write",
+      "fetch",
+      "sourcegraph",
+      "glob",
+      "multiedit",
+      "todos",
+      "download"
+    ]
   },
   "tools": {
-    "ls": { "max_depth": 0, "max_items": 1000 },
-    "grep": { "timeout": 30 }
+    "ls": {
+      "max_depth": 0,
+      "max_items": 1000
+    },
+    "grep": {
+      "timeout": 30
+    }
   }
 }

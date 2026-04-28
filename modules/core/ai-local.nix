@@ -30,10 +30,10 @@ in
     };
 
     ai.agentic = {
-      enable = lib.mkEnableOption "Local agentic LLM stack (gpt-oss:20b + Crush TUI)";
+      enable = lib.mkEnableOption "Local agentic LLM stack (qwen2.5:7b + Crush TUI)";
       model = lib.mkOption {
         type = lib.types.str;
-        default = "gpt-oss:20b";
+        default = "qwen2.5:7b";
         description = "Ollama tag for the primary agentic model.";
       };
     };
@@ -72,7 +72,7 @@ in
         assertion = gpu.vramGB != null && gpu.vramGB >= 16;
         message = ''
           mandragora.ai.agentic.enable requires mandragora.hardware.gpu.vramGB >= 16.
-          gpt-oss:20b (MoE 21B/3.6B active) fits fully in 16GB VRAM at Q4.
+          Qwen 2.5 7B (dense) fits fully in 16GB VRAM at Q4.
         '';
       }];
 
