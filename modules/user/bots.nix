@@ -42,7 +42,7 @@ in
 
   systemd.user.services.llm-via-telegram = {
     Unit = {
-      Description = "LLM-via-Telegram bot (Ollama-backed Qwen 2.5 7B, GPU-coordinated)";
+      Description = "LLM-via-Telegram bot (Ollama-backed local model, GPU-coordinated)";
       After = [ "graphical-session.target" "network-online.target" ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [ "/dev/nvidia0" ];
