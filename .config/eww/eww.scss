@@ -37,6 +37,25 @@ window { background: transparent; }
 
   &.shot:hover, &.shot.selected { color: #98c379; }
   &.rec:hover, &.rec.selected  { color: #e06c75; }
+  &.rec.mic:hover, &.rec.mic.selected { color: #e5c07b; }
+  &.rec.sys:hover, &.rec.sys.selected { color: #61afef; }
+
+  &.disabled {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.03);
+    color: rgba(230, 230, 238, 0.25);
+  }
+  &.disabled:hover, &.disabled.selected {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.03);
+    color: rgba(230, 230, 238, 0.25);
+  }
+}
+
+.capture-recording-banner {
+  font-size: 11px;
+  color: #e06c75;
+  padding: 6px 2px 2px 2px;
 }
 
 .capture-icon {

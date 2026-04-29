@@ -6,18 +6,27 @@ WIN=capture-menu
 SELF="$HOME/.local/bin/capture"
 GEOM_X=12
 GEOM_Y=56
-GEOM_W=460
-GEOM_H=280
+GEOM_W=480
+GEOM_H=380
 STAMP="${XDG_RUNTIME_DIR:-/tmp}/capture-last-closed"
 STATE_FILE="$HOME/.config/eww/.capture-selected"
 
-shots_dir="$HOME/Pictures/Screenshots"
-mkdir -p "$shots_dir"
+ACTIONS=(shot-region shot-full vid-none-region vid-none-full vid-mic-region vid-mic-full vid-sys-region vid-sys-full)
 
 ts() { date +%Y%m%d-%H%M%S; }
 
-is_open() {
-  "${EWW[@]}" active-windows 2>/dev/null | grep -q "^$WIN:"
+is_open() { "${EWW[@]}" active-windows 2>/dev/null | grep -q "^$WIN:"; }
+
+has_mic() { [[ "$(screencap has-mic)" == yes ]]; }
+is_recording() { [[ "$(screencap is-recording)" == yes ]]; }
+
+is_disabled() {
+  local action="$1"
+  case "$action" in
+    vid-mic-*) ! has_mic && return 0 ;;
+  esac
+  if is_recording && [[ "$action" == vid-* ]]; then return 0; fi
+  return 1
 }
 
 install_outside_binds() {
@@ -46,40 +55,35 @@ close_menu() {
   date +%s%N > "$STAMP"
 }
 
-is_recording() {
-  local pf="${XDG_RUNTIME_DIR:-/tmp}/screencap.pid"
-  [[ -f "$pf" ]] && kill -0 "$(cat "$pf")" 2>/dev/null
+step_index() {
+  local dir="$1" curr next
+  curr=$(cat "$STATE_FILE" 2>/dev/null || echo 0)
+  next=$curr
+  for _ in 1 2 3 4 5 6 7 8; do
+    next=$(( (next + dir + 8) % 8 ))
+    if ! is_disabled "${ACTIONS[$next]}"; then
+      echo "$next" > "$STATE_FILE"
+      return
+    fi
+  done
 }
 
-notify() {
-  command -v notify-send >/dev/null && notify-send -a capture "$@" || true
+select_current() {
+  local curr action
+  curr=$(cat "$STATE_FILE" 2>/dev/null || echo 0)
+  action="${ACTIONS[$curr]}"
+  is_disabled "$action" && return 0
+  "$SELF" "$action"
 }
 
-shot_region() {
-  local file="$shots_dir/region-$(ts).png"
-  grim -g "$(slurp -d)" "$file" || return 0
-  wl-copy < "$file"
-  notify -i "$file" "Screenshot" "$(basename "$file")"
-}
-
-shot_full() {
-  local file="$shots_dir/full-$(ts).png"
-  grim "$file"
-  wl-copy < "$file"
-  notify -i "$file" "Screenshot" "$(basename "$file")"
-}
-
-shot_window() {
-  local w x y width height file
-  w=$(hyprctl activewindow -j)
-  x=$(echo "$w" | jq -r '.at[0]')
-  y=$(echo "$w" | jq -r '.at[1]')
-  width=$(echo "$w" | jq -r '.size[0]')
-  height=$(echo "$w" | jq -r '.size[1]')
-  file="$shots_dir/window-$(ts).png"
-  grim -g "${x},${y} ${width}x${height}" "$file"
-  wl-copy < "$file"
-  notify -i "$file" "Screenshot" "$(basename "$file")"
+run_action() {
+  close_menu
+  case "$1" in
+    shot-region|shot-full|vid-none-region|vid-none-full|vid-mic-region|vid-mic-full|vid-sys-region|vid-sys-full)
+      screencap "$1"
+      ;;
+    *) echo "unknown action: $1" >&2; return 1 ;;
+  esac
 }
 
 case "${1:-toggle}" in
@@ -105,34 +109,12 @@ case "${1:-toggle}" in
       close_menu
     fi
     ;;
-  next)
-    curr=$(cat "$STATE_FILE" 2>/dev/null || echo 0)
-    next=$(( (curr + 1) % 6 ))
-    echo "$next" > "$STATE_FILE"
+  next) step_index 1 ;;
+  prev) step_index -1 ;;
+  select) select_current ;;
+  shot-region|shot-full|vid-none-region|vid-none-full|vid-mic-region|vid-mic-full|vid-sys-region|vid-sys-full)
+    run_action "$1"
     ;;
-  prev)
-    curr=$(cat "$STATE_FILE" 2>/dev/null || echo 0)
-    prev=$(( (curr + 5) % 6 ))
-    echo "$prev" > "$STATE_FILE"
-    ;;
-  select)
-    curr=$(cat "$STATE_FILE" 2>/dev/null || echo 0)
-    case "$curr" in
-      0) "$SELF" shot-region ;;
-      1) "$SELF" shot-full ;;
-      2) "$SELF" shot-window ;;
-      3) "$SELF" rec-region ;;
-      4) "$SELF" rec-region-a ;;
-      5) "$SELF" rec-full-a ;;
-    esac
-    ;;
-  shot-region)  close_menu; shot_region ;;
-  shot-full)    close_menu; shot_full ;;
-  shot-window)  close_menu; shot_window ;;
-  rec-region)   close_menu; CAPTURE_NO_AUDIO=1 screencap region ;;
-  rec-region-a) close_menu; screencap region ;;
-  rec-full)     close_menu; CAPTURE_NO_AUDIO=1 screencap fullscreen ;;
-  rec-full-a)   close_menu; screencap fullscreen ;;
-  stop)         close_menu; screencap stop ;;
-  *) echo "usage: $0 {toggle|close|outside-click|next|prev|select|shot-region|shot-full|shot-window|rec-region|rec-region-a|rec-full|rec-full-a|stop}" >&2; exit 2 ;;
+  stop) close_menu; screencap stop ;;
+  *) echo "usage: $0 {toggle|close|outside-click|next|prev|select|shot-region|shot-full|vid-{none,mic,sys}-{region,full}|stop}" >&2; exit 2 ;;
 esac
