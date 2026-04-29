@@ -158,11 +158,13 @@ screenshot_full() {
 }
 
 screenshot_region() {
-  local geom file
-  geom=$(slurp -d 2>/dev/null) || return 0
-  [[ -z "$geom" ]] && return 0
+  local file
   file="$outdir/screenshot-$(date +%Y%m%d-%H%M%S).png"
-  grim -g "$geom" "$file"
+  flameshot gui --raw > "$file" 2>/dev/null
+  if [[ ! -s "$file" ]]; then
+    rm -f "$file"
+    return 0
+  fi
   wl-copy < "$file"
   command -v notify-send >/dev/null && \
     notify-send -a screencap -i "$file" "Screenshot saved" "$file"
