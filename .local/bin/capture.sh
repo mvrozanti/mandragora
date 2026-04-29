@@ -111,8 +111,16 @@ select_current() {
   "$SELF" "$action"
 }
 
+wait_layer_gone() {
+  for _ in $(seq 1 40); do
+    layer_present || return 0
+    sleep 0.025
+  done
+}
+
 run_action() {
   close_menu
+  wait_layer_gone
   case "$1" in
     shot-region|shot-full|vid-none-region|vid-none-full|vid-mic-region|vid-mic-full|vid-sys-region|vid-sys-full)
       screencap "$1"
