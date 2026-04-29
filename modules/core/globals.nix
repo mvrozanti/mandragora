@@ -52,10 +52,10 @@
     htop
     btop
     tree
+    fastfetch
     jq
     sops
     age
-    # claude-code  # broken in nixpkgs 2.1.116 (cli.js missing), installed via npm
     gemini-cli
     rtk
     nodejs
