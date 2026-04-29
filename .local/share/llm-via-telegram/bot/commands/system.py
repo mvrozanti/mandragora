@@ -205,8 +205,42 @@ async def cmd_hotkey(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
 
 async def cmd_screenshot(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Take a screenshot of the current display and send it."""
+    """Take a screenshot. /screenshot — full display. /screenshot region — flameshot GUI region select."""
+    import asyncio
     import tempfile
+
+    mode = (context.args[0].lower() if context.args else "full")
+
+    if mode == "region":
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+            tmp_path = tmp.name
+        try:
+            env = {**os.environ, **config.x11_env()}
+            proc = await asyncio.create_subprocess_exec(
+                "flameshot", "gui", "--raw",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                env=env,
+            )
+            stdout, stderr = await proc.communicate()
+            if proc.returncode != 0 or not stdout:
+                msg = (stderr.decode(errors="replace").strip()
+                       or "Region capture cancelled or flameshot failed.")
+                await update.message.reply_text(f"Region screenshot failed: {msg}")
+                return
+            with open(tmp_path, "wb") as f:
+                f.write(stdout)
+            with open(tmp_path, "rb") as f:
+                await update.message.reply_photo(f, caption="Region screenshot")
+        except FileNotFoundError:
+            await update.message.reply_text("flameshot not installed.")
+        except Exception as exc:
+            logger.exception("Region screenshot failed")
+            await update.message.reply_text(f"Region screenshot failed: {exc}")
+        finally:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+        return
 
     screenshot_tools = [
         ("import", ["import", "-window", "root"]),
