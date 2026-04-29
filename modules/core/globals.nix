@@ -70,6 +70,7 @@
     playerctl
     brightnessctl
     pamixer
+    pulseaudio
     mpc
     pavucontrol
     crosspipe
