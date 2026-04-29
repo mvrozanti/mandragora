@@ -33,6 +33,9 @@ force_recover() {
   pkill -KILL -f "eww daemon" 2>/dev/null || true
   remove_outside_binds
   hyprctl dispatch submap reset >/dev/null 2>&1 || true
+  rm -f /run/user/$(id -u)/eww-server_* 2>/dev/null
+  setsid eww -c "$HOME/.config/eww" daemon >/dev/null 2>&1 &
+  disown 2>/dev/null || true
 }
 
 has_mic() { [[ "$(screencap has-mic)" == yes ]]; }
@@ -60,11 +63,15 @@ remove_outside_binds() {
 }
 
 ensure_daemon() {
-  pgrep -x eww >/dev/null 2>&1 && return 0
+  if pgrep -x eww >/dev/null 2>&1; then
+    local sock; sock=$(ls /run/user/$(id -u)/eww-server_* 2>/dev/null | head -1)
+    [[ -S "$sock" ]] && return 0
+  fi
   setsid eww -c "$HOME/.config/eww" daemon >/dev/null 2>&1 &
-  for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
-    "${EWW[@]}" ping >/dev/null 2>&1 && return 0
-    sleep 0.1
+  for _ in $(seq 1 60); do
+    local sock; sock=$(ls /run/user/$(id -u)/eww-server_* 2>/dev/null | head -1)
+    [[ -S "$sock" ]] && return 0
+    sleep 0.025
   done
 }
 
