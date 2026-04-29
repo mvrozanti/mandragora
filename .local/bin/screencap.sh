@@ -3,6 +3,9 @@ set -euo pipefail
 
 state_dir="${XDG_RUNTIME_DIR:-/tmp}"
 pidfile="$state_dir/screencap.pid"
+audiofile="$state_dir/screencap.audio"
+startfile="$state_dir/screencap.start"
+status_file="/tmp/recording_status"
 outdir="$HOME/Videos"
 mkdir -p "$outdir"
 
@@ -10,8 +13,26 @@ is_recording() {
   [[ -f "$pidfile" ]] && kill -0 "$(cat "$pidfile")" 2>/dev/null
 }
 
-focused_monitor() {
-  hyprctl -j monitors | jq -r '.[] | select(.focused) | .name'
+write_idle() { echo "idle" > "$status_file"; }
+write_recording() { echo "recording:$1:$2" > "$status_file"; }
+
+monitors_json() { hyprctl -j monitors; }
+
+monitors_list() { monitors_json | jq -r '.[].name'; }
+
+monitor_count() { monitors_json | jq 'length'; }
+
+focused_monitor() { monitors_json | jq -r '.[] | select(.focused) | .name'; }
+
+spanned_geometry() {
+  monitors_json | jq -r '
+    [.[] | {x: .x, y: .y, w: .width, h: .height}] as $m
+    | ([$m[].x] | min) as $minx
+    | ([$m[].y] | min) as $miny
+    | ([$m[] | (.x + .w)] | max) as $maxx
+    | ([$m[] | (.y + .h)] | max) as $maxy
+    | "\($minx),\($miny) \($maxx - $minx)x\($maxy - $miny)"
+  '
 }
 
 default_sink_monitor() {
@@ -20,34 +41,80 @@ default_sink_monitor() {
   [[ -n "$sink" ]] && echo "$sink.monitor"
 }
 
+default_mic_source() {
+  local default_src
+  default_src=$(pactl get-default-source 2>/dev/null || echo "")
+  if [[ -n "$default_src" && "$default_src" != *.monitor ]]; then
+    echo "$default_src"
+    return
+  fi
+  pactl -f json list sources 2>/dev/null \
+    | jq -r '.[] | select(.monitor_of_sink == null) | .name' \
+    | head -n1
+}
+
+has_mic() { [[ -n "$(default_mic_source)" ]]; }
+
+choose_monitor() {
+  local count names choice
+  count=$(monitor_count)
+  if (( count <= 1 )); then
+    echo "monitor:$(focused_monitor)"
+    return
+  fi
+  names=$(monitors_list)
+  choice=$(printf 'All monitors\n%s\n' "$names" | rofi -dmenu -i -p "Capture monitor:" 2>/dev/null) || return 0
+  [[ -z "$choice" ]] && return 0
+  if [[ "$choice" == "All monitors" ]]; then
+    echo "region:$(spanned_geometry)"
+  else
+    echo "monitor:$choice"
+  fi
+}
+
+slurp_geom() {
+  slurp -f "%x,%y %wx%h" -d 2>/dev/null || true
+}
+
 start_record() {
-  local target="$1"
-  local region="${2:-}"
-  local ts file sink args=()
+  local audio_mode="$1" target="$2"
+  local ts file args src now
   ts=$(date +%Y%m%d-%H%M%S)
   file="$outdir/screencap-$ts.mp4"
-  sink=$(default_sink_monitor || true)
+  args=(-c libx264 -C aac -p preset=veryfast -p crf=20 -f "$file")
+  case "$target" in
+    monitor:*) args+=(-o "${target#monitor:}") ;;
+    region:*)  args+=(-g "${target#region:}") ;;
+    *) echo "bad target: $target" >&2; return 1 ;;
+  esac
+  case "$audio_mode" in
+    mic)
+      src=$(default_mic_source)
+      [[ -n "$src" ]] && args+=("--audio=$src")
+      ;;
+    system)
+      src=$(default_sink_monitor)
+      [[ -n "$src" ]] && args+=("--audio=$src")
+      ;;
+  esac
 
-  if [[ -n "$region" ]]; then
-    args=(-w "$region" -f 60 -k h264 -q very_high -o "$file")
-  else
-    args=(-w "$target" -f 60 -k h264 -q very_high -o "$file")
-  fi
-  if [[ "${CAPTURE_NO_AUDIO:-0}" != "1" && -n "$sink" ]]; then
-    args+=(-a "$sink")
-  fi
-
-  setsid gpu-screen-recorder "${args[@]}" >"$state_dir/screencap.log" 2>&1 &
+  setsid wf-recorder "${args[@]}" >"$state_dir/screencap.log" 2>&1 &
   echo $! > "$pidfile"
   echo "$file" > "$state_dir/screencap.last"
+  echo "$audio_mode" > "$audiofile"
+  now=$(date +%s)
+  echo "$now" > "$startfile"
+  write_recording "$audio_mode" "$now"
 
   command -v notify-send >/dev/null && \
-    notify-send -a screencap -i media-record "Recording started" "$(basename "$file")"
+    notify-send -a screencap -i media-record "Recording started" \
+      "Audio: $audio_mode"$'\n'"$(basename "$file")"
 
   pkill -RTMIN+11 waybar 2>/dev/null || true
 }
 
 stop_record() {
+  local last audio
   if is_recording; then
     local pid
     pid=$(cat "$pidfile")
@@ -58,42 +125,111 @@ stop_record() {
     done
     kill -TERM "$pid" 2>/dev/null || true
   fi
-  rm -f "$pidfile"
-  local last
   last=$(cat "$state_dir/screencap.last" 2>/dev/null || true)
+  audio=$(cat "$audiofile" 2>/dev/null || echo "none")
+  rm -f "$pidfile" "$audiofile" "$startfile"
+  write_idle
   command -v notify-send >/dev/null && \
-    notify-send -a screencap -i media-playback-stop "Recording saved" "${last:-done}"
+    notify-send -a screencap -i media-playback-stop "Recording saved" \
+      "Audio: $audio"$'\n'"${last:-done}"
   pkill -RTMIN+11 waybar 2>/dev/null || true
 }
 
-start_fullscreen() {
-  start_record "$(focused_monitor)"
+flashfile="$state_dir/screencap.flash"
+
+mark_flash() {
+  date +%s > "$flashfile"
+  pkill -RTMIN+11 waybar 2>/dev/null || true
 }
 
-start_region() {
-  local geom mon
-  geom=$(slurp -f "%wx%h+%x+%y" -d) || return 0
-  mon=$(focused_monitor)
-  start_record "$mon" "$geom"
+screenshot_full() {
+  local target file
+  target=$(choose_monitor)
+  [[ -z "$target" ]] && return 0
+  file="$outdir/screenshot-$(date +%Y%m%d-%H%M%S).png"
+  case "$target" in
+    monitor:*) grim -o "${target#monitor:}" "$file" ;;
+    region:*)  grim -g "${target#region:}" "$file" ;;
+  esac
+  wl-copy < "$file"
+  command -v notify-send >/dev/null && \
+    notify-send -a screencap -i "$file" "Screenshot saved" "$file"
+  mark_flash
 }
 
-toggle_menu() {
-  eww -c "$HOME/.config/eww" open --toggle capture-menu
+screenshot_region() {
+  local geom file
+  geom=$(slurp -d 2>/dev/null) || return 0
+  [[ -z "$geom" ]] && return 0
+  file="$outdir/screenshot-$(date +%Y%m%d-%H%M%S).png"
+  grim -g "$geom" "$file"
+  wl-copy < "$file"
+  command -v notify-send >/dev/null && \
+    notify-send -a screencap -i "$file" "Screenshot saved" "$file"
+  mark_flash
+}
+
+video_full() {
+  local audio="$1" target
+  target=$(choose_monitor)
+  [[ -z "$target" ]] && return 0
+  start_record "$audio" "$target"
+}
+
+video_region() {
+  local audio="$1" geom
+  geom=$(slurp_geom)
+  [[ -z "$geom" ]] && return 0
+  start_record "$audio" "region:$geom"
+}
+
+elapsed_hms() {
+  local start now diff
+  start=$(cat "$startfile" 2>/dev/null || echo 0)
+  [[ "$start" -le 0 ]] && { echo "00:00:00"; return; }
+  now=$(date +%s)
+  diff=$(( now - start ))
+  printf "%02d:%02d:%02d\n" $((diff/3600)) $(((diff%3600)/60)) $((diff%60))
+}
+
+flash_active() {
+  local f now
+  f=$(cat "$flashfile" 2>/dev/null || echo 0)
+  now=$(date +%s)
+  (( now - f <= 1 ))
+}
+
+status_json() {
+  if is_recording; then
+    local audio elapsed icon tip
+    audio=$(cat "$audiofile" 2>/dev/null || echo "none")
+    elapsed=$(elapsed_hms)
+    case "$audio" in
+      mic)    icon="󰍬"; tip="Recording (mic)" ;;
+      system) icon="󰓃"; tip="Recording (system audio)" ;;
+      *)      icon="󰕧"; tip="Recording (no audio)" ;;
+    esac
+    printf '{"text":"⏺ %s %s","tooltip":"%s — right-click to stop","class":"recording %s"}\n' \
+      "$icon" "$elapsed" "$tip" "$audio"
+  elif flash_active; then
+    printf '{"text":"","tooltip":"Screenshot captured","class":"idle flash"}\n'
+  else
+    printf '{"text":"","tooltip":"Screen capture — left-click for menu","class":"idle"}\n'
+  fi
 }
 
 case "${1:-status}" in
-  fullscreen) eww -c "$HOME/.config/eww" close capture-menu 2>/dev/null || true; start_fullscreen ;;
-  region)     eww -c "$HOME/.config/eww" close capture-menu 2>/dev/null || true; start_region ;;
-  stop)       stop_record ;;
-  toggle)
-    if is_recording; then stop_record; else toggle_menu; fi
-    ;;
-  status)
-    if is_recording; then
-      printf '{"text":"󰑊","tooltip":"Recording — click to stop","class":"recording"}\n'
-    else
-      printf '{"text":"󰕧","tooltip":"Screen record","class":"idle"}\n'
-    fi
-    ;;
-  *) echo "usage: $0 {fullscreen|region|stop|toggle|status}" >&2; exit 2 ;;
+  shot-region)     screenshot_region ;;
+  shot-full)       screenshot_full ;;
+  vid-none-region) video_region none ;;
+  vid-none-full)   video_full none ;;
+  vid-mic-region)  video_region mic ;;
+  vid-mic-full)    video_full mic ;;
+  vid-sys-region)  video_region system ;;
+  vid-sys-full)    video_full system ;;
+  stop)            stop_record ;;
+  has-mic)         has_mic && echo yes || echo no ;;
+  is-recording)    is_recording && echo yes || echo no ;;
+  status)          status_json ;;
+  *) echo "usage: $0 {shot-region|shot-full|vid-{none,mic,sys}-{region,full}|stop|has-mic|is-recording|status}" >&2; exit 2 ;;
 esac
