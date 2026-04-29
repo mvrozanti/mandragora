@@ -28,6 +28,23 @@ height="$3"
 x="$4"
 y="$5"
 
+# Serialize previews per lf instance: concurrent icat invocations interleave
+# escape-sequence writes to /dev/tty, corrupting the screen on fast scroll.
+# Each call records its target as the "wanted" preview (last writer wins);
+# after acquiring the lock, abort if the user has already moved past us.
+preview_lock="/tmp/lf-preview-$PPID.lock"
+preview_want="/tmp/lf-preview-$PPID.want"
+printf '%s' "$file" > "$preview_want.$$" && mv "$preview_want.$$" "$preview_want"
+exec 9>"$preview_lock"
+if ! flock -w 1 9; then
+  printf '[%s] preview-busy file=%s\n' "$(date +%H:%M:%S.%N)" "$file" >> /tmp/lf-cleaner.log
+  exit 1
+fi
+if [ "$(cat "$preview_want" 2>/dev/null)" != "$file" ]; then
+  printf '[%s] preview-stale file=%s\n' "$(date +%H:%M:%S.%N)" "$file" >> /tmp/lf-cleaner.log
+  exit 1
+fi
+
 if [ -d "$file" ]; then
   resolved=$(readlink -f -- "$file")
   cache_dir="/tmp/lf-dirsize-$USER"
