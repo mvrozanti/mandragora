@@ -87,8 +87,6 @@ close_menu() {
   remove_outside_binds
   hyprctl dispatch submap reset >/dev/null 2>&1 || true
   "${EWW[@]}" close "$WIN" 2>/dev/null || true
-  sleep 0.2
-  if layer_present; then force_recover; fi
   date +%s%N > "$STAMP"
 }
 
@@ -126,7 +124,12 @@ run_action() {
 case "${1:-toggle}" in
   toggle)
     if is_recording; then screencap stop; exit 0; fi
-    if is_open; then close_menu; exit 0; fi
+    if "${EWW[@]}" active-windows 2>/dev/null | grep -q "^$WIN:"; then
+      close_menu; exit 0
+    fi
+    if layer_present; then
+      force_recover; exit 0
+    fi
     if [[ -f "$STAMP" ]]; then
       now=$(date +%s%N); last=$(cat "$STAMP")
       (( (now - last) < 300000000 )) && exit 0
