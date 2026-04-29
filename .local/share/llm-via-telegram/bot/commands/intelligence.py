@@ -183,7 +183,10 @@ async def _run_agentic(
 
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.message.text.strip()
+    await dispatch_query(update, update.message.text.strip())
+
+
+async def dispatch_query(update: Update, query: str) -> None:
     _chat_log.info("[user] %s", query.replace("\n", " | ")[:200])
 
     messages: list[dict] = []
