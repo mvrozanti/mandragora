@@ -59,7 +59,17 @@ remove_outside_binds() {
   hyprctl keyword unbind ",mouse:274" >/dev/null 2>&1 || true
 }
 
+ensure_daemon() {
+  pgrep -x eww >/dev/null 2>&1 && return 0
+  setsid eww -c "$HOME/.config/eww" daemon >/dev/null 2>&1 &
+  for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+    "${EWW[@]}" ping >/dev/null 2>&1 && return 0
+    sleep 0.1
+  done
+}
+
 open_menu() {
+  ensure_daemon
   echo 0 > "$STATE_FILE"
   "${EWW[@]}" open "$WIN"
   hyprctl dispatch submap capture >/dev/null
