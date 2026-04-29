@@ -205,9 +205,9 @@ status_json() {
     printf '{"text":"⏺ %s %s","tooltip":"%s — right-click to stop","class":"recording %s"}\n' \
       "$icon" "$elapsed" "$tip" "$audio"
   elif flash_active; then
-    printf '{"text":"","tooltip":"Screenshot captured","class":"idle flash"}\n'
+    printf '{"text":"󰄄","tooltip":"Screenshot captured","class":"idle flash"}\n'
   else
-    printf '{"text":"","tooltip":"Screen capture — left-click for menu","class":"idle"}\n'
+    printf '{"text":"󰄀","tooltip":"Screen capture — left-click for menu, right-click to stop recording","class":"idle"}\n'
   fi
 }
 
