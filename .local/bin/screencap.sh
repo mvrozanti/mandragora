@@ -158,7 +158,18 @@ screenshot_full() {
 }
 
 screenshot_region() {
-  flameshot gui --path "$outdir" --clipboard 2>/dev/null || true
+  local file tmp
+  file="$outdir/screenshot-$(date +%Y%m%d-%H%M%S).png"
+  tmp=$(mktemp --suffix=.png)
+  flameshot gui --raw 2>/dev/null > "$tmp" || true
+  if [[ ! -s "$tmp" ]]; then
+    rm -f "$tmp"
+    return 0
+  fi
+  mv "$tmp" "$file"
+  wl-copy --type image/png < "$file"
+  command -v notify-send >/dev/null && \
+    notify-send -a screencap -i "$file" "Screenshot saved + copied" "$(basename "$file")"
   mark_flash
 }
 
