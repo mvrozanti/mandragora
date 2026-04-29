@@ -127,7 +127,7 @@
         "custom/screencap" = {
           exec = "~/.local/bin/screencap status";
           return-type = "json";
-          interval = 2;
+          interval = 1;
           signal = 11;
           on-click = "~/.local/bin/capture toggle";
           on-click-right = "~/.local/bin/capture stop";

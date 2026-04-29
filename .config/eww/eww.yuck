@@ -1,8 +1,10 @@
 (defpoll capture-selected :interval "100ms" :initial 0 "cat $EWW_CONFIG_DIR/.capture-selected 2>/dev/null || echo 0")
+(defpoll capture-mic :interval "2s" :initial "yes" "screencap has-mic")
+(defpoll capture-recording :interval "1s" :initial "no" "screencap is-recording")
 
-(defwidget capture-tile [icon label cls cmd index]
-  (button :class "capture-btn ${cls} ${capture-selected == index ? 'selected' : ''}"
-          :onclick "${cmd} &"
+(defwidget capture-tile [icon label cls cmd index disabled]
+  (button :class {"capture-btn ${cls} ${capture-selected == index ? 'selected' : ''} ${disabled ? 'disabled' : ''}"}
+          :onclick {disabled ? "" : "${cmd} &"}
     (box :orientation "v" :space-evenly false :spacing 2
       (label :class "capture-icon" :text icon)
       (label :class "capture-label" :text label))))
@@ -13,21 +15,32 @@
     (box :class "capture-section-label" :orientation "h" :space-evenly false
       (label :text "Screenshot"))
     (box :orientation "h" :space-evenly true :spacing 8
-      (capture-tile :icon "󰒉" :label "Region"     :cls "shot" :cmd "capture shot-region" :index 0)
-      (capture-tile :icon "󰍹" :label "Full"       :cls "shot" :cmd "capture shot-full"   :index 1)
-      (capture-tile :icon "󱂬" :label "Window"     :cls "shot" :cmd "capture shot-window" :index 2))
+      (capture-tile :icon "󰒉" :label "Region" :cls "shot" :cmd "capture shot-region" :index 0 :disabled false)
+      (capture-tile :icon "󰍹" :label "Full"   :cls "shot" :cmd "capture shot-full"   :index 1 :disabled false))
     (box :class "capture-section-label" :orientation "h" :space-evenly false
-      (label :text "Record"))
+      (label :text "Video — no audio"))
     (box :orientation "h" :space-evenly true :spacing 8
-      (capture-tile :icon "󰕧" :label "Region"     :cls "rec" :cmd "capture rec-region"   :index 3)
-      (capture-tile :icon "󰦨" :label "Region 󰍬"  :cls "rec" :cmd "capture rec-region-a" :index 4)
-      (capture-tile :icon "󰑊" :label "Full 󰍬"    :cls "rec" :cmd "capture rec-full-a"   :index 5))))
+      (capture-tile :icon "󰕧" :label "Region" :cls "rec" :cmd "capture vid-none-region" :index 2 :disabled {capture-recording == "yes"})
+      (capture-tile :icon "󰑊" :label "Full"   :cls "rec" :cmd "capture vid-none-full"   :index 3 :disabled {capture-recording == "yes"}))
+    (box :class "capture-section-label" :orientation "h" :space-evenly false
+      (label :text {capture-mic == "yes" ? "Video — microphone" : "Video — microphone (no microphone connected)"}))
+    (box :orientation "h" :space-evenly true :spacing 8
+      (capture-tile :icon "󰍬" :label "Region" :cls "rec mic" :cmd "capture vid-mic-region" :index 4 :disabled {capture-mic != "yes" || capture-recording == "yes"})
+      (capture-tile :icon "󰍬" :label "Full"   :cls "rec mic" :cmd "capture vid-mic-full"   :index 5 :disabled {capture-mic != "yes" || capture-recording == "yes"}))
+    (box :class "capture-section-label" :orientation "h" :space-evenly false
+      (label :text "Video — system sound"))
+    (box :orientation "h" :space-evenly true :spacing 8
+      (capture-tile :icon "󰓃" :label "Region" :cls "rec sys" :cmd "capture vid-sys-region" :index 6 :disabled {capture-recording == "yes"})
+      (capture-tile :icon "󰓃" :label "Full"   :cls "rec sys" :cmd "capture vid-sys-full"   :index 7 :disabled {capture-recording == "yes"}))
+    (label :class "capture-recording-banner"
+           :visible {capture-recording == "yes"}
+           :text "Recording in progress")))
 
 (defwindow capture-menu
   :monitor 0
   :stacking "overlay"
   :focusable false
-  :geometry (geometry :anchor "bottom right" :x 12 :y 56 :width 460 :height 280)
+  :geometry (geometry :anchor "bottom right" :x 12 :y 56 :width 480 :height 380)
   :namespace "eww-capture"
   (capture-menu-body))
 
@@ -38,28 +51,28 @@
       (button :class "powermenu-btn lock"
               :onclick "powermenu-close; hyprlock"
         (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
+          (label :class "powermenu-icon" :text "")
           (label :class "powermenu-label" :text "Lock")))
       (button :class "powermenu-btn suspend"
               :onclick "powermenu-close; systemctl suspend"
         (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
+          (label :class "powermenu-icon" :text "")
           (label :class "powermenu-label" :text "Suspend")))
       (button :class "powermenu-btn hibernate"
               :onclick "powermenu-close; systemctl hibernate"
         (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
+          (label :class "powermenu-icon" :text "")
           (label :class "powermenu-label" :text "Hibernate"))))
     (box :orientation "h" :space-evenly true :spacing 10
       (button :class "powermenu-btn reboot"
               :onclick "powermenu-close; systemctl reboot"
         (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
+          (label :class "powermenu-icon" :text "")
           (label :class "powermenu-label" :text "Reboot")))
       (button :class "powermenu-btn poweroff"
               :onclick "powermenu-close; systemctl poweroff"
         (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
+          (label :class "powermenu-icon" :text "")
           (label :class "powermenu-label" :text "Poweroff"))))))
 
 (defwidget powermenu-body []

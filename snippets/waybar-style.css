@@ -201,6 +201,22 @@ tooltip {
     animation: pulse 1.2s ease-in-out infinite;
 }
 
+#custom-screencap.recording.mic {
+    color: @color3;
+    border-bottom-color: @color3;
+}
+
+#custom-screencap.recording.system {
+    color: @color4;
+    border-bottom-color: @color4;
+}
+
+#custom-screencap.flash {
+    color: @color7;
+    background: alpha(@color7, 0.3);
+    border-radius: 4px;
+}
+
 #custom-volume {
     padding: 0 8px;
     min-width: 80px;
