@@ -49,7 +49,7 @@ default_mic_source() {
     return
   fi
   pactl -f json list sources 2>/dev/null \
-    | jq -r '.[] | select(.monitor_of_sink == null) | .name' \
+    | jq -r '.[] | select(.name | endswith(".monitor") | not) | .name' \
     | head -n1
 }
 
