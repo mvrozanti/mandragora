@@ -61,9 +61,7 @@ HELP_TEXT = (
     "  /sudopass <pw> -- Cache sudo password (in-memory only)\n"
     "  /sudo <cmd> -- Run with sudo (needs cached password)\n"
     "  /term <cmd> -- Open in new terminal\n"
-    "  /hotkey <keys> -- Simulate X11 hotkeys (e.g. ctrl+shift+t)\n"
-    "  /screenshot        -- Full-display screenshot\n"
-    "  /screenshot region -- Flameshot GUI region selector\n\n"
+    "  /hotkey <keys> -- Simulate X11 hotkeys (e.g. ctrl+shift+t)\n\n"
     "Firefox\n"
     "  /ff <url> -- Open URL in Firefox\n"
     "  /browser kill -- Kill the Firefox session\n"
@@ -97,7 +95,7 @@ async def cmd_catch_all(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     text = update.message.text.strip()
     known_prefixes = (
         "/sh", "/p", "/ff", "/browser", "/mpv", "/term",
-        "/reg", "/run", "/sudo", "/hotkey", "/screenshot",
+        "/reg", "/run", "/sudo", "/hotkey",
         "/context", "/clear", "/think",
     )
     if text.startswith("/"):
@@ -135,7 +133,6 @@ def build_application() -> Application:
     app.add_handler(CommandHandler("sudo", _guard(system.cmd_sudo)))
     app.add_handler(CommandHandler("term", _guard(system.cmd_term)))
     app.add_handler(CommandHandler("hotkey", _guard(system.cmd_hotkey)))
-    app.add_handler(CommandHandler("screenshot", _guard(system.cmd_screenshot)))
 
     # -- Firefox --
     app.add_handler(CommandHandler("ff", _guard(firefox.cmd_ff)))
@@ -238,7 +235,6 @@ def main() -> None:
             BotCommand("sudo", "Run with sudo"),
             BotCommand("term", "Open in terminal"),
             BotCommand("hotkey", "Simulate X11 hotkeys"),
-            BotCommand("screenshot", "Take a screenshot"),
             BotCommand("ff", "Open URL in Firefox"),
             BotCommand("browser", "Kill/check Firefox session"),
             BotCommand("mpv", "Control MPV"),
