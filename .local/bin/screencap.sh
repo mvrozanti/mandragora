@@ -202,7 +202,7 @@ status_json() {
       system) icon="󰓃"; tip="Recording (system audio)" ;;
       *)      icon="󰕧"; tip="Recording (no audio)" ;;
     esac
-    printf '{"text":"⏺ %s %s","tooltip":"%s — right-click to stop","class":"recording %s"}\n' \
+    printf '{"text":"<span color=\"#ff3b30\">⏺</span> %s %s","tooltip":"%s — right-click to stop","class":"recording %s"}\n' \
       "$icon" "$elapsed" "$tip" "$audio"
   elif flash_active; then
     printf '{"text":"󰄄","tooltip":"Screenshot captured","class":"idle flash"}\n'
