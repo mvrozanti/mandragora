@@ -15,7 +15,25 @@ ACTIONS=(shot-region shot-full vid-none-region vid-none-full vid-mic-region vid-
 
 ts() { date +%Y%m%d-%H%M%S; }
 
-is_open() { "${EWW[@]}" active-windows 2>/dev/null | grep -q "^$WIN:"; }
+layer_present() {
+  hyprctl layers -j 2>/dev/null \
+    | jq -r '.[].levels | to_entries[] | .value[] | .namespace' \
+    | grep -qx "eww-capture"
+}
+
+is_open() {
+  "${EWW[@]}" active-windows 2>/dev/null | grep -q "^$WIN:" && return 0
+  layer_present
+}
+
+force_recover() {
+  pkill -KILL -f "^eww open capture-menu" 2>/dev/null || true
+  pkill -KILL -f "^eww .* open .*capture-menu" 2>/dev/null || true
+  pkill -KILL -x "eww" 2>/dev/null || true
+  pkill -KILL -f "eww daemon" 2>/dev/null || true
+  remove_outside_binds
+  hyprctl dispatch submap reset >/dev/null 2>&1 || true
+}
 
 has_mic() { [[ "$(screencap has-mic)" == yes ]]; }
 is_recording() { [[ "$(screencap is-recording)" == yes ]]; }
@@ -52,6 +70,8 @@ close_menu() {
   remove_outside_binds
   hyprctl dispatch submap reset >/dev/null 2>&1 || true
   "${EWW[@]}" close "$WIN" 2>/dev/null || true
+  sleep 0.2
+  if layer_present; then force_recover; fi
   date +%s%N > "$STAMP"
 }
 
@@ -116,5 +136,6 @@ case "${1:-toggle}" in
     run_action "$1"
     ;;
   stop) close_menu; screencap stop ;;
-  *) echo "usage: $0 {toggle|close|outside-click|next|prev|select|shot-region|shot-full|vid-{none,mic,sys}-{region,full}|stop}" >&2; exit 2 ;;
+  panic) force_recover; "${EWW[@]}" close "$WIN" 2>/dev/null || true ;;
+  *) echo "usage: $0 {toggle|close|outside-click|next|prev|select|shot-region|shot-full|vid-{none,mic,sys}-{region,full}|stop|panic}" >&2; exit 2 ;;
 esac
