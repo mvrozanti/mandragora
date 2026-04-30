@@ -179,7 +179,17 @@ in
     jiq
 
     telegram-desktop
-    vesktop
+    (pkgs.symlinkJoin {
+      name = "vesktop";
+      paths = [ pkgs.vesktop ];
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        wrapProgram $out/bin/vesktop \
+          --unset NIXOS_OZONE_WL \
+          --add-flags "--ozone-platform-hint=auto" \
+          --add-flags "--enable-features=WaylandWindowDecorations"
+      '';
+    })
     obs-studio
     spotify
     obsidian
