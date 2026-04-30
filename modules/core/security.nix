@@ -69,6 +69,8 @@
     enableUserSlices = true;
   };
 
+  security.apparmor.enable = true;
+
   boot.kernel.sysctl = {
     "kernel.dmesg_restrict" = 1;
     "kernel.kptr_restrict" = 2;
@@ -84,5 +86,9 @@
     "kernel.yama.ptrace_scope" = 1;
     "fs.protected_hardlinks" = 1;
     "fs.protected_symlinks" = 1;
+    "kernel.kexec_load_disabled" = 1;
+    "kernel.sysrq" = 4;
+    "vm.unprivileged_userfaultfd" = 0;
+    "dev.tty.ldisc_autoload" = 0;
   };
 }
