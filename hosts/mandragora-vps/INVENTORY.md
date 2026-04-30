@@ -106,15 +106,19 @@ Decision (2026-04-29): OpenVPN is not migrating. Tailscale covers the same need 
 
 OCI VCN security list currently blocks 443 inbound; only 80/22/UDP-1194 actually reach the box from the internet.
 
-## Migration acceptance criteria
+## Provisioning model — Nix on Oracle Linux, not NixOS
 
-The migration is "done" when, on the NixOS-built `mandragora-vps`:
+Decision (2026-04-29): mandragora-vps stays Oracle Linux 8.10. We do **not** rebuild the OS. Instead the repo provisions the host imperatively-but-reproducibly:
 
-1. SSH on tailnet works for `m@mandragora-vps`.
-2. Seafile container is back up with the same data and DB; web UI reachable on tailnet.
-3. OpenVPN server back up with same CA/certs; existing client configs (`awooga.ovpn`) still connect.
-4. Hummingbot, dashboard, jupyter, crypto-fetcher, redis all running with their bind-mount data intact.
-5. `collector.service` running, `collector.log` continues being appended.
-6. DDNS updater still pushing the public IP to DuckDNS.
-7. Public firewall closed except for what's actually intended (1194 if OpenVPN stays public; 80/22 only if needed).
-8. OCI metadata/DNS/iSCSI still work (the `BareMetalInstanceServices` rules are replicated).
+- `bootstrap.sh` (root, run over SSH) — installs Nix multi-user, the Tailscale RPM, creates user `m`, brings the node onto the tailnet via auth key, runs home-manager.
+- `home.nix` — Nix-managed userspace for `m@mandragora-vps`: shells, CLI tools, dotfiles. Re-applied with `home-manager switch --flake github:mvrozanti/mandragora#m@mandragora-vps`.
+- Existing Oracle-Linux–native pieces stay where they are: `firewalld`, `docker` + the four `docker-compose.yml` stacks, `collector.service`, `duckdns_update.sh` cron, `iptables` rules including `BareMetalInstanceServices`. They are *documented* here, not reimplemented in Nix.
+- Tailscale becomes the trust path. SSH stays public on 22 (key-only) as the lockout safety net. Other services move to tailnet-only over time.
+
+Acceptance for the initial Tailscale + sync milestone:
+
+1. mandragora-desktop and mandragora-vps are both nodes in the tailnet, reachable by name.
+2. Public SSH on 22 still works (safety net).
+3. Seafile is reachable on the tailnet (`http://mandragora-vps/`) without changing the Seafile compose.
+4. mandragora-desktop syncs `~/Videos`, `~/Music`, `~/Documents`, `~/Downloads`, `~/Pictures` into Seafile libraries via `seaf-cli` against the tailnet IP.
+5. Existing oracle workloads (Hummingbot, crypto-fetcher, orderbook collector, DDNS) keep running unchanged.
