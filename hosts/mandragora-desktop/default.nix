@@ -14,6 +14,7 @@
     ../../modules/core/security.nix
     ../../modules/core/ai-local.nix
     ../../modules/core/monitoring.nix
+    ../../modules/core/tailscale.nix
     ../../modules/desktop/hyprland.nix
     ../../modules/desktop/sddm.nix
     ../../modules/desktop/kdeconnect.nix
