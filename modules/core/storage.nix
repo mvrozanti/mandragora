@@ -49,6 +49,12 @@
     { device = "/dev/disk/by-label/SWAP"; }
   ];
 
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 50;
+  };
+
   boot.resumeDevice = "/dev/disk/by-uuid/35f1250b-3b82-45bb-abab-62236e91fe26";
 
   boot.initrd.systemd.storePaths = [
