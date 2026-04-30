@@ -13,6 +13,7 @@ let
     Documents = "465499b0-1761-464b-a93a-7c54cd8d11cd";
     Downloads = "37fde89c-7afc-4ee9-b309-53472d4dc644";
     Pictures  = "74ed850a-9568-49b4-9274-f822b20be5e7";
+    Desktop   = "a16ec8f2-1740-4469-8327-a65ec5dcb78b";
   };
 
   syncLines = lib.concatStringsSep "\n" (lib.mapAttrsToList (name: id: ''
