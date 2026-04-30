@@ -14,7 +14,7 @@
 
         modules-left = [ "hyprland/workspaces" ];
         modules-center = [ "custom/mpd" ];
-        modules-right = [ "custom/volume" "disk" "memory" "temperature" "cpu" "custom/gpu" "custom/network" "custom/weather" "clock" "custom/screencap" "custom/powermenu" "tray" ];
+        modules-right = [ "custom/volume" "bluetooth" "disk" "memory" "temperature" "cpu" "custom/gpu" "custom/network" "custom/weather" "clock" "custom/screencap" "custom/powermenu" "tray" ];
 
         "hyprland/workspaces" = {
           format = "{icon}";
@@ -56,6 +56,21 @@
           on-scroll-up = "pamixer -i 2";
           on-scroll-down = "pamixer -d 2";
           on-click-right = "pavucontrol";
+        };
+
+        bluetooth = {
+          format = "";
+          format-disabled = "";
+          format-off = "";
+          format-on = "";
+          format-connected = " {device_alias}";
+          format-connected-battery = " {device_alias} {device_battery_percentage}%";
+          tooltip-format = "{controller_alias}\t{controller_address}";
+          tooltip-format-connected = "{controller_alias}\t{controller_address}\n\n{device_enumerate}";
+          tooltip-format-enumerate-connected = "{device_alias}\t{device_address}";
+          tooltip-format-enumerate-connected-battery = "{device_alias}\t{device_address}\t{device_battery_percentage}%";
+          on-click = "${pkgs.bash}/bin/bash ~/.config/waybar/scripts/bluetooth.sh toggle";
+          on-click-right = "blueman-manager";
         };
 
         disk = {
