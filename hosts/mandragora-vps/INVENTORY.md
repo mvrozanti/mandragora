@@ -57,21 +57,9 @@ BOOT_IMAGE=(hd0,gpt2)/vmlinuz-5.15.0-208.159.3.el8uek.aarch64 \
 - `unified-monitoring-agent.timer` — Oracle Cloud monitoring; **drop after migration**, replace with NixOS metrics if wanted.
 - `oswatcher.service`, `oracle-cloud-agent.service`, `oracle-cloud-agent-updater.service` — Oracle agents; **drop**, not needed for our purposes.
 
-### OpenVPN server state to back up
+### OpenVPN server — retiring
 
-`/etc/openvpn/`:
-- `ca.crt`, `ca.key` (CA private key — sops it after backup)
-- `server_ADDErF2LVlWVy39M.crt`, `server_ADDErF2LVlWVy39M.key`
-- `tls-crypt.key`
-- `server.conf`
-- `client-template.txt`
-- `ipp.txt` (persistent client IP assignments)
-- `ccd/` (per-client overrides)
-- `client/` (issued client configs)
-- `easy-rsa/pki/` (entire PKI tree, including issued `awooga.crt`/`.key`)
-- `crl.pem`
-
-NixOS target: `services.openvpn.servers.<name>.config = builtins.readFile ...`, with the keys/certs deployed via `sops-nix` (CA key + server key + tls-crypt key are the secret-bearing ones).
+Decision (2026-04-29): OpenVPN is not migrating. Tailscale covers the same need with less ceremony. The state in `/etc/openvpn/` (CA, server cert, `tls-crypt.key`, `ipp.txt`, `ccd/`, `awooga` client cert, `easy-rsa/pki/`) will be left behind when the host is rebuilt. Existing VPN clients (`awooga.ovpn`) will stop working — they need to switch to a Tailscale node.
 
 ### DDNS
 
