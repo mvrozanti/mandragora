@@ -27,7 +27,9 @@
         "/var/lib/private/ollama"
       ]
       ++ lib.optional config.services.prometheus.enable
-        { directory = "/var/lib/prometheus2"; user = "prometheus"; group = "prometheus"; mode = "0700"; };
+        { directory = "/var/lib/prometheus2"; user = "prometheus"; group = "prometheus"; mode = "0700"; }
+      ++ lib.optional config.services.tailscale.enable
+        { directory = "/var/lib/tailscale"; user = "root"; group = "root"; mode = "0700"; };
     files = lib.optionals config.services.openssh.enable [
       "/etc/ssh/ssh_host_ed25519_key"
       "/etc/ssh/ssh_host_ed25519_key.pub"
