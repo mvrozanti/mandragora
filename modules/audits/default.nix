@@ -22,6 +22,8 @@ let
 
 in
 {
+  imports = [ ./cve-scan.nix ];
+
   environment.systemPackages = [ strayscli ];
 
   systemd.tmpfiles.rules = [
