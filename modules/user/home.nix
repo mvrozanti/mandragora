@@ -184,7 +184,10 @@ in
       paths = [ pkgs.vesktop ];
       nativeBuildInputs = [ pkgs.makeWrapper ];
       postBuild = ''
-        wrapProgram $out/bin/vesktop --unset NIXOS_OZONE_WL
+        wrapProgram $out/bin/vesktop \
+          --unset NIXOS_OZONE_WL \
+          --unset WAYLAND_DISPLAY \
+          --add-flags "--ozone-platform=x11"
       '';
     })
     obs-studio
