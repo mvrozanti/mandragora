@@ -87,6 +87,12 @@ _history: list[dict[str, str]] = []
 
 _MAX_TOOL_TURNS = 6
 _TYPING_REFRESH_SECONDS = 4
+_TOOL_RESULT_MAX_CHARS = 8000
+
+
+def _format_exc(exc: BaseException) -> str:
+    msg = str(exc).strip()
+    return f"{type(exc).__name__}: {msg}" if msg else type(exc).__name__
 
 
 async def _execute_shell(command: str) -> str:
@@ -108,6 +114,11 @@ async def _execute_shell(command: str) -> str:
     result = out or err or "(no output)"
     if proc.returncode != 0:
         result = f"Exit {proc.returncode}: {result}"
+    if len(result) > _TOOL_RESULT_MAX_CHARS:
+        head = result[: _TOOL_RESULT_MAX_CHARS // 2]
+        tail = result[-_TOOL_RESULT_MAX_CHARS // 2 :]
+        omitted = len(result) - len(head) - len(tail)
+        result = f"{head}\n\n[... {omitted} chars truncated ...]\n\n{tail}"
     _chat_log.info("[tool:result] %s", result[:200])
     return result
 
@@ -234,10 +245,10 @@ async def dispatch_query(update: Update, query: str) -> None:
 
     except RuntimeError as exc:
         logger.error("LLM error: %s", exc)
-        await update.message.reply_text(f"Query failed: {exc}")
+        await update.message.reply_text(f"Query failed: {_format_exc(exc)}")
     except Exception as exc:
         logger.exception("Unexpected error in handle_text")
-        await update.message.reply_text(f"Query failed: {exc}")
+        await update.message.reply_text(f"Query failed: {_format_exc(exc)}")
     finally:
         typing_task.cancel()
         try:
@@ -347,7 +358,7 @@ async def cmd_p(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(chunk)
     except RuntimeError as exc:
         logger.error("persona error: %s", exc)
-        await update.message.reply_text(f"Local LLM error: {exc}")
+        await update.message.reply_text(f"Local LLM error: {_format_exc(exc)}")
     except Exception as exc:
         logger.exception("Persona error")
-        await update.message.reply_text(f"Persona query failed: {exc}")
+        await update.message.reply_text(f"Persona query failed: {_format_exc(exc)}")
