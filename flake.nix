@@ -70,5 +70,10 @@
           usbImage = self.packages.${system}.usbImage;
         })}/bin/refiner";
       };
+
+      homeConfigurations."m@mandragora-vps" = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages."aarch64-linux";
+        modules = [ ./hosts/mandragora-vps/home.nix ];
+      };
     };
 }
