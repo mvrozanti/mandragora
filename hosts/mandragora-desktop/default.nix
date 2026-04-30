@@ -17,6 +17,7 @@
     ../../modules/core/tailscale.nix
     ../../modules/desktop/hyprland.nix
     ../../modules/desktop/sddm.nix
+    ../../modules/desktop/bluetooth.nix
     ../../modules/desktop/kdeconnect.nix
     ../../modules/desktop/keyd.nix
     ../../modules/desktop/keyledsd.nix

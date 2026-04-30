@@ -798,6 +798,10 @@ EOF
     source = ../../snippets/waybar-weather.sh;
     executable = true;
   };
+  home.file.".config/waybar/scripts/bluetooth.sh" = {
+    source = ../../snippets/waybar-bluetooth.sh;
+    executable = true;
+  };
   home.file.".local/share/applications/chess-com.desktop".text = ''
 [Desktop Entry]
 Name=Chess.com
