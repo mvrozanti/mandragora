@@ -42,10 +42,12 @@
 
   programs.git = {
     enable = true;
-    userName = "Marcello Rozanti";
-    userEmail = "mvrozanti@gmail.com";
-    extraConfig.init.defaultBranch = "master";
-    extraConfig.pull.rebase = true;
+    settings = {
+      user.name = "Marcello Rozanti";
+      user.email = "mvrozanti@gmail.com";
+      init.defaultBranch = "master";
+      pull.rebase = true;
+    };
   };
 
   programs.neovim = {
@@ -53,6 +55,8 @@
     defaultEditor = true;
     viAlias = true;
     vimAlias = true;
+    withRuby = false;
+    withPython3 = false;
   };
 
   programs.tmux = {
