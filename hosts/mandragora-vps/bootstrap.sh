@@ -81,9 +81,9 @@ ensure_nix() {
 
 run_home_manager() {
   log "applying home-manager flake ${REPO_URL}#${HM_TARGET}"
-  sudo -iu m bash -c "
+  runuser -l m -c "
     set -euo pipefail
-    export PATH='/nix/var/nix/profiles/default/bin:\$PATH'
+    . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
     nix run --extra-experimental-features 'nix-command flakes' \
       home-manager/master -- switch \
       --flake '${REPO_URL}#${HM_TARGET}' -b backup
