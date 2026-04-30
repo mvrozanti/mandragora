@@ -31,6 +31,7 @@
   ];
 
   mandragora.ai.agentic.enable = true;
+  services.mandragora-seafile.enable = true;
 
   nixpkgs.hostPlatform = "x86_64-linux";
   nixpkgs.config.allowUnfree = true;
