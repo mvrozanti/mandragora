@@ -70,16 +70,26 @@ _TOOLS = [
     }
 ]
 
-_THINK_RE = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
+_THINK_RE = re.compile(r"<think>(.*?)</think>\s*", re.DOTALL | re.IGNORECASE)
 
 
-_think_mode = False
+_think_mode = True
 
 
-def _maybe_strip_thinking(text: str) -> str:
-    if _think_mode:
-        return text.strip()
-    return _THINK_RE.sub("", text).strip()
+def _format_final_message(msg: dict) -> str:
+    content = (msg.get("content") or "").strip()
+    thinking = (msg.get("thinking") or "").strip()
+
+    if not thinking:
+        m = _THINK_RE.search(content)
+        if m:
+            thinking = m.group(1).strip()
+            content = _THINK_RE.sub("", content).strip()
+
+    if _think_mode and thinking:
+        quoted = "\n".join(f"> {line}" for line in thinking.splitlines())
+        return f"\U0001f4ad *thinking*\n{quoted}\n\n{content}".strip()
+    return content
 
 
 _HISTORY_MAX = 20
@@ -152,6 +162,7 @@ async def _run_agentic(
             "tools": _TOOLS,
             "stream": False,
             "keep_alive": 0,
+            "think": _think_mode,
             "options": {"num_ctx": 32768},
         }
         async with httpx.AsyncClient(timeout=180.0) as client:
@@ -178,7 +189,7 @@ async def _run_agentic(
         tool_calls = msg.get("tool_calls") or []
 
         if not tool_calls:
-            return _maybe_strip_thinking(msg.get("content", "").strip()) or "(empty response)"
+            return _format_final_message(msg) or "(empty response)"
 
         messages.append({
             "role": "assistant",
@@ -261,8 +272,13 @@ async def dispatch_query(update: Update, query: str) -> None:
 async def cmd_think(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global _think_mode
     _think_mode = not _think_mode
-    status = "enabled" if _think_mode else "disabled"
-    await update.message.reply_text(f"Think mode {status}.")
+    status = "on" if _think_mode else "off"
+    detail = (
+        "model will reason before answering; trace shown above each reply"
+        if _think_mode
+        else "fast replies, no reasoning trace"
+    )
+    await update.message.reply_text(f"Thinking mode: {status} — {detail}.")
 
 
 async def cmd_clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
