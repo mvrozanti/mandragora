@@ -2,37 +2,76 @@
 
 let
   cfg = config.services.mandragora-seafile;
+
+  serverUrl = "http://100.84.78.83";
+  serverEmail = "mvrozanti@hotmail.com";
+  seafDataParent = "/home/m/.seaf";
+
+  syncMap = {
+    Videos    = "d563b844-5b5f-4927-b5f0-ff391b868c89";
+    Music     = "36908347-7384-455e-8982-ec4fae50ed1c";
+    Documents = "465499b0-1761-464b-a93a-7c54cd8d11cd";
+    Downloads = "37fde89c-7afc-4ee9-b309-53472d4dc644";
+    Pictures  = "74ed850a-9568-49b4-9274-f822b20be5e7";
+  };
+
+  syncLines = lib.concatStringsSep "\n" (lib.mapAttrsToList (name: id: ''
+    if seaf-cli status 2>/dev/null | awk 'NR>1 {print $1}' | grep -qx "${name}"; then
+      echo "[skip] ${name} already syncing"
+    else
+      echo "[sync] ${name} <- ${id}"
+      seaf-cli sync -l "${id}" -s "${serverUrl}" -u "${serverEmail}" -p "$SF_PW" -d "$HOME/${name}"
+    fi
+  '') syncMap);
+
+  onboard = pkgs.writeShellScriptBin "seaf-onboard" ''
+    set -euo pipefail
+
+    if [ ! -d "${seafDataParent}" ]; then
+      echo "==> seaf-cli init -d ${seafDataParent}"
+      mkdir -p "${seafDataParent}"
+      ${pkgs.seafile-client}/bin/seaf-cli init -d "${seafDataParent}"
+    fi
+
+    if ! ${pkgs.seafile-client}/bin/seaf-cli status >/dev/null 2>&1; then
+      echo "==> starting seaf-cli daemon"
+      ${pkgs.seafile-client}/bin/seaf-cli start
+      sleep 2
+    fi
+
+    echo -n "Seafile password for ${serverEmail}: "
+    read -rs SF_PW
+    echo
+    export SF_PW
+
+    export PATH="${pkgs.seafile-client}/bin:$PATH"
+    ${syncLines}
+    unset SF_PW
+
+    echo
+    echo "==> current sync state:"
+    ${pkgs.seafile-client}/bin/seaf-cli status
+  '';
 in
 {
   options.services.mandragora-seafile.enable = lib.mkEnableOption "Seafile sync client daemon";
 
   config = lib.mkIf cfg.enable {
-    # TODO: Add to secrets.yaml before enabling:
-    #   sops.secrets."seafile/auth-token" = { owner = "m"; };
-    # Then run once interactively as m:
-    #   seaf-cli init -d ~/Seafile
-    #   seaf-cli config -S <server-url> -u <email> -k <auth-token>
-    # And add desired library syncs:
-    #   seaf-cli sync -l <library-id> -s <server-url> -u <email> -k <token> -d ~/Seafile/<dir>
-    # TODO: Replace <server-url> with the arch-slave Seafile address when available.
-
-    environment.systemPackages = [ pkgs.seafile-client ];
+    environment.systemPackages = [ pkgs.seafile-client onboard ];
 
     systemd.user.services.seafile-daemon = {
       description = "Seafile client daemon";
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
       wantedBy = [ "default.target" ];
+      unitConfig.ConditionPathIsDirectory = "%h/.seaf/seafile-data";
       serviceConfig = {
-        # seaf-cli start forks seaf-daemon and exits; PIDFile lets systemd track the child.
-        # The default PID file location for seaf-cli is ~/.seaf/seafile.pid — verify on first run.
         Type = "forking";
-        PIDFile = "%h/.seaf/seafile.pid";
+        PIDFile = "%h/.seaf/seafile-data/seafile.pid";
         ExecStart = "${pkgs.seafile-client}/bin/seaf-cli start";
         ExecStop = "${pkgs.seafile-client}/bin/seaf-cli stop";
         Restart = "on-failure";
         RestartSec = "30s";
-        # Cap restart attempts to avoid log spam if seaf-cli init was never run
         StartLimitIntervalSec = "5min";
         StartLimitBurst = 3;
       };
