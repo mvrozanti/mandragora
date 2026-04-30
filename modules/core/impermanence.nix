@@ -18,6 +18,7 @@
     directories = [
       "/var/log"
       "/var/lib/nixos"
+      "/var/lib/bluetooth"
       "/var/lib/systemd/coredump"
       "/var/lib/systemd/timers"
       "/etc/NetworkManager/system-connections"
