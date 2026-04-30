@@ -21,8 +21,8 @@ in
     syntaxHighlighting.enable = true;
 
     history = {
-      size = 1000000000;
-      save = 1000000000;
+      size = 1000000;
+      save = 1000000;
       path = "${config.home.homeDirectory}/.local/state/zsh/history";
       ignoreDups = true;
       share = true;
