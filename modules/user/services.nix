@@ -22,6 +22,11 @@
     };
   };
 
+  systemd.user.services.mpd-discord-rpc.Unit = {
+    After = [ "mpd.service" ];
+    Wants = [ "mpd.service" ];
+  };
+
   # Transmission Daemon Service
   systemd.user.services.transmission = {
     Unit = {
