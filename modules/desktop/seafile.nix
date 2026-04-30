@@ -27,15 +27,15 @@ let
   onboard = pkgs.writeShellScriptBin "seaf-onboard" ''
     set -euo pipefail
 
-    if [ ! -d "${seafDataParent}" ]; then
+    if [ ! -d "${seafDataParent}/seafile-data" ]; then
       echo "==> seaf-cli init -d ${seafDataParent}"
       mkdir -p "${seafDataParent}"
-      ${pkgs.seafile-client}/bin/seaf-cli init -d "${seafDataParent}"
+      ${pkgs.seafile-shared}/bin/seaf-cli init -d "${seafDataParent}"
     fi
 
-    if ! ${pkgs.seafile-client}/bin/seaf-cli status >/dev/null 2>&1; then
+    if ! ${pkgs.seafile-shared}/bin/seaf-cli status >/dev/null 2>&1; then
       echo "==> starting seaf-cli daemon"
-      ${pkgs.seafile-client}/bin/seaf-cli start
+      ${pkgs.seafile-shared}/bin/seaf-cli start
       sleep 2
     fi
 
@@ -44,20 +44,20 @@ let
     echo
     export SF_PW
 
-    export PATH="${pkgs.seafile-client}/bin:$PATH"
+    export PATH="${pkgs.seafile-shared}/bin:$PATH"
     ${syncLines}
     unset SF_PW
 
     echo
     echo "==> current sync state:"
-    ${pkgs.seafile-client}/bin/seaf-cli status
+    ${pkgs.seafile-shared}/bin/seaf-cli status
   '';
 in
 {
   options.services.mandragora-seafile.enable = lib.mkEnableOption "Seafile sync client daemon";
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ pkgs.seafile-client onboard ];
+    environment.systemPackages = [ pkgs.seafile-shared pkgs.seafile-client onboard ];
 
     systemd.user.services.seafile-daemon = {
       description = "Seafile client daemon";
@@ -68,13 +68,13 @@ in
       serviceConfig = {
         Type = "forking";
         PIDFile = "%h/.seaf/seafile-data/seafile.pid";
-        ExecStart = "${pkgs.seafile-client}/bin/seaf-cli start";
-        ExecStop = "${pkgs.seafile-client}/bin/seaf-cli stop";
+        ExecStart = "${pkgs.seafile-shared}/bin/seaf-cli start";
+        ExecStop = "${pkgs.seafile-shared}/bin/seaf-cli stop";
         Restart = "on-failure";
         RestartSec = "30s";
-        StartLimitIntervalSec = "5min";
-        StartLimitBurst = 3;
       };
+      unitConfig.StartLimitIntervalSec = "5min";
+      unitConfig.StartLimitBurst = 3;
     };
   };
 }
