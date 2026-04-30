@@ -53,7 +53,7 @@ HELP_TEXT = (
     "  Voice note  -- Transcribed (EN/PT auto) then sent to LLM\n"
     "  /context   -- Show model, system prompt sizes, history, token budget\n"
     "  /clear     -- Clear conversation history\n"
-    "  /think     -- Toggle thinking display (enabled/disabled)\n\n"
+    "  /think     -- Toggle thinking mode (deeper reasoning, slower)\n\n"
     "Personas\n"
     "  /p <name> <query> -- Query using a registered persona\n\n"
     "System\n"
@@ -228,7 +228,7 @@ def main() -> None:
             BotCommand("help", "Show command reference"),
             BotCommand("context", "Show model, system prompt, history, token use"),
             BotCommand("clear", "Clear conversation history"),
-            BotCommand("think", "Toggle thinking display"),
+            BotCommand("think", "Toggle thinking mode (slower, better answers)"),
             BotCommand("p", "Query with persona"),
             BotCommand("sh", "Run shell command"),
             BotCommand("sudopass", "Cache sudo password"),
