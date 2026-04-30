@@ -64,10 +64,9 @@
     }];
   };
 
-  services.earlyoom = {
+  systemd.oomd = {
     enable = true;
-    freeMemThreshold = 5;
-    freeSwapThreshold = 10;
+    enableUserSlices = true;
   };
 
   boot.kernel.sysctl = {
