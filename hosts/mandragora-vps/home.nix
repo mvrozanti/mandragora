@@ -43,7 +43,7 @@
   programs.git = {
     enable = true;
     settings = {
-      user.name = "Marcello Rozanti";
+      user.name = "Marcelo Vironda Rozanti";
       user.email = "mvrozanti@gmail.com";
       init.defaultBranch = "master";
       pull.rebase = true;
