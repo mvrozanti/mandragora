@@ -198,6 +198,10 @@ in
     tradingview
     openrgb
     matugen
+    adwaita-qt
+    adwaita-qt6
+    qt5.qtwayland
+    qt6.qtwayland
 
     (pkgs.writeShellScriptBin "smart-launch" (builtins.readFile ../../.local/bin/smart-launch.sh))
     (pkgs.writeShellScriptBin "obsidian-launch" (builtins.readFile ../../.local/bin/obsidian-launch.sh))
@@ -363,6 +367,12 @@ in
         background-image: none !important;
       }
     '';
+  };
+
+  qt = {
+    enable = true;
+    platformTheme.name = "gtk";
+    style.name = "adwaita-dark";
   };
 
   dconf.settings = {
