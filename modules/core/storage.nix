@@ -51,6 +51,12 @@
     options = [ "noauto" "nofail" "x-systemd.automount" "x-systemd.device-timeout=5" "x-systemd.idle-timeout=300" ];
   };
 
+  
+  fileSystems."/mnt/sandisk" = {
+    device = "/dev/disk/by-uuid/f892fa0d-ce81-4137-bf64-5a1a40a8c4b1";
+    fsType = "ext4";
+    options = [ "noauto" "nofail" "x-systemd.automount" "x-systemd.device-timeout=5" "x-systemd.idle-timeout=300" ];
+  };
   fileSystems."/mnt/adata" = {
     device = "/dev/disk/by-uuid/8f573b56-3312-44b2-abcf-21b4bff1996d";
     fsType = "ext4";
