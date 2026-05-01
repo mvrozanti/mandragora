@@ -245,5 +245,39 @@ if [ "$COMMIT_SKIPPED" -eq 0 ]; then
   phase "git push"
 fi
 
+if [ "$RC" -eq 0 ] || [ "$ACTIVATED" -eq 1 ]; then
+  WINDOW_SECONDS=${MANDRAGORA_GEN_WINDOW_SECONDS:-7200}
+  if [ "$WINDOW_SECONDS" -gt 0 ]; then
+    CURRENT_LINK=/nix/var/nix/profiles/system
+    CURRENT_NUM=$(basename "$(readlink "$CURRENT_LINK")" | sed -n 's/^system-\([0-9]\+\)-link$/\1/p')
+    if [ -n "$CURRENT_NUM" ]; then
+      CURRENT_MTIME=$(stat -c %Y "$CURRENT_LINK")
+      BOOTED_PATH=$(readlink -f /run/booted-system)
+      COALESCE=()
+      for link in /nix/var/nix/profiles/system-*-link; do
+        num=$(basename "$link" | sed -n 's/^system-\([0-9]\+\)-link$/\1/p')
+        [ -z "$num" ] && continue
+        [ "$num" = "$CURRENT_NUM" ] && continue
+        [ "$(readlink -f "$link")" = "$BOOTED_PATH" ] && continue
+        mtime=$(stat -c %Y "$link")
+        age=$((CURRENT_MTIME - mtime))
+        if [ "$age" -ge 0 ] && [ "$age" -lt "$WINDOW_SECONDS" ]; then
+          COALESCE+=("$num")
+        fi
+      done
+      if [ "${#COALESCE[@]}" -gt 0 ]; then
+        echo "==> Coalescing ${#COALESCE[@]} generation(s) within ${WINDOW_SECONDS}s of gen ${CURRENT_NUM}: ${COALESCE[*]}"
+        if sudo nix-env -p /nix/var/nix/profiles/system --delete-generations "${COALESCE[@]}"; then
+          sudo /run/current-system/bin/switch-to-configuration boot >/dev/null 2>&1 || \
+            echo "==> WARNING: bootloader refresh after coalesce failed; entries may be stale until next switch." >&2
+        else
+          echo "==> WARNING: generation coalesce failed; old generations remain." >&2
+        fi
+        phase "coalesce generations"
+      fi
+    fi
+  fi
+fi
+
 phase "done"
 exit "$RC"
