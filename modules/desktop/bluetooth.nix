@@ -12,24 +12,16 @@
     powerOnBoot = true;
     settings = {
       General = {
-        # Restore Dual mode but keep other stability settings
         ControllerMode = "dual";
         Experimental = true;
-        FastConnectable = false;
-        JustWorksRepairing = "always";
-        AutoEnable = true;
-      };
-      Policy = {
-        AutoEnable = true;
       };
     };
   };
 
-  # Stabilization tweaks for PipeWire/WirePlumber
-  services.pipewire.wireplumber.extraConfig."10-bluez-stability" = {
+  # Use a simpler WirePlumber config that doesn't restrict roles or codecs unless needed
+  services.pipewire.wireplumber.extraConfig."10-bluez-clean" = {
     "monitor.bluez.properties" = {
       "bluez5.enable-hw-volume" = false;
-      "bluez5.roles" = [ "a2dp-sink" "a2dp-source" "hsp-hs" "hfp-hf" ];
     };
   };
 
