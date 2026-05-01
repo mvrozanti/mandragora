@@ -51,7 +51,7 @@ the audit's `/nix/store` derivation.
 | # | Name | Rule | What it catches |
 |---|------|------|-----------------|
 | 01 | `no-extraconfig` | R2 | New `extraConfig = ''…''` blocks in `.nix` files. |
-| 02 | `doc-links`      | —  | Broken relative `[text](path)` links in tracked Markdown. |
+| 02 | `doc-links`      | —  | Broken relative ``links`` links in tracked Markdown. |
 | 03 | `conventional-commits` | R14 | Commit subjects not matching `<type>[(scope)][!]: <lowercase>`. |
 
 ## Adding a check
