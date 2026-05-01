@@ -16,4 +16,5 @@
   P = "~/Pictures";
   v = "~/Videos";
   G = "~/Games";
+  w = "~/Pictures/wllpps";
 }
