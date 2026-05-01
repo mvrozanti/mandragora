@@ -26,9 +26,18 @@ in
 
   system.activationScripts.mandragoraGitHooks = {
     text = ''
-      if [ -d /etc/nixos/mandragora/.git ]; then
-        ${pkgs.git}/bin/git -C /etc/nixos/mandragora config --local \
-          core.hooksPath ${auditTree}/hooks || true
+      cfg=/etc/nixos/mandragora/.git/config
+      if [ -f "$cfg" ]; then
+        target="${auditTree}/hooks"
+        current=$(${pkgs.gnused}/bin/sed -n 's/^[[:space:]]*hooksPath[[:space:]]*=[[:space:]]*//p' "$cfg" | head -n1)
+        if [ "$current" != "$target" ]; then
+          ${pkgs.gnused}/bin/sed -i '/^\[core\]/,/^\[/ { /hooksPath[[:space:]]*=/d }' "$cfg"
+          if ${pkgs.gnugrep}/bin/grep -q '^\[core\]' "$cfg"; then
+            ${pkgs.gnused}/bin/sed -i "/^\[core\]/a\\	hooksPath = $target" "$cfg"
+          else
+            printf '\n[core]\n\thooksPath = %s\n' "$target" >> "$cfg"
+          fi
+        fi
       fi
     '';
     deps = [ ];

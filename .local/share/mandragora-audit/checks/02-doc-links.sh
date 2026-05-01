@@ -38,7 +38,7 @@ for md in "${MD_FILES[@]}"; do
       audit_fail "$CHECK" "$md:$line broken link -> $url"
       violations=$((violations + 1))
     fi
-  done < <(grep -nEo '\[[^]]+\]\([^)]+\)' "$md" 2>/dev/null || true)
+  done < <(sed 's/`[^`]*`//g' "$md" | grep -nEo '\[[^]]+\]\([^)]+\)' 2>/dev/null || true)
 done
 
 if [ "$violations" -eq 0 ]; then
