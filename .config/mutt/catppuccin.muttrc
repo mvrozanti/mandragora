@@ -1,0 +1,54 @@
+# Catppuccin Mocha for NeoMutt
+
+# General
+color normal      white        default
+color error       red          default
+color tilde       brightblack  default
+color message     cyan         default
+color markers     brightblack  default
+color attachment  brightmagenta default
+color search      black        yellow
+color status      brightblack  brightwhite
+color indicator   black        brightblue
+
+# Sidebar
+color sidebar_divider    brightblack default
+color sidebar_highlight  brightblue  default
+color sidebar_new        green       default
+color sidebar_flagged    red         default
+
+# Index
+color index_number  brightblack  default
+color index_author  cyan         default
+color index_subject white        default
+color index_date    brightblack  default
+color index_flags   brightblack  default
+color index_label   brightblack  default
+color index_size    brightblack  default
+
+# Selected message
+color index black brightblue "~P"
+color index_author black brightblue "~P"
+color index_subject black brightblue "~P"
+
+# New mail
+color index_subject green default "~N"
+color index_author  green default "~N"
+
+# Header
+color hdrdefault brightblack default
+color header     brightblue  default "^(From)"
+color header     brightblue  default "^(Subject)"
+
+# Body
+color body  cyan         default  "[\-\.+_a-zA-Z0-9]+@[\-\.a-zA-Z0-9]+" # Email
+color body  brightblue   default  "(https?|ftp)://[\-\.,/%~_:?&=\#a-zA-Z0-9]+" # URL
+color body  green        default  "^>.*" # Quotes
+color body  brightgreen  default  "^>>.*"
+color body  yellow       default  "^>>>.*"
+color body  red          default  "^>>>>.*"
+
+# PGP
+color body green default "^gpg: Good signature.*"
+color body red   default "^gpg: BAD signature.*"
+color body yellow default "^gpg: Can't check signature.*"
