@@ -168,7 +168,7 @@ in
       ";" = "set hidden!";
       
       "D" = ''%echo "$fx" | xargs -d '\n' -r ${pkgs.trash-cli}/bin/trash-put --'';
-      "gt" = "cd /mnt/toshiba";
+
       
       "oz" = ":set sortby random; set reverse false";
       "os" = "sort-size; set reverse true";
