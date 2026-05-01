@@ -34,6 +34,7 @@ let
   opener = pkgs.writeShellScriptBin "lf-opener" (builtins.readFile ../../.config/lf/opener);
 in
 {
+  home.packages = [ preview cleaner opener ];
   programs.lf = {
     enable = true;
     package = lf-ub;
@@ -53,7 +54,7 @@ in
       incsearch = true;
       incfilter = true;
       mouse = true;
-      watch = false;
+      watch = true;
       timefmt = "2006 Jan _2 15:04:05";
     };
 
@@ -188,19 +189,7 @@ in
       "L" = "history-forward";
     };
 
-    extraConfig = ''
-      set previewer ${preview}/bin/lf-preview
-      set cleaner ${cleaner}/bin/lf-cleaner
-      ''${{
-        [ ! -f "/tmp/lf-history-$id" ] && echo "$PWD" > "/tmp/lf-history-$id"
-        [ ! -f "/tmp/lf-history-index-$id" ] && echo "0" > "/tmp/lf-history-index-$id"
-      }}
-      cmd zoxide-jump ''${{
-        result=$(zoxide query -i)
-        [ -n "$result" ] && lf -remote "send $id cd \"$result\""
-      }}
-      map z zoxide-jump
-    '';
+    extraConfig = builtins.readFile ../../.config/lf/lfrc;
   };
 
   xdg.configFile."lf/icons".source = ../../.config/lf/icons;
