@@ -12,8 +12,8 @@
     powerOnBoot = true;
     settings = {
       General = {
-        # Force BREDR mode to stabilize Realtek firmware and discovery
-        ControllerMode = "bredr";
+        # Restore Dual mode but keep other stability settings
+        ControllerMode = "dual";
         Experimental = true;
         FastConnectable = false;
         JustWorksRepairing = "always";
@@ -29,7 +29,7 @@
   services.pipewire.wireplumber.extraConfig."10-bluez-stability" = {
     "monitor.bluez.properties" = {
       "bluez5.enable-hw-volume" = false;
-      "bluez5.roles" = [ "a2dp-sink" ]; # Disable HFP/HSP to prevent choppy switching
+      "bluez5.roles" = [ "a2dp-sink" "a2dp-source" "hsp-hs" "hfp-hf" ];
     };
   };
 
