@@ -5,26 +5,26 @@
   fileSystems."/" = {
     device = "/dev/disk/by-label/NIXOS";
     fsType = "btrfs";
-    options = [ "subvol=root-active" "compress=zstd:1" "noatime" "ssd" "space_cache=v2" ];
+    options = [ "subvol=root-active" "compress=zstd:1" "noatime" "ssd" "discard=async" "space_cache=v2" ];
   };
 
   fileSystems."/nix" = {
     device = "/dev/disk/by-label/NIXOS";
     fsType = "btrfs";
-    options = [ "subvol=nix" "compress=zstd:1" "noatime" "ssd" "space_cache=v2" ];
+    options = [ "subvol=nix" "compress=zstd:1" "noatime" "ssd" "discard=async" "space_cache=v2" ];
   };
 
   fileSystems."/persistent" = {
     device = "/dev/disk/by-label/NIXOS";
     fsType = "btrfs";
-    options = [ "subvol=persistent" "compress=zstd:1" "noatime" "ssd" "space_cache=v2" ];
+    options = [ "subvol=persistent" "compress=zstd:1" "noatime" "ssd" "discard=async" "space_cache=v2" ];
     neededForBoot = true;
   };
 
   fileSystems."/home/m/Games" = {
     device = "/dev/disk/by-label/NIXOS";
     fsType = "btrfs";
-    options = [ "subvol=games" "compress=zstd:1" "noatime" "ssd" "space_cache=v2" ];
+    options = [ "subvol=games" "compress=zstd:1" "noatime" "ssd" "discard=async" "space_cache=v2" ];
   };
 
   fileSystems."/boot" = {

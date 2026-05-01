@@ -10,6 +10,7 @@
     tempAddress = "default";
   };
   networking.interfaces.wlp7s0.useDHCP = true;
+  networking.networkmanager.wifi.powersave = false;
   networking.defaultGateway = "192.168.0.1";
 
   boot.kernel.sysctl = {
