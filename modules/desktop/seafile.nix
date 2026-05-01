@@ -66,10 +66,8 @@ in
       wantedBy = [ "default.target" ];
       unitConfig.ConditionPathIsDirectory = "%h/.seaf/seafile-data";
       serviceConfig = {
-        Type = "forking";
-        PIDFile = "%h/.seaf/seafile-data/seaf-daemon.pid";
-        ExecStart = "${pkgs.seafile-shared}/bin/seaf-cli start";
-        ExecStop = "${pkgs.seafile-shared}/bin/seaf-cli stop";
+        Type = "simple";
+        ExecStart = "${pkgs.seafile-shared}/bin/seaf-daemon -c %h/.ccnet -d %h/.seaf/seafile-data -w %h/.seaf/seafile";
         Restart = "on-failure";
         RestartSec = "30s";
       };
