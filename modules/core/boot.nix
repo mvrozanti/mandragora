@@ -13,10 +13,11 @@
     "usbcore.old_scheme_first=1"
     "acpi_enforce_resources=lax"
     "slab_nomerge"
-    "init_on_alloc=1"
-    "init_on_free=1"
+    "init_on_alloc=0"
+    "init_on_free=0"
     "randomize_kstack_offset=on"
     "vsyscall=none"
+    "mitigations=off"
   ];
 
   boot.blacklistedKernelModules = [ "sp5100_tco" ];
