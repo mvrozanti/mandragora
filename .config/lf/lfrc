@@ -1,0 +1,11 @@
+set previewer lf-preview
+set cleaner lf-cleaner
+${{
+  [ ! -f "/tmp/lf-history-$id" ] && echo "$PWD" > "/tmp/lf-history-$id"
+  [ ! -f "/tmp/lf-history-index-$id" ] && echo "0" > "/tmp/lf-history-index-$id"
+}}
+cmd zoxide-jump ${{
+  result=$(zoxide query -i)
+  [ -n "$result" ] && lf -remote "send $id cd \"$result\""
+}}
+map z zoxide-jump
