@@ -41,6 +41,10 @@
   i18n.defaultLocale = "en_US.UTF-8";
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.auto-optimise-store = true;
+  services.dbus.implementation = "broker";
+  services.irqbalance.enable = true;
+  powerManagement.cpuFreqGovernor = "performance";
   nix.gc = {
     automatic = true;
     dates = "weekly";
