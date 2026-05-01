@@ -17,9 +17,10 @@ let
   };
 
   syncLines = lib.concatStringsSep "\n" (lib.mapAttrsToList (name: id: ''
+    mkdir -p "$HOME/${name}"
     seaf-cli desync -d "$HOME/${name}" >/dev/null 2>&1 || true
     echo "[sync] ${name} <- ${id}"
-    seaf-cli sync -l "${id}" -s "${serverUrl}" -u "${serverEmail}" -p "$SF_PW" -d "$HOME/${name}"
+    seaf-cli sync -l "${id}" -s "${serverUrl}" -u "${serverEmail}" -T "$SF_TOKEN" -d "$HOME/${name}"
   '') syncMap);
 
   onboard = pkgs.writeShellScriptBin "seaf-onboard" ''
@@ -38,15 +39,26 @@ let
     fi
 
     if [ -z "''${SF_PW:-}" ]; then
-      echo -n "Seafile password for ${serverEmail}: "
-      read -rs SF_PW
-      echo
+      printf 'Seafile password for ${serverEmail}: ' >&2
+      IFS= read -rs SF_PW < /dev/tty
+      printf '\n' >&2
     fi
-    export SF_PW
+
+    echo "==> requesting API token"
+    SF_TOKEN=$(${pkgs.curl}/bin/curl -fsS \
+      --data-urlencode "username=${serverEmail}" \
+      --data-urlencode "password=$SF_PW" \
+      "${serverUrl}/api2/auth-token/" | ${pkgs.jq}/bin/jq -r '.token // empty')
+    unset SF_PW
+    if [ -z "$SF_TOKEN" ]; then
+      echo "auth failed" >&2
+      exit 1
+    fi
+    export SF_TOKEN
 
     export PATH="${pkgs.seafile-shared}/bin:$PATH"
     ${syncLines}
-    unset SF_PW
+    unset SF_TOKEN
 
     echo
     echo "==> current sync state:"
