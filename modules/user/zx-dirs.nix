@@ -5,6 +5,9 @@
 #(e.g. lf's `/` is native search, so `"/"` uses lfPrefix = "g" — same as default).
 {
   h = "~";
+  s = "/mnt/sandisk";
+  T = "/mnt/toshiba";
+
   m = "/etc/nixos/mandragora";
   p = "~/Projects";
   c = "~/.config";
