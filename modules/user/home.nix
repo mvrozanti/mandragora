@@ -252,6 +252,7 @@ in
     (pkgs.writeShellScriptBin "light" ''exec ${lightEnv}/bin/python3 ${../../.local/bin/light.py} "$@"'')
     yad
     (pkgs.writeShellScriptBin "screenshot-window" (builtins.readFile ../../.local/bin/screenshot-window.sh))
+    (pkgs.writeShellScriptBin "hypr-border-flash" (builtins.readFile ../../.local/bin/hypr-border-flash.sh))
 
     (pkgs.writeShellScriptBin "ait" (builtins.readFile ../../.local/bin/ait.sh))
     (pkgs.writeShellScriptBin "am" (builtins.readFile ../../.local/bin/am.sh))
@@ -531,6 +532,7 @@ in
     enable = true;
     settings = {
       exec-once = [
+        "hypr-border-flash"
         "awww-daemon"
         "restore-theme"
         "wl-paste --watch cliphist store"
@@ -602,13 +604,7 @@ in
       sort = "-time";
       ignore-timeout = 0;
     };
-    extraConfig = ''
-      
-      background-color=#00000001
-      [urgency=high]
-      border-color=#e06c75
-      default-timeout=0
-    '';
+    extraConfig = builtins.readFile ../../.config/mako/config;
   };
 
   programs.firefox = {
