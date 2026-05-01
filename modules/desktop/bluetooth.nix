@@ -9,7 +9,8 @@
     powerOnBoot = true;
     settings = {
       General = {
-        Experimental = true;
+        ControllerMode = "bredr";
+        Experimental = false;
         FastConnectable = false;
         JustWorksRepairing = "always";
         AutoEnable = true;
