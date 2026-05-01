@@ -1,0 +1,18 @@
+defaults
+auth	on
+tls	on
+tls_trust_file	/etc/ssl/certs/ca-certificates.crt
+logfile	~/.local/state/msmtp/msmtp.log
+
+account mvrozanti@hotmail.com
+host smtp.office365.com
+port 587
+from mvrozanti@hotmail.com
+user mvrozanti@hotmail.com
+passwordeval "python3 /home/m/.config/mutt/mutt_oauth2.py --encryption-pipe '' --decryption-pipe '' --provider microsoft --client-id 9e5f94bc-e8a4-4e73-b8be-63364c29d753 --client-secret '' --format token /home/m/.cache/mutt/mvrozanti@hotmail.com.tokens"
+auth xoauth2
+tls on
+tls_trust_file	/etc/ssl/certs/ca-certificates.crt
+tls_starttls on
+
+account default : mvrozanti@hotmail.com
