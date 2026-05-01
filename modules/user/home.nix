@@ -304,6 +304,8 @@ in
     GDK_DPI_SCALE = "1.0";
     QT_AUTO_SCREEN_SCALE_FACTOR = "1";
     QT_ENABLE_HIGHDPI_SCALING = "1";
+    QT_QPA_PLATFORM = "wayland;xcb";
+    QT_QPA_PLATFORMTHEME = "gtk3";
     WALLPAPER_DIR = "${config.home.homeDirectory}/Pictures/wllpps";
     _ZO_EXCLUDE_DIRS = "/mnt/toshiba/sss:/mnt/toshiba/sss/*";
   };
