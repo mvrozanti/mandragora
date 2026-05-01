@@ -22,5 +22,10 @@
 
   boot.blacklistedKernelModules = [ "sp5100_tco" ];
 
-  boot.kernelModules = [ "i2c_piix4" "i2c_dev" ];
+  boot.kernelModules = [ "i2c_piix4" "i2c_dev" "v4l2loopback" ];
+  boot.extraModulePackages = [ config.boot.kernelPackages.v4l2loopback ];
+  
+  boot.extraModprobeConfig = ''
+    options v4l2loopback devices=1 video_nr=10 card_label="DroidCam" exclusive_caps=1
+  '';
 }

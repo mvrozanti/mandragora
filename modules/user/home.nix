@@ -35,6 +35,7 @@ in
 
   home.packages = with pkgs; [
     ripgrep
+    droidcam
     fd
     fzf
     uv
