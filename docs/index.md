@@ -23,6 +23,7 @@ Single LLM router. Every survivor doc is one hop from here.
 | GPU coordination + `gpu-lock` rationale (Rule 15 detail) | [`gpu.md`](gpu.md) |
 | Multi-agent file-rewrite hazard + recovery | [`multi-agent-safety.md`](multi-agent-safety.md) |
 | Local LLM migration checklist | [`model-migration.md`](model-migration.md) |
+| Repo-invariant test suite (mechanical rule enforcement) | [`audits.md`](audits.md) |
 
 ## Cross-cutting agent rules (outside repo)
 
