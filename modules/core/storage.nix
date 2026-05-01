@@ -1,7 +1,19 @@
 { config, lib, pkgs, ... }:
 
 {
-  boot.supportedFilesystems = [ "ntfs" ];
+  boot.supportedFilesystems = [ "ntfs" "exfat" ];
+
+  services.udisks2.enable = true;
+  # Create /media as a symlink to /mnt so that udisks2 shared mounts (UDISKS_FILESYSTEM_SHARED=1)
+  # appear under /mnt as requested.
+  systemd.tmpfiles.rules = [
+    "L+ /media - - - - /mnt"
+  ];
+
+  services.udev.extraRules = ''
+    # Shared mounts for udisks2 (mount to /mnt instead of /run/media/$USER)
+    ENV{ID_FS_USAGE}=="filesystem", ENV{UDISKS_FILESYSTEM_SHARED}="1"
+  '';
   fileSystems."/" = {
     device = "/dev/disk/by-label/NIXOS";
     fsType = "btrfs";

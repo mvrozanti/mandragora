@@ -22,6 +22,13 @@ in
     ./skills.nix
   ];
 
+    services.udiskie = {
+    enable = true;
+    automount = true;
+    notify = true;
+    tray = "auto";
+  };
+
   home.username = "m";
   home.homeDirectory = "/home/m";
   home.stateVersion = "23.11";
