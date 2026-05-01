@@ -19,6 +19,7 @@
     ../../modules/desktop/sddm.nix
     ../../modules/desktop/bluetooth.nix
     ../../modules/desktop/bluetooth-sink-only.nix
+    ../../modules/desktop/bluetooth-realtek-fix.nix
     ../../modules/desktop/kdeconnect.nix
     ../../modules/desktop/keyd.nix
     ../../modules/desktop/keyledsd.nix
