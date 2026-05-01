@@ -1,5 +1,9 @@
 { pkgs, ... }:
 {
+  boot.extraModprobeConfig = ''
+    options btusb enable_autosuspend=0
+  '';
+
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
