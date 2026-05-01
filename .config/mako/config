@@ -1,0 +1,4 @@
+background-color=#00000001
+[urgency=high]
+border-color=#e06c75
+default-timeout=0
