@@ -778,19 +778,6 @@ EOF
     fi
   '';
 
-  home.file.".config/btop" = {
-    source = ../../.config/btop;
-    recursive = true;
-  };
-  home.file.".config/mutt" = {
-    source = ../../.config/mutt;
-    recursive = true;
-  };
-  home.file.".config/msmtp" = {
-    source = ../../.config/msmtp;
-    recursive = true;
-  };
-  home.file.".mbsyncrc".source = ../../.mbsyncrc;
   home.file.".config/nsxiv" = {
     source = ../../.config/nsxiv;
     recursive = true;
