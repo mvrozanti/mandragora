@@ -252,7 +252,6 @@ in
     (pkgs.writeShellScriptBin "light" ''exec ${lightEnv}/bin/python3 ${../../.local/bin/light.py} "$@"'')
     yad
     (pkgs.writeShellScriptBin "screenshot-window" (builtins.readFile ../../.local/bin/screenshot-window.sh))
-    (pkgs.writeShellScriptBin "hypr-border-flash" (builtins.readFile ../../.local/bin/hypr-border-flash.sh))
 
     (pkgs.writeShellScriptBin "ait" (builtins.readFile ../../.local/bin/ait.sh))
     (pkgs.writeShellScriptBin "am" (builtins.readFile ../../.local/bin/am.sh))
@@ -532,12 +531,12 @@ in
     enable = true;
     settings = {
       exec-once = [
-        "hypr-border-flash"
         "awww-daemon"
         "restore-theme"
         "wl-paste --watch cliphist store"
         "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
         "kdeconnect-indicator"
+        "blueman-applet"
       ];
     };
     extraConfig = builtins.readFile ../../.config/hypr/hyprland.conf;
