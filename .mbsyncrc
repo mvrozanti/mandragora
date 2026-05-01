@@ -1,0 +1,31 @@
+IMAPAccount mvrozanti@hotmail.com
+Host outlook.office365.com
+Port 993
+User mvrozanti@hotmail.com
+AuthMechs XOAUTH2
+PassCmd "python3 /home/m/.config/mutt/mutt_oauth2.py --encryption-pipe '' --decryption-pipe '' --provider microsoft --client-id 9e5f94bc-e8a4-4e73-b8be-63364c29d753 --client-secret '' --format token /home/m/.cache/mutt/mvrozanti@hotmail.com.tokens"
+TLSType IMAPS
+CertificateFile /etc/ssl/certs/ca-certificates.crt
+PipelineDepth 50
+Timeout 120
+
+IMAPStore mvrozanti@hotmail.com-remote
+Account mvrozanti@hotmail.com
+
+MaildirStore mvrozanti@hotmail.com-local
+Subfolders Verbatim
+Path ~/.local/share/mail/mvrozanti@hotmail.com/
+Inbox ~/.local/share/mail/mvrozanti@hotmail.com/INBOX
+Flatten .
+
+Channel mvrozanti@hotmail.com
+Far :mvrozanti@hotmail.com-remote:
+Near :mvrozanti@hotmail.com-local:
+Patterns * !"[Gmail]*"
+Expunge Both
+CopyArrivalDate yes
+Sync All
+Create Both
+SyncState *
+MaxMessages 0
+ExpireUnread no
