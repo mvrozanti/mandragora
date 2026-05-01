@@ -72,6 +72,8 @@
   security.apparmor.enable = true;
 
   boot.kernel.sysctl = {
+    "vm.swappiness" = 180;
+    "vm.vfs_cache_pressure" = 50;
     "kernel.dmesg_restrict" = 1;
     "kernel.kptr_restrict" = 2;
     "net.core.bpf_jit_harden" = 2;
