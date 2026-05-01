@@ -251,22 +251,34 @@ if [ "$RC" -eq 0 ] || [ "$ACTIVATED" -eq 1 ]; then
     CURRENT_LINK=/nix/var/nix/profiles/system
     CURRENT_NUM=$(basename "$(readlink "$CURRENT_LINK")" | sed -n 's/^system-\([0-9]\+\)-link$/\1/p')
     if [ -n "$CURRENT_NUM" ]; then
-      CURRENT_MTIME=$(stat -c %Y "$CURRENT_LINK")
       BOOTED_PATH=$(readlink -f /run/booted-system)
-      COALESCE=()
+      ENTRIES=()
       for link in /nix/var/nix/profiles/system-*-link; do
         num=$(basename "$link" | sed -n 's/^system-\([0-9]\+\)-link$/\1/p')
         [ -z "$num" ] && continue
-        [ "$num" = "$CURRENT_NUM" ] && continue
-        [ "$(readlink -f "$link")" = "$BOOTED_PATH" ] && continue
         mtime=$(stat -c %Y "$link")
-        age=$((CURRENT_MTIME - mtime))
-        if [ "$age" -ge 0 ] && [ "$age" -lt "$WINDOW_SECONDS" ]; then
-          COALESCE+=("$num")
-        fi
+        protected=0
+        [ "$num" = "$CURRENT_NUM" ] && protected=1
+        [ "$(readlink -f "$link")" = "$BOOTED_PATH" ] && protected=1
+        ENTRIES+=("$mtime $num $protected")
       done
+      SORTED=$(printf '%s\n' "${ENTRIES[@]}" | sort -rn)
+      LAST_KEPT_MTIME=""
+      COALESCE=()
+      while IFS=' ' read -r mtime num protected; do
+        [ -z "$num" ] && continue
+        if [ "$protected" = "1" ]; then
+          LAST_KEPT_MTIME="$mtime"
+          continue
+        fi
+        if [ -n "$LAST_KEPT_MTIME" ] && [ $((LAST_KEPT_MTIME - mtime)) -lt "$WINDOW_SECONDS" ]; then
+          COALESCE+=("$num")
+        else
+          LAST_KEPT_MTIME="$mtime"
+        fi
+      done <<< "$SORTED"
       if [ "${#COALESCE[@]}" -gt 0 ]; then
-        echo "==> Coalescing ${#COALESCE[@]} generation(s) within ${WINDOW_SECONDS}s of gen ${CURRENT_NUM}: ${COALESCE[*]}"
+        echo "==> Coalescing ${#COALESCE[@]} generation(s) closer than ${WINDOW_SECONDS}s to a kept neighbor: ${COALESCE[*]}"
         if sudo nix-env -p /nix/var/nix/profiles/system --delete-generations "${COALESCE[@]}"; then
           sudo /run/current-system/bin/switch-to-configuration boot >/dev/null 2>&1 || \
             echo "==> WARNING: bootloader refresh after coalesce failed; entries may be stale until next switch." >&2
