@@ -17,12 +17,9 @@ let
   };
 
   syncLines = lib.concatStringsSep "\n" (lib.mapAttrsToList (name: id: ''
-    if seaf-cli status 2>/dev/null | awk 'NR>1 {print $1}' | grep -qx "${name}"; then
-      echo "[skip] ${name} already syncing"
-    else
-      echo "[sync] ${name} <- ${id}"
-      seaf-cli sync -l "${id}" -s "${serverUrl}" -u "${serverEmail}" -p "$SF_PW" -d "$HOME/${name}"
-    fi
+    seaf-cli desync -d "$HOME/${name}" >/dev/null 2>&1 || true
+    echo "[sync] ${name} <- ${id}"
+    seaf-cli sync -l "${id}" -s "${serverUrl}" -u "${serverEmail}" -p "$SF_PW" -d "$HOME/${name}"
   '') syncMap);
 
   onboard = pkgs.writeShellScriptBin "seaf-onboard" ''
@@ -40,9 +37,11 @@ let
       sleep 2
     fi
 
-    echo -n "Seafile password for ${serverEmail}: "
-    read -rs SF_PW
-    echo
+    if [ -z "''${SF_PW:-}" ]; then
+      echo -n "Seafile password for ${serverEmail}: "
+      read -rs SF_PW
+      echo
+    fi
     export SF_PW
 
     export PATH="${pkgs.seafile-shared}/bin:$PATH"

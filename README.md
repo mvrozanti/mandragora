@@ -1,159 +1,103 @@
 <div align="center">
 
-```
-┏┳┓┏━┓┏┓╻╺┳┓┏━┓┏━┓┏━╸┏━┓┏━┓┏━┓
-┃┃┃┣━┫┃┗┫ ┃┃┣┳┛┣━┫┃╺┓┃ ┃┣┳┛┣━┫
-╹ ╹╹ ╹╹ ╹╺┻┛╹┗╸╹ ╹┗━┛┗━┛╹┗╸╹ ╹
-```
+# `mandragora`
 
-[![NixOS Unstable](https://img.shields.io/badge/NixOS-unstable-5277C3?style=for-the-badge&logo=nixos&logoColor=white)](https://nixos.org)
-[![Hyprland](https://img.shields.io/badge/Hyprland-Wayland-58E1FF?style=for-the-badge&logo=wayland&logoColor=white)](https://hyprland.org)
-[![BMAD](https://img.shields.io/badge/BMAD-METHOD-blueviolet?style=for-the-badge&logo=github&logoColor=white)](https://github.com/bmad-code-org/BMAD-METHOD)
-[![Flakes](https://img.shields.io/badge/Nix_Flakes-enabled-7EBAE4?style=for-the-badge&logo=snowflake&logoColor=white)]()
-[![Impermanence](https://img.shields.io/badge/Root-ephemeral-FF6B6B?style=for-the-badge)]()
-[![sops-nix](https://img.shields.io/badge/Secrets-sops--nix-F5A623?style=for-the-badge&logo=gnuprivacyguard&logoColor=white)](https://github.com/Mic92/sops-nix)
+*the second skin*
 
----
-
-**A declarative NixOS workstation that wipes itself clean on every boot.**
-
-*Reproducible from scratch in under 30 minutes. No imperative state. No drift.*
+[![NixOS](https://img.shields.io/badge/NixOS-unstable-5277C3?style=flat-square&logo=nixos&logoColor=white)](https://nixos.org)
+[![Hyprland](https://img.shields.io/badge/Hyprland-Wayland-58E1FF?style=flat-square&logo=wayland&logoColor=white)](https://hyprland.org)
+[![Flakes](https://img.shields.io/badge/flakes-enabled-7EBAE4?style=flat-square&logo=snowflake&logoColor=white)]()
+[![Impermanent](https://img.shields.io/badge/root-ephemeral-FF6B6B?style=flat-square)]()
+[![sops-nix](https://img.shields.io/badge/secrets-sops--nix-F5A623?style=flat-square&logo=gnuprivacyguard&logoColor=white)](https://github.com/Mic92/sops-nix)
 
 </div>
 
 ---
 
-## Architecture
+A single-host NixOS flake. One machine. One user. One mind.
+
+Fifteen years of Arch+bspwm, distilled into a declarative expression that
+rebuilds itself byte-for-byte from this repo. The root filesystem is wiped
+on every boot; what survives is what is written down.
+
+---
+
+### hardware
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  flake.nix                                                      │
-│  └── hosts/mandragora-desktop/                                  │
-│       ├── hardware-configuration.nix                            │
-│       └── default.nix ──┬── modules/core/     System backbone   │
-│                         ├── modules/desktop/  Hyprland + gaming │
-│                         ├── modules/user/     Home Manager      │
-│                         └── modules/audits/   Health checks     │
-├─────────────────────────────────────────────────────────────────┤
-│  snippets/        Non-Nix logic (shell, Lua, CSS, Python)       │
-│  secrets/         Age-encrypted vaults (sops-nix)               │
-│  docs/            Architecture, hardware, workflow, secrets     │
-│  appendix/        Self-contained subprojects (Ventoy, WSL)      │
-└─────────────────────────────────────────────────────────────────┘
+   cpu    Ryzen 9 7900X            12C / 24T   5.6 GHz   170 W
+   gpu    RTX 5070 Ti  Windforce   16 GB GDDR7  Blackwell
+   ram    32 GB DDR5-6000 CL30     Kingston Fury  EXPO v1.1
+   mobo   B650M AORUS ELITE AX     mATX  PCIe 5.0
+   nvme   Kingston NV3 2 TB        PCIe 4.0
+   aio    MSI MAG Coreliquid A13   360 mm  ARGB
+   psu    Toughpower GF A3 850 W   ATX 3.0  12V-2x6
+   case   Lian Li A3-mATX          26.3 L
 ```
 
-## Key Principles
+### stack
 
-| Principle | Implementation |
-|:----------|:---------------|
-| **Ephemeral root** | Btrfs snapshot rotation wipes `/` on every boot |
-| **Declarative everything** | All state is a Nix expression — zero imperative setup |
-| **Language purity** | Non-Nix code lives in `snippets/`, referenced via `builtins.readFile` |
-| **Zero plaintext secrets** | sops-nix with age encryption, decryption key on persistent volume |
-| **Wayland-only** | Hyprland-based desktop, no X11 fallback |
+  Hyprland · Wayland · NVIDIA 570 (open) · zen kernel · Btrfs · systemd-boot
+  · home-manager · sops-nix · impermanence · Ollama · Tailscale · Prometheus + Grafana
 
-## Impermanence Lifecycle
+### impermanence
 
 ```mermaid
 flowchart LR
-    A["Boot"] --> B["initrd: delete root-active"]
-    B --> C["Snapshot root-blank → root-active"]
-    C --> D["Mount as /"]
-    D --> E["Mount /nix + /persistent"]
-    E --> F["System ready"]
+    A["boot"] --> B["initrd: delete root-active"]
+    B --> C["snapshot root-blank → root-active"]
+    C --> D["mount as /"]
+    D --> E["mount /nix + /persistent"]
+    E --> F["ready"]
 
-    style A fill:#2d2d2d,stroke:#58E1FF,color:#fff
-    style B fill:#2d2d2d,stroke:#FF6B6B,color:#fff
-    style C fill:#2d2d2d,stroke:#FF6B6B,color:#fff
-    style D fill:#2d2d2d,stroke:#58E1FF,color:#fff
-    style E fill:#2d2d2d,stroke:#76B900,color:#fff
-    style F fill:#2d2d2d,stroke:#76B900,color:#fff
+    style A fill:#1a1a1a,stroke:#58E1FF,color:#fff
+    style B fill:#1a1a1a,stroke:#FF6B6B,color:#fff
+    style C fill:#1a1a1a,stroke:#FF6B6B,color:#fff
+    style D fill:#1a1a1a,stroke:#58E1FF,color:#fff
+    style E fill:#1a1a1a,stroke:#76B900,color:#fff
+    style F fill:#1a1a1a,stroke:#76B900,color:#fff
 ```
 
-## Disk Layout
+  Survives reboot — `/nix`, `/persistent`, `/home/m` (bind-mounted).
+  Everything else is ash.
 
-```mermaid
-block-beta
-    columns 4
-    rb["root-blank\n(seed)"]
-    ra["root-active\n(ephemeral)"]
-    nix["/nix\n(store)"]
-    pers["/persistent\n(state)"]
+### deploy
 
-    style rb fill:#553333,stroke:#FF6B6B,color:#fff
-    style ra fill:#553333,stroke:#FF6B6B,color:#fff
-    style nix fill:#335533,stroke:#76B900,color:#fff
-    style pers fill:#335533,stroke:#76B900,color:#fff
+```sh
+mandragora-switch "feat(scope): description"
 ```
 
-## What Survives Reboot
+  Stages, rebuilds, commits, pushes. Rolls back on failure.
+  flock + working-tree stability window protect against concurrent agents.
 
-```
-     ╭──────────────────────────────────────────────────╮
-     │            P E R S I S T E N T                    │
-     │                                                  │
-     │  /nix ··········· packages, store, generations   │
-     │  /persistent/home/m ··········· all user data    │
-     │  /persistent/secrets ··········· age key         │
-     │  /persistent/var/lib ··········· BT, NixOS       │
-     │  /persistent/etc ··········· NM, machine-id      │
-     ╰──────────────────────────────────────────────────╯
+### map
 
-     ╭──────────────────────────────────────────────────╮
-     │            E P H E M E R A L                     │
-     │                                                  │
-     │  / ··········· wiped every boot                  │
-     │  /tmp ··········· tmpfs                          │
-     │  /run ··········· tmpfs                          │
-     ╰──────────────────────────────────────────────────╯
-```
+  `flake.nix`              the root
+  `hosts/mandragora-desktop/`  composition
+  `modules/{core,desktop,user,audits}/`  37 modules, one concern each
+  `pkgs/`                  in-tree derivations — `rtk`, `gpu-lock`, `sddm-mandragora`, `du-exporter`, …
+  `snippets/`              non-Nix code (shell, lua, css, python) referenced via `readFile`
+  `secrets/`               sops-nix vaults, age-encrypted
+  `docs/`                  the long form
 
-## Module Map
+### further
 
-Full inventory (one row per module, with responsibility) lives in
-[`docs/architecture.md`](docs/architecture.md) §9. The directory shape:
-`modules/{core,desktop,user,audits}/<thing>.nix`.
-
-## Deploy
-
-```bash
-sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora-desktop
-```
-
-Or use the integrated workflow:
-
-```bash
-mandragora-switch "commit message"
-```
-
-This stages all changes, rebuilds, and pushes on success — rolling back the commit on failure.
-
-## Flake Inputs
-
-| Input | Purpose |
-|:------|:--------|
-| [`nixpkgs`](https://github.com/NixOS/nixpkgs) (unstable) | Package set + NixOS modules |
-| [`home-manager`](https://github.com/nix-community/home-manager) | Dotfile management as Nix |
-| [`sops-nix`](https://github.com/Mic92/sops-nix) | Declarative secret decryption |
-| [`impermanence`](https://github.com/nix-community/impermanence) | Stateless root with opt-in persistence |
-
-## Documentation
-
-| Document | Purpose |
-|:---------|:--------|
-| [`AGENTS.md`](AGENTS.md) | Hard constraints, file safety, per-agent policy (load first for any AI session) |
-| [`docs/index.md`](docs/index.md) | Single doc router — every survivor doc one hop away |
-| [`docs/architecture.md`](docs/architecture.md) | Composition, modules, disk layout, external systems, audits |
-| [`docs/hardware.md`](docs/hardware.md) | Build, peripheral control, NVIDIA tuning |
-| [`docs/workflow.md`](docs/workflow.md) | Edit → rebuild → verify → commit (common tasks) |
-| [`docs/persistence.md`](docs/persistence.md) | What survives reboot, user-data ranking |
-| [`docs/secrets.md`](docs/secrets.md) | sops-nix + age contract |
-| [`install/INSTALL.md`](install/INSTALL.md) | Fresh-install runbook |
+  [`AGENTS.md`](AGENTS.md) · the charter — load first for any AI session
+  [`docs/index.md`](docs/index.md) · doc router
+  [`docs/architecture.md`](docs/architecture.md) · composition, modules, audits
+  [`docs/hardware.md`](docs/hardware.md) · build, peripherals, NVIDIA tuning
+  [`docs/workflow.md`](docs/workflow.md) · edit → rebuild → verify → commit
+  [`docs/persistence.md`](docs/persistence.md) · what survives reboot
+  [`docs/secrets.md`](docs/secrets.md) · sops-nix + age
+  [`docs/gpu.md`](docs/gpu.md) · cooperative GPU contract
+  [`docs/worktrees.md`](docs/worktrees.md) · parallel-agent isolation
+  [`install/INSTALL.md`](install/INSTALL.md) · fresh-install runbook
 
 ---
 
 <div align="center">
 
-*If a system is to serve the creative spirit, it must be entirely comprehensible to a single individual.*
+> *If a system is to serve the creative spirit, it must be entirely
+> comprehensible to a single individual.*
 
 </div>
