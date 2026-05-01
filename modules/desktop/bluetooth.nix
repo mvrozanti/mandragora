@@ -20,6 +20,13 @@
     };
   };
 
+  # Disable hardware volume to prevent the 0% lock issue
+  services.pipewire.wireplumber.extraConfig."10-bluez-no-hw-volume" = {
+    "monitor.bluez.properties" = {
+      "bluez5.enable-hw-volume" = false;
+    };
+  };
+
   services.blueman.enable = true;
 
   environment.systemPackages = with pkgs; [
