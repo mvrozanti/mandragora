@@ -34,6 +34,10 @@ output_path = "~/.cache/matugen/colors-wal.vim"
 input_path = "templates/colors-waybar.css"
 output_path = "~/.cache/matugen/colors-waybar.css"
 
+[templates.colors_discord]
+input_path = "templates/colors-discord.css"
+output_path = "~/.config/vesktop/themes/pywal-vencord.theme.css"
+
 [templates.cava]
 input_path = "templates/cava"
 output_path = "~/.cache/matugen/cava"
