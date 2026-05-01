@@ -3,7 +3,7 @@
 let
   cfg = config.services.mandragora-seafile;
 
-  serverUrl = "http://100.84.78.83";
+  serverUrl = "https://mvrozanti.duckdns.org";
   serverEmail = "mvrozanti@hotmail.com";
   seafDataParent = "/home/m/.seaf";
 
@@ -67,7 +67,7 @@ in
       unitConfig.ConditionPathIsDirectory = "%h/.seaf/seafile-data";
       serviceConfig = {
         Type = "forking";
-        PIDFile = "%h/.seaf/seafile-data/seafile.pid";
+        PIDFile = "%h/.seaf/seafile-data/seaf-daemon.pid";
         ExecStart = "${pkgs.seafile-shared}/bin/seaf-cli start";
         ExecStop = "${pkgs.seafile-shared}/bin/seaf-cli stop";
         Restart = "on-failure";
