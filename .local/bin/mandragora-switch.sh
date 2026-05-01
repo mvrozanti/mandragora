@@ -84,6 +84,14 @@ if [ "$FORCE" -eq 0 ] && [ "$STABILITY_WAIT" -gt 0 ]; then
   fi
 fi
 
+if command -v mandragora-audit >/dev/null 2>&1; then
+  echo "==> Repo audit (pre-stage)..."
+  if ! mandragora-audit --quiet --skip conventional-commits; then
+    echo "==> ABORTED: repo audit failed. Fix the violations above and re-run." >&2
+    exit 1
+  fi
+fi
+
 echo "==> Fetching origin..."
 if ! git fetch origin; then
   echo "==> WARNING: git fetch failed. Proceeding without sync check." >&2
