@@ -30,6 +30,8 @@
       configPackages = [
         (pkgs.writeTextDir "share/wireplumber/wireplumber.conf.d/99-hdmi-default.conf"
           (builtins.readFile ../../.config/wireplumber/hdmi-default.conf))
+        (pkgs.writeTextDir "share/wireplumber/wireplumber.conf.d/99-bluez-stability.conf"
+          (builtins.readFile ../../.config/wireplumber/bluez-stability.conf))
       ];
     };
     alsa.enable = true;
