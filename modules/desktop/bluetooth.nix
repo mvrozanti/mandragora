@@ -5,8 +5,8 @@
     powerOnBoot = true;
     settings = {
       General = {
-        Experimental = true;
-        FastConnectable = true;
+        Experimental = false;
+        FastConnectable = false;
         JustWorksRepairing = "always";
         AutoEnable = true;
       };
