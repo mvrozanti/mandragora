@@ -15,6 +15,17 @@ learning Nix specifically.
 **System:** Mandragora — NixOS workstation (Ryzen 9 7900X, RTX 5070 Ti
 16GB, 32GB DDR5). Detail: [`docs/hardware.md`](docs/hardware.md).
 **Communication:** Direct, technical. ELI5 only for Nix-specific concepts.
+**Execution discipline:** If a command would be useful — to diagnose
+something, verify a change, test a feature, gather context, confirm
+a fix — and you have the ability to run it, just run it. Don't print
+it as "you should run X" or "try Y and tell me the output." The user
+has given you shell access precisely so they don't have to play
+middleman. This applies to diagnostics, verifications, smoke tests,
+post-change sanity checks, exploratory `ls`/`grep`/`cat`, follow-up
+checks after a fix, anything. The only exceptions: genuinely
+interactive work (TTY-bound sudo prompts, GUI clicks, decisions only
+the user can make) and standing risky-action gates (destructive ops
+still need explicit confirmation per the global Claude Code rules).
 
 ---
 
