@@ -86,6 +86,29 @@ Then run `mandragora-switch` from the main tree. Any parallel
 agent will be merging from their own worktree on the same schedule;
 the flock serializes the switches.
 
+> **Never invoke `mandragora-switch` from inside a worktree.** The
+> script's `git add` / `git commit` ops target the main repo by
+> absolute path (`/etc/nixos/mandragora`), not `$PWD`. Running it
+> from `$wt` does **not** redirect git ops to the worktree — it
+> stages whatever is dirty/untracked in the main tree under
+> *your* commit message. This reproduces the exact staging-leak
+> the worktree was supposed to prevent. Always: merge worktree →
+> main, then `cd /etc/nixos/mandragora && mandragora-switch`.
+
+### 3a. Post-commit audit (always)
+
+After any commit reaches master — yours or `mandragora-switch`'s —
+verify the diff matches intent:
+
+```bash
+git -C /etc/nixos/mandragora show --stat HEAD
+```
+
+If file paths or line counts don't match what you edited, you have
+hit a staging leak. Stop, surface to the user, and reset before
+pushing. `git log` messages are written by the agent that ran the
+commit; the diff is ground truth.
+
 ### 4. Audit
 
 ```bash
