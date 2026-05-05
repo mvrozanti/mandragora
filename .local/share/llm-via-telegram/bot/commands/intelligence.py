@@ -139,7 +139,7 @@ def _format_final_message(msg: dict) -> str:
 _HISTORY_MAX = 20
 _history: list[dict[str, str]] = []
 
-_MAX_TOOL_TURNS = 6
+_MAX_TOOL_TURNS = 12
 _TYPING_REFRESH_SECONDS = 4
 _TOOL_RESULT_MAX_CHARS = 8000
 
@@ -213,6 +213,8 @@ async def _run_agentic(
     messages: list[dict],
     cancel_event: asyncio.Event,
 ) -> str:
+    last_call: tuple[str, str] | None = None
+    last_result: str | None = None
     for _ in range(_MAX_TOOL_TURNS):
         payload = {
             "model": config.OLLAMA_MODEL,
@@ -256,10 +258,19 @@ async def _run_agentic(
         })
         for tc in tool_calls:
             fn = tc.get("function", {})
-            result = await _execute_tool(fn.get("name", ""), fn.get("arguments", {}))
+            name = fn.get("name", "")
+            args = fn.get("arguments", {})
+            result = await _execute_tool(name, args)
+            arg_repr = args.get("command") or args.get("query") or args.get("url") or ""
+            last_call = (name, str(arg_repr)[:200])
+            last_result = result
             messages.append({"role": "tool", "content": result})
 
-    return "(reached tool call limit)"
+    note = f"(reached tool call limit after {_MAX_TOOL_TURNS} turns)"
+    if last_call:
+        tail = (last_result or "")[-400:]
+        note += f"\nlast: {last_call[0]}({last_call[1]})\nlast result: {tail}"
+    return note
 
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

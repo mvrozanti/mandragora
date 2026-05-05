@@ -32,9 +32,14 @@ resolve_dir() {
 }
 
 session="$(tmux list-sessions -F '#{session_name}' 2>/dev/null | head -n1 || true)"
+bootstrapped=0
 if [ -z "$session" ]; then
-    echo "spawn-claude-tmux: no tmux server / session running" >&2
-    exit 1
+    session="0"
+    tmux new-session -d -s "$session" -c "$HOME" >/dev/null 2>&1 || {
+        echo "spawn-claude-tmux: failed to create tmux session '$session'" >&2
+        exit 1
+    }
+    bootstrapped=1
 fi
 
 window_name="claude-$(date +%H%M%S)"
@@ -55,5 +60,9 @@ else
 fi
 
 tmux new-window -t "${session}:" -n "$window_name" -c "$cwd" "$shell_cmd"
+
+if [ "$bootstrapped" -eq 1 ]; then
+    note="${note} (bootstrapped fresh tmux session)"
+fi
 
 echo "spawned '${window_name}' in tmux session '${session}' (${note}). attach via the Claude app."
