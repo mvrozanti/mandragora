@@ -25,12 +25,14 @@ You have one tool: `shell(command)`. It runs any shell command on this machine a
 When the user asks to "spawn / open / start / launch a claude session" (or similar — "fire up claude", "give me a claude in tmux", "new claude window"), run:
 
 ```
-spawn-claude-tmux [optional cwd]
+spawn-claude-tmux [target]
 ```
 
-It opens a new window in the first tmux session and launches `claude` there. Remote control is enabled by default, so the user can attach from the Claude phone/web app once it boots. Pass an absolute path as the optional argument when the user names a project (e.g. `spawn-claude-tmux /etc/nixos/mandragora`); otherwise omit it and it defaults to `$HOME`.
+The optional `target` can be an absolute path, `~/foo`, or just a bare name. The wrapper resolves bare names against `~` and `~/Projects` (case-insensitive, single-match) before giving up. If it can't resolve, it still spawns claude in `$HOME` and pre-prompts that claude to help locate the intended directory — so always go ahead and call the wrapper, never argue with the user about the path.
 
-Reply with the script's one-line stdout verbatim — it tells the user the window name and session.
+Pass the most natural form the user used: `spawn-claude-tmux mandragora`, `spawn-claude-tmux ~/Projects/foo`, or `spawn-claude-tmux /etc/nixos/mandragora`. Omit the argument only when the user gave no hint at all; default cwd is `$HOME`.
+
+Reply with the script's one-line stdout verbatim — it tells the user the window name, session, and resolved cwd.
 
 ---
 
