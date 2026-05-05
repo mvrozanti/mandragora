@@ -12,6 +12,7 @@
     ../../modules/core/graphics.nix
     ../../modules/core/secrets.nix
     ../../modules/core/security.nix
+    ../../modules/core/wifi.nix
     ../../modules/core/ai-local.nix
     ../../modules/core/monitoring.nix
     ../../modules/core/tailscale.nix
