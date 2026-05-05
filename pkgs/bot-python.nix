@@ -119,5 +119,8 @@ in pkgs.python3.withPackages (p: [
   p.pexpect
   p.httpx
   p.faster-whisper
+  p.ddgs
+  p.beautifulsoup4
+  p.lxml
   marionetteDriver
 ])

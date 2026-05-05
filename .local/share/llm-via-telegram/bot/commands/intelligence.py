@@ -9,6 +9,7 @@ import httpx
 
 from bot.helpers.formatter import split_messages
 from bot.helpers.ollama import evict_model, evict_others
+from bot.helpers.web import fetch_url, web_search
 
 import config
 from telegram import Update
@@ -67,7 +68,50 @@ _TOOLS = [
                 "required": ["command"],
             },
         },
-    }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "web_search",
+            "description": (
+                "Search the public web via DuckDuckGo. Returns titles, URLs, and snippets. "
+                "Use for current events, package versions, docs lookups, and anything beyond "
+                "the local model's training cutoff. Follow up with fetch_url on promising hits."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Search query"},
+                    "max_results": {
+                        "type": "integer",
+                        "description": "1–10, default 5",
+                    },
+                },
+                "required": ["query"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "fetch_url",
+            "description": (
+                "Fetch a URL and return extracted text (HTML stripped to main content). "
+                "Use to read pages found via web_search or any direct link the user gives."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string", "description": "Absolute URL or bare host"},
+                    "max_chars": {
+                        "type": "integer",
+                        "description": "Truncate body to this many chars; default 8000",
+                    },
+                },
+                "required": ["url"],
+            },
+        },
+    },
 ]
 
 _THINK_RE = re.compile(r"<think>(.*?)</think>\s*", re.DOTALL | re.IGNORECASE)
@@ -136,6 +180,20 @@ async def _execute_shell(command: str) -> str:
 async def _execute_tool(name: str, args: dict) -> str:
     if name == "shell":
         return await _execute_shell(args.get("command", ""))
+    if name == "web_search":
+        query = args.get("query", "")
+        max_results = int(args.get("max_results", 5) or 5)
+        _chat_log.info("[tool:web_search] %s (max=%d)", query, max_results)
+        result = await web_search(query, max_results=max_results)
+        _chat_log.info("[tool:result] %s", result[:200])
+        return result
+    if name == "fetch_url":
+        url = args.get("url", "")
+        max_chars = int(args.get("max_chars", 8000) or 8000)
+        _chat_log.info("[tool:fetch_url] %s", url)
+        result = await fetch_url(url, max_chars=max_chars)
+        _chat_log.info("[tool:result] %s", result[:200])
+        return result
     return f"Unknown tool: {name}"
 
 
