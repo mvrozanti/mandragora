@@ -215,6 +215,7 @@ in
     (pkgs.writeShellScriptBin "obsidian-launch" (builtins.readFile ../../.local/bin/obsidian-launch.sh))
     (pkgs.writeShellScriptBin "obsidian-workspace-watcher" (builtins.readFile ../../.local/bin/obsidian-workspace-watcher.sh))
     (pkgs.writeShellScriptBin "mandragora-switch" (builtins.readFile ../../.local/bin/mandragora-switch.sh))
+    (pkgs.writeShellScriptBin "spawn-claude-tmux" (builtins.readFile ../../.local/bin/spawn-claude-tmux.sh))
     (pkgs.writeShellScriptBin "mandragora-commit-push" (builtins.readFile ../../.local/bin/mandragora-commit-push.sh))
     (pkgs.writeShellScriptBin "sss" (builtins.readFile ../../.local/bin/sss.sh))
     (pkgs.writeShellScriptBin "mandragora-diff" (builtins.readFile ../../.local/bin/mandragora-diff.sh))
