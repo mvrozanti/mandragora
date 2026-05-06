@@ -1,0 +1,360 @@
+#!/usr/bin/env python3
+"""hotkey-index — emit a normalized TSV of every keybinding in the repo.
+
+Columns (tab-separated):
+  scope    program: hyprland|aerc|nvim|zsh|tmux|lf|mpv|waybar
+  context  submap/section/mode: global|messages|gaps-all|copy-mode-vi|...
+  mods     normalized modifiers, joined by '+': SUPER, CTRL, ALT, SHIFT
+  key      the key itself (e.g. Q, j, F2, mouse:272, escape sequence)
+  action   what the binding does (raw, lightly cleaned)
+  src      file:line pointer
+
+Best-effort. Where a dialect resists clean normalization (esoteric escape
+sequences in zsh, multi-line nix attrsets), the raw key is kept and the
+src pointer always lets a human verify.
+
+Usage:
+  hotkey-index                              # full TSV to stdout
+  hotkey-index | awk -F'\\t' '$1=="hyprland"'   # filter by scope
+  hotkey-index | awk -F'\\t' '$3=="SUPER"'      # all bare-SUPER bindings
+  hotkey-index | cut -f3,4 | sort | uniq -d    # find chord collisions
+"""
+import os
+import re
+import sys
+from pathlib import Path
+
+REPO = Path(os.environ.get("MANDRAGORA_REPO", "/etc/nixos/mandragora"))
+
+
+def emit(scope, context, mods, key, action, src):
+    mods_s = "+".join(sorted(mods)) if mods else ""
+    key = key.strip()
+    action = re.sub(r"\s+", " ", action.strip())
+    print(f"{scope}\t{context}\t{mods_s}\t{key}\t{action}\t{src}")
+
+
+def vim_key(raw):
+    """Parse <C-x>, <A-x>, <S-x>, <C-S-x>... -> (key, mods set)."""
+    s = raw.strip()
+    mods = set()
+    m = re.match(r"<([^>]+)>$", s)
+    if not m:
+        return s, mods
+    parts = m.group(1).split("-")
+    if len(parts) == 1:
+        return f"<{parts[0]}>", mods
+    for p in parts[:-1]:
+        pu = p.upper()
+        if pu == "C":
+            mods.add("CTRL")
+        elif pu in ("A", "M"):
+            mods.add("ALT")
+        elif pu == "S":
+            mods.add("SHIFT")
+        else:
+            return s, set()
+    return parts[-1], mods
+
+
+def parse_hyprland():
+    f = REPO / ".config/hypr/hyprland.conf"
+    if not f.exists():
+        return
+    submap = "global"
+    for i, raw in enumerate(f.read_text().splitlines(), 1):
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            continue
+        m = re.match(r"submap\s*=\s*(\S+)", line)
+        if m:
+            sm = m.group(1)
+            submap = "global" if sm == "reset" else sm
+            continue
+        m = re.match(r"(bind[a-z]*)\s*=\s*([^,]*),\s*([^,]+),\s*(.+)", line)
+        if not m:
+            continue
+        _, mods_raw, key, action = m.groups()
+        mods = set()
+        for tok in re.split(r"\s+", mods_raw.strip()):
+            if not tok:
+                continue
+            tok = tok.upper().replace("$MAINMOD", "SUPER")
+            if tok in {"SUPER", "CTRL", "SHIFT", "ALT"}:
+                mods.add(tok)
+        emit("hyprland", submap, mods, key, action, f"{f}:{i}")
+
+
+def parse_aerc():
+    f = REPO / ".config/aerc/binds.conf"
+    if not f.exists():
+        return
+    section = "global"
+    for i, raw in enumerate(f.read_text().splitlines(), 1):
+        s = raw.strip()
+        if not s or s.startswith("#"):
+            continue
+        m = re.match(r"\[([^\]]+)\]", s)
+        if m:
+            section = m.group(1)
+            continue
+        m = re.match(r"(.+?)\s*=\s*(.+)", s)
+        if not m:
+            continue
+        key_raw, action = m.groups()
+        key, mods = vim_key(key_raw)
+        emit("aerc", section, mods, key, action, f"{f}:{i}")
+
+
+VIM_MAP_RE = re.compile(
+    r"^\s*(?:au\s+FileType\s+\S+\s+)?"
+    r"(nn|nm|no|nor|noremap|nnoremap|map|vmap|vnoremap|vn|imap|inoremap|ino"
+    r"|cmap|cnoremap|tmap|tnoremap|smap|snoremap|xmap|xnoremap|omap|onoremap)"
+    r"(?:\s+<silent>|\s+<expr>|\s+<buffer>|\s+<unique>|\s+<nowait>|\s+<script>)*"
+    r"\s+(\S+)\s+(.+)$"
+)
+VIM_MODE = {
+    "nn": "normal", "nm": "normal", "no": "normal", "nor": "normal",
+    "noremap": "any", "nnoremap": "normal", "map": "any",
+    "vmap": "visual", "vnoremap": "visual", "vn": "visual",
+    "imap": "insert", "inoremap": "insert", "ino": "insert",
+    "cmap": "cmd", "cnoremap": "cmd",
+    "tmap": "term", "tnoremap": "term",
+    "smap": "select", "snoremap": "select",
+    "xmap": "vblock", "xnoremap": "vblock",
+    "omap": "op", "onoremap": "op",
+}
+
+
+def parse_nvim():
+    f = REPO / ".config/nvim/map.vim"
+    if not f.exists():
+        return
+    for i, raw in enumerate(f.read_text().splitlines(), 1):
+        line = raw.rstrip()
+        if not line.strip() or line.lstrip().startswith('"'):
+            continue
+        m = VIM_MAP_RE.match(line)
+        if not m:
+            continue
+        verb, key_raw, action = m.groups()
+        key, mods = vim_key(key_raw)
+        emit("nvim", VIM_MODE.get(verb, verb), mods, key, action, f"{f}:{i}")
+
+
+def zsh_key(raw):
+    """Best-effort normalization of a zsh bindkey sequence."""
+    s = raw
+    if s.startswith("'") and s.endswith("'"):
+        s = s[1:-1]
+    elif s.startswith('"') and s.endswith('"'):
+        s = s[1:-1]
+    mods = set()
+    key = s
+    if re.fullmatch(r"\^\[\^.", s):
+        mods.update({"ALT", "CTRL"})
+        key = s[-1].lower()
+    elif re.fullmatch(r"\^\[.", s):
+        mods.add("ALT")
+        key = s[-1]
+    elif re.fullmatch(r"\\e.", s):
+        mods.add("ALT")
+        key = s[-1]
+    elif re.fullmatch(r"\^.", s):
+        mods.add("CTRL")
+        key = s[-1].lower()
+    return key, mods
+
+
+def parse_zsh():
+    f = REPO / ".config/zsh/zshrc.zsh"
+    if not f.exists():
+        return
+    for i, raw in enumerate(f.read_text().splitlines(), 1):
+        s = raw.strip()
+        if not s.startswith("bindkey"):
+            continue
+        toks = s.split()
+        ctx = "emacs"
+        idx = 1
+        while idx < len(toks):
+            t = toks[idx]
+            if t == "-M" and idx + 1 < len(toks):
+                ctx = toks[idx + 1]
+                idx += 2
+            elif t.startswith("-") and len(t) <= 3:
+                idx += 1
+            else:
+                break
+        if idx >= len(toks):
+            continue
+        key_raw = toks[idx]
+        action = " ".join(toks[idx + 1:])
+        if not action:
+            continue
+        key, mods = zsh_key(key_raw)
+        emit("zsh", ctx, mods, key, action, f"{f}:{i}")
+
+
+TMUX_LINE = re.compile(r"^\s*(?:bind|bind-key)\s+(.+)$")
+
+
+def tmux_key(tok):
+    mods = set()
+    parts = tok.split("-")
+    while len(parts) > 1:
+        head = parts[0]
+        if head == "C":
+            mods.add("CTRL")
+        elif head == "M":
+            mods.add("ALT")
+        elif head == "S":
+            mods.add("SHIFT")
+        else:
+            break
+        parts = parts[1:]
+    return "-".join(parts), mods
+
+
+def parse_tmux():
+    f = REPO / ".config/tmux/tmux.conf"
+    if not f.exists():
+        return
+    for i, raw in enumerate(f.read_text().splitlines(), 1):
+        line = raw.split("#", 1)[0].rstrip()
+        m = TMUX_LINE.match(line)
+        if not m:
+            continue
+        rest = m.group(1).split()
+        ctx = "prefix"
+        idx = 0
+        while idx < len(rest):
+            t = rest[idx]
+            if t == "-n":
+                ctx = "root"
+                idx += 1
+            elif t == "-r":
+                idx += 1
+            elif t == "-T" and idx + 1 < len(rest):
+                ctx = rest[idx + 1]
+                idx += 2
+            elif t in ("-N",) and idx + 1 < len(rest):
+                idx += 2
+            elif t.startswith("-"):
+                idx += 1
+            else:
+                break
+        if idx >= len(rest):
+            continue
+        key_raw = rest[idx]
+        action = " ".join(rest[idx + 1:])
+        key, mods = tmux_key(key_raw)
+        emit("tmux", ctx, mods, key, action, f"{f}:{i}")
+
+
+def parse_lf():
+    f = REPO / "modules/user/lf.nix"
+    if not f.exists():
+        return
+    text = f.read_text()
+    lines = text.splitlines()
+    in_kb = False
+    depth = 0
+    for i, raw in enumerate(lines, 1):
+        if not in_kb:
+            if "keybindings" in raw and "{" in raw:
+                in_kb = True
+                depth = raw.count("{") - raw.count("}")
+            continue
+        depth += raw.count("{") - raw.count("}")
+        if depth <= 0:
+            in_kb = False
+            continue
+        s = raw.strip().rstrip(";")
+        if not s or s.startswith("#"):
+            continue
+        m = re.match(r'"?([^"=\s]+)"?\s*=\s*(.+?)\s*;?\s*$', s)
+        if not m:
+            continue
+        key_raw, action = m.groups()
+        action = action.strip()
+        if action.endswith(";"):
+            action = action[:-1].strip()
+        if action.startswith('"') and action.endswith('"'):
+            action = action[1:-1]
+        elif action.startswith("''") and action.endswith("''"):
+            action = action[2:-2]
+        key, mods = vim_key(key_raw)
+        emit("lf", "nav", mods, key, action, f"{f}:{i}")
+    zx = REPO / "modules/user/zx-dirs.nix"
+    if zx.exists():
+        for i, raw in enumerate(zx.read_text().splitlines(), 1):
+            s = raw.strip()
+            m = re.match(r'"?([^"=\s]+)"?\s*=\s*(.+?);?\s*$', s)
+            if not m or s.startswith("#") or s.startswith("{") or s.startswith("}"):
+                continue
+            letter, val = m.groups()
+            if not re.match(r"^[A-Za-z/]$", letter):
+                continue
+            path_match = re.search(r'"([^"]+)"', val)
+            path = path_match.group(1) if path_match else val
+            emit("lf", "zx", set(), f"g{letter}", f"cd {path}", f"{zx}:{i}")
+            emit("zsh", "alias", set(), f"z{letter}", f"cd {path}", f"{zx}:{i}")
+
+
+def parse_mpv():
+    f = REPO / ".config/mpv/input.conf"
+    if not f.exists():
+        return
+    for i, raw in enumerate(f.read_text().splitlines(), 1):
+        s = raw.strip()
+        if not s or s.startswith("#"):
+            continue
+        toks = s.split(None, 1)
+        if len(toks) < 2:
+            continue
+        key_raw, action = toks
+        mods = set()
+        key = key_raw
+        parts = key_raw.split("+")
+        if len(parts) > 1:
+            for p in parts[:-1]:
+                pu = p.upper()
+                if pu == "CTRL":
+                    mods.add("CTRL")
+                elif pu == "SHIFT":
+                    mods.add("SHIFT")
+                elif pu == "ALT":
+                    mods.add("ALT")
+            key = parts[-1]
+        emit("mpv", "global", mods, key, action, f"{f}:{i}")
+
+
+def parse_waybar():
+    f = REPO / "modules/user/waybar.nix"
+    if not f.exists():
+        return
+    for i, raw in enumerate(f.read_text().splitlines(), 1):
+        m = re.match(r'\s*(on-click(?:-right|-middle)?|on-scroll-(?:up|down))\s*=\s*"((?:[^"\\]|\\.)*)"', raw)
+        if not m:
+            continue
+        ev, action = m.groups()
+        emit("waybar", "module", set(), ev, action, f"{f}:{i}")
+
+
+def main():
+    parse_hyprland()
+    parse_aerc()
+    parse_nvim()
+    parse_zsh()
+    parse_tmux()
+    parse_lf()
+    parse_mpv()
+    parse_waybar()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except BrokenPipeError:
+        sys.stderr.close()
