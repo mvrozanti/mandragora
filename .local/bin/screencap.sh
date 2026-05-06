@@ -153,7 +153,7 @@ screenshot_full() {
   esac
   wl-copy < "$file"
   command -v notify-send >/dev/null && \
-    notify-send -a screencap -i "$file" "Screenshot saved" "$file"
+    notify-send -a screencap -i "$file" "Screenshot saved"
   mark_flash
 }
 
@@ -169,7 +169,7 @@ screenshot_region() {
   mv "$tmp" "$file"
   wl-copy --type image/png < "$file"
   command -v notify-send >/dev/null && \
-    notify-send -a screencap -i "$file" "Screenshot saved + copied" "$(basename "$file")"
+    notify-send -a screencap -i "$file" "Screenshot saved"
   mark_flash
 }
 
@@ -185,7 +185,7 @@ screenshot_window() {
   grim -g "$geom" "$file"
   wl-copy --type image/png < "$file"
   command -v notify-send >/dev/null && \
-    notify-send -a screencap -i "$file" "Screenshot saved + copied" "$(basename "$file")"
+    notify-send -a screencap -i "$file" "Screenshot saved"
   mark_flash
 }
 
