@@ -5,3 +5,4 @@ appendix/ventoy-usb/nixos-iso/root-dotfiles/.claude_env
 result
 _bmad/config.user.yaml
 __pycache__/
+.worktrees/
