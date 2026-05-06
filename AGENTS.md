@@ -27,6 +27,18 @@ interactive work (TTY-bound sudo prompts, GUI clicks, decisions only
 the user can make) and standing risky-action gates (destructive ops
 still need explicit confirmation per the global Claude Code rules).
 
+**Decision discipline:** Proactivity extends past commands to the
+choices made while working. When a fork has a clearly reasonable
+default — naming, file placement, ordering, picking between two
+equivalent approaches, whether to also fix an obvious adjacent typo
+or dead reference you noticed in passing — make the call and keep
+moving. The user would rather redirect a decision in flight than be
+interrupted before every one. Save the question for genuinely
+ambiguous intent, scope changes, or anything that would be hard to
+reverse. "I noticed X and fixed it on the way" beats "should I fix
+X?" for low-risk in-scope work; the inverse holds for anything that
+expands the blast radius.
+
 ---
 
 ## The System Config
@@ -128,8 +140,10 @@ audit them):
 - **Claude Code** — must run `mandragora-switch` itself after edits;
   never asks the user to rebuild. Autonomous-commit authorization is
   scoped to the rebuild path; unrelated `git commit`/`push` still
-  needs explicit instruction. Has a memory system at
-  `~/.claude/projects/-home-m/memory/`. See `CLAUDE.md`.
+  needs explicit instruction. Leans into the "Decision discipline"
+  paragraph above: when in doubt between asking and acting on a
+  reversible, in-scope choice, act and report it. Has a memory system
+  at `~/.claude/projects/-home-m/memory/`. See `CLAUDE.md`.
 - **Other agents** use `~/.ai-shared/handoffs/` for explicit
   baton-passes (`/handoff` write, `/pickup` read). See
   `~/.ai-shared/rules/handoff.md`.
