@@ -19,79 +19,84 @@ This file documents how multiple workloads coordinate that single GPU.
 
 ## The tool: `gpu-lock`
 
-`gpu-lock` is a Python wrapper around the `gpu_lock` library — an `fcntl.flock` mutex on `/dev/shm/gpu-lock/gpu.lock` plus `SIGUSR1`-based cooperative preemption. The bots (`im-gen`, `llm-via-telegram`) coordinate on the same primitive directly via `import gpu_lock`; the CLI extends the same protocol to non-Python and shell callers.
+`gpu-lock` is a Python wrapper around the `gpu_lock` library — a non-blocking `fcntl.flock` mutex on `/dev/shm/gpu-lock/gpu.lock` with a sidecar JSON file describing the current holder. The bots (`im-gen`, `llm-via-telegram`) coordinate on the same primitive directly via `import gpu_lock`; the CLI extends the same protocol to non-Python and shell callers.
+
+Semantics are **respect-the-holder**, not cooperative preemption: a running holder is never signalled or interrupted. New arrivals fail fast — the caller decides whether to retry, fall back, or surface the busy state.
 
 The library lives at `.local/share/gpu-lock/gpu_lock.py`, the CLI at `.local/share/gpu-lock/gpu_lock_cli.py`, both packaged via `pkgs/gpu-lock.nix` and exported from `modules/core/ai-local.nix` systemPackages.
 
 ### Subcommands
 
 ```
-gpu-lock run --name <name> --expect <seconds> \
-             [--on-yield {sigusr1|sigterm|kill}] \
-             [--timeout <seconds>] \
-             -- <cmd> [args...]
-
+gpu-lock run --name <name> --expect <seconds> -- <cmd> [args...]
 gpu-lock status
-gpu-lock yield [pid] [--reason "<text>"]
 ```
 
-- `run` blocks until the lock is free, spawns `cmd`, releases on exit. Default `--on-yield sigusr1` forwards a yield request from another waiter to the child as `SIGUSR1` (so a CUDA program with a checkpoint handler can save state). `sigterm` is the right choice for programs that don't trap `SIGUSR1`. `kill` is the nuclear option.
-- `status` shows the current holder and any queued waiters.
-- `yield` sends `SIGUSR1` to the holder. With no pid, signals whoever is currently holding.
+- `run` tries to acquire the lock without blocking, spawns `cmd`, releases on exit. If the lock is held, exits `75` (`EX_TEMPFAIL`) and prints `{"error":"gpu-busy","holder":{...}}` JSON to stderr.
+- `status` shows the current holder (pid, name, held_for, expected_remaining).
 
 ### Storage
 
 - Lock dir: `/dev/shm/gpu-lock/` (RAM-backed; auto-clears on reboot).
 - `gpu.lock` — the `fcntl` mutex file (always present once anyone has used the lock; flock state is kernel-side).
 - `gpu.lock.holder` — JSON with `pid`, `name`, `since`, `expected_seconds` for the current holder.
-- `gpu.lock.waiters` — JSON list of waiting callers with `pid`, `name`, `reason`, `since`.
 
 ### Coordination rules
 
-1. **One holder at a time.** `acquire` blocks until the previous holder releases. No "claim rejected" — you wait, politely.
-2. **Politeness is automatic.** When you call `acquire`, the library sends `SIGUSR1` to the current holder so it can choose to wrap up. The CLI forwards that signal (or `SIGTERM`/`SIGKILL`, your call) to your wrapped child.
-3. **Cooperative yield is the holder's contract.** A well-behaved Python caller polls `gpu_lock.yield_requested()` between iterations and raises `GpuYieldRequested` to abort. A CLI-wrapped command receives the configured signal and must handle it. Programs that ignore the signal hold the lock until they're done.
-4. **PID death releases the lock.** `fcntl` flocks are released by the kernel on process exit, so a crashed holder doesn't wedge the system — the next acquirer just gets the lock.
-5. **No `eta`, no priority, no queue ordering.** First waiter to call `acquire` after release wins. `expected_seconds` is metadata for `status`, not enforced.
-6. **PyTorch holders MUST clean VRAM before release.** Call `torch.cuda.empty_cache()` before exiting the `with gpu_lock.acquire(...)` block, or the caching allocator keeps the pages and the next holder sees a near-full GPU. This bit us on 2026-04-27.
+1. **One holder at a time.** `acquire` is non-blocking. If free, you get the lock. If held, you get `GpuBusy(holder=...)` immediately.
+2. **No preemption.** The holder is never signalled, never killed, never asked to yield. Whatever is running runs to completion. This is a deliberate trade against responsiveness — interactive callers (the Telegram bot) are expected to tell the user "GPU busy, try in ~Ns" rather than waiting indefinitely or pre-empting a long-running training job.
+3. **PID death releases the lock.** `fcntl` flocks are released by the kernel on process exit, so a crashed holder doesn't wedge the system — the next acquirer just gets the lock. (The stale `gpu.lock.holder` JSON file may linger for a moment until overwritten, but the lock itself is free.)
+4. **No `eta`, no priority, no queue ordering.** First non-busy `acquire` wins. `expected_seconds` is metadata for `status` and `GpuBusy.expected_remaining()`, not enforced.
+5. **PyTorch holders MUST clean VRAM before release.** Call `torch.cuda.empty_cache()` before exiting the `with gpu_lock.acquire(...)` block, or the caching allocator keeps the pages and the next holder sees a near-full GPU. This bit us on 2026-04-27.
 
 ### Idiomatic use
 
-Shell:
+Shell, with retry-after-busy left to the caller's policy:
 
 ```bash
-gpu-lock run --name trading --expect 3600 --on-yield sigterm -- ./run-walk-forward.sh
+if ! gpu-lock run --name trading --expect 3600 -- ./run-walk-forward.sh; then
+    rc=$?
+    if [ "$rc" = "75" ]; then
+        echo "GPU busy, will not start training run"
+        exit 75
+    fi
+    exit "$rc"
+fi
 ```
 
 Python (CLI wrapper, any project):
 
 ```python
 import subprocess
-subprocess.check_call([
+proc = subprocess.run([
     "gpu-lock", "run",
     "--name", "trading", "--expect", "3600",
-    "--on-yield", "sigusr1",
     "--", "python", "walk_forward.py",
 ])
+if proc.returncode == 75:
+    raise RuntimeError("GPU was busy; aborted")
 ```
 
 Python (direct library use, in-tree projects):
 
 ```python
-from gpu_lock import gpu_lock, GpuYieldRequested
+from gpu_lock import gpu_lock, GpuBusy
 import torch
 
-with gpu_lock.acquire("trading", expected_seconds=3600):
-    try:
+try:
+    with gpu_lock.acquire("trading", expected_seconds=3600):
         for fold in folds:
-            if gpu_lock.yield_requested():
-                raise GpuYieldRequested("preempted; checkpointing")
             run_fold(fold)
-    finally:
         torch.cuda.empty_cache()
+except GpuBusy as busy:
+    name = busy.holder["name"] if busy.holder else "unknown"
+    eta = busy.expected_remaining()
+    raise RuntimeError(
+        f"GPU held by {name}; expected ~{eta:.0f}s remaining" if eta else f"GPU held by {name}"
+    )
 ```
 
-`gpu-lock status` to inspect, `gpu-lock yield <pid>` to politely interrupt a holder when you need the GPU urgently.
+`gpu-lock status` to inspect.
 
 ---
 
@@ -110,7 +115,8 @@ This is friction-tolerable because (a) trading runs are pre-planned, not ad-hoc,
 - It does not prevent you from launching a CUDA process. Nothing intercepts at the kernel level. `gpu-lock` is a *convention*, not enforcement.
 - It does not stop or start Ollama for you. See the section above.
 - It does not detect VRAM exhaustion. If your workload OOMs, that is on you.
-- It does not rate-limit, queue, or prioritize. One tenant at a time, first claim wins.
+- It does not preempt, queue, or rate-limit. One tenant at a time, fail-fast on contention.
+- It does not retry. The caller decides whether to back off, fall back to CPU, or surface the busy state to a human.
 
 This is intentional. The system is one user, one GPU, and a small number of well-known workload classes — heavyweight orchestration would cost more than it saves.
 

@@ -89,7 +89,7 @@ mandragora-switch "feat(scope): description"
   [`docs/workflow.md`](docs/workflow.md) · edit → rebuild → verify → commit
   [`docs/persistence.md`](docs/persistence.md) · what survives reboot
   [`docs/secrets.md`](docs/secrets.md) · sops-nix + age
-  [`docs/gpu.md`](docs/gpu.md) · cooperative GPU contract
+  [`docs/gpu.md`](docs/gpu.md) · respect-the-holder GPU contract
   [`docs/worktrees.md`](docs/worktrees.md) · parallel-agent isolation
   [`install/INSTALL.md`](install/INSTALL.md) · fresh-install runbook
 
