@@ -32,6 +32,7 @@
     ../../modules/audits/default.nix
   ];
 
+  mandragora.profile = "desktop";
   mandragora.ai.agentic.enable = true;
   services.mandragora-seafile.enable = true;
 
