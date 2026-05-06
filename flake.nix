@@ -39,11 +39,16 @@
         ) (builtins.readDir hostsDir)
       );
 
+      sharedModules = [
+        ./modules/shared/profile.nix
+        ./modules/shared/zsh.nix
+        ./modules/shared/nvim.nix
+      ];
+
       mkSystem = name: nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit inputs; };
-        modules = [
-          ./modules/shared/profile.nix
+        modules = sharedModules ++ [
           (hostsDir + "/${name}/default.nix")
           home-manager.nixosModules.home-manager
           sops-nix.nixosModules.sops
@@ -60,8 +65,7 @@
         mandragora-usb = nixpkgs.lib.nixosSystem {
           inherit system;
           specialArgs = { inherit inputs; };
-          modules = [
-            ./modules/shared/profile.nix
+          modules = sharedModules ++ [
             ./hosts/mandragora-usb/default.nix
             "${nixpkgs}/nixos/modules/profiles/installation-device.nix"
             sops-nix.nixosModules.sops
@@ -72,8 +76,7 @@
       packages.${system}.usbImage = nixos-generators.nixosGenerate {
         inherit system;
         format = "raw-efi";
-        modules = [
-          ./modules/shared/profile.nix
+        modules = sharedModules ++ [
           ./hosts/mandragora-usb/default.nix
           sops-nix.nixosModules.sops
         ];
