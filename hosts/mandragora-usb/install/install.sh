@@ -36,6 +36,23 @@ else
     log_info "No network; using baked flake."
 fi
 
+USB_KEY_SRC="/etc/nixos/mandragora/secrets/usb-key.age"
+USB_KEY_DST="/mnt/persistent/sops/usb-key.txt"
+DECRYPTED=""
+if [[ -f "$USB_KEY_SRC" ]]; then
+    log_info "Sops USB key found. Will prompt for passphrase to decrypt."
+    for attempt in 1 2 3; do
+        if DECRYPTED=$(age -d "$USB_KEY_SRC" 2>/dev/null); then
+            break
+        fi
+        log_warn "decryption failed (attempt $attempt of 3)"
+        DECRYPTED=""
+    done
+    if [[ -z "$DECRYPTED" ]]; then
+        log_warn "sops key not decrypted; install will continue without USB-host secrets"
+    fi
+fi
+
 log_info "Detecting target disks..."
 CANDIDATES=$(bash "$DIR/detect.sh" 2>/dev/null) || die "no candidate target disks"
 
@@ -86,5 +103,13 @@ bash "$DIR/render-config.sh" "${render_args[@]}"
 
 log_info "Running nixos-install..."
 nixos-install --no-root-passwd --flake "/mnt/etc/nixos/mandragora#$HOSTNAME"
+
+if [[ -n "$DECRYPTED" ]]; then
+    mkdir -p "$(dirname "$USB_KEY_DST")"
+    printf '%s' "$DECRYPTED" > "$USB_KEY_DST"
+    chmod 600 "$USB_KEY_DST"
+    log_info "Decrypted age key placed at $USB_KEY_DST"
+fi
+unset DECRYPTED
 
 log_info "Install complete. Reboot, remove the USB, and select the target disk."
