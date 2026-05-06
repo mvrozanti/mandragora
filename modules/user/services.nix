@@ -52,7 +52,10 @@
     };
     Service = {
       Type = "oneshot";
-      Environment = "GPG_TTY=/dev/tty";
+      Environment = [
+        "GPG_TTY=/dev/tty"
+        "SASL_PATH=${pkgs.cyrus_sasl}/lib/sasl2:${pkgs.cyrus-sasl-xoauth2}/lib/sasl2"
+      ];
       ExecStart = "${pkgs.writeShellApplication {
         name = "mbsync-hotmail-sync";
         runtimeInputs = with pkgs; [ isync libnotify gnugrep coreutils notmuch ];
