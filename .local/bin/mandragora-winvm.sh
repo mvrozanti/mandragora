@@ -47,7 +47,9 @@ cmd_import() {
     --import \
     --print-xml)
   echo "$xml" \
-    | sed -E "s|<nvram([^/>]*)\\bformat='raw'|<nvram\\1format='qcow2'|; s|(<nvram[^>]*>)([^<]*)\\.fd(</nvram>)|\\1\\2.qcow2\\3|" \
+    | sed -E \
+        -e "s| firmware='efi'||" \
+        -e "s|format='raw'>(/var/lib/libvirt/qemu/nvram/[^<]+)\\.fd</nvram>|format='qcow2'>\\1.qcow2</nvram>|" \
     | virsh --connect "$URI" define /dev/stdin >/dev/null
   echo "VM '$VM_NAME' defined with qcow2 NVRAM."
   echo "Start it: mandragora-winvm start"
