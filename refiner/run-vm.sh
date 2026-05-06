@@ -9,10 +9,13 @@ USB_IMG="${MANDRAGORA_USB_IMG:?MANDRAGORA_USB_IMG must point to a raw USB image}
 OVMF_CODE="${MANDRAGORA_OVMF_CODE:?MANDRAGORA_OVMF_CODE must point to OVMF_CODE.fd}"
 OVMF_VARS_SRC="${MANDRAGORA_OVMF_VARS:?MANDRAGORA_OVMF_VARS must point to OVMF_VARS.fd template}"
 
+SSH_PORT="${REFINER_SSH_PORT:-2222}"
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --ram) REFINER_RAM="$2"; shift 2 ;;
         --vcpus) REFINER_VCPUS="$2"; shift 2 ;;
+        --ssh-port) SSH_PORT="$2"; shift 2 ;;
         --) shift; break ;;
         *) die "unknown arg: $1" ;;
     esac
@@ -27,6 +30,7 @@ prepare_target_disk
 
 log "Booting mandragora-usb image: $USB_IMG"
 log "Target disk: $REFINER_TARGET ($REFINER_TARGET_SIZE)"
+log "SSH: ssh -p $SSH_PORT m@localhost  (password: mandragora)"
 log "Press Ctrl+A then X to terminate QEMU."
 log "---"
 
@@ -38,7 +42,7 @@ exec qemu-system-x86_64 \
     -drive "if=pflash,format=raw,file=${REFINER_OVMF_VARS}" \
     -drive "file=${USB_IMG},if=virtio,format=raw,snapshot=on" \
     -drive "file=${REFINER_TARGET},if=virtio,format=qcow2" \
-    -netdev user,id=net0 \
+    -netdev "user,id=net0,hostfwd=tcp::${SSH_PORT}-:22" \
     -device virtio-net,netdev=net0 \
     -device virtio-rng-pci \
     -display none \
