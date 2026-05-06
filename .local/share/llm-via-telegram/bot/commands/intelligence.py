@@ -16,7 +16,7 @@ from telegram import Update
 from telegram.constants import ChatAction
 from telegram.ext import ContextTypes
 
-from gpu_lock import gpu_lock
+from gpu_lock import gpu_lock, GpuBusy
 
 logger = logging.getLogger(__name__)
 
@@ -161,6 +161,15 @@ def _format_exc(exc: BaseException) -> str:
     return f"{type(exc).__name__}: {msg}" if msg else type(exc).__name__
 
 
+def _busy_message(busy: GpuBusy) -> str:
+    holder = busy.holder or {}
+    name = holder.get("name", "another workload")
+    remaining = busy.expected_remaining()
+    if remaining is not None:
+        return f"GPU is busy with {name}, ~{int(remaining)}s remaining. Try again then."
+    return f"GPU is busy with {name}. Try again later."
+
+
 async def _execute_shell(command: str) -> str:
     logger.info("tool:shell: %s", command)
     _chat_log.info("[tool:shell] %s", command)
@@ -221,10 +230,7 @@ async def _typing_loop(chat) -> None:
         pass
 
 
-async def _run_agentic(
-    messages: list[dict],
-    cancel_event: asyncio.Event,
-) -> tuple[str, str]:
+async def _run_agentic(messages: list[dict]) -> tuple[str, str]:
     last_call: tuple[str, str] | None = None
     last_result: str | None = None
     for _ in range(_MAX_TOOL_TURNS):
@@ -238,20 +244,9 @@ async def _run_agentic(
             "options": {"num_ctx": 32768},
         }
         async with httpx.AsyncClient(timeout=180.0) as client:
-            req_task = asyncio.create_task(
-                client.post(f"{config.OLLAMA_BASE_URL.rstrip('/')}/api/chat", json=payload)
+            resp = await client.post(
+                f"{config.OLLAMA_BASE_URL.rstrip('/')}/api/chat", json=payload
             )
-            cancel_task = asyncio.create_task(cancel_event.wait())
-            done, _ = await asyncio.wait({req_task, cancel_task}, return_when=asyncio.FIRST_COMPLETED)
-            if cancel_task in done:
-                req_task.cancel()
-                try:
-                    await req_task
-                except (asyncio.CancelledError, httpx.HTTPError):
-                    pass
-                raise RuntimeError("request preempted by GPU contention")
-            cancel_task.cancel()
-            resp = req_task.result()
 
         if resp.status_code != 200:
             raise RuntimeError(f"Ollama returned HTTP {resp.status_code}: {resp.text[:300]}")
@@ -307,17 +302,8 @@ async def dispatch_query(update: Update, query: str) -> None:
         async with gpu_lock.acquire_async("llm-via-telegram:local", expected_seconds=60):
             await evict_others(config.OLLAMA_BASE_URL, config.OLLAMA_MODEL)
 
-            loop = asyncio.get_running_loop()
-            cancel_event = asyncio.Event()
-
-            def on_yield(reason: str) -> None:
-                logger.warning("preempted by gpu-lock: %s", reason)
-                loop.call_soon_threadsafe(cancel_event.set)
-
-            gpu_lock.on_yield(on_yield)
-
             try:
-                thinking, content = await _run_agentic(messages, cancel_event)
+                thinking, content = await _run_agentic(messages)
             finally:
                 try:
                     await asyncio.shield(
@@ -335,6 +321,8 @@ async def dispatch_query(update: Update, query: str) -> None:
         while len(_history) > _HISTORY_MAX:
             _history.pop(0)
 
+    except GpuBusy as busy:
+        await update.message.reply_text(_busy_message(busy))
     except RuntimeError as exc:
         logger.error("LLM error: %s", exc)
         await update.message.reply_text(f"Query failed: {_format_exc(exc)}")
@@ -439,11 +427,10 @@ async def cmd_p(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             {"role": "system", "content": system_instruction},
             {"role": "user", "content": query},
         ]
-        cancel_event = asyncio.Event()
         async with gpu_lock.acquire_async("llm-via-telegram:local", expected_seconds=60):
             await evict_others(config.OLLAMA_BASE_URL, config.OLLAMA_MODEL)
             try:
-                thinking, content = await _run_agentic(messages, cancel_event)
+                thinking, content = await _run_agentic(messages)
             finally:
                 try:
                     await asyncio.shield(
@@ -452,6 +439,8 @@ async def cmd_p(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 except Exception:
                     logger.exception("ollama evict failed")
         await _send_response(update, thinking, content)
+    except GpuBusy as busy:
+        await update.message.reply_text(_busy_message(busy))
     except RuntimeError as exc:
         logger.error("persona error: %s", exc)
         await update.message.reply_text(f"Local LLM error: {_format_exc(exc)}")
