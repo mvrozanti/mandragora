@@ -41,14 +41,12 @@ cmd_import() {
     --sound ich9 \
     --controller usb,model=qemu-xhci \
     --tpm backend.type=emulator,backend.version=2.0,model=tpm-crb \
-    --boot uefi \
+    --boot uefi,nvram.format=qcow2 \
     --features kvm_hidden=on,acpi=on,apic=on \
     --import \
     --noautoconsole
-  virsh --connect "$URI" snapshot-create-as "$VM_NAME" fresh-install \
-    --description "post-install baseline before any modification" \
-    --atomic
-  echo "VM defined and 'fresh-install' snapshot taken."
+  echo "VM defined. After installing Windows + SSH, snapshot it:"
+  echo "  mandragora-winvm snap fresh-install"
 }
 
 cmd_start()    { virsh --connect "$URI" start "$VM_NAME"; }
