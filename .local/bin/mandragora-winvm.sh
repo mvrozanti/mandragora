@@ -13,8 +13,8 @@ ensure_disk() {
       exit 1
     fi
     echo "copying $SRC_DIR/disk.qcow2 → $DEST_DISK"
-    sudo install -o root -g qemu-libvirtd -m 0660 /dev/null "$DEST_DISK"
-    sudo qemu-img convert -O qcow2 "$SRC_DIR/disk.qcow2" "$DEST_DISK"
+    install -m 0660 -g qemu-libvirtd /dev/null "$DEST_DISK"
+    qemu-img convert -O qcow2 "$SRC_DIR/disk.qcow2" "$DEST_DISK"
   fi
 }
 
@@ -41,7 +41,8 @@ cmd_import() {
     --sound ich9 \
     --controller usb,model=qemu-xhci \
     --tpm backend.type=emulator,backend.version=2.0,model=tpm-crb \
-    --boot uefi,nvram.format=qcow2 \
+    --boot uefi \
+    --xml "xpath.set=./os/nvram/@format=qcow2" \
     --features kvm_hidden=on,acpi=on,apic=on \
     --import \
     --noautoconsole
