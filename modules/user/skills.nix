@@ -5,6 +5,7 @@ let
     { n = "handoff";  s = ../../agent-skills/handoff; }
     { n = "pickup";   s = ../../agent-skills/pickup; }
     { n = "gpu-lock"; s = ../../agent-skills/gpu-lock; }
+    { n = "hotkeys";  s = ../../agent-skills/hotkeys; }
   ];
 
   claudeOnlySkills = [
