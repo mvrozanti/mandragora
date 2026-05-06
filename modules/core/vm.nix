@@ -14,7 +14,7 @@
 
   programs.virt-manager.enable = true;
 
-  users.users.m.extraGroups = [ "libvirtd" "kvm" ];
+  users.users.m.extraGroups = [ "libvirtd" "kvm" "qemu-libvirtd" ];
 
   boot.kernelModules = [ "kvm-amd" ];
 
