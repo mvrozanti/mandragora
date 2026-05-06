@@ -36,8 +36,6 @@
     shell = pkgs.zsh;
   };
 
-  programs.zsh.enable = true;
-
   programs.nix-ld.enable = true;
 
   programs.gpu-screen-recorder.enable = true;
@@ -47,7 +45,6 @@
   environment.systemPackages = with pkgs; [
     git
     vim
-    neovim
     wget
     curl
     htop
