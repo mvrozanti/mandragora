@@ -28,8 +28,7 @@ cmd_import() {
     return 0
   fi
   ensure_disk
-  local xml
-  xml=$(virt-install --connect "$URI" \
+  virt-install --connect "$URI" \
     --name "$VM_NAME" \
     --memory 8192 \
     --vcpus 4 \
@@ -45,14 +44,8 @@ cmd_import() {
     --boot uefi \
     --features kvm_hidden=on,acpi=on,apic=on \
     --import \
-    --print-xml)
-  echo "$xml" \
-    | sed -E \
-        -e "s| firmware='efi'||" \
-        -e "s|format='raw'>(/var/lib/libvirt/qemu/nvram/[^<]+)\\.fd</nvram>|format='qcow2'>\\1.qcow2</nvram>|" \
-    | virsh --connect "$URI" define /dev/stdin >/dev/null
-  echo "VM '$VM_NAME' defined with qcow2 NVRAM."
-  echo "Start it: mandragora-winvm start"
+    --noautoconsole
+  echo "VM '$VM_NAME' defined and starting."
   echo "After installing Windows + SSH inside, snapshot: mandragora-winvm snap fresh-install"
 }
 
@@ -64,12 +57,12 @@ cmd_status()   { virsh --connect "$URI" dominfo "$VM_NAME"; }
 
 cmd_snap() {
   local name="${1:?usage: mandragora-winvm snap <name>}"
-  virsh --connect "$URI" snapshot-create-as "$VM_NAME" "$name" --atomic
+  virsh --connect "$URI" snapshot-create-as "$VM_NAME" "$name" --disk-only --atomic
 }
 
 cmd_revert() {
   local name="${1:?usage: mandragora-winvm revert <name>}"
-  virsh --connect "$URI" snapshot-revert "$VM_NAME" "$name"
+  virsh --connect "$URI" snapshot-revert "$VM_NAME" "$name" --force
 }
 
 cmd_snapshots() { virsh --connect "$URI" snapshot-list "$VM_NAME"; }
