@@ -35,13 +35,11 @@ in
 
   users.users.root.initialPassword = "mandragora";
 
-  programs.zsh.enable = true;
   programs.tmux.enable = true;
   programs.nix-ld.enable = true;
 
   environment.systemPackages = (with pkgs; [
     git
-    neovim
     sops
     age
     openssh
