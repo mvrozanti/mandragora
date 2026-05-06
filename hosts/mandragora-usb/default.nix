@@ -6,11 +6,16 @@ let
     cp ${./install}/*.sh $out/libexec/mandragora-install/
     cp ${./install}/host-template.nix $out/libexec/mandragora-install/
     chmod +x $out/libexec/mandragora-install/*.sh
+    mkdir -p $out/libexec/mandragora-diag
+    cp ${./diagnostics}/*.sh $out/libexec/mandragora-diag/
+    chmod +x $out/libexec/mandragora-diag/*.sh
     mkdir -p $out/bin
     ln -s $out/libexec/mandragora-install/install.sh        $out/bin/mandragora-install
     ln -s $out/libexec/mandragora-install/detect.sh         $out/bin/mandragora-detect
     ln -s $out/libexec/mandragora-install/format.sh         $out/bin/mandragora-format
     ln -s $out/libexec/mandragora-install/render-config.sh  $out/bin/mandragora-render-config
+    ln -s $out/libexec/mandragora-diag/hw-diag.sh           $out/bin/mandragora-hw-diag
+    ln -s $out/libexec/mandragora-diag/gpu-stress.sh        $out/bin/mandragora-gpu-stress
   '';
 in
 {
