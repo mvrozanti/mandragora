@@ -61,6 +61,7 @@ in
     })
     msmtp
     aerc
+    notmuch
     transmission_4
     libnotify
 
@@ -794,6 +795,29 @@ EOF
     source = ../../.config/aerc;
     recursive = true;
   };
+  home.file.".config/notmuch/default/config".text = ''
+    [database]
+    path=/home/m/.local/share/mail
+
+    [user]
+    name=Marcelo Vironda Rozanti
+    primary_email=mvrozanti@hotmail.com
+
+    [new]
+    tags=unread;inbox;
+    ignore=
+
+    [search]
+    exclude_tags=deleted;spam;
+
+    [maildir]
+    synchronize_flags=true
+  '';
+  home.activation.notmuchInit = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ ! -d "$HOME/.local/share/mail/.notmuch" ]; then
+      ${pkgs.notmuch}/bin/notmuch new || true
+    fi
+  '';
   home.file.".config/crush/crush.json".source = ../../.config/crush/crush.json;
   home.file.".config/eww" = {
     source = ../../.config/eww;

@@ -12,3 +12,5 @@ new_mail_count=$(( ${master_count:-0} - ${slave_count:-0} ))
 if [ "$new_mail_count" -gt 0 ]; then
     notify-send "Mail" "You have $new_mail_count new email(s)."
 fi
+
+notmuch new --quiet || true
