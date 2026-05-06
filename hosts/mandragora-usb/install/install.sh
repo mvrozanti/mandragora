@@ -93,8 +93,9 @@ log_info "Formatting $TARGET..."
 bash "$DIR/format.sh" "$TARGET"
 
 log_info "Copying flake..."
-mkdir -p /mnt/etc/nixos
-cp -a /etc/nixos/mandragora /mnt/etc/nixos/mandragora
+mkdir -p /mnt/etc/nixos/mandragora
+cp -aL /etc/nixos/mandragora/. /mnt/etc/nixos/mandragora/
+chmod -R u+w /mnt/etc/nixos/mandragora
 
 log_info "Rendering host config..."
 render_args=( --hostname "$HOSTNAME" --user "$USER_NAME" --keymap "$KEYMAP" )
