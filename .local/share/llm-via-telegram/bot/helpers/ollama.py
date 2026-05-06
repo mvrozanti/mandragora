@@ -9,7 +9,7 @@ though the lock looked free.
 
 `wait_for_unload` polls /api/ps; `evict_model` forces an immediate unload
 and confirms it. Callers should `await evict_model(...)` *while still
-holding the gpu_lock*, before yielding to the next consumer.
+holding the gpu_lock*, before releasing.
 """
 from __future__ import annotations
 
