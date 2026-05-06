@@ -45,8 +45,22 @@ prepare_ovmf_vars() {
 }
 
 prepare_target_disk() {
+    local size="${1:-$REFINER_TARGET_SIZE}"
     local dst="${REFINER_STATE_DIR}/target.qcow2"
     rm -f "$dst"
-    qemu-img create -f qcow2 "$dst" "$REFINER_TARGET_SIZE" >/dev/null
+    qemu-img create -f qcow2 "$dst" "$size" >/dev/null
     REFINER_TARGET="$dst"
+    REFINER_TARGET_ACTUAL_SIZE="$size"
+}
+
+prepare_extra_targets() {
+    local count="${1:-0}"
+    REFINER_EXTRA_DRIVES=()
+    local i
+    for i in $(seq 1 "$count"); do
+        local extra="${REFINER_STATE_DIR}/extra-target-${i}.qcow2"
+        rm -f "$extra"
+        qemu-img create -f qcow2 "$extra" 30G >/dev/null
+        REFINER_EXTRA_DRIVES+=( -drive "file=${extra},if=virtio,format=qcow2" )
+    done
 }
