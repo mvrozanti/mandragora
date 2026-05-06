@@ -69,6 +69,15 @@
             ./hosts/mandragora-usb/default.nix
             "${nixpkgs}/nixos/modules/profiles/installation-device.nix"
             sops-nix.nixosModules.sops
+            {
+              fileSystems."/" = lib.mkDefault {
+                device = "/dev/disk/by-label/nixos";
+                fsType = "ext4";
+              };
+              boot.loader.grub.enable = lib.mkDefault false;
+              boot.loader.systemd-boot.enable = lib.mkDefault true;
+              boot.loader.efi.canTouchEfiVariables = lib.mkDefault false;
+            }
           ];
         };
       };
@@ -89,6 +98,16 @@
           usbImage = self.packages.${system}.usbImage;
         })}/bin/refiner";
       };
+
+      checks.${system} =
+        let
+          guards = import ./modules/shared/build-checks.nix {
+            inherit self nixpkgs system;
+          };
+        in {
+          usb-closure-size = guards.closureSizeGuard;
+          profile-eval = guards.profileEvalGuard;
+        };
 
       homeConfigurations."m@mandragora-vps" = home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages."aarch64-linux";
