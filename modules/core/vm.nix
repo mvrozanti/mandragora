@@ -1,13 +1,27 @@
 { pkgs, ... }:
 
 {
-  virtualisation.libvirtd.enable = false;
+  virtualisation.libvirtd = {
+    enable = true;
+    onBoot = "ignore";
+    onShutdown = "shutdown";
+    qemu = {
+      package = pkgs.qemu_kvm;
+      runAsRoot = false;
+      swtpm.enable = true;
+    };
+  };
 
-  programs.virt-manager.enable = false;
+  programs.virt-manager.enable = true;
 
-  # Windows-specific tools (kept available, virtualization disabled for now)
+  users.users.m.extraGroups = [ "libvirtd" "kvm" ];
+
+  boot.kernelModules = [ "kvm-amd" ];
+
   environment.systemPackages = with pkgs; [
     quickemu
     quickgui
+    virtio-win
+    spice-gtk
   ];
 }
