@@ -13,6 +13,16 @@
   environment.etc."machine-id".source = "/persistent/etc/machine-id";
   environment.etc."nixos/mandragora".source = "/persistent/mandragora";
 
+  system.activationScripts.persistentCredentialSecret = ''
+    install -d -m 0755 /persistent/var/lib/systemd
+    if [ ! -s /persistent/var/lib/systemd/credential.secret ]; then
+      install -m 0400 /dev/null /persistent/var/lib/systemd/credential.secret
+      ${pkgs.coreutils}/bin/dd if=/dev/urandom \
+        of=/persistent/var/lib/systemd/credential.secret \
+        bs=4096 count=1 status=none
+    fi
+  '';
+
   environment.persistence."/persistent" = {
     hideMounts = true;
     directories = [
