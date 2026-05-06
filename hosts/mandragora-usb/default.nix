@@ -14,6 +14,8 @@ let
   '';
 in
 {
+  mandragora.profile = "live";
+
   networking.hostName = "mandragora-usb";
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
