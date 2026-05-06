@@ -55,7 +55,46 @@ in
     e2fsprogs
     util-linux
     nixos-install-tools
+    nodejs_22
   ]) ++ [ installScripts ];
+
+  environment.variables.npm_config_prefix = "/persist/npm-global";
+  environment.sessionVariables.PATH = [ "/persist/npm-global/bin" ];
+
+  systemd.services.claude-bootstrap = {
+    description = "First-boot install of agentic CLIs into /persist/npm-global";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+    path = with pkgs; [ nodejs_22 coreutils ];
+    serviceConfig = {
+      Type = "oneshot";
+      User = "m";
+      RemainAfterExit = false;
+      Environment = [ "npm_config_prefix=/persist/npm-global" ];
+    };
+    script = ''
+      set -eu
+      mkdir -p /persist/npm-global
+      marker=/persist/npm-global/.bootstrap-done
+      if [ -f "$marker" ]; then
+        echo "[claude-bootstrap] marker present, all packages already installed"
+        exit 0
+      fi
+      failed=
+      for pkg in @anthropic-ai/claude-code @google/gemini-cli @qwen-code/qwen-code; do
+        if npm install -g "$pkg"; then
+          echo "[claude-bootstrap] installed $pkg"
+        else
+          echo "[claude-bootstrap] $pkg install failed; will retry next boot"
+          failed=1
+        fi
+      done
+      if [ -z "$failed" ]; then
+        touch "$marker"
+      fi
+    '';
+  };
 
   networking.networkmanager.enable = true;
 
