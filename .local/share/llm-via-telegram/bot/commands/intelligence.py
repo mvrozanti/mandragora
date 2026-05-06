@@ -7,7 +7,7 @@ import re
 
 import httpx
 
-from bot.helpers.formatter import split_messages
+from bot.helpers.formatter import MAX_MESSAGE_LENGTH, split_messages
 from bot.helpers.ollama import evict_model, evict_others
 from bot.helpers.web import fetch_url, web_search
 
@@ -120,7 +120,7 @@ _THINK_RE = re.compile(r"<think>(.*?)</think>\s*", re.DOTALL | re.IGNORECASE)
 _think_mode = True
 
 
-def _format_final_message(msg: dict) -> str:
+def _split_thinking_and_content(msg: dict) -> tuple[str, str]:
     content = (msg.get("content") or "").strip()
     thinking = (msg.get("thinking") or "").strip()
 
@@ -130,10 +130,22 @@ def _format_final_message(msg: dict) -> str:
             thinking = m.group(1).strip()
             content = _THINK_RE.sub("", content).strip()
 
-    if _think_mode and thinking:
-        quoted = "\n".join(f"> {line}" for line in thinking.splitlines())
-        return f"\U0001f4ad *thinking*\n{quoted}\n\n{content}".strip()
-    return content
+    return (thinking if _think_mode else ""), content
+
+
+def _thinking_chunks(thinking: str) -> list[str]:
+    safe = thinking.replace("```", "'''")
+    chunks = split_messages(safe, max_length=MAX_MESSAGE_LENGTH - 12)
+    return [f"```\n{c}\n```" for c in chunks]
+
+
+async def _send_response(update: Update, thinking: str, content: str) -> None:
+    if thinking:
+        for chunk in _thinking_chunks(thinking):
+            await update.message.reply_text(chunk, parse_mode="Markdown")
+    body = content or "(empty response)"
+    for chunk in split_messages(body):
+        await update.message.reply_text(chunk)
 
 
 _HISTORY_MAX = 20
@@ -212,7 +224,7 @@ async def _typing_loop(chat) -> None:
 async def _run_agentic(
     messages: list[dict],
     cancel_event: asyncio.Event,
-) -> str:
+) -> tuple[str, str]:
     last_call: tuple[str, str] | None = None
     last_result: str | None = None
     for _ in range(_MAX_TOOL_TURNS):
@@ -249,7 +261,7 @@ async def _run_agentic(
         tool_calls = msg.get("tool_calls") or []
 
         if not tool_calls:
-            return _format_final_message(msg) or "(empty response)"
+            return _split_thinking_and_content(msg)
 
         messages.append({
             "role": "assistant",
@@ -270,7 +282,7 @@ async def _run_agentic(
     if last_call:
         tail = (last_result or "")[-400:]
         note += f"\nlast: {last_call[0]}({last_call[1]})\nlast result: {tail}"
-    return note
+    return "", note
 
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -288,7 +300,8 @@ async def dispatch_query(update: Update, query: str) -> None:
     messages.append({"role": "user", "content": query})
 
     typing_task = asyncio.create_task(_typing_loop(update.message.chat))
-    response = "(no response)"
+    thinking = ""
+    content = "(no response)"
 
     try:
         async with gpu_lock.acquire_async("llm-via-telegram:local", expected_seconds=60):
@@ -304,7 +317,7 @@ async def dispatch_query(update: Update, query: str) -> None:
             gpu_lock.on_yield(on_yield)
 
             try:
-                response = await _run_agentic(messages, cancel_event)
+                thinking, content = await _run_agentic(messages, cancel_event)
             finally:
                 try:
                     await asyncio.shield(
@@ -313,13 +326,12 @@ async def dispatch_query(update: Update, query: str) -> None:
                 except Exception:
                     logger.exception("ollama evict failed")
 
-        _chat_log.info("[assistant] %s", response.replace("\n", " | ")[:200])
+        _chat_log.info("[assistant] %s", content.replace("\n", " | ")[:200])
 
-        for chunk in split_messages(response):
-            await update.message.reply_text(chunk)
+        await _send_response(update, thinking, content)
 
         _history.append({"role": "user", "content": query})
-        _history.append({"role": "assistant", "content": response})
+        _history.append({"role": "assistant", "content": content})
         while len(_history) > _HISTORY_MAX:
             _history.pop(0)
 
@@ -431,7 +443,7 @@ async def cmd_p(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         async with gpu_lock.acquire_async("llm-via-telegram:local", expected_seconds=60):
             await evict_others(config.OLLAMA_BASE_URL, config.OLLAMA_MODEL)
             try:
-                response = await _run_agentic(messages, cancel_event)
+                thinking, content = await _run_agentic(messages, cancel_event)
             finally:
                 try:
                     await asyncio.shield(
@@ -439,8 +451,7 @@ async def cmd_p(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                     )
                 except Exception:
                     logger.exception("ollama evict failed")
-        for chunk in split_messages(response):
-            await update.message.reply_text(chunk)
+        await _send_response(update, thinking, content)
     except RuntimeError as exc:
         logger.error("persona error: %s", exc)
         await update.message.reply_text(f"Local LLM error: {_format_exc(exc)}")
