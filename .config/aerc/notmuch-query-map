@@ -1,0 +1,3 @@
+Unread  = tag:unread
+Flagged = tag:flagged
+Recent  = date:7d..
