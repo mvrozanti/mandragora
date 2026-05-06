@@ -59,9 +59,7 @@ in
           --set SASL_PATH ${pkgs.cyrus_sasl}/lib/sasl2:${pkgs.cyrus-sasl-xoauth2}/lib/sasl2
       '';
     })
-    neomutt
     msmtp
-    mutt-wizard
     aerc
     transmission_4
     libnotify
@@ -268,7 +266,6 @@ in
     (pkgs.writeShellScriptBin "bonsai" (builtins.readFile ../../.local/bin/bonsai.sh))
     (pkgs.writeShellScriptBin "eit" (builtins.readFile ../../.local/bin/eit.sh))
     (pkgs.writeShellScriptBin "filedropper" (builtins.readFile ../../.local/bin/filedropper.sh))
-    (pkgs.writeShellScriptBin "imap-notify" (builtins.readFile ../../.local/bin/imap-notify.sh))
     (pkgs.writeShellScriptBin "lf-ueberzug" (builtins.readFile ../../.local/bin/lf-ueberzug.sh))
     (pkgs.writeShellScriptBin "make-lf-aliases" (builtins.readFile ../../.local/bin/make-lf-aliases.sh))
     (pkgs.writeShellScriptBin "mbsync-notify" (builtins.readFile ../../.local/bin/mbsync-notify.sh))
