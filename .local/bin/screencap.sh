@@ -173,6 +173,22 @@ screenshot_region() {
   mark_flash
 }
 
+screenshot_window() {
+  local geom file
+  geom=$(hyprctl -j activewindow | jq -r 'select(.at != null) | "\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')
+  if [[ -z "$geom" ]]; then
+    command -v notify-send >/dev/null && \
+      notify-send -a screencap -u low "Screenshot skipped" "no active window"
+    return 0
+  fi
+  file="$outdir/screenshot-$(date +%Y%m%d-%H%M%S).png"
+  grim -g "$geom" "$file"
+  wl-copy --type image/png < "$file"
+  command -v notify-send >/dev/null && \
+    notify-send -a screencap -i "$file" "Screenshot saved + copied" "$(basename "$file")"
+  mark_flash
+}
+
 video_full() {
   local audio="$1" target
   target=$(choose_monitor)
@@ -225,6 +241,7 @@ status_json() {
 case "${1:-status}" in
   shot-region)     screenshot_region ;;
   shot-full)       screenshot_full ;;
+  shot-window)     screenshot_window ;;
   vid-none-region) video_region none ;;
   vid-none-full)   video_full none ;;
   vid-mic-region)  video_region mic ;;
@@ -235,5 +252,5 @@ case "${1:-status}" in
   has-mic)         has_mic && echo yes || echo no ;;
   is-recording)    is_recording && echo yes || echo no ;;
   status)          status_json ;;
-  *) echo "usage: $0 {shot-region|shot-full|vid-{none,mic,sys}-{region,full}|stop|has-mic|is-recording|status}" >&2; exit 2 ;;
+  *) echo "usage: $0 {shot-region|shot-full|shot-window|vid-{none,mic,sys}-{region,full}|stop|has-mic|is-recording|status}" >&2; exit 2 ;;
 esac
