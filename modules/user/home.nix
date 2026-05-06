@@ -62,6 +62,7 @@ in
     neomutt
     msmtp
     mutt-wizard
+    aerc
     transmission_4
     libnotify
 
@@ -790,6 +791,10 @@ EOF
     config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.cache/matugen/cava";
   home.file.".config/khal" = {
     source = ../../.config/khal;
+    recursive = true;
+  };
+  home.file.".config/aerc" = {
+    source = ../../.config/aerc;
     recursive = true;
   };
   home.file.".config/crush/crush.json".source = ../../.config/crush/crush.json;
