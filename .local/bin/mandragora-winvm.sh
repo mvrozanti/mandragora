@@ -28,7 +28,8 @@ cmd_import() {
     return 0
   fi
   ensure_disk
-  virt-install --connect "$URI" \
+  local xml
+  xml=$(virt-install --connect "$URI" \
     --name "$VM_NAME" \
     --memory 8192 \
     --vcpus 4 \
@@ -42,12 +43,15 @@ cmd_import() {
     --controller usb,model=qemu-xhci \
     --tpm backend.type=emulator,backend.version=2.0,model=tpm-crb \
     --boot uefi \
-    --xml "xpath.set=./os/nvram/@format=qcow2" \
     --features kvm_hidden=on,acpi=on,apic=on \
     --import \
-    --noautoconsole
-  echo "VM defined. After installing Windows + SSH, snapshot it:"
-  echo "  mandragora-winvm snap fresh-install"
+    --print-xml)
+  echo "$xml" \
+    | sed -E "s|<nvram([^/>]*)\\bformat='raw'|<nvram\\1format='qcow2'|; s|(<nvram[^>]*>)([^<]*)\\.fd(</nvram>)|\\1\\2.qcow2\\3|" \
+    | virsh --connect "$URI" define /dev/stdin >/dev/null
+  echo "VM '$VM_NAME' defined with qcow2 NVRAM."
+  echo "Start it: mandragora-winvm start"
+  echo "After installing Windows + SSH inside, snapshot: mandragora-winvm snap fresh-install"
 }
 
 cmd_start()    { virsh --connect "$URI" start "$VM_NAME"; }
