@@ -206,6 +206,7 @@ in
     tradingview
     openrgb
     matugen
+    quickshell
     qgnomeplatform
     qgnomeplatform-qt6
     qt5.qtwayland
@@ -757,6 +758,10 @@ in
   };
   home.file.".config/matugen" = {
     source = ../../.config/matugen;
+    recursive = true;
+  };
+  home.file.".config/quickshell" = {
+    source = ../../.config/quickshell;
     recursive = true;
   };
   home.file.".local/share/TelegramDesktop/matugen.tdesktop-palette".source =
