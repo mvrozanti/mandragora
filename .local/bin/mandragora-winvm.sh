@@ -68,24 +68,20 @@ cmd_revert() {
 cmd_snapshots() { virsh --connect "$URI" snapshot-list "$VM_NAME"; }
 
 cmd_ip() {
-  local ip
-  ip=$(virsh --connect "$URI" domifaddr "$VM_NAME" --source agent 2>/dev/null \
-    | awk '$1 ~ /^[0-9]/ && $4 ~ /\// && $4 !~ /^fe80/ {sub(/\/.*/,"",$4); print $4; exit}')
-  if [ -z "${ip:-}" ]; then
-    ip=$(virsh --connect "$URI" net-dhcp-leases default 2>/dev/null \
-      | awk -v vm="$VM_NAME" '$0 ~ vm {sub(/\/.*/,"",$5); print $5; exit}')
-  fi
-  if [ -z "${ip:-}" ]; then
-    echo "no IP found; is the VM running and does it have qemu-guest-agent or a DHCP lease?" >&2
-    exit 1
-  fi
+  local mac ip
+  mac=$(virsh --connect "$URI" dumpxml "$VM_NAME" 2>/dev/null \
+    | grep -oE "mac address='[^']+" | head -1 | cut -d"'" -f2)
+  [ -n "$mac" ] || { echo "no MAC found; is the VM defined?" >&2; exit 1; }
+  ip=$(virsh --connect "$URI" net-dhcp-leases default 2>/dev/null \
+    | awk -v m="$mac" '$3 == m {sub(/\/.*/,"",$5); print $5; exit}')
+  [ -n "$ip" ] || { echo "no DHCP lease for $mac; is the VM running?" >&2; exit 1; }
   echo "$ip"
 }
 
 cmd_ssh() {
   local ip
   ip=$(cmd_ip)
-  ssh "m@$ip" "$@"
+  ssh "Quickemu@$ip" "$@"
 }
 
 cmd_undefine() {
