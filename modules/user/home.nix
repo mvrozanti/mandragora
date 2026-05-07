@@ -302,6 +302,7 @@ in
     (pkgs.writeShellScriptBin "scratchpad-summon" (builtins.readFile ../../.local/bin/scratchpad-summon.sh))
     (pkgs.writeShellScriptBin "powermenu-toggle" (builtins.readFile ../../.local/bin/powermenu-toggle.sh))
     (pkgs.writeShellScriptBin "powermenu-close" (builtins.readFile ../../.local/bin/powermenu-close.sh))
+    (pkgs.writeShellScriptBin "imagine" (builtins.readFile ../../.local/bin/imagine.sh))
   ];
 
   home.file.".local/bin/resty".source = ../../.local/bin/resty;
