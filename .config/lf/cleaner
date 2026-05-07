@@ -5,5 +5,15 @@
 # image), but firing it unsynchronized while the previewer's icat is still
 # writing produced visible escape-sequence flicker on fast scroll. Drop the
 # TTY write entirely; keep the log line for diagnosis.
+#
+# Also clear the previewer's "already drawn" marker, but only on a real
+# navigation (different file selected next). With watch=true, lf fires
+# cleaner+preview for the same file on every inotify event in the cwd —
+# clearing the marker on those would defeat the whole de-dup.
 printf '[%s] cleaner args=%s\n' "$(date +%H:%M:%S.%N)" "$*" >> /tmp/lf-cleaner.log
+prev="$1"
+next="$6"
+if [ -n "$next" ] && [ "$prev" != "$next" ]; then
+  rm -f "/tmp/lf-preview-$PPID.drawn"
+fi
 exit 0
