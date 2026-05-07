@@ -1,4 +1,4 @@
-(defpoll capture-selected :interval "100ms" :initial 0 "cat $EWW_CONFIG_DIR/.capture-selected 2>/dev/null || echo 0")
+(defpoll capture-selected :interval "100ms" :initial 0 "cat $HOME/.config/eww/.capture-selected 2>/dev/null || echo 0")
 (defpoll capture-mic :interval "2s" :initial "yes" "screencap has-mic")
 (defpoll capture-recording :interval "1s" :initial "no" "screencap is-recording")
 
