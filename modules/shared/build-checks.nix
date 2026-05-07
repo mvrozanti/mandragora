@@ -23,12 +23,21 @@ let
   '';
 
   sopsKeyGuard = pkgs.runCommand "usb-sops-key-encrypted-guard" { } ''
-    if ! [ -f ${self}/secrets/usb-key.age ]; then
+    key=${self}/secrets/usb-key.age
+    if ! [ -f "$key" ]; then
       echo "FAIL: secrets/usb-key.age missing" >&2; exit 1
     fi
-    head=$(head -1 ${self}/secrets/usb-key.age)
-    if [ "$head" != "-----BEGIN AGE ENCRYPTED FILE-----" ]; then
-      echo "FAIL: secrets/usb-key.age is not age -p encrypted (got: '$head')" >&2
+    first=$(head -1 "$key")
+    case "$first" in
+      "-----BEGIN AGE ENCRYPTED FILE-----") ;;
+      "age-encryption.org/v1") ;;
+      *)
+        echo "FAIL: secrets/usb-key.age is not age-encrypted (first line: '$first')" >&2
+        exit 1
+        ;;
+    esac
+    if ${pkgs.gnugrep}/bin/grep -q '^AGE-SECRET-KEY-' "$key"; then
+      echo "FAIL: secrets/usb-key.age contains a raw private key" >&2
       exit 1
     fi
     touch $out

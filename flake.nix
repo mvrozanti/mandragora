@@ -107,6 +107,7 @@
         in {
           usb-closure-size = guards.closureSizeGuard;
           profile-eval = guards.profileEvalGuard;
+          usb-sops-key = guards.sopsKeyGuard;
         };
 
       homeConfigurations."m@mandragora-vps" = home-manager.lib.homeManagerConfiguration {
