@@ -10,39 +10,59 @@ PanelWindow {
 
     WlrLayershell.namespace: "qs-wallpaper-picker"
     WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
     exclusionMode: ExclusionMode.Ignore
-    focusable: true
 
-    width: Screen.width
-    height: Screen.height
+    implicitWidth: Screen.width
+    implicitHeight: Screen.height
 
-    // Scale matches WindowRegistry.js wallpaper layout: h: s(650, scale)
     readonly property real pickerScale: {
         let r = Screen.width / 1920.0
         return r <= 1.0 ? Math.max(0.35, Math.pow(r, 0.85)) : Math.pow(r, 0.5)
     }
     readonly property int pickerHeight: Math.round(650 * pickerScale)
+    readonly property int pickerY: Math.floor((Screen.height - pickerHeight) / 2)
 
-    Keys.onEscapePressed: Qt.quit()
-
-    MouseArea {
+    FocusScope {
+        id: focusScope
         anchors.fill: parent
-        onClicked: Qt.quit()
-    }
+        focus: true
 
-    Item {
-        x: 0
-        y: Math.floor((Screen.height - root.pickerHeight) / 2)
-        width: Screen.width
-        height: root.pickerHeight
+        Keys.onEscapePressed: Qt.quit()
+        Keys.onPressed: (event) => {
+            if (event.key === Qt.Key_Q && (event.modifiers & Qt.ControlModifier)) {
+                Qt.quit()
+                event.accepted = true
+            }
+        }
 
-        WallpaperPicker {
-            width: parent.width
-            height: parent.height
+        MouseArea {
+            x: 0; y: 0
+            width: Screen.width
+            height: root.pickerY
+            onClicked: Qt.quit()
+        }
+
+        MouseArea {
+            x: 0
+            y: root.pickerY + root.pickerHeight
+            width: Screen.width
+            height: Screen.height - (root.pickerY + root.pickerHeight)
+            onClicked: Qt.quit()
+        }
+
+        Item {
+            x: 0
+            y: root.pickerY
+            width: Screen.width
+            height: root.pickerHeight
+
+            WallpaperPicker {
+                anchors.fill: parent
+            }
         }
     }
 
-    // Watch for "close" written by picker after wallpaper apply
     Process {
         id: ipcWatcher
         command: ["bash", "-c",
