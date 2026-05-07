@@ -79,6 +79,14 @@
 
   security.apparmor.enable = true;
 
+  security.wrappers.reptyr = {
+    source = "${pkgs.reptyr}/bin/reptyr";
+    owner = "root";
+    group = "users";
+    permissions = "u+rx,g+rx";
+    capabilities = "cap_sys_ptrace+eip";
+  };
+
   boot.kernel.sysctl = {
     "vm.swappiness" = 180;
     "vm.vfs_cache_pressure" = 50;
