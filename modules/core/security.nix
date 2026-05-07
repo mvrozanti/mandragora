@@ -74,8 +74,22 @@
 
   systemd.oomd = {
     enable = true;
+    enableRootSlice = true;
     enableUserSlices = true;
+    settings.OOM = {
+      SwapUsedLimit = "80%";
+      DefaultMemoryPressureDurationSec = "20s";
+    };
   };
+
+  systemd.slices."user".sliceConfig.ManagedOOMSwap = "kill";
+
+  systemd.user.units."slice".text = lib.mkForce ''
+    [Slice]
+    ManagedOOMMemoryPressure=kill
+    ManagedOOMMemoryPressureLimit=80%
+    ManagedOOMSwap=kill
+  '';
 
   security.apparmor.enable = true;
 
