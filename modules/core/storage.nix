@@ -13,6 +13,8 @@
   services.udev.extraRules = ''
     # Shared mounts for udisks2 (mount to /mnt instead of /run/media/$USER)
     ENV{ID_FS_USAGE}=="filesystem", ENV{UDISKS_FILESYSTEM_SHARED}="1"
+    # Suppress systemd-gpt-auto-generator picking up the retired SWAP partition
+    ENV{ID_PART_ENTRY_NAME}=="SWAP", ENV{SYSTEMD_READY}="0"
   '';
   fileSystems."/" = {
     device = "/dev/disk/by-label/NIXOS";
@@ -63,17 +65,13 @@
     options = [ "noauto" "nofail" "x-systemd.automount" "x-systemd.device-timeout=5" "x-systemd.idle-timeout=300" ];
   };
 
-  swapDevices = [
-    { device = "/dev/disk/by-label/SWAP"; }
-  ];
+  swapDevices = [ ];
 
   zramSwap = {
     enable = true;
     algorithm = "zstd";
     memoryPercent = 50;
   };
-
-  boot.resumeDevice = "/dev/disk/by-uuid/35f1250b-3b82-45bb-abab-62236e91fe26";
 
   boot.initrd.systemd.storePaths = [
     "${pkgs.util-linux}/bin/mount"
