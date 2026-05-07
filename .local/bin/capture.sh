@@ -9,9 +9,6 @@ GEOM_Y=56
 GEOM_W=480
 GEOM_H=380
 STAMP="${XDG_RUNTIME_DIR:-/tmp}/capture-last-closed"
-STATE_FILE="$HOME/.config/eww/.capture-selected"
-
-ACTIONS=(shot-region shot-full vid-none-region vid-none-full vid-mic-region vid-mic-full vid-sys-region vid-sys-full)
 
 ts() { date +%Y%m%d-%H%M%S; }
 
@@ -77,7 +74,6 @@ ensure_daemon() {
 
 open_menu() {
   ensure_daemon
-  echo 0 > "$STATE_FILE"
   "${EWW[@]}" open "$WIN"
   hyprctl dispatch submap capture >/dev/null
   install_outside_binds
@@ -88,27 +84,6 @@ close_menu() {
   hyprctl dispatch submap reset >/dev/null 2>&1 || true
   "${EWW[@]}" close "$WIN" 2>/dev/null || true
   date +%s%N > "$STAMP"
-}
-
-step_index() {
-  local dir="$1" curr next
-  curr=$(cat "$STATE_FILE" 2>/dev/null || echo 0)
-  next=$curr
-  for _ in 1 2 3 4 5 6 7 8; do
-    next=$(( (next + dir + 8) % 8 ))
-    if ! is_disabled "${ACTIONS[$next]}"; then
-      echo "$next" > "$STATE_FILE"
-      return
-    fi
-  done
-}
-
-select_current() {
-  local curr action
-  curr=$(cat "$STATE_FILE" 2>/dev/null || echo 0)
-  action="${ACTIONS[$curr]}"
-  is_disabled "$action" && return 0
-  "$SELF" "$action"
 }
 
 wait_layer_gone() {
@@ -157,13 +132,10 @@ case "${1:-toggle}" in
       close_menu
     fi
     ;;
-  next) step_index 1 ;;
-  prev) step_index -1 ;;
-  select) select_current ;;
   shot-region|shot-full|vid-none-region|vid-none-full|vid-mic-region|vid-mic-full|vid-sys-region|vid-sys-full)
     run_action "$1"
     ;;
   stop) close_menu; screencap stop ;;
   panic) force_recover; "${EWW[@]}" close "$WIN" 2>/dev/null || true ;;
-  *) echo "usage: $0 {toggle|close|outside-click|next|prev|select|shot-region|shot-full|vid-{none,mic,sys}-{region,full}|stop|panic}" >&2; exit 2 ;;
+  *) echo "usage: $0 {toggle|close|outside-click|shot-region|shot-full|vid-{none,mic,sys}-{region,full}|stop|panic}" >&2; exit 2 ;;
 esac
