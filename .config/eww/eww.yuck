@@ -1,9 +1,8 @@
-(defpoll capture-selected :interval "100ms" :initial 0 "cat $HOME/.config/eww/.capture-selected 2>/dev/null || echo 0")
 (defpoll capture-mic :interval "2s" :initial "yes" "screencap has-mic")
 (defpoll capture-recording :interval "1s" :initial "no" "screencap is-recording")
 
-(defwidget capture-tile [icon label cls cmd index disabled]
-  (button :class {"capture-btn ${cls} ${capture-selected == index ? 'selected' : ''} ${disabled ? 'disabled' : ''}"}
+(defwidget capture-tile [icon label cls cmd disabled]
+  (button :class {"capture-btn ${cls} ${disabled ? 'disabled' : ''}"}
           :onclick {disabled ? "" : "${cmd} &"}
     (box :orientation "v" :space-evenly false :spacing 2
       (label :class "capture-icon" :text icon)
@@ -15,23 +14,23 @@
     (box :class "capture-section-label" :orientation "h" :space-evenly false
       (label :text "Screenshot"))
     (box :orientation "h" :space-evenly true :spacing 8
-      (capture-tile :icon "󰒉" :label "Region" :cls "shot" :cmd "capture shot-region" :index 0 :disabled false)
-      (capture-tile :icon "󰍹" :label "Full"   :cls "shot" :cmd "capture shot-full"   :index 1 :disabled false))
+      (capture-tile :icon "󰒉" :label "Region" :cls "shot" :cmd "capture shot-region" :disabled false)
+      (capture-tile :icon "󰍹" :label "Full"   :cls "shot" :cmd "capture shot-full"   :disabled false))
     (box :class "capture-section-label" :orientation "h" :space-evenly false
       (label :text "Video — no audio"))
     (box :orientation "h" :space-evenly true :spacing 8
-      (capture-tile :icon "󰕧" :label "Region" :cls "rec" :cmd "capture vid-none-region" :index 2 :disabled {capture-recording == "yes"})
-      (capture-tile :icon "󰑊" :label "Full"   :cls "rec" :cmd "capture vid-none-full"   :index 3 :disabled {capture-recording == "yes"}))
+      (capture-tile :icon "󰕧" :label "Region" :cls "rec" :cmd "capture vid-none-region" :disabled {capture-recording == "yes"})
+      (capture-tile :icon "󰑊" :label "Full"   :cls "rec" :cmd "capture vid-none-full"   :disabled {capture-recording == "yes"}))
     (box :class "capture-section-label" :orientation "h" :space-evenly false
       (label :text {capture-mic == "yes" ? "Video — microphone" : "Video — microphone (no microphone connected)"}))
     (box :orientation "h" :space-evenly true :spacing 8
-      (capture-tile :icon "󰍬" :label "Region" :cls "rec mic" :cmd "capture vid-mic-region" :index 4 :disabled {capture-mic != "yes" || capture-recording == "yes"})
-      (capture-tile :icon "󰍬" :label "Full"   :cls "rec mic" :cmd "capture vid-mic-full"   :index 5 :disabled {capture-mic != "yes" || capture-recording == "yes"}))
+      (capture-tile :icon "󰍬" :label "Region" :cls "rec mic" :cmd "capture vid-mic-region" :disabled {capture-mic != "yes" || capture-recording == "yes"})
+      (capture-tile :icon "󰍬" :label "Full"   :cls "rec mic" :cmd "capture vid-mic-full"   :disabled {capture-mic != "yes" || capture-recording == "yes"}))
     (box :class "capture-section-label" :orientation "h" :space-evenly false
       (label :text "Video — system sound"))
     (box :orientation "h" :space-evenly true :spacing 8
-      (capture-tile :icon "󰓃" :label "Region" :cls "rec sys" :cmd "capture vid-sys-region" :index 6 :disabled {capture-recording == "yes"})
-      (capture-tile :icon "󰓃" :label "Full"   :cls "rec sys" :cmd "capture vid-sys-full"   :index 7 :disabled {capture-recording == "yes"}))
+      (capture-tile :icon "󰓃" :label "Region" :cls "rec sys" :cmd "capture vid-sys-region" :disabled {capture-recording == "yes"})
+      (capture-tile :icon "󰓃" :label "Full"   :cls "rec sys" :cmd "capture vid-sys-full"   :disabled {capture-recording == "yes"}))
     (label :class "capture-recording-banner"
            :visible {capture-recording == "yes"}
            :text "Recording in progress")))
@@ -39,7 +38,7 @@
 (defwindow capture-menu
   :monitor 0
   :stacking "overlay"
-  :focusable false
+  :focusable "exclusive"
   :geometry (geometry :anchor "bottom right" :x 12 :y 56 :width 480 :height 380)
   :namespace "eww-capture"
   (capture-menu-body))
