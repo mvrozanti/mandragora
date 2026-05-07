@@ -5,7 +5,6 @@
     "d /persistent/etc 0755 root root - -"
     "d /persistent/home 0755 root root - -"
     "d /persistent/home/m 0750 m users - -"
-    "C /var/lib/systemd/credential.secret 0400 root root - /persistent/var/lib/systemd/credential.secret"
   ] ++ lib.optionals config.services.ollama.enable [
     "d /persistent/var/lib/private 0700 root root - -"
     "d /persistent/var/lib/private/ollama 0700 - - - -"
@@ -14,13 +13,10 @@
   environment.etc."machine-id".source = "/persistent/etc/machine-id";
   environment.etc."nixos/mandragora".source = "/persistent/mandragora";
 
-  system.activationScripts.persistentCredentialSecret = ''
-    install -d -m 0755 /persistent/var/lib/systemd
-    if [ ! -s /persistent/var/lib/systemd/credential.secret ]; then
-      install -m 0400 /dev/null /persistent/var/lib/systemd/credential.secret
-      ${pkgs.coreutils}/bin/dd if=/dev/urandom \
-        of=/persistent/var/lib/systemd/credential.secret \
-        bs=4096 count=1 status=none
+  system.activationScripts.purgeBogusCredentialSecret = ''
+    if [ -f /persistent/var/lib/systemd/credential.secret ] && \
+       [ "$(${pkgs.coreutils}/bin/stat -c %s /persistent/var/lib/systemd/credential.secret)" = "4096" ]; then
+      ${pkgs.coreutils}/bin/rm -f /persistent/var/lib/systemd/credential.secret
     fi
   '';
 
@@ -30,8 +26,7 @@
       "/var/log"
       "/var/lib/nixos"
       "/var/lib/bluetooth"
-      "/var/lib/systemd/coredump"
-      "/var/lib/systemd/timers"
+      "/var/lib/systemd"
       "/etc/NetworkManager/system-connections"
       { directory = "/home/m"; user = "m"; group = "users"; mode = "0750"; }
     ] ++ lib.optionals config.services.ollama.enable [
