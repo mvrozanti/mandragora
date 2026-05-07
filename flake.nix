@@ -20,9 +20,14 @@
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, sops-nix, impermanence, nixos-generators, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, sops-nix, impermanence, nixos-generators, nixos-wsl, ... }@inputs:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -36,6 +41,7 @@
           && builtins.pathExists (hostsDir + "/${name}/default.nix")
           && name != "mandragora-usb"
           && name != "mandragora-vps"
+          && name != "mandragora-wsl"
         ) (builtins.readDir hostsDir)
       );
 
@@ -62,6 +68,16 @@
     in
     {
       nixosConfigurations = autoConfigs // {
+        mandragora-wsl = nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = { inherit inputs; };
+          modules = sharedModules ++ [
+            ./hosts/mandragora-wsl/default.nix
+            home-manager.nixosModules.home-manager
+            nixos-wsl.nixosModules.default
+          ];
+        };
+
         mandragora-usb = nixpkgs.lib.nixosSystem {
           inherit system;
           specialArgs = { inherit inputs; };
