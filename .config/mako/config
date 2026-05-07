@@ -2,7 +2,3 @@ background-color=#00000001
 [urgency=high]
 border-color=#e06c75
 default-timeout=0
-
-[app-name=screencap]
-format=
-default-timeout=3000

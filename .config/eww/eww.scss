@@ -68,6 +68,13 @@ window { background: transparent; }
   color: rgba(230, 230, 238, 0.82);
 }
 
+.screencap-preview {
+  background: rgba(20, 20, 28, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 6px;
+}
+
 .powermenu-catcher {
   background: transparent;
   padding: 0 20px 60px 0;
