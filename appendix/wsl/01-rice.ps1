@@ -1,12 +1,16 @@
 # Mandragora Windows rice — minimal cosmetic + privacy tightening.
 # Idempotent. Run as the regular user; elevates internally where needed.
 
-$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Continue'
 $WarningPreference = 'SilentlyContinue'
 
 function Set-Reg($path, $name, $value, $type = 'DWord') {
-    if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
-    New-ItemProperty -Path $path -Name $name -Value $value -PropertyType $type -Force | Out-Null
+    try {
+        if (-not (Test-Path $path)) { New-Item -Path $path -Force -ErrorAction Stop | Out-Null }
+        New-ItemProperty -Path $path -Name $name -Value $value -PropertyType $type -Force -ErrorAction Stop | Out-Null
+    } catch {
+        Write-Host "  skipped ${path}\${name} : $($_.Exception.Message)" -ForegroundColor Yellow
+    }
 }
 
 Write-Host '[1/8] dark theme'
