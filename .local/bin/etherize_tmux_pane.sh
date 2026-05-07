@@ -11,14 +11,14 @@ pane_pid=$(tmux display-message -p -t "$pane_id" '#{pane_pid}')
 pane_tty=$(tmux display-message -p -t "$pane_id" '#{pane_tty}')
 
 fg_pgid=$(ps -t "$pane_tty" -o tpgid= 2>/dev/null | sort -u | tail -1 | tr -d ' ')
-if [[ -z "$fg_pgid" || "$fg_pgid" == "-1" || "$fg_pgid" == "$pane_pid" ]]; then
-    tmux display-message -t "$pane_id" "ether: no foreground job in pane"
+if [[ -z "$fg_pgid" || "$fg_pgid" == "-1" ]]; then
+    tmux display-message -t "$pane_id" "ether: no foreground process group on pane tty"
     exit 0
 fi
 
-target=$(ps -o pid= -g "$fg_pgid" --sort=start_time 2>/dev/null | tail -1 | tr -d ' ')
-if [[ -z "$target" ]] || ! [[ -d /proc/$target ]]; then
-    tmux display-message -t "$pane_id" "ether: target pid not found"
+target=$fg_pgid
+if ! [[ -d /proc/$target ]]; then
+    tmux display-message -t "$pane_id" "ether: target $target not found"
     exit 0
 fi
 
