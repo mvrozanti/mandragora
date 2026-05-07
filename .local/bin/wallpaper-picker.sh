@@ -15,4 +15,10 @@ if [[ -d "$src" ]]; then
     done
 fi
 
-exec quickshell
+cleanup() {
+    hyprctl keyword unbind ',Escape' >/dev/null 2>&1 || true
+}
+trap cleanup EXIT INT TERM
+
+hyprctl keyword bind ',Escape,exec,pkill -x quickshell' >/dev/null 2>&1 || true
+quickshell
