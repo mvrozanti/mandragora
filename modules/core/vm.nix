@@ -22,6 +22,22 @@
     "d /var/lib/libvirt/images 0770 root qemu-libvirtd - -"
   ];
 
+  systemd.services.libvirt-fresh-encryption-key = {
+    description = "Wipe libvirt secrets-encryption-key so virt-secret-init-encryption regenerates with the current credential.secret";
+    wantedBy = [ "multi-user.target" ];
+    before = [ "virt-secret-init-encryption.service" "libvirtd.service" ];
+    after = [ "local-fs.target" ];
+    unitConfig = {
+      DefaultDependencies = false;
+      RequiresMountsFor = "/var/lib/libvirt";
+    };
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.coreutils}/bin/rm -f /var/lib/libvirt/secrets/secrets-encryption-key";
+    };
+  };
+
   systemd.services.libvirt-default-net-autostart = {
     description = "Autostart libvirt default NAT network";
     wantedBy = [ "multi-user.target" ];
