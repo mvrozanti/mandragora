@@ -23,18 +23,16 @@ PanelWindow {
     readonly property int pickerHeight: Math.round(650 * pickerScale)
     readonly property int pickerY: Math.floor((Screen.height - pickerHeight) / 2)
 
+    Shortcut {
+        sequences: ["Escape", "Ctrl+Q"]
+        context: Qt.WindowShortcut
+        onActivated: Qt.quit()
+    }
+
     FocusScope {
         id: focusScope
         anchors.fill: parent
         focus: true
-
-        Keys.onEscapePressed: Qt.quit()
-        Keys.onPressed: (event) => {
-            if (event.key === Qt.Key_Q && (event.modifiers & Qt.ControlModifier)) {
-                Qt.quit()
-                event.accepted = true
-            }
-        }
 
         MouseArea {
             x: 0; y: 0
