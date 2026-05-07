@@ -1,11 +1,9 @@
 #!/bin/sh
-# Best-effort image clear. On Wayland this isn't reliable (lf#1845) — the
-# actual clearing is triggered by the `on-select` redraw command in lfrc.
+# kitty's icat owns /dev/tty while it runs (kitty docs: "the host program
+# must not do any TTY I/O"). On Wayland the --clear escape was already
+# ornamental (lf#1845; the on-select redraw is what actually clears the
+# image), but firing it unsynchronized while the previewer's icat is still
+# writing produced visible escape-sequence flicker on fast scroll. Drop the
+# TTY write entirely; keep the log line for diagnosis.
 printf '[%s] cleaner args=%s\n' "$(date +%H:%M:%S.%N)" "$*" >> /tmp/lf-cleaner.log
-kitty +kitten icat \
-  --clear \
-  --stdin no \
-  --silent \
-  --transfer-mode memory \
-  </dev/null >/dev/tty 2>>/tmp/lf-cleaner.log
 exit 0
