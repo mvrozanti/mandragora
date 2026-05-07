@@ -30,22 +30,22 @@ window { background: transparent; }
   min-width: 120px;
   transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 
-  &:hover, &.selected {
+  &:hover, &:focus {
     background: rgba(255, 255, 255, 0.09);
     border-color: rgba(255, 255, 255, 0.14);
   }
 
-  &.shot:hover, &.shot.selected { color: #98c379; }
-  &.rec:hover, &.rec.selected  { color: #e06c75; }
-  &.rec.mic:hover, &.rec.mic.selected { color: #e5c07b; }
-  &.rec.sys:hover, &.rec.sys.selected { color: #61afef; }
+  &.shot:hover, &.shot:focus { color: #98c379; }
+  &.rec:hover, &.rec:focus  { color: #e06c75; }
+  &.rec.mic:hover, &.rec.mic:focus { color: #e5c07b; }
+  &.rec.sys:hover, &.rec.sys:focus { color: #61afef; }
 
   &.disabled {
     background: rgba(255, 255, 255, 0.02);
     border-color: rgba(255, 255, 255, 0.03);
     color: rgba(230, 230, 238, 0.25);
   }
-  &.disabled:hover, &.disabled.selected {
+  &.disabled:hover, &.disabled:focus {
     background: rgba(255, 255, 255, 0.02);
     border-color: rgba(255, 255, 255, 0.03);
     color: rgba(230, 230, 238, 0.25);
