@@ -34,7 +34,12 @@ y="$5"
 # after acquiring the lock, abort if the user has already moved past us.
 preview_lock="/tmp/lf-preview-$PPID.lock"
 preview_want="/tmp/lf-preview-$PPID.want"
+preview_drawn="/tmp/lf-preview-$PPID.drawn"
 printf '%s' "$file" > "$preview_want.$$" && mv "$preview_want.$$" "$preview_want"
+if [ "$(cat "$preview_drawn" 2>/dev/null)" = "$file" ]; then
+  printf '[%s] preview-already-drawn file=%s\n' "$(date +%H:%M:%S.%N)" "$file" >> /tmp/lf-cleaner.log
+  exit 1
+fi
 exec 9>"$preview_lock"
 if ! flock -w 1 9; then
   printf '[%s] preview-busy file=%s\n' "$(date +%H:%M:%S.%N)" "$file" >> /tmp/lf-cleaner.log
@@ -42,6 +47,9 @@ if ! flock -w 1 9; then
 fi
 if [ "$(cat "$preview_want" 2>/dev/null)" != "$file" ]; then
   printf '[%s] preview-stale file=%s\n' "$(date +%H:%M:%S.%N)" "$file" >> /tmp/lf-cleaner.log
+  exit 1
+fi
+if [ "$(cat "$preview_drawn" 2>/dev/null)" = "$file" ]; then
   exit 1
 fi
 
@@ -81,6 +89,7 @@ case "$(file -Lb --mime-type -- "$file")" in
     else
       draw "$file"
     fi
+    printf '%s' "$file" > "$preview_drawn.$$" && mv "$preview_drawn.$$" "$preview_drawn"
     exit 1
     ;;
   video/*)
@@ -90,6 +99,7 @@ case "$(file -Lb --mime-type -- "$file")" in
       ffmpegthumbnailer -i "$file" -o "$cache" -s 0 2>/dev/null
     fi
     draw "$cache"
+    printf '%s' "$file" > "$preview_drawn.$$" && mv "$preview_drawn.$$" "$preview_drawn"
     exit 1
     ;;
   application/json)
