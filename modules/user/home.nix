@@ -207,6 +207,7 @@ in
     openrgb
     matugen
     quickshell
+    qt6.qtmultimedia
     qgnomeplatform
     qgnomeplatform-qt6
     qt5.qtwayland
