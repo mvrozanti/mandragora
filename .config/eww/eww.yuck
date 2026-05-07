@@ -44,6 +44,24 @@
   :namespace "eww-capture"
   (capture-menu-body))
 
+(defvar screencap-preview-path "")
+(defvar screencap-preview-w "480")
+(defvar screencap-preview-h "270")
+
+(defwidget screencap-preview-body []
+  (box :class "screencap-preview"
+    (image :path screencap-preview-path
+           :image-width {screencap-preview-w}
+           :image-height {screencap-preview-h})))
+
+(defwindow screencap-preview
+  :monitor 0
+  :stacking "overlay"
+  :focusable false
+  :geometry (geometry :anchor "bottom right" :x 12 :y 56)
+  :namespace "eww-screencap-preview"
+  (screencap-preview-body))
+
 (defwidget powermenu-card []
   (box :class "powermenu" :orientation "v" :space-evenly false :spacing 8
     (label :class "powermenu-title" :text "Power Menu")
