@@ -232,6 +232,7 @@ in
     (pkgs.writeShellScriptBin "blur-adjust" (builtins.readFile ../../.local/bin/blur-adjust.sh))
     (pkgs.writeShellScriptBin "opacity-adjust" (builtins.readFile ../../.local/bin/opacity-adjust.sh))
     (pkgs.writeShellScriptBin "rofi-wallpaper-picker" (builtins.readFile ../../.local/bin/rofi-wallpaper-picker.sh))
+    (pkgs.writeShellScriptBin "wallpaper-picker" (builtins.readFile ../../.local/bin/wallpaper-picker.sh))
     (pkgs.writeShellScriptBin "rofi-run-or-term" (builtins.readFile ../../.local/bin/rofi-run-or-term.sh))
     (pkgs.writeShellScriptBin "powermenu-toggle" (builtins.readFile ../../.local/bin/powermenu-toggle.sh))
     (pkgs.writeShellScriptBin "powermenu-close" (builtins.readFile ../../.local/bin/powermenu-close.sh))
