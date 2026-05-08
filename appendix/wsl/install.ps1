@@ -1,7 +1,11 @@
 # Mandragora WSL install — single-file orchestrator.
 #
-# Usage on a fresh Win 11 (admin PowerShell):
+# Usage on a fresh Win 11 (regular PowerShell — no need to "Run as Administrator"):
 #   iex (iwr https://raw.githubusercontent.com/mvrozanti/mandragora/master/appendix/wsl/install.ps1)
+#
+# Each step that genuinely needs elevation triggers its own UAC prompt
+# (so you click Yes per-action, instead of giving the script blanket admin).
+# The orchestrator itself runs as the regular user.
 #
 # Tunables (set before running):
 #   $env:MANDRAGORA_RICE     = '1'   # opt in to Windows cosmetic / privacy registry tweaks (default OFF)
@@ -47,10 +51,15 @@ if (-not (Test-Path $STATE_DIR)) { New-Item -ItemType Directory -Path $STATE_DIR
 if (-not (Test-Path $STATE_KEY)) { New-Item -Path $STATE_KEY -Force | Out-Null }
 Start-Transcript -Path $LOG -Append -ErrorAction SilentlyContinue | Out-Null
 
-function Need-Admin($what) {
-    if (-not $IS_ADMIN) {
-        throw "this step needs admin: $what`nrelaunch PowerShell as Administrator and re-run the same one-liner."
-    }
+function Invoke-Elevated {
+    param(
+        [Parameter(Mandatory)] [string] $What,
+        [Parameter(Mandatory)] [string] $FilePath,
+        [string[]] $ArgumentList = @()
+    )
+    Write-Host "    UAC prompt incoming for: $What" -ForegroundColor Yellow
+    $proc = Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -Verb RunAs -Wait -PassThru -ErrorAction Stop
+    if ($proc.ExitCode -ne 0) { throw "$What failed in elevated child (exit $($proc.ExitCode))" }
 }
 
 function Show-Preflight {
@@ -96,38 +105,30 @@ function Show-Preflight {
     Write-Host ('  log file       : {0}' -f $LOG)
     Write-Host '----------------------------------------------------' -ForegroundColor Yellow
     Write-Host '  what will happen:' -ForegroundColor Yellow
-    if ($RICE) { Write-Host '    - apply Windows cosmetic + privacy registry tweaks (admin)' }
+    $uacNeeded = ($RICE -and -not $IS_ADMIN) -or (-not $wslReady -and -not $IS_ADMIN)
+    if ($RICE) {
+        Write-Host ('    - apply Windows cosmetic + privacy registry tweaks {0}' -f $(if ($IS_ADMIN) { '' } else { '(UAC prompt)' }))
+    }
     if (-not $wslReady) {
-        Write-Host '    - enable Microsoft-Windows-Subsystem-Linux + VirtualMachinePlatform features (admin)'
-        Write-Host '    - REBOOT (auto-resumes after login via RunOnce)'
-        Write-Host '    - install WSL2 MSI from microsoft/WSL releases (admin)'
+        Write-Host ('    - enable Microsoft-Windows-Subsystem-Linux + VirtualMachinePlatform features {0}' -f $(if ($IS_ADMIN) { '' } else { '(UAC prompt)' }))
+        Write-Host ('    - REBOOT {0}' -f $(if ($IS_ADMIN) { '' } else { '(UAC prompt)' }))
+        Write-Host ('    - install WSL2 MSI from microsoft/WSL releases {0}' -f $(if ($IS_ADMIN) { '' } else { '(UAC prompt)' }))
     } else {
         Write-Host '    - WSL2 is already installed; skipping feature/MSI/reboot phases'
     }
     Write-Host   '    - import latest NixOS-WSL as a NEW sibling distro called "NixOS" (per-user, no admin)'
     Write-Host   '    - inside NixOS: clone mandragora repo + nixos-rebuild switch (per-user, no admin)'
+    if ($uacNeeded) {
+        Write-Host ''
+        Write-Host '  >>> you will see one or more UAC prompts during the run.' -ForegroundColor Cyan
+        Write-Host '      click "Yes" only for the prompts that match the steps above.' -ForegroundColor Cyan
+    }
     Write-Host '  will NOT touch:' -ForegroundColor Yellow
     Write-Host   '    - any existing WSL distros (Ubuntu/Debian/etc remain untouched)'
     Write-Host   '    - BitLocker, full-disk encryption, secure boot'
     Write-Host   '    - corporate VPN, AV, MDM agent, group policies'
     Write-Host   '    - Windows user accounts, domain bindings, network settings'
     Write-Host '====================================================' -ForegroundColor Yellow
-
-    if (-not $wslReady -and -not $IS_ADMIN) {
-        Write-Host ''
-        Write-Host 'WSL2 is not installed yet AND this PowerShell is not elevated.' -ForegroundColor Red
-        Write-Host 'either:' -ForegroundColor Red
-        Write-Host '  1. ask IT to install WSL2, then re-run this in a normal PowerShell, or' -ForegroundColor Red
-        Write-Host '  2. relaunch PowerShell as Administrator and re-run.' -ForegroundColor Red
-        Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
-        exit 3
-    }
-
-    if ($RICE -and -not $IS_ADMIN) {
-        Write-Host 'rice phase needs admin; either drop MANDRAGORA_RICE or relaunch elevated.' -ForegroundColor Red
-        Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
-        exit 3
-    }
 
     if (($domain -or $azureAD) -and -not $FORCE) {
         Write-Host ''
@@ -173,12 +174,21 @@ function Set-State($s) {
     Write-Host "    state -> $s" -ForegroundColor DarkGray
 }
 
-function Invoke-Phase($name) {
-    Write-Host ">>> phase: $name" -ForegroundColor Cyan
-    $script = "$env:TEMP\mandragora-$name.ps1"
-    Invoke-WebRequest -Uri "$BASE/$name.ps1" -OutFile $script -UseBasicParsing
-    & powershell -ExecutionPolicy Bypass -NoProfile -File $script
-    if ($LASTEXITCODE -ne 0) { throw "phase $name failed (exit $LASTEXITCODE)" }
+function Invoke-Phase {
+    param(
+        [Parameter(Mandatory)] [string] $Name,
+        [switch] $RequiresAdmin
+    )
+    Write-Host ">>> phase: $Name" -ForegroundColor Cyan
+    $script = "$env:TEMP\mandragora-$Name.ps1"
+    Invoke-WebRequest -Uri "$BASE/$Name.ps1" -OutFile $script -UseBasicParsing
+    if ($RequiresAdmin -and -not $IS_ADMIN) {
+        Invoke-Elevated -What "phase $Name" -FilePath powershell `
+            -ArgumentList @('-ExecutionPolicy','Bypass','-NoProfile','-File',$script)
+    } else {
+        & powershell -ExecutionPolicy Bypass -NoProfile -File $script
+        if ($LASTEXITCODE -ne 0) { throw "phase $Name failed (exit $LASTEXITCODE)" }
+    }
 }
 
 function Set-RunOnce {
@@ -208,29 +218,30 @@ while ($true) {
     switch ($state) {
         'init' {
             if ($RICE) {
-                Need-Admin 'phase 01-rice writes HKLM telemetry policy keys'
-                Invoke-Phase '01-rice'
+                Invoke-Phase -Name '01-rice' -RequiresAdmin
             } else {
                 Write-Host '>>> phase: 01-rice — SKIPPED (set MANDRAGORA_RICE=1 to enable)' -ForegroundColor DarkYellow
             }
             Set-State 'rice-done'
         }
         'rice-done' {
-            Need-Admin 'enabling Microsoft-Windows-Subsystem-Linux + VirtualMachinePlatform features'
-            Invoke-Phase '02-install-wsl'
+            Invoke-Phase -Name '02-install-wsl' -RequiresAdmin
             Set-State 'features-enabled'
             Set-RunOnce
             Write-Host '==> rebooting in 30s; will auto-resume after login' -ForegroundColor Green
-            & shutdown.exe /r /t 30 /c 'Mandragora install: rebooting to finish WSL setup'
+            if ($IS_ADMIN) {
+                & shutdown.exe /r /t 30 /c 'Mandragora install: rebooting to finish WSL setup'
+            } else {
+                Invoke-Elevated -What 'graceful reboot' -FilePath shutdown -ArgumentList @('/r','/t','30','/c','Mandragora install: rebooting to finish WSL setup')
+            }
             exit 0
         }
         'features-enabled' {
-            Need-Admin 'installing the WSL2 MSI system-wide'
-            Invoke-Phase '02b-install-wsl-msi'
+            Invoke-Phase -Name '02b-install-wsl-msi' -RequiresAdmin
             Set-State 'wsl-installed'
         }
         'wsl-installed' {
-            Invoke-Phase '03-import-nixos-wsl'
+            Invoke-Phase -Name '03-import-nixos-wsl'
             Set-State 'nixos-imported'
         }
         'nixos-imported' {
@@ -249,6 +260,7 @@ while ($true) {
             Write-Host '==> mandragora-wsl install complete.' -ForegroundColor Green
             Write-Host '==> run: wsl -d NixOS' -ForegroundColor Green
             Remove-Item $STATE_KEY -Recurse -Force -ErrorAction SilentlyContinue
+            Remove-ItemProperty -Path $RUN_KEY -Name 'MandragoraInstall' -Force -ErrorAction SilentlyContinue
             Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
             Remove-Item $STATE_DIR -Recurse -Force -ErrorAction SilentlyContinue
             exit 0
