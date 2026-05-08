@@ -84,8 +84,8 @@ while ($true) {
             Write-Host '>>> phase: 04-bootstrap (inside NixOS-WSL)' -ForegroundColor Cyan
             $boot = "$env:TEMP\04-bootstrap.sh"
             Invoke-WebRequest -Uri "$BASE/04-bootstrap.sh" -OutFile $boot -UseBasicParsing
-            $wslPath = (& wsl -d NixOS wslpath ($boot -replace '\\','/' -replace '^([A-Z]):','/mnt/$1' )).Trim().ToLower()
-            if (-not $wslPath) { $wslPath = "/mnt/$($boot.Substring(0,1).ToLower())/$($boot.Substring(3) -replace '\\','/')" }
+            $wslPath = (& wsl -d NixOS wslpath -u $boot).Trim()
+            if (-not $wslPath) { throw "wslpath conversion failed for $boot" }
             & wsl -d NixOS -e env MANDRAGORA_REPO=$REPO bash $wslPath
             if ($LASTEXITCODE -ne 0) { throw "bootstrap failed (exit $LASTEXITCODE)" }
             Set-State 'done'
