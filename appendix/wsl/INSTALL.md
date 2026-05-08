@@ -54,10 +54,52 @@ orchestrator prints the path so you can paste it back for help.
 ## Tunables
 
 ```powershell
-$env:MANDRAGORA_RICE  = '1'   # opt in to Windows cosmetic / privacy registry tweaks
-$env:MANDRAGORA_FORCE = '1'   # bypass the managed-device safety prompt
-$env:MANDRAGORA_REPO  = 'https://github.com/<fork>/mandragora.git'
+$env:MANDRAGORA_RICE     = '1'   # opt in to Windows cosmetic / privacy registry tweaks
+$env:MANDRAGORA_PERSONAL = '1'   # opt in to mvrozanti's personal config (git identity + aerc/khal/notmuch dotfiles)
+$env:MANDRAGORA_FORCE    = '1'   # bypass the managed-device safety prompt
+$env:MANDRAGORA_REPO     = 'https://github.com/<fork>/mandragora.git'
 ```
+
+## What about credentials / PII on a work machine?
+
+The install itself stores **zero passwords or credentials** anywhere
+on Windows or in WSL. Specifically:
+
+- No passwords saved to Windows credential store
+- No SSH keys generated or copied in
+- No sudo password set — the WSL `m` user has passwordless sudo via
+  the `wheel` group (`wheelNeedsPassword = false`)
+- `gh auth` credential helper is **off by default** (only enabled
+  with `MANDRAGORA_PERSONAL=1`)
+- No personal email / git identity is baked in by default — the
+  default git config has no `user.name` / `user.email`, you'll set
+  yours later or the host config will refuse commits with a clear
+  error
+- No `.config/aerc`, `.config/khal`, `.config/notmuch` dotfiles
+  are installed by default — those bear personal email addresses
+  and are only added when you explicitly set `MANDRAGORA_PERSONAL=1`
+
+**What lives on the work PC after install (default mode):**
+
+- The `NixOS` WSL distro, stored in
+  `C:\Users\<you>\AppData\Local\Packages\<wsl-package>\LocalState\` or
+  `C:\WSL\NixOS\` — IT can read this filesystem (or `wsl --export`
+  it). Contains the mandragora repo (public) and Nix store closures.
+- A bookkeeping registry key (`HKLM:\SOFTWARE\Mandragora` if admin or
+  `HKCU:\SOFTWARE\Mandragora` if not) with the install stage. Deleted
+  when the install reaches `done`.
+- A transcript at `%ProgramData%\Mandragora\install.log` (admin) or
+  `%LOCALAPPDATA%\Mandragora\install.log` (non-admin). Deleted when
+  the install reaches `done`.
+
+**What you should still be careful about after install:**
+
+Anything you do *inside* WSL goes into a filesystem the work PC can
+read. If you `gh auth login`, run `aerc` with passwords typed in,
+git-clone with embedded tokens, etc — those all land in WSL files
+that IT could read. Use app-specific passwords, OAuth tokens scoped
+to your personal accounts, or keep all secrets in `pass`/`gpg` with
+keys you carry separately.
 
 ## After install
 
