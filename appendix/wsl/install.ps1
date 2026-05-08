@@ -4,20 +4,28 @@
 #   iex (iwr https://raw.githubusercontent.com/mvrozanti/mandragora/master/appendix/wsl/install.ps1)
 #
 # Tunables (set before running):
-#   $env:MANDRAGORA_RICE  = '1'   # opt in to Windows cosmetic / privacy registry tweaks (default OFF)
-#   $env:MANDRAGORA_FORCE = '1'   # bypass the managed-device safety prompt
-#   $env:MANDRAGORA_REPO  = 'https://github.com/<fork>/mandragora.git'
+#   $env:MANDRAGORA_RICE     = '1'   # opt in to Windows cosmetic / privacy registry tweaks (default OFF)
+#   $env:MANDRAGORA_PERSONAL = '1'   # opt in to mvrozanti's personal config (git identity, aerc/khal/notmuch dotfiles)
+#   $env:MANDRAGORA_FORCE    = '1'   # bypass the managed-device safety prompt
+#   $env:MANDRAGORA_REPO     = 'https://github.com/<fork>/mandragora.git'
 #
 # Default behaviour: enables WSL2 features + MSI, imports NixOS-WSL as a
 # sibling distro (does NOT touch any existing Ubuntu/Debian distro), runs
-# the mandragora-wsl bootstrap inside it. Does NOT modify Windows
-# registry/desktop unless you set MANDRAGORA_RICE=1.
+# the mandragora-wsl bootstrap inside it.
+#
+# WHAT IS NOT INCLUDED BY DEFAULT (work-PC safe):
+#   - rice (no theme/registry/Cortana/telemetry tweaks unless MANDRAGORA_RICE=1)
+#   - personal config (no git user.name/email, no aerc/khal/notmuch dotfiles
+#     bearing personal email addresses unless MANDRAGORA_PERSONAL=1)
+#   - no SSH keys generated, no credentials stored, no sudo password set
+#   - the WSL `m` user uses passwordless sudo (set up by the wheel group)
 
 $ErrorActionPreference = 'Stop'
 $BASE = 'https://raw.githubusercontent.com/mvrozanti/mandragora/master/appendix/wsl'
 $REPO = $env:MANDRAGORA_REPO; if (-not $REPO) { $REPO = 'https://github.com/mvrozanti/mandragora.git' }
-$RICE = ($env:MANDRAGORA_RICE -eq '1')
-$FORCE = ($env:MANDRAGORA_FORCE -eq '1')
+$RICE     = ($env:MANDRAGORA_RICE -eq '1')
+$PERSONAL = ($env:MANDRAGORA_PERSONAL -eq '1')
+$FORCE    = ($env:MANDRAGORA_FORCE -eq '1')
 function Test-Admin {
     ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
         [Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -84,6 +92,7 @@ function Show-Preflight {
     Write-Host ('  Hyper-V        : {0}' -f ($(if ($IS_ADMIN) { $hyperv } else { '(unknown — needs admin to probe)' })))
     Write-Host ('  existing WSL   : {0}' -f ($(if ($existing) { $existing -join ', ' } else { '(none)' })))
     Write-Host ('  rice mode      : {0}' -f ($(if ($RICE) { 'ON (will edit registry)' } else { 'OFF (use MANDRAGORA_RICE=1 to enable)' })))
+    Write-Host ('  personal cfg   : {0}' -f ($(if ($PERSONAL) { 'ON (mvrozanti git/email + aerc/khal dotfiles)' } else { 'OFF (use MANDRAGORA_PERSONAL=1 to enable)' })))
     Write-Host ('  log file       : {0}' -f $LOG)
     Write-Host '----------------------------------------------------' -ForegroundColor Yellow
     Write-Host '  what will happen:' -ForegroundColor Yellow
@@ -231,7 +240,8 @@ while ($true) {
             $drive = $boot.Substring(0,1).ToLower()
             $rest  = $boot.Substring(2) -replace '\\','/'
             $wslPath = "/mnt/$drive$rest"
-            & wsl -d NixOS -e env MANDRAGORA_REPO=$REPO bash $wslPath
+            $personal = if ($env:MANDRAGORA_PERSONAL -eq '1') { '1' } else { '0' }
+            & wsl -d NixOS -e env MANDRAGORA_REPO=$REPO MANDRAGORA_PERSONAL=$personal bash $wslPath
             if ($LASTEXITCODE -ne 0) { throw "bootstrap failed (exit $LASTEXITCODE)" }
             Set-State 'done'
         }
