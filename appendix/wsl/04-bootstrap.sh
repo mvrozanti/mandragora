@@ -27,7 +27,7 @@ else
 fi
 
 echo '[3/4] build mandragora-wsl host'
-sudo nixos-rebuild switch \
+sudo --preserve-env=MANDRAGORA_PERSONAL nixos-rebuild switch \
     --flake "$REPO_DIR#mandragora-wsl" \
     --impure
 

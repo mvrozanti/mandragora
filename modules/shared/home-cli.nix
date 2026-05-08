@@ -28,12 +28,6 @@
     trash-cli
     gnupg
 
-    aerc
-    notmuch
-    msmtp
-    isync
-    khal
-
     crush
 
     cargo
@@ -43,33 +37,6 @@
     kubectl
     mediainfo
   ];
-
-  home.file.".config/aerc" = {
-    source = ../../.config/aerc;
-    recursive = true;
-  };
-  home.file.".config/khal" = {
-    source = ../../.config/khal;
-    recursive = true;
-  };
-  home.file.".config/notmuch/default/config".text = ''
-    [database]
-    path=${config.home.homeDirectory}/.local/share/mail
-
-    [user]
-    name=Marcelo Vironda Rozanti
-    primary_email=mvrozanti@hotmail.com
-
-    [new]
-    tags=unread;inbox;
-    ignore=
-
-    [search]
-    exclude_tags=deleted;spam;
-
-    [maildir]
-    synchronize_flags=true
-  '';
 
   programs.direnv = {
     enable = true;
@@ -85,8 +52,6 @@
     enable = true;
     signing.format = null;
     settings = {
-      user.name = "mvrozanti";
-      user.email = "mvrozanti@hotmail.com";
       push.autoSetupRemote = true;
       safe.directory = [
         "/etc/nixos/mandragora"
@@ -95,10 +60,7 @@
     };
   };
 
-  programs.gh = {
-    enable = true;
-    gitCredentialHelper.enable = true;
-  };
+  programs.gh.enable = true;
 
   programs.go = {
     enable = true;
