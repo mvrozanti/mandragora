@@ -4,6 +4,19 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  boot.loader.systemd-boot.extraInstallCommands = ''
+    for entry in /boot/loader/entries/nixos-generation-*.conf; do
+      [ -e "$entry" ] || continue
+      gen=$(${pkgs.coreutils}/bin/basename "$entry" | ${pkgs.gnused}/bin/sed -E 's/^nixos-generation-([0-9]+).*\.conf$/\1/')
+      link="/nix/var/nix/profiles/system-''${gen}-link"
+      if [ -L "$link" ]; then
+        ts=$(${pkgs.coreutils}/bin/stat -c %Y "$link")
+        date=$(${pkgs.coreutils}/bin/date -d "@''${ts}" '+%Y-%m-%d %H:%M')
+        ${pkgs.gnused}/bin/sed -i "s|^version .*|version Generation ''${gen}, ''${date}|" "$entry"
+      fi
+    done
+  '';
+
   boot.initrd.systemd.enable = true;
 
   boot.kernelPackages = pkgs.linuxPackages_zen;
