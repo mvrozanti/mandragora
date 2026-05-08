@@ -40,46 +40,21 @@
     git
     wget
     curl
-    htop
-    btop
-    tree
-    jq
     fastfetch
     rtk
-    tmux
-    fzf
-    ripgrep
-    fd
-    bat
-    eza
-    zoxide
-    gh
   ];
 
   programs.zsh.enable = true;
-  programs.git.enable = true;
 
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
-  home-manager.users.m = { ... }: {
+  home-manager.users.m = { lib, ... }: {
+    imports = [ ../../modules/shared/home-cli.nix ];
+    home.username = "m";
+    home.homeDirectory = "/home/m";
     home.stateVersion = "24.05";
-    programs.zsh = {
-      enable = true;
-      enableCompletion = true;
-      autosuggestion.enable = true;
-      syntaxHighlighting.enable = true;
-      shellAliases = {
-        ll = "eza -la --icons";
-        ls = "eza --icons";
-        cat = "bat -p";
-        gs = "git status";
-        gd = "git diff";
-        nrs = "sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora-wsl";
-      };
-      initContent = ''
-        export PS1='%F{cyan}mandragora-wsl%f:%F{green}%~%f%# '
-        eval "$(zoxide init zsh)"
-      '';
+    programs.zsh.shellAliases = {
+      nrs = lib.mkForce "sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora-wsl --impure";
     };
   };
 
