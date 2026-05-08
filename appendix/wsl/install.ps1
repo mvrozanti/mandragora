@@ -9,8 +9,10 @@
 $ErrorActionPreference = 'Stop'
 $BASE = 'https://raw.githubusercontent.com/mvrozanti/mandragora/master/appendix/wsl'
 $REPO = $env:MANDRAGORA_REPO; if (-not $REPO) { $REPO = 'https://github.com/mvrozanti/mandragora.git' }
-$STATE = 'C:\mandragora-install-state.txt'
-$SELF  = 'C:\mandragora-install.ps1'
+$STATE_DIR = "$env:ProgramData\Mandragora"
+$STATE = "$STATE_DIR\install-state.txt"
+$SELF  = "$STATE_DIR\install.ps1"
+if (-not (Test-Path $STATE_DIR)) { New-Item -ItemType Directory -Path $STATE_DIR -Force | Out-Null }
 
 function Test-Admin {
     ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
@@ -19,7 +21,12 @@ function Test-Admin {
 if (-not (Test-Admin)) { Write-Error 'must run as administrator'; exit 1 }
 
 function Get-State { if (Test-Path $STATE) { (Get-Content $STATE -Raw).Trim() } else { 'init' } }
-function Set-State($s) { [IO.File]::WriteAllText($STATE, $s) }
+function Set-State($s) {
+    [IO.File]::WriteAllText($STATE, $s)
+    $check = (Get-Content $STATE -Raw).Trim()
+    if ($check -ne $s) { throw "state write verify failed: wanted '$s' got '$check'" }
+    Write-Host "    state -> $s" -ForegroundColor DarkGray
+}
 
 function Invoke-Phase($name) {
     Write-Host ">>> phase: $name" -ForegroundColor Cyan
@@ -76,8 +83,7 @@ while ($true) {
         'done' {
             Write-Host '==> mandragora-wsl install complete.' -ForegroundColor Green
             Write-Host '==> run: wsl -d NixOS' -ForegroundColor Green
-            Remove-Item $STATE -Force -ErrorAction SilentlyContinue
-            Remove-Item $SELF  -Force -ErrorAction SilentlyContinue
+            Remove-Item $STATE_DIR -Recurse -Force -ErrorAction SilentlyContinue
             exit 0
         }
         default { throw "unknown state: $state" }
