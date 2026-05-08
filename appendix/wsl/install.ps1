@@ -62,8 +62,8 @@ while ($true) {
             Invoke-Phase '02-install-wsl'
             Set-State 'features-enabled'
             Set-RunOnce
-            Write-Host '==> rebooting in 15s; will auto-resume after login' -ForegroundColor Green
-            & shutdown.exe /r /t 15 /c 'Mandragora install: rebooting to finish WSL setup' /f
+            Write-Host '==> rebooting in 30s; will auto-resume after login' -ForegroundColor Green
+            & shutdown.exe /r /t 30 /c 'Mandragora install: rebooting to finish WSL setup'
             exit 0
         }
         'features-enabled' {
