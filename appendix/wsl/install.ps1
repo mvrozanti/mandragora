@@ -57,11 +57,12 @@ function Show-Preflight {
     $hyperv   = $false
     if ($IS_ADMIN) { $hyperv = (Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All -ErrorAction SilentlyContinue).State -eq 'Enabled' }
     $wslReady = $false
+    $prevEAP = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
     try {
-        $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
-        $wslReady = ((& wsl --version 2>$null; $LASTEXITCODE) -eq 0)
-        $ErrorActionPreference = $prevEAP
-    } catch { $ErrorActionPreference = $prevEAP }
+        & wsl --version 2>$null | Out-Null
+        $wslReady = ($LASTEXITCODE -eq 0)
+    } catch {} finally { $ErrorActionPreference = $prevEAP }
     $existing = @()
     try {
         $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
