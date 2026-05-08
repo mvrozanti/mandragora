@@ -4,6 +4,10 @@
 
 set -euo pipefail
 
+# Pick up nix paths even when invoked from a non-login shell.
+[ -f /etc/profile ] && . /etc/profile
+export PATH="/run/current-system/sw/bin:/run/wrappers/bin:$HOME/.nix-profile/bin:$PATH"
+
 REPO_URL="${MANDRAGORA_REPO:-https://github.com/mvrozanti/mandragora.git}"
 REPO_DIR="${MANDRAGORA_DIR:-/etc/nixos/mandragora}"
 
