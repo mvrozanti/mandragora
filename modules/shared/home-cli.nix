@@ -31,8 +31,12 @@
     rustc
     cmake
     gnumake
+    gcc
     kubectl
     mediainfo
+    nodejs
+    yarn
+    chafa
   ];
 
   programs.direnv = {
