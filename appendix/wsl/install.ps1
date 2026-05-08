@@ -18,19 +18,32 @@ $BASE = 'https://raw.githubusercontent.com/mvrozanti/mandragora/master/appendix/
 $REPO = $env:MANDRAGORA_REPO; if (-not $REPO) { $REPO = 'https://github.com/mvrozanti/mandragora.git' }
 $RICE = ($env:MANDRAGORA_RICE -eq '1')
 $FORCE = ($env:MANDRAGORA_FORCE -eq '1')
-$STATE_DIR = "$env:ProgramData\Mandragora"
-$STATE_KEY = 'HKLM:\SOFTWARE\Mandragora'
-$SELF      = "$STATE_DIR\install.ps1"
-$LOG       = "$STATE_DIR\install.log"
-if (-not (Test-Path $STATE_DIR)) { New-Item -ItemType Directory -Path $STATE_DIR -Force | Out-Null }
-if (-not (Test-Path $STATE_KEY)) { New-Item -Path $STATE_KEY -Force | Out-Null }
-Start-Transcript -Path $LOG -Append -ErrorAction SilentlyContinue | Out-Null
-
 function Test-Admin {
     ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
         [Security.Principal.WindowsBuiltInRole]::Administrator)
 }
-if (-not (Test-Admin)) { Write-Error 'must run as administrator'; exit 1 }
+$IS_ADMIN = Test-Admin
+
+if ($IS_ADMIN) {
+    $STATE_DIR = "$env:ProgramData\Mandragora"
+    $STATE_KEY = 'HKLM:\SOFTWARE\Mandragora'
+    $RUN_KEY   = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce'
+} else {
+    $STATE_DIR = "$env:LOCALAPPDATA\Mandragora"
+    $STATE_KEY = 'HKCU:\SOFTWARE\Mandragora'
+    $RUN_KEY   = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'
+}
+$SELF = "$STATE_DIR\install.ps1"
+$LOG  = "$STATE_DIR\install.log"
+if (-not (Test-Path $STATE_DIR)) { New-Item -ItemType Directory -Path $STATE_DIR -Force | Out-Null }
+if (-not (Test-Path $STATE_KEY)) { New-Item -Path $STATE_KEY -Force | Out-Null }
+Start-Transcript -Path $LOG -Append -ErrorAction SilentlyContinue | Out-Null
+
+function Need-Admin($what) {
+    if (-not $IS_ADMIN) {
+        throw "this step needs admin: $what`nrelaunch PowerShell as Administrator and re-run the same one-liner."
+    }
+}
 
 function Show-Preflight {
     $cs       = Get-CimInstance Win32_ComputerSystem -ErrorAction SilentlyContinue
@@ -41,7 +54,14 @@ function Show-Preflight {
                   Where-Object { $_.PSChildName -match '^[0-9A-F-]{36}$' }).Count -gt 0)
     $bitlocker = $false
     try { $bitlocker = ((Get-BitLockerVolume -MountPoint 'C:' -ErrorAction Stop).ProtectionStatus -eq 'On') } catch {}
-    $hyperv   = (Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All -ErrorAction SilentlyContinue).State -eq 'Enabled'
+    $hyperv   = $false
+    if ($IS_ADMIN) { $hyperv = (Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All -ErrorAction SilentlyContinue).State -eq 'Enabled' }
+    $wslReady = $false
+    try {
+        $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+        $wslReady = ((& wsl --version 2>$null; $LASTEXITCODE) -eq 0)
+        $ErrorActionPreference = $prevEAP
+    } catch { $ErrorActionPreference = $prevEAP }
     $existing = @()
     try {
         $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
@@ -55,27 +75,49 @@ function Show-Preflight {
     Write-Host '  MANDRAGORA-WSL INSTALL — preflight'                 -ForegroundColor Yellow
     Write-Host '====================================================' -ForegroundColor Yellow
     Write-Host ('  computer       : {0} ({1})' -f $cs.Name, $os.Caption)
+    Write-Host ('  admin powershell: {0}' -f $IS_ADMIN)
+    Write-Host ('  WSL2 already up: {0}' -f $wslReady)
     Write-Host ('  domain joined  : {0}' -f $domain)
     Write-Host ('  AAD enrolled   : {0}' -f $azureAD)
     Write-Host ('  BitLocker C:   : {0}' -f $bitlocker)
-    Write-Host ('  Hyper-V        : {0}' -f $hyperv)
+    Write-Host ('  Hyper-V        : {0}' -f ($(if ($IS_ADMIN) { $hyperv } else { '(unknown — needs admin to probe)' })))
     Write-Host ('  existing WSL   : {0}' -f ($(if ($existing) { $existing -join ', ' } else { '(none)' })))
     Write-Host ('  rice mode      : {0}' -f ($(if ($RICE) { 'ON (will edit registry)' } else { 'OFF (use MANDRAGORA_RICE=1 to enable)' })))
     Write-Host ('  log file       : {0}' -f $LOG)
     Write-Host '----------------------------------------------------' -ForegroundColor Yellow
     Write-Host '  what will happen:' -ForegroundColor Yellow
-    if ($RICE) { Write-Host '    - apply Windows cosmetic + privacy registry tweaks' }
-    Write-Host   '    - enable Microsoft-Windows-Subsystem-Linux + VirtualMachinePlatform features'
-    Write-Host   '    - REBOOT (auto-resumes after login via RunOnce)'
-    Write-Host   '    - install WSL2 MSI from microsoft/WSL releases'
-    Write-Host   '    - import latest NixOS-WSL as a NEW sibling distro called "NixOS"'
-    Write-Host   '    - inside NixOS: clone mandragora repo + nixos-rebuild switch'
+    if ($RICE) { Write-Host '    - apply Windows cosmetic + privacy registry tweaks (admin)' }
+    if (-not $wslReady) {
+        Write-Host '    - enable Microsoft-Windows-Subsystem-Linux + VirtualMachinePlatform features (admin)'
+        Write-Host '    - REBOOT (auto-resumes after login via RunOnce)'
+        Write-Host '    - install WSL2 MSI from microsoft/WSL releases (admin)'
+    } else {
+        Write-Host '    - WSL2 is already installed; skipping feature/MSI/reboot phases'
+    }
+    Write-Host   '    - import latest NixOS-WSL as a NEW sibling distro called "NixOS" (per-user, no admin)'
+    Write-Host   '    - inside NixOS: clone mandragora repo + nixos-rebuild switch (per-user, no admin)'
     Write-Host '  will NOT touch:' -ForegroundColor Yellow
     Write-Host   '    - any existing WSL distros (Ubuntu/Debian/etc remain untouched)'
     Write-Host   '    - BitLocker, full-disk encryption, secure boot'
     Write-Host   '    - corporate VPN, AV, MDM agent, group policies'
     Write-Host   '    - Windows user accounts, domain bindings, network settings'
     Write-Host '====================================================' -ForegroundColor Yellow
+
+    if (-not $wslReady -and -not $IS_ADMIN) {
+        Write-Host ''
+        Write-Host 'WSL2 is not installed yet AND this PowerShell is not elevated.' -ForegroundColor Red
+        Write-Host 'either:' -ForegroundColor Red
+        Write-Host '  1. ask IT to install WSL2, then re-run this in a normal PowerShell, or' -ForegroundColor Red
+        Write-Host '  2. relaunch PowerShell as Administrator and re-run.' -ForegroundColor Red
+        Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
+        exit 3
+    }
+
+    if ($RICE -and -not $IS_ADMIN) {
+        Write-Host 'rice phase needs admin; either drop MANDRAGORA_RICE or relaunch elevated.' -ForegroundColor Red
+        Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
+        exit 3
+    }
 
     if (($domain -or $azureAD) -and -not $FORCE) {
         Write-Host ''
@@ -132,7 +174,7 @@ function Invoke-Phase($name) {
 function Set-RunOnce {
     Invoke-WebRequest -Uri "$BASE/install.ps1" -OutFile $SELF -UseBasicParsing
     Set-ItemProperty `
-        -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' `
+        -Path $RUN_KEY `
         -Name 'MandragoraInstall' `
         -Value "powershell -ExecutionPolicy Bypass -NoProfile -File `"$SELF`""
 }
@@ -156,6 +198,7 @@ while ($true) {
     switch ($state) {
         'init' {
             if ($RICE) {
+                Need-Admin 'phase 01-rice writes HKLM telemetry policy keys'
                 Invoke-Phase '01-rice'
             } else {
                 Write-Host '>>> phase: 01-rice — SKIPPED (set MANDRAGORA_RICE=1 to enable)' -ForegroundColor DarkYellow
@@ -163,6 +206,7 @@ while ($true) {
             Set-State 'rice-done'
         }
         'rice-done' {
+            Need-Admin 'enabling Microsoft-Windows-Subsystem-Linux + VirtualMachinePlatform features'
             Invoke-Phase '02-install-wsl'
             Set-State 'features-enabled'
             Set-RunOnce
@@ -171,6 +215,7 @@ while ($true) {
             exit 0
         }
         'features-enabled' {
+            Need-Admin 'installing the WSL2 MSI system-wide'
             Invoke-Phase '02b-install-wsl-msi'
             Set-State 'wsl-installed'
         }
