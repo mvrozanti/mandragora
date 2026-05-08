@@ -169,9 +169,12 @@ lf() {
 eval "$(zoxide init zsh)"
 
 # Alt+Enter inserts a literal newline (compose multi-line commands without \).
-_mdg_alt_enter_newline() { LBUFFER+=$'\n' }
+_mdg_alt_enter_newline() {
+    LBUFFER+=$'\n'
+    zle -R
+}
 zle -N _mdg_alt_enter_newline
-bindkey '^[^M' _mdg_alt_enter_newline
-bindkey '^[\r' _mdg_alt_enter_newline
+bindkey -M emacs '^[^M' _mdg_alt_enter_newline
+bindkey -M emacs '^[\r' _mdg_alt_enter_newline
 
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
