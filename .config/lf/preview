@@ -9,13 +9,17 @@
 printf '[%s] preview file=%s\n' "$(date +%H:%M:%S.%N)" "$1" >> /tmp/lf-cleaner.log
 
 draw() {
-  kitty +kitten icat \
-    --stdin no \
-    --transfer-mode memory \
-    --place "${width}x${height}@${x}x${y}" \
-    --scale-up \
-    --silent \
-    "$1" </dev/null >/dev/tty
+  if [ -n "$KITTY_WINDOW_ID" ] && command -v kitty >/dev/null 2>&1; then
+    kitty +kitten icat \
+      --stdin no \
+      --transfer-mode memory \
+      --place "${width}x${height}@${x}x${y}" \
+      --scale-up \
+      --silent \
+      "$1" </dev/null >/dev/tty
+  elif command -v chafa >/dev/null 2>&1; then
+    chafa --format auto --size "${width}x${height}" -- "$1" >/dev/tty
+  fi
 }
 
 hash() {
