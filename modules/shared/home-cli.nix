@@ -1,5 +1,9 @@
 { config, lib, pkgs, ... }:
 
+# Shared CLI baseline imported by every mandragora host.
+# Add things here when they should be on BOTH desktop and WSL.
+# Add to hosts/<host>/default.nix or modules/user/home.nix only when
+# host-specific (e.g. desktop GUI deps, WSL-only path tweaks).
 {
   imports = [
     ../user/zsh.nix
@@ -64,14 +68,7 @@
   };
 
   programs.gh.enable = true;
-
-  programs.go = {
-    enable = true;
-    env = {
-      GOPATH = ".local/share/go";
-      GOBIN = ".local/share/go/bin";
-    };
-  };
+  programs.go.enable = true;
 
   home.file.".XCompose".source = ../../.XCompose;
   home.file.".config/nvim" = {

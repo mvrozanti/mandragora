@@ -12,6 +12,7 @@ let
 in
 {
   imports = [
+    ../shared/home-cli.nix
     ./zsh.nix
     ./tmux.nix
     ./lf.nix
