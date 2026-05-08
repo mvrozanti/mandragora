@@ -2,11 +2,12 @@
 # Run inside NixOS-WSL (`wsl -d NixOS bash 04-bootstrap.sh`).
 # Clones mandragora and switches to the mandragora-wsl host.
 
-set -euo pipefail
+set -eo pipefail
 
 # Pick up nix paths even when invoked from a non-login shell.
-[ -f /etc/profile ] && . /etc/profile
+if [ -f /etc/profile ]; then set +u; . /etc/profile; set -u; fi
 export PATH="/run/current-system/sw/bin:/run/wrappers/bin:$HOME/.nix-profile/bin:$PATH"
+set -u
 
 REPO_URL="${MANDRAGORA_REPO:-https://github.com/mvrozanti/mandragora.git}"
 REPO_DIR="${MANDRAGORA_DIR:-/etc/nixos/mandragora}"
