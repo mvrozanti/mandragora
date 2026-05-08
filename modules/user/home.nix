@@ -250,9 +250,6 @@ in
     (pkgs.writeShellScriptBin "are-processes-related" (builtins.readFile ../../.local/bin/are-processes-related.sh))
     (pkgs.writeShellScriptBin "explode_tmux" (builtins.readFile ../../.local/bin/explode_tmux.sh))
     (pkgs.writeShellScriptBin "implode_tmux" (builtins.readFile ../../.local/bin/implode_tmux.sh))
-    (pkgs.writeShellScriptBin "etherize-tmux-pane" (builtins.readFile ../../.local/bin/etherize_tmux_pane.sh))
-    reptyr
-    util-linux
     (pkgs.writeShellScriptBin "superscript" ''exec ${pkgs.python3}/bin/python3 ${../../.local/bin/superscript.py} "$@"'')
     (pkgs.writeShellScriptBin "vaporscript" ''exec ${pkgs.python3}/bin/python3 ${../../.local/bin/vaporscript.py} "$@"'')
     (pkgs.writeShellScriptBin "cursivescript" ''exec ${pkgs.python3}/bin/python3 ${../../.local/bin/cursivescript.py} "$@"'')
