@@ -27,7 +27,49 @@
     (python3.withPackages (ps: with ps; [ pynvim grip psutil ]))
     trash-cli
     gnupg
+
+    aerc
+    notmuch
+    msmtp
+    isync
+    khal
+
+    crush
+
+    cargo
+    rustc
+    cmake
+    gnumake
+    kubectl
+    mediainfo
   ];
+
+  home.file.".config/aerc" = {
+    source = ../../.config/aerc;
+    recursive = true;
+  };
+  home.file.".config/khal" = {
+    source = ../../.config/khal;
+    recursive = true;
+  };
+  home.file.".config/notmuch/default/config".text = ''
+    [database]
+    path=${config.home.homeDirectory}/.local/share/mail
+
+    [user]
+    name=Marcelo Vironda Rozanti
+    primary_email=mvrozanti@hotmail.com
+
+    [new]
+    tags=unread;inbox;
+    ignore=
+
+    [search]
+    exclude_tags=deleted;spam;
+
+    [maildir]
+    synchronize_flags=true
+  '';
 
   programs.direnv = {
     enable = true;
