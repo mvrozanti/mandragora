@@ -54,5 +54,6 @@ in this repo.
 
 - [`../appendix/wsl/README.md`](../appendix/wsl/README.md) — Mandragora
   profile under WSL2 (corporate-laptop fallback).
-- [`../appendix/ventoy-usb/README.md`](../appendix/ventoy-usb/README.md) —
-  multiboot rescue/install USB.
+- [`../hosts/mandragora-usb/`](../hosts/mandragora-usb/) — bootable
+  installer / rescue USB host (built via `nix build .#usbImage`,
+  test-driven via `nix run .#refiner -- --auto`).
