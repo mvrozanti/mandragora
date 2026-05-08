@@ -37,6 +37,8 @@
     nodejs
     yarn
     chafa
+
+    (writeShellScriptBin "lf-ueberzug" (builtins.readFile ../../.local/bin/lf-ueberzug.sh))
   ];
 
   programs.direnv = {
