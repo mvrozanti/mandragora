@@ -49,7 +49,9 @@
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
   home-manager.users.m = { lib, ... }: {
-    imports = [ ../../modules/shared/home-cli.nix ];
+    imports = [ ../../modules/shared/home-cli.nix ]
+      ++ lib.optional ((builtins.getEnv "MANDRAGORA_PERSONAL") == "1")
+        ../../modules/shared/home-personal.nix;
     home.username = "m";
     home.homeDirectory = "/home/m";
     home.stateVersion = "24.05";
