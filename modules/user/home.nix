@@ -710,7 +710,6 @@ in
       user.email = "mvrozanti@hotmail.com";
       push.autoSetupRemote = true;
       safe.directory = [
-        "/mnt/ventoy/docs/mandragora-nixos"
         "/persistent/mandragora"
       ];
     };

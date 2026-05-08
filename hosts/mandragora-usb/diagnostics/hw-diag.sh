@@ -80,4 +80,3 @@ run_section "RGB Devices" \
 # ---- Summary ----
 divider "Done" | tee -a "$LOG"
 echo "Full log saved to: $LOG" | tee -a "$LOG"
-echo "Copy to USB: cp $LOG /mnt/ventoy/docs/" | tee -a "$LOG"
