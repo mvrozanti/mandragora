@@ -42,8 +42,13 @@ function Show-Preflight {
     $bitlocker = $false
     try { $bitlocker = ((Get-BitLockerVolume -MountPoint 'C:' -ErrorAction Stop).ProtectionStatus -eq 'On') } catch {}
     $hyperv   = (Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All -ErrorAction SilentlyContinue).State -eq 'Enabled'
-    $existing = (& wsl --list --quiet 2>$null) -split "`n" | Where-Object { $_ -match '\S' } | ForEach-Object { $_.Trim() }
-    $existing = $existing | Where-Object { $_ -ne 'NixOS' }
+    $existing = @()
+    try {
+        $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+        $existing = (& wsl --list --quiet 2>$null) -split "`n" | Where-Object { $_ -match '\S' } | ForEach-Object { $_.Trim() }
+        $existing = $existing | Where-Object { $_ -ne 'NixOS' }
+        $ErrorActionPreference = $prevEAP
+    } catch { $ErrorActionPreference = $prevEAP }
 
     Write-Host ''
     Write-Host '====================================================' -ForegroundColor Yellow
@@ -91,12 +96,23 @@ function Show-Preflight {
 function Get-State {
     $v = (Get-ItemProperty -Path $STATE_KEY -Name InstallStage -ErrorAction SilentlyContinue).InstallStage
     if ($v) { return $v }
-    if ((& wsl --list --quiet 2>$null) -match '^NixOS$') { return 'nixos-imported' }
-    $wslVer = & wsl --version 2>$null
-    if ($LASTEXITCODE -eq 0 -and $wslVer -match 'WSL') { return 'wsl-installed' }
-    $f = Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -ErrorAction SilentlyContinue
-    if ($f -and $f.State -eq 'Enabled') { return 'features-enabled' }
-    return 'init'
+    $prevEAP = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        try {
+            $list = & wsl --list --quiet 2>$null
+            if ($LASTEXITCODE -eq 0 -and ($list -match '^NixOS$')) { return 'nixos-imported' }
+        } catch {}
+        try {
+            $wslVer = & wsl --version 2>$null
+            if ($LASTEXITCODE -eq 0 -and $wslVer -match 'WSL') { return 'wsl-installed' }
+        } catch {}
+        $f = Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -ErrorAction SilentlyContinue
+        if ($f -and $f.State -eq 'Enabled') { return 'features-enabled' }
+        return 'init'
+    } finally {
+        $ErrorActionPreference = $prevEAP
+    }
 }
 function Set-State($s) {
     Set-ItemProperty -Path $STATE_KEY -Name InstallStage -Value $s -Force
