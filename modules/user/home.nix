@@ -64,6 +64,7 @@ in
     aerc
     notmuch
     transmission_4
+    tremc
     libnotify
 
     mpv

@@ -5,3 +5,11 @@ result
 _bmad/config.user.yaml
 __pycache__/
 .worktrees/
+*.torrent
+*.magnet
+.config/transmission/torrents/
+.config/transmission/resume/
+.config/transmission/blocklists/
+.config/transmission/dht.dat
+.config/transmission/stats.json
+.config/transmission/queue.json
