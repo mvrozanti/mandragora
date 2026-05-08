@@ -7,7 +7,6 @@ let s:wal_file = fnamemodify('~/.cache/matugen/colors-wal.vim', ':p')
 if filereadable(s:wal_file)
     execute 'source ' . s:wal_file
 else
-    echo "Pywal colors.vim not found!"
     finish
 endif
 
