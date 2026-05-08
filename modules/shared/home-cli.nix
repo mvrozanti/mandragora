@@ -5,7 +5,6 @@
     ../user/zsh.nix
     ../user/tmux.nix
     ../user/lf.nix
-    ../user/skills.nix
   ];
 
   home.packages = with pkgs; [
@@ -27,8 +26,6 @@
     (python3.withPackages (ps: with ps; [ pynvim grip psutil ]))
     trash-cli
     gnupg
-
-    crush
 
     cargo
     rustc
