@@ -18,8 +18,8 @@ function Test-Admin {
 }
 if (-not (Test-Admin)) { Write-Error 'must run as administrator'; exit 1 }
 
-function Get-State { if (Test-Path $STATE) { Get-Content $STATE -Raw } else { 'init' } }
-function Set-State($s) { $s | Set-Content -Path $STATE -NoNewline }
+function Get-State { if (Test-Path $STATE) { (Get-Content $STATE -Raw).Trim() } else { 'init' } }
+function Set-State($s) { [IO.File]::WriteAllText($STATE, $s) }
 
 function Invoke-Phase($name) {
     Write-Host ">>> phase: $name" -ForegroundColor Cyan
@@ -51,9 +51,8 @@ while ($true) {
             Invoke-Phase '02-install-wsl'
             Set-State 'features-enabled'
             Set-RunOnce
-            Write-Host '==> rebooting in 10s; will auto-resume after login' -ForegroundColor Green
-            Start-Sleep 10
-            Restart-Computer -Force
+            Write-Host '==> rebooting in 15s; will auto-resume after login' -ForegroundColor Green
+            & shutdown.exe /r /t 15 /c 'Mandragora install: rebooting to finish WSL setup' /f
             exit 0
         }
         'features-enabled' {
