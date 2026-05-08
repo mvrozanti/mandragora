@@ -27,6 +27,5 @@ sudo nixos-rebuild switch \
     --impure
 
 echo '[4/4] sanity'
-mandragora-version=$(nixos-version)
-echo "active generation: $mandragora-version"
+echo "active generation: $(nixos-version)"
 echo 'mandragora-wsl bootstrap complete.'
