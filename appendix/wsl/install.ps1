@@ -23,7 +23,13 @@ if (-not (Test-Admin)) { Write-Error 'must run as administrator'; exit 1 }
 
 function Get-State {
     $v = (Get-ItemProperty -Path $STATE_KEY -Name InstallStage -ErrorAction SilentlyContinue).InstallStage
-    if ($v) { $v } else { 'init' }
+    if ($v) { return $v }
+    if ((& wsl --list --quiet 2>$null) -match '^NixOS$') { return 'nixos-imported' }
+    $wslVer = & wsl --version 2>$null
+    if ($LASTEXITCODE -eq 0 -and $wslVer -match 'WSL') { return 'wsl-installed' }
+    $f = Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -ErrorAction SilentlyContinue
+    if ($f -and $f.State -eq 'Enabled') { return 'features-enabled' }
+    return 'init'
 }
 function Set-State($s) {
     Set-ItemProperty -Path $STATE_KEY -Name InstallStage -Value $s -Force
