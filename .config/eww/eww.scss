@@ -102,11 +102,17 @@ window { background: transparent; }
     border-color: rgba(255, 255, 255, 0.14);
   }
 
-  &.lock:hover { color: #61afef; }
-  &.suspend:hover { color: #98c379; }
-  &.hibernate:hover { color: #c678dd; }
-  &.reboot:hover { color: #e5c07b; }
-  &.poweroff:hover { color: #e06c75; }
+  &.focused {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.32);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  }
+
+  &.lock:hover,      &.lock.focused      { color: #61afef; }
+  &.suspend:hover,   &.suspend.focused   { color: #98c379; }
+  &.hibernate:hover, &.hibernate.focused { color: #c678dd; }
+  &.reboot:hover,    &.reboot.focused    { color: #e5c07b; }
+  &.poweroff:hover,  &.poweroff.focused  { color: #e06c75; }
 }
 
 .powermenu-icon {
