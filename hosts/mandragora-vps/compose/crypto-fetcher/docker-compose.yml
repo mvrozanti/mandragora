@@ -1,0 +1,21 @@
+services:
+  binance_fetcher:
+    build: .
+    restart: unless-stopped
+    network_mode: host
+    depends_on:
+    - redis
+    environment:
+    - REDIS_HOST=localhost
+    - REDIS_PORT=6379
+    logging: &id001
+      driver: json-file
+      options:
+        max-size: 50m
+        max-file: '5'
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis
+    restart: unless-stopped
+    network_mode: host
+    logging: *id001
