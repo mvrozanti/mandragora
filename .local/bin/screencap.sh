@@ -218,12 +218,14 @@ screenshot_region() {
   mark_flash
 }
 
+active_window_geom() {
+  hyprctl -j activewindow | jq -r 'select(.at != null) | "\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"'
+}
+
 screenshot_window() {
   local geom file
-  geom=$(hyprctl -j activewindow | jq -r 'select(.at != null) | "\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')
-  if [[ -z "$geom" ]]; then
-    return 0
-  fi
+  geom=$(active_window_geom)
+  [[ -z "$geom" ]] && return 0
   file="$outdir/screenshot-$(date +%Y%m%d-%H%M%S).png"
   grim -g "$geom" "$file"
   wl-copy --type image/png < "$file"
@@ -241,6 +243,13 @@ video_full() {
 video_region() {
   local audio="$1" geom
   geom=$(slurp_geom)
+  [[ -z "$geom" ]] && return 0
+  start_record "$audio" "region:$geom"
+}
+
+video_window() {
+  local audio="$1" geom
+  geom=$(active_window_geom)
   [[ -z "$geom" ]] && return 0
   start_record "$audio" "region:$geom"
 }
@@ -286,13 +295,16 @@ case "${1:-status}" in
   shot-window)     screenshot_window ;;
   vid-none-region) video_region none ;;
   vid-none-full)   video_full none ;;
+  vid-none-window) video_window none ;;
   vid-mic-region)  video_region mic ;;
   vid-mic-full)    video_full mic ;;
+  vid-mic-window)  video_window mic ;;
   vid-sys-region)  video_region system ;;
   vid-sys-full)    video_full system ;;
+  vid-sys-window)  video_window system ;;
   stop)            stop_record ;;
   has-mic)         has_mic && echo yes || echo no ;;
   is-recording)    is_recording && echo yes || echo no ;;
   status)          status_json ;;
-  *) echo "usage: $0 {shot-region|shot-full|shot-window|vid-{none,mic,sys}-{region,full}|stop|has-mic|is-recording|status}" >&2; exit 2 ;;
+  *) echo "usage: $0 {shot-region|shot-full|shot-window|vid-{none,mic,sys}-{region,full,window}|stop|has-mic|is-recording|status}" >&2; exit 2 ;;
 esac
