@@ -234,6 +234,18 @@ tooltip {
     border-bottom: 2px solid @color3;
 }
 
+#custom-notif-menu {
+    padding: 0 10px;
+    color: @foreground;
+    border-bottom: 2px solid transparent;
+    transition: color 120ms ease, border-bottom-color 120ms ease;
+}
+
+#custom-notif-menu:hover {
+    color: @color5;
+    border-bottom: 2px solid @color5;
+}
+
 #tray {
     padding: 0 8px;
 }
