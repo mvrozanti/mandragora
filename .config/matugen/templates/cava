@@ -14,7 +14,7 @@ gravity = 100
 integral = 85
 
 [output]
-method = ncurses
+method = noncurses
 
 [color]
 gradient = 1
