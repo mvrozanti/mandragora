@@ -21,7 +21,15 @@ _filter_targets() {
     grep -v "^${boot}$" || true
 }
 
+_require_live_environment() {
+    local marker="${MANDRAGORA_LIVE_MARKER:-/etc/mandragora-live}"
+    if [[ ! -f "$marker" ]]; then
+        die "refusing to detect target disks: not running on the mandragora live USB (no $marker)"
+    fi
+}
+
 main() {
+    _require_live_environment
     local boot
     boot=$(_resolve_boot_disk)
     log_info "Boot disk: $boot"

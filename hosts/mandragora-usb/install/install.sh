@@ -7,6 +7,7 @@ DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 source "$DIR/lib.sh"
 
 AUTO=0
+UPDATE=0
 HOSTNAME=""
 USER_NAME=""
 TARGET=""
@@ -16,6 +17,7 @@ KEYMAP="us"
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --auto)     AUTO=1; shift ;;
+        --update)   UPDATE=1; shift ;;
         --hostname) HOSTNAME="$2"; shift 2 ;;
         --user)     USER_NAME="$2"; shift 2 ;;
         --target)   TARGET="$2"; shift 2 ;;
@@ -27,13 +29,26 @@ done
 
 require_root
 
-if ping -c1 -W3 github.com >/dev/null 2>&1; then
-    log_info "Network detected; attempting flake refresh..."
-    git -C /etc/nixos/mandragora pull --ff-only origin master 2>/dev/null \
-        || git -C /etc/nixos/mandragora pull --ff-only origin main 2>/dev/null \
-        || log_warn "git pull skipped or failed; using baked flake."
+_validate_token() {
+    local label="$1" value="$2"
+    [[ "$value" =~ ^[a-zA-Z0-9_-]{1,63}$ ]] \
+        || die "invalid $label: '$value' (must match ^[a-zA-Z0-9_-]{1,63}$)"
+}
+[[ -n "$HOSTNAME"  ]] && _validate_token hostname "$HOSTNAME"
+[[ -n "$USER_NAME" ]] && _validate_token user     "$USER_NAME"
+[[ -n "$KEYMAP"    ]] && _validate_token keymap   "$KEYMAP"
+
+if (( UPDATE )); then
+    if ping -c1 -W3 github.com >/dev/null 2>&1; then
+        log_info "--update: refreshing flake from upstream..."
+        git -C /etc/nixos/mandragora pull --ff-only origin master 2>/dev/null \
+            || git -C /etc/nixos/mandragora pull --ff-only origin main 2>/dev/null \
+            || log_warn "git pull failed; falling back to baked flake."
+    else
+        log_warn "--update requested but no network; falling back to baked flake."
+    fi
 else
-    log_info "No network; using baked flake."
+    log_info "Using baked flake (pass --update to refresh from upstream)."
 fi
 
 USB_KEY_SRC="/etc/nixos/mandragora/secrets/usb-key.age"
@@ -88,6 +103,10 @@ fi
 if (( ! AUTO )); then
     read -rp "Keymap [$KEYMAP]: " input; KEYMAP="${input:-$KEYMAP}"
 fi
+
+_validate_token hostname "$HOSTNAME"
+_validate_token user     "$USER_NAME"
+_validate_token keymap   "$KEYMAP"
 
 log_info "Formatting $TARGET..."
 bash "$DIR/format.sh" "$TARGET"
