@@ -160,23 +160,28 @@ tooltip {
 #custom-mpd-random {
     padding: 0 6px;
     color: @foreground;
-    transition: color 120ms ease;
+    transition: color 120ms ease, opacity 120ms ease;
 }
 
 #custom-mpd-prev:hover,
 #custom-mpd-toggle:hover,
-#custom-mpd-next:hover {
-    color: @color4;
+#custom-mpd-next:hover,
+#custom-mpd-single:hover,
+#custom-mpd-random:hover {
+    color: @color9;
 }
 
+#custom-mpd-toggle.paused,
 #custom-mpd-single.off,
 #custom-mpd-random.off {
-    color: @color8;
+    opacity: 0.35;
 }
 
+#custom-mpd-toggle.playing,
 #custom-mpd-single.on,
 #custom-mpd-random.on {
-    color: @color4;
+    color: @color9;
+    opacity: 1.0;
 }
 
 #idle-inhibitor {
