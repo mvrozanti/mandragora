@@ -1,0 +1,19 @@
+[Unit]
+Description=Tailnet TCP forward: localhost:%i -> 100.115.80.79:%i (mandragora desktop)
+After=tailscaled.service network-online.target
+Requires=tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/socat TCP-LISTEN:%i,reuseaddr,fork,bind=0.0.0.0 TCP:100.115.80.79:%i
+Restart=on-failure
+RestartSec=5s
+DynamicUser=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
