@@ -375,3 +375,10 @@ Vagrantfile             
 
 # other formats
 *.pdf   
+
+# Specific directory icons (from old dotfiles)
+Documents/      
+Downloads/      
+Music/          
+Pictures/       
+Videos/         
