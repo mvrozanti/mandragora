@@ -234,6 +234,7 @@ in
     (pkgs.writeShellScriptBin "rofi-wallpaper-picker" (builtins.readFile ../../.local/bin/rofi-wallpaper-picker.sh))
     (pkgs.writeShellScriptBin "rofi-run-or-term" (builtins.readFile ../../.local/bin/rofi-run-or-term.sh))
     (pkgs.writeShellScriptBin "clipboard-menu" (builtins.readFile ../../.local/bin/clipboard-menu.sh))
+    (pkgs.writeShellScriptBin "notif-menu" (builtins.readFile ../../.local/bin/notif-menu.sh))
     (pkgs.writeShellScriptBin "powermenu-toggle" (builtins.readFile ../../.local/bin/powermenu-toggle.sh))
     (pkgs.writeShellScriptBin "powermenu-close" (builtins.readFile ../../.local/bin/powermenu-close.sh))
     (pkgs.writeShellScriptBin "screencap" (builtins.readFile ../../.local/bin/screencap.sh))

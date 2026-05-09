@@ -1,4 +1,6 @@
 background-color=#00000001
+max-history=100
+
 [urgency=high]
 border-color=#e06c75
 default-timeout=0
