@@ -28,7 +28,7 @@ services:
       caddy_4: https://slither.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
       caddy_4.0_@denied: "not path / /simulator.html /favicon.ico /static/* /exported_agents/* /api/*"
       caddy_4.1_respond: "@denied 403"
-      caddy_4.2_reverse_proxy: "host.docker.internal:8080"
+      caddy_4.2_reverse_proxy: "host.docker.internal:8088"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/healthcheck || exit 1"]
       interval: 30s
