@@ -14,7 +14,7 @@
 
         modules-left = [ "hyprland/workspaces" ];
         modules-center = [ "custom/mpd" ];
-        modules-right = [ "custom/volume" "bluetooth" "disk" "memory" "temperature" "cpu" "custom/gpu" "custom/network" "custom/weather" "clock" "custom/screencap" "custom/powermenu" "tray" ];
+        modules-right = [ "custom/volume" "custom/brightness" "bluetooth" "disk" "memory" "temperature" "cpu" "custom/gpu" "custom/network" "custom/weather" "clock" "custom/screencap" "custom/powermenu" "tray" ];
 
         "hyprland/workspaces" = {
           format = "{icon}";
@@ -56,6 +56,17 @@
           on-scroll-up = "pamixer -i 2";
           on-scroll-down = "pamixer -d 2";
           on-click-right = "pavucontrol";
+        };
+
+        "custom/brightness" = {
+          exec = "~/.config/waybar/scripts/brightness.sh status";
+          interval = 5;
+          signal = 12;
+          format = " {}";
+          on-click = "~/.config/waybar/scripts/brightness.sh toggle";
+          on-scroll-up = "~/.config/waybar/scripts/brightness.sh increase";
+          on-scroll-down = "~/.config/waybar/scripts/brightness.sh decrease";
+          tooltip = false;
         };
 
         bluetooth = {

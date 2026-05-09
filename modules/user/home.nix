@@ -846,6 +846,10 @@ EOF
     source = ../../snippets/waybar-bluetooth.sh;
     executable = true;
   };
+  home.file.".config/waybar/scripts/brightness.sh" = {
+    source = ../../snippets/waybar-brightness.sh;
+    executable = true;
+  };
   home.file.".local/share/applications/chess-com.desktop".text = ''
 [Desktop Entry]
 Name=Chess.com
