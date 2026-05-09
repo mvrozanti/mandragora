@@ -13,8 +13,8 @@
         ts=$(${pkgs.coreutils}/bin/stat -c %Y "$link")
         date=$(${pkgs.coreutils}/bin/date -d "@''${ts}" '+%Y-%m-%d %H:%M')
         rev=""
-        if [ -r "$link/svn-revision" ]; then
-          rev=$(${pkgs.coreutils}/bin/head -c 7 "$link/svn-revision")
+        if [ -r "$link/git-revision" ]; then
+          rev=$(${pkgs.coreutils}/bin/head -c 7 "$link/git-revision")
         fi
         if [ -n "$rev" ]; then
           version="Generation ''${gen}, ''${rev}, ''${date}"
