@@ -5,10 +5,13 @@ let
   llmViaTelegramRoot = "/etc/nixos/mandragora/.local/share/llm-via-telegram";
   gpuLockRoot = "/etc/nixos/mandragora/.local/share/gpu-lock";
   llmViaTelegramState = "/home/m/.local/share/llm-via-telegram";
+  sttViaTelegramRoot = "/etc/nixos/mandragora/.local/share/stt-via-telegram";
+  sttViaTelegramState = "/home/m/.local/share/stt-via-telegram";
 in
 {
   home.activation.botsState = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     mkdir -p ${llmViaTelegramState}/data ${llmViaTelegramState}/logs
+    mkdir -p ${sttViaTelegramState}/data ${sttViaTelegramState}/logs ${sttViaTelegramState}/hf-cache
     if [ -e /home/m/Projects/gpu-lock ] && [ ! -L /home/m/Projects/gpu-lock ]; then
       rm -rf /home/m/Projects/gpu-lock
     fi
@@ -34,6 +37,35 @@ in
       Restart = "on-failure";
       RestartSec = 10;
       TimeoutStartSec = "5min";
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
+
+  systemd.user.services.stt-via-telegram = {
+    Unit = {
+      Description = "STT-via-Telegram bot (faster-whisper large-v3 on RTX 5070 Ti, EN/PT)";
+      After = [ "graphical-session.target" "network-online.target" ];
+      Wants = [ "network-online.target" ];
+      ConditionPathExists = [
+        "/dev/nvidia0"
+        "${sttViaTelegramRoot}/bot.sh"
+      ];
+    };
+    Service = {
+      Type = "simple";
+      WorkingDirectory = sttViaTelegramRoot;
+      ExecStart = "${sttViaTelegramRoot}/bot.sh";
+      EnvironmentFile = osConfig.sops.secrets."stt_via_telegram/env".path;
+      Environment = [
+        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
+        "STT_VIA_TELEGRAM_STATE_DIR=${sttViaTelegramState}"
+        "STT_VIA_TELEGRAM_DATA_DIR=${sttViaTelegramState}/data"
+      ];
+      Restart = "on-failure";
+      RestartSec = 10;
+      TimeoutStartSec = "10min";
     };
     Install = {
       WantedBy = [ "default.target" ];

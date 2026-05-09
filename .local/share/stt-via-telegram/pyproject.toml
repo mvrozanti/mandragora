@@ -1,0 +1,13 @@
+[project]
+name = "stt-via-telegram"
+version = "0.1.0"
+description = "Dedicated bilingual (PT/EN) speech-to-text Telegram bot, GPU-accelerated"
+requires-python = ">=3.11"
+dependencies = [
+  "python-telegram-bot[rate-limiter]>=21",
+  "python-dotenv>=1.0",
+  "faster-whisper>=1.2",
+  "ctranslate2>=4.5",
+  "nvidia-cublas-cu12",
+  "nvidia-cudnn-cu12>=9",
+]
