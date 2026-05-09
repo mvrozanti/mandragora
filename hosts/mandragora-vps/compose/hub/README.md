@@ -7,7 +7,7 @@ apex `mvrozanti.duckdns.org` redirect to it.
 
 | Container | Image | Hosts |
 |---|---|---|
-| `homepage` | `ghcr.io/gethomepage/homepage:v1.5` | `hub.mvrozanti.duckdns.org` (reverse proxy) + `mvrozanti.duckdns.org` (302 redirect to hub) |
+| `homepage` | `ghcr.io/gethomepage/homepage:v1.5` | `hub.mvrozanti.duckdns.org` (reverse proxy) + `mvrozanti.duckdns.org` (302→hub) + `gh.mvrozanti.duckdns.org` (302→`mvrozanti.github.io`) |
 
 The redirect labels live on the homepage container itself — no
 separate sidecar needed. Apex traffic hits the homepage container's
