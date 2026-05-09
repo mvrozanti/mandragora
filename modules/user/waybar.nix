@@ -62,7 +62,7 @@
           exec = "~/.config/waybar/scripts/brightness.sh status";
           interval = 5;
           signal = 12;
-          format = " {}";
+          format = " {}";
           on-click = "~/.config/waybar/scripts/brightness.sh toggle";
           on-scroll-up = "~/.config/waybar/scripts/brightness.sh increase";
           on-scroll-down = "~/.config/waybar/scripts/brightness.sh decrease";
