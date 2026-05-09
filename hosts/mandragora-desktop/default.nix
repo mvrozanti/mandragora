@@ -30,6 +30,7 @@
     ../../modules/desktop/minecraft.nix
     ../../modules/services/hub-services.nix
     ../../modules/services/ttyd.nix
+    ../../modules/services/slither-io.nix
     ../../modules/user/home-manager.nix
     ../../modules/audits/default.nix
   ];
