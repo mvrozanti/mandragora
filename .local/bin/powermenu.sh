@@ -60,9 +60,38 @@ ensure_daemon() {
 
 open_menu() {
   ensure_daemon
+  "${EWW[@]}" update powermenu-focus=0 >/dev/null 2>&1 || true
   "${EWW[@]}" open "$WIN"
   hyprctl dispatch submap powermenu >/dev/null
   install_outside_binds
+}
+
+ACTIONS=(lock suspend hibernate reboot poweroff)
+
+current_focus() {
+  local v
+  v=$("${EWW[@]}" get powermenu-focus 2>/dev/null | tr -d '"')
+  [[ "$v" =~ ^[0-9]+$ ]] || v=0
+  echo "$v"
+}
+
+set_focus() {
+  "${EWW[@]}" update "powermenu-focus=$1" >/dev/null
+}
+
+focus_step() {
+  local cur n=${#ACTIONS[@]}
+  cur=$(current_focus)
+  case "$1" in
+    next) set_focus $(( (cur + 1) % n )) ;;
+    prev) set_focus $(( (cur - 1 + n) % n )) ;;
+  esac
+}
+
+activate_focused() {
+  local cur
+  cur=$(current_focus)
+  run_action "${ACTIONS[$cur]}"
 }
 
 close_menu() {
@@ -122,6 +151,13 @@ case "${1:-toggle}" in
   lock|suspend|hibernate|reboot|poweroff)
     run_action "$1"
     ;;
+  focus)
+    case "${2:-}" in
+      next|prev) focus_step "$2" ;;
+      *) echo "usage: $0 focus {next|prev}" >&2; exit 2 ;;
+    esac
+    ;;
+  activate) activate_focused ;;
   panic) force_recover; "${EWW[@]}" close "$WIN" 2>/dev/null || true ;;
-  *) echo "usage: $0 {toggle|close|outside-click|lock|suspend|hibernate|reboot|poweroff|panic}" >&2; exit 2 ;;
+  *) echo "usage: $0 {toggle|close|outside-click|lock|suspend|hibernate|reboot|poweroff|focus next|focus prev|activate|panic}" >&2; exit 2 ;;
 esac
