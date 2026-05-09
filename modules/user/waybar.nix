@@ -33,7 +33,7 @@
 
         "group/actions" = {
           orientation = "horizontal";
-          modules = [ "custom/clipboard" "custom/screencap" "custom/powermenu" ];
+          modules = [ "custom/notif-menu" "custom/clipboard" "custom/screencap" "custom/powermenu" ];
         };
 
         "group/info" = {
@@ -232,6 +232,14 @@
           tooltip-format = "Clipboard history — left-click to pick, right-click to clear";
           on-click = "clipboard-menu";
           on-click-right = "clipboard-menu clear";
+        };
+
+        "custom/notif-menu" = {
+          format = "";
+          tooltip = true;
+          tooltip-format = "Notification history — left-click to browse, right-click to toggle DND";
+          on-click = "notif-menu";
+          on-click-right = "notif-menu dnd";
         };
 
         "custom/powermenu" = {
