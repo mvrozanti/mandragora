@@ -12,6 +12,12 @@ require_root() {
     fi
 }
 
+validate_token() {
+    local label="$1" value="$2"
+    [[ "$value" =~ ^[a-zA-Z0-9_-]{1,63}$ ]] \
+        || die "invalid $label: '$value' (must match ^[a-zA-Z0-9_-]{1,63}\$)"
+}
+
 confirm_typed() {
     local expected="$1"
     local prompt="$2"
