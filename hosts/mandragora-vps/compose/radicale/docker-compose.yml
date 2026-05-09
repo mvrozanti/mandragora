@@ -1,0 +1,35 @@
+services:
+
+  radicale:
+    image: ${RADICALE_IMAGE:-tomsquest/docker-radicale:3.5.4.0}
+    container_name: radicale
+    restart: unless-stopped
+    init: true
+    read_only: true
+    user: "2999:2999"
+    cap_drop: [ALL]
+    cap_add: [SETUID, SETGID, CHOWN, KILL]
+    tmpfs:
+      - /tmp:exec,size=4M,mode=1700
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          pids: 50
+    healthcheck:
+      test: curl -fsS --resolve radicale.docker.test:5232:127.0.0.1 http://radicale.docker.test:5232 || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - ${RADICALE_DATA_VOLUME:-./data}:/data
+      - ${RADICALE_CONFIG_VOLUME:-./config}:/config:ro
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://${RADICALE_HOSTNAME:-cal.mvr.ac}
+      caddy.reverse_proxy: "{{upstreams 5232}}"
+
+networks:
+  seafile-net:
+    external: true
