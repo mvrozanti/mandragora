@@ -65,8 +65,10 @@
   :namespace "eww-screencap-preview"
   (screencap-preview-body))
 
-(defwidget powermenu-tile [icon label cls cmd]
-  (button :class {"powermenu-btn ${cls}"}
+(defvar powermenu-focus "0")
+
+(defwidget powermenu-tile [icon label cls cmd index]
+  (button :class {"powermenu-btn ${cls} ${powermenu-focus == index ? "focused" : ""}"}
           :onclick "powermenu ${cmd} &"
     (box :orientation "v" :space-evenly false :spacing 4
       (label :class "powermenu-icon" :text icon)
@@ -76,12 +78,12 @@
   (box :class "powermenu" :orientation "v" :space-evenly false :spacing 8
     (label :class "powermenu-title" :text "Power Menu")
     (box :orientation "h" :space-evenly true :spacing 10
-      (powermenu-tile :icon "" :label "Lock"      :cls "lock"      :cmd "lock")
-      (powermenu-tile :icon "" :label "Suspend"   :cls "suspend"   :cmd "suspend")
-      (powermenu-tile :icon "" :label "Hibernate" :cls "hibernate" :cmd "hibernate"))
+      (powermenu-tile :icon "󰌾" :label "Lock"      :cls "lock"      :cmd "lock"      :index "0")
+      (powermenu-tile :icon "󰤄" :label "Suspend"   :cls "suspend"   :cmd "suspend"   :index "1")
+      (powermenu-tile :icon "󰜗" :label "Hibernate" :cls "hibernate" :cmd "hibernate" :index "2"))
     (box :orientation "h" :space-evenly true :spacing 10
-      (powermenu-tile :icon "" :label "Reboot"   :cls "reboot"   :cmd "reboot")
-      (powermenu-tile :icon "" :label "Poweroff" :cls "poweroff" :cmd "poweroff"))))
+      (powermenu-tile :icon "󰜉" :label "Reboot"   :cls "reboot"   :cmd "reboot"   :index "3")
+      (powermenu-tile :icon "󰐥" :label "Poweroff" :cls "poweroff" :cmd "poweroff" :index "4"))))
 
 (defwindow powermenu
   :monitor 0
