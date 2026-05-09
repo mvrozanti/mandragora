@@ -29,6 +29,11 @@ window#waybar {
     border-radius: 12px;
     padding: 0 4px;
     margin: 4px 4px;
+    border-bottom: 2px solid transparent;
+}
+
+#network {
+    border-bottom-color: @color3;
 }
 
 #custom-brightness {
@@ -98,12 +103,10 @@ tooltip {
 #custom-network {
     padding: 0 8px;
     min-width: 180px;
-    border-bottom: 2px solid @color3;
 }
 
 #custom-network.disconnected {
     color: @color8;
-    border-bottom: 2px solid @color8;
 }
 
 #cpu {
