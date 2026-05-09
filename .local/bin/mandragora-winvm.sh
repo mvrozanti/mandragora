@@ -113,10 +113,10 @@ mandragora-winvm — libvirt-managed Windows 11 testbed
 USAGE
 }
 
-cmd="${1:-help}"; shift || true
+cmd="${1:-console}"; shift || true
 case "$cmd" in
   import|start|shutdown|kill|console|status|snapshots|ip|undefine) "cmd_$cmd" ;;
   snap|revert|ssh) "cmd_$cmd" "$@" ;;
-  help|-h|--help|"") usage ;;
+  help|-h|--help) usage ;;
   *) echo "unknown command: $cmd" >&2; usage; exit 2 ;;
 esac
