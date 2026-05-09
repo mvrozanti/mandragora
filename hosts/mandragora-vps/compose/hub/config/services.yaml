@@ -3,6 +3,10 @@
         href: https://seafile.mvrozanti.duckdns.org
         description: Personal cloud storage and file sync
         icon: seafile.svg
+    - microbin (paste):
+        href: https://paste.mvrozanti.duckdns.org
+        description: Tailnet-only paste service
+        icon: pastebin.svg
 
 - Code:
     - GitHub Pages:
@@ -13,11 +17,21 @@
         href: https://gh.mvrozanti.duckdns.org
         description: Subdomain redirect to GitHub Pages
         icon: github.svg
+    - slither-io simulator:
+        href: https://slither.mvrozanti.duckdns.org/simulator.html
+        description: Browser sim + training dashboard (RL agent on snake game)
+        icon: si-python.svg
+
+- Tailnet:
+    - ttyd terminal:
+        href: https://term.mvrozanti.duckdns.org
+        description: Web shell on the desktop, tailnet-only
+        icon: si-gnometerminal.svg
 
 - Internal:
     - llm-via-telegram:
-        description: Local LLM Telegram bot (polling, internal-only)
+        description: Local LLM Telegram bot (polling, no inbound surface)
         icon: telegram.svg
     - im-gen:
-        description: Image-generation Telegram bot (polling, internal-only)
+        description: Image-generation Telegram bot (polling, no inbound surface)
         icon: telegram.svg
