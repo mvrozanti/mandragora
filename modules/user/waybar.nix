@@ -165,7 +165,7 @@
         };
         "custom/gpu" = {
           format = "  {}%";
-          exec = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits";
+          exec = "${pkgs.bash}/bin/bash -c 'nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null || echo -'";
           interval = 5;
         };
 
