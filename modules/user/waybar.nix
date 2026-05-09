@@ -14,7 +14,32 @@
 
         modules-left = [ "hyprland/workspaces" ];
         modules-center = [ "custom/mpd" ];
-        modules-right = [ "custom/volume" "custom/brightness" "bluetooth" "disk" "memory" "temperature" "cpu" "custom/gpu" "custom/network" "custom/weather" "clock" "custom/screencap" "custom/powermenu" "tray" ];
+        modules-right = [ "group/audio" "group/hardware" "group/network" "group/actions" "group/info" "tray" ];
+
+        "group/audio" = {
+          orientation = "horizontal";
+          modules = [ "custom/volume" "bluetooth" ];
+        };
+
+        "group/hardware" = {
+          orientation = "horizontal";
+          modules = [ "disk" "memory" "temperature" "cpu" "custom/gpu" ];
+        };
+
+        "group/network" = {
+          orientation = "horizontal";
+          modules = [ "custom/network" ];
+        };
+
+        "group/actions" = {
+          orientation = "horizontal";
+          modules = [ "custom/screencap" "custom/powermenu" ];
+        };
+
+        "group/info" = {
+          orientation = "horizontal";
+          modules = [ "custom/weather" "clock" "custom/brightness" ];
+        };
 
         "hyprland/workspaces" = {
           format = "{icon}";
@@ -63,11 +88,11 @@
           exec = "~/.config/waybar/scripts/brightness.sh status";
           interval = 5;
           signal = 12;
-          format = " {}";
+          format = "";
+          tooltip-format = "Brightness: {}";
           on-click = "~/.config/waybar/scripts/brightness.sh toggle";
           on-scroll-up = "~/.config/waybar/scripts/brightness.sh increase";
           on-scroll-down = "~/.config/waybar/scripts/brightness.sh decrease";
-          tooltip = false;
         };
 
         bluetooth = {
