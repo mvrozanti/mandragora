@@ -27,6 +27,10 @@
         href: https://term.mvrozanti.duckdns.org
         description: Web shell on the desktop, tailnet-only
         icon: si-gnometerminal.svg
+    - Grafana (mandragora):
+        href: https://grafana.mvrozanti.duckdns.org
+        description: System dashboard — CPU/GPU/disk/network/eBPF
+        icon: grafana.svg
 
 - Internal:
     - llm-via-telegram:
