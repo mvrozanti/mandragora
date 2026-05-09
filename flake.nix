@@ -49,6 +49,7 @@
         ./modules/shared/profile.nix
         ./modules/shared/zsh.nix
         ./modules/shared/nvim.nix
+        { system.configurationRevision = self.rev or self.dirtyRev or "dirty"; }
       ];
 
       mkSystem = name: nixpkgs.lib.nixosSystem {
