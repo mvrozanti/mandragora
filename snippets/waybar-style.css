@@ -150,6 +150,32 @@ tooltip {
     color: @color3;
 }
 
+#custom-mpd-prev,
+#custom-mpd-toggle,
+#custom-mpd-next,
+#custom-mpd-single,
+#custom-mpd-random {
+    padding: 0 6px;
+    color: @foreground;
+    transition: color 120ms ease;
+}
+
+#custom-mpd-prev:hover,
+#custom-mpd-toggle:hover,
+#custom-mpd-next:hover {
+    color: @color4;
+}
+
+#custom-mpd-single.off,
+#custom-mpd-random.off {
+    color: @color8;
+}
+
+#custom-mpd-single.on,
+#custom-mpd-random.on {
+    color: @color4;
+}
+
 #idle-inhibitor {
     padding: 0 8px;
     color: @color8;
