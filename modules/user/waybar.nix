@@ -72,7 +72,7 @@
         };
 
         "custom/mpd-prev" = {
-          format = "";
+          format = "";
           on-click = "mpc prev";
           tooltip = false;
         };
@@ -85,7 +85,7 @@
         };
 
         "custom/mpd-next" = {
-          format = "";
+          format = "";
           on-click = "mpc next";
           tooltip = false;
         };
