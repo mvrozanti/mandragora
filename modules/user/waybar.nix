@@ -33,7 +33,7 @@
 
         "group/actions" = {
           orientation = "horizontal";
-          modules = [ "custom/notif-menu" "custom/clipboard" "custom/screencap" "custom/powermenu" ];
+          modules = [ "custom/notif-menu" "custom/screencap" "custom/clipboard" "custom/powermenu" ];
         };
 
         "group/info" = {
