@@ -49,7 +49,12 @@
         ./modules/shared/profile.nix
         ./modules/shared/zsh.nix
         ./modules/shared/nvim.nix
-        { system.configurationRevision = self.rev or self.dirtyRev or "dirty"; }
+        (let rev = self.rev or self.dirtyRev or "dirty"; in {
+          system.configurationRevision = rev;
+          system.systemBuilderCommands = ''
+            echo -n "${rev}" > $out/git-revision
+          '';
+        })
       ];
 
       mkSystem = name: nixpkgs.lib.nixosSystem {
