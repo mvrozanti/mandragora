@@ -29,14 +29,9 @@ done
 
 require_root
 
-_validate_token() {
-    local label="$1" value="$2"
-    [[ "$value" =~ ^[a-zA-Z0-9_-]{1,63}$ ]] \
-        || die "invalid $label: '$value' (must match ^[a-zA-Z0-9_-]{1,63}$)"
-}
-[[ -n "$HOSTNAME"  ]] && _validate_token hostname "$HOSTNAME"
-[[ -n "$USER_NAME" ]] && _validate_token user     "$USER_NAME"
-[[ -n "$KEYMAP"    ]] && _validate_token keymap   "$KEYMAP"
+[[ -n "$HOSTNAME"  ]] && validate_token hostname "$HOSTNAME"
+[[ -n "$USER_NAME" ]] && validate_token user     "$USER_NAME"
+[[ -n "$KEYMAP"    ]] && validate_token keymap   "$KEYMAP"
 
 if (( UPDATE )); then
     if ping -c1 -W3 github.com >/dev/null 2>&1; then
@@ -104,9 +99,9 @@ if (( ! AUTO )); then
     read -rp "Keymap [$KEYMAP]: " input; KEYMAP="${input:-$KEYMAP}"
 fi
 
-_validate_token hostname "$HOSTNAME"
-_validate_token user     "$USER_NAME"
-_validate_token keymap   "$KEYMAP"
+validate_token hostname "$HOSTNAME"
+validate_token user     "$USER_NAME"
+validate_token keymap   "$KEYMAP"
 
 log_info "Formatting $TARGET..."
 bash "$DIR/format.sh" "$TARGET"
