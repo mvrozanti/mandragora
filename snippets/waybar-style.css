@@ -188,6 +188,18 @@ tooltip {
     border-bottom: 2px solid @color6;
 }
 
+#custom-clipboard {
+    padding: 0 10px;
+    color: @foreground;
+    border-bottom: 2px solid transparent;
+    transition: color 120ms ease, border-bottom-color 120ms ease;
+}
+
+#custom-clipboard:hover {
+    color: @color3;
+    border-bottom: 2px solid @color3;
+}
+
 #tray {
     padding: 0 8px;
 }
