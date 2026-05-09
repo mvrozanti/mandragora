@@ -23,7 +23,7 @@ services:
     networks:
       - seafile-net
     labels:
-      caddy: https://${PASTE_HOSTNAME:-paste.mvrozanti.duckdns.org}
+      caddy: https://${PASTE_HOSTNAME:-paste.mvrozanti.duckdns.org}, https://paste.${MVR_AC:-mvr.ac}
       caddy.0_@notTailnet: not remote_ip 100.64.0.0/10
       caddy.1_respond: "@notTailnet 403"
       caddy.2_reverse_proxy: "{{upstreams 8080}}"

@@ -44,4 +44,28 @@ Edit YAML, then `docker restart homepage`. Files:
 - `HUB_HOSTNAME` (default: `hub.mvrozanti.duckdns.org`)
 - `SEAFILE_SERVER_HOSTNAME` (default: `mvrozanti.duckdns.org` — used
   for the apex-redirect label)
+- `MVR_AC` (default: `mvr.ac` — vanity domain; subdomains constructed
+  as `<svc>.${MVR_AC}` alongside the duckdns equivalents)
 - `HOMEPAGE_IMAGE`, `HUB_CONFIG_VOLUME` — image/volume overrides
+
+## DNS records for `mvr.ac`
+
+Set these at the registrar (the rest are tracked here for reference):
+
+| Host | Type | Value | Purpose |
+|---|---|---|---|
+| `mvr.ac` (apex) | A | `185.199.108.153` | GitHub Pages anycast |
+| `mvr.ac` (apex) | A | `185.199.109.153` | GitHub Pages anycast |
+| `mvr.ac` (apex) | A | `185.199.110.153` | GitHub Pages anycast |
+| `mvr.ac` (apex) | A | `185.199.111.153` | GitHub Pages anycast |
+| `mvr.ac` (apex) | AAAA | `2606:50c0:8000::153` (and `8001`/`8002`/`8003::153`) | optional IPv6 to GH Pages |
+| `www` | CNAME | `mvrozanti.github.io.` | GH redirects www→apex |
+| `*` | A | `146.235.51.189` | wildcard → Oracle VPS (covers hub./seafile./term./paste./slither./grafana./cal.) |
+
+The wildcard `*` keeps the registrar config short — every new
+subdomain we add to the hub Just Works without touching DNS.
+
+The apex (`mvr.ac` itself) is **not** routed through Caddy on the
+VPS — it goes directly to GitHub Pages. The CNAME file in the
+`mvrozanti.github.io` repo's `public/` directory makes Pages claim
+the custom domain.

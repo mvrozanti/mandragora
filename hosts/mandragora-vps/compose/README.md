@@ -15,6 +15,7 @@ either side must be mirrored.
 | `crypto-fetcher/docker-compose.yml` | Binance fetcher + redis | `/home/opc/crypto-experiments/crypto-fetcher/` |
 | `hub/docker-compose.yml` (+ `config/`) | Homepage dashboard + apex→hub 302 | `/home/opc/hub/` |
 | `microbin/docker-compose.yml` | Tailnet-only paste service (paste.subdomain) | `/home/opc/microbin/` |
+| `radicale/docker-compose.yml` (+ `config/`) | CalDAV / CardDAV server (cal.mvr.ac) | `/home/opc/radicale/` |
 
 The Seafile project is invoked with all three YAMLs explicitly:
 ```
