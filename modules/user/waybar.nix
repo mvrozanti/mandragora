@@ -13,12 +13,12 @@
         spacing = 6;
 
         modules-left = [ "hyprland/workspaces" ];
-        modules-center = [ "custom/mpd" ];
-        modules-right = [ "group/audio" "group/hardware" "group/network" "group/actions" "group/info" "tray" ];
+        modules-center = [ ];
+        modules-right = [ "group/audio" "group/hardware" "group/network" "group/info" "group/actions" "tray" ];
 
         "group/audio" = {
           orientation = "horizontal";
-          modules = [ "custom/volume" "bluetooth" ];
+          modules = [ "custom/mpd" "custom/volume" "bluetooth" ];
         };
 
         "group/hardware" = {
