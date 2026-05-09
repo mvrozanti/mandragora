@@ -19,6 +19,10 @@ services:
       caddy_1.redir: "https://${HUB_HOSTNAME:-hub.mvrozanti.duckdns.org}{uri} 302"
       caddy_2: https://gh.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
       caddy_2.redir: "https://mvrozanti.github.io{uri} 302"
+      caddy_3: https://term.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
+      caddy_3.0_@notTailnet: not remote_ip 100.64.0.0/10
+      caddy_3.1_respond: "@notTailnet 403"
+      caddy_3.2_reverse_proxy: "host.docker.internal:7681"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/healthcheck || exit 1"]
       interval: 30s
