@@ -33,7 +33,7 @@
 
         "group/actions" = {
           orientation = "horizontal";
-          modules = [ "custom/screencap" "custom/powermenu" ];
+          modules = [ "custom/clipboard" "custom/screencap" "custom/powermenu" ];
         };
 
         "group/info" = {
@@ -194,6 +194,14 @@
         tray = {
           spacing = 8;
           show-passive-items = true;
+        };
+
+        "custom/clipboard" = {
+          format = "";
+          tooltip = true;
+          tooltip-format = "Clipboard history — left-click to pick, right-click to clear";
+          on-click = "clipboard-menu";
+          on-click-right = "clipboard-menu clear";
         };
 
         "custom/powermenu" = {
