@@ -1,0 +1,18 @@
+title: mandragora hub
+headerStyle: clean
+language: en
+theme: dark
+color: slate
+target: _blank
+disableCollapse: false
+hideVersion: true
+layout:
+  Cloud:
+    style: row
+    columns: 3
+  Code:
+    style: row
+    columns: 3
+  Internal:
+    style: row
+    columns: 3

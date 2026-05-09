@@ -1,0 +1,28 @@
+services:
+
+  homepage:
+    image: ${HOMEPAGE_IMAGE:-ghcr.io/gethomepage/homepage:v1.5}
+    container_name: homepage
+    restart: unless-stopped
+    environment:
+      - HOMEPAGE_ALLOWED_HOSTS=${HUB_HOSTNAME:-hub.mvrozanti.duckdns.org}
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - ${HUB_CONFIG_VOLUME:-./config}:/app/config
+    networks:
+      - seafile-net
+    labels:
+      caddy_0: https://${HUB_HOSTNAME:-hub.mvrozanti.duckdns.org}
+      caddy_0.reverse_proxy: "{{upstreams 3000}}"
+      caddy_1: https://${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
+      caddy_1.redir: "https://${HUB_HOSTNAME:-hub.mvrozanti.duckdns.org}{uri} 302"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/healthcheck || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true

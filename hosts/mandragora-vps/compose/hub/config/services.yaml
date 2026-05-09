@@ -1,0 +1,23 @@
+- Cloud:
+    - Seafile:
+        href: https://seafile.mvrozanti.duckdns.org
+        description: Personal cloud storage and file sync
+        icon: seafile.svg
+
+- Code:
+    - GitHub Pages:
+        href: https://mvrozanti.github.io
+        description: Personal site
+        icon: github.svg
+    - GitHub Pages (mirror):
+        href: https://gh.mvrozanti.duckdns.org
+        description: Subdomain redirect to GitHub Pages
+        icon: github.svg
+
+- Internal:
+    - llm-via-telegram:
+        description: Local LLM Telegram bot (polling, internal-only)
+        icon: telegram.svg
+    - im-gen:
+        description: Image-generation Telegram bot (polling, internal-only)
+        icon: telegram.svg
