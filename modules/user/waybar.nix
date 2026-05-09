@@ -32,6 +32,7 @@
             "18" = "<span size=\"large\"></span>";
             "7" = "<span size=\"large\"></span>";
             "10" = "♟";
+            "14" = "";
             "23" = "";
             "27" = "";
             "41" = "<span font_family=\"Font Awesome 7 Brands\" size=\"x-large\"></span>";
