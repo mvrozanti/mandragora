@@ -3,7 +3,7 @@
 let
   cfg = config.services.mandragora-seafile;
 
-  serverUrl = "https://mvrozanti.duckdns.org";
+  serverUrl = "https://seafile.mvrozanti.duckdns.org";
   serverEmail = "mvrozanti@hotmail.com";
   seafDataParent = "/home/m/.seaf";
 
