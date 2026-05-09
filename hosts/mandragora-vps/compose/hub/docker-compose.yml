@@ -17,6 +17,8 @@ services:
       caddy_0.reverse_proxy: "{{upstreams 3000}}"
       caddy_1: https://${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
       caddy_1.redir: "https://${HUB_HOSTNAME:-hub.mvrozanti.duckdns.org}{uri} 302"
+      caddy_2: https://gh.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
+      caddy_2.redir: "https://mvrozanti.github.io{uri} 302"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/healthcheck || exit 1"]
       interval: 30s
