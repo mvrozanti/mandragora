@@ -165,7 +165,10 @@
         };
         "custom/gpu" = {
           format = "  {}%";
-          exec = "${pkgs.bash}/bin/bash -c 'nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null || echo -'";
+          exec = toString (pkgs.writeShellScript "gpu-util" ''
+            v=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null)
+            if [[ "$v" =~ ^[0-9]+$ ]]; then echo "$v"; else echo "-"; fi
+          '');
           interval = 5;
         };
 
