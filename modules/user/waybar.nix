@@ -18,7 +18,7 @@
 
         "group/audio" = {
           orientation = "horizontal";
-          modules = [ "custom/mpd" "custom/volume" "bluetooth" ];
+          modules = [ "custom/mpd" "custom/mpd-prev" "custom/mpd-toggle" "custom/mpd-next" "custom/mpd-single" "custom/mpd-random" "custom/volume" "bluetooth" ];
         };
 
         "group/hardware" = {
@@ -68,10 +68,40 @@
         "custom/mpd" = {
           exec = "~/.config/waybar/scripts/mpd-status.sh";
           return-type = "json";
+          on-click = "kitty --class ncmpcpp -o close_on_child_death=yes -e ncmpcpp";
+        };
+
+        "custom/mpd-prev" = {
+          format = "";
+          on-click = "mpc prev";
+          tooltip = false;
+        };
+
+        "custom/mpd-toggle" = {
+          exec = "~/.config/waybar/scripts/mpd-controls.sh toggle";
+          return-type = "json";
           on-click = "mpc toggle";
-          on-click-right = "kitty --class ncmpcpp -o close_on_child_death=yes -e ncmpcpp";
-          on-scroll-up = "mpc next";
-          on-scroll-down = "mpc prev";
+          tooltip = false;
+        };
+
+        "custom/mpd-next" = {
+          format = "";
+          on-click = "mpc next";
+          tooltip = false;
+        };
+
+        "custom/mpd-single" = {
+          exec = "~/.config/waybar/scripts/mpd-controls.sh single";
+          return-type = "json";
+          on-click = "mpc single";
+          tooltip = false;
+        };
+
+        "custom/mpd-random" = {
+          exec = "~/.config/waybar/scripts/mpd-controls.sh random";
+          return-type = "json";
+          on-click = "mpc random";
+          tooltip = false;
         };
 
         "custom/volume" = {

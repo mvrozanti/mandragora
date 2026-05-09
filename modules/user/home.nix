@@ -834,6 +834,10 @@ EOF
     source = ../../snippets/waybar-mpd.sh;
     executable = true;
   };
+  home.file.".config/waybar/scripts/mpd-controls.sh" = {
+    source = ../../snippets/waybar-mpd-controls.sh;
+    executable = true;
+  };
   home.file.".config/waybar/scripts/volume-ramp.sh" = {
     source = ../../snippets/waybar-volume-ramp.sh;
     executable = true;
