@@ -12,7 +12,16 @@
       if [ -L "$link" ]; then
         ts=$(${pkgs.coreutils}/bin/stat -c %Y "$link")
         date=$(${pkgs.coreutils}/bin/date -d "@''${ts}" '+%Y-%m-%d %H:%M')
-        ${pkgs.gnused}/bin/sed -i "s|^version .*|version Generation ''${gen}, ''${date}|" "$entry"
+        rev=""
+        if [ -r "$link/svn-revision" ]; then
+          rev=$(${pkgs.coreutils}/bin/head -c 7 "$link/svn-revision")
+        fi
+        if [ -n "$rev" ]; then
+          version="Generation ''${gen}, ''${rev}, ''${date}"
+        else
+          version="Generation ''${gen}, ''${date}"
+        fi
+        ${pkgs.gnused}/bin/sed -i "s|^version .*|version ''${version}|" "$entry"
       fi
     done
   '';
