@@ -51,6 +51,10 @@ case "$mime" in
         setsid zathura -- "$file" >/dev/null 2>&1 &
         ;;
     
+    application/vnd.openxmlformats-officedocument.*|application/msword|application/vnd.ms-excel|application/vnd.ms-powerpoint|application/vnd.oasis.opendocument.*)
+        setsid libreoffice -- "$file" >/dev/null 2>&1 &
+        ;;
+    
     text/*)
         nvim "$file"
         ;;
