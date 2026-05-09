@@ -21,4 +21,5 @@
   V = "~/Documents/mandragora-desktop-obsidian-vault";
   G = "~/Games";
   w = "~/Pictures/wllpps";
+  b = "/home/m/Documents/library/books";
 }
