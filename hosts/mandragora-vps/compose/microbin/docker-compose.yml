@@ -1,0 +1,33 @@
+services:
+
+  microbin:
+    image: ${MICROBIN_IMAGE:-danielszabo99/microbin:latest}
+    container_name: microbin
+    restart: unless-stopped
+    environment:
+      - MICROBIN_PUBLIC_PATH=https://${PASTE_HOSTNAME:-paste.mvrozanti.duckdns.org}
+      - MICROBIN_BIND=0.0.0.0
+      - MICROBIN_PORT=8080
+      - MICROBIN_TITLE=mandragora paste
+      - MICROBIN_HIDE_FOOTER=true
+      - MICROBIN_HIDE_HEADER=false
+      - MICROBIN_HIDE_LOGO=false
+      - MICROBIN_NO_LISTING=true
+      - MICROBIN_HIGHLIGHTSYNTAX=true
+      - MICROBIN_AUTH_USERNAME=${MICROBIN_AUTH_USERNAME:?Variable is not set or empty}
+      - MICROBIN_AUTH_PASSWORD=${MICROBIN_AUTH_PASSWORD:?Variable is not set or empty}
+      - MICROBIN_DEFAULT_EXPIRY=1day
+      - MICROBIN_QR=true
+    volumes:
+      - ${MICROBIN_DATA_VOLUME:-./data}:/app/pasta_data
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://${PASTE_HOSTNAME:-paste.mvrozanti.duckdns.org}
+      caddy.0_@notTailnet: not remote_ip 100.64.0.0/10
+      caddy.1_respond: "@notTailnet 403"
+      caddy.2_reverse_proxy: "{{upstreams 8080}}"
+
+networks:
+  seafile-net:
+    external: true

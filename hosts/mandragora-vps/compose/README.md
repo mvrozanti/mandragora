@@ -14,6 +14,7 @@ either side must be mirrored.
 | `seafile/seafile-server.yml` + `caddy.yml` + `seadoc.yml` | Seafile + seadoc + per-stack Caddy | `/home/opc/seafile/` |
 | `crypto-fetcher/docker-compose.yml` | Binance fetcher + redis | `/home/opc/crypto-experiments/crypto-fetcher/` |
 | `hub/docker-compose.yml` (+ `config/`) | Homepage dashboard + apex→hub 302 | `/home/opc/hub/` |
+| `microbin/docker-compose.yml` | Tailnet-only paste service (paste.subdomain) | `/home/opc/microbin/` |
 
 The Seafile project is invoked with all three YAMLs explicitly:
 ```
