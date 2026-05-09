@@ -26,6 +26,13 @@ services:
       caddy.2_handle_path: "/sdoc-server/*"
       caddy.2_handle_path.0_rewrite: "* {uri}"
       caddy.2_handle_path.1_reverse_proxy: "{{upstreams 80}}"
+      caddy_1: ${SEAFILE_SERVER_PROTOCOL:-http}://seafile.${MVR_AC:-mvr.ac}
+      caddy_1.1_handle_path: "/socket.io/*"
+      caddy_1.1_handle_path.0_rewrite: "* /socket.io{uri}"
+      caddy_1.1_handle_path.1_reverse_proxy: "{{upstreams 80}}"
+      caddy_1.2_handle_path: "/sdoc-server/*"
+      caddy_1.2_handle_path.0_rewrite: "* {uri}"
+      caddy_1.2_handle_path.1_reverse_proxy: "{{upstreams 80}}"
     depends_on:
       db:
         condition: service_healthy
