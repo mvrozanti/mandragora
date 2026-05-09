@@ -23,6 +23,8 @@ services:
       caddy_3.0_@notTailnet: not remote_ip 100.64.0.0/10
       caddy_3.1_respond: "@notTailnet 403"
       caddy_3.2_reverse_proxy: "host.docker.internal:7681"
+      caddy_3.2_reverse_proxy.transport: http
+      caddy_3.2_reverse_proxy.transport.versions: "1.1"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/healthcheck || exit 1"]
       interval: 30s
