@@ -18,6 +18,7 @@
   M = "~/Music";
   P = "~/Pictures";
   v = "~/Videos";
+  V = "~/Documents/mandragora-desktop-obsidian-vault";
   G = "~/Games";
   w = "~/Pictures/wllpps";
 }
