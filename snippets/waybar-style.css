@@ -14,8 +14,26 @@
 }
 
 window#waybar {
-    background: alpha(@background, 0.6);
+    background: transparent;
     color: @foreground;
+}
+
+#workspaces,
+#custom-mpd,
+#audio,
+#hardware,
+#network,
+#actions,
+#info,
+#tray {
+    background: alpha(@background, 0.6);
+    border-radius: 12px;
+    padding: 0 4px;
+    margin: 4px 4px;
+}
+
+#custom-brightness {
+    padding: 0 8px;
 }
 
 tooltip {
