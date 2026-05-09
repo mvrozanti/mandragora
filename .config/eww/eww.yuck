@@ -61,49 +61,28 @@
   :namespace "eww-screencap-preview"
   (screencap-preview-body))
 
-(defwidget powermenu-card []
+(defwidget powermenu-tile [icon label cls cmd]
+  (button :class {"powermenu-btn ${cls}"}
+          :onclick "powermenu ${cmd} &"
+    (box :orientation "v" :space-evenly false :spacing 4
+      (label :class "powermenu-icon" :text icon)
+      (label :class "powermenu-label" :text label))))
+
+(defwidget powermenu-body []
   (box :class "powermenu" :orientation "v" :space-evenly false :spacing 8
     (label :class "powermenu-title" :text "Power Menu")
     (box :orientation "h" :space-evenly true :spacing 10
-      (button :class "powermenu-btn lock"
-              :onclick "powermenu-close; hyprlock"
-        (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
-          (label :class "powermenu-label" :text "Lock")))
-      (button :class "powermenu-btn suspend"
-              :onclick "powermenu-close; systemctl suspend"
-        (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
-          (label :class "powermenu-label" :text "Suspend")))
-      (button :class "powermenu-btn hibernate"
-              :onclick "powermenu-close; systemctl hibernate"
-        (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
-          (label :class "powermenu-label" :text "Hibernate"))))
+      (powermenu-tile :icon "" :label "Lock"      :cls "lock"      :cmd "lock")
+      (powermenu-tile :icon "" :label "Suspend"   :cls "suspend"   :cmd "suspend")
+      (powermenu-tile :icon "" :label "Hibernate" :cls "hibernate" :cmd "hibernate"))
     (box :orientation "h" :space-evenly true :spacing 10
-      (button :class "powermenu-btn reboot"
-              :onclick "powermenu-close; systemctl reboot"
-        (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
-          (label :class "powermenu-label" :text "Reboot")))
-      (button :class "powermenu-btn poweroff"
-              :onclick "powermenu-close; systemctl poweroff"
-        (box :orientation "v" :space-evenly false :spacing 4
-          (label :class "powermenu-icon" :text "")
-          (label :class "powermenu-label" :text "Poweroff"))))))
-
-(defwidget powermenu-body []
-  (eventbox :class "powermenu-catcher" :onclick "powermenu-close"
-    (box :orientation "v" :hexpand true :vexpand true
-         :valign "end" :halign "end"
-      (box :orientation "v" :space-evenly false
-        (powermenu-card)
-        (box :class "powermenu-spacer-bottom")))))
+      (powermenu-tile :icon "" :label "Reboot"   :cls "reboot"   :cmd "reboot")
+      (powermenu-tile :icon "" :label "Poweroff" :cls "poweroff" :cmd "poweroff"))))
 
 (defwindow powermenu
   :monitor 0
   :stacking "overlay"
-  :focusable false
-  :geometry (geometry :anchor "top left" :x 0 :y 0 :width "100%" :height "100%")
+  :focusable "exclusive"
+  :geometry (geometry :anchor "bottom right" :x 12 :y 56 :width 380 :height 240)
   :namespace "eww-powermenu"
   (powermenu-body))
