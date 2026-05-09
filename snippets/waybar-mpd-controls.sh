@@ -9,10 +9,10 @@ emit() {
         toggle)
             state=$(mpc status 2>/dev/null | sed -n '2s/^\[\(.*\)\].*/\1/p')
             if [[ "$state" = playing ]]; then
-                glyph=$'\ue9a4'
+                glyph=$'\uf04c'
                 class=playing
             else
-                glyph=$'\ue9af'
+                glyph=$'\uf04b'
                 class=paused
             fi
             ;;
