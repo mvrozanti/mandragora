@@ -234,8 +234,7 @@ in
     (pkgs.writeShellScriptBin "rofi-wallpaper-picker" (builtins.readFile ../../.local/bin/rofi-wallpaper-picker.sh))
     (pkgs.writeShellScriptBin "clipboard-menu" (builtins.readFile ../../.local/bin/clipboard-menu.sh))
     (pkgs.writeShellScriptBin "notif-menu" (builtins.readFile ../../.local/bin/notif-menu.sh))
-    (pkgs.writeShellScriptBin "powermenu-toggle" (builtins.readFile ../../.local/bin/powermenu-toggle.sh))
-    (pkgs.writeShellScriptBin "powermenu-close" (builtins.readFile ../../.local/bin/powermenu-close.sh))
+    (pkgs.writeShellScriptBin "powermenu" (builtins.readFile ../../.local/bin/powermenu.sh))
     (pkgs.writeShellScriptBin "screencap" (builtins.readFile ../../.local/bin/screencap.sh))
     (pkgs.writeShellScriptBin "capture" (builtins.readFile ../../.local/bin/capture.sh))
     (pkgs.writeShellScriptBin "compv" (builtins.readFile ../../.local/bin/compv.sh))
@@ -298,8 +297,6 @@ in
     (pkgs.writeShellScriptBin "resize-window" (builtins.readFile ../../.local/bin/resize-window.sh))
     (pkgs.writeShellScriptBin "scratchpad" (builtins.readFile ../../.local/bin/scratchpad.sh))
     (pkgs.writeShellScriptBin "scratchpad-summon" (builtins.readFile ../../.local/bin/scratchpad-summon.sh))
-    (pkgs.writeShellScriptBin "powermenu-toggle" (builtins.readFile ../../.local/bin/powermenu-toggle.sh))
-    (pkgs.writeShellScriptBin "powermenu-close" (builtins.readFile ../../.local/bin/powermenu-close.sh))
     (pkgs.writeShellScriptBin "imagine" (builtins.readFile ../../.local/bin/imagine.sh))
   ];
 

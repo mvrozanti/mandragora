@@ -248,7 +248,7 @@
         "custom/powermenu" = {
           format = "";
           tooltip = false;
-          on-click = "powermenu-toggle";
+          on-click = "powermenu toggle";
         };
       };
     };
