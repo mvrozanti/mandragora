@@ -21,6 +21,8 @@ in
 {
   mandragora.profile = "live";
 
+  environment.etc."mandragora-live".text = "1\n";
+
   networking.hostName = "mandragora-usb";
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
