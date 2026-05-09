@@ -97,7 +97,7 @@ run_action() {
   close_menu
   wait_layer_gone
   case "$1" in
-    shot-region|shot-full|vid-none-region|vid-none-full|vid-mic-region|vid-mic-full|vid-sys-region|vid-sys-full)
+    shot-region|shot-full|shot-window|vid-none-region|vid-none-full|vid-none-window|vid-mic-region|vid-mic-full|vid-mic-window|vid-sys-region|vid-sys-full|vid-sys-window)
       screencap "$1"
       ;;
     *) echo "unknown action: $1" >&2; return 1 ;;
@@ -132,10 +132,10 @@ case "${1:-toggle}" in
       close_menu
     fi
     ;;
-  shot-region|shot-full|vid-none-region|vid-none-full|vid-mic-region|vid-mic-full|vid-sys-region|vid-sys-full)
+  shot-region|shot-full|shot-window|vid-none-region|vid-none-full|vid-none-window|vid-mic-region|vid-mic-full|vid-mic-window|vid-sys-region|vid-sys-full|vid-sys-window)
     run_action "$1"
     ;;
   stop) close_menu; screencap stop ;;
   panic) force_recover; "${EWW[@]}" close "$WIN" 2>/dev/null || true ;;
-  *) echo "usage: $0 {toggle|close|outside-click|shot-region|shot-full|vid-{none,mic,sys}-{region,full}|stop|panic}" >&2; exit 2 ;;
+  *) echo "usage: $0 {toggle|close|outside-click|shot-{region,full,window}|vid-{none,mic,sys}-{region,full,window}|stop|panic}" >&2; exit 2 ;;
 esac

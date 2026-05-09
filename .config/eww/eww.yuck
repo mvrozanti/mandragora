@@ -15,22 +15,26 @@
       (label :text "Screenshot"))
     (box :orientation "h" :space-evenly true :spacing 8
       (capture-tile :icon "󰒉" :label "Region" :cls "shot" :cmd "capture shot-region" :disabled false)
-      (capture-tile :icon "󰍹" :label "Full"   :cls "shot" :cmd "capture shot-full"   :disabled false))
+      (capture-tile :icon "󰍹" :label "Full"   :cls "shot" :cmd "capture shot-full"   :disabled false)
+      (capture-tile :icon "󰖯" :label "Window" :cls "shot" :cmd "capture shot-window" :disabled false))
     (box :class "capture-section-label" :orientation "h" :space-evenly false
       (label :text "Video — no audio"))
     (box :orientation "h" :space-evenly true :spacing 8
       (capture-tile :icon "󰕧" :label "Region" :cls "rec" :cmd "capture vid-none-region" :disabled {capture-recording == "yes"})
-      (capture-tile :icon "󰑊" :label "Full"   :cls "rec" :cmd "capture vid-none-full"   :disabled {capture-recording == "yes"}))
+      (capture-tile :icon "󰑊" :label "Full"   :cls "rec" :cmd "capture vid-none-full"   :disabled {capture-recording == "yes"})
+      (capture-tile :icon "󰖯" :label "Window" :cls "rec" :cmd "capture vid-none-window" :disabled {capture-recording == "yes"}))
     (box :class "capture-section-label" :orientation "h" :space-evenly false
       (label :text {capture-mic == "yes" ? "Video — microphone" : "Video — microphone (no microphone connected)"}))
     (box :orientation "h" :space-evenly true :spacing 8
       (capture-tile :icon "󰍬" :label "Region" :cls "rec mic" :cmd "capture vid-mic-region" :disabled {capture-mic != "yes" || capture-recording == "yes"})
-      (capture-tile :icon "󰍬" :label "Full"   :cls "rec mic" :cmd "capture vid-mic-full"   :disabled {capture-mic != "yes" || capture-recording == "yes"}))
+      (capture-tile :icon "󰍬" :label "Full"   :cls "rec mic" :cmd "capture vid-mic-full"   :disabled {capture-mic != "yes" || capture-recording == "yes"})
+      (capture-tile :icon "󰍬" :label "Window" :cls "rec mic" :cmd "capture vid-mic-window" :disabled {capture-mic != "yes" || capture-recording == "yes"}))
     (box :class "capture-section-label" :orientation "h" :space-evenly false
       (label :text "Video — system sound"))
     (box :orientation "h" :space-evenly true :spacing 8
       (capture-tile :icon "󰓃" :label "Region" :cls "rec sys" :cmd "capture vid-sys-region" :disabled {capture-recording == "yes"})
-      (capture-tile :icon "󰓃" :label "Full"   :cls "rec sys" :cmd "capture vid-sys-full"   :disabled {capture-recording == "yes"}))
+      (capture-tile :icon "󰓃" :label "Full"   :cls "rec sys" :cmd "capture vid-sys-full"   :disabled {capture-recording == "yes"})
+      (capture-tile :icon "󰓃" :label "Window" :cls "rec sys" :cmd "capture vid-sys-window" :disabled {capture-recording == "yes"}))
     (label :class "capture-recording-banner"
            :visible {capture-recording == "yes"}
            :text "Recording in progress")))
