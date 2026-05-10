@@ -1,38 +1,32 @@
-- Cloud:
+- Services:
     - Seafile:
-        href: https://seafile.mvrozanti.duckdns.org
+        href: https://seafile.mvr.ac
         description: Personal cloud storage and file sync
         icon: seafile.svg
-    - microbin (paste):
-        href: https://paste.mvrozanti.duckdns.org
-        description: Tailnet-only paste service
-        icon: pastebin.svg
-
-- Code:
     - GitHub Pages:
-        href: https://mvrozanti.github.io
+        href: https://mvr.ac
         description: Personal site
         icon: github.svg
-    - GitHub Pages (mirror):
-        href: https://gh.mvrozanti.duckdns.org
-        description: Subdomain redirect to GitHub Pages
-        icon: github.svg
     - slither-io simulator:
-        href: https://slither.mvrozanti.duckdns.org/simulator.html
+        href: https://slither.mvr.ac/simulator.html
         description: Browser sim + training dashboard (RL agent on snake game)
         icon: si-python.svg
-
-- Tailnet:
+    - Radicale calendar:
+        href: https://cal.mvr.ac
+        description: CalDAV / CardDAV — sync calendars and contacts (DAVx⁵ on Android)
+        icon: si-radicalcom.svg
+    - microbin (paste):
+        href: https://paste.mvr.ac
+        description: Tailnet-only paste service
+        icon: pastebin.svg
     - ttyd terminal:
-        href: https://term.mvrozanti.duckdns.org
+        href: https://term.mvr.ac
         description: Web shell on the desktop, tailnet-only
         icon: si-gnometerminal.svg
     - Grafana (mandragora):
-        href: https://grafana.mvrozanti.duckdns.org
+        href: https://grafana.mvr.ac
         description: System dashboard — CPU/GPU/disk/network/eBPF
         icon: grafana.svg
-
-- Internal:
     - llm-via-telegram:
         description: Local LLM Telegram bot (polling, no inbound surface)
         icon: telegram.svg
