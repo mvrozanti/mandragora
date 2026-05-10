@@ -72,6 +72,7 @@ in
       g = "grep -i";
       T = "date +%s";
       t = "trans -b";
+      cot = "co | translate";
       rsync = "rsync -a --info=progress2";
       lisp = "clisp --silent";
       ta = "task add";
