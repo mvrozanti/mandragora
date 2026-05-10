@@ -93,7 +93,7 @@ Decision (2026-04-29): OpenVPN is not migrating. Tailscale covers the same need 
 
 | Port | Service | Target after migration |
 |---|---|---|
-| 22/tcp | sshd | tailnet only |
+| 22/tcp | sshd | **tailnet only — done 2026-05-10** (firewalld: ssh removed from `public`; tailscale0 in `trusted` zone) |
 | 80/tcp | Seafile (cleartext) | drop, or LE HTTP-01 only |
 | 443/tcp | Seafile self-signed (blocked at OCI security list) | tailnet only |
 | 1194/tcp+udp | OpenVPN | keep public (it's the point) — or migrate users to Tailscale and retire |
