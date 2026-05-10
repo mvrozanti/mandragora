@@ -36,3 +36,6 @@
     - llm-via-telegram:
         description: Local LLM Telegram bot (polling, no inbound surface)
         icon: telegram.svg
+    - stt-via-telegram:
+        description: Bilingual (PT/EN) speech-to-text Telegram bot — Whisper large-v3 on RTX 5070 Ti
+        icon: telegram.svg
