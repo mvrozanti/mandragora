@@ -140,6 +140,7 @@ in
     lynx
     ack
     translate-shell
+    (pkgs.writeShellScriptBin "translate" "exec ${pkgs.translate-shell}/bin/trans -b \"$@\"")
     glances
     inxi
     fdupes
