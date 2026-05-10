@@ -101,6 +101,7 @@ in
     kubectl
     mediainfo
     img2pdf
+    typst
     asciidoc
     biber
 
