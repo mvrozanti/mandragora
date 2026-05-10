@@ -35,15 +35,6 @@ DB_PATH: str = os.path.join(DATA_DIR, "bot.db")
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
-# ── Speech-to-text (faster-whisper) ───────────────────────────────
-
-STT_MODEL: str = os.getenv("STT_MODEL", "small")
-STT_DEVICE: str = os.getenv("STT_DEVICE", "cpu")
-STT_COMPUTE_TYPE: str = os.getenv("STT_COMPUTE_TYPE", "int8")
-STT_CACHE_DIR: str = os.getenv("STT_CACHE_DIR", os.path.join(DATA_DIR, "whisper-models"))
-
-os.makedirs(STT_CACHE_DIR, exist_ok=True)
-
 
 def validate_config() -> list[str]:
     """Return a list of missing required config items (empty = all good)."""
