@@ -298,6 +298,8 @@ in
     (pkgs.writeShellScriptBin "scratchpad" (builtins.readFile ../../.local/bin/scratchpad.sh))
     (pkgs.writeShellScriptBin "scratchpad-summon" (builtins.readFile ../../.local/bin/scratchpad-summon.sh))
     (pkgs.writeShellScriptBin "imagine" (builtins.readFile ../../.local/bin/imagine.sh))
+    gpick
+    hyprpicker
   ];
 
   home.file.".local/bin/resty".source = ../../.local/bin/resty;
