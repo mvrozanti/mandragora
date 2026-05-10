@@ -89,5 +89,6 @@
     dmidecode
     iotop
     dnsmasq
+    texliveFull
   ];
 }
