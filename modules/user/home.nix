@@ -297,6 +297,8 @@ in
     (pkgs.writeShellScriptBin "resize-window" (builtins.readFile ../../.local/bin/resize-window.sh))
     (pkgs.writeShellScriptBin "scratchpad" (builtins.readFile ../../.local/bin/scratchpad.sh))
     (pkgs.writeShellScriptBin "scratchpad-summon" (builtins.readFile ../../.local/bin/scratchpad-summon.sh))
+    gpick
+    hyprpicker
   ];
 
   home.file.".local/bin/resty".source = ../../.local/bin/resty;
