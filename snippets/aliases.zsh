@@ -251,7 +251,8 @@ cocdd() { cdd "$(co)" }
 hrmr() { local d="$(basename "$(pwd)")"; cd ..; command rm -r "$d" }
 xdiff() { [[ "$#" -eq 2 ]] && nvim -d <(xxd "$1") <(xxd "$2") }
 alb() { ln -s "$(realpath "$1")" "$HOME/.local/bin/$(basename -- "$1")" }
-@() { nohup "$@" 2>&1 >/dev/null & disown }
+_at() { nohup "$@" 2>&1 >/dev/null & disown }
+alias @="_at "
 o() { nohup xdg-open "$@" 2>&1 >/dev/null & }
 O() { nohup xdg-open "$@" 2>&1 >/dev/null &; exit }
 tf() { tail -f "$1" 2>&1 | perl -ne 'if (/file truncated/) {system("clear"); print} else {print}' }
