@@ -1,4 +1,5 @@
 .claude/*
+!.claude/settings.json
 .claude/skills/*
 .gemini/
 result
