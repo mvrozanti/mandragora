@@ -43,7 +43,6 @@ in
     };
   };
 
-  /*
   systemd.user.services.stt-via-telegram = {
     Unit = {
       Description = "STT-via-Telegram bot (faster-whisper large-v3 on RTX 5070 Ti, EN/PT)";
@@ -72,7 +71,6 @@ in
       WantedBy = [ "default.target" ];
     };
   };
-  */
 
   systemd.user.services.llm-via-telegram = {
     Unit = {
