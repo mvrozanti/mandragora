@@ -7,7 +7,7 @@
 local opt = vim.opt
 
 opt.scrolloff    = 0
-opt.cmdheight    = 0
+opt.cmdheight    = 1
 opt.listchars    = { eol = '¬', tab = '»»', trail = '~', extends = '>', precedes = '<', space = '·' }
 opt.visualbell   = true
 opt.hlsearch     = true
