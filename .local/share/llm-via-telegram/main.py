@@ -7,7 +7,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
 import config
-from bot.commands import browser, firefox, intelligence, mpv, registry, system, voice
+from bot.commands import browser, firefox, intelligence, mpv, registry, system
 from db import store
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ HELP_TEXT = (
     "\U0001f916 LLM via Telegram -- Command Reference\n\n"
     "LLM\n"
     "  Plain text  -- Send to local LLM\n"
-    "  Voice note  -- Transcribed (EN/PT auto) then sent to LLM\n"
+    "  Voice note  -- handled by the dedicated STT bot (separate chat)\n"
     "  /context   -- Show model, system prompt sizes, history, token budget\n"
     "  /clear     -- Clear conversation history\n"
     "  /think     -- Toggle thinking mode (deeper reasoning, slower)\n\n"
@@ -144,12 +144,6 @@ def build_application() -> Application:
     # -- Registry --
     app.add_handler(CommandHandler("reg", _guard(_reg_dispatcher)))
     app.add_handler(CommandHandler("run", _guard(registry.cmd_run)))
-
-    # -- Voice / audio --
-    app.add_handler(MessageHandler(
-        filters.VOICE | filters.AUDIO | filters.VIDEO_NOTE,
-        _guard(voice.handle_voice),
-    ))
 
     # -- Catch-all -- must come last
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, _guard(cmd_catch_all)))
