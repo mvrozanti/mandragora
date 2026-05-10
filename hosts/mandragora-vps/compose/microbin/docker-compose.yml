@@ -5,7 +5,7 @@ services:
     container_name: microbin
     restart: unless-stopped
     environment:
-      - MICROBIN_PUBLIC_PATH=https://${PASTE_HOSTNAME:-paste.mvrozanti.duckdns.org}
+      - MICROBIN_PUBLIC_PATH=https://paste.${MVR_AC:-mvr.ac}
       - MICROBIN_BIND=0.0.0.0
       - MICROBIN_PORT=8080
       - MICROBIN_TITLE=mandragora paste
@@ -23,7 +23,7 @@ services:
     networks:
       - seafile-net
     labels:
-      caddy: https://${PASTE_HOSTNAME:-paste.mvrozanti.duckdns.org}, https://paste.${MVR_AC:-mvr.ac}
+      caddy: https://paste.${MVR_AC:-mvr.ac}
       caddy.0_@notTailnet: not remote_ip 100.64.0.0/10
       caddy.1_respond: "@notTailnet 403"
       caddy.2_reverse_proxy: "{{upstreams 8080}}"
