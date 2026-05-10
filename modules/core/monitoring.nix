@@ -350,11 +350,9 @@ in
       };
       analytics.reporting_enabled = false;
       security.secret_key = "SW2YcwTIb9zpOOhoPsMm";
-      "auth.anonymous" = {
-        enabled = true;
-        org_name = "Main Org.";
-        org_role = "Admin";
-      };
+      security.admin_user = "m";
+      "auth.anonymous".enabled = false;
+      users.allow_sign_up = false;
     };
     provision = {
       enable = true;
