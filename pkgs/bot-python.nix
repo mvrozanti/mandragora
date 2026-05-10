@@ -118,7 +118,6 @@ in pkgs.python3.withPackages (p: [
   p.python-dotenv
   p.pexpect
   p.httpx
-  p.faster-whisper
   p.ddgs
   p.beautifulsoup4
   p.lxml
