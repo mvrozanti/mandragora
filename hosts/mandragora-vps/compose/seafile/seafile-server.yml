@@ -82,10 +82,8 @@ services:
       - SEAFILE_AI_SECRET_KEY=${JWT_PRIVATE_KEY:?Variable is not set or empty}
       - MD_FILE_COUNT_LIMIT=${MD_FILE_COUNT_LIMIT:-100000}
     labels:
-      caddy: ${SEAFILE_SERVER_PROTOCOL:-http}://seafile.${SEAFILE_SERVER_HOSTNAME:?Variable is not set or empty}
+      caddy: ${SEAFILE_SERVER_PROTOCOL:-http}://seafile.${MVR_AC:-mvr.ac}
       caddy.reverse_proxy: "{{upstreams 80}}"
-      caddy_1: ${SEAFILE_SERVER_PROTOCOL:-http}://seafile.${MVR_AC:-mvr.ac}
-      caddy_1.reverse_proxy: "{{upstreams 80}}"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
       interval: 30s
