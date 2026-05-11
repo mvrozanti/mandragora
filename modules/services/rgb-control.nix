@@ -14,8 +14,8 @@ in {
       environment = {
         RGB_HOST = "0.0.0.0";
         RGB_PORT = "6681";
-        PATH = "/run/current-system/sw/bin:/run/wrappers/bin";
       };
+      path = [ pkgs.openrgb-with-all-plugins pkgs.sudo pkgs.systemd ];
       serviceConfig = {
         User = "m";
         Group = "users";
