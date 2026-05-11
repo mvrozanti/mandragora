@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 # Shared CLI baseline imported by every mandragora host.
 # Add things here when they should be on BOTH desktop and WSL.
@@ -42,6 +42,7 @@
     yarn
     chafa
     asciinema
+    inputs.bruno-tama.packages.${pkgs.system}.default
 
     (writeShellScriptBin "lf-ueberzug" (builtins.readFile ../../.local/bin/lf-ueberzug.sh))
   ];
