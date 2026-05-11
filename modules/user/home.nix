@@ -35,6 +35,7 @@ in
   home.stateVersion = "23.11";
 
   home.packages = with pkgs; [
+    xdg-desktop-portal-gtk
     ripgrep
     droidcam
     fd
