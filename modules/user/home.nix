@@ -227,6 +227,7 @@ in
     (pkgs.writeShellScriptBin "mandragora-winvm" (builtins.readFile ../../.local/bin/mandragora-winvm.sh))
     (pkgs.writeShellScriptBin "rofi-ide-picker" (builtins.readFile ../../.local/bin/rofi-ide-picker.sh))
     (pkgs.writeShellScriptBin "rofi-tool-picker" (builtins.readFile ../../.local/bin/rofi-tool-picker.sh))
+    (pkgs.writeShellScriptBin "rofi-run" (builtins.readFile ../../.local/bin/rofi-run.sh))
     (pkgs.writeShellScriptBin "rofi-db-picker" (builtins.readFile ../../.local/bin/rofi-db-picker.sh))
     (pkgs.writeShellScriptBin "cycle-audio-output" (builtins.readFile ../../.local/bin/cycle-audio-output.sh))
     (pkgs.writeShellScriptBin "window-to-corner" (builtins.readFile ../../.local/bin/window-to-corner.sh))
@@ -455,7 +456,7 @@ in
       inactive_tab_font_style = "normal";
       foreground = "#dddddd";
       background = "#000";
-      background_opacity = "0.6";
+      background_opacity = "1.0";
       dynamic_background_opacity = "yes";
       dim_opacity = "0.75";
       selection_foreground = "#000000";
