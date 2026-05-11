@@ -49,7 +49,5 @@
     "frontend-design@claude-plugins-official": true
   },
   "effortLevel": "medium",
-  "tui": "fullscreen",
-  "skipAutoPermissionPrompt": true,
-  "model": "sonnet"
+  "skipAutoPermissionPrompt": true
 }
