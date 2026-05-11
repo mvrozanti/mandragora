@@ -353,6 +353,11 @@ in
       security.admin_user = "m";
       "auth.anonymous".enabled = false;
       users.allow_sign_up = false;
+      "auth" = {
+        disable_login_form = true;
+        disable_signout_menu = false;
+      };
+      "auth.basic".enabled = false;
       "auth.proxy" = {
         enabled = true;
         header_name = "Remote-User";
