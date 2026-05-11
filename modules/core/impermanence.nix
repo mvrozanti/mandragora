@@ -33,8 +33,8 @@
         { directory = "/var/lib/private"; user = "root"; group = "root"; mode = "0700"; }
         "/var/lib/private/ollama"
       ]
-      ++ lib.optional config.services.prometheus.enable
-        { directory = "/var/lib/prometheus2"; user = "prometheus"; group = "prometheus"; mode = "0700"; }
+      ++ lib.optional config.services.victoriametrics.enable
+        { directory = "/var/lib/victoriametrics"; user = "victoriametrics"; group = "victoriametrics"; mode = "0700"; }
       ++ lib.optional config.services.tailscale.enable
         { directory = "/var/lib/tailscale"; user = "root"; group = "root"; mode = "0700"; };
     files = lib.optionals config.services.openssh.enable [
