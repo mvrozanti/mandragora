@@ -1,0 +1,5 @@
+.env
+data/
+redis-data/
+config/users_database.yml
+*.bak.*

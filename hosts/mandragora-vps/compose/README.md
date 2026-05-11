@@ -16,6 +16,7 @@ either side must be mirrored.
 | `hub/docker-compose.yml` (+ `config/`) | Homepage dashboard + apex→hub 302 | `/home/opc/hub/` |
 | `microbin/docker-compose.yml` | Tailnet-only paste service (paste.subdomain) | `/home/opc/microbin/` |
 | `radicale/docker-compose.yml` (+ `config/`) | CalDAV / CardDAV server (cal.mvr.ac) | `/home/opc/radicale/` |
+| `authelia/docker-compose.yml` (+ `config/`) | Authelia SSO + Redis (auth.mvr.ac, gates grafana/term/paste) | `/home/opc/authelia/` |
 
 The Seafile project is invoked with all three YAMLs explicitly:
 ```
