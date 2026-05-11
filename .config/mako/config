@@ -1,4 +1,6 @@
-background-color=#00000001
+background-color=#1e222acc
+text-color=#abb2bf
+border-color=#3e4452
 max-history=100
 
 [urgency=high]
