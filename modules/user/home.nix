@@ -883,4 +883,10 @@ StartupWMClass=whatsapp-web
 
   home.file.".gemini/settings.json".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/settings.json";
+  home.file.".gemini/GEMINI.md".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/GEMINI.md";
+  home.file.".gemini/hooks/rtk-hook-gemini.sh".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/hooks/rtk-hook-gemini.sh";
+  home.file.".gemini/hooks/.rtk-hook.sha256".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/hooks/.rtk-hook.sha256";
 }
