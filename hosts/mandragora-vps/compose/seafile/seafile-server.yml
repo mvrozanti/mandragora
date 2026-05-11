@@ -83,7 +83,17 @@ services:
       - MD_FILE_COUNT_LIMIT=${MD_FILE_COUNT_LIMIT:-100000}
     labels:
       caddy: ${SEAFILE_SERVER_PROTOCOL:-http}://seafile.${MVR_AC:-mvr.ac}
-      caddy.reverse_proxy: "{{upstreams 80}}"
+      # Bypass Authelia for token/Basic-auth endpoints used by mobile, seaf-cli, WebDAV.
+      caddy.0_@bypass: "path /api2/* /api/v2.1/* /api/* /seafhttp/* /seafdav/* /notification/* /media/* /repo/* /accounts/login/* /accounts/two_factor_authentication/*"
+      caddy.1_handle: "@bypass"
+      caddy.1_handle.request_header: "-Remote-User"
+      caddy.1_handle.reverse_proxy: "{{upstreams 80}}"
+      # Web UI: scrub any spoofed Remote-User, gate through Authelia, then auto-sign via REMOTE_USER header.
+      caddy.2_handle.request_header: "-Remote-User"
+      caddy.2_handle.forward_auth: "authelia:9091"
+      caddy.2_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy.2_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.2_handle.reverse_proxy: "{{upstreams 80}}"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
       interval: 30s
