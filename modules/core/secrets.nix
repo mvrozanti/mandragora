@@ -41,6 +41,11 @@ in
         owner = "m";
         mode = "0400";
       };
+      "grafana/secret_key" = {
+        owner = "grafana";
+        mode = "0400";
+        restartUnits = [ "grafana.service" ];
+      };
     };
 
     templates."hosts-oracle" = {
