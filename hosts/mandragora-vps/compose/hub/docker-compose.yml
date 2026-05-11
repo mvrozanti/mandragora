@@ -1,15 +1,11 @@
 services:
 
-  homepage:
-    image: ${HOMEPAGE_IMAGE:-ghcr.io/gethomepage/homepage:v1.5}
-    container_name: homepage
+  hub:
+    image: ${HUB_IMAGE:-nginx:1.27-alpine}
+    container_name: hub
     restart: unless-stopped
-    environment:
-      - HOMEPAGE_ALLOWED_HOSTS=hub.${MVR_AC:-mvr.ac}
-      - PUID=1000
-      - PGID=1000
     volumes:
-      - ${HUB_CONFIG_VOLUME:-./config}:/app/config
+      - ${HUB_STATIC_VOLUME:-./static}:/usr/share/nginx/html:ro
     networks:
       - seafile-net
     labels:
@@ -17,7 +13,7 @@ services:
       caddy_0.0_forward_auth: "authelia:9091"
       caddy_0.0_forward_auth.uri: "/api/authz/forward-auth"
       caddy_0.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy_0.1_reverse_proxy: "{{upstreams 3000}}"
+      caddy_0.1_reverse_proxy: "{{upstreams 80}}"
       caddy_1: https://term.${MVR_AC:-mvr.ac}
       caddy_1.0_@notTailnet: not remote_ip 100.64.0.0/10
       caddy_1.1_handle: "@notTailnet"
@@ -41,25 +37,40 @@ services:
       caddy_3.0_forward_auth.uri: "/api/authz/forward-auth"
       caddy_3.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
       caddy_3.1_reverse_proxy: "host.docker.internal:3000"
+      caddy_4: https://mpd.${MVR_AC:-mvr.ac}
+      caddy_4.0_forward_auth: "authelia:9091"
+      caddy_4.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy_4.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy_4.1_reverse_proxy: "host.docker.internal:6680"
+      caddy_5: https://rgb.${MVR_AC:-mvr.ac}
+      caddy_5.0_forward_auth: "authelia:9091"
+      caddy_5.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy_5.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy_5.1_reverse_proxy: "host.docker.internal:6681"
+      caddy_6: https://gen.${MVR_AC:-mvr.ac}
+      caddy_6.0_forward_auth: "authelia:9091"
+      caddy_6.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy_6.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy_6.1_reverse_proxy: "host.docker.internal:6682"
       # duckdns → mvr.ac redirect fan-out (302, path-preserving)
-      caddy_4: https://${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
-      caddy_4.redir: "https://${MVR_AC:-mvr.ac}{uri} 302"
-      caddy_5: https://hub.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
-      caddy_5.redir: "https://hub.${MVR_AC:-mvr.ac}{uri} 302"
-      caddy_6: https://gh.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
-      caddy_6.redir: "https://${MVR_AC:-mvr.ac}{uri} 302"
-      caddy_7: https://seafile.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
-      caddy_7.redir: "https://seafile.${MVR_AC:-mvr.ac}{uri} 302"
-      caddy_8: https://term.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
-      caddy_8.redir: "https://term.${MVR_AC:-mvr.ac}{uri} 302"
-      caddy_9: https://slither.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
-      caddy_9.redir: "https://slither.${MVR_AC:-mvr.ac}{uri} 302"
-      caddy_10: https://grafana.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
-      caddy_10.redir: "https://grafana.${MVR_AC:-mvr.ac}{uri} 302"
-      caddy_11: https://paste.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
-      caddy_11.redir: "https://paste.${MVR_AC:-mvr.ac}{uri} 302"
+      caddy_20: https://${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
+      caddy_20.redir: "https://${MVR_AC:-mvr.ac}{uri} 302"
+      caddy_21: https://hub.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
+      caddy_21.redir: "https://hub.${MVR_AC:-mvr.ac}{uri} 302"
+      caddy_22: https://gh.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
+      caddy_22.redir: "https://${MVR_AC:-mvr.ac}{uri} 302"
+      caddy_23: https://seafile.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
+      caddy_23.redir: "https://seafile.${MVR_AC:-mvr.ac}{uri} 302"
+      caddy_24: https://term.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
+      caddy_24.redir: "https://term.${MVR_AC:-mvr.ac}{uri} 302"
+      caddy_25: https://slither.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
+      caddy_25.redir: "https://slither.${MVR_AC:-mvr.ac}{uri} 302"
+      caddy_26: https://grafana.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
+      caddy_26.redir: "https://grafana.${MVR_AC:-mvr.ac}{uri} 302"
+      caddy_27: https://paste.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
+      caddy_27.redir: "https://paste.${MVR_AC:-mvr.ac}{uri} 302"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/healthcheck || exit 1"]
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
       interval: 30s
       timeout: 5s
       retries: 3
