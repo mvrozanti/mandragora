@@ -164,3 +164,5 @@ Repo owned by `m:users` (agents edit directly); `nixos-rebuild switch`
 needs sudo; main drive intentionally unencrypted; SSH off by default
 (key-only if enabled); DNS-over-TLS via systemd-resolved. Detail:
 [`docs/architecture.md`](docs/architecture.md).
+
+@RTK.md
