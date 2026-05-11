@@ -39,17 +39,6 @@
           }
         ]
       }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "rtk hook claude"
-          }
-        ]
-      }
     ]
   },
   "statusLine": {
@@ -58,6 +47,5 @@
   },
   "effortLevel": "medium",
   "tui": "fullscreen",
-  "skipAutoPermissionPrompt": true,
-  "model": "sonnet"
+  "skipAutoPermissionPrompt": true
 }
