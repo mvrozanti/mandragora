@@ -82,7 +82,8 @@ access_control:
   rules:
     - domain: 'auth.mvr.ac'
       policy: 'bypass'
-    - domain: ['grafana.mvr.ac', 'term.mvr.ac', 'paste.mvr.ac']
+    - domain: ['grafana.mvr.ac', 'term.mvr.ac', 'paste.mvr.ac',
+               'slither.mvr.ac', 'hub.mvr.ac', 'seafile.mvr.ac']
       policy: 'two_factor'
 
 notifier:
