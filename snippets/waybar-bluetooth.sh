@@ -2,7 +2,8 @@
 set -u
 
 CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/waybar/bluetooth-device"
-FALLBACK_SINK="alsa_output.pci-0000_01_00.1.hdmi-stereo"
+# Fallback to the first available non-bluetooth sink
+FALLBACK_SINK=$(pactl list short sinks | awk '{print $2}' | grep -v "bluez" | head -1)
 
 read_pinned_mac() {
     [[ -f "$CONFIG_FILE" ]] || return 1
@@ -13,14 +14,17 @@ read_pinned_mac() {
 
 first_paired_audio() {
     local line mac uuids
-    while read -r _ mac _; do
+    # Prefer bt-device as bluetoothctl is finicky in non-interactive shells here
+    while read -r line; do
+        mac=$(echo "$line" | grep -oE '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}')
         [[ -z "$mac" ]] && continue
-        uuids=$(bluetoothctl info "$mac" 2>/dev/null | grep -E 'UUID:' || true)
-        if grep -qE 'Audio Sink|Hands-Free|Headset' <<<"$uuids"; then
+        # Only check info for audio-capable devices
+        uuids=$(bt-device -i "$mac" 2>/dev/null | grep "UUIDs:" || true)
+        if grep -qE 'AudioSink|Headset|Handsfree|AdvancedAudioDistribution' <<<"$uuids"; then
             printf '%s' "$mac"
             return 0
         fi
-    done < <(bluetoothctl devices Paired 2>/dev/null)
+    done < <(bt-device -l 2>/dev/null | grep -v "Added devices:")
     return 1
 }
 
@@ -31,7 +35,7 @@ target_mac() {
 }
 
 is_connected() {
-    bluetoothctl info "$1" 2>/dev/null | grep -q 'Connected: yes'
+    bt-device -i "$1" 2>/dev/null | grep -q 'Connected: 1'
 }
 
 bt_sink_for() {
@@ -47,29 +51,33 @@ bt_sink_for() {
 
 case "${1:-}" in
     toggle)
-        mac=$(target_mac) || { exec blueman-manager; }
+        mac=$(target_mac) || { 
+            notify-send -u critical "Bluetooth" "No paired audio device found"
+            exec blueman-manager
+        }
         if is_connected "$mac"; then
-            bluetoothctl disconnect "$mac" >/dev/null 2>&1 || true
-            pactl set-default-sink "$FALLBACK_SINK" >/dev/null 2>&1 || true
+            notify-send -t 1500 "Bluetooth" "Disconnecting $mac…"
+            bt-device -d "$mac" >/dev/null 2>&1 || true
+            [[ -n "$FALLBACK_SINK" ]] && pactl set-default-sink "$FALLBACK_SINK" >/dev/null 2>&1 || true
         else
-            notify-send -t 2500 "Bluetooth" "Connecting $mac…" 2>/dev/null || true
-            if bluetoothctl connect "$mac" >/dev/null 2>&1; then
+            notify-send -t 2500 "Bluetooth" "Connecting $mac…"
+            if bt-device -c "$mac" >/dev/null 2>&1; then
                 for _ in 1 2 3 4 5 6 7 8 9 10; do
                     sink=$(bt_sink_for "$mac")
                     [[ -n "$sink" ]] && break
-                    sleep 0.3
+                    sleep 0.5
                 done
                 if [[ -n "${sink:-}" ]]; then
                     pactl set-default-sink "$sink" >/dev/null 2>&1 || true
                     pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | while read -r id; do
                         pactl move-sink-input "$id" "$sink" >/dev/null 2>&1 || true
                     done
-                    notify-send -t 2000 "Bluetooth" "Connected → $sink" 2>/dev/null || true
+                    notify-send -t 2000 "Bluetooth" "Connected → $sink"
                 else
-                    notify-send -u critical -t 3000 "Bluetooth" "Connected but no audio sink appeared" 2>/dev/null || true
+                    notify-send -u critical -t 3000 "Bluetooth" "Connected but no audio sink appeared"
                 fi
             else
-                notify-send -u critical -t 3000 "Bluetooth" "Failed to connect $mac" 2>/dev/null || true
+                notify-send -u critical -t 3000 "Bluetooth" "Failed to connect $mac"
             fi
         fi
         ;;
