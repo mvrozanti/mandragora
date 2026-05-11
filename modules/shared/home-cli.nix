@@ -41,6 +41,7 @@
     nodejs
     yarn
     chafa
+    asciinema
 
     (writeShellScriptBin "lf-ueberzug" (builtins.readFile ../../.local/bin/lf-ueberzug.sh))
   ];
