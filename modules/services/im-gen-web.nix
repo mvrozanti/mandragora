@@ -40,6 +40,10 @@ let
     fi
     [ -n "''${HF_TOKEN:-}" ] && export HF_TOKEN HUGGING_FACE_HUB_TOKEN="$HF_TOKEN"
     export PYTHONPATH="/etc/nixos/mandragora/.local/share/gpu-lock''${PYTHONPATH:+:$PYTHONPATH}"
+    # diffusers.loaders.ip_adapter triggers torch.utils.cpp_extension on import,
+    # which probes for a C compiler; give it one.
+    export CC="${pkgs.gcc}/bin/gcc"
+    export CXX="${pkgs.gcc}/bin/g++"
 
     exec "$VENV_PY" ${webScript} "$@"
   '';
@@ -56,7 +60,7 @@ in {
         GEN_PORT = "6682";
         IM_GEN_DIR = repo;
       };
-      path = [ pkgs.coreutils pkgs.bash ];
+      path = [ pkgs.coreutils pkgs.bash pkgs.gcc ];
       serviceConfig = {
         Type = "simple";
         User = "m";
