@@ -14,7 +14,10 @@ services:
       - seafile-net
     labels:
       caddy_0: https://hub.${MVR_AC:-mvr.ac}
-      caddy_0.reverse_proxy: "{{upstreams 3000}}"
+      caddy_0.0_forward_auth: "authelia:9091"
+      caddy_0.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy_0.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy_0.1_reverse_proxy: "{{upstreams 3000}}"
       caddy_1: https://term.${MVR_AC:-mvr.ac}
       caddy_1.0_@notTailnet: not remote_ip 100.64.0.0/10
       caddy_1.1_handle: "@notTailnet"
@@ -27,8 +30,12 @@ services:
       caddy_1.2_handle.reverse_proxy.transport.versions: "1.1"
       caddy_2: https://slither.${MVR_AC:-mvr.ac}
       caddy_2.0_@denied: "not path / /simulator.html /favicon.ico /static/* /exported_agents/* /api/*"
-      caddy_2.1_respond: "@denied 403"
-      caddy_2.2_reverse_proxy: "host.docker.internal:8088"
+      caddy_2.1_handle: "@denied"
+      caddy_2.1_handle.respond: "403"
+      caddy_2.2_handle.forward_auth: "authelia:9091"
+      caddy_2.2_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy_2.2_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy_2.2_handle.reverse_proxy: "host.docker.internal:8088"
       caddy_3: https://grafana.${MVR_AC:-mvr.ac}
       caddy_3.0_forward_auth: "authelia:9091"
       caddy_3.0_forward_auth.uri: "/api/authz/forward-auth"
