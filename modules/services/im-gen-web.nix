@@ -55,8 +55,8 @@ in {
         GEN_HOST = "0.0.0.0";
         GEN_PORT = "6682";
         IM_GEN_DIR = repo;
-        PATH = "/run/current-system/sw/bin:/run/wrappers/bin:/etc/profiles/per-user/m/bin";
       };
+      path = [ pkgs.coreutils pkgs.bash ];
       serviceConfig = {
         Type = "simple";
         User = "m";
