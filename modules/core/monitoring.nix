@@ -289,28 +289,29 @@ let
 in
 
 {
-  services.prometheus = {
+  services.victoriametrics = {
     enable = true;
-    listenAddress = "0.0.0.0";
-    port = 9090;
-    retentionTime = "90d";
-    scrapeConfigs = [
-      {
-        job_name = "node";
-        scrape_interval = "15s";
-        static_configs = [ { targets = [ "localhost:9100" ]; } ];
-      }
-      {
-        job_name = "nvidia";
-        scrape_interval = "1m";
-        static_configs = [ { targets = [ "localhost:9835" ]; } ];
-      }
-      {
-        job_name = "ebpf";
-        scrape_interval = "15s";
-        static_configs = [ { targets = [ "localhost:9435" ]; } ];
-      }
-    ];
+    listenAddress = "0.0.0.0:8428";
+    retentionPeriod = "90d";
+    prometheusConfig = {
+      scrape_configs = [
+        {
+          job_name = "node";
+          scrape_interval = "15s";
+          static_configs = [ { targets = [ "localhost:9100" ]; } ];
+        }
+        {
+          job_name = "nvidia";
+          scrape_interval = "1m";
+          static_configs = [ { targets = [ "localhost:9835" ]; } ];
+        }
+        {
+          job_name = "ebpf";
+          scrape_interval = "15s";
+          static_configs = [ { targets = [ "localhost:9435" ]; } ];
+        }
+      ];
+    };
   };
 
   services.prometheus.exporters.node = {
@@ -372,9 +373,9 @@ in
       datasources.settings = {
         apiVersion = 1;
         datasources = [ {
-          name = "Prometheus";
+          name = "VictoriaMetrics";
           type = "prometheus";
-          url = "http://localhost:9090";
+          url = "http://localhost:8428";
           isDefault = true;
           uid = "prometheus";
         } ];
