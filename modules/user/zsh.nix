@@ -57,7 +57,7 @@ in
       hh = "cd ../..";
       "cd.." = "cd ..";
 
-      s = "sudo";
+      s = "sudo ";
       smv = "sudo mv";
       srm = "sudo rm";
       schmod = "sudo chmod";
@@ -66,12 +66,12 @@ in
       u = "unp -U";
       mkdir = "mkdir -p";
       serve = "python3 -m http.server 2717";
-      watch = "watch --color -n1 --no-title";
-      ka = "killall -I";
-      e = "echo";
-      g = "grep -i";
+      watch = "watch --color -n1 --no-title ";
+      ka = "killall -I ";
+      e = "echo ";
+      g = "grep -i ";
       T = "date +%s";
-      t = "trans -b";
+      t = "trans -b ";
       cot = "co | translate";
       rsync = "rsync -a --info=progress2";
       lisp = "clisp --silent";
@@ -79,7 +79,7 @@ in
       asciimap = "telnet mapscii.me";
       weather = "curl -s wttr.in | head -n -1";
       W = "curl -s v2.wttr.in | head -n -1";
-      py = "python3";
+      py = "python3 ";
 
       gs = "git status";
       ga = "git add";

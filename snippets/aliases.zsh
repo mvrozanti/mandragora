@@ -10,7 +10,7 @@ alias wcc='wc -c'
 alias f='fd -HI'
 alias le='less'
 alias lesss='less'
-alias x='xargs'
+alias x='xargs '
 alias F='fzf'
 alias rp='realpath'
 alias rp.='realpath .'
@@ -22,33 +22,33 @@ alias biggest-files='du -hsx * | sort -rh | head -10'
 alias ducks='ls -a | xargs du -cks -- | sort -rn'
 alias dush.='du -sh .'
 alias dfh='df -h'
-alias wdf='watch df'
-alias wdfh='watch df -h'
-alias wduh='watch du -sh'
-alias wdu='watch -n1 du -s "*"'
-alias wdush.='watch du -sh .'
+alias wdf='watch df '
+alias wdfh='watch df -h '
+alias wduh='watch du -sh '
+alias wdu='watch -n1 du -s "*" '
+alias wdush.='watch du -sh . '
 alias rmempty='find . -type d -empty -delete'
 alias empty-trash='command rm -rf ~/.local/share/Trash/*'
 alias lst='ls -t'
 alias lwcl='ls | wc -l'
-alias wl='watch ls'
-alias wll='watch ls -lh'
-alias wla='watch la'
-alias wls='watch ls'
-alias wt='watch -n1 tree'
-alias wtree='watch tree'
-alias wtail='watch tail'
-alias ws='watch stat'
-alias wstat='watch stat'
-alias wmd5='watch md5sum'
-alias wmd5.='watch md5sum *'
-alias wag='watch ag'
-alias wgs='watch git status'
+alias wl='watch ls '
+alias wll='watch ls -lh '
+alias wla='watch la '
+alias wls='watch ls '
+alias wt='watch -n1 tree '
+alias wtree='watch tree '
+alias wtail='watch tail '
+alias ws='watch stat '
+alias wstat='watch stat '
+alias wmd5='watch md5sum '
+alias wmd5.='watch md5sum * '
+alias wag='watch ag '
+alias wgs='watch git status '
 alias fsw='fswatch .'
 
 alias v='nvim'
 alias sv='sudoedit'
-alias se='sudo -E'
+alias se='sudo -E '
 alias v-='v -'
 alias vc='co | v -'
 alias vh='nvim ~/.local/state/zsh/history'
@@ -207,7 +207,7 @@ alias schmod='sudo chmod'
 alias schown='sudo chown'
 alias slns='sudo ln -s'
 alias sf='sudo find / -iname'
-alias fuck='sudo'
+alias fuck='sudo '
 alias ka='killall -I'
 alias pk='pkill'
 alias scan4sd='echo 1 | sudo tee /sys/bus/pci/rescan'
@@ -257,10 +257,14 @@ o() { nohup xdg-open "$@" 2>&1 >/dev/null & }
 O() { nohup xdg-open "$@" 2>&1 >/dev/null &; exit }
 tf() { tail -f "$1" 2>&1 | perl -ne 'if (/file truncated/) {system("clear"); print} else {print}' }
 t2d() { date -d "@$(cat -)" }
-keep() { while :; do "$@"; done }
-wtd() { while true; do "$@"; done }
-domany() { local n=99999; [[ "$1" == "-n" ]] && { n=$2; shift 2; }; for i in {1..$n}; do sh -c "$*"; done }
-onf() { inotifywait -m . -e create -e moved_to | while read pathe action filet; do echo "$filet" | xargs -I{} "$@"; done }
+_keep() { while :; do "$@"; done }
+alias keep="_keep "
+_wtd() { while true; do "$@"; done }
+alias wtd="_wtd "
+_domany() { local n=99999; [[ "$1" == "-n" ]] && { n=$2; shift 2; }; for i in {1..$n}; do sh -c "$*"; done }
+alias domany="_domany "
+_onf() { inotifywait -m . -e create -e moved_to | while read pathe action filet; do echo "$filet" | xargs -I{} "$@"; done }
+alias onf="_onf "
 aka() { grep "$@" /etc/hosts | cut -d' ' -f1 }
 throw() { local fp=$(realpath "$1" | cut -c9-); (cd "$HOME"; rsync -R "$fp" "$2":~) }
 sshasap() { while ! nc -z -w1 "$1" 22; do sleep 1; done; ssh "$1" }
@@ -399,8 +403,8 @@ alias 2h='hh'
 alias 3h='hhh'
 alias 4h='hhhh'
 
-alias wh='watch head'
-alias wjq='watch jq'
+alias wh='watch head '
+alias wjq='watch jq '
 wlg() { watch "ls | grep $@" }
 wtg() { watch "tree | grep $@" }
 
@@ -412,7 +416,8 @@ alias gcfd='git clean -f -d'
 gbm() { [[ "$#" -eq 2 ]] && git branch -m "$1" "$2" }
 
 v.()      { nvim . }
-ec()      { eval "$*"; echo $? }
+_ec()      { eval "$*"; echo $? }
+alias ec="_ec "
 www()     { ww -w $COLUMNS }
 getpass() { python3 -c 'from getpass import getpass; print(getpass("Password: "))' }
 
@@ -423,7 +428,7 @@ cof()      { f "$(co)" }
 coag()     { ag "$(co)" }
 costat()   { stat "$(co)" }
 cowcc()    { co | wc -c }
-alias cox='co | xargs'
+alias cox='co | xargs '
 cosrm()    { sudo rm "$(co)" }
 scov()     { sudoedit "$(co)" }
 covipec()  { co | vipe | c }
