@@ -68,6 +68,10 @@
           command = "/run/current-system/bin/switch-to-configuration boot";
           options = [ "NOPASSWD" ];
         }
+        {
+          command = "/run/current-system/sw/bin/sops";
+          options = [ "NOPASSWD" "SETENV" ];
+        }
       ];
     }];
   };
