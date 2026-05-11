@@ -29,12 +29,11 @@
       "/var/lib/systemd"
       "/etc/NetworkManager/system-connections"
       { directory = "/home/m"; user = "m"; group = "users"; mode = "0750"; }
-    ] ++ lib.optionals config.services.ollama.enable [
+    ] ++ lib.optionals (config.services.ollama.enable || config.services.victoriametrics.enable) [
         { directory = "/var/lib/private"; user = "root"; group = "root"; mode = "0700"; }
-        "/var/lib/private/ollama"
       ]
-      ++ lib.optional config.services.victoriametrics.enable
-        { directory = "/var/lib/victoriametrics"; user = "victoriametrics"; group = "victoriametrics"; mode = "0700"; }
+      ++ lib.optional config.services.ollama.enable "/var/lib/private/ollama"
+      ++ lib.optional config.services.victoriametrics.enable "/var/lib/private/victoriametrics"
       ++ lib.optional config.services.tailscale.enable
         { directory = "/var/lib/tailscale"; user = "root"; group = "root"; mode = "0700"; };
     files = lib.optionals config.services.openssh.enable [
