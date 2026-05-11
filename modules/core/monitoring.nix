@@ -349,10 +349,18 @@ in
         http_port = 3000;
       };
       analytics.reporting_enabled = false;
-      security.secret_key = "SW2YcwTIb9zpOOhoPsMm";
+      security.secret_key = "$__file{${config.sops.secrets."grafana/secret_key".path}}";
       security.admin_user = "m";
       "auth.anonymous".enabled = false;
       users.allow_sign_up = false;
+      "auth.proxy" = {
+        enabled = true;
+        header_name = "Remote-User";
+        header_property = "username";
+        auto_sign_up = true;
+        headers_encoded = false;
+        enable_login_token = false;
+      };
     };
     provision = {
       enable = true;
