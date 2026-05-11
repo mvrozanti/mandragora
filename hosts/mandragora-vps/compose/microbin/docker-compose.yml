@@ -14,8 +14,6 @@ services:
       - MICROBIN_HIDE_LOGO=false
       - MICROBIN_NO_LISTING=true
       - MICROBIN_HIGHLIGHTSYNTAX=true
-      - MICROBIN_AUTH_USERNAME=${MICROBIN_AUTH_USERNAME:?Variable is not set or empty}
-      - MICROBIN_AUTH_PASSWORD=${MICROBIN_AUTH_PASSWORD:?Variable is not set or empty}
       - MICROBIN_DEFAULT_EXPIRY=1day
       - MICROBIN_QR=true
     volumes:
@@ -24,9 +22,10 @@ services:
       - seafile-net
     labels:
       caddy: https://paste.${MVR_AC:-mvr.ac}
-      caddy.0_@notTailnet: not remote_ip 100.64.0.0/10
-      caddy.1_respond: "@notTailnet 403"
-      caddy.2_reverse_proxy: "{{upstreams 8080}}"
+      caddy.0_forward_auth: "authelia:9091"
+      caddy.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.1_reverse_proxy: "{{upstreams 8080}}"
 
 networks:
   seafile-net:
