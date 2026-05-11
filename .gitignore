@@ -1,7 +1,11 @@
 .claude/*
 !.claude/settings.json
 .claude/skills/*
-.gemini/
+.gemini/*
+!.gemini/settings.json
+!.gemini/GEMINI.md
+!.gemini/hooks
+.gemini/skills/*
 result
 _bmad/config.user.yaml
 __pycache__/
