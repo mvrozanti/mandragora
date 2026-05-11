@@ -19,7 +19,13 @@ totp:
   period: 30
 
 webauthn:
-  disable: true
+  disable: false
+
+identity_validation:
+  elevated_session:
+    code_lifespan: '30m'
+    elevation_lifespan: '30m'
+    characters: 8
 
 authentication_backend:
   password_reset:
