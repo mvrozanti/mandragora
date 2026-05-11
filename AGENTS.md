@@ -165,4 +165,6 @@ needs sudo; main drive intentionally unencrypted; SSH off by default
 (key-only if enabled); DNS-over-TLS via systemd-resolved. Detail:
 [`docs/architecture.md`](docs/architecture.md).
 
+CVE scan skill (run scan + triage results): `~/.ai-shared/rules/cve-scan.md`.
+
 @RTK.md
