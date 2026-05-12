@@ -372,6 +372,7 @@ in
       enable = true;
       datasources.settings = {
         apiVersion = 1;
+        deleteDatasources = [ { name = "Prometheus"; orgId = 1; } ];
         datasources = [ {
           name = "VictoriaMetrics";
           type = "prometheus";
