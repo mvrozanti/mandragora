@@ -690,9 +690,9 @@ in
           --urlbarView-background: rgba(0, 0, 0, 0.50) !important;
         }
         #statuspanel-label {
-          background-color: rgba(0, 0, 0, 0.40) !important;
+          background-color: rgba(0, 0, 0, 0.30) !important;
           color: #ffffff !important;
-          backdrop-filter: blur(20px);
+          backdrop-filter: blur(60px) saturate(1.8);
           border: none !important;
           border-radius: 6px !important;
           padding: 2px 6px !important;
@@ -700,9 +700,9 @@ in
         tooltip {
           appearance: none !important;
           -moz-window-shadow: none !important;
-          background-color: rgba(0, 0, 0, 0.40) !important;
+          background-color: rgba(0, 0, 0, 0.30) !important;
           color: #ffffff !important;
-          backdrop-filter: blur(20px);
+          backdrop-filter: blur(60px) saturate(1.8);
           border: 1px solid rgba(255, 255, 255, 0.10) !important;
           border-radius: 6px !important;
         }
