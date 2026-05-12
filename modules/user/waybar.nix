@@ -242,7 +242,7 @@
           format = "";
           tooltip = true;
           tooltip-format = "Notification history — left-click to browse, right-click to toggle DND";
-          on-click = "notif-menu";
+          on-click = "notif-menu toggle";
           on-click-right = "notif-menu dnd";
         };
 
