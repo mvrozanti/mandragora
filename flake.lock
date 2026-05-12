@@ -1,25 +1,5 @@
 {
   "nodes": {
-    "bruno-tama": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1778620871,
-        "narHash": "sha256-IjyE8eDfpxKqi6fWMw1Egkkk4awN7FqDyA4tDJzWqBM=",
-        "owner": "mvrozanti",
-        "repo": "bruno-tama",
-        "rev": "48ed923b93ae08f2b51733c8b1ab43a6fd69efba",
-        "type": "github"
-      },
-      "original": {
-        "owner": "mvrozanti",
-        "repo": "bruno-tama",
-        "type": "github"
-      }
-    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -187,7 +167,6 @@
     },
     "root": {
       "inputs": {
-        "bruno-tama": "bruno-tama",
         "home-manager": "home-manager",
         "impermanence": "impermanence",
         "nixos-generators": "nixos-generators",
