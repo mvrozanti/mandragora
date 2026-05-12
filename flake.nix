@@ -25,14 +25,9 @@
       url = "github:nix-community/NixOS-WSL";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    bruno-tama = {
-      url = "github:mvrozanti/bruno-tama";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = { self, nixpkgs, home-manager, sops-nix, impermanence, nixos-generators, nixos-wsl, bruno-tama, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, sops-nix, impermanence, nixos-generators, nixos-wsl, ... }@inputs:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
