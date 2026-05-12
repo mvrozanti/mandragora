@@ -10,41 +10,56 @@ return {
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
 
-      -- ── 256-color cterm palette ──────────────────────────────────────────
-      -- Extracted from post-init.vim ApplyAirlineLook() / MyAirline_Setup()
-      -- NOTE: user runs notermguicolors; lualine uses cterm integers, not gui hex
+      -- Material You palette slots from kitty/matugen (cterm 0-15).
+      -- In dark mode: *_container slots (4,5,6) are dark; *_fixed slots
+      -- (9,10,11) are light. Pair container-bg with fixed-fg for readable
+      -- contrast across every matugen palette. Mixing *_fixed as a bg
+      -- with cube 231 as fg was the prior bright-on-bright bug.
       local c = {
-        pink    = 10,    -- airline_a ctermbg=10  (was guibg=#dd8b9d)
-        mauve   = 238,   -- airline_b ctermbg=238 (was guibg=#9a616d)
-        dark    = 234,   -- airline_c / inactive bg
-        mid     = 236,   -- separator bg
-        text    = 231,   -- bright white foreground
-        dim     = 250,   -- dimmed text for inactive
-        insert  = 14,    -- AirlineInsert  ctermbg=14 (bright cyan, system color)
-        visual  = 136,   -- AirlineVisual  ctermbg=136
-        replace = 160,   -- AirlineReplace ctermbg=160
-        command = 61,    -- AirlineCommand ctermbg=61
+        surface          = 0,
+        surface_variant  = 8,
+        primary_ctr      = 4,
+        secondary_ctr    = 5,
+        tertiary_ctr     = 6,
+        primary_fix      = 9,
+        secondary_fix    = 10,
+        tertiary_fix     = 11,
+        on_surface       = 7,
+        on_surface_var   = 15,
+        cube_replace_bg  = 52,
+        cube_white       = 231,
       }
 
-      -- Build mode section: a=mode block, b=info strip, c=filename area
-      local function mk(mode_bg)
-        return {
-          a = { fg = c.text, bg = mode_bg, bold = true },
-          b = { fg = c.text, bg = c.mauve },
-          c = { fg = c.dim,  bg = c.dark  },
-        }
-      end
-
       local theme = {
-        normal   = mk(c.pink),
-        insert   = mk(c.insert),
-        visual   = mk(c.visual),
-        replace  = mk(c.replace),
-        command  = mk(c.command),
+        normal = {
+          a = { fg = c.primary_fix,    bg = c.primary_ctr,     bold = true },
+          b = { fg = c.on_surface,     bg = c.surface_variant },
+          c = { fg = c.on_surface_var, bg = c.surface },
+        },
+        insert = {
+          a = { fg = c.secondary_fix,  bg = c.secondary_ctr,   bold = true },
+          b = { fg = c.on_surface,     bg = c.surface_variant },
+          c = { fg = c.on_surface_var, bg = c.surface },
+        },
+        visual = {
+          a = { fg = c.tertiary_fix,   bg = c.tertiary_ctr,    bold = true },
+          b = { fg = c.on_surface,     bg = c.surface_variant },
+          c = { fg = c.on_surface_var, bg = c.surface },
+        },
+        replace = {
+          a = { fg = c.cube_white,     bg = c.cube_replace_bg, bold = true },
+          b = { fg = c.on_surface,     bg = c.surface_variant },
+          c = { fg = c.on_surface_var, bg = c.surface },
+        },
+        command = {
+          a = { fg = c.on_surface,     bg = c.surface_variant, bold = true },
+          b = { fg = c.on_surface,     bg = c.surface_variant },
+          c = { fg = c.on_surface_var, bg = c.surface },
+        },
         inactive = {
-          a = { fg = c.dim, bg = c.mauve },
-          b = { fg = c.dim, bg = c.dark  },
-          c = { fg = c.dim, bg = c.dark  },
+          a = { fg = c.on_surface_var, bg = c.surface_variant },
+          b = { fg = c.on_surface_var, bg = c.surface },
+          c = { fg = c.on_surface_var, bg = c.surface },
         },
       }
 
@@ -139,7 +154,7 @@ return {
         hi(0, 'Pmenu',        { ctermfg = 231, ctermbg = 236 })
         hi(0, 'PmenuSel',     { ctermfg = 234, ctermbg = 250 })
         hi(0, 'Search',       { ctermfg = 234, ctermbg = 220 })
-        hi(0, 'StatusLine',   { ctermfg = 231, bold = true })
+        hi(0, 'StatusLine',   { ctermfg = 250, ctermbg = 234, bold = true })
         hi(0, 'StatusLineNC', { ctermfg = 250, ctermbg = 234 })
         hi(0, 'TabLineFill',  { ctermfg = 250, ctermbg = 234 })
         hi(0, 'TabLineSel',   { ctermfg = 231, ctermbg = 237 })
