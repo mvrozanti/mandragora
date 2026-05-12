@@ -58,7 +58,7 @@
       ];
       ExecStart = "${pkgs.writeShellApplication {
         name = "mbsync-hotmail-sync";
-        runtimeInputs = with pkgs; [ isync libnotify gnugrep coreutils notmuch ];
+        runtimeInputs = with pkgs; [ isync libnotify gnugrep gnused coreutils notmuch ];
         text = builtins.readFile ../../.local/bin/mbsync-hotmail-sync.sh;
       }}/bin/mbsync-hotmail-sync";
     };
