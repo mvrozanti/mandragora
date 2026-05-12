@@ -20,6 +20,16 @@ let
   gemma = mkPythonBin "gemma" ../../.local/bin/gemma.py;
   local-ai-mcp-server = mkPythonBin "local-ai-mcp-server" ../../.local/bin/local-ai-mcp-server.py;
   gpu-lock = import ../../pkgs/gpu-lock.nix { inherit pkgs; };
+
+  crush-wrapped = pkgs.symlinkJoin {
+    name = "crush-wrapped";
+    paths = [ pkgs.crush ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/crush \
+        --run 'if [ -n "$TMUX" ]; then export TERM=xterm-256color; fi'
+    '';
+  };
 in
 {
   options.mandragora = {
@@ -58,7 +68,7 @@ in
 
 
       environment.systemPackages = [
-        pkgs.crush
+        crush-wrapped
         pkgs.beep
         pkgs.oterm
         gemma
