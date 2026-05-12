@@ -346,26 +346,21 @@ in
     settings = {
       server = {
         protocol = "http";
-        http_addr = "0.0.0.0";
+        http_addr = "127.0.0.1";
         http_port = 3000;
       };
       analytics.reporting_enabled = false;
       security.secret_key = "$__file{${config.sops.secrets."grafana/secret_key".path}}";
-      security.admin_user = "m";
-      "auth.anonymous".enabled = false;
       users.allow_sign_up = false;
       "auth" = {
-        disable_login_form = false;
-        disable_signout_menu = false;
+        disable_login_form = true;
+        disable_signout_menu = true;
       };
-      "auth.basic".enabled = true;
-      "auth.proxy" = {
+      "auth.basic".enabled = false;
+      "auth.anonymous" = {
         enabled = true;
-        header_name = "Remote-User";
-        header_property = "username";
-        auto_sign_up = true;
-        headers_encoded = false;
-        enable_login_token = false;
+        org_role = "Admin";
+        org_name = "Main Org.";
       };
     };
     provision = {
