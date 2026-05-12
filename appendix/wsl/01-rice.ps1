@@ -1,4 +1,4 @@
-# Mandragora Windows rice — minimal cosmetic + privacy tightening.
+# Mandragora Windows rice -- minimal cosmetic + privacy tightening.
 # Idempotent. Run as the regular user; elevates internally where needed.
 
 $ErrorActionPreference = 'Continue'
