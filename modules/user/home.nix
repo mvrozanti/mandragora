@@ -374,6 +374,18 @@ in
         background-color: transparent;
         background-image: none;
       }
+      window.dialog.background,
+      window.dialog.csd,
+      window.dialog,
+      filechooser,
+      window.background filechooser,
+      window.dialog filechooser,
+      window.dialog filechooser .view,
+      window.dialog placessidebar,
+      window.dialog placessidebar list {
+        background-color: rgba(30, 30, 30, 0.6);
+        background-image: none;
+      }
     '';
     gtk4.extraCss = ''
       window, window.background, window.background.csd, .background,
@@ -382,6 +394,18 @@ in
       notebook, notebook > stack,
       paned, paned > separator {
         background-color: rgba(0, 0, 0, 0) !important;
+        background-image: none !important;
+      }
+      window.dialog,
+      window.dialog.background,
+      window.dialog.csd,
+      filechooser,
+      window filechooser,
+      window.dialog filechooser,
+      window.dialog filechooser listview,
+      window.dialog placessidebar,
+      window.dialog placessidebar listview {
+        background-color: rgba(30, 30, 30, 0.6) !important;
         background-image: none !important;
       }
     '';
