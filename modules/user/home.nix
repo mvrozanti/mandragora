@@ -374,16 +374,35 @@ in
         background-color: transparent;
         background-image: none;
       }
+      window.dialog,
       window.dialog.background,
       window.dialog.csd,
-      window.dialog,
+      window.dialog.solid-csd,
+      window.dialog decoration,
+      window.dialog headerbar,
+      window.dialog .titlebar,
+      window.dialog box,
+      window.dialog grid,
+      window.dialog stack,
+      window.dialog scrolledwindow,
+      window.dialog viewport,
+      window.dialog notebook,
+      window.dialog paned,
+      window.dialog paned > separator,
       filechooser,
-      window.background filechooser,
-      window.dialog filechooser,
-      window.dialog filechooser .view,
-      window.dialog placessidebar,
-      window.dialog placessidebar list {
-        background-color: rgba(30, 30, 30, 0.8);
+      filechooser box,
+      filechooser grid,
+      filechooser stack,
+      filechooser scrolledwindow,
+      filechooser viewport,
+      filechooser paned,
+      filechooser placessidebar,
+      filechooser placessidebar list,
+      filechooser placessidebar list row,
+      filechooser .view,
+      filechooser pathbar,
+      filechooser pathbar > box {
+        background-color: rgba(30, 30, 30, 1.0);
         background-image: none;
       }
     '';
@@ -399,13 +418,28 @@ in
       window.dialog,
       window.dialog.background,
       window.dialog.csd,
+      window.dialog headerbar,
+      window.dialog .titlebar,
+      window.dialog windowhandle,
+      window.dialog box,
+      window.dialog grid,
+      window.dialog stack,
+      window.dialog scrolledwindow,
+      window.dialog viewport,
+      window.dialog paned,
       filechooser,
-      window filechooser,
-      window.dialog filechooser,
-      window.dialog filechooser listview,
-      window.dialog placessidebar,
-      window.dialog placessidebar listview {
-        background-color: rgba(30, 30, 30, 0.8) !important;
+      filechooser box,
+      filechooser grid,
+      filechooser stack,
+      filechooser scrolledwindow,
+      filechooser viewport,
+      filechooser paned,
+      filechooser placessidebar,
+      filechooser placessidebar listview,
+      filechooser placessidebar listview row,
+      filechooser listview,
+      filechooser pathbar {
+        background-color: rgba(30, 30, 30, 1.0) !important;
         background-image: none !important;
       }
     '';
