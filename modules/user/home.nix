@@ -723,25 +723,34 @@ in
           --autocomplete-popup-background: rgba(0, 0, 0, 0.50) !important;
           --urlbarView-background: rgba(0, 0, 0, 0.50) !important;
         }
+        #statuspanel,
+        #statuspanel-inner,
         #statuspanel-label {
-          background-color: rgba(0, 0, 0, 0.30) !important;
+          appearance: none !important;
+          -moz-appearance: none !important;
+          background-color: rgba(20, 20, 24, 0.92) !important;
           color: #ffffff !important;
-          backdrop-filter: blur(60px) saturate(1.8);
-          border: none !important;
-          border-radius: 6px !important;
-          padding: 2px 6px !important;
+          backdrop-filter: blur(60px) saturate(1.8) !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          border-radius: 8px !important;
+          padding: 3px 8px !important;
+          margin: 4px !important;
+          font-weight: 500 !important;
         }
         tooltip {
           appearance: none !important;
+          -moz-appearance: none !important;
           -moz-window-shadow: none !important;
-          background-color: rgba(0, 0, 0, 0.30) !important;
+          background-color: rgba(20, 20, 24, 0.92) !important;
           color: #ffffff !important;
-          backdrop-filter: blur(60px) saturate(1.8);
-          border: 1px solid rgba(255, 255, 255, 0.10) !important;
-          border-radius: 6px !important;
+          backdrop-filter: blur(60px) saturate(1.8) !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          border-radius: 8px !important;
+          padding: 4px 8px !important;
         }
         tooltip > .tooltip-label {
           color: #ffffff !important;
+          background-color: transparent !important;
         }
       '';
     };
