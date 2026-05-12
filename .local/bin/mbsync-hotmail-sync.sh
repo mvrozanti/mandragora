@@ -14,7 +14,7 @@ if [ "$mbsync_status" -eq 0 ]; then
     master_count=$(grep 'Inbox' -A6 <<< "$sync_output" | grep -E '^master' | cut -d',' -f1 | tr -cd '[:digit:]' || echo 0)
     new_mail_count=$(( ${master_count:-0} - ${slave_count:-0} ))
     if [ "$new_mail_count" -gt 0 ]; then
-        notify-send "Mail" "You have $new_mail_count new email(s)."
+        notify-send "Mail" "You have $new_mail_count new email(s)." || true
     fi
 else
     vanished=$(sed -n 's/^Error: channel [^:]*: far side box \(.*\) cannot be opened anymore\.$/\1/p' <<< "$sync_output" | sort -u)
@@ -35,9 +35,9 @@ else
                 body+="  • $box"$'\n'
             done <<< "$vanished"
             body+=$'\nIf intentional, rm the matching local maildir under ~/.local/share/mail/mvrozanti@hotmail.com/'
-            notify-send -u critical "Mail sync failed" "$body"
+            notify-send -u critical "Mail sync failed" "$body" || true
         else
-            notify-send -u critical "Mail sync failed" "mbsync exited $mbsync_status. Run: journalctl --user -u mbsync-hotmail"
+            notify-send -u critical "Mail sync failed" "mbsync exited $mbsync_status. Run: journalctl --user -u mbsync-hotmail" || true
         fi
         printf '%s\n%s\n' "$now" "$fingerprint" > "$state_file"
     fi
