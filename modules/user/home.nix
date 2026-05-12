@@ -689,6 +689,26 @@ in
           --autocomplete-popup-background: rgba(0, 0, 0, 0.50) !important;
           --urlbarView-background: rgba(0, 0, 0, 0.50) !important;
         }
+        #statuspanel-label {
+          background-color: rgba(0, 0, 0, 0.40) !important;
+          color: #ffffff !important;
+          backdrop-filter: blur(20px);
+          border: none !important;
+          border-radius: 6px !important;
+          padding: 2px 6px !important;
+        }
+        tooltip {
+          appearance: none !important;
+          -moz-window-shadow: none !important;
+          background-color: rgba(0, 0, 0, 0.40) !important;
+          color: #ffffff !important;
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          border-radius: 6px !important;
+        }
+        tooltip > .tooltip-label {
+          color: #ffffff !important;
+        }
       '';
     };
     profiles.chess = {
