@@ -66,6 +66,7 @@ in
     notmuch
     transmission_4
     tremc
+    rustmission
     libnotify
 
     mpv
