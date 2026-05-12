@@ -436,6 +436,7 @@ cogc()     { [[ -d .git ]] && git submodule add "$(co)" || git clone "$(co)"; cd
 cogacp()   { gaca; git push -f "$@" }
 alias cotra='transmission-remote -a "$(co)"'
 alias trc='tremc'
+alias trm='rustmission'
 
 alias sducks='sudo ls -a | xargs du -cks -- | sort -rn'
 lnb()     { ln -s "$(realpath "$1")" "$HOME/.local/bin/${2:-$(basename "$1" | cut -d. -f1)}" }
