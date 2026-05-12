@@ -42,7 +42,6 @@
     yarn
     chafa
     asciinema
-    inputs.bruno-tama.packages.${pkgs.system}.default
 
     (writeShellScriptBin "lf-ueberzug" (builtins.readFile ../../.local/bin/lf-ueberzug.sh))
   ];
