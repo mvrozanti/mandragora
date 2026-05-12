@@ -1,4 +1,4 @@
-# Mandragora PowerShell profile snippet — keeps PSReadLine in sync with
+# Mandragora PowerShell profile snippet -- keeps PSReadLine in sync with
 # the keybindings we ship for zsh.
 #
 # Source from your PowerShell $PROFILE:
@@ -8,10 +8,10 @@
 #   }
 #
 # Re-sourced every PowerShell launch, so future zsh keybind changes
-# need no manual mirror — just re-pull the repo and the next pwsh
+# need no manual mirror -- just re-pull the repo and the next pwsh
 # session picks them up.
 
 if (Get-Module -ListAvailable PSReadLine) {
-    # Alt+Enter: insert literal newline without executing — same as our zsh widget.
+    # Alt+Enter: insert literal newline without executing -- same as our zsh widget.
     Set-PSReadLineKeyHandler -Chord 'Alt+Enter' -Function AddLine
 }

@@ -1,4 +1,4 @@
-# Mandragora WSL install — single-file orchestrator.
+# Mandragora WSL install -- single-file orchestrator.
 #
 # Usage on a Win 11 host with WSL2 already installed (regular PowerShell):
 #   iex (iwr https://raw.githubusercontent.com/mvrozanti/mandragora/master/appendix/wsl/install.ps1)
@@ -52,8 +52,8 @@ switch ($replaceEnv) {
 
 function Confirm-Replace {
     param([Parameter(Mandatory)] [string] $What)
-    if ($script:ReplaceAll)  { Write-Host "    '$What' exists — replacing (MANDRAGORA_REPLACE=all)" -ForegroundColor DarkGray; return $true }
-    if ($script:ReplaceNone) { Write-Host "    '$What' exists — keeping  (MANDRAGORA_REPLACE=none)" -ForegroundColor DarkGray; return $false }
+    if ($script:ReplaceAll)  { Write-Host "    '$What' exists -- replacing (MANDRAGORA_REPLACE=all)" -ForegroundColor DarkGray; return $true }
+    if ($script:ReplaceNone) { Write-Host "    '$What' exists -- keeping  (MANDRAGORA_REPLACE=none)" -ForegroundColor DarkGray; return $false }
     while ($true) {
         $r = Read-Host "    '$What' already exists. Replace? [Y]es / [N]o / [A]ll / N[o]ne"
         switch -Regex ($r.Trim().ToLower()) {
@@ -125,7 +125,7 @@ function Show-Preflight {
 
     Write-Host ''
     Write-Host '====================================================' -ForegroundColor Yellow
-    Write-Host '  MANDRAGORA-WSL INSTALL — preflight'                 -ForegroundColor Yellow
+    Write-Host '  MANDRAGORA-WSL INSTALL -- preflight'                 -ForegroundColor Yellow
     Write-Host '====================================================' -ForegroundColor Yellow
     $csName  = if ($cs) { $cs.Name }     else { $env:COMPUTERNAME }
     $osCap   = if ($os) { $os.Caption }  else { 'Windows' }
@@ -136,7 +136,7 @@ function Show-Preflight {
     Write-Host ('  AAD enrolled   : {0}' -f $azureAD)
     Write-Host ('  BitLocker C:   : {0}' -f $bitlocker)
     Write-Host ('  existing WSL   : {0}' -f ($(if ($existing) { $existing -join ', ' } else { '(none)' })))
-    Write-Host ('  rice mode      : {0}' -f ($(if ($RICE) { 'ON (will edit registry — UAC)' } else { 'OFF (use MANDRAGORA_RICE=1 to enable)' })))
+    Write-Host ('  rice mode      : {0}' -f ($(if ($RICE) { 'ON (will edit registry -- UAC)' } else { 'OFF (use MANDRAGORA_RICE=1 to enable)' })))
     Write-Host ('  personal cfg   : {0}' -f ($(if ($PERSONAL) { 'ON (mvrozanti git/email + aerc/khal dotfiles)' } else { 'OFF (use MANDRAGORA_PERSONAL=1 to enable)' })))
     Write-Host ('  replace policy : {0}' -f ($(if ($script:ReplaceAll) { 'all (auto-Yes)' } elseif ($script:ReplaceNone) { 'none (auto-No)' } else { 'prompt (Y/N/A/O)' })))
     Write-Host ('  log file       : {0}' -f $LOG)
@@ -164,7 +164,7 @@ function Show-Preflight {
     }
 
     Write-Host ''
-    Write-Host 'starting in 15s — Ctrl-C to abort.' -ForegroundColor Cyan
+    Write-Host 'starting in 15s -- Ctrl-C to abort.' -ForegroundColor Cyan
     for ($i = 15; $i -gt 0; $i--) { Write-Host -NoNewline ("`r  {0,3}s..." -f $i); Start-Sleep 1 }
     Write-Host ''
 }
@@ -237,7 +237,7 @@ while ($true) {
             if ($RICE) {
                 Invoke-Phase -Name '01-rice' -RequiresAdmin
             } else {
-                Write-Host '>>> phase: 01-rice — SKIPPED (set MANDRAGORA_RICE=1 to enable)' -ForegroundColor DarkYellow
+                Write-Host '>>> phase: 01-rice -- SKIPPED (set MANDRAGORA_RICE=1 to enable)' -ForegroundColor DarkYellow
             }
             Set-State 'rice-done'
         }
