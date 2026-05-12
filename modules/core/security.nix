@@ -3,7 +3,7 @@
 {
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 3000 9090 9100 ];
+    allowedTCPPorts = [ 9100 ];
     allowedUDPPorts = [];
     logRefusedConnections = false;
     interfaces.enp8s0.allowedTCPPorts = [ 6600 ];
