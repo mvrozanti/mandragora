@@ -42,7 +42,8 @@ Start-Transcript -Path $LOG -Append -ErrorAction SilentlyContinue | Out-Null
 
 $script:ReplaceAll = $false
 $script:ReplaceNone = $false
-switch (($env:MANDRAGORA_REPLACE | ForEach-Object { $_.ToLower() })) {
+$replaceEnv = if ($env:MANDRAGORA_REPLACE) { $env:MANDRAGORA_REPLACE.ToLower() } else { '' }
+switch ($replaceEnv) {
     'all'  { $script:ReplaceAll  = $true }
     'yes'  { $script:ReplaceAll  = $true }
     'none' { $script:ReplaceNone = $true }
@@ -126,7 +127,9 @@ function Show-Preflight {
     Write-Host '====================================================' -ForegroundColor Yellow
     Write-Host '  MANDRAGORA-WSL INSTALL — preflight'                 -ForegroundColor Yellow
     Write-Host '====================================================' -ForegroundColor Yellow
-    Write-Host ('  computer       : {0} ({1})' -f $cs.Name, $os.Caption)
+    $csName  = if ($cs) { $cs.Name }     else { $env:COMPUTERNAME }
+    $osCap   = if ($os) { $os.Caption }  else { 'Windows' }
+    Write-Host ('  computer       : {0} ({1})' -f $csName, $osCap)
     Write-Host ('  admin powershell: {0}' -f $IS_ADMIN)
     Write-Host ('  WSL2 already up: True (verified)')
     Write-Host ('  domain joined  : {0}' -f $domain)
