@@ -1,9 +1,12 @@
 * { all: unset; font-family: "Iosevka Nerd Font", "Font Awesome 7 Free Solid", "Font Awesome 7 Brands"; }
 
-window { background: transparent; }
+window {
+  background: rgba(10, 10, 10, 0.97);
+  border-radius: 14px;
+}
 
 .capture-menu {
-  background: rgba(8, 8, 12, 0.99);
+  background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   padding: 14px 14px 12px 14px;
@@ -69,14 +72,14 @@ window { background: transparent; }
 }
 
 .screencap-preview {
-  background: rgba(8, 8, 12, 0.99);
+  background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   padding: 6px;
 }
 
 .powermenu {
-  background: rgba(8, 8, 12, 0.99);
+  background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   padding: 14px 14px 12px 14px;
@@ -126,7 +129,7 @@ window { background: transparent; }
 }
 
 .notif-menu {
-  background: rgba(8, 8, 12, 0.99);
+  background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   padding: 14px;
