@@ -54,8 +54,8 @@ force_recover() {
 
 emit_json() {
   makoctl history -j 2>/dev/null | jq -c '
-    def trim(s): if (s|length) > 240 then (s[0:237] + "...") else s end;
-    def squish(s): (s // "") | gsub("[\r\n\t]+"; " ") | gsub(" +"; " ");
+    def squish: (. // "") | gsub("[\r\n\t]+"; " ") | gsub(" +"; " ");
+    def trim: if length > 240 then .[0:237] + "..." else . end;
     def cls(u):
       if   u == 2 then "critical"
       elif u == 0 then "low"
@@ -63,8 +63,8 @@ emit_json() {
     reverse | map({
       id: .id,
       app: ((.app_name // "?") | squish),
-      summary: (.summary | squish | trim(.)),
-      body: (.body | squish | trim(.)),
+      summary: (.summary | squish | trim),
+      body: (.body | squish | trim),
       urgency_cls: cls(.urgency)
     })
   '
