@@ -382,7 +382,7 @@ in
       window.dialog filechooser .view,
       window.dialog placessidebar,
       window.dialog placessidebar list {
-        background-color: rgba(30, 30, 30, 0.6);
+        background-color: rgba(30, 30, 30, 0.8);
         background-image: none;
       }
     '';
@@ -404,7 +404,7 @@ in
       window.dialog filechooser listview,
       window.dialog placessidebar,
       window.dialog placessidebar listview {
-        background-color: rgba(30, 30, 30, 0.6) !important;
+        background-color: rgba(30, 30, 30, 0.8) !important;
         background-image: none !important;
       }
     '';
