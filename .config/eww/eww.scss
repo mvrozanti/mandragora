@@ -124,3 +124,105 @@ window { background: transparent; }
   font-size: 11px;
   color: rgba(230, 230, 238, 0.82);
 }
+
+.notif-menu {
+  background: rgba(20, 20, 28, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px;
+  color: #e6e6ee;
+}
+
+.notif-header {
+  padding: 0 2px 6px 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 4px;
+}
+
+.notif-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: rgba(230, 230, 238, 0.92);
+}
+
+.notif-action {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 4px 10px;
+  margin-left: 4px;
+  font-size: 11px;
+  color: rgba(230, 230, 238, 0.78);
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+
+  &.dnd.on {
+    color: #e5c07b;
+    border-color: rgba(229, 192, 123, 0.4);
+    background: rgba(229, 192, 123, 0.08);
+  }
+
+  &.clear:hover { color: #e06c75; }
+}
+
+.notif-empty {
+  padding: 32px 0;
+  color: rgba(230, 230, 238, 0.4);
+  font-size: 12px;
+}
+
+.notif-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 3px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  padding: 10px 12px;
+  transition: background 120ms ease, border-color 120ms ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  &.low        { border-left-color: rgba(97, 175, 239, 0.55); }
+  &.normal     { border-left-color: rgba(152, 195, 121, 0.55); }
+  &.critical   { border-left-color: rgba(224, 108, 117, 0.85); background: rgba(224, 108, 117, 0.06); }
+}
+
+.notif-app {
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: rgba(230, 230, 238, 0.55);
+  letter-spacing: 0.05em;
+}
+
+.notif-summary {
+  font-size: 12px;
+  font-weight: bold;
+  color: #e6e6ee;
+}
+
+.notif-body {
+  font-size: 11px;
+  color: rgba(230, 230, 238, 0.7);
+  padding-top: 2px;
+}
+
+.notif-dismiss {
+  background: transparent;
+  border: none;
+  color: rgba(230, 230, 238, 0.4);
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 120ms ease, color 120ms ease;
+
+  &:hover {
+    background: rgba(224, 108, 117, 0.15);
+    color: #e06c75;
+  }
+}

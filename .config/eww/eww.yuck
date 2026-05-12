@@ -92,3 +92,51 @@
   :geometry (geometry :anchor "bottom right" :x 12 :y 56 :width 380 :height 240)
   :namespace "eww-powermenu"
   (powermenu-body))
+
+(defpoll notif-history :interval "1s" :initial "[]" "notif-menu json")
+(defpoll notif-dnd :interval "2s" :initial "off" "notif-menu dnd-status")
+
+(defwidget notif-card [id app summary body urgency_cls]
+  (box :class {"notif-card ${urgency_cls}"} :orientation "h" :space-evenly false :spacing 10
+    (box :orientation "v" :space-evenly false :spacing 2 :hexpand true
+      (label :class "notif-app" :text app :halign "start" :xalign 0)
+      (label :class "notif-summary" :text summary :halign "start" :xalign 0 :wrap true)
+      (label :class "notif-body" :text body :halign "start" :xalign 0 :wrap true
+             :visible {body != ""}))
+    (button :class "notif-dismiss"
+            :onclick "notif-menu dismiss ${id} &"
+            :tooltip "Dismiss"
+            "")))
+
+(defwidget notif-menu-body []
+  (box :class "notif-menu" :orientation "v" :space-evenly false :spacing 10
+    (box :class "notif-header" :orientation "h" :space-evenly false :spacing 8
+      (label :class "notif-title" :text "Notifications" :hexpand true :halign "start" :xalign 0)
+      (button :class {"notif-action dnd ${notif-dnd}"}
+              :onclick "notif-menu dnd &"
+              :tooltip "Toggle Do Not Disturb"
+              {notif-dnd == "on" ? "  DND" : "  DND"})
+      (button :class "notif-action clear"
+              :onclick "notif-menu clear &"
+              :tooltip "Clear all notifications"
+              "  Clear"))
+    (label :class "notif-empty"
+           :text "No notifications"
+           :visible {notif-history == "[]" || notif-history == ""})
+    (scroll :hscroll false :vscroll true :vexpand true
+            :visible {notif-history != "[]" && notif-history != ""}
+      (box :orientation "v" :space-evenly false :spacing 8
+        (for entry in notif-history
+          (notif-card :id {entry.id}
+                      :app {entry.app}
+                      :summary {entry.summary}
+                      :body {entry.body}
+                      :urgency_cls {entry.urgency_cls}))))))
+
+(defwindow notif-menu
+  :monitor 0
+  :stacking "overlay"
+  :focusable "exclusive"
+  :geometry (geometry :anchor "bottom right" :x 12 :y 56 :width 440 :height 560)
+  :namespace "eww-notif-menu"
+  (notif-menu-body))
