@@ -2,6 +2,10 @@
 reload_apps = false
 set_wallpaper = false
 
+[templates.aerc]
+input_path = "templates/aerc"
+output_path = "~/.config/aerc/stylesets/matugen"
+
 [templates.colors_json]
 input_path = "templates/colors.json"
 output_path = "~/.cache/matugen/colors.json"
