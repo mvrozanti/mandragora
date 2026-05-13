@@ -346,7 +346,7 @@ in
     settings = {
       server = {
         protocol = "http";
-        http_addr = "127.0.0.1";
+        http_addr = "0.0.0.0";
         http_port = 3000;
       };
       analytics.reporting_enabled = false;
