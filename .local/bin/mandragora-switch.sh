@@ -279,11 +279,16 @@ if [ "$RC" -eq 0 ] || [ "$ACTIVATED" -eq 1 ]; then
       done <<< "$SORTED"
       if [ "${#COALESCE[@]}" -gt 0 ]; then
         echo "==> Coalescing ${#COALESCE[@]} generation(s) closer than ${WINDOW_SECONDS}s to a kept neighbor: ${COALESCE[*]}"
-        if sudo nix-env -p /nix/var/nix/profiles/system --delete-generations "${COALESCE[@]}"; then
-          sudo /run/current-system/bin/switch-to-configuration boot >/dev/null 2>&1 || \
-            echo "==> WARNING: bootloader refresh after coalesce failed; entries may be stale until next switch." >&2
+        PRUNED_LOG=$(sudo nix-env -p /nix/var/nix/profiles/system --delete-generations "${COALESCE[@]}" 2>&1)
+        if [ $? -eq 0 ]; then
+          if echo "$PRUNED_LOG" | grep -qEi "removing (generation|profile version)"; then
+            sudo /run/current-system/bin/switch-to-configuration boot >/dev/null 2>&1 || \
+              echo "==> WARNING: bootloader refresh after coalesce failed; entries may be stale until next switch." >&2
+          else
+            echo "==> No generations were actually pruned."
+          fi
         else
-          echo "==> WARNING: generation coalesce failed; old generations remain." >&2
+          echo "==> WARNING: generation coalesce failed: $PRUNED_LOG" >&2
         fi
         phase "coalesce generations"
       fi
