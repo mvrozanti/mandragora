@@ -42,6 +42,11 @@
 
   systemd.settings.Manager.DefaultTimeoutStopSec = "20s";
 
+  systemd.services."user@".serviceConfig = {
+    TimeoutStopSec = lib.mkForce "20s";
+    TimeoutAbortSec = lib.mkForce "20s";
+  };
+
   environment.systemPackages = with pkgs; [
     git
     vim
