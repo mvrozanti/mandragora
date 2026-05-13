@@ -402,7 +402,7 @@ in
       filechooser .view,
       filechooser pathbar,
       filechooser pathbar > box {
-        background-color: rgba(30, 30, 30, 1.0);
+        background-color: rgba(0, 0, 0, 0.4);
         background-image: none;
       }
     '';
@@ -439,7 +439,7 @@ in
       filechooser placessidebar listview row,
       filechooser listview,
       filechooser pathbar {
-        background-color: rgba(30, 30, 30, 1.0) !important;
+        background-color: rgba(0, 0, 0, 0.4) !important;
         background-image: none !important;
       }
     '';
