@@ -4,6 +4,9 @@
       "selectedType": "oauth-personal"
     }
   },
+  "context": {
+    "fileName": ["GEMINI.md", "AGENTS.md"]
+  },
   "mcpServers": {
     "local-ai": {
       "command": "local-ai-mcp-server",
