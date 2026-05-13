@@ -3,7 +3,7 @@ set -euo pipefail
 
 EWW=(eww -c "$HOME/.config/eww")
 WIN=notif-menu
-SELF="$HOME/.local/bin/notif-menu"
+SELF=notif-menu
 GEOM_X=12
 GEOM_Y=56
 GEOM_W=440
@@ -22,9 +22,9 @@ is_open() {
 }
 
 install_outside_binds() {
-  hyprctl keyword bind "n,mouse:272,exec,$SELF outside-click" >/dev/null
-  hyprctl keyword bind "n,mouse:273,exec,$SELF outside-click" >/dev/null
-  hyprctl keyword bind "n,mouse:274,exec,$SELF outside-click" >/dev/null
+  hyprctl keyword bindn ",mouse:272,exec,$SELF outside-click" >/dev/null
+  hyprctl keyword bindn ",mouse:273,exec,$SELF outside-click" >/dev/null
+  hyprctl keyword bindn ",mouse:274,exec,$SELF outside-click" >/dev/null
 }
 
 remove_outside_binds() {
