@@ -1,19 +1,32 @@
-# `microbin/` — tailnet-only paste service
+# `microbin/` — paste service (Authelia-gated)
 
-Stack for `paste.mvrozanti.duckdns.org`. Lightweight Rust paste server
-(microbin), gated to the tailnet via a Caddy `not remote_ip 100.64.0.0/10`
-matcher returning 403 for non-tailnet sources.
+Stack for `paste.mvr.ac`. Lightweight Rust paste server (microbin).
 
 ## Container
 
 | Container | Image | Port | Persistence |
 |---|---|---|---|
-| `microbin` | `ghcr.io/szabodanika/microbin:2.0.4` | `8080` (in-container) | bind mount `./data` → `/app/pasta_data` |
+| `microbin` | `danielszabo99/microbin:latest` | `8080` (in-container) | bind mount `./data` → `/app/pasta_data` |
 
 Since microbin runs on the VPS in `seafile-net`, the VPS-side caddy
 reaches it directly by container service name — no `socat` shim is
-needed (unlike ttyd, which lives on the desktop and is proxied via
-`socat-tailnet@7681.service` + `host.docker.internal`).
+needed (unlike ttyd / slither / mympd / rgb-control / im-gen-web,
+which live on the desktop and are proxied via the
+`socat-tailnet@<port>.service` family + `host.docker.internal`).
+
+## Auth
+
+Single-factor Authelia (password + TOTP) via Caddy `forward_auth`.
+microbin's native basic auth (`MICROBIN_AUTH_USERNAME` /
+`MICROBIN_AUTH_PASSWORD` env vars) is **off** — Authelia is the
+only gate; a second prompt would be redundant friction. The
+`MICROBIN_NO_LISTING=true` setting still hides the index page so
+paste URLs aren't enumerable by anyone who somehow lands past
+Authelia.
+
+Previous state (pre-Phase F) used a tailnet IP gate + microbin
+native auth instead — dropped in favor of "everything through
+Authelia" so pastes are reachable from any network with valid TOTP.
 
 ## Live location
 
@@ -26,18 +39,12 @@ cd /home/opc/microbin && sudo docker compose up -d
 ## Env
 
 `.env` (root-owned, gitignored) holds:
-- `MICROBIN_AUTH_USERNAME`
-- `MICROBIN_AUTH_PASSWORD`
-- `PASTE_HOSTNAME`  (default: `paste.mvrozanti.duckdns.org`)
-- optional `MICROBIN_IMAGE`, `MICROBIN_DATA_VOLUME`
-
-Pastes that are visible to anyone with the paste URL **on the
-tailnet**; the `--no-listing` setting hides the index page so the
-URLs aren't enumerable. Combined with the Caddy IP gate, public
-internet sees only the 403.
+- `MVR_AC` (default: `mvr.ac`)
+- optional `MICROBIN_IMAGE`, `MICROBIN_DATA_VOLUME`, `PASTE_HOSTNAME`
 
 ## Verification
 
-- `curl -sI https://paste.mvrozanti.duckdns.org/` (from public): `403`
-- From a tailnet client: `200` and serves the paste UI.
-- `curl -X POST -u m:$PASS https://paste.mvrozanti.duckdns.org/upload -F 'content=hello'` (from tailnet): paste URL response.
+- `curl -sI https://paste.mvr.ac/` (from anywhere): `302 → auth.mvr.ac/?rd=…`
+- After Authelia auth: `200` and serves the paste UI.
+- From the auth-bypassed seafile-net inside the container:
+  `curl -sI http://localhost:8080/` (via `docker exec`): `200`.
