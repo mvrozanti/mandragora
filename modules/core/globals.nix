@@ -9,8 +9,6 @@
     ipv4.addresses = [{ address = "192.168.0.27"; prefixLength = 24; }];
     tempAddress = "default";
   };
-  networking.interfaces.wlp7s0.useDHCP = true;
-  networking.networkmanager.wifi.powersave = false;
   networking.defaultGateway = "192.168.0.1";
 
   boot.kernel.sysctl = {
@@ -41,11 +39,6 @@
   programs.gpu-screen-recorder.enable = true;
 
   systemd.settings.Manager.DefaultTimeoutStopSec = "20s";
-
-  systemd.services."user@".serviceConfig = {
-    TimeoutStopSec = lib.mkForce "20s";
-    TimeoutAbortSec = lib.mkForce "20s";
-  };
 
   environment.systemPackages = with pkgs; [
     git
