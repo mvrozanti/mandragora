@@ -7,6 +7,7 @@
     allowedUDPPorts = [];
     logRefusedConnections = false;
     interfaces.enp8s0.allowedTCPPorts = [ 6600 ];
+    interfaces.tailscale0.allowedTCPPorts = [ 3000 ];
     checkReversePath = "loose";
   };
 
