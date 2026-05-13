@@ -1,7 +1,11 @@
 # `authelia/` — single sign-on + TOTP gate
 
-Stack for `auth.mvr.ac`. Sits in front of `grafana.`, `term.`, and
-`paste.` via Caddy `forward_auth`. Two containers on `seafile-net`:
+Stack for `auth.mvr.ac`. Sits in front of every hub vhost except
+`mvr.ac` (GH Pages, public), `cal.mvr.ac` (CalDAV can't follow OAuth
+redirects), and selective Seafile sync paths
+(`/api2/*`, `/seafhttp/*`, `/seafdav/*`, `/notification/*`).
+
+Two containers on `seafile-net`:
 
 | Container | Image | Purpose |
 |---|---|---|
@@ -25,12 +29,17 @@ cd /home/opc/authelia && sudo docker compose up -d
 - Session cookies scoped to `*.mvr.ac` (set in
   `config/configuration.yml`).
 - Brute-force regulation: 3 retries / 2 min window / 15 min ban.
-- Default policy `deny`; only `auth.mvr.ac` (bypass — login portal
-  itself) and `grafana.mvr.ac` / `term.mvr.ac` / `paste.mvr.ac`
-  (two_factor) are routed through. Other services like
-  `seafile.mvr.ac`, `cal.mvr.ac`, `hub.mvr.ac`, `slither.mvr.ac` are
-  not behind forward_auth — Caddy doesn't call Authelia for them, so
-  default-deny doesn't lock them out.
+- Elevated-session OTC (for security changes): 30 min lifespan.
+- Default policy `deny`; explicit `two_factor` for
+  `grafana.mvr.ac`, `term.mvr.ac`, `paste.mvr.ac`,
+  `slither.mvr.ac`, `hub.mvr.ac`, `seafile.mvr.ac`,
+  `mpd.mvr.ac`, `rgb.mvr.ac`, `gen.mvr.ac`. `auth.mvr.ac` itself
+  is `bypass` (login portal).
+- `cal.mvr.ac` is intentionally NOT in the access_control rules —
+  Caddy doesn't route CalDAV through forward_auth at all, so the
+  default-deny doesn't block it. CalDAV stays on Radicale's
+  native htpasswd.
+- WebAuthn / passkeys enabled but optional (every user has TOTP).
 
 ## Bootstrap
 
