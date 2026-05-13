@@ -6,10 +6,7 @@ let
     { n = "pickup";   s = ../../agent-skills/pickup; }
     { n = "gpu-lock"; s = ../../agent-skills/gpu-lock; }
     { n = "hotkeys";  s = ../../agent-skills/hotkeys; }
-  ];
-
-  claudeOnlySkills = [
-    { n = "nrp"; s = ../../agent-skills/nrp; }
+    { n = "nrp";      s = ../../agent-skills/nrp; }
   ];
 
   mkEntries = prefix: skills: lib.listToAttrs (map (e: {
@@ -20,6 +17,5 @@ in
 {
   home.file =
     mkEntries ".claude/skills" crossAgentSkills
-    // mkEntries ".gemini/skills" crossAgentSkills
-    // mkEntries ".claude/skills" claudeOnlySkills;
+    // mkEntries ".gemini/skills" crossAgentSkills;
 }
