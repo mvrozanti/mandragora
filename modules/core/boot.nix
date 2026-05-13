@@ -40,6 +40,7 @@
     "randomize_kstack_offset=on"
     "vsyscall=none"
     "mitigations=off"
+    "systemd.gpt_auto=0"
   ];
 
   boot.blacklistedKernelModules = [ "sp5100_tco" ];
