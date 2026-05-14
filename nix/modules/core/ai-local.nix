@@ -136,11 +136,6 @@ in
         memeTaggerCli.meme-find
       ];
 
-      sops.secrets."meme_tagger/env" = {
-        owner = "m";
-        mode = "0400";
-      };
-
       systemd.services.ollama-pull-meme-tagger = {
         description = "Pre-pull meme-tagger VLM";
         after = [ "ollama.service" "network-online.target" ];

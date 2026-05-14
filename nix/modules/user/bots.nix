@@ -7,15 +7,13 @@ let
   llmViaTelegramState = "/home/m/.local/share/llm-via-telegram";
   sttViaTelegramRoot = "/etc/nixos/mandragora/.local/share/stt-via-telegram";
   sttViaTelegramState = "/home/m/.local/share/stt-via-telegram";
-  memeTaggerRoot = "/etc/nixos/mandragora/.local/share/meme-tagger";
   memeTaggerState = "/home/m/.local/share/meme-tagger";
-  memeTaggerIncoming = "/home/m/Pictures/tagged";
 in
 {
   home.activation.botsState = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     mkdir -p ${llmViaTelegramState}/data ${llmViaTelegramState}/logs
     mkdir -p ${sttViaTelegramState}/data ${sttViaTelegramState}/logs ${sttViaTelegramState}/hf-cache
-    mkdir -p ${memeTaggerState}/data ${memeTaggerState}/logs ${memeTaggerIncoming}
+    mkdir -p ${memeTaggerState}/logs
     if [ -e /home/m/Projects/gpu-lock ] && [ ! -L /home/m/Projects/gpu-lock ]; then
       rm -rf /home/m/Projects/gpu-lock
     fi
@@ -102,31 +100,4 @@ in
     };
   };
 
-  systemd.user.services.meme-tagger = lib.mkIf (osConfig.mandragora.ai.memeTagger.enable or false) {
-    Unit = {
-      Description = "meme-tagger Telegram bot (Qwen2.5-VL on RTX 5070 Ti, GPU-coordinated)";
-      After = [ "graphical-session.target" "network-online.target" ];
-      Wants = [ "network-online.target" ];
-      ConditionPathExists = [ "/dev/nvidia0" osConfig.sops.secrets."meme_tagger/env".path ];
-    };
-    Service = {
-      Type = "simple";
-      WorkingDirectory = memeTaggerState;
-      ExecStart = "${botPython}/bin/python3 ${memeTaggerRoot}/main.py";
-      EnvironmentFile = osConfig.sops.secrets."meme_tagger/env".path;
-      Environment = [
-        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
-        "PYTHONPATH=${gpuLockRoot}:${memeTaggerRoot}"
-        "MEME_TAGGER_STATE_DIR=${memeTaggerState}"
-        "MEME_TAGGER_DATA_DIR=${memeTaggerState}/data"
-        "MEME_TAGGER_LOG_DIR=${memeTaggerState}/logs"
-        "MEME_TAGGER_INCOMING_ROOT=${memeTaggerIncoming}"
-      ];
-      Restart = "on-failure";
-      RestartSec = 10;
-    };
-    Install = {
-      WantedBy = [ "default.target" ];
-    };
-  };
 }
