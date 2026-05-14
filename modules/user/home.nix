@@ -356,25 +356,6 @@ in
       package = pkgs.kdePackages.breeze-icons;
     };
     gtk3.extraCss = ''
-      window.background,
-      window.background.csd,
-      window.background.solid-csd,
-      .background,
-      window.background decoration,
-      window.background headerbar,
-      window.background .titlebar,
-      window.background box,
-      window.background grid,
-      window.background stack,
-      window.background scrolledwindow,
-      window.background viewport,
-      window.background notebook,
-      window.background notebook > stack,
-      window.background paned,
-      window.background paned > separator {
-        background-color: transparent;
-        background-image: none;
-      }
       window.dialog,
       window.dialog.background,
       window.dialog.csd,
@@ -408,14 +389,6 @@ in
       }
     '';
     gtk4.extraCss = ''
-      window, window.background, window.background.csd, .background,
-      headerbar, .titlebar, windowhandle,
-      box, grid, stack, scrolledwindow, viewport,
-      notebook, notebook > stack,
-      paned, paned > separator {
-        background-color: rgba(0, 0, 0, 0) !important;
-        background-image: none !important;
-      }
       window.dialog,
       window.dialog.background,
       window.dialog.csd,
