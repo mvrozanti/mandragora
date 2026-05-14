@@ -107,6 +107,31 @@ rationale, recipes, or the incident that produced the rule.
 
 ---
 
+## Operational Rituals
+
+Lightweight habits that keep the repo and the knowledge base in sync.
+Not invariants — judgement calls, applied when the work is
+non-trivial enough that future-you will benefit from a written trace.
+
+- **Capture the non-obvious why in the vault.** When a piece of work
+  encodes a decision, a constraint, or an incident lesson that won't
+  be obvious to someone reading just the diff (or to future-you in
+  six months), drop a short note into the mandragora-desktop
+  knowledge vault at
+  \`/home/m/Documents/mandragora-desktop-obsidian-vault/\` — or update
+  the existing note it touches. Code is the *what*; the vault is the
+  *why*.
+- **Commit cadence.** One Conventional Commit per coherent unit of
+  meaningful change. Don't bundle unrelated fixes; don't split a
+  single concern across commits. When a commit relates to a vault
+  note, name the note in the body so the link survives.
+- **Visualize.** The vault is served as a graph at
+  [demo.mvr.ac](https://demo.mvr.ac) (source:
+  \`~/Projects/fake-obsidian\`). If you've added or restructured notes,
+  glance at the graph to confirm the new connections render.
+
+---
+
 ## Multi-Agent File Safety
 
 **Never rewrite a file from scratch** — read current on-disk state and
