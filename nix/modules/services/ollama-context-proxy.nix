@@ -17,6 +17,7 @@ in {
       LISTEN_PORT = toString port;
       MVR_SYSTEM_PROMPT_FILE = "${systemPromptFile}";
     };
+    restartTriggers = [ (builtins.readFile ../../../.local/share/ollama-context-proxy/proxy.py) ];
     serviceConfig = {
       ExecStart = "${pyEnv}/bin/python ${src}";
       Restart = "on-failure";
