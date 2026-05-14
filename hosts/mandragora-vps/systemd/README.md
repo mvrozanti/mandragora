@@ -40,3 +40,15 @@ sudo install -m 0644 socat-tailnet@.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now socat-tailnet@7681.service
 ```
+
+Currently enabled instances (one per desktop-backed hub vhost):
+
+| Port | Vhost | Desktop service |
+|---|---|---|
+| `7681` | `term.mvr.ac` | ttyd |
+| `8088` | `slither.mvr.ac` | slither-io |
+| `3000` | `grafana.mvr.ac` | grafana |
+| `6680` | `mpd.mvr.ac` | mympd |
+| `6681` | `rgb.mvr.ac` | rgb-control |
+| `6682` | `gen.mvr.ac` | im-gen-web |
+| `6683` | `llama.mvr.ac` | open-webui |
