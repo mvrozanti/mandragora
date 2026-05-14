@@ -15,15 +15,15 @@ whole system is comprehensible to a single individual.
 
 The system is a single-host NixOS flake. There is one machine
 (`mandragora-desktop`), one user (`m`), and one nixosConfiguration. Every
-runtime concern is expressed as a Nix module under `modules/`. The host
-composition file (`hosts/mandragora-desktop/default.nix`) imports those
+runtime concern is expressed as a Nix module under `nix/modules/`. The host
+composition file (`nix/hosts/mandragora-desktop/default.nix`) imports those
 modules, and the flake (`flake.nix`) wires everything to pinned inputs.
 
 The defining architectural choice is **impermanence**: the root filesystem is
 wiped on every boot, and only `/nix`, `/persistent`, and `/home/m`
 (bind-mounted from `/persistent/home/m`) survive. This forces every piece of
 runtime state to be either ephemeral or explicitly declared in
-`modules/core/impermanence.nix`. The git remote serves as the persistence
+`nix/modules/core/impermanence.nix`. The git remote serves as the persistence
 mechanism for the configuration source itself.
 
 ## 2. Technology Stack
@@ -42,7 +42,7 @@ mechanism for the configuration source itself.
 | User home             | home-manager                        | github:nix-community/home-manager  |
 | Secrets               | sops-nix + age                      | github:Mic92/sops-nix              |
 | Impermanence          | impermanence                        | github:nix-community/impermanence  |
-| Local LLM runtime     | (declared in `modules/core/ai-local.nix`) | nixpkgs                      |
+| Local LLM runtime     | (declared in `nix/modules/core/ai-local.nix`) | nixpkgs                      |
 | Monitoring            | Prometheus + Grafana                | nixpkgs                            |
 
 ## 3. Architecture Pattern
@@ -52,32 +52,32 @@ mechanism for the configuration source itself.
 ```
 flake.nix
 └─ nixosConfigurations.mandragora-desktop
-   └─ hosts/mandragora-desktop/default.nix
-      ├─ pkgs/overlays.nix                    (custom overlays)
-      ├─ modules/core/*.nix                   (OS-level concerns)
-      ├─ modules/desktop/*.nix                (GUI session)
-      ├─ modules/user/home-manager.nix        (loads home-manager → home.nix)
-      └─ modules/audits/default.nix           (state-drift checks)
+   └─ nix/hosts/mandragora-desktop/default.nix
+      ├─ nix/pkgs/overlays.nix                    (custom overlays)
+      ├─ nix/modules/core/*.nix                   (OS-level concerns)
+      ├─ nix/modules/desktop/*.nix                (GUI session)
+      ├─ nix/modules/user/home-manager.nix        (loads home-manager → home.nix)
+      └─ nix/modules/audits/default.nix           (state-drift checks)
 ```
 
 ### One concern per module
 
 The codebase deliberately favors many small files over a few big ones. The
-unit of organization is `modules/<area>/<thing>.nix` — for example
-`modules/desktop/keyledsd.nix` exists as a separate file rather than a
-section inside a generic `modules/desktop/peripherals.nix`. The rule is
+unit of organization is `nix/modules/<area>/<thing>.nix` — for example
+`nix/modules/desktop/keyledsd.nix` exists as a separate file rather than a
+section inside a generic `nix/modules/desktop/peripherals.nix`. The rule is
 roughly "one screen of code per module"; if a module grows past that, it
 gets split.
 
 ### Language purity
 
 Nix code lives in `.nix` files. Shell, Python, Lua, and CSS live at the repo
-root in XDG-mirrored directories (`.config/`, `.local/bin/`, `snippets/`),
+root in XDG-mirrored directories (`.config/`, `.local/bin/`, `nix/snippets/`),
 and the corresponding `.nix` file consumes them via:
 
 - `builtins.readFile ../../.config/<app>/<file>.conf`
 - `pkgs.writeShellScript "<name>" (builtins.readFile ../../.local/bin/<script>.sh)`
-- `pkgs.writeScript "<name>" (builtins.readFile ../../snippets/<file>.lua)`
+- `pkgs.writeScript "<name>" (builtins.readFile ../../nix/snippets/<file>.lua)`
 
 This makes non-Nix code editable with the right syntax highlighting, lintable
 by its own tooling, and reusable outside the flake context if needed.
@@ -121,7 +121,7 @@ on the root subvolume. This is intentional: it means an accidental wipe of
 | `/persistent/etc/machine-id` | Stable systemd machine identity |
 | `/persistent/var/lib/bluetooth` | Bluetooth pairing state |
 
-The authoritative whitelist is `modules/core/impermanence.nix`.
+The authoritative whitelist is `nix/modules/core/impermanence.nix`.
 
 ## 5. Impermanence Mechanism
 
@@ -138,10 +138,10 @@ under `/` should be bind-mounted from `/persistent` — for example
 
 **Failure mode:** any service that writes runtime state outside the declared
 persistent paths will silently lose that state at the next boot. The
-`modules/audits/strays.sh` audit tries to catch this.
+`nix/modules/audits/strays.sh` audit tries to catch this.
 
 **The discipline:** before adding any service that writes state, check
-`modules/core/impermanence.nix` and add the path. There is no other way.
+`nix/modules/core/impermanence.nix` and add the path. There is no other way.
 
 ## 6. Secrets Architecture
 
@@ -150,7 +150,7 @@ persistent paths will silently lose that state at the next boot. The
 | Encrypted secrets     | `secrets/secrets.yaml` (committed to git)             |
 | Encryption format     | sops + age                                            |
 | Decryption key        | `/persistent/secrets/keys.txt` (root-only, persisted) |
-| Wiring                | `modules/core/secrets.nix`                            |
+| Wiring                | `nix/modules/core/secrets.nix`                            |
 | Reference syntax      | `config.sops.secrets."<path>".path`                   |
 | Backup                | External USB + Seafile + Oracle VPS                   |
 
@@ -158,7 +158,7 @@ To add a new secret:
 
 1. `sops secrets/secrets.yaml` — opens decrypted in editor.
 2. Add the secret under a sensible key.
-3. In `modules/core/secrets.nix`, declare it under `sops.secrets`.
+3. In `nix/modules/core/secrets.nix`, declare it under `sops.secrets`.
 4. Reference it elsewhere via `config.sops.secrets."<path>".path` (this gives
    the runtime path to the decrypted file).
 5. Rebuild.
@@ -187,7 +187,7 @@ A single source wallpaper drives the entire color scheme:
    - Hyprland (`.config/hypr/`)
    - Kitty terminal
    - Neovim colorscheme
-   - Waybar (`snippets/waybar-style.css` + `.config/waybar/`)
+   - Waybar (`nix/snippets/waybar-style.css` + `.config/waybar/`)
    - GTK theme
 
 The pipeline is the reason theming feels coherent across the desktop without
@@ -208,7 +208,7 @@ file.
 
 ## 9. Module Inventory
 
-### Core (`modules/core/`)
+### Core (`nix/modules/core/`)
 
 | Module                     | Responsibility                                              |
 | -------------------------- | ----------------------------------------------------------- |
@@ -224,7 +224,7 @@ file.
 | `ai-local.nix`             | Local LLM runtime                                           |
 | `vm.nix`                   | libvirt / qemu host                                         |
 
-### Desktop (`modules/desktop/`)
+### Desktop (`nix/modules/desktop/`)
 
 | Module             | Responsibility                                        |
 | ------------------ | ----------------------------------------------------- |
@@ -240,15 +240,15 @@ file.
 | `steam.nix`        | Steam + gamemode                                      |
 | `minecraft.nix`    | Minecraft launcher / server                           |
 
-### User (`modules/user/`)
+### User (`nix/modules/user/`)
 
 | Module               | Responsibility                                              |
 | -------------------- | ----------------------------------------------------------- |
 | `home-manager.nix`   | Enables home-manager NixOS module, imports `home.nix`       |
 | `home.nix`           | User packages, `programs.*`, theming integration            |
-| `zsh.nix`            | zsh config, plugins, aliases (consumes `snippets/aliases.zsh`) |
+| `zsh.nix`            | zsh config, plugins, aliases (consumes `nix/snippets/aliases.zsh`) |
 | `tmux.nix`           | tmux config (consumes `.config/tmux/tmux.conf`)             |
-| `waybar.nix`         | Waybar config (consumes `.config/waybar/`, `snippets/waybar-*`) |
+| `waybar.nix`         | Waybar config (consumes `.config/waybar/`, `nix/snippets/waybar-*`) |
 | `lf.nix`             | lf file manager                                             |
 | `services.nix`       | User systemd services                                       |
 | `bots.nix`           | Telegram-bridged bots (im-gen Flux, llm-via-telegram)       |
@@ -256,14 +256,14 @@ file.
 | `minecraft.nix`      | User-side Minecraft (PrismLauncher etc.)                    |
 | `zx-dirs.nix`        | XDG user directories                                        |
 
-### Audits (`modules/audits/`)
+### Audits (`nix/modules/audits/`)
 
 | File                | Responsibility                                              |
 | ------------------- | ----------------------------------------------------------- |
 | `default.nix`       | Audit module entry                                          |
 | `strays.sh`         | Detects state outside declared persistent paths             |
 
-## 10. Custom Packages (`pkgs/`)
+## 10. Custom Packages (`nix/pkgs/`)
 
 | Package         | Purpose                                                       |
 | --------------- | ------------------------------------------------------------- |
@@ -272,8 +272,8 @@ file.
 | `du-exporter/`  | Custom Prometheus exporter for disk-usage metrics             |
 | `rtk/`          | Custom tooling                                                |
 
-To add a new local package: create `pkgs/<name>/default.nix` and register it
-in `pkgs/overlays.nix`.
+To add a new local package: create `nix/pkgs/<name>/default.nix` and register it
+in `nix/pkgs/overlays.nix`.
 
 ## 11. Development Workflow (Architectural)
 
@@ -301,19 +301,19 @@ machine itself. For full reinstall (replacement hardware, new disk, etc.),
 the procedure is:
 
 1. Boot from a NixOS live USB.
-2. Run `install/format-drive.sh` (Btrfs partition + subvolume layout).
-3. Run `install/mount-install.sh` (mounts subvolumes for the install).
-4. Run `install/bootstrap-age-key.sh` (imports the age key from external USB).
-5. Run `install/install.sh` (`nixos-install --flake .#mandragora-desktop`).
+2. Run `docs/install/format-drive.sh` (Btrfs partition + subvolume layout).
+3. Run `docs/install/mount-install.sh` (mounts subvolumes for the install).
+4. Run `docs/install/bootstrap-age-key.sh` (imports the age key from external USB).
+5. Run `docs/install/install.sh` (`nixos-install --flake .#mandragora-desktop`).
 6. Reboot, log in, verify.
 
-See [`../install/INSTALL.md`](../install/INSTALL.md) for the runbook.
+See [`install/INSTALL.md`](install/INSTALL.md) for the runbook.
 
 ## 13. Testing Strategy
 
 There is no automated test suite. The closest things are:
 
-- **`modules/audits/`** — shell-script audits run periodically on the host
+- **`nix/modules/audits/`** — shell-script audits run periodically on the host
   to detect state drift, stray files, and imperative state.
 - **`nixos-rebuild test`** — applies a configuration without making it the
   boot default, useful for testing risky changes.

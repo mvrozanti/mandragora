@@ -2,7 +2,7 @@
 
 Deterministic, errors-only test suite that enforces AGENTS.md
 non-negotiables mechanically. Sibling to the runtime health checks in
-`modules/audits/{default,cve-scan}.nix` (disk, SMART, units, thermals,
+`nix/modules/audits/{default,cve-scan}.nix` (disk, SMART, units, thermals,
 strays) — those audit the *running system*; this audits the *repo*
 before changes land.
 
@@ -18,7 +18,7 @@ needs judgment, it doesn't belong here.
   checks/NN-name.sh     one file per check, numbered for ordering
   allowlists/NAME.txt   path-globs per line; # for comments
   hooks/{pre-commit,commit-msg}
-modules/audits/repo.nix  packages mandragora-audit + sets core.hooksPath
+nix/modules/audits/repo.nix  packages mandragora-audit + sets core.hooksPath
 ```
 
 ## Invocation
@@ -43,7 +43,7 @@ Exit code: 0 = clean, 1 = at least one failure, 2 = bad invocation.
   A failure aborts the switch with no staging side-effects.
 
 `core.hooksPath` is set declaratively by `system.activationScripts`
-(see `modules/audits/repo.nix`), pointing at the hooks dir inside
+(see `nix/modules/audits/repo.nix`), pointing at the hooks dir inside
 the audit's `/nix/store` derivation.
 
 ## Current checks
