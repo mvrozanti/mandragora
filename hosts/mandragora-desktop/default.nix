@@ -33,6 +33,7 @@
     ../../modules/services/slither-io.nix
     ../../modules/services/mympd.nix
     ../../modules/services/rgb-control.nix
+    ../../modules/services/open-webui.nix
     ../../modules/user/home-manager.nix
     ../../modules/audits/default.nix
   ];
