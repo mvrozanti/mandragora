@@ -1,0 +1,75 @@
+@import "~/.cache/matugen/colors-rofi.rasi"
+
+* {
+  spacing: 0;
+  background-color: transparent;
+  font: "Iosevka Nerd Font 13";
+  text-color: @text;
+}
+
+window {
+  transparency: "real";
+  location: center;
+  anchor: center;
+  background-color: #0c0c12eb;
+  border: 1px;
+  border-radius: 16px;
+  border-color: #ffffff14;
+  width: 360px;
+  padding: 14px;
+}
+
+mainbox {
+  children: [prompt, listview];
+  spacing: 10px;
+}
+
+prompt {
+  enabled: true;
+  padding: 4px 8px 8px 8px;
+  text-color: #b8b8c8;
+  font: "Iosevka Nerd Font 11";
+  horizontal-align: 0.5;
+}
+
+inputbar {
+  enabled: false;
+}
+
+listview {
+  padding: 0;
+  spacing: 6px;
+  fixed-height: false;
+  scrollbar: false;
+  lines: 5;
+  columns: 1;
+}
+
+element {
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-color: #d0d0dc;
+  background-color: #ffffff0a;
+  border: 1px;
+  border-color: #ffffff10;
+  cursor: pointer;
+}
+
+element-icon {
+  size: 0;
+}
+
+element-text {
+  text-color: inherit;
+  vertical-align: 0.5;
+}
+
+element selected {
+  background-color: #ffffff1f;
+  border-color: #ffffff2e;
+  text-color: #ffffff;
+}
+
+element urgent, element selected urgent {
+  text-color: @red;
+}

@@ -142,51 +142,10 @@ mark_flash() {
   pkill -RTMIN+11 waybar 2>/dev/null || true
 }
 
-preview_max_w=480
-preview_max_h=360
-preview_timeout=3
-preview_eww_cfg="$HOME/.config/eww"
-preview_window=screencap-preview
-
-ensure_eww_daemon() {
-  if pgrep -x eww >/dev/null 2>&1; then
-    local sock; sock=$(ls /run/user/$(id -u)/eww-server_* 2>/dev/null | head -1)
-    [[ -S "$sock" ]] && return 0
-  fi
-  setsid eww -c "$preview_eww_cfg" daemon >/dev/null 2>&1 &
-  for _ in $(seq 1 60); do
-    local sock; sock=$(ls /run/user/$(id -u)/eww-server_* 2>/dev/null | head -1)
-    [[ -S "$sock" ]] && return 0
-    sleep 0.025
-  done
-  return 1
-}
-
 preview_image() {
   local file="$1"
-  command -v eww >/dev/null || return 0
-  command -v identify >/dev/null || return 0
-  ensure_eww_daemon || return 0
-  local dims w h scale_w scale_h scale tw th
-  dims=$(identify -format '%wx%h' "$file" 2>/dev/null) || return 0
-  w=${dims%x*}; h=${dims#*x}
-  [[ -z "$w" || -z "$h" || "$w" -le 0 || "$h" -le 0 ]] && return 0
-  scale_w=$((preview_max_w * 1000 / w))
-  scale_h=$((preview_max_h * 1000 / h))
-  scale=$(( scale_w < scale_h ? scale_w : scale_h ))
-  (( scale > 1000 )) && scale=1000
-  tw=$(( w * scale / 1000 ))
-  th=$(( h * scale / 1000 ))
-  eww -c "$preview_eww_cfg" update \
-    "screencap-preview-path=$file" \
-    "screencap-preview-w=$tw" \
-    "screencap-preview-h=$th" >/dev/null 2>&1 || return 0
-  eww -c "$preview_eww_cfg" open --toggle "$preview_window" >/dev/null 2>&1 || \
-    eww -c "$preview_eww_cfg" open "$preview_window" >/dev/null 2>&1
-  ( sleep "$preview_timeout"
-    eww -c "$preview_eww_cfg" close "$preview_window" >/dev/null 2>&1
-  ) &
-  disown 2>/dev/null || true
+  notify-send -a Capture -i "$file" -t 3000 \
+    'Screenshot saved' "$(basename "$file")"
 }
 
 screenshot_full() {

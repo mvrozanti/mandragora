@@ -238,8 +238,8 @@ in
     (pkgs.writeShellScriptBin "opacity-adjust" (builtins.readFile ../../../.local/bin/opacity-adjust.sh))
     (pkgs.writeShellScriptBin "rofi-wallpaper-picker" (builtins.readFile ../../../.local/bin/rofi-wallpaper-picker.sh))
     (pkgs.writeShellScriptBin "clipboard-menu" (builtins.readFile ../../../.local/bin/clipboard-menu.sh))
-    (pkgs.writeShellScriptBin "notif-menu" (builtins.readFile ../../../.local/bin/notif-menu.sh))
-    (pkgs.writeShellScriptBin "powermenu" (builtins.readFile ../../../.local/bin/powermenu.sh))
+    (pkgs.writeShellScriptBin "rofi-power-menu" (builtins.readFile ../../../.local/bin/rofi-power-menu.sh))
+    (pkgs.writeShellScriptBin "rofi-capture-menu" (builtins.readFile ../../../.local/bin/rofi-capture-menu.sh))
     (pkgs.writeShellScriptBin "screencap" (builtins.readFile ../../../.local/bin/screencap.sh))
     (pkgs.writeShellScriptBin "capture" (builtins.readFile ../../../.local/bin/capture.sh))
     (pkgs.writeShellScriptBin "compv" (builtins.readFile ../../../.local/bin/compv.sh))
@@ -631,27 +631,42 @@ in
     };
   };
 
-  services.mako = {
+  services.swaync = {
     enable = true;
+    style = ../../../.config/swaync/style.css;
     settings = {
-      font = "Iosevka Nerd Font Mono 11";
-      background-color = "#00000001";
-      border-size = 1;
-      border-radius = 10;
-      default-timeout = 10000;
-      padding = "10";
-      margin = "20";
-      width = 280;
+      positionX = "right";
+      positionY = "top";
       layer = "overlay";
-      anchor = "bottom-right";
-      max-icon-size = 48;
-      max-visible = 5;
-      markup = 1;
-      actions = 1;
-      sort = "-time";
-      ignore-timeout = 0;
+      control-center-layer = "top";
+      cssPriority = "user";
+      control-center-width = 460;
+      control-center-height = 720;
+      control-center-margin-top = 6;
+      control-center-margin-right = 12;
+      notification-window-width = 420;
+      notification-icon-size = 48;
+      notification-body-image-height = 160;
+      notification-body-image-width = 300;
+      timeout = 8;
+      timeout-low = 5;
+      timeout-critical = 0;
+      fit-to-screen = false;
+      hide-on-clear = true;
+      hide-on-action = true;
+      keyboard-shortcuts = true;
+      script-fail-notify = true;
+      widgets = [ "title" "dnd" "notifications" ];
+      widget-config = {
+        title = {
+          text = "Notifications";
+          clear-all-button = true;
+          button-text = "Clear all";
+        };
+        dnd = { text = "Do not disturb"; };
+        notifications = { vexpand = true; };
+      };
     };
-    extraConfig = builtins.readFile ../../../.config/mako/config;
   };
 
   programs.firefox = {
@@ -887,10 +902,6 @@ EOF
     fi
   '';
   home.file.".config/crush/crush.json".source = ../../../.config/crush/crush.json;
-  home.file.".config/eww" = {
-    source = ../../../.config/eww;
-    recursive = true;
-  };
   home.file.".config/flameshot" = {
     source = ../../../.config/flameshot;
     recursive = true;
