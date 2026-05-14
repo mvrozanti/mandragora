@@ -7,7 +7,6 @@
 !.gemini/hooks
 .gemini/skills/*
 result
-_bmad/config.user.yaml
 __pycache__/
 .worktrees/
 *.torrent
