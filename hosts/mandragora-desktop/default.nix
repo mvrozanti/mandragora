@@ -34,6 +34,7 @@
     ../../modules/services/mympd.nix
     ../../modules/services/rgb-control.nix
     ../../modules/services/im-gen-web.nix
+    ../../modules/services/open-webui.nix
     ../../modules/user/home-manager.nix
     ../../modules/audits/default.nix
   ];
