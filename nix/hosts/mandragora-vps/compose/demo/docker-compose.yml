@@ -10,6 +10,7 @@ services:
       - seafile-net
     labels:
       caddy_0: https://demo.${MVR_AC:-mvr.ac}
+      caddy_0.encode: zstd gzip
       caddy_0.reverse_proxy: "{{upstreams 80}}"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost/"]
