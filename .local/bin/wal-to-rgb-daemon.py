@@ -5,8 +5,8 @@ from pathlib import Path
 from openrgb import OpenRGBClient
 from openrgb.utils import RGBColor
 
-FPS = 30
-STOPS_PER_SECOND = 1.0
+FPS = 40
+STOPS_PER_SECOND = 2.5
 COLORS_PATH = Path.home() / ".cache/matugen/colors.json"
 RAM_PALETTE_INDICES = [2, 6, 5, 1]
 RAM_LEDS_PER_STOP = 2
