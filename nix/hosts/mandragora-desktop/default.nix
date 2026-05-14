@@ -35,6 +35,7 @@
     ../../modules/services/rgb-control.nix
     ../../modules/services/im-gen-web.nix
     ../../modules/services/open-webui.nix
+    ../../modules/services/ollama-context-proxy.nix
     ../../modules/user/home-manager.nix
     ../../modules/audits/default.nix
   ];
