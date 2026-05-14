@@ -13,7 +13,7 @@ What survives reboot, what doesn't, and how user data is ranked.
 
 Before proposing any fix: ask "does this survive reboot without touching
 Nix?" If no — it must go in the flake. The whitelist of bind-mounted
-persistent paths lives in `modules/core/impermanence.nix`.
+persistent paths lives in `nix/modules/core/impermanence.nix`.
 
 ## 1. User-data ranking (intent)
 

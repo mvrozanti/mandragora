@@ -8,7 +8,7 @@ Single LLM router. Every survivor doc is one hop from here.
   policy variances, edit→rebuild→verify→commit summary.
 - Agent-specific delta: [`../CLAUDE.md`](../CLAUDE.md) (Claude Code),
   [`../GEMINI.md`](../GEMINI.md) (Gemini CLI),
-  [`../local-llm.md`](../local-llm.md) (Telegram-bridged local model).
+  [`local-llm.md`](local-llm.md) (Telegram-bridged local model).
 
 ## Topical (lazy-load)
 
@@ -37,23 +37,24 @@ in this repo.
 
 ## Reference
 
-- [`../install/INSTALL.md`](../install/INSTALL.md) — fresh-install runbook
+- [`install/INSTALL.md`](install/INSTALL.md) — fresh-install runbook
   (partition → mount → bootstrap age key → install → reboot).
 
 ## Where things live
 
-- Module configs: `modules/{core,desktop,user,audits}/<thing>.nix`.
+- Module configs: `nix/modules/{core,desktop,user,audits}/<thing>.nix`.
 - Non-Nix code (config files, scripts, css, lua): XDG-mirrored at repo
-  root — `.config/<app>/`, `.local/bin/`, `snippets/`.
-- Custom packages: `pkgs/<name>/default.nix` registered in
-  `pkgs/overlays.nix`.
+  root — `.config/<app>/`, `.local/bin/` — plus shared snippets at
+  `nix/snippets/` (Lua/CSS/shell loaded via `builtins.readFile`).
+- Custom packages: `nix/pkgs/<name>/default.nix` registered in
+  `nix/pkgs/overlays.nix`.
 - Encrypted secrets vault: `secrets/secrets.yaml` (sops-encrypted; never
   open directly — use `sops`).
 
 ## Self-contained subprojects
 
-- [`../appendix/wsl/README.md`](../appendix/wsl/README.md) — Mandragora
+- [`appendix/wsl/README.md`](appendix/wsl/README.md) — Mandragora
   profile under WSL2 (corporate-laptop fallback).
-- [`../hosts/mandragora-usb/`](../hosts/mandragora-usb/) — bootable
+- [`../nix/hosts/mandragora-usb/`](../nix/hosts/mandragora-usb/) — bootable
   installer / rescue USB host (built via `nix build .#usbImage`,
   test-driven via `nix run .#refiner -- --auto`).

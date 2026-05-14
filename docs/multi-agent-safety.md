@@ -20,7 +20,7 @@ the build still succeeds, so you may not notice for hours.
 
 ## Why the rule exists
 
-On 2026-04-20 a full rewrite of `modules/user/home.nix` dropped the
+On 2026-04-20 a full rewrite of `nix/modules/user/home.nix` dropped the
 `programs.firefox` block (with the Tridactyl native-messaging
 wiring), making Firefox unlaunchable until the block was restored
 from git. The rule is incident-driven, not theoretical.
@@ -31,12 +31,12 @@ After heavy parallel-agent activity, eyeball line counts on
 churn-prone files:
 
 ```bash
-wc -l modules/user/home.nix
+wc -l nix/modules/user/home.nix
 ```
 
 Historically, a drop below ~200 lines on `home.nix` means clobbered.
 Restore with:
 
 ```bash
-git checkout HEAD -- modules/user/home.nix
+git checkout HEAD -- nix/modules/user/home.nix
 ```

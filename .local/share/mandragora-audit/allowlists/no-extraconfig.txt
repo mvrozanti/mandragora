@@ -1,6 +1,6 @@
 # Pre-existing extraConfig string blocks at audit landing time.
 # Each entry is a path from repo root. New violations are not allowed.
 # Migrate these to .config/<app>/ + builtins.readFile, then drop the line.
-modules/user/lf.nix
-modules/user/tmux.nix
-modules/user/home.nix
+nix/modules/user/lf.nix
+nix/modules/user/tmux.nix
+nix/modules/user/home.nix
