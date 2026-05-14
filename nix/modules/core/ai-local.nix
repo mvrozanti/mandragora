@@ -20,6 +20,7 @@ let
   gemma = mkPythonBin "gemma" ../../../.local/bin/gemma.py;
   local-ai-mcp-server = mkPythonBin "local-ai-mcp-server" ../../../.local/bin/local-ai-mcp-server.py;
   gpu-lock = import ../../pkgs/gpu-lock.nix { inherit pkgs; };
+  memeTaggerCli = import ../../pkgs/meme-tagger-cli.nix { inherit pkgs; };
 
   crush-wrapped = pkgs.symlinkJoin {
     name = "crush-wrapped";
@@ -45,6 +46,15 @@ in
         type = lib.types.str;
         default = "gpt-oss:20b";
         description = "Ollama tag for the primary local model.";
+      };
+    };
+
+    ai.memeTagger = {
+      enable = lib.mkEnableOption "Local meme-tagger bot (Qwen2.5-VL)";
+      model = lib.mkOption {
+        type = lib.types.str;
+        default = "qwen2.5vl:7b";
+        description = "Ollama tag for the meme-tagger VLM.";
       };
     };
   };
@@ -103,6 +113,49 @@ in
           exec curl -fsS --no-buffer -X POST http://127.0.0.1:11434/api/pull \
             -H 'Content-Type: application/json' \
             -d '{"model":"${cfg.agentic.model}","stream":false}'
+        '';
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          TimeoutStartSec = "2h";
+        };
+      };
+    })
+
+    (lib.mkIf cfg.memeTagger.enable {
+      assertions = [{
+        assertion = gpu.vramGB != null && gpu.vramGB >= 12;
+        message = ''
+          mandragora.ai.memeTagger.enable requires mandragora.hardware.gpu.vramGB >= 12.
+          Qwen2.5-VL 7B Q4_K_M needs ~6 GB plus headroom for Flux coexistence.
+        '';
+      }];
+
+      environment.systemPackages = [
+        memeTaggerCli.meme-tagger
+        memeTaggerCli.meme-find
+      ];
+
+      sops.secrets."meme_tagger/env" = {
+        owner = "m";
+        mode = "0400";
+      };
+
+      systemd.services.ollama-pull-meme-tagger = {
+        description = "Pre-pull meme-tagger VLM";
+        after = [ "ollama.service" "network-online.target" ];
+        requires = [ "ollama.service" ];
+        wants = [ "network-online.target" ];
+        wantedBy = [ "multi-user.target" ];
+        path = [ pkgs.curl ];
+        script = ''
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:11434/api/version >/dev/null && break
+            sleep 1
+          done
+          exec curl -fsS --no-buffer -X POST http://127.0.0.1:11434/api/pull \
+            -H 'Content-Type: application/json' \
+            -d '{"model":"${cfg.memeTagger.model}","stream":false}'
         '';
         serviceConfig = {
           Type = "oneshot";
