@@ -1,0 +1,30 @@
+{ pkgs, ... }:
+
+{
+  programs.tmux = {
+    enable = true;
+    shortcut = "a";
+    mouse = true;
+    historyLimit = 100000;
+    baseIndex = 0;
+    escapeTime = 0;
+    keyMode = "vi";
+    terminal = "tmux-256color";
+
+    plugins = with pkgs.tmuxPlugins; [
+      sensible
+      yank
+      urlview
+      {
+        plugin = open;
+        extraConfig = ''
+          set -g @open 'O'
+          set -g @open-editor 'o'
+          set -g @open-S 'https://www.google.com/search?q='
+        '';
+      }
+    ];
+
+    extraConfig = builtins.readFile ../../../.config/tmux/tmux.conf;
+  };
+}

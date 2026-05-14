@@ -33,7 +33,7 @@
       pkgs = nixpkgs.legacyPackages.${system};
       lib = nixpkgs.lib;
 
-      hostsDir = ./hosts;
+      hostsDir = ./nix/hosts;
 
       autoHostNames = builtins.attrNames (
         lib.filterAttrs (name: type:
@@ -46,9 +46,9 @@
       );
 
       sharedModules = [
-        ./modules/shared/profile.nix
-        ./modules/shared/zsh.nix
-        ./modules/shared/nvim.nix
+        ./nix/modules/shared/profile.nix
+        ./nix/modules/shared/zsh.nix
+        ./nix/modules/shared/nvim.nix
         (let rev = self.rev or self.dirtyRev or "dirty"; in {
           system.configurationRevision = rev;
           system.systemBuilderCommands = ''
@@ -78,7 +78,7 @@
           inherit system;
           specialArgs = { inherit inputs; };
           modules = sharedModules ++ [
-            ./hosts/mandragora-wsl/default.nix
+            ./nix/hosts/mandragora-wsl/default.nix
             home-manager.nixosModules.home-manager
             nixos-wsl.nixosModules.default
           ];
@@ -88,7 +88,7 @@
           inherit system;
           specialArgs = { inherit inputs; };
           modules = sharedModules ++ [
-            ./hosts/mandragora-usb/default.nix
+            ./nix/hosts/mandragora-usb/default.nix
             "${nixpkgs}/nixos/modules/profiles/installation-device.nix"
             sops-nix.nixosModules.sops
             {
@@ -108,14 +108,14 @@
         inherit system;
         format = "raw-efi";
         modules = sharedModules ++ [
-          ./hosts/mandragora-usb/default.nix
+          ./nix/hosts/mandragora-usb/default.nix
           sops-nix.nixosModules.sops
         ];
       };
 
       apps.${system}.refiner = {
         type = "app";
-        program = "${(import ./refiner/default.nix {
+        program = "${(import ./nix/pkgs/refiner/default.nix {
           pkgs = nixpkgs.legacyPackages.${system};
           usbImage = self.packages.${system}.usbImage;
         })}/bin/refiner";
@@ -123,7 +123,7 @@
 
       checks.${system} =
         let
-          guards = import ./modules/shared/build-checks.nix {
+          guards = import ./nix/modules/shared/build-checks.nix {
             inherit self nixpkgs system;
           };
         in {
@@ -134,7 +134,7 @@
 
       homeConfigurations."m@mandragora-vps" = home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages."aarch64-linux";
-        modules = [ ./hosts/mandragora-vps/home.nix ];
+        modules = [ ./nix/hosts/mandragora-vps/home.nix ];
       };
     };
 }
