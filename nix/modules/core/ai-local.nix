@@ -50,7 +50,11 @@ in
     };
 
     ai.memeTagger = {
-      enable = lib.mkEnableOption "Local meme-tagger bot (Qwen2.5-VL)";
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Expose meme-tagger / meme-find CLIs and pre-pull the VLM model.";
+      };
       model = lib.mkOption {
         type = lib.types.str;
         default = "qwen2.5vl:7b";
