@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+USAGE_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/rofi-capture-menu-usage"
+
 if pgrep -x rofi >/dev/null 2>&1; then
   pkill -x rofi 2>/dev/null || true
   exit 0
@@ -29,19 +31,36 @@ entries+=("󰓃  Video system — Region|vid-sys-region")
 entries+=("󰓃  Video system — Window|vid-sys-window")
 entries+=("󰓃  Video system — Full|vid-sys-full")
 
-menu=$(printf '%s\n' "${entries[@]%|*}")
+if [[ -f "$USAGE_FILE" ]]; then
+  counts=$(sort "$USAGE_FILE" | uniq -c | sort -nr)
+  sorted_entries=()
+  while read -r count action; do
+    for i in "${!entries[@]}"; do
+      if [[ "${entries[$i]}" == *"|$action" ]]; then
+        sorted_entries+=("${entries[$i]}")
+        unset "entries[$i]"
+      fi
+    done
+  done <<< "$counts"
+  for entry in "${entries[@]}"; do
+    sorted_entries+=("$entry")
+  done
+  entries=("${sorted_entries[@]}")
+fi
 
-prompt='Capture'
-[[ "$has_mic" == no ]] && prompt='Capture (no mic)'
+menu=$(printf "%s\n" "${entries[@]%|*}")
 
-choice=$(printf '%s' "$menu" \
+prompt="Capture"
+[[ "$has_mic" == no ]] && prompt="Capture (no mic)"
+
+choice=$(printf "%s" "$menu" \
   | rofi -dmenu \
       -theme "$HOME/.config/rofi/themes/menu.rasi" \
       -p "$prompt" \
       -no-fixed-num-lines \
       -no-custom \
       -i \
-      -format 's') || exit 0
+      -format "s") || exit 0
 
 [[ -z "$choice" ]] && exit 0
 
@@ -55,5 +74,9 @@ for entry in "${entries[@]}"; do
 done
 
 [[ -z "$action" ]] && exit 0
+
+mkdir -p "$(dirname "$USAGE_FILE")"
+echo "$action" >> "$USAGE_FILE"
+tail -n 100 "$USAGE_FILE" > "$USAGE_FILE.tmp" && mv "$USAGE_FILE.tmp" "$USAGE_FILE"
 
 exec screencap "$action"
