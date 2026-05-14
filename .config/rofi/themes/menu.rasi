@@ -9,7 +9,10 @@
 
 window {
   transparency: "real";
-  location: center;
+  location: southeast;
+  anchor: southeast;
+  x-offset: -12px;
+  y-offset: -56px;
   background-color: #0c0c12eb;
   border: 1px;
   border-color: #ffffff14;
