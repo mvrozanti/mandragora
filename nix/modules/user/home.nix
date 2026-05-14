@@ -199,9 +199,9 @@ in
       nativeBuildInputs = [ pkgs.makeWrapper ];
       postBuild = ''
         wrapProgram $out/bin/vesktop \
-          --unset NIXOS_OZONE_WL \
-          --unset WAYLAND_DISPLAY \
-          --add-flags "--ozone-platform=x11"
+          --add-flags "--ozone-platform-hint=auto" \
+          --add-flags "--enable-features=WaylandWindowDecorations,WebRTCPipeWireCapturer" \
+          --add-flags "--enable-wayland-ime"
       '';
     })
     obs-studio
