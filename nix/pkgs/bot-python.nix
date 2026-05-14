@@ -121,5 +121,9 @@ in pkgs.python3.withPackages (p: [
   p.ddgs
   p.beautifulsoup4
   p.lxml
+  p.pillow
+  p.av
+  p.rapidocr-onnxruntime
+  p.piexif
   marionetteDriver
 ])
