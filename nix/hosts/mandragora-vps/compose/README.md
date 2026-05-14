@@ -17,6 +17,7 @@ either side must be mirrored.
 | `microbin/docker-compose.yml` | Tailnet-only paste service (paste.subdomain) | `/home/opc/microbin/` |
 | `radicale/docker-compose.yml` (+ `config/`) | CalDAV / CardDAV server (cal.mvr.ac) | `/home/opc/radicale/` |
 | `authelia/docker-compose.yml` (+ `config/`) | Authelia SSO + Redis (auth.mvr.ac — gates every hub vhost except `cal.` and Seafile sync paths) | `/home/opc/authelia/` |
+| `demo/docker-compose.yml` | Public static-site slot at `demo.mvr.ac` (no Authelia gate) | `/home/opc/demo/` |
 
 The Seafile project is invoked with all three YAMLs explicitly:
 ```
