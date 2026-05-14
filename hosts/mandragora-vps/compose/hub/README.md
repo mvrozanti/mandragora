@@ -3,14 +3,14 @@
 Stack for `hub.mvr.ac` and the legacy `*.mvrozanti.duckdns.org` →
 `*.mvr.ac` redirect fan-out. Also carries every Caddy reverse-proxy
 label for desktop-backed services (ttyd, slither, grafana, myMPD,
-rgb-control, im-gen-web), since caddy-docker-proxy reads labels off
-any container on `seafile-net`.
+rgb-control, im-gen-web, open-webui), since caddy-docker-proxy reads
+labels off any container on `seafile-net`.
 
 ## Container
 
 | Container | Image | Hosts |
 |---|---|---|
-| `hub` | `nginx:1.27-alpine` | `hub.mvr.ac` (static button grid) + all duckdns→mvr.ac 302 redirects + label-only Caddy entries for `term./slither./grafana./mpd./rgb./gen.mvr.ac` |
+| `hub` | `nginx:1.27-alpine` | `hub.mvr.ac` (static button grid) + all duckdns→mvr.ac 302 redirects + label-only Caddy entries for `term./slither./grafana./mpd./rgb./gen./llama.mvr.ac` |
 
 Replaced the previous `gethomepage/homepage` container — the YAML-
 dashboard model was overkill for what is functionally a list of
@@ -53,9 +53,10 @@ the dispatch table for the entire hub:
 | `caddy_4` | `mpd.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6680` (myMPD on desktop) |
 | `caddy_5` | `rgb.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6681` (rgb-control on desktop) |
 | `caddy_6` | `gen.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6682` (im-gen-web on desktop) |
+| `caddy_7` | `llama.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6683` (open-webui on desktop, `flush_interval=-1` for SSE streaming) |
 | `caddy_20`–`caddy_27` | `*.mvrozanti.duckdns.org` | 302 redirect to `*.mvr.ac` equivalent (legacy aliases) |
 
-Desktop-backed targets (`term./slither./grafana./mpd./rgb./gen.`)
+Desktop-backed targets (`term./slither./grafana./mpd./rgb./gen./llama.`)
 reach the desktop via `socat-tailnet@<port>.service` on the VPS host
 forwarding `127.0.0.1:<port>` → `100.115.80.79:<port>` (mandragora
 desktop tailnet IP). Caddy resolves `host.docker.internal` to the
