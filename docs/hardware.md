@@ -29,7 +29,7 @@ The Mandragora workstation. Single SFF build; one entry per piece.
 
 ## NVIDIA + Wayland tuning
 
-Declarative config in `modules/core/graphics.nix`:
+Declarative config in `nix/modules/core/graphics.nix`:
 
 - `hardware.nvidia.open = true` — open-source kernel modules (matches the
   RTX 5070 Ti's Blackwell architecture, which the open driver supports).
@@ -42,7 +42,7 @@ Declarative config in `modules/core/graphics.nix`:
 - `services.xserver.videoDrivers = [ "nvidia" "amdgpu" ]` — `amdgpu` is
   for the Ryzen 7900X iGPU (used during the initial-boot ritual above).
 
-Per-session env in `modules/desktop/hyprland.nix`:
+Per-session env in `nix/modules/desktop/hyprland.nix`:
 
 - `__GLX_VENDOR_LIBRARY_NAME=nvidia` — hardware acceleration for GLX clients.
 

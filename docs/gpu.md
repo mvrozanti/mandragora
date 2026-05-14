@@ -23,7 +23,7 @@ This file documents how multiple workloads coordinate that single GPU.
 
 Semantics are **respect-the-holder**, not cooperative preemption: a running holder is never signalled or interrupted. New arrivals fail fast — the caller decides whether to retry, fall back, or surface the busy state.
 
-The library lives at `.local/share/gpu-lock/gpu_lock.py`, the CLI at `.local/share/gpu-lock/gpu_lock_cli.py`, both packaged via `pkgs/gpu-lock.nix` and exported from `modules/core/ai-local.nix` systemPackages.
+The library lives at `.local/share/gpu-lock/gpu_lock.py`, the CLI at `.local/share/gpu-lock/gpu_lock_cli.py`, both packaged via `nix/pkgs/gpu-lock.nix` and exported from `nix/modules/core/ai-local.nix` systemPackages.
 
 ### Subcommands
 
@@ -102,7 +102,7 @@ except GpuBusy as busy:
 
 ## Ollama is the awkward case
 
-Ollama runs as a systemd service (`services.ollama` in `modules/core/ai-local.nix`), always wanting GPU. It is **not** in the lease system today. The protocol is:
+Ollama runs as a systemd service (`services.ollama` in `nix/modules/core/ai-local.nix`), always wanting GPU. It is **not** in the lease system today. The protocol is:
 
 > **Before launching an `imagegen` or `trading` job that needs the GPU, manually `sudo systemctl stop ollama`. Restart it (`sudo systemctl start ollama`) when done.**
 
@@ -127,6 +127,6 @@ This is intentional. The system is one user, one GPU, and a small number of well
 - [`../AGENTS.md`](../AGENTS.md) rule 15 — Non-Negotiable: hold `gpu-lock` around any GPU job.
 - `~/.ai-shared/rules/gpu-lock.md` — short cross-agent rule (always loaded), points here for the long form.
 - `~/.claude/skills/gpu-lock/SKILL.md` and `~/.gemini/skills/gpu-lock/SKILL.md` — full contract loaded on demand when the agent recognizes a GPU-related task. Source: [`../agent-skills/gpu-lock/SKILL.md`](../agent-skills/gpu-lock/SKILL.md).
-- [`../local-llm.md`](../local-llm.md) — peer doc; what the local LLM agent should know about its environment.
-- [`../modules/core/ai-local.nix`](../modules/core/ai-local.nix) — Ollama service definition.
-- [`../pkgs/gpu-lock.nix`](../pkgs/gpu-lock.nix) — the package; implementation lives at `.local/share/gpu-lock/`.
+- [`local-llm.md`](local-llm.md) — peer doc; what the local LLM agent should know about its environment.
+- [`../nix/modules/core/ai-local.nix`](../nix/modules/core/ai-local.nix) — Ollama service definition.
+- [`../nix/pkgs/gpu-lock.nix`](../nix/pkgs/gpu-lock.nix) — the package; implementation lives at `.local/share/gpu-lock/`.

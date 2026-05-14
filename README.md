@@ -10,7 +10,7 @@
 [![Impermanent](https://img.shields.io/badge/root-ephemeral-FF6B6B?style=flat-square)]()
 [![sops-nix](https://img.shields.io/badge/secrets-sops--nix-F5A623?style=flat-square&logo=gnuprivacyguard&logoColor=white)](https://github.com/Mic92/sops-nix)
 
-<img src="assets/readme/waybar.png" width="900" alt="waybar — mpd, hardware vitals, network, weather, actions" />
+<img src="docs/assets/readme/waybar.png" width="900" alt="waybar — mpd, hardware vitals, network, weather, actions" />
 
 </div>
 
@@ -23,12 +23,12 @@ Fifteen years of Arch+bspwm distilled into a declarative expression. Root is wip
 
 ### what's interesting in here
 
-  [`gpu-lock`](pkgs/gpu-lock.nix) · cooperative GPU arbitration across agents — non-blocking, respect-the-holder, with a VRAM-cleanup contract on release
+  [`gpu-lock`](nix/pkgs/gpu-lock.nix) · cooperative GPU arbitration across agents — non-blocking, respect-the-holder, with a VRAM-cleanup contract on release
   [`mandragora-switch`](.local/bin/mandragora-switch.sh) · rebuild + AI-generated commit message (Gemini → Claude Haiku → editor) + concurrent-edit guard + auto-rollback
-  [`modules/audits/`](modules/audits/) · weekly CVE scan (vulnix), repo pre-commit checks, USB-closure size guard, sops-key encryption guard
-  [`hosts/`](hosts/) · same flake, four targets — `desktop`, `usb` (templated installer with sops decrypt + hardware sniffing), `vps`, `wsl`
+  [`nix/modules/audits/`](nix/modules/audits/) · weekly CVE scan (vulnix), repo pre-commit checks, USB-closure size guard, sops-key encryption guard
+  [`nix/hosts/`](nix/hosts/) · same flake, four targets — `desktop`, `usb` (templated installer with sops decrypt + hardware sniffing), `vps`, `wsl`
   [`agent-skills/`](agent-skills/) · handoff/pickup baton-pass, gpu-lock contract, hotkey audit — symlinked into both `.claude/` and `.gemini/`
-  [`ai-local`](modules/core/ai-local.nix) + [`bots`](modules/user/bots.nix) · Ollama on CUDA + telegram bots (Flux image-gen, LLM chat), all serialized through gpu-lock
+  [`ai-local`](nix/modules/core/ai-local.nix) + [`bots`](nix/modules/user/bots.nix) · Ollama on CUDA + telegram bots (Flux image-gen, LLM chat), all serialized through gpu-lock
 
 ### impermanence
 
@@ -61,17 +61,18 @@ mandragora-switch "feat(scope): description"
 ### map
 
   `flake.nix`         the root
-  `hosts/`            per-host composition (desktop · usb · vps · wsl)
-  `modules/`          one concern each — `core/` `desktop/` `user/` `audits/`
-  `pkgs/`             in-tree derivations
-  `docs/`             the long form
+  `nix/hosts/`        per-host composition (desktop · usb · vps · wsl)
+  `nix/modules/`      one concern each — `core/` `desktop/` `user/` `audits/`
+  `nix/pkgs/`         in-tree derivations
+  `nix/snippets/`     non-Nix sources (Lua, CSS, shell) loaded via `builtins.readFile`
+  `docs/`             the long form (architecture, workflow, install runbook, WSL appendix)
 
 ### further
 
   [`AGENTS.md`](AGENTS.md) · the charter — load first for any AI session
   [`docs/index.md`](docs/index.md) · doc router
   [`docs/architecture.md`](docs/architecture.md) · composition, modules, audits
-  [`install/INSTALL.md`](install/INSTALL.md) · fresh-install runbook
+  [`docs/install/INSTALL.md`](docs/install/INSTALL.md) · fresh-install runbook
 
 ---
 
