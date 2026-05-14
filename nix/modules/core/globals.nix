@@ -61,7 +61,6 @@
     slurp
     wf-recorder
     flameshot
-    eww
     jq
     playerctl
     brightnessctl
