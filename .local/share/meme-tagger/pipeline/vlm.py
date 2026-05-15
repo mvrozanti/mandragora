@@ -67,7 +67,7 @@ async def call(
         "stream": False,
         "options": {
             "temperature": temperature,
-            "num_predict": 4000,
+            "num_predict": 6000,
         },
         "format": "json",
     }
