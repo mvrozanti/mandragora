@@ -24,11 +24,36 @@ def parse_vlm_json(raw: str) -> dict[str, Any]:
     try:
         return json.loads(repaired)
     except json.JSONDecodeError:
-        start = text.find("{")
-        end = text.rfind("}")
-        if start != -1 and end > start:
+        pass
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end > start:
+        try:
             return json.loads(text[start:end + 1])
-        raise
+        except json.JSONDecodeError:
+            pass
+    return _salvage_truncated(text[start:] if start != -1 else text)
+
+
+def _salvage_truncated(text: str) -> dict[str, Any]:
+    last_good = text
+    for i in range(len(text), 0, -1):
+        candidate = text[:i].rstrip()
+        if not candidate or candidate[-1] not in '"]},':
+            continue
+        repaired = candidate.rstrip(',')
+        opens_obj = repaired.count('{') - repaired.count('}')
+        opens_arr = repaired.count('[') - repaired.count(']')
+        in_string = (repaired.count('"') - repaired.count('\\"')) % 2 == 1
+        if in_string:
+            repaired += '"'
+        repaired += ']' * max(0, opens_arr)
+        repaired += '}' * max(0, opens_obj)
+        try:
+            return json.loads(repaired)
+        except json.JSONDecodeError:
+            continue
+    raise json.JSONDecodeError("could not salvage truncated JSON", last_good, 0)
 
 
 def _as_str_list(value: Any) -> list[str]:
