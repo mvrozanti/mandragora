@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 VALID_CONTENT_TYPES = (
     "meme", "photo", "screenshot_text", "screenshot_app",
@@ -50,6 +50,13 @@ class TaggedImage:
     punchline: str = ""
     emotions: list[str] = field(default_factory=list)
     category: str = ""
+    visual_elements: list[str] = field(default_factory=list)
+    actions: list[str] = field(default_factory=list)
+    colors: list[str] = field(default_factory=list)
+    composition: list[str] = field(default_factory=list)
+    style: list[str] = field(default_factory=list)
+    setting: list[str] = field(default_factory=list)
+    cultural_refs: list[str] = field(default_factory=list)
     tags: list[str] = field(default_factory=list)
 
     def to_json(self) -> str:
