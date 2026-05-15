@@ -17,7 +17,7 @@ PROMPT_TEMPLATE = """You are an image-tagging assistant. Be specific and dense â
   "template": "<meme template name (drake, distracted_boyfriend, two_buttons, ...) or empty>",
   "characters": ["<canonical names: pepe, apu, apustaja, wojak, doomer, soyjak, chad, gigachad, drake, spongebob, shrek, ... up to 8>"],
   "text_visible": ["<key text blocks verbatim, up to 12 items; for walls of text take only the most distinctive lines, not exhaustive>"],
-  "visual_elements": ["<objects, animals, people, body parts, clothing, props, plants, vehicles, food, etc. 15-25 items. lowercase_underscore.>"],
+  "visual_elements": ["<BE EXHAUSTIVE: 20-35 items. Include obvious things even for simple images. Body parts (face, hair, eyes, eyebrows, nose, mouth, ears, neck, hands, fingers, arms), every clothing item (shirt, pants, glasses, hat, jewelry, watch, shoes), every prop, every piece of furniture, plants, signs, every background element, every object. Don't omit because 'obvious'.>"],
   "actions": ["<verbs of what's happening; 0-8 items: pointing, crying, drinking, sleeping, holding_phone>"],
   "colors": ["<dominant + accent colors; 3-8 items: red, blue, neon_pink, monochrome, sepia>"],
   "composition": ["<3-6 items: close_up, wide_shot, portrait, two_panel, four_panel, split_screen, top_text_bottom_text>"],
@@ -29,7 +29,7 @@ PROMPT_TEMPLATE = """You are an image-tagging assistant. Be specific and dense â
   "emotions": ["<3-8 items: smug, sad, angry, copium, wholesome, cringe, based, nostalgic, anxious>"],
   "category": "<one of: tech_humor, political, relationships, gaming, anime, work, finance, crypto, fitness, religion, science, history, music, sports, food, animal_pic, selfie, art, nsfw, ...>",
   "cultural_refs": ["<0-10 named refs: star_wars, 4chan, league_of_legends, bitcoin, the_office, vaporwave>"],
-  "extra_tags": ["<10-20 lowercase_underscore tags for later search; include synonyms and mood: dramatic, low_effort, edited, vintage, wholesome_chungus>"]
+  "extra_tags": ["<REQUIRED: always populate with 10-20 lowercase_underscore tags for later search. Synonyms, mood, vibe, era, demographic, visual qualities: dramatic, low_effort, edited, vintage, gen_z, gen_x, boomer, soyjak_adjacent, wholesome_chungus, schizoposting, 2020s_aesthetic, vapor_wave, professional_photo, amateur_shot, candid, posed>"]
 }}
 
 Rules:
