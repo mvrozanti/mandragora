@@ -58,6 +58,13 @@ def build_tagged_image(
     punchline = str(parsed.get("punchline", "") or "").strip()
     emotions = _as_str_list(parsed.get("emotions"))
     category = str(parsed.get("category", "") or "").strip()
+    visual_elements = _as_str_list(parsed.get("visual_elements"))
+    actions = _as_str_list(parsed.get("actions"))
+    colors = _as_str_list(parsed.get("colors"))
+    composition = _as_str_list(parsed.get("composition"))
+    style = _as_str_list(parsed.get("style"))
+    setting = _as_str_list(parsed.get("setting"))
+    cultural_refs = _as_str_list(parsed.get("cultural_refs"))
     extra_tags = _as_str_list(parsed.get("extra_tags"))
 
     merged_text = list(dict.fromkeys([*ocr_phrases, *text_visible]))
@@ -67,10 +74,26 @@ def build_tagged_image(
     if category:
         raw_tags.append(category)
     raw_tags.extend(emotions)
+    raw_tags.extend(visual_elements)
+    raw_tags.extend(actions)
+    raw_tags.extend(composition)
+    raw_tags.extend(style)
+    raw_tags.extend(setting)
     raw_tags.extend(extra_tags)
+    for c in colors:
+        norm_c = schema.normalize_tag(c)
+        if norm_c:
+            raw_tags.append(norm_c)
+            raw_tags.append(f"color:{norm_c}")
+    for ref in cultural_refs:
+        norm_r = schema.normalize_tag(ref)
+        if norm_r:
+            raw_tags.append(norm_r)
+            raw_tags.append(f"ref:{norm_r}")
     if template:
-        raw_tags.append(template)
-        raw_tags.append(f"tpl:{schema.normalize_tag(template)}")
+        norm_t = schema.normalize_tag(template)
+        raw_tags.append(norm_t)
+        raw_tags.append(f"tpl:{norm_t}")
     for ch in characters:
         norm_ch = schema.normalize_tag(ch)
         if norm_ch:
@@ -81,10 +104,6 @@ def build_tagged_image(
         if otag:
             raw_tags.append(otag)
 
-    norm_tags = schema.normalize_tag_list(raw_tags)
-    norm_chars = schema.normalize_tag_list(characters)
-    norm_emotions = schema.normalize_tag_list(emotions)
-
     return schema.TaggedImage(
         schema_version=schema.SCHEMA_VERSION,
         tagged_at=schema.now_iso_utc(),
@@ -92,12 +111,19 @@ def build_tagged_image(
         model=model,
         content_type=content_type,
         template=schema.normalize_tag(template),
-        characters=norm_chars,
+        characters=schema.normalize_tag_list(characters),
         text_ocr=merged_text,
         description=description,
         context=context,
         punchline=punchline,
-        emotions=norm_emotions,
+        emotions=schema.normalize_tag_list(emotions),
         category=schema.normalize_tag(category),
-        tags=norm_tags,
+        visual_elements=schema.normalize_tag_list(visual_elements),
+        actions=schema.normalize_tag_list(actions),
+        colors=schema.normalize_tag_list(colors),
+        composition=schema.normalize_tag_list(composition),
+        style=schema.normalize_tag_list(style),
+        setting=schema.normalize_tag_list(setting),
+        cultural_refs=schema.normalize_tag_list(cultural_refs),
+        tags=schema.normalize_tag_list(raw_tags),
     )
