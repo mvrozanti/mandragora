@@ -39,6 +39,8 @@ in
       Restart = "on-failure";
       RestartSec = 10;
       TimeoutStartSec = "5min";
+      MemoryHigh = "12G";
+      MemoryMax = "16G";
     };
     Install = {
       WantedBy = [ "default.target" ];
