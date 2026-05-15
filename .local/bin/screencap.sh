@@ -163,18 +163,15 @@ screenshot_full() {
 }
 
 screenshot_region() {
-  local file tmp
+  local file
   file="$outdir/screenshot-$(date +%Y%m%d-%H%M%S).png"
-  tmp=$(mktemp --suffix=.png)
-  flameshot gui --raw 2>/dev/null > "$tmp" || true
-  if [[ ! -s "$tmp" ]]; then
-    rm -f "$tmp"
-    return 0
+  if flameshot gui --path "$file"; then
+    if [[ -f "$file" ]]; then
+      wl-copy --type image/png < "$file"
+      preview_image "$file"
+      mark_flash
+    fi
   fi
-  mv "$tmp" "$file"
-  wl-copy --type image/png < "$file"
-  preview_image "$file"
-  mark_flash
 }
 
 active_window_geom() {
