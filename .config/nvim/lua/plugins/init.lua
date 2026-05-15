@@ -108,6 +108,29 @@ require('lazy').setup({
     init = function()
       vim.g.goyo_width  = '85%'
       vim.g.goyo_height = '90%'
+
+      local saved = {}
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'GoyoEnter',
+        callback = function()
+          saved.laststatus  = vim.o.laststatus
+          saved.showtabline = vim.o.showtabline
+          saved.cmdheight   = vim.o.cmdheight
+          pcall(require('lualine').hide, { place = { 'statusline', 'tabline', 'winbar' } })
+          vim.o.laststatus  = 0
+          vim.o.showtabline = 0
+          vim.o.cmdheight   = 0
+        end,
+      })
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'GoyoLeave',
+        callback = function()
+          vim.o.laststatus  = saved.laststatus  or 3
+          vim.o.showtabline = saved.showtabline or 1
+          vim.o.cmdheight   = saved.cmdheight   or 1
+          pcall(require('lualine').hide, { place = { 'statusline', 'tabline', 'winbar' }, unhide = true })
+        end,
+      })
     end,
   },
 
