@@ -50,13 +50,9 @@ fi
 
 menu=$(printf "%s\n" "${entries[@]%|*}")
 
-prompt="Capture"
-[[ "$has_mic" == no ]] && prompt="Capture (no mic)"
-
 choice=$(printf "%s" "$menu" \
   | rofi -dmenu \
       -theme "$HOME/.config/rofi/themes/menu.rasi" \
-      -p "$prompt" \
       -no-fixed-num-lines \
       -no-custom \
       -i \

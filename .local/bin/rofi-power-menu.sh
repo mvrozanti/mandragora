@@ -14,7 +14,6 @@ choice=$(printf '%s\n' \
   '󰐥  Power off' \
   | rofi -dmenu \
       -theme "$HOME/.config/rofi/themes/menu.rasi" \
-      -p 'Power Menu' \
       -no-fixed-num-lines \
       -no-custom \
       -format 's') || exit 0
