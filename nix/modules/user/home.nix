@@ -636,13 +636,13 @@ in
     style = ../../../.config/swaync/style.css;
     settings = {
       positionX = "right";
-      positionY = "top";
+      positionY = "bottom";
       layer = "overlay";
       control-center-layer = "top";
       cssPriority = "user";
       control-center-width = 460;
       control-center-height = 720;
-      control-center-margin-top = 6;
+      control-center-margin-bottom = 56;
       control-center-margin-right = 12;
       notification-window-width = 420;
       notification-icon-size = 48;
