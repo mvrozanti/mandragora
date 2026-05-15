@@ -14,6 +14,10 @@ choice=$(printf '%s\n' \
   '󰐥  Power off' \
   | rofi -dmenu \
       -theme "$HOME/.config/rofi/themes/menu.rasi" \
+      -matching fuzzy \
+      -sort \
+      -sorting-method fzf \
+      -i \
       -no-fixed-num-lines \
       -no-custom \
       -format 's') || exit 0

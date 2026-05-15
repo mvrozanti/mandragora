@@ -53,9 +53,12 @@ menu=$(printf "%s\n" "${entries[@]%|*}")
 choice=$(printf "%s" "$menu" \
   | rofi -dmenu \
       -theme "$HOME/.config/rofi/themes/menu.rasi" \
+      -matching fuzzy \
+      -sort \
+      -sorting-method fzf \
+      -i \
       -no-fixed-num-lines \
       -no-custom \
-      -i \
       -format "s") || exit 0
 
 [[ -z "$choice" ]] && exit 0
