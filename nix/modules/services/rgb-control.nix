@@ -10,6 +10,11 @@ let
     ${pkgs.systemd}/bin/systemctl --user restart keyleds-workspace-watcher.service
     exit 0
   '';
+  stopOpenrgbScript = pkgs.writeShellScript "rgb-control-stop-openrgb" ''
+    set +e
+    ${pkgs.sudo}/bin/sudo -n /run/current-system/sw/bin/systemctl stop openrgb
+    exit 0
+  '';
 in {
   mandragora.hub.services.rgb-control = {
     port = 6681;
@@ -29,6 +34,7 @@ in {
       serviceConfig = {
         User = "m";
         Group = "users";
+        ExecStartPre = "${stopOpenrgbScript}";
         ExecStart = "${pyEnv}/bin/python ${src}";
         ExecStopPost = "${recoverScript}";
         Restart = "on-failure";

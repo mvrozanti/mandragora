@@ -204,26 +204,19 @@ def _normalize_color(c: str | None) -> str | None:
     return c.upper()
 
 
-async def apply_settings(payload: dict[str, Any]) -> tuple[int, str]:
-    cls = payload.get("class")
-    if cls not in DEVICE_CLASSES:
-        return 400, f"unknown class: {cls}"
-    info = DEVICE_CLASSES[cls]
-    if info["hid"] and not load_state().get("override"):
-        return 409, "override keyleds is off — enable it to control mouse/keyboard"
-    device = (payload.get("device") or "").strip()
-    if not device:
-        return 400, "missing device name"
-    mode = (payload.get("mode") or "").strip()
-    if not mode:
-        return 400, "missing mode"
-    color = _normalize_color(payload.get("color"))
-    zone = payload.get("zone")
-    speed = payload.get("speed")
-    brightness = payload.get("brightness")
+_I2C_NOISE = re.compile(r"^\[i2c_smbus_linux\] Failed to read i2c device PCI device ID\s*$")
 
+
+def _clean_openrgb_output(text: str) -> str:
+    lines = [ln for ln in text.splitlines() if not _I2C_NOISE.match(ln)]
+    return "\n".join(lines).strip()
+
+
+async def _apply_one(cls: str, device_idx: int, mode: str, color: str | None,
+                     zone: str | int | None, speed: str | int | None,
+                     brightness: str | int | None) -> tuple[int, str]:
     args = [OPENRGB, "--config", str(config_dir_for_class(cls)), "--noautoconnect",
-            "--device", device]
+            "--device", str(device_idx)]
     if zone is not None and zone != "":
         args += ["--zone", str(int(zone))]
     args += ["--mode", mode]
@@ -233,15 +226,49 @@ async def apply_settings(payload: dict[str, Any]) -> tuple[int, str]:
         args += ["--speed", str(int(speed))]
     if brightness is not None and brightness != "":
         args += ["--brightness", str(int(brightness))]
-
     log.info("apply: %s", " ".join(args[1:]))
     proc = await asyncio.create_subprocess_exec(
         *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
     )
     out, _ = await proc.communicate()
-    text = out.decode(errors="replace")[-600:]
+    return proc.returncode, _clean_openrgb_output(out.decode(errors="replace"))
+
+
+async def apply_settings(payload: dict[str, Any]) -> tuple[int, str]:
+    cls = payload.get("class")
+    if cls not in DEVICE_CLASSES:
+        return 400, f"unknown class: {cls}"
+    info = DEVICE_CLASSES[cls]
+    if info["hid"] and not load_state().get("override"):
+        return 409, "override keyleds is off — enable it to control mouse/keyboard"
+    mode = (payload.get("mode") or "").strip()
+    if not mode:
+        return 400, "missing mode"
+    color = _normalize_color(payload.get("color"))
+    zone = payload.get("zone")
+    speed = payload.get("speed")
+    brightness = payload.get("brightness")
+
+    device_raw = (str(payload.get("device") or "")).strip()
+    if device_raw == "":
+        targets = [d["index"] for d in await devices_for_class(cls)]
+        if not targets:
+            return 404, "no devices in this class"
+    else:
+        try:
+            targets = [int(device_raw)]
+        except ValueError:
+            return 400, f"device must be an index, got: {device_raw!r}"
+
+    results = []
+    overall_rc = 200
+    for idx in targets:
+        rc, body = await _apply_one(cls, idx, mode, color, zone, speed, brightness)
+        results.append(f"[device {idx}] rc={rc}\n{body}" if body else f"[device {idx}] rc={rc} ok")
+        if rc != 0:
+            overall_rc = 500
     _enum_cache.clear()
-    return (200 if proc.returncode == 0 else 500), text
+    return overall_rc, "\n\n".join(results)[-1200:]
 
 
 async def set_override(enabled: bool) -> str:
@@ -261,9 +288,11 @@ async def startup_recovery(app: web.Application) -> None:
         log.warning("ensure_hid_config failed: %s", e)
     state = load_state()
     if state.get("override"):
-        log.warning("override left enabled across restart — forcing off")
+        log.info("override=on at start — stopping keyledsd to match")
+        await stop_keyleds()
+    else:
+        log.info("override=off at start — ensuring keyledsd is up")
         await restart_keyleds()
-        save_state({"override": False})
 
 
 # ---------------------------------------------------------------- frontend
@@ -485,36 +514,47 @@ els.brightness.addEventListener('input', () => els.brightnessVal.textContent = e
 let devices = [];
 function fillDevices(list) {{
   els.device.innerHTML = '';
+  if (list.length > 1) {{
+    const allOpt = document.createElement('option');
+    allOpt.value = ''; allOpt.textContent = '(all ' + list.length + ')';
+    els.device.appendChild(allOpt);
+  }}
   for (const d of list) {{
     const opt = document.createElement('option');
-    opt.value = d.name;
-    opt.dataset.idx = d.index;
-    opt.textContent = d.name;
+    opt.value = String(d.index);
+    opt.textContent = d.index + ': ' + d.name;
     els.device.appendChild(opt);
   }}
   if (list.length) syncFromDevice();
 }}
 function currentDevice() {{
-  return devices.find(d => d.name === els.device.value);
+  if (els.device.value === '') return null;
+  const idx = parseInt(els.device.value, 10);
+  return devices.find(d => d.index === idx);
 }}
 function syncFromDevice() {{
   const d = currentDevice();
-  if (!d) return;
   els.zone.innerHTML = '';
-  const allOpt = document.createElement('option');
-  allOpt.value = ''; allOpt.textContent = '(all)';
-  els.zone.appendChild(allOpt);
-  (d.zones || []).forEach((z, i) => {{
-    const opt = document.createElement('option');
-    opt.value = String(i); opt.textContent = i + ': ' + z;
-    els.zone.appendChild(opt);
-  }});
+  const zAll = document.createElement('option');
+  zAll.value = ''; zAll.textContent = '(all)';
+  els.zone.appendChild(zAll);
+  if (d) {{
+    (d.zones || []).forEach((z, i) => {{
+      const opt = document.createElement('option');
+      opt.value = String(i); opt.textContent = i + ': ' + z;
+      els.zone.appendChild(opt);
+    }});
+  }} else {{
+    els.zone.disabled = true;
+  }}
   els.mode.innerHTML = '';
-  for (const m of (d.modes || [])) {{
+  const modes = d ? (d.modes || []) : Array.from(new Set(devices.flatMap(x => x.modes || [])));
+  for (const m of modes) {{
     const opt = document.createElement('option');
     opt.value = m; opt.textContent = m;
     els.mode.appendChild(opt);
   }}
+  if (d) els.zone.disabled = false;
 }}
 els.device.addEventListener('change', syncFromDevice);
 
