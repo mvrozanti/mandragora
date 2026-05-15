@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 VLM_MODEL: str = os.getenv("MEME_TAGGER_VLM_MODEL", "qwen2.5vl:7b")
-VLM_TIMEOUT_SECONDS: float = float(os.getenv("MEME_TAGGER_VLM_TIMEOUT", "600"))
+VLM_TIMEOUT_SECONDS: float = float(os.getenv("MEME_TAGGER_VLM_TIMEOUT", "900"))
 VLM_TEMPERATURE: float = float(os.getenv("MEME_TAGGER_VLM_TEMPERATURE", "0.1"))
 VLM_MAX_EDGE: int = int(os.getenv("MEME_TAGGER_VLM_MAX_EDGE", "1280"))
 
