@@ -17,7 +17,7 @@ PROMPT_TEMPLATE = """You are an image-tagging assistant. Be specific and dense â
   "template": "<meme template name (drake, distracted_boyfriend, two_buttons, ...) or empty>",
   "characters": ["<canonical names: pepe, apu, apustaja, wojak, doomer, soyjak, chad, gigachad, drake, spongebob, shrek, ... up to 8>"],
   "text_visible": ["<key text blocks verbatim, up to 12 items; for walls of text take only the most distinctive lines, not exhaustive>"],
-  "visual_elements": ["<BE EXHAUSTIVE: 20-35 items. Include obvious things even for simple images. Body parts (face, hair, eyes, eyebrows, nose, mouth, ears, neck, hands, fingers, arms), every clothing item (shirt, pants, glasses, hat, jewelry, watch, shoes), every prop, every piece of furniture, plants, signs, every background element, every object. Don't omit because 'obvious'.>"],
+  "visual_elements": ["<15-25 items. Body parts (face, hair, hands), every visible clothing item, every prop, every piece of furniture, plants, signs, background elements. Lowercase_underscore.>"],
   "actions": ["<verbs of what's happening; 0-8 items: pointing, crying, drinking, sleeping, holding_phone>"],
   "colors": ["<dominant + accent colors; 3-8 items: red, blue, neon_pink, monochrome, sepia>"],
   "composition": ["<3-6 items: close_up, wide_shot, portrait, two_panel, four_panel, split_screen, top_text_bottom_text>"],
