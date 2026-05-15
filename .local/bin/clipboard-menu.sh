@@ -3,7 +3,13 @@ set -euo pipefail
 
 case "${1:-pick}" in
   pick)
-    sel=$(cliphist list | rofi -dmenu -i -p "clipboard") || exit 0
+    sel=$(cliphist list | rofi -dmenu \
+        -theme "$HOME/.config/rofi/themes/menu.rasi" \
+        -matching fuzzy \
+        -sort \
+        -sorting-method fzf \
+        -i \
+        -no-fixed-num-lines) || exit 0
     [ -z "$sel" ] && exit 0
     printf '%s\n' "$sel" | cliphist decode | wl-copy
     ;;
