@@ -28,17 +28,11 @@ mainbox {
 
 inputbar {
   padding: 8px 10px;
-  children: [prompt, entry];
-  spacing: 8px;
+  children: [entry];
   background-color: #ffffff10;
   border: 1px;
   border-color: #ffffff18;
   border-radius: 10px;
-}
-
-prompt {
-  text-color: @blue;
-  vertical-align: 0.5;
 }
 
 entry {
