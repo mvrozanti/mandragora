@@ -36,24 +36,68 @@ def parse_vlm_json(raw: str) -> dict[str, Any]:
 
 
 def _salvage_truncated(text: str) -> dict[str, Any]:
-    last_good = text
-    for i in range(len(text), 0, -1):
-        candidate = text[:i].rstrip()
-        if not candidate or candidate[-1] not in '"]},':
+    stack: list[str] = []
+    in_string = False
+    escape = False
+    safe_end = 0
+    last_unsafe_open = -1
+    for i, ch in enumerate(text):
+        if escape:
+            escape = False
             continue
-        repaired = candidate.rstrip(',')
-        opens_obj = repaired.count('{') - repaired.count('}')
-        opens_arr = repaired.count('[') - repaired.count(']')
-        in_string = (repaired.count('"') - repaired.count('\\"')) % 2 == 1
         if in_string:
-            repaired += '"'
-        repaired += ']' * max(0, opens_arr)
-        repaired += '}' * max(0, opens_obj)
-        try:
-            return json.loads(repaired)
-        except json.JSONDecodeError:
+            if ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+                if stack and stack[-1] == "[":
+                    safe_end = i + 1
             continue
-    raise json.JSONDecodeError("could not salvage truncated JSON", last_good, 0)
+        if ch == '"':
+            in_string = True
+            last_unsafe_open = i
+            continue
+        if ch in "{[":
+            stack.append(ch)
+            continue
+        if ch in "}]":
+            if stack:
+                stack.pop()
+            safe_end = i + 1
+            continue
+        if ch == ",":
+            safe_end = i
+            continue
+
+    if safe_end <= 0:
+        raise json.JSONDecodeError("nothing salvageable", text, 0)
+
+    repaired = text[:safe_end].rstrip().rstrip(",")
+    depth_obj = repaired.count("{") - repaired.count("}")
+    depth_arr = 0
+    rebuild_stack: list[str] = []
+    in_s = False
+    esc = False
+    for ch in repaired:
+        if esc:
+            esc = False
+            continue
+        if in_s:
+            if ch == "\\":
+                esc = True
+            elif ch == '"':
+                in_s = False
+            continue
+        if ch == '"':
+            in_s = True
+        elif ch in "{[":
+            rebuild_stack.append(ch)
+        elif ch in "}]":
+            if rebuild_stack:
+                rebuild_stack.pop()
+    closers = "".join("}" if c == "{" else "]" for c in reversed(rebuild_stack))
+    repaired += closers
+    return json.loads(repaired)
 
 
 def _as_str_list(value: Any) -> list[str]:
