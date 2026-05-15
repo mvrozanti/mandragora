@@ -65,7 +65,10 @@ async def call(
         "prompt": prompt,
         "images": [base64.b64encode(image_bytes).decode("ascii")],
         "stream": False,
-        "options": {"temperature": temperature},
+        "options": {
+            "temperature": temperature,
+            "num_ctx": 8192,
+        },
         "format": "json",
     }
     async with httpx.AsyncClient(timeout=timeout_seconds) as client:
