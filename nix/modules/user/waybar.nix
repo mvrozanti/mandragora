@@ -242,14 +242,14 @@
           format = "";
           tooltip = true;
           tooltip-format = "Notification history — left-click to browse, right-click to toggle DND";
-          on-click = "notif-menu toggle";
-          on-click-right = "notif-menu dnd";
+          on-click = "swaync-client -t -sw";
+          on-click-right = "swaync-client -d -sw";
         };
 
         "custom/powermenu" = {
           format = "";
           tooltip = false;
-          on-click = "powermenu toggle";
+          on-click = "rofi-power-menu";
         };
       };
     };
