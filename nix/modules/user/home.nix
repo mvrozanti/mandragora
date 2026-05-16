@@ -19,6 +19,7 @@ in
     ./services.nix
     ./bots.nix
     ./waybar.nix
+    ./rss-menu.nix
     ./minecraft.nix
     ./skills.nix
   ];
