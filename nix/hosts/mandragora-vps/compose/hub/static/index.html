@@ -183,6 +183,82 @@ fetch('/whoami', { credentials: 'same-origin' })
   .then(r => r.ok ? r.text() : null)
   .then(n => { if (n) document.getElementById('who').textContent = n.trim(); })
   .catch(() => {});
+
+(function gpuTile() {
+  const $ = id => document.getElementById(id);
+  const fmtSecs = s => {
+    if (s == null) return '';
+    if (s < 60) return s.toFixed(0) + 's';
+    if (s < 3600) return (s / 60).toFixed(1) + 'm';
+    return (s / 3600).toFixed(1) + 'h';
+  };
+  const setBar = (el, wrap, pct, warmAt, hotAt) => {
+    const p = Math.max(0, Math.min(100, pct || 0));
+    el.style.width = p + '%';
+    if (wrap) {
+      wrap.classList.toggle('warm', p >= warmAt && p < hotAt);
+      wrap.classList.toggle('hot', p >= hotAt);
+    }
+  };
+  const render = data => {
+    const lock = $('gpu-lock');
+    const holder = $('gpu-holder');
+    if (data.locked && data.holder) {
+      lock.textContent = 'held';
+      lock.className = 'gpu-lock held';
+      const h = data.holder;
+      const eta = h.expected_remaining != null ? ` · ~${fmtSecs(h.expected_remaining)} left` : '';
+      holder.innerHTML = `<b>${h.name || '?'}</b> · ${fmtSecs(h.held_for)} held${eta}`;
+    } else {
+      lock.textContent = 'free';
+      lock.className = 'gpu-lock free';
+      holder.textContent = 'no holder';
+    }
+    const g = data.gpu;
+    if (g) {
+      if (g.name) $('gpu-name').textContent = g.name.replace(/^NVIDIA\s+(GeForce\s+)?/i, '');
+      const util = g.util_pct;
+      const mem = g.mem_pct;
+      const temp = g.temp_c;
+      setBar($('gpu-util-bar'), $('gpu-util-bar').parentElement, util, 50, 85);
+      $('gpu-util-val').textContent = util != null ? util.toFixed(0) + '%' : '–';
+      setBar($('gpu-mem-bar'), $('gpu-mem-bar-wrap'), mem, 60, 90);
+      $('gpu-mem-val').textContent = g.mem_used_mb != null
+        ? `${(g.mem_used_mb/1024).toFixed(1)}/${(g.mem_total_mb/1024).toFixed(0)}G`
+        : '–';
+      const tempPct = temp != null ? Math.min(100, (temp - 30) * 100 / 60) : 0;
+      setBar($('gpu-temp-bar'), $('gpu-temp-bar-wrap'), tempPct, 50, 80);
+      $('gpu-temp-val').textContent = temp != null ? temp.toFixed(0) + '°C' : '–';
+    }
+  };
+  const renderError = () => {
+    $('gpu-lock').textContent = 'down';
+    $('gpu-lock').className = 'gpu-lock dead';
+    $('gpu-holder').textContent = 'gpu-status unreachable';
+  };
+  let timer = null;
+  const tick = () => {
+    fetch('/api/gpu', { credentials: 'same-origin', cache: 'no-store' })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(render)
+      .catch(renderError);
+  };
+  const start = () => {
+    if (timer) return;
+    tick();
+    timer = setInterval(tick, 4000);
+  };
+  const stop = () => {
+    if (!timer) return;
+    clearInterval(timer);
+    timer = null;
+  };
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') start();
+    else stop();
+  });
+  start();
+})();
 </script>
 </body>
 </html>
