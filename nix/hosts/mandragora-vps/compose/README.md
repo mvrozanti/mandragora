@@ -12,7 +12,6 @@ either side must be mirrored.
 | Path | Stack | Live location on VPS |
 |---|---|---|
 | `seafile/seafile-server.yml` + `caddy.yml` + `seadoc.yml` | Seafile + seadoc + per-stack Caddy | `/home/opc/seafile/` |
-| `crypto-fetcher/docker-compose.yml` | Binance fetcher + redis | `/home/opc/crypto-experiments/crypto-fetcher/` |
 | `hub/docker-compose.yml` (+ `config/`) | Homepage dashboard + apex→hub 302 | `/home/opc/hub/` |
 | `microbin/docker-compose.yml` | Tailnet-only paste service (paste.subdomain) | `/home/opc/microbin/` |
 | `radicale/docker-compose.yml` (+ `config/`) | CalDAV / CardDAV server (cal.mvr.ac) | `/home/opc/radicale/` |
@@ -35,6 +34,17 @@ upgrade and references `seafile-mc:12.0.14`. Not tracked here.
   `CONFIG_PASSWORD` values inline, so committing as-is would leak
   them. Out of scope for the hub project per user decision; revisit
   when those values are extracted to a `.env`.
+
+## Retired stacks
+
+- **`crypto-fetcher/`** — retired 2026-05-16. Binance tick fetcher
+  + bare `redis:6.2-alpine` (host-network, no volume). The
+  binance_fetcher container was the loudest log producer on the VPS
+  (~700 MB/day) and would have eaten the new `log.mvr.ac` Loki
+  budget (2 GB / 3 days). No downstream consumer. Live compose
+  renamed to `docker-compose.yml.retired-2026-05-16`; nix-repo
+  compose deleted; tombstone at
+  [`crypto-fetcher/RETIRED.md`](crypto-fetcher/RETIRED.md).
 
 ## Secret handling
 
