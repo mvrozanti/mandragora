@@ -45,6 +45,7 @@
 
   mandragora.profile = "desktop";
   mandragora.ai.agentic.enable = true;
+  mandragora.ai.uncensored.enable = true;
   services.mandragora-seafile.enable = true;
 
   nixpkgs.hostPlatform = "x86_64-linux";
