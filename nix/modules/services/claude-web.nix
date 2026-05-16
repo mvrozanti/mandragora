@@ -8,7 +8,7 @@ in {
   mandragora.hub.services.claude-web = {
     port = port;
     systemd = {
-      description = "claude.mvr.ac — spawn detached tmux+claude on demand, web dir picker";
+      description = "claude.mvr.ac — add a tmux window running claude to the current session, web dir picker";
       after = [ "network.target" "tailscaled.service" ];
       wants = [ "tailscaled.service" ];
       wantedBy = [ "multi-user.target" ];
