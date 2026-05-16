@@ -39,7 +39,7 @@ let
     fi
     [ -n "''${HF_TOKEN:-}" ] && export HF_TOKEN HUGGING_FACE_HUB_TOKEN="$HF_TOKEN"
 
-    CIVITAI_SECRET_PATH="/run/secrets/civitai/read_token"
+    CIVITAI_SECRET_PATH="/run/secrets/civitai/api_key"
     if [ -z "''${CIVITAI_TOKEN:-}" ] && [ -r "$CIVITAI_SECRET_PATH" ]; then
       export CIVITAI_TOKEN="$(cat "$CIVITAI_SECRET_PATH")"
     fi

@@ -43,7 +43,7 @@ for dev in /dev/nvme* /dev/sd* /dev/vd*; do
 done
 
 # --- Failed systemd units ---
-failed=$(systemctl --failed --no-legend --no-pager 2>/dev/null | awk '{print $1}' | tr '\n' ' ')
+failed=$(systemctl --failed --no-legend --no-pager --plain 2>/dev/null | awk '{print $1}' | tr '\n' ' ')
 if [ -n "${failed// }" ]; then
   log "WARN failed units: ${failed}"
   WARN=1
@@ -96,7 +96,7 @@ fi
 for mp in / /nix /persistent; do
   mountpoint -q "$mp" 2>/dev/null || continue
   scrub_out=$(btrfs scrub status "$mp" 2>/dev/null || true)
-  last_scrub=$(echo "$scrub_out" | grep -i 'scrub started\|last scrub' | tail -1)
+  last_scrub=$(echo "$scrub_out" | grep -i 'scrub started\|last scrub' | tail -1 || true)
   if [ -z "$last_scrub" ]; then
     log "WARN btrfs scrub ${mp}: no scrub record — run 'btrfs scrub start ${mp}'"
     WARN=1
