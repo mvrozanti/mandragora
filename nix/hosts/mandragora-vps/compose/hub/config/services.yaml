@@ -23,6 +23,10 @@
         href: https://term.mvr.ac
         description: Web shell on the desktop, tailnet-only
         icon: si-gnometerminal.svg
+    - claude.mvr.ac:
+        href: https://claude.mvr.ac
+        description: Claude Code in a browser tmux pane (dir picker, tailnet-only)
+        icon: si-anthropic.svg
     - Grafana (mandragora):
         href: https://grafana.mvr.ac
         description: System dashboard — CPU/GPU/disk/network/eBPF
