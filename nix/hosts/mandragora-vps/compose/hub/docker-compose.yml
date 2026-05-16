@@ -13,7 +13,10 @@ services:
       caddy_0.0_forward_auth: "authelia:9091"
       caddy_0.0_forward_auth.uri: "/api/authz/forward-auth"
       caddy_0.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy_0.1_reverse_proxy: "{{upstreams 80}}"
+      caddy_0.1_@gpuApi: "path /api/gpu /api/gpu/*"
+      caddy_0.2_handle: "@gpuApi"
+      caddy_0.2_handle.reverse_proxy: "host.docker.internal:6684"
+      caddy_0.3_handle.reverse_proxy: "{{upstreams 80}}"
       caddy_1: https://term.${MVR_AC:-mvr.ac}
       caddy_1.0_@notTailnet: not remote_ip 100.64.0.0/10
       caddy_1.1_handle: "@notTailnet"
