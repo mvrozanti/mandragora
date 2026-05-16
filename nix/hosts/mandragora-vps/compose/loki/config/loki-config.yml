@@ -36,6 +36,7 @@ limits_config:
   per_stream_rate_limit: 3MB
   per_stream_rate_limit_burst: 6MB
   max_query_series: 5000
+  max_entries_limit_per_query: 20000
   allow_structured_metadata: true
 
 compactor:
