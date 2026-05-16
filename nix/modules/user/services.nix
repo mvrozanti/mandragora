@@ -97,6 +97,27 @@
     };
   };
 
+  systemd.user.services.webhook-notifier = {
+    Unit = {
+      Description = "Subscribe to webhook.mvr.ac SSE and emit desktop notifications";
+      After = [ "graphical-session.target" "network-online.target" ];
+      Wants = [ "network-online.target" ];
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = "${pkgs.writeShellApplication {
+        name = "webhook-notifier";
+        runtimeInputs = with pkgs; [ curl jq libnotify xdg-utils coreutils ];
+        text = builtins.readFile ../../../.local/bin/webhook-notifier.sh;
+      }}/bin/webhook-notifier";
+      Restart = "always";
+      RestartSec = 5;
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
+
   # USB Watch Service (Hyprland version)
   systemd.user.services.usb-watch = {
     Unit = {

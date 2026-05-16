@@ -35,6 +35,10 @@
         href: https://log.mvr.ac
         description: Centralised logs — journald + docker, 2 GB / 3 day retention
         icon: grafana-loki.svg
+    - Webhook receiver:
+        href: https://webhook.mvr.ac
+        description: Public webhook ingress — triggers a desktop notification when mandragora is up
+        icon: si-webhooks.svg
     - llm-via-telegram:
         description: Local LLM Telegram bot (polling, no inbound surface)
         icon: telegram.svg

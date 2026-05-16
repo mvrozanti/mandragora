@@ -1,0 +1,43 @@
+services:
+
+  webhook:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: ${WEBHOOK_IMAGE:-mandragora/webhook:local}
+    container_name: webhook
+    restart: unless-stopped
+    environment:
+      - WEBHOOK_PUBLIC_BASE=https://webhook.${MVR_AC:-mvr.ac}
+      - WEBHOOK_DATA_DIR=/data
+      - WEBHOOK_MAX_BODY=${WEBHOOK_MAX_BODY:-1048576}
+      - WEBHOOK_MAX_EVENTS_PER_HOOK=${WEBHOOK_MAX_EVENTS_PER_HOOK:-200}
+    volumes:
+      - ${WEBHOOK_DATA_VOLUME:-./data}:/data
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://webhook.${MVR_AC:-mvr.ac}
+      caddy.0_@ingest: "path /h/*"
+      caddy.1_handle: "@ingest"
+      caddy.1_handle.reverse_proxy: "{{upstreams 8080}}"
+      caddy.2_@stream: "path /internal/*"
+      caddy.3_handle: "@stream"
+      caddy.3_handle.0_@notTailnet: "not remote_ip 100.64.0.0/10"
+      caddy.3_handle.1_handle: "@notTailnet"
+      caddy.3_handle.1_handle.respond: "403"
+      caddy.3_handle.2_handle.reverse_proxy: "{{upstreams 8080}}"
+      caddy.3_handle.2_handle.reverse_proxy.flush_interval: "-1"
+      caddy.4_handle.forward_auth: "authelia:9091"
+      caddy.4_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy.4_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.4_handle.reverse_proxy: "{{upstreams 8080}}"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true
