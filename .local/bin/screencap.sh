@@ -163,23 +163,8 @@ screenshot_full() {
 }
 
 screenshot_region() {
-  local file geom
-  geom=$(slurp -d 2>/dev/null) || return 0
-  [[ -z "$geom" ]] && return 0
-  file="$outdir/screenshot-$(date +%Y%m%d-%H%M%S).png"
-  grim -g "$geom" - | satty \
-    --filename - \
-    --output-filename "$file" \
-    --copy-command "wl-copy --type image/png" \
-    --early-exit \
-    --save-after-copy \
-    --actions-on-enter save-to-clipboard \
-    --initial-tool rectangle \
-    2>/dev/null || true
-  if [[ -s "$file" ]]; then
-    preview_image "$file"
-    mark_flash
-  fi
+  flameshot gui
+  mark_flash
 }
 
 active_window_geom() {
