@@ -17,6 +17,7 @@ in {
       Restart = "on-failure";
       RestartSec = "10s";
       TimeoutStartSec = "5min";
+      Slice = "im-gen.slice";
       MemoryMax = "22G";
       MemorySwapMax = "0";
       OOMScoreAdjust = 1000;

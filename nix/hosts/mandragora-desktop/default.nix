@@ -34,6 +34,7 @@
     ../../modules/services/slither-io.nix
     ../../modules/services/mympd.nix
     ../../modules/services/rgb-control.nix
+    ../../modules/services/im-gen-slice.nix
     ../../modules/services/im-gen-web.nix
     ../../modules/services/im-gen-bot.nix
     ../../modules/services/open-webui.nix
