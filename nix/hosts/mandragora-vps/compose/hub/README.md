@@ -39,6 +39,13 @@ served after a successful login at `auth.mvr.ac`. The visible
 buttons all point to other Authelia-gated subdomains; the session
 cookie carries through so clicks don't require re-auth.
 
+The page polls `/api/gpu` every 3s to render a live readout of the
+desktop's GPU — gpu-lock holder (or `free`), utilization %, VRAM
+used/total, temperature, and power draw. The endpoint is served by
+`gpu-status.service` on the desktop (port 6684) and reached via
+`socat-tailnet@6684` on the VPS; the path is carved out under
+`caddy_0` so it shares the hub's Authelia gate.
+
 ## Caddy labels carried by this container
 
 The `hub` container's `labels:` block in `docker-compose.yml` is
@@ -46,7 +53,7 @@ the dispatch table for the entire hub:
 
 | Label index | Vhost | Behavior |
 |---|---|---|
-| `caddy_0` | `hub.mvr.ac` | forward_auth → reverse_proxy nginx:80 (the hub UI itself) |
+| `caddy_0` | `hub.mvr.ac` | forward_auth → path matcher: `/api/gpu*` → `host.docker.internal:6684` (gpu-status JSON polled by the hub UI); everything else → nginx:80 |
 | `caddy_1` | `term.mvr.ac` | tailnet IP gate → forward_auth → reverse_proxy `host.docker.internal:7681` (ttyd, HTTP/1.1) |
 | `caddy_2` | `slither.mvr.ac` | path whitelist (`/`, `/simulator.html`, `/favicon.ico`, `/static/*`, `/exported_agents/*`, `/api/*`) → forward_auth → reverse_proxy `host.docker.internal:8088` |
 | `caddy_3` | `grafana.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:3000` |
