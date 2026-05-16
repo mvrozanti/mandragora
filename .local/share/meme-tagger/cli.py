@@ -110,6 +110,60 @@ def cmd_info(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_show(args: argparse.Namespace) -> int:
+    image_path = Path(args.path).expanduser().resolve()
+    if not image_path.exists():
+        log.error("image not found: %s", image_path)
+        return 2
+    t = sidecar.read_sidecar(image_path)
+    if t is None:
+        log.error("no sidecar for %s (run `meme-tagger tag %s` first)", image_path, image_path)
+        return 1
+    out: list[str] = []
+    head_bits = [t.content_type]
+    if t.template:
+        head_bits.append(f"tpl={t.template}")
+    if t.category:
+        head_bits.append(f"category={t.category}")
+    out.append(" · ".join(head_bits))
+    if t.characters:
+        out.append("Characters: " + ", ".join(t.characters))
+    if t.cultural_refs:
+        out.append("References: " + ", ".join(t.cultural_refs))
+    if t.description:
+        out.append("")
+        out.append(t.description)
+    if t.context:
+        out.append("Context: " + t.context)
+    if t.punchline:
+        out.append("Punchline: " + t.punchline)
+    if t.text_ocr:
+        out.append("")
+        out.append("Text in image:")
+        for line in t.text_ocr:
+            out.append(f"  {line}")
+    out.append("")
+    out.append(f"Tags ({len(t.tags)}):")
+    for i in range(0, len(t.tags), 6):
+        out.append("  " + "  ".join(t.tags[i:i+6]))
+    print("\n".join(out))
+    return 0
+
+
+def cmd_tags(args: argparse.Namespace) -> int:
+    image_path = Path(args.path).expanduser().resolve()
+    if not image_path.exists():
+        log.error("image not found: %s", image_path)
+        return 2
+    t = sidecar.read_sidecar(image_path)
+    if t is None:
+        log.error("no sidecar for %s", image_path)
+        return 1
+    for tag in t.tags:
+        print(tag)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="meme-tagger", description=__doc__)
     parser.add_argument("--log-level", default=config.LOG_LEVEL, help="DEBUG/INFO/WARNING/ERROR")
@@ -122,7 +176,13 @@ def main(argv: list[str] | None = None) -> int:
     p_tag.add_argument("-v", "--verbose", action="store_true", help="Log SKIPs")
     p_tag.add_argument("--fail-fast", action="store_true", help="Abort on first failure")
 
-    p_info = sub.add_parser("info", help="Print existing sidecar JSON")
+    p_show = sub.add_parser("show", help="Human-readable summary of an image's tags")
+    p_show.add_argument("path", help="Image file")
+
+    p_tags = sub.add_parser("tags", help="Print just the flat tag list (one per line)")
+    p_tags.add_argument("path", help="Image file")
+
+    p_info = sub.add_parser("info", help="Print raw sidecar JSON")
     p_info.add_argument("path", help="Image file")
 
     args = parser.parse_args(argv)
@@ -130,6 +190,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "tag":
         return asyncio.run(cmd_tag(args))
+    if args.cmd == "show":
+        return cmd_show(args)
+    if args.cmd == "tags":
+        return cmd_tags(args)
     if args.cmd == "info":
         return cmd_info(args)
 

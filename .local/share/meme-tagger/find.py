@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-DEFAULT_ROOTS = ("~/Pictures", "~/Downloads")
+DEFAULT_ROOTS = (".", "~/Pictures", "~/Downloads")
 SIDECAR_SUFFIX = ".tags.json"
 
 

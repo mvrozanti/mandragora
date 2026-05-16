@@ -7,7 +7,7 @@ let
 
   meme-tagger = pkgs.writeShellApplication {
     name = "meme-tagger";
-    runtimeInputs = [ botPython ];
+    runtimeInputs = [ botPython pkgs.exiftool ];
     text = ''
       export PYTHONPATH=${gpuLockRoot}:${memeTaggerRoot}''${PYTHONPATH:+:$PYTHONPATH}
       exec ${botPython}/bin/python3 ${memeTaggerRoot}/cli.py "$@"
