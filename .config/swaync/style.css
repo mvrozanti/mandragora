@@ -4,11 +4,11 @@
 }
 
 .control-center {
-  background: rgba(12, 12, 18, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(12, 12, 18, 0.50);
+  border: 1px solid rgba(255, 255, 255, 0.125);
   border-radius: 16px;
   padding: 12px;
-  margin: 10px;
+  margin: 0;
   color: #e6e6ee;
 }
 
