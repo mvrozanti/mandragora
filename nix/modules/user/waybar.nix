@@ -33,7 +33,7 @@
 
         "group/actions" = {
           orientation = "horizontal";
-          modules = [ "custom/notif-menu" "custom/screencap" "custom/clipboard" "custom/powermenu" ];
+          modules = [ "custom/rss" "custom/notif-menu" "custom/screencap" "custom/clipboard" "custom/powermenu" ];
         };
 
         "group/info" = {
@@ -244,6 +244,18 @@
           tooltip-format = "Notification history — left-click to browse, right-click to toggle DND";
           on-click = "swaync-client -t -sw";
           on-click-right = "swaync-client -d -sw";
+        };
+
+        "custom/rss" = {
+          exec = "rss-menu waybar";
+          return-type = "json";
+          interval = 60;
+          signal = 10;
+          format = "{}";
+          tooltip = true;
+          on-click = "rss-menu pick";
+          on-click-right = "rss-menu mark-all-read";
+          on-click-middle = "systemctl --user start rss-menu-poll.service";
         };
 
         "custom/powermenu" = {
