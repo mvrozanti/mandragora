@@ -25,7 +25,7 @@
         icon: si-gnometerminal.svg
     - claude.mvr.ac:
         href: https://claude.mvr.ac
-        description: Claude Code in a browser tmux pane (dir picker, tailnet-only)
+        description: Web dir picker that spawns a detached tmux+claude session — attach from the Claude app
         icon: si-anthropic.svg
     - Grafana (mandragora):
         href: https://grafana.mvr.ac
