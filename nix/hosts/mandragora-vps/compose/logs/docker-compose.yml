@@ -1,0 +1,29 @@
+services:
+
+  logs-ui:
+    image: ${LOGS_UI_IMAGE:-nginx:1.27-alpine}
+    container_name: logs-ui
+    restart: unless-stopped
+    volumes:
+      - ${LOGS_UI_STATIC_VOLUME:-./static}:/usr/share/nginx/html:ro
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://log.${MVR_AC:-mvr.ac}
+      caddy.0_forward_auth: "authelia:9091"
+      caddy.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.1_@lokiApi: "path /api/loki/*"
+      caddy.2_handle: "@lokiApi"
+      caddy.2_handle.uri: "replace /api/loki/ /loki/api/v1/"
+      caddy.2_handle.reverse_proxy: "loki:3100"
+      caddy.3_handle.reverse_proxy: "{{upstreams 80}}"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true

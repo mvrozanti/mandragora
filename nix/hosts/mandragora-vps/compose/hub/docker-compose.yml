@@ -74,17 +74,9 @@ services:
       caddy_8.2_handle.reverse_proxy: "host.docker.internal:7682"
       caddy_8.2_handle.reverse_proxy.transport: http
       caddy_8.2_handle.reverse_proxy.transport.versions: "1.1"
-      caddy_9: https://log.${MVR_AC:-mvr.ac}
-      caddy_9.0_@root: "path /"
-      caddy_9.1_handle: "@root"
-      caddy_9.1_handle.forward_auth: "authelia:9091"
-      caddy_9.1_handle.forward_auth.uri: "/api/authz/forward-auth"
-      caddy_9.1_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy_9.1_handle.redir: 'https://log.${MVR_AC:-mvr.ac}/a/grafana-lokiexplore-app/explore 302'
-      caddy_9.2_handle.forward_auth: "authelia:9091"
-      caddy_9.2_handle.forward_auth.uri: "/api/authz/forward-auth"
-      caddy_9.2_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy_9.2_handle.reverse_proxy: "host.docker.internal:3000"
+      # log.mvr.ac is owned by the `logs` stack — its `logs-ui` container
+      # carries the caddy labels for both the static UI and the loki HTTP API
+      # path-rewrite.
       # duckdns → mvr.ac redirect fan-out (302, path-preserving)
       caddy_20: https://${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
       caddy_20.redir: "https://${MVR_AC:-mvr.ac}{uri} 302"
