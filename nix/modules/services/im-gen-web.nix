@@ -70,6 +70,14 @@ in {
         Restart = "on-failure";
         RestartSec = "10s";
         TimeoutStartSec = "5min";
+        MemoryHigh = "14G";
+        MemoryMax = "18G";
+        MemorySwapMax = "0";
+        OOMScoreAdjust = 1000;
+        OOMPolicy = "kill";
+        TasksMax = 4096;
+        ManagedOOMSwap = "kill";
+        ManagedOOMMemoryPressure = "kill";
       };
       unitConfig = {
         ConditionPathExists = [ "/dev/nvidia0" "${repo}/invokeai-venv/bin/python" "${repo}/bot.py" "${webApp}" ];
