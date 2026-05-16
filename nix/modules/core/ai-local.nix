@@ -138,6 +138,7 @@ in
       environment.systemPackages = [
         memeTaggerCli.meme-tagger
         memeTaggerCli.meme-find
+        pkgs.exiftool
       ];
 
       systemd.services.ollama-pull-meme-tagger = {
