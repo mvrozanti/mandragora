@@ -36,3 +36,8 @@ scrape_configs:
       - drop:
           expression: '^\s*$'
           drop_counter_reason: 'empty_after_strip'
+      - template:
+          source: prefixed_line
+          template: '[{{ .container }}] {{ .Entry }}'
+      - output:
+          source: prefixed_line
