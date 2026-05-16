@@ -236,13 +236,32 @@ else
 fi
 
 if [ "$COMMIT_SKIPPED" -eq 0 ]; then
-  echo "==> Pushing..."
-  if ! git push; then
-    echo "==> FAILED: push was rejected. Your local commit is NOT on origin." >&2
-    echo "==> Run: git pull --rebase && git push" >&2
-    exit 1
-  fi
-  phase "git push"
+  MAX_PUSH_ATTEMPTS=${MANDRAGORA_SWITCH_PUSH_ATTEMPTS:-3}
+  attempt=0
+  while true; do
+    attempt=$((attempt + 1))
+    if git fetch origin 2>/dev/null; then
+      AHEAD_REMOTE=$(git rev-list --count HEAD..origin/master 2>/dev/null || echo 0)
+      if [ "$AHEAD_REMOTE" -gt 0 ]; then
+        echo "==> Origin moved by $AHEAD_REMOTE commit(s) during build; rebasing local commit on top..."
+        if ! git pull --rebase --autostash origin master; then
+          echo "==> FAILED: rebase conflict between local commit and origin updates. Resolve manually then push." >&2
+          exit 1
+        fi
+      fi
+    fi
+    echo "==> Pushing (attempt $attempt/$MAX_PUSH_ATTEMPTS)..."
+    if git push; then
+      phase "git push"
+      break
+    fi
+    if [ "$attempt" -ge "$MAX_PUSH_ATTEMPTS" ]; then
+      echo "==> FAILED: push rejected after $attempt attempts. Your local commit is on HEAD but NOT on origin." >&2
+      echo "==> Run: git pull --rebase && git push" >&2
+      exit 1
+    fi
+    echo "==> Push rejected — re-fetching and retrying..." >&2
+  done
 fi
 
 if [ "$RC" -eq 0 ] || [ "$ACTIVATED" -eq 1 ]; then
