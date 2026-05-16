@@ -31,6 +31,10 @@
         href: https://grafana.mvr.ac
         description: System dashboard — CPU/GPU/disk/network/eBPF
         icon: grafana.svg
+    - Loki logs:
+        href: https://log.mvr.ac
+        description: Centralised logs — journald + docker, 2 GB / 3 day retention
+        icon: grafana-loki.svg
     - llm-via-telegram:
         description: Local LLM Telegram bot (polling, no inbound surface)
         icon: telegram.svg
