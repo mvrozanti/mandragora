@@ -175,11 +175,12 @@ INDEX_HTML = r"""<!DOCTYPE html>
   .open-here:hover { background: linear-gradient(180deg, #303656, #262c4a); }
   .open-here:active { transform: translateY(1px); }
   .open-here b { color: #9ece6a; }
+  .open-here .shortcut { margin-left: auto; }
 
   .filter { width: 100%; padding: .65rem .8rem; background: #15161e; border: 1px solid #2a2f44; color: #c0caf5; border-radius: 8px; font: inherit; margin-bottom: .6rem; }
   .filter:focus { outline: none; border-color: #7aa2f7; }
 
-  .list { display: flex; flex-direction: column; gap: 2px; max-height: 55vh; overflow-y: auto; padding-right: 4px; }
+  .list { display: flex; flex-direction: column; gap: 2px; max-height: 55vh; overflow-y: auto; padding-right: 4px; scroll-padding: .3rem; }
   .list::-webkit-scrollbar { width: 6px; }
   .list::-webkit-scrollbar-thumb { background: #2a2f44; border-radius: 3px; }
   .row {
@@ -188,11 +189,27 @@ INDEX_HTML = r"""<!DOCTYPE html>
     border: 1px solid transparent;
   }
   .row:hover { background: #20222e; border-color: #2a2f44; }
+  .row.sel { background: #2a3045; border-color: #7aa2f7; }
+  .row.sel .ico { color: #7dcfff; }
+  .row.sel .arrow { color: #7aa2f7; }
   .row.up { color: #565f89; }
   .row .ico { color: #7aa2f7; font-size: 1.05em; flex-shrink: 0; }
   .row.up .ico { color: #565f89; }
   .row .name { flex: 1; word-break: break-all; }
   .row .arrow { color: #565f89; }
+
+  .hints {
+    display: flex; flex-wrap: wrap; gap: .35rem .9rem; margin-top: 1rem;
+    padding-top: .9rem; border-top: 1px solid #2a2f44;
+    color: #565f89; font-size: .78rem;
+  }
+  .hints span { display: inline-flex; align-items: center; gap: .35rem; }
+  kbd {
+    display: inline-block; min-width: 1.2em; text-align: center;
+    padding: .04rem .35rem; background: #15161e; color: #9aa5ce;
+    border: 1px solid #2a2f44; border-bottom-width: 2px; border-radius: 4px;
+    font-size: .85em; font-family: inherit; line-height: 1.25;
+  }
 
   .empty { color: #565f89; text-align: center; padding: 1.5rem; font-style: italic; }
   .err { background: #f7768e15; border: 1px solid #f7768e55; color: #f7768e; padding: .9rem 1rem; border-radius: 8px; margin-top: 1rem; }
@@ -309,44 +326,157 @@ function crumbHtml(path) {
   ).join('');
 }
 
+const selectionMemory = {};
+
 async function renderPicker(path) {
   const r = await fetch('/api/list?path=' + encodeURIComponent(path));
   const j = await r.json();
   if (!j.ok) { renderError(j.error || 'list failed'); return; }
+
   const rows = [];
-  if (j.parent) {
-    rows.push(`<a class="row up" href="#${encodeURIComponent(j.parent)}"><span class="ico">↑</span><span class="name">..</span></a>`);
-  }
+  if (j.parent) rows.push({ kind: 'up', name: '..', href: j.parent });
   for (const e of j.entries) {
     const sub = (j.path.endsWith('/') ? j.path : j.path + '/') + e.name;
-    rows.push(`<a class="row" data-name="${esc(e.name.toLowerCase())}" href="#${encodeURIComponent(sub)}"><span class="ico">▸</span><span class="name">${esc(e.name)}</span><span class="arrow">→</span></a>`);
+    rows.push({ kind: 'dir', name: e.name, href: sub });
   }
-  if (!j.entries.length && !j.parent) {
-    rows.push('<div class="empty">(no subdirectories)</div>');
-  }
+
+  const rowsHtml = rows.length
+    ? rows.map((row, i) => {
+        if (row.kind === 'up') {
+          return `<a class="row up" data-idx="${i}" data-name="" href="#${encodeURIComponent(row.href)}"><span class="ico">↑</span><span class="name">..</span></a>`;
+        }
+        return `<a class="row" data-idx="${i}" data-name="${esc(row.name.toLowerCase())}" href="#${encodeURIComponent(row.href)}"><span class="ico">▸</span><span class="name">${esc(row.name)}</span><span class="arrow">→</span></a>`;
+      }).join('')
+    : '<div class="empty">(no subdirectories)</div>';
+
   root.innerHTML = `
     <div class="title"><b>claude</b>.mvr.ac</div>
     <div class="crumb">${crumbHtml(j.path)}</div>
-    <button class="open-here" id="openHere"><span style="color:#9ece6a">▸</span><span>open <b>this</b> directory in claude</span></button>
-    <input class="filter" id="filter" placeholder="filter subdirs…" autocomplete="off" autofocus>
-    <div class="list" id="list">${rows.join('')}</div>
+    <button class="open-here" id="openHere">
+      <span style="color:#9ece6a">▸</span>
+      <span>open <b>this</b> directory in claude</span>
+      <span class="shortcut"><kbd>Ctrl</kbd>+<kbd>↵</kbd></span>
+    </button>
+    <input class="filter" id="filter" placeholder="filter subdirs…" autocomplete="off" spellcheck="false">
+    <div class="list" id="list">${rowsHtml}</div>
+    <div class="hints">
+      <span><kbd>↑</kbd><kbd>↓</kbd> move</span>
+      <span><kbd>↵</kbd> enter dir</span>
+      <span><kbd>Ctrl</kbd>+<kbd>↵</kbd> open here</span>
+      <span><kbd>⌫</kbd> parent</span>
+      <span><kbd>Esc</kbd> clear</span>
+    </div>
   `;
+
   document.getElementById('openHere').onclick = () => spawn(j.path);
   const filter = document.getElementById('filter');
   const list = document.getElementById('list');
-  filter.addEventListener('input', () => {
+
+  let visible = rows.slice();
+  let sel = 0;
+
+  function applyFilter() {
     const q = filter.value.toLowerCase();
-    list.querySelectorAll('.row').forEach(r => {
-      const name = r.dataset.name || '';
-      r.style.display = (!name || name.includes(q)) ? '' : 'none';
-    });
-  });
+    visible = rows.filter(r => r.kind === 'up' || !q || r.name.toLowerCase().includes(q));
+    for (const el of list.querySelectorAll('.row')) {
+      el.style.display = visible.includes(rows[+el.dataset.idx]) ? '' : 'none';
+    }
+    if (sel >= visible.length) sel = Math.max(0, visible.length - 1);
+    paintSel();
+  }
+
+  function paintSel() {
+    list.querySelectorAll('.row.sel').forEach(el => el.classList.remove('sel'));
+    const row = visible[sel];
+    if (!row) return;
+    const el = list.querySelector('.row[data-idx="' + rows.indexOf(row) + '"]');
+    if (el) {
+      el.classList.add('sel');
+      el.scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  function activate(row) {
+    if (!row) return;
+    if (row.kind === 'up') {
+      const here = j.path.split('/').filter(Boolean).pop() || '';
+      if (here) selectionMemory[row.href] = here;
+    }
+    location.hash = encodeURIComponent(row.href);
+  }
+
+  filter.addEventListener('input', () => { sel = 0; applyFilter(); });
+
   filter.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      const first = list.querySelector('.row:not([style*="display: none"])');
-      if (first) location.hash = first.getAttribute('href').slice(1);
+    const empty = filter.value === '';
+    const atEnd = filter.selectionStart === filter.value.length;
+    const k = e.key;
+    if (k === 'ArrowDown' || (e.ctrlKey && (k === 'n' || k === 'j'))) {
+      e.preventDefault();
+      if (sel < visible.length - 1) { sel++; paintSel(); }
+    } else if (k === 'ArrowUp' || (e.ctrlKey && (k === 'p' || k === 'k'))) {
+      e.preventDefault();
+      if (sel > 0) { sel--; paintSel(); }
+    } else if (k === 'Enter') {
+      e.preventDefault();
+      if (e.ctrlKey || e.altKey || e.metaKey) spawn(j.path);
+      else activate(visible[sel]);
+    } else if (k === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      activate(visible[sel]);
+    } else if (k === 'ArrowRight' && atEnd) {
+      e.preventDefault();
+      activate(visible[sel]);
+    } else if ((k === 'Backspace' && empty) || (k === 'ArrowLeft' && empty)) {
+      if (j.parent) {
+        e.preventDefault();
+        const here = j.path.split('/').filter(Boolean).pop() || '';
+        if (here) selectionMemory[j.parent] = here;
+        location.hash = encodeURIComponent(j.parent);
+      }
+    } else if (k === 'Escape') {
+      if (filter.value) {
+        e.preventDefault();
+        filter.value = '';
+        sel = 0;
+        applyFilter();
+      }
+    } else if (k === 'Home' && empty) {
+      e.preventDefault();
+      sel = 0;
+      paintSel();
+    } else if (k === 'End' && empty) {
+      e.preventDefault();
+      sel = visible.length - 1;
+      paintSel();
+    } else if (k === 'PageDown' && empty) {
+      e.preventDefault();
+      sel = Math.min(visible.length - 1, sel + 8);
+      paintSel();
+    } else if (k === 'PageUp' && empty) {
+      e.preventDefault();
+      sel = Math.max(0, sel - 8);
+      paintSel();
     }
   });
+
+  list.addEventListener('mousemove', (e) => {
+    const el = e.target.closest('.row');
+    if (!el) return;
+    const row = rows[+el.dataset.idx];
+    const idx = visible.indexOf(row);
+    if (idx >= 0 && idx !== sel) { sel = idx; paintSel(); }
+  });
+
+  const remembered = selectionMemory[j.path];
+  if (remembered) {
+    const idx = visible.findIndex(r => r.kind === 'dir' && r.name === remembered);
+    if (idx >= 0) sel = idx;
+  } else if (visible[0] && visible[0].kind === 'up' && visible.length > 1) {
+    sel = 1;
+  }
+  paintSel();
+  filter.focus();
 }
 
 function navigate() {
