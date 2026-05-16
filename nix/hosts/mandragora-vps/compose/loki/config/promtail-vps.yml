@@ -26,3 +26,13 @@ scrape_configs:
         replacement: 'mandragora-vps'
       - target_label: 'job'
         replacement: 'docker'
+    pipeline_stages:
+      - replace:
+          expression: '\x1b\[[0-9;?]*[a-zA-Z]'
+          replace: ''
+      - replace:
+          expression: '\x1b\][^\x07]*\x07'
+          replace: ''
+      - drop:
+          expression: '^\s*$'
+          drop_counter_reason: 'empty_after_strip'
