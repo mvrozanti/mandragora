@@ -71,7 +71,7 @@ in {
         RestartSec = "10s";
         TimeoutStartSec = "5min";
         Slice = "im-gen.slice";
-        MemoryMax = "22G";
+        MemoryMax = "28G";
         MemorySwapMax = "0";
         OOMScoreAdjust = 1000;
         OOMPolicy = "kill";
