@@ -33,14 +33,6 @@ def resolve_dir(raw: str | None) -> Path:
     return Path(raw).expanduser().resolve()
 
 
-def is_under_home(p: Path) -> bool:
-    try:
-        p.resolve().relative_to(HOME)
-        return True
-    except ValueError:
-        return False
-
-
 async def tmux_spawn(target: Path) -> tuple[bool, str, str]:
     session = slug(str(target))
     env = {**os.environ, "XDG_RUNTIME_DIR": XDG_RUNTIME_DIR, "HOME": str(HOME)}
@@ -66,8 +58,6 @@ async def api_list(req: web.Request) -> web.Response:
     p = resolve_dir(raw)
     if not p.is_dir():
         return web.json_response({"ok": False, "error": f"not a directory: {p}"}, status=400)
-    if not is_under_home(p):
-        return web.json_response({"ok": False, "error": "outside $HOME"}, status=403)
     try:
         entries = []
         for e in sorted(p.iterdir(), key=lambda x: x.name.lower()):
@@ -79,7 +69,7 @@ async def api_list(req: web.Request) -> web.Response:
             except OSError:
                 continue
             entries.append({"name": e.name})
-        parent = str(p.parent) if p != p.parent and is_under_home(p.parent) else None
+        parent = str(p.parent) if p != p.parent else None
         return web.json_response({"ok": True, "path": str(p), "parent": parent, "entries": entries})
     except PermissionError as exc:
         return web.json_response({"ok": False, "error": str(exc)}, status=403)
@@ -90,8 +80,6 @@ async def api_launch(req: web.Request) -> web.Response:
     target = resolve_dir(body.get("dir"))
     if not target.is_dir():
         return web.json_response({"ok": False, "error": f"not a directory: {target}"}, status=400)
-    if not is_under_home(target):
-        return web.json_response({"ok": False, "error": "outside $HOME"}, status=403)
     ok, session, msg = await tmux_spawn(target)
     status = 200 if ok else 500
     return web.json_response({"ok": ok, "session": session, "dir": str(target), "msg": msg}, status=status)
