@@ -53,11 +53,10 @@ let
 in {
   mandragora.hub.services.im-gen-web = {
     port = 6682;
+    userService = true;
     systemd = {
       description = "gen.mvr.ac — Flux web UI with LoRA + history graph";
-      after = [ "network.target" "tailscaled.service" ];
-      wants = [ "tailscaled.service" ];
-      wantedBy = [ "multi-user.target" ];
+      wantedBy = [ "default.target" ];
       environment = {
         GEN_HOST = "0.0.0.0";
         GEN_PORT = "6682";
@@ -66,8 +65,6 @@ in {
       path = [ pkgs.coreutils pkgs.bash pkgs.gcc ];
       serviceConfig = {
         Type = "simple";
-        User = "m";
-        Group = "users";
         WorkingDirectory = repo;
         ExecStart = "${launcher}";
         Restart = "on-failure";
