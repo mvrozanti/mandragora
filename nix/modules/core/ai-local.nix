@@ -61,6 +61,15 @@ in
         description = "Ollama tag for the vtag VLM.";
       };
     };
+
+    ai.uncensored = {
+      enable = lib.mkEnableOption "Pre-pull an uncensored / abliterated local model";
+      model = lib.mkOption {
+        type = lib.types.str;
+        default = "huihui_ai/qwen2.5-abliterate:14b";
+        description = "Ollama tag for an uncensored / abliterated chat model.";
+      };
+    };
   };
 
   config = lib.mkMerge [
@@ -156,6 +165,31 @@ in
           exec curl -fsS --no-buffer -X POST http://127.0.0.1:11434/api/pull \
             -H 'Content-Type: application/json' \
             -d '{"model":"${cfg.vtag.model}","stream":false}'
+        '';
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          TimeoutStartSec = "2h";
+        };
+      };
+    })
+
+    (lib.mkIf cfg.uncensored.enable {
+      systemd.services.ollama-pull-uncensored = {
+        description = "Pre-pull uncensored / abliterated model";
+        after = [ "ollama.service" "network-online.target" ];
+        requires = [ "ollama.service" ];
+        wants = [ "network-online.target" ];
+        wantedBy = [ "multi-user.target" ];
+        path = [ pkgs.curl ];
+        script = ''
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:11434/api/version >/dev/null && break
+            sleep 1
+          done
+          exec curl -fsS --no-buffer -X POST http://127.0.0.1:11434/api/pull \
+            -H 'Content-Type: application/json' \
+            -d '{"model":"${cfg.uncensored.model}","stream":false}'
         '';
         serviceConfig = {
           Type = "oneshot";
