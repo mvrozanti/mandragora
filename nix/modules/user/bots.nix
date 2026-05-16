@@ -39,8 +39,14 @@ in
       Restart = "on-failure";
       RestartSec = 10;
       TimeoutStartSec = "5min";
-      MemoryHigh = "12G";
-      MemoryMax = "16G";
+      Slice = "im-gen.slice";
+      MemoryMax = "28G";
+      MemorySwapMax = "0";
+      OOMScoreAdjust = 1000;
+      OOMPolicy = "kill";
+      TasksMax = 4096;
+      ManagedOOMSwap = "kill";
+      ManagedOOMMemoryPressure = "kill";
     };
     Install = {
       WantedBy = [ "default.target" ];
