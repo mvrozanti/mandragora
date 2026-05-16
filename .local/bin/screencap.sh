@@ -165,7 +165,7 @@ screenshot_full() {
 screenshot_region() {
   local file
   file="$outdir/screenshot-$(date +%Y%m%d-%H%M%S).png"
-  flameshot gui --raw 2>/dev/null > "$file" || true
+  flameshot gui --clipboard --path "$file" 2>/dev/null || true
   if [[ -s "$file" ]]; then
     wl-copy --type image/png < "$file"
     preview_image "$file"
