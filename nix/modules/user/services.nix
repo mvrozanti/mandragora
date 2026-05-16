@@ -22,9 +22,14 @@
     };
   };
 
-  systemd.user.services.mpd-discord-rpc.Unit = {
+  systemd.user.services.mpd-discord-rpc = {
+    Unit = {
     After = [ "mpd.service" ];
     Wants = [ "mpd.service" ];
+    };
+    Service = {
+      Environment = "RUST_LOG=mpd_discord_rpc=info,discord_presence=off";
+    };
   };
 
   # Transmission Daemon Service
@@ -54,7 +59,7 @@
       Type = "oneshot";
       Environment = [
         "GPG_TTY=/dev/tty"
-        "SASL_PATH=${pkgs.cyrus_sasl}/lib/sasl2:${pkgs.cyrus-sasl-xoauth2}/lib/sasl2"
+        "SASL_PATH=${pkgs.cyrus_sasl.out}/lib/sasl2:${pkgs.cyrus-sasl-xoauth2}/lib/sasl2"
       ];
       ExecStart = "${pkgs.writeShellApplication {
         name = "mbsync-hotmail-sync";
