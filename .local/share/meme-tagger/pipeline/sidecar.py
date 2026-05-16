@@ -1,14 +1,18 @@
-"""Sidecar writers: JSON (primary), xattr (best-effort), EXIF (JPEG only)."""
+"""Sidecar writers: JSON (primary), xattr (best-effort), XMP/EXIF via exiftool."""
 from __future__ import annotations
 
 import logging
 import os
+import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 
 from . import schema
 
 log = logging.getLogger(__name__)
+
+XMP_FORMATS = frozenset({"JPEG", "PNG", "WEBP", "TIFF", "GIF"})
 
 
 def sidecar_path(image_path: Path) -> Path:
@@ -65,30 +69,53 @@ def write_xattr(image_path: Path, tagged: schema.TaggedImage) -> bool:
         return False
 
 
-def write_exif_if_jpeg(image_path: Path, tagged: schema.TaggedImage) -> bool:
-    if tagged.source.format.upper() != "JPEG":
+def write_xmp(image_path: Path, tagged: schema.TaggedImage) -> bool:
+    if tagged.source.format.upper() not in XMP_FORMATS:
         return False
-    try:
-        from PIL import Image
-        import piexif
-    except ImportError:
+    exiftool = shutil.which("exiftool")
+    if not exiftool:
+        log.debug("exiftool not in PATH; skipping XMP write")
         return False
+
+    description = tagged.description or ""
+    title_bits = [tagged.content_type]
+    if tagged.template:
+        title_bits.append(tagged.template)
+    if tagged.category:
+        title_bits.append(tagged.category)
+    title = " / ".join(b for b in title_bits if b)
+
+    args = [
+        exiftool,
+        "-overwrite_original",
+        "-q", "-q",
+        "-codedcharacterset=utf8",
+        "-XMP-dc:Subject=",
+        "-IPTC:Keywords=",
+    ]
+    for tag in tagged.tags:
+        args.append(f"-XMP-dc:Subject+={tag}")
+        args.append(f"-IPTC:Keywords+={tag}")
+    if description:
+        args.append(f"-XMP-dc:Description={description}")
+        args.append(f"-EXIF:ImageDescription={description}")
+    if title:
+        args.append(f"-XMP-dc:Title={title}")
+    args.append(str(image_path))
+
     try:
-        with Image.open(image_path) as img:
-            exif_dict = piexif.load(img.info.get("exif", b""))
-        comment = ("meme-tagger:" + " ".join(tagged.tags))[:65535]
-        exif_dict.setdefault("Exif", {})[piexif.ExifIFD.UserComment] = (
-            b"ASCII\x00\x00\x00" + comment.encode("ascii", errors="replace")
-        )
-        piexif.insert(piexif.dump(exif_dict), str(image_path))
+        result = subprocess.run(args, capture_output=True, timeout=30)
+        if result.returncode != 0:
+            log.warning("exiftool failed on %s: %s", image_path, result.stderr.decode(errors="replace"))
+            return False
         return True
     except Exception as exc:
-        log.debug("EXIF write failed on %s: %s", image_path, exc)
+        log.warning("exiftool exception on %s: %s", image_path, exc)
         return False
 
 
 def write_all(image_path: Path, tagged: schema.TaggedImage) -> Path:
     out = write_json(image_path, tagged)
     write_xattr(image_path, tagged)
-    write_exif_if_jpeg(image_path, tagged)
+    write_xmp(image_path, tagged)
     return out
