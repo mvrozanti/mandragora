@@ -32,6 +32,7 @@
     description = "Mandragora Primary User";
     extraGroups = [ "networkmanager" "wheel" "video" "audio" "i2c" "plugdev" "ydotool" ];
     shell = pkgs.zsh;
+    linger = true;
   };
 
   programs.nix-ld.enable = true;
