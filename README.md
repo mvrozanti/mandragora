@@ -8,6 +8,8 @@
 [![Impermanent](https://img.shields.io/badge/root-ephemeral-FF6B6B?style=flat-square)]()
 [![sops-nix](https://img.shields.io/badge/secrets-sops--nix-F5A623?style=flat-square&logo=gnuprivacyguard&logoColor=white)](https://github.com/Mic92/sops-nix)
 
+<img src="docs/assets/readme/demo.gif" width="900" alt="mandragora desktop demo" />
+
 </div>
 
 [demo.mvr.ac](https://demo.mvr.ac)
