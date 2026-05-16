@@ -18,6 +18,7 @@ in {
         CLAUDE_WEB_PORT = toString port;
         HOME = "/home/m";
         XDG_RUNTIME_DIR = "/run/user/1000";
+        TMUX_TMPDIR = "/run/user/1000";
       };
       path = [ pkgs.tmux pkgs.claude-code pkgs.coreutils ];
       serviceConfig = {
