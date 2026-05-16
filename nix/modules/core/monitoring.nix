@@ -368,13 +368,22 @@ in
       datasources.settings = {
         apiVersion = 1;
         deleteDatasources = [ { name = "Prometheus"; orgId = 1; } ];
-        datasources = [ {
-          name = "VictoriaMetrics";
-          type = "prometheus";
-          url = "http://localhost:8428";
-          isDefault = true;
-          uid = "prometheus";
-        } ];
+        datasources = [
+          {
+            name = "VictoriaMetrics";
+            type = "prometheus";
+            url = "http://localhost:8428";
+            isDefault = true;
+            uid = "prometheus";
+          }
+          {
+            name = "Loki";
+            type = "loki";
+            url = "http://100.84.78.83:3100";
+            uid = "loki";
+            jsonData = { maxLines = 5000; timeout = 60; };
+          }
+        ];
       };
       dashboards.settings = {
         apiVersion = 1;
@@ -415,4 +424,43 @@ in
   systemd.tmpfiles.rules = [
     "d /var/lib/prometheus-node-exporter-textfiles 0755 root root - -"
   ];
+
+  services.alloy = {
+    enable = true;
+    extraFlags = [ "--server.http.listen-addr=127.0.0.1:12345" ];
+  };
+
+  environment.etc."alloy/journal.alloy".text = ''
+    loki.relabel "journal" {
+      forward_to = []
+      rule {
+        source_labels = ["__journal__systemd_unit"]
+        target_label  = "unit"
+      }
+      rule {
+        source_labels = ["__journal__hostname"]
+        target_label  = "hostname"
+      }
+      rule {
+        source_labels = ["__journal_priority_keyword"]
+        target_label  = "priority"
+      }
+    }
+
+    loki.source.journal "system" {
+      max_age       = "12h"
+      relabel_rules = loki.relabel.journal.rules
+      forward_to    = [loki.write.vps.receiver]
+      labels = {
+        host = "mandragora-desktop",
+        job  = "systemd-journal",
+      }
+    }
+
+    loki.write "vps" {
+      endpoint {
+        url = "http://100.84.78.83:3100/loki/api/v1/push"
+      }
+    }
+  '';
 }
