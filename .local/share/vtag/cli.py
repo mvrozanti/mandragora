@@ -1,4 +1,4 @@
-"""meme-tagger CLI: tag a file or recursively tag a directory."""
+"""vtag CLI: tag a file or recursively tag a directory."""
 from __future__ import annotations
 
 import argparse
@@ -11,7 +11,7 @@ from pathlib import Path
 import config
 from pipeline import dispatcher, preprocess, sidecar
 
-log = logging.getLogger("meme-tagger")
+log = logging.getLogger("vtag")
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tiff", ".tif"}
 
@@ -117,7 +117,7 @@ def cmd_show(args: argparse.Namespace) -> int:
         return 2
     t = sidecar.read_sidecar(image_path)
     if t is None:
-        log.error("no sidecar for %s (run `meme-tagger tag %s` first)", image_path, image_path)
+        log.error("no sidecar for %s (run `vtag tag %s` first)", image_path, image_path)
         return 1
     out: list[str] = []
     head_bits = [t.content_type]
@@ -165,7 +165,7 @@ def cmd_tags(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="meme-tagger", description=__doc__)
+    parser = argparse.ArgumentParser(prog="vtag", description=__doc__)
     parser.add_argument("--log-level", default=config.LOG_LEVEL, help="DEBUG/INFO/WARNING/ERROR")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
