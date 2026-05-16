@@ -54,7 +54,7 @@ the dispatch table for the entire hub:
 | `caddy_5` | `rgb.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6681` (rgb-control on desktop) |
 | `caddy_6` | `gen.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6682` (im-gen-web on desktop) |
 | `caddy_7` | `llama.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6683` (open-webui on desktop, `flush_interval=-1` for SSE streaming) |
-| `caddy_8` | `claude.mvr.ac` | tailnet IP gate → forward_auth → reverse_proxy `host.docker.internal:7682` (claude-web — aiohttp dir picker that spawns a detached tmux+claude session; no in-browser shell) |
+| `caddy_8` | `claude.mvr.ac` | tailnet IP gate → forward_auth → reverse_proxy `host.docker.internal:7682` (claude-web — aiohttp dir picker that adds a tmux+claude window to the user's current session; no in-browser shell) |
 | `caddy_9` | `log.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:3000` (same Grafana backend as `caddy_3`; Loki datasource pre-provisioned so Explore lands on logs) |
 | `caddy_20`–`caddy_29` | `*.mvrozanti.duckdns.org` | 302 redirect to `*.mvr.ac` equivalent (legacy aliases) |
 
