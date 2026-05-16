@@ -30,6 +30,7 @@
     ../../modules/desktop/minecraft.nix
     ../../modules/services/hub-services.nix
     ../../modules/services/ttyd.nix
+    ../../modules/services/claude-web.nix
     ../../modules/services/slither-io.nix
     ../../modules/services/mympd.nix
     ../../modules/services/rgb-control.nix
