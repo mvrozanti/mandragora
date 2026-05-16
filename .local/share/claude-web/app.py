@@ -1,10 +1,10 @@
 """
-claude.mvr.ac — spawn a detached tmux session running `claude` in a
-chosen directory and return a ✓. No interactive terminal is served;
-the user attaches via their own Claude client.
+claude.mvr.ac — add a tmux window running `claude` to the user's
+current session and return a ✓. Picks the most-recently-active
+attached session; falls back to any existing session; only spawns
+a new session if tmux is empty.
 """
 import asyncio
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -15,11 +15,8 @@ HOME = Path(os.environ.get("HOME", "/home/m")).resolve()
 LISTEN_HOST = os.environ.get("CLAUDE_WEB_HOST", "127.0.0.1")
 LISTEN_PORT = int(os.environ.get("CLAUDE_WEB_PORT", "7682"))
 XDG_RUNTIME_DIR = os.environ.get("XDG_RUNTIME_DIR", "/run/user/1000")
+FALLBACK_SESSION = os.environ.get("CLAUDE_WEB_FALLBACK_SESSION", "claude")
 EXCLUDE = {".git", "node_modules", "__pycache__", ".venv", ".direnv", ".cache", ".tmp"}
-
-
-def slug(p: str) -> str:
-    return "claude-" + hashlib.sha1(p.encode()).hexdigest()[:10]
 
 
 def resolve_dir(raw: str | None) -> Path:
@@ -33,24 +30,79 @@ def resolve_dir(raw: str | None) -> Path:
     return Path(raw).expanduser().resolve()
 
 
-async def tmux_spawn(target: Path) -> tuple[bool, str, str]:
-    session = slug(str(target))
-    env = {**os.environ, "XDG_RUNTIME_DIR": XDG_RUNTIME_DIR, "HOME": str(HOME)}
-    has = await asyncio.create_subprocess_exec(
-        "tmux", "has-session", "-t", f"={session}",
-        env=env, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL,
-    )
-    await has.wait()
-    if has.returncode == 0:
-        return True, session, "already running"
+async def tmux(*args: str, env: dict) -> tuple[int, str, str]:
     proc = await asyncio.create_subprocess_exec(
-        "tmux", "new-session", "-d", "-s", session, "-c", str(target), "claude",
-        env=env, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        "tmux", *args, env=env,
+        stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
     )
-    _, err = await proc.communicate()
-    if proc.returncode != 0:
-        return False, session, err.decode(errors="replace").strip()[:500] or "tmux failed"
-    return True, session, "spawned"
+    out, err = await proc.communicate()
+    return proc.returncode, out.decode(errors="replace"), err.decode(errors="replace")
+
+
+async def pick_session(env: dict) -> str | None:
+    rc, out, _ = await tmux(
+        "list-clients", "-F", "#{client_activity} #{session_name}", env=env,
+    )
+    if rc == 0 and out.strip():
+        lines = [l for l in out.splitlines() if l.strip()]
+        lines.sort(key=lambda l: int(l.split(" ", 1)[0]), reverse=True)
+        return lines[0].split(" ", 1)[1]
+    rc, out, _ = await tmux(
+        "list-sessions", "-F", "#{session_activity} #{session_name}", env=env,
+    )
+    if rc == 0 and out.strip():
+        lines = [l for l in out.splitlines() if l.strip()]
+        lines.sort(key=lambda l: int(l.split(" ", 1)[0]), reverse=True)
+        return lines[0].split(" ", 1)[1]
+    return None
+
+
+async def find_existing_window(session: str, target: Path, env: dict) -> str | None:
+    rc, out, _ = await tmux(
+        "list-windows", "-t", session,
+        "-F", "#{window_index}\t#{@claude_dir}", env=env,
+    )
+    if rc != 0:
+        return None
+    needle = str(target)
+    for line in out.splitlines():
+        idx, _, dir_ = line.partition("\t")
+        if dir_ == needle:
+            return idx
+    return None
+
+
+async def tmux_spawn(target: Path) -> tuple[bool, str, str]:
+    env = {**os.environ, "XDG_RUNTIME_DIR": XDG_RUNTIME_DIR, "HOME": str(HOME)}
+    session = await pick_session(env)
+    name = target.name or target.anchor.strip("/") or "claude"
+
+    if session is not None:
+        existing = await find_existing_window(session, target, env)
+        if existing is not None:
+            await tmux("select-window", "-t", f"{session}:{existing}", env=env)
+            return True, f"{session}:{existing}", "already running"
+        rc, out, err = await tmux(
+            "new-window", "-t", f"{session}:", "-c", str(target),
+            "-n", name, "-P", "-F", "#{window_index}", "claude", env=env,
+        )
+        action = "added window"
+    else:
+        session = FALLBACK_SESSION
+        rc, out, err = await tmux(
+            "new-session", "-d", "-s", session, "-c", str(target),
+            "-n", name, "-P", "-F", "#{window_index}", "claude", env=env,
+        )
+        action = "spawned session"
+
+    if rc != 0:
+        return False, session, err.strip()[:500] or "tmux failed"
+    window = out.strip().splitlines()[-1] if out.strip() else "?"
+    await tmux(
+        "set-option", "-w", "-t", f"{session}:{window}",
+        "@claude_dir", str(target), env=env,
+    )
+    return True, f"{session}:{window}", action
 
 
 async def api_list(req: web.Request) -> web.Response:
@@ -188,10 +240,10 @@ function renderOk(j) {
     <div class="title"><b>claude</b>.mvr.ac</div>
     <div class="ok-wrap">
       <div class="check">${checkSvg()}</div>
-      <h1>session ready</h1>
+      <h1>claude ready</h1>
       <p><code>${esc(j.session)}</code></p>
       <p>${esc(j.dir)}</p>
-      <p class="hint">${esc(j.msg)} — open the claude app to attach</p>
+      <p class="hint">${esc(j.msg)} — attach via your tmux client</p>
       <a class="back" href="/">← spawn another</a>
     </div>
   `;
