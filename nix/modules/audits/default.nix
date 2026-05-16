@@ -11,7 +11,7 @@ let
   };
 
   healthCheckWatch = pkgs.replaceVars ../../../.local/bin/health-check.sh {
-    diskWarnThreshold = "85";
+    diskWarnThreshold = "90";
     logFile = "/persistent/logs/strays/watch-$(date +%Y-%m-%d).log";
   };
 
