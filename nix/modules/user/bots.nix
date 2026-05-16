@@ -7,13 +7,13 @@ let
   llmViaTelegramState = "/home/m/.local/share/llm-via-telegram";
   sttViaTelegramRoot = "/etc/nixos/mandragora/.local/share/stt-via-telegram";
   sttViaTelegramState = "/home/m/.local/share/stt-via-telegram";
-  memeTaggerState = "/home/m/.local/share/meme-tagger";
+  vtagState = "/home/m/.local/share/vtag";
 in
 {
   home.activation.botsState = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     mkdir -p ${llmViaTelegramState}/data ${llmViaTelegramState}/logs
     mkdir -p ${sttViaTelegramState}/data ${sttViaTelegramState}/logs ${sttViaTelegramState}/hf-cache
-    mkdir -p ${memeTaggerState}/logs
+    mkdir -p ${vtagState}/logs
     if [ -e /home/m/Projects/gpu-lock ] && [ ! -L /home/m/Projects/gpu-lock ]; then
       rm -rf /home/m/Projects/gpu-lock
     fi

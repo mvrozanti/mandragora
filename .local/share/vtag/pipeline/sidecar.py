@@ -44,7 +44,7 @@ def already_tagged(image_path: Path, sha256: str) -> schema.TaggedImage | None:
 def write_json(image_path: Path, tagged: schema.TaggedImage) -> Path:
     out = sidecar_path(image_path)
     payload = tagged.to_json()
-    fd, tmp = tempfile.mkstemp(prefix=".meme-tagger-", dir=str(out.parent))
+    fd, tmp = tempfile.mkstemp(prefix=".vtag-", dir=str(out.parent))
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(payload)
@@ -60,7 +60,7 @@ def write_json(image_path: Path, tagged: schema.TaggedImage) -> Path:
 
 def write_xattr(image_path: Path, tagged: schema.TaggedImage) -> bool:
     try:
-        attr = b"user.meme_tagger.tags"
+        attr = b"user.vtag.tags"
         value = (" ".join(tagged.tags)).encode("utf-8")
         os.setxattr(str(image_path), attr, value)
         return True
