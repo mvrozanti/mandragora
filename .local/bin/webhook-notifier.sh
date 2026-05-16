@@ -8,7 +8,7 @@ ICON="${WEBHOOK_NOTIFIER_ICON:-network-receive}"
 
 emit() {
   local json="$1"
-  local hook_name method content_type size ip event_id body action
+  local hook_name method content_type size ip body action
   hook_name=$(jq -r '.hook_name // "?"' <<<"$json")
   method=$(jq -r '.method // "?"' <<<"$json")
   content_type=$(jq -r '.content_type // "—"' <<<"$json")
