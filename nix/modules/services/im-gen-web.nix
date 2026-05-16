@@ -1,12 +1,8 @@
 { config, lib, pkgs, ... }:
 
-# Uses the *same* python venv as im-gen's Telegram bot (invokeai-venv) so we
-# don't duplicate torch/diffusers/etc. The wrapper script mirrors bot.sh's
-# library-stitching for NixOS-flavored CUDA.
-
 let
   repo = "/home/m/Projects/im-gen";
-  webScript = "/persistent/mandragora/.local/share/im-gen-web/gen-web.py";
+  webApp = "${repo}/webui/app.py";
 
   launcher = pkgs.writeShellScript "im-gen-web-launch" ''
     set -euo pipefail
@@ -18,14 +14,18 @@ let
       exit 1
     fi
 
-    # Ensure aiohttp is available in the venv (one-time op).
     UV=${repo}/.uv-venv/bin/uv
-    if [ -x "$UV" ] && ! "$VENV_PY" -c "import aiohttp" 2>/dev/null; then
-      echo ">> installing aiohttp into invokeai-venv ..."
-      "$UV" pip install --python "$VENV_PY" aiohttp
-    fi
+    ensure_pkg() {
+      mod="$1"; pkg="$2"
+      if [ -x "$UV" ] && ! "$VENV_PY" -c "import $mod" 2>/dev/null; then
+        echo ">> installing $pkg into invokeai-venv ..."
+        "$UV" pip install --python "$VENV_PY" "$pkg"
+      fi
+    }
+    ensure_pkg aiohttp aiohttp
+    ensure_pkg peft peft
+    ensure_pkg PIL Pillow
 
-    # Same library stitching as bot.sh — needed for torch + CUDA on NixOS.
     LD_EXTRAS=""
     [ -d /run/opengl-driver/lib ] && LD_EXTRAS="$LD_EXTRAS:/run/opengl-driver/lib"
     [ -n "''${NIX_LD_LIBRARY_PATH:-}" ] && LD_EXTRAS="$LD_EXTRAS:$NIX_LD_LIBRARY_PATH"
@@ -33,25 +33,28 @@ let
     export LD_LIBRARY_PATH="''${LD_EXTRAS#:}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
     export TRITON_LIBCUDA_PATH="/run/opengl-driver/lib"
 
-    # HF token, gpu-lock path — same as bot.sh.
     HF_SECRET_PATH="/run/secrets/huggingface/read_token"
     if [ -z "''${HF_TOKEN:-}" ] && [ -r "$HF_SECRET_PATH" ]; then
       HF_TOKEN="$(cat "$HF_SECRET_PATH")"
     fi
     [ -n "''${HF_TOKEN:-}" ] && export HF_TOKEN HUGGING_FACE_HUB_TOKEN="$HF_TOKEN"
-    export PYTHONPATH="/etc/nixos/mandragora/.local/share/gpu-lock''${PYTHONPATH:+:$PYTHONPATH}"
-    # diffusers.loaders.ip_adapter triggers torch.utils.cpp_extension on import,
-    # which probes for a C compiler; give it one.
+
+    CIVITAI_SECRET_PATH="/run/secrets/civitai/read_token"
+    if [ -z "''${CIVITAI_TOKEN:-}" ] && [ -r "$CIVITAI_SECRET_PATH" ]; then
+      export CIVITAI_TOKEN="$(cat "$CIVITAI_SECRET_PATH")"
+    fi
+
+    export PYTHONPATH="${repo}/webui:/etc/nixos/mandragora/.local/share/gpu-lock''${PYTHONPATH:+:$PYTHONPATH}"
     export CC="${pkgs.gcc}/bin/gcc"
     export CXX="${pkgs.gcc}/bin/g++"
 
-    exec "$VENV_PY" ${webScript} "$@"
+    exec "$VENV_PY" ${webApp} "$@"
   '';
 in {
   mandragora.hub.services.im-gen-web = {
     port = 6682;
     systemd = {
-      description = "im-gen web UI — minimal prompt → flux image wrapper";
+      description = "gen.mvr.ac — Flux web UI with LoRA + history graph";
       after = [ "network.target" "tailscaled.service" ];
       wants = [ "tailscaled.service" ];
       wantedBy = [ "multi-user.target" ];
@@ -72,7 +75,7 @@ in {
         TimeoutStartSec = "5min";
       };
       unitConfig = {
-        ConditionPathExists = [ "/dev/nvidia0" "${repo}/invokeai-venv/bin/python" "${repo}/bot.py" ];
+        ConditionPathExists = [ "/dev/nvidia0" "${repo}/invokeai-venv/bin/python" "${repo}/bot.py" "${webApp}" ];
       };
     };
   };
