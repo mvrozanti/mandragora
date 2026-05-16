@@ -36,7 +36,6 @@
     ../../modules/services/rgb-control.nix
     ../../modules/services/open-webui.nix
     ../../modules/services/ollama-context-proxy.nix
-    ../../modules/services/gpu-status.nix
     ../../modules/user/home-manager.nix
     ../../modules/audits/default.nix
   ];
