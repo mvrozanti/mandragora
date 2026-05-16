@@ -310,6 +310,7 @@ alias i='nsxiv -ft *'
 alias I='nsxiv'
 alias sxiv='nsxiv'
 alias cosnsxiv='nsxiv "$(co)"'
+alias cosxiv='sxiv "$(co)"'
 
 alias msk='ncmpcpp'
 alias mviz='ncmpcpp --screen visualizer'
