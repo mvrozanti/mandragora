@@ -53,4 +53,3 @@ Currently enabled instances (one per desktop-backed hub vhost):
 | `6682` | `gen.mvr.ac` | im-gen-web |
 | `6683` | `llama.mvr.ac` | open-webui |
 | `7682` | `claude.mvr.ac` | claude-web (aiohttp dir picker that spawns detached `tmux + claude`; no in-browser shell) |
-| `6684` | `hub.mvr.ac/api/gpu` | gpu-status (gpu-lock + nvidia-smi snapshot) |
