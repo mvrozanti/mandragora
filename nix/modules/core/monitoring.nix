@@ -343,9 +343,6 @@ in
 
   services.grafana = {
     enable = true;
-    declarativePlugins = with pkgs.grafanaPlugins; [
-      grafana-lokiexplore-app
-    ];
     settings = {
       server = {
         protocol = "http";

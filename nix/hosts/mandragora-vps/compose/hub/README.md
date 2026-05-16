@@ -2,15 +2,17 @@
 
 Stack for `hub.mvr.ac` and the legacy `*.mvrozanti.duckdns.org` →
 `*.mvr.ac` redirect fan-out. Also carries every Caddy reverse-proxy
-label for desktop-backed services (ttyd, slither, grafana, log, myMPD,
+label for desktop-backed services (ttyd, slither, grafana, myMPD,
 rgb-control, im-gen-web, open-webui), since caddy-docker-proxy reads
-labels off any container on `seafile-net`.
+labels off any container on `seafile-net`. `log.mvr.ac` used to live
+here too but moved to its own `logs/` stack when the custom UI
+landed.
 
 ## Container
 
 | Container | Image | Hosts |
 |---|---|---|
-| `hub` | `nginx:1.27-alpine` | `hub.mvr.ac` (static button grid) + all duckdns→mvr.ac 302 redirects + label-only Caddy entries for `term./slither./grafana./log./mpd./rgb./gen./llama./claude.mvr.ac` |
+| `hub` | `nginx:1.27-alpine` | `hub.mvr.ac` (static button grid) + all duckdns→mvr.ac 302 redirects + label-only Caddy entries for `term./slither./grafana./mpd./rgb./gen./llama./claude.mvr.ac` |
 
 Replaced the previous `gethomepage/homepage` container — the YAML-
 dashboard model was overkill for what is functionally a list of
@@ -55,7 +57,6 @@ the dispatch table for the entire hub:
 | `caddy_6` | `gen.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6682` (im-gen-web on desktop) |
 | `caddy_7` | `llama.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6683` (open-webui on desktop, `flush_interval=-1` for SSE streaming) |
 | `caddy_8` | `claude.mvr.ac` | tailnet IP gate → forward_auth → reverse_proxy `host.docker.internal:7682` (claude-web — aiohttp dir picker that adds a tmux+claude window to the user's current session; no in-browser shell) |
-| `caddy_9` | `log.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:3000` (same Grafana backend as `caddy_3`; Loki datasource pre-provisioned so Explore lands on logs) |
 | `caddy_20`–`caddy_29` | `*.mvrozanti.duckdns.org` | 302 redirect to `*.mvr.ac` equivalent (legacy aliases) |
 
 Desktop-backed targets (`term./slither./grafana./mpd./rgb./gen./llama./claude.`)
