@@ -19,6 +19,7 @@ either side must be mirrored.
 | `demo/docker-compose.yml` | Public static-site slot at `demo.mvr.ac` (no Authelia gate) | `/home/opc/demo/` |
 | `loki/docker-compose.yml` (+ `config/`) | Loki + Promtail log aggregator (2 GB / 3-day retention, tailnet-only ingest at `:3100`) | `/home/opc/loki/` |
 | `logs/docker-compose.yml` (+ `static/`) | Custom vanilla-JS log viewer at `log.mvr.ac` — single-file UI + Loki API path-rewrite via Caddy | `/home/opc/logs/` |
+| `webhook/docker-compose.yml` (+ `app/`) | Public webhook receiver at `webhook.mvr.ac` — FastAPI + SQLite + SSE; tailnet-only `/internal/events` is consumed by the desktop notifier | `/home/opc/webhook/` |
 
 The Seafile project is invoked with all three YAMLs explicitly:
 ```
