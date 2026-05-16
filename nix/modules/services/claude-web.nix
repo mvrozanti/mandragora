@@ -2,44 +2,30 @@
 
 let
   port = 7682;
-  launchSrc = "/persistent/mandragora/.local/share/claude-web/launch.sh";
-
-  runtimeEnv = pkgs.buildEnv {
-    name = "claude-web-runtime-env";
-    paths = with pkgs; [
-      bashInteractive
-      coreutils
-      findutils
-      fzf
-      git
-      gnused
-      ncurses
-      tmux
-      claude-code
-    ];
-  };
-
-  launchWrapper = pkgs.writeShellScript "claude-web-launch-wrapper" ''
-    export PATH=${runtimeEnv}/bin:$PATH
-    export HOME=/home/m
-    export TERM=''${TERM:-xterm-256color}
-    export LANG=''${LANG:-en_US.UTF-8}
-    exec ${pkgs.bashInteractive}/bin/bash ${launchSrc} "$@"
-  '';
+  src = "/persistent/mandragora/.local/share/claude-web/app.py";
+  pyEnv = pkgs.python3.withPackages (ps: [ ps.aiohttp ]);
 in {
   mandragora.hub.services.claude-web = {
     port = port;
     systemd = {
-      description = "claude.mvr.ac — ttyd + dir-picker + tmux + claude";
+      description = "claude.mvr.ac — spawn detached tmux+claude on demand, web dir picker";
       after = [ "network.target" "tailscaled.service" ];
       wants = [ "tailscaled.service" ];
       wantedBy = [ "multi-user.target" ];
-      restartTriggers = [ (builtins.readFile ../../../.local/share/claude-web/launch.sh) ];
+      restartTriggers = [ (builtins.readFile ../../../.local/share/claude-web/app.py) ];
+      environment = {
+        CLAUDE_WEB_HOST = "0.0.0.0";
+        CLAUDE_WEB_PORT = toString port;
+        HOME = "/home/m";
+        XDG_RUNTIME_DIR = "/run/user/1000";
+      };
+      path = [ pkgs.tmux pkgs.claude-code pkgs.coreutils ];
       serviceConfig = {
+        Type = "simple";
         User = "m";
         Group = "users";
         WorkingDirectory = "/home/m";
-        ExecStart = "${pkgs.ttyd}/bin/ttyd -p ${toString port} -W -a -t titleFixed=claude.mvr.ac -t fontSize=14 ${launchWrapper}";
+        ExecStart = "${pyEnv}/bin/python ${src}";
         Restart = "on-failure";
         RestartSec = "5s";
       };
