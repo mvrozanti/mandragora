@@ -14,7 +14,6 @@ emit() {
   content_type=$(jq -r '.content_type // "—"' <<<"$json")
   size=$(jq -r '.body_size // 0' <<<"$json")
   ip=$(jq -r '.remote_ip // ""' <<<"$json")
-  event_id=$(jq -r '.id // 0' <<<"$json")
   body="${method} · ${content_type} · ${size}B"
   [ -n "$ip" ] && body+=" · ${ip}"
   (
