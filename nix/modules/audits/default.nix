@@ -34,7 +34,7 @@ in
     description = "Mandragora audit — watch (critical checks)";
     after = [ "local-fs.target" ];
     wants = [ "local-fs.target" ];
-    path = with pkgs; [ gawk coreutils gnused gnugrep findutils util-linux btrfs-progs smartmontools systemd ];
+    path = with pkgs; [ gawk coreutils gnused gnugrep findutils util-linux btrfs-progs smartmontools systemd iproute2 lm_sensors ];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = "${pkgs.bash}/bin/bash ${healthCheckWatch}";
@@ -57,7 +57,7 @@ in
     description = "Mandragora audit — daily digest (full report)";
     after = [ "local-fs.target" ];
     wants = [ "local-fs.target" ];
-    path = with pkgs; [ gawk coreutils gnused gnugrep findutils util-linux btrfs-progs smartmontools systemd ];
+    path = with pkgs; [ gawk coreutils gnused gnugrep findutils util-linux btrfs-progs smartmontools systemd iproute2 lm_sensors ];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = "${pkgs.bash}/bin/bash ${healthCheckDigest}";
