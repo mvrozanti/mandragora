@@ -23,5 +23,6 @@
   },
   "effortLevel": "medium",
   "tui": "fullscreen",
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "model": "sonnet"
 }
