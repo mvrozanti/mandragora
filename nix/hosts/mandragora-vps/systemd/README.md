@@ -52,4 +52,4 @@ Currently enabled instances (one per desktop-backed hub vhost):
 | `6681` | `rgb.mvr.ac` | rgb-control |
 | `6682` | `gen.mvr.ac` | im-gen-web |
 | `6683` | `llama.mvr.ac` | open-webui |
-| `7682` | `claude.mvr.ac` | claude-web (ttyd + dir picker + tmux + claude) |
+| `7682` | `claude.mvr.ac` | claude-web (aiohttp dir picker that spawns detached `tmux + claude`; no in-browser shell) |
