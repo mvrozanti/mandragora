@@ -381,7 +381,7 @@ in
             type = "loki";
             url = "http://100.84.78.83:3100";
             uid = "loki";
-            jsonData = { maxLines = 5000; timeout = 60; };
+            jsonData = { maxLines = 20000; timeout = 60; };
           }
         ];
       };
@@ -447,10 +447,29 @@ in
       }
     }
 
+    loki.process "journal" {
+      forward_to = [loki.write.vps.receiver]
+
+      stage.replace {
+        expression = "\\x1b\\[[0-9;?]*[a-zA-Z]"
+        replace    = ""
+      }
+
+      stage.replace {
+        expression = "\\x1b\\][^\\x07]*\\x07"
+        replace    = ""
+      }
+
+      stage.drop {
+        expression          = "^\\s*$"
+        drop_counter_reason = "empty_after_strip"
+      }
+    }
+
     loki.source.journal "system" {
       max_age       = "12h"
       relabel_rules = loki.relabel.journal.rules
-      forward_to    = [loki.write.vps.receiver]
+      forward_to    = [loki.process.journal.receiver]
       labels = {
         host = "mandragora-desktop",
         job  = "systemd-journal",
