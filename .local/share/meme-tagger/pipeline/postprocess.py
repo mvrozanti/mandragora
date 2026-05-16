@@ -194,5 +194,5 @@ def build_tagged_image(
         style=schema.normalize_tag_list(style),
         setting=schema.normalize_tag_list(setting),
         cultural_refs=schema.normalize_tag_list(cultural_refs),
-        tags=schema.normalize_tag_list(raw_tags),
+        tags=schema.normalize_tag_list(raw_tags, cap=schema.MAX_TAGS),
     )
