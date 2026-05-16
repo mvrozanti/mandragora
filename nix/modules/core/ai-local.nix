@@ -20,7 +20,7 @@ let
   gemma = mkPythonBin "gemma" ../../../.local/bin/gemma.py;
   local-ai-mcp-server = mkPythonBin "local-ai-mcp-server" ../../../.local/bin/local-ai-mcp-server.py;
   gpu-lock = import ../../pkgs/gpu-lock.nix { inherit pkgs; };
-  memeTaggerCli = import ../../pkgs/meme-tagger-cli.nix { inherit pkgs; };
+  vtagCli = import ../../pkgs/vtag-cli.nix { inherit pkgs; };
 
   crush-wrapped = pkgs.symlinkJoin {
     name = "crush-wrapped";
@@ -49,16 +49,16 @@ in
       };
     };
 
-    ai.memeTagger = {
+    ai.vtag = {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Expose meme-tagger / meme-find CLIs and pre-pull the VLM model.";
+        description = "Expose vtag / vfind CLIs and pre-pull the VLM model.";
       };
       model = lib.mkOption {
         type = lib.types.str;
         default = "qwen2.5vl:7b";
-        description = "Ollama tag for the meme-tagger VLM.";
+        description = "Ollama tag for the vtag VLM.";
       };
     };
   };
@@ -126,23 +126,23 @@ in
       };
     })
 
-    (lib.mkIf cfg.memeTagger.enable {
+    (lib.mkIf cfg.vtag.enable {
       assertions = [{
         assertion = gpu.vramGB != null && gpu.vramGB >= 12;
         message = ''
-          mandragora.ai.memeTagger.enable requires mandragora.hardware.gpu.vramGB >= 12.
+          mandragora.ai.vtag.enable requires mandragora.hardware.gpu.vramGB >= 12.
           Qwen2.5-VL 7B Q4_K_M needs ~6 GB plus headroom for Flux coexistence.
         '';
       }];
 
       environment.systemPackages = [
-        memeTaggerCli.meme-tagger
-        memeTaggerCli.meme-find
+        vtagCli.vtag
+        vtagCli.vfind
         pkgs.exiftool
       ];
 
-      systemd.services.ollama-pull-meme-tagger = {
-        description = "Pre-pull meme-tagger VLM";
+      systemd.services.ollama-pull-vtag = {
+        description = "Pre-pull vtag VLM";
         after = [ "ollama.service" "network-online.target" ];
         requires = [ "ollama.service" ];
         wants = [ "network-online.target" ];
@@ -155,7 +155,7 @@ in
           done
           exec curl -fsS --no-buffer -X POST http://127.0.0.1:11434/api/pull \
             -H 'Content-Type: application/json' \
-            -d '{"model":"${cfg.memeTagger.model}","stream":false}'
+            -d '{"model":"${cfg.vtag.model}","stream":false}'
         '';
         serviceConfig = {
           Type = "oneshot";

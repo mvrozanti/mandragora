@@ -63,7 +63,7 @@ async def tag_image(image_path: Path, *, force: bool = False) -> TagResult:
     )
 
     async with gpu_lock.acquire_async(
-        "meme-tagger", expected_seconds=config.GPU_LOCK_EXPECTED_SECONDS
+        "vtag", expected_seconds=config.GPU_LOCK_EXPECTED_SECONDS
     ):
         await ollama_lifecycle.evict_others(config.OLLAMA_BASE_URL, keep=config.VLM_MODEL)
         try:

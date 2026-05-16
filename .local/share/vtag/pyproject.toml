@@ -1,7 +1,7 @@
 [project]
-name = "meme-tagger"
+name = "vtag"
 version = "0.1.0"
-description = "Local-VLM image tagging CLI. Qwen2.5-VL + RapidOCR + sidecar JSON; grep/jq retrieval via meme-find."
+description = "Local-VLM image tagging CLI. Qwen2.5-VL + RapidOCR + sidecar JSON; grep/jq retrieval via vfind."
 requires-python = ">=3.10"
 dependencies = [
     "httpx>=0.27.0",

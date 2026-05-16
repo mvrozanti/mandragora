@@ -1,4 +1,4 @@
-"""meme-find: locate tagged images by tag / template / character / OCR / free text."""
+"""vfind: locate tagged images by tag / template / character / OCR / free text."""
 from __future__ import annotations
 
 import argparse
@@ -116,7 +116,7 @@ def _matches(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="meme-find", description=__doc__)
+    parser = argparse.ArgumentParser(prog="vfind", description=__doc__)
     parser.add_argument("terms", nargs="*", help="Tag substrings (AND)")
     parser.add_argument("--text", action="append", default=[], help="OCR substring (case-insensitive); repeatable")
     parser.add_argument("--type", dest="content_type", help="content_type filter (meme, photo, screenshot_text, ...)")
@@ -124,10 +124,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--until", type=_parse_since, help="mtime <= YYYY-MM-DD")
     parser.add_argument("-F", "--free", help="Regex against description/context/punchline")
     parser.add_argument("--json", action="store_true", help="Emit full sidecar JSON (one per line)")
-    parser.add_argument("--roots", help="Override MEME_TAGGER_SEARCH_ROOTS (colon-separated)")
+    parser.add_argument("--roots", help="Override VTAG_SEARCH_ROOTS (colon-separated)")
     args = parser.parse_args(argv)
 
-    roots = _expand_roots(args.roots if args.roots is not None else os.getenv("MEME_TAGGER_SEARCH_ROOTS"))
+    roots = _expand_roots(args.roots if args.roots is not None else os.getenv("VTAG_SEARCH_ROOTS"))
     if not roots:
         print("no search roots exist", file=sys.stderr)
         return 2
