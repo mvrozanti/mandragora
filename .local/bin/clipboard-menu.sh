@@ -6,10 +6,7 @@ case "${1:-pick}" in
     sel=$(cliphist -preview-width 240 list | rofi -dmenu \
         -theme "$HOME/.config/rofi/themes/menu.rasi" \
         -theme-str 'window { width: 38%; }
-                    listview { lines: 8; }
-                    element { padding: 10px 12px; }
-                    element-text { vertical-align: 0.5; }' \
-        -eh 2 \
+                    listview { lines: 14; }' \
         -matching fuzzy \
         -sort \
         -sorting-method fzf \
