@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>webhook · mvr.ac</title>
+<style>
+:root {
+  --bg: #050805;
+  --panel: #0a0e0a;
+  --fg: #b8ffc4;
+  --accent: #00ff66;
+  --dim: #4a6a4e;
+  --hover: #0f1810;
+  --line: #1a2418;
+  --warn: #ffb347;
+  --bad: #ff6b6b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg); color: var(--fg);
+  font-family: "Iosevka", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  min-height: 100vh;
+}
+body { padding: 2rem 1.5rem; }
+.wrap { max-width: 1200px; margin: 0 auto; }
+header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid var(--line); padding-bottom: 0.9rem; margin-bottom: 1.6rem;
+}
+h1 { font-size: 1.05rem; font-weight: normal; }
+h1::before { content: '$ '; color: var(--accent); }
+h1 .cursor { color: var(--accent); animation: blink 1.1s infinite; }
+@keyframes blink { 0%,50% { opacity: 1; } 50.01%,100% { opacity: 0; } }
+.user { color: var(--dim); font-size: 0.78rem; }
+.user a { color: var(--accent); text-decoration: none; margin-left: 0.7rem; }
+.user a:hover { text-decoration: underline; }
+.cols { display: grid; grid-template-columns: 280px 1fr; gap: 1rem; }
+@media (max-width: 800px) { .cols { grid-template-columns: 1fr; } }
+.panel {
+  background: var(--panel); border: 1px solid var(--line); padding: 0.9rem;
+}
+.panel h2 {
+  font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--accent); opacity: 0.8; margin-bottom: 0.7rem; font-weight: normal;
+}
+.hook {
+  padding: 0.6rem; border: 1px solid var(--line); margin-bottom: 0.4rem;
+  cursor: pointer; transition: border-color 0.1s, background 0.1s;
+  display: flex; flex-direction: column; gap: 0.2rem;
+}
+.hook:hover { border-color: var(--accent); background: var(--hover); }
+.hook.active { border-color: var(--accent); background: var(--hover); }
+.hook .name { color: var(--fg); font-size: 0.9rem; }
+.hook .meta { color: var(--dim); font-size: 0.7rem; display: flex; justify-content: space-between; }
+.hook .url {
+  color: var(--dim); font-size: 0.65rem; word-break: break-all;
+  opacity: 0.7;
+}
+.btn {
+  background: transparent; color: var(--accent); border: 1px solid var(--accent);
+  font-family: inherit; font-size: 0.75rem; padding: 0.4rem 0.7rem;
+  cursor: pointer; text-transform: lowercase; letter-spacing: 0.05em;
+  transition: background 0.1s, color 0.1s;
+}
+.btn:hover { background: var(--accent); color: var(--bg); }
+.btn.danger { color: var(--bad); border-color: var(--bad); }
+.btn.danger:hover { background: var(--bad); color: var(--bg); }
+.btn.dim { color: var(--dim); border-color: var(--dim); }
+.btn.dim:hover { background: var(--dim); color: var(--bg); }
+input[type="text"], textarea {
+  background: var(--bg); color: var(--fg); border: 1px solid var(--line);
+  font-family: inherit; font-size: 0.8rem; padding: 0.4rem 0.5rem;
+  width: 100%;
+}
+input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+.form { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.6rem; }
+.events { display: flex; flex-direction: column; gap: 0.3rem; }
+.event {
+  padding: 0.5rem 0.7rem; border: 1px solid var(--line); cursor: pointer;
+  display: grid; grid-template-columns: 5rem 1fr auto; gap: 0.6rem; align-items: center;
+  font-size: 0.78rem; transition: border-color 0.1s, background 0.1s;
+}
+.event:hover { border-color: var(--accent); background: var(--hover); }
+.event.new {
+  animation: flash 1.4s ease-out;
+}
+@keyframes flash {
+  0% { border-color: var(--accent); box-shadow: 0 0 12px rgba(0,255,102,0.4); }
+  100% { border-color: var(--line); box-shadow: none; }
+}
+.event .method {
+  color: var(--accent); font-weight: 500; letter-spacing: 0.05em;
+}
+.event .when { color: var(--dim); font-size: 0.7rem; }
+.event .summary { color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.event .size { color: var(--dim); font-size: 0.7rem; text-align: right; }
+.empty { color: var(--dim); font-size: 0.8rem; text-align: center; padding: 2rem; }
+.bar {
+  display: flex; gap: 0.5rem; justify-content: space-between; align-items: center;
+  margin-bottom: 0.8rem; flex-wrap: wrap;
+}
+.bar .info { color: var(--dim); font-size: 0.75rem; }
+.bar .info b { color: var(--fg); font-weight: 500; }
+.copy {
+  display: inline-block; color: var(--dim); font-size: 0.7rem; cursor: pointer;
+  border: 1px dashed var(--line); padding: 0.3rem 0.5rem; word-break: break-all;
+  margin-top: 0.3rem;
+}
+.copy:hover { color: var(--accent); border-color: var(--accent); }
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10;
+  display: none; align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-bg.show { display: flex; }
+.modal {
+  background: var(--panel); border: 1px solid var(--accent); padding: 1.2rem;
+  max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto;
+}
+.modal h3 {
+  color: var(--accent); font-size: 0.9rem; font-weight: normal;
+  margin-bottom: 0.8rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.kv { display: grid; grid-template-columns: 8rem 1fr; gap: 0.3rem 0.8rem; font-size: 0.75rem; margin-bottom: 0.8rem; }
+.kv dt { color: var(--dim); }
+.kv dd { color: var(--fg); word-break: break-all; }
+.section-title {
+  font-size: 0.7rem; color: var(--accent); letter-spacing: 0.15em;
+  text-transform: uppercase; margin: 0.8rem 0 0.4rem;
+}
+pre {
+  background: var(--bg); border: 1px solid var(--line); padding: 0.7rem;
+  font-size: 0.7rem; color: var(--fg); white-space: pre-wrap; word-break: break-all;
+  max-height: 280px; overflow-y: auto;
+}
+.status {
+  position: fixed; bottom: 1rem; right: 1rem; padding: 0.4rem 0.7rem;
+  font-size: 0.7rem; border: 1px solid var(--line); background: var(--panel);
+  color: var(--dim); z-index: 5;
+}
+.status.on { color: var(--accent); border-color: var(--accent); }
+.status .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 0.4rem; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>webhook<span class="cursor">_</span></h1>
+    <div class="user">
+      <span id="who">m</span>
+      <a href="https://hub.mvr.ac/">hub</a>
+      <a href="https://auth.mvr.ac/logout">logout</a>
+    </div>
+  </header>
+
+  <div class="cols">
+    <aside class="panel">
+      <h2>hooks</h2>
+      <div id="hooks"></div>
+      <form id="create-form" class="form" onsubmit="return createHook(event)">
+        <input type="text" id="new-name" placeholder="new hook name" required>
+        <input type="text" id="new-desc" placeholder="description (optional)">
+        <button type="submit" class="btn">create</button>
+      </form>
+    </aside>
+
+    <main class="panel">
+      <div class="bar">
+        <div class="info" id="bar-info">all events</div>
+        <button class="btn dim" onclick="loadEvents()">refresh</button>
+      </div>
+      <div id="hook-detail"></div>
+      <div class="events" id="events"></div>
+    </main>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>
+      <span id="modal-title">event</span>
+      <button class="btn dim" onclick="closeModal()">close</button>
+    </h3>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div class="status" id="status"><span class="dot"></span><span id="status-text">connecting…</span></div>
+
+<script>
+let hooks = [];
+let activeHook = null;
+let events = [];
+let sse = null;
+
+const $ = id => document.getElementById(id);
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtBytes = n => n < 1024 ? n + 'B' : n < 1048576 ? (n/1024).toFixed(1)+'K' : (n/1048576).toFixed(1)+'M';
+const fmtTime = iso => {
+  const d = new Date(iso);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  return sameDay
+    ? d.toLocaleTimeString('en-GB', {hour12: false})
+    : d.toLocaleString('en-GB', {hour12: false}).replace(',', '');
+};
+
+async function api(method, path, body) {
+  const r = await fetch(path, {
+    method,
+    headers: body ? {'Content-Type': 'application/json'} : {},
+    body: body ? JSON.stringify(body) : undefined,
+    credentials: 'same-origin',
+  });
+  if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+  return r.json();
+}
+
+async function loadHooks() {
+  hooks = await api('GET', '/api/hooks');
+  renderHooks();
+}
+
+function renderHooks() {
+  const el = $('hooks');
+  if (!hooks.length) {
+    el.innerHTML = '<div class="empty">no hooks yet</div>';
+    return;
+  }
+  el.innerHTML = hooks.map(h => `
+    <div class="hook ${activeHook === h.id ? 'active' : ''}" onclick="selectHook(${h.id})">
+      <div class="name">${escapeHtml(h.name)}</div>
+      <div class="meta">
+        <span>${h.event_count} events</span>
+        <span>${fmtTime(h.created_at)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function createHook(e) {
+  e.preventDefault();
+  const name = $('new-name').value.trim();
+  const description = $('new-desc').value.trim();
+  if (!name) return false;
+  const h = await api('POST', '/api/hooks', {name, description});
+  $('new-name').value = '';
+  $('new-desc').value = '';
+  await loadHooks();
+  selectHook(h.id);
+  return false;
+}
+
+async function deleteHook(id) {
+  if (!confirm('delete hook and all its events?')) return;
+  await api('DELETE', `/api/hooks/${id}`);
+  if (activeHook === id) activeHook = null;
+  await loadHooks();
+  await loadEvents();
+}
+
+function selectHook(id) {
+  activeHook = id;
+  renderHooks();
+  loadEvents();
+}
+
+function showAll() {
+  activeHook = null;
+  renderHooks();
+  loadEvents();
+}
+
+async function loadEvents() {
+  const path = activeHook == null ? '/api/events?limit=100' : `/api/hooks/${activeHook}/events?limit=100`;
+  events = await api('GET', path);
+  renderEvents();
+  renderHookDetail();
+}
+
+function renderHookDetail() {
+  const el = $('hook-detail');
+  if (activeHook == null) {
+    el.innerHTML = '';
+    $('bar-info').innerHTML = `all events — <b>${events.length}</b>`;
+    return;
+  }
+  const h = hooks.find(x => x.id === activeHook);
+  if (!h) { el.innerHTML = ''; return; }
+  $('bar-info').innerHTML = `<b>${escapeHtml(h.name)}</b> — ${events.length} events`;
+  el.innerHTML = `
+    <div style="margin-bottom:0.8rem">
+      <div style="font-size:0.75rem;color:var(--dim);margin-bottom:0.2rem">
+        ${escapeHtml(h.description || '')}
+      </div>
+      <div class="copy" onclick="copyText(this, '${h.url}')" title="click to copy">${h.url}</div>
+      <div style="margin-top:0.5rem;display:flex;gap:0.4rem;flex-wrap:wrap">
+        <button class="btn dim" onclick="showAll()">all events</button>
+        <button class="btn danger" onclick="deleteHook(${h.id})">delete hook</button>
+      </div>
+    </div>
+  `;
+}
+
+function copyText(el, text) {
+  navigator.clipboard.writeText(text);
+  const orig = el.textContent;
+  el.textContent = 'copied';
+  setTimeout(() => { el.textContent = orig; }, 900);
+}
+
+function renderEvents() {
+  const el = $('events');
+  if (!events.length) {
+    el.innerHTML = '<div class="empty">no events</div>';
+    return;
+  }
+  el.innerHTML = events.map(e => `
+    <div class="event" data-eid="${e.id}" onclick="openEvent(${e.id})">
+      <span class="method">${e.method}</span>
+      <span class="summary">
+        ${activeHook == null ? `<b>${escapeHtml(e.hook_name || '?')}</b> · ` : ''}
+        ${escapeHtml(e.content_type || '—')}
+        ${e.remote_ip ? ` · ${escapeHtml(e.remote_ip)}` : ''}
+      </span>
+      <span class="size">${fmtBytes(e.body_size)} · ${fmtTime(e.received_at)}</span>
+    </div>
+  `).join('');
+}
+
+async function openEvent(id) {
+  const e = await api('GET', `/api/events/${id}`);
+  $('modal-title').textContent = `${e.method} · ${e.hook_name || '?'} · #${e.id}`;
+  const headersStr = Object.entries(e.headers).map(([k,v]) => `${k}: ${v}`).join('\n');
+  const queryStr = Object.keys(e.query).length
+    ? Object.entries(e.query).map(([k,v]) => `${k}=${v}`).join('\n')
+    : '(none)';
+  let bodyView = '(empty)';
+  if (e.body.text != null && e.body.text.length) {
+    try {
+      const parsed = JSON.parse(e.body.text);
+      bodyView = JSON.stringify(parsed, null, 2);
+    } catch {
+      bodyView = e.body.text;
+    }
+  } else if (e.body.base64) {
+    bodyView = `(binary, ${e.body.size} bytes, base64)\n\n${e.body.base64}`;
+  }
+  $('modal-body').innerHTML = `
+    <dl class="kv">
+      <dt>received</dt><dd>${escapeHtml(e.received_at)}</dd>
+      <dt>method</dt><dd>${escapeHtml(e.method)}</dd>
+      <dt>content-type</dt><dd>${escapeHtml(e.content_type || '—')}</dd>
+      <dt>remote ip</dt><dd>${escapeHtml(e.remote_ip || '—')}</dd>
+      <dt>body size</dt><dd>${fmtBytes(e.body_size)}</dd>
+    </dl>
+    <div class="section-title">query</div>
+    <pre>${escapeHtml(queryStr)}</pre>
+    <div class="section-title">headers</div>
+    <pre>${escapeHtml(headersStr)}</pre>
+    <div class="section-title">body</div>
+    <pre>${escapeHtml(bodyView)}</pre>
+    <div style="margin-top:0.8rem;text-align:right">
+      <button class="btn danger" onclick="deleteEvent(${e.id})">delete event</button>
+    </div>
+  `;
+  $('modal-bg').classList.add('show');
+}
+
+async function deleteEvent(id) {
+  await api('DELETE', `/api/events/${id}`);
+  closeModal();
+  await loadEvents();
+  await loadHooks();
+}
+
+function closeModal(e) {
+  if (e && e.target.id !== 'modal-bg') return;
+  $('modal-bg').classList.remove('show');
+}
+
+function connectSSE() {
+  if (sse) sse.close();
+  sse = new EventSource('/internal/events');
+  sse.onopen = () => {
+    $('status').classList.add('on');
+    $('status-text').textContent = 'live';
+  };
+  sse.onerror = () => {
+    $('status').classList.remove('on');
+    $('status-text').textContent = 'reconnecting…';
+  };
+  sse.addEventListener('webhook', ev => {
+    const evt = JSON.parse(ev.data);
+    if (activeHook != null && evt.hook_id !== activeHook) {
+      loadHooks();
+      return;
+    }
+    events.unshift(evt);
+    if (events.length > 100) events.pop();
+    renderEvents();
+    const newEl = document.querySelector(`[data-eid="${evt.id}"]`);
+    if (newEl) newEl.classList.add('new');
+    loadHooks();
+  });
+}
+
+(async function init() {
+  await loadHooks();
+  await loadEvents();
+  connectSSE();
+})();
+</script>
+</body>
+</html>
