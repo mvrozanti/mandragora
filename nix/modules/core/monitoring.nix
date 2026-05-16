@@ -453,28 +453,18 @@ in
     loki.process "journal" {
       forward_to = [loki.write.vps.receiver]
 
-      stage.replace {
-        expression = `\x1b\[[0-9;?]*[a-zA-Z]`
-        replace    = ""
-      }
-
-      stage.replace {
-        expression = `\x1b\][^\x07]*\x07`
-        replace    = ""
-      }
-
-      stage.drop {
-        expression          = `^\s*$`
-        drop_counter_reason = "empty_after_strip"
-      }
-
       stage.template {
-        source   = "prefixed_line"
-        template = "[{{ .unit }}] {{ .Entry }}"
+        source   = "cleaned_line"
+        template = "[{{ .unit }}] {{ regexReplaceAll `\\x1b\\[[0-9;?]*[a-zA-Z]` (regexReplaceAll `\\x1b\\][^\\x07]*\\x07` .Entry ``) `` }}"
       }
 
       stage.output {
-        source = "prefixed_line"
+        source = "cleaned_line"
+      }
+
+      stage.drop {
+        expression          = `\] $`
+        drop_counter_reason = "empty_after_strip"
       }
     }
 
