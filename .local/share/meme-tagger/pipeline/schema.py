@@ -87,12 +87,23 @@ def normalize_tag(raw: str) -> str:
     return s
 
 
-def normalize_tag_list(items: list[str]) -> list[str]:
+MAX_TAG_LEN = 48
+MAX_TAGS = 120
+
+
+def normalize_tag_list(items: list[str], *, cap: int | None = None) -> list[str]:
     seen: dict[str, None] = {}
     for item in items:
         norm = normalize_tag(item)
-        if norm and norm not in seen:
-            seen[norm] = None
+        if not norm or norm in seen:
+            continue
+        if len(norm) > MAX_TAG_LEN:
+            continue
+        if norm.count("_") > 6:
+            continue
+        seen[norm] = None
+        if cap is not None and len(seen) >= cap:
+            break
     return list(seen.keys())
 
 
