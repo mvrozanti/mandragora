@@ -642,7 +642,7 @@ in
       cssPriority = "user";
       control-center-width = 420;
       control-center-height = -1;
-      control-center-margin-bottom = 44;
+      control-center-margin-bottom = 0;
       control-center-margin-right = 12;
       notification-window-width = 420;
       notification-icon-size = 48;
