@@ -70,8 +70,7 @@ in {
         Restart = "on-failure";
         RestartSec = "10s";
         TimeoutStartSec = "5min";
-        MemoryHigh = "14G";
-        MemoryMax = "18G";
+        MemoryMax = "22G";
         MemorySwapMax = "0";
         OOMScoreAdjust = 1000;
         OOMPolicy = "kill";
