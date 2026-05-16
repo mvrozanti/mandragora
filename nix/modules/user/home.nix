@@ -663,7 +663,7 @@ in
           button-text = "Clear all";
         };
         dnd = { text = "Do not disturb"; };
-        notifications = { vexpand = false; };
+        notifications = { vexpand = true; };
       };
     };
   };
