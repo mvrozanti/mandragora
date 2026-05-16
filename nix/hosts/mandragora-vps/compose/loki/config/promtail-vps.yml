@@ -27,17 +27,11 @@ scrape_configs:
       - target_label: 'job'
         replacement: 'docker'
     pipeline_stages:
-      - replace:
-          expression: '\x1b\[[0-9;?]*[a-zA-Z]'
-          replace: ''
-      - replace:
-          expression: '\x1b\][^\x07]*\x07'
-          replace: ''
-      - drop:
-          expression: '^\s*$'
-          drop_counter_reason: 'empty_after_strip'
       - template:
-          source: prefixed_line
-          template: '[{{ .container }}] {{ .Entry }}'
+          source: cleaned_line
+          template: '[{{ .container }}] {{ regexReplaceAll `\x1b\[[0-9;?]*[a-zA-Z]` (regexReplaceAll `\x1b\][^\x07]*\x07` .Entry ``) `` }}'
       - output:
-          source: prefixed_line
+          source: cleaned_line
+      - drop:
+          expression: '\] $'
+          drop_counter_reason: 'empty_after_strip'
