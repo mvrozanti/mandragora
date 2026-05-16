@@ -640,8 +640,8 @@ in
       layer = "overlay";
       control-center-layer = "top";
       cssPriority = "user";
-      control-center-width = 460;
-      control-center-height = 720;
+      control-center-width = 420;
+      control-center-height = -1;
       control-center-margin-bottom = 56;
       control-center-margin-right = 12;
       notification-window-width = 420;
@@ -664,7 +664,7 @@ in
           button-text = "Clear all";
         };
         dnd = { text = "Do not disturb"; };
-        notifications = { vexpand = true; };
+        notifications = { vexpand = false; };
       };
     };
   };
