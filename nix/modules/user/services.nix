@@ -107,7 +107,7 @@
       Type = "simple";
       ExecStart = "${pkgs.writeShellApplication {
         name = "webhook-notifier";
-        runtimeInputs = with pkgs; [ curl jq libnotify xdg-utils coreutils ];
+        runtimeInputs = with pkgs; [ curl jq libnotify xdg-utils coreutils tailscale ];
         text = builtins.readFile ../../../.local/bin/webhook-notifier.sh;
       }}/bin/webhook-notifier";
       Restart = "always";
