@@ -201,8 +201,7 @@ in
       postBuild = ''
         wrapProgram $out/bin/vesktop \
           --add-flags "--ozone-platform-hint=auto" \
-          --add-flags "--enable-features=WaylandWindowDecorations,WebRTCPipeWireCapturer" \
-          --add-flags "--enable-wayland-ime"
+          --add-flags "--enable-features=WaylandWindowDecorations,WebRTCPipeWireCapturer"
       '';
     })
     obs-studio
