@@ -53,9 +53,10 @@ let
   hyprlandConfigGuard = pkgs.runCommand "hyprland-config-guard" {
     nativeBuildInputs = [ pkgs.hyprland ];
   } ''
-    if [ -f /etc/hyprland.conf ]; then
-      ${pkgs.hyprland}/bin/Hyprland --config /etc/hyprland.conf --check-config 2>&1 || {
-        echo "FAIL: hyprland config errors" >&2; exit 1; }
+    conf="${self}/.config/hypr/hyprland.conf"
+    if [ -f "$conf" ]; then
+      ${pkgs.hyprland}/bin/Hyprland --verify-config -c "$conf" 2>&1 || {
+        echo "FAIL: hyprland config errors in $conf" >&2; exit 1; }
     fi
     touch $out
   '';
