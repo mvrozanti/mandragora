@@ -81,7 +81,7 @@ case "${1:-status}" in
         if [[ "$BRIGHTNESS" = on ]]; then
             printf '%d%%\n' "$BRIGHTNESS_VAL"
         else
-            printf '\n'
+            printf 'off\n'
         fi
         ;;
     toggle)
