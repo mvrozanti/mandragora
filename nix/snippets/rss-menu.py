@@ -293,14 +293,15 @@ def waybar_payload() -> dict:
            ORDER BY urgency DESC, COALESCE(published_ts, fetched_ts) DESC
            LIMIT 8"""
     ).fetchall()
+    icon = ""
     if unread == 0:
-        text = ""
+        text = icon
         cls = "empty"
     elif urgent > 0:
-        text = ""
+        text = icon
         cls = "urgent"
     else:
-        text = ""
+        text = icon
         cls = "unread"
     tooltip_lines = [f"{unread} unread, {urgent} notable"]
     for feed_name, title, urgency in top:
