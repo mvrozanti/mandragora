@@ -297,10 +297,10 @@ def waybar_payload() -> dict:
         text = ""
         cls = "empty"
     elif urgent > 0:
-        text = f" {unread}"
+        text = ""
         cls = "urgent"
     else:
-        text = f" {unread}"
+        text = ""
         cls = "unread"
     tooltip_lines = [f"{unread} unread, {urgent} notable"]
     for feed_name, title, urgency in top:
