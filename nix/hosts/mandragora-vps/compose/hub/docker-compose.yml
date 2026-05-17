@@ -54,6 +54,7 @@ services:
       caddy_5.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
       caddy_5.1_reverse_proxy: "host.docker.internal:6681"
       caddy_6: https://gen.${MVR_AC:-mvr.ac}
+      caddy_6.log.output: "discard"
       caddy_6.0_forward_auth: "authelia:9091"
       caddy_6.0_forward_auth.uri: "/api/authz/forward-auth"
       caddy_6.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
