@@ -57,6 +57,8 @@ in {
     systemd = {
       description = "gen.mvr.ac — Flux web UI with LoRA + history graph";
       wantedBy = [ "default.target" ];
+      after = [ "im-gen-cipher.service" ];
+      requires = [ "im-gen-cipher.service" ];
       environment = {
         GEN_HOST = "0.0.0.0";
         GEN_PORT = "6682";

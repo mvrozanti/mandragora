@@ -23,8 +23,9 @@ in
   systemd.user.services.im-gen-bot = {
     Unit = {
       Description = "im-gen Telegram bot (Flux on RTX 5070 Ti)";
-      After = [ "graphical-session.target" "network-online.target" ];
+      After = [ "graphical-session.target" "network-online.target" "im-gen-cipher.service" ];
       Wants = [ "network-online.target" ];
+      Requires = [ "im-gen-cipher.service" ];
       ConditionPathExists = [
         "/dev/nvidia0"
         "/home/m/Projects/im-gen/invokeai-venv/bin/python"
