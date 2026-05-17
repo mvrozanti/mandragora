@@ -5,6 +5,11 @@ URL="${WEBHOOK_NOTIFIER_URL:-https://webhook.mvr.ac/internal/events}"
 UI_BASE="${WEBHOOK_NOTIFIER_UI:-https://webhook.mvr.ac}"
 APP="webhook.mvr.ac"
 ICON="${WEBHOOK_NOTIFIER_ICON:-network-receive}"
+TAILNET_HOST="${WEBHOOK_NOTIFIER_TAILNET_HOST:-mandragora-vps}"
+resolve_tailnet_ip() {
+  if [ -z "$TAILNET_HOST" ]; then return; fi
+  tailscale ip -4 "$TAILNET_HOST" 2>/dev/null | head -1
+}
 
 emit() {
   local json="$1"
@@ -27,7 +32,13 @@ emit() {
 }
 
 stream_once() {
+  local resolve_args=() ip
+  ip=$(resolve_tailnet_ip)
+  if [ -n "$ip" ]; then
+    resolve_args=(--resolve "webhook.mvr.ac:443:${ip}")
+  fi
   curl -sN --connect-timeout 10 --max-time 0 \
+    "${resolve_args[@]}" \
     -H "Accept: text/event-stream" \
     --no-buffer "$URL" 2>/dev/null \
   | while IFS= read -r line; do
