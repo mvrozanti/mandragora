@@ -88,5 +88,6 @@
     iotop
     dnsmasq
     texliveFull
+    sqlite
   ];
 }
