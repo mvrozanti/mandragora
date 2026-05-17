@@ -246,6 +246,30 @@ tooltip {
     border-bottom: 2px solid @color5;
 }
 
+#custom-rss {
+    padding: 0 10px;
+    color: @foreground;
+    border-bottom: 2px solid transparent;
+    transition: color 120ms ease, border-bottom-color 120ms ease;
+}
+
+#custom-rss.urgent {
+    color: @color1;
+}
+
+#custom-rss.unread {
+    color: @color4;
+}
+
+#custom-rss.empty {
+    color: alpha(@foreground, 0.55);
+}
+
+#custom-rss:hover {
+    color: @color4;
+    border-bottom: 2px solid @color4;
+}
+
 #tray {
     padding: 0 8px;
 }
