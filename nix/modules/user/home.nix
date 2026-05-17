@@ -200,9 +200,9 @@ in
       nativeBuildInputs = [ pkgs.makeWrapper ];
       postBuild = ''
         wrapProgram $out/bin/vesktop \
-          --unset NIXOS_OZONE_WL \
           --add-flags "--ozone-platform-hint=auto" \
-          --add-flags "--enable-features=WaylandWindowDecorations,WebRTCPipeWireCapturer"
+          --add-flags "--enable-features=WaylandWindowDecorations,WebRTCPipeWireCapturer" \
+          --add-flags "--enable-wayland-ime"
       '';
     })
     obs-studio
@@ -316,9 +316,6 @@ in
     BROWSER = "firefox";
     GOPATH = "${config.home.homeDirectory}/.local/share/go";
     GOBIN = "${config.home.homeDirectory}/.local/share/go/bin";
-    GTK_IM_MODULE = "cedilla";
-    QT_IM_MODULE = "cedilla";
-    XMODIFIERS = "@im=cedilla";
     GDK_DPI_SCALE = "1.0";
     QT_AUTO_SCREEN_SCALE_FACTOR = "1";
     QT_ENABLE_HIGHDPI_SCALING = "1";
