@@ -228,6 +228,7 @@ in
     (pkgs.writeShellScriptBin "sss" (builtins.readFile ../../../.local/bin/sss.sh))
     (pkgs.writeShellScriptBin "mandragora-diff" (builtins.readFile ../../../.local/bin/mandragora-diff.sh))
     (pkgs.writeShellScriptBin "mandragora-diff-last" (builtins.readFile ../../../.local/bin/mandragora-diff-last.sh))
+    (pkgs.writeShellScriptBin "circleci-fetch" (builtins.readFile ../../../.local/bin/circleci-fetch.sh))
     (pkgs.writeShellScriptBin "mandragora-winvm" (builtins.readFile ../../../.local/bin/mandragora-winvm.sh))
     (pkgs.writeShellScriptBin "rofi-ide-picker" (builtins.readFile ../../../.local/bin/rofi-ide-picker.sh))
     (pkgs.writeShellScriptBin "rofi-tool-picker" (builtins.readFile ../../../.local/bin/rofi-tool-picker.sh))
