@@ -91,7 +91,7 @@ def cmd_waybar(_args) -> int:
     data, mtime = load_report()
     if data is None:
         payload = {
-            "text": "? ",
+            "text": "? <span font_family=\"Font Awesome 7 Free Solid\"></span>",
             "tooltip": "no cve scan report — run cve-scan.service",
             "class": "stale",
             "alt": "stale",
@@ -107,18 +107,19 @@ def cmd_waybar(_args) -> int:
     unk = len(buckets["UNKNOWN"])
     total = crit + high + med + low + unk
 
+    icon = '<span font_family="Font Awesome 7 Free Solid"></span>'
     if crit:
         cls = "critical"
-        text = f"{crit} "
+        text = f"{crit} {icon}"
     elif high:
         cls = "high"
-        text = f"{high} "
+        text = f"{high} {icon}"
     elif med or low:
         cls = "medium" if med else "low"
-        text = f"{med + low} "
+        text = f"{med + low} {icon}"
     else:
         cls = "clean"
-        text = ""
+        text = icon
 
     age = ""
     if mtime is not None:
