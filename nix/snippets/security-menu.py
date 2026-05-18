@@ -91,7 +91,7 @@ def cmd_waybar(_args) -> int:
     data, mtime = load_report()
     if data is None:
         payload = {
-            "text": "  ?",
+            "text": "? ",
             "tooltip": "no cve scan report — run cve-scan.service",
             "class": "stale",
             "alt": "stale",
@@ -109,13 +109,13 @@ def cmd_waybar(_args) -> int:
 
     if crit:
         cls = "critical"
-        text = f"  {crit}"
+        text = f"{crit} "
     elif high:
         cls = "high"
-        text = f"  {high}"
+        text = f"{high} "
     elif med or low:
         cls = "medium" if med else "low"
-        text = f"  {med + low}"
+        text = f"{med + low} "
     else:
         cls = "clean"
         text = ""
