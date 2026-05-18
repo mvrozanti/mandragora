@@ -33,6 +33,10 @@ in
         owner = "m";
         mode = "0400";
       };
+      "circleci/api_key" = {
+        owner = "m";
+        mode = "0400";
+      };
       "image_generator/telegram_bot_key" = {
         owner = "m";
         mode = "0400";
