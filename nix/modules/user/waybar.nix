@@ -38,7 +38,7 @@
 
         "group/actions" = {
           orientation = "horizontal";
-          modules = [ "custom/security" "custom/rss" "custom/notif-menu" "custom/screencap" "custom/clipboard" "custom/powermenu" ];
+          modules = [ "custom/security" "custom/notif-menu" "custom/screencap" "custom/clipboard" "custom/powermenu" ];
         };
 
         "group/info" = {
@@ -260,18 +260,6 @@
           tooltip = true;
           on-click = "security-menu pick";
           on-click-right = "security-menu rescan";
-        };
-
-        "custom/rss" = {
-          exec = "rss-menu waybar";
-          return-type = "json";
-          interval = 60;
-          signal = 10;
-          format = "{}";
-          tooltip = true;
-          on-click = "rss-menu pick";
-          on-click-right = "rss-menu mark-all-read";
-          on-click-middle = "systemctl --user start rss-menu-poll.service";
         };
 
         "custom/powermenu" = {
