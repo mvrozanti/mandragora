@@ -13,6 +13,7 @@
     source = ../../../.config/aerc;
     recursive = true;
   };
+  home.file.".mbsyncrc".source = ../../../.mbsyncrc;
   home.file.".config/khal" = {
     source = ../../../.config/khal;
     recursive = true;
