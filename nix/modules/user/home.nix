@@ -877,6 +877,7 @@ EOF
     source = ../../../.config/aerc;
     recursive = true;
   };
+  home.file.".mbsyncrc".source = ../../../.mbsyncrc;
   home.file.".config/notmuch/default/config".text = ''
     [database]
     path=/home/m/.local/share/mail
