@@ -23,5 +23,6 @@
   },
   "effortLevel": "xhigh",
   "tui": "fullscreen",
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "model": "haiku"
 }
