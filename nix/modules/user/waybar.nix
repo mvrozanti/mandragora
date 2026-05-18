@@ -1,6 +1,11 @@
 { config, pkgs, ... }:
 
 {
+  systemd.user.services.waybar = {
+    Unit.StartLimitIntervalSec = "0";
+    Service.RestartSec = "3";
+  };
+
   programs.waybar = {
     enable = true;
     systemd.enable = true;
