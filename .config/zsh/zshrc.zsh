@@ -178,3 +178,8 @@ bindkey -M emacs '^[^M' _mdg_alt_enter_newline
 bindkey -M emacs '^[\r' _mdg_alt_enter_newline
 
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# CircleCI personal token, decrypted by sops-nix (see modules/core/secrets.nix).
+# Used by AI agents to consult CircleCI build status/logs without touching the
+# encrypted file. Silent no-op if the secret isn't readable.
+[[ -r /run/secrets/circleci/api_key ]] && export CIRCLECI_TOKEN="$(< /run/secrets/circleci/api_key)"
