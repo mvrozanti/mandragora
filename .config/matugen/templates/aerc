@@ -22,6 +22,10 @@ msglist_flagged.fg={{colors.tertiary.default.hex}}
 msglist_flagged.bold=true
 msglist_result.fg={{colors.primary.default.hex}}
 msglist_result.bold=true
+msglist_marked.fg={{colors.on_primary_container.default.hex}}
+msglist_marked.bg={{colors.primary_container.default.hex}}
+msglist_marked.bold=true
+msglist_marked.reverse=true
 msglist_*.selected.bold=true
 msglist_*.selected.bg={{colors.surface_container_high.default.hex}}
 
