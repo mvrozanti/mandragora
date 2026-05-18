@@ -246,6 +246,45 @@ tooltip {
     border-bottom: 2px solid @color5;
 }
 
+#custom-security {
+    padding: 0 10px;
+    color: @foreground;
+    border-bottom: 2px solid transparent;
+    transition: color 120ms ease, border-bottom-color 120ms ease;
+}
+
+#custom-security.critical {
+    color: @color1;
+    border-bottom: 2px solid @color1;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+#custom-security.high {
+    color: @color3;
+    border-bottom: 2px solid @color3;
+}
+
+#custom-security.medium {
+    color: @color3;
+}
+
+#custom-security.low {
+    color: @color4;
+}
+
+#custom-security.clean {
+    color: alpha(@foreground, 0.55);
+}
+
+#custom-security.stale {
+    color: @color8;
+}
+
+#custom-security:hover {
+    color: @color5;
+    border-bottom: 2px solid @color5;
+}
+
 #custom-rss {
     padding: 0 10px;
     color: @foreground;
