@@ -88,26 +88,15 @@
     before = [ "sysroot.mount" ];
     unitConfig.DefaultDependencies = "no";
     serviceConfig.Type = "oneshot";
-    script = ''
-      ${pkgs.coreutils}/bin/mkdir -p /mnt
-
-      ${pkgs.util-linux}/bin/mount -t btrfs -o subvol=/ /dev/disk/by-label/NIXOS /mnt
-
-      if [ -e "/mnt/root-active" ]; then
-          subvols=$(${pkgs.btrfs-progs}/bin/btrfs subvolume list -o /mnt/root-active | ${pkgs.gawk}/bin/awk '{print $NF}')
-          for subvol in $subvols; do
-              ${pkgs.btrfs-progs}/bin/btrfs subvolume delete "/mnt/$subvol"
-          done
-          ${pkgs.btrfs-progs}/bin/btrfs subvolume delete -c "/mnt/root-active"
-      fi
-
-      if [ -e "/mnt/root-blank" ]; then
-          ${pkgs.btrfs-progs}/bin/btrfs subvolume snapshot "/mnt/root-blank" "/mnt/root-active"
-      else
-          ${pkgs.btrfs-progs}/bin/btrfs subvolume create "/mnt/root-active"
-      fi
-
-      ${pkgs.util-linux}/bin/umount /mnt
-    '';
+    script = builtins.replaceStrings
+      [ "@mkdir@" "@mount@" "@umount@" "@btrfs@" "@awk@" ]
+      [
+        "${pkgs.coreutils}/bin/mkdir"
+        "${pkgs.util-linux}/bin/mount"
+        "${pkgs.util-linux}/bin/umount"
+        "${pkgs.btrfs-progs}/bin/btrfs"
+        "${pkgs.gawk}/bin/awk"
+      ]
+      (builtins.readFile ./initrd-rollback.sh);
   };
 }
