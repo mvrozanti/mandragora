@@ -18,24 +18,7 @@
     source = ../../../.config/khal;
     recursive = true;
   };
-  home.file.".config/notmuch/default/config".text = ''
-    [database]
-    path=${config.home.homeDirectory}/.local/share/mail
-
-    [user]
-    name=Marcelo Vironda Rozanti
-    primary_email=mvrozanti@hotmail.com
-
-    [new]
-    tags=unread;inbox;
-    ignore=
-
-    [search]
-    exclude_tags=deleted;spam;
-
-    [maildir]
-    synchronize_flags=true
-  '';
+  home.file.".config/notmuch/default/config".source = ../../../.config/notmuch/default/config;
 
   programs.git.settings = {
     user.name = "mvrozanti";
