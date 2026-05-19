@@ -108,18 +108,14 @@ def cmd_waybar(_args) -> int:
     unk = len(buckets["UNKNOWN"])
     total = crit + high + med + low + unk
 
+    severe = crit + high
     if crit:
         cls = "critical"
-        text = f"{crit} {icon}"
     elif high:
         cls = "high"
-        text = f"{high} {icon}"
-    elif med or low:
-        cls = "medium" if med else "low"
-        text = f"{med + low} {icon}"
     else:
         cls = "clean"
-        text = icon
+    text = f"{severe} {icon}" if severe else icon
 
     age = ""
     if mtime is not None:
