@@ -489,7 +489,7 @@ in
       inactive_tab_font_style = "normal";
       foreground = "#dddddd";
       background = "#000";
-      background_opacity = "0.4";
+      background_opacity = "0.9";
       dynamic_background_opacity = "yes";
       dim_opacity = "0.75";
       selection_foreground = "#000000";
