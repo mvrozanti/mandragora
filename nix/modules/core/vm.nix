@@ -55,10 +55,7 @@ in
       Type = "oneshot";
       RemainAfterExit = true;
     };
-    script = ''
-      virsh net-autostart default || true
-      virsh net-start default 2>/dev/null || true
-    '';
+    script = builtins.readFile ../../../.local/lib/mandragora/libvirt-default-net.sh;
   };
 
   environment.systemPackages = with pkgs; [
