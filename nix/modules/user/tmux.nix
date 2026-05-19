@@ -17,11 +17,7 @@
       urlview
       {
         plugin = open;
-        extraConfig = ''
-          set -g @open 'O'
-          set -g @open-editor 'o'
-          set -g @open-S 'https://www.google.com/search?q='
-        '';
+        extraConfig = builtins.readFile ../../../.config/tmux/open-plugin.conf;
       }
     ];
 
