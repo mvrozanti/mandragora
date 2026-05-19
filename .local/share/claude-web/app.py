@@ -127,6 +127,38 @@ async def api_list(req: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": str(exc)}, status=403)
 
 
+async def api_zoxide(req: web.Request) -> web.Response:
+    q = req.query.get("q", "").strip()
+    args = ["zoxide", "query", "-ls"]
+    if q:
+        args += q.split()
+    proc = await asyncio.create_subprocess_exec(
+        *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+    )
+    out, _ = await proc.communicate()
+    entries = []
+    for line in out.decode(errors="replace").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        score_str, _, path_str = line.partition(" ")
+        path_str = path_str.strip()
+        if not path_str:
+            continue
+        try:
+            score = float(score_str)
+        except ValueError:
+            continue
+        try:
+            p = Path(path_str)
+            if not p.is_dir():
+                continue
+        except OSError:
+            continue
+        entries.append({"score": score, "path": str(p)})
+    return web.json_response({"ok": True, "entries": entries[:30]})
+
+
 async def api_launch(req: web.Request) -> web.Response:
     body = await req.json()
     target = resolve_dir(body.get("dir"))
@@ -217,6 +249,8 @@ INDEX_HTML = r"""<!DOCTYPE html>
   .row.sel { background: var(--hover); border-color: var(--accent); }
   .row.sel .ico, .row.sel .arrow { color: var(--accent); }
   .row.up { color: var(--dim); }
+  .row.zox .ico { color: var(--warn); font-weight: bold; }
+  .row.zox .arrow { color: var(--warn); font-variant-numeric: tabular-nums; font-size: 0.78rem; }
   .row .ico { color: var(--accent); font-size: 1.05em; flex-shrink: 0; opacity: 0.8; }
   .row.up .ico { color: var(--dim); }
   .row .name { flex: 1; word-break: break-all; }
@@ -385,21 +419,12 @@ async function renderPicker(path) {
   const j = await r.json();
   if (!j.ok) { renderError(j.error || 'list failed'); return; }
 
-  const rows = [];
-  if (j.parent) rows.push({ kind: 'up', name: '..', href: j.parent });
+  const subdirRows = [];
+  if (j.parent) subdirRows.push({ kind: 'up', name: '..', href: j.parent });
   for (const e of j.entries) {
     const sub = (j.path.endsWith('/') ? j.path : j.path + '/') + e.name;
-    rows.push({ kind: 'dir', name: e.name, href: sub });
+    subdirRows.push({ kind: 'dir', name: e.name, href: sub });
   }
-
-  const rowsHtml = rows.length
-    ? rows.map((row, i) => {
-        if (row.kind === 'up') {
-          return `<a class="row up" data-idx="${i}" data-name="" href="#${encodeURIComponent(row.href)}"><span class="ico">↑</span><span class="name">..</span></a>`;
-        }
-        return `<a class="row" data-idx="${i}" data-name="${esc(row.name.toLowerCase())}" href="#${encodeURIComponent(row.href)}"><span class="ico">▸</span><span class="name">${esc(row.name)}</span><span class="arrow">→</span></a>`;
-      }).join('')
-    : '<div class="empty">(no subdirectories)</div>';
 
   root.innerHTML = `
 <div class="crumb">${crumbHtml(j.path)}</div>
@@ -408,8 +433,8 @@ async function renderPicker(path) {
       <span>open <b>this</b> directory in claude</span>
       <span class="shortcut"><kbd>Ctrl</kbd>+<kbd>↵</kbd></span>
     </button>
-    <input class="filter" id="filter" placeholder="filter subdirs…" autocomplete="off" spellcheck="false">
-    <div class="list" id="list">${rowsHtml}</div>
+    <input class="filter" id="filter" placeholder="filter or fuzzy-jump via zoxide…" autocomplete="off" spellcheck="false">
+    <div class="list" id="list"></div>
     <div class="hints">
       <span><kbd>↑</kbd><kbd>↓</kbd> move</span>
       <span><kbd>↵</kbd> enter dir</span>
@@ -423,24 +448,67 @@ async function renderPicker(path) {
   const filter = document.getElementById('filter');
   const list = document.getElementById('list');
 
-  let visible = rows.slice();
+  let zoxideRows = [];
+  let visible = [];
   let sel = 0;
+  let zoxideToken = 0;
+
+  function shortHome(p) {
+    if (p === HOME) return '~';
+    if (p.startsWith(HOME + '/')) return '~' + p.slice(HOME.length);
+    return p;
+  }
+
+  function rowHtml(row, i) {
+    if (row.kind === 'up') {
+      return `<a class="row up" data-idx="${i}" href="#${encodeURIComponent(row.href)}"><span class="ico">↑</span><span class="name">..</span></a>`;
+    }
+    if (row.kind === 'zoxide') {
+      return `<a class="row zox" data-idx="${i}" href="#${encodeURIComponent(row.href)}"><span class="ico">z</span><span class="name">${esc(row.label)}</span><span class="arrow">${row.score.toFixed(1)}</span></a>`;
+    }
+    return `<a class="row" data-idx="${i}" href="#${encodeURIComponent(row.href)}"><span class="ico">▸</span><span class="name">${esc(row.name)}</span><span class="arrow">→</span></a>`;
+  }
+
+  function renderList() {
+    list.innerHTML = visible.length
+      ? visible.map(rowHtml).join('')
+      : '<div class="empty">(no matches)</div>';
+  }
 
   function applyFilter() {
     const q = filter.value.toLowerCase();
-    visible = rows.filter(r => r.kind === 'up' || !q || r.name.toLowerCase().includes(q));
-    for (const el of list.querySelectorAll('.row')) {
-      el.style.display = visible.includes(rows[+el.dataset.idx]) ? '' : 'none';
-    }
+    const subs = subdirRows.filter(r => r.kind === 'up' || !q || r.name.toLowerCase().includes(q));
+    visible = q ? [...zoxideRows, ...subs] : subs;
     if (sel >= visible.length) sel = Math.max(0, visible.length - 1);
+    renderList();
     paintSel();
+  }
+
+  async function fetchZoxide(q) {
+    const my = ++zoxideToken;
+    if (!q) {
+      zoxideRows = [];
+      applyFilter();
+      return;
+    }
+    try {
+      const r = await fetch('/api/zoxide?q=' + encodeURIComponent(q));
+      const j2 = await r.json();
+      if (my !== zoxideToken) return;
+      zoxideRows = (j2.entries || []).map(e => ({
+        kind: 'zoxide', href: e.path, label: shortHome(e.path), score: e.score,
+      }));
+      applyFilter();
+    } catch (_) {
+      if (my === zoxideToken) { zoxideRows = []; applyFilter(); }
+    }
   }
 
   function paintSel() {
     list.querySelectorAll('.row.sel').forEach(el => el.classList.remove('sel'));
     const row = visible[sel];
     if (!row) return;
-    const el = list.querySelector('.row[data-idx="' + rows.indexOf(row) + '"]');
+    const el = list.querySelector('.row[data-idx="' + sel + '"]');
     if (el) {
       el.classList.add('sel');
       el.scrollIntoView({ block: 'nearest' });
@@ -456,7 +524,14 @@ async function renderPicker(path) {
     location.hash = encodeURIComponent(row.href);
   }
 
-  filter.addEventListener('input', () => { sel = 0; applyFilter(); });
+  let zoxideTimer = null;
+  filter.addEventListener('input', () => {
+    sel = 0;
+    applyFilter();
+    clearTimeout(zoxideTimer);
+    const q = filter.value;
+    zoxideTimer = setTimeout(() => fetchZoxide(q), 80);
+  });
 
   filter.addEventListener('keydown', (e) => {
     const empty = filter.value === '';
@@ -470,8 +545,10 @@ async function renderPicker(path) {
       if (sel > 0) { sel--; paintSel(); }
     } else if (k === 'Enter') {
       e.preventDefault();
-      if (e.ctrlKey || e.altKey || e.metaKey) spawn(j.path);
-      else activate(visible[sel]);
+      if (e.ctrlKey || e.altKey || e.metaKey) {
+        const row = visible[sel];
+        spawn(row && row.kind === 'zoxide' ? row.href : j.path);
+      } else activate(visible[sel]);
     } else if (k === 'Tab' && !e.shiftKey) {
       e.preventDefault();
       activate(visible[sel]);
@@ -514,10 +591,11 @@ async function renderPicker(path) {
   list.addEventListener('mousemove', (e) => {
     const el = e.target.closest('.row');
     if (!el) return;
-    const row = rows[+el.dataset.idx];
-    const idx = visible.indexOf(row);
+    const idx = +el.dataset.idx;
     if (idx >= 0 && idx !== sel) { sel = idx; paintSel(); }
   });
+
+  applyFilter();
 
   const remembered = selectionMemory[j.path];
   if (remembered) {
@@ -556,6 +634,7 @@ def main() -> None:
     app = web.Application()
     app.router.add_get("/", index)
     app.router.add_get("/api/list", api_list)
+    app.router.add_get("/api/zoxide", api_zoxide)
     app.router.add_post("/api/launch", api_launch)
     web.run_app(app, host=LISTEN_HOST, port=LISTEN_PORT, access_log=None, print=lambda *_: None)
 
