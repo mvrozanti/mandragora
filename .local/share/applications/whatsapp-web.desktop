@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=WhatsApp
+Exec=env MOZ_ENABLE_WAYLAND=0 MOZ_APP_REMOTINGNAME=whatsapp-web firefox -P whatsapp --new-instance --url https://web.whatsapp.com
+Icon=@icon@
+Type=Application
+Categories=Network;InstantMessaging;
+StartupWMClass=whatsapp-web
