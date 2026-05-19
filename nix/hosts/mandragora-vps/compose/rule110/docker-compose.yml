@@ -1,0 +1,23 @@
+services:
+
+  rule110:
+    image: ${RULE110_IMAGE:-nginx:1.27-alpine}
+    container_name: rule110
+    restart: unless-stopped
+    volumes:
+      - ${RULE110_STATIC_VOLUME:-./static}:/usr/share/nginx/html:ro
+    networks:
+      - seafile-net
+    labels:
+      caddy_0: https://rule110.${MVR_AC:-mvr.ac}
+      caddy_0.encode: zstd gzip
+      caddy_0.reverse_proxy: "{{upstreams 80}}"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true
