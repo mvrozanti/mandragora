@@ -82,6 +82,7 @@ exec bwrap \
   --ro-bind /etc /etc \
   --ro-bind /run/current-system /run/current-system \
   --ro-bind /run/wrappers /run/wrappers \
+  --ro-bind /run/systemd/resolve /run/systemd/resolve \
   --dir /run/user/"$(id -u)" \
   --proc /proc \
   --dev /dev \
