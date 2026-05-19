@@ -23,6 +23,7 @@ in
     ./security-menu.nix
     ./minecraft.nix
     ./skills.nix
+    ./axon.nix
   ];
 
     services.udiskie = {
