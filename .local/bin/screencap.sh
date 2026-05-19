@@ -221,16 +221,16 @@ flash_active() {
 
 status_json() {
   if is_recording; then
-    local audio elapsed icon tip
+    local audio elapsed tip
     audio=$(cat "$audiofile" 2>/dev/null || echo "none")
     elapsed=$(elapsed_hms)
     case "$audio" in
-      mic)    icon="󰍬"; tip="Recording (mic)" ;;
-      system) icon="󰓃"; tip="Recording (system audio)" ;;
-      *)      icon="󰕧"; tip="Recording (no audio)" ;;
+      mic)    tip="Recording (mic)" ;;
+      system) tip="Recording (system audio)" ;;
+      *)      tip="Recording (no audio)" ;;
     esac
-    printf '{"text":"<span color=\"#ff3b30\">⏺</span> %s %s","tooltip":"%s — right-click to stop","class":"recording %s"}\n' \
-      "$icon" "$elapsed" "$tip" "$audio"
+    printf '{"text":"<span color=\"#ff3b30\">●</span> %s","tooltip":"%s — right-click to stop","class":"recording %s"}\n' \
+      "$elapsed" "$tip" "$audio"
   elif flash_active; then
     printf '{"text":"󰄄","tooltip":"Screenshot captured","class":"idle flash"}\n'
   else
