@@ -8,11 +8,35 @@ set -euo pipefail
 # - host ~/.claude memory/sessions/settings NOT exposed
 # - network shared by default (Anthropic API); --no-net to cut
 
+usage() {
+  cat <<'EOF'
+safe-claude — run `claude` inside a bubblewrap jail for untrusted repos.
+
+Usage: safe-claude [safe-claude-opts] [--] [claude args...]
+
+safe-claude options:
+  --no-net       Disable network namespace (offline; no Anthropic API).
+  --ro           Bind cwd read-only (review mode; claude cannot write).
+  -h, --help     Show this help and exit. Does NOT forward to claude;
+                 use `safe-claude -- --help` for claude's own help.
+
+Sandbox model:
+  - cwd bound rw (or ro with --ro); nothing else writable on host
+  - $HOME is an ephemeral tmpfs
+  - ~/.claude/.credentials.json bound ro (auth survives)
+  - ~/.claude.json copied in (skips onboarding); writes discarded on exit
+  - repo-local .claude/ masked with tmpfs (rogue hooks dead)
+  - MCP forced empty via --strict-mcp-config
+  - host ~/.claude memory/sessions/settings/projects NOT exposed
+EOF
+}
+
 NET_SHARE=1
 RO_CWD=0
 EXTRA_ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    -h|--help)  usage; exit 0 ;;
     --no-net)   NET_SHARE=0; shift ;;
     --ro)       RO_CWD=1; shift ;;
     --)         shift; EXTRA_ARGS+=("$@"); break ;;
