@@ -45,7 +45,7 @@ fi
 
 CRED_ARGS=()
 if [[ -f "$HOME/.claude/.credentials.json" ]]; then
-  CRED_ARGS=(--ro-bind "$HOME/.claude/.credentials.json" "$SBX_HOME/.claude/.credentials.json")
+  CRED_ARGS=(--ro-bind "$HOME/.claude/.credentials.json" "$HOME/.claude/.credentials.json")
 fi
 
 exec bwrap \
