@@ -55,6 +55,7 @@
     age
     gemini-cli
     rtk
+    axon
     nodejs
     rofi
     wl-clipboard
