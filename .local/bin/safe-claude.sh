@@ -27,7 +27,7 @@ if ! command -v claude >/dev/null; then
   echo "safe-claude: claude not on PATH" >&2; exit 1
 fi
 
-CLAUDE_BIN="$(command -v claude)"
+CLAUDE_BIN="$(readlink -f "$(command -v claude)")"
 SBX_HOME="$(mktemp -d -t safe-claude-home.XXXXXX)"
 MCP_EMPTY="$(mktemp -t safe-claude-mcp.XXXXXX.json)"
 echo '{"mcpServers":{}}' > "$MCP_EMPTY"
