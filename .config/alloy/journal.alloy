@@ -1,0 +1,49 @@
+loki.relabel "journal" {
+  forward_to = []
+  rule {
+    source_labels = ["__journal__systemd_unit"]
+    target_label  = "unit"
+  }
+  rule {
+    source_labels = ["__journal__hostname"]
+    target_label  = "hostname"
+  }
+  rule {
+    source_labels = ["__journal_priority_keyword"]
+    target_label  = "priority"
+  }
+}
+
+loki.process "journal" {
+  forward_to = [loki.write.vps.receiver]
+
+  stage.template {
+    source   = "cleaned_line"
+    template = "[{{ .unit }}] {{ regexReplaceAll `\\x1b\\[[0-9;?]*[a-zA-Z]` (regexReplaceAll `\\x1b\\][^\\x07]*\\x07` .Entry ``) `` }}"
+  }
+
+  stage.output {
+    source = "cleaned_line"
+  }
+
+  stage.drop {
+    expression          = `\] $`
+    drop_counter_reason = "empty_after_strip"
+  }
+}
+
+loki.source.journal "system" {
+  max_age       = "12h"
+  relabel_rules = loki.relabel.journal.rules
+  forward_to    = [loki.process.journal.receiver]
+  labels = {
+    host = "mandragora-desktop",
+    job  = "systemd-journal",
+  }
+}
+
+loki.write "vps" {
+  endpoint {
+    url = "http://100.84.78.83:3100/loki/api/v1/push"
+  }
+}
