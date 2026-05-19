@@ -34,6 +34,7 @@ services:
     volumes:
       - ${LOKI_CONFIG_VOLUME:-./config}/promtail-vps.yml:/etc/promtail/promtail.yml:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${PROMTAIL_POSITIONS_VOLUME:-./data/promtail}:/var/lib/promtail
     networks:
       - seafile-net
     logging:

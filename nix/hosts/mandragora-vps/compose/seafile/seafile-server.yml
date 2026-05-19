@@ -24,6 +24,11 @@ services:
       start_period: 30s
       timeout: 5s
       retries: 10
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
 
   redis:
     image: ${SEAFILE_REDIS_IMAGE:-redis}
@@ -37,6 +42,11 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
     networks:
       - seafile-net
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
 
   seafile:
     image: ${SEAFILE_IMAGE:-seafileltd/seafile-mc:13.0-latest}
@@ -107,6 +117,11 @@ services:
         condition: service_started
     networks:
       - seafile-net
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
 
 networks:
   seafile-net:
