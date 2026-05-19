@@ -941,24 +941,12 @@ EOF
     source = ../../snippets/waybar-brightness.sh;
     executable = true;
   };
-  home.file.".local/share/applications/chess-com.desktop".text = ''
-[Desktop Entry]
-Name=Chess.com
-Exec=env MOZ_ENABLE_WAYLAND=0 MOZ_APP_REMOTINGNAME=chess-com firefox -P chess --new-instance --url https://www.chess.com
-Icon=${pkgs.gnome-chess}/share/icons/hicolor/scalable/apps/org.gnome.Chess.svg
-Type=Application
-Categories=Game;BoardGame;
-StartupWMClass=chess-com
-'';
-  home.file.".local/share/applications/whatsapp-web.desktop".text = ''
-[Desktop Entry]
-Name=WhatsApp
-Exec=env MOZ_ENABLE_WAYLAND=0 MOZ_APP_REMOTINGNAME=whatsapp-web firefox -P whatsapp --new-instance --url https://web.whatsapp.com
-Icon=${pkgs.zapzap}/share/icons/hicolor/scalable/apps/com.rtosta.zapzap.svg
-Type=Application
-Categories=Network;InstantMessaging;
-StartupWMClass=whatsapp-web
-'';
+  home.file.".local/share/applications/chess-com.desktop".source = pkgs.replaceVars ../../../.local/share/applications/chess-com.desktop {
+    icon = "${pkgs.gnome-chess}/share/icons/hicolor/scalable/apps/org.gnome.Chess.svg";
+  };
+  home.file.".local/share/applications/whatsapp-web.desktop".source = pkgs.replaceVars ../../../.local/share/applications/whatsapp-web.desktop {
+    icon = "${pkgs.zapzap}/share/icons/hicolor/scalable/apps/com.rtosta.zapzap.svg";
+  };
   home.file.".claude/settings.json".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/settings.json";
   home.file.".claude/settings.local.json".source =

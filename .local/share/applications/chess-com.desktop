@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Chess.com
+Exec=env MOZ_ENABLE_WAYLAND=0 MOZ_APP_REMOTINGNAME=chess-com firefox -P chess --new-instance --url https://www.chess.com
+Icon=@icon@
+Type=Application
+Categories=Game;BoardGame;
+StartupWMClass=chess-com
