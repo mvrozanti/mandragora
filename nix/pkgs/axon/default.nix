@@ -19,7 +19,15 @@ let
 
   duckdbLinux = fetchurl {
     url = "https://github.com/duckdb/duckdb/releases/download/v${duckdbVersion}/libduckdb-linux-amd64.zip";
-    hash = "sha256-e/cIV+ijnuelx3q06S7gbYScxNB9ABnMYBewKJ5KBow=";
+    hash = "sha256-gRmb8BttSZQaOPQmytYOc8HM1D8fdppl7YCX1T/H5As=";
+  };
+
+  # Embedding model for semantic search / `axon capsule`. Without it axon
+  # falls back to graph-only ranking and `capsule` exits with "model not
+  # found". Pinned to the same Q4_K_M quant the upstream README recommends.
+  embeddingModel = fetchurl {
+    url = "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF/resolve/main/nomic-embed-text-v1.5.Q4_K_M.gguf";
+    hash = "sha256-1OOIiU4JzzgW6LCJbYHSZbVeep//mrA/6L9O9eESlaw=";
   };
 in
 stdenv.mkDerivation (finalAttrs: {
@@ -63,24 +71,36 @@ stdenv.mkDerivation (finalAttrs: {
 
     install -Dm644 ../third_party/duckdb/lib/libduckdb.so $out/lib/libduckdb.so
 
-    for so in bin/libllama.so bin/libggml*.so*; do
-      [ -e "$so" ] && install -Dm755 "$so" "$out/lib/$(basename "$so")"
-    done
+    # llama.cpp emits versioned sonames + .so symlinks under build/bin.
+    # cp -P preserves the symlink graph so dynamic linker can hop libllama.so
+    # → libllama.so.0 → libllama.so.0.x.y just like in the upstream tarball.
+    mkdir -p $out/lib
+    find bin -maxdepth 1 \( -name 'lib*.so*' -o -name 'lib*.dylib' \) -exec cp -P {} $out/lib/ \;
 
-    mkdir -p $out/share/axon/hooks $out/share/axon/scripts
+    mkdir -p $out/share/axon/hooks $out/share/axon/scripts $out/share/axon/models
     cp -r ../scripts/hooks/* $out/share/axon/hooks/
     cp ../scripts/install.sh $out/share/axon/scripts/install.sh
+    install -Dm644 ${embeddingModel} $out/share/axon/models/nomic-embed-text-v1.5.Q4_K_M.gguf
 
     runHook postInstall
   '';
 
-  # autoPatchelfHook fixes libc / libstdc++ links; we add $out/lib so axon
-  # finds the bundled libduckdb.so and the llama/ggml shared libs at runtime.
-  appendRunpaths = [ "$out/lib" ];
+  # CMakeLists sets CMAKE_BUILD_RPATH to the sandbox source tree so the binary
+  # can resolve libduckdb.so during the build's test run; llama.cpp's own
+  # subbuild does the same for libllama/libggml. Both linger in the final
+  # binary as `/build/source/...` references which nix rejects post-install.
+  # Strip them and pin RPATH to $out/lib (where we copied the runtime .so set).
+  preFixup = ''
+    for f in $out/bin/axon $out/lib/*.so*; do
+      [ -L "$f" ] && continue
+      patchelf --set-rpath "$out/lib" "$f"
+    done
+  '';
 
   postFixup = ''
     wrapProgram $out/bin/axon \
-      --prefix LD_LIBRARY_PATH : "$out/lib"
+      --prefix LD_LIBRARY_PATH : "$out/lib" \
+      --set-default AXON_EMBEDDING_MODEL "$out/share/axon/models/nomic-embed-text-v1.5.Q4_K_M.gguf"
   '';
 
   meta = {
