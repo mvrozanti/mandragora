@@ -45,7 +45,12 @@ fi
 
 CRED_ARGS=()
 if [[ -f "$HOME/.claude/.credentials.json" ]]; then
-  CRED_ARGS=(--ro-bind "$HOME/.claude/.credentials.json" "$HOME/.claude/.credentials.json")
+  CRED_ARGS+=(--ro-bind "$HOME/.claude/.credentials.json" "$HOME/.claude/.credentials.json")
+fi
+if [[ -f "$HOME/.claude.json" ]]; then
+  mkdir -p "$SBX_HOME"
+  cp "$HOME/.claude.json" "$SBX_HOME/.claude.json"
+  chmod u+w "$SBX_HOME/.claude.json"
 fi
 
 exec bwrap \
