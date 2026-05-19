@@ -34,7 +34,9 @@ browser is authenticated once and same-origin XHR/WebSocket calls to
 - Time range selector (15m / 1h / 6h / 24h / 3d) and row-limit
   selector (500 / 2k / 5k / 20k).
 - Volume histogram (canvas) showing `count_over_time` bucketed at
-  ~1/60th of the selected range.
+  ~1/60th of the selected range. Click-drag on the histogram zooms
+  the query to the selected period; `[clear]` in the status line
+  reverts to the dropdown range.
 - Log list, newest first. Each row colour-coded by detected level
   (`ERROR/WARN/INFO/DEBUG`). Click a row to expand and see all
   stream labels.
