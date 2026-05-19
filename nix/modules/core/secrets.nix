@@ -1,8 +1,11 @@
 { config, pkgs, lib, ... }:
 
 let
-  oracleHostsInject = pkgs.writeShellScript "oracle-hosts-inject"
-    (builtins.readFile ../../../.local/bin/oracle-hosts-inject.sh);
+  oracleHostsInject = pkgs.writeShellApplication {
+    name = "oracle-hosts-inject";
+    runtimeInputs = with pkgs; [ coreutils gnused ];
+    text = builtins.readFile ../../../.local/bin/oracle-hosts-inject.sh;
+  };
 in
 {
   sops = {
@@ -67,7 +70,7 @@ in
   users.users.m.hashedPasswordFile = config.sops.secrets."user/password".path;
 
   system.activationScripts.oracle-in-hosts = {
-    text = "${oracleHostsInject}";
+    text = "${oracleHostsInject}/bin/oracle-hosts-inject";
     deps = [ "setupSecrets" ];
   };
 }
