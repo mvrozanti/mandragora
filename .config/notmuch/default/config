@@ -1,0 +1,16 @@
+[database]
+path=/home/m/.local/share/mail
+
+[user]
+name=Marcelo Vironda Rozanti
+primary_email=mvrozanti@hotmail.com
+
+[new]
+tags=unread;inbox;
+ignore=
+
+[search]
+exclude_tags=deleted;spam;
+
+[maildir]
+synchronize_flags=true

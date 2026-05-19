@@ -906,24 +906,7 @@ EOF
     recursive = true;
   };
   home.file.".mbsyncrc".source = ../../../.mbsyncrc;
-  home.file.".config/notmuch/default/config".text = ''
-    [database]
-    path=/home/m/.local/share/mail
-
-    [user]
-    name=Marcelo Vironda Rozanti
-    primary_email=mvrozanti@hotmail.com
-
-    [new]
-    tags=unread;inbox;
-    ignore=
-
-    [search]
-    exclude_tags=deleted;spam;
-
-    [maildir]
-    synchronize_flags=true
-  '';
+  home.file.".config/notmuch/default/config".source = ../../../.config/notmuch/default/config;
   home.activation.notmuchInit = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ ! -d "$HOME/.local/share/mail/.notmuch" ]; then
       ${pkgs.notmuch}/bin/notmuch new || true
