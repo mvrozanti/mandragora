@@ -29,6 +29,7 @@
     ../../modules/desktop/seafile.nix
     ../../modules/desktop/steam.nix
     ../../modules/desktop/minecraft.nix
+    ../../modules/desktop/ue5.nix
     ../../modules/services/hub-services.nix
     ../../modules/services/ttyd.nix
     ../../modules/services/claude-web.nix
