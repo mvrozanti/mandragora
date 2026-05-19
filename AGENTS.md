@@ -71,8 +71,14 @@ rationale, recipes, or the incident that produced the rule.
    [\`docs/persistence.md\`](docs/persistence.md).
 6. **NVIDIA + Wayland only** — Hyprland on proprietary NVIDIA (RTX 5070
    Ti, beta 570.x). No X11 fallback.
-7. **No \`.venv\` for Python** — use \`nix develop\` / \`devShells\` /
-   \`shell.nix\`. Express deps declaratively.
+7. **Declarative Python deps** — express Python environments in Nix
+   (\`python3.withPackages\`, \`buildPythonPackage\`,
+   \`writers.writePython3Bin\`, per-project \`devShells\`). No
+   interactive \`.venv\` / \`virtualenv\` / \`pip install\` for
+   repo-owned code. Upstream-owned projects whose tooling demands a
+   venv (e.g. InvokeAI) are exempt — wrap them in a systemd launcher
+   that bootstraps the venv idempotently. Detail:
+   [\`docs/python.md\`](docs/python.md).
 8. **Programs ready out-of-the-box** — must work on first launch with
    zero manual setup, plugin-manager bootstraps, or first-run wizards.
 9. **No full-disk encryption** — main drive is intentionally
