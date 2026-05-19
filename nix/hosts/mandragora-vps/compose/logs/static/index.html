@@ -71,7 +71,10 @@ button.run { color: var(--accent); font-weight: bold; }
 #histo {
   width: 100%; height: 60px; display: block;
   background: var(--panel); border: 1px solid var(--line);
+  cursor: crosshair; user-select: none;
 }
+header .status a.clear { color: var(--err); margin-left: 0.4rem; }
+header .status a.clear:hover { color: var(--accent); }
 
 .logs {
   flex: 1; overflow-y: auto; overflow-x: auto;
@@ -167,6 +170,10 @@ let labelValues = {};
 let selected = {};      // {label: {value: '+'|'-'}}
 let tailWS = null;
 let activeReq = null;
+let customRange = null;        // {startNs:BigInt, endNs:BigInt}
+let lastHistoSeries = [];
+let histoMeta = null;          // {w, h, barW, minX, maxX} — px↔ts mapping
+let dragState = null;          // {x0, x1}
 
 function showErr(m) { errBox.textContent = m; errBox.classList.add('show'); }
 function clearErr() { errBox.classList.remove('show'); errBox.textContent = ''; }
@@ -278,7 +285,8 @@ function renderLogs(streams) {
     return;
   }
   for (const e of entries) appendLine(e, false);
-  setStatus(`<b>${entries.length}</b> entries`);
+  const suffix = customRange ? '  ·  ' + rangeStatusText() : '';
+  setStatus(`<b>${entries.length}</b> entries${suffix}`);
 }
 
 function appendLine(e, prepend) {
@@ -303,11 +311,18 @@ async function run() {
   if (tailWS) stopTail();
   clearErr();
   const q = qIn.value.trim() || '{host=~".+"}';
-  const seconds = Number(rangeSel.value);
   const limit = Number(limitSel.value);
-  const end = nsNow().toString();
-  const start = nsAgo(seconds).toString();
-  setStatus('querying…');
+  let start, end, seconds;
+  if (customRange) {
+    start = customRange.startNs.toString();
+    end = customRange.endNs.toString();
+    seconds = Math.max(1, Number((customRange.endNs - customRange.startNs) / 1000000000n));
+  } else {
+    seconds = Number(rangeSel.value);
+    end = nsNow().toString();
+    start = nsAgo(seconds).toString();
+  }
+  setStatus(customRange ? rangeStatusText() : 'querying…');
   if (activeReq) activeReq.abort();
   activeReq = new AbortController();
   try {
@@ -331,19 +346,22 @@ function bucketFor(seconds) {
 }
 
 function drawHistogram(series) {
+  lastHistoSeries = series || [];
   const w = histoCanvas.clientWidth, h = histoCanvas.clientHeight;
   histoCanvas.width = w * devicePixelRatio; histoCanvas.height = h * devicePixelRatio;
   const ctx = histoCanvas.getContext('2d'); ctx.scale(devicePixelRatio, devicePixelRatio);
   ctx.clearRect(0,0,w,h);
-  if (!series.length) return;
+  histoMeta = null;
+  if (!series.length) { drawSelection(ctx, w, h); return; }
   const allPoints = series.flatMap(s => s.values.map(v => [Number(v[0]), Number(v[1])]));
-  if (!allPoints.length) return;
+  if (!allPoints.length) { drawSelection(ctx, w, h); return; }
   const xs = allPoints.map(p=>p[0]);
   const minX = Math.min(...xs), maxX = Math.max(...xs);
   const maxY = Math.max(...allPoints.map(p=>p[1]), 1);
   const range = maxX - minX || 1;
-  ctx.fillStyle = '#00ff66';
   const barW = Math.max(1, w / allPoints.length - 1);
+  histoMeta = { w, h, barW, minX, maxX };
+  ctx.fillStyle = '#00ff66';
   for (const [t, v] of allPoints) {
     const x = ((t - minX) / range) * (w - barW);
     const barH = (v / maxY) * (h - 4);
@@ -351,7 +369,75 @@ function drawHistogram(series) {
   }
   ctx.fillStyle = '#4a6a4e'; ctx.font = '10px Iosevka, monospace';
   ctx.fillText(`max ${maxY}`, 4, 12);
+  drawSelection(ctx, w, h);
 }
+
+function drawSelection(ctx, w, h) {
+  if (!dragState) return;
+  const x0 = Math.min(dragState.x0, dragState.x1);
+  const x1 = Math.max(dragState.x0, dragState.x1);
+  ctx.fillStyle = 'rgba(0,255,102,0.18)';
+  ctx.fillRect(x0, 0, x1 - x0, h);
+  ctx.strokeStyle = '#00ff66'; ctx.lineWidth = 1;
+  ctx.strokeRect(x0 + 0.5, 0.5, Math.max(0, x1 - x0 - 1), h - 1);
+}
+
+function tsAtX(px) {
+  if (!histoMeta) return null;
+  const { w, barW, minX, maxX } = histoMeta;
+  const usable = Math.max(1, w - barW);
+  const frac = Math.max(0, Math.min(1, px / usable));
+  return minX + frac * (maxX - minX);
+}
+
+function rangeStatusText() {
+  if (!customRange) return '';
+  const a = Number(customRange.startNs / 1000000n);
+  const b = Number(customRange.endNs / 1000000n);
+  const fmt = (ms) => {
+    const d = new Date(ms);
+    const pad = (n,w=2) => String(n).padStart(w,'0');
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  };
+  const span = Math.round((b - a) / 1000);
+  return `range <b>${fmt(a)}–${fmt(b)}</b> (${span}s) <a href="#" class="clear" id="clearRange">[clear]</a>`;
+}
+
+function redrawHisto() {
+  if (lastHistoSeries) drawHistogram(lastHistoSeries);
+}
+
+function clientXToCanvas(e) {
+  const r = histoCanvas.getBoundingClientRect();
+  return Math.max(0, Math.min(r.width, e.clientX - r.left));
+}
+
+histoCanvas.addEventListener('mousedown', (e) => {
+  if (e.button !== 0) return;
+  const x = clientXToCanvas(e);
+  dragState = { x0: x, x1: x };
+  redrawHisto();
+  e.preventDefault();
+});
+window.addEventListener('mousemove', (e) => {
+  if (!dragState) return;
+  dragState.x1 = clientXToCanvas(e);
+  redrawHisto();
+});
+window.addEventListener('mouseup', (e) => {
+  if (!dragState) return;
+  const ds = dragState; dragState = null;
+  const dx = Math.abs(ds.x1 - ds.x0);
+  if (dx < 3 || !histoMeta) { redrawHisto(); return; }
+  const tsA = tsAtX(Math.min(ds.x0, ds.x1));
+  const tsB = tsAtX(Math.max(ds.x0, ds.x1));
+  if (tsA == null || tsB == null || tsB <= tsA) { redrawHisto(); return; }
+  customRange = {
+    startNs: BigInt(Math.floor(tsA * 1000)) * 1000000n,
+    endNs:   BigInt(Math.floor(tsB * 1000)) * 1000000n,
+  };
+  run();
+});
 
 function startTail() {
   const q = qIn.value.trim() || '{host=~".+"}';
@@ -375,8 +461,15 @@ function stopTail() { if (tailWS) { tailWS.close(); tailWS = null; } tailBtn.cla
 
 runBtn.addEventListener('click', run);
 qIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') run(); });
-rangeSel.addEventListener('change', run);
+rangeSel.addEventListener('change', () => { customRange = null; run(); });
 limitSel.addEventListener('change', run);
+status_.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'clearRange') {
+    e.preventDefault();
+    customRange = null;
+    run();
+  }
+});
 tailBtn.addEventListener('click', () => tailWS ? stopTail() : startTail());
 
 (async () => {
