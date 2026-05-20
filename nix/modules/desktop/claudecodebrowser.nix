@@ -5,6 +5,10 @@ let
 
   src = inputs.claudecodebrowser;
 
+  # AMO-namespace-friendly id; differs from upstream's @ligandal.com so we can
+  # self-sign under mvrozanti's developer account without collision.
+  extensionId = "claudecodebrowser@mvrozanti";
+
   pyEnv = pkgs.python3.withPackages (ps: [ ps.websockets ]);
 
   serverBin = pkgs.writeShellScriptBin "claudecodebrowser-server" ''
@@ -28,17 +32,21 @@ let
     description = "ClaudeCodeBrowser Native Messaging Host";
     path = "${nativeHostBin}";
     type = "stdio";
-    allowed_extensions = [ "claudecodebrowser@ligandal.com" ];
+    allowed_extensions = [ extensionId ];
   });
 
-  # Reproducible xpi build. Drop into about:addons (drag-and-drop).
-  # Note: stable Firefox refuses unsigned extensions in about:addons; works on
-  # ESR/Developer/Nightly with xpinstall.signatures.required=false, or after
-  # AMO signing. Otherwise use about:debugging -> Load Temporary Add-on
-  # (non-persistent across restarts).
-  extensionXpi = pkgs.runCommand "claudecodebrowser.xpi" { nativeBuildInputs = [ pkgs.zip ]; } ''
+  # Unsigned xpi with the id rewritten to extensionId. Installable on
+  # ESR/Developer/Nightly (signatures.required=false) or via about:debugging.
+  # Stable Firefox refuses unsigned in about:addons — use the signed xpi below.
+  extensionXpi = pkgs.runCommand "claudecodebrowser-unsigned.xpi" {
+    nativeBuildInputs = [ pkgs.zip pkgs.jq ];
+  } ''
     cp -r ${src}/extension ext
     chmod -R u+w ext
+    jq --arg id "${extensionId}" '
+      .browser_specific_settings.gecko.id = $id
+    ' ext/manifest.json > ext/manifest.json.tmp
+    mv ext/manifest.json.tmp ext/manifest.json
     cd ext
     zip -r -X "$out" . -x '*.DS_Store'
   '';
@@ -46,6 +54,63 @@ let
   xpiPathBin = pkgs.writeShellScriptBin "claudecodebrowser-xpi" ''
     echo ${extensionXpi}
   '';
+
+  # AMO self-sign wrapper. Run as user m. Reads JWT secret from sops at
+  # /run/secrets/firefox/developer_hub_key, calls `web-ext sign --channel=unlisted`,
+  # writes the signed xpi to /persistent/mandragora/nix/pkgs/claudecodebrowser/signed.xpi.
+  # Commit that file to make the module pick it up on next rebuild.
+  signedXpiPath = ../../pkgs/claudecodebrowser/signed.xpi;
+  hasSignedXpi = builtins.pathExists signedXpiPath;
+
+  signBin = pkgs.writeShellApplication {
+    name = "claudecodebrowser-sign";
+    runtimeInputs = with pkgs; [ web-ext jq coreutils gnused ];
+    text = ''
+      set -euo pipefail
+
+      JWT_ISSUER="user:16565816:136"
+      JWT_SECRET_FILE="''${CLAUDE_BROWSER_JWT_FILE:-/run/secrets/firefox/developer_hub_key}"
+      REPO_ROOT="''${MANDRAGORA_REPO:-/persistent/mandragora}"
+      OUT_DIR="$REPO_ROOT/nix/pkgs/claudecodebrowser"
+      OUT_XPI="$OUT_DIR/signed.xpi"
+
+      if [ ! -r "$JWT_SECRET_FILE" ]; then
+        echo "error: cannot read JWT secret at $JWT_SECRET_FILE" >&2
+        exit 1
+      fi
+
+      WORK=$(mktemp -d)
+      trap 'rm -rf "$WORK"' EXIT
+      cp -r ${src}/extension "$WORK/ext"
+      chmod -R u+w "$WORK/ext"
+
+      jq --arg id "${extensionId}" '
+        .browser_specific_settings.gecko.id = $id
+      ' "$WORK/ext/manifest.json" > "$WORK/ext/manifest.json.tmp"
+      mv "$WORK/ext/manifest.json.tmp" "$WORK/ext/manifest.json"
+
+      mkdir -p "$OUT_DIR" "$WORK/artifacts"
+
+      JWT_SECRET=$(tr -d '\r\n' < "$JWT_SECRET_FILE")
+      web-ext sign \
+        --source-dir="$WORK/ext" \
+        --artifacts-dir="$WORK/artifacts" \
+        --api-key="$JWT_ISSUER" \
+        --api-secret="$JWT_SECRET" \
+        --channel=unlisted
+
+      SIGNED=$(find "$WORK/artifacts" -name '*.xpi' -print -quit)
+      if [ -z "''${SIGNED:-}" ]; then
+        echo "error: no signed xpi produced" >&2
+        exit 1
+      fi
+      install -Dm0644 "$SIGNED" "$OUT_XPI"
+      echo "wrote $OUT_XPI"
+      echo "commit it: git -C $REPO_ROOT add nix/pkgs/claudecodebrowser/signed.xpi && git -C $REPO_ROOT commit -m 'chore(ccb): refresh signed xpi'"
+    '';
+  };
+
+  installedXpi = if hasSignedXpi then signedXpiPath else extensionXpi;
 in {
   options.mandragora.claudecodebrowser = {
     enable = lib.mkEnableOption "ClaudeCodeBrowser MCP + Firefox automation bridge";
@@ -58,18 +123,15 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ serverBin stdioBin agentBin xpiPathBin ];
+    environment.systemPackages = [ serverBin stdioBin agentBin xpiPathBin signBin ];
 
-    # Firefox native-messaging manifest, system-wide.
-    # Path-pinned to the Nix store — restart Firefox after rebuild to pick up changes.
     environment.etc."mozilla/native-messaging-hosts/claudecodebrowser.json".source =
       nativeManifest;
 
-    # Drop the built xpi at a stable path for manual drag-into-about:addons.
-    # The store path itself is also discoverable via `claudecodebrowser-xpi`.
-    environment.etc."claudecodebrowser/extension.xpi".source = extensionXpi;
+    # Stable path for drag-into-about:addons. Source switches to the signed xpi
+    # once nix/pkgs/claudecodebrowser/signed.xpi exists in the repo.
+    environment.etc."claudecodebrowser/extension.xpi".source = installedXpi;
 
-    # Per-user runtime dir with strict perms — holds auto-generated API token.
     systemd.tmpfiles.rules = [
       "d /home/m/.claudecodebrowser            0700 m users - -"
       "d /home/m/.claudecodebrowser/screenshots 0700 m users - -"
@@ -88,7 +150,6 @@ in {
         ExecStart = "${serverBin}/bin/claudecodebrowser-server";
         Restart = "on-failure";
         RestartSec = "5s";
-        # Hardening
         NoNewPrivileges = true;
         PrivateTmp = true;
         ProtectSystem = "strict";
