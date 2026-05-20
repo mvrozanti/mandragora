@@ -33,8 +33,10 @@
             Layout = "";
           };
         };
-        addon.spell = {
-          "Completion Toggle Key" = "";
+        addons.spell = {
+          globalSection = {
+            "Completion Toggle Key" = "";
+          };
         };
       };
     };
