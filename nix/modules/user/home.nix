@@ -21,6 +21,7 @@ in
     ./waybar.nix
     ./rss-menu.nix
     ./security-menu.nix
+    ./weather-menu.nix
     ./minecraft.nix
     ./skills.nix
     ./axon.nix
