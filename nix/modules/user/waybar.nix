@@ -228,6 +228,8 @@
           exec = "~/.config/waybar/scripts/weather.sh";
           return-type = "json";
           interval = 600;
+          on-click = "weather-menu pick";
+          on-click-right = "weather-menu pick --refresh";
         };
 
         tray = {
