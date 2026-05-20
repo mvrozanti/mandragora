@@ -40,6 +40,10 @@ in
         owner = "m";
         mode = "0400";
       };
+      "perception/telegram_bot_key" = {
+        owner = "m";
+        mode = "0400";
+      };
       "llm_via_telegram/env" = {
         owner = "m";
         mode = "0400";
