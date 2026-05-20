@@ -30,6 +30,7 @@
     ../../modules/desktop/steam.nix
     ../../modules/desktop/minecraft.nix
     ../../modules/desktop/ue5.nix
+    ../../modules/desktop/claudecodebrowser.nix
     ../../modules/services/hub-services.nix
     ../../modules/services/ttyd.nix
     ../../modules/services/claude-web.nix
@@ -50,6 +51,7 @@
   mandragora.ai.agentic.enable = true;
   mandragora.ai.uncensored.enable = true;
   services.mandragora-seafile.enable = true;
+  mandragora.claudecodebrowser.enable = true;
 
   nixpkgs.hostPlatform = "x86_64-linux";
   nixpkgs.config.allowUnfree = true;
