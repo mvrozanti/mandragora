@@ -4,8 +4,10 @@ import html
 import json
 import math
 import os
+import socket
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -203,38 +205,75 @@ def fmt_rows(forecast: dict) -> list[str]:
     return rows
 
 
+def watch_focus(proc: subprocess.Popen) -> None:
+    his = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE")
+    if not his:
+        return
+    rt = os.environ.get("XDG_RUNTIME_DIR", "/run/user/1000")
+    path = f"{rt}/hypr/{his}/.socket2.sock"
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(30)
+        s.connect(path)
+    except OSError:
+        return
+    f = s.makefile("r")
+    rofi_seen = False
+    for line in f:
+        if proc.poll() is not None:
+            return
+        line = line.strip()
+        if line.startswith("activewindow>>"):
+            payload = line.split(">>", 1)[1]
+            cls = payload.split(",", 1)[0]
+            if cls == "Rofi":
+                rofi_seen = True
+            elif rofi_seen:
+                try:
+                    proc.terminate()
+                except OSError:
+                    pass
+                return
+
+
 def open_rofi(mesg: str, rows: list[str]) -> int:
     theme = Path.home() / ".config/rofi/themes/menu.rasi"
-    proc = subprocess.run(
-        [
-            "rofi",
-            "-dmenu",
-            "-i",
-            "-markup-rows",
-            "-no-custom",
-            "-p",
-            "weather",
-            "-theme",
-            str(theme),
-            "-theme-str",
-            (
-                "window { width: 34%; } "
-                "listview { lines: 14; } "
-                "entry { enabled: false; } "
-                "inputbar { children: []; padding: 0; border: 0; background-color: transparent; } "
-                "element { padding: 6px 10px; } "
-                "element selected { background-color: #ffffff12; }"
-            ),
-            "-format",
-            "i",
-            "-mesg",
-            mesg,
-            "-kb-custom-1",
-            "Alt+r",
-        ],
-        input="\n".join(rows),
-        text=True,
-    )
+    args = [
+        "rofi",
+        "-dmenu",
+        "-i",
+        "-markup-rows",
+        "-no-custom",
+        "-normal-window",
+        "-window-title",
+        "weather-menu",
+        "-p",
+        "weather",
+        "-theme",
+        str(theme),
+        "-theme-str",
+        (
+            "window { width: 34%; } "
+            "listview { lines: 14; } "
+            "entry { enabled: false; } "
+            "inputbar { children: []; padding: 0; border: 0; background-color: transparent; } "
+            "element { padding: 6px 10px; } "
+            "element selected { background-color: #ffffff12; }"
+        ),
+        "-format",
+        "i",
+        "-mesg",
+        mesg,
+        "-kb-custom-1",
+        "Alt+r",
+    ]
+    proc = subprocess.Popen(args, stdin=subprocess.PIPE, text=True)
+    assert proc.stdin is not None
+    proc.stdin.write("\n".join(rows))
+    proc.stdin.close()
+    t = threading.Thread(target=watch_focus, args=(proc,), daemon=True)
+    t.start()
+    proc.wait()
     return proc.returncode
 
 
