@@ -25,6 +25,11 @@
       url = "github:nix-community/NixOS-WSL";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    claudecodebrowser = {
+      url = "github:nanogenomic/ClaudeCodeBrowser/d5f6bbe9fef2cfe82474722320af7e04499fb10d";
+      flake = false;
+    };
   };
 
   outputs = { self, nixpkgs, home-manager, sops-nix, impermanence, nixos-generators, nixos-wsl, ... }@inputs:
