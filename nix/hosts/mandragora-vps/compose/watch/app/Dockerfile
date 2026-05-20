@@ -10,7 +10,7 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
-COPY main.py poller.py sources.py ./
+COPY main.py poller.py sources.py telegram.py ./
 COPY static ./static
 
 EXPOSE 8080

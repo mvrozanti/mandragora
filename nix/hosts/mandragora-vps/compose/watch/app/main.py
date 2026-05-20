@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 
 import poller
 import sources
+import telegram as tg
 
 
 logging.basicConfig(
@@ -80,15 +81,20 @@ def init_db() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
-    task = asyncio.create_task(poller.run_forever(conn))
+    tasks = [
+        asyncio.create_task(poller.run_forever(conn)),
+        asyncio.create_task(tg.run_forever(conn)),
+    ]
     try:
         yield
     finally:
-        task.cancel()
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
+        for t in tasks:
+            t.cancel()
+        for t in tasks:
+            try:
+                await t
+            except asyncio.CancelledError:
+                pass
 
 
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
