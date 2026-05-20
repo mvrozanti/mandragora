@@ -217,6 +217,7 @@ def open_rofi(mesg: str, rows: list[str]) -> int:
             "Alt+r",
         ],
         input="\n".join(rows),
+        text=True,
     )
     return proc.returncode
 
