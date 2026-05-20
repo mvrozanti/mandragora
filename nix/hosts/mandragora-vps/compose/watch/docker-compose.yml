@@ -1,0 +1,36 @@
+services:
+
+  watch:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: ${WATCH_IMAGE:-mandragora/watch:local}
+    container_name: watch
+    restart: unless-stopped
+    environment:
+      - WATCH_PUBLIC_BASE=https://watch.${MVR_AC:-mvr.ac}
+      - WATCH_DATA_DIR=/data
+      - WATCH_POLL_INTERVAL=${WATCH_POLL_INTERVAL:-300}
+      - WATCH_MAX_EVENTS_PER_WATCHER=${WATCH_MAX_EVENTS_PER_WATCHER:-500}
+      - WATCH_USER_AGENT=${WATCH_USER_AGENT:-mandragora-watch/0.1 (+https://watch.mvr.ac)}
+      - WATCH_WEBHOOK_URL=${WATCH_WEBHOOK_URL:-}
+      - GITHUB_PAT=${GITHUB_PAT:-}
+    volumes:
+      - ${WATCH_DATA_VOLUME:-./data}:/data
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://watch.${MVR_AC:-mvr.ac}
+      caddy.0_handle.forward_auth: "authelia:9091"
+      caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.0_handle.reverse_proxy: "{{upstreams 8080}}"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true
