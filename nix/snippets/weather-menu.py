@@ -23,16 +23,26 @@ CACHE_DIR = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "we
 CACHE_TTL = 600
 
 ICONS = {
-    "01d": "", "01n": "",
-    "02d": "", "02n": "",
-    "03d": "", "03n": "",
-    "04d": "", "04n": "",
-    "09d": "", "09n": "",
-    "10d": "", "10n": "",
-    "11d": "", "11n": "",
-    "13d": "", "13n": "",
-    "50d": "", "50n": "",
+    "01d": "", "01n": "",
+    "02d": "", "02n": "",
+    "03d": "", "03n": "",
+    "04d": "", "04n": "",
+    "09d": "", "09n": "",
+    "10d": "", "10n": "",
+    "11d": "", "11n": "",
+    "13d": "", "13n": "",
+    "50d": "", "50n": "",
 }
+
+ICON_LOC = "\U000f034e"
+ICON_FEELS = ""
+ICON_HUMIDITY = ""
+ICON_WIND = ""
+ICON_SUNRISE = ""
+ICON_SUNSET = ""
+ICON_HI = "\U000f0e72"
+ICON_LO = "\U000f0e71"
+ICON_DROP = "\U000f058c"
 
 WIND_DIRS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 
@@ -118,17 +128,20 @@ def fmt_current(cur: dict) -> str:
     if sunrise and sunset:
         sr = datetime.fromtimestamp(sunrise).strftime("%H:%M")
         ss = datetime.fromtimestamp(sunset).strftime("%H:%M")
-        suntimes = f"   {sr}    {ss}"
+        suntimes = (
+            f"  ·  <span foreground='#f5d76e'>{ICON_SUNRISE}</span> {sr}"
+            f"  <span foreground='#d18b6e'>{ICON_SUNSET}</span> {ss}"
+        )
     loc = html.escape(f"{city}, {country}".strip(", "))
     return (
         f"<span size='xx-large' foreground='#f5b9a4'>{icon}</span>   "
         f"<b><span size='xx-large'>{temp}°C</span></b>   "
         f"<span foreground='#d0d0dc' size='large'>{html.escape(desc)}</span>\n"
         f"<span foreground='#a0a0b0' size='small'>"
-        f"<span foreground='#f4b2e3'></span> {loc}  ·  "
-        f"<span foreground='#f5b9a4'></span> feels {feels}°  ·  "
-        f"<span foreground='#9bd1ff'></span> {humidity}%  ·  "
-        f"<span foreground='#c6c6d0'></span> {wspeed:.1f} m/s {wind_dir(wdeg)}"
+        f"<span foreground='#f4b2e3'>{ICON_LOC}</span> {loc}  ·  "
+        f"<span foreground='#f5b9a4'>{ICON_FEELS}</span> feels {feels}°  ·  "
+        f"<span foreground='#9bd1ff'>{ICON_HUMIDITY}</span> {humidity}%  ·  "
+        f"<span foreground='#c6c6d0'>{ICON_WIND}</span> {wspeed:.1f} m/s {wind_dir(wdeg)}"
         f"{suntimes}</span>"
     )
 
@@ -162,15 +175,15 @@ def fmt_rows(forecast: dict) -> list[str]:
         label = "Today" if day_key == today else dt.strftime("%a %d %b")
         tmin, tmax, dom_icon, pop = daily_summary(slots)
         pop_str = (
-            f"   <span foreground='#9bd1ff'></span> {int(pop * 100)}%"
+            f"   <span foreground='#9bd1ff'>{ICON_DROP}</span> {int(pop * 100)}%"
             if pop >= 0.1
             else ""
         )
         header = (
             f"<b>{label}</b>   "
             f"<span foreground='#f5b9a4' size='large'>{icon_for(dom_icon)}</span>   "
-            f"<span foreground='#f08c7c'></span> <b>{round(tmax)}°</b>  "
-            f"<span foreground='#9bd1ff'></span> <b>{round(tmin)}°</b>"
+            f"<span foreground='#f08c7c'>{ICON_HI}</span> <b>{round(tmax)}°</b>  "
+            f"<span foreground='#9bd1ff'>{ICON_LO}</span> <b>{round(tmin)}°</b>"
             f"{pop_str}"
         )
         rows.append(f"{header}\0nonselectable\x1ftrue")
@@ -185,12 +198,12 @@ def fmt_rows(forecast: dict) -> list[str]:
             desc = w.get("description", "").capitalize()
             pop = slot.get("pop", 0) or 0
             pop_str = (
-                f"   <span foreground='#9bd1ff'></span> {int(pop * 100)}%"
+                f"   <span foreground='#9bd1ff'>{ICON_DROP}</span> {int(pop * 100)}%"
                 if pop >= 0.1
                 else ""
             )
             wind_str = (
-                f"   <span foreground='#808090'></span> {wind.get('speed', 0):.0f} m/s"
+                f"   <span foreground='#808090'>{ICON_WIND}</span> {wind.get('speed', 0):.0f} m/s"
             )
             time_str = dt.strftime("%H:%M")
             row = (
