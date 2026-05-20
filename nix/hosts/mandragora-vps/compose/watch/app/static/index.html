@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>watch · mvr.ac</title>
+<style>
+:root {
+  --bg: #050805;
+  --panel: #0a0e0a;
+  --fg: #b8ffc4;
+  --accent: #00ff66;
+  --dim: #4a6a4e;
+  --hover: #0f1810;
+  --line: #1a2418;
+  --warn: #ffb347;
+  --bad: #ff6b6b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg); color: var(--fg);
+  font-family: "Iosevka", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  min-height: 100vh;
+}
+body { padding: 2rem 1.5rem; }
+.wrap { max-width: 1200px; margin: 0 auto; }
+header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid var(--line); padding-bottom: 0.9rem; margin-bottom: 1.6rem;
+}
+h1 { font-size: 1.05rem; font-weight: normal; }
+h1::before { content: '$ '; color: var(--accent); }
+h1 .cursor { color: var(--accent); animation: blink 1.1s infinite; }
+@keyframes blink { 0%,50% { opacity: 1; } 50.01%,100% { opacity: 0; } }
+.user { color: var(--dim); font-size: 0.78rem; }
+.user a { color: var(--accent); text-decoration: none; margin-left: 0.7rem; }
+.user a:hover { text-decoration: underline; }
+.cols { display: grid; grid-template-columns: 340px 1fr; gap: 1rem; }
+@media (max-width: 800px) { .cols { grid-template-columns: 1fr; } }
+.panel { background: var(--panel); border: 1px solid var(--line); padding: 0.9rem; }
+.panel h2 {
+  font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--accent); opacity: 0.8; margin-bottom: 0.7rem; font-weight: normal;
+}
+.watcher {
+  padding: 0.6rem; border: 1px solid var(--line); margin-bottom: 0.4rem;
+  cursor: pointer; transition: border-color 0.1s, background 0.1s;
+  display: flex; flex-direction: column; gap: 0.2rem;
+}
+.watcher:hover { border-color: var(--accent); background: var(--hover); }
+.watcher.active { border-color: var(--accent); background: var(--hover); }
+.watcher.disabled { opacity: 0.45; }
+.watcher .name { color: var(--fg); font-size: 0.85rem; }
+.watcher .meta { color: var(--dim); font-size: 0.7rem; display: flex; justify-content: space-between; gap: 0.4rem; }
+.watcher .err { color: var(--bad); font-size: 0.7rem; word-break: break-word; }
+.btn {
+  background: transparent; color: var(--accent); border: 1px solid var(--accent);
+  font-family: inherit; font-size: 0.75rem; padding: 0.35rem 0.6rem;
+  cursor: pointer; text-transform: lowercase; letter-spacing: 0.05em;
+  transition: background 0.1s, color 0.1s;
+}
+.btn:hover { background: var(--accent); color: var(--bg); }
+.btn.danger { color: var(--bad); border-color: var(--bad); }
+.btn.danger:hover { background: var(--bad); color: var(--bg); }
+.btn.dim { color: var(--dim); border-color: var(--dim); }
+.btn.dim:hover { background: var(--dim); color: var(--bg); }
+input[type="text"], select {
+  background: var(--bg); color: var(--fg); border: 1px solid var(--line);
+  font-family: inherit; font-size: 0.8rem; padding: 0.4rem 0.5rem;
+  width: 100%;
+}
+input:focus, select:focus { outline: none; border-color: var(--accent); }
+.form { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.6rem; }
+.form-row { display: flex; gap: 0.4rem; }
+.events { display: flex; flex-direction: column; gap: 0.3rem; }
+.event {
+  padding: 0.55rem 0.7rem; border: 1px solid var(--line);
+  display: grid; grid-template-columns: 6.5rem 1fr auto; gap: 0.6rem; align-items: start;
+  font-size: 0.78rem; transition: border-color 0.1s, background 0.1s;
+}
+.event:hover { border-color: var(--accent); background: var(--hover); }
+.event .kind { color: var(--accent); font-size: 0.7rem; }
+.event .title a { color: var(--fg); text-decoration: none; }
+.event .title a:hover { color: var(--accent); text-decoration: underline; }
+.event .summary { color: var(--dim); font-size: 0.72rem; margin-top: 0.2rem; }
+.event .when { color: var(--dim); font-size: 0.7rem; text-align: right; white-space: nowrap; }
+.empty { color: var(--dim); font-size: 0.8rem; text-align: center; padding: 2rem; }
+.bar {
+  display: flex; gap: 0.5rem; justify-content: space-between; align-items: center;
+  margin-bottom: 0.8rem; flex-wrap: wrap;
+}
+.bar .info { color: var(--dim); font-size: 0.75rem; }
+.bar .info b { color: var(--fg); font-weight: 500; }
+.row-btns { display: flex; gap: 0.3rem; margin-top: 0.3rem; }
+footer { margin-top: 2rem; color: var(--dim); font-size: 0.7rem; text-align: center; }
+footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>watch.mvr.ac<span class="cursor">_</span></h1>
+    <div class="user">
+      <span id="who">…</span>
+      <a href="https://hub.mvr.ac/">hub</a>
+      <a href="https://auth.mvr.ac/logout">logout</a>
+    </div>
+  </header>
+
+  <div class="cols">
+    <div class="panel">
+      <h2>watchers</h2>
+      <div id="watcher-list"><div class="empty">loading…</div></div>
+      <div class="form">
+        <select id="new-kind"></select>
+        <input type="text" id="new-target" placeholder="target (e.g. octocat)">
+        <input type="text" id="new-name" placeholder="display name (optional)">
+        <button class="btn" onclick="addWatcher()">add watcher</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="bar">
+        <h2 id="events-title">events</h2>
+        <div class="info">
+          <span id="filter-info"></span>
+          <button class="btn dim" onclick="setFilter(null)">all</button>
+          <button class="btn dim" onclick="loadEvents()">refresh</button>
+        </div>
+      </div>
+      <div id="events" class="events"><div class="empty">loading…</div></div>
+    </div>
+  </div>
+
+  <footer>
+    mandragora-watch · <a href="https://hub.mvr.ac">hub</a> · <a href="https://github.com/mvrozanti/mandragora">src</a>
+  </footer>
+</div>
+
+<script>
+let kinds = {};
+let watchers = [];
+let filterWatcher = null;
+
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  if (!r.ok) {
+    const t = await r.text();
+    throw new Error(`${r.status}: ${t}`);
+  }
+  return r.json();
+}
+
+async function loadKinds() {
+  kinds = await api('/api/kinds');
+  const sel = document.getElementById('new-kind');
+  sel.innerHTML = '';
+  for (const [k, meta] of Object.entries(kinds)) {
+    const o = document.createElement('option');
+    o.value = k;
+    o.textContent = `${meta.label} (${k})`;
+    o.dataset.hint = meta.target_hint;
+    sel.appendChild(o);
+  }
+  sel.addEventListener('change', updateHint);
+  updateHint();
+}
+
+function updateHint() {
+  const sel = document.getElementById('new-kind');
+  const opt = sel.options[sel.selectedIndex];
+  if (opt) {
+    document.getElementById('new-target').placeholder = `target (e.g. ${opt.dataset.hint})`;
+  }
+}
+
+async function loadWatchers() {
+  watchers = await api('/api/watchers');
+  const root = document.getElementById('watcher-list');
+  if (!watchers.length) {
+    root.innerHTML = '<div class="empty">no watchers yet</div>';
+    return;
+  }
+  root.innerHTML = '';
+  for (const w of watchers) {
+    const cls = ['watcher'];
+    if (!w.enabled) cls.push('disabled');
+    if (filterWatcher === w.id) cls.push('active');
+    const div = document.createElement('div');
+    div.className = cls.join(' ');
+    div.innerHTML = `
+      <div class="name">${escapeHtml(w.name)}</div>
+      <div class="meta">
+        <span>${w.kind} · ${escapeHtml(w.target)}</span>
+        <span>${w.event_count} ev</span>
+      </div>
+      <div class="meta">
+        <span>last: ${w.last_polled_at || 'never'}</span>
+      </div>
+      ${w.last_error ? `<div class="err">err: ${escapeHtml(w.last_error)}</div>` : ''}
+      <div class="row-btns">
+        <button class="btn dim" onclick="event.stopPropagation(); setFilter(${w.id})">view</button>
+        <button class="btn dim" onclick="event.stopPropagation(); pollNow(${w.id})">poll</button>
+        <button class="btn dim" onclick="event.stopPropagation(); toggle(${w.id})">${w.enabled ? 'pause' : 'resume'}</button>
+        <button class="btn danger" onclick="event.stopPropagation(); del(${w.id})">del</button>
+      </div>
+    `;
+    div.onclick = () => setFilter(w.id);
+    root.appendChild(div);
+  }
+}
+
+async function addWatcher() {
+  const kind = document.getElementById('new-kind').value;
+  const target = document.getElementById('new-target').value.trim();
+  const name = document.getElementById('new-name').value.trim();
+  if (!target) { alert('target required'); return; }
+  try {
+    await api('/api/watchers', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({kind, target, name: name || undefined}),
+    });
+    document.getElementById('new-target').value = '';
+    document.getElementById('new-name').value = '';
+    await loadWatchers();
+  } catch (e) { alert(e.message); }
+}
+
+async function del(id) {
+  if (!confirm('delete watcher?')) return;
+  await api(`/api/watchers/${id}`, {method: 'DELETE'});
+  if (filterWatcher === id) filterWatcher = null;
+  await loadWatchers();
+  await loadEvents();
+}
+
+async function toggle(id) {
+  await api(`/api/watchers/${id}/toggle`, {method: 'POST'});
+  await loadWatchers();
+}
+
+async function pollNow(id) {
+  try {
+    const r = await api(`/api/watchers/${id}/poll`, {method: 'POST'});
+    await loadWatchers();
+    await loadEvents();
+    alert(`fetched ${r.fetched}, new ${r.inserted}`);
+  } catch (e) { alert(e.message); }
+}
+
+function setFilter(id) {
+  filterWatcher = id;
+  loadWatchers();
+  loadEvents();
+}
+
+async function loadEvents() {
+  const q = filterWatcher ? `?watcher_id=${filterWatcher}&limit=100` : '?limit=100';
+  const events = await api('/api/events' + q);
+  const root = document.getElementById('events');
+  const info = document.getElementById('filter-info');
+  if (filterWatcher) {
+    const w = watchers.find(x => x.id === filterWatcher);
+    info.innerHTML = `filter: <b>${w ? escapeHtml(w.name) : filterWatcher}</b>`;
+  } else {
+    info.innerHTML = `total: <b>${events.length}</b>`;
+  }
+  if (!events.length) {
+    root.innerHTML = '<div class="empty">no events yet</div>';
+    return;
+  }
+  root.innerHTML = '';
+  for (const e of events) {
+    const div = document.createElement('div');
+    div.className = 'event';
+    const when = e.occurred_at || e.received_at;
+    const titleHtml = e.link
+      ? `<a href="${escapeHtml(e.link)}" target="_blank">${escapeHtml(e.title)}</a>`
+      : escapeHtml(e.title);
+    div.innerHTML = `
+      <div class="kind">${e.watcher_kind}<br><span style="color:var(--dim);font-size:0.65rem">${escapeHtml(e.watcher_target)}</span></div>
+      <div>
+        <div class="title">${titleHtml}</div>
+        ${e.summary ? `<div class="summary">${escapeHtml(e.summary)}</div>` : ''}
+      </div>
+      <div class="when">${escapeHtml(when || '')}</div>
+    `;
+    root.appendChild(div);
+  }
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[c]);
+}
+
+(async () => {
+  const u = document.cookie.match(/(?:^|; )authelia_session_user=([^;]+)/);
+  document.getElementById('who').textContent = u ? decodeURIComponent(u[1]) : '';
+  await loadKinds();
+  await loadWatchers();
+  await loadEvents();
+  setInterval(loadWatchers, 30000);
+  setInterval(loadEvents, 30000);
+})();
+</script>
+</body>
+</html>
