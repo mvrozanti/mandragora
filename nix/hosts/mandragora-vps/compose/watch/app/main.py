@@ -19,6 +19,8 @@ logging.basicConfig(
     level=os.environ.get("WATCH_LOG_LEVEL", "INFO"),
     format="%(asctime)s %(name)s %(levelname)s %(message)s",
 )
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 log = logging.getLogger("watch")
 
 
