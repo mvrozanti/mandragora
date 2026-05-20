@@ -44,6 +44,10 @@ in
         owner = "m";
         mode = "0400";
       };
+      "perception/telegram_bot_key" = {
+        owner = "m";
+        mode = "0400";
+      };
       "image_generator/telegram_bot_key" = {
         owner = "m";
         mode = "0400";
