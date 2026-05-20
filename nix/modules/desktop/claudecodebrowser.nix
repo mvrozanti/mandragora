@@ -35,6 +35,14 @@ let
     allowed_extensions = [ extensionId ];
   });
 
+  # nixpkgs Firefox is built with --with-default-mozilla-five-home and ships a
+  # private $out/lib/mozilla/native-messaging-hosts/ directory. The system-wide
+  # /etc/mozilla path is invisible to it; the host package must be added to
+  # programs.firefox.nativeMessagingHosts so home-manager symlinks it in.
+  nativeHostPkg = pkgs.runCommand "claudecodebrowser-native-messaging-host" { } ''
+    install -Dm0644 ${nativeManifest} $out/lib/mozilla/native-messaging-hosts/claudecodebrowser.json
+  '';
+
   # Unsigned xpi with the id rewritten to extensionId. Installable on
   # ESR/Developer/Nightly (signatures.required=false) or via about:debugging.
   # Stable Firefox refuses unsigned in about:addons — use the signed xpi below.
@@ -125,8 +133,12 @@ in {
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ serverBin stdioBin agentBin xpiPathBin signBin ];
 
+    # Kept for non-Firefox-wrapped consumers (other Mozilla-derived browsers).
+    # The nixpkgs Firefox build only sees its own private dir; see nativeHostPkg.
     environment.etc."mozilla/native-messaging-hosts/claudecodebrowser.json".source =
       nativeManifest;
+
+    home-manager.users.m.programs.firefox.nativeMessagingHosts = [ nativeHostPkg ];
 
     # Stable path for drag-into-about:addons. Source switches to the signed xpi
     # once nix/pkgs/claudecodebrowser/signed.xpi exists in the repo.
