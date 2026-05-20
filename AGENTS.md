@@ -147,6 +147,11 @@ rationale, recipes, or the incident that produced the rule.
     PyTorch / Ollama work serializes through \`gpu-lock\`; PyTorch
     holders must \`torch.cuda.empty_cache()\` before release. Detail:
     [\`docs/gpu.md\`](docs/gpu.md), \`~/.ai-shared/rules/gpu-lock.md\`.
+16. **Every \`*.mvr.ac\` subdomain needs a hub tile** — when bringing
+    up a new public subdomain, add the matching \`<a class="tile">\`
+    entry to \`nix/hosts/mandragora-vps/compose/hub/static/index.html\`
+    in the same commit. Missing tile is a blocker, not a polish item.
+    Detail: \`~/.ai-shared/rules/mvr-hub-tile.md\`.
 
 ---
 
