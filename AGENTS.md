@@ -49,6 +49,43 @@ expands the blast radius.
 
 ---
 
+## VPS Operations
+
+\`mandragora-vps\` (tailscale: \`100.84.78.83\`, public IP
+\`146.235.51.189\`, SSH alias \`opc@mandragora-vps\`) is the user's
+solo-owned production VPS. Agents may operate it directly for ordinary
+provisioning and deployment of the user's own stacks. Routine
+operations that do not require asking first:
+
+- \`ssh opc@mandragora-vps …\` for diagnostics, \`docker ps\`, reading
+  the user's own service logs, listing files under \`/home/opc/\`.
+- \`sudo mkdir\`, \`sudo chown opc:opc\`, \`sudo chmod\` to provision
+  new service slots at \`/home/opc/<slot>/\` that the agent is
+  bringing up in the current session.
+- \`rsync\` static assets, compose files, or build outputs into the
+  agent-managed \`/home/opc/<slot>/\` from the desktop.
+- \`docker compose up/down/restart/logs\` on slots the agent is
+  bringing up or just brought up this session.
+
+The pattern for adding a new public subdomain is fully captured by the
+\`demo\` and \`rule110\` stacks in
+\`nix/hosts/mandragora-vps/compose/\`: mirror the compose YAML (caddy
+labels handle TLS via the docker-proxy, \`seafile-net\` is the shared
+network), \`rsync\` it to the VPS, \`docker compose up -d\`. No nixos
+rebuild is required for compose-only changes.
+
+**Still requires explicit user authorization, every time:**
+
+- Reading \`/home/opc/*/.env\`, \`secrets/\`, or any sops-decrypted file
+  on the VPS.
+- Destructive ops on stacks the agent didn't bring up this session
+  (\`docker compose down\`, container deletion, volume removal,
+  \`rm -rf\` under \`/home/opc/\`, database drops).
+- Anything that risks taking the VPS offline (\`reboot\`, stopping
+  docker itself, firewall changes that touch SSH or the docker-proxy).
+
+---
+
 ## Non-Negotiables (Absolute Rules)
 
 Invariants. Each rule is one line + a why-hook. Follow the link for
