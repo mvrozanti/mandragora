@@ -7,7 +7,7 @@ import os
 import subprocess
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
@@ -119,11 +119,14 @@ def fmt_current(cur: dict) -> str:
         suntimes = f"   {sr}    {ss}"
     loc = html.escape(f"{city}, {country}".strip(", "))
     return (
-        f"<span size='x-large'>{icon}</span>  "
-        f"<b><span size='x-large'>{temp}°C</span></b>   "
-        f"<span foreground='#d0d0dc'>{html.escape(desc)}</span>\n"
-        f"<span foreground='#a0a0b0' size='small'>{loc}  ·  "
-        f"feels {feels}°  ·   {humidity}%  ·   {wspeed:.1f} m/s {wind_dir(wdeg)}"
+        f"<span size='xx-large' foreground='#f5b9a4'>{icon}</span>   "
+        f"<b><span size='xx-large'>{temp}°C</span></b>   "
+        f"<span foreground='#d0d0dc' size='large'>{html.escape(desc)}</span>\n"
+        f"<span foreground='#a0a0b0' size='small'>"
+        f"<span foreground='#f4b2e3'></span> {loc}  ·  "
+        f"<span foreground='#f5b9a4'></span> feels {feels}°  ·  "
+        f"<span foreground='#9bd1ff'></span> {humidity}%  ·  "
+        f"<span foreground='#c6c6d0'></span> {wspeed:.1f} m/s {wind_dir(wdeg)}"
         f"{suntimes}</span>"
     )
 
@@ -146,7 +149,7 @@ def fmt_rows(forecast: dict) -> list[str]:
     tz_offset = forecast.get("city", {}).get("timezone", 0)
     by_day: dict[str, list[dict]] = {}
     for slot in forecast.get("list", []):
-        dt = datetime.utcfromtimestamp(slot["dt"]) + timedelta(seconds=tz_offset)
+        dt = datetime.fromtimestamp(slot["dt"], tz=timezone.utc) + timedelta(seconds=tz_offset)
         slot["_dt"] = dt
         key = dt.strftime("%Y-%m-%d")
         by_day.setdefault(key, []).append(slot)
@@ -156,11 +159,17 @@ def fmt_rows(forecast: dict) -> list[str]:
         dt = slots[0]["_dt"]
         label = "Today" if day_key == today else dt.strftime("%a %d %b")
         tmin, tmax, dom_icon, pop = daily_summary(slots)
-        pop_str = f"   {int(pop * 100)}%" if pop >= 0.1 else ""
+        pop_str = (
+            f"   <span foreground='#9bd1ff'></span> {int(pop * 100)}%"
+            if pop >= 0.1
+            else ""
+        )
         header = (
-            f"<b>{label}</b>  "
-            f"<span foreground='#a0a0b0'>{icon_for(dom_icon)}  "
-            f"{round(tmax)}° / {round(tmin)}°{pop_str}</span>"
+            f"<b>{label}</b>   "
+            f"<span foreground='#f5b9a4' size='large'>{icon_for(dom_icon)}</span>   "
+            f"<span foreground='#f08c7c'></span> <b>{round(tmax)}°</b>  "
+            f"<span foreground='#9bd1ff'></span> <b>{round(tmin)}°</b>"
+            f"{pop_str}"
         )
         rows.append(f"{header}\0nonselectable\x1ftrue")
 
@@ -173,14 +182,21 @@ def fmt_rows(forecast: dict) -> list[str]:
             icon = icon_for(w.get("icon", ""))
             desc = w.get("description", "").capitalize()
             pop = slot.get("pop", 0) or 0
-            pop_str = f"   {int(pop * 100)}%" if pop >= 0.1 else ""
-            wind_str = f"   {wind.get('speed', 0):.0f} m/s"
+            pop_str = (
+                f"   <span foreground='#9bd1ff'></span> {int(pop * 100)}%"
+                if pop >= 0.1
+                else ""
+            )
+            wind_str = (
+                f"   <span foreground='#808090'></span> {wind.get('speed', 0):.0f} m/s"
+            )
             time_str = dt.strftime("%H:%M")
             row = (
                 f"  <span foreground='#a0a0b0'>{time_str}</span>   "
-                f"{icon}   <b>{temp}°</b>   "
+                f"<span foreground='#f5b9a4' size='large'>{icon}</span>   "
+                f"<b>{temp}°</b>   "
                 f"<span foreground='#c0c0cc'>{html.escape(desc)}</span>"
-                f"<span foreground='#7080a0'>{pop_str}</span>"
+                f"{pop_str}"
                 f"<span foreground='#808090'>{wind_str}</span>"
             )
             rows.append(f"{row}\0nonselectable\x1ftrue")
