@@ -65,6 +65,10 @@ in
         mode = "0400";
         restartUnits = [ "grafana.service" ];
       };
+      "firefox/developer_hub_key" = {
+        owner = "m";
+        mode = "0400";
+      };
     };
 
     templates."hosts-oracle" = {
