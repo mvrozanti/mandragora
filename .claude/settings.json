@@ -32,7 +32,7 @@
       }
     }
   },
-  "effortLevel": "medium",
+  "effortLevel": "xhigh",
   "tui": "fullscreen",
   "skipAutoPermissionPrompt": true
 }
