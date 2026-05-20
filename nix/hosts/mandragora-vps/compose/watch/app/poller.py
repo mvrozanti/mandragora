@@ -9,6 +9,7 @@ from typing import Any
 import httpx
 
 import sources
+import telegram as tg
 
 log = logging.getLogger("watch.poller")
 
@@ -51,6 +52,7 @@ async def poll_once(conn_factory) -> dict[str, int]:
                 if WEBHOOK_URL:
                     if await _fanout(row, ev):
                         stats["fanout"] += 1
+                await tg.push_event(row, ev)
             c.execute(
                 "UPDATE watchers SET cursor = ?, last_polled_at = ?, last_error = NULL WHERE id = ?",
                 (new_cursor, now_iso(), row["id"]),
