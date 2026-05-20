@@ -15,6 +15,8 @@ services:
       - WATCH_USER_AGENT=${WATCH_USER_AGENT:-mandragora-watch/0.1 (+https://watch.mvr.ac)}
       - WATCH_WEBHOOK_URL=${WATCH_WEBHOOK_URL:-}
       - GITHUB_PAT=${GITHUB_PAT:-}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
     volumes:
       - ${WATCH_DATA_VOLUME:-./data}:/data
     networks:
