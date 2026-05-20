@@ -45,6 +45,13 @@ NOISE_PNAME_VERSION = {
     ("openssl", "0.10.78"),
     ("zlib", "0.7.1.1"),
     ("orc", "0.4.41"),
+    ("python", "2.7.18.12"),
+    ("openssl", "3.0.19"),
+    ("gzip", "1.2.4"),
+    ("rubygems", "3.7.2"),
+    ("sassc", "3.6.2"),
+    ("zlib", "1.3.1"),
+    ("subversion", "1.14.5"),
 }
 
 NOISE_EXACT = {
