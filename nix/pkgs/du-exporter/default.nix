@@ -12,10 +12,8 @@ writeShellApplication {
     cleanup() { [ -n "$TMPFILE" ] && rm -f "$TMPFILE"; }
     trap cleanup EXIT
 
-    # Collect Sizes
-    du_size=$(du --block-size=1 -d5 /home/m 2>/dev/null)
-    # Collect Inodes
-    du_inodes=$(du --inodes -d5 /home/m 2>/dev/null)
+    du_size=$(du --block-size=1 -d5 /home/m 2>/dev/null || true)
+    du_inodes=$(du --inodes -d5 /home/m 2>/dev/null || true)
 
     printf '# HELP dirsize_bytes Disk usage of directory in bytes\n' > "$TMPFILE"
     printf '# TYPE dirsize_bytes gauge\n' >> "$TMPFILE"
