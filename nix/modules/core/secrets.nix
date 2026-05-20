@@ -36,6 +36,10 @@ in
         owner = "m";
         mode = "0400";
       };
+      "github/personal_access_token" = {
+        owner = "m";
+        mode = "0400";
+      };
       "llm_via_telegram/env" = {
         owner = "m";
         mode = "0400";
