@@ -30,6 +30,22 @@ let
     type = "stdio";
     allowed_extensions = [ "claudecodebrowser@ligandal.com" ];
   });
+
+  # Reproducible xpi build. Drop into about:addons (drag-and-drop).
+  # Note: stable Firefox refuses unsigned extensions in about:addons; works on
+  # ESR/Developer/Nightly with xpinstall.signatures.required=false, or after
+  # AMO signing. Otherwise use about:debugging -> Load Temporary Add-on
+  # (non-persistent across restarts).
+  extensionXpi = pkgs.runCommand "claudecodebrowser.xpi" { nativeBuildInputs = [ pkgs.zip ]; } ''
+    cp -r ${src}/extension ext
+    chmod -R u+w ext
+    cd ext
+    zip -r -X "$out" . -x '*.DS_Store'
+  '';
+
+  xpiPathBin = pkgs.writeShellScriptBin "claudecodebrowser-xpi" ''
+    echo ${extensionXpi}
+  '';
 in {
   options.mandragora.claudecodebrowser = {
     enable = lib.mkEnableOption "ClaudeCodeBrowser MCP + Firefox automation bridge";
@@ -42,12 +58,16 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ serverBin stdioBin agentBin ];
+    environment.systemPackages = [ serverBin stdioBin agentBin xpiPathBin ];
 
     # Firefox native-messaging manifest, system-wide.
     # Path-pinned to the Nix store — restart Firefox after rebuild to pick up changes.
     environment.etc."mozilla/native-messaging-hosts/claudecodebrowser.json".source =
       nativeManifest;
+
+    # Drop the built xpi at a stable path for manual drag-into-about:addons.
+    # The store path itself is also discoverable via `claudecodebrowser-xpi`.
+    environment.etc."claudecodebrowser/extension.xpi".source = extensionXpi;
 
     # Per-user runtime dir with strict perms — holds auto-generated API token.
     systemd.tmpfiles.rules = [
