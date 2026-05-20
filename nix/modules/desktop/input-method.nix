@@ -21,6 +21,7 @@
           };
         };
         inputMethod = {
+          # Completion toggle key fix
           GroupOrder."0" = "Default";
           "Groups/0" = {
             Name = "Default";
@@ -31,6 +32,9 @@
             Name = "keyboard-us-intl";
             Layout = "";
           };
+        };
+        addon.spell = {
+          "Completion Toggle Key" = "";
         };
       };
     };
