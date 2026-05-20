@@ -57,7 +57,16 @@ WATCH_POLL_INTERVAL=300
 WATCH_MAX_EVENTS_PER_WATCHER=500
 WATCH_WEBHOOK_URL=https://webhook.mvr.ac/h/<slug>
 GITHUB_PAT=ghp_xxx
+TELEGRAM_BOT_TOKEN=123456:abc
+TELEGRAM_CHAT_ID=12345678
 ```
+
+`TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` are optional. When both are
+set, the bot pushes every new event to the chat and accepts commands:
+`/list`, `/add <kind> <target>`, `/del <id>`, `/pause <id>`,
+`/resume <id>`, `/poll <id>`, `/recent [n]`. `TELEGRAM_CHAT_ID`
+accepts a single id or a comma/space-separated list; only those ids
+are allowed to issue commands.
 
 `GITHUB_PAT` is optional. Without it the GitHub API allows 60
 requests/hour per source IP; with a PAT 5 000 req/hour.
