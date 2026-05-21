@@ -20,7 +20,7 @@ in {
         XDG_RUNTIME_DIR = "/run/user/1000";
         TMUX_TMPDIR = "/run/user/1000";
       };
-      path = [ pkgs.tmux pkgs.claude-code pkgs.coreutils pkgs.zoxide ];
+      path = [ pkgs.tmux pkgs.claude-code pkgs.coreutils pkgs.zoxide pkgs.bashInteractive pkgs.gawk ];
       serviceConfig = {
         Type = "simple";
         User = "m";
