@@ -1,4 +1,4 @@
-"""Tiny HTTP endpoint that publishes a single JSON snapshot of GPU state.
+"""Tiny HTTP endpoint that publishes a JSON snapshot of host state for hub.mvr.ac.
 
 Snapshot fields
 ---------------
@@ -7,12 +7,11 @@ Snapshot fields
   held_for, expected_remaining) read from gpu_lock's sidecar file
 - gpu: dict | null — nvidia-smi util_pct, mem_used_mb, mem_total_mb,
   mem_pct, temp_c, power_w (null if nvidia-smi fails)
+- cpu: dict | null — host-wide util_pct from /proc/stat (delta over a
+  short sample window)
+- disk: dict | null — used_gb, total_gb, used_pct for DISK_PATH (the
+  meaningful persistent FS on impermanence hosts)
 - ts: float — unix timestamp of the snapshot
-
-Consumers
----------
-- hub.mvr.ac dashboard tile polls every few seconds. The endpoint is
-  intentionally cheap (one subprocess per request) and stateless.
 """
 from __future__ import annotations
 
@@ -27,6 +26,8 @@ from pathlib import Path
 LOCK_DIR = Path(os.environ.get("GPU_LOCK_DIR", "/dev/shm/gpu-lock"))
 HOLDER_FILE = LOCK_DIR / "gpu.lock.holder"
 NVIDIA_SMI = os.environ.get("NVIDIA_SMI", "nvidia-smi")
+DISK_PATH = os.environ.get("DISK_PATH", "/persistent")
+CPU_SAMPLE_SECONDS = float(os.environ.get("CPU_SAMPLE_SECONDS", "0.1"))
 QUERY_FIELDS = [
     "utilization.gpu",
     "utilization.memory",
@@ -107,12 +108,61 @@ def read_gpu() -> dict | None:
     }
 
 
+def _read_proc_stat() -> list[int] | None:
+    try:
+        with open("/proc/stat", "r") as f:
+            line = f.readline().split()
+    except (FileNotFoundError, PermissionError):
+        return None
+    if not line or line[0] != "cpu":
+        return None
+    try:
+        return [int(x) for x in line[1:]]
+    except ValueError:
+        return None
+
+
+def read_cpu() -> dict | None:
+    a = _read_proc_stat()
+    if a is None:
+        return None
+    time.sleep(CPU_SAMPLE_SECONDS)
+    b = _read_proc_stat()
+    if b is None or len(a) < 5 or len(b) < 5:
+        return None
+    idle_delta = (b[3] + b[4]) - (a[3] + a[4])
+    total_delta = sum(b) - sum(a)
+    if total_delta <= 0:
+        return None
+    util_pct = max(0.0, min(100.0, 100.0 * (1.0 - idle_delta / total_delta)))
+    return {"util_pct": util_pct}
+
+
+def read_disk(path: str = DISK_PATH) -> dict | None:
+    try:
+        s = os.statvfs(path)
+    except (FileNotFoundError, OSError):
+        return None
+    total = s.f_blocks * s.f_frsize
+    free = s.f_bavail * s.f_frsize
+    used = total - free
+    if total <= 0:
+        return None
+    return {
+        "used_gb": used / (1024 ** 3),
+        "total_gb": total / (1024 ** 3),
+        "used_pct": used / total * 100.0,
+    }
+
+
 def snapshot() -> dict:
     holder = read_holder()
     return {
         "locked": holder is not None,
         "holder": holder,
         "gpu": read_gpu(),
+        "cpu": read_cpu(),
+        "disk": read_disk(),
         "ts": time.time(),
     }
 

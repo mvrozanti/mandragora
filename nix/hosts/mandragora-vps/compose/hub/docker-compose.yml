@@ -11,15 +11,21 @@ services:
     labels:
       caddy_0: https://hub.${MVR_AC:-mvr.ac}
       caddy_0.0_@gpu_api: "path /api/gpu /api/gpu/*"
+      caddy_0.0_@vps_api: "path /api/vps /api/vps/*"
       caddy_0.1_handle: "@gpu_api"
       caddy_0.1_handle.forward_auth: "authelia:9091"
       caddy_0.1_handle.forward_auth.uri: "/api/authz/forward-auth"
       caddy_0.1_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
       caddy_0.1_handle.reverse_proxy: "host.docker.internal:6684"
+      caddy_0.2_handle: "@vps_api"
       caddy_0.2_handle.forward_auth: "authelia:9091"
       caddy_0.2_handle.forward_auth.uri: "/api/authz/forward-auth"
       caddy_0.2_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy_0.2_handle.reverse_proxy: "{{upstreams 80}}"
+      caddy_0.2_handle.reverse_proxy: "host-stats:8081"
+      caddy_0.3_handle.forward_auth: "authelia:9091"
+      caddy_0.3_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy_0.3_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy_0.3_handle.reverse_proxy: "{{upstreams 80}}"
       caddy_1: https://term.${MVR_AC:-mvr.ac}
       caddy_1.0_@notTailnet: not remote_ip 100.64.0.0/10
       caddy_1.1_handle: "@notTailnet"
@@ -101,6 +107,32 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+
+  host-stats:
+    image: python:3.13-alpine
+    container_name: host-stats
+    restart: unless-stopped
+    pid: host
+    command: ["python", "-u", "/app/host_stats.py"]
+    volumes:
+      - ./host-stats/host_stats.py:/app/host_stats.py:ro
+      - /:/host/rootfs:ro,rslave
+    environment:
+      HOST_STATS_HOST: "0.0.0.0"
+      HOST_STATS_PORT: "8081"
+      DISK_PATH: /host/rootfs
+    networks:
+      - seafile-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8081/status', timeout=2).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "1m"
+        max-file: "3"
 
 networks:
   seafile-net:
