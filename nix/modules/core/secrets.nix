@@ -48,6 +48,14 @@ in
         owner = "m";
         mode = "0400";
       };
+      "perception/twitch_client_id" = {
+        owner = "m";
+        mode = "0400";
+      };
+      "perception/twitch_client_secret" = {
+        owner = "m";
+        mode = "0400";
+      };
       "image_generator/telegram_bot_key" = {
         owner = "m";
         mode = "0400";
