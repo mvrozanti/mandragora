@@ -17,6 +17,8 @@ services:
       - GITHUB_PAT=${GITHUB_PAT:-}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - TWITCH_CLIENT_ID=${TWITCH_CLIENT_ID:-}
+      - TWITCH_CLIENT_SECRET=${TWITCH_CLIENT_SECRET:-}
     volumes:
       - ${WATCH_DATA_VOLUME:-./data}:/data
     networks:

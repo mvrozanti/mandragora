@@ -44,6 +44,14 @@ in
         owner = "m";
         mode = "0400";
       };
+      "perception/twitch_client_id" = {
+        owner = "m";
+        mode = "0400";
+      };
+      "perception/twitch_client_secret" = {
+        owner = "m";
+        mode = "0400";
+      };
       "llm_via_telegram/env" = {
         owner = "m";
         mode = "0400";

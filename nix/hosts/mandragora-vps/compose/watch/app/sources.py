@@ -1,4 +1,7 @@
 import os
+import re
+import time
+import xml.etree.ElementTree as ET
 from typing import Any
 
 import httpx
@@ -8,6 +11,13 @@ USER_AGENT = os.environ.get(
     "mandragora-watch/0.1 (+https://watch.mvr.ac)",
 )
 GITHUB_PAT = os.environ.get("GITHUB_PAT", "").strip()
+TWITCH_CLIENT_ID = os.environ.get("TWITCH_CLIENT_ID", "").strip()
+TWITCH_CLIENT_SECRET = os.environ.get("TWITCH_CLIENT_SECRET", "").strip()
+
+_YT_CHANNEL_ID_RE = re.compile(r"UC[A-Za-z0-9_-]{22}")
+_YT_HANDLE_RE = re.compile(r"^[A-Za-z0-9_.\-]{3,30}$")
+_TWITCH_LOGIN_RE = re.compile(r"^[A-Za-z0-9_]{3,25}$")
+_twitch_token_cache: dict[str, Any] = {"token": "", "expires_at": 0.0}
 
 
 SOURCE_KINDS: dict[str, dict[str, str]] = {
@@ -26,6 +36,14 @@ SOURCE_KINDS: dict[str, dict[str, str]] = {
     "reddit_sub": {
         "label": "Subreddit",
         "target_hint": "selfhosted",
+    },
+    "youtube_channel": {
+        "label": "YouTube channel",
+        "target_hint": "@mkbhd or UCxxxxxxxxxxxxxxxxxxxx",
+    },
+    "twitch_stream": {
+        "label": "Twitch streamer (live transitions)",
+        "target_hint": "shroud",
     },
 }
 
@@ -68,6 +86,17 @@ def validate_target(kind: str, target: str) -> str:
             t = t[2:]
         if "/" in t or " " in t:
             raise ValueError("reddit_sub expects a single subreddit")
+    elif kind == "youtube_channel":
+        if _YT_CHANNEL_ID_RE.fullmatch(t):
+            return t
+        if not _YT_HANDLE_RE.fullmatch(t):
+            raise ValueError("youtube_channel expects @handle or UC… channel id")
+        return _resolve_youtube_handle(t)
+    elif kind == "twitch_stream":
+        t = t.lower()
+        if not _TWITCH_LOGIN_RE.fullmatch(t):
+            raise ValueError("twitch_stream expects a single twitch login")
+        return t
     else:
         raise ValueError(f"unknown kind: {kind}")
     return t
@@ -82,6 +111,10 @@ async def fetch(kind: str, target: str, cursor: str | None) -> tuple[list[dict[s
         return await _fetch_reddit_user(target, cursor)
     if kind == "reddit_sub":
         return await _fetch_reddit_sub(target, cursor)
+    if kind == "youtube_channel":
+        return await _fetch_youtube_channel(target, cursor)
+    if kind == "twitch_stream":
+        return await _fetch_twitch_stream(target, cursor)
     raise ValueError(f"unknown kind: {kind}")
 
 
@@ -239,3 +272,138 @@ def _parse_reddit_listing(doc: dict[str, Any], cursor: str | None) -> tuple[list
 def _utc_iso(epoch: float) -> str:
     from datetime import datetime, timezone
     return datetime.fromtimestamp(float(epoch), tz=timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def _resolve_youtube_handle(handle: str) -> str:
+    url = f"https://www.youtube.com/@{handle}"
+    with httpx.Client(timeout=15.0, headers={"User-Agent": USER_AGENT}, follow_redirects=True) as c:
+        r = c.get(url)
+    if r.status_code != 200:
+        raise ValueError(f"youtube handle lookup failed: HTTP {r.status_code}")
+    m = _YT_CHANNEL_ID_RE.search(r.text)
+    if not m:
+        raise ValueError(f"could not resolve @{handle} to a channel id")
+    return m.group(0)
+
+
+async def _fetch_youtube_channel(channel_id: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    url = "https://www.youtube.com/feeds/videos.xml"
+    async with httpx.AsyncClient(timeout=20.0, headers={"User-Agent": USER_AGENT}) as c:
+        r = await c.get(url, params={"channel_id": channel_id})
+    if r.status_code == 404:
+        return [], cursor
+    r.raise_for_status()
+    return _parse_youtube_feed(r.text, cursor)
+
+
+def _parse_youtube_feed(xml_text: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    ns = {
+        "a": "http://www.w3.org/2005/Atom",
+        "yt": "http://www.youtube.com/xml/schemas/2015",
+        "media": "http://search.yahoo.com/mrss/",
+    }
+    root = ET.fromstring(xml_text)
+    events: list[dict[str, Any]] = []
+    cursor_ts = float(cursor) if cursor else None
+    newest_cursor = cursor
+    for entry in root.findall("a:entry", ns):
+        vid_el = entry.find("yt:videoId", ns)
+        title_el = entry.find("a:title", ns)
+        pub_el = entry.find("a:published", ns)
+        if vid_el is None or title_el is None or pub_el is None:
+            continue
+        vid = vid_el.text or ""
+        if not vid:
+            continue
+        from datetime import datetime
+        pub_dt = datetime.fromisoformat((pub_el.text or "").replace("Z", "+00:00"))
+        pub_ts = pub_dt.timestamp()
+        if cursor_ts is not None and pub_ts <= cursor_ts:
+            continue
+        author_el = entry.find("a:author/a:name", ns)
+        author = (author_el.text if author_el is not None else "") or ""
+        group = entry.find("media:group", ns)
+        summary = ""
+        if group is not None:
+            desc_el = group.find("media:description", ns)
+            if desc_el is not None and desc_el.text:
+                summary = desc_el.text[:280]
+        events.append({
+            "external_id": vid,
+            "title": f"{author}: {title_el.text or vid}".strip(),
+            "summary": summary,
+            "link": f"https://www.youtube.com/watch?v={vid}",
+            "occurred_at": _utc_iso(pub_ts),
+            "raw": {"video_id": vid, "published": pub_el.text, "author": author},
+        })
+        if newest_cursor is None or pub_ts > float(newest_cursor):
+            newest_cursor = str(pub_ts)
+    events.reverse()
+    return events, newest_cursor
+
+
+async def _twitch_token() -> str:
+    if not (TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET):
+        raise RuntimeError("TWITCH_CLIENT_ID / TWITCH_CLIENT_SECRET not configured")
+    now = time.time()
+    if _twitch_token_cache["token"] and now < float(_twitch_token_cache["expires_at"]) - 3600:
+        return str(_twitch_token_cache["token"])
+    async with httpx.AsyncClient(timeout=15.0) as c:
+        r = await c.post(
+            "https://id.twitch.tv/oauth2/token",
+            params={
+                "client_id": TWITCH_CLIENT_ID,
+                "client_secret": TWITCH_CLIENT_SECRET,
+                "grant_type": "client_credentials",
+            },
+        )
+    r.raise_for_status()
+    doc = r.json()
+    tok = doc.get("access_token") or ""
+    expires_in = int(doc.get("expires_in") or 0)
+    _twitch_token_cache["token"] = tok
+    _twitch_token_cache["expires_at"] = now + expires_in
+    return tok
+
+
+async def _fetch_twitch_stream(login: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    tok = await _twitch_token()
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Client-Id": TWITCH_CLIENT_ID,
+        "Authorization": f"Bearer {tok}",
+    }
+    async with httpx.AsyncClient(timeout=20.0, headers=headers) as c:
+        r = await c.get("https://api.twitch.tv/helix/streams", params={"user_login": login})
+        if r.status_code == 401:
+            _twitch_token_cache["token"] = ""
+            _twitch_token_cache["expires_at"] = 0.0
+            tok = await _twitch_token()
+            headers["Authorization"] = f"Bearer {tok}"
+            r = await c.get(
+                "https://api.twitch.tv/helix/streams",
+                params={"user_login": login},
+                headers=headers,
+            )
+    r.raise_for_status()
+    data = (r.json() or {}).get("data") or []
+    if not data:
+        return [], ""
+    stream = data[0]
+    stream_id = str(stream.get("id") or "")
+    if not stream_id:
+        return [], cursor or ""
+    if cursor and cursor == stream_id:
+        return [], stream_id
+    title = stream.get("title") or ""
+    game = stream.get("game_name") or ""
+    started_at = stream.get("started_at") or ""
+    event = {
+        "external_id": stream_id,
+        "title": f"{login} live: {title}".strip(),
+        "summary": game,
+        "link": f"https://twitch.tv/{login}",
+        "occurred_at": started_at,
+        "raw": stream,
+    }
+    return [event], stream_id
