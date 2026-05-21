@@ -40,6 +40,7 @@
     mediainfo
     nodejs
     yarn
+    forge-cli
     chafa
     asciinema
 
