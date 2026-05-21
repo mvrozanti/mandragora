@@ -1,10 +1,12 @@
 $ErrorActionPreference = 'Continue'
 $BASE = 'https://raw.githubusercontent.com/mvrozanti/mandragora/master/docs/appendix/wsl'
-$STATE_DIR = "$env:LOCALAPPDATA\Mandragora"
-if (-not (Test-Path $STATE_DIR)) { New-Item -ItemType Directory -Path $STATE_DIR -Force | Out-Null }
+$DESKTOP = [Environment]::GetFolderPath('Desktop')
+if (-not $DESKTOP -or -not (Test-Path $DESKTOP)) { $DESKTOP = "$env:USERPROFILE\Desktop" }
+if (-not (Test-Path $DESKTOP)) { New-Item -ItemType Directory -Path $DESKTOP -Force | Out-Null }
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$LOG = "$STATE_DIR\diagnose-$stamp.log"
+$LOG = Join-Path $DESKTOP "mandragora-wsl-diagnose-$stamp.log"
 Start-Transcript -Path $LOG -Append | Out-Null
+Write-Host ('==> writing report to: ' + $LOG) -ForegroundColor Green
 
 function Section($t) {
     Write-Host ''
@@ -195,5 +197,5 @@ Try-Run 'interactive launcher timeout test' {
 Section 'done'
 Stop-Transcript | Out-Null
 Write-Host ''
-Write-Host ('==> report saved: ' + $LOG) -ForegroundColor Green
-Write-Host ('==> paste contents to your debugging channel') -ForegroundColor Green
+Write-Host ('==> report on Desktop: ' + (Split-Path -Leaf $LOG)) -ForegroundColor Green
+Write-Host ('==> full path        : ' + $LOG) -ForegroundColor Green
