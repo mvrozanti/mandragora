@@ -1,4 +1,4 @@
-{ lib, buildNpmPackage, nodejs, pkg-config, libsecret, python3 }:
+{ lib, buildNpmPackage, makeWrapper, nodejs, pkg-config, libsecret, python3 }:
 buildNpmPackage {
   pname = "forge-cli";
   version = "12.20.1";
@@ -10,7 +10,7 @@ buildNpmPackage {
   npmFlags = [ "--legacy-peer-deps" ];
   makeCacheWritable = true;
 
-  nativeBuildInputs = [ pkg-config python3 ];
+  nativeBuildInputs = [ pkg-config python3 makeWrapper ];
   buildInputs = [ libsecret ];
 
   dontNpmBuild = true;
@@ -18,8 +18,9 @@ buildNpmPackage {
 
   postInstall = ''
     mkdir -p $out/bin
-    ln -s $out/lib/node_modules/forge-cli-wrapper/node_modules/@forge/cli/out/bin/cli.js $out/bin/forge
-    chmod +x $out/lib/node_modules/forge-cli-wrapper/node_modules/@forge/cli/out/bin/cli.js
+    makeWrapper ${nodejs}/bin/node $out/bin/forge \
+      --add-flags $out/lib/node_modules/forge-cli-wrapper/node_modules/@forge/cli/out/bin/cli.js \
+      --prefix PATH : ${lib.makeBinPath [ nodejs ]}
   '';
 
   meta = {
