@@ -156,23 +156,6 @@ P()   { curl -sF "file=@-" https://0x0.st }
 gr()  { git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
 gdc() { git diff HEAD HEAD~1 }
 
-ue5() {
-  emulate -L zsh
-  setopt local_options null_glob
-  local proj="${1:-}"
-  if [[ -z "$proj" ]]; then
-    proj="$PWD"
-    while [[ "$proj" != "/" ]]; do
-      local hits=("$proj"/*.uproject)
-      (( ${#hits} )) && break
-      proj="${proj:h}"
-    done
-    [[ "$proj" == "/" ]] && { print -u2 "ue5: no .uproject in CWD or parents"; return 1 }
-  fi
-  [[ -d "$proj" ]] || { print -u2 "ue5: not a dir: $proj"; return 1 }
-  ( cd "$proj" && gpu-lock run --name ue5-editor --expect 3600 -- nix develop --command ue5-fhs -c ue5-editor )
-}
-
 lf() {
   local pane_id last_dir
   pane_id=$(tmux display-message -p '#{pane_id}' 2>/dev/null)
