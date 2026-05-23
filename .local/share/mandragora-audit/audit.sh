@@ -3,6 +3,7 @@ set -uo pipefail
 
 AUDIT_HOME="${AUDIT_HOME:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 MANDRAGORA_REPO="${MANDRAGORA_REPO:-/etc/nixos/mandragora}"
+export MANDRAGORA_REPO AUDIT_HOME
 
 # shellcheck source=lib/common.sh
 . "$AUDIT_HOME/lib/common.sh"
