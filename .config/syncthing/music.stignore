@@ -1,0 +1,13 @@
+.stversions
+.stfolder
+.stignore
+*.sync-conflict-*
+.Trash-*
+.Trashes
+Thumbs.db
+.DS_Store
+desktop.ini
+*.tmp
+*.partial
+*.part
+.nomedia
