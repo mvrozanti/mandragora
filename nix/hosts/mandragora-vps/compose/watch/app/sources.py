@@ -18,6 +18,7 @@ _YT_CHANNEL_ID_RE = re.compile(r"UC[A-Za-z0-9_-]{22}")
 _YT_HANDLE_RE = re.compile(r"^[A-Za-z0-9_.\-]{3,30}$")
 _TWITCH_LOGIN_RE = re.compile(r"^[A-Za-z0-9_]{3,25}$")
 _twitch_token_cache: dict[str, Any] = {"token": "", "expires_at": 0.0}
+_github_account_type_cache: dict[str, str] = {}
 
 
 SOURCE_KINDS: dict[str, dict[str, str]] = {
@@ -118,8 +119,26 @@ async def fetch(kind: str, target: str, cursor: str | None) -> tuple[list[dict[s
     raise ValueError(f"unknown kind: {kind}")
 
 
+async def _github_account_type(login: str) -> str:
+    cached = _github_account_type_cache.get(login)
+    if cached:
+        return cached
+    async with httpx.AsyncClient(timeout=15.0, headers=_github_headers()) as c:
+        r = await c.get(f"https://api.github.com/users/{login}")
+    if r.status_code == 404:
+        return "User"
+    r.raise_for_status()
+    t = (r.json() or {}).get("type") or "User"
+    _github_account_type_cache[login] = t
+    return t
+
+
 async def _fetch_github_user(login: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
-    url = f"https://api.github.com/users/{login}/events/public"
+    acct_type = await _github_account_type(login)
+    if acct_type == "Organization":
+        url = f"https://api.github.com/orgs/{login}/events"
+    else:
+        url = f"https://api.github.com/users/{login}/events/public"
     async with httpx.AsyncClient(timeout=20.0, headers=_github_headers()) as c:
         r = await c.get(url, params={"per_page": 30})
     if r.status_code == 404:
