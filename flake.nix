@@ -118,6 +118,11 @@
         ];
       };
 
+      devShells.${system}.ue5 =
+        (import ./nix/pkgs/ue5/env.nix {
+          pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
+        }).devShell;
+
       apps.${system}.refiner = {
         type = "app";
         program = "${(import ./nix/pkgs/refiner/default.nix {
