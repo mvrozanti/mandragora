@@ -78,6 +78,11 @@ services:
       caddy_8.1_reverse_proxy: "host.docker.internal:7682"
       caddy_8.1_reverse_proxy.transport: http
       caddy_8.1_reverse_proxy.transport.versions: "1.1"
+      caddy_9: https://ytdl.${MVR_AC:-mvr.ac}
+      caddy_9.0_forward_auth: "authelia:9091"
+      caddy_9.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy_9.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy_9.1_reverse_proxy: "host.docker.internal:6685"
       # log.mvr.ac is owned by the `logs` stack — its `logs-ui` container
       # carries the caddy labels for both the static UI and the loki HTTP API
       # path-rewrite.
