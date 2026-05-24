@@ -1,5 +1,12 @@
 { pkgs, ... }:
 
+let
+  vmUsbPrep = pkgs.writeShellApplication {
+    name = "vm-usb-prep";
+    runtimeInputs = [ pkgs.acl pkgs.coreutils pkgs.gnused ];
+    text = builtins.readFile ../../../.local/bin/vm-usb-prep.sh;
+  };
+in
 {
   virtualisation.libvirtd = {
     enable = true;
@@ -60,5 +67,14 @@
     virtio-win
     spice-gtk
     virt-viewer
+    vmUsbPrep
   ];
+
+  security.sudo.extraRules = [{
+    users = [ "m" ];
+    commands = [{
+      command = "/run/current-system/sw/bin/vm-usb-prep";
+      options = [ "NOPASSWD" ];
+    }];
+  }];
 }
