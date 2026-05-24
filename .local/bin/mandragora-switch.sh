@@ -313,6 +313,16 @@ if [ "$RC" -eq 0 ] || [ "$ACTIVATED" -eq 1 ]; then
       fi
     fi
   fi
+
+  GC_DAYS=${MANDRAGORA_GC_DAYS:-7}
+  if [ "$GC_DAYS" -gt 0 ]; then
+    echo "==> Pruning system generations older than ${GC_DAYS}d..."
+    sudo /run/current-system/sw/bin/nix-env -p /nix/var/nix/profiles/system --delete-generations "${GC_DAYS}d" >/dev/null 2>&1 || \
+      echo "==> WARNING: generation prune (${GC_DAYS}d) failed." >&2
+    echo "==> nix-store --gc..."
+    nix-store --gc >/dev/null 2>&1 || echo "==> WARNING: nix-store --gc failed." >&2
+    phase "gc ${GC_DAYS}d"
+  fi
 fi
 
 phase "done"
