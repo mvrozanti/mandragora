@@ -45,7 +45,7 @@ configuration {
 	threads: 0;
 	scrollbar-width: 8;
 	scroll-method: 0;
-	fake-background: "screenshot";
+	fake-background: "none";
 	window-format: "{w}    {c}   {t}";
 	click-to-exit: true;
 	show-match: true;
