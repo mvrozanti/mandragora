@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 step=$1
-addr=$(hyprctl activewindow -j 2>/dev/null | jq -r '.address // empty')
+read -r addr class <<<"$(hyprctl activewindow -j 2>/dev/null | jq -r '"\(.address // "") \(.class // "")"')"
 [[ -z "$addr" ]] && exit 1
+if [[ "$class" =~ ^(kitty|_zsh_|_lf_|_aerc_|ncmpcpp|ncmpcpp-float|irssi|tmux-float)$ ]]; then
+    notify-send -t 2000 "opacity-adjust" "kitty: use ctrl+shift+j/k/l (bg only, fg stays opaque)"
+    exit 0
+fi
 state_dir="/tmp/hypr-alpha"
 mkdir -p "$state_dir"
 state="$state_dir/$addr"
