@@ -38,7 +38,6 @@ if [[ -z "$file" ]]; then
 fi
 
 if [[ -z "$file" ]]; then
-    # Fallback to any zathura if we can't find the parent
     ZPID=$(pgrep zathura | head -n 1 || true)
     echo "Fallback ZPID (pgrep): $ZPID" >> $LOG
     if [[ -n "$ZPID" ]]; then
@@ -84,5 +83,5 @@ else
 fi
 echo "New file: $new" >> $LOG
 
-busctl --user call "org.pwmt.zathura.PID-$ZPID" /org/pwmt/zathura org.pwmt.zathura OpenDocument ss i "$d/$new" "" -1
+busctl --user call "org.pwmt.zathura.PID-$ZPID" /org/pwmt/zathura org.pwmt.zathura OpenDocument ssi -- "$d/$new" "" -1
 echo "Sent OpenDocument via busctl" >> $LOG
