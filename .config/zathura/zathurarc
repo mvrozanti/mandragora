@@ -36,6 +36,7 @@ set recolor-keephue "true"
 set render-loading "false"
 set scroll-step 50
 set selection-clipboard clipboard
+set sandbox none
 
 unmap f
 map f toggle_fullscreen
