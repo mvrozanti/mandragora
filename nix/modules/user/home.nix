@@ -239,6 +239,7 @@ in
     (pkgs.writeShellScriptBin "rofi-run" (builtins.readFile ../../../.local/bin/rofi-run.sh))
     (pkgs.writeShellScriptBin "rofi-db-picker" (builtins.readFile ../../../.local/bin/rofi-db-picker.sh))
     (pkgs.writeShellScriptBin "cycle-audio-output" (builtins.readFile ../../../.local/bin/cycle-audio-output.sh))
+    (pkgs.writeShellScriptBin "zathura-cycle" (builtins.readFile ../../../.local/bin/zathura-cycle.sh))
     (pkgs.writeShellScriptBin "window-to-corner" (builtins.readFile ../../../.local/bin/window-to-corner.sh))
     (pkgs.writeShellScriptBin "gap-adjust" (builtins.readFile ../../../.local/bin/gap-adjust.sh))
     (pkgs.writeShellScriptBin "blur-adjust" (builtins.readFile ../../../.local/bin/blur-adjust.sh))
