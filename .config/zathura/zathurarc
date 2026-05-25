@@ -36,7 +36,6 @@ set recolor-keephue "true"
 set render-loading "false"
 set scroll-step 50
 set selection-clipboard clipboard
-set sandbox none
 
 unmap f
 map f toggle_fullscreen
@@ -72,7 +71,11 @@ map <C-o> feedkeys ":open <Tab>"
 map H feedkeys ":exec sh -c \"cat ~/.local/share/zathura/history | grep -Po '\\[\\K[^\\]]*' | rofi -dmenu | xargs zathura\""
 map <Left> scroll full-up
 map <Right> scroll full-down
-map <greater> feedkeys ":exec zathura-cycle next $FILE<Return>"
-map <less> feedkeys ":exec zathura-cycle prev $FILE<Return>"
-map [fullscreen] <greater> feedkeys ":exec zathura-cycle next $FILE<Return>"
-map [fullscreen] <less> feedkeys ":exec zathura-cycle prev $FILE<Return>"
+map period exec zathura-cycle next
+map comma exec zathura-cycle prev
+map greater exec zathura-cycle next
+map less exec zathura-cycle prev
+map [fullscreen] period exec zathura-cycle next
+map [fullscreen] comma exec zathura-cycle prev
+map [fullscreen] greater exec zathura-cycle next
+map [fullscreen] less exec zathura-cycle prev
