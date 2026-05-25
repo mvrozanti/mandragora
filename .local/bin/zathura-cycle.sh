@@ -7,6 +7,13 @@ case "${1:-}" in
 esac
 
 file="${1:-}"
+
+if [[ -z "$file" ]]; then
+  if [[ -n "${PPID:-}" ]]; then
+    file=$(dbus-send --session --print-reply --dest="org.pwmt.zathura.PID-$PPID" /org/pwmt/zathura org.freedesktop.DBus.Properties.Get string:org.pwmt.zathura string:filename 2>/dev/null | grep -oP 'string "\K[^"]+' || true)
+  fi
+fi
+
 [[ -z "$file" ]] && exit 1
 
 d=$(dirname "$file")
