@@ -18,7 +18,7 @@ find_zathura_pid() {
   while [[ $cp -gt 1 ]]; do
     local comm
     comm=$(ps -p "$cp" -o comm= 2>/dev/null || true)
-    if [[ "$comm" == "zathura" ]]; then
+    if [[ "$comm" == "zathura" || "$comm" == ".zathura-wrappe" ]]; then
       echo "$cp"
       return 0
     fi
@@ -30,29 +30,26 @@ find_zathura_pid() {
 ZPID=""
 if [[ -z "$file" ]]; then
   ZPID=$(find_zathura_pid || true)
-  echo "Found ZPID: $ZPID" >> $LOG
+  echo "Found ZPID via tree: $ZPID" >> $LOG
   if [[ -n "$ZPID" ]]; then
-    file=$(dbus-send --session --print-reply --dest="org.pwmt.zathura.PID-$ZPID" /org/pwmt/zathura org.freedesktop.DBus.Properties.Get string:org.pwmt.zathura string:filename 2>/dev/null | grep -oP 'string "\K[^"]+' || true)
-    echo "Found file via DBus: $file" >> $LOG
+    file=$(busctl --user get-property "org.pwmt.zathura.PID-$ZPID" /org/pwmt/zathura org.pwmt.zathura filename 2>/dev/null | grep -oP '"\K[^"]+' || true)
+    echo "Found file via busctl: $file" >> $LOG
   fi
+fi
+
+if [[ -z "$file" ]]; then
+    # Fallback to any zathura if we can't find the parent
+    ZPID=$(pgrep zathura | head -n 1 || true)
+    echo "Fallback ZPID (pgrep): $ZPID" >> $LOG
+    if [[ -n "$ZPID" ]]; then
+        file=$(busctl --user get-property "org.pwmt.zathura.PID-$ZPID" /org/pwmt/zathura org.pwmt.zathura filename 2>/dev/null | grep -oP '"\K[^"]+' || true)
+        echo "Fallback file: $file" >> $LOG
+    fi
 fi
 
 if [[ -z "$file" ]]; then
     echo "ERROR: No file found" >> $LOG
     exit 1
-fi
-
-if [[ -z "${ZPID:-}" ]]; then
-    ZPID=$(find_zathura_pid || true)
-    echo "Found ZPID (late): $ZPID" >> $LOG
-fi
-
-if [[ -z "${ZPID:-}" ]]; then
-    # If still no ZPID, maybe we are not a child of zathura.
-    # Try to find the latest focused zathura or just any zathura?
-    # For now, let's just use the first one from pgrep as a last resort.
-    ZPID=$(pgrep zathura | head -n 1 || true)
-    echo "Found ZPID (pgrep): $ZPID" >> $LOG
 fi
 
 [[ -z "${ZPID:-}" ]] && { echo "ERROR: No ZPID" >> $LOG; exit 1; }
@@ -87,10 +84,5 @@ else
 fi
 echo "New file: $new" >> $LOG
 
-dbus-send --session \
-  --dest="org.pwmt.zathura.PID-$ZPID" \
-  --type=method_call \
-  /org/pwmt/zathura \
-  org.pwmt.zathura.OpenDocument \
-  string:"$d/$new" string:"" int32:-1
-echo "Sent OpenDocument" >> $LOG
+busctl --user call "org.pwmt.zathura.PID-$ZPID" /org/pwmt/zathura org.pwmt.zathura OpenDocument ss i "$d/$new" "" -1
+echo "Sent OpenDocument via busctl" >> $LOG

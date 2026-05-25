@@ -72,17 +72,21 @@ map H feedkeys ":exec sh -c \"cat ~/.local/share/zathura/history | grep -Po '\\[
 map <Left> scroll full-up
 map <Right> scroll full-down
 
-# Document Navigation
+# Document Navigation (sxiv style)
+map n feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
+map p feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
 map period feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
 map comma feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
 map > feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
 map < feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
-map ] feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
-map [ feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
+map <S-.> feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
+map <S-,> feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
 
+map [fullscreen] n feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
+map [fullscreen] p feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
 map [fullscreen] period feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
 map [fullscreen] comma feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
 map [fullscreen] > feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
 map [fullscreen] < feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
-map [fullscreen] ] feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
-map [fullscreen] [ feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
+map [fullscreen] <S-.> feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
+map [fullscreen] <S-,> feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
