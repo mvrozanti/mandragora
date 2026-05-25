@@ -512,6 +512,7 @@ in
       clipboard_control = "write-clipboard write-primary";
       term = "xterm-kitty";
       alt_send_esc = "no";
+      wayland_enable_ime = "no";
     };
     keybindings = {
       "ctrl+backspace" = "send_text all \\x1b[127;5u";
