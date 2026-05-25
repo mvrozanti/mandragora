@@ -6,6 +6,16 @@ let
     hash = "sha256-dqH/bA14J+zQhX5am1KYM38jJmJ2er8PARFUyFttqO8=";
   };
 
+  iris = pkgs.fetchurl {
+    url = "https://cdn.modrinth.com/data/YL57xq9U/versions/fDpuVzVr/iris-fabric-1.10.7%2Bmc1.21.11.jar";
+    hash = "sha256-WMVdoYGJyRpJ+EfTzuRRYzojtXX7acDFtl3bJ0Q2yxk=";
+  };
+
+  sodium = pkgs.fetchurl {
+    url = "https://cdn.modrinth.com/data/AANobbMI/versions/NFkjnzWE/sodium-fabric-0.8.12%2Bmc1.21.11.jar";
+    hash = "sha256-AJKZdI8ZL2JG/WdZomME8P6gbzQSz/Ui0dUz4rjbgXY=";
+  };
+
   baritone = pkgs.fetchurl {
     url = "https://maven.meteordev.org/snapshots/meteordevelopment/baritone/1.21.11-SNAPSHOT/baritone-1.21.11-20260103.131549-1.jar";
     hash = "sha256-Pox6uGt8AUj4cRyi58tghxLbwqlyU94PEx7D20GivTw=";
@@ -69,11 +79,15 @@ in
 
     if [ ! -d "$INST" ]; then
       $DRY_RUN_CMD mkdir -p "$MODS"
+    $DRY_RUN_CMD ln -sf ${iris} "$MODS/iris.jar"
+    $DRY_RUN_CMD ln -sf ${sodium} "$MODS/sodium.jar"
       $DRY_RUN_CMD install -m 0644 ${instanceCfg} "$INST/instance.cfg"
       $DRY_RUN_CMD install -m 0644 ${mmcPackJson} "$INST/mmc-pack.json"
     fi
 
     $DRY_RUN_CMD mkdir -p "$MODS"
+    $DRY_RUN_CMD ln -sf ${iris} "$MODS/iris.jar"
+    $DRY_RUN_CMD ln -sf ${sodium} "$MODS/sodium.jar"
     $DRY_RUN_CMD ln -sf ${baritone} "$MODS/baritone.jar"
     $DRY_RUN_CMD ln -sf ${distant-horizons} "$MODS/distant-horizons.jar"
 
