@@ -71,3 +71,7 @@ map <C-o> feedkeys ":open <Tab>"
 map H feedkeys ":exec sh -c \"cat ~/.local/share/zathura/history | grep -Po '\\[\\K[^\\]]*' | rofi -dmenu | xargs zathura\""
 map <Left> scroll full-up
 map <Right> scroll full-down
+map > exec "zathura-cycle next $FILE"
+map < exec "zathura-cycle prev $FILE"
+map [fullscreen] > exec "zathura-cycle next $FILE"
+map [fullscreen] < exec "zathura-cycle prev $FILE"
