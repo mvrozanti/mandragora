@@ -97,6 +97,24 @@
     };
   };
 
+  systemd.user.services.wal-to-rgb-aio-restore = {
+    Unit = {
+      Description = "Restore AIO chain (D_LED1 Bottom) from pywal palette on boot";
+      After = [ "graphical-session.target" "wal-to-rgb-daemon.service" ];
+      Wants = [ "wal-to-rgb-daemon.service" ];
+      ConditionPathExists = "%h/.cache/matugen/colors.json";
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
+      ExecStart = "${config.home.profileDirectory}/bin/wal-to-rgb";
+      RemainAfterExit = false;
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
   systemd.user.services.webhook-notifier = {
     Unit = {
       Description = "Subscribe to webhook.mvr.ac SSE and emit desktop notifications";
