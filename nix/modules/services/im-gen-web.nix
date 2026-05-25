@@ -25,6 +25,7 @@ let
     ensure_pkg aiohttp aiohttp
     ensure_pkg peft peft
     ensure_pkg PIL Pillow
+    ensure_pkg yaml PyYAML
 
     LD_EXTRAS=""
     [ -d /run/opengl-driver/lib ] && LD_EXTRAS="$LD_EXTRAS:/run/opengl-driver/lib"
