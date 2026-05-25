@@ -8,13 +8,30 @@ esac
 
 file="${1:-}"
 
+find_zathura_pid() {
+  local cp=$PPID
+  while [[ $cp -gt 1 ]]; do
+    local comm
+    comm=$(ps -p "$cp" -o comm= 2>/dev/null || true)
+    if [[ "$comm" == "zathura" ]]; then
+      echo "$cp"
+      return 0
+    fi
+    cp=$(ps -o ppid= -p "$cp" 2>/dev/null | tr -d ' ' || echo 0)
+  done
+  return 1
+}
+
+ZPID=""
 if [[ -z "$file" ]]; then
-  if [[ -n "${PPID:-}" ]]; then
-    file=$(dbus-send --session --print-reply --dest="org.pwmt.zathura.PID-$PPID" /org/pwmt/zathura org.freedesktop.DBus.Properties.Get string:org.pwmt.zathura string:filename 2>/dev/null | grep -oP 'string "\K[^"]+' || true)
+  ZPID=$(find_zathura_pid || true)
+  if [[ -n "$ZPID" ]]; then
+    file=$(dbus-send --session --print-reply --dest="org.pwmt.zathura.PID-$ZPID" /org/pwmt/zathura org.freedesktop.DBus.Properties.Get string:org.pwmt.zathura string:filename 2>/dev/null | grep -oP 'string "\K[^"]+' || true)
   fi
 fi
 
 [[ -z "$file" ]] && exit 1
+[[ -z "${ZPID:-}" ]] && exit 1
 
 d=$(dirname "$file")
 cur=$(basename "$file")
@@ -43,7 +60,7 @@ else
 fi
 
 dbus-send --session \
-  --dest="org.pwmt.zathura.PID-$PPID" \
+  --dest="org.pwmt.zathura.PID-$ZPID" \
   --type=method_call \
   /org/pwmt/zathura \
   org.pwmt.zathura.OpenDocument \
