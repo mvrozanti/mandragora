@@ -71,8 +71,21 @@ let
       }
     ];
   });
+
+  minecraft-launcher = pkgs.writeShellScriptBin "minecraft" ''
+    INSTANCE=$(find ~/.local/share/PrismLauncher/instances -name mmc-pack.json -exec ${pkgs.jq}/bin/jq -r '.components[] | select(.uid=="net.minecraft") | .version + " " + input_filename' {} + | sort -V | tail -n 1 | ${pkgs.gawk}/bin/awk '{print $2}' | xargs dirname | xargs basename)
+    if [ -n "$INSTANCE" ]; then
+      echo "Launching Prism Launcher instance: $INSTANCE"
+      exec ${pkgs.prismlauncher}/bin/prismlauncher --launch "$INSTANCE" "$@"
+    else
+      echo "Error: No Prism Launcher instances found."
+      exit 1
+    fi
+  '';
 in
 {
+  home.packages = [ minecraft-launcher ];
+
   home.activation.setupMeteorInstance = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     INST="$HOME/.local/share/PrismLauncher/instances/chicken-client"
     MODS="$INST/minecraft/mods"
