@@ -15,6 +15,7 @@ let
       { name = "axon";                root = "/home/m/Projects/axon";                              db_path = "/home/m/Projects/axon/.axon/index.duckdb"; }
       { name = "thought";             root = "/home/m/Projects/thought";                           db_path = "/home/m/Projects/thought/.axon/index.duckdb"; }
       { name = "im-gen";              root = "/home/m/Projects/im-gen";                            db_path = "/home/m/Projects/im-gen/.axon/index.duckdb"; }
+      { name = "orderbook-algotrading"; root = "/home/m/Projects/orderbook-algotrading";    db_path = "/home/m/Projects/orderbook-algotrading/.axon/index.duckdb"; }
       { name = "vtag";                root = "/etc/nixos/mandragora/.local/share/vtag";            db_path = "/etc/nixos/mandragora/.local/share/vtag/.axon/index.duckdb"; }
       { name = "gpu-lock";            root = "/etc/nixos/mandragora/.local/share/gpu-lock";        db_path = "/etc/nixos/mandragora/.local/share/gpu-lock/.axon/index.duckdb"; }
       { name = "llm-via-telegram";    root = "/etc/nixos/mandragora/.local/share/llm-via-telegram"; db_path = "/etc/nixos/mandragora/.local/share/llm-via-telegram/.axon/index.duckdb"; }
