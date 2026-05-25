@@ -60,6 +60,9 @@
     }
   },
   "options": {
+    "tui": {
+      "transparent": true
+    },
     "context_paths": [
       "AGENTS.md",
       "CRUSH.md",
