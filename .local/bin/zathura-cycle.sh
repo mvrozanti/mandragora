@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+LOG=/home/m/zathura_cycle.log
+echo "--- $(date) ---" >> $LOG
+echo "Args: $*" >> $LOG
+echo "PPID: $PPID" >> $LOG
+
 dir="next"
 case "${1:-}" in
   next|prev) dir="$1"; shift ;;
@@ -25,16 +30,36 @@ find_zathura_pid() {
 ZPID=""
 if [[ -z "$file" ]]; then
   ZPID=$(find_zathura_pid || true)
+  echo "Found ZPID: $ZPID" >> $LOG
   if [[ -n "$ZPID" ]]; then
     file=$(dbus-send --session --print-reply --dest="org.pwmt.zathura.PID-$ZPID" /org/pwmt/zathura org.freedesktop.DBus.Properties.Get string:org.pwmt.zathura string:filename 2>/dev/null | grep -oP 'string "\K[^"]+' || true)
+    echo "Found file via DBus: $file" >> $LOG
   fi
 fi
 
-[[ -z "$file" ]] && exit 1
-[[ -z "${ZPID:-}" ]] && exit 1
+if [[ -z "$file" ]]; then
+    echo "ERROR: No file found" >> $LOG
+    exit 1
+fi
+
+if [[ -z "${ZPID:-}" ]]; then
+    ZPID=$(find_zathura_pid || true)
+    echo "Found ZPID (late): $ZPID" >> $LOG
+fi
+
+if [[ -z "${ZPID:-}" ]]; then
+    # If still no ZPID, maybe we are not a child of zathura.
+    # Try to find the latest focused zathura or just any zathura?
+    # For now, let's just use the first one from pgrep as a last resort.
+    ZPID=$(pgrep zathura | head -n 1 || true)
+    echo "Found ZPID (pgrep): $ZPID" >> $LOG
+fi
+
+[[ -z "${ZPID:-}" ]] && { echo "ERROR: No ZPID" >> $LOG; exit 1; }
 
 d=$(dirname "$file")
 cur=$(basename "$file")
+echo "Dir: $d, Cur: $cur" >> $LOG
 
 mapfile -t files < <(
   find "$d" -maxdepth 1 -type f \
@@ -45,19 +70,22 @@ mapfile -t files < <(
 )
 
 n=${#files[@]}
+echo "Compatible files: $n" >> $LOG
 (( n > 1 )) || exit 0
 
 idx=-1
 for i in "${!files[@]}"; do
   [[ "${files[$i]}" == "$cur" ]] && { idx=$i; break; }
 done
-(( idx < 0 )) && exit 1
+echo "Current index: $idx" >> $LOG
+(( idx < 0 )) && { echo "ERROR: Current file not in list" >> $LOG; exit 1; }
 
 if [[ "$dir" == next ]]; then
   new="${files[$(( (idx + 1) % n ))]}"
 else
   new="${files[$(( (idx - 1 + n) % n ))]}"
 fi
+echo "New file: $new" >> $LOG
 
 dbus-send --session \
   --dest="org.pwmt.zathura.PID-$ZPID" \
@@ -65,3 +93,4 @@ dbus-send --session \
   /org/pwmt/zathura \
   org.pwmt.zathura.OpenDocument \
   string:"$d/$new" string:"" int32:-1
+echo "Sent OpenDocument" >> $LOG
