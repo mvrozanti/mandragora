@@ -73,20 +73,16 @@ map <Left> scroll full-up
 map <Right> scroll full-down
 
 # Document Navigation (sxiv style)
-map n feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
-map p feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
-map period feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
-map comma feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
-map > feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
-map < feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
-map <S-.> feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
-map <S-,> feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
+map n exec /etc/profiles/per-user/m/bin/zathura-cycle next
+map p exec /etc/profiles/per-user/m/bin/zathura-cycle prev
+map period exec /etc/profiles/per-user/m/bin/zathura-cycle next
+map comma exec /etc/profiles/per-user/m/bin/zathura-cycle prev
+map > exec /etc/profiles/per-user/m/bin/zathura-cycle next
+map < exec /etc/profiles/per-user/m/bin/zathura-cycle prev
 
-map [fullscreen] n feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
-map [fullscreen] p feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
-map [fullscreen] period feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
-map [fullscreen] comma feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
-map [fullscreen] > feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
-map [fullscreen] < feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
-map [fullscreen] <S-.> feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle next<Return>"
-map [fullscreen] <S-,> feedkeys ":exec /etc/profiles/per-user/m/bin/zathura-cycle prev<Return>"
+map [fullscreen] n exec /etc/profiles/per-user/m/bin/zathura-cycle next
+map [fullscreen] p exec /etc/profiles/per-user/m/bin/zathura-cycle prev
+map [fullscreen] period exec /etc/profiles/per-user/m/bin/zathura-cycle next
+map [fullscreen] comma exec /etc/profiles/per-user/m/bin/zathura-cycle prev
+map [fullscreen] > exec /etc/profiles/per-user/m/bin/zathura-cycle next
+map [fullscreen] < exec /etc/profiles/per-user/m/bin/zathura-cycle prev
