@@ -47,26 +47,55 @@ def voices():
     return {"voices": list_voices(), "default": DEFAULT_VOICE}
 
 
-@app.post("/synthesize")
-def synthesize(req: SynthesizeRequest):
-    voice_name = req.voice or DEFAULT_VOICE
+def _synthesize_bytes(text: str, voice_name: str) -> bytes:
     model = model_path(voice_name)
     proc = subprocess.run(
         [PIPER_BIN, "--model", str(model), "--output_file", "-"],
-        input=req.text.encode("utf-8"),
+        input=text.encode("utf-8"),
         capture_output=True,
-        timeout=60,
+        timeout=120,
     )
     if proc.returncode != 0:
         raise HTTPException(
             status_code=500,
             detail=f"piper failed: {proc.stderr.decode('utf-8', 'replace')[:500]}",
         )
+    return proc.stdout
+
+
+@app.post("/synthesize")
+def synthesize(req: SynthesizeRequest):
+    voice_name = req.voice or DEFAULT_VOICE
+    audio = _synthesize_bytes(req.text, voice_name)
     return Response(
-        content=proc.stdout,
+        content=audio,
         media_type="audio/wav",
         headers={"Content-Disposition": f'inline; filename="{voice_name}.wav"'},
     )
+
+
+class OpenAISpeechRequest(BaseModel):
+    model: str | None = None
+    input: str = Field(..., min_length=1, max_length=10_000)
+    voice: str | None = None
+    response_format: str | None = None
+    speed: float | None = None
+
+
+@app.get("/v1/models")
+def openai_models():
+    voices = list_voices()
+    return {
+        "object": "list",
+        "data": [{"id": v, "object": "model", "owned_by": "piper"} for v in voices],
+    }
+
+
+@app.post("/v1/audio/speech")
+def openai_speech(req: OpenAISpeechRequest):
+    voice_name = req.voice or req.model or DEFAULT_VOICE
+    audio = _synthesize_bytes(req.input, voice_name)
+    return Response(content=audio, media_type="audio/wav")
 
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
