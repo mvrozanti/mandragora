@@ -25,6 +25,7 @@ in
     ./minecraft.nix
     ./skills.nix
     ./axon.nix
+    ./nb-vault-sync.nix
   ];
 
     services.udiskie = {

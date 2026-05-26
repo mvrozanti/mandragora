@@ -38,6 +38,8 @@ services:
       caddy.0_forward_auth.uri: "/api/authz/forward-auth"
       caddy.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
       caddy.1_reverse_proxy: "{{upstreams 8502}}"
+    ports:
+      - "${NB_TAILNET_IP:-100.84.78.83}:5055:5055"
 
 networks:
   nb-net:
