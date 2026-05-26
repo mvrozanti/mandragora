@@ -106,10 +106,28 @@ $script:START_MENU_LNK  = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Ma
 $script:WT_FRAGMENT_OLD = "$env:LOCALAPPDATA\Microsoft\Windows Terminal\Fragments\Mandragora\nixos.json"
 
 function Get-TerminalSettingsPaths {
-    @(
+    $found = New-Object System.Collections.Generic.List[string]
+    $candidates = @(
         "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbcwe\LocalState\settings.json",
-        "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbcwe\LocalState\settings.json"
-    ) | Where-Object { Test-Path $_ }
+        "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbcwe\LocalState\settings.json",
+        "$env:LOCALAPPDATA\Microsoft\Windows Terminal\settings.json"
+    )
+    foreach ($c in $candidates) { if (Test-Path $c) { $found.Add($c) } }
+    if ($found.Count -eq 0) {
+        $pkgRoot = "$env:LOCALAPPDATA\Packages"
+        if (Test-Path $pkgRoot) {
+            Get-ChildItem -Path $pkgRoot -Directory -Filter '*WindowsTerminal*' -ErrorAction SilentlyContinue | ForEach-Object {
+                $p = Join-Path $_.FullName 'LocalState\settings.json'
+                if (Test-Path $p) { $found.Add($p) }
+            }
+        }
+    }
+    if ($found.Count -eq 0) {
+        Get-ChildItem -Path $env:LOCALAPPDATA -Recurse -Filter 'settings.json' -ErrorAction SilentlyContinue -Depth 5 |
+            Where-Object { $_.FullName -match '(?i)WindowsTerminal' } |
+            ForEach-Object { $found.Add($_.FullName) }
+    }
+    return $found
 }
 
 function Remove-StaleFragment {
@@ -133,16 +151,32 @@ function Find-WslNixosProfile {
     })
 }
 
+$script:MANDRAGORA_PROFILE_GUID = '{a7c6f4e2-1f4b-4b3e-9a5d-7c8e2d4f6b1a}'
+
+function Get-MandragoraProfileObject {
+    [PSCustomObject]@{
+        guid              = $script:MANDRAGORA_PROFILE_GUID
+        name              = $script:WT_PROFILE_NAME
+        commandline       = 'wsl.exe -d NixOS'
+        startingDirectory = '~'
+        font              = [PSCustomObject]@{ face = $script:NERD_FONT_FACE }
+        colorScheme       = 'Campbell'
+        hidden            = $false
+    }
+}
+
 function Test-TerminalFontConfigured {
     $paths = Get-TerminalSettingsPaths
-    if (-not $paths) { return $true }
+    if (-not $paths) {
+        return (Test-Path $script:WT_FRAGMENT_OLD)
+    }
     foreach ($p in $paths) {
         try {
             $j = Get-Content -Path $p -Raw -Encoding UTF8 | ConvertFrom-Json
         } catch { continue }
-        if (-not $j.profiles) { continue }
+        if (-not $j.profiles) { return $false }
         $list = if ($j.profiles.list) { $j.profiles.list } else { $j.profiles }
-        $mine = @($list | Where-Object { $_.name -eq $script:WT_PROFILE_NAME })
+        $mine = @($list | Where-Object { $_.guid -eq $script:MANDRAGORA_PROFILE_GUID })
         if (-not $mine) { return $false }
         foreach ($prof in $mine) {
             if (-not $prof.font -or $prof.font.face -ne $script:NERD_FONT_FACE) { return $false }
@@ -151,14 +185,25 @@ function Test-TerminalFontConfigured {
     return $true
 }
 
-function Set-TerminalProfileFont {
-    Remove-StaleFragment
+function Write-MandragoraFragment {
+    $dir = Split-Path $script:WT_FRAGMENT_OLD -Parent
+    if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+    $obj = [PSCustomObject]@{
+        '$schema' = 'https://aka.ms/terminal-profiles-schema-fragments'
+        profiles  = @(Get-MandragoraProfileObject)
+    }
+    ($obj | ConvertTo-Json -Depth 32) | Set-Content -Path $script:WT_FRAGMENT_OLD -Encoding UTF8
+    Write-Host "    wrote terminal fragment -> $($script:WT_FRAGMENT_OLD) (no settings.json found)" -ForegroundColor DarkGray
+}
 
+function Set-TerminalProfileFont {
     $paths = Get-TerminalSettingsPaths
     if (-not $paths) {
-        Write-Host '    Windows Terminal not installed; skipping profile rename' -ForegroundColor DarkYellow
+        Write-Host '    no Windows Terminal settings.json located; falling back to fragment' -ForegroundColor DarkYellow
+        Write-MandragoraFragment
         return
     }
+    Remove-StaleFragment
     foreach ($p in $paths) {
         try {
             $raw = Get-Content -Path $p -Raw -Encoding UTF8
@@ -167,35 +212,49 @@ function Set-TerminalProfileFont {
             Write-Host "    could not parse $p ; skipping" -ForegroundColor DarkYellow
             continue
         }
-        if (-not $j.profiles) { continue }
-        $list = if ($j.profiles.list) { $j.profiles.list } else { $j.profiles }
+        if (-not $j.profiles) {
+            $j | Add-Member -MemberType NoteProperty -Name profiles -Value ([PSCustomObject]@{ list = @() }) -Force
+        }
+        if (-not $j.profiles.list) {
+            if ($j.profiles -is [array]) {
+                $j.profiles = [PSCustomObject]@{ list = @($j.profiles) }
+            } else {
+                $j.profiles | Add-Member -MemberType NoteProperty -Name list -Value @() -Force
+            }
+        }
+        $list = @($j.profiles.list)
+
         $profileDump = ($list | ForEach-Object {
             "        - name=$($_.name) source=$($_.source) commandline=$($_.commandline) guid=$($_.guid)"
         }) -join "`n"
         Write-Host "    enumerated profiles in $p :" -ForegroundColor DarkGray
         Write-Host $profileDump -ForegroundColor DarkGray
 
-        $already = @($list | Where-Object { $_.name -eq $script:WT_PROFILE_NAME })
-        $target = if ($already) { $already } else { Find-WslNixosProfile -List $list }
-        if (-not $target) {
-            Write-Host "    no WSL NixOS profile matched in $p" -ForegroundColor DarkYellow
-            Write-Host "    open Windows Terminal once so it auto-registers the WSL distro, then re-run installer" -ForegroundColor DarkYellow
-            continue
+        $auto = Find-WslNixosProfile -List $list
+        foreach ($prof in $auto) {
+            if ($prof.guid -eq $script:MANDRAGORA_PROFILE_GUID) { continue }
+            if ($prof.PSObject.Properties.Name -contains 'hidden') { $prof.hidden = $true }
+            else { $prof | Add-Member -MemberType NoteProperty -Name hidden -Value $true -Force }
+            Write-Host "    hid auto WSL profile name=$($prof.name) guid=$($prof.guid)" -ForegroundColor DarkGray
         }
-        foreach ($prof in $target) {
-            if ($prof.name -ne $script:WT_PROFILE_NAME) {
+
+        $existing = @($list | Where-Object { $_.guid -eq $script:MANDRAGORA_PROFILE_GUID })
+        if ($existing) {
+            foreach ($prof in $existing) {
                 $prof.name = $script:WT_PROFILE_NAME
+                $prof.commandline = 'wsl.exe -d NixOS'
+                if (-not $prof.font) { $prof | Add-Member -MemberType NoteProperty -Name font -Value (New-Object PSObject) -Force }
+                if ($prof.font.PSObject.Properties.Name -contains 'face') { $prof.font.face = $script:NERD_FONT_FACE }
+                else { $prof.font | Add-Member -MemberType NoteProperty -Name face -Value $script:NERD_FONT_FACE -Force }
+                if ($prof.PSObject.Properties.Name -contains 'hidden') { $prof.hidden = $false }
             }
-            if (-not $prof.font) {
-                $prof | Add-Member -MemberType NoteProperty -Name font -Value (New-Object PSObject) -Force
-            }
-            if ($prof.font.PSObject.Properties.Name -contains 'face') {
-                $prof.font.face = $script:NERD_FONT_FACE
-            } else {
-                $prof.font | Add-Member -MemberType NoteProperty -Name face -Value $script:NERD_FONT_FACE -Force
-            }
-            Write-Host "    renamed profile guid=$($prof.guid) -> name=$($script:WT_PROFILE_NAME), font.face=$($script:NERD_FONT_FACE)" -ForegroundColor DarkGray
+            Write-Host "    updated existing Mandragora profile in $p" -ForegroundColor DarkGray
+        } else {
+            $newList = @($list) + (Get-MandragoraProfileObject)
+            $j.profiles.list = $newList
+            Write-Host "    added Mandragora profile (guid=$($script:MANDRAGORA_PROFILE_GUID)) to $p" -ForegroundColor DarkGray
         }
+
         $backup = "$p.mandragora-bak"
         if (-not (Test-Path $backup)) { Copy-Item $p $backup -Force }
         ($j | ConvertTo-Json -Depth 64) | Set-Content -Path $p -Encoding UTF8
@@ -206,8 +265,13 @@ function Install-StartMenuShortcut {
     $parent = Split-Path $script:START_MENU_LNK -Parent
     if (-not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
     $wt = (Get-Command wt.exe -ErrorAction SilentlyContinue)
-    $targetPath = if ($wt) { $wt.Source } else { 'wsl.exe' }
-    $args = if ($wt) { "-p `"$($script:WT_PROFILE_NAME)`"" } else { "-d NixOS" }
+    if ($wt) {
+        $targetPath = $wt.Source
+        $args = "-p `"$($script:MANDRAGORA_PROFILE_GUID)`""
+    } else {
+        $targetPath = "$env:SYSTEMROOT\System32\wsl.exe"
+        $args = '-d NixOS'
+    }
     $shell = New-Object -ComObject WScript.Shell
     $lnk = $shell.CreateShortcut($script:START_MENU_LNK)
     $lnk.TargetPath = $targetPath
@@ -217,6 +281,7 @@ function Install-StartMenuShortcut {
     $lnk.Description = 'Mandragora (NixOS-WSL)'
     $lnk.Save()
     Write-Host "    wrote Start Menu shortcut -> $($script:START_MENU_LNK)" -ForegroundColor DarkGray
+    Write-Host "    target: $targetPath $args" -ForegroundColor DarkGray
     Write-Host '    type "mandragora" in Start to launch (may take 30s to index)' -ForegroundColor DarkGray
 }
 
