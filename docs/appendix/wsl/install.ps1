@@ -21,6 +21,9 @@
 # mandragora-wsl bootstrap inside it. Does not touch any other distro.
 
 $ErrorActionPreference = 'Stop'
+if (Get-Variable -Name PSNativeCommandUseErrorActionPreference -Scope Global -ErrorAction SilentlyContinue) {
+    $global:PSNativeCommandUseErrorActionPreference = $false
+}
 $BASE = 'https://raw.githubusercontent.com/mvrozanti/mandragora/master/docs/appendix/wsl'
 $REPO = $env:MANDRAGORA_REPO; if (-not $REPO) { $REPO = 'https://github.com/mvrozanti/mandragora.git' }
 $RICE     = ($env:MANDRAGORA_RICE -eq '1')
