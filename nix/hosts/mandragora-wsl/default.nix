@@ -23,6 +23,20 @@
   networking.hostName = "mandragora-wsl";
   time.timeZone = "America/Sao_Paulo";
   i18n.defaultLocale = "en_US.UTF-8";
+  i18n.supportedLocales = [
+    "en_US.UTF-8/UTF-8"
+    "pt_BR.UTF-8/UTF-8"
+    "C.UTF-8/UTF-8"
+  ];
+  i18n.extraLocaleSettings = {
+    LC_CTYPE = "en_US.UTF-8";
+    LC_COLLATE = "en_US.UTF-8";
+    LC_MESSAGES = "en_US.UTF-8";
+  };
+  environment.variables = {
+    LANG = "en_US.UTF-8";
+    LC_ALL = "en_US.UTF-8";
+  };
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.auto-optimise-store = true;
