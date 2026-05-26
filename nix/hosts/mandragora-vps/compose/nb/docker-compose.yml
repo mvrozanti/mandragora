@@ -21,8 +21,7 @@ services:
       - nb-surrealdb
     environment:
       - OPEN_NOTEBOOK_ENCRYPTION_KEY=${NB_ENCRYPTION_KEY:?required}
-      - API_URL=https://nb.${MVR_AC:-mvr.ac}/api
-      - NEXT_PUBLIC_API_URL=https://nb.${MVR_AC:-mvr.ac}/api
+      - API_URL=https://nb.${MVR_AC:-mvr.ac}
       - SURREAL_URL=ws://nb-surrealdb:8000/rpc
       - SURREAL_USER=root
       - SURREAL_PASSWORD=${NB_SURREAL_PASSWORD:?required}
@@ -35,16 +34,10 @@ services:
       - seafile-net
     labels:
       caddy: https://nb.${MVR_AC:-mvr.ac}
-      caddy.0_@api: "path /api /api/*"
-      caddy.1_handle: "@api"
-      caddy.1_handle.forward_auth: "authelia:9091"
-      caddy.1_handle.forward_auth.uri: "/api/authz/forward-auth"
-      caddy.1_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy.1_handle.reverse_proxy: "{{upstreams 5055}}"
-      caddy.2_handle.forward_auth: "authelia:9091"
-      caddy.2_handle.forward_auth.uri: "/api/authz/forward-auth"
-      caddy.2_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy.2_handle.reverse_proxy: "{{upstreams 8502}}"
+      caddy.0_forward_auth: "authelia:9091"
+      caddy.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.1_reverse_proxy: "{{upstreams 8502}}"
 
 networks:
   nb-net:
