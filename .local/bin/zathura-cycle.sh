@@ -5,6 +5,8 @@ LOG=/home/m/zathura_cycle.log
 echo "--- $(date) ---" >> $LOG
 echo "Args: $*" >> $LOG
 
+notify-send -t 1000 "Zathura" "Cycling document..." || true
+
 dir="next"
 case "${1:-}" in
   next|prev) dir="$1"; shift ;;
@@ -13,7 +15,6 @@ esac
 file="${1:-}"
 
 find_zathura_pid() {
-  # Try hyprctl first (most reliable for active window)
   local apid
   apid=$(hyprctl activewindow -j | jq -r .pid 2>/dev/null || true)
   if [[ -n "$apid" ]] && ps -p "$apid" -o comm= | grep -qE "^zathura$|^\.zathura-wrappe$"; then
@@ -21,7 +22,6 @@ find_zathura_pid() {
     return 0
   fi
 
-  # Fallback to process tree from PPID
   local cp=$PPID
   while [[ $cp -gt 1 ]]; do
     local comm
@@ -33,7 +33,6 @@ find_zathura_pid() {
     cp=$(ps -o ppid= -p "$cp" 2>/dev/null | tr -d ' ' || echo 0)
   done
 
-  # Last resort: pgrep
   pgrep zathura | head -n 1
 }
 
@@ -57,7 +56,6 @@ fi
 
 d=$(dirname "$file")
 cur=$(basename "$file")
-echo "Dir: $d, Cur: $cur" >> $LOG
 
 mapfile -t files < <(
   find "$d" -maxdepth 1 -type f \
@@ -68,22 +66,19 @@ mapfile -t files < <(
 )
 
 n=${#files[@]}
-echo "Compatible files: $n" >> $LOG
 (( n > 1 )) || exit 0
 
 idx=-1
 for i in "${!files[@]}"; do
   [[ "${files[$i]}" == "$cur" ]] && { idx=$i; break; }
 done
-echo "Current index: $idx" >> $LOG
-(( idx < 0 )) && { echo "ERROR: Current file not in list" >> $LOG; exit 1; }
+(( idx < 0 )) && exit 1
 
 if [[ "$dir" == next ]]; then
   new="${files[$(( (idx + 1) % n ))]}"
 else
   new="${files[$(( (idx - 1 + n) % n ))]}"
 fi
-echo "New file: $new" >> $LOG
 
 busctl --user call "org.pwmt.zathura.PID-$ZPID" /org/pwmt/zathura org.pwmt.zathura OpenDocument ssi -- "$d/$new" "" -1
 echo "Sent OpenDocument via busctl" >> $LOG
