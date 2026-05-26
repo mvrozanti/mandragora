@@ -1,5 +1,6 @@
 #!/bin/sh
 printf '[%s] preview file=%s\n' "$(date +%H:%M:%S.%N)" "$1" >> /tmp/lf-cleaner.log
+pkill -P 1 -KILL -f 'kitten icat.*--place' 2>/dev/null || true
 
 hash() {
   cache="$HOME/.cache/lf/$(stat --printf '%n\0%i\0%F\0%s\0%W\0%Y' -- "$(readlink -f -- "$1")" | sha256sum | cut -d' ' -f1).jpg"
