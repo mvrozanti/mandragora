@@ -42,6 +42,8 @@
     curl
     fastfetch
     rtk
+    wslu
+    (writeShellScriptBin "xdg-open" ''exec ${wslu}/bin/wslview "$@"'')
   ];
 
   programs.zsh.enable = true;
