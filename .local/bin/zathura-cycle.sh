@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-LOG=/home/m/zathura_cycle.log
-echo "--- $(date) ---" >> $LOG
-echo "Args: $*" >> $LOG
-
-notify-send -t 1000 "Zathura" "Cycling document..." || true
-
 dir="next"
 case "${1:-}" in
   next|prev) dir="$1"; shift ;;
@@ -37,20 +31,16 @@ find_zathura_pid() {
 }
 
 ZPID=$(find_zathura_pid || true)
-echo "Resolved ZPID: $ZPID" >> $LOG
 
 if [[ -z "$ZPID" ]]; then
-    echo "ERROR: No ZPID" >> $LOG
     exit 1
 fi
 
 if [[ -z "$file" ]]; then
     file=$(busctl --user get-property "org.pwmt.zathura.PID-$ZPID" /org/pwmt/zathura org.pwmt.zathura filename 2>/dev/null | grep -oP '"\K[^"]+' || true)
-    echo "Found file via busctl: $file" >> $LOG
 fi
 
 if [[ -z "$file" ]]; then
-    echo "ERROR: No file found" >> $LOG
     exit 1
 fi
 
@@ -81,4 +71,3 @@ else
 fi
 
 busctl --user call "org.pwmt.zathura.PID-$ZPID" /org/pwmt/zathura org.pwmt.zathura OpenDocument ssi -- "$d/$new" "" -1
-echo "Sent OpenDocument via busctl" >> $LOG
