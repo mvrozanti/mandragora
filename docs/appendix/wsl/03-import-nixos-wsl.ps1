@@ -21,7 +21,15 @@ if ((Test-Path $tarball) -and -not $replaceTarball) {
 }
 
 Write-Host '[2/3] import distro NixOS'
-$exists = ((wsl --list --quiet) -match '^NixOS$')
+$prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+$raw = & wsl.exe --list --quiet 2>$null
+$ErrorActionPreference = $prevEAP
+$exists = $false
+if ($raw) {
+    $clean = (($raw | Out-String) -replace "`0",'')
+    $lines = $clean -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+    $exists = ($lines -contains 'NixOS')
+}
 if ($exists -and -not $replaceDistro) {
     Write-Host '    NixOS distro already present, keeping as-is'
 } else {
