@@ -9,6 +9,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
 
+ARG TARGETARCH
+ARG PIPER_VERSION=2023.11.14-2
+RUN set -eux; \
+    case "$(uname -m)" in \
+      aarch64) arch=linux_aarch64 ;; \
+      x86_64)  arch=linux_x86_64 ;; \
+      *) echo "unsupported arch $(uname -m)" >&2; exit 1 ;; \
+    esac; \
+    curl -fsSL "https://github.com/rhasspy/piper/releases/download/${PIPER_VERSION}/piper_${arch}.tar.gz" \
+      | tar -xz -C /opt && \
+    ln -s /opt/piper/piper /usr/local/bin/piper
+
 WORKDIR /app
 
 COPY requirements.txt ./
