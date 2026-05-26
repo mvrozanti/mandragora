@@ -81,6 +81,7 @@ in
     }))
     ueberzugpp
     zathura
+    calibre
     imagemagick
     ffmpeg
     ffmpegthumbnailer
