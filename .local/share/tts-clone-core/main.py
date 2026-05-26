@@ -10,7 +10,7 @@ from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 import config
@@ -24,7 +24,9 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="mandragora-tts-clone-core", version="0.1")
+app = FastAPI(title="mandragora-tts-clone-core", version="0.2")
+
+_NAME_RE = re.compile(r"^[a-zA-Z0-9 _\-.]{1,64}$")
 
 
 def _safe_user(remote_user: str | None) -> str:
@@ -32,8 +34,36 @@ def _safe_user(remote_user: str | None) -> str:
     return re.sub(r"[^a-zA-Z0-9._-]", "_", name)[:64] or config.ANON_USER
 
 
-def _ref_path(user: str) -> Path:
-    return Path(config.REFS_DIR) / f"{user}.wav"
+def _user_refs_dir(user: str) -> Path:
+    d = Path(config.REFS_DIR) / user
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _validate_name(name: str) -> str:
+    name = (name or "").strip()
+    if not _NAME_RE.match(name):
+        raise HTTPException(status_code=400, detail="name must be 1-64 chars: letters, digits, space, _ - .")
+    if name in (".", ".."):
+        raise HTTPException(status_code=400, detail="invalid name")
+    return name
+
+
+def _ref_path(user: str, name: str) -> Path:
+    return _user_refs_dir(user) / f"{name}.wav"
+
+
+def _list_refs(user: str) -> list[dict]:
+    d = _user_refs_dir(user)
+    items = []
+    for p in sorted(d.glob("*.wav")):
+        st = p.stat()
+        items.append({
+            "name": p.stem,
+            "size_bytes": st.st_size,
+            "mtime": st.st_mtime,
+        })
+    return items
 
 
 async def _ffmpeg(*args: str) -> None:
@@ -75,8 +105,7 @@ def whoami(remote_user: str | None = Header(default=None, alias="Remote-User")):
 @app.get("/status")
 def status(remote_user: str | None = Header(default=None, alias="Remote-User")):
     user = _safe_user(remote_user)
-    ref = _ref_path(user)
-    has_ref = ref.is_file()
+    refs = _list_refs(user)
     holder = None
     if HAS_GPU_LOCK:
         h = gpu_lock.current_holder()
@@ -88,8 +117,7 @@ def status(remote_user: str | None = Header(default=None, alias="Remote-User")):
             }
     return {
         "user": user,
-        "has_reference": has_ref,
-        "reference_size_bytes": ref.stat().st_size if has_ref else 0,
+        "ref_count": len(refs),
         "model_loaded": get_engine().loaded,
         "gpu_lock_holder": holder,
         "config": {
@@ -115,12 +143,20 @@ async def warmup_endpoint():
     return {"ok": True, "model_loaded": get_engine().loaded}
 
 
-@app.post("/ref")
+@app.get("/refs")
+def list_refs(remote_user: str | None = Header(default=None, alias="Remote-User")):
+    user = _safe_user(remote_user)
+    return {"user": user, "refs": _list_refs(user)}
+
+
+@app.post("/refs")
 async def upload_ref(
+    name: str = Form(...),
     audio: UploadFile = File(...),
     remote_user: str | None = Header(default=None, alias="Remote-User"),
 ):
     user = _safe_user(remote_user)
+    name = _validate_name(name)
     suffix = os.path.splitext(audio.filename or "")[1] or ".bin"
     tmp_fd, tmp_in = tempfile.mkstemp(prefix="ref-in-", suffix=suffix)
     written = 0
@@ -137,7 +173,7 @@ async def upload_ref(
         if written == 0:
             raise HTTPException(status_code=400, detail="empty upload")
 
-        dst = _ref_path(user)
+        dst = _ref_path(user, name)
         try:
             duration = await _to_reference_wav(Path(tmp_in), dst)
         except RuntimeError as e:
@@ -148,7 +184,14 @@ async def upload_ref(
             warning = f"reference is {duration:.1f}s — F5-TTS works best on 8–15s clips."
         elif duration < 3:
             warning = f"reference is only {duration:.1f}s — send 8–15s for best results."
-        return {"user": user, "duration_seconds": duration, "warning": warning, "bytes": written}
+        return {
+            "user": user,
+            "name": name,
+            "duration_seconds": duration,
+            "warning": warning,
+            "bytes": written,
+            "size_bytes": dst.stat().st_size,
+        }
     finally:
         try:
             os.unlink(tmp_in)
@@ -156,30 +199,53 @@ async def upload_ref(
             pass
 
 
-@app.delete("/ref")
-def clear_ref(remote_user: str | None = Header(default=None, alias="Remote-User")):
+@app.delete("/refs/{name}")
+def delete_ref(
+    name: str,
+    remote_user: str | None = Header(default=None, alias="Remote-User"),
+):
     user = _safe_user(remote_user)
-    p = _ref_path(user)
-    existed = p.is_file()
-    if existed:
-        p.unlink()
-    return {"user": user, "cleared": existed}
+    name = _validate_name(name)
+    p = _ref_path(user, name)
+    if not p.is_file():
+        raise HTTPException(status_code=404, detail="not found")
+    p.unlink()
+    return {"user": user, "name": name, "deleted": True}
+
+
+@app.get("/refs/{name}")
+def get_ref(
+    name: str,
+    remote_user: str | None = Header(default=None, alias="Remote-User"),
+):
+    user = _safe_user(remote_user)
+    name = _validate_name(name)
+    p = _ref_path(user, name)
+    if not p.is_file():
+        raise HTTPException(status_code=404, detail="not found")
+    return FileResponse(
+        str(p),
+        media_type="audio/wav",
+        headers={"Content-Disposition": f'inline; filename="{name}.wav"'},
+    )
 
 
 @app.post("/synthesize")
 async def synthesize(
     text: str = Form(..., min_length=1, max_length=config.MAX_GEN_CHARS),
+    ref_name: str = Form(...),
     ref_text: str = Form(default=""),
     seed: int = Form(default=-1),
     remote_user: str | None = Header(default=None, alias="Remote-User"),
 ):
     user = _safe_user(remote_user)
-    ref = _ref_path(user)
+    ref_name = _validate_name(ref_name)
+    ref = _ref_path(user, ref_name)
     if not ref.is_file():
-        raise HTTPException(status_code=400, detail="no reference uploaded yet")
+        raise HTTPException(status_code=404, detail=f"reference '{ref_name}' not found")
 
     ts = time.strftime("%Y%m%d-%H%M%S")
-    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()[:8]
+    digest = hashlib.sha256(f"{ref_name}\0{text}".encode("utf-8")).hexdigest()[:8]
     out_wav = Path(config.OUT_DIR) / f"{user}_{ts}_{digest}.wav"
 
     estimated = max(config.F5_NFE_STEPS * 0.4 + len(text) * 0.05, 8.0)
@@ -211,6 +277,7 @@ async def synthesize(
         headers={
             "Content-Disposition": f'inline; filename="{out_wav.name}"',
             "X-Elapsed-Seconds": f"{elapsed:.2f}",
+            "X-Ref-Name": ref_name,
         },
     )
 
