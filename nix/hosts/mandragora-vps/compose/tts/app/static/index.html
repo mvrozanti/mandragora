@@ -6,45 +6,48 @@
 <title>tts · mvr.ac</title>
 <style>
 :root {
-  --bg: #050805;
-  --panel: #0a0e0a;
-  --fg: #b8ffc4;
-  --accent: #00ff66;
-  --dim: #4a6a4e;
-  --line: #1a2418;
+  --bg: #050805; --panel: #0a0e0a; --fg: #b8ffc4; --accent: #00ff66;
+  --dim: #4a6a4e; --line: #1a2418; --warn: #ffb347; --bad: #ff6b6b;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body {
-  background: var(--bg); color: var(--fg);
+html, body { background: var(--bg); color: var(--fg);
   font-family: "Iosevka", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
-  min-height: 100vh;
-}
+  min-height: 100vh; }
 body { padding: 2rem 1.5rem; }
 .wrap { max-width: 900px; margin: 0 auto; }
-header {
-  display: flex; justify-content: space-between; align-items: baseline;
-  border-bottom: 1px solid var(--line); padding-bottom: 0.9rem; margin-bottom: 1.6rem;
-}
+header { display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid var(--line); padding-bottom: 0.9rem; margin-bottom: 1rem; }
 h1 { font-size: 1.1rem; font-weight: 600; color: var(--accent); }
 .who { color: var(--dim); font-size: 0.85rem; }
+nav.tabs { display: flex; gap: 0.4rem; margin-bottom: 1.2rem; }
+nav.tabs button { background: var(--panel); color: var(--dim); border: 1px solid var(--line);
+  font-family: inherit; font-size: 0.85rem; padding: 0.5rem 1rem; cursor: pointer; }
+nav.tabs button.active { color: var(--accent); border-color: var(--accent); }
 .panel { background: var(--panel); border: 1px solid var(--line); padding: 1.2rem; margin-bottom: 1rem; }
 label { display: block; color: var(--dim); font-size: 0.85rem; margin-bottom: 0.4rem; }
-textarea, select, button {
-  background: var(--bg); color: var(--fg); border: 1px solid var(--line);
-  font-family: inherit; font-size: 0.95rem; padding: 0.6rem 0.8rem; width: 100%;
-}
+textarea, select, button, input[type=file] { background: var(--bg); color: var(--fg);
+  border: 1px solid var(--line); font-family: inherit; font-size: 0.95rem;
+  padding: 0.6rem 0.8rem; width: 100%; }
 textarea { min-height: 8rem; resize: vertical; }
-.row { display: flex; gap: 0.8rem; margin-top: 0.8rem; flex-wrap: wrap; }
+.row { display: flex; gap: 0.8rem; margin-top: 0.8rem; flex-wrap: wrap; align-items: flex-end; }
 .row > div { flex: 1; min-width: 200px; }
-button {
-  background: var(--accent); color: var(--bg); border: none; cursor: pointer;
-  font-weight: 600; padding: 0.7rem 1.2rem; width: auto;
-}
-button:disabled { background: var(--dim); cursor: not-allowed; }
+button.primary { background: var(--accent); color: var(--bg); border: none; cursor: pointer;
+  font-weight: 600; padding: 0.7rem 1.2rem; width: auto; }
+button.primary:disabled { background: var(--dim); cursor: not-allowed; }
+button.danger { background: transparent; color: var(--bad); border: 1px solid var(--bad);
+  cursor: pointer; padding: 0.5rem 1rem; width: auto; font-family: inherit; }
+button.rec { background: var(--bad); color: #fff; border: none; cursor: pointer;
+  font-family: inherit; padding: 0.7rem 1.2rem; width: auto; }
+button.rec.armed { background: var(--warn); color: var(--bg); }
 audio { width: 100%; margin-top: 1rem; }
 .status { color: var(--dim); font-size: 0.85rem; margin-top: 0.6rem; min-height: 1.2em; }
-footer { color: var(--dim); font-size: 0.8rem; margin-top: 2rem; border-top: 1px solid var(--line); padding-top: 0.8rem; }
+.meta { color: var(--dim); font-size: 0.78rem; margin-top: 0.4rem; }
+.ref-state { color: var(--dim); font-size: 0.85rem; margin-top: 0.6rem; }
+.ref-state.has { color: var(--accent); }
+footer { color: var(--dim); font-size: 0.8rem; margin-top: 2rem;
+  border-top: 1px solid var(--line); padding-top: 0.8rem; }
 a { color: var(--accent); text-decoration: none; }
+.hidden { display: none; }
 </style>
 </head>
 <body>
@@ -54,24 +57,65 @@ a { color: var(--accent); text-decoration: none; }
     <span class="who" id="who"></span>
   </header>
 
-  <div class="panel">
-    <label for="text">text</label>
-    <textarea id="text" placeholder="type something to synthesize"></textarea>
-    <div class="row">
-      <div>
-        <label for="voice">voice</label>
-        <select id="voice"></select>
+  <nav class="tabs">
+    <button id="tab-synth" class="active">synth</button>
+    <button id="tab-clone">clone</button>
+  </nav>
+
+  <section id="pane-synth">
+    <div class="panel">
+      <label for="text">text</label>
+      <textarea id="text" placeholder="type something to synthesize"></textarea>
+      <div class="row">
+        <div>
+          <label for="voice">voice</label>
+          <select id="voice"></select>
+        </div>
+        <div style="flex: 0 0 auto; align-self: flex-end;">
+          <button id="go" class="primary">synthesize</button>
+        </div>
       </div>
-      <div style="flex: 0 0 auto; align-self: flex-end;">
-        <button id="go">synthesize</button>
-      </div>
+      <div class="status" id="status"></div>
+      <audio id="audio" controls hidden></audio>
     </div>
-    <div class="status" id="status"></div>
-    <audio id="audio" controls hidden></audio>
-  </div>
+  </section>
+
+  <section id="pane-clone" class="hidden">
+    <div class="panel">
+      <label>reference voice (8–15s of clean speech)</label>
+      <div class="row">
+        <div>
+          <input type="file" id="ref-file" accept="audio/*,video/*">
+        </div>
+        <div style="flex: 0 0 auto;">
+          <button id="ref-rec" class="rec" type="button">record</button>
+        </div>
+        <div style="flex: 0 0 auto;">
+          <button id="ref-upload" class="primary">upload</button>
+        </div>
+        <div style="flex: 0 0 auto;">
+          <button id="ref-clear" class="danger">clear</button>
+        </div>
+      </div>
+      <div class="ref-state" id="ref-state">checking reference…</div>
+    </div>
+
+    <div class="panel">
+      <label for="clone-text">text to speak in that voice</label>
+      <textarea id="clone-text" placeholder="up to 1000 chars"></textarea>
+      <div class="row">
+        <div style="flex: 0 0 auto; margin-left: auto;">
+          <button id="clone-go" class="primary">synthesize</button>
+        </div>
+      </div>
+      <div class="status" id="clone-status"></div>
+      <audio id="clone-audio" controls hidden></audio>
+      <div class="meta" id="clone-meta"></div>
+    </div>
+  </section>
 
   <footer>
-    <a href="https://mvr.ac">mvr.ac</a> · piper · authelia-gated
+    <a href="https://mvr.ac">mvr.ac</a> · piper (synth) · f5-tts (clone) · authelia-gated
   </footer>
 </div>
 
@@ -82,6 +126,16 @@ fetch('/whoami', { credentials: 'same-origin' })
   .then(r => r.ok ? r.text() : null)
   .then(n => { if (n) $('who').textContent = n.trim(); })
   .catch(() => {});
+
+const showPane = name => {
+  for (const t of ['synth', 'clone']) {
+    $(`tab-${t}`).classList.toggle('active', t === name);
+    $(`pane-${t}`).classList.toggle('hidden', t !== name);
+  }
+  if (name === 'clone') refreshCloneStatus();
+};
+$('tab-synth').addEventListener('click', () => showPane('synth'));
+$('tab-clone').addEventListener('click', () => showPane('clone'));
 
 fetch('/voices').then(r => r.json()).then(data => {
   const sel = $('voice');
@@ -108,14 +162,124 @@ $('go').addEventListener('click', async () => {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
-    $('audio').src = url;
-    $('audio').hidden = false;
+    $('audio').src = url; $('audio').hidden = false;
     $('audio').play().catch(() => {});
     $('status').textContent = `${(blob.size / 1024).toFixed(1)} KB`;
   } catch (e) {
     $('status').textContent = `error: ${e.message}`;
   } finally {
     $('go').disabled = false;
+  }
+});
+
+const recState = { mediaRecorder: null, chunks: [], blob: null };
+
+$('ref-rec').addEventListener('click', async () => {
+  const btn = $('ref-rec');
+  if (recState.mediaRecorder && recState.mediaRecorder.state === 'recording') {
+    recState.mediaRecorder.stop(); return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mr = new MediaRecorder(stream);
+    recState.mediaRecorder = mr; recState.chunks = [];
+    mr.ondataavailable = e => recState.chunks.push(e.data);
+    mr.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      recState.blob = new Blob(recState.chunks, { type: mr.mimeType || 'audio/webm' });
+      btn.classList.remove('armed'); btn.textContent = 'record';
+      $('ref-state').textContent = `recorded ${(recState.blob.size / 1024).toFixed(1)} KB — click upload`;
+    };
+    mr.start();
+    btn.classList.add('armed'); btn.textContent = 'stop';
+    $('ref-state').textContent = 'recording…';
+  } catch (e) {
+    $('ref-state').textContent = `mic error: ${e.message}`;
+  }
+});
+
+async function refreshCloneStatus() {
+  try {
+    const res = await fetch('/clone/status', { credentials: 'same-origin' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const el = $('ref-state');
+    if (data.has_reference) {
+      el.classList.add('has');
+      el.textContent = `reference stored (${(data.reference_size_bytes / 1024).toFixed(1)} KB) · model_loaded=${data.model_loaded}`;
+    } else {
+      el.classList.remove('has');
+      el.textContent = `no reference for ${data.user} — upload or record`;
+    }
+  } catch (e) {
+    $('ref-state').textContent = `status error: ${e.message}`;
+  }
+}
+
+$('ref-upload').addEventListener('click', async () => {
+  const fileEl = $('ref-file');
+  const blob = recState.blob || (fileEl.files[0] || null);
+  if (!blob) { $('ref-state').textContent = 'pick a file or record first'; return; }
+  $('ref-upload').disabled = true;
+  $('ref-state').textContent = 'uploading…';
+  const form = new FormData();
+  form.append('audio', blob, blob.name || 'reference.webm');
+  try {
+    const res = await fetch('/clone/ref', { method: 'POST', body: form, credentials: 'same-origin' });
+    if (!res.ok) {
+      const detail = await res.text();
+      throw new Error(`HTTP ${res.status}: ${detail.slice(0, 200)}`);
+    }
+    const data = await res.json();
+    let msg = `reference saved (${data.duration_seconds.toFixed(1)}s, ${(data.bytes / 1024).toFixed(1)} KB)`;
+    if (data.warning) msg += ` · ${data.warning}`;
+    $('ref-state').textContent = msg;
+    $('ref-state').classList.add('has');
+    recState.blob = null;
+    fileEl.value = '';
+  } catch (e) {
+    $('ref-state').textContent = `upload error: ${e.message}`;
+  } finally {
+    $('ref-upload').disabled = false;
+  }
+});
+
+$('ref-clear').addEventListener('click', async () => {
+  if (!confirm('clear stored reference?')) return;
+  try {
+    const res = await fetch('/clone/ref', { method: 'DELETE', credentials: 'same-origin' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await refreshCloneStatus();
+  } catch (e) {
+    $('ref-state').textContent = `clear error: ${e.message}`;
+  }
+});
+
+$('clone-go').addEventListener('click', async () => {
+  const text = $('clone-text').value.trim();
+  if (!text) { $('clone-status').textContent = 'empty input'; return; }
+  $('clone-go').disabled = true;
+  $('clone-status').textContent = 'synthesizing… (first call loads the model, may take ~30s)';
+  $('clone-audio').hidden = true; $('clone-meta').textContent = '';
+  const form = new FormData();
+  form.append('text', text);
+  try {
+    const res = await fetch('/clone/synthesize', { method: 'POST', body: form, credentials: 'same-origin' });
+    if (!res.ok) {
+      const detail = await res.text();
+      throw new Error(`HTTP ${res.status}: ${detail.slice(0, 200)}`);
+    }
+    const elapsed = res.headers.get('X-Elapsed-Seconds');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    $('clone-audio').src = url; $('clone-audio').hidden = false;
+    $('clone-audio').play().catch(() => {});
+    $('clone-status').textContent = 'done';
+    $('clone-meta').textContent = `${(blob.size / 1024).toFixed(1)} KB · ${elapsed}s on GPU`;
+  } catch (e) {
+    $('clone-status').textContent = `error: ${e.message}`;
+  } finally {
+    $('clone-go').disabled = false;
   }
 });
 </script>
