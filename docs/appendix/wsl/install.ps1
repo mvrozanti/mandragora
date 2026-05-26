@@ -261,6 +261,22 @@ function Set-TerminalProfileFont {
     }
 }
 
+function Get-NixosIconPath {
+    $dir = "$env:LOCALAPPDATA\Mandragora"
+    if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+    $ico = Join-Path $dir 'nixos.ico'
+    if (-not (Test-Path $ico)) {
+        try {
+            Invoke-WebRequest -Uri 'https://nixos.org/favicon.ico' -OutFile $ico -UseBasicParsing -ErrorAction Stop
+            Write-Host "    downloaded NixOS icon -> $ico" -ForegroundColor DarkGray
+        } catch {
+            Write-Host "    failed to download nixos.org/favicon.ico ($($_.Exception.Message)); using shell default icon" -ForegroundColor DarkYellow
+            return $null
+        }
+    }
+    return $ico
+}
+
 function Install-StartMenuShortcut {
     $parent = Split-Path $script:START_MENU_LNK -Parent
     if (-not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
@@ -272,21 +288,29 @@ function Install-StartMenuShortcut {
         $targetPath = "$env:SYSTEMROOT\System32\wsl.exe"
         $args = '-d NixOS'
     }
+    $ico = Get-NixosIconPath
+    $iconLocation = if ($ico) { "$ico,0" } else { "$targetPath,0" }
     $shell = New-Object -ComObject WScript.Shell
     $lnk = $shell.CreateShortcut($script:START_MENU_LNK)
     $lnk.TargetPath = $targetPath
     $lnk.Arguments = $args
     $lnk.WorkingDirectory = $env:USERPROFILE
-    $lnk.IconLocation = "$targetPath,0"
+    $lnk.IconLocation = $iconLocation
     $lnk.Description = 'Mandragora (NixOS-WSL)'
     $lnk.Save()
     Write-Host "    wrote Start Menu shortcut -> $($script:START_MENU_LNK)" -ForegroundColor DarkGray
     Write-Host "    target: $targetPath $args" -ForegroundColor DarkGray
+    Write-Host "    icon  : $iconLocation" -ForegroundColor DarkGray
     Write-Host '    type "mandragora" in Start to launch (may take 30s to index)' -ForegroundColor DarkGray
 }
 
 function Test-StartMenuShortcut {
-    Test-Path $script:START_MENU_LNK
+    if (-not (Test-Path $script:START_MENU_LNK)) { return $false }
+    try {
+        $shell = New-Object -ComObject WScript.Shell
+        $lnk = $shell.CreateShortcut($script:START_MENU_LNK)
+        return ($lnk.IconLocation -match 'nixos\.ico')
+    } catch { return $false }
 }
 $IS_ADMIN = Test-Admin
 
