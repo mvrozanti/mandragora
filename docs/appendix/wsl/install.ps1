@@ -31,6 +31,29 @@ function Test-Admin {
     ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
         [Security.Principal.WindowsBuiltInRole]::Administrator)
 }
+
+function Test-WslDistroExists {
+    param([Parameter(Mandatory)] [string] $Name)
+    $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+    try {
+        $raw = & wsl.exe --list --quiet 2>$null
+        if ($LASTEXITCODE -ne 0 -or -not $raw) { return $false }
+        $clean = (($raw | Out-String) -replace "`0",'')
+        $lines = $clean -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+        return ($lines -contains $Name)
+    } finally { $ErrorActionPreference = $prevEAP }
+}
+
+function Get-WslGuestHostname {
+    param([Parameter(Mandatory)] [string] $Name)
+    $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+    try {
+        $raw = & wsl.exe -d $Name -- cat /etc/hostname 2>$null
+        if ($LASTEXITCODE -ne 0 -or -not $raw) { return '' }
+        return ((($raw | Out-String) -replace "`0",'') -split "`r?`n" |
+                ForEach-Object { $_.Trim() } | Where-Object { $_ } | Select-Object -First 1)
+    } finally { $ErrorActionPreference = $prevEAP }
+}
 $IS_ADMIN = Test-Admin
 
 $STATE_DIR = "$env:LOCALAPPDATA\Mandragora"
@@ -118,8 +141,11 @@ function Show-Preflight {
     $existing = @()
     try {
         $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
-        $existing = (& wsl --list --quiet 2>$null) -split "`n" | Where-Object { $_ -match '\S' } | ForEach-Object { $_.Trim() }
-        $existing = $existing | Where-Object { $_ -ne 'NixOS' }
+        $raw = & wsl.exe --list --quiet 2>$null
+        if ($raw) {
+            $clean = (($raw | Out-String) -replace "`0",'')
+            $existing = $clean -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -and $_ -ne 'NixOS' }
+        }
         $ErrorActionPreference = $prevEAP
     } catch { $ErrorActionPreference = $prevEAP }
 
@@ -171,24 +197,13 @@ function Show-Preflight {
 
 function Get-State {
     $v = (Get-ItemProperty -Path $STATE_KEY -Name InstallStage -ErrorAction SilentlyContinue).InstallStage
-    $prevEAP = $ErrorActionPreference
-    $ErrorActionPreference = 'Continue'
-    try {
-        $list = $null
-        try { $list = & wsl --list --quiet 2>$null } catch {}
-        $distroExists = ($LASTEXITCODE -eq 0 -and ($list -match '^NixOS$'))
-        if ($distroExists) {
-            $h = $null
-            try { $h = (& wsl -d NixOS -- cat /etc/hostname 2>$null) } catch {}
-            if ($h) { $h = ($h -join '').Trim() }
-            if ($h -eq 'mandragora-wsl') { return 'done' }
-            return 'nixos-imported'
-        }
-        if ($v) { return $v }
-        return 'init'
-    } finally {
-        $ErrorActionPreference = $prevEAP
+    if (Test-WslDistroExists -Name 'NixOS') {
+        $h = Get-WslGuestHostname -Name 'NixOS'
+        if ($h -eq 'mandragora-wsl') { return 'done' }
+        return 'nixos-imported'
     }
+    if ($v) { return $v }
+    return 'init'
 }
 function Set-State($s) {
     Set-ItemProperty -Path $STATE_KEY -Name InstallStage -Value $s -Force
@@ -252,9 +267,7 @@ while ($true) {
             $replaceDistro  = $false
             $replaceTarball = $false
 
-            $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
-            $distroExists = ((& wsl --list --quiet 2>$null) -match '^NixOS$')
-            $ErrorActionPreference = $prevEAP
+            $distroExists = Test-WslDistroExists -Name 'NixOS'
             if ($distroExists) {
                 $replaceDistro = Confirm-Replace -What 'WSL distro "NixOS"'
             }
