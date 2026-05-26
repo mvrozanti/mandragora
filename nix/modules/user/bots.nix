@@ -7,12 +7,15 @@ let
   llmViaTelegramState = "/home/m/.local/share/llm-via-telegram";
   sttViaTelegramRoot = "/etc/nixos/mandragora/.local/share/stt-via-telegram";
   sttViaTelegramState = "/home/m/.local/share/stt-via-telegram";
+  sttCoreRoot = "/etc/nixos/mandragora/.local/share/stt-core";
+  sttCoreState = "/home/m/.local/share/stt-core";
   vtagState = "/home/m/.local/share/vtag";
 in
 {
   home.activation.botsState = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     mkdir -p ${llmViaTelegramState}/data ${llmViaTelegramState}/logs
     mkdir -p ${sttViaTelegramState}/data ${sttViaTelegramState}/logs ${sttViaTelegramState}/hf-cache
+    mkdir -p ${sttCoreState}/data ${sttCoreState}/logs ${sttCoreState}/hf-cache
     mkdir -p ${vtagState}/logs
     if [ -e /home/m/Projects/gpu-lock ] && [ ! -L /home/m/Projects/gpu-lock ]; then
       rm -rf /home/m/Projects/gpu-lock
@@ -73,6 +76,36 @@ in
         "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
         "STT_VIA_TELEGRAM_STATE_DIR=${sttViaTelegramState}"
         "STT_VIA_TELEGRAM_DATA_DIR=${sttViaTelegramState}/data"
+      ];
+      Restart = "on-failure";
+      RestartSec = 10;
+      TimeoutStartSec = "10min";
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
+
+  systemd.user.services.stt-core = {
+    Unit = {
+      Description = "STT core service (faster-whisper FastAPI, EN/PT, tailnet-bound)";
+      After = [ "graphical-session.target" "network-online.target" ];
+      Wants = [ "network-online.target" ];
+      ConditionPathExists = [
+        "/dev/nvidia0"
+        "${sttCoreRoot}/bot.sh"
+      ];
+    };
+    Service = {
+      Type = "simple";
+      WorkingDirectory = sttCoreRoot;
+      ExecStart = "${sttCoreRoot}/bot.sh";
+      Environment = [
+        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
+        "STT_CORE_STATE_DIR=${sttCoreState}"
+        "STT_CORE_DATA_DIR=${sttCoreState}/data"
+        "STT_CORE_BIND_HOST=0.0.0.0"
+        "STT_CORE_BIND_PORT=8091"
       ];
       Restart = "on-failure";
       RestartSec = 10;

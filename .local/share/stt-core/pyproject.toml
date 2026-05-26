@@ -1,0 +1,15 @@
+[project]
+name = "stt-core"
+version = "0.1.0"
+description = "Mandragora speech-to-text core service (faster-whisper, GPU-coordinated)"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.34",
+  "python-multipart>=0.0.9",
+  "python-dotenv>=1.0",
+  "faster-whisper>=1.2",
+  "ctranslate2>=4.5",
+  "nvidia-cublas-cu12",
+  "nvidia-cudnn-cu12>=9",
+]
