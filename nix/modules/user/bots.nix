@@ -9,6 +9,8 @@ let
   sttViaTelegramState = "/home/m/.local/share/stt-via-telegram";
   sttCoreRoot = "/etc/nixos/mandragora/.local/share/stt-core";
   sttCoreState = "/home/m/.local/share/stt-core";
+  ttsCloneCoreRoot = "/etc/nixos/mandragora/.local/share/tts-clone-core";
+  ttsCloneCoreState = "/home/m/.local/share/tts-clone-core";
   vtagState = "/home/m/.local/share/vtag";
 in
 {
@@ -16,6 +18,7 @@ in
     mkdir -p ${llmViaTelegramState}/data ${llmViaTelegramState}/logs
     mkdir -p ${sttViaTelegramState}/data ${sttViaTelegramState}/logs ${sttViaTelegramState}/hf-cache
     mkdir -p ${sttCoreState}/data ${sttCoreState}/logs ${sttCoreState}/hf-cache
+    mkdir -p ${ttsCloneCoreState}/refs ${ttsCloneCoreState}/out ${ttsCloneCoreState}/hf-cache
     mkdir -p ${vtagState}/logs
     if [ -e /home/m/Projects/gpu-lock ] && [ ! -L /home/m/Projects/gpu-lock ]; then
       rm -rf /home/m/Projects/gpu-lock
@@ -110,6 +113,35 @@ in
       Restart = "on-failure";
       RestartSec = 10;
       TimeoutStartSec = "10min";
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
+
+  systemd.user.services.tts-clone-core = {
+    Unit = {
+      Description = "TTS voice-imitation core service (F5-TTS on RTX 5070 Ti, tailnet-bound)";
+      After = [ "graphical-session.target" "network-online.target" ];
+      Wants = [ "network-online.target" ];
+      ConditionPathExists = [
+        "/dev/nvidia0"
+        "${ttsCloneCoreRoot}/bot.sh"
+      ];
+    };
+    Service = {
+      Type = "simple";
+      WorkingDirectory = ttsCloneCoreRoot;
+      ExecStart = "${ttsCloneCoreRoot}/bot.sh";
+      Environment = [
+        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
+        "TTS_CLONE_STATE_DIR=${ttsCloneCoreState}"
+        "TTS_CLONE_BIND_HOST=0.0.0.0"
+        "TTS_CLONE_BIND_PORT=8092"
+      ];
+      Restart = "on-failure";
+      RestartSec = 10;
+      TimeoutStartSec = "15min";
     };
     Install = {
       WantedBy = [ "default.target" ];
