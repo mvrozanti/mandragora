@@ -62,5 +62,11 @@ sudo --preserve-env=MANDRAGORA_PERSONAL nixos-rebuild switch \
     --flake "$REPO_DIR#mandragora-wsl" \
     --impure
 
+active_host="$(cat /etc/hostname 2>/dev/null | tr -d '[:space:]')"
+if [ "$active_host" != "mandragora-wsl" ]; then
+    echo "bootstrap incomplete: /etc/hostname is '$active_host', expected 'mandragora-wsl'" >&2
+    exit 1
+fi
+
 echo "active generation: $(nixos-version)"
 echo 'mandragora-wsl bootstrap complete.'
