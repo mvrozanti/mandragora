@@ -48,7 +48,7 @@
 
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
-  home-manager.users.m = { lib, ... }: {
+  home-manager.users.m = { lib, pkgs, ... }: {
     imports = [ ../../modules/shared/home-cli.nix ]
       ++ lib.optional ((builtins.getEnv "MANDRAGORA_PERSONAL") == "1")
         ../../modules/shared/home-personal.nix;
@@ -58,6 +58,7 @@
     programs.zsh.shellAliases = {
       nrs = lib.mkForce "sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora-wsl --impure";
     };
+    programs.lf.package = lib.mkForce pkgs.lf;
   };
 
   system.stateVersion = "24.05";
