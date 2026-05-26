@@ -3,6 +3,12 @@ set cleaner lf-cleaner
 ${{
   [ ! -f "/tmp/lf-history-$id" ] && echo "$PWD" > "/tmp/lf-history-$id"
   [ ! -f "/tmp/lf-history-index-$id" ] && echo "0" > "/tmp/lf-history-index-$id"
+  for p in /tmp/lf-preview-*.lock /tmp/lf-preview-*.want /tmp/lf-preview-*.drawn; do
+    [ -e "$p" ] || continue
+    pid="${p##*/lf-preview-}"
+    pid="${pid%%.*}"
+    [ -d "/proc/$pid" ] || rm -f "$p"
+  done
 }}
 cmd zoxide-jump ${{
   result=$(zoxide query -i)

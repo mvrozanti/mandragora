@@ -85,8 +85,6 @@ in
       
       unzip = "%{{ unp -U \"$fx\" }}";
 
-      on-select = "redraw";
-
       on-cd = ''&{{
         history_file="/tmp/lf-history-$id"
         index_file="/tmp/lf-history-index-$id"
