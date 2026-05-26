@@ -294,13 +294,22 @@ function Invoke-WslBootstrap {
     $logRest  = $LOG_DIR.Substring(2) -replace '\\','/'
     $wslLogDir = "/mnt/$logDrive$logRest"
     Write-Host "    bootstrap log -> $bootLog" -ForegroundColor DarkGray
-    & wsl -d NixOS -e env `
-        MANDRAGORA_REPO=$REPO `
-        MANDRAGORA_PERSONAL=$personal `
-        MANDRAGORA_REPLACE=$replacePolicy `
-        MANDRAGORA_LOG_DIR=$wslLogDir `
-        bash $wslPath 2>&1 | Tee-Object -FilePath $bootLog -Append
-    if ($LASTEXITCODE -ne 0) { throw "bootstrap failed (exit $LASTEXITCODE) -- see $bootLog" }
+
+    $prevEAP = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    $rc = 0
+    try {
+        & wsl -d NixOS -e env `
+            MANDRAGORA_REPO=$REPO `
+            MANDRAGORA_PERSONAL=$personal `
+            MANDRAGORA_REPLACE=$replacePolicy `
+            MANDRAGORA_LOG_DIR=$wslLogDir `
+            bash $wslPath 2>&1 | Tee-Object -FilePath $bootLog -Append
+        $rc = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $prevEAP
+    }
+    if ($rc -ne 0) { throw "bootstrap failed (exit $rc) -- see $bootLog" }
 }
 
 function Install-StartMenuShortcut {
