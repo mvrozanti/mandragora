@@ -77,12 +77,15 @@ in
       services.ollama = {
         enable = true;
         package = pkgs.ollama-cuda;
+        host = "100.115.80.79";
         environmentVariables = {
           OLLAMA_CONTEXT_LENGTH = "16384";
           OLLAMA_MAX_LOADED_MODELS = "1";
           OLLAMA_NUM_PARALLEL = "1";
         };
       };
+
+      networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 11434 ];
 
       systemd.services.ollama = {
         restartIfChanged = false;
