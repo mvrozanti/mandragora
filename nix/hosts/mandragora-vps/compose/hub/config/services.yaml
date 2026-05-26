@@ -27,6 +27,10 @@
         href: https://tts.mvr.ac
         description: Piper text-to-speech (FastAPI)
         icon: si-elevenlabs.svg
+    - stt:
+        href: https://stt.mvr.ac
+        description: Speech-to-text (faster-whisper large-v3 on desktop GPU) — web UI + REST; shared core for Telegram bot
+        icon: si-openai.svg
     - ttyd terminal:
         href: https://term.mvr.ac
         description: Web shell on the desktop, tailnet-only
