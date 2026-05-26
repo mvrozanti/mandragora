@@ -44,6 +44,12 @@
     rtk
     wslu
     (writeShellScriptBin "xdg-open" ''exec ${wslu}/bin/wslview "$@"'')
+    (writeShellScriptBin "wl-copy" ''
+      exec /mnt/c/Windows/System32/clip.exe "$@"
+    '')
+    (writeShellScriptBin "wl-paste" ''
+      exec /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command "Get-Clipboard"
+    '')
   ];
 
   programs.zsh.enable = true;
