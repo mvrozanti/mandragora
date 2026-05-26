@@ -58,8 +58,12 @@ $IS_ADMIN = Test-Admin
 
 $STATE_DIR = "$env:LOCALAPPDATA\Mandragora"
 $STATE_KEY = 'HKCU:\SOFTWARE\Mandragora'
-$LOG  = "$STATE_DIR\install.log"
+$DESKTOP = [Environment]::GetFolderPath('Desktop')
+$LOG_DIR = Join-Path $DESKTOP 'mandragora-logs'
+$LOG  = Join-Path $LOG_DIR 'install.log'
+$env:MANDRAGORA_LOG_DIR = $LOG_DIR
 if (-not (Test-Path $STATE_DIR)) { New-Item -ItemType Directory -Path $STATE_DIR -Force | Out-Null }
+if (-not (Test-Path $LOG_DIR))   { New-Item -ItemType Directory -Path $LOG_DIR   -Force | Out-Null }
 if (-not (Test-Path $STATE_KEY)) { New-Item -Path $STATE_KEY -Force | Out-Null }
 Start-Transcript -Path $LOG -Append -ErrorAction SilentlyContinue | Out-Null
 
@@ -240,7 +244,7 @@ function Invoke-Phase {
 trap {
     Write-Host ''
     Write-Host ('==> install failed: ' + $_.Exception.Message) -ForegroundColor Red
-    Write-Host ('    full transcript at: ' + $LOG)              -ForegroundColor Red
+    Write-Host ('    logs on Desktop: ' + $LOG_DIR)             -ForegroundColor Red
     Write-Host ('    re-run the same one-liner to resume from last state') -ForegroundColor Red
     Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
     exit 1
@@ -290,17 +294,24 @@ while ($true) {
             $wslPath = "/mnt/$drive$rest"
             $personal = if ($env:MANDRAGORA_PERSONAL -eq '1') { '1' } else { '0' }
             $replacePolicy = if ($script:ReplaceAll) { 'all' } elseif ($script:ReplaceNone) { 'none' } else { 'prompt' }
+            $bootLog = Join-Path $LOG_DIR 'bootstrap.log'
+            $logDrive = $LOG_DIR.Substring(0,1).ToLower()
+            $logRest  = $LOG_DIR.Substring(2) -replace '\\','/'
+            $wslLogDir = "/mnt/$logDrive$logRest"
+            Write-Host "    bootstrap log -> $bootLog" -ForegroundColor DarkGray
             & wsl -d NixOS -e env `
                 MANDRAGORA_REPO=$REPO `
                 MANDRAGORA_PERSONAL=$personal `
                 MANDRAGORA_REPLACE=$replacePolicy `
-                bash $wslPath
-            if ($LASTEXITCODE -ne 0) { throw "bootstrap failed (exit $LASTEXITCODE)" }
+                MANDRAGORA_LOG_DIR=$wslLogDir `
+                bash $wslPath 2>&1 | Tee-Object -FilePath $bootLog -Append
+            if ($LASTEXITCODE -ne 0) { throw "bootstrap failed (exit $LASTEXITCODE) -- see $bootLog" }
             Set-State 'done'
         }
         'done' {
             Write-Host '==> mandragora-wsl install complete.' -ForegroundColor Green
             Write-Host '==> run: wsl -d NixOS' -ForegroundColor Green
+            Write-Host ('==> logs retained on Desktop: ' + $LOG_DIR) -ForegroundColor Green
             Remove-Item $STATE_KEY -Recurse -Force -ErrorAction SilentlyContinue
             Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
             Remove-Item $STATE_DIR -Recurse -Force -ErrorAction SilentlyContinue
