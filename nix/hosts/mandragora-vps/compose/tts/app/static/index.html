@@ -72,6 +72,14 @@ a { color: var(--accent); text-decoration: none; }
         <label for="voice">voice</label>
         <select id="voice"></select>
       </div>
+      <div>
+        <label for="lang-override">language</label>
+        <select id="lang-override">
+          <option value="">auto (use voice's)</option>
+          <option value="en">en</option>
+          <option value="pt">pt (pt-BR)</option>
+        </select>
+      </div>
       <div style="flex: 0 0 auto;">
         <button id="go" class="primary">synthesize</button>
       </div>
@@ -93,6 +101,13 @@ a { color: var(--accent); text-decoration: none; }
           <div>
             <label for="ref-name">name</label>
             <input type="text" id="ref-name" placeholder="e.g. m-default, dog-narrator" maxlength="64">
+          </div>
+          <div>
+            <label for="ref-lang">language</label>
+            <select id="ref-lang">
+              <option value="en">en</option>
+              <option value="pt">pt (pt-BR)</option>
+            </select>
           </div>
         </div>
         <div class="row">
@@ -222,12 +237,31 @@ async function refreshLibrary() {
       nm.className = 'name'; nm.textContent = r.name;
       const sz = document.createElement('div');
       sz.className = 'size'; sz.textContent = `${fmtKB(r.size_bytes)} · ${fmtAge(r.mtime)}`;
+      const langSel = document.createElement('select');
+      for (const l of ['en', 'pt']) {
+        const o = document.createElement('option');
+        o.value = l; o.textContent = l;
+        if (l === (r.language || 'en')) o.selected = true;
+        langSel.appendChild(o);
+      }
+      langSel.style.width = 'auto';
+      langSel.style.fontSize = '0.78rem';
+      langSel.style.padding = '0.2rem 0.4rem';
+      langSel.addEventListener('change', async () => {
+        const fd = new FormData();
+        fd.append('language', langSel.value);
+        const rr = await fetch(`/clone/refs/${encodeURIComponent(r.name)}`, {
+          method: 'PATCH', body: fd, credentials: 'same-origin',
+        });
+        if (!rr.ok) $('lib-status').textContent = `lang update failed: HTTP ${rr.status}`;
+        else $('lib-status').textContent = `${r.name} → ${langSel.value}`;
+      });
       const use = document.createElement('button');
       use.className = 'ghost'; use.textContent = 'use';
       use.addEventListener('click', () => {
         localStorage.setItem(LS_KEY, `clone:${r.name}`);
         refreshVoiceSelect();
-        $('status').textContent = `selected voice: ${r.name}`;
+        $('status').textContent = `selected voice: ${r.name} (${r.language || 'en'})`;
       });
       const play = document.createElement('button');
       play.className = 'ghost'; play.textContent = 'play';
@@ -247,7 +281,7 @@ async function refreshLibrary() {
         await refreshLibrary();
         await refreshVoiceSelect();
       });
-      row.appendChild(nm); row.appendChild(sz); row.appendChild(use); row.appendChild(play); row.appendChild(del);
+      row.appendChild(nm); row.appendChild(langSel); row.appendChild(sz); row.appendChild(use); row.appendChild(play); row.appendChild(del);
       lib.appendChild(row);
     }
   }
@@ -291,6 +325,7 @@ $('ref-upload').addEventListener('click', async () => {
   $('ref-status').textContent = 'uploading…';
   const form = new FormData();
   form.append('name', name);
+  form.append('language', $('ref-lang').value);
   form.append('audio', blob, blob.name || 'reference.webm');
   try {
     const res = await fetch('/clone/refs', { method: 'POST', body: form, credentials: 'same-origin' });
@@ -335,6 +370,8 @@ $('go').addEventListener('click', async () => {
       const form = new FormData();
       form.append('text', text);
       form.append('ref_name', name);
+      const lo = $('lang-override').value;
+      if (lo) form.append('language', lo);
       res = await fetch('/clone/synthesize', { method: 'POST', body: form, credentials: 'same-origin' });
       elapsed = res.headers.get('X-Elapsed-Seconds');
     } else {

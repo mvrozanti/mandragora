@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import json
 import logging
 import os
 import re
@@ -14,7 +15,7 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 import config
-from tts import get_engine
+from tts import SUPPORTED_LANGS, get_engine, normalize_lang
 
 try:
     from gpu_lock import gpu_lock, GpuBusy
@@ -24,7 +25,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="mandragora-tts-clone-core", version="0.2")
+app = FastAPI(title="mandragora-tts-clone-core", version="0.3")
 
 _NAME_RE = re.compile(r"^[a-zA-Z0-9 _\-.]{1,64}$")
 
@@ -53,15 +54,35 @@ def _ref_path(user: str, name: str) -> Path:
     return _user_refs_dir(user) / f"{name}.wav"
 
 
+def _meta_path(user: str, name: str) -> Path:
+    return _user_refs_dir(user) / f"{name}.json"
+
+
+def _read_meta(user: str, name: str) -> dict:
+    p = _meta_path(user, name)
+    if not p.is_file():
+        return {}
+    try:
+        return json.loads(p.read_text())
+    except Exception:
+        return {}
+
+
+def _write_meta(user: str, name: str, data: dict) -> None:
+    _meta_path(user, name).write_text(json.dumps(data))
+
+
 def _list_refs(user: str) -> list[dict]:
     d = _user_refs_dir(user)
     items = []
     for p in sorted(d.glob("*.wav")):
         st = p.stat()
+        meta = _read_meta(user, p.stem)
         items.append({
             "name": p.stem,
             "size_bytes": st.st_size,
             "mtime": st.st_mtime,
+            "language": meta.get("language", "en"),
         })
     return items
 
@@ -91,9 +112,8 @@ async def _to_reference_wav(src: Path, dst: Path) -> float:
 def healthz():
     return {
         "ok": True,
-        "model": config.F5_MODEL,
-        "lang": config.F5_LANG or None,
-        "model_loaded": get_engine().loaded,
+        "languages": list(SUPPORTED_LANGS),
+        "loaded_langs": get_engine().loaded_langs,
     }
 
 
@@ -118,11 +138,10 @@ def status(remote_user: str | None = Header(default=None, alias="Remote-User")):
     return {
         "user": user,
         "ref_count": len(refs),
-        "model_loaded": get_engine().loaded,
+        "loaded_langs": get_engine().loaded_langs,
         "gpu_lock_holder": holder,
         "config": {
-            "model": config.F5_MODEL,
-            "lang": config.F5_LANG or None,
+            "languages": list(SUPPORTED_LANGS),
             "nfe_steps": config.F5_NFE_STEPS,
             "max_ref_seconds": config.MAX_REF_SECONDS,
             "max_gen_chars": config.MAX_GEN_CHARS,
@@ -131,32 +150,35 @@ def status(remote_user: str | None = Header(default=None, alias="Remote-User")):
 
 
 @app.post("/warmup")
-async def warmup_endpoint():
+async def warmup_endpoint(lang: str = Form(default="en")):
+    lang = normalize_lang(lang)
     if HAS_GPU_LOCK:
         try:
             async with gpu_lock.acquire_async(config.GPU_LOCK_NAME, expected_seconds=60):
-                await asyncio.to_thread(get_engine().load)
+                await asyncio.to_thread(get_engine().load, lang)
         except GpuBusy as busy:
             raise HTTPException(status_code=503, detail=f"gpu busy: {busy}")
     else:
-        await asyncio.to_thread(get_engine().load)
-    return {"ok": True, "model_loaded": get_engine().loaded}
+        await asyncio.to_thread(get_engine().load, lang)
+    return {"ok": True, "lang": lang, "loaded_langs": get_engine().loaded_langs}
 
 
 @app.get("/refs")
 def list_refs(remote_user: str | None = Header(default=None, alias="Remote-User")):
     user = _safe_user(remote_user)
-    return {"user": user, "refs": _list_refs(user)}
+    return {"user": user, "refs": _list_refs(user), "languages": list(SUPPORTED_LANGS)}
 
 
 @app.post("/refs")
 async def upload_ref(
     name: str = Form(...),
     audio: UploadFile = File(...),
+    language: str = Form(default="en"),
     remote_user: str | None = Header(default=None, alias="Remote-User"),
 ):
     user = _safe_user(remote_user)
     name = _validate_name(name)
+    lang = normalize_lang(language)
     suffix = os.path.splitext(audio.filename or "")[1] or ".bin"
     tmp_fd, tmp_in = tempfile.mkstemp(prefix="ref-in-", suffix=suffix)
     written = 0
@@ -179,6 +201,8 @@ async def upload_ref(
         except RuntimeError as e:
             raise HTTPException(status_code=400, detail=f"could not decode audio: {e}")
 
+        _write_meta(user, name, {"language": lang})
+
         warning = None
         if duration > config.MAX_REF_SECONDS:
             warning = f"reference is {duration:.1f}s — F5-TTS works best on 8–15s clips."
@@ -187,6 +211,7 @@ async def upload_ref(
         return {
             "user": user,
             "name": name,
+            "language": lang,
             "duration_seconds": duration,
             "warning": warning,
             "bytes": written,
@@ -197,6 +222,23 @@ async def upload_ref(
             os.unlink(tmp_in)
         except OSError:
             pass
+
+
+@app.patch("/refs/{name}")
+def update_ref_meta(
+    name: str,
+    language: str | None = Form(default=None),
+    remote_user: str | None = Header(default=None, alias="Remote-User"),
+):
+    user = _safe_user(remote_user)
+    name = _validate_name(name)
+    if not _ref_path(user, name).is_file():
+        raise HTTPException(status_code=404, detail="not found")
+    meta = _read_meta(user, name)
+    if language is not None:
+        meta["language"] = normalize_lang(language)
+    _write_meta(user, name, meta)
+    return {"user": user, "name": name, **meta}
 
 
 @app.delete("/refs/{name}")
@@ -210,6 +252,9 @@ def delete_ref(
     if not p.is_file():
         raise HTTPException(status_code=404, detail="not found")
     p.unlink()
+    mp = _meta_path(user, name)
+    if mp.is_file():
+        mp.unlink()
     return {"user": user, "name": name, "deleted": True}
 
 
@@ -234,6 +279,7 @@ def get_ref(
 async def synthesize(
     text: str = Form(..., min_length=1, max_length=config.MAX_GEN_CHARS),
     ref_name: str = Form(...),
+    language: str | None = Form(default=None),
     ref_text: str = Form(default=""),
     seed: int = Form(default=-1),
     remote_user: str | None = Header(default=None, alias="Remote-User"),
@@ -244,8 +290,11 @@ async def synthesize(
     if not ref.is_file():
         raise HTTPException(status_code=404, detail=f"reference '{ref_name}' not found")
 
+    meta = _read_meta(user, ref_name)
+    lang = normalize_lang(language if language else meta.get("language", "en"))
+
     ts = time.strftime("%Y%m%d-%H%M%S")
-    digest = hashlib.sha256(f"{ref_name}\0{text}".encode("utf-8")).hexdigest()[:8]
+    digest = hashlib.sha256(f"{ref_name}\0{lang}\0{text}".encode("utf-8")).hexdigest()[:8]
     out_wav = Path(config.OUT_DIR) / f"{user}_{ts}_{digest}.wav"
 
     estimated = max(config.F5_NFE_STEPS * 0.4 + len(text) * 0.05, 8.0)
@@ -255,13 +304,13 @@ async def synthesize(
             try:
                 async with gpu_lock.acquire_async(config.GPU_LOCK_NAME, expected_seconds=estimated):
                     await asyncio.to_thread(
-                        get_engine().infer, ref, text, out_wav, ref_text, seed,
+                        get_engine().infer, ref, text, out_wav, lang, ref_text, seed,
                     )
             except GpuBusy as busy:
                 raise HTTPException(status_code=503, detail=f"gpu busy: {busy}")
         else:
             await asyncio.to_thread(
-                get_engine().infer, ref, text, out_wav, ref_text, seed,
+                get_engine().infer, ref, text, out_wav, lang, ref_text, seed,
             )
     except Exception as e:
         logger.exception("synthesis failed")
@@ -278,6 +327,7 @@ async def synthesize(
             "Content-Disposition": f'inline; filename="{out_wav.name}"',
             "X-Elapsed-Seconds": f"{elapsed:.2f}",
             "X-Ref-Name": ref_name,
+            "X-Language": lang,
         },
     )
 
