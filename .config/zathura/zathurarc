@@ -72,17 +72,17 @@ map H feedkeys ":exec sh -c \"cat ~/.local/share/zathura/history | grep -Po '\\[
 map <Left> scroll full-up
 map <Right> scroll full-down
 
-# Document Navigation (sxiv style)
-map n exec "/etc/profiles/per-user/m/bin/zathura-cycle next"
-map p exec "/etc/profiles/per-user/m/bin/zathura-cycle prev"
-map period exec "/etc/profiles/per-user/m/bin/zathura-cycle next"
-map comma exec "/etc/profiles/per-user/m/bin/zathura-cycle prev"
-map greater exec "/etc/profiles/per-user/m/bin/zathura-cycle next"
-map less exec "/etc/profiles/per-user/m/bin/zathura-cycle prev"
+# Document Navigation
+map n exec "sh -c 'zathura-cycle next'"
+map p exec "sh -c 'zathura-cycle prev'"
+map period exec "sh -c 'zathura-cycle next'"
+map comma exec "sh -c 'zathura-cycle prev'"
+map greater exec "sh -c 'zathura-cycle next'"
+map less exec "sh -c 'zathura-cycle prev'"
 
-map [fullscreen] n exec "/etc/profiles/per-user/m/bin/zathura-cycle next"
-map [fullscreen] p exec "/etc/profiles/per-user/m/bin/zathura-cycle prev"
-map [fullscreen] period exec "/etc/profiles/per-user/m/bin/zathura-cycle next"
-map [fullscreen] comma exec "/etc/profiles/per-user/m/bin/zathura-cycle prev"
-map [fullscreen] greater exec "/etc/profiles/per-user/m/bin/zathura-cycle next"
-map [fullscreen] less exec "/etc/profiles/per-user/m/bin/zathura-cycle prev"
+map [fullscreen] n exec "sh -c 'zathura-cycle next'"
+map [fullscreen] p exec "sh -c 'zathura-cycle prev'"
+map [fullscreen] period exec "sh -c 'zathura-cycle next'"
+map [fullscreen] comma exec "sh -c 'zathura-cycle prev'"
+map [fullscreen] greater exec "sh -c 'zathura-cycle next'"
+map [fullscreen] less exec "sh -c 'zathura-cycle prev'"
