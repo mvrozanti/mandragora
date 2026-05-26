@@ -36,7 +36,34 @@
 
   security.sudo.wheelNeedsPassword = false;
 
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages = with pkgs; let
+    clipCopy = writeShellScript "mandragora-clip-copy" ''
+      exec /mnt/c/Windows/System32/clip.exe
+    '';
+    clipPaste = writeShellScript "mandragora-clip-paste" ''
+      exec /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command "Get-Clipboard" \
+        | sed 's/\r$//'
+    '';
+    copyShim = name: writeShellScriptBin name "exec ${clipCopy}";
+    pasteShim = name: writeShellScriptBin name "exec ${clipPaste}";
+    xclipShim = writeShellScriptBin "xclip" ''
+      for arg in "$@"; do
+        case "$arg" in
+          -o|-out|--output) exec ${clipPaste} ;;
+        esac
+      done
+      exec ${clipCopy}
+    '';
+    xselShim = writeShellScriptBin "xsel" ''
+      for arg in "$@"; do
+        case "$arg" in
+          -i|--input)  exec ${clipCopy} ;;
+          -o|--output) exec ${clipPaste} ;;
+        esac
+      done
+      exec ${clipCopy}
+    '';
+  in [
     git
     wget
     curl
@@ -44,12 +71,14 @@
     rtk
     wslu
     (writeShellScriptBin "xdg-open" ''exec ${wslu}/bin/wslview "$@"'')
-    (writeShellScriptBin "wl-copy" ''
-      exec /mnt/c/Windows/System32/clip.exe "$@"
-    '')
-    (writeShellScriptBin "wl-paste" ''
-      exec /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command "Get-Clipboard"
-    '')
+    (copyShim "wl-copy")
+    (pasteShim "wl-paste")
+    (copyShim "pbcopy")
+    (pasteShim "pbpaste")
+    (copyShim "clipcopy")
+    (pasteShim "clippaste")
+    xclipShim
+    xselShim
   ];
 
   programs.zsh.enable = true;
