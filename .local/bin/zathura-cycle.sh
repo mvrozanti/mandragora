@@ -4,7 +4,6 @@ set -euo pipefail
 LOG=/home/m/zathura_cycle.log
 echo "--- $(date) ---" >> $LOG
 echo "Args: $*" >> $LOG
-echo "PPID: $PPID" >> $LOG
 
 dir="next"
 case "${1:-}" in
@@ -14,6 +13,15 @@ esac
 file="${1:-}"
 
 find_zathura_pid() {
+  # Try hyprctl first (most reliable for active window)
+  local apid
+  apid=$(hyprctl activewindow -j | jq -r .pid 2>/dev/null || true)
+  if [[ -n "$apid" ]] && ps -p "$apid" -o comm= | grep -qE "^zathura$|^\.zathura-wrappe$"; then
+    echo "$apid"
+    return 0
+  fi
+
+  # Fallback to process tree from PPID
   local cp=$PPID
   while [[ $cp -gt 1 ]]; do
     local comm
@@ -24,34 +32,28 @@ find_zathura_pid() {
     fi
     cp=$(ps -o ppid= -p "$cp" 2>/dev/null | tr -d ' ' || echo 0)
   done
-  return 1
+
+  # Last resort: pgrep
+  pgrep zathura | head -n 1
 }
 
-ZPID=""
-if [[ -z "$file" ]]; then
-  ZPID=$(find_zathura_pid || true)
-  echo "Found ZPID via tree: $ZPID" >> $LOG
-  if [[ -n "$ZPID" ]]; then
-    file=$(busctl --user get-property "org.pwmt.zathura.PID-$ZPID" /org/pwmt/zathura org.pwmt.zathura filename 2>/dev/null | grep -oP '"\K[^"]+' || true)
-    echo "Found file via busctl: $file" >> $LOG
-  fi
+ZPID=$(find_zathura_pid || true)
+echo "Resolved ZPID: $ZPID" >> $LOG
+
+if [[ -z "$ZPID" ]]; then
+    echo "ERROR: No ZPID" >> $LOG
+    exit 1
 fi
 
 if [[ -z "$file" ]]; then
-    ZPID=$(pgrep zathura | head -n 1 || true)
-    echo "Fallback ZPID (pgrep): $ZPID" >> $LOG
-    if [[ -n "$ZPID" ]]; then
-        file=$(busctl --user get-property "org.pwmt.zathura.PID-$ZPID" /org/pwmt/zathura org.pwmt.zathura filename 2>/dev/null | grep -oP '"\K[^"]+' || true)
-        echo "Fallback file: $file" >> $LOG
-    fi
+    file=$(busctl --user get-property "org.pwmt.zathura.PID-$ZPID" /org/pwmt/zathura org.pwmt.zathura filename 2>/dev/null | grep -oP '"\K[^"]+' || true)
+    echo "Found file via busctl: $file" >> $LOG
 fi
 
 if [[ -z "$file" ]]; then
     echo "ERROR: No file found" >> $LOG
     exit 1
 fi
-
-[[ -z "${ZPID:-}" ]] && { echo "ERROR: No ZPID" >> $LOG; exit 1; }
 
 d=$(dirname "$file")
 cur=$(basename "$file")
