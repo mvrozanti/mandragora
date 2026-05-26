@@ -101,45 +101,127 @@ function Install-NerdFont {
     }
 }
 
-function Get-TerminalFragmentPath {
-    $dir = "$env:LOCALAPPDATA\Microsoft\Windows Terminal\Fragments\Mandragora"
-    if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
-    Join-Path $dir 'nixos.json'
+$script:WT_PROFILE_NAME = 'Mandragora'
+$script:START_MENU_LNK  = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Mandragora.lnk"
+$script:WT_FRAGMENT_OLD = "$env:LOCALAPPDATA\Microsoft\Windows Terminal\Fragments\Mandragora\nixos.json"
+
+function Get-TerminalSettingsPaths {
+    @(
+        "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbcwe\LocalState\settings.json",
+        "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbcwe\LocalState\settings.json"
+    ) | Where-Object { Test-Path $_ }
 }
 
-function Get-NixosProfileFragmentJson {
-    $obj = [PSCustomObject]@{
-        '$help'   = 'https://aka.ms/terminal-documentation'
-        '$schema' = 'https://aka.ms/terminal-profiles-schema-fragments'
-        profiles  = @(
-            [PSCustomObject]@{
-                name        = 'NixOS (Mandragora)'
-                commandline = 'wsl.exe -d NixOS'
-                startingDirectory = '~'
-                icon        = 'https://raw.githubusercontent.com/NixOS/nixos-artwork/master/logo/nix-snowflake.svg'
-                font        = [PSCustomObject]@{ face = $script:NERD_FONT_FACE }
-                colorScheme = 'Campbell'
-            }
-        )
+function Remove-StaleFragment {
+    if (Test-Path $script:WT_FRAGMENT_OLD) {
+        Remove-Item $script:WT_FRAGMENT_OLD -Force -ErrorAction SilentlyContinue
+        $parent = Split-Path $script:WT_FRAGMENT_OLD -Parent
+        if ((Test-Path $parent) -and -not (Get-ChildItem $parent)) {
+            Remove-Item $parent -Force -ErrorAction SilentlyContinue
+        }
+        Write-Host '    removed stale fragment from earlier installer attempts' -ForegroundColor DarkGray
     }
-    ($obj | ConvertTo-Json -Depth 32)
+}
+
+function Find-WslNixosProfile {
+    param($List)
+    @($List | Where-Object {
+        ($_.source -and ($_.source -match '(?i)wsl')) -and (
+            ($_.name -and ($_.name -match '(?i)nixos')) -or
+            ($_.commandline -and ($_.commandline -match '(?i)nixos'))
+        )
+    })
 }
 
 function Test-TerminalFontConfigured {
-    $frag = Get-TerminalFragmentPath
-    if (-not (Test-Path $frag)) { return $false }
-    try {
-        $cur = Get-Content -Path $frag -Raw -Encoding UTF8
-        return ($cur.Trim() -eq (Get-NixosProfileFragmentJson).Trim())
-    } catch { return $false }
+    $paths = Get-TerminalSettingsPaths
+    if (-not $paths) { return $true }
+    foreach ($p in $paths) {
+        try {
+            $j = Get-Content -Path $p -Raw -Encoding UTF8 | ConvertFrom-Json
+        } catch { continue }
+        if (-not $j.profiles) { continue }
+        $list = if ($j.profiles.list) { $j.profiles.list } else { $j.profiles }
+        $mine = @($list | Where-Object { $_.name -eq $script:WT_PROFILE_NAME })
+        if (-not $mine) { return $false }
+        foreach ($prof in $mine) {
+            if (-not $prof.font -or $prof.font.face -ne $script:NERD_FONT_FACE) { return $false }
+        }
+    }
+    return $true
 }
 
 function Set-TerminalProfileFont {
-    $frag = Get-TerminalFragmentPath
-    Get-NixosProfileFragmentJson | Set-Content -Path $frag -Encoding UTF8
-    Write-Host "    wrote terminal fragment -> $frag" -ForegroundColor DarkGray
-    Write-Host '    fragment adds a new "NixOS (Mandragora)" profile; other profiles untouched' -ForegroundColor DarkGray
-    Write-Host '    open Windows Terminal -> dropdown -> "NixOS (Mandragora)" (restart terminal first)' -ForegroundColor DarkGray
+    Remove-StaleFragment
+
+    $paths = Get-TerminalSettingsPaths
+    if (-not $paths) {
+        Write-Host '    Windows Terminal not installed; skipping profile rename' -ForegroundColor DarkYellow
+        return
+    }
+    foreach ($p in $paths) {
+        try {
+            $raw = Get-Content -Path $p -Raw -Encoding UTF8
+            $j = $raw | ConvertFrom-Json
+        } catch {
+            Write-Host "    could not parse $p ; skipping" -ForegroundColor DarkYellow
+            continue
+        }
+        if (-not $j.profiles) { continue }
+        $list = if ($j.profiles.list) { $j.profiles.list } else { $j.profiles }
+        $profileDump = ($list | ForEach-Object {
+            "        - name=$($_.name) source=$($_.source) commandline=$($_.commandline) guid=$($_.guid)"
+        }) -join "`n"
+        Write-Host "    enumerated profiles in $p :" -ForegroundColor DarkGray
+        Write-Host $profileDump -ForegroundColor DarkGray
+
+        $already = @($list | Where-Object { $_.name -eq $script:WT_PROFILE_NAME })
+        $target = if ($already) { $already } else { Find-WslNixosProfile -List $list }
+        if (-not $target) {
+            Write-Host "    no WSL NixOS profile matched in $p" -ForegroundColor DarkYellow
+            Write-Host "    open Windows Terminal once so it auto-registers the WSL distro, then re-run installer" -ForegroundColor DarkYellow
+            continue
+        }
+        foreach ($prof in $target) {
+            if ($prof.name -ne $script:WT_PROFILE_NAME) {
+                $prof.name = $script:WT_PROFILE_NAME
+            }
+            if (-not $prof.font) {
+                $prof | Add-Member -MemberType NoteProperty -Name font -Value (New-Object PSObject) -Force
+            }
+            if ($prof.font.PSObject.Properties.Name -contains 'face') {
+                $prof.font.face = $script:NERD_FONT_FACE
+            } else {
+                $prof.font | Add-Member -MemberType NoteProperty -Name face -Value $script:NERD_FONT_FACE -Force
+            }
+            Write-Host "    renamed profile guid=$($prof.guid) -> name=$($script:WT_PROFILE_NAME), font.face=$($script:NERD_FONT_FACE)" -ForegroundColor DarkGray
+        }
+        $backup = "$p.mandragora-bak"
+        if (-not (Test-Path $backup)) { Copy-Item $p $backup -Force }
+        ($j | ConvertTo-Json -Depth 64) | Set-Content -Path $p -Encoding UTF8
+    }
+}
+
+function Install-StartMenuShortcut {
+    $parent = Split-Path $script:START_MENU_LNK -Parent
+    if (-not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+    $wt = (Get-Command wt.exe -ErrorAction SilentlyContinue)
+    $targetPath = if ($wt) { $wt.Source } else { 'wsl.exe' }
+    $args = if ($wt) { "-p `"$($script:WT_PROFILE_NAME)`"" } else { "-d NixOS" }
+    $shell = New-Object -ComObject WScript.Shell
+    $lnk = $shell.CreateShortcut($script:START_MENU_LNK)
+    $lnk.TargetPath = $targetPath
+    $lnk.Arguments = $args
+    $lnk.WorkingDirectory = $env:USERPROFILE
+    $lnk.IconLocation = "$targetPath,0"
+    $lnk.Description = 'Mandragora (NixOS-WSL)'
+    $lnk.Save()
+    Write-Host "    wrote Start Menu shortcut -> $($script:START_MENU_LNK)" -ForegroundColor DarkGray
+    Write-Host '    type "mandragora" in Start to launch (may take 30s to index)' -ForegroundColor DarkGray
+}
+
+function Test-StartMenuShortcut {
+    Test-Path $script:START_MENU_LNK
 }
 $IS_ADMIN = Test-Admin
 
@@ -292,7 +374,7 @@ function Get-State {
         $h = Get-WslGuestHostname -Name 'NixOS'
         if ($h -eq 'mandragora-wsl') {
             if (-not (Test-NerdFontInstalled)) { return 'bootstrap-done' }
-            if (-not (Test-TerminalFontConfigured)) { return 'fonts-done' }
+            if (-not (Test-TerminalFontConfigured) -or -not (Test-StartMenuShortcut)) { return 'fonts-done' }
             return 'done'
         }
         return 'nixos-imported'
@@ -405,8 +487,10 @@ while ($true) {
             Set-State 'fonts-done'
         }
         'fonts-done' {
-            Write-Host '>>> phase: windows-terminal profile config' -ForegroundColor Cyan
+            Write-Host '>>> phase: windows-terminal profile rename + font' -ForegroundColor Cyan
             Set-TerminalProfileFont
+            Write-Host '>>> phase: start menu shortcut' -ForegroundColor Cyan
+            Install-StartMenuShortcut
             Set-State 'done'
         }
         'done' {
