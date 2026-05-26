@@ -11,6 +11,16 @@ set -u
 REPO_URL="${MANDRAGORA_REPO:-https://github.com/mvrozanti/mandragora.git}"
 REPO_DIR="${MANDRAGORA_DIR:-/etc/nixos/mandragora}"
 REPLACE_POLICY="${MANDRAGORA_REPLACE:-prompt}"
+LOG_DIR="${MANDRAGORA_LOG_DIR:-}"
+
+log_to() {
+    local name="$1"
+    if [ -n "$LOG_DIR" ] && [ -d "$LOG_DIR" ]; then
+        printf '%s/%s' "$LOG_DIR" "$name"
+    else
+        printf '/dev/null'
+    fi
+}
 
 confirm_replace() {
     local what="$1"
@@ -58,9 +68,18 @@ else
 fi
 
 echo '[3/3] build mandragora-wsl host'
+rebuild_log="$(log_to nixos-rebuild.log)"
+echo "    rebuild log -> $rebuild_log"
+set +e
 sudo --preserve-env=MANDRAGORA_PERSONAL nixos-rebuild switch \
     --flake "$REPO_DIR#mandragora-wsl" \
-    --impure
+    --impure 2>&1 | tee -a "$rebuild_log"
+rebuild_rc=${PIPESTATUS[0]}
+set -e
+if [ "$rebuild_rc" -ne 0 ]; then
+    echo "nixos-rebuild switch exited $rebuild_rc -- see $rebuild_log" >&2
+    exit "$rebuild_rc"
+fi
 
 active_host="$(cat /etc/hostname 2>/dev/null | tr -d '[:space:]')"
 if [ "$active_host" != "mandragora-wsl" ]; then
