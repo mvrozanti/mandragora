@@ -1,0 +1,45 @@
+services:
+
+  nb-surrealdb:
+    image: ${NB_SURREALDB_IMAGE:-surrealdb/surrealdb:v2}
+    container_name: nb-surrealdb
+    restart: unless-stopped
+    user: root
+    command: start --log info --user root --pass ${NB_SURREAL_PASSWORD:?required} rocksdb:/mydata/mydatabase.db
+    environment:
+      - SURREAL_EXPERIMENTAL_GRAPHQL=true
+    volumes:
+      - ${NB_SURREAL_VOLUME:-./surreal_data}:/mydata
+    networks:
+      - nb-net
+
+  nb:
+    image: ${NB_IMAGE:-lfnovo/open_notebook:v1-latest}
+    container_name: nb
+    restart: unless-stopped
+    depends_on:
+      - nb-surrealdb
+    environment:
+      - OPEN_NOTEBOOK_ENCRYPTION_KEY=${NB_ENCRYPTION_KEY:?required}
+      - SURREAL_URL=ws://nb-surrealdb:8000/rpc
+      - SURREAL_USER=root
+      - SURREAL_PASSWORD=${NB_SURREAL_PASSWORD:?required}
+      - SURREAL_NAMESPACE=open_notebook
+      - SURREAL_DATABASE=open_notebook
+    volumes:
+      - ${NB_DATA_VOLUME:-./notebook_data}:/app/data
+    networks:
+      - nb-net
+      - seafile-net
+    labels:
+      caddy: https://nb.${MVR_AC:-mvr.ac}
+      caddy.0_forward_auth: "authelia:9091"
+      caddy.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.1_reverse_proxy: "{{upstreams 8502}}"
+
+networks:
+  nb-net:
+    driver: bridge
+  seafile-net:
+    external: true

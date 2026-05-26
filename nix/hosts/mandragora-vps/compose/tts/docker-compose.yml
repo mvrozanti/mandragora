@@ -1,0 +1,32 @@
+services:
+
+  tts:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: ${TTS_IMAGE:-mandragora/tts:local}
+    container_name: tts
+    restart: unless-stopped
+    environment:
+      - TTS_PUBLIC_BASE=https://tts.${MVR_AC:-mvr.ac}
+      - TTS_MODELS_DIR=/models
+      - TTS_DEFAULT_VOICE=${TTS_DEFAULT_VOICE:-en_US-lessac-medium}
+    volumes:
+      - ${TTS_MODELS_VOLUME:-./models}:/models
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://tts.${MVR_AC:-mvr.ac}
+      caddy.0_handle.forward_auth: "authelia:9091"
+      caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.0_handle.reverse_proxy: "{{upstreams 8080}}"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true

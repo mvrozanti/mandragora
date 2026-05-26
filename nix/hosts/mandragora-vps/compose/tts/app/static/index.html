@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tts · mvr.ac</title>
+<style>
+:root {
+  --bg: #050805;
+  --panel: #0a0e0a;
+  --fg: #b8ffc4;
+  --accent: #00ff66;
+  --dim: #4a6a4e;
+  --line: #1a2418;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg); color: var(--fg);
+  font-family: "Iosevka", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  min-height: 100vh;
+}
+body { padding: 2rem 1.5rem; }
+.wrap { max-width: 900px; margin: 0 auto; }
+header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid var(--line); padding-bottom: 0.9rem; margin-bottom: 1.6rem;
+}
+h1 { font-size: 1.1rem; font-weight: 600; color: var(--accent); }
+.who { color: var(--dim); font-size: 0.85rem; }
+.panel { background: var(--panel); border: 1px solid var(--line); padding: 1.2rem; margin-bottom: 1rem; }
+label { display: block; color: var(--dim); font-size: 0.85rem; margin-bottom: 0.4rem; }
+textarea, select, button {
+  background: var(--bg); color: var(--fg); border: 1px solid var(--line);
+  font-family: inherit; font-size: 0.95rem; padding: 0.6rem 0.8rem; width: 100%;
+}
+textarea { min-height: 8rem; resize: vertical; }
+.row { display: flex; gap: 0.8rem; margin-top: 0.8rem; flex-wrap: wrap; }
+.row > div { flex: 1; min-width: 200px; }
+button {
+  background: var(--accent); color: var(--bg); border: none; cursor: pointer;
+  font-weight: 600; padding: 0.7rem 1.2rem; width: auto;
+}
+button:disabled { background: var(--dim); cursor: not-allowed; }
+audio { width: 100%; margin-top: 1rem; }
+.status { color: var(--dim); font-size: 0.85rem; margin-top: 0.6rem; min-height: 1.2em; }
+footer { color: var(--dim); font-size: 0.8rem; margin-top: 2rem; border-top: 1px solid var(--line); padding-top: 0.8rem; }
+a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>tts · mvr.ac</h1>
+    <span class="who" id="who"></span>
+  </header>
+
+  <div class="panel">
+    <label for="text">text</label>
+    <textarea id="text" placeholder="type something to synthesize"></textarea>
+    <div class="row">
+      <div>
+        <label for="voice">voice</label>
+        <select id="voice"></select>
+      </div>
+      <div style="flex: 0 0 auto; align-self: flex-end;">
+        <button id="go">synthesize</button>
+      </div>
+    </div>
+    <div class="status" id="status"></div>
+    <audio id="audio" controls hidden></audio>
+  </div>
+
+  <footer>
+    <a href="https://mvr.ac">mvr.ac</a> · piper · authelia-gated
+  </footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+fetch('/whoami', { credentials: 'same-origin' })
+  .then(r => r.ok ? r.text() : null)
+  .then(n => { if (n) $('who').textContent = n.trim(); })
+  .catch(() => {});
+
+fetch('/voices').then(r => r.json()).then(data => {
+  const sel = $('voice');
+  for (const v of data.voices) {
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    if (v === data.default) opt.selected = true;
+    sel.appendChild(opt);
+  }
+});
+
+$('go').addEventListener('click', async () => {
+  const text = $('text').value.trim();
+  if (!text) { $('status').textContent = 'empty input'; return; }
+  $('go').disabled = true;
+  $('status').textContent = 'synthesizing…';
+  $('audio').hidden = true;
+  try {
+    const res = await fetch('/synthesize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice: $('voice').value }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    $('audio').src = url;
+    $('audio').hidden = false;
+    $('audio').play().catch(() => {});
+    $('status').textContent = `${(blob.size / 1024).toFixed(1)} KB`;
+  } catch (e) {
+    $('status').textContent = `error: ${e.message}`;
+  } finally {
+    $('go').disabled = false;
+  }
+});
+</script>
+</body>
+</html>

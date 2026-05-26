@@ -19,6 +19,14 @@
         href: https://paste.mvr.ac
         description: Tailnet-only paste service
         icon: pastebin.svg
+    - open-notebook:
+        href: https://nb.mvr.ac
+        description: NotebookLM-style research notebook (open-notebook + surrealdb)
+        icon: si-streamlit.svg
+    - tts:
+        href: https://tts.mvr.ac
+        description: Piper text-to-speech (FastAPI)
+        icon: si-elevenlabs.svg
     - ttyd terminal:
         href: https://term.mvr.ac
         description: Web shell on the desktop, tailnet-only
