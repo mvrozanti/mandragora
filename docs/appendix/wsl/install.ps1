@@ -171,14 +171,20 @@ function Show-Preflight {
 
 function Get-State {
     $v = (Get-ItemProperty -Path $STATE_KEY -Name InstallStage -ErrorAction SilentlyContinue).InstallStage
-    if ($v) { return $v }
     $prevEAP = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        try {
-            $list = & wsl --list --quiet 2>$null
-            if ($LASTEXITCODE -eq 0 -and ($list -match '^NixOS$')) { return 'nixos-imported' }
-        } catch {}
+        $list = $null
+        try { $list = & wsl --list --quiet 2>$null } catch {}
+        $distroExists = ($LASTEXITCODE -eq 0 -and ($list -match '^NixOS$'))
+        if ($distroExists) {
+            $h = $null
+            try { $h = (& wsl -d NixOS -- cat /etc/hostname 2>$null) } catch {}
+            if ($h) { $h = ($h -join '').Trim() }
+            if ($h -eq 'mandragora-wsl') { return 'done' }
+            return 'nixos-imported'
+        }
+        if ($v) { return $v }
         return 'init'
     } finally {
         $ErrorActionPreference = $prevEAP
