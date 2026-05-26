@@ -28,6 +28,12 @@ LD_EXTRAS=""
 [ -n "${NIX_LD_LIBRARY_PATH:-}" ] && LD_EXTRAS="$LD_EXTRAS:$NIX_LD_LIBRARY_PATH"
 [ -d /run/current-system/sw/lib ] && LD_EXTRAS="$LD_EXTRAS:/run/current-system/sw/lib"
 
+FFMPEG_REAL=$(readlink -f "$(command -v ffmpeg)" 2>/dev/null || true)
+if [ -n "$FFMPEG_REAL" ]; then
+  FFMPEG_LIB="${FFMPEG_REAL%-bin/bin/ffmpeg}-lib/lib"
+  [ -d "$FFMPEG_LIB" ] && LD_EXTRAS="$LD_EXTRAS:$FFMPEG_LIB"
+fi
+
 NVIDIA_LIBS=""
 for sub in cublas/lib cudnn/lib cuda_runtime/lib cuda_nvrtc/lib nccl/lib; do
   d="$PY_LIB_DIR/nvidia/$sub"
