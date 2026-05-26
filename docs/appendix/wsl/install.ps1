@@ -111,6 +111,38 @@ function Get-TerminalSettingsPaths {
     ) | Where-Object { Test-Path $_ }
 }
 
+function Get-WtNixosProfile {
+    param($List)
+    @($List | Where-Object {
+        ($_.name -and ($_.name -match '(?i)nixos')) -or
+        ($_.source -and ($_.source -match '(?i)wsl') -and $_.commandline -and ($_.commandline -match '(?i)nixos')) -or
+        ($_.commandline -and ($_.commandline -match '(?i)wsl(?:\.exe)?\s+(?:-d|--distribution)\s+["'']?nixos'))
+    })
+}
+
+function Get-WtFontFace {
+    param($Profile)
+    if (-not $Profile) { return $null }
+    if ($Profile.font -and $Profile.font.face) { return $Profile.font.face }
+    if ($Profile.PSObject.Properties.Name -contains 'fontFace') { return $Profile.fontFace }
+    return $null
+}
+
+function Set-WtFontFace {
+    param($Profile, [string] $Face)
+    if (-not $Profile.font) {
+        $Profile | Add-Member -MemberType NoteProperty -Name font -Value (New-Object PSObject) -Force
+    }
+    if ($Profile.font.PSObject.Properties.Name -contains 'face') {
+        $Profile.font.face = $Face
+    } else {
+        $Profile.font | Add-Member -MemberType NoteProperty -Name face -Value $Face -Force
+    }
+    if ($Profile.PSObject.Properties.Name -contains 'fontFace') {
+        $Profile.fontFace = $Face
+    }
+}
+
 function Test-TerminalFontConfigured {
     $paths = Get-TerminalSettingsPaths
     if (-not $paths) { return $true }
@@ -119,12 +151,17 @@ function Test-TerminalFontConfigured {
             $j = Get-Content -Path $p -Raw -Encoding UTF8 | ConvertFrom-Json
         } catch { continue }
         if (-not $j.profiles) { continue }
+        $defaults = if ($j.profiles.defaults) { $j.profiles.defaults } else { $null }
         $list = if ($j.profiles.list) { $j.profiles.list } else { $j.profiles }
-        $nixos = $list | Where-Object { $_.name -eq 'NixOS' -or ($_.source -eq 'Microsoft.WSL' -and $_.name -match 'NixOS') }
-        if (-not $nixos) { continue }
-        foreach ($p2 in $nixos) {
-            $face = $null
-            if ($p2.font -and $p2.font.face) { $face = $p2.font.face }
+        $defFace = Get-WtFontFace $defaults
+        $nixos = Get-WtNixosProfile -List $list
+        if (-not $nixos) {
+            if ($defFace -ne $script:NERD_FONT_FACE) { return $false }
+            continue
+        }
+        foreach ($prof in $nixos) {
+            $face = Get-WtFontFace $prof
+            if (-not $face) { $face = $defFace }
             if ($face -ne $script:NERD_FONT_FACE) { return $false }
         }
     }
@@ -146,27 +183,26 @@ function Set-TerminalProfileFont {
             continue
         }
         if (-not $j.profiles) { continue }
-        $hasList = ($j.profiles.PSObject.Properties.Name -contains 'list')
-        $list = if ($hasList) { $j.profiles.list } else { $j.profiles }
-        $nixos = @($list | Where-Object { $_.name -eq 'NixOS' -or ($_.source -eq 'Microsoft.WSL' -and $_.name -match 'NixOS') })
+        $list = if ($j.profiles.list) { $j.profiles.list } else { $j.profiles }
+        $profileNames = ($list | ForEach-Object { $_.name }) -join ', '
+        Write-Host "    enumerated profiles in $p : $profileNames" -ForegroundColor DarkGray
+
+        if (-not $j.profiles.defaults) {
+            $j.profiles | Add-Member -MemberType NoteProperty -Name defaults -Value (New-Object PSObject) -Force
+        }
+        Set-WtFontFace -Profile $j.profiles.defaults -Face $script:NERD_FONT_FACE
+
+        $nixos = Get-WtNixosProfile -List $list
         if (-not $nixos) {
-            Write-Host "    no NixOS profile in $p; skipping (will appear after first wsl launch)" -ForegroundColor DarkYellow
-            continue
+            Write-Host "    no NixOS profile matched; defaults.font.face still set, NixOS will inherit it" -ForegroundColor DarkYellow
+        } else {
+            foreach ($prof in $nixos) { Set-WtFontFace -Profile $prof -Face $script:NERD_FONT_FACE }
         }
-        foreach ($prof in $nixos) {
-            if (-not $prof.font) {
-                $prof | Add-Member -MemberType NoteProperty -Name font -Value (New-Object PSObject) -Force
-            }
-            if ($prof.font.PSObject.Properties.Name -contains 'face') {
-                $prof.font.face = $script:NERD_FONT_FACE
-            } else {
-                $prof.font | Add-Member -MemberType NoteProperty -Name face -Value $script:NERD_FONT_FACE -Force
-            }
-        }
+
         $backup = "$p.mandragora-bak"
         if (-not (Test-Path $backup)) { Copy-Item $p $backup -Force }
         ($j | ConvertTo-Json -Depth 64) | Set-Content -Path $p -Encoding UTF8
-        Write-Host "    configured NixOS profile font.face=$($script:NERD_FONT_FACE) in $p" -ForegroundColor DarkGray
+        Write-Host "    set defaults.font.face=$($script:NERD_FONT_FACE) and any NixOS profile in $p" -ForegroundColor DarkGray
     }
 }
 $IS_ADMIN = Test-Admin
