@@ -277,6 +277,29 @@ function Get-NixosIconPath {
     return $ico
 }
 
+function Invoke-WslBootstrap {
+    Write-Host '>>> phase: 04-bootstrap (inside NixOS-WSL, git pull + nixos-rebuild switch)' -ForegroundColor Cyan
+    $boot = "$env:TEMP\04-bootstrap.sh"
+    Invoke-WebRequest -Uri "$BASE/04-bootstrap.sh" -OutFile $boot -UseBasicParsing
+    $drive = $boot.Substring(0,1).ToLower()
+    $rest  = $boot.Substring(2) -replace '\\','/'
+    $wslPath = "/mnt/$drive$rest"
+    $personal = if ($env:MANDRAGORA_PERSONAL -eq '1') { '1' } else { '0' }
+    $replacePolicy = if ($script:ReplaceAll) { 'all' } elseif ($script:ReplaceNone) { 'none' } else { 'none' }
+    $bootLog = Join-Path $LOG_DIR 'bootstrap.log'
+    $logDrive = $LOG_DIR.Substring(0,1).ToLower()
+    $logRest  = $LOG_DIR.Substring(2) -replace '\\','/'
+    $wslLogDir = "/mnt/$logDrive$logRest"
+    Write-Host "    bootstrap log -> $bootLog" -ForegroundColor DarkGray
+    & wsl -d NixOS -e env `
+        MANDRAGORA_REPO=$REPO `
+        MANDRAGORA_PERSONAL=$personal `
+        MANDRAGORA_REPLACE=$replacePolicy `
+        MANDRAGORA_LOG_DIR=$wslLogDir `
+        bash $wslPath 2>&1 | Tee-Object -FilePath $bootLog -Append
+    if ($LASTEXITCODE -ne 0) { throw "bootstrap failed (exit $LASTEXITCODE) -- see $bootLog" }
+}
+
 function Install-StartMenuShortcut {
     $parent = Split-Path $script:START_MENU_LNK -Parent
     if (-not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
@@ -548,26 +571,7 @@ while ($true) {
             Set-State 'nixos-imported'
         }
         'nixos-imported' {
-            Write-Host '>>> phase: 04-bootstrap (inside NixOS-WSL)' -ForegroundColor Cyan
-            $boot = "$env:TEMP\04-bootstrap.sh"
-            Invoke-WebRequest -Uri "$BASE/04-bootstrap.sh" -OutFile $boot -UseBasicParsing
-            $drive = $boot.Substring(0,1).ToLower()
-            $rest  = $boot.Substring(2) -replace '\\','/'
-            $wslPath = "/mnt/$drive$rest"
-            $personal = if ($env:MANDRAGORA_PERSONAL -eq '1') { '1' } else { '0' }
-            $replacePolicy = if ($script:ReplaceAll) { 'all' } elseif ($script:ReplaceNone) { 'none' } else { 'prompt' }
-            $bootLog = Join-Path $LOG_DIR 'bootstrap.log'
-            $logDrive = $LOG_DIR.Substring(0,1).ToLower()
-            $logRest  = $LOG_DIR.Substring(2) -replace '\\','/'
-            $wslLogDir = "/mnt/$logDrive$logRest"
-            Write-Host "    bootstrap log -> $bootLog" -ForegroundColor DarkGray
-            & wsl -d NixOS -e env `
-                MANDRAGORA_REPO=$REPO `
-                MANDRAGORA_PERSONAL=$personal `
-                MANDRAGORA_REPLACE=$replacePolicy `
-                MANDRAGORA_LOG_DIR=$wslLogDir `
-                bash $wslPath 2>&1 | Tee-Object -FilePath $bootLog -Append
-            if ($LASTEXITCODE -ne 0) { throw "bootstrap failed (exit $LASTEXITCODE) -- see $bootLog" }
+            Invoke-WslBootstrap
             Set-State 'bootstrap-done'
         }
         'bootstrap-done' {
@@ -583,8 +587,16 @@ while ($true) {
             Set-State 'done'
         }
         'done' {
-            Write-Host '==> mandragora-wsl install complete.' -ForegroundColor Green
-            Write-Host '==> run: wsl -d NixOS' -ForegroundColor Green
+            Write-Host '>>> phase: sync (git pull + nixos-rebuild switch inside WSL)' -ForegroundColor Cyan
+            Invoke-WslBootstrap
+            Write-Host '>>> phase: re-verify font' -ForegroundColor Cyan
+            if (-not (Test-NerdFontInstalled)) { Install-NerdFont }
+            Write-Host '>>> phase: re-verify windows-terminal profile + font' -ForegroundColor Cyan
+            if (-not (Test-TerminalFontConfigured)) { Set-TerminalProfileFont }
+            Write-Host '>>> phase: re-verify start menu shortcut' -ForegroundColor Cyan
+            if (-not (Test-StartMenuShortcut)) { Install-StartMenuShortcut }
+            Write-Host '==> mandragora-wsl up-to-date.' -ForegroundColor Green
+            Write-Host '==> launch: Start menu -> Mandragora (or wsl -d NixOS)' -ForegroundColor Green
             Write-Host ('==> logs retained on Desktop: ' + $LOG_DIR) -ForegroundColor Green
             Remove-Item $STATE_KEY -Recurse -Force -ErrorAction SilentlyContinue
             Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
