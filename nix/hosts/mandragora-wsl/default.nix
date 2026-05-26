@@ -41,7 +41,7 @@
       exec /mnt/c/Windows/System32/clip.exe
     '';
     clipPaste = writeShellScript "mandragora-clip-paste" ''
-      exec /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command "Get-Clipboard" \
+      /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command "Get-Clipboard" \
         | sed 's/\r$//'
     '';
     copyShim = name: writeShellScriptBin name "exec ${clipCopy}";
@@ -63,14 +63,25 @@
       done
       exec ${clipCopy}
     '';
+    xdgOpenShim = writeShellScriptBin "xdg-open" ''
+      target="$1"
+      case "$target" in
+        http://*|https://*|mailto:*|ftp://*|file://*) ;;
+        *)
+          if [ -e "$target" ]; then
+            target="$(wslpath -w "$target")"
+          fi
+          ;;
+      esac
+      exec /mnt/c/Windows/explorer.exe "$target"
+    '';
   in [
     git
     wget
     curl
     fastfetch
     rtk
-    wslu
-    (writeShellScriptBin "xdg-open" ''exec ${wslu}/bin/wslview "$@"'')
+    xdgOpenShim
     (copyShim "wl-copy")
     (pasteShim "wl-paste")
     (copyShim "pbcopy")
