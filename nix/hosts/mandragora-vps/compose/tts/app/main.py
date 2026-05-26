@@ -1,31 +1,27 @@
-import io
 import os
-import wave
+import shutil
+import subprocess
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Header
-from fastapi.responses import FileResponse, Response, JSONResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from piper import PiperVoice
 
 MODELS_DIR = Path(os.environ.get("TTS_MODELS_DIR", "/models"))
 DEFAULT_VOICE = os.environ.get("TTS_DEFAULT_VOICE", "en_US-lessac-medium")
-
-_voices: dict[str, PiperVoice] = {}
+PIPER_BIN = shutil.which("piper") or "/usr/local/bin/piper"
 
 
 def list_voices() -> list[str]:
     return sorted(p.stem for p in MODELS_DIR.glob("*.onnx"))
 
 
-def get_voice(name: str) -> PiperVoice:
-    if name not in _voices:
-        path = MODELS_DIR / f"{name}.onnx"
-        if not path.is_file():
-            raise HTTPException(status_code=404, detail=f"unknown voice: {name}")
-        _voices[name] = PiperVoice.load(str(path))
-    return _voices[name]
+def model_path(name: str) -> Path:
+    path = MODELS_DIR / f"{name}.onnx"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail=f"unknown voice: {name}")
+    return path
 
 
 class SynthesizeRequest(BaseModel):
@@ -54,13 +50,20 @@ def voices():
 @app.post("/synthesize")
 def synthesize(req: SynthesizeRequest):
     voice_name = req.voice or DEFAULT_VOICE
-    voice = get_voice(voice_name)
-    buf = io.BytesIO()
-    with wave.open(buf, "wb") as wf:
-        voice.synthesize(req.text, wf)
-    buf.seek(0)
+    model = model_path(voice_name)
+    proc = subprocess.run(
+        [PIPER_BIN, "--model", str(model), "--output_file", "-"],
+        input=req.text.encode("utf-8"),
+        capture_output=True,
+        timeout=60,
+    )
+    if proc.returncode != 0:
+        raise HTTPException(
+            status_code=500,
+            detail=f"piper failed: {proc.stderr.decode('utf-8', 'replace')[:500]}",
+        )
     return Response(
-        content=buf.read(),
+        content=proc.stdout,
         media_type="audio/wav",
         headers={"Content-Disposition": f'inline; filename="{voice_name}.wav"'},
     )

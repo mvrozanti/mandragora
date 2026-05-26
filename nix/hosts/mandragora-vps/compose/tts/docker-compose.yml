@@ -11,8 +11,6 @@ services:
       - TTS_PUBLIC_BASE=https://tts.${MVR_AC:-mvr.ac}
       - TTS_MODELS_DIR=/models
       - TTS_DEFAULT_VOICE=${TTS_DEFAULT_VOICE:-en_US-lessac-medium}
-    volumes:
-      - ${TTS_MODELS_VOLUME:-./models}:/models
     networks:
       - seafile-net
     labels:
