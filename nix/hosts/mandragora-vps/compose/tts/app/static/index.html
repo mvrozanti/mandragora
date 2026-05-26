@@ -24,8 +24,10 @@ nav.tabs button { background: var(--panel); color: var(--dim); border: 1px solid
   font-family: inherit; font-size: 0.85rem; padding: 0.5rem 1rem; cursor: pointer; }
 nav.tabs button.active { color: var(--accent); border-color: var(--accent); }
 .panel { background: var(--panel); border: 1px solid var(--line); padding: 1.2rem; margin-bottom: 1rem; }
+.panel h2 { font-size: 0.9rem; color: var(--accent); font-weight: 600; margin-bottom: 0.8rem;
+  letter-spacing: 0.05em; text-transform: uppercase; }
 label { display: block; color: var(--dim); font-size: 0.85rem; margin-bottom: 0.4rem; }
-textarea, select, button, input[type=file] { background: var(--bg); color: var(--fg);
+textarea, select, button, input[type=file], input[type=text] { background: var(--bg); color: var(--fg);
   border: 1px solid var(--line); font-family: inherit; font-size: 0.95rem;
   padding: 0.6rem 0.8rem; width: 100%; }
 textarea { min-height: 8rem; resize: vertical; }
@@ -34,16 +36,23 @@ textarea { min-height: 8rem; resize: vertical; }
 button.primary { background: var(--accent); color: var(--bg); border: none; cursor: pointer;
   font-weight: 600; padding: 0.7rem 1.2rem; width: auto; }
 button.primary:disabled { background: var(--dim); cursor: not-allowed; }
+button.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line);
+  cursor: pointer; padding: 0.5rem 1rem; width: auto; font-family: inherit; font-size: 0.85rem; }
 button.danger { background: transparent; color: var(--bad); border: 1px solid var(--bad);
-  cursor: pointer; padding: 0.5rem 1rem; width: auto; font-family: inherit; }
+  cursor: pointer; padding: 0.4rem 0.8rem; width: auto; font-family: inherit; font-size: 0.78rem; }
 button.rec { background: var(--bad); color: #fff; border: none; cursor: pointer;
   font-family: inherit; padding: 0.7rem 1.2rem; width: auto; }
 button.rec.armed { background: var(--warn); color: var(--bg); }
 audio { width: 100%; margin-top: 1rem; }
 .status { color: var(--dim); font-size: 0.85rem; margin-top: 0.6rem; min-height: 1.2em; }
 .meta { color: var(--dim); font-size: 0.78rem; margin-top: 0.4rem; }
-.ref-state { color: var(--dim); font-size: 0.85rem; margin-top: 0.6rem; }
-.ref-state.has { color: var(--accent); }
+.lib { display: flex; flex-direction: column; gap: 0.4rem; }
+.lib-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line); background: var(--bg); }
+.lib-item.selected { border-color: var(--accent); background: #0a1810; }
+.lib-item .name { flex: 1; cursor: pointer; }
+.lib-item .size { color: var(--dim); font-size: 0.78rem; }
+.lib-empty { color: var(--dim); font-size: 0.85rem; font-style: italic; padding: 0.5rem 0; }
 footer { color: var(--dim); font-size: 0.8rem; margin-top: 2rem;
   border-top: 1px solid var(--line); padding-top: 0.8rem; }
 a { color: var(--accent); text-decoration: none; }
@@ -82,29 +91,41 @@ a { color: var(--accent); text-decoration: none; }
 
   <section id="pane-clone" class="hidden">
     <div class="panel">
-      <label>reference voice (8–15s of clean speech)</label>
+      <h2>voice library</h2>
+      <div id="lib" class="lib"></div>
+      <div class="status" id="lib-status"></div>
+    </div>
+
+    <div class="panel">
+      <h2>add new voice</h2>
       <div class="row">
         <div>
+          <label for="ref-name">name</label>
+          <input type="text" id="ref-name" placeholder="e.g. m-default, dog-narrator" maxlength="64">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="ref-file">file (8–15s, any audio/video)</label>
           <input type="file" id="ref-file" accept="audio/*,video/*">
         </div>
         <div style="flex: 0 0 auto;">
           <button id="ref-rec" class="rec" type="button">record</button>
         </div>
         <div style="flex: 0 0 auto;">
-          <button id="ref-upload" class="primary">upload</button>
-        </div>
-        <div style="flex: 0 0 auto;">
-          <button id="ref-clear" class="danger">clear</button>
+          <button id="ref-upload" class="primary">save voice</button>
         </div>
       </div>
-      <div class="ref-state" id="ref-state">checking reference…</div>
+      <div class="status" id="ref-status"></div>
     </div>
 
     <div class="panel">
-      <label for="clone-text">text to speak in that voice</label>
+      <h2>synthesize</h2>
+      <label for="clone-text">text to speak in selected voice</label>
       <textarea id="clone-text" placeholder="up to 1000 chars"></textarea>
       <div class="row">
-        <div style="flex: 0 0 auto; margin-left: auto;">
+        <div id="clone-active" class="status">no voice selected</div>
+        <div style="flex: 0 0 auto;">
           <button id="clone-go" class="primary">synthesize</button>
         </div>
       </div>
@@ -121,6 +142,7 @@ a { color: var(--accent); text-decoration: none; }
 
 <script>
 const $ = id => document.getElementById(id);
+const LS_KEY = 'tts-clone:selected-ref';
 
 fetch('/whoami', { credentials: 'same-origin' })
   .then(r => r.ok ? r.text() : null)
@@ -132,7 +154,7 @@ const showPane = name => {
     $(`tab-${t}`).classList.toggle('active', t === name);
     $(`pane-${t}`).classList.toggle('hidden', t !== name);
   }
-  if (name === 'clone') refreshCloneStatus();
+  if (name === 'clone') refreshLibrary();
 };
 $('tab-synth').addEventListener('click', () => showPane('synth'));
 $('tab-clone').addEventListener('click', () => showPane('clone'));
@@ -161,8 +183,7 @@ $('go').addEventListener('click', async () => {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    $('audio').src = url; $('audio').hidden = false;
+    $('audio').src = URL.createObjectURL(blob); $('audio').hidden = false;
     $('audio').play().catch(() => {});
     $('status').textContent = `${(blob.size / 1024).toFixed(1)} KB`;
   } catch (e) {
@@ -188,81 +209,134 @@ $('ref-rec').addEventListener('click', async () => {
       stream.getTracks().forEach(t => t.stop());
       recState.blob = new Blob(recState.chunks, { type: mr.mimeType || 'audio/webm' });
       btn.classList.remove('armed'); btn.textContent = 'record';
-      $('ref-state').textContent = `recorded ${(recState.blob.size / 1024).toFixed(1)} KB — click upload`;
+      $('ref-status').textContent = `recorded ${(recState.blob.size / 1024).toFixed(1)} KB — name it and save`;
     };
     mr.start();
     btn.classList.add('armed'); btn.textContent = 'stop';
-    $('ref-state').textContent = 'recording…';
+    $('ref-status').textContent = 'recording…';
   } catch (e) {
-    $('ref-state').textContent = `mic error: ${e.message}`;
+    $('ref-status').textContent = `mic error: ${e.message}`;
   }
 });
 
-async function refreshCloneStatus() {
+function setActiveRef(name) {
+  if (name) localStorage.setItem(LS_KEY, name);
+  else localStorage.removeItem(LS_KEY);
+  document.querySelectorAll('.lib-item').forEach(el => {
+    el.classList.toggle('selected', el.dataset.name === name);
+  });
+  $('clone-active').textContent = name ? `active voice: ${name}` : 'no voice selected';
+}
+
+function getActiveRef() { return localStorage.getItem(LS_KEY) || ''; }
+
+function fmtKB(n) { return `${(n / 1024).toFixed(1)} KB`; }
+function fmtAge(mtime) {
+  const s = Math.max(0, (Date.now() / 1000) - mtime);
+  if (s < 60) return `${s.toFixed(0)}s ago`;
+  if (s < 3600) return `${(s / 60).toFixed(0)}m ago`;
+  if (s < 86400) return `${(s / 3600).toFixed(1)}h ago`;
+  return `${(s / 86400).toFixed(1)}d ago`;
+}
+
+async function refreshLibrary() {
+  $('lib-status').textContent = 'loading…';
   try {
-    const res = await fetch('/clone/status', { credentials: 'same-origin' });
+    const res = await fetch('/clone/refs', { credentials: 'same-origin' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    const el = $('ref-state');
-    if (data.has_reference) {
-      el.classList.add('has');
-      el.textContent = `reference stored (${(data.reference_size_bytes / 1024).toFixed(1)} KB) · model_loaded=${data.model_loaded}`;
-    } else {
-      el.classList.remove('has');
-      el.textContent = `no reference for ${data.user} — upload or record`;
+    const lib = $('lib'); lib.innerHTML = '';
+    if (!data.refs.length) {
+      const div = document.createElement('div');
+      div.className = 'lib-empty';
+      div.textContent = `no saved voices for ${data.user} — add one below`;
+      lib.appendChild(div);
+      setActiveRef('');
+      $('lib-status').textContent = '';
+      return;
     }
+    const active = getActiveRef();
+    let activeStillExists = false;
+    for (const r of data.refs) {
+      const row = document.createElement('div');
+      row.className = 'lib-item';
+      row.dataset.name = r.name;
+      if (r.name === active) { row.classList.add('selected'); activeStillExists = true; }
+      const nm = document.createElement('div');
+      nm.className = 'name'; nm.textContent = r.name;
+      nm.addEventListener('click', () => setActiveRef(r.name));
+      const sz = document.createElement('div');
+      sz.className = 'size'; sz.textContent = `${fmtKB(r.size_bytes)} · ${fmtAge(r.mtime)}`;
+      const play = document.createElement('button');
+      play.className = 'ghost'; play.textContent = 'play';
+      play.addEventListener('click', async () => {
+        const a = new Audio(`/clone/refs/${encodeURIComponent(r.name)}`);
+        a.play().catch(e => $('lib-status').textContent = `play error: ${e.message}`);
+      });
+      const del = document.createElement('button');
+      del.className = 'danger'; del.textContent = 'delete';
+      del.addEventListener('click', async () => {
+        if (!confirm(`delete voice "${r.name}"?`)) return;
+        const dr = await fetch(`/clone/refs/${encodeURIComponent(r.name)}`, {
+          method: 'DELETE', credentials: 'same-origin',
+        });
+        if (!dr.ok) { $('lib-status').textContent = `delete failed: HTTP ${dr.status}`; return; }
+        if (r.name === getActiveRef()) setActiveRef('');
+        await refreshLibrary();
+      });
+      row.appendChild(nm); row.appendChild(sz); row.appendChild(play); row.appendChild(del);
+      lib.appendChild(row);
+    }
+    if (!activeStillExists && active) setActiveRef('');
+    else setActiveRef(active);
+    $('lib-status').textContent = `${data.refs.length} saved`;
   } catch (e) {
-    $('ref-state').textContent = `status error: ${e.message}`;
+    $('lib-status').textContent = `error: ${e.message}`;
   }
 }
 
 $('ref-upload').addEventListener('click', async () => {
+  const name = $('ref-name').value.trim();
+  if (!name) { $('ref-status').textContent = 'give the voice a name first'; return; }
   const fileEl = $('ref-file');
   const blob = recState.blob || (fileEl.files[0] || null);
-  if (!blob) { $('ref-state').textContent = 'pick a file or record first'; return; }
+  if (!blob) { $('ref-status').textContent = 'pick a file or record first'; return; }
   $('ref-upload').disabled = true;
-  $('ref-state').textContent = 'uploading…';
+  $('ref-status').textContent = 'uploading…';
   const form = new FormData();
+  form.append('name', name);
   form.append('audio', blob, blob.name || 'reference.webm');
   try {
-    const res = await fetch('/clone/ref', { method: 'POST', body: form, credentials: 'same-origin' });
+    const res = await fetch('/clone/refs', { method: 'POST', body: form, credentials: 'same-origin' });
     if (!res.ok) {
       const detail = await res.text();
       throw new Error(`HTTP ${res.status}: ${detail.slice(0, 200)}`);
     }
     const data = await res.json();
-    let msg = `reference saved (${data.duration_seconds.toFixed(1)}s, ${(data.bytes / 1024).toFixed(1)} KB)`;
+    let msg = `saved "${data.name}" (${data.duration_seconds.toFixed(1)}s)`;
     if (data.warning) msg += ` · ${data.warning}`;
-    $('ref-state').textContent = msg;
-    $('ref-state').classList.add('has');
-    recState.blob = null;
-    fileEl.value = '';
+    $('ref-status').textContent = msg;
+    recState.blob = null; fileEl.value = ''; $('ref-name').value = '';
+    setActiveRef(data.name);
+    await refreshLibrary();
   } catch (e) {
-    $('ref-state').textContent = `upload error: ${e.message}`;
+    $('ref-status').textContent = `upload error: ${e.message}`;
   } finally {
     $('ref-upload').disabled = false;
-  }
-});
-
-$('ref-clear').addEventListener('click', async () => {
-  if (!confirm('clear stored reference?')) return;
-  try {
-    const res = await fetch('/clone/ref', { method: 'DELETE', credentials: 'same-origin' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    await refreshCloneStatus();
-  } catch (e) {
-    $('ref-state').textContent = `clear error: ${e.message}`;
   }
 });
 
 $('clone-go').addEventListener('click', async () => {
   const text = $('clone-text').value.trim();
   if (!text) { $('clone-status').textContent = 'empty input'; return; }
+  const refName = getActiveRef();
+  if (!refName) { $('clone-status').textContent = 'select a voice from the library first'; return; }
   $('clone-go').disabled = true;
   $('clone-status').textContent = 'synthesizing… (first call loads the model, may take ~30s)';
   $('clone-audio').hidden = true; $('clone-meta').textContent = '';
   const form = new FormData();
   form.append('text', text);
+  form.append('ref_name', refName);
   try {
     const res = await fetch('/clone/synthesize', { method: 'POST', body: form, credentials: 'same-origin' });
     if (!res.ok) {
@@ -271,11 +345,10 @@ $('clone-go').addEventListener('click', async () => {
     }
     const elapsed = res.headers.get('X-Elapsed-Seconds');
     const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    $('clone-audio').src = url; $('clone-audio').hidden = false;
+    $('clone-audio').src = URL.createObjectURL(blob); $('clone-audio').hidden = false;
     $('clone-audio').play().catch(() => {});
     $('clone-status').textContent = 'done';
-    $('clone-meta').textContent = `${(blob.size / 1024).toFixed(1)} KB · ${elapsed}s on GPU`;
+    $('clone-meta').textContent = `voice "${refName}" · ${(blob.size / 1024).toFixed(1)} KB · ${elapsed}s on GPU`;
   } catch (e) {
     $('clone-status').textContent = `error: ${e.message}`;
   } finally {
