@@ -7,6 +7,7 @@ let
     { n = "gpu-lock"; s = ../../../agent-skills/gpu-lock; }
     { n = "hotkeys";  s = ../../../agent-skills/hotkeys; }
     { n = "nrp";      s = ../../../agent-skills/nrp; }
+    { n = "nb-vault-sync"; s = ../../../agent-skills/nb-vault-sync; }
   ];
 
   mkEntries = prefix: skills: lib.listToAttrs (map (e: {
