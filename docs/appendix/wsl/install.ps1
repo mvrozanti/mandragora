@@ -54,6 +54,121 @@ function Get-WslGuestHostname {
                 ForEach-Object { $_.Trim() } | Where-Object { $_ } | Select-Object -First 1)
     } finally { $ErrorActionPreference = $prevEAP }
 }
+
+$script:NERD_FONT_FACE = 'JetBrainsMono Nerd Font'
+$script:NERD_FONT_WINGET_ID = 'DEVCOM.JetBrainsMonoNerdFont'
+$script:NERD_FONT_DOWNLOAD = 'https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip'
+
+function Test-NerdFontInstalled {
+    $userFontsKey = 'HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts'
+    $systemFontsKey = 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Fonts'
+    foreach ($k in @($userFontsKey, $systemFontsKey)) {
+        try {
+            $vals = (Get-ItemProperty -Path $k -ErrorAction Stop).PSObject.Properties.Name
+            if ($vals | Where-Object { $_ -match 'JetBrainsMono.*Nerd' }) { return $true }
+        } catch {}
+    }
+    return $false
+}
+
+function Install-NerdFont {
+    if (Test-NerdFontInstalled) {
+        Write-Host '    JetBrainsMono Nerd Font already installed' -ForegroundColor DarkGray
+        return
+    }
+    Write-Host '    installing JetBrainsMono Nerd Font (user scope, no admin)' -ForegroundColor DarkGray
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        $prev = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+        & winget install --id $script:NERD_FONT_WINGET_ID --scope user --silent --accept-source-agreements --accept-package-agreements 2>&1 | Out-Host
+        $ErrorActionPreference = $prev
+        if (Test-NerdFontInstalled) { return }
+        Write-Host '    winget did not register font; falling back to manual install' -ForegroundColor DarkYellow
+    } else {
+        Write-Host '    winget not present; using manual download' -ForegroundColor DarkYellow
+    }
+    $zip = Join-Path $env:TEMP 'JetBrainsMono-NF.zip'
+    $extract = Join-Path $env:TEMP 'JetBrainsMono-NF'
+    Invoke-WebRequest -Uri $script:NERD_FONT_DOWNLOAD -OutFile $zip -UseBasicParsing
+    if (Test-Path $extract) { Remove-Item $extract -Recurse -Force }
+    Expand-Archive -Path $zip -DestinationPath $extract -Force
+    $userFontsDir = "$env:LOCALAPPDATA\Microsoft\Windows\Fonts"
+    if (-not (Test-Path $userFontsDir)) { New-Item -ItemType Directory -Path $userFontsDir -Force | Out-Null }
+    $regKey = 'HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts'
+    if (-not (Test-Path $regKey)) { New-Item -Path $regKey -Force | Out-Null }
+    Get-ChildItem -Path $extract -Filter '*.ttf' -Recurse | ForEach-Object {
+        $dest = Join-Path $userFontsDir $_.Name
+        Copy-Item -Path $_.FullName -Destination $dest -Force
+        $faceName = [System.IO.Path]::GetFileNameWithoutExtension($_.Name) + ' (TrueType)'
+        Set-ItemProperty -Path $regKey -Name $faceName -Value $dest -Force
+    }
+    Remove-Item $zip -Force -ErrorAction SilentlyContinue
+}
+
+function Get-TerminalSettingsPaths {
+    @(
+        "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbcwe\LocalState\settings.json",
+        "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbcwe\LocalState\settings.json"
+    ) | Where-Object { Test-Path $_ }
+}
+
+function Test-TerminalFontConfigured {
+    $paths = Get-TerminalSettingsPaths
+    if (-not $paths) { return $true }
+    foreach ($p in $paths) {
+        try {
+            $j = Get-Content -Path $p -Raw -Encoding UTF8 | ConvertFrom-Json
+        } catch { continue }
+        if (-not $j.profiles) { continue }
+        $list = if ($j.profiles.list) { $j.profiles.list } else { $j.profiles }
+        $nixos = $list | Where-Object { $_.name -eq 'NixOS' -or ($_.source -eq 'Microsoft.WSL' -and $_.name -match 'NixOS') }
+        if (-not $nixos) { continue }
+        foreach ($p2 in $nixos) {
+            $face = $null
+            if ($p2.font -and $p2.font.face) { $face = $p2.font.face }
+            if ($face -ne $script:NERD_FONT_FACE) { return $false }
+        }
+    }
+    return $true
+}
+
+function Set-TerminalProfileFont {
+    $paths = Get-TerminalSettingsPaths
+    if (-not $paths) {
+        Write-Host '    Windows Terminal not installed; skipping profile config' -ForegroundColor DarkYellow
+        return
+    }
+    foreach ($p in $paths) {
+        try {
+            $raw = Get-Content -Path $p -Raw -Encoding UTF8
+            $j = $raw | ConvertFrom-Json
+        } catch {
+            Write-Host "    could not parse $p; skipping" -ForegroundColor DarkYellow
+            continue
+        }
+        if (-not $j.profiles) { continue }
+        $hasList = ($j.profiles.PSObject.Properties.Name -contains 'list')
+        $list = if ($hasList) { $j.profiles.list } else { $j.profiles }
+        $nixos = @($list | Where-Object { $_.name -eq 'NixOS' -or ($_.source -eq 'Microsoft.WSL' -and $_.name -match 'NixOS') })
+        if (-not $nixos) {
+            Write-Host "    no NixOS profile in $p; skipping (will appear after first wsl launch)" -ForegroundColor DarkYellow
+            continue
+        }
+        foreach ($prof in $nixos) {
+            if (-not $prof.font) {
+                $prof | Add-Member -MemberType NoteProperty -Name font -Value (New-Object PSObject) -Force
+            }
+            if ($prof.font.PSObject.Properties.Name -contains 'face') {
+                $prof.font.face = $script:NERD_FONT_FACE
+            } else {
+                $prof.font | Add-Member -MemberType NoteProperty -Name face -Value $script:NERD_FONT_FACE -Force
+            }
+        }
+        $backup = "$p.mandragora-bak"
+        if (-not (Test-Path $backup)) { Copy-Item $p $backup -Force }
+        ($j | ConvertTo-Json -Depth 64) | Set-Content -Path $p -Encoding UTF8
+        Write-Host "    configured NixOS profile font.face=$($script:NERD_FONT_FACE) in $p" -ForegroundColor DarkGray
+    }
+}
 $IS_ADMIN = Test-Admin
 
 $STATE_DIR = "$env:LOCALAPPDATA\Mandragora"
@@ -203,7 +318,11 @@ function Get-State {
     $v = (Get-ItemProperty -Path $STATE_KEY -Name InstallStage -ErrorAction SilentlyContinue).InstallStage
     if (Test-WslDistroExists -Name 'NixOS') {
         $h = Get-WslGuestHostname -Name 'NixOS'
-        if ($h -eq 'mandragora-wsl') { return 'done' }
+        if ($h -eq 'mandragora-wsl') {
+            if (-not (Test-NerdFontInstalled)) { return 'bootstrap-done' }
+            if (-not (Test-TerminalFontConfigured)) { return 'fonts-done' }
+            return 'done'
+        }
         return 'nixos-imported'
     }
     if ($v) { return $v }
@@ -306,6 +425,16 @@ while ($true) {
                 MANDRAGORA_LOG_DIR=$wslLogDir `
                 bash $wslPath 2>&1 | Tee-Object -FilePath $bootLog -Append
             if ($LASTEXITCODE -ne 0) { throw "bootstrap failed (exit $LASTEXITCODE) -- see $bootLog" }
+            Set-State 'bootstrap-done'
+        }
+        'bootstrap-done' {
+            Write-Host '>>> phase: nerd-font install' -ForegroundColor Cyan
+            Install-NerdFont
+            Set-State 'fonts-done'
+        }
+        'fonts-done' {
+            Write-Host '>>> phase: windows-terminal profile config' -ForegroundColor Cyan
+            Set-TerminalProfileFont
             Set-State 'done'
         }
         'done' {
