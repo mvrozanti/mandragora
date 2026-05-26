@@ -11,6 +11,7 @@
     enable = true;
     defaultUser = "m";
     startMenuLaunchers = true;
+    interop.register = true;
     wslConf = {
       automount.root = "/mnt";
       interop.enabled = true;
