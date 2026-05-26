@@ -151,18 +151,11 @@ function Test-TerminalFontConfigured {
             $j = Get-Content -Path $p -Raw -Encoding UTF8 | ConvertFrom-Json
         } catch { continue }
         if (-not $j.profiles) { continue }
-        $defaults = if ($j.profiles.defaults) { $j.profiles.defaults } else { $null }
         $list = if ($j.profiles.list) { $j.profiles.list } else { $j.profiles }
-        $defFace = Get-WtFontFace $defaults
         $nixos = Get-WtNixosProfile -List $list
-        if (-not $nixos) {
-            if ($defFace -ne $script:NERD_FONT_FACE) { return $false }
-            continue
-        }
+        if (-not $nixos) { return $false }
         foreach ($prof in $nixos) {
-            $face = Get-WtFontFace $prof
-            if (-not $face) { $face = $defFace }
-            if ($face -ne $script:NERD_FONT_FACE) { return $false }
+            if ((Get-WtFontFace $prof) -ne $script:NERD_FONT_FACE) { return $false }
         }
     }
     return $true
@@ -184,25 +177,27 @@ function Set-TerminalProfileFont {
         }
         if (-not $j.profiles) { continue }
         $list = if ($j.profiles.list) { $j.profiles.list } else { $j.profiles }
-        $profileNames = ($list | ForEach-Object { $_.name }) -join ', '
-        Write-Host "    enumerated profiles in $p : $profileNames" -ForegroundColor DarkGray
-
-        if (-not $j.profiles.defaults) {
-            $j.profiles | Add-Member -MemberType NoteProperty -Name defaults -Value (New-Object PSObject) -Force
-        }
-        Set-WtFontFace -Profile $j.profiles.defaults -Face $script:NERD_FONT_FACE
+        $profileDump = ($list | ForEach-Object {
+            "        - name=$($_.name) source=$($_.source) commandline=$($_.commandline) guid=$($_.guid)"
+        }) -join "`n"
+        Write-Host "    enumerated profiles in $p :" -ForegroundColor DarkGray
+        Write-Host $profileDump -ForegroundColor DarkGray
 
         $nixos = Get-WtNixosProfile -List $list
         if (-not $nixos) {
-            Write-Host "    no NixOS profile matched; defaults.font.face still set, NixOS will inherit it" -ForegroundColor DarkYellow
-        } else {
-            foreach ($prof in $nixos) { Set-WtFontFace -Profile $prof -Face $script:NERD_FONT_FACE }
+            Write-Host "    no NixOS profile matched in $p" -ForegroundColor DarkYellow
+            Write-Host "    refusing to touch profiles.defaults (would affect every distro)" -ForegroundColor DarkYellow
+            Write-Host "    fix: paste the profile dump above so the matcher can be tightened" -ForegroundColor DarkYellow
+            continue
+        }
+        foreach ($prof in $nixos) {
+            Set-WtFontFace -Profile $prof -Face $script:NERD_FONT_FACE
+            Write-Host "    patched profile name=$($prof.name) guid=$($prof.guid) -> font.face=$($script:NERD_FONT_FACE)" -ForegroundColor DarkGray
         }
 
         $backup = "$p.mandragora-bak"
         if (-not (Test-Path $backup)) { Copy-Item $p $backup -Force }
         ($j | ConvertTo-Json -Depth 64) | Set-Content -Path $p -Encoding UTF8
-        Write-Host "    set defaults.font.face=$($script:NERD_FONT_FACE) and any NixOS profile in $p" -ForegroundColor DarkGray
     }
 }
 $IS_ADMIN = Test-Admin
