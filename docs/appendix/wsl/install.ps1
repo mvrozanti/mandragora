@@ -76,16 +76,7 @@ function Install-NerdFont {
         Write-Host '    JetBrainsMono Nerd Font already installed' -ForegroundColor DarkGray
         return
     }
-    Write-Host '    installing JetBrainsMono Nerd Font (user scope, no admin)' -ForegroundColor DarkGray
-    if (Get-Command winget -ErrorAction SilentlyContinue) {
-        $prev = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
-        & winget install --id $script:NERD_FONT_WINGET_ID --scope user --silent --accept-source-agreements --accept-package-agreements 2>&1 | Out-Host
-        $ErrorActionPreference = $prev
-        if (Test-NerdFontInstalled) { return }
-        Write-Host '    winget did not register font; falling back to manual install' -ForegroundColor DarkYellow
-    } else {
-        Write-Host '    winget not present; using manual download' -ForegroundColor DarkYellow
-    }
+    Write-Host '    installing JetBrainsMono Nerd Font (user scope, no admin, no winget)' -ForegroundColor DarkGray
     $zip = Join-Path $env:TEMP 'JetBrainsMono-NF.zip'
     $extract = Join-Path $env:TEMP 'JetBrainsMono-NF'
     Invoke-WebRequest -Uri $script:NERD_FONT_DOWNLOAD -OutFile $zip -UseBasicParsing
@@ -95,110 +86,60 @@ function Install-NerdFont {
     if (-not (Test-Path $userFontsDir)) { New-Item -ItemType Directory -Path $userFontsDir -Force | Out-Null }
     $regKey = 'HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts'
     if (-not (Test-Path $regKey)) { New-Item -Path $regKey -Force | Out-Null }
+    $copied = 0
     Get-ChildItem -Path $extract -Filter '*.ttf' -Recurse | ForEach-Object {
         $dest = Join-Path $userFontsDir $_.Name
         Copy-Item -Path $_.FullName -Destination $dest -Force
         $faceName = [System.IO.Path]::GetFileNameWithoutExtension($_.Name) + ' (TrueType)'
         Set-ItemProperty -Path $regKey -Name $faceName -Value $dest -Force
+        $copied++
     }
     Remove-Item $zip -Force -ErrorAction SilentlyContinue
-}
-
-function Get-TerminalSettingsPaths {
-    @(
-        "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbcwe\LocalState\settings.json",
-        "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbcwe\LocalState\settings.json"
-    ) | Where-Object { Test-Path $_ }
-}
-
-function Get-WtNixosProfile {
-    param($List)
-    @($List | Where-Object {
-        ($_.name -and ($_.name -match '(?i)nixos')) -or
-        ($_.source -and ($_.source -match '(?i)wsl') -and $_.commandline -and ($_.commandline -match '(?i)nixos')) -or
-        ($_.commandline -and ($_.commandline -match '(?i)wsl(?:\.exe)?\s+(?:-d|--distribution)\s+["'']?nixos'))
-    })
-}
-
-function Get-WtFontFace {
-    param($Profile)
-    if (-not $Profile) { return $null }
-    if ($Profile.font -and $Profile.font.face) { return $Profile.font.face }
-    if ($Profile.PSObject.Properties.Name -contains 'fontFace') { return $Profile.fontFace }
-    return $null
-}
-
-function Set-WtFontFace {
-    param($Profile, [string] $Face)
-    if (-not $Profile.font) {
-        $Profile | Add-Member -MemberType NoteProperty -Name font -Value (New-Object PSObject) -Force
+    Write-Host "    installed $copied .ttf files under $userFontsDir" -ForegroundColor DarkGray
+    if (-not (Test-NerdFontInstalled)) {
+        throw "manual nerd font install completed but registry probe still fails -- inspect $userFontsDir and HKCU font key"
     }
-    if ($Profile.font.PSObject.Properties.Name -contains 'face') {
-        $Profile.font.face = $Face
-    } else {
-        $Profile.font | Add-Member -MemberType NoteProperty -Name face -Value $Face -Force
+}
+
+function Get-TerminalFragmentPath {
+    $dir = "$env:LOCALAPPDATA\Microsoft\Windows Terminal\Fragments\Mandragora"
+    if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+    Join-Path $dir 'nixos.json'
+}
+
+function Get-NixosProfileFragmentJson {
+    $obj = [PSCustomObject]@{
+        '$help'   = 'https://aka.ms/terminal-documentation'
+        '$schema' = 'https://aka.ms/terminal-profiles-schema-fragments'
+        profiles  = @(
+            [PSCustomObject]@{
+                name        = 'NixOS (Mandragora)'
+                commandline = 'wsl.exe -d NixOS'
+                startingDirectory = '~'
+                icon        = 'https://raw.githubusercontent.com/NixOS/nixos-artwork/master/logo/nix-snowflake.svg'
+                font        = [PSCustomObject]@{ face = $script:NERD_FONT_FACE }
+                colorScheme = 'Campbell'
+            }
+        )
     }
-    if ($Profile.PSObject.Properties.Name -contains 'fontFace') {
-        $Profile.fontFace = $Face
-    }
+    ($obj | ConvertTo-Json -Depth 32)
 }
 
 function Test-TerminalFontConfigured {
-    $paths = Get-TerminalSettingsPaths
-    if (-not $paths) { return $true }
-    foreach ($p in $paths) {
-        try {
-            $j = Get-Content -Path $p -Raw -Encoding UTF8 | ConvertFrom-Json
-        } catch { continue }
-        if (-not $j.profiles) { continue }
-        $list = if ($j.profiles.list) { $j.profiles.list } else { $j.profiles }
-        $nixos = Get-WtNixosProfile -List $list
-        if (-not $nixos) { return $false }
-        foreach ($prof in $nixos) {
-            if ((Get-WtFontFace $prof) -ne $script:NERD_FONT_FACE) { return $false }
-        }
-    }
-    return $true
+    $frag = Get-TerminalFragmentPath
+    if (-not (Test-Path $frag)) { return $false }
+    try {
+        $cur = Get-Content -Path $frag -Raw -Encoding UTF8
+        return ($cur.Trim() -eq (Get-NixosProfileFragmentJson).Trim())
+    } catch { return $false }
 }
 
 function Set-TerminalProfileFont {
-    $paths = Get-TerminalSettingsPaths
-    if (-not $paths) {
-        Write-Host '    Windows Terminal not installed; skipping profile config' -ForegroundColor DarkYellow
-        return
-    }
-    foreach ($p in $paths) {
-        try {
-            $raw = Get-Content -Path $p -Raw -Encoding UTF8
-            $j = $raw | ConvertFrom-Json
-        } catch {
-            Write-Host "    could not parse $p; skipping" -ForegroundColor DarkYellow
-            continue
-        }
-        if (-not $j.profiles) { continue }
-        $list = if ($j.profiles.list) { $j.profiles.list } else { $j.profiles }
-        $profileDump = ($list | ForEach-Object {
-            "        - name=$($_.name) source=$($_.source) commandline=$($_.commandline) guid=$($_.guid)"
-        }) -join "`n"
-        Write-Host "    enumerated profiles in $p :" -ForegroundColor DarkGray
-        Write-Host $profileDump -ForegroundColor DarkGray
-
-        $nixos = Get-WtNixosProfile -List $list
-        if (-not $nixos) {
-            Write-Host "    no NixOS profile matched in $p" -ForegroundColor DarkYellow
-            Write-Host "    refusing to touch profiles.defaults (would affect every distro)" -ForegroundColor DarkYellow
-            Write-Host "    fix: paste the profile dump above so the matcher can be tightened" -ForegroundColor DarkYellow
-            continue
-        }
-        foreach ($prof in $nixos) {
-            Set-WtFontFace -Profile $prof -Face $script:NERD_FONT_FACE
-            Write-Host "    patched profile name=$($prof.name) guid=$($prof.guid) -> font.face=$($script:NERD_FONT_FACE)" -ForegroundColor DarkGray
-        }
-
-        $backup = "$p.mandragora-bak"
-        if (-not (Test-Path $backup)) { Copy-Item $p $backup -Force }
-        ($j | ConvertTo-Json -Depth 64) | Set-Content -Path $p -Encoding UTF8
-    }
+    $frag = Get-TerminalFragmentPath
+    Get-NixosProfileFragmentJson | Set-Content -Path $frag -Encoding UTF8
+    Write-Host "    wrote terminal fragment -> $frag" -ForegroundColor DarkGray
+    Write-Host '    fragment adds a new "NixOS (Mandragora)" profile; other profiles untouched' -ForegroundColor DarkGray
+    Write-Host '    open Windows Terminal -> dropdown -> "NixOS (Mandragora)" (restart terminal first)' -ForegroundColor DarkGray
 }
 $IS_ADMIN = Test-Admin
 
