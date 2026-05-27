@@ -17,6 +17,7 @@
     file
     unzip
     tmux
+    claude-code
   ];
 
   programs.home-manager.enable = true;

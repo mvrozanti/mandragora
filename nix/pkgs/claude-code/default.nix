@@ -9,15 +9,28 @@
   socat,
 }:
 # claude-code 2.1.116+ ships as a native ELF binary via platform-specific
-# npm optional deps. We fetch the linux-x64 binary directly and bypass npm.
+# npm optional deps. We fetch the matching architecture binary directly and
+# bypass npm.
+let
+  archMap = {
+    "x86_64-linux" = {
+      npmArch = "linux-x64";
+      hash = "sha256-QEjJ4CRk35TubDNW02Dzcu+EMRLLndJUXJeP3BFT3b8=";
+    };
+    "aarch64-linux" = {
+      npmArch = "linux-arm64";
+      hash = "sha256-/Hqp8GQx8Hub8K4w0Fnx/AksksY61vRC44XxrJVwF5w=";
+    };
+  };
+  arch = archMap.${stdenv.hostPlatform.system} or (throw "claude-code: unsupported system ${stdenv.hostPlatform.system}");
+in
 stdenv.mkDerivation (finalAttrs: {
   pname = "claude-code";
   version = "2.1.116";
 
-  # The actual native binary package
   src = fetchzip {
-    url = "https://registry.npmjs.org/@anthropic-ai/claude-code-linux-x64/-/claude-code-linux-x64-${finalAttrs.version}.tgz";
-    hash = "sha256-QEjJ4CRk35TubDNW02Dzcu+EMRLLndJUXJeP3BFT3b8=";
+    url = "https://registry.npmjs.org/@anthropic-ai/claude-code-${arch.npmArch}/-/claude-code-${arch.npmArch}-${finalAttrs.version}.tgz";
+    hash = arch.hash;
   };
 
   nativeBuildInputs = [ autoPatchelfHook makeWrapper ];
@@ -54,6 +67,6 @@ stdenv.mkDerivation (finalAttrs: {
     license = lib.licenses.unfree;
     mainProgram = "claude";
     sourceProvenance = with lib.sourceTypes; [ binaryBytecode ];
-    platforms = [ "x86_64-linux" ];
+    platforms = [ "x86_64-linux" "aarch64-linux" ];
   };
 })
