@@ -42,20 +42,7 @@
   systemd.settings.Manager.DefaultTimeoutStopSec = "20s";
 
   environment.systemPackages = with pkgs; [
-    git
-    vim
-    wget
-    curl
-    htop
-    btop
-    tree
-    fastfetch
-    jq
-    sops
-    age
     gemini-cli
-    claude-code
-    rtk
     axon
     nodejs
     rofi
@@ -64,7 +51,6 @@
     slurp
     wf-recorder
     flameshot
-    jq
     playerctl
     brightnessctl
     pamixer
