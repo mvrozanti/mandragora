@@ -91,15 +91,6 @@
       exec /mnt/c/Windows/explorer.exe "$target"
     '';
   in [
-    git
-    glab
-    lazygit
-    python3Packages.docx2txt
-    wget
-    curl
-    fastfetch
-    rtk
-    claude-code
     xdgOpenShim
     (copyShim "wl-copy")
     (pasteShim "wl-paste")
