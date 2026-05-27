@@ -39,7 +39,7 @@ export PATH="$PATH:$HOME/.local/bin"
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 export PATH="$HOME/.npm-global/bin:$PATH"
 
-run_lf() { lf; zle send-break }
+run_yazi() { y; zle send-break }
 run_nvim() { echo; nvim; zle reset-prompt }
 run_nvim_fast() { echo; nvim; zle reset-prompt }
 run_khal() { echo; khal interactive < $TTY; zle reset-prompt }
@@ -67,7 +67,7 @@ zoxide_insert_path() {
   fi
 }
 
-zle -N run_lf
+zle -N run_yazi
 zle -N run_nvim
 zle -N run_nvim_fast
 zle -N run_khal
@@ -78,7 +78,7 @@ zle -N run_gemini
 zle -N zoxide_cd_interactive
 zle -N zoxide_insert_path
 
-bindkey '^[r' run_lf
+bindkey '^[r' run_yazi
 bindkey '^[v' run_nvim
 bindkey '^[V' run_nvim_fast
 bindkey '^[K' run_khal

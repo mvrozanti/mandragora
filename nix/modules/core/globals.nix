@@ -73,7 +73,6 @@
     crosspipe
     cliphist
     nemo
-    lf
     scrcpy
     polkit_gnome
     zoxide
