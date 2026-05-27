@@ -26,7 +26,7 @@ in {
         GOURCE_LISTEN_PORT = toString port;
         GOURCE_REPO_PATH = "/etc/nixos/mandragora";
         GOURCE_CACHE_DIR = "/var/lib/gource-renderer/cache";
-        PATH = runtimePath;
+        PATH = lib.mkForce runtimePath;
         LOG_LEVEL = "info";
       };
       serviceConfig = {
