@@ -5,7 +5,7 @@ let
     (builtins.readFile ../../snippets/recent-files-scrub.sh);
 in
 {
-  home.packages = [ scrubber pkgs.python3 ];
+  home.packages = [ scrubber ];
 
   systemd.user.services.recent-files-filter = {
     Unit = {
@@ -13,6 +13,7 @@ in
     };
     Service = {
       Type = "oneshot";
+      Environment = "PATH=${lib.makeBinPath [ pkgs.python3 pkgs.coreutils pkgs.bash ]}";
       ExecStart = "${scrubber}/bin/recent-files-scrub";
     };
   };
