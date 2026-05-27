@@ -2,7 +2,7 @@
 
 let
   # zX directory shortcuts: edit ./zx-dirs.nix — it's the single source
-  # of truth shared with modules/user/lf.nix. Do not add z<letter> aliases here.
+  # of truth shared with modules/user/yazi.nix. Do not add z<letter> aliases here.
   zxDirs = import ./zx-dirs.nix;
   normalize = v: if builtins.isString v then { path = v; zshPrefix = "z"; } else { zshPrefix = "z"; } // v;
   zxAliases = lib.mapAttrs' (k: v:
