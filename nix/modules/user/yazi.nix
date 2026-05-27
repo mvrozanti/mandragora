@@ -22,7 +22,7 @@ in
     settings = {
       mgr = {
         ratio = [ 1 2 3 ];
-        sort_by = "btime";
+        sort_by = "mtime";
         sort_sensitive = false;
         sort_reverse = true;
         sort_dir_first = true;
@@ -30,6 +30,9 @@ in
         show_hidden = false;
         show_symlink = true;
         scrolloff = 8;
+        find_sensitive = false;
+        mouse_events = [ "click" "scroll" "touch" "move" ];
+        time_format = "%Y %b %_d %H:%M:%S";
       };
       preview = {
         image_filter = "triangle";
@@ -96,8 +99,10 @@ in
         { on = "<C-n>"; run = ''shell "basename %s | tr -d '\n' | wl-copy"''; desc = "Yank name"; }
         { on = "B"; run = ''shell "ic %s" --block''; desc = "Yank bytes"; }
         { on = ";"; run = "hidden toggle"; desc = "Toggle hidden"; }
+        { on = "|"; run = "filter"; desc = "Filter"; }
+        { on = "z"; run = "cd --interactive"; desc = "Zoxide jump"; }
         { on = "D"; run = ''shell "trash-put -- %s"''; desc = "Trash"; }
-        { on = [ "o" "z" ]; run = "sort none"; desc = "Sort random"; }
+        { on = [ "o" "z" ]; run = "sort random"; desc = "Sort random"; }
         { on = [ "o" "s" ]; run = "sort size --reverse"; desc = "Sort size desc"; }
         { on = [ "o" "S" ]; run = "sort size"; desc = "Sort size asc"; }
         { on = [ "o" "m" ]; run = "sort mtime --reverse"; desc = "Sort mtime desc"; }
