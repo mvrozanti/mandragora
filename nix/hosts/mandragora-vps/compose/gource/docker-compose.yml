@@ -1,0 +1,40 @@
+services:
+
+  gource-api:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: ${GOURCE_IMAGE:-mandragora/gource-api:local}
+    container_name: gource-api
+    restart: unless-stopped
+    environment:
+      - DESKTOP_RENDERER_URL=${DESKTOP_RENDERER_URL:-http://100.115.80.79:9991}
+      - DESKTOP_RENDERER_TIMEOUT_S=${DESKTOP_RENDERER_TIMEOUT_S:-2}
+      - DESKTOP_RENDERER_RENDER_TIMEOUT_S=${DESKTOP_RENDERER_RENDER_TIMEOUT_S:-600}
+      - REPO_URL=${REPO_URL:-https://github.com/mvrozanti/mandragora.git}
+      - CACHE_DIR=/cache
+      - REPO_DIR=/repo/mandragora.git
+      - RATE_LIMIT_PER_HOUR=${RATE_LIMIT_PER_HOUR:-10}
+      - LOCAL_MAX_LENGTH_S=${LOCAL_MAX_LENGTH_S:-120}
+      - LOCAL_MAX_WIDTH=${LOCAL_MAX_WIDTH:-1280}
+      - LOCAL_MAX_HEIGHT=${LOCAL_MAX_HEIGHT:-1280}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - ./cache:/cache
+      - ./repo:/repo
+    networks:
+      - seafile-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true

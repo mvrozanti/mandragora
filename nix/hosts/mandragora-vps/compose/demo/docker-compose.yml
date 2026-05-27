@@ -11,7 +11,10 @@ services:
     labels:
       caddy_0: https://demo.${MVR_AC:-mvr.ac}
       caddy_0.encode: zstd gzip
-      caddy_0.reverse_proxy: "{{upstreams 80}}"
+      caddy_0.0_@gource_api: "path /api/gource/*"
+      caddy_0.1_handle: "@gource_api"
+      caddy_0.1_handle.reverse_proxy: "gource-api:8080"
+      caddy_0.2_handle.reverse_proxy: "{{upstreams 80}}"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost/"]
       interval: 30s
