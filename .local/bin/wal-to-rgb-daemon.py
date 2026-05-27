@@ -11,7 +11,7 @@ COLORS_PATH = Path.home() / ".cache/matugen/colors.json"
 RAM_PALETTE_INDICES = [2, 6, 5, 1]
 RAM_LEDS_PER_STOP = 2
 CONNECT_BACKOFF_SECONDS = 3
-ERROR_THRESHOLD = 5
+RECONNECT_AFTER_SECONDS = 10.0
 
 def from_hex(h):
     r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
@@ -85,7 +85,7 @@ def main():
     phase = 0.0
     frame_dt = 1.0 / FPS
     phase_step = STOPS_PER_SECOND / FPS
-    consecutive_errors = 0
+    last_success = time.monotonic()
 
     while True:
         frame_start = time.monotonic()
@@ -103,17 +103,16 @@ def main():
                     for zone in d.zones:
                         zone.set_colors(animated_colors(palette, len(zone.leds), phase))
                     d.show()
-                consecutive_errors = 0
+                last_success = frame_start
             except Exception:
-                consecutive_errors += 1
-                if consecutive_errors >= ERROR_THRESHOLD:
+                if frame_start - last_success >= RECONNECT_AFTER_SECONDS:
                     try:
                         client.disconnect()
                     except Exception:
                         pass
                     client = connect()
                     ram_devices = find_ram_devices(client)
-                    consecutive_errors = 0
+                    last_success = time.monotonic()
 
         phase = (phase + phase_step) % len(palette) if palette else 0.0
 
