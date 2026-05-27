@@ -8,7 +8,7 @@ from typing import Optional
 log = logging.getLogger("gource.local")
 
 REPO_URL = os.environ.get("REPO_URL", "https://github.com/mvrozanti/mandragora.git")
-REPO_DIR = Path(os.environ.get("REPO_DIR", "/repo/mandragora.git"))
+REPO_DIR = Path(os.environ.get("REPO_DIR", "/repo/mandragora"))
 
 
 async def _run(cmd: list[str], cwd: Optional[Path] = None, timeout: float = 600) -> tuple[int, str, str]:
@@ -30,9 +30,9 @@ async def _run(cmd: list[str], cwd: Optional[Path] = None, timeout: float = 600)
 
 async def ensure_repo() -> Path:
     REPO_DIR.parent.mkdir(parents=True, exist_ok=True)
-    if not (REPO_DIR / "HEAD").exists():
-        log.info("cloning %s into %s (bare)", REPO_URL, REPO_DIR)
-        rc, _, e = await _run(["git", "clone", "--bare", REPO_URL, str(REPO_DIR)], timeout=900)
+    if not (REPO_DIR / ".git").exists():
+        log.info("cloning %s into %s", REPO_URL, REPO_DIR)
+        rc, _, e = await _run(["git", "clone", REPO_URL, str(REPO_DIR)], timeout=900)
         if rc != 0:
             raise RuntimeError(f"git clone failed: {e.strip()}")
     else:
