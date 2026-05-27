@@ -30,6 +30,12 @@ ARG PIPER_VOICES_BASE=https://huggingface.co/rhasspy/piper-voices/resolve/main
 RUN mkdir -p /models && cd /models && \
     for v in \
       "en/en_US/lessac/medium/en_US-lessac-medium" \
+      "en/en_US/amy/medium/en_US-amy-medium" \
+      "en/en_US/ryan/medium/en_US-ryan-medium" \
+      "en/en_US/joe/medium/en_US-joe-medium" \
+      "en/en_US/kathleen/low/en_US-kathleen-low" \
+      "en/en_GB/alan/medium/en_GB-alan-medium" \
+      "en/en_GB/jenny_dioco/medium/en_GB-jenny_dioco-medium" \
       "pt/pt_BR/faber/medium/pt_BR-faber-medium" \
     ; do \
       name=$(basename "$v"); \
