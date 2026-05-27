@@ -34,6 +34,9 @@ in {
         LIBGL_DRIVERS_PATH = "${pkgs.mesa}/lib/dri";
         LIBGL_ALWAYS_SOFTWARE = "1";
         GALLIUM_DRIVER = "llvmpipe";
+        HOME = "/tmp";
+        XDG_CACHE_HOME = "/tmp/cache";
+        MESA_SHADER_CACHE_DIR = "/tmp/mesa-cache";
         LOG_LEVEL = "info";
       };
       serviceConfig = {
