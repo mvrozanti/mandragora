@@ -136,20 +136,15 @@ async def render(
         str(out_path),
     ]
 
-    log.info("pipeline: %s | %s", " ".join(gource_cmd), " ".join(ffmpeg_cmd))
-    gp = await asyncio.create_subprocess_exec(
-        *gource_cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    fp = await asyncio.create_subprocess_exec(
-        *ffmpeg_cmd,
-        stdin=gp.stdout,
+    shell_cmd = " ".join(shlex.quote(a) for a in gource_cmd) + \
+                " | " + " ".join(shlex.quote(a) for a in ffmpeg_cmd)
+    log.info("pipeline: %s", shell_cmd)
+
+    proc = await asyncio.create_subprocess_shell(
+        shell_cmd,
         stdout=asyncio.subprocess.DEVNULL,
         stderr=asyncio.subprocess.PIPE,
     )
-    if gp.stdout is not None:
-        gp.stdout.close()
 
     deadline = max(60, length_s * 6 + 60)
     cancelled = False
@@ -157,36 +152,31 @@ async def render(
     async def _watchdog():
         nonlocal cancelled
         waited = 0
-        while fp.returncode is None and waited < deadline:
+        while proc.returncode is None and waited < deadline:
             await asyncio.sleep(2)
             waited += 2
             if progress_cb:
                 pct = 0.15 + min(0.78, 0.78 * waited / max(1, length_s * 2))
                 await progress_cb(pct, f"encoding ({waited}s elapsed)")
-        if fp.returncode is None:
+        if proc.returncode is None:
             log.error("watchdog killing render pipeline at %ds", waited)
             cancelled = True
-            for p in (gp, fp):
-                try:
-                    p.kill()
-                except ProcessLookupError:
-                    pass
+            try:
+                proc.kill()
+            except ProcessLookupError:
+                pass
 
     watchdog = asyncio.create_task(_watchdog())
     try:
-        f_stderr = await fp.stderr.read() if fp.stderr else b""
-        f_rc = await fp.wait()
-        g_rc = await gp.wait()
-        g_stderr = await gp.stderr.read() if gp.stderr else b""
+        stderr_data = await proc.stderr.read() if proc.stderr else b""
+        rc = await proc.wait()
     finally:
         watchdog.cancel()
 
     if cancelled:
         raise RuntimeError(f"render watchdog killed pipeline after {deadline}s")
-    if f_rc != 0:
-        raise RuntimeError(f"ffmpeg exited {f_rc}: {f_stderr.decode('utf-8', 'replace').strip()[-400:]}")
-    if g_rc not in (0, -15):
-        log.warning("gource exited %s: %s", g_rc, g_stderr.decode('utf-8', 'replace').strip()[-200:])
+    if rc != 0:
+        raise RuntimeError(f"pipeline exited {rc}: {stderr_data.decode('utf-8', 'replace').strip()[-400:]}")
     if not out_path.exists() or out_path.stat().st_size < 1024:
         raise RuntimeError("output mp4 missing or too small")
     if progress_cb:
