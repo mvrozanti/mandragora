@@ -43,8 +43,6 @@
     forge-cli
     chafa
     asciinema
-
-    (writeShellScriptBin "lf-ueberzug" (builtins.readFile ../../../.local/bin/lf-ueberzug.sh))
   ];
 
   programs.direnv = {

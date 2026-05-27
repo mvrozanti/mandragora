@@ -121,7 +121,6 @@
     programs.zsh.shellAliases = {
       nrs = lib.mkForce "sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora-wsl --impure";
     };
-    programs.lf.package = lib.mkForce pkgs.lf;
   };
 
   system.stateVersion = "24.05";

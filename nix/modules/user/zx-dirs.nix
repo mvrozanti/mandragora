@@ -1,8 +1,8 @@
 #Single source of truth for zX directory shortcuts.
-#Consumed by modules/user/zsh.nix (shellAliases) and modules/user/lf.nix (keybindings).
+#Consumed by modules/user/zsh.nix (shellAliases) and modules/user/yazi.nix (keymap).
 #Format: <letter> = <path>;  OR  <letter> = { path = ...; lfPrefix = "g"; zshPrefix = "z"; };
-#Default prefix: "g" in lf, "z" in zsh. Override per-key when a key collides
-#(e.g. lf's `/` is native search, so `"/"` uses lfPrefix = "g" — same as default).
+#Default prefix: "g" in yazi, "z" in zsh. The lfPrefix field is a legacy name
+#from the pre-yazi era and stays as a field key for backward compatibility.
 {
   h = "~";
   s = "/mnt/sandisk";
