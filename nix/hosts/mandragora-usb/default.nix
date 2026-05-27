@@ -46,14 +46,7 @@ in
   programs.nix-ld.enable = true;
 
   environment.systemPackages = (with pkgs; [
-    git
-    sops
-    age
-    openssh
     networkmanager
-    htop
-    curl
-    wget
     pciutils
     usbutils
     parted
