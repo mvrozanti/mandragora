@@ -26,6 +26,7 @@ in
     ./skills.nix
     ./axon.nix
     ./nb-vault-sync.nix
+    ./path-filter.nix
   ];
 
     services.udiskie = {
@@ -330,7 +331,6 @@ in
     QT_QPA_PLATFORM = "wayland;xcb";
     QT_QPA_PLATFORMTHEME = lib.mkForce "gnome";
     WALLPAPER_DIR = "${config.home.homeDirectory}/Pictures/wllpps";
-    _ZO_EXCLUDE_DIRS = "/mnt/toshiba/sss:/mnt/toshiba/sss/*";
   };
 
   home.sessionPath = [
