@@ -153,6 +153,13 @@ in
       mgr = {
         border_symbol = "";
         border_style = { fg = "reset"; };
+        marker_copied = { fg = "green"; };
+        marker_cut = { fg = "red"; };
+        marker_marked = { fg = "cyan"; };
+        marker_selected = { fg = "yellow"; };
+        count_copied = { fg = "green"; };
+        count_cut = { fg = "red"; };
+        count_selected = { fg = "yellow"; };
       };
       status = {
         sep_left = { open = ""; close = ""; };
