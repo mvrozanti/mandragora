@@ -118,7 +118,6 @@ async def render(
         "--multi-sampling",
         "--bloom-multiplier", "0.7",
         "--bloom-intensity", "0.4",
-        "--user-image-dir", "/dev/null",
     ]
 
     ffmpeg_cmd = [
