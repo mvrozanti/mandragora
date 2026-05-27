@@ -105,6 +105,11 @@ in
 
     keymap = {
       mgr.prepend_keymap = jumpKeymap ++ [
+        { on = "d"; run = "escape"; desc = "Neutralized (lf had no d)"; }
+        { on = "p"; run = "escape"; desc = "Neutralized — use pB/pb chords"; }
+        { on = "x"; run = "escape"; desc = "Neutralized (lf had no x)"; }
+        { on = "y"; run = "escape"; desc = "Neutralized (lf had no y)"; }
+        { on = "r"; run = "escape"; desc = "Neutralized — use a/cw/A"; }
         { on = "a"; run = "rename --cursor=before_ext"; desc = "Rename"; }
         { on = [ "c" "w" ]; run = "rename --cursor=before_ext"; desc = "Rename"; }
         { on = "A"; run = "rename --cursor=end"; desc = "Rename (end)"; }
