@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>fake-obsidian — interactive graph of the mandragora knowledge vault</title>
+<meta name="description" content="A force-directed graph viewer for an Obsidian-style markdown vault. Browse the mandragora NixOS workstation's knowledge vault — programs, modules, services, decisions, principles, and operational history. Click any node to read its markdown content in a side panel.">
+<meta name="author" content="mvrozanti">
+<meta name="theme-color" content="#050805">
+<meta property="og:title" content="fake-obsidian — vault graph">
+<meta property="og:description" content="Interactive force-directed graph of the mandragora knowledge vault, with wikilink connections between programs, services, decisions, and incidents.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://demo.mvr.ac/">
+<meta property="og:site_name" content="mvr.ac">
+<meta name="twitter:card" content="summary">
+<link rel="canonical" href="https://demo.mvr.ac/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="vendor/vault-graph/vault-graph.css?v=c732071a">
+<link rel="stylesheet" href="tabs.css?v=1">
+</head>
+<body class="with-tabs">
+<nav class="tabs" aria-label="demo views">
+  <a href="/" aria-current="page">graph</a>
+  <a href="/gource.html">gource</a>
+  <span class="spacer"></span>
+  <span class="brand">demo.mvr.ac</span>
+</nav>
+<details id="about">
+  <summary>About this project</summary>
+  <div class="content">
+    <p>
+      <strong>fake-obsidian</strong> is a lightweight, read-only viewer
+      for Obsidian-style markdown vaults. It renders a force-directed
+      graph of every note and the wikilinks between them, lets you
+      click any node to read its full content in a side panel, and
+      follows links between notes without leaving the page.
+    </p>
+
+    <h3>What the vault documents</h3>
+    <p>
+      The mandragora knowledge vault is the long-form prose layer of
+      a NixOS workstation configuration. It records what every piece
+      of software does, why a module was chosen over alternatives,
+      how incidents were diagnosed, and the principles that ground
+      the system's design.
+    </p>
+    <ul>
+      <li><b>programs</b> — every binary the system has touched</li>
+      <li><b>modules</b> — the Nix module taxonomy</li>
+      <li><b>services</b> — third-party services depended on</li>
+      <li><b>hosts</b> — desktop, WSL, USB rescue, Oracle VPS</li>
+      <li><b>incidents</b> — post-mortems and their fixes</li>
+      <li><b>decisions</b> — architectural calls and the reasoning</li>
+      <li><b>features</b> — cross-cutting capabilities</li>
+      <li><b>agents</b> — Claude, Gemini, local LLM notes</li>
+      <li><b>principles</b> — non-negotiable invariants</li>
+      <li><b>eras</b> — the seven-year story timeline</li>
+      <li><b>concepts</b> — the connective tissue</li>
+      <li><b>MOCs</b> — maps-of-content for navigation</li>
+    </ul>
+
+    <h3>How the viewer works</h3>
+    <p>
+      At load, the page fetches a precomputed graph
+      (<code>graph.json</code>), runs d3-force to lay out the nodes
+      and edges on an HTML5 canvas, then animates the result.
+      Clicking any node fetches its markdown source and renders it
+      with <a href="https://marked.js.org" rel="noopener">marked.js</a>
+      in the side panel (a side sheet on desktop, a bottom sheet on
+      mobile). Wikilinks inside the panel are rewritten into clickable
+      anchors that pan the graph and load the target.
+    </p>
+
+    <h3>Interaction</h3>
+    <p>
+      Click and drag any node to push it around — the surrounding
+      graph squishes and rebounds as collision and link forces reach
+      for equilibrium. Mouse wheel zooms; middle-click drags to pan;
+      hovering the legend rows highlights every node in that
+      category; tapping a row pins it. Typing in the search box dims
+      everything except matches. Click empty space to close an open
+      note panel.
+    </p>
+
+    <h3>Hosting</h3>
+    <p>
+      Deployed at <a href="https://demo.mvr.ac">demo.mvr.ac</a>,
+      served from an Oracle Cloud Free Tier VPS via a docker-compose
+      nginx container behind Caddy's docker-proxy TLS terminator. No
+      backend, no analytics, no tracking — all interaction happens
+      in your browser.
+    </p>
+
+    <h3>Source</h3>
+    <p>
+      Engine lives in the
+      <a href="https://github.com/mvrozanti" rel="noopener">mvrozanti</a>
+      <code>vault-graph</code> repo; this site is a thin static
+      consumer (<code>fake-obsidian</code>). See
+      <a href="https://mvr.ac">mvr.ac</a> for the rest of the public
+      surface.
+    </p>
+  </div>
+</details>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "fake-obsidian — mandragora vault graph",
+  "url": "https://demo.mvr.ac/",
+  "description": "Interactive force-directed graph viewer for an Obsidian-style markdown knowledge vault documenting the mandragora NixOS workstation.",
+  "author": {
+    "@type": "Person",
+    "name": "mvrozanti",
+    "url": "https://mvr.ac"
+  },
+  "inLanguage": "en"
+}
+</script>
+<noscript>
+  <section style="position:fixed; inset:0; padding:40px; background:#050805; color:#b8ffc4; font-family:monospace; overflow:auto;">
+    <h1 style="color:#00ff66">fake-obsidian</h1>
+    <p>This page is an interactive force-directed graph viewer for an Obsidian-style markdown knowledge vault. The visualization requires JavaScript to render.</p>
+    <p>The underlying notes document the <strong>mandragora</strong> NixOS workstation — its programs, modules, services, decisions, principles, incidents, and the eras of its evolution. Each node in the graph represents one markdown note; each edge represents a <code>[[wikilink]]</code> reference between two notes.</p>
+    <h2>How it works (when JS is on)</h2>
+    <ul>
+      <li>The viewer fetches a precomputed graph (<code>graph.json</code>) and runs a d3-force layout to position nodes.</li>
+      <li>Click any node to open its markdown content in a side panel — rendered live with proper headings, lists, code blocks, and clickable wikilinks.</li>
+      <li>Pan, zoom, and search across all note titles. Tap a category in the legend to pin it.</li>
+    </ul>
+    <p>Source and details: <a href="https://mvr.ac" style="color:#00ff66">mvr.ac</a>. Static demo deployed at demo.mvr.ac via Caddy + nginx on an Oracle VPS.</p>
+  </section>
+</noscript>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="vendor/vault-graph/vault-graph.js?v=c732071a"></script>
+<script>
+VaultGraph.create({
+  brand: {
+    title: "fake-obsidian",
+    blurbHTML:
+      'Interactive force-directed graph of the ' +
+      '<a href="https://github.com/mvrozanti" rel="noopener">mandragora</a> ' +
+      'knowledge vault — markdown notes documenting a NixOS workstation: ' +
+      'programs, modules, services, decisions, and the wikilinks between ' +
+      'them. Click a node to read its content. Drag to rearrange. ' +
+      'Middle-click to pan. Tap a category to pin it.',
+    footerHTML: 'fake-obsidian · <a href="https://mvr.ac" rel="noopener">mvr.ac</a>',
+  },
+  layoutCacheKey: "fake-obsidian-layout-v1",
+  fetchGraph: () => fetch("graph.json").then(r => r.json()),
+  fetchNote:  (path) => fetch("vault/" + path.split("/").map(encodeURIComponent).join("/")).then(r => {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.text();
+  }),
+});
+</script>
+</body>
+</html>

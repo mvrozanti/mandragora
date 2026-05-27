@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>gource — mandragora repo visualization</title>
+<meta name="description" content="On-demand gource render of the mandragora NixOS repo. Pick a commit-date window, a video length, and a resolution; the render runs on the desktop workstation (or falls back to the VPS) and the MP4 plays inline.">
+<meta name="theme-color" content="#050805">
+<meta property="og:title" content="gource — mandragora repo visualization">
+<meta property="og:description" content="On-demand gource render of the mandragora NixOS workstation repo.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://demo.mvr.ac/gource.html">
+<meta property="og:site_name" content="mvr.ac">
+<link rel="canonical" href="https://demo.mvr.ac/gource.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="tabs.css?v=1">
+<style>
+  :root {
+    --bg: #050805;
+    --panel: #0a0e0a;
+    --fg: #b8ffc4;
+    --muted: #4a6a4e;
+    --accent: #00ff66;
+    --line: #1a2418;
+    --warn: #ffb84a;
+    --err: #ff5050;
+  }
+  html, body {
+    margin: 0; min-height: 100%;
+    background: var(--bg); color: var(--fg);
+    font-family: "Iosevka", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  }
+  body { padding-top: calc(var(--tabs-height) + 12px); }
+  main {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 8px 16px 40px;
+    box-sizing: border-box;
+  }
+  h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 4px 0 4px;
+    color: var(--fg);
+    letter-spacing: 0.02em;
+  }
+  .blurb { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 0 0 18px; }
+  .blurb a { color: var(--accent); text-decoration: none; }
+  .blurb a:hover { text-decoration: underline; }
+  form#render-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .row { display: flex; flex-direction: column; gap: 6px; }
+  .row.split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  input, select {
+    width: 100%; box-sizing: border-box;
+    min-height: 44px;
+    padding: 0 12px;
+    background: rgba(255,255,255,0.04);
+    color: var(--fg);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7) sepia(1) saturate(5) hue-rotate(80deg); }
+  .hint { font-size: 11px; color: var(--muted); }
+  button[type="submit"] {
+    min-height: 48px;
+    padding: 0 20px;
+    background: rgba(0, 255, 102, 0.10);
+    color: var(--accent);
+    border: 1px solid rgba(0, 255, 102, 0.40);
+    border-radius: 8px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 120ms ease;
+  }
+  button[type="submit"]:hover:not([disabled]) { background: rgba(0, 255, 102, 0.18); }
+  button[type="submit"][disabled] { opacity: 0.5; cursor: progress; }
+  #status {
+    margin: 18px 0 0;
+    padding: 12px 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 22px;
+    color: var(--muted);
+    display: none;
+  }
+  #status.visible { display: block; }
+  #status .state { color: var(--fg); font-weight: 600; }
+  #status .state.failed { color: var(--err); }
+  #status .state.done { color: var(--accent); }
+  #status .meta { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); }
+  progress {
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    margin-top: 8px;
+    border: none;
+    background: var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  progress::-webkit-progress-bar { background: var(--line); }
+  progress::-webkit-progress-value { background: var(--accent); transition: width 200ms ease; }
+  progress::-moz-progress-bar { background: var(--accent); }
+  #video-wrap {
+    margin: 18px 0 0;
+    display: none;
+  }
+  #video-wrap.visible { display: block; }
+  video {
+    width: 100%;
+    border-radius: 10px;
+    background: #000;
+    display: block;
+  }
+  .video-meta {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .video-meta a { color: var(--accent); text-decoration: none; }
+  .video-meta a:hover { text-decoration: underline; }
+  details.about {
+    margin-top: 24px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0 14px;
+    font-size: 12px;
+  }
+  details.about summary {
+    padding: 12px 0;
+    color: var(--muted);
+    cursor: pointer;
+    list-style: none;
+  }
+  details.about summary::-webkit-details-marker { display: none; }
+  details.about[open] summary { color: var(--fg); }
+  details.about .content { padding: 0 0 14px; color: var(--muted); line-height: 1.55; }
+  details.about a { color: var(--accent); text-decoration: none; }
+  details.about code { color: var(--fg); background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body class="with-tabs">
+<nav class="tabs" aria-label="demo views">
+  <a href="/">graph</a>
+  <a href="/gource.html" aria-current="page">gource</a>
+  <span class="spacer"></span>
+  <span class="brand">demo.mvr.ac</span>
+</nav>
+<main>
+  <h1>gource — mandragora repo</h1>
+  <p class="blurb">
+    Renders <a href="https://gource.io" rel="noopener">gource</a> over the
+    <a href="https://github.com/mvrozanti/mandragora" rel="noopener">mandragora</a>
+    git history into an MP4 you can play inline. Picks the
+    desktop workstation when reachable, falls back to a smaller render on
+    the VPS otherwise. Identical params are cached.
+  </p>
+  <form id="render-form" novalidate>
+    <div class="row split">
+      <div class="row">
+        <label for="date_min">date from</label>
+        <input type="date" id="date_min" name="date_min">
+        <span class="hint">leave empty for full history</span>
+      </div>
+      <div class="row">
+        <label for="date_max">date to</label>
+        <input type="date" id="date_max" name="date_max">
+        <span class="hint">leave empty for latest</span>
+      </div>
+    </div>
+    <div class="row split">
+      <div class="row">
+        <label for="length_s">length (seconds)</label>
+        <input type="number" id="length_s" name="length_s" min="10" max="300" step="5" value="60">
+      </div>
+      <div class="row">
+        <label for="resolution">resolution</label>
+        <select id="resolution" name="resolution">
+          <option value="720x720">720 × 720</option>
+          <option value="1024x1024" selected>1024 × 1024</option>
+          <option value="1280x720">1280 × 720</option>
+          <option value="1920x1080">1920 × 1080 (desktop only)</option>
+        </select>
+      </div>
+    </div>
+    <button type="submit" id="submit-btn">render</button>
+  </form>
+  <div id="status" aria-live="polite"></div>
+  <div id="video-wrap">
+    <video id="video" controls playsinline></video>
+    <div class="video-meta">
+      <a id="download-link" href="#" download>download mp4</a>
+      <span id="video-meta-text"></span>
+    </div>
+  </div>
+  <details class="about">
+    <summary>about</summary>
+    <div class="content">
+      <p>
+        Each render is identified by a hash of (repo HEAD at <code>date_to</code>,
+        date window, length, resolution). The MP4 is cached forever under that
+        hash; the same params return the same file instantly. The default-params
+        video is pre-rendered nightly on the desktop, so a fresh page-load is
+        already warm.
+      </p>
+      <p>
+        When the desktop is reachable over tailscale it does the work
+        (RTX 5070 Ti, ffmpeg with NVENC). When it's offline, the VPS
+        renders locally under hard caps: ≤120s length, ≤1280px on either side.
+      </p>
+      <p>
+        Source: <a href="https://github.com/mvrozanti/mandragora" rel="noopener">mvrozanti/mandragora</a>
+        — compose stack at <code>nix/hosts/mandragora-vps/compose/gource</code>,
+        desktop renderer at <code>nix/modules/system/services/gource-renderer.nix</code>.
+      </p>
+    </div>
+  </details>
+</main>
+<script src="gource.js?v=1"></script>
+</body>
+</html>
