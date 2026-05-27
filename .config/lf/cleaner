@@ -4,8 +4,5 @@ prev="$1"
 next="$6"
 if [ -n "$next" ] && [ "$prev" != "$next" ]; then
   rm -f "/tmp/lf-preview-$PPID.drawn"
-  if [ -n "$KITTY_WINDOW_ID" ] && command -v kitty >/dev/null 2>&1; then
-    kitty +kitten icat --clear --silent --transfer-mode memory </dev/null >/dev/tty 2>/dev/null
-  fi
 fi
 exit 0
