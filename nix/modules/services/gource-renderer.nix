@@ -9,8 +9,10 @@ let
     pkgs.gource
     pkgs.ffmpeg-full
     pkgs.xvfb-run
+    pkgs.xorg.xauth
     pkgs.git
     pkgs.coreutils
+    pkgs.bash
   ];
 in {
   mandragora.hub.services.gource-renderer = {

@@ -12,6 +12,7 @@ RUN apt-get update \
       gource \
       ffmpeg \
       xvfb \
+      xauth \
       ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
