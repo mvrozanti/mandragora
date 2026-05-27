@@ -8,7 +8,7 @@
   imports = [
     ../user/zsh.nix
     ../user/tmux.nix
-    ../user/lf.nix
+    ../user/yazi.nix
   ];
 
   home.packages = with pkgs; [

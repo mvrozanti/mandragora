@@ -15,7 +15,7 @@ in
     ../shared/home-cli.nix
     ./zsh.nix
     ./tmux.nix
-    ./lf.nix
+    ./yazi.nix
     ./services.nix
     ./bots.nix
     ./waybar.nix
