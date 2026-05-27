@@ -156,14 +156,6 @@ P()   { curl -sF "file=@-" https://0x0.st }
 gr()  { git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
 gdc() { git diff HEAD HEAD~1 }
 
-lf() {
-  local pane_id last_dir
-  pane_id=$(tmux display-message -p '#{pane_id}' 2>/dev/null)
-  [ -n "$pane_id" ] && export LF_TMUX_PANE="$pane_id"
-  last_dir=$(lf-ueberzug -print-last-dir "$@")
-  unset LF_TMUX_PANE 2>/dev/null
-  [ -n "$last_dir" ] && builtin cd "$last_dir"
-}
 [ -f "$HOME/.local/bin/resty" ] && source "$HOME/.local/bin/resty" >/dev/null 2>&1
 
 eval "$(zoxide init zsh)"

@@ -1,8 +1,0 @@
-#!/bin/sh
-printf '[%s] cleaner args=%s\n' "$(date +%H:%M:%S.%N)" "$*" >> /tmp/lf-cleaner.log
-prev="$1"
-next="$6"
-if [ -n "$next" ] && [ "$prev" != "$next" ]; then
-  rm -f "/tmp/lf-preview-$PPID.drawn"
-fi
-exit 0
