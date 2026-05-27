@@ -120,7 +120,7 @@
     home.homeDirectory = "/home/m";
     home.stateVersion = "24.05";
     programs.zsh.shellAliases = {
-      nrs = lib.mkForce "sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora-wsl --impure";
+      nrs = lib.mkForce "git -C /etc/nixos/mandragora pull --rebase --autostash && sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora-wsl --impure";
     };
   };
 
