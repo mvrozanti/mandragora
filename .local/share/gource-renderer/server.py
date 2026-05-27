@@ -230,12 +230,18 @@ async def _render_to(p: RenderParams, out_path: Path) -> None:
     finally:
         watchdog.cancel()
 
+    stderr_text = stderr_data.decode("utf-8", "replace").strip()
+    if stderr_text:
+        log.info("pipeline stderr: %s", stderr_text[-2000:])
     if cancelled:
         raise HTTPException(504, f"render watchdog killed pipeline after {deadline}s")
     if rc != 0:
-        raise HTTPException(500, f"pipeline exited {rc}: {stderr_data.decode('utf-8', 'replace').strip()[-400:]}")
+        log.error("pipeline rc=%s stderr=%s", rc, stderr_text[-2000:])
+        raise HTTPException(500, f"pipeline exited {rc}: {stderr_text[-400:]}")
     if not out_path.exists() or out_path.stat().st_size < 1024:
-        raise HTTPException(500, "output mp4 missing or too small")
+        size = out_path.stat().st_size if out_path.exists() else 0
+        log.error("output mp4 missing or too small (size=%d) stderr=%s", size, stderr_text[-2000:])
+        raise HTTPException(500, f"output mp4 missing or too small (size={size})")
 
 
 @app.get("/healthz")
