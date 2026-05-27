@@ -54,8 +54,7 @@ in {
   };
 
   systemd.timers.gource-renderer-prewarm = {
-    description = "Nightly pre-warm of the default-params gource MP4.";
-    wantedBy = [ "timers.target" ];
+    description = "Nightly pre-warm of the default-params gource MP4 (manually enabled — desktop GLX backend broken, see compose/gource/README).";
     timerConfig = {
       OnCalendar = "*-*-* 04:00:00";
       Persistent = true;
