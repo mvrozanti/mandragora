@@ -143,7 +143,15 @@
         };
 
       homeConfigurations."m@mandragora-vps" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages."aarch64-linux";
+        pkgs = import nixpkgs {
+          system = "aarch64-linux";
+          config.allowUnfree = true;
+          overlays = [
+            (final: prev: {
+              claude-code = prev.callPackage ./nix/pkgs/claude-code/default.nix { };
+            })
+          ];
+        };
         modules = [ ./nix/hosts/mandragora-vps/home.nix ];
       };
     };
