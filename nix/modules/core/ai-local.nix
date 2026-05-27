@@ -77,7 +77,11 @@ in
       services.ollama = {
         enable = true;
         package = pkgs.ollama-cuda;
-        host = "100.115.80.79";
+        # Bind to all interfaces. The host firewall only opens 11434 on
+        # tailscale0 (rule below), so external access stays tailnet-only.
+        # Without 0.0.0.0 the localhost consumers (bot.py `_evict_ollama`,
+        # llm-via-telegram, crush) all get connection-refused.
+        host = "0.0.0.0";
         environmentVariables = {
           OLLAMA_CONTEXT_LENGTH = "16384";
           OLLAMA_MAX_LOADED_MODELS = "1";
@@ -95,7 +99,9 @@ in
         serviceConfig = {
           Restart = lib.mkForce "on-failure";
           RestartSec = "5s";
-          ExecStartPre = "${pkgs.bash}/bin/bash -c 'until ${pkgs.iproute2}/bin/ip -4 addr show tailscale0 | ${pkgs.gnugrep}/bin/grep -q \"inet ${config.services.ollama.host}\"; do sleep 1; done'";
+          # Still wait for the tailscale interface to come up before the
+          # daemon starts — the pre-pull units below dial the tailnet IP.
+          ExecStartPre = "${pkgs.bash}/bin/bash -c 'until ${pkgs.iproute2}/bin/ip -4 addr show tailscale0 | ${pkgs.gnugrep}/bin/grep -q \"inet 100.115.80.79\"; do sleep 1; done'";
         };
       };
 
