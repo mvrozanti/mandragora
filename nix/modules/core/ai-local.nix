@@ -99,9 +99,14 @@ in
         serviceConfig = {
           Restart = lib.mkForce "on-failure";
           RestartSec = "5s";
-          # Still wait for the tailscale interface to come up before the
-          # daemon starts — the pre-pull units below dial the tailnet IP.
-          ExecStartPre = "${pkgs.bash}/bin/bash -c 'until ${pkgs.iproute2}/bin/ip -4 addr show tailscale0 | ${pkgs.gnugrep}/bin/grep -q \"inet 100.115.80.79\"; do sleep 1; done'";
+          # No more ExecStartPre — the NixOS ollama unit's sandbox denies
+          # AF_NETLINK so `ip addr show tailscale0` errors with "Cannot
+          # open netlink socket: Address family not supported by
+          # protocol" and the unit hangs in activating(start-pre). With
+          # host=0.0.0.0 the daemon doesn't need the tailnet IP to be up
+          # before binding anyway; the pre-pull units further down
+          # retry-with-backoff against the tailnet IP, so a brief
+          # interface delay is harmless.
         };
       };
 
