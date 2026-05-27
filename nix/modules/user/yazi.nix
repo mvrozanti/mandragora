@@ -1,6 +1,10 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, osConfig ? null, ... }:
 
 let
+  profile = if osConfig != null && osConfig ? mandragora
+            then osConfig.mandragora.profile
+            else "desktop";
+  isWsl = profile == "wsl";
   zxDirs = import ./zx-dirs.nix;
   homeDir = config.home.homeDirectory;
   normalize = v: if builtins.isString v then { path = v; } else v;
@@ -93,6 +97,12 @@ in
         tab_size = 2;
         max_width = 1200;
         max_height = 1800;
+      };
+      plugin = lib.optionalAttrs isWsl {
+        prepend_previewers = [
+          { mime = "image/*"; run = "noop"; }
+          { mime = "video/*"; run = "noop"; }
+        ];
       };
       opener = {
         edit = [
