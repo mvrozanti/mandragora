@@ -19,6 +19,11 @@ in
     enableZshIntegration = true;
     shellWrapperName = "y";
 
+    plugins.no-status = {
+      package = pkgs.yaziPlugins.no-status;
+      setup = true;
+    };
+
     settings = {
       mgr = {
         ratio = [ 1 2 3 ];
