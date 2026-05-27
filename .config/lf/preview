@@ -1,4 +1,5 @@
 #!/bin/sh
+printf '\033\\\033_Ga=d\033\\' > /dev/tty 2>/dev/null
 printf '[%s] preview file=%s\n' "$(date +%H:%M:%S.%N)" "$1" >> /tmp/lf-cleaner.log
 pkill -P 1 -KILL -f 'kitten icat.*--place' 2>/dev/null || true
 
