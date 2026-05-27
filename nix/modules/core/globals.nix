@@ -54,6 +54,7 @@
     sops
     age
     gemini-cli
+    claude-code
     rtk
     axon
     nodejs

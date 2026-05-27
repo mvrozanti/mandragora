@@ -96,6 +96,7 @@
     curl
     fastfetch
     rtk
+    claude-code
     xdgOpenShim
     (copyShim "wl-copy")
     (pasteShim "wl-paste")
