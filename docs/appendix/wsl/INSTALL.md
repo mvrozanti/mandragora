@@ -139,7 +139,7 @@ wsl -d NixOS
 ```
 
 You land as user `m` in zsh with the mandragora prompt, full CLI
-config (zsh history + autosuggestions + p10k, tmux 3.6, lf, neovim
+config (zsh history + autosuggestions + p10k, tmux 3.6, yazi, neovim
 with all your plugins, git/gh/go, fzf/ripgrep/fd/bat/eza/zoxide,
 direnv), the mail/calendar stack (aerc/notmuch/mbsync/khal), the
 dev toolchain (cargo/rustc/cmake/make/kubectl/shellcheck/tokei),

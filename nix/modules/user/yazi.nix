@@ -10,6 +10,45 @@ let
         path = expandHome e.path;
     in { on = [ "g" k ]; run = "cd ${path}"; desc = "cd ${e.path}"; }
   ) zxDirs);
+
+  zjumpPlugin = pkgs.runCommand "zjump-yazi" {} ''
+    mkdir -p $out
+    cat > $out/main.lua <<'LUA'
+    local M = {}
+    function M:entry()
+      local child, err = Command("zoxide")
+        :arg("query"):arg("-i")
+        :stdin(Command.INHERIT)
+        :stdout(Command.PIPED)
+        :stderr(Command.INHERIT)
+        :spawn()
+      if not child then
+        ya.notify({ title = "zjump", content = "spawn failed: " .. tostring(err), level = "error", timeout = 5 })
+        return
+      end
+      local output = child:wait_with_output()
+      if not output or not output.status.success then return end
+      local target = output.stdout:gsub("[\r\n]+$", "")
+      if target ~= "" then ya.mgr_emit("cd", { target }) end
+    end
+    return M
+    LUA
+  '';
+
+  zoxideAddPlugin = pkgs.runCommand "zoxide-add-yazi" {} ''
+    mkdir -p $out
+    cat > $out/main.lua <<'LUA'
+    local M = {}
+    function M:setup()
+      ps.sub("cd", function()
+        local cwd = tostring(cx.active.current.cwd)
+        Command("zoxide"):arg("add"):arg(cwd)
+          :stdin(Command.NULL):stdout(Command.NULL):stderr(Command.NULL):spawn()
+      end)
+    end
+    return M
+    LUA
+  '';
 in
 {
   home.packages = with pkgs; [ yazi ];
@@ -21,6 +60,14 @@ in
 
     plugins.no-status = {
       package = pkgs.yaziPlugins.no-status;
+      setup = true;
+    };
+    plugins.zjump = {
+      package = zjumpPlugin;
+      setup = false;
+    };
+    plugins.zoxide-add = {
+      package = zoxideAddPlugin;
       setup = true;
     };
 
@@ -143,7 +190,10 @@ in
         { on = "B"; run = ''shell "ic %s" --block''; desc = "Yank bytes"; }
         { on = ";"; run = "hidden toggle"; desc = "Toggle hidden"; }
         { on = "|"; run = "filter"; desc = "Filter"; }
-        { on = "z"; run = "cd --interactive"; desc = "Zoxide jump"; }
+        { on = "z"; run = "plugin zjump"; desc = "Zoxide jump (fzf)"; }
+        { on = "<C-l>"; run = "refresh"; desc = "Reload"; }
+        { on = "<C-v>"; run = ''shell "wl-paste -t image/png > $(mktemp -p . --suffix=.png paste-XXXXXX)"''; desc = "Paste PNG from clipboard"; }
+        { on = "<C-V>"; run = ''shell "wl-paste -t image/jpeg > $(mktemp -p . --suffix=.jpg paste-XXXXXX)"''; desc = "Paste JPEG from clipboard"; }
         { on = "D"; run = ''shell "trash-put -- %s"''; desc = "Trash"; }
         { on = [ "o" "z" ]; run = "sort random"; desc = "Sort random"; }
         { on = [ "o" "s" ]; run = "sort size --reverse"; desc = "Sort size desc"; }

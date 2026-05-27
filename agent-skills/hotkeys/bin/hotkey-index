@@ -2,7 +2,7 @@
 """hotkey-index — emit a normalized TSV of every keybinding in the repo.
 
 Columns (tab-separated):
-  scope    program: hyprland|aerc|nvim|zsh|tmux|lf|mpv|waybar
+  scope    program: hyprland|aerc|nvim|zsh|tmux|yazi|mpv|waybar
   context  submap/section/mode: global|messages|gaps-all|copy-mode-vi|...
   mods     normalized modifiers, joined by '+': SUPER, CTRL, ALT, SHIFT
   key      the key itself (e.g. Q, j, F2, mouse:272, escape sequence)
@@ -252,41 +252,31 @@ def parse_tmux():
         emit("tmux", ctx, mods, key, action, f"{f}:{i}")
 
 
-def parse_lf():
-    f = REPO / "modules/user/lf.nix"
-    if not f.exists():
-        return
-    text = f.read_text()
-    lines = text.splitlines()
-    in_kb = False
-    depth = 0
-    for i, raw in enumerate(lines, 1):
-        if not in_kb:
-            if "keybindings" in raw and "{" in raw:
-                in_kb = True
-                depth = raw.count("{") - raw.count("}")
-            continue
-        depth += raw.count("{") - raw.count("}")
-        if depth <= 0:
-            in_kb = False
-            continue
-        s = raw.strip().rstrip(";")
-        if not s or s.startswith("#"):
-            continue
-        m = re.match(r'"?([^"=\s]+)"?\s*=\s*(.+?)\s*;?\s*$', s)
-        if not m:
-            continue
-        key_raw, action = m.groups()
-        action = action.strip()
-        if action.endswith(";"):
-            action = action[:-1].strip()
-        if action.startswith('"') and action.endswith('"'):
-            action = action[1:-1]
-        elif action.startswith("''") and action.endswith("''"):
-            action = action[2:-2]
-        key, mods = vim_key(key_raw)
-        emit("lf", "nav", mods, key, action, f"{f}:{i}")
-    zx = REPO / "modules/user/zx-dirs.nix"
+def parse_yazi():
+    f = REPO / "nix/modules/user/yazi.nix"
+    if f.exists():
+        text = f.read_text()
+        for i, raw in enumerate(text.splitlines(), 1):
+            single = re.search(
+                r'on\s*=\s*"([^"]+)"\s*;\s*run\s*=\s*(?:\'\'(.+?)\'\'|"([^"]+)")',
+                raw,
+            )
+            if single:
+                key_raw = single.group(1)
+                action = (single.group(2) or single.group(3) or "").strip()
+                key, mods = vim_key(key_raw)
+                emit("yazi", "nav", mods, key, action, f"{f}:{i}")
+                continue
+            chord = re.search(
+                r'on\s*=\s*\[\s*"([^"]+)"\s+"([^"]+)"\s*\]\s*;\s*run\s*=\s*(?:\'\'(.+?)\'\'|"([^"]+)")',
+                raw,
+            )
+            if chord:
+                key_raw = chord.group(1) + chord.group(2)
+                action = (chord.group(3) or chord.group(4) or "").strip()
+                key, mods = vim_key(key_raw)
+                emit("yazi", "nav", mods, key, action, f"{f}:{i}")
+    zx = REPO / "nix/modules/user/zx-dirs.nix"
     if zx.exists():
         for i, raw in enumerate(zx.read_text().splitlines(), 1):
             s = raw.strip()
@@ -298,7 +288,7 @@ def parse_lf():
                 continue
             path_match = re.search(r'"([^"]+)"', val)
             path = path_match.group(1) if path_match else val
-            emit("lf", "zx", set(), f"g{letter}", f"cd {path}", f"{zx}:{i}")
+            emit("yazi", "zx", set(), f"g{letter}", f"cd {path}", f"{zx}:{i}")
             emit("zsh", "alias", set(), f"z{letter}", f"cd {path}", f"{zx}:{i}")
 
 
@@ -348,7 +338,7 @@ def main():
     parse_nvim()
     parse_zsh()
     parse_tmux()
-    parse_lf()
+    parse_yazi()
     parse_mpv()
     parse_waybar()
 
