@@ -8,8 +8,9 @@ let
   runtimePath = lib.makeBinPath [
     pkgs.gource
     pkgs.ffmpeg-full
-    pkgs.xvfb-run
+    pkgs.xorg.xorgserver
     pkgs.xorg.xauth
+    pkgs.mesa
     pkgs.git
     pkgs.coreutils
     pkgs.bash
@@ -29,6 +30,10 @@ in {
         GOURCE_REPO_PATH = "/etc/nixos/mandragora";
         GOURCE_CACHE_DIR = "/var/lib/gource-renderer/cache";
         PATH = lib.mkForce runtimePath;
+        LD_LIBRARY_PATH = "${pkgs.mesa}/lib:${pkgs.libGL}/lib";
+        LIBGL_DRIVERS_PATH = "${pkgs.mesa}/lib/dri";
+        LIBGL_ALWAYS_SOFTWARE = "1";
+        GALLIUM_DRIVER = "llvmpipe";
         LOG_LEVEL = "info";
       };
       serviceConfig = {
