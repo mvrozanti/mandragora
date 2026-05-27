@@ -94,6 +94,7 @@
     git
     glab
     lazygit
+    docx2txt
     wget
     curl
     fastfetch
