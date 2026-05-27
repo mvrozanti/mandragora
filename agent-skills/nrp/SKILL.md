@@ -53,7 +53,7 @@ description: Use when /etc/nixos/mandragora has uncommitted changes that span mu
 
 Group hunks together when they share any of:
 
-- **Same module purpose** — e.g. all waybar styling, all hyprland keybinds, all lf config.
+- **Same module purpose** — e.g. all waybar styling, all hyprland keybinds, all yazi config.
 - **Same fix/feature** — a keymap added in `nvim/map.vim` plus a snippet it depends on.
 - **Same external trigger** — bumping a pinned commit and adjusting the patch it required.
 
