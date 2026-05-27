@@ -281,7 +281,6 @@ in
     (pkgs.writeShellScriptBin "screenshot-window" (builtins.readFile ../../../.local/bin/screenshot-window.sh))
 
     (pkgs.writeShellScriptBin "ait" (builtins.readFile ../../../.local/bin/ait.sh))
-    (pkgs.writeShellScriptBin "am" (builtins.readFile ../../../.local/bin/am.sh))
     (pkgs.writeShellScriptBin "bonsai" (builtins.readFile ../../../.local/bin/bonsai.sh))
     (pkgs.writeShellScriptBin "eit" (builtins.readFile ../../../.local/bin/eit.sh))
     (pkgs.writeShellScriptBin "filedropper" (builtins.readFile ../../../.local/bin/filedropper.sh))
