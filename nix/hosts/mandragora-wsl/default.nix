@@ -92,6 +92,8 @@
     '';
   in [
     git
+    glab
+    lazygit
     wget
     curl
     fastfetch
