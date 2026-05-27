@@ -189,6 +189,13 @@ if [[ -r "$HOME/.config/path-exclusions" ]]; then
   _excluded_paths=("${(@f)$(<"$HOME/.config/path-exclusions")}")
   _excluded_paths=("${_excluded_paths[@]/#\~/$HOME}")
   _excluded_paths=("${(@)_excluded_paths:#}")
+  _resolved=()
+  for _p in "${_excluded_paths[@]}"; do
+    _r="$(readlink -f -- "$_p" 2>/dev/null)"
+    [[ -n "$_r" && "$_r" != "$_p" ]] && _resolved+=("$_r")
+  done
+  _excluded_paths+=("${_resolved[@]}")
+  unset _resolved _r _p
   if (( ${#_excluded_paths[@]} )); then
     _zo_excl=""
     for _p in "${_excluded_paths[@]}"; do
