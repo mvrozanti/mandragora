@@ -93,6 +93,10 @@ in
     };
 
     theme = {
+      mgr = {
+        border_symbol = "";
+        border_style = { fg = "reset"; };
+      };
       status = {
         sep_left = { open = ""; close = ""; };
         sep_right = { open = ""; close = ""; };
@@ -101,6 +105,14 @@ in
         sep_inner = { open = ""; close = ""; };
         sep_outer = { open = ""; close = ""; };
       };
+      mode = {
+        normal_main = { };
+        normal_alt = { };
+        select_main = { };
+        select_alt = { };
+        unset_main = { };
+        unset_alt = { };
+      };
     };
 
     keymap = {
@@ -108,6 +120,18 @@ in
         { on = "d"; run = "yank --cut"; desc = "Cut (lf style)"; }
         { on = "x"; run = "escape"; desc = "Neutralized (lf had no x)"; }
         { on = "r"; run = "escape"; desc = "Neutralized — use a/cw/A"; }
+        { on = "v"; run = "escape"; desc = "Neutralized (visual mode hidden by no-status)"; }
+        { on = "<Tab>"; run = "escape"; desc = "Neutralized (no tabs habit from lf)"; }
+        { on = "1"; run = "escape"; desc = "Neutralized (no tab digits)"; }
+        { on = "2"; run = "escape"; desc = "Neutralized (no tab digits)"; }
+        { on = "3"; run = "escape"; desc = "Neutralized (no tab digits)"; }
+        { on = "4"; run = "escape"; desc = "Neutralized (no tab digits)"; }
+        { on = "5"; run = "escape"; desc = "Neutralized (no tab digits)"; }
+        { on = "6"; run = "escape"; desc = "Neutralized (no tab digits)"; }
+        { on = "7"; run = "escape"; desc = "Neutralized (no tab digits)"; }
+        { on = "8"; run = "escape"; desc = "Neutralized (no tab digits)"; }
+        { on = "9"; run = "escape"; desc = "Neutralized (no tab digits)"; }
+        { on = "<C-r>"; run = "refresh"; desc = "Reload (lf style)"; }
         { on = "a"; run = "rename --cursor=before_ext"; desc = "Rename"; }
         { on = [ "c" "w" ]; run = "rename --cursor=before_ext"; desc = "Rename"; }
         { on = "A"; run = "rename --cursor=end"; desc = "Rename (end)"; }
@@ -126,8 +150,8 @@ in
         { on = [ "o" "S" ]; run = "sort size"; desc = "Sort size asc"; }
         { on = [ "o" "m" ]; run = "sort mtime --reverse"; desc = "Sort mtime desc"; }
         { on = [ "o" "M" ]; run = "sort mtime"; desc = "Sort mtime asc"; }
-        { on = [ "o" "c" ]; run = "sort btime"; desc = "Sort btime asc"; }
-        { on = [ "o" "C" ]; run = "sort btime --reverse"; desc = "Sort btime desc"; }
+        { on = [ "o" "c" ]; run = "sort mtime"; desc = "Sort mtime asc (was lf ctime)"; }
+        { on = [ "o" "C" ]; run = "sort mtime --reverse"; desc = "Sort mtime desc (was lf ctime)"; }
         { on = "e"; run = ''shell "$EDITOR %s" --block''; desc = "Edit in $EDITOR"; }
         { on = [ "b" "w" ]; run = ''shell "setbg %s" --orphan''; desc = "Set wallpaper"; }
         { on = "M"; run = "create --dir"; desc = "mkdir"; }
