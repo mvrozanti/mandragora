@@ -81,7 +81,6 @@ in
       patches = (oldAttrs.patches or []) ++ [ ../../pkgs/nsxiv/commands.patch ];
       postPatch = (oldAttrs.postPatch or "") + "cp ${../../pkgs/nsxiv/config.h} config.def.h";
     }))
-    ueberzugpp
     zathura
     calibre
     imagemagick
@@ -286,8 +285,6 @@ in
     (pkgs.writeShellScriptBin "bonsai" (builtins.readFile ../../../.local/bin/bonsai.sh))
     (pkgs.writeShellScriptBin "eit" (builtins.readFile ../../../.local/bin/eit.sh))
     (pkgs.writeShellScriptBin "filedropper" (builtins.readFile ../../../.local/bin/filedropper.sh))
-    (pkgs.writeShellScriptBin "lf-ueberzug" (builtins.readFile ../../../.local/bin/lf-ueberzug.sh))
-    (pkgs.writeShellScriptBin "make-lf-aliases" (builtins.readFile ../../../.local/bin/make-lf-aliases.sh))
     (pkgs.writeShellScriptBin "mbsync-notify" (builtins.readFile ../../../.local/bin/mbsync-notify.sh))
     (pkgs.writeShellScriptBin "mvnexec" (builtins.readFile ../../../.local/bin/mvnexec.sh))
     (pkgs.writeShellScriptBin "pentr" (builtins.readFile ../../../.local/bin/pentr.sh))
