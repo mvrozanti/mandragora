@@ -23,6 +23,7 @@ import hashlib
 import json
 import logging
 import os
+import shlex
 import time
 from pathlib import Path
 from typing import Optional
@@ -109,10 +110,14 @@ async def _run(cmd: list[str], cwd: Optional[Path] = None, timeout: float = 600)
     return proc.returncode or 0, out.decode("utf-8", "replace"), err.decode("utf-8", "replace")
 
 
+def _git(*args: str) -> list[str]:
+    return ["git", "-c", "safe.directory=*", *args]
+
+
 async def _resolve_head(repo: Path, date_max: Optional[str]) -> str:
     if date_max:
         rc, out, e = await _run(
-            ["git", "rev-list", "-n", "1", f"--before={date_max} 23:59:59", "HEAD"],
+            _git("rev-list", "-n", "1", f"--before={date_max} 23:59:59", "HEAD"),
             cwd=repo, timeout=30,
         )
         if rc != 0:
@@ -121,14 +126,14 @@ async def _resolve_head(repo: Path, date_max: Optional[str]) -> str:
         if not sha:
             raise RuntimeError(f"no commit at or before {date_max}")
         return sha
-    rc, out, e = await _run(["git", "rev-parse", "HEAD"], cwd=repo, timeout=15)
+    rc, out, e = await _run(_git("rev-parse", "HEAD"), cwd=repo, timeout=15)
     if rc != 0:
         raise RuntimeError(f"git rev-parse failed: {e.strip()}")
     return out.strip()
 
 
 async def _days_in_window(repo: Path, head: str, date_min: Optional[str]) -> int:
-    args = ["git", "log", "--pretty=format:%ct"]
+    args = _git("log", "--pretty=format:%ct")
     if date_min:
         args.append(f"--since={date_min}")
     args.append(head)
@@ -192,21 +197,15 @@ async def _render_to(p: RenderParams, out_path: Path) -> None:
         str(out_path),
     ]
 
-    log.info("pipeline: %s | %s", " ".join(gource_cmd), " ".join(ffmpeg_cmd))
+    shell_cmd = " ".join(shlex.quote(a) for a in gource_cmd) + \
+                " | " + " ".join(shlex.quote(a) for a in ffmpeg_cmd)
+    log.info("pipeline: %s", shell_cmd)
 
-    gp = await asyncio.create_subprocess_exec(
-        *gource_cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    fp = await asyncio.create_subprocess_exec(
-        *ffmpeg_cmd,
-        stdin=gp.stdout,
+    proc = await asyncio.create_subprocess_shell(
+        shell_cmd,
         stdout=asyncio.subprocess.DEVNULL,
         stderr=asyncio.subprocess.PIPE,
     )
-    if gp.stdout is not None:
-        gp.stdout.close()
 
     deadline = max(120, p.length_s * 6 + 60)
     cancelled = False
@@ -214,33 +213,28 @@ async def _render_to(p: RenderParams, out_path: Path) -> None:
     async def _watchdog():
         nonlocal cancelled
         waited = 0
-        while fp.returncode is None and waited < deadline:
+        while proc.returncode is None and waited < deadline:
             await asyncio.sleep(2)
             waited += 2
-        if fp.returncode is None:
+        if proc.returncode is None:
             log.error("watchdog killing render pipeline at %ds", waited)
             cancelled = True
-            for p in (gp, fp):
-                try:
-                    p.kill()
-                except ProcessLookupError:
-                    pass
+            try:
+                proc.kill()
+            except ProcessLookupError:
+                pass
 
     watchdog = asyncio.create_task(_watchdog())
     try:
-        f_stderr = await fp.stderr.read() if fp.stderr else b""
-        f_rc = await fp.wait()
-        g_rc = await gp.wait()
-        g_stderr = await gp.stderr.read() if gp.stderr else b""
+        stderr_data = await proc.stderr.read() if proc.stderr else b""
+        rc = await proc.wait()
     finally:
         watchdog.cancel()
 
     if cancelled:
         raise HTTPException(504, f"render watchdog killed pipeline after {deadline}s")
-    if f_rc != 0:
-        raise HTTPException(500, f"ffmpeg exited {f_rc}: {f_stderr.decode('utf-8', 'replace').strip()[-400:]}")
-    if g_rc not in (0, -15):
-        log.warning("gource exited %s: %s", g_rc, g_stderr.decode('utf-8', 'replace').strip()[-200:])
+    if rc != 0:
+        raise HTTPException(500, f"pipeline exited {rc}: {stderr_data.decode('utf-8', 'replace').strip()[-400:]}")
     if not out_path.exists() or out_path.stat().st_size < 1024:
         raise HTTPException(500, "output mp4 missing or too small")
 
