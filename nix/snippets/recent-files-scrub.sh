@@ -13,6 +13,10 @@ for p in "${patterns[@]}"; do
   [ -z "$p" ] && continue
   case "$p" in "~"|"~/"*) p="$HOME${p#\~}" ;; esac
   expanded+=("$p")
+  r="$(readlink -f -- "$p" 2>/dev/null || true)"
+  if [ -n "$r" ] && [ "$r" != "$p" ]; then
+    expanded+=("$r")
+  fi
 done
 [ ${#expanded[@]} -eq 0 ] && exit 0
 

@@ -10,8 +10,9 @@ hash() {
     while IFS= read -r excl; do
       [ -z "$excl" ] && continue
       case "$excl" in "~"|"~/"*) excl="$HOME${excl#\~}" ;; esac
+      excl_real="$(readlink -f -- "$excl" 2>/dev/null || echo "$excl")"
       case "$target" in
-        "$excl"|"$excl"/*)
+        "$excl"|"$excl"/*|"$excl_real"|"$excl_real"/*)
           base="/run/user/$(id -u)/lf-cache"
           mkdir -p "$base"
           break
