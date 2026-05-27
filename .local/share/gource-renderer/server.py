@@ -163,8 +163,7 @@ async def _render_to(p: RenderParams, out_path: Path) -> None:
     seconds_per_day = max(0.01, p.length_s / float(days))
     fps = 60
 
-    gource_cmd = [
-        "xvfb-run", "-a", "-s", f"-screen 0 {p.width}x{p.height}x24",
+    gource_args = [
         "gource",
         str(repo),
         *(["--start-date", p.date_min] if p.date_min else []),
@@ -181,7 +180,7 @@ async def _render_to(p: RenderParams, out_path: Path) -> None:
         "--bloom-intensity", "0.4",
     ]
 
-    ffmpeg_cmd = [
+    ffmpeg_args = [
         "ffmpeg", "-y",
         "-f", "image2pipe",
         "-vcodec", "ppm",
@@ -196,8 +195,24 @@ async def _render_to(p: RenderParams, out_path: Path) -> None:
         str(out_path),
     ]
 
-    shell_cmd = " ".join(shlex.quote(a) for a in gource_cmd) + \
-                " | " + " ".join(shlex.quote(a) for a in ffmpeg_cmd)
+    display = f":{99 + (hash(out_path.name) % 50)}"
+    xvfb_args = ["Xvfb", display, "-screen", "0", f"{p.width}x{p.height}x24",
+                 "+extension", "GLX", "+extension", "RANDR", "+extension", "RENDER",
+                 "-nolisten", "tcp", "-noreset"]
+    gource_str = " ".join(shlex.quote(a) for a in gource_args)
+    ffmpeg_str = " ".join(shlex.quote(a) for a in ffmpeg_args)
+    xvfb_str = " ".join(shlex.quote(a) for a in xvfb_args)
+    shell_cmd = (
+        f"{xvfb_str} >/tmp/xvfb-{display.lstrip(':')}.log 2>&1 & "
+        f"XVFB_PID=$!; "
+        f"trap 'kill $XVFB_PID 2>/dev/null; wait $XVFB_PID 2>/dev/null' EXIT; "
+        f"for i in 1 2 3 4 5 6 7 8 9 10; do "
+        f"  [ -S /tmp/.X11-unix/X{display.lstrip(':')} ] && break; "
+        f"  sleep 0.2; "
+        f"done; "
+        f"export DISPLAY={display}; "
+        f"{gource_str} | {ffmpeg_str}"
+    )
     log.info("pipeline: %s", shell_cmd)
 
     proc = await asyncio.create_subprocess_shell(
