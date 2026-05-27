@@ -264,19 +264,33 @@ function Set-TerminalProfileFont {
     }
 }
 
-function Get-NixosIconPath {
+function Get-MandragoraIconPath {
     $dir = "$env:LOCALAPPDATA\Mandragora"
     if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
-    $ico = Join-Path $dir 'nixos.ico'
-    if (-not (Test-Path $ico)) {
-        try {
-            Invoke-WebRequest -Uri 'https://nixos.org/favicon.ico' -OutFile $ico -UseBasicParsing -ErrorAction Stop
-            Write-Host "    downloaded NixOS icon -> $ico" -ForegroundColor DarkGray
-        } catch {
-            Write-Host "    failed to download nixos.org/favicon.ico ($($_.Exception.Message)); using shell default icon" -ForegroundColor DarkYellow
-            return $null
-        }
+    $ico = Join-Path $dir 'mandragora.ico'
+    $url = "$BASE/mandragora.ico"
+    $tmp = Join-Path $dir 'mandragora.ico.new'
+    try {
+        Invoke-WebRequest -Uri $url -OutFile $tmp -UseBasicParsing -ErrorAction Stop
+    } catch {
+        Write-Host "    failed to download $url ($($_.Exception.Message))" -ForegroundColor DarkYellow
+        if (Test-Path $ico) { return $ico }
+        return $null
     }
+    $needsCopy = $true
+    if (Test-Path $ico) {
+        $oldHash = (Get-FileHash -Algorithm SHA256 -Path $ico).Hash
+        $newHash = (Get-FileHash -Algorithm SHA256 -Path $tmp).Hash
+        if ($oldHash -eq $newHash) { $needsCopy = $false }
+    }
+    if ($needsCopy) {
+        Move-Item -Force -Path $tmp -Destination $ico
+        Write-Host "    refreshed Mandragora icon -> $ico" -ForegroundColor DarkGray
+    } else {
+        Remove-Item -Force -Path $tmp -ErrorAction SilentlyContinue
+    }
+    $stale = Join-Path $dir 'nixos.ico'
+    if (Test-Path $stale) { Remove-Item -Force -Path $stale -ErrorAction SilentlyContinue }
     return $ico
 }
 
@@ -323,7 +337,7 @@ function Install-StartMenuShortcut {
         $targetPath = "$env:SYSTEMROOT\System32\wsl.exe"
         $args = '-d NixOS'
     }
-    $ico = Get-NixosIconPath
+    $ico = Get-MandragoraIconPath
     $iconLocation = if ($ico) { "$ico,0" } else { "$targetPath,0" }
     $shell = New-Object -ComObject WScript.Shell
     $lnk = $shell.CreateShortcut($script:START_MENU_LNK)
@@ -344,7 +358,7 @@ function Test-StartMenuShortcut {
     try {
         $shell = New-Object -ComObject WScript.Shell
         $lnk = $shell.CreateShortcut($script:START_MENU_LNK)
-        return ($lnk.IconLocation -match 'nixos\.ico')
+        return ($lnk.IconLocation -match 'mandragora\.ico')
     } catch { return $false }
 }
 $IS_ADMIN = Test-Admin
