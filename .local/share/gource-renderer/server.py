@@ -265,7 +265,7 @@ async def render_sync(p: RenderParams, request: Request):
     if not out.exists():
         async with _render_lock:
             if not out.exists():
-                tmp = out.with_suffix(".part")
+                tmp = out.with_name(out.stem + ".part.mp4")
                 t0 = time.time()
                 try:
                     await _render_to(p, tmp)

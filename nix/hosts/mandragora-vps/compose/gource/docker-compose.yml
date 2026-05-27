@@ -13,7 +13,7 @@ services:
       - DESKTOP_RENDERER_RENDER_TIMEOUT_S=${DESKTOP_RENDERER_RENDER_TIMEOUT_S:-600}
       - REPO_URL=${REPO_URL:-https://github.com/mvrozanti/mandragora.git}
       - CACHE_DIR=/cache
-      - REPO_DIR=/repo/mandragora.git
+      - REPO_DIR=/repo/mandragora
       - RATE_LIMIT_PER_HOUR=${RATE_LIMIT_PER_HOUR:-10}
       - LOCAL_MAX_LENGTH_S=${LOCAL_MAX_LENGTH_S:-120}
       - LOCAL_MAX_WIDTH=${LOCAL_MAX_WIDTH:-1280}
