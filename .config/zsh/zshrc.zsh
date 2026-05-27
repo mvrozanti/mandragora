@@ -183,3 +183,38 @@ bindkey -M emacs '^[\r' _mdg_alt_enter_newline
 # Used by AI agents to consult CircleCI build status/logs without touching the
 # encrypted file. Silent no-op if the secret isn't readable.
 [[ -r /run/secrets/circleci/api_key ]] && export CIRCLECI_TOKEN="$(< /run/secrets/circleci/api_key)"
+
+if [[ -r "$HOME/.config/path-exclusions" ]]; then
+  typeset -ga _excluded_paths
+  _excluded_paths=("${(@f)$(<"$HOME/.config/path-exclusions")}")
+  _excluded_paths=("${_excluded_paths[@]/#\~/$HOME}")
+  _excluded_paths=("${(@)_excluded_paths:#}")
+  if (( ${#_excluded_paths[@]} )); then
+    _zo_excl=""
+    for _p in "${_excluded_paths[@]}"; do
+      _zo_excl+="${_p}:${_p}/*:"
+    done
+    export _ZO_EXCLUDE_DIRS="${_zo_excl%:}"
+    unset _zo_excl _p
+
+    zshaddhistory() {
+      local cmd="$1" p
+      for p in "${_excluded_paths[@]}"; do
+        [[ "$cmd" == *"$p"* ]] && return 1
+      done
+      return 0
+    }
+
+    _path_excl_chpwd() {
+      local p
+      for p in "${_excluded_paths[@]}"; do
+        if [[ "$PWD" == "$p"* ]]; then
+          rm -f "$HOME/.cache/p10k-dump-m.zsh" "$HOME"/.cache/p10k-m/prompt-* 2>/dev/null
+          return
+        fi
+      done
+    }
+    typeset -ag chpwd_functions
+    chpwd_functions+=(_path_excl_chpwd)
+  fi
+fi

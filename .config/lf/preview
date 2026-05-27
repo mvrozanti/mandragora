@@ -4,7 +4,22 @@ printf '[%s] preview file=%s\n' "$(date +%H:%M:%S.%N)" "$1" >> /tmp/lf-cleaner.l
 pkill -P 1 -KILL -f 'kitten icat.*--place' 2>/dev/null || true
 
 hash() {
-  cache="$HOME/.cache/lf/$(stat --printf '%n\0%i\0%F\0%s\0%W\0%Y' -- "$(readlink -f -- "$1")" | sha256sum | cut -d' ' -f1).jpg"
+  target="$(readlink -f -- "$1")"
+  base="$HOME/.cache/lf"
+  if [ -r "$HOME/.config/path-exclusions" ]; then
+    while IFS= read -r excl; do
+      [ -z "$excl" ] && continue
+      case "$excl" in "~"|"~/"*) excl="$HOME${excl#\~}" ;; esac
+      case "$target" in
+        "$excl"|"$excl"/*)
+          base="/run/user/$(id -u)/lf-cache"
+          mkdir -p "$base"
+          break
+          ;;
+      esac
+    done < "$HOME/.config/path-exclusions"
+  fi
+  cache="$base/$(stat --printf '%n\0%i\0%F\0%s\0%W\0%Y' -- "$target" | sha256sum | cut -d' ' -f1).jpg"
 }
 
 draw_kitty() {
