@@ -89,14 +89,14 @@ in
         { on = "a"; run = "rename --cursor=before_ext"; desc = "Rename"; }
         { on = [ "c" "w" ]; run = "rename --cursor=before_ext"; desc = "Rename"; }
         { on = "A"; run = "rename --cursor=end"; desc = "Rename (end)"; }
-        { on = "I"; run = ''shell --block 'file "$0" | less' ''; desc = "File info"; }
-        { on = "i"; run = ''shell --orphan 'nsxiv -ab -- "$(dirname "$0")"' ''; desc = "nsxiv on dir"; }
-        { on = "P"; run = ''shell 'printf "%s" "$0" | wl-copy' ''; desc = "Yank path"; }
-        { on = "N"; run = ''shell 'basename "$0" | tr -d "\n" | wl-copy' ''; desc = "Yank name"; }
-        { on = "<C-n>"; run = ''shell 'basename "$0" | tr -d "\n" | wl-copy' ''; desc = "Yank name"; }
-        { on = "B"; run = ''shell --block 'ic "$0"' ''; desc = "Yank bytes"; }
+        { on = "I"; run = ''shell "file %s | less" --block''; desc = "File info"; }
+        { on = "i"; run = ''shell "nsxiv -ab -- $(dirname %s | head -1)" --orphan''; desc = "nsxiv on dir"; }
+        { on = "P"; run = ''shell "echo -n %s | wl-copy"''; desc = "Yank path"; }
+        { on = "N"; run = ''shell "basename %s | tr -d '\n' | wl-copy"''; desc = "Yank name"; }
+        { on = "<C-n>"; run = ''shell "basename %s | tr -d '\n' | wl-copy"''; desc = "Yank name"; }
+        { on = "B"; run = ''shell "ic %s" --block''; desc = "Yank bytes"; }
         { on = ";"; run = "hidden toggle"; desc = "Toggle hidden"; }
-        { on = "D"; run = ''shell --confirm 'trash-put -- "$@"' ''; desc = "Trash"; }
+        { on = "D"; run = ''shell "trash-put -- %s"''; desc = "Trash"; }
         { on = [ "o" "z" ]; run = "sort none"; desc = "Sort random"; }
         { on = [ "o" "s" ]; run = "sort size --reverse"; desc = "Sort size desc"; }
         { on = [ "o" "S" ]; run = "sort size"; desc = "Sort size asc"; }
@@ -104,12 +104,12 @@ in
         { on = [ "o" "M" ]; run = "sort mtime"; desc = "Sort mtime asc"; }
         { on = [ "o" "c" ]; run = "sort btime"; desc = "Sort btime asc"; }
         { on = [ "o" "C" ]; run = "sort btime --reverse"; desc = "Sort btime desc"; }
-        { on = "e"; run = "open --interactive"; desc = "Open interactive"; }
-        { on = [ "b" "w" ]; run = ''shell --orphan 'setbg "$0"' ''; desc = "Set wallpaper"; }
-        { on = [ "p" "B" ]; run = ''shell 'wl-paste -t image/png > "$(date +%s).png"' ''; desc = "Paste PNG"; }
-        { on = [ "p" "b" ]; run = ''shell 'wl-paste -t image/jpeg > "$(date +%s).jpg"' ''; desc = "Paste JPEG"; }
+        { on = "e"; run = ''shell "$EDITOR %s" --block''; desc = "Edit in $EDITOR"; }
+        { on = [ "b" "w" ]; run = ''shell "setbg %s" --orphan''; desc = "Set wallpaper"; }
+        { on = [ "p" "B" ]; run = ''shell "wl-paste -t image/png > $(mktemp -p . --suffix=.png paste-XXXXXX)"''; desc = "Paste PNG"; }
+        { on = [ "p" "b" ]; run = ''shell "wl-paste -t image/jpeg > $(mktemp -p . --suffix=.jpg paste-XXXXXX)"''; desc = "Paste JPEG"; }
         { on = "M"; run = "create --dir"; desc = "mkdir"; }
-        { on = "U"; run = ''shell --block 'unp -U "$0"' ''; desc = "Unzip"; }
+        { on = "U"; run = ''shell "unp -U %s" --block''; desc = "Unzip"; }
         { on = "H"; run = "back"; desc = "History back"; }
         { on = "L"; run = "forward"; desc = "History forward"; }
         { on = "<PageDown>"; run = "arrow 50%"; desc = "Half page down"; }
