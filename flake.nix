@@ -52,6 +52,7 @@
 
       sharedModules = [
         ./nix/modules/shared/profile.nix
+        ./nix/modules/shared/common-packages.nix
         ./nix/modules/shared/zsh.nix
         ./nix/modules/shared/nvim.nix
         (let rev = self.rev or self.dirtyRev or "dirty"; in {
