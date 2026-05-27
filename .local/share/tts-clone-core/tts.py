@@ -63,7 +63,7 @@ class TTSEngine:
             if lang in self._models:
                 return self._models[lang]
             ckpt = _resolve_ckpt(lang)
-            model_name = "F5TTS_v1_Base"
+            model_name = "F5TTS_Base" if lang == "pt" else "F5TTS_v1_Base"
             logger.info(
                 "loading F5-TTS lang=%s model=%s ckpt=%s",
                 lang, model_name, ckpt or "<default>",
