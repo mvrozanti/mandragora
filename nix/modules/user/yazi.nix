@@ -15,6 +15,13 @@ let
     in { on = [ "g" k ]; run = "cd ${path}"; desc = "cd ${e.path}"; }
   ) zxDirs);
 
+  yaziSquareBorders = pkgs.yazi.overrideAttrs (old: {
+    postPatch = (old.postPatch or "") + ''
+      find yazi-fm yazi-binding yazi-plugin yazi-widgets -type f -name '*.rs' 2>/dev/null \
+        | xargs -r sed -i 's/BorderType::Rounded/BorderType::Plain/g'
+    '';
+  });
+
   zjumpPlugin = pkgs.runCommand "zjump-yazi" {} ''
     mkdir -p $out
     cat > $out/main.lua <<'LUA'
@@ -55,10 +62,11 @@ let
   '';
 in
 {
-  home.packages = with pkgs; [ yazi ];
+  home.packages = [ yaziSquareBorders ];
 
   programs.yazi = {
     enable = true;
+    package = yaziSquareBorders;
     enableZshIntegration = true;
     shellWrapperName = "y";
 
