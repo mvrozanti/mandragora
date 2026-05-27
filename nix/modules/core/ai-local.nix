@@ -90,6 +90,13 @@ in
       systemd.services.ollama = {
         restartIfChanged = false;
         stopIfChanged = false;
+        after = [ "tailscaled.service" "network-online.target" ];
+        wants = [ "tailscaled.service" "network-online.target" ];
+        serviceConfig = {
+          Restart = lib.mkForce "on-failure";
+          RestartSec = "5s";
+          ExecStartPre = "${pkgs.bash}/bin/bash -c 'until ${pkgs.iproute2}/bin/ip -4 addr show tailscale0 | ${pkgs.gnugrep}/bin/grep -q \"inet ${config.services.ollama.host}\"; do sleep 1; done'";
+        };
       };
 
 
