@@ -135,6 +135,8 @@ a { color: var(--accent); text-decoration: none; }
 <script>
 const $ = id => document.getElementById(id);
 const LS_KEY = 'tts:selected-voice';
+let libAudio = null;
+let libAudioBtn = null;
 
 fetch('/whoami', { credentials: 'same-origin' })
   .then(r => r.ok ? r.text() : null)
@@ -266,8 +268,17 @@ async function refreshLibrary() {
       const play = document.createElement('button');
       play.className = 'ghost'; play.textContent = 'play';
       play.addEventListener('click', () => {
-        new Audio(`/clone/refs/${encodeURIComponent(r.name)}`).play()
-          .catch(e => $('lib-status').textContent = `play error: ${e.message}`);
+        if (libAudio && libAudio.src.endsWith(encodeURIComponent(r.name)) && !libAudio.paused) {
+          libAudio.pause();
+          return;
+        }
+        if (libAudio) { libAudio.pause(); }
+        libAudio = new Audio(`/clone/refs/${encodeURIComponent(r.name)}`);
+        libAudioBtn = play;
+        libAudio.addEventListener('play', () => { play.textContent = 'pause'; });
+        libAudio.addEventListener('pause', () => { play.textContent = 'play'; });
+        libAudio.addEventListener('ended', () => { play.textContent = 'play'; });
+        libAudio.play().catch(e => $('lib-status').textContent = `play error: ${e.message}`);
       });
       const del = document.createElement('button');
       del.className = 'danger'; del.textContent = 'delete';
