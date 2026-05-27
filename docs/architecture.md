@@ -249,7 +249,7 @@ file.
 | `zsh.nix`            | zsh config, plugins, aliases (consumes `nix/snippets/aliases.zsh`) |
 | `tmux.nix`           | tmux config (consumes `.config/tmux/tmux.conf`)             |
 | `waybar.nix`         | Waybar config (consumes `.config/waybar/`, `nix/snippets/waybar-*`) |
-| `lf.nix`             | lf file manager                                             |
+| `yazi.nix`           | yazi file manager                                           |
 | `services.nix`       | User systemd services                                       |
 | `bots.nix`           | Telegram-bridged bots (im-gen Flux, llm-via-telegram)       |
 | `skills.nix`         | Wires `agent-skills/{handoff,pickup,nrp}` into `~/.claude/skills` and `~/.gemini/skills` |
