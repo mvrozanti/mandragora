@@ -2,9 +2,20 @@
 
 FastAPI worker that renders a [gource](https://gource.io) MP4 of the
 mandragora git history. Lives on `demo.mvr.ac` as a path-route
-(`/api/gource/*`), no separate caddy host. Backed by an inner
-desktop-first / VPS-fallback render pipeline so the work happens on
-the workstation when reachable and on Oracle when not.
+(`/api/gource/*`), no separate caddy host. The render code can run
+either on the desktop workstation (faster) or locally inside the VPS
+container (slower, hard-capped).
+
+**Current backend = VPS-only.** The desktop renderer
+(`modules/services/gource-renderer.nix`) ships but is unreached:
+`DESKTOP_RENDERER_URL` defaults to the empty string here so the
+worker skips the proxy step and goes straight to local render. The
+desktop service's gource pipeline currently fails at SDL/GLX visual
+negotiation on top of `xorg.xorgserver`'s Xvfb (with mesa swrast
+loaded), and that path needs more work than was useful to do in v1.
+To re-enable later: confirm `gource` runs headless on a fresh Xvfb
+visual chain, then set `DESKTOP_RENDERER_URL=http://100.115.80.79:9991`
+in this stack's `.env`.
 
 ## How it answers a request
 
