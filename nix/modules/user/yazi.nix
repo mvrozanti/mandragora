@@ -87,6 +87,17 @@ in
       };
     };
 
+    theme = {
+      status = {
+        sep_left = { open = ""; close = ""; };
+        sep_right = { open = ""; close = ""; };
+      };
+      tabs = {
+        sep_inner = { open = ""; close = ""; };
+        sep_outer = { open = ""; close = ""; };
+      };
+    };
+
     keymap = {
       mgr.prepend_keymap = jumpKeymap ++ [
         { on = "a"; run = "rename --cursor=before_ext"; desc = "Rename"; }
