@@ -130,8 +130,6 @@ in
         { on = [ "o" "C" ]; run = "sort btime --reverse"; desc = "Sort btime desc"; }
         { on = "e"; run = ''shell "$EDITOR %s" --block''; desc = "Edit in $EDITOR"; }
         { on = [ "b" "w" ]; run = ''shell "setbg %s" --orphan''; desc = "Set wallpaper"; }
-        { on = [ "p" "B" ]; run = ''shell "wl-paste -t image/png > $(mktemp -p . --suffix=.png paste-XXXXXX)"''; desc = "Paste PNG"; }
-        { on = [ "p" "b" ]; run = ''shell "wl-paste -t image/jpeg > $(mktemp -p . --suffix=.jpg paste-XXXXXX)"''; desc = "Paste JPEG"; }
         { on = "M"; run = "create --dir"; desc = "mkdir"; }
         { on = "U"; run = ''shell "unp -U %s" --block''; desc = "Unzip"; }
         { on = "H"; run = "back"; desc = "History back"; }
