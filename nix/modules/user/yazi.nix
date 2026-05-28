@@ -163,7 +163,7 @@ in
 
     theme = {
       mgr = {
-        border_symbol = "";
+        border_symbol = " ";
         border_style = { fg = "reset"; };
         marker_copied = { fg = "green"; };
         marker_cut = { fg = "red"; };
