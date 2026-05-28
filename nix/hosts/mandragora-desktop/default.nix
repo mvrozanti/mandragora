@@ -23,6 +23,7 @@
     ../../modules/desktop/kdeconnect.nix
     ../../modules/desktop/keyd.nix
     ../../modules/desktop/keyledsd.nix
+    ../../modules/desktop/keystats.nix
     ../../modules/desktop/ydotool.nix
     ../../modules/desktop/openrgb.nix
     ../../modules/desktop/rival-mouse.nix
