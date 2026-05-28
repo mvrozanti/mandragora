@@ -73,7 +73,7 @@ def load_key() -> str:
 
 def open_db(key_hex: str):
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlcipher3.connect(str(DB_PATH))
+    conn = sqlcipher3.connect(str(DB_PATH), check_same_thread=False)
     cur = conn.cursor()
     cur.execute(f"PRAGMA key = \"x'{key_hex}'\"")
     cur.execute("PRAGMA cipher_compatibility = 4")
