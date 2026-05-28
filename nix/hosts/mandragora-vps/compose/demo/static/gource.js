@@ -37,9 +37,16 @@
     submitBtn.textContent = submitting ? "rendering…" : "render";
   }
 
+  function toIsoDate(s) {
+    if (!s) return null;
+    const m = s.trim().match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/);
+    if (!m) throw new Error(`bad date "${s}" — expected yyyy/MM/dd`);
+    return `${m[1]}-${m[2]}-${m[3]}`;
+  }
+
   function readForm() {
-    const dateMin = form.date_min.value || null;
-    const dateMax = form.date_max.value || null;
+    const dateMin = toIsoDate(form.date_min.value);
+    const dateMax = toIsoDate(form.date_max.value);
     const lengthS = parseInt(form.length_s.value, 10) || 60;
     const [w, h] = form.resolution.value.split("x").map((n) => parseInt(n, 10));
     return {
@@ -50,6 +57,25 @@
       height: h,
     };
   }
+
+  function attachDateMask(input) {
+    input.addEventListener("input", (ev) => {
+      const start = input.selectionStart;
+      const before = input.value;
+      const digits = before.replace(/\D/g, "").slice(0, 8);
+      let out = digits;
+      if (digits.length > 4) out = digits.slice(0, 4) + "/" + digits.slice(4);
+      if (digits.length > 6) out = digits.slice(0, 4) + "/" + digits.slice(4, 6) + "/" + digits.slice(6);
+      if (out !== before) {
+        input.value = out;
+        const delta = out.length - before.length;
+        const pos = Math.max(0, (start ?? out.length) + Math.max(0, delta));
+        input.setSelectionRange(pos, pos);
+      }
+    });
+  }
+  attachDateMask(form.date_min);
+  attachDateMask(form.date_max);
 
   function fmtBackend(b) {
     if (!b) return "";
