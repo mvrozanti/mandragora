@@ -64,69 +64,6 @@ let
     return M
     LUA
   '';
-
-  linemodeExtraPlugin = pkgs.runCommand "linemode-extra-yazi" {} ''
-    mkdir -p $out
-    cat > $out/main.lua <<'LUA'
-    local M = {}
-    local count_cache = {}
-    local size_cache = {}
-
-    local function count_dir(url)
-      if count_cache[url] then return count_cache[url] end
-      local child = Command("sh")
-        :arg("-c"):arg("ls -1A -- \"$1\" 2>/dev/null | wc -l"):arg("--"):arg(url)
-        :stdout(Command.PIPED):stderr(Command.NULL):spawn()
-      if not child then return "" end
-      local out = child:wait_with_output()
-      if not (out and out.status.success) then return "" end
-      local n = out.stdout:gsub("[\r\n%s]", "")
-      count_cache[url] = n
-      return n
-    end
-
-    local function du_dir(url)
-      if size_cache[url] then return size_cache[url] end
-      local child = Command("sh")
-        :arg("-c"):arg("du -sh -- \"$1\" 2>/dev/null | cut -f1"):arg("--"):arg(url)
-        :stdout(Command.PIPED):stderr(Command.NULL):spawn()
-      if not child then return "" end
-      local out = child:wait_with_output()
-      if not (out and out.status.success) then return "" end
-      local s = out.stdout:gsub("[\r\n%s]", "")
-      size_cache[url] = s
-      return s
-    end
-
-    function M:setup()
-      function Linemode:count()
-        local cha = self._file.cha
-        if not cha.is_dir then
-          local size = self._file:size()
-          return size and ya.readable_size(size) or ""
-        end
-        return count_dir(tostring(self._file.url))
-      end
-
-      function Linemode:dirsize()
-        local cha = self._file.cha
-        if not cha.is_dir then
-          local size = self._file:size()
-          return size and ya.readable_size(size) or ""
-        end
-        return du_dir(tostring(self._file.url))
-      end
-    end
-
-    function M:entry()
-      local current = cx.active.pref.linemode
-      local next_mode = (current == "dirsize") and "count" or "dirsize"
-      ya.mgr_emit("linemode", { next_mode })
-    end
-
-    return M
-    LUA
-  '';
 in
 {
   home.packages = [ yaziSquareBorders ];
@@ -149,10 +86,6 @@ in
       package = zoxideAddPlugin;
       setup = true;
     };
-    plugins.linemode-extra = {
-      package = linemodeExtraPlugin;
-      setup = true;
-    };
 
     settings = {
       mgr = {
@@ -161,7 +94,7 @@ in
         sort_sensitive = false;
         sort_reverse = true;
         sort_dir_first = true;
-        linemode = "count";
+        linemode = "size";
         show_hidden = false;
         show_symlink = true;
         scrolloff = 8;
@@ -285,8 +218,7 @@ in
         { on = [ "c" "w" ]; run = "rename --cursor=before_ext"; desc = "Rename"; }
         { on = "A"; run = "rename --cursor=end"; desc = "Rename (end)"; }
         { on = "I"; run = ''shell "file %s | less" --block''; desc = "File info"; }
-        { on = "i"; run = "plugin linemode-extra"; desc = "Toggle dir count <-> dirsize"; }
-        { on = [ "g" "i" ]; run = ''shell "nsxiv -ab -- $(dirname %s | head -1)" --orphan''; desc = "nsxiv on dir"; }
+        { on = "i"; run = ''shell "nsxiv -ab -- $(dirname %s | head -1)" --orphan''; desc = "nsxiv on dir"; }
         { on = "P"; run = ''shell "echo -n %s | wl-copy"''; desc = "Yank path"; }
         { on = "N"; run = ''shell "basename %s | tr -d '\n' | wl-copy"''; desc = "Yank name"; }
         { on = "<C-n>"; run = ''shell "basename %s | tr -d '\n' | wl-copy"''; desc = "Yank name"; }
