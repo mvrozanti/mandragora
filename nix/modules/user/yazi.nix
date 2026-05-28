@@ -174,12 +174,12 @@ in
         count_selected = { fg = "yellow"; };
       };
       status = {
-        sep_left = { open = ""; close = ""; };
-        sep_right = { open = ""; close = ""; };
+        sep_left = { open = " "; close = " "; };
+        sep_right = { open = " "; close = " "; };
       };
       tabs = {
-        sep_inner = { open = ""; close = ""; };
-        sep_outer = { open = ""; close = ""; };
+        sep_inner = { open = " "; close = " "; };
+        sep_outer = { open = " "; close = " "; };
       };
       mode = {
         normal_main = { };
