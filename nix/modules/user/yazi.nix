@@ -15,12 +15,16 @@ let
     in { on = [ "g" k ]; run = "cd ${path}"; desc = "cd ${e.path}"; }
   ) zxDirs);
 
-  yaziSquareBorders = pkgs.yazi.overrideAttrs (old: {
+  yaziUnwrappedPatched = pkgs.yazi-unwrapped.overrideAttrs (old: {
     postPatch = (old.postPatch or "") + ''
-      find yazi-fm yazi-binding yazi-plugin yazi-widgets -type f -name '*.rs' 2>/dev/null \
+      find yazi-fm yazi-binding yazi-plugin yazi-widgets -type f -name '*.rs' \
         | xargs -r sed -i 's/BorderType::Rounded/BorderType::Plain/g'
     '';
   });
+
+  yaziSquareBorders = pkgs.yazi.override {
+    yazi-unwrapped = yaziUnwrappedPatched;
+  };
 
   zjumpPlugin = pkgs.runCommand "zjump-yazi" {} ''
     mkdir -p $out
