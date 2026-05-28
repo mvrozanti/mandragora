@@ -187,4 +187,35 @@
   });
 
   window.addEventListener("beforeunload", stopPolling);
+
+  function fromIsoDate(s) {
+    if (!s) return "";
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? `${m[1]}/${m[2]}/${m[3]}` : "";
+  }
+
+  async function loadLatest() {
+    try {
+      const r = await fetch(`${API}/latest`, { cache: "no-store" });
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d.params) {
+        if (d.params.date_min) form.date_min.value = fromIsoDate(d.params.date_min);
+        if (d.params.date_max) form.date_max.value = fromIsoDate(d.params.date_max);
+        if (d.params.length_s) form.length_s.value = d.params.length_s;
+        if (d.params.width && d.params.height) {
+          const v = `${d.params.width}x${d.params.height}`;
+          if ([...form.resolution.options].some((o) => o.value === v)) {
+            form.resolution.value = v;
+          }
+        }
+      }
+      const url = d.video_url || `${API}/video/${d.job_id}`;
+      const meta = d.backend ? `last render — ${fmtBackend(d.backend)}` : "last render";
+      showVideo(url, meta);
+      showStatus(`<span class="state done">last render</span><span class="meta">params pre-filled — adjust and re-render, or just press play</span>`);
+    } catch (_) { /* no-op; form stays empty */ }
+  }
+
+  loadLatest();
 })();
