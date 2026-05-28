@@ -2,20 +2,16 @@
 
 FastAPI worker that renders a [gource](https://gource.io) MP4 of the
 mandragora git history. Lives on `demo.mvr.ac` as a path-route
-(`/api/gource/*`), no separate caddy host. The render code can run
-either on the desktop workstation (faster) or locally inside the VPS
-container (slower, hard-capped).
+(`/api/gource/*`), no separate caddy host. Desktop-first /
+VPS-fallback: the worker pings the desktop renderer over tailscale,
+proxies the job there if reachable (~3× faster than the VPS), and
+falls back to a local render under hard caps if not.
 
-**Current backend = VPS-only.** The desktop renderer
-(`modules/services/gource-renderer.nix`) ships but is unreached:
-`DESKTOP_RENDERER_URL` defaults to the empty string here so the
-worker skips the proxy step and goes straight to local render. The
-desktop service's gource pipeline currently fails at SDL/GLX visual
-negotiation on top of `xorg.xorgserver`'s Xvfb (with mesa swrast
-loaded), and that path needs more work than was useful to do in v1.
-To re-enable later: confirm `gource` runs headless on a fresh Xvfb
-visual chain, then set `DESKTOP_RENDERER_URL=http://100.115.80.79:9991`
-in this stack's `.env`.
+Headless backend on desktop is a private Xvfb + mesa-EGL software
+GL chain (NVIDIA's Xvfb GLX path doesn't satisfy SDL2's visual
+config; mesa-EGL via `SDL_VIDEO_X11_FORCE_EGL=1` does). Hardware
+NVENC on the desktop is a future optimisation — current ffmpeg arm
+is `libx264 -preset veryfast` on both ends.
 
 ## How it answers a request
 
