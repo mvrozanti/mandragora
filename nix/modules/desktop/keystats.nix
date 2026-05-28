@@ -10,7 +10,6 @@ let
       export KEYSTATS_DB_KEY_FILE="''${KEYSTATS_DB_KEY_FILE:-/run/secrets/keystats-db-key}"
       export KEYSTATS_DB_PATH="''${KEYSTATS_DB_PATH:-/persistent/keystats/stats.db}"
       export KEYSTATS_HYPRLAND_SOCK="''${KEYSTATS_HYPRLAND_SOCK:-}"
-      export KEYSTATS_PAM_SOCK="''${KEYSTATS_PAM_SOCK:-/run/user/1000/keystats-pam.sock}"
       exec ${pyEnv}/bin/python3 ${../../snippets/keystats-capture.py} "$@"
     '';
   };
@@ -26,24 +25,9 @@ let
       exec ${pyEnv}/bin/python3 ${../../snippets/keystats-web.py} "$@"
     '';
   };
-
-  pamSignalBin = pkgs.writeShellApplication {
-    name = "keystats-pam-signal";
-    runtimeInputs = [ pkgs.coreutils pkgs.socat ];
-    text = ''
-      sock="/run/user/1000/keystats-pam.sock"
-      [ -S "$sock" ] || exit 0
-      case "''${PAM_TYPE:-}" in
-        auth) echo pause | socat - "UNIX-CONNECT:$sock" || true ;;
-        close_session|auth_err|auth_ok) echo resume | socat - "UNIX-CONNECT:$sock" || true ;;
-        *) echo resume | socat - "UNIX-CONNECT:$sock" || true ;;
-      esac
-      exit 0
-    '';
-  };
 in
 {
-  environment.systemPackages = [ pkgs.sqlcipher captureBin webBin pamSignalBin ];
+  environment.systemPackages = [ pkgs.sqlcipher captureBin webBin ];
 
   sops.secrets."keystats/db_key" = {
     owner = "m";
@@ -65,13 +49,6 @@ in
     "d /persistent/keystats 0700 m users - -"
   ];
 
-  security.pam.services = lib.genAttrs [ "sudo" "su" "login" "polkit-1" "sddm" ] (_: {
-    text = lib.mkAfter ''
-      session optional ${pkgs.pam}/lib/security/pam_exec.so quiet ${pamSignalBin}/bin/keystats-pam-signal
-      auth    optional ${pkgs.pam}/lib/security/pam_exec.so quiet ${pamSignalBin}/bin/keystats-pam-signal
-    '';
-  });
-
   systemd.user.services.keystats-capture = {
     description = "keystroke aggregator (evdev + Hyprland-gated, SQLCipher)";
     wantedBy = [ "graphical-session.target" ];
@@ -82,7 +59,7 @@ in
       ExecStart = "${captureBin}/bin/keystats-capture";
       Restart = "on-failure";
       RestartSec = "5s";
-      ReadWritePaths = [ "/persistent/keystats" "/run/user/1000" ];
+      ReadWritePaths = [ "/persistent/keystats" ];
       ProtectHome = "read-only";
       PrivateTmp = true;
       NoNewPrivileges = true;

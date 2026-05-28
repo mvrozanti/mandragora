@@ -5,7 +5,6 @@ import os
 import re
 import select
 import signal
-import socket
 import sys
 import threading
 import time
@@ -16,7 +15,6 @@ import sqlcipher3
 
 DB_PATH = Path(os.environ["KEYSTATS_DB_PATH"])
 DB_KEY_FILE = Path(os.environ["KEYSTATS_DB_KEY_FILE"])
-PAM_SOCK = Path(os.environ["KEYSTATS_PAM_SOCK"])
 HYPR_SOCK_ENV = os.environ.get("KEYSTATS_HYPRLAND_SOCK", "").strip()
 DEVICE_NAME = "keyd virtual keyboard"
 FLUSH_INTERVAL = 60
@@ -49,14 +47,11 @@ class State:
         self.last_key_time = 0.0
         self.active_class = ""
         self.active_title = ""
-        self.paused = False
         self.session_start = int(time.time())
         self.class_keystroke_counts = {}
 
 
 def gated(s: State) -> str:
-    if s.paused:
-        return "pam"
     if s.active_class in BLOCKED_CLASSES:
         return "class"
     if s.active_title and TITLE_BLOCK_RE.search(s.active_title):
@@ -281,41 +276,6 @@ def handle_hypr_event(state: State, line: str) -> None:
         pass
 
 
-def pam_loop(state: State, stop: threading.Event) -> None:
-    try:
-        PAM_SOCK.unlink()
-    except FileNotFoundError:
-        pass
-    PAM_SOCK.parent.mkdir(parents=True, exist_ok=True)
-    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    s.bind(str(PAM_SOCK))
-    os.chmod(PAM_SOCK, 0o660)
-    s.listen(8)
-    s.settimeout(1.0)
-    while not stop.is_set():
-        try:
-            conn, _ = s.accept()
-        except socket.timeout:
-            continue
-        except OSError:
-            break
-        with conn:
-            try:
-                data = conn.recv(64).decode(errors="replace").strip().lower()
-            except OSError:
-                continue
-            with state.lock:
-                if data == "pause":
-                    state.paused = True
-                elif data == "resume":
-                    state.paused = False
-    s.close()
-    try:
-        PAM_SOCK.unlink()
-    except FileNotFoundError:
-        pass
-
-
 def flush_loop(state: State, stop: threading.Event, conn) -> None:
     while not stop.wait(FLUSH_INTERVAL):
         try:
@@ -343,7 +303,6 @@ def main() -> None:
     signal.signal(signal.SIGINT, shutdown)
 
     threading.Thread(target=evdev_loop, args=(state, stop), daemon=True).start()
-    threading.Thread(target=pam_loop, args=(state, stop), daemon=True).start()
     threading.Thread(target=flush_loop, args=(state, stop, conn), daemon=True).start()
     asyncio.run(hypr_loop(state, stop))
 
