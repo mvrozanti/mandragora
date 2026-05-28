@@ -513,6 +513,9 @@ def q_insights(conn) -> dict:
     total = sum(c for _, c in rows) or 1
     left = sum(c for k, c in rows if k in LEFT_KEYS)
     right = sum(c for k, c in rows if k in RIGHT_KEYS)
+    sided = left + right or 1
+    rowed_keys = NUM_ROW | TOP_ROW | HOME_ROW | BOTTOM_ROW
+    rowed_total = sum(c for k, c in rows if k in rowed_keys) or 1
     num = sum(c for k, c in rows if k in NUM_ROW)
     top = sum(c for k, c in rows if k in TOP_ROW)
     home = sum(c for k, c in rows if k in HOME_ROW)
@@ -530,22 +533,23 @@ def q_insights(conn) -> dict:
         if FINGER.get(k1) and FINGER.get(k1) == FINGER.get(k2) and k1 != k2
     )
 
-    def pct(n):
-        return round(100.0 * n / total, 2)
     return {
         "total_keystrokes": total,
-        "hand_balance": {"left_pct": pct(left), "right_pct": pct(right)},
-        "row_dist": {
-            "num_pct": pct(num),
-            "top_pct": pct(top),
-            "home_pct": pct(home),
-            "bottom_pct": pct(bottom),
+        "hand_balance": {
+            "left_pct": round(100.0 * left / sided, 2),
+            "right_pct": round(100.0 * right / sided, 2),
         },
-        "modifier_pct": pct(mods),
-        "backspace_pct": pct(bksp),
-        "space_pct": pct(space),
-        "punct_pct": pct(punct),
-        "arrow_pct": pct(arrows),
+        "row_dist": {
+            "num_pct":    round(100.0 * num    / rowed_total, 2),
+            "top_pct":    round(100.0 * top    / rowed_total, 2),
+            "home_pct":   round(100.0 * home   / rowed_total, 2),
+            "bottom_pct": round(100.0 * bottom / rowed_total, 2),
+        },
+        "modifier_pct":  round(100.0 * mods   / total, 2),
+        "backspace_pct": round(100.0 * bksp   / total, 2),
+        "space_pct":     round(100.0 * space  / total, 2),
+        "punct_pct":     round(100.0 * punct  / total, 2),
+        "arrow_pct":     round(100.0 * arrows / total, 2),
         "same_finger_bigram_pct": round(100.0 * same_finger / bg_total, 2),
         "bigram_count": bg_total,
     }
