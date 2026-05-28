@@ -52,12 +52,32 @@
   security.sudo.wheelNeedsPassword = false;
 
   environment.systemPackages = with pkgs; let
+    win32yank = stdenvNoCC.mkDerivation rec {
+      pname = "win32yank";
+      version = "0.1.1";
+      src = fetchzip {
+        url = "https://github.com/equalsraf/win32yank/releases/download/v${version}/win32yank-x64.zip";
+        sha256 = "0gclg5cpbq0qxnj8jfnxsrxyq5is1hka4ydwi4w8p18rqvaw8az2";
+        stripRoot = false;
+      };
+      dontBuild = true;
+      installPhase = ''
+        runHook preInstall
+        install -Dm755 win32yank.exe $out/bin/win32yank.exe
+        runHook postInstall
+      '';
+      meta = with lib; {
+        description = "Clipboard tool for WSL using Win32 API (UTF-8 native)";
+        homepage = "https://github.com/equalsraf/win32yank";
+        license = licenses.asl20;
+        platforms = platforms.linux;
+      };
+    };
     clipCopy = writeShellScript "mandragora-clip-copy" ''
-      exec /mnt/c/Windows/System32/clip.exe
+      exec ${win32yank}/bin/win32yank.exe -i --crlf
     '';
     clipPaste = writeShellScript "mandragora-clip-paste" ''
-      /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command "Get-Clipboard" \
-        | sed 's/\r$//'
+      exec ${win32yank}/bin/win32yank.exe -o --lf
     '';
     copyShim = name: writeShellScriptBin name "exec ${clipCopy}";
     pasteShim = name: writeShellScriptBin name "exec ${clipPaste}";
@@ -91,6 +111,7 @@
       exec /mnt/c/Windows/explorer.exe "$target"
     '';
   in [
+    win32yank
     xdgOpenShim
     (copyShim "wl-copy")
     (pasteShim "wl-paste")
