@@ -10,7 +10,6 @@ let
     pkgs.ffmpeg-full
     pkgs.xorg.xorgserver
     pkgs.xorg.xauth
-    pkgs.mesa
     pkgs.git
     pkgs.coreutils
     pkgs.bash
@@ -19,7 +18,7 @@ in {
   mandragora.hub.services.gource-renderer = {
     port = port;
     systemd = {
-      description = "On-demand gource render service (tailnet-bound). VPS gource-api proxies here when reachable.";
+      description = "On-demand gource render service (tailnet-bound, headless NVIDIA GPU). VPS gource-api proxies here when reachable.";
       after = [ "network-online.target" "tailscaled.service" ];
       wants = [ "network-online.target" "tailscaled.service" ];
       wantedBy = [ "multi-user.target" ];
@@ -30,10 +29,10 @@ in {
         GOURCE_REPO_PATH = "/etc/nixos/mandragora";
         GOURCE_CACHE_DIR = "/var/lib/gource-renderer/cache";
         PATH = lib.mkForce runtimePath;
-        LD_LIBRARY_PATH = "${pkgs.mesa}/lib:${pkgs.libGL}/lib";
-        LIBGL_DRIVERS_PATH = "${pkgs.mesa}/lib/dri";
-        LIBGL_ALWAYS_SOFTWARE = "1";
-        GALLIUM_DRIVER = "llvmpipe";
+        SDL_VIDEO_X11_FORCE_EGL = "1";
+        SDL_VIDEODRIVER = "x11";
+        __EGL_VENDOR_LIBRARY_FILENAMES = "/run/opengl-driver/share/glvnd/egl_vendor.d/10_nvidia.json";
+        __GLX_VENDOR_LIBRARY_NAME = "nvidia";
         HOME = "/tmp";
         XDG_CACHE_HOME = "/tmp/cache";
         MESA_SHADER_CACHE_DIR = "/tmp/mesa-cache";
@@ -45,9 +44,19 @@ in {
         Restart = "on-failure";
         RestartSec = "5s";
         DynamicUser = true;
+        SupplementaryGroups = [ "video" "render" ];
         StateDirectory = "gource-renderer";
         ReadWritePaths = [ "/var/lib/gource-renderer" ];
         ReadOnlyPaths = [ "/etc/nixos/mandragora" ];
+        DeviceAllow = [
+          "/dev/dri rwm"
+          "/dev/nvidia0 rwm"
+          "/dev/nvidiactl rwm"
+          "/dev/nvidia-modeset rwm"
+          "/dev/nvidia-uvm rwm"
+          "/dev/nvidia-uvm-tools rwm"
+        ];
+        PrivateDevices = false;
         ProtectSystem = "strict";
         ProtectHome = true;
         PrivateTmp = true;
