@@ -191,6 +191,9 @@ in
       };
       indicator = {
         padding = { open = " "; close = " "; };
+        parent = { underline = true; };
+        current = { underline = true; };
+        preview = { underline = true; };
       };
     };
 
