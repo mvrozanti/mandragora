@@ -31,6 +31,10 @@
         href: https://stt.mvr.ac
         description: Speech-to-text (faster-whisper large-v3 on desktop GPU) — web UI + REST; shared core for Telegram bot
         icon: si-openai.svg
+    - kl:
+        href: https://kl.mvr.ac
+        description: Keystroke stats — evdev aggregator on the desktop, SQLCipher store, tailnet-only origin
+        icon: si-keyboardio.svg
     - ttyd terminal:
         href: https://term.mvr.ac
         description: Web shell on the desktop, tailnet-only
