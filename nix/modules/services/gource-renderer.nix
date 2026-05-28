@@ -34,6 +34,9 @@ in {
         HOME = "/tmp";
         XDG_CACHE_HOME = "/tmp/cache";
         MESA_SHADER_CACHE_DIR = "/tmp/mesa-cache";
+        GIT_CONFIG_COUNT = "1";
+        GIT_CONFIG_KEY_0 = "safe.directory";
+        GIT_CONFIG_VALUE_0 = "*";
         LOG_LEVEL = "info";
       };
       serviceConfig = {
