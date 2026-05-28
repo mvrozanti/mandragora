@@ -15,7 +15,19 @@ if ! flock -n 9; then
   exit 1
 fi
 echo "$$" > "${LOCKFILE}.pid"
-trap 'rm -f "${LOCKFILE}.pid"' EXIT
+
+WT="$LOCKDIR/mandragora-switch-wt"
+TMPFILE=""
+SAVED_FLAG=""
+cleanup() {
+  rm -f "${LOCKFILE}.pid"
+  [ -n "$TMPFILE" ] && rm -f "$TMPFILE" "$SAVED_FLAG"
+  if [ -d "$WT" ]; then
+    git -C "$FLAKE" worktree remove --force "$WT" 2>/dev/null || rm -rf "$WT"
+    git -C "$FLAKE" worktree prune 2>/dev/null || true
+  fi
+}
+trap cleanup EXIT
 
 TOTAL_START=$(date +%s)
 PHASE_START=$TOTAL_START
@@ -84,14 +96,6 @@ if [ "$FORCE" -eq 0 ] && [ "$STABILITY_WAIT" -gt 0 ]; then
   fi
 fi
 
-if command -v mandragora-audit >/dev/null 2>&1; then
-  echo "==> Repo audit (pre-stage)..."
-  if ! mandragora-audit --quiet --skip conventional-commits; then
-    echo "==> ABORTED: repo audit failed. Fix the violations above and re-run." >&2
-    exit 1
-  fi
-fi
-
 echo "==> Fetching origin..."
 if ! git fetch origin; then
   echo "==> WARNING: git fetch failed. Proceeding without sync check." >&2
@@ -104,10 +108,44 @@ elif [ "$(git rev-list --count HEAD..origin/master)" -gt 0 ]; then
 fi
 phase "git fetch/rebase"
 
+MASTER_HEAD=$(git -C "$FLAKE" rev-parse HEAD)
+
+DIRTY_TRACKED=()
+while IFS= read -r -d '' p; do DIRTY_TRACKED+=("$p"); done < <(git -C "$FLAKE" diff --name-only -z HEAD)
+DIRTY_UNTRACKED=()
+while IFS= read -r -d '' p; do DIRTY_UNTRACKED+=("$p"); done < <(git -C "$FLAKE" ls-files --others --exclude-standard -z)
+
+rm -rf "$WT"
+git -C "$FLAKE" worktree prune 2>/dev/null || true
+git -C "$FLAKE" worktree add --detach "$WT" "$MASTER_HEAD" >/dev/null
+
+for p in "${DIRTY_TRACKED[@]}"; do
+  if [ -e "$FLAKE/$p" ]; then
+    mkdir -p "$WT/$(dirname "$p")"
+    cp -a "$FLAKE/$p" "$WT/$p"
+  else
+    rm -f "$WT/$p"
+  fi
+done
+for p in "${DIRTY_UNTRACKED[@]}"; do
+  mkdir -p "$WT/$(dirname "$p")"
+  cp -a "$FLAKE/$p" "$WT/$p"
+done
+
+cd "$WT"
+
+if command -v mandragora-audit >/dev/null 2>&1; then
+  echo "==> Repo audit (pre-stage, worktree snapshot)..."
+  if ! MANDRAGORA_REPO="$WT" mandragora-audit --quiet --skip conventional-commits; then
+    echo "==> ABORTED: repo audit failed. Fix the violations above and re-run." >&2
+    exit 1
+  fi
+fi
+
 git add -A
 
 if ! git diff --cached --quiet; then
-  echo "==> Staged for this switch:"
+  echo "==> Staged for this switch (from frozen snapshot):"
   git diff --cached --stat | sed 's/^/    /'
 fi
 
@@ -174,7 +212,6 @@ else
   [ -n "$MSG" ] || MSG="switch"
   TMPFILE=$(mktemp /tmp/mandragora-commit-XXXXXX)
   SAVED_FLAG="${TMPFILE}.saved"
-  trap 'rm -f "$TMPFILE" "$SAVED_FLAG"' EXIT
 
   {
     echo "$MSG"
@@ -208,7 +245,7 @@ phase "commit prepared"
 echo ""
 echo "==> Building..."
 set +e
-sudo nixos-rebuild switch --flake "$FLAKE#mandragora-desktop" 2>&1 | tee /tmp/nixos-rebuild.log | grep --line-buffered -E "^(error:|building|activating|warning:|Failed|systemctl|Done\.)"
+sudo nixos-rebuild switch --flake "$WT#mandragora-desktop" 2>&1 | tee /tmp/nixos-rebuild.log | grep --line-buffered -E "^(error:|building|activating|warning:|Failed|systemctl|Done\.)"
 RC=${PIPESTATUS[0]}
 set -e
 phase "nixos-rebuild switch (rc=$RC)"
@@ -229,13 +266,24 @@ elif [ "$ACTIVATED" -eq 1 ]; then
 else
   echo ""
   echo "==> FAILED before activation completed (rc=$RC). Full log: /tmp/nixos-rebuild.log" >&2
-  if [ "$COMMIT_SKIPPED" -eq 0 ]; then
-    git reset HEAD~1
-  fi
   exit "$RC"
 fi
 
 if [ "$COMMIT_SKIPPED" -eq 0 ]; then
+  NEW_COMMIT=$(git -C "$WT" rev-parse HEAD)
+  if ! git -C "$FLAKE" update-ref -m "mandragora-switch: promote $NEW_COMMIT" refs/heads/master "$NEW_COMMIT" "$MASTER_HEAD"; then
+    echo "==> Master moved during build; rebasing snapshot commit onto current master..."
+    if ! git -C "$WT" fetch "$FLAKE" master >/dev/null 2>&1 \
+      || ! git -C "$WT" rebase FETCH_HEAD; then
+      echo "==> FAILED: rebase conflict between snapshot commit and concurrent master changes. Resolve in $WT, then manually update master." >&2
+      exit 1
+    fi
+    NEW_COMMIT=$(git -C "$WT" rev-parse HEAD)
+    git -C "$FLAKE" update-ref refs/heads/master "$NEW_COMMIT"
+  fi
+  cd "$FLAKE"
+  phase "promote snapshot to master"
+
   MAX_PUSH_ATTEMPTS=${MANDRAGORA_SWITCH_PUSH_ATTEMPTS:-3}
   attempt=0
   while true; do
