@@ -65,6 +65,7 @@ INDEX_HTML = r"""<!doctype html>
   <section>
     <h2>heatmap</h2>
     <div id="heatmap"></div>
+    <div id="extras"></div>
   </section>
 
   <section>
@@ -144,23 +145,27 @@ header .sub { color: var(--dim); font-weight: 400; font-size: 14px; margin-left:
 nav { color: var(--dim); font-size: 12px; }
 section { margin-bottom: 36px; }
 h2 { font-weight: 400; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); margin-bottom: 12px; }
-#heatmap { display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; }
+#heatmap { display: grid; grid-template-columns: repeat(18, 1fr); gap: 3px; }
 .k {
   background: var(--line);
   border: 1px solid transparent;
-  padding: 8px 4px;
+  padding: 6px 3px;
   text-align: center;
-  font-size: 11px;
+  font-size: 10px;
   border-radius: 3px;
   position: relative;
   overflow: hidden;
+  min-height: 30px;
 }
 .k .lbl { display: block; color: var(--fg); }
-.k .cnt { display: block; color: var(--dim); font-size: 9px; margin-top: 2px; }
+.k .cnt { display: block; color: var(--dim); font-size: 8px; margin-top: 2px; }
+.k.gap { background: transparent; }
 .k.w2 { grid-column: span 2; }
 .k.w3 { grid-column: span 3; }
 .k.w5 { grid-column: span 5; }
+.k.w6 { grid-column: span 6; }
 .k.w7 { grid-column: span 7; }
+#extras { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 3px; margin-top: 8px; }
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); }
 th { color: var(--dim); font-weight: 400; text-transform: uppercase; font-size: 11px; letter-spacing: 0.06em; }
@@ -196,18 +201,24 @@ const KC_NAMES = {
   15:"tab",16:"q",17:"w",18:"e",19:"r",20:"t",21:"y",22:"u",23:"i",24:"o",25:"p",26:"[",27:"]",28:"enter",
   29:"ctrl",30:"a",31:"s",32:"d",33:"f",34:"g",35:"h",36:"j",37:"k",38:"l",39:";",40:"'",41:"`",42:"shift",
   43:"\\",44:"z",45:"x",46:"c",47:"v",48:"b",49:"n",50:"m",51:",",52:".",53:"/",54:"rshift",
-  56:"alt",57:"space",58:"caps",
-  100:"ralt",97:"rctrl",
-  103:"↑",105:"←",106:"→",108:"↓",
-  102:"home",107:"end",104:"pgup",109:"pgdn",110:"ins",111:"del"
+  55:"kp*",56:"alt",57:"space",58:"caps",
+  59:"F1",60:"F2",61:"F3",62:"F4",63:"F5",64:"F6",65:"F7",66:"F8",67:"F9",68:"F10",
+  69:"num",70:"slk",
+  71:"kp7",72:"kp8",73:"kp9",74:"kp-",75:"kp4",76:"kp5",77:"kp6",78:"kp+",
+  79:"kp1",80:"kp2",81:"kp3",82:"kp0",83:"kp.",
+  87:"F11",88:"F12",
+  96:"kpEnt",97:"rctrl",98:"kp/",99:"prsc",100:"ralt",
+  102:"home",103:"↑",104:"pgup",105:"←",106:"→",107:"end",108:"↓",109:"pgdn",110:"ins",111:"del",
+  119:"pause",125:"super",126:"rsuper",127:"menu"
 };
 
 const KB_ROWS = [
-  [{c:1},{c:2},{c:3},{c:4},{c:5},{c:6},{c:7},{c:8},{c:9},{c:10},{c:11},{c:12},{c:13},{c:14,w:2}],
-  [{c:15,w:2},{c:16},{c:17},{c:18},{c:19},{c:20},{c:21},{c:22},{c:23},{c:24},{c:25},{c:26},{c:27},{c:43}],
-  [{c:58,w:2},{c:30},{c:31},{c:32},{c:33},{c:34},{c:35},{c:36},{c:37},{c:38},{c:39},{c:40},{c:28,w:2}],
-  [{c:42,w:3},{c:44},{c:45},{c:46},{c:47},{c:48},{c:49},{c:50},{c:51},{c:52},{c:53},{c:54,w:3}],
-  [{c:29,w:2},{c:125,w:1},{c:56},{c:57,w:7},{c:100},{c:127},{c:97,w:2}]
+  [{c:1,w:2},{c:59},{c:60},{c:61},{c:62},{gap:1},{c:63},{c:64},{c:65},{c:66},{gap:1},{c:67},{c:68},{c:87},{c:88},{c:99},{c:70},{c:119}],
+  [{c:41},{c:2},{c:3},{c:4},{c:5},{c:6},{c:7},{c:8},{c:9},{c:10},{c:11},{c:12},{c:13},{c:14,w:2},{c:110},{c:102},{c:104}],
+  [{c:15,w:2},{c:16},{c:17},{c:18},{c:19},{c:20},{c:21},{c:22},{c:23},{c:24},{c:25},{c:26},{c:27},{c:43},{c:111},{c:107},{c:109}],
+  [{c:58,w:2},{c:30},{c:31},{c:32},{c:33},{c:34},{c:35},{c:36},{c:37},{c:38},{c:39},{c:40},{c:28,w:2},{gap:3}],
+  [{c:42,w:3},{c:44},{c:45},{c:46},{c:47},{c:48},{c:49},{c:50},{c:51},{c:52},{c:53},{c:54,w:2},{gap:1},{c:103},{gap:1}],
+  [{c:29,w:2},{c:125},{c:56},{c:57,w:6},{c:100},{c:127},{c:97,w:2},{gap:1},{c:105},{c:108},{c:106}]
 ];
 
 function clamp01(x){return Math.max(0,Math.min(1,x));}
@@ -233,14 +244,23 @@ async function fetchJson(p){
 
 function renderHeatmap(data){
   const el = document.getElementById("heatmap");
-  const max = Math.max(1, ...Object.values(data));
+  const max = Math.max(1, ...Object.values(data).map(Number));
+  const placed = new Set();
   const frag = document.createDocumentFragment();
   for(const row of KB_ROWS){
     for(const k of row){
       const d = document.createElement("div");
+      if(k.gap){
+        const w = k.gap;
+        d.className = "k gap" + (w>1?" w"+w:"");
+        d.innerHTML = "";
+        frag.appendChild(d);
+        continue;
+      }
       const w = k.w||1;
       d.className = "k" + (w>1?" w"+w:"");
       const cnt = data[k.c]||0;
+      placed.add(k.c);
       d.style.background = cnt>0 ? colorFor(clamp01(cnt/max)) : "var(--line)";
       const name = KC_NAMES[k.c] || ("k"+k.c);
       d.innerHTML = `<span class="lbl">${name}</span><span class="cnt">${cnt}</span>`;
@@ -249,6 +269,23 @@ function renderHeatmap(data){
   }
   el.innerHTML = "";
   el.appendChild(frag);
+
+  const extras = document.getElementById("extras");
+  if(extras){
+    const extra = Object.entries(data)
+      .map(([k,v])=>[parseInt(k),Number(v)])
+      .filter(([k,v])=> v>0 && !placed.has(k))
+      .sort((a,b)=>b[1]-a[1]);
+    if(extra.length === 0){
+      extras.innerHTML = '<div class="card"><span class="l">no off-layout keys</span></div>';
+    } else {
+      extras.innerHTML = extra.map(([k,v])=>{
+        const name = KC_NAMES[k] || ("k"+k);
+        const bg = colorFor(clamp01(v/max));
+        return `<div class="k" style="background:${bg}"><span class="lbl">${name}</span><span class="cnt">${v}</span></div>`;
+      }).join("");
+    }
+  }
 }
 
 function renderWPM(buckets){
