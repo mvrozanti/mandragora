@@ -31,8 +31,6 @@ in {
         PATH = lib.mkForce runtimePath;
         SDL_VIDEO_X11_FORCE_EGL = "1";
         SDL_VIDEODRIVER = "x11";
-        __EGL_VENDOR_LIBRARY_FILENAMES = "/run/opengl-driver/share/glvnd/egl_vendor.d/10_nvidia.json";
-        __GLX_VENDOR_LIBRARY_NAME = "nvidia";
         HOME = "/tmp";
         XDG_CACHE_HOME = "/tmp/cache";
         MESA_SHADER_CACHE_DIR = "/tmp/mesa-cache";
@@ -44,25 +42,15 @@ in {
         Restart = "on-failure";
         RestartSec = "5s";
         DynamicUser = true;
-        SupplementaryGroups = [ "video" "render" ];
         StateDirectory = "gource-renderer";
         ReadWritePaths = [ "/var/lib/gource-renderer" ];
         ReadOnlyPaths = [ "/etc/nixos/mandragora" ];
-        DeviceAllow = [
-          "/dev/dri rwm"
-          "/dev/nvidia0 rwm"
-          "/dev/nvidiactl rwm"
-          "/dev/nvidia-modeset rwm"
-          "/dev/nvidia-uvm rwm"
-          "/dev/nvidia-uvm-tools rwm"
-        ];
-        PrivateDevices = false;
         ProtectSystem = "strict";
         ProtectHome = true;
         PrivateTmp = true;
         NoNewPrivileges = true;
-        MemoryMax = "2G";
-        CPUQuota = "400%";
+        MemoryMax = "4G";
+        CPUQuota = "1200%";
       };
     };
   };
