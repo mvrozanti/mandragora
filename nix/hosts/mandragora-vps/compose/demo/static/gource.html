@@ -185,13 +185,13 @@
   <form id="render-form" novalidate>
     <div class="row split">
       <div class="row">
-        <label for="date_min">date from (yyyy-mm-dd)</label>
-        <input type="date" id="date_min" name="date_min" lang="en-CA" placeholder="yyyy-mm-dd" pattern="\d{4}-\d{2}-\d{2}">
+        <label for="date_min">date from</label>
+        <input type="text" inputmode="numeric" id="date_min" name="date_min" placeholder="yyyy/MM/dd" pattern="\d{4}/\d{2}/\d{2}" maxlength="10" autocomplete="off">
         <span class="hint">leave empty for full history</span>
       </div>
       <div class="row">
-        <label for="date_max">date to (yyyy-mm-dd)</label>
-        <input type="date" id="date_max" name="date_max" lang="en-CA" placeholder="yyyy-mm-dd" pattern="\d{4}-\d{2}-\d{2}">
+        <label for="date_max">date to</label>
+        <input type="text" inputmode="numeric" id="date_max" name="date_max" placeholder="yyyy/MM/dd" pattern="\d{4}/\d{2}/\d{2}" maxlength="10" autocomplete="off">
         <span class="hint">leave empty for latest</span>
       </div>
     </div>
