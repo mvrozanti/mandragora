@@ -123,6 +123,32 @@ def cache_path(job_id: str) -> Path:
     return CACHE_DIR / f"{job_id}.mp4"
 
 
+def sidecar_path(job_id: str) -> Path:
+    return CACHE_DIR / f"{job_id}.json"
+
+
+def _write_sidecar(job_id: str, j: "Job") -> None:
+    try:
+        sidecar_path(job_id).write_text(json.dumps({
+            "job_id": job_id,
+            "params": j.params.model_dump(),
+            "backend": j.backend,
+            "finished_at": j.finished_at or time.time(),
+        }, separators=(",", ":")))
+    except Exception as e:
+        log.warning("[%s] sidecar write failed: %s", job_id, e)
+
+
+def _read_sidecar(job_id: str) -> Optional[dict]:
+    p = sidecar_path(job_id)
+    if not p.exists():
+        return None
+    try:
+        return json.loads(p.read_text())
+    except Exception:
+        return None
+
+
 def client_ip(req: Request) -> str:
     fwd = req.headers.get("X-Forwarded-For", "")
     if fwd:
@@ -228,6 +254,7 @@ async def _run_one(job_id: str) -> None:
         j.progress = 1.0
         j.message = "ready"
         j.video_url = f"/api/gource/video/{job_id}"
+        _write_sidecar(job_id, j)
     except HTTPException as e:
         j.state = "failed"
         j.error = e.detail if isinstance(e.detail, str) else str(e.detail)
@@ -282,6 +309,31 @@ def defaults() -> dict:
         "allowed_resolutions": [f"{w}x{h}" for (w, h) in sorted(ALLOWED_RESOLUTIONS)],
         "rate_limit_per_hour": RATE_LIMIT_PER_HOUR,
     }
+
+
+@app.get("/latest")
+def latest() -> JSONResponse:
+    mp4s = list(CACHE_DIR.glob("*.mp4"))
+    if not mp4s:
+        raise HTTPException(404, "no renders cached yet")
+    mp4s.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    for mp4 in mp4s:
+        jid = mp4.stem
+        sc = _read_sidecar(jid)
+        if sc:
+            sc["video_url"] = f"/api/gource/video/{jid}"
+            sc["state"] = "done"
+            return JSONResponse(sc)
+    newest = mp4s[0]
+    jid = newest.stem
+    return JSONResponse({
+        "job_id": jid,
+        "params": None,
+        "backend": None,
+        "finished_at": newest.stat().st_mtime,
+        "video_url": f"/api/gource/video/{jid}",
+        "state": "done",
+    })
 
 
 @app.post("/render")
