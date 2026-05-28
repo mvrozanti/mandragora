@@ -133,10 +133,11 @@ for p in "${DIRTY_UNTRACKED[@]}"; do
 done
 
 cd "$WT"
+export MANDRAGORA_REPO="$WT"
 
 if command -v mandragora-audit >/dev/null 2>&1; then
   echo "==> Repo audit (pre-stage, worktree snapshot)..."
-  if ! MANDRAGORA_REPO="$WT" mandragora-audit --quiet --skip conventional-commits; then
+  if ! mandragora-audit --quiet --skip conventional-commits; then
     echo "==> ABORTED: repo audit failed. Fix the violations above and re-run." >&2
     exit 1
   fi
