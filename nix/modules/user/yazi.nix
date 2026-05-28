@@ -189,6 +189,9 @@ in
         unset_main = { };
         unset_alt = { };
       };
+      indicator = {
+        padding = { open = " "; close = " "; };
+      };
     };
 
     keymap = {
