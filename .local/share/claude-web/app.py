@@ -173,7 +173,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>claude.mvr.ac</title>
 <style>
   :root {
@@ -192,9 +192,10 @@ INDEX_HTML = r"""<!DOCTYPE html>
   html, body {
     background: var(--bg); color: var(--fg);
     font-family: "Iosevka", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
-    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-tap-highlight-color: transparent;
   }
-  body { padding: 2.5rem 2rem; position: relative; overflow-x: hidden; font-size: 14px; line-height: 1.5; }
+  body { padding: 2.5rem 2rem; position: relative; overflow-x: hidden; font-size: 16px; line-height: 1.5; }
   body::before {
     content: ''; position: fixed; inset: 0; pointer-events: none;
     background: radial-gradient(circle at 30% 20%, rgba(0,255,102,0.04), transparent 50%);
@@ -237,7 +238,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
   }
   .filter:focus { outline: none; border-color: var(--accent); }
 
-  .list { display: flex; flex-direction: column; gap: 2px; max-height: 55vh; overflow-y: auto; padding-right: 4px; scroll-padding: 0.3rem; }
+  .list { display: flex; flex-direction: column; gap: 2px; max-height: 60dvh; overflow-y: auto; padding-right: 4px; scroll-padding: 0.3rem; }
   .list::-webkit-scrollbar { width: 6px; }
   .list::-webkit-scrollbar-thumb { background: var(--line); }
   .row {
@@ -302,11 +303,54 @@ INDEX_HTML = r"""<!DOCTYPE html>
   footer a { color: var(--accent); text-decoration: none; }
   footer a:hover { text-decoration: underline; }
 
+  .row, .open-here, .filter { transition: background 60ms ease; }
+  .row:active { background: var(--hover); }
+  .open-here:active { background: var(--panel); }
+
+  @media (hover: none) and (pointer: coarse) {
+    .row {
+      padding: 0.95rem 1rem;
+      min-height: 52px;
+      gap: 0.9rem;
+    }
+    .row .ico { font-size: 1.2em; width: 1.4em; text-align: center; }
+    .filter {
+      padding: 0.9rem 1rem;
+      font-size: 16px;
+      min-height: 48px;
+    }
+    .open-here {
+      padding: 1.1rem 1.25rem;
+      min-height: 56px;
+    }
+    .crumb { font-size: 1rem; line-height: 2; }
+    .crumb a {
+      display: inline-block;
+      padding: 0.25rem 0.4rem;
+      min-height: 32px;
+    }
+    .crumb .sep { padding: 0 0.15rem; }
+    header .nav a { padding: 0.4rem 0.6rem; display: inline-block; }
+    footer a { padding: 0.4rem 0.6rem; display: inline-block; }
+    .hints { display: none; }
+  }
+
   @media (max-width: 600px) {
-    body { padding: 1.25rem 1rem; }
+    body {
+      padding: 1.25rem 1rem;
+      padding-top: max(1.25rem, env(safe-area-inset-top));
+      padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
+    }
     header { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
     header .nav { margin-left: -0.75rem; }
     .card { padding: 1rem; }
+  }
+
+  @media (max-width: 380px) {
+    header h1 { font-size: 0.95rem; }
+    footer { flex-direction: column; gap: 0.35rem; align-items: flex-start; }
   }
 </style>
 </head>
