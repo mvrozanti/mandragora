@@ -33,7 +33,7 @@ let
     function M:entry()
       local query, event = ya.input({
         title = "z:",
-        position = { "top-center", y = 3, w = 60 },
+        pos = { "top-center", y = 3, w = 60 },
       })
       if event ~= 1 then return end
       query = (query or ""):gsub("^%s+", ""):gsub("%s+$", "")
