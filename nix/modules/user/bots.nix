@@ -12,6 +12,9 @@ let
   ttsCloneCoreRoot = "/etc/nixos/mandragora/.local/share/tts-clone-core";
   ttsCloneCoreState = "/home/m/.local/share/tts-clone-core";
   vtagState = "/home/m/.local/share/vtag";
+  axonCoreRoot = "/etc/nixos/mandragora/.local/share/axon-core";
+  axonCoreState = "/home/m/.local/share/axon-core";
+  axonRepo = "/home/m/Projects/axon";
 in
 {
   home.activation.botsState = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -20,6 +23,7 @@ in
     mkdir -p ${sttCoreState}/data ${sttCoreState}/logs ${sttCoreState}/hf-cache
     mkdir -p ${ttsCloneCoreState}/refs ${ttsCloneCoreState}/out ${ttsCloneCoreState}/hf-cache
     mkdir -p ${vtagState}/logs
+    mkdir -p ${axonCoreState}/logs
     if [ -e /home/m/Projects/gpu-lock ] && [ ! -L /home/m/Projects/gpu-lock ]; then
       rm -rf /home/m/Projects/gpu-lock
     fi
@@ -113,6 +117,36 @@ in
       Restart = "on-failure";
       RestartSec = 10;
       TimeoutStartSec = "10min";
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
+
+  systemd.user.services.axon-core = {
+    Unit = {
+      Description = "Axon HTTP API + SPA (tailnet-bound, multi-repo aggregate)";
+      After = [ "graphical-session.target" "network-online.target" ];
+      Wants = [ "network-online.target" ];
+      ConditionPathExists = [
+        "${axonCoreRoot}/bot.sh"
+        "${axonRepo}/web/dist/index.html"
+      ];
+    };
+    Service = {
+      Type = "simple";
+      WorkingDirectory = axonRepo;
+      ExecStart = "${axonCoreRoot}/bot.sh";
+      Environment = [
+        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin:/home/m/.local/bin:${axonRepo}/build"
+        "AXON_STATE_DIR=${axonCoreState}"
+        "AXON_BIND_HOST=100.115.80.79"
+        "AXON_BIND_PORT=7070"
+        "AXON_WEB_ROOT=${axonRepo}/web/dist"
+      ];
+      Restart = "on-failure";
+      RestartSec = 10;
+      TimeoutStartSec = "2min";
     };
     Install = {
       WantedBy = [ "default.target" ];
