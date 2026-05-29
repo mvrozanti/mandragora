@@ -277,8 +277,8 @@ in
         { on = "<PageUp>"; run = "arrow -50%"; desc = "Half page up"; }
         { on = "<C-f>"; run = "arrow 50%"; desc = "Half page down"; }
         { on = "<C-b>"; run = "arrow -50%"; desc = "Half page up"; }
-        { on = "l"; run = "plugin --sync smart-enter"; desc = "Enter dir or open file"; }
-        { on = "<Right>"; run = "plugin --sync smart-enter"; desc = "Enter dir or open file"; }
+        { on = "l"; run = "open"; desc = "Enter dir or open file"; }
+        { on = "<Right>"; run = "open"; desc = "Enter dir or open file"; }
       ];
     };
   };
