@@ -49,7 +49,7 @@ the dispatch table for the entire hub:
 | Label index | Vhost | Behavior |
 |---|---|---|
 | `caddy_0` | `hub.mvr.ac` | forward_auth → reverse_proxy nginx:80 (the hub UI itself) |
-| `caddy_1` | `term.mvr.ac` | tailnet IP gate → forward_auth → reverse_proxy `host.docker.internal:7681` (ttyd, HTTP/1.1) |
+| `caddy_1` | `term.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:7681` (ttyd, HTTP/1.1) |
 | `caddy_2` | `slither.mvr.ac` | path whitelist (`/`, `/simulator.html`, `/favicon.ico`, `/static/*`, `/exported_agents/*`, `/api/*`) → forward_auth → reverse_proxy `host.docker.internal:8088` |
 | `caddy_3` | `grafana.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:3000` |
 | `caddy_4` | `mpd.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6680` (myMPD on desktop) |
