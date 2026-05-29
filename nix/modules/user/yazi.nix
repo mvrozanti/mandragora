@@ -63,12 +63,12 @@ let
   smartEnterPlugin = pkgs.runCommand "smart-enter-yazi" {} ''
     mkdir -p $out
     cat > $out/main.lua <<'LUA'
-    local M = {}
-    function M:entry()
-      local h = cx.active.current.hovered
-      ya.mgr_emit(h and h.cha.is_dir and "enter" or "open", { hovered = true })
-    end
-    return M
+    return {
+      entry = function(self, job)
+        local h = cx.active.current.hovered
+        ya.mgr_emit(h and h.cha.is_dir and "enter" or "open", { hovered = true })
+      end,
+    }
     LUA
   '';
 
@@ -277,8 +277,8 @@ in
         { on = "<PageUp>"; run = "arrow -50%"; desc = "Half page up"; }
         { on = "<C-f>"; run = "arrow 50%"; desc = "Half page down"; }
         { on = "<C-b>"; run = "arrow -50%"; desc = "Half page up"; }
-        { on = "l"; run = "plugin smart-enter"; desc = "Enter dir or open file"; }
-        { on = "<Right>"; run = "plugin smart-enter"; desc = "Enter dir or open file"; }
+        { on = "l"; run = "plugin --sync smart-enter"; desc = "Enter dir or open file"; }
+        { on = "<Right>"; run = "plugin --sync smart-enter"; desc = "Enter dir or open file"; }
       ];
     };
   };
