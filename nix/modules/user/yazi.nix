@@ -39,8 +39,9 @@ let
       query = (query or ""):gsub("^%s+", ""):gsub("%s+$", "")
       if query == "" then return end
 
-      local child, err = Command("zoxide")
-        :arg("query"):arg("--"):arg(query)
+      local child, err = Command("sh")
+        :arg("-c"):arg("zoxide query -l | fzf --filter=\"$1\" | head -n1")
+        :arg("zjump"):arg(query)
         :stdin(Command.NULL):stdout(Command.PIPED):stderr(Command.PIPED)
         :spawn()
       if not child then
@@ -48,12 +49,12 @@ let
         return
       end
       local output = child:wait_with_output()
-      if not output or not output.status.success then
+      local target = output and output.stdout:gsub("[\r\n]+$", "") or ""
+      if target == "" then
         ya.notify({ title = "zjump", content = "no match for: " .. query, level = "warn", timeout = 3 })
         return
       end
-      local target = output.stdout:gsub("[\r\n]+$", "")
-      if target ~= "" then ya.mgr_emit("cd", { target }) end
+      ya.mgr_emit("cd", { target })
     end
     return M
     LUA
