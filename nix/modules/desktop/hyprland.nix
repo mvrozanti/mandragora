@@ -5,6 +5,15 @@
     xwayland.enable = true;
   };
 
+  environment.systemPackages = [ pkgs.wshowkeys ];
+
+  security.wrappers.wshowkeys = {
+    source = "${pkgs.wshowkeys}/bin/wshowkeys";
+    owner = "root";
+    group = "root";
+    setuid = true;
+  };
+
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
     LIBVA_DRIVER_NAME = "nvidia";
