@@ -60,18 +60,6 @@ let
     LUA
   '';
 
-  smartEnterPlugin = pkgs.runCommand "smart-enter-yazi" {} ''
-    mkdir -p $out
-    cat > $out/main.lua <<'LUA'
-    return {
-      entry = function(self, job)
-        local h = cx.active.current.hovered
-        ya.mgr_emit(h and h.cha.is_dir and "enter" or "open", { hovered = true })
-      end,
-    }
-    LUA
-  '';
-
   zoxideAddPlugin = pkgs.runCommand "zoxide-add-yazi" {} ''
     mkdir -p $out
     cat > $out/main.lua <<'LUA'
@@ -105,7 +93,7 @@ in
       setup = false;
     };
     plugins.smart-enter = {
-      package = smartEnterPlugin;
+      package = pkgs.yaziPlugins.smart-enter;
       setup = false;
     };
     plugins.zoxide-add = {
@@ -277,8 +265,8 @@ in
         { on = "<PageUp>"; run = "arrow -50%"; desc = "Half page up"; }
         { on = "<C-f>"; run = "arrow 50%"; desc = "Half page down"; }
         { on = "<C-b>"; run = "arrow -50%"; desc = "Half page up"; }
-        { on = "l"; run = "open"; desc = "Enter dir or open file"; }
-        { on = "<Right>"; run = "open"; desc = "Enter dir or open file"; }
+        { on = "l"; run = "plugin smart-enter"; desc = "Enter dir or open file"; }
+        { on = "<Right>"; run = "plugin smart-enter"; desc = "Enter dir or open file"; }
       ];
     };
   };
