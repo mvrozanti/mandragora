@@ -21,6 +21,7 @@ either side must be mirrored.
 | `logs/docker-compose.yml` (+ `static/`) | Custom vanilla-JS log viewer at `log.mvr.ac` — single-file UI + Loki API path-rewrite via Caddy | `/home/opc/logs/` |
 | `webhook/docker-compose.yml` (+ `app/`) | Public webhook receiver at `webhook.mvr.ac` — FastAPI + SQLite + SSE; tailnet-only `/internal/events` is consumed by the desktop notifier | `/home/opc/webhook/` |
 | `watch/docker-compose.yml` (+ `app/`) | Perception layer at `watch.mvr.ac` (Authelia-gated) — polls GitHub & Reddit, fans hits into the webhook receiver | `/home/opc/watch/` |
+| `axon/docker-compose.yml` | Edge proxy at `axon.mvr.ac` (Authelia-gated) — terminates TLS, reverse-proxies to desktop `axon-core` (`100.115.80.79:7070`), which serves the REST API + Preact SPA | `/home/opc/axon/` |
 
 The Seafile project is invoked with all three YAMLs explicitly:
 ```
