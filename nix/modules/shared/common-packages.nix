@@ -22,5 +22,6 @@
     rtk
     claude-code
     python3Packages.docx2txt
+    screenkey
   ];
 }
