@@ -251,6 +251,7 @@ in
     (pkgs.writeShellScriptBin "rofi-power-menu" (builtins.readFile ../../../.local/bin/rofi-power-menu.sh))
     (pkgs.writeShellScriptBin "rofi-capture-menu" (builtins.readFile ../../../.local/bin/rofi-capture-menu.sh))
     (pkgs.writeShellScriptBin "screencap" (builtins.readFile ../../../.local/bin/screencap.sh))
+    (pkgs.writeShellScriptBin "screenkey-toggle" (builtins.readFile ../../../.local/bin/screenkey-toggle.sh))
     (pkgs.writeShellScriptBin "capture" (builtins.readFile ../../../.local/bin/capture.sh))
     (pkgs.writeShellScriptBin "compv" (builtins.readFile ../../../.local/bin/compv.sh))
     (pkgs.writeShellScriptBin "ic" (builtins.readFile ../../../.local/bin/ic.sh))
