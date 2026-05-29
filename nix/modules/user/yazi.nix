@@ -31,18 +31,27 @@ let
     cat > $out/main.lua <<'LUA'
     local M = {}
     function M:entry()
+      local query, event = ya.input({
+        title = "z:",
+        position = { "top-center", y = 3, w = 60 },
+      })
+      if event ~= 1 then return end
+      query = (query or ""):gsub("^%s+", ""):gsub("%s+$", "")
+      if query == "" then return end
+
       local child, err = Command("zoxide")
-        :arg("query"):arg("-i")
-        :stdin(Command.INHERIT)
-        :stdout(Command.PIPED)
-        :stderr(Command.INHERIT)
+        :arg("query"):arg("--"):arg(query)
+        :stdin(Command.NULL):stdout(Command.PIPED):stderr(Command.PIPED)
         :spawn()
       if not child then
         ya.notify({ title = "zjump", content = "spawn failed: " .. tostring(err), level = "error", timeout = 5 })
         return
       end
       local output = child:wait_with_output()
-      if not output or not output.status.success then return end
+      if not output or not output.status.success then
+        ya.notify({ title = "zjump", content = "no match for: " .. query, level = "warn", timeout = 3 })
+        return
+      end
       local target = output.stdout:gsub("[\r\n]+$", "")
       if target ~= "" then ya.mgr_emit("cd", { target }) end
     end
