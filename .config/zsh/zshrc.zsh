@@ -6,13 +6,6 @@ if [[ -z "$TMUX" ]]; then
   (cat ~/.cache/matugen/sequences 2>/dev/null &)
 fi
 
-printf '\e[1 q'
-
-_cursor_block() { printf '\e[1 q' }
-_cursor_beam()  { printf '\e[5 q' }
-precmd_functions+=(_cursor_block)
-preexec_functions+=(_cursor_beam)
-
 # tmux autostart
 if [[ -z "$TMUX" && -t 0 ]]; then exec tmux; fi
 
