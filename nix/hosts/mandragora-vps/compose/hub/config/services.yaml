@@ -35,6 +35,10 @@
         href: https://kl.mvr.ac
         description: Keystroke stats — evdev aggregator on the desktop, SQLCipher store, tailnet-only origin
         icon: si-keyboardio.svg
+    - axon:
+        href: https://axon.mvr.ac
+        description: Code dependency graph + context capsule + dialogue browser (C++/Preact, multi-repo aggregate served from the desktop)
+        icon: si-graphology.svg
     - ttyd terminal:
         href: https://term.mvr.ac
         description: Web shell on the desktop, tailnet-only
