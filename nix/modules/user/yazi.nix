@@ -165,6 +165,10 @@ in
       mgr = {
         border_symbol = " ";
         border_style = { fg = "reset"; };
+        hovered = { fg = "black"; bg = "yellow"; };
+        preview_hovered = { underline = true; };
+        find_keyword = { fg = "yellow"; bold = true; italic = true; underline = true; };
+        find_position = { fg = "magenta"; bold = true; italic = true; };
         marker_copied = { fg = "green"; };
         marker_cut = { fg = "red"; };
         marker_marked = { fg = "cyan"; };
