@@ -13,7 +13,6 @@
 
   home.packages = with pkgs; [
     ripgrep
-    silver-searcher
     fd
     fzf
     jq
