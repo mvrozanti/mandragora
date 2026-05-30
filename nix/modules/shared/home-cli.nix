@@ -42,6 +42,7 @@
     nodejs
     yarn
     forge-cli
+    autoclaude
     chafa
     asciinema
     inputs.bruno-tama.packages.${pkgs.system}.default
