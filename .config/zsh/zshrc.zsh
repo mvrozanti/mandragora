@@ -118,8 +118,8 @@ zle -N run_ncmpcpp
 bindkey '^[n' run_nnn
 bindkey '^[w' run_ncmpcpp
 
-c()   { wl-copy }
-co()  { wl-paste }
+c()   { wl-copy "$@" }
+co()  { wl-paste "$@" }
 cov() { nvim "$(co)" }
 
 pa()  { ps aux | grep -v grep | grep -i "${1:-.}" }
