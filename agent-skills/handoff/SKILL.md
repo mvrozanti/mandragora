@@ -23,12 +23,14 @@ The full protocol — file naming, frontmatter schema, status lifecycle — live
 
 ## Arguments
 
-`/handoff [target]` — `target` is a short agent ID: `gemini`, `qwen`, `claude` (different session), etc. Default: `gemini` if omitted. If unsure, ask once.
+`/handoff [target]` — `target` is a short agent ID: `claude`, `gemini`, `qwen`, etc.
+
+**Default target: `claude`.** The most common case is the user changing working directory or starting a fresh Claude session to continue the same task. Only use `gemini` / `qwen` / etc. when the user explicitly names one. Never ask "to whom?" — pick `claude` and let the user redirect.
 
 ## Workflow
 
 ```
-1. Resolve     target = arg or "gemini"; from = "claude-<model-suffix>"
+1. Resolve     target = arg or "claude"; from = "claude-<model-suffix>"
 2. Gather      Synthesize from current conversation:
                  - Task: one paragraph, what + why
                  - Files touched: scan recent edits + git status if in a repo
@@ -37,12 +39,14 @@ The full protocol — file naming, frontmatter schema, status lifecycle — live
                  - Next step: literal next action
                  - Open questions
                  - Pointers: file:line references that matter
-3. Draft       Show the user the full handoff content. Ask for ack/edits.
-4. Write       Path: ~/.ai-shared/handoffs/<UTC-ISO>-claude-to-<target>.md
+3. Write       Path: ~/.ai-shared/handoffs/<UTC-ISO>-claude-to-<target>.md
                  Timestamp format: YYYYMMDDTHHMMSSZ (no separators, sorts lexically)
                  Frontmatter: status: open
-5. Confirm     Tell the user the path and that it's ready for /pickup on the
-               receiving side.
+                 Write immediately. No draft-then-ack step — user invoked
+                 /handoff to offload context, not to review a draft. Use the
+                 gathered state directly.
+4. Confirm     Tell the user the path with a one-line summary so they can
+                 spot obvious mistakes and ask for a follow-up handoff.
 ```
 
 ## File Format
@@ -96,7 +100,7 @@ The `created:` field inside the frontmatter is the same instant in standard ISO 
 
 ## Critical Rules
 
-1. **Always show the draft first.** A handoff is a high-leverage artifact — the receiver acts on it. The user must ack before write.
+1. **Write immediately, no draft-ack.** The user invoked `/handoff` to offload context, not to babysit a review loop. Gather state, write the file, report the path. If the user spots a mistake they ask for a follow-up handoff.
 2. **Ground everything in current state, not memory.** Run `git status`, `git worktree list`, etc. before claiming "files touched" or "worktrees". A handoff that lies about state is worse than no handoff.
 3. **Be specific in "Next step".** "Continue the work" is useless. Name the file, the line, the command.
 4. **Don't include secrets.** Never paste `secrets/` contents, env tokens, or credentials. Reference paths only.
