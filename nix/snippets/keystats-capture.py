@@ -33,8 +33,15 @@ WORD_RACE_WINDOW = 0.25
 WORD_MIN_LEN = 4
 WORD_MAX_LEN = 12
 WORD_ENTROPY_MAX = 3.5
-WORD_MIN_BUCKETS = 3
+WORD_MIN_OCCURRENCES = 5
+WORD_MIN_DAYS = 3
 CANDIDATE_CAP = 5000
+
+SHAPE_BLOCK_RE = re.compile(
+    r"\d{3}|"
+    r"^[a-z0-9]{16,}$|"
+    r"(?:com|net|org|io|dev|app|cc|br|co)$"
+)
 
 BLOCKED_CLASSES = {
     "hyprland-polkit-agent",
@@ -106,6 +113,8 @@ def word_filtered(w: str) -> bool:
         return True
     if shannon_entropy(w) > WORD_ENTROPY_MAX:
         return True
+    if SHAPE_BLOCK_RE.search(w):
+        return True
     return False
 
 
@@ -125,7 +134,7 @@ class State:
         self.class_keystroke_counts = {}
         self.shift_down = False
         self.word_buf = []
-        self.word_candidates = defaultdict(set)
+        self.word_candidates = defaultdict(dict)
         self.word_persist_queue = {}
         self.word_dropped_filter = 0
 
@@ -177,6 +186,12 @@ def open_text_db(key_hex: str):
           word TEXT PRIMARY KEY,
           count INTEGER NOT NULL,
           last_seen INTEGER NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS word_candidate(
+          word TEXT NOT NULL,
+          day  INTEGER NOT NULL,
+          count INTEGER NOT NULL,
+          PRIMARY KEY(word, day)
         );
         """
     )
@@ -333,10 +348,12 @@ def finalize_word(state: State, ts: float) -> None:
     if word_filtered(word):
         state.word_dropped_filter += 1
         return
-    minute = int(ts // 60)
-    state.word_candidates[word].add(minute)
-    if len(state.word_candidates[word]) >= WORD_MIN_BUCKETS:
-        state.word_persist_queue[word] = state.word_persist_queue.get(word, 0) + 1
+    day = int(ts // 86400)
+    days = state.word_candidates[word]
+    days[day] = days.get(day, 0) + 1
+    total = sum(days.values())
+    if total >= WORD_MIN_OCCURRENCES and len(days) >= WORD_MIN_DAYS:
+        state.word_persist_queue[word] = state.word_persist_queue.get(word, 0) + total
         del state.word_candidates[word]
     if len(state.word_candidates) > CANDIDATE_CAP:
         for k in list(state.word_candidates.keys())[:CANDIDATE_CAP // 4]:
@@ -450,14 +467,30 @@ def flush_loop(state: State, stop: threading.Event, conn) -> None:
             print(f"keystats: flush error: {e}", file=sys.stderr)
 
 
+def load_candidates(state: State, text_conn) -> None:
+    cur = text_conn.cursor()
+    rows = cur.execute("SELECT word, day, count FROM word_candidate").fetchall()
+    cutoff_day = int(time.time() // 86400) - 30
+    stale = 0
+    with state.lock:
+        for w, d, c in rows:
+            if d < cutoff_day:
+                stale += 1
+                continue
+            state.word_candidates[w][d] = c
+    if stale:
+        cur.execute("DELETE FROM word_candidate WHERE day < ?", (cutoff_day,))
+        text_conn.commit()
+
+
 def text_flush(state: State, text_conn) -> None:
     with state.lock:
         queue = state.word_persist_queue
         dropped = state.word_dropped_filter
-        candidates_n = len(state.word_candidates)
+        candidates = {w: dict(d) for w, d in state.word_candidates.items()}
         state.word_persist_queue = {}
         state.word_dropped_filter = 0
-    if not queue and dropped == 0:
+    if not queue and dropped == 0 and not candidates:
         return
     now = int(time.time())
     cur = text_conn.cursor()
@@ -467,10 +500,18 @@ def text_flush(state: State, text_conn) -> None:
             "ON CONFLICT(word) DO UPDATE SET count = count + excluded.count, last_seen = excluded.last_seen",
             (word, c, now),
         )
+        cur.execute("DELETE FROM word_candidate WHERE word = ?", (word,))
+    for word, days in candidates.items():
+        for day, c in days.items():
+            cur.execute(
+                "INSERT INTO word_candidate(word, day, count) VALUES(?, ?, ?) "
+                "ON CONFLICT(word, day) DO UPDATE SET count = excluded.count",
+                (word, day, c),
+            )
     text_conn.commit()
     print(
         f"keystats: text flush new_words={len(queue)} total_increments={sum(queue.values())} "
-        f"candidates={candidates_n} dropped_by_filter={dropped}",
+        f"candidates={len(candidates)} dropped_by_filter={dropped}",
         file=sys.stderr,
     )
 
@@ -494,6 +535,8 @@ def main() -> None:
             file=sys.stderr,
         )
     state = State()
+    if text_conn is not None:
+        load_candidates(state, text_conn)
     stop = threading.Event()
 
     def shutdown(*_):
