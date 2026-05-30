@@ -1,0 +1,64 @@
+services:
+
+  ofin-db:
+    image: postgres:16-alpine
+    container_name: ofin-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ofin
+      POSTGRES_PASSWORD: ${OFIN_DB_PASSWORD:-ofin}
+      POSTGRES_DB: ofin
+    volumes:
+      - ${OFIN_DB_DIR:-/home/opc/ofin/db}:/var/lib/postgresql/data
+    networks:
+      - seafile-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ofin -d ofin"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  ofin:
+    image: ${OFIN_IMAGE:-ofin:latest}
+    container_name: ofin
+    restart: unless-stopped
+    depends_on:
+      ofin-db:
+        condition: service_healthy
+    environment:
+      PLUGGY_CLIENT_ID: ${PLUGGY_CLIENT_ID}
+      PLUGGY_CLIENT_SECRET: ${PLUGGY_CLIENT_SECRET}
+      PLUGGY_WEBHOOK_SECRET: ${PLUGGY_WEBHOOK_SECRET}
+      PUBLIC_BASE_URL: https://ofin.${MVR_AC:-mvr.ac}
+      DATABASE_URL: postgresql+asyncpg://ofin:${OFIN_DB_PASSWORD:-ofin}@ofin-db:5432/ofin
+      DEFAULT_USER: ${OFIN_DEFAULT_USER:-m}
+      TIMEZONE: America/Sao_Paulo
+      LOG_LEVEL: info
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://ofin.${MVR_AC:-mvr.ac}
+      caddy.encode: zstd gzip
+      caddy.0_handle.forward_auth: "authelia:9091"
+      caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.0_handle.reverse_proxy: "{{upstreams 8080}}"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  seafile-net:
+    external: true
