@@ -1,9 +1,13 @@
 { config, lib, pkgs, ... }:
 
 let
-  root = "/persistent/mandragora/.local/share/voice-control";
-  src = "${root}/main.py";
-  staticDir = "${root}/static";
+  srcDir = pkgs.runCommandLocal "voice-control-src" {} ''
+    mkdir -p $out
+    cp ${../../../.local/share/voice-control/main.py} $out/main.py
+    cp -r ${../../../.local/share/voice-control/static} $out/static
+  '';
+  src = "${srcDir}/main.py";
+  staticDir = "${srcDir}/static";
   pyEnv = pkgs.python3.withPackages (ps: [ ps.aiohttp ]);
 
   presetNames = [
