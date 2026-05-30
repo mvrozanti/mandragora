@@ -84,14 +84,19 @@ def init_db() -> None:
     for stmt in (
         "ALTER TABLE watchers ADD COLUMN requires_ack INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE watchers ADD COLUMN reminder_interval INTEGER NOT NULL DEFAULT 3600",
+        "ALTER TABLE watchers ADD COLUMN ai_spec TEXT",
         "ALTER TABLE events ADD COLUMN acked_at TEXT",
         "ALTER TABLE events ADD COLUMN last_reminder_at TEXT",
+        "ALTER TABLE events ADD COLUMN ai_verdict TEXT",
+        "ALTER TABLE events ADD COLUMN ai_reason TEXT",
+        "ALTER TABLE events ADD COLUMN ai_judged_at TEXT",
     ):
         try:
             c.execute(stmt)
         except sqlite3.OperationalError:
             pass
     c.execute("CREATE INDEX IF NOT EXISTS events_unacked ON events(acked_at, last_reminder_at)")
+    c.execute("CREATE INDEX IF NOT EXISTS events_ai_verdict ON events(ai_verdict, ai_judged_at)")
     c.close()
 
 
@@ -130,6 +135,7 @@ def watcher_dict(row: sqlite3.Row, event_count: int = 0, unacked: int = 0) -> di
         "last_error": row["last_error"],
         "requires_ack": bool(row["requires_ack"]),
         "reminder_interval": int(row["reminder_interval"]),
+        "ai_spec": row["ai_spec"] if "ai_spec" in row.keys() else None,
         "event_count": event_count,
         "unacked_count": unacked,
     }
@@ -203,11 +209,14 @@ async def create_watcher(payload: dict) -> dict:
     reminder_interval = int(payload.get("reminder_interval") or 3600)
     if reminder_interval < 60:
         reminder_interval = 60
+    ai_spec = payload.get("ai_spec")
+    if ai_spec is not None:
+        ai_spec = str(ai_spec)[:4000] or None
     c = conn()
     try:
         c.execute(
-            "INSERT INTO watchers (kind, target, name, created_at, requires_ack, reminder_interval) VALUES (?, ?, ?, ?, ?, ?)",
-            (kind, target, name, now_iso(), requires_ack, reminder_interval),
+            "INSERT INTO watchers (kind, target, name, created_at, requires_ack, reminder_interval, ai_spec) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (kind, target, name, now_iso(), requires_ack, reminder_interval, ai_spec),
         )
     except sqlite3.IntegrityError:
         c.close()
@@ -236,6 +245,13 @@ async def patch_watcher(wid: int, payload: dict) -> dict:
     if "name" in payload:
         fields.append("name = ?")
         params.append(str(payload["name"])[:200])
+    if "ai_spec" in payload:
+        spec = payload["ai_spec"]
+        if spec in (None, ""):
+            fields.append("ai_spec = NULL")
+        else:
+            fields.append("ai_spec = ?")
+            params.append(str(spec)[:4000])
     if not fields:
         raise HTTPException(400, "nothing to update")
     params.append(wid)
@@ -323,10 +339,11 @@ async def list_events(
     before: int | None = None,
     watcher_id: int | None = None,
     unacked: int = 0,
+    verdict: str | None = None,
 ) -> list[dict]:
     c = conn()
     q = """
-        SELECT e.*, w.name AS w_name, w.kind AS w_kind, w.target AS w_target, w.requires_ack AS w_req
+        SELECT e.*, w.name AS w_name, w.kind AS w_kind, w.target AS w_target, w.requires_ack AS w_req, w.ai_spec AS w_spec
         FROM events e JOIN watchers w ON w.id = e.watcher_id
     """
     where = []
@@ -339,6 +356,12 @@ async def list_events(
         params.append(before)
     if unacked:
         where.append("e.acked_at IS NULL")
+    if verdict:
+        if verdict.lower() == "pending":
+            where.append("e.ai_verdict IS NULL AND w.ai_spec IS NOT NULL")
+        else:
+            where.append("e.ai_verdict = ?")
+            params.append(verdict.upper())
     if where:
         q += " WHERE " + " AND ".join(where)
     q += " ORDER BY e.id DESC LIMIT ?"
@@ -353,6 +376,7 @@ async def list_events(
             "watcher_kind": r["w_kind"],
             "watcher_target": r["w_target"],
             "watcher_requires_ack": bool(r["w_req"]),
+            "watcher_has_ai": bool(r["w_spec"]),
             "external_id": r["external_id"],
             "title": r["title"],
             "summary": r["summary"],
@@ -361,6 +385,9 @@ async def list_events(
             "received_at": r["received_at"],
             "acked_at": r["acked_at"],
             "last_reminder_at": r["last_reminder_at"],
+            "ai_verdict": r["ai_verdict"],
+            "ai_reason": r["ai_reason"],
+            "ai_judged_at": r["ai_judged_at"],
         })
     c.close()
     return out
@@ -410,3 +437,36 @@ async def ack_all(wid: int) -> dict:
     )
     c.close()
     return {"ok": True, "acked": cur.rowcount}
+
+
+@app.post("/api/events/{eid}/judge")
+async def rejudge_event(eid: int) -> dict:
+    import judge
+    c = conn()
+    row = c.execute(
+        """
+        SELECT e.*, w.ai_spec AS w_spec, w.kind AS w_kind, w.target AS w_target, w.name AS w_name
+        FROM events e JOIN watchers w ON w.id = e.watcher_id WHERE e.id = ?
+        """,
+        (eid,),
+    ).fetchone()
+    if not row:
+        c.close()
+        raise HTTPException(404, "event not found")
+    if not row["w_spec"]:
+        c.close()
+        raise HTTPException(400, "watcher has no ai_spec")
+    try:
+        verdict, reason = await judge.judge_event(row["w_spec"], dict(row))
+    except judge.QuotaExceeded as exc:
+        c.close()
+        raise HTTPException(429, f"gemini quota exceeded: {exc}")
+    except Exception as exc:
+        c.close()
+        raise HTTPException(502, f"judge failed: {exc}")
+    c.execute(
+        "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_judged_at = ? WHERE id = ?",
+        (verdict, reason[:500], now_iso(), eid),
+    )
+    c.close()
+    return {"ok": True, "verdict": verdict, "reason": reason}
