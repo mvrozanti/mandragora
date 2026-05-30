@@ -10,9 +10,8 @@
 #   REMOTE           ssh target              default opc@mandragora-vps
 #   REMOTE_DIR       slot on VPS             default /home/opc/ofin
 #   LOCAL_REPO       app source              default ~/Projects/ofin
-#   SOPS_FILE        sops yaml               default <repo>/secrets/secrets.yaml
-#   AGE_KEY_FILE     sudo cat'd if unreadable default /persistent/secrets/keys.txt
-#   PLUGGY_WEBHOOK_SECRET   optional HMAC secret, blank = unverified
+#   PLUGGY_CLIENT_SECRET_FILE  override the sops-nix path
+#   PLUGGY_WEBHOOK_SECRET      optional HMAC secret, blank = unverified
 
 set -euo pipefail
 
@@ -20,8 +19,7 @@ REMOTE="${REMOTE:-opc@mandragora-vps}"
 REMOTE_DIR="${REMOTE_DIR:-/home/opc/ofin}"
 LOCAL_REPO="${LOCAL_REPO:-$HOME/Projects/ofin}"
 COMPOSE_SRC="$(cd "$(dirname "$0")" && pwd)/docker-compose.yml"
-SOPS_FILE="${SOPS_FILE:-/etc/nixos/mandragora/secrets/secrets.yaml}"
-AGE_KEY_FILE="${AGE_KEY_FILE:-/persistent/secrets/keys.txt}"
+PLUGGY_CLIENT_SECRET_FILE="${PLUGGY_CLIENT_SECRET_FILE:-/run/secrets/pluggy/client_secret}"
 
 PLUGGY_CLIENT_ID="${PLUGGY_CLIENT_ID:-6563d062-2132-48de-acb2-0e0c83525275}"
 PLUGGY_WEBHOOK_SECRET="${PLUGGY_WEBHOOK_SECRET:-}"
@@ -34,20 +32,15 @@ if [[ ! -f "$COMPOSE_SRC" ]]; then
   echo "ERR: docker-compose.yml not found next to deploy.sh" >&2
   exit 1
 fi
+if [[ ! -r "$PLUGGY_CLIENT_SECRET_FILE" ]]; then
+  echo "ERR: $PLUGGY_CLIENT_SECRET_FILE not readable. Run \`sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora\` so sops-nix mounts pluggy/client_secret, or override with PLUGGY_CLIENT_SECRET_FILE=." >&2
+  exit 1
+fi
 
-decrypt_secret() {
-  local path="$1"
-  if [[ -r "$AGE_KEY_FILE" ]]; then
-    SOPS_AGE_KEY_FILE="$AGE_KEY_FILE" sops -d --extract "$path" "$SOPS_FILE"
-  else
-    SOPS_AGE_KEY="$(sudo cat "$AGE_KEY_FILE")" sops -d --extract "$path" "$SOPS_FILE"
-  fi
-}
-
-echo "→ extracting pluggy client_secret from sops"
-PLUGGY_CLIENT_SECRET="$(decrypt_secret '["pluggy"]["client_secret"]')"
+echo "→ reading pluggy client_secret from $PLUGGY_CLIENT_SECRET_FILE"
+PLUGGY_CLIENT_SECRET="$(< "$PLUGGY_CLIENT_SECRET_FILE")"
 if [[ -z "$PLUGGY_CLIENT_SECRET" ]]; then
-  echo "ERR: pluggy/client_secret empty after decrypt" >&2
+  echo "ERR: pluggy/client_secret file empty" >&2
   exit 1
 fi
 
