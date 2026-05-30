@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-import base64
-import hmac
 import json
 import os
 import re
@@ -20,7 +18,6 @@ PORT = int(os.environ.get("KEYSTATS_WEB_PORT", "6900"))
 TEXT_DB_KEY_FILE = os.environ.get("KEYSTATS_TEXT_DB_KEY_FILE", "").strip()
 TEXT_DB_PATH = os.environ.get("KEYSTATS_TEXT_DB_PATH", "").strip()
 TEXT_ENABLED = bool(TEXT_DB_KEY_FILE and TEXT_DB_PATH and Path(TEXT_DB_PATH).exists())
-WORDS_BASICAUTH_FILE = os.environ.get("KEYSTATS_WORDS_BASICAUTH_FILE", "").strip()
 
 CSP = (
     "default-src 'self'; "
@@ -43,35 +40,6 @@ def load_key() -> str:
 
 KEY_HEX = ""
 TEXT_KEY_HEX = ""
-WORDS_USER = ""
-WORDS_HASH = ""
-
-
-def load_words_basicauth() -> tuple:
-    raw = Path(WORDS_BASICAUTH_FILE).read_text().strip()
-    if ":" not in raw:
-        sys.exit(f"keystats: words basicauth at {WORDS_BASICAUTH_FILE} must be 'user:bcrypt-hash'")
-    u, _, h = raw.partition(":")
-    return u, h
-
-
-def check_basicauth(header: str) -> bool:
-    if not header or not header.startswith("Basic "):
-        return False
-    try:
-        raw = base64.b64decode(header[6:].strip()).decode("utf-8", "ignore")
-    except Exception:
-        return False
-    if ":" not in raw:
-        return False
-    u, _, p = raw.partition(":")
-    if not hmac.compare_digest(u, WORDS_USER):
-        return False
-    try:
-        import bcrypt
-        return bcrypt.checkpw(p.encode(), WORDS_HASH.encode())
-    except Exception:
-        return False
 
 
 def load_text_key() -> str:
@@ -168,8 +136,7 @@ INDEX_HTML = r"""<!doctype html>
 
   <section id="words-section" hidden>
     <h2>wordcloud</h2>
-    <div id="words-gate"><button id="words-reveal">reveal wordcloud</button></div>
-    <div id="words" hidden></div>
+    <div id="words"></div>
   </section>
 </main>
 <script src="/static/app.js"></script>
@@ -252,8 +219,6 @@ svg .line { fill: none; stroke: var(--accent); stroke-width: 1.5; }
 #weekday .dow { color: var(--dim); text-transform: uppercase; align-self: center; }
 #weekday .h { color: var(--dim); text-align: center; padding-bottom: 2px; }
 #weekday .cell { background: var(--line); aspect-ratio: 1; border-radius: 2px; }
-#words-gate button { background: var(--line); color: var(--fg); border: 1px solid var(--accent); padding: 8px 14px; border-radius: 4px; cursor: pointer; font: inherit; }
-#words-gate button:hover { background: var(--accent); color: var(--bg); }
 #words { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; line-height: 1.1; }
 #words .w { color: var(--fg); }
 #words .w.hot { color: var(--hot); }
@@ -516,21 +481,10 @@ function renderWords(rows){
 
 async function setupWords(){
   try{
-    const head = await fetch("/api/words", { method: "HEAD" });
-    if(head.status === 404 || head.status === 503) return;
-  }catch(e){ return; }
-  const section = document.getElementById("words-section");
-  section.hidden = false;
-  document.getElementById("words-reveal").addEventListener("click", async () => {
-    try{
-      const rows = await fetchJson("/api/words");
-      document.getElementById("words-gate").hidden = true;
-      document.getElementById("words").hidden = false;
-      renderWords(rows);
-    }catch(e){
-      document.getElementById("words-gate").innerHTML = '<span class="w dim">auth failed: '+e.message+'</span>';
-    }
-  });
+    const rows = await fetchJson("/api/words");
+    document.getElementById("words-section").hidden = false;
+    renderWords(rows);
+  }catch(e){ /* 404 = disabled, leave hidden */ }
 }
 setupWords();
 
@@ -794,15 +748,6 @@ class Handler(BaseHTTPRequestHandler):
             if not TEXT_ENABLED:
                 respond(self, 404, b"not enabled\n", "text/plain")
                 return
-            if not WORDS_HASH:
-                respond(self, 503, b"basicauth not configured\n", "text/plain")
-                return
-            if not check_basicauth(self.headers.get("Authorization", "")):
-                self.send_response(401)
-                self.send_header("WWW-Authenticate", 'Basic realm="kl-words"')
-                self.send_header("Content-Length", "0")
-                self.end_headers()
-                return
             try:
                 data = q_words()
             except sqlcipher3.DatabaseError as e:
@@ -830,12 +775,10 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    global KEY_HEX, TEXT_KEY_HEX, WORDS_USER, WORDS_HASH
+    global KEY_HEX, TEXT_KEY_HEX
     KEY_HEX = load_key()
     if TEXT_ENABLED:
         TEXT_KEY_HEX = load_text_key()
-        if WORDS_BASICAUTH_FILE and Path(WORDS_BASICAUTH_FILE).exists():
-            WORDS_USER, WORDS_HASH = load_words_basicauth()
     srv = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"keystats-web listening on {HOST}:{PORT}", file=sys.stderr)
     try:
