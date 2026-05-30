@@ -5,17 +5,13 @@ let
   textEnabled = cfg.captureText.enable;
   textAllowlist = builtins.concatStringsSep "," cfg.captureText.allowedClasses;
 
-  pyEnv = pkgs.python3.withPackages (ps: with ps; [ evdev sqlcipher3 bcrypt ]);
+  pyEnv = pkgs.python3.withPackages (ps: with ps; [ evdev sqlcipher3 ]);
 
   textEnvExports = lib.optionalString textEnabled ''
     export KEYSTATS_TEXT_DB_KEY_FILE="''${KEYSTATS_TEXT_DB_KEY_FILE:-/run/secrets/keystats-text-db-key}"
     export KEYSTATS_TEXT_DB_PATH="''${KEYSTATS_TEXT_DB_PATH:-/persistent/keystats/text.db}"
     export KEYSTATS_TEXT_ALLOWLIST="''${KEYSTATS_TEXT_ALLOWLIST:-${textAllowlist}}"
     export KEYSTATS_TEXT_BLACKLIST_FILE="''${KEYSTATS_TEXT_BLACKLIST_FILE:-/persistent/keystats/blacklist.txt}"
-  '';
-
-  webExtraExports = lib.optionalString textEnabled ''
-    export KEYSTATS_WORDS_BASICAUTH_FILE="''${KEYSTATS_WORDS_BASICAUTH_FILE:-/run/secrets/keystats-words-basicauth}"
   '';
 
   captureBin = pkgs.writeShellApplication {
@@ -39,7 +35,6 @@ let
       export KEYSTATS_WEB_HOST="''${KEYSTATS_WEB_HOST:-0.0.0.0}"
       export KEYSTATS_WEB_PORT="''${KEYSTATS_WEB_PORT:-6900}"
       ${textEnvExports}
-      ${webExtraExports}
       exec ${pyEnv}/bin/python3 ${../../snippets/keystats-web.py} "$@"
     '';
   };
@@ -92,11 +87,6 @@ in
         owner = "m";
         mode = "0400";
         path = "/run/secrets/keystats-text-db-key";
-      };
-      "keystats/words_basicauth" = {
-        owner = "m";
-        mode = "0400";
-        path = "/run/secrets/keystats-words-basicauth";
       };
     };
 
