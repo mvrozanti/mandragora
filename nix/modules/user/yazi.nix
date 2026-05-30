@@ -181,6 +181,9 @@ in
         border_style = { fg = "reset"; };
         hovered = { fg = "black"; bg = "yellow"; };
         preview_hovered = { underline = true; };
+        selected = { fg = "black"; bg = "magenta"; };
+        copied = { fg = "black"; bg = "green"; };
+        cut = { fg = "black"; bg = "red"; };
         find_keyword = { fg = "yellow"; bold = true; italic = true; underline = true; };
         find_position = { fg = "magenta"; bold = true; italic = true; };
         marker_copied = { fg = "green"; };
@@ -220,7 +223,6 @@ in
         { on = "d"; run = "yank --cut"; desc = "Cut (lf style)"; }
         { on = "x"; run = "escape"; desc = "Neutralized (lf had no x)"; }
         { on = "r"; run = "escape"; desc = "Neutralized — use a/cw/A"; }
-        { on = "v"; run = "escape"; desc = "Neutralized (visual mode hidden by no-status)"; }
         { on = "<Tab>"; run = "escape"; desc = "Neutralized (no tabs habit from lf)"; }
         { on = "1"; run = "escape"; desc = "Neutralized (no tab digits)"; }
         { on = "2"; run = "escape"; desc = "Neutralized (no tab digits)"; }
