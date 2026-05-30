@@ -14,7 +14,7 @@ alias x='xargs '
 alias F='fzf'
 alias rp='realpath'
 alias rp.='realpath .'
-alias rp.c='realpath . | c'
+alias rp.c='realpath . | tr -d "\n" | c'
 alias pwdc='pwd | tr -d "\n" | c'
 alias S='du -sh'
 alias filesize='du -h'
@@ -123,7 +123,7 @@ alias cocp='cp "$(co)"'
 cocp.() { cp "$(co)" . }
 comv.() { mv "$(co)" . }
 alias cowv='co | xargs wget'
-alias corpc='co | xargs -I{} realpath "{}" | c'
+alias corpc='co | xargs -I{} realpath "{}" | tr -d "\n" | c'
 alias cofile='co | xargs file'
 alias cojq='co | jq'
 alias cojqv-='co | jq | v -'
@@ -389,7 +389,7 @@ alias make-gource-mandragora='git --no-pager log --date=raw | grep -E "^\s+.+|Da
 alias tls='task list'
 td() { [[ -n "$@" ]] && task "$@" delete }
 alias ta='task add'
-rpc() { realpath "$@" | c }
+rpc() { realpath "$@" | tr -d "\n" | c }
 
 sa() { awk -v name="$*" 'BEGIN{re="^(alias )?"name"(=|\\()"} $0~re{p=1;print;if($0~"^alias "||$0~"}.*;? *$")p=0;next} p{print;if($0~"^} *;? *$")p=0}' "${BASH_SOURCE[0]:-${(%):-%x}}" }
 
