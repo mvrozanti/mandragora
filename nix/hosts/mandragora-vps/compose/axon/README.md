@@ -3,12 +3,12 @@
 VPS-side caddy reverse-proxy for `https://axon.mvr.ac`. Two desktop
 services back it (per the decouple-UI-from-core directive):
 
-- `axon-core` (loopback `127.0.0.1:7070`) — the upstream
+- `axon` (loopback `127.0.0.1:7070`) — the upstream
   [axon](https://github.com/HideakiSolutions/axon) C++ HTTP API.
 - `axon-web` (tailnet `100.115.80.79:8081`) — sibling project at
   `~/Projects/axon-web`. Preact SPA + ~150 LoC Node runtime that
   serves the SPA, adds `GET /api/whoami` from forward-auth headers,
-  and reverse-proxies the rest of `/api/*` to `axon-core`.
+  and reverse-proxies the rest of `/api/*` to `axon`.
 
 The VPS terminates TLS, runs Authelia 2FA, and proxies to `axon-web`.
 
@@ -25,10 +25,10 @@ browser → axon.mvr.ac (caddy on VPS) → forward_auth(authelia)
        → reverse_proxy → 100.115.80.79:8081  (desktop, axon-web)
             ├── GET /             → static SPA (dist/)
             ├── GET /api/whoami   → echoes Remote-User / Remote-Email
-            └── /api/*            → 127.0.0.1:7070  (axon-core, upstream axon)
+            └── /api/*            → 127.0.0.1:7070  (axon, upstream axon)
 ```
 
-`axon-core` only listens on loopback — only `axon-web` is exposed on
+`axon` only listens on loopback — only `axon-web` is exposed on
 the tailnet, so the API can't be hit without going through Authelia
 and the whoami layer.
 
@@ -81,7 +81,7 @@ ssh opc@mandragora-vps 'cd /home/opc/axon && docker compose up -d'
 - Hub tile + `hub/config/services.yaml` entry must be present so
   `mandragora-audit 05-hub-tile` stays green.
 - Desktop must run **both** systemd user services:
-  - `axon-core` — needs `axon` on PATH (or `~/.local/bin/axon` or
+  - `axon` — needs `axon` on PATH (or `~/.local/bin/axon` or
     `~/Projects/axon/build/axon`),
   - `axon-web` — needs `node` and `~/Projects/axon-web/dist/index.html`
     (cd ~/Projects/axon-web && npm install && npm run build).
