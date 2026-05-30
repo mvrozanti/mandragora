@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1778620871,
-        "narHash": "sha256-IjyE8eDfpxKqi6fWMw1Egkkk4awN7FqDyA4tDJzWqBM=",
+        "lastModified": 1780147562,
+        "narHash": "sha256-nHEUTP5uj69G0oy1yPD/qHCS8oujcPYWvvFVJNShOpw=",
         "owner": "mvrozanti",
         "repo": "bruno-tama",
-        "rev": "48ed923b93ae08f2b51733c8b1ab43a6fd69efba",
+        "rev": "c62e651a22ca438a7e150fde16c58eebdd11885e",
         "type": "github"
       },
       "original": {
