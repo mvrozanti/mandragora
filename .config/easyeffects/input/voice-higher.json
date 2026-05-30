@@ -1,0 +1,26 @@
+{
+  "input": {
+    "blocklist": [],
+    "plugins_order": ["rnnoise#0", "pitch#0"],
+    "rnnoise#0": {
+      "bypass": false,
+      "enable-vad": false,
+      "input-gain": 0.0,
+      "output-gain": 0.0,
+      "release": 20.0,
+      "vad-thres": 0.5,
+      "wet": 0.0
+    },
+    "pitch#0": {
+      "bypass": false,
+      "cents": 0.0,
+      "crispness": 3,
+      "formant-preserving": false,
+      "formant-shift": 2.0,
+      "input-gain": 0.0,
+      "mode": "Speech",
+      "output-gain": 0.0,
+      "semitones": 4.0
+    }
+  }
+}

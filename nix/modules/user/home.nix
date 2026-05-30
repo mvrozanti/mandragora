@@ -182,6 +182,9 @@ in
 
     khal
     cava
+    calf
+    lsp-plugins
+    rnnoise-plugin
     calcurse
     clisp
     php
