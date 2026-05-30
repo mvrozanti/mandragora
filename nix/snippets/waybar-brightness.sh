@@ -43,7 +43,7 @@ EOF
 apply() {
     local pct=$1
     if [[ "$pct" -ge 100 ]]; then
-        hyprctl keyword decoration:screen_shader '[[EMPTY]]' >/dev/null
+        hyprctl keyword decoration:screen_shader '' >/dev/null
         return
     fi
     write_shader "$pct"
