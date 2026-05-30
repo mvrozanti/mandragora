@@ -2,6 +2,7 @@
 
 let
   botPython = import ../../pkgs/bot-python.nix { inherit pkgs; };
+  teacherPython = import ../../pkgs/teacher-python.nix { inherit pkgs; };
   llmViaTelegramRoot = "/home/m/Projects/llm-via-telegram";
   gpuLockRoot = "/etc/nixos/mandragora/.local/share/gpu-lock";
   llmViaTelegramState = "/home/m/.local/share/llm-via-telegram";
@@ -226,20 +227,21 @@ in
       After = [ "graphical-session.target" "network-online.target" ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [
-        "${teacherRoot}/bot.sh"
-        "${teacherRoot}/.venv/bin/python"
+        "${teacherRoot}/teacher/main.py"
+        "${teacherRoot}/AGENTS.md"
       ];
     };
     Service = {
       Type = "simple";
       WorkingDirectory = teacherRoot;
-      ExecStart = "${teacherRoot}/bot.sh";
+      ExecStart = "${teacherPython}/bin/python -m teacher.main";
       EnvironmentFile = [
         osConfig.sops.templates."teacher_teach/env".path
         "-${teacherState}/.env"
       ];
       Environment = [
         "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
+        "PYTHONPATH=${teacherRoot}"
         "TEACHER_DB_PATH=${teacherState}/data/teacher.db"
         "TEACHER_BOOKS_DIR=/home/m/Documents/library/books"
         "TEACHER_AGENTS_MD=${teacherRoot}/AGENTS.md"
