@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>voice — mvr.ac</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>voice</h1>
+    <div class="sub">real-time mic morph · easyeffects · pipewire</div>
+  </header>
+
+  <section class="status">
+    <div class="row">
+      <span class="label">active</span>
+      <span id="active" class="value pill">—</span>
+    </div>
+    <div class="row">
+      <span class="label">easyeffects</span>
+      <span id="ee" class="value pill">—</span>
+    </div>
+    <div class="row">
+      <span class="label">virtual mic</span>
+      <span class="value">select <code>EasyEffects Source</code> in Discord / browser</span>
+    </div>
+  </section>
+
+  <section class="bypass-row">
+    <button id="bypass" class="bypass">bypass (clean mic)</button>
+    <button id="preview" class="preview">preview ▶</button>
+    <canvas id="meter" width="320" height="32"></canvas>
+  </section>
+
+  <section>
+    <h2>presets</h2>
+    <div id="grid" class="grid"></div>
+  </section>
+
+  <section class="tier2">
+    <h2>ai voice clone</h2>
+    <div class="muted">w-okada / RVC integration — phase 2, not wired yet. Will appear here once the rvc model loader is in place.</div>
+  </section>
+
+  <footer>desktop · 100.115.80.79:8094 · tailnet-bound</footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

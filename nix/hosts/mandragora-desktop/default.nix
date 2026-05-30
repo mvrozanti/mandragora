@@ -50,6 +50,7 @@
     ../../modules/services/gource-renderer-prewarm.nix
     ../../modules/services/ytdl-web.nix
     ../../modules/services/vtag-web.nix
+    ../../modules/services/voice-control.nix
     ../../modules/user/home-manager.nix
     ../../modules/audits/default.nix
   ];

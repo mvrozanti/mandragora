@@ -31,6 +31,10 @@
         href: https://stt.mvr.ac
         description: Speech-to-text (faster-whisper large-v3 on desktop GPU) — web UI + REST; shared core for Telegram bot
         icon: si-openai.svg
+    - voice:
+        href: https://voice.mvr.ac
+        description: Real-time mic morph — EasyEffects preset bank on desktop; exposes virtual mic to Discord/browsers
+        icon: si-rubberband.svg
     - kl:
         href: https://kl.mvr.ac
         description: Keystroke stats — evdev aggregator on the desktop, SQLCipher store, tailnet-only origin
