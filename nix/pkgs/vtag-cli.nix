@@ -4,8 +4,9 @@ let
   vtagSrc = pkgs.fetchFromGitHub {
     owner = "mvrozanti";
     repo = "vtag";
-    rev = "d86cfaeb56f76901800fdcc8ac2706a2e17a447a";
-    sha256 = "02q9siv50brrz5rlnqpmd6hfbmzzdif96m0hc02bvr81lbmf6il3";
+    rev = "c4aee1e9f1c3bb16b335d3f0d8914f7d1b481ff2";
+    # placeholder — bump after pushing vtag; nix will tell you the real hash
+    sha256 = "0000000000000000000000000000000000000000000000000000";
   };
   gpuLockRoot = "/etc/nixos/mandragora/.local/share/gpu-lock";
   botPython = import ./bot-python.nix { inherit pkgs; };
@@ -21,12 +22,21 @@ let
 
   vfind = pkgs.writeShellApplication {
     name = "vfind";
-    runtimeInputs = [ botPython ];
+    runtimeInputs = [ botPython pkgs.exiftool ];
     text = ''
       exec ${botPython}/bin/python3 ${vtagSrc}/find.py "$@"
     '';
   };
+
+  vtag-server = pkgs.writeShellApplication {
+    name = "vtag-server";
+    runtimeInputs = [ botPython pkgs.exiftool ];
+    text = ''
+      export PYTHONPATH=${gpuLockRoot}:${vtagSrc}''${PYTHONPATH:+:$PYTHONPATH}
+      exec ${botPython}/bin/python3 ${vtagSrc}/server.py "$@"
+    '';
+  };
 in
 {
-  inherit vtag vfind;
+  inherit vtag vfind vtag-server;
 }
