@@ -1,0 +1,28 @@
+services:
+
+  fin:
+    image: ${FIN_IMAGE:-fin-mvr-ac:latest}
+    container_name: fin
+    restart: unless-stopped
+    environment:
+      DATA_ROOT: /data
+    volumes:
+      - ${FIN_DATA_DIR:-/home/opc/dnl_paper}:/data:ro
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://fin.${MVR_AC:-mvr.ac}
+      caddy.encode: zstd gzip
+      caddy.0_handle.forward_auth: "authelia:9091"
+      caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.0_handle.reverse_proxy: "{{upstreams 8080}}"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true
