@@ -52,33 +52,62 @@ $("#bypass").onclick = async () => {
   refresh();
 };
 
-let audioCtx, analyser, anim;
+let audioCtx, analyser, anim, mediaStream;
+const picker = $("#device-picker");
+
+async function populateDevices(preferLabel = /easyeffects/i) {
+  try { await navigator.mediaDevices.getUserMedia({ audio: true }).then(s => s.getTracks().forEach(t => t.stop())); } catch {}
+  const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "audioinput");
+  picker.innerHTML = "";
+  for (const d of devs) {
+    const o = document.createElement("option");
+    o.value = d.deviceId;
+    o.textContent = d.label || `mic (${d.deviceId.slice(0, 8)})`;
+    picker.appendChild(o);
+  }
+  const ee = devs.find(d => preferLabel.test(d.label));
+  if (ee) picker.value = ee.deviceId;
+}
+
 $("#preview").onclick = async () => {
   if (audioCtx) { stopPreview(); return; }
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+    const deviceId = picker.value || undefined;
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        deviceId: deviceId ? { exact: deviceId } : undefined,
+        echoCancellation: false, noiseSuppression: false, autoGainControl: false,
+      },
     });
     audioCtx = new AudioContext();
-    const src = audioCtx.createMediaStreamSource(stream);
+    const src = audioCtx.createMediaStreamSource(mediaStream);
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 1024;
+    const gain = audioCtx.createGain();
+    gain.gain.value = 1.0;
     src.connect(analyser);
+    src.connect(gain).connect(audioCtx.destination);
     drawMeter();
     $("#preview").textContent = "stop ■";
+    populateDevices();
   } catch (e) {
-    alert("mic preview blocked: " + e.message);
+    alert("mic monitor blocked: " + e.message);
   }
 };
 
 function stopPreview() {
   cancelAnimationFrame(anim);
+  mediaStream?.getTracks().forEach(t => t.stop());
   audioCtx?.close();
   audioCtx = null;
-  $("#preview").textContent = "preview ▶";
+  mediaStream = null;
+  $("#preview").textContent = "monitor ▶";
   const ctx = $("#meter").getContext("2d");
   ctx.clearRect(0, 0, 320, 32);
 }
+
+picker.onchange = () => { if (audioCtx) { stopPreview(); $("#preview").click(); } };
+populateDevices();
 
 function drawMeter() {
   const buf = new Uint8Array(analyser.fftSize);
