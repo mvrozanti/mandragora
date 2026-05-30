@@ -123,8 +123,8 @@ STYLE_CSS = r"""
 :root {
   --bg: #0e0f12;
   --fg: #d8dee9;
-  --dim: #6b7080;
-  --accent: #88c0d0;
+  --dim: #9aa3b3;
+  --accent: #9fd0e0;
   --hot: #bf616a;
   --warm: #ebcb8b;
   --cool: #5e81ac;
@@ -157,8 +157,9 @@ h2 { font-weight: 400; font-size: 13px; text-transform: uppercase; letter-spacin
   overflow: hidden;
   min-height: 30px;
 }
-.k .lbl { display: block; color: var(--fg); }
-.k .cnt { display: block; color: var(--dim); font-size: 8px; margin-top: 2px; }
+.k .lbl { display: block; color: var(--fg); text-shadow: 0 0 2px rgba(0,0,0,0.85); }
+.k .cnt { display: block; color: var(--fg); opacity: 0.85; font-size: 8px; margin-top: 2px; text-shadow: 0 0 2px rgba(0,0,0,0.85); }
+.k.dark .lbl, .k.dark .cnt { color: #0e0f12; text-shadow: 0 0 2px rgba(255,255,255,0.55); }
 .k.gap { background: transparent; }
 .k.w2 { grid-column: span 2; }
 .k.w3 { grid-column: span 3; }
@@ -179,9 +180,9 @@ svg .line { fill: none; stroke: var(--accent); stroke-width: 1.5; }
 .card .v { display: block; font-size: 22px; color: var(--accent); font-variant-numeric: tabular-nums; }
 .card .l { display: block; font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
 .split { display: flex; height: 28px; border-radius: 3px; overflow: hidden; font-size: 11px; }
-.split > div { display: flex; align-items: center; justify-content: center; color: #0e0f12; font-weight: 600; }
-.split .left  { background: var(--cool); }
-.split .right { background: var(--warm); }
+.split > div { display: flex; align-items: center; justify-content: center; font-weight: 600; }
+.split .left  { background: var(--cool); color: #f5f7fa; }
+.split .right { background: var(--warm); color: #0e0f12; }
 .rowbars { display: flex; flex-direction: column; gap: 6px; }
 .rowbars .row { display: grid; grid-template-columns: 80px 1fr 48px; align-items: center; gap: 8px; font-size: 11px; }
 .rowbars .row .lbl { color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; }
@@ -226,7 +227,7 @@ const KB_ROWS = [
 
 function clamp01(x){return Math.max(0,Math.min(1,x));}
 
-function colorFor(intensity){
+function rgbFor(intensity){
   const c1 = [42,45,53];
   const c2 = [136,192,208];
   const c3 = [235,203,139];
@@ -236,7 +237,14 @@ function colorFor(intensity){
   if(intensity<0.33){rgb=lerp(c1,c2,intensity/0.33);}
   else if(intensity<0.66){rgb=lerp(c2,c3,(intensity-0.33)/0.33);}
   else{rgb=lerp(c3,c4,(intensity-0.66)/0.34);}
-  return `rgb(${rgb.map(v=>Math.round(v)).join(",")})`;
+  return rgb.map(v=>Math.round(v));
+}
+function colorFor(intensity){
+  return `rgb(${rgbFor(intensity).join(",")})`;
+}
+function needsDarkText(rgb){
+  const lum = 0.2126*rgb[0] + 0.7152*rgb[1] + 0.0722*rgb[2];
+  return lum > 150;
 }
 
 async function fetchJson(p){
@@ -261,10 +269,17 @@ function renderHeatmap(data){
         continue;
       }
       const w = k.w||1;
-      d.className = "k" + (w>1?" w"+w:"");
+      let cls = "k" + (w>1?" w"+w:"");
       const cnt = data[k.c]||0;
       placed.add(k.c);
-      d.style.background = cnt>0 ? colorFor(clamp01(cnt/max)) : "var(--line)";
+      if(cnt>0){
+        const rgb = rgbFor(clamp01(cnt/max));
+        d.style.background = `rgb(${rgb.join(",")})`;
+        if(needsDarkText(rgb)) cls += " dark";
+      } else {
+        d.style.background = "var(--line)";
+      }
+      d.className = cls;
       const name = KC_NAMES[k.c] || ("k"+k.c);
       d.innerHTML = `<span class="lbl">${name}</span><span class="cnt">${cnt}</span>`;
       frag.appendChild(d);
@@ -284,8 +299,9 @@ function renderHeatmap(data){
     } else {
       extras.innerHTML = extra.map(([k,v])=>{
         const name = KC_NAMES[k] || ("k"+k);
-        const bg = colorFor(clamp01(v/max));
-        return `<div class="k" style="background:${bg}"><span class="lbl">${name}</span><span class="cnt">${v}</span></div>`;
+        const rgb = rgbFor(clamp01(v/max));
+        const cls = "k" + (needsDarkText(rgb) ? " dark" : "");
+        return `<div class="${cls}" style="background:rgb(${rgb.join(",")})"><span class="lbl">${name}</span><span class="cnt">${v}</span></div>`;
       }).join("");
     }
   }
