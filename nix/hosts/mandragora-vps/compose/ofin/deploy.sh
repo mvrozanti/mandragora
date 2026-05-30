@@ -45,7 +45,7 @@ if [[ -z "$PLUGGY_CLIENT_SECRET" ]]; then
 fi
 
 if [[ -z "${OFIN_DB_PASSWORD:-}" ]]; then
-  OFIN_DB_PASSWORD="$(openssl rand -hex 24)"
+  OFIN_DB_PASSWORD="$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')"
   echo "→ generated fresh OFIN_DB_PASSWORD (rotate by deleting /home/opc/ofin/.env)"
 fi
 
