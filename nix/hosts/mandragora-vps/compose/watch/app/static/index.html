@@ -84,6 +84,13 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 .event .title a:hover { color: var(--accent); text-decoration: underline; }
 .event .summary { color: var(--dim); font-size: 0.72rem; margin-top: 0.2rem; }
 .event .when { color: var(--dim); font-size: 0.7rem; text-align: right; white-space: nowrap; }
+.event.unacked { border-left: 3px solid var(--warn); }
+.event.acked .title a, .event.acked { opacity: 0.55; }
+.event .ack-btn { font-size: 0.65rem; padding: 0.18rem 0.45rem; }
+.watcher .ack-flag { color: var(--warn); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.watcher .unacked { color: var(--warn); font-weight: bold; }
+.form-check { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--dim); }
+.form-check input[type="checkbox"] { accent-color: var(--accent); }
 .empty { color: var(--dim); font-size: 0.8rem; text-align: center; padding: 2rem; }
 .bar {
   display: flex; gap: 0.5rem; justify-content: space-between; align-items: center;
@@ -115,6 +122,8 @@ footer a { color: var(--accent); text-decoration: none; }
         <select id="new-kind"></select>
         <input type="text" id="new-target" placeholder="target (e.g. octocat)">
         <input type="text" id="new-name" placeholder="display name (optional)">
+        <label class="form-check"><input type="checkbox" id="new-requires-ack"> requires ack (nag until cleared)</label>
+        <input type="text" id="new-reminder" placeholder="reminder interval seconds (default 3600)">
         <button class="btn" onclick="addWatcher()">add watcher</button>
       </div>
     </div>
@@ -124,6 +133,7 @@ footer a { color: var(--accent); text-decoration: none; }
         <h2 id="events-title">events</h2>
         <div class="info">
           <span id="filter-info"></span>
+          <label class="form-check"><input type="checkbox" id="show-unacked" onchange="loadEvents()"> unacked only</label>
           <button class="btn dim" onclick="setFilter(null)">all</button>
           <button class="btn dim" onclick="loadEvents()">refresh</button>
         </div>
@@ -188,11 +198,13 @@ async function loadWatchers() {
     if (filterWatcher === w.id) cls.push('active');
     const div = document.createElement('div');
     div.className = cls.join(' ');
+    const ackFlag = w.requires_ack ? `<span class="ack-flag">ack@${w.reminder_interval}s</span>` : '';
+    const unackedSpan = w.unacked_count ? `<span class="unacked">${w.unacked_count} unacked</span>` : '';
     div.innerHTML = `
-      <div class="name">${escapeHtml(w.name)}</div>
+      <div class="name">${escapeHtml(w.name)} ${ackFlag}</div>
       <div class="meta">
         <span>${w.kind} · ${escapeHtml(w.target)}</span>
-        <span>${w.event_count} ev</span>
+        <span>${w.event_count} ev ${unackedSpan}</span>
       </div>
       <div class="meta">
         <span>last: ${w.last_polled_at || 'never'}</span>
@@ -202,6 +214,8 @@ async function loadWatchers() {
         <button class="btn dim" onclick="event.stopPropagation(); setFilter(${w.id})">view</button>
         <button class="btn dim" onclick="event.stopPropagation(); pollNow(${w.id})">poll</button>
         <button class="btn dim" onclick="event.stopPropagation(); toggle(${w.id})">${w.enabled ? 'pause' : 'resume'}</button>
+        <button class="btn dim" onclick="event.stopPropagation(); toggleAck(${w.id}, ${w.requires_ack})">${w.requires_ack ? 'no-ack' : 'req-ack'}</button>
+        ${w.unacked_count ? `<button class="btn dim" onclick="event.stopPropagation(); ackAll(${w.id})">ack-all</button>` : ''}
         <button class="btn danger" onclick="event.stopPropagation(); del(${w.id})">del</button>
       </div>
     `;
@@ -214,17 +228,44 @@ async function addWatcher() {
   const kind = document.getElementById('new-kind').value;
   const target = document.getElementById('new-target').value.trim();
   const name = document.getElementById('new-name').value.trim();
+  const requires_ack = document.getElementById('new-requires-ack').checked;
+  const reminderRaw = document.getElementById('new-reminder').value.trim();
+  const reminder_interval = reminderRaw ? parseInt(reminderRaw, 10) : undefined;
   if (!target) { alert('target required'); return; }
   try {
     await api('/api/watchers', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({kind, target, name: name || undefined}),
+      body: JSON.stringify({kind, target, name: name || undefined, requires_ack, reminder_interval}),
     });
     document.getElementById('new-target').value = '';
     document.getElementById('new-name').value = '';
+    document.getElementById('new-requires-ack').checked = false;
+    document.getElementById('new-reminder').value = '';
     await loadWatchers();
   } catch (e) { alert(e.message); }
+}
+
+async function toggleAck(id, current) {
+  await api(`/api/watchers/${id}`, {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({requires_ack: !current}),
+  });
+  await loadWatchers();
+}
+
+async function ackAll(id) {
+  if (!confirm('ack every event from this watcher?')) return;
+  await api(`/api/watchers/${id}/ack-all`, {method: 'POST'});
+  await loadWatchers();
+  await loadEvents();
+}
+
+async function ackEvent(eid) {
+  await api(`/api/events/${eid}/ack`, {method: 'POST'});
+  await loadWatchers();
+  await loadEvents();
 }
 
 async function del(id) {
@@ -256,8 +297,11 @@ function setFilter(id) {
 }
 
 async function loadEvents() {
-  const q = filterWatcher ? `?watcher_id=${filterWatcher}&limit=100` : '?limit=100';
-  const events = await api('/api/events' + q);
+  const params = new URLSearchParams();
+  params.set('limit', '100');
+  if (filterWatcher) params.set('watcher_id', filterWatcher);
+  if (document.getElementById('show-unacked').checked) params.set('unacked', '1');
+  const events = await api('/api/events?' + params.toString());
   const root = document.getElementById('events');
   const info = document.getElementById('filter-info');
   if (filterWatcher) {
@@ -273,16 +317,23 @@ async function loadEvents() {
   root.innerHTML = '';
   for (const e of events) {
     const div = document.createElement('div');
-    div.className = 'event';
+    const cls = ['event'];
+    if (e.watcher_requires_ack && !e.acked_at) cls.push('unacked');
+    if (e.acked_at) cls.push('acked');
+    div.className = cls.join(' ');
     const when = e.occurred_at || e.received_at;
     const titleHtml = e.link
       ? `<a href="${escapeHtml(e.link)}" target="_blank">${escapeHtml(e.title)}</a>`
       : escapeHtml(e.title);
+    const ackBtn = (e.watcher_requires_ack && !e.acked_at)
+      ? `<button class="btn ack-btn" onclick="ackEvent(${e.id})">ack</button>`
+      : (e.acked_at ? `<span class="kind" style="font-size:0.6rem">✓ ${escapeHtml(e.acked_at)}</span>` : '');
     div.innerHTML = `
       <div class="kind">${e.watcher_kind}<br><span style="color:var(--dim);font-size:0.65rem">${escapeHtml(e.watcher_target)}</span></div>
       <div>
         <div class="title">${titleHtml}</div>
         ${e.summary ? `<div class="summary">${escapeHtml(e.summary)}</div>` : ''}
+        ${ackBtn}
       </div>
       <div class="when">${escapeHtml(when || '')}</div>
     `;
