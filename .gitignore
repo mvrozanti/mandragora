@@ -9,6 +9,7 @@
 result
 __pycache__/
 .worktrees/
+.axon/
 *.torrent
 *.magnet
 .config/transmission/torrents/
