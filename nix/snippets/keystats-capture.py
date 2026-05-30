@@ -27,7 +27,25 @@ TEXT_DB_PATH = os.environ.get("KEYSTATS_TEXT_DB_PATH", "").strip()
 TEXT_ALLOWLIST = {
     c.strip() for c in os.environ.get("KEYSTATS_TEXT_ALLOWLIST", "").split(",") if c.strip()
 }
+TEXT_BLACKLIST_FILE = os.environ.get("KEYSTATS_TEXT_BLACKLIST_FILE", "").strip()
 TEXT_ENABLED = bool(TEXT_DB_KEY_FILE and TEXT_DB_PATH and TEXT_ALLOWLIST)
+
+
+def load_user_blacklist() -> set:
+    if not TEXT_BLACKLIST_FILE:
+        return set()
+    p = Path(TEXT_BLACKLIST_FILE)
+    if not p.exists():
+        return set()
+    out = set()
+    for line in p.read_text(errors="replace").splitlines():
+        s = line.strip().lower()
+        if s and not s.startswith("#"):
+            out.add(s)
+    return out
+
+
+USER_BLACKLIST = load_user_blacklist()
 
 WORD_RACE_WINDOW = 0.25
 WORD_MIN_LEN = 4
@@ -115,6 +133,9 @@ def word_filtered(w: str) -> bool:
         return True
     if SHAPE_BLOCK_RE.search(w):
         return True
+    for b in USER_BLACKLIST:
+        if b in w:
+            return True
     return False
 
 
