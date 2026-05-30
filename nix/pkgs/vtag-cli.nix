@@ -5,8 +5,7 @@ let
     owner = "mvrozanti";
     repo = "vtag";
     rev = "c4aee1e9f1c3bb16b335d3f0d8914f7d1b481ff2";
-    # placeholder — bump after pushing vtag; nix will tell you the real hash
-    sha256 = "0000000000000000000000000000000000000000000000000000";
+    sha256 = "sha256-3Gc8mOYcCYmkA3GUmLxOams0ckGrogvXmSQ23J1jlII=";
   };
   gpuLockRoot = "/etc/nixos/mandragora/.local/share/gpu-lock";
   botPython = import ./bot-python.nix { inherit pkgs; };
