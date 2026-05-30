@@ -29,12 +29,11 @@ write_shader() {
     f=$(awk -v p="$1" "BEGIN { printf \"%.4f\", p/100 }")
     local tmp_file="$SHADER_FILE.tmp"
     cat >"$tmp_file" <<EOF
-#version 120
-precision mediump float;
-varying vec2 v_texcoord;
+precision highp float;
+varying highp vec2 v_texcoord;
 uniform sampler2D tex;
 void main() {
-    gl_FragColor = texture2D(tex, v_texcoord) * $f;
+    gl_FragColor = texture2D(tex, v_texcoord) * vec4(vec3($f), 1.0);
 }
 EOF
     mv "$tmp_file" "$SHADER_FILE"
