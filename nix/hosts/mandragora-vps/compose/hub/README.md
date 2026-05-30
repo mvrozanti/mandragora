@@ -55,11 +55,11 @@ the dispatch table for the entire hub:
 | `caddy_4` | `mpd.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6680` (myMPD on desktop) |
 | `caddy_5` | `rgb.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6681` (rgb-control on desktop) |
 | `caddy_6` | `gen.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6682` (im-gen-web on desktop) |
-| `caddy_7` | `llama.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6683` (open-webui on desktop, `flush_interval=-1` for SSE streaming) |
+| `caddy_7` | `chat.mvr.ac` | forward_auth → reverse_proxy `host.docker.internal:6683` (open-webui on desktop, `flush_interval=-1` for SSE streaming) |
 | `caddy_8` | `claude.mvr.ac` | tailnet IP gate → forward_auth → reverse_proxy `host.docker.internal:7682` (claude-web — aiohttp dir picker that adds a tmux+claude window to the user's current session; no in-browser shell) |
 | `caddy_20`–`caddy_29` | `*.mvrozanti.duckdns.org` | 302 redirect to `*.mvr.ac` equivalent (legacy aliases) |
 
-Desktop-backed targets (`term./slither./grafana./mpd./rgb./gen./llama./claude.`)
+Desktop-backed targets (`term./slither./grafana./mpd./rgb./gen./chat./claude.`)
 reach the desktop via `socat-tailnet@<port>.service` on the VPS host
 forwarding `127.0.0.1:<port>` → `100.115.80.79:<port>` (mandragora
 desktop tailnet IP). Caddy resolves `host.docker.internal` to the

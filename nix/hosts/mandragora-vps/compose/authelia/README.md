@@ -33,7 +33,7 @@ cd /home/opc/authelia && sudo docker compose up -d
 - Default policy `deny`; explicit `two_factor` for
   `grafana.mvr.ac`, `term.mvr.ac`, `paste.mvr.ac`,
   `slither.mvr.ac`, `hub.mvr.ac`, `seafile.mvr.ac`,
-  `mpd.mvr.ac`, `rgb.mvr.ac`, `gen.mvr.ac`, `llama.mvr.ac`,
+  `mpd.mvr.ac`, `rgb.mvr.ac`, `gen.mvr.ac`, `chat.mvr.ac`,
   `claude.mvr.ac`. `auth.mvr.ac` itself is `bypass` (login portal).
 - `cal.mvr.ac` is intentionally NOT in the access_control rules —
   Caddy doesn't route CalDAV through forward_auth at all, so the

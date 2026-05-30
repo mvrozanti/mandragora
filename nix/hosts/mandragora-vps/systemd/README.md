@@ -51,7 +51,7 @@ Currently enabled instances (one per desktop-backed hub vhost):
 | `6680` | `mpd.mvr.ac` | mympd |
 | `6681` | `rgb.mvr.ac` | rgb-control |
 | `6682` | `gen.mvr.ac` | im-gen-web |
-| `6683` | `llama.mvr.ac` | open-webui |
+| `6683` | `chat.mvr.ac` | open-webui |
 | `7682` | `claude.mvr.ac` | claude-web (aiohttp dir picker that spawns detached `tmux + claude`; no in-browser shell) |
 | `6684` | `hub.mvr.ac` `/api/gpu*` | gpu-status (JSON snapshot: gpu_lock holder + nvidia-smi) |
 | `6685` | `ytdl.mvr.ac` | ytdl-web (yt-dlp → ~/Music mp3 dropper) |
