@@ -33,7 +33,12 @@ in {
   environment.systemPackages = [ pkgs.easyeffects ];
 
   systemd.tmpfiles.rules =
-    [ "d /home/m/.local/share/easyeffects/input 0755 m users -" ]
+    [
+      "d /home/m/.local/share/easyeffects/input 0755 m users -"
+      "d /home/m/.config/easyeffects 0755 m users -"
+      "d /home/m/.config/easyeffects/db 0755 m users -"
+      "f+ /home/m/.config/easyeffects/db/easyeffectsrc 0444 m users - [StreamInputs]\\nuseDefaultInputDevice=false\\ninputDevice=alsa_input.pci-0000_10_00.6.analog-stereo\\n"
+    ]
     ++ (map
       (n: "L+ /home/m/.local/share/easyeffects/input/${n} - - - - ${presetsRepoDir + "/${n}"}")
       presetNames);
