@@ -8,6 +8,7 @@ from typing import Any
 
 import httpx
 
+import judge
 import sources
 import telegram as tg
 
@@ -57,6 +58,11 @@ async def poll_once(conn_factory) -> dict[str, int]:
             _prune(c, row["id"])
         finally:
             c.close()
+    judge_stats = await judge.judge_pending(conn_factory)
+    if judge_stats["judged"]:
+        log.info("judge done %s", judge_stats)
+    stats["judged"] = judge_stats["judged"]
+    stats["judge_errors"] = judge_stats["errors"]
     pushed, reminded = await _push_pending(conn_factory)
     stats["fanout"] += pushed
     stats["reminders"] += reminded
@@ -70,7 +76,7 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
     rows = c.execute(
         """
         SELECT e.*, w.id AS w_id, w.kind AS w_kind, w.target AS w_target, w.name AS w_name,
-               w.requires_ack AS w_req, w.reminder_interval AS w_ri
+               w.requires_ack AS w_req, w.reminder_interval AS w_ri, w.ai_spec AS w_spec
         FROM events e JOIN watchers w ON w.id = e.watcher_id
         WHERE e.acked_at IS NULL AND w.enabled = 1
         ORDER BY e.id ASC
@@ -79,6 +85,12 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
     c.close()
     now_ts = datetime.now(timezone.utc).timestamp()
     for r in rows:
+        if r["w_spec"]:
+            verdict = r["ai_verdict"]
+            if verdict is None:
+                continue
+            if verdict == "NO":
+                continue
         last = r["last_reminder_at"]
         if last is None:
             due = True
@@ -114,6 +126,8 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
             "link": r["link"],
             "occurred_at": r["occurred_at"],
             "is_reminder": is_reminder,
+            "ai_verdict": r["ai_verdict"],
+            "ai_reason": r["ai_reason"],
         }
         if WEBHOOK_URL:
             if await _fanout(watcher_proxy, ev_proxy):
@@ -180,6 +194,8 @@ async def _fanout(watcher: Any, ev: dict[str, Any]) -> bool:
         "requires_ack": bool(watcher["requires_ack"]),
         "is_reminder": bool(ev.get("is_reminder")),
         "ack_url": f"{PUBLIC_BASE.rstrip('/')}/ack/{ev.get('id')}" if ev.get("id") else None,
+        "ai_verdict": ev.get("ai_verdict"),
+        "ai_reason": ev.get("ai_reason"),
     }
     try:
         async with httpx.AsyncClient(timeout=10.0, headers={"User-Agent": USER_AGENT}) as c:
