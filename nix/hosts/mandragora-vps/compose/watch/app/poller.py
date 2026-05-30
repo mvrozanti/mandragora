@@ -15,6 +15,7 @@ log = logging.getLogger("watch.poller")
 
 POLL_INTERVAL = int(os.environ.get("WATCH_POLL_INTERVAL", "300"))
 WEBHOOK_URL = os.environ.get("WATCH_WEBHOOK_URL", "").strip()
+PUBLIC_BASE = os.environ.get("WATCH_PUBLIC_BASE", "https://watch.mvr.ac")
 USER_AGENT = os.environ.get(
     "WATCH_USER_AGENT",
     "mandragora-watch/0.1 (+https://watch.mvr.ac)",
@@ -26,7 +27,7 @@ def now_iso() -> str:
 
 
 async def poll_once(conn_factory) -> dict[str, int]:
-    stats = {"watchers": 0, "events": 0, "errors": 0, "fanout": 0}
+    stats = {"watchers": 0, "events": 0, "errors": 0, "fanout": 0, "reminders": 0}
     c = conn_factory()
     rows = c.execute("SELECT * FROM watchers WHERE enabled = 1").fetchall()
     c.close()
@@ -49,10 +50,6 @@ async def poll_once(conn_factory) -> dict[str, int]:
             for ev in events:
                 _insert_event(c, row["id"], ev)
                 stats["events"] += 1
-                if WEBHOOK_URL:
-                    if await _fanout(row, ev):
-                        stats["fanout"] += 1
-                await tg.push_event(row, ev)
             c.execute(
                 "UPDATE watchers SET cursor = ?, last_polled_at = ?, last_error = NULL WHERE id = ?",
                 (new_cursor, now_iso(), row["id"]),
@@ -60,7 +57,74 @@ async def poll_once(conn_factory) -> dict[str, int]:
             _prune(c, row["id"])
         finally:
             c.close()
+    pushed, reminded = await _push_pending(conn_factory)
+    stats["fanout"] += pushed
+    stats["reminders"] += reminded
     return stats
+
+
+async def _push_pending(conn_factory) -> tuple[int, int]:
+    pushed = 0
+    reminded = 0
+    c = conn_factory()
+    rows = c.execute(
+        """
+        SELECT e.*, w.id AS w_id, w.kind AS w_kind, w.target AS w_target, w.name AS w_name,
+               w.requires_ack AS w_req, w.reminder_interval AS w_ri
+        FROM events e JOIN watchers w ON w.id = e.watcher_id
+        WHERE e.acked_at IS NULL AND w.enabled = 1
+        ORDER BY e.id ASC
+        """
+    ).fetchall()
+    c.close()
+    now_ts = datetime.now(timezone.utc).timestamp()
+    for r in rows:
+        last = r["last_reminder_at"]
+        if last is None:
+            due = True
+            is_reminder = False
+        elif r["w_req"]:
+            try:
+                last_ts = datetime.fromisoformat(last.replace("Z", "+00:00")).timestamp()
+            except Exception:
+                last_ts = 0.0
+            if now_ts - last_ts >= int(r["w_ri"]):
+                due = True
+                is_reminder = True
+            else:
+                due = False
+                is_reminder = False
+        else:
+            due = False
+            is_reminder = False
+        if not due:
+            continue
+        watcher_proxy = {
+            "id": r["w_id"],
+            "kind": r["w_kind"],
+            "target": r["w_target"],
+            "name": r["w_name"],
+            "requires_ack": r["w_req"],
+        }
+        ev_proxy = {
+            "id": r["id"],
+            "external_id": r["external_id"],
+            "title": r["title"],
+            "summary": r["summary"],
+            "link": r["link"],
+            "occurred_at": r["occurred_at"],
+            "is_reminder": is_reminder,
+        }
+        if WEBHOOK_URL:
+            if await _fanout(watcher_proxy, ev_proxy):
+                pushed += 1
+        await tg.push_event(watcher_proxy, ev_proxy)
+        if is_reminder:
+            reminded += 1
+        c = conn_factory()
+        c.execute("UPDATE events SET last_reminder_at = ? WHERE id = ?", (now_iso(), r["id"]))
+        c.close()
+    return pushed, reminded
 
 
 def _insert_event(c: sqlite3.Connection, watcher_id: int, ev: dict[str, Any]) -> None:
@@ -101,17 +165,21 @@ def _prune(c: sqlite3.Connection, watcher_id: int) -> None:
     )
 
 
-async def _fanout(watcher_row: sqlite3.Row, ev: dict[str, Any]) -> bool:
+async def _fanout(watcher: Any, ev: dict[str, Any]) -> bool:
     payload = {
         "source": "mandragora-watch",
-        "kind": watcher_row["kind"],
-        "target": watcher_row["target"],
-        "name": watcher_row["name"],
+        "kind": watcher["kind"],
+        "target": watcher["target"],
+        "name": watcher["name"],
+        "event_id": ev.get("id"),
         "external_id": ev.get("external_id"),
         "title": ev.get("title"),
         "summary": ev.get("summary"),
         "link": ev.get("link"),
         "occurred_at": ev.get("occurred_at"),
+        "requires_ack": bool(watcher["requires_ack"]),
+        "is_reminder": bool(ev.get("is_reminder")),
+        "ack_url": f"{PUBLIC_BASE.rstrip('/')}/ack/{ev.get('id')}" if ev.get("id") else None,
     }
     try:
         async with httpx.AsyncClient(timeout=10.0, headers={"User-Agent": USER_AGENT}) as c:

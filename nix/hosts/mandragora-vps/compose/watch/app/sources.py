@@ -46,6 +46,18 @@ SOURCE_KINDS: dict[str, dict[str, str]] = {
         "label": "Twitch streamer (live transitions)",
         "target_hint": "shroud",
     },
+    "hn_search": {
+        "label": "Hacker News search (Algolia)",
+        "target_hint": "kindle paperwhite jailbreak",
+    },
+    "reddit_search": {
+        "label": "Reddit cross-sub search",
+        "target_hint": "kindle paperwhite jailbreak",
+    },
+    "rss": {
+        "label": "RSS / Atom feed",
+        "target_hint": "https://www.mobileread.com/forums/external.php?type=RSS2&forumids=150",
+    },
 }
 
 
@@ -98,6 +110,23 @@ def validate_target(kind: str, target: str) -> str:
         if not _TWITCH_LOGIN_RE.fullmatch(t):
             raise ValueError("twitch_stream expects a single twitch login")
         return t
+    elif kind == "hn_search":
+        t = target.strip()
+        if not t or len(t) > 200:
+            raise ValueError("hn_search expects a 1..200 char query")
+        return t
+    elif kind == "reddit_search":
+        t = target.strip()
+        if not t or len(t) > 200:
+            raise ValueError("reddit_search expects a 1..200 char query")
+        return t
+    elif kind == "rss":
+        t = target.strip()
+        if not (t.startswith("http://") or t.startswith("https://")):
+            raise ValueError("rss expects an http(s) URL")
+        if len(t) > 500:
+            raise ValueError("rss url too long")
+        return t
     else:
         raise ValueError(f"unknown kind: {kind}")
     return t
@@ -116,6 +145,12 @@ async def fetch(kind: str, target: str, cursor: str | None) -> tuple[list[dict[s
         return await _fetch_youtube_channel(target, cursor)
     if kind == "twitch_stream":
         return await _fetch_twitch_stream(target, cursor)
+    if kind == "hn_search":
+        return await _fetch_hn_search(target, cursor)
+    if kind == "reddit_search":
+        return await _fetch_reddit_search(target, cursor)
+    if kind == "rss":
+        return await _fetch_rss(target, cursor)
     raise ValueError(f"unknown kind: {kind}")
 
 
@@ -426,3 +461,150 @@ async def _fetch_twitch_stream(login: str, cursor: str | None) -> tuple[list[dic
         "raw": stream,
     }
     return [event], stream_id
+
+
+async def _fetch_hn_search(query: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    params: dict[str, Any] = {"query": query, "tags": "story", "hitsPerPage": 30}
+    if cursor:
+        try:
+            params["numericFilters"] = f"created_at_i>{int(float(cursor))}"
+        except ValueError:
+            pass
+    async with httpx.AsyncClient(timeout=20.0, headers={"User-Agent": USER_AGENT}) as c:
+        r = await c.get("https://hn.algolia.com/api/v1/search_by_date", params=params)
+    r.raise_for_status()
+    doc = r.json() or {}
+    hits = doc.get("hits") or []
+    events: list[dict[str, Any]] = []
+    newest_cursor = cursor
+    cursor_ts = float(cursor) if cursor else None
+    for h in hits:
+        oid = str(h.get("objectID") or "")
+        ts = h.get("created_at_i")
+        if not oid or ts is None:
+            continue
+        if cursor_ts is not None and float(ts) <= cursor_ts:
+            continue
+        title = h.get("title") or h.get("story_title") or "(untitled)"
+        url = h.get("url") or f"https://news.ycombinator.com/item?id={oid}"
+        events.append({
+            "external_id": oid,
+            "title": f"HN: {title}",
+            "summary": (h.get("story_text") or "")[:280] if h.get("story_text") else "",
+            "link": url,
+            "occurred_at": _utc_iso(float(ts)),
+            "raw": h,
+        })
+        if newest_cursor is None or float(ts) > float(newest_cursor):
+            newest_cursor = str(ts)
+    events.reverse()
+    return events, newest_cursor
+
+
+async def _fetch_reddit_search(query: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    params = {"q": query, "sort": "new", "restrict_sr": "0", "limit": 25, "raw_json": 1}
+    async with httpx.AsyncClient(timeout=20.0, headers=_reddit_headers()) as c:
+        r = await c.get("https://www.reddit.com/search.json", params=params)
+    if r.status_code in (404, 403):
+        return [], cursor
+    r.raise_for_status()
+    return _parse_reddit_listing(r.json(), cursor)
+
+
+async def _fetch_rss(url: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    async with httpx.AsyncClient(timeout=20.0, headers={"User-Agent": USER_AGENT}, follow_redirects=True) as c:
+        r = await c.get(url)
+    r.raise_for_status()
+    return _parse_feed(r.text, cursor)
+
+
+def _parse_feed(text: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    try:
+        root = ET.fromstring(text)
+    except ET.ParseError as exc:
+        raise RuntimeError(f"feed parse error: {exc}")
+    tag = root.tag.split("}", 1)[-1]
+    cursor_ts = float(cursor) if cursor else None
+    events: list[dict[str, Any]] = []
+    newest_cursor = cursor
+    if tag == "rss":
+        channel = root.find("channel")
+        items = channel.findall("item") if channel is not None else []
+        for it in items:
+            guid_el = it.find("guid")
+            link_el = it.find("link")
+            title_el = it.find("title")
+            pub_el = it.find("pubDate")
+            desc_el = it.find("description")
+            link = (link_el.text if link_el is not None else "") or ""
+            guid = (guid_el.text if guid_el is not None else "") or link
+            if not guid:
+                continue
+            ts = _parse_rss_date(pub_el.text if pub_el is not None else "")
+            if cursor_ts is not None and ts is not None and ts <= cursor_ts:
+                continue
+            events.append({
+                "external_id": guid,
+                "title": (title_el.text if title_el is not None else "") or "(untitled)",
+                "summary": _strip_html((desc_el.text if desc_el is not None else "") or "")[:280],
+                "link": link,
+                "occurred_at": _utc_iso(ts) if ts is not None else None,
+                "raw": {"guid": guid, "pubDate": pub_el.text if pub_el is not None else None},
+            })
+            if ts is not None and (newest_cursor is None or ts > float(newest_cursor)):
+                newest_cursor = str(ts)
+    else:
+        ns = {"a": "http://www.w3.org/2005/Atom"}
+        entries = root.findall("a:entry", ns)
+        for e in entries:
+            id_el = e.find("a:id", ns)
+            title_el = e.find("a:title", ns)
+            updated_el = e.find("a:updated", ns) or e.find("a:published", ns)
+            link_el = e.find("a:link", ns)
+            summary_el = e.find("a:summary", ns) or e.find("a:content", ns)
+            ext_id = (id_el.text if id_el is not None else "") or ""
+            link = link_el.get("href") if link_el is not None else ""
+            if not ext_id:
+                ext_id = link
+            if not ext_id:
+                continue
+            ts = None
+            if updated_el is not None and updated_el.text:
+                try:
+                    from datetime import datetime
+                    ts = datetime.fromisoformat(updated_el.text.replace("Z", "+00:00")).timestamp()
+                except ValueError:
+                    ts = None
+            if cursor_ts is not None and ts is not None and ts <= cursor_ts:
+                continue
+            events.append({
+                "external_id": ext_id,
+                "title": (title_el.text if title_el is not None else "") or "(untitled)",
+                "summary": _strip_html((summary_el.text if summary_el is not None else "") or "")[:280],
+                "link": link or "",
+                "occurred_at": _utc_iso(ts) if ts is not None else None,
+                "raw": {"id": ext_id},
+            })
+            if ts is not None and (newest_cursor is None or ts > float(newest_cursor)):
+                newest_cursor = str(ts)
+    events.reverse()
+    return events, newest_cursor
+
+
+def _parse_rss_date(s: str) -> float | None:
+    if not s:
+        return None
+    from email.utils import parsedate_to_datetime
+    try:
+        return parsedate_to_datetime(s).timestamp()
+    except (TypeError, ValueError):
+        pass
+    try:
+        from datetime import datetime
+        return datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return None
+
+
+def _strip_html(s: str) -> str:
+    return re.sub(r"<[^>]+>", "", s or "").strip()
