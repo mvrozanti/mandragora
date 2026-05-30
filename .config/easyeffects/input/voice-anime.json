@@ -1,0 +1,50 @@
+{
+  "input": {
+    "blocklist": [],
+    "plugins_order": ["rnnoise#0", "pitch#0", "exciter#0", "reverb#0"],
+    "rnnoise#0": {
+      "bypass": false,
+      "enable-vad": false,
+      "input-gain": 0.0,
+      "output-gain": 0.0,
+      "release": 20.0,
+      "vad-thres": 0.5,
+      "wet": 0.0
+    },
+    "pitch#0": {
+      "bypass": false,
+      "cents": 0.0,
+      "crispness": 3,
+      "formant-preserving": false,
+      "formant-shift": 3.0,
+      "input-gain": 0.0,
+      "mode": "Speech",
+      "output-gain": 0.0,
+      "semitones": 6.0
+    },
+    "exciter#0": {
+      "bypass": false,
+      "amount": 4.0,
+      "blend": 0.0,
+      "ceil": 16000.0,
+      "ceil-active": true,
+      "harmonics": 8.5,
+      "input-gain": 0.0,
+      "output-gain": 0.0,
+      "scope": 6000.0
+    },
+    "reverb#0": {
+      "bypass": false,
+      "amount": 0.15,
+      "bandwidth": 0.6,
+      "decay-time": 1.2,
+      "diffusion": 0.5,
+      "dry": 1.0,
+      "hf-damp": 5000.0,
+      "input-gain": 0.0,
+      "output-gain": 0.0,
+      "predelay": 8.0,
+      "room-size": "Medium"
+    }
+  }
+}

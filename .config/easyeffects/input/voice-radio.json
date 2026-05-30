@@ -1,0 +1,39 @@
+{
+  "input": {
+    "blocklist": [],
+    "plugins_order": ["filter#0", "bass_enhancer#0", "multiband_compressor#0"],
+    "filter#0": {
+      "bypass": false,
+      "balance": 0.0,
+      "equal-mode": "IIR",
+      "frequency": 1800.0,
+      "gain": 0.0,
+      "input-gain": 0.0,
+      "mode": "BPF12",
+      "output-gain": 0.0,
+      "quality": 0.6,
+      "slope": "x1",
+      "type": "Bandpass",
+      "width": 3100.0
+    },
+    "bass_enhancer#0": {
+      "bypass": false,
+      "amount": 2.0,
+      "blend": 0.0,
+      "floor": 60.0,
+      "floor-active": false,
+      "harmonics": 3.0,
+      "input-gain": 0.0,
+      "listen": false,
+      "output-gain": 4.0,
+      "scope": 1200.0
+    },
+    "multiband_compressor#0": {
+      "bypass": false,
+      "input-gain": 0.0,
+      "output-gain": 2.0,
+      "dry": -100.0,
+      "wet": 0.0
+    }
+  }
+}

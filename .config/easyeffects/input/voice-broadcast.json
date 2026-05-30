@@ -1,0 +1,47 @@
+{
+  "input": {
+    "blocklist": [],
+    "plugins_order": ["rnnoise#0", "deesser#0", "multiband_compressor#0", "equalizer#0"],
+    "rnnoise#0": {
+      "bypass": false,
+      "enable-vad": false,
+      "input-gain": 0.0,
+      "output-gain": 0.0,
+      "release": 20.0,
+      "vad-thres": 0.5,
+      "wet": 0.0
+    },
+    "deesser#0": {
+      "bypass": false,
+      "detection": "RMS",
+      "f1-freq": 6000.0,
+      "f1-level": 0.0,
+      "f2-freq": 7500.0,
+      "f2-level": 6.0,
+      "f2-q": 1.4,
+      "input-gain": 0.0,
+      "laxity": 15,
+      "makeup": 0.0,
+      "mode": "Wide",
+      "output-gain": 0.0,
+      "ratio": 4.0,
+      "sc-listen": false,
+      "threshold": -28.0
+    },
+    "multiband_compressor#0": {
+      "bypass": false,
+      "input-gain": 0.0,
+      "output-gain": 3.0,
+      "dry": -100.0,
+      "wet": 0.0
+    },
+    "equalizer#0": {
+      "bypass": false,
+      "input-gain": 0.0,
+      "mode": "IIR",
+      "num-bands": 3,
+      "output-gain": 0.0,
+      "split-channels": false
+    }
+  }
+}

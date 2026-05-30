@@ -1,0 +1,17 @@
+{
+  "input": {
+    "blocklist": [],
+    "plugins_order": ["pitch#0"],
+    "pitch#0": {
+      "bypass": false,
+      "cents": 0.0,
+      "crispness": 3,
+      "formant-preserving": false,
+      "formant-shift": 5.0,
+      "input-gain": 0.0,
+      "mode": "Speech",
+      "output-gain": -2.0,
+      "semitones": 10.0
+    }
+  }
+}

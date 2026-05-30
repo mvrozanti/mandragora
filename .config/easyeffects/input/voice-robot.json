@@ -1,0 +1,42 @@
+{
+  "input": {
+    "blocklist": [],
+    "plugins_order": ["pitch#0", "multiband_gate#0", "crystalizer#0", "reverb#0"],
+    "pitch#0": {
+      "bypass": false,
+      "cents": 0.0,
+      "crispness": 0,
+      "formant-preserving": false,
+      "formant-shift": 0.0,
+      "input-gain": 0.0,
+      "mode": "Speech",
+      "output-gain": 0.0,
+      "semitones": 0.0
+    },
+    "multiband_gate#0": {
+      "bypass": false,
+      "input-gain": 0.0,
+      "output-gain": 0.0,
+      "dry": -100.0,
+      "wet": 0.0
+    },
+    "crystalizer#0": {
+      "bypass": false,
+      "input-gain": 0.0,
+      "output-gain": 0.0
+    },
+    "reverb#0": {
+      "bypass": false,
+      "amount": 0.1,
+      "bandwidth": 0.5,
+      "decay-time": 0.4,
+      "diffusion": 0.3,
+      "dry": 1.0,
+      "hf-damp": 6000.0,
+      "input-gain": 0.0,
+      "output-gain": 0.0,
+      "predelay": 2.0,
+      "room-size": "Small"
+    }
+  }
+}
