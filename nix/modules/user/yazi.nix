@@ -74,6 +74,11 @@ let
     return M
     LUA
   '';
+
+  imageOpenPlugin = pkgs.runCommand "image-open-yazi" {} ''
+    mkdir -p $out
+    cp ${../../../.config/yazi/plugins/image-open/main.lua} $out/main.lua
+  '';
 in
 {
   home.packages = [ yaziSquareBorders ];
@@ -92,13 +97,13 @@ in
       package = zjumpPlugin;
       setup = false;
     };
-    plugins.smart-enter = {
-      package = pkgs.yaziPlugins.smart-enter;
-      setup = false;
-    };
     plugins.zoxide-add = {
       package = zoxideAddPlugin;
       setup = true;
+    };
+    plugins.image-open = {
+      package = imageOpenPlugin;
+      setup = false;
     };
 
     settings = {
@@ -267,8 +272,9 @@ in
         { on = "<PageUp>"; run = "arrow -50%"; desc = "Half page up"; }
         { on = "<C-f>"; run = "arrow 50%"; desc = "Half page down"; }
         { on = "<C-b>"; run = "arrow -50%"; desc = "Half page up"; }
-        { on = "l"; run = "plugin smart-enter"; desc = "Enter dir or open file"; }
-        { on = "<Right>"; run = "plugin smart-enter"; desc = "Enter dir or open file"; }
+        { on = "l"; run = "plugin image-open"; desc = "Enter dir / open image set / open file"; }
+        { on = "<Right>"; run = "plugin image-open"; desc = "Enter dir / open image set / open file"; }
+        { on = "<Enter>"; run = "plugin image-open"; desc = "Enter dir / open image set / open file"; }
       ];
     };
   };
