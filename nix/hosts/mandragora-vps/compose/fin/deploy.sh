@@ -45,9 +45,8 @@ rsync -av --delete \
 echo "→ rsyncing STATE.md to $REMOTE:$REMOTE_DIR/src/"
 rsync -av "$LOCAL_REPO/STATE.md" "$REMOTE:$REMOTE_DIR/src/STATE.md"
 
-echo "→ rsyncing .git/ (for /api/commits) — heads/refs/objects-loose only"
+echo "→ rsyncing .git/ (for /api/commits) — includes pack files"
 rsync -av --delete \
-  --exclude='/objects/pack/' \
   --exclude='/lfs/' \
   --exclude='/logs/' \
   --exclude='/hooks/' \
