@@ -40,6 +40,36 @@ via the web UI, `/ackrequire <id> on|off`, or `/remind <id> <seconds>`.
 Reminders piggy-back on the poll loop, so the effective minimum
 `reminder_interval` is `WATCH_POLL_INTERVAL` (default 300s).
 
+## AI relevance judge
+
+Setting an `ai_spec` (string describing what counts as a real match)
+on a watcher gates every new event through Gemini before any push
+happens. Verdicts:
+
+- `GO` — pushed (Telegram badge `🟢 GO`).
+- `MAYBE` — pushed with `🟡 MAYBE` and the reason.
+- `NO` — stored but never pushed; reminders never fire.
+- pending (`ai_verdict IS NULL`) — also not pushed; re-judged next
+  poll cycle.
+
+Quota exhaustion (HTTP 429 or "quota"/"rate" in body) raises
+`QuotaExceeded`, the judge loop breaks for the cycle, and the
+unjudged events stay pending. They are retried next poll — no silent
+skip, no push without a verdict. Per-cycle judge cap:
+`WATCH_JUDGE_MAX_PER_CYCLE` (default 20).
+
+`.env`:
+```
+GEMINI_API_KEY=...
+WATCH_GEMINI_MODEL=gemini-2.5-flash       # default
+WATCH_JUDGE_MAX_PER_CYCLE=20              # default
+```
+
+Telegram: `/spec <id> <text>` sets the spec, `/judge <event_id>`
+forces re-judge, `/verdicts <id>` tallies. Web UI exposes the same
+via the per-watcher `spec` button and the `re-judge` button on each
+event row.
+
 ## Kindle Paperwhite gen 12 jailbreak watch
 
 Three watchers cover the realistic sources for new Kindle PW12 (fw
