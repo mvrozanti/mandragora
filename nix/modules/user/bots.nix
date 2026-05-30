@@ -2,14 +2,14 @@
 
 let
   botPython = import ../../pkgs/bot-python.nix { inherit pkgs; };
-  llmViaTelegramRoot = "/etc/nixos/mandragora/.local/share/llm-via-telegram";
+  llmViaTelegramRoot = "/home/m/Projects/llm-via-telegram";
   gpuLockRoot = "/etc/nixos/mandragora/.local/share/gpu-lock";
   llmViaTelegramState = "/home/m/.local/share/llm-via-telegram";
-  sttViaTelegramRoot = "/etc/nixos/mandragora/.local/share/stt-via-telegram";
+  sttViaTelegramRoot = "/home/m/Projects/stt-via-telegram";
   sttViaTelegramState = "/home/m/.local/share/stt-via-telegram";
-  sttCoreRoot = "/etc/nixos/mandragora/.local/share/stt-core";
+  sttCoreRoot = "/home/m/Projects/stt-core";
   sttCoreState = "/home/m/.local/share/stt-core";
-  ttsCloneCoreRoot = "/etc/nixos/mandragora/.local/share/tts-clone-core";
+  ttsCloneCoreRoot = "/home/m/Projects/tts-clone-core";
   ttsCloneCoreState = "/home/m/.local/share/tts-clone-core";
   vtagState = "/home/m/.local/share/vtag";
   axonRoot = "/etc/nixos/mandragora/.local/share/axon";
