@@ -89,8 +89,17 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 .event .ack-btn { font-size: 0.65rem; padding: 0.18rem 0.45rem; }
 .watcher .ack-flag { color: var(--warn); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; }
 .watcher .unacked { color: var(--warn); font-weight: bold; }
+.watcher .ai-flag { color: var(--accent); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; }
 .form-check { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--dim); }
 .form-check input[type="checkbox"] { accent-color: var(--accent); }
+.event .verdict { font-size: 0.65rem; font-weight: bold; letter-spacing: 0.08em; padding: 0.1rem 0.3rem; border: 1px solid; display: inline-block; margin-top: 0.2rem; }
+.event .verdict.GO { color: var(--accent); border-color: var(--accent); }
+.event .verdict.MAYBE { color: var(--warn); border-color: var(--warn); }
+.event .verdict.NO { color: var(--dim); border-color: var(--dim); }
+.event .verdict.pending { color: var(--dim); border-color: var(--dim); font-style: italic; }
+.event .ai-reason { color: var(--dim); font-size: 0.7rem; font-style: italic; margin-top: 0.2rem; }
+textarea { background: var(--bg); color: var(--fg); border: 1px solid var(--line); font-family: inherit; font-size: 0.75rem; padding: 0.4rem 0.5rem; width: 100%; resize: vertical; min-height: 4rem; }
+textarea:focus { outline: none; border-color: var(--accent); }
 .empty { color: var(--dim); font-size: 0.8rem; text-align: center; padding: 2rem; }
 .bar {
   display: flex; gap: 0.5rem; justify-content: space-between; align-items: center;
@@ -124,6 +133,7 @@ footer a { color: var(--accent); text-decoration: none; }
         <input type="text" id="new-name" placeholder="display name (optional)">
         <label class="form-check"><input type="checkbox" id="new-requires-ack"> requires ack (nag until cleared)</label>
         <input type="text" id="new-reminder" placeholder="reminder interval seconds (default 3600)">
+        <textarea id="new-ai-spec" placeholder="ai relevance spec (optional) — describe what counts as a real match. blank = no AI filter."></textarea>
         <button class="btn" onclick="addWatcher()">add watcher</button>
       </div>
     </div>
@@ -199,9 +209,10 @@ async function loadWatchers() {
     const div = document.createElement('div');
     div.className = cls.join(' ');
     const ackFlag = w.requires_ack ? `<span class="ack-flag">ack@${w.reminder_interval}s</span>` : '';
+    const aiFlag = w.ai_spec ? `<span class="ai-flag">ai</span>` : '';
     const unackedSpan = w.unacked_count ? `<span class="unacked">${w.unacked_count} unacked</span>` : '';
     div.innerHTML = `
-      <div class="name">${escapeHtml(w.name)} ${ackFlag}</div>
+      <div class="name">${escapeHtml(w.name)} ${ackFlag} ${aiFlag}</div>
       <div class="meta">
         <span>${w.kind} · ${escapeHtml(w.target)}</span>
         <span>${w.event_count} ev ${unackedSpan}</span>
@@ -215,6 +226,7 @@ async function loadWatchers() {
         <button class="btn dim" onclick="event.stopPropagation(); pollNow(${w.id})">poll</button>
         <button class="btn dim" onclick="event.stopPropagation(); toggle(${w.id})">${w.enabled ? 'pause' : 'resume'}</button>
         <button class="btn dim" onclick="event.stopPropagation(); toggleAck(${w.id}, ${w.requires_ack})">${w.requires_ack ? 'no-ack' : 'req-ack'}</button>
+        <button class="btn dim" onclick="event.stopPropagation(); editSpec(${w.id})">spec</button>
         ${w.unacked_count ? `<button class="btn dim" onclick="event.stopPropagation(); ackAll(${w.id})">ack-all</button>` : ''}
         <button class="btn danger" onclick="event.stopPropagation(); del(${w.id})">del</button>
       </div>
@@ -231,18 +243,41 @@ async function addWatcher() {
   const requires_ack = document.getElementById('new-requires-ack').checked;
   const reminderRaw = document.getElementById('new-reminder').value.trim();
   const reminder_interval = reminderRaw ? parseInt(reminderRaw, 10) : undefined;
+  const ai_spec = document.getElementById('new-ai-spec').value.trim() || undefined;
   if (!target) { alert('target required'); return; }
   try {
     await api('/api/watchers', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({kind, target, name: name || undefined, requires_ack, reminder_interval}),
+      body: JSON.stringify({kind, target, name: name || undefined, requires_ack, reminder_interval, ai_spec}),
     });
     document.getElementById('new-target').value = '';
     document.getElementById('new-name').value = '';
     document.getElementById('new-requires-ack').checked = false;
     document.getElementById('new-reminder').value = '';
+    document.getElementById('new-ai-spec').value = '';
     await loadWatchers();
+  } catch (e) { alert(e.message); }
+}
+
+async function editSpec(id) {
+  const w = watchers.find(x => x.id === id);
+  const current = w && w.ai_spec ? w.ai_spec : '';
+  const next = prompt('AI relevance spec (empty clears):', current);
+  if (next === null) return;
+  await api(`/api/watchers/${id}`, {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ai_spec: next}),
+  });
+  await loadWatchers();
+}
+
+async function rejudge(eid) {
+  try {
+    const r = await api(`/api/events/${eid}/judge`, {method: 'POST'});
+    alert(`${r.verdict}: ${r.reason}`);
+    await loadEvents();
   } catch (e) { alert(e.message); }
 }
 
@@ -328,11 +363,18 @@ async function loadEvents() {
     const ackBtn = (e.watcher_requires_ack && !e.acked_at)
       ? `<button class="btn ack-btn" onclick="ackEvent(${e.id})">ack</button>`
       : (e.acked_at ? `<span class="kind" style="font-size:0.6rem">✓ ${escapeHtml(e.acked_at)}</span>` : '');
+    let verdictBlock = '';
+    if (e.watcher_has_ai) {
+      const v = e.ai_verdict || 'pending';
+      verdictBlock = `<div><span class="verdict ${v}">${v}</span> <button class="btn ack-btn" onclick="rejudge(${e.id})">re-judge</button></div>`;
+      if (e.ai_reason) verdictBlock += `<div class="ai-reason">${escapeHtml(e.ai_reason)}</div>`;
+    }
     div.innerHTML = `
       <div class="kind">${e.watcher_kind}<br><span style="color:var(--dim);font-size:0.65rem">${escapeHtml(e.watcher_target)}</span></div>
       <div>
         <div class="title">${titleHtml}</div>
         ${e.summary ? `<div class="summary">${escapeHtml(e.summary)}</div>` : ''}
+        ${verdictBlock}
         ${ackBtn}
       </div>
       <div class="when">${escapeHtml(when || '')}</div>
