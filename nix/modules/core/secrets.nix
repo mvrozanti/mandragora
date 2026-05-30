@@ -81,6 +81,10 @@ in
         owner = "m";
         mode = "0400";
       };
+      "pluggy/client_secret" = {
+        owner = "m";
+        mode = "0400";
+      };
     };
 
     templates."hosts-oracle" = {

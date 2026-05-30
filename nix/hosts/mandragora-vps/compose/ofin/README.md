@@ -16,9 +16,10 @@ the VPS itself by `deploy.sh` (no docker needed on the desktop).
   does). Override per-run with `PLUGGY_CLIENT_ID=...`.
 - `client_secret` lives in sops at `pluggy.client_secret`
   (`nix/modules/core/secrets.nix` declares it as
-  `sops.secrets."pluggy/client_secret"`). `deploy.sh` extracts it on
-  demand via `sops -d --extract '["pluggy"]["client_secret"]'` and never
-  echoes it.
+  `sops.secrets."pluggy/client_secret"`, owner=m, 0400). sops-nix mounts
+  it at `/run/secrets/pluggy/client_secret` on activation; `deploy.sh`
+  reads that file directly (no sops CLI, no age key handling). If the
+  file isn't there, run a desktop rebuild first.
 - `webhook_secret` is optional. Set `PLUGGY_WEBHOOK_SECRET=...` in the
   deploy env; if empty, the receiver skips HMAC verification.
 
