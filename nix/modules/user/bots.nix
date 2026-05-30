@@ -12,8 +12,8 @@ let
   ttsCloneCoreRoot = "/etc/nixos/mandragora/.local/share/tts-clone-core";
   ttsCloneCoreState = "/home/m/.local/share/tts-clone-core";
   vtagState = "/home/m/.local/share/vtag";
-  axonCoreRoot = "/etc/nixos/mandragora/.local/share/axon-core";
-  axonCoreState = "/home/m/.local/share/axon-core";
+  axonRoot = "/etc/nixos/mandragora/.local/share/axon";
+  axonState = "/home/m/.local/share/axon";
   axonRepo = "/home/m/Projects/axon";
   axonWebRoot = "/etc/nixos/mandragora/.local/share/axon-web";
   axonWebState = "/home/m/.local/share/axon-web";
@@ -26,7 +26,7 @@ in
     mkdir -p ${sttCoreState}/data ${sttCoreState}/logs ${sttCoreState}/hf-cache
     mkdir -p ${ttsCloneCoreState}/refs ${ttsCloneCoreState}/out ${ttsCloneCoreState}/hf-cache
     mkdir -p ${vtagState}/logs
-    mkdir -p ${axonCoreState}/logs
+    mkdir -p ${axonState}/logs
     mkdir -p ${axonWebState}/logs
     if [ -e /home/m/Projects/gpu-lock ] && [ ! -L /home/m/Projects/gpu-lock ]; then
       rm -rf /home/m/Projects/gpu-lock
@@ -127,22 +127,22 @@ in
     };
   };
 
-  systemd.user.services.axon-core = {
+  systemd.user.services.axon = {
     Unit = {
       Description = "Axon HTTP API (loopback, multi-repo aggregate; consumed by axon-web)";
       After = [ "graphical-session.target" "network-online.target" ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [
-        "${axonCoreRoot}/bot.sh"
+        "${axonRoot}/bot.sh"
       ];
     };
     Service = {
       Type = "simple";
       WorkingDirectory = axonRepo;
-      ExecStart = "${axonCoreRoot}/bot.sh";
+      ExecStart = "${axonRoot}/bot.sh";
       Environment = [
         "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin:/home/m/.local/bin:${axonRepo}/build"
-        "AXON_STATE_DIR=${axonCoreState}"
+        "AXON_STATE_DIR=${axonState}"
         "AXON_BIND_HOST=127.0.0.1"
         "AXON_BIND_PORT=7070"
       ];
@@ -157,8 +157,8 @@ in
 
   systemd.user.services.axon-web = {
     Unit = {
-      Description = "Axon SPA + thin Node runtime (tailnet-bound; proxies /api/* to axon-core)";
-      After = [ "graphical-session.target" "network-online.target" "axon-core.service" ];
+      Description = "Axon SPA + thin Node runtime (tailnet-bound; proxies /api/* to axon)";
+      After = [ "graphical-session.target" "network-online.target" "axon.service" ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [
         "${axonWebRoot}/bot.sh"
