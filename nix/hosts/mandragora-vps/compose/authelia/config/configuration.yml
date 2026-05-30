@@ -87,7 +87,8 @@ access_control:
                'mpd.mvr.ac', 'rgb.mvr.ac', 'gen.mvr.ac', 'llama.mvr.ac',
                'claude.mvr.ac', 'log.mvr.ac', 'webhook.mvr.ac',
                'nb.mvr.ac', 'tts.mvr.ac', 'stt.mvr.ac',
-               'kl.mvr.ac', 'watch.mvr.ac', 'axon.mvr.ac']
+               'kl.mvr.ac', 'watch.mvr.ac', 'axon.mvr.ac',
+               'fin.mvr.ac']
       policy: 'two_factor'
 
 notifier:
