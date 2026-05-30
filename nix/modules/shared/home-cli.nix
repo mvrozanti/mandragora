@@ -44,6 +44,7 @@
     forge-cli
     chafa
     asciinema
+    inputs.bruno-tama.packages.${pkgs.system}.default
 
     (pkgs.writeShellScriptBin "mandragora-pkg-diff" (builtins.readFile ../../../.local/bin/mandragora-pkg-diff.sh))
   ];
