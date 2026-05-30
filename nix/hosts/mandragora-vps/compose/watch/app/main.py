@@ -79,8 +79,6 @@ def init_db() -> None:
           ON events(watcher_id, id DESC);
         CREATE INDEX IF NOT EXISTS events_received_desc
           ON events(received_at DESC);
-        CREATE INDEX IF NOT EXISTS events_unacked
-          ON events(acked_at, last_reminder_at);
         """
     )
     for stmt in (
@@ -93,6 +91,7 @@ def init_db() -> None:
             c.execute(stmt)
         except sqlite3.OperationalError:
             pass
+    c.execute("CREATE INDEX IF NOT EXISTS events_unacked ON events(acked_at, last_reminder_at)")
     c.close()
 
 
