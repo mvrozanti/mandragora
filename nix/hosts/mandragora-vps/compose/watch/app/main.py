@@ -57,6 +57,8 @@ def init_db() -> None:
           created_at TEXT NOT NULL,
           last_polled_at TEXT,
           last_error TEXT,
+          requires_ack INTEGER NOT NULL DEFAULT 0,
+          reminder_interval INTEGER NOT NULL DEFAULT 3600,
           UNIQUE (kind, target)
         );
         CREATE TABLE IF NOT EXISTS events (
@@ -69,14 +71,28 @@ def init_db() -> None:
           occurred_at TEXT,
           received_at TEXT NOT NULL,
           raw TEXT,
+          acked_at TEXT,
+          last_reminder_at TEXT,
           UNIQUE (watcher_id, external_id)
         );
         CREATE INDEX IF NOT EXISTS events_watcher_id_desc
           ON events(watcher_id, id DESC);
         CREATE INDEX IF NOT EXISTS events_received_desc
           ON events(received_at DESC);
+        CREATE INDEX IF NOT EXISTS events_unacked
+          ON events(acked_at, last_reminder_at);
         """
     )
+    for stmt in (
+        "ALTER TABLE watchers ADD COLUMN requires_ack INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE watchers ADD COLUMN reminder_interval INTEGER NOT NULL DEFAULT 3600",
+        "ALTER TABLE events ADD COLUMN acked_at TEXT",
+        "ALTER TABLE events ADD COLUMN last_reminder_at TEXT",
+    ):
+        try:
+            c.execute(stmt)
+        except sqlite3.OperationalError:
+            pass
     c.close()
 
 
@@ -102,7 +118,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 
 
-def watcher_dict(row: sqlite3.Row, event_count: int = 0) -> dict:
+def watcher_dict(row: sqlite3.Row, event_count: int = 0, unacked: int = 0) -> dict:
     return {
         "id": row["id"],
         "kind": row["kind"],
@@ -113,7 +129,10 @@ def watcher_dict(row: sqlite3.Row, event_count: int = 0) -> dict:
         "created_at": row["created_at"],
         "last_polled_at": row["last_polled_at"],
         "last_error": row["last_error"],
+        "requires_ack": bool(row["requires_ack"]),
+        "reminder_interval": int(row["reminder_interval"]),
         "event_count": event_count,
+        "unacked_count": unacked,
     }
 
 
@@ -130,6 +149,8 @@ def event_dict(row: sqlite3.Row, watcher: sqlite3.Row | None = None) -> dict:
         "link": row["link"],
         "occurred_at": row["occurred_at"],
         "received_at": row["received_at"],
+        "acked_at": row["acked_at"] if "acked_at" in row.keys() else None,
+        "last_reminder_at": row["last_reminder_at"] if "last_reminder_at" in row.keys() else None,
     }
 
 
@@ -157,12 +178,14 @@ async def list_watchers() -> list[dict]:
     c = conn()
     rows = c.execute(
         """
-        SELECT w.*, (SELECT COUNT(*) FROM events e WHERE e.watcher_id = w.id) AS n
+        SELECT w.*,
+          (SELECT COUNT(*) FROM events e WHERE e.watcher_id = w.id) AS n,
+          (SELECT COUNT(*) FROM events e WHERE e.watcher_id = w.id AND e.acked_at IS NULL) AS un
         FROM watchers w
         ORDER BY w.created_at DESC
         """
     ).fetchall()
-    out = [watcher_dict(r, r["n"]) for r in rows]
+    out = [watcher_dict(r, r["n"], r["un"]) for r in rows]
     c.close()
     return out
 
@@ -177,11 +200,15 @@ async def create_watcher(payload: dict) -> dict:
     except ValueError as e:
         raise HTTPException(400, str(e))
     name = (payload.get("name") or f"{kind}:{target}").strip()
+    requires_ack = 1 if payload.get("requires_ack") else 0
+    reminder_interval = int(payload.get("reminder_interval") or 3600)
+    if reminder_interval < 60:
+        reminder_interval = 60
     c = conn()
     try:
         c.execute(
-            "INSERT INTO watchers (kind, target, name, created_at) VALUES (?, ?, ?, ?)",
-            (kind, target, name, now_iso()),
+            "INSERT INTO watchers (kind, target, name, created_at, requires_ack, reminder_interval) VALUES (?, ?, ?, ?, ?, ?)",
+            (kind, target, name, now_iso(), requires_ack, reminder_interval),
         )
     except sqlite3.IntegrityError:
         c.close()
@@ -192,6 +219,37 @@ async def create_watcher(payload: dict) -> dict:
     ).fetchone()
     c.close()
     return watcher_dict(row, 0)
+
+
+@app.patch("/api/watchers/{wid}")
+async def patch_watcher(wid: int, payload: dict) -> dict:
+    fields = []
+    params: list = []
+    if "requires_ack" in payload:
+        fields.append("requires_ack = ?")
+        params.append(1 if payload["requires_ack"] else 0)
+    if "reminder_interval" in payload:
+        ri = int(payload["reminder_interval"])
+        if ri < 60:
+            ri = 60
+        fields.append("reminder_interval = ?")
+        params.append(ri)
+    if "name" in payload:
+        fields.append("name = ?")
+        params.append(str(payload["name"])[:200])
+    if not fields:
+        raise HTTPException(400, "nothing to update")
+    params.append(wid)
+    c = conn()
+    cur = c.execute(f"UPDATE watchers SET {', '.join(fields)} WHERE id = ?", params)
+    if cur.rowcount == 0:
+        c.close()
+        raise HTTPException(404, "watcher not found")
+    row = c.execute("SELECT * FROM watchers WHERE id = ?", (wid,)).fetchone()
+    n = c.execute("SELECT COUNT(*) AS c FROM events WHERE watcher_id = ?", (wid,)).fetchone()["c"]
+    un = c.execute("SELECT COUNT(*) AS c FROM events WHERE watcher_id = ? AND acked_at IS NULL", (wid,)).fetchone()["c"]
+    c.close()
+    return watcher_dict(row, n, un)
 
 
 @app.delete("/api/watchers/{wid}")
@@ -265,10 +323,11 @@ async def list_events(
     limit: int = Query(100, ge=1, le=500),
     before: int | None = None,
     watcher_id: int | None = None,
+    unacked: int = 0,
 ) -> list[dict]:
     c = conn()
     q = """
-        SELECT e.*, w.name AS w_name, w.kind AS w_kind, w.target AS w_target
+        SELECT e.*, w.name AS w_name, w.kind AS w_kind, w.target AS w_target, w.requires_ack AS w_req
         FROM events e JOIN watchers w ON w.id = e.watcher_id
     """
     where = []
@@ -279,6 +338,8 @@ async def list_events(
     if before is not None:
         where.append("e.id < ?")
         params.append(before)
+    if unacked:
+        where.append("e.acked_at IS NULL")
     if where:
         q += " WHERE " + " AND ".join(where)
     q += " ORDER BY e.id DESC LIMIT ?"
@@ -292,12 +353,61 @@ async def list_events(
             "watcher_name": r["w_name"],
             "watcher_kind": r["w_kind"],
             "watcher_target": r["w_target"],
+            "watcher_requires_ack": bool(r["w_req"]),
             "external_id": r["external_id"],
             "title": r["title"],
             "summary": r["summary"],
             "link": r["link"],
             "occurred_at": r["occurred_at"],
             "received_at": r["received_at"],
+            "acked_at": r["acked_at"],
+            "last_reminder_at": r["last_reminder_at"],
         })
     c.close()
     return out
+
+
+@app.get("/ack/{eid}", response_class=HTMLResponse)
+async def ack_via_url(eid: int) -> HTMLResponse:
+    c = conn()
+    cur = c.execute(
+        "UPDATE events SET acked_at = ? WHERE id = ? AND acked_at IS NULL",
+        (now_iso(), eid),
+    )
+    row = c.execute("SELECT * FROM events WHERE id = ?", (eid,)).fetchone()
+    c.close()
+    if not row:
+        return HTMLResponse(f"<pre>event {eid} not found</pre>", status_code=404)
+    state = "acked" if cur.rowcount > 0 else "already acked"
+    title = (row["title"] or "")[:200]
+    body = f"""<!DOCTYPE html><html><head><meta charset=utf-8><title>ack {eid}</title>
+<style>body{{background:#050805;color:#b8ffc4;font-family:monospace;padding:2rem;text-align:center;}}
+a{{color:#00ff66;}}h1{{color:#00ff66;font-weight:normal;}}</style></head>
+<body><h1>{state}</h1><p>event {eid}: {title}</p>
+<p><a href="{PUBLIC_BASE}/">← back to watch</a></p></body></html>"""
+    return HTMLResponse(body)
+
+
+@app.post("/api/events/{eid}/ack")
+async def ack_event(eid: int) -> dict:
+    c = conn()
+    cur = c.execute(
+        "UPDATE events SET acked_at = ? WHERE id = ? AND acked_at IS NULL",
+        (now_iso(), eid),
+    )
+    exists = c.execute("SELECT id FROM events WHERE id = ?", (eid,)).fetchone()
+    c.close()
+    if not exists:
+        raise HTTPException(404, "event not found")
+    return {"ok": True, "acked": cur.rowcount > 0}
+
+
+@app.post("/api/watchers/{wid}/ack-all")
+async def ack_all(wid: int) -> dict:
+    c = conn()
+    cur = c.execute(
+        "UPDATE events SET acked_at = ? WHERE watcher_id = ? AND acked_at IS NULL",
+        (now_iso(), wid),
+    )
+    c.close()
+    return {"ok": True, "acked": cur.rowcount}

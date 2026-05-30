@@ -4,18 +4,56 @@ FastAPI app + background poller that watches external sources (GitHub
 users/repos, Reddit users/subs) and emits new items as webhook POSTs.
 Served at `https://watch.mvr.ac`, Authelia-gated.
 
-## What it polls (v1)
+## What it polls
 
-| kind            | endpoint                                  |
-|-----------------|-------------------------------------------|
-| `github_user`   | `/users/:login/events/public`             |
-| `github_repo`   | `/repos/:owner/:repo/events`              |
-| `reddit_user`   | `/user/:name.json`                        |
-| `reddit_sub`    | `/r/:name/new.json`                       |
+| kind              | endpoint                                                 |
+|-------------------|----------------------------------------------------------|
+| `github_user`     | `/users/:login/events/public`                            |
+| `github_repo`     | `/repos/:owner/:repo/events`                             |
+| `reddit_user`     | `/user/:name.json`                                       |
+| `reddit_sub`      | `/r/:name/new.json`                                      |
+| `youtube_channel` | `https://www.youtube.com/feeds/videos.xml?channel_id=…`  |
+| `twitch_stream`   | Helix `/streams?user_login=…` (live transitions only)    |
+| `hn_search`       | HN Algolia `search_by_date?query=…&tags=story`           |
+| `reddit_search`   | `https://www.reddit.com/search.json?q=…&sort=new`        |
+| `rss`             | any RSS 2.0 / Atom feed URL                              |
 
-Twitter intentionally skipped in v1 — nitter is unreliable, RSSHub
-self-host is the planned route. Add a `twitter_*` kind in `sources.py`
-when ready.
+Twitter intentionally skipped — nitter is unreliable, RSSHub self-host
+is the planned route. Add a `twitter_*` kind in `sources.py` when
+ready.
+
+## Ack-required notifications
+
+Mark a watcher with `requires_ack=true` (web UI checkbox, or `/addack`
+via Telegram, or `PATCH /api/watchers/:id`). Events from such watchers
+get re-pushed (Telegram + webhook fanout) every `reminder_interval`
+seconds (default 3600) until acknowledged. Three ways to ack:
+
+- click the inline `✓ ack` button on the Telegram message, or send
+  `/ack <event_id>` / `/ackall <watcher_id>` in the chat;
+- click `ack` on the event in the web UI (or `ack-all` on the watcher);
+- open the per-event `ack_url` from the webhook payload (`GET /ack/:id`
+  renders a confirmation page).
+
+`requires_ack` and `reminder_interval` can be retoggled at any time
+via the web UI, `/ackrequire <id> on|off`, or `/remind <id> <seconds>`.
+Reminders piggy-back on the poll loop, so the effective minimum
+`reminder_interval` is `WATCH_POLL_INTERVAL` (default 300s).
+
+## Kindle Paperwhite gen 12 jailbreak watch
+
+Three watchers cover the realistic sources for new Kindle PW12 (fw
+≥ 5.9) jailbreaks. All three are good candidates for `requires_ack`
+since the signal is rare and high-value:
+
+```
+/addack rss      https://www.mobileread.com/forums/external.php?type=RSS2&forumids=150
+/addack hn_search     kindle paperwhite jailbreak
+/addack reddit_search kindle paperwhite jailbreak 5.9
+```
+
+Forum 150 on MobileRead is the Kindle Developer's Corner — historically
+where every Kindle JB drops first.
 
 ## Fan-out
 
