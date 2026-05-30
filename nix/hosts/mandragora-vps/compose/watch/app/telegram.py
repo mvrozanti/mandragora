@@ -52,13 +52,22 @@ async def push_event(watcher: Any, ev: dict[str, Any]) -> None:
     requires_ack = bool(watcher["requires_ack"])
     is_reminder = bool(ev.get("is_reminder"))
     event_id = ev.get("id")
+    verdict = ev.get("ai_verdict")
+    reason = ev.get("ai_reason")
     prefix = "🔔 reminder " if is_reminder else ""
+    badge = ""
+    if verdict == "GO":
+        badge = "🟢 GO "
+    elif verdict == "MAYBE":
+        badge = "🟡 MAYBE "
     text_lines = [
-        f"{prefix}<b>{_esc(kind)}</b> · <code>{_esc(target)}</code>",
+        f"{badge}{prefix}<b>{_esc(kind)}</b> · <code>{_esc(target)}</code>",
         _esc(title),
     ]
     if summary:
         text_lines.append(f"<i>{_esc(summary[:300])}</i>")
+    if reason:
+        text_lines.append(f"<u>ai:</u> <i>{_esc(reason)}</i>")
     if link:
         text_lines.append(f'<a href="{_esc(link)}">open</a>')
     if requires_ack and event_id is not None:
@@ -95,6 +104,9 @@ HELP = (
     "/ackall &lt;watcher_id&gt; — ack every event from a watcher\n"
     "/ackrequire &lt;watcher_id&gt; on|off — toggle requires_ack on a watcher\n"
     "/remind &lt;watcher_id&gt; &lt;seconds&gt; — set reminder interval\n"
+    "/spec &lt;watcher_id&gt; &lt;text&gt; — set AI relevance spec (empty clears)\n"
+    "/judge &lt;event_id&gt; — re-run AI verdict on an event\n"
+    "/verdicts &lt;watcher_id&gt; — recent verdict tallies\n"
 )
 
 
@@ -103,7 +115,7 @@ async def _cmd_list(conn_factory) -> str:
     rows = c.execute(
         """
         SELECT w.id, w.kind, w.target, w.name, w.enabled, w.last_polled_at, w.last_error,
-               w.requires_ack, w.reminder_interval,
+               w.requires_ack, w.reminder_interval, w.ai_spec,
                (SELECT COUNT(*) FROM events e WHERE e.watcher_id = w.id AND e.acked_at IS NULL) AS un
         FROM watchers w ORDER BY w.id
         """
@@ -115,9 +127,10 @@ async def _cmd_list(conn_factory) -> str:
     for r in rows:
         flag = "" if r["enabled"] else " [paused]"
         ack = f" 🔔ack@{r['reminder_interval']}s" if r["requires_ack"] else ""
+        ai = " 🤖ai" if r["ai_spec"] else ""
         unacked = f" un={r['un']}" if r["un"] else ""
         err = f"\n  err: {_esc(r['last_error'][:120])}" if r["last_error"] else ""
-        lines.append(f"<code>{r['id']}</code> {_esc(r['kind'])}:{_esc(r['target'])}{flag}{ack}{unacked}{err}")
+        lines.append(f"<code>{r['id']}</code> {_esc(r['kind'])}:{_esc(r['target'])}{flag}{ack}{ai}{unacked}{err}")
     return "\n".join(lines)
 
 
@@ -289,6 +302,73 @@ async def _cmd_ackrequire(conn_factory, args: list[str]) -> str:
     return f"watcher {wid} requires_ack={'on' if val else 'off'}"
 
 
+async def _cmd_spec(conn_factory, args: list[str]) -> str:
+    if not args or not args[0].isdigit():
+        return "usage: /spec &lt;watcher_id&gt; &lt;text&gt; (empty clears)"
+    wid = int(args[0])
+    spec = " ".join(args[1:]).strip()
+    c = conn_factory()
+    if not spec:
+        cur = c.execute("UPDATE watchers SET ai_spec = NULL WHERE id = ?", (wid,))
+        c.close()
+        return f"cleared ai_spec on {wid}" if cur.rowcount else "not found"
+    cur = c.execute("UPDATE watchers SET ai_spec = ? WHERE id = ?", (spec[:4000], wid))
+    c.close()
+    if not cur.rowcount:
+        return "not found"
+    return f"ai_spec set on {wid} ({len(spec)} chars)"
+
+
+async def _cmd_judge(conn_factory, args: list[str]) -> str:
+    import judge as J
+    if not args or not args[0].isdigit():
+        return "usage: /judge &lt;event_id&gt;"
+    eid = int(args[0])
+    c = conn_factory()
+    row = c.execute(
+        """
+        SELECT e.*, w.ai_spec AS w_spec, w.kind AS w_kind, w.target AS w_target
+        FROM events e JOIN watchers w ON w.id = e.watcher_id WHERE e.id = ?
+        """,
+        (eid,),
+    ).fetchone()
+    c.close()
+    if not row:
+        return f"event {eid} not found"
+    if not row["w_spec"]:
+        return f"watcher has no ai_spec"
+    try:
+        verdict, reason = await J.judge_event(row["w_spec"], dict(row))
+    except J.QuotaExceeded as exc:
+        return f"quota exceeded: {_esc(str(exc)[:200])}"
+    except Exception as exc:
+        return f"judge failed: {_esc(str(exc)[:200])}"
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+    c = conn_factory()
+    c.execute(
+        "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_judged_at = ? WHERE id = ?",
+        (verdict, reason[:500], now, eid),
+    )
+    c.close()
+    return f"<b>{_esc(verdict)}</b>: {_esc(reason)}"
+
+
+async def _cmd_verdicts(conn_factory, args: list[str]) -> str:
+    if not args or not args[0].isdigit():
+        return "usage: /verdicts &lt;watcher_id&gt;"
+    wid = int(args[0])
+    c = conn_factory()
+    rows = c.execute(
+        "SELECT COALESCE(ai_verdict, 'pending') AS v, COUNT(*) AS c FROM events WHERE watcher_id = ? GROUP BY 1",
+        (wid,),
+    ).fetchall()
+    c.close()
+    if not rows:
+        return f"no events for watcher {wid}"
+    return "\n".join(f"<code>{r['v']}</code>: {r['c']}" for r in rows)
+
+
 async def _cmd_remind(conn_factory, args: list[str]) -> str:
     if len(args) < 2 or not args[0].isdigit() or not args[1].isdigit():
         return "usage: /remind &lt;watcher_id&gt; &lt;seconds&gt;"
@@ -337,6 +417,12 @@ async def _dispatch(conn_factory, chat_id: int, text: str) -> str | None:
         return await _cmd_ackrequire(conn_factory, args)
     if cmd == "/remind":
         return await _cmd_remind(conn_factory, args)
+    if cmd == "/spec":
+        return await _cmd_spec(conn_factory, args)
+    if cmd == "/judge":
+        return await _cmd_judge(conn_factory, args)
+    if cmd == "/verdicts":
+        return await _cmd_verdicts(conn_factory, args)
     return None
 
 

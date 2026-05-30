@@ -19,6 +19,9 @@ services:
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
       - TWITCH_CLIENT_ID=${TWITCH_CLIENT_ID:-}
       - TWITCH_CLIENT_SECRET=${TWITCH_CLIENT_SECRET:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - WATCH_GEMINI_MODEL=${WATCH_GEMINI_MODEL:-gemini-2.5-flash}
+      - WATCH_JUDGE_MAX_PER_CYCLE=${WATCH_JUDGE_MAX_PER_CYCLE:-20}
     volumes:
       - ${WATCH_DATA_VOLUME:-./data}:/data
     networks:
