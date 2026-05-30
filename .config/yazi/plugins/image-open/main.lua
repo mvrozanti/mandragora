@@ -1,4 +1,4 @@
-local M = {}
+--- @sync entry
 
 local IMG = {
   jpg=1, jpeg=1, png=1, gif=1, webp=1, bmp=1,
@@ -10,17 +10,17 @@ local function ext(name)
   return tostring(name):lower():match("%.([^%.]+)$")
 end
 
-function M:entry()
+local function entry(self)
   local h = cx.active.current.hovered
   if not h then return end
 
   if h.cha.is_dir then
-    ya.mgr_emit("enter", {})
+    ya.emit("enter", {})
     return
   end
 
   if not IMG[ext(h.name) or ""] then
-    ya.mgr_emit("open", { hovered = true })
+    ya.emit("open", { hovered = true })
     return
   end
 
@@ -38,4 +38,4 @@ function M:entry()
   cmd:stdin(Command.NULL):stdout(Command.NULL):stderr(Command.NULL):spawn()
 end
 
-return M
+return { entry = entry }
