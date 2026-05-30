@@ -44,6 +44,8 @@
     forge-cli
     chafa
     asciinema
+
+    (pkgs.writeShellScriptBin "mandragora-pkg-diff" (builtins.readFile ../../../.local/bin/mandragora-pkg-diff.sh))
   ];
 
   programs.direnv = {
