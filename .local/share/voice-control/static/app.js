@@ -54,10 +54,12 @@ $("#bypass").onclick = async () => {
 
 let audioCtx, analyser, anim, mediaStream;
 const picker = $("#device-picker");
+const status = document.createElement("span");
+status.className = "muted";
+status.style.marginLeft = "8px";
+$("#preview").after(status);
 
-async function populateDevices(preferLabel = /easyeffects/i) {
-  try { await navigator.mediaDevices.getUserMedia({ audio: true }).then(s => s.getTracks().forEach(t => t.stop())); } catch {}
-  const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "audioinput");
+function refillPicker(devs, preferId) {
   picker.innerHTML = "";
   for (const d of devs) {
     const o = document.createElement("option");
@@ -65,21 +67,37 @@ async function populateDevices(preferLabel = /easyeffects/i) {
     o.textContent = d.label || `mic (${d.deviceId.slice(0, 8)})`;
     picker.appendChild(o);
   }
-  const ee = devs.find(d => preferLabel.test(d.label));
-  if (ee) picker.value = ee.deviceId;
+  if (preferId) picker.value = preferId;
+}
+
+async function listDevices() {
+  const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "audioinput");
+  refillPicker(devs);
+  return devs;
 }
 
 $("#preview").onclick = async () => {
   if (audioCtx) { stopPreview(); return; }
   try {
-    const deviceId = picker.value || undefined;
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        deviceId: deviceId ? { exact: deviceId } : undefined,
-        echoCancellation: false, noiseSuppression: false, autoGainControl: false,
-      },
+    let stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
     });
-    audioCtx = new AudioContext();
+    const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "audioinput");
+    const ee = devs.find(d => /easyeffects/i.test(d.label));
+    const wantId = picker.value || ee?.deviceId;
+    if (wantId && stream.getAudioTracks()[0]?.getSettings().deviceId !== wantId) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          deviceId: { exact: wantId },
+          echoCancellation: false, noiseSuppression: false, autoGainControl: false,
+        },
+      });
+    }
+    refillPicker(devs, stream.getAudioTracks()[0]?.getSettings().deviceId || wantId);
+    mediaStream = stream;
+    audioCtx = new AudioContext({ latencyHint: "interactive" });
+    if (audioCtx.state === "suspended") await audioCtx.resume();
     const src = audioCtx.createMediaStreamSource(mediaStream);
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 1024;
@@ -89,9 +107,11 @@ $("#preview").onclick = async () => {
     src.connect(gain).connect(audioCtx.destination);
     drawMeter();
     $("#preview").textContent = "stop ■";
-    populateDevices();
+    const lbl = mediaStream.getAudioTracks()[0]?.label || "(unknown)";
+    status.textContent = `monitoring: ${lbl} · ctx=${audioCtx.state} · sr=${audioCtx.sampleRate}`;
   } catch (e) {
     alert("mic monitor blocked: " + e.message);
+    status.textContent = "error: " + e.message;
   }
 };
 
@@ -102,12 +122,13 @@ function stopPreview() {
   audioCtx = null;
   mediaStream = null;
   $("#preview").textContent = "monitor ▶";
+  status.textContent = "";
   const ctx = $("#meter").getContext("2d");
   ctx.clearRect(0, 0, 320, 32);
 }
 
 picker.onchange = () => { if (audioCtx) { stopPreview(); $("#preview").click(); } };
-populateDevices();
+listDevices();
 
 function drawMeter() {
   const buf = new Uint8Array(analyser.fftSize);
