@@ -2,15 +2,17 @@
 
 let
   botPython = import ../../pkgs/bot-python.nix { inherit pkgs; };
-  llmViaTelegramRoot = "/etc/nixos/mandragora/.local/share/llm-via-telegram";
+  llmViaTelegramRoot = "/home/m/Projects/llm-via-telegram";
   gpuLockRoot = "/etc/nixos/mandragora/.local/share/gpu-lock";
   llmViaTelegramState = "/home/m/.local/share/llm-via-telegram";
-  sttViaTelegramRoot = "/etc/nixos/mandragora/.local/share/stt-via-telegram";
+  sttViaTelegramRoot = "/home/m/Projects/stt-via-telegram";
   sttViaTelegramState = "/home/m/.local/share/stt-via-telegram";
-  sttCoreRoot = "/etc/nixos/mandragora/.local/share/stt-core";
+  sttCoreRoot = "/home/m/Projects/stt-core";
   sttCoreState = "/home/m/.local/share/stt-core";
-  ttsCloneCoreRoot = "/etc/nixos/mandragora/.local/share/tts-clone-core";
+  ttsCloneCoreRoot = "/home/m/Projects/tts-clone-core";
   ttsCloneCoreState = "/home/m/.local/share/tts-clone-core";
+  teacherRoot = "/home/m/Projects/teacher";
+  teacherState = "/home/m/.local/share/teacher";
   vtagState = "/home/m/.local/share/vtag";
   axonRoot = "/etc/nixos/mandragora/.local/share/axon";
   axonState = "/home/m/.local/share/axon";
@@ -25,6 +27,8 @@ in
     mkdir -p ${sttViaTelegramState}/data ${sttViaTelegramState}/logs ${sttViaTelegramState}/hf-cache
     mkdir -p ${sttCoreState}/data ${sttCoreState}/logs ${sttCoreState}/hf-cache
     mkdir -p ${ttsCloneCoreState}/refs ${ttsCloneCoreState}/out ${ttsCloneCoreState}/hf-cache
+    mkdir -p ${teacherState}/data ${teacherState}/logs
+    [ -f ${teacherState}/.env ] || install -m 0600 /dev/null ${teacherState}/.env
     mkdir -p ${vtagState}/logs
     mkdir -p ${axonState}/logs
     mkdir -p ${axonWebState}/logs
@@ -210,6 +214,40 @@ in
       Restart = "on-failure";
       RestartSec = 10;
       TimeoutStartSec = "15min";
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
+
+  systemd.user.services.teacher-teach = {
+    Unit = {
+      Description = "Teacher — Socratic Telegram tutor (Claude API)";
+      After = [ "graphical-session.target" "network-online.target" ];
+      Wants = [ "network-online.target" ];
+      ConditionPathExists = [
+        "${teacherRoot}/bot.sh"
+        "${teacherRoot}/.venv/bin/python"
+      ];
+    };
+    Service = {
+      Type = "simple";
+      WorkingDirectory = teacherRoot;
+      ExecStart = "${teacherRoot}/bot.sh";
+      EnvironmentFile = [
+        osConfig.sops.templates."teacher_teach/env".path
+        "-${teacherState}/.env"
+      ];
+      Environment = [
+        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
+        "TEACHER_DB_PATH=${teacherState}/data/teacher.db"
+        "TEACHER_BOOKS_DIR=/home/m/Documents/library/books"
+        "TEACHER_AGENTS_MD=${teacherRoot}/AGENTS.md"
+        "TEACHER_READ_ROOTS=/home/m/Documents,/home/m/Projects,/etc/nixos/mandragora"
+      ];
+      Restart = "on-failure";
+      RestartSec = 10;
+      TimeoutStartSec = "2min";
     };
     Install = {
       WantedBy = [ "default.target" ];

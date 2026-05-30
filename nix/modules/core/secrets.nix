@@ -68,6 +68,10 @@ in
         owner = "m";
         mode = "0400";
       };
+      "teacher_teach/telegram_bot_key" = {
+        owner = "m";
+        mode = "0400";
+      };
       "grafana/secret_key" = {
         owner = "grafana";
         mode = "0400";
@@ -84,6 +88,14 @@ in
         ${config.sops.placeholder."oracle/ip"} oracle
       '';
       mode = "0444";
+    };
+
+    templates."teacher_teach/env" = {
+      content = ''
+        TELEGRAM_BOT_TOKEN=${config.sops.placeholder."teacher_teach/telegram_bot_key"}
+      '';
+      owner = "m";
+      mode = "0400";
     };
   };
 
