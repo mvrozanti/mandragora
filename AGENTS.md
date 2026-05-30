@@ -155,6 +155,15 @@ rationale, recipes, or the incident that produced the rule.
     Intentional exemptions live in
     \`.local/share/mandragora-audit/allowlists/hub-tile.txt\`. Detail:
     \`~/.ai-shared/rules/mvr-hub-tile.md\`.
+17. **No projects under \`.local/share/\`** — that directory is the XDG
+    dotfiles mirror, not a project tree. Anything carrying project
+    markers (\`.git\`, \`pyproject.toml\`, \`Cargo.toml\`, \`package.json\`,
+    \`flake.nix\`) belongs at \`~/Projects/<name>/\`. Nix-internal scripts
+    that need build-time access via \`builtins.readFile\` may stay only
+    if no better home exists in the Nix tree and only if they do not
+    look like standalone projects. Enforced by \`mandragora-audit\`
+    check \`06-no-projects-in-local-share\`; intentional exemptions live
+    in \`.local/share/mandragora-audit/allowlists/local-share-projects.txt\`.
 
 ---
 
