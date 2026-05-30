@@ -1,13 +1,17 @@
 ---
 name: handoff
-description: Use when the user wants to pass current task context to another AI agent (Gemini, Qwen, etc.) so they can continue mid-thought. Writes a structured baton-pass to ~/.ai-shared/handoffs/. Triggered explicitly via /handoff [target-agent].
+description: Use when the user wants to pass current task context to another AI agent (Gemini, Qwen, etc.) so they can continue mid-thought. Writes a structured baton-pass to ~/.ai-shared/handoffs/. Triggered explicitly via /handoff [to].
 ---
 
-# handoff — Pass Context to Another Agent
+# handoff — Drop Context for Another Agent
+
+## Mental model
+
+A handoff is a **drop**, not a send. We leave a markdown note in a shared inbox (`~/.ai-shared/handoffs/`); whoever picks it up reads it and continues. There is no recipient who must receive — there is a slot where the next agent looks. Use *to* / *for* / *picker* / *who picks it up*. Do **not** say *target*, *recipient*, *destination address*. The metaphor is a baton on a table, not a packet on a wire.
 
 ## Overview
 
-A handoff is an explicit, user-initiated baton-pass from this session to another agent. It writes a single markdown file under `~/.ai-shared/handoffs/` containing the active task, current state, next step, open questions, and any pointers the receiver needs to continue without forcing the user to re-explain.
+A handoff is an explicit, user-initiated baton-pass from this session to another agent. It writes a single markdown file under `~/.ai-shared/handoffs/` containing the active task, current state, next step, open questions, and any pointers the next agent needs to continue without forcing the user to re-explain.
 
 The full protocol — file naming, frontmatter schema, status lifecycle — lives in `~/.ai-shared/AGENTS.md` under "Cross-Agent Handoff Protocol". This skill is the write side. The read side is `/pickup`.
 
@@ -23,14 +27,14 @@ The full protocol — file naming, frontmatter schema, status lifecycle — live
 
 ## Arguments
 
-`/handoff [target]` — `target` is a short agent ID: `claude`, `gemini`, `qwen`, etc.
+`/handoff [to]` — `to` is a short agent ID: `claude`, `gemini`, `qwen`, etc. It's a label on the slot, not a recipient address.
 
-**Default target: `claude`.** The most common case is the user changing working directory or starting a fresh Claude session to continue the same task. Only use `gemini` / `qwen` / etc. when the user explicitly names one. Never ask "to whom?" — pick `claude` and let the user redirect.
+**Default `to`: `claude`.** Most handoffs are the user changing working directory or starting a fresh Claude session to continue the same task. Only use `gemini` / `qwen` / etc. when the user explicitly names one. Never ask "for whom?" — pick `claude` and let the user redirect.
 
 ## Workflow
 
 ```
-1. Resolve     target = arg or "claude"; from = "claude-<model-suffix>"
+1. Resolve     to = arg or "claude"; from = "claude-<model-suffix>"
 2. Gather      Synthesize from current conversation:
                  - Task: one paragraph, what + why
                  - Files touched: scan recent edits + git status if in a repo
@@ -39,7 +43,7 @@ The full protocol — file naming, frontmatter schema, status lifecycle — live
                  - Next step: literal next action
                  - Open questions
                  - Pointers: file:line references that matter
-3. Write       Path: ~/.ai-shared/handoffs/<UTC-ISO>-claude-to-<target>.md
+3. Write       Path: ~/.ai-shared/handoffs/<UTC-ISO>-claude-to-<to>.md
                  Timestamp format: YYYYMMDDTHHMMSSZ (no separators, sorts lexically)
                  Frontmatter: status: open
                  Write immediately. No draft-then-ack step — user invoked
@@ -90,8 +94,8 @@ then run `mandragora-switch` and verify with `hyprctl configerrors`.
 
 ```bash
 ts=$(date -u +%Y%m%dT%H%M%SZ)
-target=${1:-gemini}
-path=~/.ai-shared/handoffs/${ts}-claude-to-${target}.md
+to=${1:-claude}
+path=~/.ai-shared/handoffs/${ts}-claude-to-${to}.md
 mkdir -p ~/.ai-shared/handoffs
 # write the file with the Write tool, not heredoc
 ```
@@ -113,9 +117,9 @@ After writing, report to the user:
 
 ```
 Wrote handoff: ~/.ai-shared/handoffs/<filename>
-  to: <target>
+  to: <to>
   task: <one-line summary>
-Receiver runs /pickup (or equivalent) to claim it.
+Whoever picks it up runs /pickup to claim it.
 ```
 
 Then stop. Do not switch agents yourself.
