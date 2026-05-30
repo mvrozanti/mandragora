@@ -115,7 +115,7 @@ async def judge_pending(conn_factory) -> dict[str, int]:
                w.ai_spec AS w_spec, w.kind AS w_kind, w.target AS w_target
         FROM events e JOIN watchers w ON w.id = e.watcher_id
         WHERE e.ai_verdict IS NULL AND w.ai_spec IS NOT NULL AND w.enabled = 1
-        ORDER BY e.id ASC
+        ORDER BY e.id DESC
         LIMIT ?
         """,
         (MAX_PER_CYCLE,),
