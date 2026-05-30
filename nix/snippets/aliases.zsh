@@ -15,7 +15,7 @@ alias F='fzf'
 alias rp='realpath'
 alias rp.='realpath .'
 alias rp.c='realpath . | c -n'
-alias pwdc='pwd | tr -d "\n" | c'
+alias pwdc='pwd | c -n'
 alias S='du -sh'
 alias filesize='du -h'
 alias biggest-files='du -hsx * | sort -rh | head -10'
@@ -132,11 +132,11 @@ alias cocurll='co | xargs curl -s | less'
 alias cocd='eval "$(co)"'
 cocp.() { cp "$(co)" . }
 co2ip() { f=/tmp/co2i-$(date +%s).png; wl-paste --type image/png > "$f" && echo -n "$f" }
-co2ipc() { co2ip | c }
+co2ipc() { co2ip | c -n }
 co2nsxiv() { wl-paste --type image/png > /tmp/img; nsxiv /tmp/img }
 alias cov='nvim "$(co)"'
 
-alias p='P | tr -d "\n" | c'
+alias p='P | c -n'
 
 alias weather='curl -s wttr.in | head -n -1'
 alias W='curl -s v2.wttr.in | head -n -1'
