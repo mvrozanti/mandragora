@@ -77,4 +77,5 @@
   boot.loader.systemd-boot.configurationLimit = 10;
 
   system.stateVersion = "24.05";
+  mandragora.keystats.captureText = { enable = true; allowedClasses = [ "obsidian" ]; };
 }
