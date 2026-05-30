@@ -1,11 +1,12 @@
 # fin · live view of orderbook-algotrading
 
-Authelia-gated read-only dashboard for the orderbook-algotrading
-paper-trade state. Serves at https://fin.mvr.ac (auth required).
+Public read-only dashboard for the orderbook-algotrading paper-trade
+state. Serves at https://fin.mvr.ac (no auth — paper-trade data is
+non-sensitive, OSS-bound).
 
-Default access model: authelia forward-auth (same as kl, microbin).
-Flip to public if/when the project's OSS release publishes the live
-state externally.
+Read-only guarantees: only GET routes, SQLite opened mode=ro, mount
+volumes :ro. Three layers of read-only enforcement (see "Read-only
+guarantees" below).
 
 ## Source
 
