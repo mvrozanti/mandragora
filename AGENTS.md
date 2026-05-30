@@ -264,3 +264,6 @@ needs sudo; main drive intentionally unencrypted; SSH off by default
 CVE scan skill (run scan + triage results): \`~/.ai-shared/rules/cve-scan.md\`.
 
 @RTK.md
+@GEMINI.md
+@CLAUDE.md
+@local-llm.md
