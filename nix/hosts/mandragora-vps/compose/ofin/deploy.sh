@@ -45,8 +45,14 @@ if [[ -z "$PLUGGY_CLIENT_SECRET" ]]; then
 fi
 
 if [[ -z "${OFIN_DB_PASSWORD:-}" ]]; then
-  OFIN_DB_PASSWORD="$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')"
-  echo "→ generated fresh OFIN_DB_PASSWORD (rotate by deleting /home/opc/ofin/.env)"
+  existing="$(ssh "$REMOTE" "grep -E '^OFIN_DB_PASSWORD=' $REMOTE_DIR/.env 2>/dev/null | cut -d= -f2-" || true)"
+  if [[ -n "$existing" ]]; then
+    OFIN_DB_PASSWORD="$existing"
+    echo "→ reusing OFIN_DB_PASSWORD from existing $REMOTE_DIR/.env"
+  else
+    OFIN_DB_PASSWORD="$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+    echo "→ generated fresh OFIN_DB_PASSWORD (only on first deploy)"
+  fi
 fi
 
 echo "→ ensuring remote slot $REMOTE:$REMOTE_DIR exists"
