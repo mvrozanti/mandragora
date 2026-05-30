@@ -46,6 +46,7 @@
     ../../modules/services/gource-renderer.nix
     ../../modules/services/gource-renderer-prewarm.nix
     ../../modules/services/ytdl-web.nix
+    ../../modules/services/vtag-web.nix
     ../../modules/user/home-manager.nix
     ../../modules/audits/default.nix
   ];
@@ -76,4 +77,5 @@
 
   system.stateVersion = "24.05";
   mandragora.keystats.captureText = { enable = true; allowedClasses = [ "obsidian" ]; };
+  mandragora.vtagWeb = { enable = true; targetDir = "/mnt/toshiba/hdd/gdrive/Levv/4chan"; };
 }
