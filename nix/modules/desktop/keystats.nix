@@ -11,6 +11,7 @@ let
     export KEYSTATS_TEXT_DB_KEY_FILE="''${KEYSTATS_TEXT_DB_KEY_FILE:-/run/secrets/keystats-text-db-key}"
     export KEYSTATS_TEXT_DB_PATH="''${KEYSTATS_TEXT_DB_PATH:-/persistent/keystats/text.db}"
     export KEYSTATS_TEXT_ALLOWLIST="''${KEYSTATS_TEXT_ALLOWLIST:-${textAllowlist}}"
+    export KEYSTATS_TEXT_BLACKLIST_FILE="''${KEYSTATS_TEXT_BLACKLIST_FILE:-/persistent/keystats/blacklist.txt}"
   '';
 
   webExtraExports = lib.optionalString textEnabled ''
@@ -111,7 +112,8 @@ in
 
     systemd.tmpfiles.rules = [
       "d /persistent/keystats 0700 m users - -"
-    ];
+    ] ++ lib.optional textEnabled
+      "f /persistent/keystats/blacklist.txt 0600 m users - -";
 
     systemd.user.services.keystats-capture = {
       description = "keystroke aggregator (evdev + Hyprland-gated, SQLCipher)";
