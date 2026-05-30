@@ -1,0 +1,42 @@
+{
+  "input": {
+    "blocklist": [],
+    "plugins_order": ["pitch#0", "bass_enhancer#0", "reverb#0"],
+    "pitch#0": {
+      "bypass": false,
+      "cents": 0.0,
+      "crispness": 2,
+      "formant-preserving": false,
+      "formant-shift": -3.0,
+      "input-gain": 0.0,
+      "mode": "Speech",
+      "output-gain": 3.0,
+      "semitones": -7.0
+    },
+    "bass_enhancer#0": {
+      "bypass": false,
+      "amount": 6.0,
+      "blend": 0.5,
+      "floor": 80.0,
+      "floor-active": true,
+      "harmonics": 4.0,
+      "input-gain": 0.0,
+      "listen": false,
+      "output-gain": 0.0,
+      "scope": 200.0
+    },
+    "reverb#0": {
+      "bypass": false,
+      "amount": 0.35,
+      "bandwidth": 0.4,
+      "decay-time": 3.5,
+      "diffusion": 0.8,
+      "dry": 1.0,
+      "hf-damp": 3000.0,
+      "input-gain": 0.0,
+      "output-gain": 0.0,
+      "predelay": 20.0,
+      "room-size": "Large"
+    }
+  }
+}
