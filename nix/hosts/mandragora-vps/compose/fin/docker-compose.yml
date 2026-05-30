@@ -15,10 +15,7 @@ services:
     labels:
       caddy: https://fin.${MVR_AC:-mvr.ac}
       caddy.encode: zstd gzip
-      caddy.0_handle.forward_auth: "authelia:9091"
-      caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
-      caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy.0_handle.reverse_proxy: "{{upstreams 8080}}"
+      caddy.reverse_proxy: "{{upstreams 8080}}"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
       interval: 30s
