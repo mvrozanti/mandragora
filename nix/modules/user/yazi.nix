@@ -237,7 +237,7 @@ in
         { on = "a"; run = "rename --cursor=before_ext"; desc = "Rename"; }
         { on = [ "c" "w" ]; run = "rename --cursor=before_ext"; desc = "Rename"; }
         { on = "A"; run = "rename --cursor=end"; desc = "Rename (end)"; }
-        { on = "I"; run = ''shell "file %s | less" --block''; desc = "File info"; }
+        { on = "I"; run = ''shell "{ du -sh -- %s; echo; file -- %s; } | less" --block''; desc = "File info + size"; }
         { on = "i"; run = ''shell "nsxiv -ab -- $(dirname %s | head -1)" --orphan''; desc = "nsxiv on dir"; }
         { on = "P"; run = ''shell "echo -n %s | wl-copy"''; desc = "Yank path"; }
         { on = "N"; run = ''shell "basename %s | tr -d '\n' | wl-copy"''; desc = "Yank name"; }
