@@ -11,14 +11,12 @@ let
 in {
   mandragora.hub.services.slither-io = {
     port = 8088;
+    userService = true;
     systemd = {
       description = "slither-io-simulator HTTP server (tailnet bind, public via Caddy)";
-      after = [ "network.target" "tailscaled.service" ];
-      wants = [ "tailscaled.service" ];
-      wantedBy = [ "multi-user.target" ];
+      after = [ "network.target" ];
+      wantedBy = [ "default.target" ];
       serviceConfig = {
-        User = "m";
-        Group = "users";
         WorkingDirectory = repo;
         Environment = [ "PORT=8088" "BIND=0.0.0.0" ];
         ExecStart = "${launcher}";
