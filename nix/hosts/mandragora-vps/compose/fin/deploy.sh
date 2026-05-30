@@ -42,12 +42,25 @@ rsync -av --delete \
   --exclude='__pycache__/' --exclude='*.pyc' \
   "$LOCAL_REPO/webui/" "$REMOTE:$REMOTE_DIR/src/webui/"
 
+echo "→ rsyncing STATE.md to $REMOTE:$REMOTE_DIR/src/"
+rsync -av "$LOCAL_REPO/STATE.md" "$REMOTE:$REMOTE_DIR/src/STATE.md"
+
+echo "→ rsyncing .git/ (for /api/commits) — heads/refs/objects-loose only"
+rsync -av --delete \
+  --exclude='/objects/pack/' \
+  --exclude='/lfs/' \
+  --exclude='/logs/' \
+  --exclude='/hooks/' \
+  "$LOCAL_REPO/.git/" "$REMOTE:$REMOTE_DIR/src/.git/" || \
+  echo "  (warn: .git rsync failed; /api/commits will be empty)"
+
 echo "→ syncing compose.yml"
 rsync -av "$COMPOSE_SRC" "$REMOTE:$REMOTE_DIR/docker-compose.yml"
 
-echo "→ writing .env (FIN_DATA_DIR=$FIN_DATA_DIR)"
+echo "→ writing .env (FIN_DATA_DIR=$FIN_DATA_DIR, FIN_SRC_DIR=$REMOTE_DIR/src)"
 ssh "$REMOTE" "cat > $REMOTE_DIR/.env <<EOF
 FIN_DATA_DIR=$FIN_DATA_DIR
+FIN_SRC_DIR=$REMOTE_DIR/src
 FIN_IMAGE=fin-mvr-ac:latest
 EOF"
 
