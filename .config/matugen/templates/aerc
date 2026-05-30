@@ -2,7 +2,7 @@
 *.normal=true
 
 default.fg={{colors.on_surface.default.hex}}
-default.bg={{colors.surface.default.hex}}
+default.bg=default
 
 error.fg={{colors.error.default.hex}}
 warning.fg={{colors.tertiary.default.hex}}
