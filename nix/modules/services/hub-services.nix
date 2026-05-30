@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  inherit (lib) mkOption types filterAttrs mapAttrs' nameValuePair mapAttrsToList unique;
+  inherit (lib) mkOption types filterAttrs mapAttrs' nameValuePair mapAttrsToList unique recursiveUpdate;
   cfg = config.mandragora.hub.services;
   enabled = filterAttrs (_: s: s.enable) cfg;
   systemSvcs = filterAttrs (_: s: !s.userService) enabled;
@@ -53,7 +53,9 @@ in {
 
   config = {
     systemd.services = mapAttrs' (name: svc: nameValuePair name svc.systemd) systemSvcs;
-    systemd.user.services = mapAttrs' (name: svc: nameValuePair name svc.systemd) userSvcs;
+    systemd.user.services = mapAttrs' (name: svc: nameValuePair name (
+      recursiveUpdate svc.systemd { unitConfig.ConditionUser = "m"; }
+    )) userSvcs;
     networking.firewall.interfaces.tailscale0.allowedTCPPorts =
       unique (mapAttrsToList (_: s: s.port) enabled);
   };
