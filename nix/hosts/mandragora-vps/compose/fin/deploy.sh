@@ -37,16 +37,10 @@ fi
 echo "→ ensuring remote slot $REMOTE:$REMOTE_DIR exists"
 ssh "$REMOTE" "mkdir -p $REMOTE_DIR/src"
 
-echo "→ rsyncing webui/ + Dockerfile + project root for git log"
+echo "→ rsyncing webui/ to $REMOTE:$REMOTE_DIR/src/webui/"
 rsync -av --delete \
-  --exclude='.venv/' --exclude='__pycache__/' --exclude='*.pyc' \
-  --exclude='.pip-prefix/' --exclude='.git/objects/pack/' \
-  --include='/webui/***' \
-  --include='/.git/***' \
-  --include='/algorithms/**/live/snapshots/' \
-  --include='/STATE.md' \
-  --exclude='*' \
-  "$LOCAL_REPO/" "$REMOTE:$REMOTE_DIR/src/"
+  --exclude='__pycache__/' --exclude='*.pyc' \
+  "$LOCAL_REPO/webui/" "$REMOTE:$REMOTE_DIR/src/webui/"
 
 echo "→ syncing compose.yml"
 rsync -av "$COMPOSE_SRC" "$REMOTE:$REMOTE_DIR/docker-compose.yml"
