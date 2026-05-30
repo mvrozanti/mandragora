@@ -42,8 +42,15 @@ rsync -av --delete \
   --exclude='__pycache__/' --exclude='*.pyc' \
   "$LOCAL_REPO/webui/" "$REMOTE:$REMOTE_DIR/src/webui/"
 
-echo "→ rsyncing STATE.md to $REMOTE:$REMOTE_DIR/src/"
-rsync -av "$LOCAL_REPO/STATE.md" "$REMOTE:$REMOTE_DIR/src/STATE.md"
+echo "→ rsyncing all repo *.md files to $REMOTE:$REMOTE_DIR/src/ for /graph"
+rsync -av \
+  --prune-empty-dirs \
+  --include='*/' --include='*.md' --exclude='*' \
+  --exclude='.venv/' --exclude='.pip-prefix/' \
+  --exclude='__pycache__/' --exclude='archived_paper_ledgers/' \
+  --exclude='.claude/' --exclude='.pytest_cache/' \
+  --exclude='node_modules/' \
+  "$LOCAL_REPO/" "$REMOTE:$REMOTE_DIR/src/"
 
 echo "→ rsyncing .git/ (for /api/commits) — includes pack files"
 rsync -av --delete \
