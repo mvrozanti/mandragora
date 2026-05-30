@@ -14,7 +14,7 @@ in {
       OLLAMA_BASE_URL = "http://127.0.0.1:11435";
       WEBUI_AUTH = "False";
       ENABLE_SIGNUP = "False";
-      WEBUI_URL = "https://llama.mvr.ac";
+      WEBUI_URL = "https://chat.mvr.ac";
     };
   };
 
