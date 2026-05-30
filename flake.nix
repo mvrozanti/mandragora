@@ -30,9 +30,14 @@
       url = "github:nanogenomic/ClaudeCodeBrowser/d5f6bbe9fef2cfe82474722320af7e04499fb10d";
       flake = false;
     };
+
+    bruno-tama = {
+      url = "github:mvrozanti/bruno-tama";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, sops-nix, impermanence, nixos-generators, nixos-wsl, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, sops-nix, impermanence, nixos-generators, nixos-wsl, bruno-tama, ... }@inputs:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
