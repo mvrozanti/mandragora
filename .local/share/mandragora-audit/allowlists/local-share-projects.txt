@@ -1,0 +1,6 @@
+# Top-level directories under /etc/nixos/mandragora/.local/share/ that are
+# allowed to contain project markers (.git, pyproject.toml, Cargo.toml,
+# package.json, flake.nix). Listed one per line; lines starting with `#`
+# and blank lines are ignored.
+#
+# Empty by default. Adding to this list should be rare and considered.
