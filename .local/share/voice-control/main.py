@@ -13,16 +13,11 @@ log = logging.getLogger("voice-control")
 
 HOST = os.environ.get("VOICE_CONTROL_HOST", "0.0.0.0")
 PORT = int(os.environ.get("VOICE_CONTROL_PORT", "8094"))
-PRESETS_DIR = Path(os.environ.get("VOICE_CONTROL_PRESETS_DIR", os.path.expanduser("~/.config/easyeffects/input")))
+PRESETS_DIR = Path(os.environ.get("VOICE_CONTROL_PRESETS_DIR", os.path.expanduser("~/.local/share/easyeffects/input")))
 STATIC_DIR = Path(os.environ.get("VOICE_CONTROL_STATIC_DIR", str(Path(__file__).parent / "static")))
 STATE_FILE = Path(os.environ.get("VOICE_CONTROL_STATE_FILE", os.path.expanduser("~/.local/state/voice-control/state.json")))
 PRESET_PREFIX = "voice-"
 BYPASS_NAME = "voice-bypass"
-
-EE_BUS = "com.github.wwmm.easyeffects"
-EE_PATH = "/com/github/wwmm/easyeffects"
-EE_METHOD = "com.github.wwmm.easyeffects.LoadPreset"
-
 
 def list_presets():
     if not PRESETS_DIR.is_dir():
@@ -33,52 +28,32 @@ def list_presets():
     return out
 
 
-def read_state():
-    try:
-        return json.loads(STATE_FILE.read_text())
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {"active": None}
-
-
-def write_state(active):
-    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    STATE_FILE.write_text(json.dumps({"active": active}))
-
-
 def easyeffects_up():
     r = subprocess.run(
-        ["gdbus", "introspect", "--session", "--dest", EE_BUS, "--object-path", EE_PATH],
+        ["systemctl", "--user", "is-active", "easyeffects"],
         capture_output=True, timeout=3,
     )
-    return r.returncode == 0
+    return r.returncode == 0 and r.stdout.strip() == b"active"
 
 
-def load_preset_dbus(name):
+def last_loaded_preset():
     r = subprocess.run(
-        ["gdbus", "call", "--session", "--dest", EE_BUS, "--object-path", EE_PATH,
-         "--method", EE_METHOD, name, "input"],
+        ["easyeffects", "--last-loaded-preset", "input"],
         capture_output=True, timeout=5,
     )
-    return r.returncode == 0, (r.stderr or b"").decode().strip()
+    if r.returncode != 0:
+        return None
+    name = r.stdout.decode().strip()
+    return name or None
 
 
-def load_preset_cli(name):
+def load_preset(name):
     r = subprocess.run(
         ["easyeffects", "--load-preset", name],
         capture_output=True, timeout=5,
     )
-    return r.returncode == 0, (r.stderr or b"").decode().strip()
-
-
-def load_preset(name):
-    ok, err = load_preset_dbus(name)
-    if ok:
-        return True, "dbus"
-    log.warning("dbus LoadPreset failed (%s); falling back to CLI", err)
-    ok, err = load_preset_cli(name)
-    if ok:
-        return True, "cli"
-    return False, err
+    ok = r.returncode == 0
+    return ok, (r.stderr or b"").decode().strip()
 
 
 async def api_presets(_req):
@@ -87,8 +62,8 @@ async def api_presets(_req):
 
 async def api_status(_req):
     return web.json_response({
-        "active": read_state().get("active"),
-        "easyeffects": easyeffects_up(),
+        "active": await asyncio.to_thread(last_loaded_preset),
+        "easyeffects": await asyncio.to_thread(easyeffects_up),
         "presets_dir": str(PRESETS_DIR),
         "presets": list_presets(),
     })
@@ -101,8 +76,7 @@ async def api_load(req):
     ok, info = await asyncio.to_thread(load_preset, name)
     if not ok:
         return web.json_response({"error": info}, status=500)
-    write_state(name)
-    return web.json_response({"active": name, "via": info})
+    return web.json_response({"active": name})
 
 
 async def api_bypass(_req):
@@ -111,8 +85,7 @@ async def api_bypass(_req):
     ok, info = await asyncio.to_thread(load_preset, BYPASS_NAME)
     if not ok:
         return web.json_response({"error": info}, status=500)
-    write_state(BYPASS_NAME)
-    return web.json_response({"active": BYPASS_NAME, "via": info})
+    return web.json_response({"active": BYPASS_NAME})
 
 
 async def root(_req):
@@ -135,8 +108,8 @@ def build_app():
 
 
 def main():
-    if not shutil.which("gdbus"):
-        log.warning("gdbus not on PATH; D-Bus preset switching will fail")
+    if not shutil.which("easyeffects"):
+        log.warning("easyeffects not on PATH; preset loading will fail")
     log.info("listening on %s:%d (presets=%s)", HOST, PORT, PRESETS_DIR)
     web.run_app(build_app(), host=HOST, port=PORT, print=None)
 
