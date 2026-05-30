@@ -6,8 +6,10 @@ services:
     restart: unless-stopped
     environment:
       DATA_ROOT: /data
+      REPO_ROOT: /src
     volumes:
       - ${FIN_DATA_DIR:-/home/opc/dnl_paper}:/data:ro
+      - ${FIN_SRC_DIR:-/home/opc/fin/src}:/src:ro
     networks:
       - seafile-net
     labels:
