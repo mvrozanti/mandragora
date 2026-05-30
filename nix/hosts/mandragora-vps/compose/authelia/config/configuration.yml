@@ -88,7 +88,7 @@ access_control:
                'claude.mvr.ac', 'log.mvr.ac', 'webhook.mvr.ac',
                'nb.mvr.ac', 'tts.mvr.ac', 'stt.mvr.ac',
                'kl.mvr.ac', 'watch.mvr.ac', 'axon.mvr.ac',
-               'ytdl.mvr.ac']
+               'ytdl.mvr.ac', 'vtag.mvr.ac']
       policy: 'two_factor'
 
 notifier:
