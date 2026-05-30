@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import base64
+import hmac
 import json
 import os
 import re
@@ -14,6 +16,11 @@ DB_PATH = Path(os.environ["KEYSTATS_DB_PATH"])
 DB_KEY_FILE = Path(os.environ["KEYSTATS_DB_KEY_FILE"])
 HOST = os.environ.get("KEYSTATS_WEB_HOST", "0.0.0.0")
 PORT = int(os.environ.get("KEYSTATS_WEB_PORT", "6900"))
+
+TEXT_DB_KEY_FILE = os.environ.get("KEYSTATS_TEXT_DB_KEY_FILE", "").strip()
+TEXT_DB_PATH = os.environ.get("KEYSTATS_TEXT_DB_PATH", "").strip()
+TEXT_ENABLED = bool(TEXT_DB_KEY_FILE and TEXT_DB_PATH and Path(TEXT_DB_PATH).exists())
+WORDS_BASICAUTH_FILE = os.environ.get("KEYSTATS_WORDS_BASICAUTH_FILE", "").strip()
 
 CSP = (
     "default-src 'self'; "
@@ -35,12 +42,58 @@ def load_key() -> str:
 
 
 KEY_HEX = ""
+TEXT_KEY_HEX = ""
+WORDS_USER = ""
+WORDS_HASH = ""
+
+
+def load_words_basicauth() -> tuple:
+    raw = Path(WORDS_BASICAUTH_FILE).read_text().strip()
+    if ":" not in raw:
+        sys.exit(f"keystats: words basicauth at {WORDS_BASICAUTH_FILE} must be 'user:bcrypt-hash'")
+    u, _, h = raw.partition(":")
+    return u, h
+
+
+def check_basicauth(header: str) -> bool:
+    if not header or not header.startswith("Basic "):
+        return False
+    try:
+        raw = base64.b64decode(header[6:].strip()).decode("utf-8", "ignore")
+    except Exception:
+        return False
+    if ":" not in raw:
+        return False
+    u, _, p = raw.partition(":")
+    if not hmac.compare_digest(u, WORDS_USER):
+        return False
+    try:
+        import bcrypt
+        return bcrypt.checkpw(p.encode(), WORDS_HASH.encode())
+    except Exception:
+        return False
+
+
+def load_text_key() -> str:
+    raw = Path(TEXT_DB_KEY_FILE).read_text().strip()
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", raw):
+        sys.exit(f"keystats: text db key at {TEXT_DB_KEY_FILE} must be 64 hex chars")
+    return raw
 
 
 def open_db_ro():
     conn = sqlcipher3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
     cur = conn.cursor()
     cur.execute(f"PRAGMA key = \"x'{KEY_HEX}'\"")
+    cur.execute("PRAGMA cipher_compatibility = 4")
+    cur.execute("PRAGMA query_only = 1")
+    return conn
+
+
+def open_text_db_ro():
+    conn = sqlcipher3.connect(f"file:{TEXT_DB_PATH}?mode=ro", uri=True)
+    cur = conn.cursor()
+    cur.execute(f"PRAGMA key = \"x'{TEXT_KEY_HEX}'\"")
     cur.execute("PRAGMA cipher_compatibility = 4")
     cur.execute("PRAGMA query_only = 1")
     return conn
@@ -111,6 +164,12 @@ INDEX_HTML = r"""<!doctype html>
   <section>
     <h2>by window class</h2>
     <svg id="classes" viewBox="0 0 800 240" preserveAspectRatio="xMidYMid meet"></svg>
+  </section>
+
+  <section id="words-section" hidden>
+    <h2>wordcloud</h2>
+    <div id="words-gate"><button id="words-reveal">reveal wordcloud</button></div>
+    <div id="words" hidden></div>
   </section>
 </main>
 <script src="/static/app.js"></script>
@@ -193,6 +252,14 @@ svg .line { fill: none; stroke: var(--accent); stroke-width: 1.5; }
 #weekday .dow { color: var(--dim); text-transform: uppercase; align-self: center; }
 #weekday .h { color: var(--dim); text-align: center; padding-bottom: 2px; }
 #weekday .cell { background: var(--line); aspect-ratio: 1; border-radius: 2px; }
+#words-gate button { background: var(--line); color: var(--fg); border: 1px solid var(--accent); padding: 8px 14px; border-radius: 4px; cursor: pointer; font: inherit; }
+#words-gate button:hover { background: var(--accent); color: var(--bg); }
+#words { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; line-height: 1.1; }
+#words .w { color: var(--fg); }
+#words .w.hot { color: var(--hot); }
+#words .w.warm { color: var(--warm); }
+#words .w.cool { color: var(--cool); }
+#words .w.dim { color: var(--dim); }
 """
 
 
@@ -429,6 +496,44 @@ function renderWeekday(grid){
   document.getElementById("weekday").innerHTML = s;
 }
 
+function renderWords(rows){
+  const el = document.getElementById("words");
+  if(!rows.length){ el.innerHTML = '<span class="w dim">no words yet — need ≥3 occurrences across distinct minute-buckets</span>'; return; }
+  const max = Math.max(...rows.map(r=>r.count));
+  const min = Math.min(...rows.map(r=>r.count));
+  const span = Math.max(1, max - min);
+  el.innerHTML = rows.map(r=>{
+    const t = (r.count - min) / span;
+    const px = (12 + t*36).toFixed(1);
+    let cls = "w dim";
+    if(t > 0.85) cls = "w hot";
+    else if(t > 0.6) cls = "w warm";
+    else if(t > 0.3) cls = "w cool";
+    const w = r.word.replace(/[<>&"']/g, c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;"}[c]));
+    return `<span class="${cls}" style="font-size:${px}px" title="${r.count}">${w}</span>`;
+  }).join("");
+}
+
+async function setupWords(){
+  try{
+    const head = await fetch("/api/words", { method: "HEAD" });
+    if(head.status === 404 || head.status === 503) return;
+  }catch(e){ return; }
+  const section = document.getElementById("words-section");
+  section.hidden = false;
+  document.getElementById("words-reveal").addEventListener("click", async () => {
+    try{
+      const rows = await fetchJson("/api/words");
+      document.getElementById("words-gate").hidden = true;
+      document.getElementById("words").hidden = false;
+      renderWords(rows);
+    }catch(e){
+      document.getElementById("words-gate").innerHTML = '<span class="w dim">auth failed: '+e.message+'</span>';
+    }
+  });
+}
+setupWords();
+
 async function refresh(){
   try{
     const [hm, wpm, top, bg, cls, sum, ins, tod, wkd] = await Promise.all([
@@ -627,6 +732,18 @@ def q_time_of_day(conn) -> list:
     return out
 
 
+def q_words() -> list:
+    conn = open_text_db_ro()
+    try:
+        cur = conn.cursor()
+        rows = cur.execute(
+            "SELECT word, count FROM word_count ORDER BY count DESC LIMIT 200"
+        ).fetchall()
+        return [{"word": w, "count": c} for w, c in rows]
+    finally:
+        conn.close()
+
+
 def q_weekday_heatmap(conn) -> list:
     cur = conn.cursor()
     rows = cur.execute(
@@ -673,6 +790,26 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/static/app.js":
             respond(self, 200, APP_JS.encode(), "application/javascript; charset=utf-8")
             return
+        if path == "/api/words":
+            if not TEXT_ENABLED:
+                respond(self, 404, b"not enabled\n", "text/plain")
+                return
+            if not WORDS_HASH:
+                respond(self, 503, b"basicauth not configured\n", "text/plain")
+                return
+            if not check_basicauth(self.headers.get("Authorization", "")):
+                self.send_response(401)
+                self.send_header("WWW-Authenticate", 'Basic realm="kl-words"')
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            try:
+                data = q_words()
+            except sqlcipher3.DatabaseError as e:
+                respond(self, 503, json_body({"error": str(e)}), "application/json")
+                return
+            respond(self, 200, json_body(data), "application/json")
+            return
         if path in ROUTES:
             handler_fn, _ = ROUTES[path]
             try:
@@ -693,8 +830,12 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    global KEY_HEX
+    global KEY_HEX, TEXT_KEY_HEX, WORDS_USER, WORDS_HASH
     KEY_HEX = load_key()
+    if TEXT_ENABLED:
+        TEXT_KEY_HEX = load_text_key()
+        if WORDS_BASICAUTH_FILE and Path(WORDS_BASICAUTH_FILE).exists():
+            WORDS_USER, WORDS_HASH = load_words_basicauth()
     srv = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"keystats-web listening on {HOST}:{PORT}", file=sys.stderr)
     try:
