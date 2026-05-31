@@ -73,3 +73,20 @@ au("VimResized", {
     vim.cmd("redraw!")
   end,
 })
+
+augroup("TmuxPanePublishCwd", { clear = true })
+au({ "BufEnter", "BufWritePost", "DirChanged" }, {
+  group = "TmuxPanePublishCwd",
+  callback = function()
+    local pane = vim.env.TMUX_PANE
+    if not pane or pane == "" then return end
+    local buf = vim.api.nvim_buf_get_name(0)
+    local dir
+    if buf ~= "" and vim.fn.filereadable(buf) == 1 then
+      dir = vim.fn.fnamemodify(buf, ":p:h")
+    else
+      dir = vim.fn.getcwd()
+    end
+    vim.fn.jobstart({ "tmux", "set", "-p", "-t", pane, "@cwd", dir }, { detach = true })
+  end,
+})
