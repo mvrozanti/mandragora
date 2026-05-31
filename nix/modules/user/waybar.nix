@@ -136,8 +136,8 @@
           format-disabled = "";
           format-off = "";
           format-on = "";
-          format-connected = " {device_alias}";
-          format-connected-battery = " {device_alias} {device_battery_percentage}%";
+          format-connected = "  ";
+          format-connected-battery = "  {device_battery_percentage}%  ";
           tooltip-format = "{controller_alias}\t{controller_address}";
           tooltip-format-connected = "{controller_alias}\t{controller_address}\n\n{device_enumerate}";
           tooltip-format-enumerate-connected = "{device_alias}\t{device_address}";
