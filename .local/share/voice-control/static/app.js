@@ -71,10 +71,28 @@ function refillPicker(devs, preferId) {
 }
 
 async function listDevices() {
-  const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "audioinput");
-  refillPicker(devs);
-  return devs;
+  const all = await navigator.mediaDevices.enumerateDevices();
+  refillPicker(all.filter(d => d.kind === "audioinput"));
+  refillOutputs(all.filter(d => d.kind === "audiooutput"));
+  return all;
 }
+
+const outPicker = $("#output-picker");
+function refillOutputs(devs) {
+  outPicker.innerHTML = "";
+  for (const d of devs) {
+    const o = document.createElement("option");
+    o.value = d.deviceId;
+    o.textContent = d.label || `out (${d.deviceId.slice(0, 8)})`;
+    outPicker.appendChild(o);
+  }
+}
+outPicker.onchange = async () => {
+  if (audioCtx && audioCtx.setSinkId) {
+    try { await audioCtx.setSinkId(outPicker.value); status.textContent = `output → ${outPicker.selectedOptions[0]?.textContent}`; }
+    catch (e) { alert("setSinkId failed: " + e.message); }
+  }
+};
 
 $("#preview").onclick = async () => {
   if (audioCtx) { stopPreview(); return; }
@@ -98,6 +116,7 @@ $("#preview").onclick = async () => {
     mediaStream = stream;
     audioCtx = new AudioContext({ latencyHint: "interactive" });
     if (audioCtx.state === "suspended") await audioCtx.resume();
+    if (outPicker.value && audioCtx.setSinkId) { try { await audioCtx.setSinkId(outPicker.value); } catch {} }
     const src = audioCtx.createMediaStreamSource(mediaStream);
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 1024;
