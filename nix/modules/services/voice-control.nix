@@ -27,8 +27,13 @@ let
   pipewireDrop = pkgs.writeTextDir
     "share/pipewire/pipewire.conf.d/10-voice-virtual-mic.conf"
     (builtins.readFile ../../../.config/pipewire/pipewire.conf.d/10-voice-virtual-mic.conf);
+
+  jblHspDrop = pkgs.writeTextDir
+    "share/wireplumber/wireplumber.conf.d/51-jbl-hsp.conf"
+    (builtins.readFile ../../../.config/wireplumber/jbl-hsp.conf);
 in {
   services.pipewire.configPackages = [ pipewireDrop ];
+  services.pipewire.wireplumber.configPackages = [ jblHspDrop ];
 
   environment.systemPackages = [ pkgs.easyeffects ];
 
