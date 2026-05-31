@@ -1,55 +1,131 @@
+import asyncio
 import json
 import logging
 import os
-import sqlite3
+import re
+from datetime import datetime, timezone
+from html.parser import HTMLParser
 from typing import Any
 
 import httpx
 
 log = logging.getLogger("watch.judge")
 
-API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
-MODEL = os.environ.get("WATCH_GEMINI_MODEL", "gemini-2.5-flash").strip()
-ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models"
-TIMEOUT = float(os.environ.get("WATCH_GEMINI_TIMEOUT", "30"))
-MAX_PER_CYCLE = int(os.environ.get("WATCH_JUDGE_MAX_PER_CYCLE", "20"))
+OLLAMA_URL = os.environ.get("WATCH_OLLAMA_URL", "http://100.115.80.79:11434").rstrip("/")
+OLLAMA_MODEL = os.environ.get("WATCH_OLLAMA_MODEL", "qwen3:14b").strip()
+OLLAMA_TIMEOUT = float(os.environ.get("WATCH_OLLAMA_TIMEOUT", "180"))
+OLLAMA_NUM_CTX = int(os.environ.get("WATCH_OLLAMA_NUM_CTX", "16384"))
+JUDGE_INTERVAL = int(os.environ.get("WATCH_JUDGE_INTERVAL", "30"))
+JUDGE_BATCH = int(os.environ.get("WATCH_JUDGE_BATCH", "3"))
+LINK_MAX_CHARS = int(os.environ.get("WATCH_LINK_MAX_CHARS", "8000"))
+LINK_TIMEOUT = float(os.environ.get("WATCH_LINK_TIMEOUT", "20"))
+USER_AGENT = os.environ.get(
+    "WATCH_USER_AGENT",
+    "mandragora-watch/0.1 (+https://watch.mvr.ac)",
+)
 
 VERDICTS = {"GO", "MAYBE", "NO"}
 
-
-class QuotaExceeded(RuntimeError):
-    pass
-
-
-def enabled() -> bool:
-    return bool(API_KEY)
-
-
 SYSTEM_PROMPT = (
     "You are a strict relevance judge for a notification pipeline. "
-    "Given a target spec (what the user actually cares about) and a candidate event, "
-    "decide whether the event is a genuine match for the spec.\n\n"
-    "Return ONLY a single line of JSON, no markdown, no prose:\n"
-    '{\"verdict\":\"GO|MAYBE|NO\",\"reason\":\"<=200 chars\"}\n\n'
+    "Given a target spec (what the user actually cares about), a candidate event, "
+    "and the fetched text content at the event's link, decide whether the event is a "
+    "genuine match for the spec.\n\n"
+    "Return ONLY a single line of JSON, no markdown, no prose, no <think> tags:\n"
+    '{"verdict":"GO|MAYBE|NO","reason":"<=200 chars"}\n\n'
     "Definitions:\n"
-    "- GO: the event clearly satisfies EVERY explicit requirement in the spec right now "
-    "  (e.g. correct device generation AND firmware range AND a working release/exploit).\n"
-    "- MAYBE: on-topic AND every explicit spec requirement is positively evidenced, but "
-    "  deliverability is unclear (e.g. dev preview claims the right device + firmware but no "
-    "  artifact yet). Reserved for cases where the spec's checklist is fully satisfied on paper "
-    "  but execution is in doubt.\n"
-    "- NO: off-topic, wrong device/firmware/version, speculation, or — critically — the event "
-    "  fails to specify ANY explicit spec requirement (e.g. spec demands PW12 + fw 5.18.x and "
-    "  the event just says 'Kindle Paperwhite' with no generation or firmware). Missing required "
-    "  info is NO, not MAYBE. A notification the user has to manually verify is a failed filter.\n\n"
-    "Hard rule: if the spec lists concrete constraints (model number, firmware range, version, "
-    "platform) and the event does not positively assert each one, return NO. Do not infer, do "
-    "not assume, do not give benefit of the doubt. Reason must cite which required field is "
-    "missing or which value mismatches. Never invent facts not in the event."
+    "- GO: the link content clearly satisfies EVERY explicit requirement in the spec "
+    "(e.g. correct device generation AND firmware range AND a working release/exploit). "
+    "Quote the matched fields in the reason.\n"
+    "- MAYBE: link content positively evidences every explicit spec requirement, but "
+    "deliverability is unclear (e.g. dev preview asserts correct device+firmware with no "
+    "artifact yet).\n"
+    "- NO: off-topic, wrong device/firmware/version, speculation, OR the link content "
+    "fails to positively assert any explicit spec requirement. Missing required info is "
+    "NO, not MAYBE. A notification the user has to hand-verify is a failed filter.\n\n"
+    "Hard rules:\n"
+    "1. If the spec lists concrete constraints (model number, firmware range, version, "
+    "platform) and the content does not positively assert each one, return NO.\n"
+    "2. Do not infer, do not assume, do not give benefit of the doubt.\n"
+    "3. If link content is empty or fetch failed, fall back to title+summary only; if "
+    "those also do not positively assert each required field, return NO.\n"
+    "4. Reason must cite which required field matched or which is missing/mismatched. "
+    "Never invent facts not present in the provided text."
 )
 
 
-def build_user_prompt(ai_spec: str, event: dict[str, Any]) -> str:
+class _HTMLTextExtractor(HTMLParser):
+    SKIP_TAGS = {"script", "style", "noscript", "template", "svg", "head"}
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self._chunks: list[str] = []
+        self._skip_depth = 0
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag in self.SKIP_TAGS:
+            self._skip_depth += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in self.SKIP_TAGS and self._skip_depth > 0:
+            self._skip_depth -= 1
+
+    def handle_data(self, data: str) -> None:
+        if self._skip_depth:
+            return
+        s = data.strip()
+        if s:
+            self._chunks.append(s)
+
+    def text(self) -> str:
+        return re.sub(r"\s+", " ", " ".join(self._chunks)).strip()
+
+
+def _strip_html(html: str) -> str:
+    parser = _HTMLTextExtractor()
+    try:
+        parser.feed(html)
+        parser.close()
+    except Exception:
+        pass
+    return parser.text()
+
+
+async def fetch_link(url: str) -> tuple[str, str | None]:
+    if not url:
+        return "", "no link"
+    try:
+        async with httpx.AsyncClient(
+            timeout=LINK_TIMEOUT,
+            follow_redirects=True,
+            headers={"User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml,application/xml,application/json;q=0.9,*/*;q=0.5"},
+        ) as c:
+            r = await c.get(url)
+    except Exception as exc:
+        return "", f"fetch error: {exc}"
+    if r.status_code >= 400:
+        return "", f"http {r.status_code}"
+    ctype = (r.headers.get("content-type") or "").lower()
+    body = r.text or ""
+    if "html" in ctype or "xml" in ctype:
+        text = _strip_html(body)
+    elif "json" in ctype:
+        try:
+            text = json.dumps(json.loads(body), ensure_ascii=False)
+        except Exception:
+            text = body
+    else:
+        text = body
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) > LINK_MAX_CHARS:
+        text = text[:LINK_MAX_CHARS]
+    return text, None
+
+
+def build_user_prompt(ai_spec: str, event: dict[str, Any], link_text: str, fetch_err: str | None) -> str:
+    link_block = link_text or "(empty)"
+    if fetch_err:
+        link_block = f"(fetch failed: {fetch_err}; falling back to title+summary)"
     return (
         "SPEC:\n"
         f"{ai_spec}\n\n"
@@ -58,62 +134,66 @@ def build_user_prompt(ai_spec: str, event: dict[str, Any]) -> str:
         f"title: {event.get('title') or ''}\n"
         f"summary: {(event.get('summary') or '')[:1500]}\n"
         f"link: {event.get('link') or ''}\n"
-        f"occurred_at: {event.get('occurred_at') or ''}\n"
+        f"occurred_at: {event.get('occurred_at') or ''}\n\n"
+        f"FETCHED LINK CONTENT (truncated to {LINK_MAX_CHARS} chars):\n"
+        f"{link_block}\n"
     )
 
 
-async def judge_event(ai_spec: str, event: dict[str, Any]) -> tuple[str, str]:
-    if not enabled():
-        raise RuntimeError("GEMINI_API_KEY not configured")
-    url = f"{ENDPOINT}/{MODEL}:generateContent"
-    payload = {
-        "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
-        "contents": [{"role": "user", "parts": [{"text": build_user_prompt(ai_spec, event)}]}],
-        "generationConfig": {
-            "temperature": 0.0,
-            "responseMimeType": "application/json",
-            "responseSchema": {
-                "type": "OBJECT",
-                "properties": {
-                    "verdict": {"type": "STRING", "enum": ["GO", "MAYBE", "NO"]},
-                    "reason": {"type": "STRING"},
-                },
-                "required": ["verdict", "reason"],
-            },
-            "maxOutputTokens": 256,
-        },
-    }
-    async with httpx.AsyncClient(timeout=TIMEOUT) as c:
-        r = await c.post(url, params={"key": API_KEY}, json=payload)
-    if r.status_code == 429:
-        raise QuotaExceeded(r.text[:300])
-    if r.status_code in (401, 403):
-        raise RuntimeError(f"gemini auth error {r.status_code}: {r.text[:200]}")
-    if r.status_code >= 400:
-        body = r.text[:300]
-        if "quota" in body.lower() or "rate" in body.lower():
-            raise QuotaExceeded(body)
-        raise RuntimeError(f"gemini http {r.status_code}: {body}")
-    doc = r.json()
+_JSON_OBJ_RE = re.compile(r"\{.*\}", re.DOTALL)
+
+
+def _parse_verdict_json(text: str) -> tuple[str, str]:
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+    raw = text
     try:
-        text = doc["candidates"][0]["content"]["parts"][0]["text"]
-    except (KeyError, IndexError, TypeError) as exc:
-        raise RuntimeError(f"gemini bad response shape: {exc} {json.dumps(doc)[:200]}")
-    try:
-        parsed = json.loads(text)
-    except json.JSONDecodeError as exc:
-        raise RuntimeError(f"gemini bad json: {exc} text={text[:200]}")
-    verdict = str(parsed.get("verdict", "")).upper()
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        m = _JSON_OBJ_RE.search(raw)
+        if not m:
+            raise RuntimeError(f"no json object in response: {raw[:200]}")
+        parsed = json.loads(m.group(0))
+    verdict = str(parsed.get("verdict", "")).upper().strip()
     reason = str(parsed.get("reason", ""))[:500]
     if verdict not in VERDICTS:
-        raise RuntimeError(f"gemini bad verdict: {verdict!r}")
+        raise RuntimeError(f"bad verdict: {verdict!r}")
     return verdict, reason
+
+
+async def judge_event(ai_spec: str, event: dict[str, Any]) -> tuple[str, str]:
+    link_text, fetch_err = await fetch_link(event.get("link") or "")
+    payload = {
+        "model": OLLAMA_MODEL,
+        "system": SYSTEM_PROMPT,
+        "prompt": build_user_prompt(ai_spec, event, link_text, fetch_err),
+        "stream": False,
+        "format": {
+            "type": "object",
+            "properties": {
+                "verdict": {"type": "string", "enum": ["GO", "MAYBE", "NO"]},
+                "reason": {"type": "string"},
+            },
+            "required": ["verdict", "reason"],
+        },
+        "options": {
+            "temperature": 0.0,
+            "num_ctx": OLLAMA_NUM_CTX,
+            "num_predict": 512,
+        },
+    }
+    async with httpx.AsyncClient(timeout=OLLAMA_TIMEOUT) as c:
+        r = await c.post(f"{OLLAMA_URL}/api/generate", json=payload)
+    if r.status_code >= 400:
+        raise RuntimeError(f"ollama http {r.status_code}: {r.text[:300]}")
+    doc = r.json()
+    text = doc.get("response") or ""
+    if not text:
+        raise RuntimeError(f"ollama empty response: {json.dumps(doc)[:200]}")
+    return _parse_verdict_json(text)
 
 
 async def judge_pending(conn_factory) -> dict[str, int]:
     stats = {"judged": 0, "go": 0, "maybe": 0, "no": 0, "errors": 0}
-    if not enabled():
-        return stats
     c = conn_factory()
     rows = c.execute(
         """
@@ -121,19 +201,15 @@ async def judge_pending(conn_factory) -> dict[str, int]:
                w.ai_spec AS w_spec, w.kind AS w_kind, w.target AS w_target
         FROM events e JOIN watchers w ON w.id = e.watcher_id
         WHERE e.ai_verdict IS NULL AND w.ai_spec IS NOT NULL AND w.enabled = 1
-        ORDER BY e.id DESC
+        ORDER BY e.id ASC
         LIMIT ?
         """,
-        (MAX_PER_CYCLE,),
+        (JUDGE_BATCH,),
     ).fetchall()
     c.close()
-    from datetime import datetime, timezone
     for r in rows:
         try:
             verdict, reason = await judge_event(r["w_spec"], dict(r))
-        except QuotaExceeded as exc:
-            log.warning("gemini quota exceeded; deferring %d remaining events: %s", len(rows) - stats["judged"], exc)
-            break
         except Exception as exc:
             stats["errors"] += 1
             log.warning("judge error event_id=%s: %s", r["id"], exc)
@@ -148,3 +224,18 @@ async def judge_pending(conn_factory) -> dict[str, int]:
         stats["judged"] += 1
         stats[verdict.lower()] = stats.get(verdict.lower(), 0) + 1
     return stats
+
+
+async def run_forever(conn_factory) -> None:
+    log.info(
+        "judge starting model=%s ollama=%s interval=%ss batch=%s",
+        OLLAMA_MODEL, OLLAMA_URL, JUDGE_INTERVAL, JUDGE_BATCH,
+    )
+    while True:
+        try:
+            stats = await judge_pending(conn_factory)
+            if stats["judged"] or stats["errors"]:
+                log.info("judge done %s", stats)
+        except Exception as exc:
+            log.exception("judge loop error: %s", exc)
+        await asyncio.sleep(JUDGE_INTERVAL)

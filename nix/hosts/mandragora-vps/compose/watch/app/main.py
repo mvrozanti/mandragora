@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+import judge
 import poller
 import sources
 import telegram as tg
@@ -106,6 +107,7 @@ async def lifespan(app: FastAPI):
     tasks = [
         asyncio.create_task(poller.run_forever(conn)),
         asyncio.create_task(tg.run_forever(conn)),
+        asyncio.create_task(judge.run_forever(conn)),
     ]
     try:
         yield
