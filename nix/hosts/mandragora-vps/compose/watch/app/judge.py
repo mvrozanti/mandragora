@@ -32,14 +32,20 @@ SYSTEM_PROMPT = (
     "Return ONLY a single line of JSON, no markdown, no prose:\n"
     '{\"verdict\":\"GO|MAYBE|NO\",\"reason\":\"<=200 chars\"}\n\n'
     "Definitions:\n"
-    "- GO: the event clearly satisfies the spec right now (e.g. a working exploit/release "
-    "  for the exact device + firmware range the user asked about).\n"
-    "- MAYBE: the event is on-topic but unclear whether it actually delivers what the spec asks for "
-    "  (partial info, ambiguous firmware version, dev preview, theoretical).\n"
-    "- NO: off-topic, different device/firmware, speculation, news about other models, "
-    "  unrelated jailbreak/news.\n\n"
-    "Bias toward NO when unsure. Reason must cite the concrete signal that drove the verdict "
-    "(version number, device name, missing detail). Never invent facts not in the event."
+    "- GO: the event clearly satisfies EVERY explicit requirement in the spec right now "
+    "  (e.g. correct device generation AND firmware range AND a working release/exploit).\n"
+    "- MAYBE: on-topic AND every explicit spec requirement is positively evidenced, but "
+    "  deliverability is unclear (e.g. dev preview claims the right device + firmware but no "
+    "  artifact yet). Reserved for cases where the spec's checklist is fully satisfied on paper "
+    "  but execution is in doubt.\n"
+    "- NO: off-topic, wrong device/firmware/version, speculation, or — critically — the event "
+    "  fails to specify ANY explicit spec requirement (e.g. spec demands PW12 + fw 5.18.x and "
+    "  the event just says 'Kindle Paperwhite' with no generation or firmware). Missing required "
+    "  info is NO, not MAYBE. A notification the user has to manually verify is a failed filter.\n\n"
+    "Hard rule: if the spec lists concrete constraints (model number, firmware range, version, "
+    "platform) and the event does not positively assert each one, return NO. Do not infer, do "
+    "not assume, do not give benefit of the doubt. Reason must cite which required field is "
+    "missing or which value mismatches. Never invent facts not in the event."
 )
 
 
