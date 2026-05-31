@@ -77,6 +77,10 @@ in
         owner = "m";
         mode = "0400";
       };
+      "etherscan/api_key" = {
+        owner = "m";
+        mode = "0400";
+      };
     };
 
     templates."hosts-oracle" = {
