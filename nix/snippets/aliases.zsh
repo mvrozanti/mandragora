@@ -394,8 +394,8 @@ rpc() { realpath "$@" | c -n }
 sa() { awk -v name="$*" 'BEGIN{re="^(alias )?"name"(=|\\()"} $0~re{p=1;print;if($0~"^alias "||$0~"}.*;? *$")p=0;next} p{print;if($0~"^} *;? *$")p=0}' "${BASH_SOURCE[0]:-${(%):-%x}}" }
 
 alias claude='claude'
-gemini() { tmux new-window -n gemini "/run/current-system/sw/bin/gemini -y $*" }
-qwen()   { tmux new-window -n qwen   "/run/current-system/sw/bin/qwen -y $*" }
+gemini() { tmux display-popup -E -w 100% -h 100% -d "#{pane_current_path}" "/run/current-system/sw/bin/gemini -y $*" }
+qwen()   { tmux display-popup -E -w 100% -h 100% -d "#{pane_current_path}" "/run/current-system/sw/bin/qwen -y $*" }
 
 alias hhh='cd ../../..'
 alias hhhh='cd ../../../..'
