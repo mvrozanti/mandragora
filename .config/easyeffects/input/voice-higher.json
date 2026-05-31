@@ -9,18 +9,18 @@
       "output-gain": 0.0,
       "release": 20.0,
       "vad-thres": 0.5,
-      "wet": 0.0
+      "wet": -10.0
     },
     "pitch#0": {
       "bypass": false,
       "cents": 0.0,
-      "crispness": 3,
-      "formant-preserving": false,
-      "formant-shift": 2.0,
+      "crispness": 5,
+      "formant-preserving": true,
+      "formant-shift": 0.0,
       "input-gain": 0.0,
       "mode": "Speech",
       "output-gain": 0.0,
-      "semitones": 4.0
+      "semitones": 3.0
     }
   }
 }
