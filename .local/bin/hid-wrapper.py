@@ -76,12 +76,14 @@ def restore_openrgb():
 if turn_on or (is_on and not turn_off):
     state_file.write_text('True')
     set_colors(mouse, pywal_colors)
+    signal.alarm(0)
     restore_openrgb()
     is_on = True
 elif turn_off:
     state_file.write_text('False')
     time.sleep(0.1)
     turn_mouse_off(mouse)
+    signal.alarm(0)
     blackout_openrgb()
     is_on = False
 else:
