@@ -8,7 +8,6 @@ from typing import Any
 
 import httpx
 
-import judge
 import sources
 import telegram as tg
 
@@ -59,11 +58,6 @@ async def poll_once(conn_factory) -> dict[str, int]:
             _prune(c, row["id"])
         finally:
             c.close()
-    judge_stats = await judge.judge_pending(conn_factory)
-    if judge_stats["judged"]:
-        log.info("judge done %s", judge_stats)
-    stats["judged"] = judge_stats["judged"]
-    stats["judge_errors"] = judge_stats["errors"]
     pushed, reminded = await _push_pending(conn_factory)
     stats["fanout"] += pushed
     stats["reminders"] += reminded

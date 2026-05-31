@@ -43,35 +43,50 @@ Reminders piggy-back on the poll loop, so the effective minimum
 ## AI relevance judge
 
 Setting an `ai_spec` (string describing what counts as a real match)
-on a watcher gates every new event through Gemini before any push
-happens. Verdicts:
+on a watcher gates every new event through the local LLM (qwen3:14b
+on the desktop's RTX 5070 Ti, reached via tailnet) before any push
+happens. The judge fetches the event's `link` URL, strips HTML/JSON,
+and feeds the body to the model alongside the spec — verdicts are
+based on actual link content, not just title/summary.
 
-- `GO` — pushed (Telegram badge `🟢 GO`).
+Verdicts:
+
+- `GO` — pushed (Telegram badge `🟢 GO`). Link content positively
+  asserts every explicit spec requirement.
 - `MAYBE` — stored but **not pushed by default**. Visible in the web
-  UI for manual review. Set `WATCH_PUSH_MAYBE=1` to restore the old
-  always-push behavior (badge `🟡 MAYBE` + reason).
+  UI for manual review. Set `WATCH_PUSH_MAYBE=1` to restore push
+  behavior (badge `🟡 MAYBE` + reason).
 - `NO` — stored but never pushed; reminders never fire.
 - pending (`ai_verdict IS NULL`) — also not pushed; re-judged next
-  poll cycle.
+  judge cycle.
 
 The judge prompt treats missing required spec fields (e.g. spec says
-"PW12 fw 5.18.x" but the event omits generation or firmware) as `NO`,
+"PW12 fw 5.18.x" but the link omits generation or firmware) as `NO`,
 not `MAYBE`. A notification the user has to hand-verify is a failed
 filter. Write specs with concrete constraints — model number, firmware
 range, version, platform — so the judge has something to enforce.
 
-Quota exhaustion (HTTP 429 or "quota"/"rate" in body) raises
-`QuotaExceeded`, the judge loop breaks for the cycle, and the
-unjudged events stay pending. They are retried next poll — no silent
-skip, no push without a verdict. Per-cycle judge cap:
-`WATCH_JUDGE_MAX_PER_CYCLE` (default 20).
+The judge runs as its own asyncio loop, decoupled from the poller, so
+slow local-LLM calls never block source polling. `WATCH_JUDGE_INTERVAL`
+(default 30s) controls cycle cadence; `WATCH_JUDGE_BATCH` (default 3)
+caps events per cycle. Unjudged events queue indefinitely — no rush.
 
-`.env`:
+If the desktop ollama is unreachable, the judge logs and retries next
+cycle. If link fetch fails (timeout, 4xx, binary content type), the
+model falls back to title+summary; per the hard rules above, missing
+required fields → `NO`, so unverifiable events stay silent.
+
+`.env` (all optional, defaults in `docker-compose.yml`):
 ```
-GEMINI_API_KEY=...
-WATCH_GEMINI_MODEL=gemini-2.5-flash       # default
-WATCH_JUDGE_MAX_PER_CYCLE=20              # default
-WATCH_PUSH_MAYBE=0                        # default; 1 to push MAYBE verdicts
+WATCH_OLLAMA_URL=http://100.115.80.79:11434    # desktop tailnet
+WATCH_OLLAMA_MODEL=qwen3:14b
+WATCH_OLLAMA_TIMEOUT=180
+WATCH_OLLAMA_NUM_CTX=16384
+WATCH_JUDGE_INTERVAL=30
+WATCH_JUDGE_BATCH=3
+WATCH_LINK_MAX_CHARS=8000
+WATCH_LINK_TIMEOUT=20
+WATCH_PUSH_MAYBE=0
 ```
 
 Telegram: `/spec <id> <text>` sets the spec, `/judge <event_id>`
