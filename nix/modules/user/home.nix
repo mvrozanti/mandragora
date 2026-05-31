@@ -27,6 +27,7 @@ in
     ./axon.nix
     ./nb-vault-sync.nix
     ./path-filter.nix
+    ./lutris-cache-check.nix
   ];
 
     services.udiskie = {
