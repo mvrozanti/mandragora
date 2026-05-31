@@ -2,6 +2,8 @@ import fcntl
 import json
 import signal
 import sys
+import subprocess
+import time
 from pathlib import Path
 
 turn_on = sys.argv[1] == '--on' if len(sys.argv) > 1 else False
@@ -63,11 +65,24 @@ def set_colors(mouse, pywal_colors):
     mouse.set_z3_color(pywal_colors[2])
     mouse.set_logo_color(pywal_colors[3])
 
+def blackout_openrgb():
+    subprocess.run(["openrgb", "--device", "0", "--color", "000000", "--mode", "direct"], capture_output=True)
+    subprocess.run(["openrgb", "--device", "1", "--color", "000000", "--mode", "direct"], capture_output=True)
+    subprocess.run(["openrgb", "--device", "3", "--color", "000000", "--mode", "direct"], capture_output=True)
+
+def restore_openrgb():
+    subprocess.run(["wal-to-rgb"], capture_output=True)
+
 if turn_on or (is_on and not turn_off):
+    state_file.write_text('True')
     set_colors(mouse, pywal_colors)
+    restore_openrgb()
     is_on = True
 elif turn_off:
+    state_file.write_text('False')
+    time.sleep(0.1)
     turn_mouse_off(mouse)
+    blackout_openrgb()
     is_on = False
-
-state_file.write_text(str(is_on))
+else:
+    state_file.write_text(str(is_on))

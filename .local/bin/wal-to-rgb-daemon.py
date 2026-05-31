@@ -8,6 +8,7 @@ from openrgb.utils import RGBColor
 FPS = 40
 STOPS_PER_SECOND = 15.0
 COLORS_PATH = Path.home() / ".cache/matugen/colors.json"
+STATE_PATH = Path.home() / ".cache/hid-config/state"
 RAM_PALETTE_INDICES = [2, 6, 5, 1]
 RAM_LEDS_PER_STOP = 2
 CONNECT_BACKOFF_SECONDS = 3
@@ -77,6 +78,14 @@ def mtime_or_zero():
     except Exception:
         return 0
 
+def is_rgb_on():
+    try:
+        if STATE_PATH.exists():
+            return STATE_PATH.read_text().strip() == 'True'
+    except Exception:
+        pass
+    return True
+
 def main():
     client = connect()
     ram_devices = find_ram_devices(client)
@@ -89,6 +98,10 @@ def main():
 
     while True:
         frame_start = time.monotonic()
+
+        if not is_rgb_on():
+            time.sleep(0.5)
+            continue
 
         new_mtime = mtime_or_zero()
         if new_mtime != last_mtime:
