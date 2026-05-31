@@ -9,6 +9,12 @@ fi
 # tmux autostart
 if [[ -z "$TMUX" && -t 0 ]]; then exec tmux; fi
 
+if [[ -n "$TMUX" && -n "$TMUX_PANE" ]]; then
+  _tmux_publish_cwd() { tmux set -p -t "$TMUX_PANE" @cwd "$PWD" 2>/dev/null }
+  typeset -ag precmd_functions
+  precmd_functions+=(_tmux_publish_cwd)
+fi
+
 setopt AUTO_CD
 setopt CORRECT
 unsetopt HIST_VERIFY
