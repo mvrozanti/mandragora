@@ -47,10 +47,18 @@ on a watcher gates every new event through Gemini before any push
 happens. Verdicts:
 
 - `GO` — pushed (Telegram badge `🟢 GO`).
-- `MAYBE` — pushed with `🟡 MAYBE` and the reason.
+- `MAYBE` — stored but **not pushed by default**. Visible in the web
+  UI for manual review. Set `WATCH_PUSH_MAYBE=1` to restore the old
+  always-push behavior (badge `🟡 MAYBE` + reason).
 - `NO` — stored but never pushed; reminders never fire.
 - pending (`ai_verdict IS NULL`) — also not pushed; re-judged next
   poll cycle.
+
+The judge prompt treats missing required spec fields (e.g. spec says
+"PW12 fw 5.18.x" but the event omits generation or firmware) as `NO`,
+not `MAYBE`. A notification the user has to hand-verify is a failed
+filter. Write specs with concrete constraints — model number, firmware
+range, version, platform — so the judge has something to enforce.
 
 Quota exhaustion (HTTP 429 or "quota"/"rate" in body) raises
 `QuotaExceeded`, the judge loop breaks for the cycle, and the
@@ -63,6 +71,7 @@ skip, no push without a verdict. Per-cycle judge cap:
 GEMINI_API_KEY=...
 WATCH_GEMINI_MODEL=gemini-2.5-flash       # default
 WATCH_JUDGE_MAX_PER_CYCLE=20              # default
+WATCH_PUSH_MAYBE=0                        # default; 1 to push MAYBE verdicts
 ```
 
 Telegram: `/spec <id> <text>` sets the spec, `/judge <event_id>`
