@@ -43,6 +43,23 @@ in {
       (n: "L+ /home/m/.local/share/easyeffects/input/${n} - - - - ${presetsRepoDir + "/${n}"}")
       presetNames);
 
+  systemd.services.voice-control-unmute-mic = {
+    description = "Unmute hardware mic + set capture gain for EasyEffects";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "sound.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = pkgs.writeShellScript "voice-unmute" ''
+        set +e
+        ${pkgs.alsa-utils}/bin/amixer -c Generic_1 sset 'Capture' 80% cap
+        ${pkgs.alsa-utils}/bin/amixer -c Generic_1 sset 'Front Mic Boost' 2
+        ${pkgs.alsa-utils}/bin/amixer -c Generic_1 sset 'Rear Mic Boost' 2
+        exit 0
+      '';
+    };
+  };
+
   systemd.user.services.easyeffects = {
     description = "EasyEffects daemon (service mode)";
     wantedBy = [ "default.target" ];
