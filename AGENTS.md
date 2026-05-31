@@ -164,6 +164,18 @@ rationale, recipes, or the incident that produced the rule.
     look like standalone projects. Enforced by \`mandragora-audit\`
     check \`06-no-projects-in-local-share\`; intentional exemptions live
     in \`.local/share/mandragora-audit/allowlists/local-share-projects.txt\`.
+18. **Dirty-repo isolation on commit** — if the repo has unrelated
+    staged files, unresolved merge conflicts, or pre-existing audit
+    failures when you arrive to commit your own change, default to
+    isolating your change: \`git restore --staged\` everything you did
+    not author, commit only your own file(s), leave the rest
+    untouched for the user or original author. Never resolve another
+    agent's merge conflicts, never bundle their WIP into your commit,
+    never bypass audit with \`--no-verify\` to escape someone else's
+    breakage. If your isolated commit still can't pass audit because
+    the audit failure is pre-existing and unrelated to your change,
+    report the situation and stop — do not ask the user to choose
+    each time; the isolation default is the answer.
 
 ---
 
