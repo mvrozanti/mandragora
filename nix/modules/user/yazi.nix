@@ -30,31 +30,25 @@ let
     mkdir -p $out
     cat > $out/main.lua <<'LUA'
     local M = {}
-    function M:entry()
-      local query, event = ya.input({
-        title = "z:",
-        pos = { "top-center", y = 3, w = 60 },
-      })
-      if event ~= 1 then return end
-      query = (query or ""):gsub("^%s+", ""):gsub("%s+$", "")
-      if query == "" then return end
 
+    --- @sync entry
+    function M:entry()
+      local _permit = ui.hide()
       local child, err = Command("sh")
-        :arg("-c"):arg("zoxide query -l | fzf --filter=\"$1\" | head -n1")
-        :arg("zjump"):arg(query)
-        :stdin(Command.NULL):stdout(Command.PIPED):stderr(Command.PIPED)
+        :arg({ "-c", "zoxide query -l | fzf --no-multi" })
+        :stdin(Command.INHERIT)
+        :stdout(Command.PIPED)
+        :stderr(Command.INHERIT)
         :spawn()
       if not child then
         ya.notify({ title = "zjump", content = "spawn failed: " .. tostring(err), level = "error", timeout = 5 })
         return
       end
       local output = child:wait_with_output()
-      local target = output and output.stdout:gsub("[\r\n]+$", "") or ""
-      if target == "" then
-        ya.notify({ title = "zjump", content = "no match for: " .. query, level = "warn", timeout = 3 })
-        return
-      end
-      ya.mgr_emit("cd", { target })
+      if not output or not output.status.success then return end
+      local target = output.stdout:gsub("[\r\n]+$", "")
+      if target == "" then return end
+      ya.emit("cd", { target })
     end
     return M
     LUA
