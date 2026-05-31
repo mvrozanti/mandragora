@@ -120,7 +120,6 @@ bindkey '^[w' run_ncmpcpp
 
 c()   { wl-copy "$@" }
 co()  { wl-paste "$@" }
-cov() { nvim "$(co)" }
 
 pa()  { ps aux | grep -v grep | grep -i "${1:-.}" }
 eip() { curl -s ipinfo.io | jq -r '.ip' }
