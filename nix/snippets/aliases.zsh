@@ -394,18 +394,8 @@ rpc() { realpath "$@" | c -n }
 sa() { awk -v name="$*" 'BEGIN{re="^(alias )?"name"(=|\\()"} $0~re{p=1;print;if($0~"^alias "||$0~"}.*;? *$")p=0;next} p{print;if($0~"^} *;? *$")p=0}' "${BASH_SOURCE[0]:-${(%):-%x}}" }
 
 alias claude='claude'
-_ai_tui_session() {
-  local bin="$1"; shift
-  local name="${bin}-$$-$RANDOM"
-  local cwd
-  cwd="$(tmux display-message -p '#{pane_current_path}')"
-  tmux new-session -d -s "$name" -c "$cwd" "BRUNO_OFF=1 exec /run/current-system/sw/bin/$bin -y $*"
-  tmux set-option -t "$name" status off
-  tmux set-option -t "$name" detach-on-destroy previous
-  tmux switch-client -t "$name"
-}
-gemini() { _ai_tui_session gemini "$@" }
-qwen()   { _ai_tui_session qwen   "$@" }
+alias gemini='/run/current-system/sw/bin/gemini -y'
+alias qwen='/run/current-system/sw/bin/qwen -y'
 
 alias hhh='cd ../../..'
 alias hhhh='cd ../../../..'
