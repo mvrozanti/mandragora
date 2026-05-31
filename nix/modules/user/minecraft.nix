@@ -6,6 +6,26 @@ let
     hash = "sha256-dqH/bA14J+zQhX5am1KYM38jJmJ2er8PARFUyFttqO8=";
   };
 
+  bliss = pkgs.fetchurl {
+    url = "https://cdn.modrinth.com/data/ZvMtQlho/versions/kC2Y8q1P/Bliss_v2.1.2_%28Chocapic13_Shaders_edit%29.zip";
+    hash = "sha256-9B25KsxYX+n/4MwSTW7K6ifO+d7ZESnrwqjmAiaUeyw=";
+  };
+
+  sildurs-vibrant = pkgs.fetchurl {
+    url = "https://cdn.modrinth.com/data/z8EjLYqN/versions/7Bij7xAf/Sildur%27s%20Vibrant%20Shaders%20v1.56%20Extreme.zip";
+    hash = "sha256-xvN1vrzLvob4gnKTisBcCFdXRFOwJiFixNGk4JDn18w=";
+  };
+
+  rethinking-voxels = pkgs.fetchurl {
+    url = "https://cdn.modrinth.com/data/kmwfVOoi/versions/cpD4esk9/rethinking-voxels_r0.1-beta9.zip";
+    hash = "sha256-qM2dQzjH09H//sxFJTSKMeo9IZ7zE4LFHV3cO0sBFOE=";
+  };
+
+  complementary-reimagined = pkgs.fetchurl {
+    url = "https://cdn.modrinth.com/data/HVnmMxH1/versions/yCCduG44/ComplementaryReimagined_r5.8.1.zip";
+    hash = "sha256-PxzTiecXsuYvWO3/IiBZucYN5xsUu0m1F+tYMYzjWxU=";
+  };
+
   iris = pkgs.fetchurl {
     url = "https://cdn.modrinth.com/data/YL57xq9U/versions/fDpuVzVr/iris-fabric-1.10.7%2Bmc1.21.11.jar";
     hash = "sha256-WMVdoYGJyRpJ+EfTzuRRYzojtXX7acDFtl3bJ0Q2yxk=";
@@ -107,6 +127,10 @@ in
     SHADERPACKS="$INST/minecraft/shaderpacks"
     $DRY_RUN_CMD mkdir -p "$SHADERPACKS"
     $DRY_RUN_CMD ln -sf ${seus} "$SHADERPACKS/SEUS-Renewed-v1.0.1.zip"
+    $DRY_RUN_CMD ln -sf ${bliss} "$SHADERPACKS/Bliss-v2.1.2.zip"
+    $DRY_RUN_CMD ln -sf ${sildurs-vibrant} "$SHADERPACKS/Sildurs-Vibrant-v1.56-Extreme.zip"
+    $DRY_RUN_CMD ln -sf ${rethinking-voxels} "$SHADERPACKS/Rethinking-Voxels-r0.1-beta9.zip"
+    $DRY_RUN_CMD ln -sf ${complementary-reimagined} "$SHADERPACKS/Complementary-Reimagined-r5.8.1.zip"
 
     FORK_JAR=""
     if [ -d "$HOME/Projects/meteor-client/build/libs" ]; then
