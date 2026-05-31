@@ -101,7 +101,7 @@ $("#preview").onclick = async () => {
       audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
     });
     const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "audioinput");
-    const ee = devs.find(d => /easyeffects/i.test(d.label));
+    const ee = devs.find(d => /easy\s*effects/i.test(d.label));
     const wantId = picker.value || ee?.deviceId;
     if (wantId && stream.getAudioTracks()[0]?.getSettings().deviceId !== wantId) {
       stream.getTracks().forEach(t => t.stop());
