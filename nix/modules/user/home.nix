@@ -529,8 +529,8 @@ in
       "ctrl+shift+h" = "show_scrollback";
       "ctrl+alt+k" = "send_text all \\x1b[A";
       "ctrl+alt+j" = "send_text all \\x1b[B";
-      "ctrl+alt+shift+j" = "send_text all \\x1b[106;8u";
-      "ctrl+alt+shift+k" = "send_text all \\x1b[107;8u";
+      "ctrl+alt+shift+j" = "send_text all \\x1b[31337j";
+      "ctrl+alt+shift+k" = "send_text all \\x1b[31337k";
       "ctrl+shift+n" = "new_os_window";
       "ctrl+shift+]" = "next_window";
       "ctrl+shift+[" = "previous_window";
