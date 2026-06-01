@@ -31,14 +31,14 @@ services:
       ofin-db:
         condition: service_healthy
     environment:
-      PLUGGY_CLIENT_ID: ${PLUGGY_CLIENT_ID}
-      PLUGGY_CLIENT_SECRET: ${PLUGGY_CLIENT_SECRET}
-      PLUGGY_WEBHOOK_SECRET: ${PLUGGY_WEBHOOK_SECRET}
       PUBLIC_BASE_URL: https://ofin.${MVR_AC:-mvr.ac}
       DATABASE_URL: postgresql+asyncpg://ofin:${OFIN_DB_PASSWORD:-ofin}@ofin-db:5432/ofin
       DEFAULT_USER: ${OFIN_DEFAULT_USER:-m}
       TIMEZONE: America/Sao_Paulo
       LOG_LEVEL: info
+      UPLOAD_DIR: /var/lib/ofin/uploads
+    volumes:
+      - ${OFIN_UPLOAD_DIR:-/home/opc/ofin/uploads}:/var/lib/ofin/uploads
     networks:
       - seafile-net
     labels:
