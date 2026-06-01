@@ -79,6 +79,7 @@
   mandragora.keystats.captureText = {
     enable = true;
     allowedClasses = [ ];
+    secretBlacklist = "keystats/words_basicauth";
   };
   mandragora.vtagWeb = { enable = true; targetDir = "/mnt/toshiba/hdd/gdrive/Levv/4chan"; };
 }
