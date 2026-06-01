@@ -4,6 +4,11 @@ let
   cfg = config.mandragora.keystats;
   textEnabled = cfg.captureText.enable;
   textAllowlist = builtins.concatStringsSep "," cfg.captureText.allowedClasses;
+  textSecretBlacklist = cfg.captureText.secretBlacklist;
+  textBlacklistPath =
+    if textSecretBlacklist != null
+    then "/run/secrets/keystats-text-blacklist"
+    else "/persistent/keystats/blacklist.txt";
 
   pyEnv = pkgs.python3.withPackages (ps: with ps; [ evdev sqlcipher3 ]);
 
@@ -11,7 +16,7 @@ let
     export KEYSTATS_TEXT_DB_KEY_FILE="''${KEYSTATS_TEXT_DB_KEY_FILE:-/run/secrets/keystats-text-db-key}"
     export KEYSTATS_TEXT_DB_PATH="''${KEYSTATS_TEXT_DB_PATH:-/persistent/keystats/text.db}"
     export KEYSTATS_TEXT_ALLOWLIST="''${KEYSTATS_TEXT_ALLOWLIST:-${textAllowlist}}"
-    export KEYSTATS_TEXT_BLACKLIST_FILE="''${KEYSTATS_TEXT_BLACKLIST_FILE:-/persistent/keystats/blacklist.txt}"
+    export KEYSTATS_TEXT_BLACKLIST_FILE="''${KEYSTATS_TEXT_BLACKLIST_FILE:-${textBlacklistPath}}"
   '';
 
   captureBin = pkgs.writeShellApplication {
@@ -64,9 +69,27 @@ in
         example = [ "obsidian" "code-url-handler" ];
         description = ''
           Hyprland window classes from which typed words may be captured.
-          Empty list = nothing is captured even when enable=true. Do NOT add
-          terminals or browsers without understanding that sudo/ssh prompts
-          and web login fields are not gated by Hyprland window class.
+          Empty list = capture from EVERY focused window (BLOCKED_CLASSES
+          and TITLE_BLOCK_RE in keystats-capture.py still apply, plus the
+          sops-protected blacklist in `secretBlacklist`). Sudo/ssh prompts
+          in terminals and login fields in browsers are only filtered by
+          window-title regex; populate `secretBlacklist` with literal
+          master passwords/passphrases as a defense-in-depth net.
+        '';
+      };
+      secretBlacklist = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "keystats/text_blacklist";
+        description = ''
+          Optional sops secret key (relative to `sops.defaultSopsFile`)
+          whose decrypted value is a newline-separated list of words to
+          drop before persistence. Mounted at
+          /run/secrets/keystats-text-blacklist and used in place of the
+          plaintext /persistent/keystats/blacklist.txt. Intended for
+          master passwords and other high-sensitivity literals that the
+          user does NOT want sitting plaintext on disk. When null, the
+          legacy plaintext blacklist.txt is used.
         '';
       };
     };
@@ -88,6 +111,12 @@ in
         mode = "0400";
         path = "/run/secrets/keystats-text-db-key";
       };
+    } // lib.optionalAttrs (textEnabled && textSecretBlacklist != null) {
+      ${textSecretBlacklist} = {
+        owner = "m";
+        mode = "0400";
+        path = "/run/secrets/keystats-text-blacklist";
+      };
     };
 
     services.udev.packages = [
@@ -102,7 +131,7 @@ in
 
     systemd.tmpfiles.rules = [
       "d /persistent/keystats 0700 m users - -"
-    ] ++ lib.optional textEnabled
+    ] ++ lib.optional (textEnabled && textSecretBlacklist == null)
       "f /persistent/keystats/blacklist.txt 0600 m users - -";
 
     systemd.user.services.keystats-capture = {
