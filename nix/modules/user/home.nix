@@ -176,6 +176,7 @@ in
     yt-dlp
     streamlink
     retroarch
+    lutris
     prismlauncher
     remmina
     freerdp
