@@ -45,6 +45,7 @@
     autoclaude
     chafa
     graphviz
+    erdtree
     asciinema
     inputs.bruno-tama.packages.${pkgs.system}.default
 
