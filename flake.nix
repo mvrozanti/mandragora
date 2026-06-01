@@ -60,6 +60,7 @@
         ./nix/modules/shared/common-packages.nix
         ./nix/modules/shared/zsh.nix
         ./nix/modules/shared/nvim.nix
+        ./nix/modules/shared/overlays.nix
         (let rev = self.rev or self.dirtyRev or "dirty"; in {
           system.configurationRevision = rev;
           system.systemBuilderCommands = ''
