@@ -105,9 +105,6 @@ bindkey '^[[1;5C' forward-word
 bindkey -M viins '^[[1;5D' backward-word
 bindkey -M viins '^[[1;5C' forward-word
 bindkey '^h' backward-delete-char
-zmodload zsh/complist
-bindkey '^[[Z' reverse-menu-complete
-bindkey -M menuselect '^[[Z' reverse-menu-complete
 _backward-kill-word-punct() { local WORDCHARS=''; zle backward-kill-word }
 _forward-kill-word-punct()  { local WORDCHARS=''; zle delete-word }
 zle -N _backward-kill-word-punct
