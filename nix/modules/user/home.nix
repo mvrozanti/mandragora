@@ -176,6 +176,7 @@ in
     yt-dlp
     streamlink
     retroarch
+    lutris
     prismlauncher
     remmina
     freerdp
@@ -196,6 +197,8 @@ in
     lazygit
     pueue
     gource
+    xdot
+    gephi
     mkvtoolnix
     jiq
 
