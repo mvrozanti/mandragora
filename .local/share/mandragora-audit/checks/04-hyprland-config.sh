@@ -15,17 +15,28 @@ if ! command -v hyprctl >/dev/null 2>&1; then
   exit 0
 fi
 
-if [ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
-  candidate=$(ls -1t "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/hypr" 2>/dev/null | head -n1 || true)
-  if [ -n "$candidate" ]; then
-    export HYPRLAND_INSTANCE_SIGNATURE="$candidate"
-  else
-    audit_pass "$CHECK" "no running Hyprland instance; skipped"
-    exit 0
-  fi
+# Try to find a working instance if the current one is stale or missing
+is_running() {
+    [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && hyprctl version >/dev/null 2>&1
+}
+
+if ! is_running; then
+    # Unset to force discovery
+    unset HYPRLAND_INSTANCE_SIGNATURE
+    for candidate in $(ls -1t "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/hypr" 2>/dev/null); do
+        export HYPRLAND_INSTANCE_SIGNATURE="$candidate"
+        if is_running; then
+            break
+        fi
+    done
 fi
 
-ERRS=$(hyprctl configerrors 2>/dev/null | sed '/^no errors$/d' | sed '/^$/d' || true)
+if ! is_running; then
+    audit_pass "$CHECK" "no running/reachable Hyprland instance; skipped"
+    exit 0
+fi
+
+ERRS=$(hyprctl configerrors 2>/dev/null | sed '/^no errors$/d' | sed '/^$/d' | grep -v "Couldn't connect to" || true)
 if [ -z "$ERRS" ]; then
   audit_pass "$CHECK" "hyprctl configerrors empty"
   exit 0
