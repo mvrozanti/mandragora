@@ -5,7 +5,10 @@
     }
   },
   "context": {
-    "fileName": ["GEMINI.md", "AGENTS.md"]
+    "fileName": [
+      "GEMINI.md",
+      "AGENTS.md"
+    ]
   },
   "mcpServers": {
     "local-ai": {
@@ -26,5 +29,14 @@
         ]
       }
     ]
+  },
+  "general": {
+    "enableNotifications": false
+  },
+  "ui": {
+    "dynamicWindowTitle": false,
+    "showStatusInTitle": false,
+    "terminalBuffer": true,
+    "incrementalRendering": false
   }
 }
