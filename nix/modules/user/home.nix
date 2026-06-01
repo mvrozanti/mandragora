@@ -196,6 +196,8 @@ in
     lazygit
     pueue
     gource
+    xdot
+    gephi
     mkvtoolnix
     jiq
 

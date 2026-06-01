@@ -44,6 +44,7 @@
     forge-cli
     autoclaude
     chafa
+    graphviz
     asciinema
     inputs.bruno-tama.packages.${pkgs.system}.default
 
