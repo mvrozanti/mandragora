@@ -28,7 +28,8 @@ TEXT_ALLOWLIST = {
     c.strip() for c in os.environ.get("KEYSTATS_TEXT_ALLOWLIST", "").split(",") if c.strip()
 }
 TEXT_BLACKLIST_FILE = os.environ.get("KEYSTATS_TEXT_BLACKLIST_FILE", "").strip()
-TEXT_ENABLED = bool(TEXT_DB_KEY_FILE and TEXT_DB_PATH and TEXT_ALLOWLIST)
+TEXT_ENABLED = bool(TEXT_DB_KEY_FILE and TEXT_DB_PATH)
+TEXT_ALLOW_ALL = len(TEXT_ALLOWLIST) == 0
 
 
 def load_user_blacklist() -> set:
@@ -169,7 +170,9 @@ def gated(s: State) -> str:
 
 
 def text_gated(s: State, ts: float) -> bool:
-    if s.active_class not in TEXT_ALLOWLIST:
+    if not TEXT_ALLOW_ALL and s.active_class not in TEXT_ALLOWLIST:
+        return True
+    if s.active_class in BLOCKED_CLASSES:
         return True
     if ts - s.active_class_since < WORD_RACE_WINDOW:
         return True
@@ -551,8 +554,10 @@ def main() -> None:
     text_conn = None
     if TEXT_ENABLED:
         text_conn = open_text_db(load_text_key())
+        allow_desc = "ALL" if TEXT_ALLOW_ALL else sorted(TEXT_ALLOWLIST)
         print(
-            f"keystats: text capture enabled allowlist={sorted(TEXT_ALLOWLIST)} db={TEXT_DB_PATH}",
+            f"keystats: text capture enabled allowlist={allow_desc} "
+            f"blacklist_entries={len(USER_BLACKLIST)} db={TEXT_DB_PATH}",
             file=sys.stderr,
         )
     state = State()
