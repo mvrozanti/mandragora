@@ -98,9 +98,19 @@ class _GpuLock:
 
     def _read_holder(self) -> dict | None:
         try:
-            return json.loads(HOLDER_FILE.read_text())
+            holder = json.loads(HOLDER_FILE.read_text())
         except (FileNotFoundError, json.JSONDecodeError):
             return None
+        pid = holder.get("pid")
+        if isinstance(pid, int):
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                self._clear_holder()
+                return None
+            except PermissionError:
+                pass
+        return holder
 
     def _write_holder(self, name: str, expected_seconds: float | None) -> None:
         payload = {
