@@ -36,26 +36,18 @@ services:
       DEFAULT_USER: ${OFIN_DEFAULT_USER:-m}
       TIMEZONE: America/Sao_Paulo
       LOG_LEVEL: info
-      UPLOAD_DIR: /tmp/ofin-uploads
-      READ_ONLY: "true"
-      AUTHELIA_URL: http://authelia:9091
-      AUTHELIA_VERIFY_PATH: /api/authz/forward-auth
-      FORWARDED_HOST: ofin.${MVR_AC:-mvr.ac}
-      AUTH_PORTAL: https://auth.${MVR_AC:-mvr.ac}
-      AUTH_CACHE_TTL: "30"
-    read_only: true
-    tmpfs:
-      - /tmp:size=64m,mode=1777
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
+      UPLOAD_DIR: /var/lib/ofin/uploads
+    volumes:
+      - ${OFIN_UPLOAD_DIR:-/home/opc/ofin/uploads}:/var/lib/ofin/uploads
     networks:
       - seafile-net
     labels:
       caddy: https://ofin.${MVR_AC:-mvr.ac}
       caddy.encode: zstd gzip
-      caddy.reverse_proxy: "{{upstreams 8080}}"
+      caddy.0_handle.forward_auth: "authelia:9091"
+      caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.0_handle.reverse_proxy: "{{upstreams 8080}}"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
       interval: 30s
