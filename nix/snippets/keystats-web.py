@@ -366,7 +366,7 @@ function renderBars(svgId, rows, labelFn){
   const bh=(h-2*pad)/rows.length;
   let s='';
   rows.forEach((r,i)=>{
-    const bw=(r.count/max)*(w-pad-20);
+    const bw=(r.count/max)*(w-pad-70);
     const y=pad+i*bh;
     s += `<text x="${pad-6}" y="${(y+bh/2+3).toFixed(0)}" text-anchor="end">${labelFn(r)}</text>`;
     s += `<rect class="bar" x="${pad}" y="${(y+2).toFixed(0)}" width="${bw.toFixed(1)}" height="${(bh-4).toFixed(1)}"/>`;
