@@ -89,7 +89,7 @@ fi
 
 ssh "$REMOTE" "docker exec ofin wget -qO- http://localhost:8080/healthz || echo '(healthz check failed)'"
 
-echo "→ done. visit https://ofin.mvr.ac (public read-only, no host writes)."
+echo "→ done. visit https://ofin.mvr.ac (authelia-gated)."
 echo "   logs:    ssh $REMOTE 'docker logs -f ofin'"
 echo "   status:  ssh $REMOTE 'docker ps --filter name=ofin'"
 echo "   seed:    SEED_DB=1 bash $0   (pg_dump local + restore on VPS)"
