@@ -12,7 +12,7 @@ services:
       caddy.0_handle.forward_auth: "authelia:9091"
       caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
       caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy.0_handle.reverse_proxy: "${AXON_UPSTREAM:-100.115.80.79:8081}"
+      caddy.0_handle.reverse_proxy: "${AXON_UPSTREAM:-100.115.80.79:7070}"
       caddy.0_handle.reverse_proxy.flush_interval: "-1"
       caddy.0_handle.reverse_proxy.transport: "http"
 
