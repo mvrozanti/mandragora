@@ -552,8 +552,10 @@ in
       "ctrl+equal" = "change_font_size all +1.0";
       "ctrl+minus" = "change_font_size all -1.0";
       "ctrl+0" = "change_font_size all 0";
-      "ctrl+shift+k" = "set_background_opacity +0.05";
-      "ctrl+shift+j" = "set_background_opacity -0.05";
+      "ctrl+shift+equal" = "set_background_opacity +0.05";
+      "ctrl+shift+minus" = "set_background_opacity -0.05";
+      "ctrl+shift+j" = "send_text all \\x1b[31338j";
+      "ctrl+shift+k" = "send_text all \\x1b[31338k";
       "ctrl+shift+l" = "set_background_opacity 1";
       "ctrl+shift+0" = "set_background_opacity default";
       "ctrl+shift+e" = "kitten hints";
