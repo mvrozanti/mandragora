@@ -7,24 +7,19 @@ let
 in {
   mandragora.hub.services.claude-web = {
     port = port;
+    userService = true;
     systemd = {
       description = "claude.mvr.ac — add a tmux window running claude to the current session, web dir picker";
-      after = [ "network.target" "tailscaled.service" ];
-      wants = [ "tailscaled.service" ];
-      wantedBy = [ "multi-user.target" ];
+      after = [ "default.target" ];
+      wantedBy = [ "default.target" ];
       restartTriggers = [ (builtins.readFile ../../../.local/share/claude-web/app.py) ];
       environment = {
         CLAUDE_WEB_HOST = "0.0.0.0";
         CLAUDE_WEB_PORT = toString port;
-        HOME = "/home/m";
-        XDG_RUNTIME_DIR = "/run/user/1000";
         TMUX_TMPDIR = "/run/user/1000";
       };
-      path = [ pkgs.tmux pkgs.claude-code pkgs.nodejs pkgs.coreutils pkgs.zoxide pkgs.bashInteractive pkgs.gawk ];
       serviceConfig = {
         Type = "simple";
-        User = "m";
-        Group = "users";
         WorkingDirectory = "/home/m";
         ExecStart = "${pyEnv}/bin/python ${src}";
         Restart = "on-failure";
