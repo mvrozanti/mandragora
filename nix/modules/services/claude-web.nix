@@ -18,6 +18,13 @@ in {
         CLAUDE_WEB_PORT = toString port;
         TMUX_TMPDIR = "/run/user/1000";
       };
+      path = [
+        "/run/wrappers"
+        "/home/m/.nix-profile"
+        "/etc/profiles/per-user/m"
+        "/nix/var/nix/profiles/default"
+        "/run/current-system/sw"
+      ];
       serviceConfig = {
         Type = "simple";
         WorkingDirectory = "/home/m";
