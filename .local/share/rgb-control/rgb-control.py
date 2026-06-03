@@ -55,6 +55,8 @@ DEVICE_CLASSES = {
 
 ENUM_TTL_S = 8.0
 
+_openrgb_lock = asyncio.Lock()
+
 
 def load_state() -> dict[str, Any]:
     try:
@@ -126,11 +128,12 @@ async def list_devices(config_dir: Path) -> list[dict[str, Any]]:
     cached = _enum_cache.get(key)
     if cached and now - cached[0] < ENUM_TTL_S:
         return cached[1]
-    proc = await asyncio.create_subprocess_exec(
-        OPENRGB, "--config", str(config_dir), "--noautoconnect", "--list-devices",
-        stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-    )
-    out, err = await proc.communicate()
+    async with _openrgb_lock:
+        proc = await asyncio.create_subprocess_exec(
+            OPENRGB, "--config", str(config_dir), "--noautoconnect", "--list-devices",
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        )
+        out, err = await proc.communicate()
     if proc.returncode != 0:
         log.warning("openrgb list-devices failed (rc=%s): %s", proc.returncode, err.decode(errors="replace"))
         return []
@@ -232,10 +235,11 @@ async def _apply_one(cls: str, device_idx: int, mode: str, color: str | None,
     if brightness is not None and brightness != "":
         args += ["--brightness", str(int(brightness))]
     log.info("apply: %s", " ".join(args[1:]))
-    proc = await asyncio.create_subprocess_exec(
-        *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
-    )
-    out, _ = await proc.communicate()
+    async with _openrgb_lock:
+        proc = await asyncio.create_subprocess_exec(
+            *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
+        )
+        out, _ = await proc.communicate()
     return proc.returncode, _clean_openrgb_output(out.decode(errors="replace"))
 
 
