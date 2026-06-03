@@ -27,10 +27,10 @@ if tmux info &>/dev/null; then
     tmux refresh-client -S 2>/dev/null || true
 fi
 
-if ! systemctl is-active --quiet openrgb; then
-    sudo systemctl start openrgb
-    sleep 1
-fi
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+    if exec 3<>/dev/tcp/127.0.0.1/6742 2>/dev/null; then exec 3<&- 3>&-; break; fi
+    sleep 0.3
+done
 
 wal-to-rgb &>/dev/null &
 systemctl --user start wal-to-rgb-daemon 2>/dev/null || true
