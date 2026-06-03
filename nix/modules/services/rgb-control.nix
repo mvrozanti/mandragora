@@ -12,7 +12,7 @@ let
   '';
   stopOpenrgbScript = pkgs.writeShellScript "rgb-control-stop-openrgb" ''
     set +e
-    ${pkgs.sudo}/bin/sudo -n /run/current-system/sw/bin/systemctl stop openrgb
+    /run/wrappers/bin/sudo -n /run/current-system/sw/bin/systemctl stop openrgb
     exit 0
   '';
 in {
