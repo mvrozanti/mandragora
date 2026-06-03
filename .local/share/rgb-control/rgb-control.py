@@ -238,7 +238,7 @@ async def list_devices_for_class(cls: str) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
         for idx, dev in enumerate(client.devices):
             try:
-                dtype = dev.device_type.name.lower()
+                dtype = dev.type.name.lower()
             except Exception:
                 dtype = ""
             if dtype != target:
@@ -248,7 +248,7 @@ async def list_devices_for_class(cls: str) -> list[dict[str, Any]]:
             out.append({
                 "index": idx,
                 "name": dev.name,
-                "type": dev.device_type.name,
+                "type": dev.type.name,
                 "modes": modes,
                 "zones": zones,
             })
