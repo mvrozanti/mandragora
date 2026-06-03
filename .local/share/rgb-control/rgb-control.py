@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""rgb-control — per-device RGB web UI for Mandragora.
+"""rgb-control — single-page RGB web UI for Mandragora.
 
-Drives openrgb directly via short-lived CLI invocations. RAM + motherboard
-use the standard "safe" openrgb config. Mouse + keyboard require enabling
-HID detectors that conflict with keyledsd, so they are gated behind an
-"override keyleds" toggle. Recovery is layered:
+Backend: thin wrapper around openrgb CLI. RAM + motherboard use the
+standard "safe" openrgb config; mouse + keyboard need HID detectors
+that conflict with keyledsd, gated behind a takeover toggle. Recovery
+is layered: panic button restores keyledsd, ExecStopPost too, startup
+forces override=off.
 
-  - every page renders a "restore keyleds" panic button,
-  - turning the override off is idempotent and always restarts keyledsd,
-  - the systemd unit's ExecStopPost restarts keyledsd if the service dies,
-  - on startup the service forces override=false and ensures keyledsd is up.
+Frontend: single page, all device classes, live swatches showing the
+last-applied colour per device, debounced auto-apply on every control
+change, scene presets that fan out across every class.
 """
 from __future__ import annotations
 
@@ -58,9 +58,14 @@ ENUM_TTL_S = 8.0
 
 def load_state() -> dict[str, Any]:
     try:
-        return json.loads(STATE_FILE.read_text())
+        s = json.loads(STATE_FILE.read_text())
     except (FileNotFoundError, json.JSONDecodeError):
-        return {"override": False}
+        s = {}
+    s.setdefault("override", False)
+    last = s.setdefault("last", {})
+    for k in DEVICE_CLASSES:
+        last.setdefault(k, {})
+    return s
 
 
 def save_state(state: dict[str, Any]) -> None:
@@ -234,13 +239,22 @@ async def _apply_one(cls: str, device_idx: int, mode: str, color: str | None,
     return proc.returncode, _clean_openrgb_output(out.decode(errors="replace"))
 
 
+def _record_apply(cls: str, idx: int, settings: dict[str, Any]) -> None:
+    state = load_state()
+    state["last"].setdefault(cls, {})[str(idx)] = {
+        **settings,
+        "ts": int(time.time()),
+    }
+    save_state(state)
+
+
 async def apply_settings(payload: dict[str, Any]) -> tuple[int, str]:
     cls = payload.get("class")
     if cls not in DEVICE_CLASSES:
         return 400, f"unknown class: {cls}"
     info = DEVICE_CLASSES[cls]
     if info["hid"] and not load_state().get("override"):
-        return 409, "override keyleds is off — enable it to control mouse/keyboard"
+        return 409, "mouse/keyboard takeover required — enable it first"
     mode = (payload.get("mode") or "").strip()
     if not mode:
         return 400, "missing mode"
@@ -260,15 +274,46 @@ async def apply_settings(payload: dict[str, Any]) -> tuple[int, str]:
         except ValueError:
             return 400, f"device must be an index, got: {device_raw!r}"
 
-    results = []
+    record = {"mode": mode, "color": color, "zone": zone, "speed": speed, "brightness": brightness}
+
+    coros = [_apply_one(cls, idx, mode, color, zone, speed, brightness) for idx in targets]
+    results = await asyncio.gather(*coros)
     overall_rc = 200
-    for idx in targets:
-        rc, body = await _apply_one(cls, idx, mode, color, zone, speed, brightness)
-        results.append(f"[device {idx}] rc={rc}\n{body}" if body else f"[device {idx}] rc={rc} ok")
+    msgs = []
+    for idx, (rc, body) in zip(targets, results):
+        msgs.append(f"[device {idx}] rc={rc}\n{body}" if body else f"[device {idx}] rc={rc} ok")
         if rc != 0:
             overall_rc = 500
+        else:
+            _record_apply(cls, idx, record)
     _enum_cache.clear()
-    return overall_rc, "\n\n".join(results)[-1200:]
+    return overall_rc, "\n\n".join(msgs)[-1200:]
+
+
+async def apply_bulk(payload: dict[str, Any]) -> tuple[int, str]:
+    items = payload.get("items") or []
+    if not items:
+        return 400, "no items"
+    override = bool(load_state().get("override"))
+    runnable: list[tuple[str, dict[str, Any]]] = []
+    skipped: list[str] = []
+    for item in items:
+        cls = item.get("class")
+        if cls not in DEVICE_CLASSES:
+            skipped.append(f"{cls}: unknown")
+            continue
+        if DEVICE_CLASSES[cls]["hid"] and not override:
+            skipped.append(f"{cls}: takeover off")
+            continue
+        runnable.append((cls, item))
+    if not runnable:
+        return 409, "nothing applied (takeover required for mouse/keyboard?)\n" + "\n".join(skipped)
+    rcs = await asyncio.gather(*(apply_settings(item) for _, item in runnable))
+    overall = 200 if all(rc == 200 for rc, _ in rcs) else 500
+    summary = [f"{cls}: rc={rc}" for (cls, _), (rc, _) in zip(runnable, rcs)]
+    if skipped:
+        summary += [f"skipped {s}" for s in skipped]
+    return overall, "\n".join(summary)
 
 
 async def set_override(enabled: bool) -> str:
@@ -299,325 +344,620 @@ async def startup_recovery(app: web.Application) -> None:
 
 STYLE = """
 :root {
-  --bg: #050805; --panel: #0a0e0a; --fg: #b8ffc4; --accent: #00ff66;
-  --dim: #4a6a4e; --line: #1a2418; --hover: #0f1810; --warn: #ff6b6b;
-  --warn-bg: #1a0808;
+  --bg: #06090a; --panel: #0c1216; --panel-2: #101820;
+  --fg: #e6f0f3; --dim: #6b8088; --line: #1c2830; --hover: #18242e;
+  --accent: #00ff88; --accent-soft: rgba(0,255,136,0.16);
+  --warn: #ff6b6b; --warn-bg: #2a0d0d; --warm: #ffb347;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--fg);
-       font-family: ui-monospace, "Iosevka", monospace;
-       min-height: 100vh; padding: 1.5rem 1.25rem; }
-.wrap { max-width: 900px; margin: 0 auto; }
-header { display: flex; justify-content: space-between; align-items: center;
-         border-bottom: 1px solid var(--line); padding-bottom: 1rem;
-         margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap; }
-h1 { font-size: 1rem; font-weight: normal; }
-h1::before { content: "$ "; color: var(--accent); }
-.crumbs a { color: var(--accent); text-decoration: none; }
-.crumbs a:hover { text-decoration: underline; }
-.panic { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn);
-         padding: 0.5rem 0.9rem; font: inherit; cursor: pointer; }
+html, body { background: var(--bg); color: var(--fg);
+  font: 14px/1.45 ui-monospace, "Iosevka", "JetBrains Mono", monospace; }
+body { min-height: 100vh; padding: 1.4rem clamp(0.75rem, 4vw, 2rem) 5rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.1rem; }
+
+header.top { display: flex; justify-content: space-between; align-items: center;
+  gap: 1rem; flex-wrap: wrap; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+.title h1 { font-size: 1.45rem; font-weight: 600; letter-spacing: 0.04em; color: var(--accent); }
+.title h1::before { content: "$ "; color: var(--dim); font-weight: 400; }
+.title .sub { color: var(--dim); font-size: 0.72rem; letter-spacing: 0.22em;
+  text-transform: uppercase; margin-top: 0.2rem; }
+.panic { background: transparent; color: var(--warn); border: 1px solid var(--warn);
+  padding: 0.55rem 1rem; font: inherit; cursor: pointer; letter-spacing: 0.05em;
+  text-transform: lowercase; transition: 0.12s; }
 .panic:hover { background: var(--warn); color: var(--bg); }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 0.8rem; margin-bottom: 1.5rem; }
-.card { background: var(--panel); border: 1px solid var(--line); padding: 1rem;
-        text-decoration: none; color: var(--fg); display: block; transition: all 0.12s; }
-.card:hover { border-color: var(--accent); background: var(--hover); }
-.card .name { color: var(--accent); font-size: 1.05rem; }
-.card .sub { color: var(--dim); font-size: 0.8rem; margin-top: 0.4rem; }
-.card.disabled { opacity: 0.4; pointer-events: none; }
-.toggle-row { display: flex; align-items: center; gap: 0.8rem;
-              padding: 0.8rem; border: 1px solid var(--line); background: var(--panel);
-              margin-bottom: 1.5rem; flex-wrap: wrap; }
-.toggle-row .desc { color: var(--dim); font-size: 0.8rem; flex: 1; min-width: 200px; }
-.toggle-row.on { border-color: var(--warn); }
-.toggle-row .label { color: var(--fg); }
-.toggle-row.on .label { color: var(--warn); }
-.switch { background: var(--bg); border: 1px solid var(--line); color: var(--fg);
-          padding: 0.5rem 0.9rem; font: inherit; cursor: pointer; }
-.switch.on { background: var(--warn); color: var(--bg); border-color: var(--warn); }
-.row { display: flex; gap: 0.6rem; align-items: center; margin: 0.6rem 0; flex-wrap: wrap; }
-.row label { color: var(--dim); min-width: 90px; font-size: 0.85rem; }
-select, input[type=color], input[type=range], button.apply {
-  background: var(--panel); border: 1px solid var(--line); color: var(--fg);
-  padding: 0.4rem 0.6rem; font: inherit;
+
+section.card { background: var(--panel); border: 1px solid var(--line); padding: 1rem 1.1rem; }
+section.card > h2 { font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 0.85rem; font-weight: 500; }
+
+.scenes .scene-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.scene-btn { background: var(--panel-2); color: var(--fg); border: 1px solid var(--line);
+  padding: 0.55rem 0.9rem; font: inherit; cursor: pointer; transition: 0.12s;
+  display: inline-flex; gap: 0.5rem; align-items: center; letter-spacing: 0.02em; }
+.scene-btn:hover { border-color: var(--accent); background: var(--hover); color: var(--accent); }
+.scene-btn .swatch { width: 14px; height: 14px; border: 1px solid rgba(255,255,255,0.18);
+  flex: 0 0 14px; border-radius: 2px; }
+.scenes .scene-color { display: flex; gap: 0.6rem; align-items: center; padding-top: 0.9rem;
+  margin-top: 0.85rem; border-top: 1px dashed var(--line); flex-wrap: wrap; }
+.scenes .scene-color label { color: var(--dim); font-size: 0.72rem; letter-spacing: 0.1em;
+  text-transform: uppercase; }
+.scenes input[type=color] { width: 72px; height: 36px; background: var(--panel-2);
+  border: 1px solid var(--line); padding: 0; cursor: pointer; }
+.scenes .scene-color .apply-all { background: var(--accent); color: var(--bg); border: 1px solid var(--accent);
+  padding: 0.6rem 1.1rem; font: inherit; cursor: pointer; font-weight: 600; letter-spacing: 0.04em; }
+.scenes .scene-color .apply-all:hover { filter: brightness(1.12); }
+
+.takeover { display: flex; justify-content: space-between; align-items: center;
+  gap: 1rem; flex-wrap: wrap; transition: 0.12s; }
+.takeover-info strong { color: var(--fg); font-size: 0.95rem; display: block; margin-bottom: 0.3rem; }
+.takeover-info p { color: var(--dim); font-size: 0.8rem; max-width: 640px; line-height: 1.5; }
+.takeover-info p em { color: var(--warn); font-style: normal; }
+.takeover .switch { background: var(--panel-2); color: var(--fg); border: 1px solid var(--line);
+  padding: 0.7rem 1.4rem; font: inherit; cursor: pointer; letter-spacing: 0.08em;
+  text-transform: uppercase; font-size: 0.74rem; min-width: 140px; }
+.takeover .switch:hover { border-color: var(--accent); }
+.takeover.on { border-color: var(--warm);
+  background: linear-gradient(180deg, rgba(255,179,71,0.06), var(--panel)); }
+.takeover.on .takeover-info strong { color: var(--warm); }
+.takeover.on .switch { background: var(--warm); color: var(--bg); border-color: var(--warm); }
+
+.classes { display: flex; flex-direction: column; gap: 1.1rem; }
+
+.class-panel { background: var(--panel); border: 1px solid var(--line); padding: 1rem 1.1rem;
+  transition: 0.16s; }
+.class-panel.locked { opacity: 0.7; border-style: dashed; }
+.class-panel.empty { opacity: 0.55; }
+.class-panel header { display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 0.9rem; border: none; padding: 0; flex-wrap: wrap; gap: 0.5rem; }
+.class-panel header h2 { color: var(--fg); font-size: 1rem; font-weight: 600;
+  letter-spacing: 0; text-transform: none; display: flex; align-items: baseline; gap: 0.6rem; }
+.class-panel header h2 small { color: var(--dim); font-size: 0.74rem; font-weight: 400; }
+.class-panel header .status-pill { color: var(--dim); font-size: 0.7rem; letter-spacing: 0.12em;
+  text-transform: uppercase; padding: 0.18rem 0.55rem; border: 1px solid var(--line); }
+.class-panel.locked header .status-pill { color: var(--warm); border-color: var(--warm); }
+
+.locked-msg { color: var(--warm); font-size: 0.82rem; padding: 0.75rem 0.9rem;
+  border: 1px dashed var(--warm); background: rgba(255,179,71,0.06); }
+.empty-msg { color: var(--dim); font-size: 0.82rem; padding: 0.75rem 0.9rem;
+  border: 1px dashed var(--line); background: var(--panel-2); }
+
+.device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.55rem; margin-bottom: 0.95rem; }
+.dev-tile { background: var(--panel-2); border: 1px solid var(--line); padding: 0.7rem 0.6rem;
+  font: inherit; color: var(--fg); cursor: pointer; text-align: left;
+  display: flex; flex-direction: column; gap: 0.4rem; transition: 0.1s; overflow: hidden; }
+.dev-tile:hover { border-color: var(--dim); }
+.dev-tile.selected { border-color: var(--accent); background: var(--hover);
+  box-shadow: 0 0 0 1px var(--accent-soft); }
+.dev-tile .dot { width: 100%; height: 30px; border: 1px solid rgba(255,255,255,0.06);
+  background: repeating-linear-gradient(45deg, #1a1a1a 0 6px, #222 6px 12px); }
+.dev-tile .name { font-size: 0.82rem; color: var(--fg); display: flex; gap: 0.35rem;
+  align-items: baseline; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dev-tile .idx { color: var(--dim); font-size: 0.7rem; }
+.dev-tile .meta { font-size: 0.7rem; color: var(--dim); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; }
+.dev-tile.all .dot { background: linear-gradient(90deg, #ff3355 0%, #ffaa33 25%, #44ff66 50%, #44aaff 75%, #aa55ff 100%); }
+
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.7rem 1.1rem; align-items: center; padding-top: 0.7rem;
+  border-top: 1px solid var(--line); }
+.row { display: flex; gap: 0.55rem; align-items: center; }
+.row label { color: var(--dim); font-size: 0.7rem; text-transform: uppercase;
+  letter-spacing: 0.12em; min-width: 72px; }
+.row select, .row input[type=range] {
+  background: var(--panel-2); border: 1px solid var(--line); color: var(--fg);
+  font: inherit; padding: 0.4rem 0.55rem; flex: 1; min-width: 0;
 }
-input[type=color] { padding: 0; width: 64px; height: 32px; }
-input[type=range] { padding: 0; }
-button.apply { cursor: pointer; padding: 0.6rem 1.2rem; }
-button.apply:hover { border-color: var(--accent); background: var(--hover); }
-button.apply:disabled { opacity: 0.4; cursor: not-allowed; }
-.panel { background: var(--panel); border: 1px solid var(--line); padding: 1rem;
-         margin-bottom: 1rem; }
-.warn { border-color: var(--warn); background: var(--warn-bg); color: var(--warn); }
-#status { padding: 0.75rem; border: 1px solid var(--line); background: var(--panel);
-          font-size: 0.8rem; color: var(--dim); min-height: 2.5rem;
-          white-space: pre-wrap; margin-top: 1rem; }
-#status.ok { color: var(--accent); }
-#status.err { color: var(--warn); border-color: var(--warn); }
+.row select:focus, .row input:focus { outline: none; border-color: var(--accent); }
+.row input[type=color] { width: 48px; height: 34px; flex: 0 0 48px; padding: 0;
+  background: var(--panel-2); border: 1px solid var(--line); cursor: pointer; }
+.row input[type=range] { padding: 0; accent-color: var(--accent); }
+.row .val { color: var(--accent); font-size: 0.78rem; min-width: 32px; text-align: right;
+  font-variant-numeric: tabular-nums; }
+.row.hidden { display: none; }
+
+#toast { position: fixed; bottom: 1.2rem; right: 1.2rem; max-width: 360px;
+  padding: 0.8rem 1rem; background: var(--panel-2); border: 1px solid var(--line);
+  color: var(--fg); font-size: 0.82rem; transform: translateY(8px); opacity: 0;
+  transition: 0.16s; pointer-events: none; white-space: pre-wrap;
+  font-family: ui-monospace, monospace; max-height: 50vh; overflow: hidden; z-index: 10; }
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.ok { border-color: var(--accent); color: var(--accent); }
+#toast.err { border-color: var(--warn); color: var(--warn); }
+
+footer.foot { color: var(--dim); font-size: 0.7rem; letter-spacing: 0.08em;
+  text-align: center; padding-top: 0.5rem; }
+footer.foot code { color: var(--accent); font-size: 0.7rem; }
+
+@media (max-width: 540px) {
+  .controls { grid-template-columns: 1fr; }
+  .row label { min-width: 60px; font-size: 0.66rem; }
+  .title h1 { font-size: 1.2rem; }
+}
 """
 
 
-def _page(body: str, *, title: str = "rgb", crumb: str | None = None) -> str:
-    crumb_html = '<a href="/">rgb</a>' if crumb else '<span>rgb</span>'
-    if crumb:
-        crumb_html += f' / <span>{crumb}</span>'
+def _index_html() -> str:
+    cls_meta = {k: {"label": v["label"], "hid": v["hid"]} for k, v in DEVICE_CLASSES.items()}
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{title} · mvr.ac</title><style>{STYLE}</style>
+<title>rgb · mvr.ac</title><style>{STYLE}</style>
 </head><body><div class="wrap">
-<header>
-  <div>
-    <h1>{title}</h1>
-    <div class="crumbs">{crumb_html}</div>
+
+<header class="top">
+  <div class="title">
+    <h1>rgb</h1>
+    <div class="sub">RGB control · mvr.ac</div>
   </div>
   <button class="panic" id="panic">restore keyleds</button>
 </header>
-{body}
-<div id="status">ready</div>
+
+<section class="card scenes">
+  <h2>quick scenes</h2>
+  <div class="scene-buttons" id="scene-buttons"></div>
+  <div class="scene-color">
+    <label for="scene-color">paint everything</label>
+    <input type="color" id="scene-color" value="#00ff88">
+    <button class="apply-all" id="apply-color-all">apply to all devices</button>
+  </div>
+</section>
+
+<section class="card takeover" id="takeover">
+  <div class="takeover-info">
+    <strong id="takeover-title">keyboard + mouse</strong>
+    <p>OFF: per-key keyledsd effects run normally. ON: openrgb takes over the keyboard and mouse via HID, keyledsd is paused. Toggle back OFF (or hit <em>restore keyleds</em> top-right) to return to normal.</p>
+  </div>
+  <button class="switch" id="override">enable</button>
+</section>
+
+<div class="classes" id="classes"></div>
+
+<footer class="foot">openrgb subprocess wrapper · GET <code>/api/state-full</code> · POST <code>/api/apply-bulk</code></footer>
+
 </div>
+<div id="toast"></div>
+
 <script>
-async function panicRestore() {{
-  const s = document.getElementById('status');
-  s.className = ''; s.textContent = '→ restoring keyleds ...';
-  try {{
-    const r = await fetch('/api/recover', {{ method: 'POST' }});
-    const t = await r.text();
-    s.className = r.ok ? 'ok' : 'err';
-    s.textContent = (r.ok ? '✓ ' : '✗ ') + 'keyleds restored\\n' + t.slice(0, 400);
-    if (r.ok) setTimeout(() => location.reload(), 600);
-  }} catch (e) {{
-    s.className = 'err';
-    s.textContent = '✗ ' + e.message;
-  }}
-}}
-document.getElementById('panic').addEventListener('click', panicRestore);
-</script>
-</body></html>"""
+const CLASSES = {json.dumps(cls_meta)};
+const ANIM_RE = /wave|cycle|breath|pulse|rainbow|spectrum|flash|blink|chase|fade|sweep|move|drip|rain/i;
+const NEEDS_SPEED = (mode) => ANIM_RE.test(mode || "");
+const NO_COLOR_RE = /^(off|spectrum|cycle|rainbow|random)/i;
+const NEEDS_COLOR = (mode) => !NO_COLOR_RE.test(mode || "");
+const SCENES = [
+  {{ id: "off",      label: "off",      swatch: "#000000", mode: "Off",      fallback: ["Direct", "Static"], color: "#000000", noColor: true }},
+  {{ id: "white",    label: "white",    swatch: "#ffffff", mode: "Static",   color: "#ffffff" }},
+  {{ id: "red",      label: "red",      swatch: "#ff2233", mode: "Static",   color: "#ff2233" }},
+  {{ id: "amber",    label: "amber",    swatch: "#ffaa22", mode: "Static",   color: "#ffaa22" }},
+  {{ id: "green",    label: "green",    swatch: "#00ff66", mode: "Static",   color: "#00ff66" }},
+  {{ id: "cyan",     label: "cyan",     swatch: "#22ccff", mode: "Static",   color: "#22ccff" }},
+  {{ id: "blue",     label: "blue",     swatch: "#3366ff", mode: "Static",   color: "#3366ff" }},
+  {{ id: "magenta",  label: "magenta",  swatch: "#ff33aa", mode: "Static",   color: "#ff33aa" }},
+  {{ id: "rainbow",  label: "rainbow",
+                    swatch: "linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f)",
+                    modes: ["Rainbow Wave", "Spectrum Cycle", "Rainbow", "Cycle"],
+                    fallback: ["Static"] }},
+  {{ id: "breathing",label: "breathing",swatch: "#00ff88",
+                    modes: ["Breathing", "Pulse", "Pulsing"],
+                    fallback: ["Static"], color: "#00ff88" }},
+];
 
+const $ = (s, r=document) => r.querySelector(s);
 
-def _landing_body(state: dict[str, Any]) -> str:
-    override = bool(state.get("override"))
-    toggle_class = "toggle-row on" if override else "toggle-row"
-    btn_class = "switch on" if override else "switch"
-    btn_label = "ON — keyleds stopped" if override else "OFF — keyleds active"
-    cards = []
-    for key, info in DEVICE_CLASSES.items():
-        cls = "card disabled" if (info["hid"] and not override) else "card"
-        sub = "requires override" if (info["hid"] and not override) else info["type"]
-        cards.append(
-            f'<a class="{cls}" href="/d/{key}"><div class="name">{info["label"]}</div>'
-            f'<div class="sub">{sub}</div></a>'
-        )
-    cur_js = "true" if override else "false"
-    return f"""
-<div class="{toggle_class}">
-  <span class="label">override keyleds</span>
-  <span class="desc">When ON, keyledsd is stopped so OpenRGB can drive the keyboard
-    + mouse via HID. The keyboard loses its per-key effects until you toggle OFF
-    (or hit "restore keyleds" — always available, top right).</span>
-  <button class="{btn_class}" id="override">{btn_label}</button>
-</div>
-<div class="grid">
-{''.join(cards)}
-</div>
-<script>
-document.getElementById('override').addEventListener('click', async () => {{
-  const cur = {cur_js};
-  const s = document.getElementById('status');
-  s.className = ''; s.textContent = '→ ' + (cur ? 'releasing keyboard ...' : 'taking keyboard ...');
-  try {{
-    const r = await fetch('/api/override', {{
-      method: 'POST',
-      headers: {{ 'content-type': 'application/json' }},
-      body: JSON.stringify({{ enabled: !cur }}),
-    }});
-    const t = await r.text();
-    s.className = r.ok ? 'ok' : 'err';
-    s.textContent = (r.ok ? '✓ ' : '✗ ') + t.slice(0, 400);
-    if (r.ok) setTimeout(() => location.reload(), 600);
-  }} catch (e) {{ s.className = 'err'; s.textContent = '✗ ' + e.message; }}
-}});
-</script>
-"""
-
-
-async def page_index(_: web.Request) -> web.Response:
-    return web.Response(text=_page(_landing_body(load_state()), title="rgb"),
-                        content_type="text/html")
-
-
-def _device_body(cls: str) -> str:
-    info = DEVICE_CLASSES[cls]
-    needs_override = info["hid"]
-    warn_block = ""
-    if needs_override:
-        warn_block = """
-<div class="panel warn" id="override-warn" hidden>
-  Override is OFF — enable it on the landing page to control this device.
-</div>
-"""
-    needs_js = "true" if needs_override else "false"
-    return f"""
-{warn_block}
-<div class="panel">
-  <div class="row">
-    <label for="device">device</label>
-    <select id="device"></select>
-  </div>
-  <div class="row">
-    <label for="zone">zone</label>
-    <select id="zone"></select>
-  </div>
-  <div class="row">
-    <label for="mode">mode</label>
-    <select id="mode"></select>
-  </div>
-  <div class="row">
-    <label for="color">color</label>
-    <input type="color" id="color" value="#00ff66">
-  </div>
-  <div class="row">
-    <label for="speed">speed</label>
-    <input type="range" id="speed" min="0" max="100" value="50">
-    <span id="speed-val" class="desc">50</span>
-  </div>
-  <div class="row">
-    <label for="brightness">brightness</label>
-    <input type="range" id="brightness" min="0" max="100" value="100">
-    <span id="brightness-val" class="desc">100</span>
-  </div>
-  <div class="row">
-    <button class="apply" id="apply">apply</button>
-  </div>
-</div>
-<script>
-const CLS = {json.dumps(cls)};
-const NEEDS_OVERRIDE = {needs_js};
-const els = {{
-  device: document.getElementById('device'),
-  zone: document.getElementById('zone'),
-  mode: document.getElementById('mode'),
-  color: document.getElementById('color'),
-  speed: document.getElementById('speed'),
-  speedVal: document.getElementById('speed-val'),
-  brightness: document.getElementById('brightness'),
-  brightnessVal: document.getElementById('brightness-val'),
-  apply: document.getElementById('apply'),
-  warn: document.getElementById('override-warn'),
-  status: document.getElementById('status'),
+const state = {{
+  override: false,
+  devicesByClass: {{}},
+  lastByClass: {{}},
+  selectedByClass: {{}},
 }};
-els.speed.addEventListener('input', () => els.speedVal.textContent = els.speed.value);
-els.brightness.addEventListener('input', () => els.brightnessVal.textContent = els.brightness.value);
 
-let devices = [];
-function fillDevices(list) {{
-  els.device.innerHTML = '';
-  if (list.length > 1) {{
-    const allOpt = document.createElement('option');
-    allOpt.value = ''; allOpt.textContent = '(all ' + list.length + ')';
-    els.device.appendChild(allOpt);
-  }}
-  for (const d of list) {{
-    const opt = document.createElement('option');
-    opt.value = String(d.index);
-    opt.textContent = d.index + ': ' + d.name;
-    els.device.appendChild(opt);
-  }}
-  if (list.length) syncFromDevice();
+function toast(msg, kind) {{
+  const el = $('#toast');
+  el.textContent = msg;
+  el.className = 'show ' + (kind || '');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.className = '', 2600);
 }}
-function currentDevice() {{
-  if (els.device.value === '') return null;
-  const idx = parseInt(els.device.value, 10);
-  return devices.find(d => d.index === idx);
+
+async function api(path, opts) {{
+  const r = await fetch(path, opts || {{}});
+  const ct = r.headers.get('content-type') || '';
+  const body = ct.includes('json') ? await r.json() : await r.text();
+  return {{ ok: r.ok, status: r.status, body }};
 }}
-function syncFromDevice() {{
-  const d = currentDevice();
-  els.zone.innerHTML = '';
-  const zAll = document.createElement('option');
-  zAll.value = ''; zAll.textContent = '(all)';
-  els.zone.appendChild(zAll);
-  if (d) {{
-    (d.zones || []).forEach((z, i) => {{
-      const opt = document.createElement('option');
-      opt.value = String(i); opt.textContent = i + ': ' + z;
-      els.zone.appendChild(opt);
+
+class Debouncer {{
+  constructor(delay) {{ this.delay = delay; this.timer = null; this.ctrl = null; }}
+  run(fn) {{
+    clearTimeout(this.timer);
+    this.timer = setTimeout(async () => {{
+      if (this.ctrl) this.ctrl.abort();
+      this.ctrl = new AbortController();
+      try {{ await fn(this.ctrl.signal); }} catch (e) {{
+        if (e.name !== 'AbortError') console.error(e);
+      }}
+    }}, this.delay);
+  }}
+}}
+
+function pickMode(modes, preferred, fallback) {{
+  const lower = (modes || []).map(m => m.toLowerCase());
+  for (const p of (preferred || [])) {{
+    const i = lower.indexOf(p.toLowerCase());
+    if (i >= 0) return modes[i];
+  }}
+  for (const f of (fallback || [])) {{
+    const i = lower.indexOf(f.toLowerCase());
+    if (i >= 0) return modes[i];
+  }}
+  return modes && modes.length ? modes[0] : null;
+}}
+
+function hexFromLast(c) {{ return c ? ('#' + c) : null; }}
+function selectedIdx(cls) {{
+  const sel = state.selectedByClass[cls];
+  return (sel === undefined || sel === null) ? 'all' : sel;
+}}
+function shortName(s) {{ return s.length > 26 ? s.slice(0, 23) + '...' : s; }}
+function escapeHtml(s) {{
+  return s.replace(/[&<>"]/g, c => ({{ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }})[c]);
+}}
+
+function renderSceneButtons() {{
+  const row = $('#scene-buttons');
+  row.innerHTML = '';
+  for (const s of SCENES) {{
+    const b = document.createElement('button');
+    b.className = 'scene-btn';
+    b.innerHTML = '<span class="swatch" style="background:' + s.swatch + '"></span>' + s.label;
+    b.addEventListener('click', () => runScene(s));
+    row.appendChild(b);
+  }}
+}}
+
+function renderTakeover() {{
+  const row = $('#takeover');
+  const btn = $('#override');
+  const title = $('#takeover-title');
+  if (state.override) {{
+    row.classList.add('on');
+    btn.textContent = 'disable';
+    title.textContent = 'takeover ON · keyledsd paused';
+  }} else {{
+    row.classList.remove('on');
+    btn.textContent = 'enable';
+    title.textContent = 'keyboard + mouse';
+  }}
+}}
+
+function activeDevicesForClass(cls) {{
+  const devs = state.devicesByClass[cls] || [];
+  const sel = selectedIdx(cls);
+  if (sel === 'all') return devs;
+  const d = devs.find(x => String(x.index) === String(sel));
+  return d ? [d] : devs;
+}}
+
+function renderClasses() {{
+  const root = $('#classes');
+  root.innerHTML = '';
+  for (const [cls, meta] of Object.entries(CLASSES)) {{
+    const panel = document.createElement('section');
+    panel.className = 'card class-panel';
+    panel.dataset.cls = cls;
+    const devs = state.devicesByClass[cls] || [];
+    const last = state.lastByClass[cls] || {{}};
+    const locked = meta.hid && !state.override;
+    const empty = !locked && devs.length === 0;
+    if (locked) panel.classList.add('locked');
+    if (empty) panel.classList.add('empty');
+
+    let status;
+    if (locked) status = 'takeover required';
+    else if (empty) status = 'no devices';
+    else status = devs.length + ' device' + (devs.length === 1 ? '' : 's');
+
+    const hdr = document.createElement('header');
+    hdr.innerHTML =
+      '<h2>' + meta.label + (locked || empty ? '' : ' <small>' + devs.length + ' detected</small>') + '</h2>' +
+      '<span class="status-pill">' + status + '</span>';
+    panel.appendChild(hdr);
+
+    if (locked) {{
+      const m = document.createElement('div');
+      m.className = 'locked-msg';
+      m.textContent = 'Enable keyboard + mouse takeover above to control ' + meta.label.toLowerCase() + '.';
+      panel.appendChild(m);
+      root.appendChild(panel);
+      continue;
+    }}
+    if (empty) {{
+      const m = document.createElement('div');
+      m.className = 'empty-msg';
+      m.textContent = 'openrgb did not find any ' + meta.label.toLowerCase() + ' devices.';
+      panel.appendChild(m);
+      root.appendChild(panel);
+      continue;
+    }}
+
+    const grid = document.createElement('div');
+    grid.className = 'device-grid';
+    const sel = selectedIdx(cls);
+
+    if (devs.length > 1) {{
+      const all = document.createElement('button');
+      all.className = 'dev-tile all' + (sel === 'all' ? ' selected' : '');
+      all.innerHTML =
+        '<div class="dot"></div>' +
+        '<div class="name">all <span class="idx">(' + devs.length + ')</span></div>' +
+        '<div class="meta">paint together</div>';
+      all.addEventListener('click', () => selectDevice(cls, 'all'));
+      grid.appendChild(all);
+    }}
+
+    for (const d of devs) {{
+      const tile = document.createElement('button');
+      const isSel = String(sel) === String(d.index);
+      tile.className = 'dev-tile' + (isSel ? ' selected' : '');
+      const lastDev = last[String(d.index)] || {{}};
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      const swatch = hexFromLast(lastDev.color);
+      if (lastDev.mode && /off/i.test(lastDev.mode)) {{
+        dot.style.background = '#050505';
+      }} else if (swatch && swatch !== '#000000') {{
+        dot.style.background = swatch;
+        dot.style.boxShadow = 'inset 0 0 14px rgba(0,0,0,0.45)';
+      }}
+      tile.appendChild(dot);
+      const name = document.createElement('div');
+      name.className = 'name';
+      name.innerHTML = '<span class="idx">#' + d.index + '</span> ' + escapeHtml(shortName(d.name));
+      tile.appendChild(name);
+      const meta_ = document.createElement('div');
+      meta_.className = 'meta';
+      meta_.textContent = lastDev.mode || '—';
+      tile.appendChild(meta_);
+      tile.title = d.name;
+      tile.addEventListener('click', () => selectDevice(cls, d.index));
+      grid.appendChild(tile);
+    }}
+
+    panel.appendChild(grid);
+
+    const ctl = buildControls(cls, devs, last);
+    panel.appendChild(ctl);
+
+    root.appendChild(panel);
+  }}
+}}
+
+function buildControls(cls, devs, last) {{
+  const wrap = document.createElement('div');
+  wrap.className = 'controls';
+
+  const sel = selectedIdx(cls);
+  const active = activeDevicesForClass(cls);
+  const sample = active[0] || devs[0];
+  const lastDev = sel !== 'all'
+    ? (last[String(sel)] || {{}})
+    : (last[String(sample.index)] || {{}});
+
+  const allModes = new Set();
+  for (const d of active) (d.modes || []).forEach(m => allModes.add(m));
+
+  const modeRow = document.createElement('div'); modeRow.className = 'row';
+  modeRow.innerHTML = '<label>mode</label>';
+  const modeSel = document.createElement('select');
+  for (const m of allModes) {{
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m;
+    if (m === lastDev.mode) o.selected = true;
+    modeSel.appendChild(o);
+  }}
+  modeRow.appendChild(modeSel);
+  wrap.appendChild(modeRow);
+
+  const colorRow = document.createElement('div'); colorRow.className = 'row color-row';
+  colorRow.innerHTML = '<label>color</label>';
+  const colorIn = document.createElement('input');
+  colorIn.type = 'color';
+  colorIn.value = lastDev.color ? ('#' + lastDev.color) : '#00ff88';
+  colorRow.appendChild(colorIn);
+  wrap.appendChild(colorRow);
+
+  const briRow = document.createElement('div'); briRow.className = 'row';
+  briRow.innerHTML = '<label>brightness</label>';
+  const briIn = document.createElement('input');
+  briIn.type = 'range'; briIn.min = '0'; briIn.max = '100';
+  briIn.value = lastDev.brightness != null && lastDev.brightness !== '' ? lastDev.brightness : 100;
+  const briVal = document.createElement('span'); briVal.className = 'val'; briVal.textContent = briIn.value;
+  briRow.appendChild(briIn); briRow.appendChild(briVal);
+  wrap.appendChild(briRow);
+
+  const spRow = document.createElement('div'); spRow.className = 'row speed-row';
+  spRow.innerHTML = '<label>speed</label>';
+  const spIn = document.createElement('input');
+  spIn.type = 'range'; spIn.min = '0'; spIn.max = '100';
+  spIn.value = lastDev.speed != null && lastDev.speed !== '' ? lastDev.speed : 50;
+  const spVal = document.createElement('span'); spVal.className = 'val'; spVal.textContent = spIn.value;
+  spRow.appendChild(spIn); spRow.appendChild(spVal);
+  wrap.appendChild(spRow);
+
+  const zoneRow = document.createElement('div'); zoneRow.className = 'row zone-row';
+  zoneRow.innerHTML = '<label>zone</label>';
+  const zoneSel = document.createElement('select');
+  const zAll = document.createElement('option'); zAll.value = ''; zAll.textContent = '(whole device)';
+  zoneSel.appendChild(zAll);
+  if (sel !== 'all' && sample && sample.zones && sample.zones.length) {{
+    sample.zones.forEach((z, i) => {{
+      const o = document.createElement('option'); o.value = String(i);
+      o.textContent = i + ': ' + z; zoneSel.appendChild(o);
     }});
   }} else {{
-    els.zone.disabled = true;
+    zoneRow.classList.add('hidden');
   }}
-  els.mode.innerHTML = '';
-  const modes = d ? (d.modes || []) : Array.from(new Set(devices.flatMap(x => x.modes || [])));
-  for (const m of modes) {{
-    const opt = document.createElement('option');
-    opt.value = m; opt.textContent = m;
-    els.mode.appendChild(opt);
-  }}
-  if (d) els.zone.disabled = false;
-}}
-els.device.addEventListener('change', syncFromDevice);
+  zoneRow.appendChild(zoneSel);
+  wrap.appendChild(zoneRow);
 
-async function load() {{
-  const r = await fetch('/api/devices/' + CLS);
-  const j = await r.json();
-  devices = j.devices || [];
-  if (NEEDS_OVERRIDE && !j.override) {{
-    if (els.warn) els.warn.hidden = false;
-    els.apply.disabled = true;
-  }}
-  fillDevices(devices);
-  if (!devices.length) {{
-    els.status.textContent = NEEDS_OVERRIDE && !j.override
-      ? 'enable override on the landing page first'
-      : 'no devices in this class';
-  }}
-}}
-
-els.apply.addEventListener('click', async () => {{
-  const payload = {{
-    class: CLS,
-    device: els.device.value,
-    mode: els.mode.value,
-    color: els.color.value.replace('#', ''),
-    zone: els.zone.value,
-    speed: els.speed.value,
-    brightness: els.brightness.value,
+  const updateRelevance = () => {{
+    const m = modeSel.value;
+    spRow.classList.toggle('hidden', !NEEDS_SPEED(m));
+    colorRow.classList.toggle('hidden', !NEEDS_COLOR(m));
   }};
-  els.status.className = '';
-  els.status.textContent = '→ ' + payload.mode + ' ' + payload.device + ' ...';
-  try {{
+  updateRelevance();
+
+  const deb = new Debouncer(380);
+  const fire = () => deb.run(async (signal) => {{
+    const payload = {{
+      class: cls,
+      device: sel === 'all' ? '' : String(sel),
+      mode: modeSel.value,
+      color: NEEDS_COLOR(modeSel.value) ? colorIn.value.replace('#', '') : '',
+      brightness: briIn.value,
+      speed: NEEDS_SPEED(modeSel.value) ? spIn.value : '',
+      zone: zoneSel.value,
+    }};
+    toast('→ ' + cls + ' · ' + payload.mode, '');
     const r = await fetch('/api/apply', {{
       method: 'POST',
       headers: {{ 'content-type': 'application/json' }},
       body: JSON.stringify(payload),
+      signal,
     }});
     const t = await r.text();
-    els.status.className = r.ok ? 'ok' : 'err';
-    els.status.textContent = (r.ok ? '✓ ' : '✗ ') + payload.mode + '\\n' + t.slice(0, 400);
-  }} catch (e) {{ els.status.className = 'err'; els.status.textContent = '✗ ' + e.message; }}
-}});
+    toast((r.ok ? '✓ ' : '✗ ') + cls + ' · ' + payload.mode + (r.ok ? '' : '\\n' + t.slice(0, 240)),
+          r.ok ? 'ok' : 'err');
+    if (r.ok) await refreshState({{ skipDevices: true }});
+  }});
 
-load();
+  modeSel.addEventListener('change', () => {{ updateRelevance(); fire(); }});
+  colorIn.addEventListener('input', fire);
+  briIn.addEventListener('input', () => {{ briVal.textContent = briIn.value; fire(); }});
+  spIn.addEventListener('input', () => {{ spVal.textContent = spIn.value; fire(); }});
+  zoneSel.addEventListener('change', fire);
+
+  return wrap;
+}}
+
+function selectDevice(cls, idx) {{
+  state.selectedByClass[cls] = idx;
+  renderClasses();
+}}
+
+async function refreshState(opts) {{
+  opts = opts || {{}};
+  const r = await api('/api/state-full');
+  if (!r.ok) {{ toast('state fetch failed', 'err'); return; }}
+  state.override = !!r.body.override;
+  state.lastByClass = r.body.last || {{}};
+  if (!opts.skipDevices) {{
+    state.devicesByClass = r.body.devices || {{}};
+  }}
+  renderTakeover();
+  renderClasses();
+}}
+
+async function toggleOverride() {{
+  const next = !state.override;
+  toast('→ ' + (next ? 'pausing' : 'resuming') + ' keyledsd ...', '');
+  const r = await fetch('/api/override', {{
+    method: 'POST',
+    headers: {{ 'content-type': 'application/json' }},
+    body: JSON.stringify({{ enabled: next }}),
+  }});
+  const t = await r.text();
+  toast((r.ok ? '✓ ' : '✗ ') + (next ? 'takeover ON' : 'takeover OFF')
+        + (r.ok ? '' : '\\n' + t.slice(0, 200)), r.ok ? 'ok' : 'err');
+  await refreshState();
+}}
+
+async function panicRestore() {{
+  toast('→ restoring keyleds ...', '');
+  const r = await fetch('/api/recover', {{ method: 'POST' }});
+  const t = await r.text();
+  toast((r.ok ? '✓ ' : '✗ ') + 'keyleds restored'
+        + (r.ok ? '' : '\\n' + t.slice(0, 200)), r.ok ? 'ok' : 'err');
+  await refreshState();
+}}
+
+function buildSceneItems(scene) {{
+  const items = [];
+  for (const [cls, meta] of Object.entries(CLASSES)) {{
+    if (meta.hid && !state.override) continue;
+    const devs = state.devicesByClass[cls] || [];
+    if (!devs.length) continue;
+    for (const d of devs) {{
+      const preferred = scene.modes || [scene.mode];
+      const mode = pickMode(d.modes, preferred, scene.fallback || []);
+      if (!mode) continue;
+      const wantColor = scene.color && !scene.noColor && NEEDS_COLOR(mode);
+      items.push({{
+        class: cls,
+        device: String(d.index),
+        mode,
+        color: wantColor ? scene.color.replace('#', '') : '',
+        brightness: 100,
+        speed: NEEDS_SPEED(mode) ? 50 : '',
+        zone: '',
+      }});
+    }}
+  }}
+  return items;
+}}
+
+async function runScene(scene) {{
+  const items = buildSceneItems(scene);
+  if (!items.length) {{
+    toast('nothing to apply (takeover off?)', 'err');
+    return;
+  }}
+  toast('→ scene: ' + scene.label, '');
+  const r = await fetch('/api/apply-bulk', {{
+    method: 'POST',
+    headers: {{ 'content-type': 'application/json' }},
+    body: JSON.stringify({{ items }}),
+  }});
+  const t = await r.text();
+  toast((r.ok ? '✓ ' : '✗ ') + scene.label + '\\n' + t.slice(0, 240), r.ok ? 'ok' : 'err');
+  await refreshState({{ skipDevices: true }});
+}}
+
+async function paintEverything() {{
+  const c = $('#scene-color').value;
+  await runScene({{ id: 'custom', label: 'paint ' + c, mode: 'Static', color: c, fallback: ['Direct'] }});
+}}
+
+document.getElementById('panic').addEventListener('click', panicRestore);
+document.getElementById('override').addEventListener('click', toggleOverride);
+document.getElementById('apply-color-all').addEventListener('click', paintEverything);
+
+renderSceneButtons();
+refreshState();
+setInterval(() => refreshState({{ skipDevices: true }}), 18000);
+
 </script>
-"""
-
-
-async def page_device(request: web.Request) -> web.Response:
-    cls = request.match_info["cls"]
-    if cls not in DEVICE_CLASSES:
-        return web.Response(status=404, text=f"unknown device class: {cls}")
-    info = DEVICE_CLASSES[cls]
-    return web.Response(
-        text=_page(_device_body(cls), title=f"rgb · {info['label'].lower()}", crumb=info["label"]),
-        content_type="text/html",
-    )
+</body></html>"""
 
 
 # ------------------------------------------------------------------- api
 
 async def api_state(_: web.Request) -> web.Response:
     return web.json_response(load_state())
+
+
+async def api_state_full(_: web.Request) -> web.Response:
+    state = load_state()
+    devices: dict[str, list[dict[str, Any]]] = {}
+    for cls in DEVICE_CLASSES:
+        devices[cls] = await devices_for_class(cls)
+    return web.json_response({
+        "override": bool(state.get("override")),
+        "last": state.get("last", {}),
+        "devices": devices,
+    })
 
 
 async def api_devices(request: web.Request) -> web.Response:
@@ -635,6 +975,12 @@ async def api_apply(request: web.Request) -> web.Response:
     return web.Response(text=body, status=status)
 
 
+async def api_apply_bulk(request: web.Request) -> web.Response:
+    payload = await request.json()
+    status, body = await apply_bulk(payload)
+    return web.Response(text=body, status=status)
+
+
 async def api_override(request: web.Request) -> web.Response:
     payload = await request.json()
     enabled = bool(payload.get("enabled"))
@@ -647,16 +993,26 @@ async def api_recover(_: web.Request) -> web.Response:
     return web.Response(text=msg)
 
 
+async def page_index(_: web.Request) -> web.Response:
+    return web.Response(text=_index_html(), content_type="text/html")
+
+
+async def page_device_redirect(_: web.Request) -> web.Response:
+    raise web.HTTPFound("/")
+
+
 def main() -> None:
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     app = web.Application()
     app.on_startup.append(startup_recovery)
     app.add_routes([
         web.get("/", page_index),
-        web.get("/d/{cls}", page_device),
+        web.get("/d/{cls}", page_device_redirect),
         web.get("/api/state", api_state),
+        web.get("/api/state-full", api_state_full),
         web.get("/api/devices/{cls}", api_devices),
         web.post("/api/apply", api_apply),
+        web.post("/api/apply-bulk", api_apply_bulk),
         web.post("/api/override", api_override),
         web.post("/api/recover", api_recover),
     ])
