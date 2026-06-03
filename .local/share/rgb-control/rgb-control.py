@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 """rgb-control — single-page RGB web UI for Mandragora.
 
-Backend: thin wrapper around openrgb CLI. RAM + motherboard use the
-standard "safe" openrgb config; mouse + keyboard need HID detectors
-that conflict with keyledsd, gated behind a takeover toggle. Recovery
-is layered: panic button restores keyledsd, ExecStopPost too, startup
+Backend: rgb-control owns a long-running `openrgb --server` child
+process and talks to it via the OpenRGB Python SDK. RAM + motherboard
+use a "safe" config dir; mouse + keyboard need HID detectors that
+conflict with keyledsd, gated behind a takeover toggle — toggling
+respawns the child with the alternate `--config` dir. Recovery is
+layered: panic button restores keyledsd, ExecStopPost too, startup
 forces override=off.
+
+Setbg / wal-to-rgb / wal-to-rgb-daemon all connect to the same
+openrgb server on the SDK default port (6742); rgb-control is the
+only writer that owns its lifecycle.
 
 Frontend: single page, all device classes, live swatches showing the
 last-applied colour per device, debounced auto-apply on every control
@@ -19,11 +25,15 @@ import logging
 import os
 import re
 import shutil
+import socket
 import time
 from pathlib import Path
 from typing import Any
 
 from aiohttp import web
+
+from openrgb import OpenRGBClient
+from openrgb.utils import RGBColor
 
 log = logging.getLogger("rgb-control")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -53,9 +63,13 @@ DEVICE_CLASSES = {
     "keyboard": {"type": "Keyboard",    "label": "Keyboard",    "hid": True},
 }
 
-ENUM_TTL_S = 8.0
+SERVER_HOST = "127.0.0.1"
+SERVER_PORT = 6742
 
 _openrgb_lock = asyncio.Lock()
+_server: asyncio.subprocess.Process | None = None
+_client: OpenRGBClient | None = None
+_current_config: Path | None = None
 
 
 def load_state() -> dict[str, Any]:
@@ -115,89 +129,134 @@ async def restart_keyleds() -> str:
     return "\n".join(msgs)
 
 
-def config_dir_for_class(cls: str) -> Path:
-    return HID_CONFIG if DEVICE_CLASSES[cls]["hid"] else SAFE_CONFIG
+def config_dir_for_state(hid_enabled: bool) -> Path:
+    return HID_CONFIG if hid_enabled else SAFE_CONFIG
 
 
-_enum_cache: dict[str, tuple[float, list[dict[str, Any]]]] = {}
+def _port_open(host: str, port: int) -> bool:
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(0.25)
+    try:
+        s.connect((host, port))
+        return True
+    except OSError:
+        return False
+    finally:
+        s.close()
 
 
-async def list_devices(config_dir: Path) -> list[dict[str, Any]]:
-    key = str(config_dir)
-    now = time.monotonic()
-    cached = _enum_cache.get(key)
-    if cached and now - cached[0] < ENUM_TTL_S:
-        return cached[1]
-    async with _openrgb_lock:
-        proc = await asyncio.create_subprocess_exec(
-            OPENRGB, "--config", str(config_dir), "--noautoconnect", "--list-devices",
-            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-        )
-        out, err = await proc.communicate()
-    if proc.returncode != 0:
-        log.warning("openrgb list-devices failed (rc=%s): %s", proc.returncode, err.decode(errors="replace"))
-        return []
-    devices = parse_list_devices(out.decode(errors="replace"))
-    _enum_cache[key] = (now, devices)
-    return devices
+async def _wait_port(host: str, port: int, timeout: float = 8.0) -> None:
+    end = time.monotonic() + timeout
+    while time.monotonic() < end:
+        if _port_open(host, port):
+            return
+        await asyncio.sleep(0.15)
+    raise TimeoutError(f"openrgb server did not bind {host}:{port} within {timeout}s")
 
 
-_quoted_or_bare = re.compile(r"'([^']*)'|(\S+)")
+async def _stop_server() -> None:
+    global _server, _client
+    if _client is not None:
+        try:
+            _client.disconnect()
+        except Exception:
+            pass
+        _client = None
+    if _server is not None and _server.returncode is None:
+        try:
+            _server.terminate()
+            await asyncio.wait_for(_server.wait(), timeout=3.0)
+        except asyncio.TimeoutError:
+            _server.kill()
+            await _server.wait()
+        except ProcessLookupError:
+            pass
+    _server = None
 
 
-def _split_modes_or_zones(line: str) -> list[str]:
-    items = []
-    for q, b in _quoted_or_bare.findall(line):
-        token = q if q else b
-        if token.startswith("[") and token.endswith("]"):
-            token = token[1:-1]
-        items.append(token)
-    return items
+async def _start_server(hid_enabled: bool) -> None:
+    global _server, _current_config
+    if hid_enabled:
+        try:
+            ensure_hid_config()
+        except Exception as e:
+            log.warning("ensure_hid_config failed before server start: %s", e)
+    config_dir = config_dir_for_state(hid_enabled)
+    log.info("spawning openrgb --server --config %s", config_dir)
+    _server = await asyncio.create_subprocess_exec(
+        OPENRGB, "--server", "--server-host", SERVER_HOST,
+        "--server-port", str(SERVER_PORT),
+        "--noautoconnect", "--config", str(config_dir),
+        stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL,
+    )
+    _current_config = config_dir
+    await _wait_port(SERVER_HOST, SERVER_PORT)
 
 
-def parse_list_devices(text: str) -> list[dict[str, Any]]:
-    devices: list[dict[str, Any]] = []
-    current: dict[str, Any] | None = None
-    header = re.compile(r"^(\d+):\s+(.*)$")
-    for raw in text.splitlines():
-        line = raw.rstrip()
-        if not line:
-            if current is not None:
-                devices.append(current)
-                current = None
-            continue
-        m = header.match(line)
-        if m:
-            if current is not None:
-                devices.append(current)
-            current = {
-                "index": int(m.group(1)),
-                "name": m.group(2).strip(),
-                "type": None,
-                "modes": [],
-                "zones": [],
-            }
-            continue
-        if current is None:
-            continue
-        stripped = line.strip()
-        if stripped.startswith("Type:"):
-            current["type"] = stripped.split(":", 1)[1].strip()
-        elif stripped.startswith("Modes:"):
-            current["modes"] = _split_modes_or_zones(stripped.split(":", 1)[1].strip())
-        elif stripped.startswith("Zones:"):
-            current["zones"] = _split_modes_or_zones(stripped.split(":", 1)[1].strip())
-    if current is not None:
-        devices.append(current)
-    return devices
+async def _ensure_client() -> OpenRGBClient:
+    global _client
+    override = bool(load_state().get("override"))
+    desired = config_dir_for_state(override)
+    needs_restart = (
+        _server is None
+        or _server.returncode is not None
+        or _current_config != desired
+    )
+    if needs_restart:
+        await _stop_server()
+        await _start_server(override)
+    if _client is None:
+        _client = OpenRGBClient(address=SERVER_HOST, port=SERVER_PORT, name="rgb-control")
+    else:
+        try:
+            _client.update()
+        except Exception:
+            try: _client.disconnect()
+            except Exception: pass
+            _client = OpenRGBClient(address=SERVER_HOST, port=SERVER_PORT, name="rgb-control")
+    return _client
 
 
-async def devices_for_class(cls: str) -> list[dict[str, Any]]:
+def _zone_led_count(zone) -> int:
+    try:
+        return len(zone.leds)
+    except Exception:
+        return getattr(zone, "leds_count", 0) or 0
+
+
+async def list_devices_for_class(cls: str) -> list[dict[str, Any]]:
     info = DEVICE_CLASSES[cls]
     if info["hid"] and not load_state().get("override"):
         return []
-    all_devs = await list_devices(config_dir_for_class(cls))
-    return [d for d in all_devs if (d.get("type") or "").lower() == info["type"].lower()]
+    async with _openrgb_lock:
+        try:
+            client = await _ensure_client()
+        except Exception as e:
+            log.warning("ensure_client failed: %s", e)
+            return []
+        target = info["type"].lower()
+        out: list[dict[str, Any]] = []
+        for idx, dev in enumerate(client.devices):
+            try:
+                dtype = dev.device_type.name.lower()
+            except Exception:
+                dtype = ""
+            if dtype != target:
+                continue
+            zones = [z.name for z in dev.zones if _zone_led_count(z) > 0]
+            modes = [m.name for m in dev.modes]
+            out.append({
+                "index": idx,
+                "name": dev.name,
+                "type": dev.device_type.name,
+                "modes": modes,
+                "zones": zones,
+            })
+        return out
+
+
+async def devices_for_class(cls: str) -> list[dict[str, Any]]:
+    return await list_devices_for_class(cls)
 
 
 _HEX_COLOR = re.compile(r"^[0-9A-Fa-f]{6}$")
@@ -212,35 +271,75 @@ def _normalize_color(c: str | None) -> str | None:
     return c.upper()
 
 
-_I2C_NOISE = re.compile(r"^\[i2c_smbus_linux\] Failed to read i2c device PCI device ID\s*$")
+def _find_mode(dev, name: str):
+    target = name.lower()
+    for m in dev.modes:
+        if m.name.lower() == target:
+            return m
+    return None
 
 
-def _clean_openrgb_output(text: str) -> str:
-    lines = [ln for ln in text.splitlines() if not _I2C_NOISE.match(ln)]
-    return "\n".join(lines).strip()
+def _scale_pct(pct: int, lo: int, hi: int) -> int:
+    if hi <= lo:
+        return lo
+    return int(lo + (hi - lo) * max(0, min(100, pct)) / 100)
 
 
 async def _apply_one(cls: str, device_idx: int, mode: str, color: str | None,
                      zone: str | int | None, speed: str | int | None,
                      brightness: str | int | None) -> tuple[int, str]:
-    args = [OPENRGB, "--config", str(config_dir_for_class(cls)), "--noautoconnect",
-            "--device", str(device_idx)]
-    if zone is not None and zone != "":
-        args += ["--zone", str(int(zone))]
-    args += ["--mode", mode]
-    if color is not None:
-        args += ["--color", color]
-    if speed is not None and speed != "":
-        args += ["--speed", str(int(speed))]
-    if brightness is not None and brightness != "":
-        args += ["--brightness", str(int(brightness))]
-    log.info("apply: %s", " ".join(args[1:]))
     async with _openrgb_lock:
-        proc = await asyncio.create_subprocess_exec(
-            *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
-        )
-        out, _ = await proc.communicate()
-    return proc.returncode, _clean_openrgb_output(out.decode(errors="replace"))
+        try:
+            client = await _ensure_client()
+        except Exception as e:
+            return 500, f"openrgb server unreachable: {e}"
+        try:
+            dev = client.devices[device_idx]
+        except IndexError:
+            return 404, f"device index {device_idx} out of range"
+
+        m = _find_mode(dev, mode)
+        if m is None:
+            return 400, f"device has no mode named {mode!r}"
+
+        try:
+            if brightness not in (None, "") and getattr(m, "brightness_max", 0):
+                m.brightness = _scale_pct(int(brightness), m.brightness_min, m.brightness_max)
+            if speed not in (None, "") and getattr(m, "speed_max", 0):
+                m.speed = _scale_pct(int(speed), m.speed_min, m.speed_max)
+        except Exception as e:
+            log.info("brightness/speed not applied: %s", e)
+
+        log.info("apply: dev=%d %r mode=%s color=%s zone=%s",
+                 device_idx, dev.name, mode, color, zone)
+        try:
+            dev.set_mode(m)
+        except Exception as e:
+            return 500, f"set_mode failed: {e}"
+
+        if color:
+            try:
+                rgb = RGBColor.fromHEX("#" + color)
+            except Exception:
+                return 400, f"bad color {color!r}"
+            try:
+                if zone not in (None, ""):
+                    zi = int(zone)
+                    zones_to_set = [dev.zones[zi]] if 0 <= zi < len(dev.zones) else []
+                else:
+                    zones_to_set = list(dev.zones)
+                for z in zones_to_set:
+                    n = _zone_led_count(z)
+                    if n > 0:
+                        z.set_colors([rgb] * n)
+            except Exception as e:
+                return 500, f"set_colors failed: {e}"
+
+        try:
+            dev.show()
+        except Exception as e:
+            log.info("dev.show ignored: %s", e)
+        return 200, "ok"
 
 
 def _record_apply(cls: str, idx: int, settings: dict[str, Any]) -> None:
@@ -280,18 +379,16 @@ async def apply_settings(payload: dict[str, Any]) -> tuple[int, str]:
 
     record = {"mode": mode, "color": color, "zone": zone, "speed": speed, "brightness": brightness}
 
-    coros = [_apply_one(cls, idx, mode, color, zone, speed, brightness) for idx in targets]
-    results = await asyncio.gather(*coros)
     overall_rc = 200
     msgs = []
-    for idx, (rc, body) in zip(targets, results):
-        msgs.append(f"[device {idx}] rc={rc}\n{body}" if body else f"[device {idx}] rc={rc} ok")
-        if rc != 0:
-            overall_rc = 500
+    for idx in targets:
+        rc, body = await _apply_one(cls, idx, mode, color, zone, speed, brightness)
+        msgs.append(f"[device {idx}] rc={rc} {body}".rstrip())
+        if rc != 200:
+            overall_rc = rc if overall_rc == 200 else overall_rc
         else:
             _record_apply(cls, idx, record)
-    _enum_cache.clear()
-    return overall_rc, "\n\n".join(msgs)[-1200:]
+    return overall_rc, "\n".join(msgs)[-1200:]
 
 
 async def apply_bulk(payload: dict[str, Any]) -> tuple[int, str]:
@@ -324,10 +421,19 @@ async def set_override(enabled: bool) -> str:
     state = load_state()
     state["override"] = bool(enabled)
     save_state(state)
-    _enum_cache.clear()
+    msgs = []
     if enabled:
-        return await stop_keyleds()
-    return await restart_keyleds()
+        msgs.append(await stop_keyleds())
+    else:
+        msgs.append(await restart_keyleds())
+    async with _openrgb_lock:
+        try:
+            await _stop_server()
+            await _start_server(enabled)
+        except Exception as e:
+            log.warning("respawn openrgb server failed: %s", e)
+            msgs.append(f"server respawn failed: {e}")
+    return "\n".join(msgs)
 
 
 async def startup_recovery(app: web.Application) -> None:
@@ -342,6 +448,17 @@ async def startup_recovery(app: web.Application) -> None:
     else:
         log.info("override=off at start — ensuring keyledsd is up")
         await restart_keyleds()
+    async with _openrgb_lock:
+        try:
+            await _stop_server()
+            await _start_server(bool(state.get("override")))
+        except Exception as e:
+            log.error("openrgb server failed to start: %s", e)
+
+
+async def shutdown_cleanup(app: web.Application) -> None:
+    async with _openrgb_lock:
+        await _stop_server()
 
 
 # ---------------------------------------------------------------- frontend
@@ -519,7 +636,7 @@ def _index_html() -> str:
 
 <div class="classes" id="classes"></div>
 
-<footer class="foot">openrgb subprocess wrapper · GET <code>/api/state-full</code> · POST <code>/api/apply-bulk</code></footer>
+<footer class="foot">openrgb SDK · server on 127.0.0.1:6742 · GET <code>/api/state-full</code> · POST <code>/api/apply-bulk</code></footer>
 
 </div>
 <div id="toast"></div>
@@ -1009,6 +1126,7 @@ def main() -> None:
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     app = web.Application()
     app.on_startup.append(startup_recovery)
+    app.on_shutdown.append(shutdown_cleanup)
     app.add_routes([
         web.get("/", page_index),
         web.get("/d/{cls}", page_device_redirect),
