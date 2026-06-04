@@ -173,7 +173,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>claude.mvr.ac</title>
 <style>
   :root {
@@ -309,48 +309,89 @@ INDEX_HTML = r"""<!DOCTYPE html>
 
   @media (hover: none) and (pointer: coarse) {
     .row {
-      padding: 0.95rem 1rem;
-      min-height: 52px;
-      gap: 0.9rem;
-    }
-    .row .ico { font-size: 1.2em; width: 1.4em; text-align: center; }
-    .filter {
-      padding: 0.9rem 1rem;
-      font-size: 16px;
+      padding: 0.85rem 0.9rem;
       min-height: 48px;
+      gap: 0.85rem;
     }
-    .open-here {
-      padding: 1.1rem 1.25rem;
-      min-height: 56px;
+    .row .ico { font-size: 1.15em; width: 1.35em; text-align: center; }
+    .filter {
+      padding: 0.7rem 0.9rem;
+      font-size: 16px;
+      min-height: 44px;
     }
-    .crumb { font-size: 1rem; line-height: 2; }
     .crumb a {
       display: inline-block;
-      padding: 0.25rem 0.4rem;
-      min-height: 32px;
+      padding: 0.2rem 0.35rem;
+      min-height: 28px;
     }
     .crumb .sep { padding: 0 0.15rem; }
-    header .nav a { padding: 0.4rem 0.6rem; display: inline-block; }
-    footer a { padding: 0.4rem 0.6rem; display: inline-block; }
+    header .nav a { padding: 0.3rem 0.5rem; display: inline-block; }
     .hints { display: none; }
   }
 
   @media (max-width: 600px) {
-    body {
-      padding: 1.25rem 1rem;
-      padding-top: max(1.25rem, env(safe-area-inset-top));
-      padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
-      padding-left: max(1rem, env(safe-area-inset-left));
-      padding-right: max(1rem, env(safe-area-inset-right));
+    html, body {
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
     }
-    header { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
-    header .nav { margin-left: -0.75rem; }
-    .card { padding: 1rem; }
-  }
-
-  @media (max-width: 380px) {
+    body {
+      padding: 0.5rem 0.6rem;
+      padding-top: max(0.5rem, env(safe-area-inset-top));
+      padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+      padding-left: max(0.6rem, env(safe-area-inset-left));
+      padding-right: max(0.6rem, env(safe-area-inset-right));
+      font-size: 15px;
+    }
+    .wrap {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-width: none;
+    }
+    header {
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.55rem;
+      flex-shrink: 0;
+    }
     header h1 { font-size: 0.95rem; }
-    footer { flex-direction: column; gap: 0.35rem; align-items: flex-start; }
+    header .nav { font-size: 0.78rem; }
+    header .nav a { margin-left: 0.5rem; }
+    .card {
+      padding: 0.7rem;
+      padding-bottom: max(0.7rem, env(keyboard-inset-height, 0px));
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .crumb {
+      margin-bottom: 0.55rem;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      flex-shrink: 0;
+    }
+    .open-here {
+      padding: 0.6rem 0.8rem;
+      min-height: 44px;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      flex-shrink: 0;
+    }
+    .open-here .shortcut { display: none; }
+    .filter {
+      margin-bottom: 0.4rem;
+      flex-shrink: 0;
+    }
+    .list {
+      max-height: none;
+      flex: 1 1 auto;
+      min-height: 0;
+      padding-right: 2px;
+    }
+    footer { display: none; }
+    .ok-wrap { padding: 1rem 0 0.5rem; gap: 1rem; }
+    .check { width: 80px; height: 80px; }
   }
 </style>
 </head>
@@ -370,6 +411,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
   </footer>
 </div>
 <script>
+if ('virtualKeyboard' in navigator) navigator.virtualKeyboard.overlaysContent = true;
 const root = document.getElementById('root');
 const params = new URLSearchParams(location.search);
 const dirParam = params.get('dir');
