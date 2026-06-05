@@ -23,18 +23,14 @@
     "claudecodebrowser": {
       "flake": false,
       "locked": {
-        "lastModified": 1778526149,
-        "narHash": "sha256-Hbj3i+DezUcctRi18+WyJjkfsq2GxN8EtCX+WBxo30A=",
-        "owner": "nanogenomic",
-        "repo": "ClaudeCodeBrowser",
-        "rev": "d5f6bbe9fef2cfe82474722320af7e04499fb10d",
-        "type": "github"
+        "lastModified": 1780619123,
+        "narHash": "sha256-u0vTCfN54HFAV06E4m/5OoURi2eh1ZCbz3cXndgHrSI=",
+        "path": "/home/m/Projects/ClaudeCodeBrowser",
+        "type": "path"
       },
       "original": {
-        "owner": "nanogenomic",
-        "repo": "ClaudeCodeBrowser",
-        "rev": "d5f6bbe9fef2cfe82474722320af7e04499fb10d",
-        "type": "github"
+        "path": "/home/m/Projects/ClaudeCodeBrowser",
+        "type": "path"
       }
     },
     "flake-compat": {
