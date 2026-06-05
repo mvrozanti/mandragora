@@ -27,7 +27,7 @@
     };
 
     claudecodebrowser = {
-      url = "github:nanogenomic/ClaudeCodeBrowser/d5f6bbe9fef2cfe82474722320af7e04499fb10d";
+      url = "path:/home/m/Projects/ClaudeCodeBrowser";
       flake = false;
     };
 
