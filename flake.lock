@@ -23,8 +23,8 @@
     "claudecodebrowser": {
       "flake": false,
       "locked": {
-        "lastModified": 1780619123,
-        "narHash": "sha256-u0vTCfN54HFAV06E4m/5OoURi2eh1ZCbz3cXndgHrSI=",
+        "lastModified": 1780620666,
+        "narHash": "sha256-jiHp2MkzSIEVfer/PxJxrUu5AzDfY7ldDkuaQU7mdTU=",
         "path": "/home/m/Projects/ClaudeCodeBrowser",
         "type": "path"
       },
