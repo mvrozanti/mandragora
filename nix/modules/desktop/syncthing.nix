@@ -4,7 +4,8 @@ let
   musicStignore = ../../../.config/syncthing/music.stignore;
   phoneInboxStignore = ../../../.config/syncthing/phone-inbox.stignore;
 
-  phoneDeviceId = null;
+  phoneDeviceId = "4UEEYYC-RHHBIFW-JGQBPQ4-IE4FQEW-N5UJWPR-PSE74VI-2PF7IKE-PK5OYAC";
+  phoneTailnetAddress = "tcp://100.114.176.5:22000";
 
   phoneShared = lib.optionals (phoneDeviceId != null) [ "phone" ];
 
@@ -52,6 +53,7 @@ in
         phone = {
           id = phoneDeviceId;
           name = "phone";
+          addresses = [ phoneTailnetAddress "dynamic" ];
           autoAcceptFolders = false;
         };
       };
