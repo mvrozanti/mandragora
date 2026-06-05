@@ -29,6 +29,7 @@
     ../../modules/desktop/rival-mouse.nix
     ../../modules/desktop/seafile.nix
     ../../modules/desktop/syncthing.nix
+    ../../modules/desktop/phone-archiver.nix
     ../../modules/desktop/steam.nix
     ../../modules/desktop/minecraft.nix
     ../../modules/desktop/ue5.nix
