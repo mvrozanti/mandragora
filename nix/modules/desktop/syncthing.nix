@@ -4,7 +4,7 @@ let
   musicStignore = ../../../.config/syncthing/music.stignore;
   phoneInboxStignore = ../../../.config/syncthing/phone-inbox.stignore;
 
-  phoneDeviceId = "4UEEYYC-RHHBIFW-JGQBPQ4-IE4FQEW-N5UJWPR-PSE74VI-2PF7IKE-PK5OYAC";
+  phoneDeviceId = "TXQSG4I-CFJX3BY-2CUKJOT-DZ4ATH4-HP7HQOK-23VM6PF-VDEM63Z-XGZR2Q5";
   phoneTailnetAddress = "tcp://100.114.176.5:22000";
 
   phoneShared = lib.optionals (phoneDeviceId != null) [ "phone" ];
