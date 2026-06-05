@@ -23,6 +23,10 @@ let
     exec ${pyEnv}/bin/python ${src}/agent/browser_agent.py "$@"
   '';
 
+  smokeBin = pkgs.writeShellScriptBin "claudecodebrowser-smoke" ''
+    exec ${pyEnv}/bin/python ${src}/scripts/smoke-test.py "$@"
+  '';
+
   nativeHostBin = pkgs.writeShellScript "claudecodebrowser-native-host" ''
     exec ${pyEnv}/bin/python ${src}/native-host/claudecodebrowser_host.py "$@"
   '';
@@ -131,7 +135,7 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ serverBin stdioBin agentBin xpiPathBin signBin ];
+    environment.systemPackages = [ serverBin stdioBin agentBin smokeBin xpiPathBin signBin ];
 
     # Kept for non-Firefox-wrapped consumers (other Mozilla-derived browsers).
     # The nixpkgs Firefox build only sees its own private dir; see nativeHostPkg.
@@ -149,6 +153,16 @@ in {
       "d /home/m/.claudecodebrowser/screenshots 0700 m users - -"
       "d /home/m/.claudecodebrowser/logs        0700 m users - -"
     ];
+
+    systemd.services.claudecodebrowser-log-prune = {
+      description = "Drop oversized claudecodebrowser log once at boot";
+      wantedBy = [ "default.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        User = "m";
+        ExecStart = "${pkgs.findutils}/bin/find /home/m/.claudecodebrowser/logs -name 'mcp_server.log' -size +50M -delete";
+      };
+    };
 
     systemd.user.services.claudecodebrowser = lib.mkIf cfg.serverService {
       description = "ClaudeCodeBrowser HTTP backend (localhost-only)";
