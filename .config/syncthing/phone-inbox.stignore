@@ -1,0 +1,12 @@
+.stversions
+.stfolder
+.stignore
+*.sync-conflict-*
+.trashed-*
+.pending-*
+.thumbnails
+.nomedia
+Thumbnails
+*.tmp
+*.partial
+*.part

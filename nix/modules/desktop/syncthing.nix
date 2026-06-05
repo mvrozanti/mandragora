@@ -2,6 +2,28 @@
 
 let
   musicStignore = ../../../.config/syncthing/music.stignore;
+  phoneInboxStignore = ../../../.config/syncthing/phone-inbox.stignore;
+
+  phoneDeviceId = null;
+
+  phoneShared = lib.optionals (phoneDeviceId != null) [ "phone" ];
+
+  phoneFolder = id: label: path: {
+    inherit id label path;
+    type = "sendreceive";
+    devices = phoneShared;
+    ignorePerms = true;
+    rescanIntervalS = 60;
+    fsWatcherEnabled = true;
+    fsWatcherDelayS = 10;
+    versioning = {
+      type = "staggered";
+      params = {
+        cleanInterval = "3600";
+        maxAge = "2592000";
+      };
+    };
+  };
 in
 {
   services.syncthing = {
@@ -26,12 +48,20 @@ in
         localAnnounceEnabled = true;
         globalAnnounceEnabled = true;
       };
+      devices = lib.optionalAttrs (phoneDeviceId != null) {
+        phone = {
+          id = phoneDeviceId;
+          name = "phone";
+          autoAcceptFolders = false;
+        };
+      };
       folders = {
         "music" = {
           id = "mandragora-music";
           label = "Music";
           path = "/home/m/Music";
-          type = "sendreceive";
+          type = "sendonly";
+          devices = phoneShared;
           ignorePerms = true;
           rescanIntervalS = 60;
           fsWatcherEnabled = true;
@@ -44,11 +74,24 @@ in
             };
           };
         };
+        "phone-camera" = phoneFolder "mandragora-phone-camera" "Phone Camera" "/home/m/Pictures/PhoneInbox/camera";
+        "phone-screenshots" = phoneFolder "mandragora-phone-screenshots" "Phone Screenshots" "/home/m/Pictures/PhoneInbox/screenshots";
+        "phone-whatsapp" = phoneFolder "mandragora-phone-whatsapp" "Phone WhatsApp" "/home/m/Pictures/PhoneInbox/whatsapp";
+        "phone-downloads" = phoneFolder "mandragora-phone-downloads" "Phone Downloads" "/home/m/Pictures/PhoneInbox/downloads";
       };
     };
   };
 
   systemd.tmpfiles.rules = [
+    "d /home/m/Pictures/PhoneInbox 0755 m users -"
+    "d /home/m/Pictures/PhoneInbox/camera 0755 m users -"
+    "d /home/m/Pictures/PhoneInbox/screenshots 0755 m users -"
+    "d /home/m/Pictures/PhoneInbox/whatsapp 0755 m users -"
+    "d /home/m/Pictures/PhoneInbox/downloads 0755 m users -"
     "C+ /home/m/Music/.stignore 0644 m users - ${musicStignore}"
+    "C+ /home/m/Pictures/PhoneInbox/camera/.stignore 0644 m users - ${phoneInboxStignore}"
+    "C+ /home/m/Pictures/PhoneInbox/screenshots/.stignore 0644 m users - ${phoneInboxStignore}"
+    "C+ /home/m/Pictures/PhoneInbox/whatsapp/.stignore 0644 m users - ${phoneInboxStignore}"
+    "C+ /home/m/Pictures/PhoneInbox/downloads/.stignore 0644 m users - ${phoneInboxStignore}"
   ];
 }
