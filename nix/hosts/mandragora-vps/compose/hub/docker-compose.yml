@@ -56,6 +56,13 @@ services:
       caddy_5.0_forward_auth.uri: "/api/authz/forward-auth"
       caddy_5.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
       caddy_5.1_reverse_proxy: "host.docker.internal:6681"
+      caddy_5.1_reverse_proxy.health_uri: "/healthz"
+      caddy_5.1_reverse_proxy.health_interval: "5s"
+      caddy_5.1_reverse_proxy.health_timeout: "2s"
+      caddy_5.1_reverse_proxy.lb_try_duration: "2s"
+      caddy_5.1_reverse_proxy.transport: http
+      caddy_5.1_reverse_proxy.transport.dial_timeout: "1s"
+      caddy_5.2_handle_errors.respond: '503 "mandragora asleep — rgb-control unreachable"'
       caddy_6: https://gen.${MVR_AC:-mvr.ac}
       caddy_6.log.output: "discard"
       caddy_6.0_forward_auth: "authelia:9091"
