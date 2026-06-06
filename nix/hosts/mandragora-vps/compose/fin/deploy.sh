@@ -63,11 +63,26 @@ rsync -av --delete \
 echo "→ syncing compose.yml"
 rsync -av "$COMPOSE_SRC" "$REMOTE:$REMOTE_DIR/docker-compose.yml"
 
-echo "→ writing .env (FIN_DATA_DIR=$FIN_DATA_DIR, FIN_SRC_DIR=$REMOTE_DIR/src)"
-ssh "$REMOTE" "cat > $REMOTE_DIR/.env <<EOF
+if [[ -z "${AUTOPILOT_TOKEN:-}" && -r "$HOME/.config/autopilot-agent/env" ]]; then
+  AUTOPILOT_TOKEN=$(grep '^AUTOPILOT_TOKEN=' "$HOME/.config/autopilot-agent/env" | cut -d= -f2-)
+fi
+if [[ -z "${AUTOPILOT_TOKEN:-}" ]]; then
+  echo "ERR: AUTOPILOT_TOKEN not set and not readable from ~/.config/autopilot-agent/env" >&2
+  echo "     run: AUTOPILOT_TOKEN=\$(python3 -c 'import secrets; print(secrets.token_hex(32))') ./deploy.sh" >&2
+  exit 3
+fi
+
+AUTOPILOT_AGENT_URL="${AUTOPILOT_AGENT_URL:-http://100.115.80.79:8765}"
+AUTOPILOT_ALLOWED_USERS="${AUTOPILOT_ALLOWED_USERS:-m}"
+
+echo "→ writing .env (FIN_DATA_DIR=$FIN_DATA_DIR, FIN_SRC_DIR=$REMOTE_DIR/src, AUTOPILOT_*)"
+ssh "$REMOTE" "umask 077 && cat > $REMOTE_DIR/.env <<EOF
 FIN_DATA_DIR=$FIN_DATA_DIR
 FIN_SRC_DIR=$REMOTE_DIR/src
 FIN_IMAGE=fin-mvr-ac:latest
+AUTOPILOT_AGENT_URL=$AUTOPILOT_AGENT_URL
+AUTOPILOT_TOKEN=$AUTOPILOT_TOKEN
+AUTOPILOT_ALLOWED_USERS=$AUTOPILOT_ALLOWED_USERS
 EOF"
 
 echo "→ verifying data dir $FIN_DATA_DIR exists on VPS"
