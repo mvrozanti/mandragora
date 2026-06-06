@@ -69,6 +69,24 @@ let
     LUA
   '';
 
+  tmuxCwdPublishPlugin = pkgs.runCommand "tmux-cwd-publish-yazi" {} ''
+    mkdir -p $out
+    cat > $out/main.lua <<'LUA'
+    local M = {}
+    function M:setup()
+      ps.sub("cd", function()
+        local pane = os.getenv("TMUX_PANE")
+        if not pane or pane == "" then return end
+        local cwd = tostring(cx.active.current.cwd)
+        Command("tmux"):arg("set"):arg("-p"):arg("-t"):arg(pane)
+          :arg("@cwd"):arg(cwd)
+          :stdin(Command.NULL):stdout(Command.NULL):stderr(Command.NULL):spawn()
+      end)
+    end
+    return M
+    LUA
+  '';
+
   imageOpenPlugin = pkgs.runCommand "image-open-yazi" {} ''
     mkdir -p $out
     cp ${../../../.config/yazi/plugins/image-open/main.lua} $out/main.lua
@@ -93,6 +111,10 @@ in
     };
     plugins.zoxide-add = {
       package = zoxideAddPlugin;
+      setup = true;
+    };
+    plugins.tmux-cwd-publish = {
+      package = tmuxCwdPublishPlugin;
       setup = true;
     };
     plugins.image-open = {
