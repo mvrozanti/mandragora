@@ -1,11 +1,13 @@
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 
 let
-  detectorAllowlist = [ "ENE SMBus DRAM" ];
+  detectorAllowExact = [ "ENE SMBus DRAM" ];
+  detectorAllowPatterns = [ "^ENE.*DRAM$" "^ENE.*$" ];
 
   scopeDetectorsPy = pkgs.writeText "openrgb-scope-detectors.py" ''
-    import json, sys
-    allow = set(${builtins.toJSON detectorAllowlist})
+    import json, re, sys
+    allow = set(${builtins.toJSON detectorAllowExact})
+    patterns = [re.compile(p) for p in ${builtins.toJSON detectorAllowPatterns}]
     p = sys.argv[1]
     try:
         with open(p) as f:
@@ -15,13 +17,31 @@ let
     det = cfg.get("Detectors", {}).get("detectors")
     if not isinstance(det, dict):
         sys.exit(0)
+    changed = 0
+    enabled = 0
     for k in det:
-        det[k] = k in allow
+        keep = (k in allow) or any(p.match(k) for p in patterns)
+        if det[k] != keep:
+            changed += 1
+        det[k] = keep
+        if keep:
+            enabled += 1
     with open(p, "w") as f:
         json.dump(cfg, f, indent=4)
+    sys.stderr.write(f"openrgb-scope: {enabled} enabled, {changed} flipped\n")
   '';
 
   scopeDetectorsScript = pkgs.writeShellScript "openrgb-scope-detectors" ''
+    set -eu
+    cfg=/var/lib/OpenRGB/OpenRGB.json
+    if [ ! -f "$cfg" ]; then
+      mkdir -p /var/lib/OpenRGB
+      echo '{"Detectors":{"detectors":{}}}' > "$cfg"
+    fi
+    ${pkgs.python3}/bin/python3 ${scopeDetectorsPy} "$cfg"
+  '';
+
+  rescopeAfterEnumScript = pkgs.writeShellScript "openrgb-rescope-after-enum" ''
     set -eu
     cfg=/var/lib/OpenRGB/OpenRGB.json
     [ -f "$cfg" ] || exit 0
@@ -34,19 +54,27 @@ in {
     motherboard = "amd";
   };
 
-  # Keep the unit defined (so `sudo systemctl start openrgb` works on demand for
-  # driving RAM/motherboard LEDs), but never auto-start it at boot. openrgb's
-  # HID probe on the Logitech G Pro keyboard corrupts keyleds' feature-discovery
-  # state, leaving the keyboard dark. Boot-time order cannot be reliably fixed,
-  # so we keep openrgb off the boot path entirely.
-  systemd.services.openrgb.wantedBy = lib.mkForce [];
-
-  # Scope SMBus probing to ENE DRAM only. The upstream config enables ~1600
-  # detectors by default; each non-DRAM detector that owns a probe on
-  # i2c_piix4 (mobo ARGB chips, GPU controllers, dozens of mouse/keyboard
-  # variants the user does not own) contends with ENE writes the
-  # wal-to-rgb-daemon is doing at 40 fps and causes visible RAM/AIO flicker.
   systemd.services.openrgb.serviceConfig.ExecStartPre = [ "${scopeDetectorsScript}" ];
+  systemd.services.openrgb.after = [ "systemd-modules-load.service" ];
+
+  systemd.services.openrgb-rescope = {
+    description = "Re-scope OpenRGB detectors in /var/lib/OpenRGB/OpenRGB.json (file only; effective on next openrgb restart)";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${rescopeAfterEnumScript}";
+    };
+  };
+
+  systemd.timers.openrgb-rescope = {
+    description = "Hourly OpenRGB detector re-scope — catches new upstream detectors before they default to enabled";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "5min";
+      OnUnitActiveSec = "1h";
+      Unit = "openrgb-rescope.service";
+      Persistent = true;
+    };
+  };
 
   hardware.i2c.enable = true;
   boot.kernelModules = [ "i2c-dev" ];
