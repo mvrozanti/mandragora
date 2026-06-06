@@ -31,7 +31,6 @@ SKIP_INFIX = ".sync-conflict-"
 
 PHOTO_ROOT = HOME / "Pictures" / "Photos"
 VIDEO_ROOT = HOME / "Videos" / "Phone"
-SCREENSHOT_ROOT = HOME / "Documents" / "PhoneScreenshots"
 DOWNLOAD_ROOT = HOME / "Documents" / "PhoneDownloads"
 
 
@@ -53,10 +52,6 @@ def camera_router(path):
     return PHOTO_ROOT
 
 
-def screenshot_router(_path):
-    return SCREENSHOT_ROOT
-
-
 def whatsapp_router(path):
     kind = image_or_video(path)
     if kind == "video":
@@ -71,8 +66,8 @@ def download_router(_path):
 
 
 BUCKETS = [
-    ("camera", camera_router),
-    ("screenshots", screenshot_router),
+    ("dcim", camera_router),
+    ("pictures", camera_router),
     ("whatsapp", whatsapp_router),
     ("downloads", download_router),
 ]
