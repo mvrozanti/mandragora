@@ -10,9 +10,14 @@ let
       exec ${pyEnv}/bin/python ${src} "$@"
     '';
   };
+  bootstrap = pkgs.writeShellApplication {
+    name = "phone-syncthing-bootstrap";
+    runtimeInputs = [ pkgs.android-tools pkgs.curl pkgs.jq ];
+    text = builtins.readFile ../../../.local/bin/phone-syncthing-bootstrap.sh;
+  };
 in
 {
-  environment.systemPackages = [ archiver ];
+  environment.systemPackages = [ archiver bootstrap ];
 
   systemd.user.services.phone-archiver = {
     description = "Drain ~/Pictures/PhoneInbox into archive (EXIF-dated, sha256-verified)";
