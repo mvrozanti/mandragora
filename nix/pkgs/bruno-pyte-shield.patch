@@ -1,0 +1,19 @@
+--- a/bruno/overlay.py
++++ b/bruno/overlay.py
+@@ -895,7 +895,15 @@ def run(args) -> int:
+                 except OSError:
+                     pass
+                 if len(data) <= PYTE_FEED_MAX:
+-                    stream.feed(data)
++                    try:
++                        stream.feed(data)
++                    except Exception:
++                        # pyte 0.8.2 raises TypeError on private CSI
++                        # dispatchers that don't accept private= (e.g.
++                        # crush's \e[>4m modifyOtherKeys, claude's
++                        # \e[>q XTVERSION). Swallowing keeps bruno
++                        # alive instead of taking the whole pane down.
++                        pass
+                 activity_idle_ticks = 0
+                 last_shell_byte = time.monotonic()
+
