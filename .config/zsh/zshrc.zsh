@@ -104,6 +104,7 @@ bindkey '^[[1;5D' backward-word
 bindkey '^[[1;5C' forward-word
 bindkey -M viins '^[[1;5D' backward-word
 bindkey -M viins '^[[1;5C' forward-word
+bindkey -M viins '^D' delete-char-or-list
 bindkey '^h' backward-delete-char
 zmodload zsh/complist
 bindkey '^[[Z' reverse-menu-complete
