@@ -47,7 +47,9 @@
     graphviz
     erdtree
     asciinema
-    inputs.bruno-tama.packages.${pkgs.system}.default
+    (inputs.bruno-tama.packages.${pkgs.system}.default.overrideAttrs (old: {
+      patches = (old.patches or []) ++ [ ../../pkgs/bruno-apc-strip.patch ];
+    }))
 
     (pkgs.writeShellScriptBin "mandragora-pkg-diff" (builtins.readFile ../../../.local/bin/mandragora-pkg-diff.sh))
   ];
