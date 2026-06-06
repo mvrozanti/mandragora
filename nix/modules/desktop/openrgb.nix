@@ -55,6 +55,9 @@ in {
   };
 
   systemd.services.openrgb.serviceConfig.ExecStartPre = [ "${scopeDetectorsScript}" ];
+  systemd.services.openrgb.serviceConfig.RestartSec = "5s";
+  systemd.services.openrgb.serviceConfig.StartLimitBurst = 10;
+  systemd.services.openrgb.serviceConfig.StartLimitIntervalSec = "120s";
   systemd.services.openrgb.after = [ "systemd-modules-load.service" ];
 
   systemd.services.openrgb-rescope = {
