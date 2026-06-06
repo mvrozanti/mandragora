@@ -68,6 +68,7 @@ def download_router(_path):
 BUCKETS = [
     ("dcim", camera_router),
     ("pictures", camera_router),
+    ("movies", camera_router),
     ("whatsapp", whatsapp_router),
     ("downloads", download_router),
 ]
