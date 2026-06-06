@@ -53,10 +53,6 @@ post_folder mandragora-music            "Music"             /storage/emulated/0/
 
 echo
 echo "verifying:"
-curl -sk -H "X-API-Key: $PHONE_API_KEY" "$PHONE_API_BASE/rest/config/folders" | python3 - <<'PYEOF'
-import json, sys
-for f in json.load(sys.stdin):
-    v = f.get("versioning", {}).get("type", "") or "none"
-    print(f"  {f['id']:35s} {f['type']:12s} versioning={v:8s} {f['path']}")
-PYEOF
+curl -sk -H "X-API-Key: $PHONE_API_KEY" "$PHONE_API_BASE/rest/config/folders" \
+  | jq -r '.[] | "  \(.id|tostring|.+(" "*(35-length))) \(.type|tostring|.+(" "*(12-length))) versioning=\((.versioning.type // "" | if . == "" then "none" else . end)|tostring|.+(" "*(8-length))) \(.path)"'
 
