@@ -2,7 +2,7 @@
 
 let
   src = "/persistent/mandragora/.local/share/rgb-control/rgb-control.py";
-  pyEnv = pkgs.python3.withPackages (ps: [ ps.aiohttp ]);
+  pyEnv = pkgs.python3.withPackages (ps: [ ps.aiohttp ps.openrgb-python ]);
   recoverScript = pkgs.writeShellScript "rgb-control-recover-keyleds" ''
     set +e
     export XDG_RUNTIME_DIR=/run/user/1000
@@ -10,18 +10,14 @@ let
     ${pkgs.systemd}/bin/systemctl --user restart keyleds-workspace-watcher.service
     exit 0
   '';
-  stopOpenrgbScript = pkgs.writeShellScript "rgb-control-stop-openrgb" ''
-    set +e
-    ${pkgs.sudo}/bin/sudo -n /run/current-system/sw/bin/systemctl stop openrgb
-    exit 0
-  '';
 in {
   mandragora.hub.services.rgb-control = {
     port = 6681;
     systemd = {
       description = "rgb-control web — per-device openrgb UI";
-      after = [ "network.target" "tailscaled.service" ];
+      after = [ "network.target" "tailscaled.service" "openrgb.service" ];
       wants = [ "tailscaled.service" ];
+      requires = [ "openrgb.service" ];
       wantedBy = [ "multi-user.target" ];
       environment = {
         RGB_HOST = "0.0.0.0";
@@ -34,7 +30,6 @@ in {
       serviceConfig = {
         User = "m";
         Group = "users";
-        ExecStartPre = "${stopOpenrgbScript}";
         ExecStart = "${pyEnv}/bin/python ${src}";
         ExecStopPost = "${recoverScript}";
         Restart = "on-failure";

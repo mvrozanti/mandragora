@@ -1,5 +1,9 @@
 import colorsys
+import contextlib
+import fcntl
 import json
+import os
+import sys
 import time
 from pathlib import Path
 from openrgb import OpenRGBClient
@@ -9,10 +13,39 @@ FPS = 40
 STOPS_PER_SECOND = 15.0
 COLORS_PATH = Path.home() / ".cache/matugen/colors.json"
 STATE_PATH = Path.home() / ".cache/hid-config/state"
+PAUSE_SENTINEL = Path(os.environ.get("XDG_RUNTIME_DIR", "/run/user/1000")) / "rgb-control-paused"
+WRITE_LOCK = "/tmp/openrgb-write.lock"
 RAM_PALETTE_INDICES = [2, 6, 5, 1]
 RAM_LEDS_PER_STOP = 2
 CONNECT_BACKOFF_SECONDS = 3
 RECONNECT_AFTER_SECONDS = 10.0
+
+
+def log(msg):
+    sys.stderr.write(f"wal-to-rgb-daemon: {msg}\n")
+    sys.stderr.flush()
+
+
+@contextlib.contextmanager
+def write_lock(timeout=0.5):
+    fd = os.open(WRITE_LOCK, os.O_CREAT | os.O_WRONLY, 0o666)
+    try:
+        deadline = time.monotonic() + timeout
+        while True:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if time.monotonic() >= deadline:
+                    raise TimeoutError(f"openrgb write lock held >{timeout}s")
+                time.sleep(0.005)
+        yield
+    finally:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+        finally:
+            os.close(fd)
+
 
 def from_hex(h):
     r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
@@ -21,6 +54,7 @@ def from_hex(h):
     v_val = 1.0
     r, g, b = colorsys.hsv_to_rgb(h_val, s_val, v_val)
     return RGBColor(int(r * 255), int(g * 255), int(b * 255))
+
 
 def load_palette():
     if not COLORS_PATH.exists():
@@ -32,12 +66,14 @@ def load_palette():
     except Exception:
         return None
 
+
 def lerp_color(a, b, t):
     return RGBColor(
         int(a.red + (b.red - a.red) * t),
         int(a.green + (b.green - a.green) * t),
         int(a.blue + (b.blue - a.blue) * t),
     )
+
 
 def animated_colors(stops, led_count, phase):
     n = len(stops)
@@ -50,12 +86,15 @@ def animated_colors(stops, led_count, phase):
         out.append(lerp_color(stops[idx_a], stops[idx_b], frac))
     return out
 
+
 def connect():
     while True:
         try:
-            return OpenRGBClient()
-        except Exception:
+            return OpenRGBClient(name="wal-to-rgb-daemon")
+        except Exception as e:
+            log(f"connect failed: {e}; retry in {CONNECT_BACKOFF_SECONDS}s")
             time.sleep(CONNECT_BACKOFF_SECONDS)
+
 
 def find_ram_devices(client):
     out = []
@@ -70,13 +109,16 @@ def find_ram_devices(client):
             except Exception:
                 continue
         out.append(d)
+    log(f"found {len(out)} RAM device(s): {[d.name for d in out]}")
     return out
+
 
 def mtime_or_zero():
     try:
         return COLORS_PATH.stat().st_mtime
     except Exception:
         return 0
+
 
 def is_rgb_on():
     try:
@@ -86,7 +128,19 @@ def is_rgb_on():
         pass
     return True
 
+
+def is_paused():
+    return PAUSE_SENTINEL.exists()
+
+
+def write_device(d, palette, phase):
+    for zone in d.zones:
+        zone.set_colors(animated_colors(palette, len(zone.leds), phase))
+    d.show()
+
+
 def main():
+    log("starting up")
     client = connect()
     ram_devices = find_ram_devices(client)
     palette = load_palette()
@@ -95,12 +149,14 @@ def main():
     frame_dt = 1.0 / FPS
     phase_step = STOPS_PER_SECOND / FPS
     last_success = time.monotonic()
+    device_failures = 0
 
     while True:
         frame_start = time.monotonic()
 
-        if not is_rgb_on():
+        if not is_rgb_on() or is_paused():
             time.sleep(0.5)
+            last_success = time.monotonic()
             continue
 
         new_mtime = mtime_or_zero()
@@ -111,21 +167,33 @@ def main():
                 last_mtime = new_mtime
 
         if palette and ram_devices:
+            had_any_success = False
             try:
-                for d in ram_devices:
-                    for zone in d.zones:
-                        zone.set_colors(animated_colors(palette, len(zone.leds), phase))
-                    d.show()
+                with write_lock(timeout=0.4):
+                    for d in ram_devices:
+                        try:
+                            write_device(d, palette, phase)
+                            had_any_success = True
+                        except Exception as e:
+                            device_failures += 1
+                            if device_failures % 200 == 1:
+                                log(f"device write failed for {d.name!r}: {e} (count={device_failures})")
+            except TimeoutError:
+                pass
+            except Exception as e:
+                log(f"frame failed: {e}")
+
+            if had_any_success:
                 last_success = frame_start
-            except Exception:
-                if frame_start - last_success >= RECONNECT_AFTER_SECONDS:
-                    try:
-                        client.disconnect()
-                    except Exception:
-                        pass
-                    client = connect()
-                    ram_devices = find_ram_devices(client)
-                    last_success = time.monotonic()
+            elif frame_start - last_success >= RECONNECT_AFTER_SECONDS:
+                log("no successful writes for 10s — reconnecting")
+                try:
+                    client.disconnect()
+                except Exception:
+                    pass
+                client = connect()
+                ram_devices = find_ram_devices(client)
+                last_success = time.monotonic()
 
         phase = (phase + phase_step) % len(palette) if palette else 0.0
 
@@ -134,4 +202,6 @@ def main():
         if sleep_for > 0:
             time.sleep(sleep_for)
 
-main()
+
+if __name__ == "__main__":
+    main()
