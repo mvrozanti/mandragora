@@ -31,34 +31,48 @@ SKIP_INFIX = ".sync-conflict-"
 
 PHOTO_ROOT = HOME / "Pictures" / "Photos"
 VIDEO_ROOT = HOME / "Videos" / "Phone"
+AUDIO_ROOT = HOME / "Documents" / "PhoneAudio"
 DOWNLOAD_ROOT = HOME / "Documents" / "PhoneDownloads"
 
 
-def image_or_video(path):
+AUDIO_EXT = {".mp3", ".m4a", ".ogg", ".opus", ".aac", ".wav", ".flac", ".amr", ".mka"}
+
+
+def mime_kind(path):
     mime, _ = mimetypes.guess_type(path.name)
     if mime is None:
+        if path.suffix.lower() in AUDIO_EXT:
+            return "audio"
         return None
     if mime.startswith("image/"):
         return "image"
     if mime.startswith("video/"):
         return "video"
+    if mime.startswith("audio/"):
+        return "audio"
     return None
 
 
 def camera_router(path):
-    kind = image_or_video(path)
+    kind = mime_kind(path)
     if kind == "video":
         return VIDEO_ROOT
     return PHOTO_ROOT
 
 
 def whatsapp_router(path):
-    kind = image_or_video(path)
+    kind = mime_kind(path)
     if kind == "video":
         return VIDEO_ROOT
     if kind == "image":
         return PHOTO_ROOT
+    if kind == "audio":
+        return AUDIO_ROOT
     return DOWNLOAD_ROOT
+
+
+def recordings_router(_path):
+    return AUDIO_ROOT
 
 
 def download_router(_path):
@@ -70,6 +84,7 @@ BUCKETS = [
     ("pictures", camera_router),
     ("movies", camera_router),
     ("whatsapp", whatsapp_router),
+    ("recordings", recordings_router),
     ("downloads", download_router),
 ]
 
