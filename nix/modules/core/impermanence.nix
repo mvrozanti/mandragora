@@ -30,6 +30,7 @@
       "/var/lib/nixos"
       "/var/lib/bluetooth"
       "/var/lib/systemd"
+      "/var/lib/OpenRGB"
       "/etc/NetworkManager/system-connections"
       { directory = "/home/m"; user = "m"; group = "users"; mode = "0750"; }
     ] ++ lib.optionals (config.services.ollama.enable || config.services.victoriametrics.enable || config.services.open-webui.enable || config.services.alloy.enable) [
