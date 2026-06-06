@@ -91,6 +91,33 @@ let
     mkdir -p $out
     cp ${../../../.config/yazi/plugins/image-open/main.lua} $out/main.lua
   '';
+
+  paneFgPlugin = pkgs.runCommand "pane-fg-yazi" {} ''
+    mkdir -p $out
+    cat > $out/main.lua <<'LUA'
+    local M = {}
+    function M:setup()
+      function Entity:style()
+        local s = self._file:style() or ui.Style()
+        if self._file.in_current then
+          s = s:patch(ui.Style():fg("#ffffff"))
+        elseif self._file.in_preview then
+          s = s:patch(ui.Style():fg("#aaaaaa"))
+        end
+        if not self._file.is_hovered then
+          return s
+        elseif self._file.in_current then
+          return s:patch(th.indicator.current)
+        elseif self._file.in_preview then
+          return s:patch(th.indicator.preview)
+        else
+          return s:patch(th.indicator.parent)
+        end
+      end
+    end
+    return M
+    LUA
+  '';
 in
 {
   home.packages = [ yaziSquareBorders ];
@@ -120,6 +147,10 @@ in
     plugins.image-open = {
       package = imageOpenPlugin;
       setup = false;
+    };
+    plugins.pane-fg = {
+      package = paneFgPlugin;
+      setup = true;
     };
 
     settings = {
@@ -271,6 +302,10 @@ in
         { on = "<C-v>"; run = ''shell "wl-paste -t image/png > $(mktemp -p . --suffix=.png paste-XXXXXX)"''; desc = "Paste PNG from clipboard"; }
         { on = "<C-V>"; run = ''shell "wl-paste -t image/jpeg > $(mktemp -p . --suffix=.jpg paste-XXXXXX)"''; desc = "Paste JPEG from clipboard"; }
         { on = "D"; run = ''shell "trash-put -- %s"''; desc = "Trash"; }
+        { on = [ "o" "n" ]; run = "sort natural"; desc = "Sort natural asc"; }
+        { on = [ "o" "N" ]; run = "sort natural --reverse"; desc = "Sort natural desc"; }
+        { on = [ "o" "a" ]; run = "sort alphabetical"; desc = "Sort alphabetical asc"; }
+        { on = [ "o" "A" ]; run = "sort alphabetical --reverse"; desc = "Sort alphabetical desc"; }
         { on = [ "o" "z" ]; run = "sort random"; desc = "Sort random"; }
         { on = [ "o" "s" ]; run = "sort size --reverse"; desc = "Sort size desc"; }
         { on = [ "o" "S" ]; run = "sort size"; desc = "Sort size asc"; }
