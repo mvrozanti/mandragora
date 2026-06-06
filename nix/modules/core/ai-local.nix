@@ -119,6 +119,8 @@ in
         local-ai-mcp-server
         gpu-lock
       ];
+
+      environment.sessionVariables.BRUNO_PASSTHROUGH = "gemini,qwen,claude,crush";
     }
 
     (lib.mkIf cfg.agentic.enable {
