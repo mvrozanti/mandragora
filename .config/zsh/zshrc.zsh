@@ -104,7 +104,16 @@ bindkey '^[[1;5D' backward-word
 bindkey '^[[1;5C' forward-word
 bindkey -M viins '^[[1;5D' backward-word
 bindkey -M viins '^[[1;5C' forward-word
-bindkey -M viins '^D' delete-char-or-list
+_exit-or-delete-char() {
+  if [[ -z $BUFFER ]]; then
+    exit
+  else
+    zle delete-char-or-list
+  fi
+}
+zle -N _exit-or-delete-char
+bindkey -M emacs '^D' _exit-or-delete-char
+bindkey -M viins '^D' _exit-or-delete-char
 bindkey '^h' backward-delete-char
 zmodload zsh/complist
 bindkey '^[[Z' reverse-menu-complete
