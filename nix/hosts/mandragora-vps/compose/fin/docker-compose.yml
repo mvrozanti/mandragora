@@ -7,6 +7,11 @@ services:
     environment:
       DATA_ROOT: /data
       REPO_ROOT: /src
+      AUTOPILOT_AGENT_URL: ${AUTOPILOT_AGENT_URL:-http://100.115.80.79:8765}
+      AUTOPILOT_TOKEN: ${AUTOPILOT_TOKEN}
+      AUTOPILOT_ALLOWED_USERS: ${AUTOPILOT_ALLOWED_USERS:-m}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ${FIN_DATA_DIR:-/home/opc/dnl_paper}:/data:ro
       - ${FIN_SRC_DIR:-/home/opc/fin/src}:/src:ro
@@ -15,7 +20,13 @@ services:
     labels:
       caddy: https://fin.${MVR_AC:-mvr.ac}
       caddy.encode: zstd gzip
-      caddy.reverse_proxy: "{{upstreams 8080}}"
+      caddy.@autopilot.path: "/autopilot* /api/autopilot/*"
+      caddy.0_handle: "@autopilot"
+      caddy.0_handle.0_forward_auth: "authelia:9091"
+      caddy.0_handle.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_handle.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.0_handle.1_reverse_proxy: "{{upstreams 8080}}"
+      caddy.1_handle.0_reverse_proxy: "{{upstreams 8080}}"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
       interval: 30s
