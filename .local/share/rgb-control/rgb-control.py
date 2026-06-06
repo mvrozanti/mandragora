@@ -1,35 +1,46 @@
 #!/usr/bin/env python3
 """rgb-control — per-device RGB web UI for Mandragora.
 
-Drives openrgb directly via short-lived CLI invocations. RAM + motherboard
-use the standard "safe" openrgb config. Mouse + keyboard require enabling
-HID detectors that conflict with keyledsd, so they are gated behind an
-"override keyleds" toggle. Recovery is layered:
+Architecture:
+  - RAM + motherboard go through the long-running openrgb SDK server on :6742
+    (shared with wal-to-rgb-daemon). Writes serialize on /run/lock/openrgb-write.lock
+    so daemon and UI never collide on SMBus.
+  - Mouse + keyboard are HID devices that conflict with keyledsd. They are gated
+    behind the "override keyleds" toggle and use short-lived openrgb CLI calls
+    against a separate HID_CONFIG dir (no i2c probe, no server interference).
 
-  - every page renders a "restore keyleds" panic button,
-  - turning the override off is idempotent and always restarts keyledsd,
-  - the systemd unit's ExecStopPost restarts keyledsd if the service dies,
-  - on startup the service forces override=false and ensures keyledsd is up.
+Recovery is layered: panic button restores keyledsd; override-off restarts keyledsd
+idempotently; ExecStopPost restarts keyledsd if the service dies; startup forces
+override=false.
 """
 from __future__ import annotations
 
 import asyncio
+import fcntl
 import json
 import logging
 import os
 import re
 import shutil
 import time
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
 from aiohttp import web
+from openrgb import OpenRGBClient
+from openrgb.utils import DeviceType, RGBColor
 
 log = logging.getLogger("rgb-control")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
 OPENRGB = shutil.which("openrgb") or "openrgb"
 SYSTEMCTL = shutil.which("systemctl") or "/run/current-system/sw/bin/systemctl"
+
+OPENRGB_HOST = os.environ.get("OPENRGB_SERVER_HOST", "127.0.0.1")
+OPENRGB_PORT = int(os.environ.get("OPENRGB_SERVER_PORT", "6742"))
+WRITE_LOCK = "/tmp/openrgb-write.lock"
+PAUSE_SENTINEL = Path(os.environ.get("XDG_RUNTIME_DIR", "/run/user/1000")) / "rgb-control-paused"
 
 STATE_DIR = Path("/persistent/mandragora/.local/share/rgb-control")
 STATE_FILE = STATE_DIR / "state.json"
@@ -47,13 +58,49 @@ HID_DETECTORS = [
 KEYLEDS_UNITS = ["keyledsd.service", "keyleds-workspace-watcher.service"]
 
 DEVICE_CLASSES = {
-    "ram":      {"type": "DRAM",        "label": "RAM",         "hid": False},
-    "mobo":     {"type": "Motherboard", "label": "Motherboard", "hid": False},
-    "mouse":    {"type": "Mouse",       "label": "Mouse",       "hid": True},
-    "keyboard": {"type": "Keyboard",    "label": "Keyboard",    "hid": True},
+    "ram":      {"type": "DRAM",        "label": "RAM",         "hid": False, "sdk_type": DeviceType.DRAM},
+    "mobo":     {"type": "Motherboard", "label": "Motherboard", "hid": False, "sdk_type": DeviceType.MOTHERBOARD},
+    "mouse":    {"type": "Mouse",       "label": "Mouse",       "hid": True,  "sdk_type": None},
+    "keyboard": {"type": "Keyboard",    "label": "Keyboard",    "hid": True,  "sdk_type": None},
 }
 
 ENUM_TTL_S = 8.0
+
+
+@contextmanager
+def write_lock(timeout: float = 2.0):
+    fd = os.open(WRITE_LOCK, os.O_CREAT | os.O_WRONLY, 0o666)
+    try:
+        deadline = time.monotonic() + timeout
+        while True:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if time.monotonic() >= deadline:
+                    raise TimeoutError(f"openrgb-write.lock held >{timeout}s")
+                time.sleep(0.01)
+        yield
+    finally:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+        finally:
+            os.close(fd)
+
+
+def touch_pause():
+    try:
+        PAUSE_SENTINEL.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+    PAUSE_SENTINEL.touch()
+
+
+def clear_pause():
+    try:
+        PAUSE_SENTINEL.unlink()
+    except FileNotFoundError:
+        pass
 
 
 def load_state() -> dict[str, Any]:
@@ -108,6 +155,47 @@ async def restart_keyleds() -> str:
     return "\n".join(msgs)
 
 
+_sdk_client: OpenRGBClient | None = None
+
+
+def _sdk() -> OpenRGBClient:
+    global _sdk_client
+    if _sdk_client is None:
+        _sdk_client = OpenRGBClient(address=OPENRGB_HOST, port=OPENRGB_PORT, name="rgb-control")
+    return _sdk_client
+
+
+def _sdk_reset():
+    global _sdk_client
+    if _sdk_client is not None:
+        try:
+            _sdk_client.disconnect()
+        except Exception:
+            pass
+    _sdk_client = None
+
+
+def _sdk_devices_of_type(dt: DeviceType) -> list[Any]:
+    try:
+        c = _sdk()
+        c.update()
+        return [d for d in c.devices if d.type == dt]
+    except Exception as e:
+        log.warning("sdk enumerate failed: %s", e)
+        _sdk_reset()
+        return []
+
+
+def _sdk_device_dict(dev: Any, all_devices: list[Any]) -> dict[str, Any]:
+    return {
+        "index": all_devices.index(dev),
+        "name": dev.name,
+        "type": str(dev.type).rsplit(".", 1)[-1],
+        "modes": [m.name for m in dev.modes],
+        "zones": [z.name for z in dev.zones],
+    }
+
+
 def config_dir_for_class(cls: str) -> Path:
     return HID_CONFIG if DEVICE_CLASSES[cls]["hid"] else SAFE_CONFIG
 
@@ -115,7 +203,7 @@ def config_dir_for_class(cls: str) -> Path:
 _enum_cache: dict[str, tuple[float, list[dict[str, Any]]]] = {}
 
 
-async def list_devices(config_dir: Path) -> list[dict[str, Any]]:
+async def list_devices_cli(config_dir: Path) -> list[dict[str, Any]]:
     key = str(config_dir)
     now = time.monotonic()
     cached = _enum_cache.get(key)
@@ -186,10 +274,28 @@ def parse_list_devices(text: str) -> list[dict[str, Any]]:
 
 async def devices_for_class(cls: str) -> list[dict[str, Any]]:
     info = DEVICE_CLASSES[cls]
-    if info["hid"] and not load_state().get("override"):
+    if info["hid"]:
+        if not load_state().get("override"):
+            return []
+        all_devs = await list_devices_cli(config_dir_for_class(cls))
+        return [d for d in all_devs if (d.get("type") or "").lower() == info["type"].lower()]
+    return await asyncio.to_thread(_sdk_devices_for_class, cls)
+
+
+def _sdk_devices_for_class(cls: str) -> list[dict[str, Any]]:
+    info = DEVICE_CLASSES[cls]
+    try:
+        c = _sdk()
+        c.update()
+        out = []
+        for d in c.devices:
+            if d.type == info["sdk_type"]:
+                out.append(_sdk_device_dict(d, c.devices))
+        return out
+    except Exception as e:
+        log.warning("sdk devices_for_class(%s) failed: %s", cls, e)
+        _sdk_reset()
         return []
-    all_devs = await list_devices(config_dir_for_class(cls))
-    return [d for d in all_devs if (d.get("type") or "").lower() == info["type"].lower()]
 
 
 _HEX_COLOR = re.compile(r"^[0-9A-Fa-f]{6}$")
@@ -204,6 +310,10 @@ def _normalize_color(c: str | None) -> str | None:
     return c.upper()
 
 
+def _color_to_rgb(hex_color: str) -> RGBColor:
+    return RGBColor(int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16))
+
+
 _I2C_NOISE = re.compile(r"^\[i2c_smbus_linux\] Failed to read i2c device PCI device ID\s*$")
 
 
@@ -212,9 +322,46 @@ def _clean_openrgb_output(text: str) -> str:
     return "\n".join(lines).strip()
 
 
-async def _apply_one(cls: str, device_idx: int, mode: str, color: str | None,
-                     zone: str | int | None, speed: str | int | None,
-                     brightness: str | int | None) -> tuple[int, str]:
+def _sdk_apply_one(cls: str, device_idx: int, mode: str, color: str | None,
+                   zone: str | int | None) -> tuple[int, str]:
+    try:
+        with write_lock(timeout=2.0):
+            c = _sdk()
+            c.update()
+            if device_idx < 0 or device_idx >= len(c.devices):
+                return 404, f"device index {device_idx} out of range (have {len(c.devices)})"
+            dev = c.devices[device_idx]
+            try:
+                dev.set_mode(mode)
+            except Exception as e:
+                return 500, f"set_mode({mode!r}) failed: {e}"
+            if color is not None:
+                rgb = _color_to_rgb(color)
+                if zone is None or zone == "":
+                    dev.set_color(rgb)
+                else:
+                    try:
+                        z_idx = int(zone)
+                    except ValueError:
+                        return 400, f"zone must be an integer, got {zone!r}"
+                    if z_idx < 0 or z_idx >= len(dev.zones):
+                        return 404, f"zone index {z_idx} out of range"
+                    z = dev.zones[z_idx]
+                    z.set_colors([rgb] * len(z.leds))
+                    dev.show()
+        touch_pause()
+        return 200, f"ok: device {device_idx} ({dev.name}) → mode={mode} color={color or '-'}"
+    except TimeoutError as e:
+        return 503, f"openrgb write lock busy: {e}"
+    except Exception as e:
+        log.warning("sdk apply failed: %s", e)
+        _sdk_reset()
+        return 500, f"sdk apply error: {e}"
+
+
+async def _apply_one_cli(cls: str, device_idx: int, mode: str, color: str | None,
+                         zone: str | int | None, speed: str | int | None,
+                         brightness: str | int | None) -> tuple[int, str]:
     args = [OPENRGB, "--config", str(config_dir_for_class(cls)), "--noautoconnect",
             "--device", str(device_idx)]
     if zone is not None and zone != "":
@@ -226,7 +373,7 @@ async def _apply_one(cls: str, device_idx: int, mode: str, color: str | None,
         args += ["--speed", str(int(speed))]
     if brightness is not None and brightness != "":
         args += ["--brightness", str(int(brightness))]
-    log.info("apply: %s", " ".join(args[1:]))
+    log.info("apply-cli: %s", " ".join(args[1:]))
     proc = await asyncio.create_subprocess_exec(
         *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
     )
@@ -263,12 +410,20 @@ async def apply_settings(payload: dict[str, Any]) -> tuple[int, str]:
     results = []
     overall_rc = 200
     for idx in targets:
-        rc, body = await _apply_one(cls, idx, mode, color, zone, speed, brightness)
+        if info["hid"]:
+            rc, body = await _apply_one_cli(cls, idx, mode, color, zone, speed, brightness)
+        else:
+            rc, body = await asyncio.to_thread(_sdk_apply_one, cls, idx, mode, color, zone)
         results.append(f"[device {idx}] rc={rc}\n{body}" if body else f"[device {idx}] rc={rc} ok")
-        if rc != 0:
-            overall_rc = 500
+        if rc not in (200, 0):
+            overall_rc = rc if overall_rc == 200 else overall_rc
     _enum_cache.clear()
-    return overall_rc, "\n\n".join(results)[-1200:]
+    return overall_rc if overall_rc != 200 else 200, "\n\n".join(results)[-1200:]
+
+
+async def revert_to_animation() -> str:
+    clear_pause()
+    return "animation resumed"
 
 
 async def set_override(enabled: bool) -> str:
@@ -293,6 +448,7 @@ async def startup_recovery(app: web.Application) -> None:
     else:
         log.info("override=off at start — ensuring keyledsd is up")
         await restart_keyleds()
+    clear_pause()
 
 
 # ---------------------------------------------------------------- frontend
@@ -315,9 +471,14 @@ h1 { font-size: 1rem; font-weight: normal; }
 h1::before { content: "$ "; color: var(--accent); }
 .crumbs a { color: var(--accent); text-decoration: none; }
 .crumbs a:hover { text-decoration: underline; }
-.panic { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn);
-         padding: 0.5rem 0.9rem; font: inherit; cursor: pointer; }
+.actions { display: flex; gap: 0.5rem; }
+.panic, .revert {
+  border: 1px solid var(--line); background: var(--panel); color: var(--fg);
+  padding: 0.5rem 0.9rem; font: inherit; cursor: pointer;
+}
+.panic { background: var(--warn-bg); color: var(--warn); border-color: var(--warn); }
 .panic:hover { background: var(--warn); color: var(--bg); }
+.revert:hover { border-color: var(--accent); color: var(--accent); }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 0.8rem; margin-bottom: 1.5rem; }
 .card { background: var(--panel); border: 1px solid var(--line); padding: 1rem;
@@ -372,10 +533,14 @@ def _page(body: str, *, title: str = "rgb", crumb: str | None = None) -> str:
     <h1>{title}</h1>
     <div class="crumbs">{crumb_html}</div>
   </div>
-  <button class="panic" id="panic">restore keyleds</button>
+  <div class="actions">
+    <button class="revert" id="revert">resume animation</button>
+    <button class="panic" id="panic">restore keyleds</button>
+  </div>
 </header>
 {body}
 <div id="status">ready</div>
+<div id="healthz" style="display:none">ok</div>
 </div>
 <script>
 async function panicRestore() {{
@@ -387,12 +552,20 @@ async function panicRestore() {{
     s.className = r.ok ? 'ok' : 'err';
     s.textContent = (r.ok ? '✓ ' : '✗ ') + 'keyleds restored\\n' + t.slice(0, 400);
     if (r.ok) setTimeout(() => location.reload(), 600);
-  }} catch (e) {{
-    s.className = 'err';
-    s.textContent = '✗ ' + e.message;
-  }}
+  }} catch (e) {{ s.className = 'err'; s.textContent = '✗ ' + e.message; }}
+}}
+async function revert() {{
+  const s = document.getElementById('status');
+  s.className = ''; s.textContent = '→ resuming animation ...';
+  try {{
+    const r = await fetch('/api/revert', {{ method: 'POST' }});
+    const t = await r.text();
+    s.className = r.ok ? 'ok' : 'err';
+    s.textContent = (r.ok ? '✓ ' : '✗ ') + t.slice(0, 400);
+  }} catch (e) {{ s.className = 'err'; s.textContent = '✗ ' + e.message; }}
 }}
 document.getElementById('panic').addEventListener('click', panicRestore);
+document.getElementById('revert').addEventListener('click', revert);
 </script>
 </body></html>"""
 
@@ -647,6 +820,15 @@ async def api_recover(_: web.Request) -> web.Response:
     return web.Response(text=msg)
 
 
+async def api_revert(_: web.Request) -> web.Response:
+    msg = await revert_to_animation()
+    return web.Response(text=msg)
+
+
+async def api_healthz(_: web.Request) -> web.Response:
+    return web.Response(text="ok")
+
+
 def main() -> None:
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     app = web.Application()
@@ -654,11 +836,13 @@ def main() -> None:
     app.add_routes([
         web.get("/", page_index),
         web.get("/d/{cls}", page_device),
+        web.get("/healthz", api_healthz),
         web.get("/api/state", api_state),
         web.get("/api/devices/{cls}", api_devices),
         web.post("/api/apply", api_apply),
         web.post("/api/override", api_override),
         web.post("/api/recover", api_recover),
+        web.post("/api/revert", api_revert),
     ])
     web.run_app(
         app,
