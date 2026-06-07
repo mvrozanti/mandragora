@@ -34,7 +34,7 @@ in
     description = "Memory pressure tripwire — snapshot top RSS+swap processes when MemAvailable<15% or SwapUsed>70%";
     after = [ "multi-user.target" ];
     wantedBy = [ "multi-user.target" ];
-    environment.PATH = tripwirePath;
+    environment.PATH = lib.mkForce tripwirePath;
     serviceConfig = {
       Type = "simple";
       ExecStart = "${tripwireScript}";
