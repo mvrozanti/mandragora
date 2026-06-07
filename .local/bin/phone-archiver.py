@@ -24,7 +24,9 @@ HOME = Path(os.environ.get("HOME", "/home/m"))
 INBOX_ROOT = HOME / "Pictures" / "PhoneInbox"
 LOCK_PATH = HOME / ".cache" / "phone-archiver.lock"
 
-MIN_AGE_SECONDS = 60
+MID_TRANSFER_GUARD_SECONDS = 60
+RETENTION_DAYS = int(os.environ.get("PHONE_ARCHIVER_RETENTION_DAYS", "30"))
+RETENTION_SECONDS = RETENTION_DAYS * 86400
 SKIP_NAMES = {".stfolder", ".stversions", ".stignore"}
 SKIP_SUFFIXES = (".tmp", ".partial", ".part")
 SKIP_INFIX = ".sync-conflict-"
@@ -98,9 +100,12 @@ def should_skip(path, now):
     if SKIP_INFIX in name:
         return True
     try:
-        if now - path.stat().st_mtime < MIN_AGE_SECONDS:
-            return True
+        age = now - path.stat().st_mtime
     except FileNotFoundError:
+        return True
+    if age < MID_TRANSFER_GUARD_SECONDS:
+        return True
+    if age < RETENTION_SECONDS:
         return True
     return False
 
