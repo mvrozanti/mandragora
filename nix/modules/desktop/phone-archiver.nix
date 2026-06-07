@@ -27,6 +27,9 @@ in
       TimeoutStartSec = "20min";
       Nice = 19;
       IOSchedulingClass = "idle";
+      Environment = [
+        "PHONE_ARCHIVER_RETENTION_DAYS=30"
+      ];
     };
   };
 
