@@ -1,6 +1,14 @@
 { config, pkgs, lib, ... }:
 
 let
+  tripwirePath = lib.makeBinPath [
+    pkgs.gawk
+    pkgs.coreutils
+    pkgs.procps
+    pkgs.util-linux
+    pkgs.systemd
+    pkgs.inetutils
+  ];
   tripwireScript = pkgs.writeShellScript "oom-tripwire" (builtins.readFile ../../../.local/bin/oom-tripwire.sh);
 in
 {
@@ -26,6 +34,7 @@ in
     description = "Memory pressure tripwire — snapshot top RSS+swap processes when MemAvailable<15% or SwapUsed>70%";
     after = [ "multi-user.target" ];
     wantedBy = [ "multi-user.target" ];
+    environment.PATH = tripwirePath;
     serviceConfig = {
       Type = "simple";
       ExecStart = "${tripwireScript}";
