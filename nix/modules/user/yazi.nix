@@ -302,17 +302,17 @@ in
         { on = "<C-v>"; run = ''shell "wl-paste -t image/png > $(mktemp -p . --suffix=.png paste-XXXXXX)"''; desc = "Paste PNG from clipboard"; }
         { on = "<C-V>"; run = ''shell "wl-paste -t image/jpeg > $(mktemp -p . --suffix=.jpg paste-XXXXXX)"''; desc = "Paste JPEG from clipboard"; }
         { on = "D"; run = ''shell "trash-put -- %s"''; desc = "Trash"; }
-        { on = [ "o" "n" ]; run = "sort natural"; desc = "Sort natural asc"; }
-        { on = [ "o" "N" ]; run = "sort natural --reverse"; desc = "Sort natural desc"; }
-        { on = [ "o" "a" ]; run = "sort alphabetical"; desc = "Sort alphabetical asc"; }
-        { on = [ "o" "A" ]; run = "sort alphabetical --reverse"; desc = "Sort alphabetical desc"; }
+        { on = [ "o" "n" ]; run = "sort natural --reverse=no"; desc = "Sort natural asc"; }
+        { on = [ "o" "N" ]; run = "sort natural --reverse=yes"; desc = "Sort natural desc"; }
+        { on = [ "o" "a" ]; run = "sort alphabetical --reverse=no"; desc = "Sort alphabetical asc"; }
+        { on = [ "o" "A" ]; run = "sort alphabetical --reverse=yes"; desc = "Sort alphabetical desc"; }
         { on = [ "o" "z" ]; run = "sort random"; desc = "Sort random"; }
-        { on = [ "o" "s" ]; run = "sort size --reverse"; desc = "Sort size desc"; }
-        { on = [ "o" "S" ]; run = "sort size"; desc = "Sort size asc"; }
-        { on = [ "o" "m" ]; run = "sort mtime --reverse"; desc = "Sort mtime desc"; }
-        { on = [ "o" "M" ]; run = "sort mtime"; desc = "Sort mtime asc"; }
-        { on = [ "o" "c" ]; run = "sort mtime"; desc = "Sort mtime asc (was lf ctime)"; }
-        { on = [ "o" "C" ]; run = "sort mtime --reverse"; desc = "Sort mtime desc (was lf ctime)"; }
+        { on = [ "o" "s" ]; run = "sort size --reverse=yes"; desc = "Sort size desc"; }
+        { on = [ "o" "S" ]; run = "sort size --reverse=no"; desc = "Sort size asc"; }
+        { on = [ "o" "m" ]; run = "sort mtime --reverse=yes"; desc = "Sort mtime desc"; }
+        { on = [ "o" "M" ]; run = "sort mtime --reverse=no"; desc = "Sort mtime asc"; }
+        { on = [ "o" "c" ]; run = "sort mtime --reverse=no"; desc = "Sort mtime asc (was lf ctime)"; }
+        { on = [ "o" "C" ]; run = "sort mtime --reverse=yes"; desc = "Sort mtime desc (was lf ctime)"; }
         { on = "e"; run = ''shell "$EDITOR %s" --block''; desc = "Edit in $EDITOR"; }
         { on = [ "b" "w" ]; run = ''shell "setbg %s" --orphan''; desc = "Set wallpaper"; }
         { on = "M"; run = "create --dir"; desc = "mkdir"; }
