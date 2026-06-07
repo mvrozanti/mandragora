@@ -6,8 +6,8 @@ buildGoModule {
   src = fetchFromGitHub {
     owner = "mvrozanti";
     repo = "autoclaude";
-    rev = "1be2312900c77f15ee4788574828615d614e0d89";
-    hash = "sha256-snyY1ZiPpG5sAR7cikhGdljAt9tVC9tzNUVmrtC1bJE=";
+    rev = "5943760266916f3372f5bf96259999ce3d5579a3";
+    hash = "sha256-WsUdHqeT0y7BvkJS2lJI7cSycpkRItbtzxivcoFvaUU=";
   };
 
   vendorHash = "sha256-bq27PpkygOvE0HQpqWCbDRcNgYRP8pV+Q3RSNovCN58=";
