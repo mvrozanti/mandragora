@@ -70,4 +70,22 @@
     monospace = [ "Iosevka Nerd Font Mono" ];
     emoji = [ "Noto Color Emoji" ];
   };
+
+  systemd.user.paths.wayland-socket-watch = {
+    description = "Watch wayland-1 socket for compositor restart";
+    wantedBy = [ "default.target" ];
+    pathConfig = {
+      PathExists = "%t/wayland-1";
+      Unit = "wayland-socket-restart-deps.service";
+    };
+  };
+
+  systemd.user.services.wayland-socket-restart-deps = {
+    description = "Restart user services holding stale wayland refs after compositor restart";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
+      ExecStart = "${pkgs.systemd}/bin/systemctl --user try-restart kdeconnectd.service xdg-desktop-portal.service xdg-desktop-portal-hyprland.service";
+    };
+  };
 }
