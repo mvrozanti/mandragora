@@ -1,19 +1,19 @@
 { lib, buildGoModule, fetchFromGitHub }:
 buildGoModule {
   pname = "autoclaude";
-  version = "unstable-2026-05-30";
+  version = "unstable-2026-06-07";
 
   src = fetchFromGitHub {
     owner = "mvrozanti";
     repo = "autoclaude";
-    rev = "39ad5ef1818a9c71241bea463da3af33f1dccf69";
-    hash = "sha256-+EEeijp1FfHK/ScpegdTaIYfaM9JM89NizvpGh2ezFM=";
+    rev = "ea9766cc35de2cf845b093d50710d17b8e8ed1d4";
+    hash = "sha256-zpLKquxAESNpQuaQ7IiNVVcIGpB2PJbDX/2i06Xij4A=";
   };
 
   vendorHash = "sha256-bq27PpkygOvE0HQpqWCbDRcNgYRP8pV+Q3RSNovCN58=";
 
   meta = {
-    description = "TUI that monitors tmux panes running Claude Code and sends 'continue' when rate limits reset";
+    description = "Headless watcher (or TUI) that monitors tmux panes for Claude Code rate-limit pickers, selects 'Stop and wait', and sends 'continue' when the limit resets";
     homepage = "https://github.com/mvrozanti/autoclaude";
     license = lib.licenses.mit;
     mainProgram = "autoclaude";
