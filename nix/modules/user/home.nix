@@ -27,6 +27,7 @@ in
     ./axon.nix
     ./nb-vault-sync.nix
     ./path-filter.nix
+    ./autoclaude.nix
   ];
 
     services.udiskie = {
