@@ -84,6 +84,7 @@
     description = "Restart user services holding stale wayland refs after compositor restart";
     serviceConfig = {
       Type = "oneshot";
+      RemainAfterExit = true;
       ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
       ExecStart = "${pkgs.systemd}/bin/systemctl --user try-restart kdeconnectd.service xdg-desktop-portal.service xdg-desktop-portal-hyprland.service";
     };
