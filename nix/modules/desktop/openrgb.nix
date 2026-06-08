@@ -1,10 +1,7 @@
 { pkgs, ... }:
 
 let
-  detectorAllowExact = [
-    "ENE SMBus DRAM"
-    "Gigabyte RGB Fusion 2 USB"
-  ];
+  detectorAllowExact = [ "ENE SMBus DRAM" ];
   detectorAllowPatterns = [ "^ENE.*DRAM$" "^ENE.*$" ];
 
   scopeDetectorsPy = pkgs.writeText "openrgb-scope-detectors.py" ''
