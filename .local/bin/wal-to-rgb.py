@@ -92,10 +92,12 @@ for device in client.devices:
             continue
 
     if "aorus" in name or "gigabyte" in name:
-        for zone in device.zones:
-            if "D_LED" in zone.name:
-                zone.resize(CHAIN_LENGTH)
-                zone.set_colors(fan_chain_colors())
+        d_led_zones = [z for z in device.zones if "D_LED" in z.name]
+        for zone in d_led_zones:
+            zone.resize(CHAIN_LENGTH)
+        chain = fan_chain_colors()
+        for zone in d_led_zones:
+            zone.set_colors(chain)
     elif any(x in name for x in ["dram", "ene", "xpg"]):
         for zone in device.zones:
             zone.set_colors(ram_colors(len(zone.leds)))
