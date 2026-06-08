@@ -1,0 +1,20 @@
+services:
+
+  cv-es-proxy:
+    image: alpine:3.20
+    container_name: cv-es-proxy
+    restart: unless-stopped
+    command: ["sh", "-c", "while true; do sleep 3600; done"]
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://cv-es.${MVR_AC:-mvr.ac}
+      caddy.encode: zstd gzip
+      caddy.basic_auth.edgard: "${CV_ES_BCRYPT}"
+      caddy.reverse_proxy: "${CV_ES_UPSTREAM:-100.115.80.79:7691}"
+      caddy.reverse_proxy.flush_interval: "-1"
+      caddy.reverse_proxy.transport: "http"
+
+networks:
+  seafile-net:
+    external: true
