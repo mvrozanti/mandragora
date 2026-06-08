@@ -32,6 +32,7 @@
     ../../modules/desktop/syncthing.nix
     ../../modules/desktop/phone-archiver.nix
     ../../modules/desktop/steam.nix
+    ../../modules/desktop/wine-gaming.nix
     ../../modules/desktop/minecraft.nix
     ../../modules/desktop/ue5.nix
     ../../modules/desktop/claudecodebrowser.nix
