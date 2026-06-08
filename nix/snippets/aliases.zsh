@@ -301,7 +301,20 @@ v2whatsapp() { ffmpeg -i "$1" -c:v libx264 -profile:v baseline -level 3.0 -pix_f
 gource2mp4() { gource -s .06 -1280x720 --auto-skip-seconds .1 --multi-sampling --stop-at-end --key --highlight-users --hide mouse,progress,filenames,dirnames --file-idle-time 0 --max-files 0 --font-size 22 --title "$(basename "$(realpath .)")" --output-ppm-stream - --output-framerate 30 | ffmpeg -i - -b:v 3048780 -vcodec libx264 -crf 24 gource.mp4 }
 ytdl() { yt-dlp -4 -w --extract-audio --audio-format "mp3" -o "$HOME/Music/%(title)s.%(ext)s" "$@" }
 coytdl() { yt-dlp "$(co)" }
-coy() { ytdl "$(co)" }
+coy() {
+  local url=$(co)
+  local mp3
+  mp3=$(yt-dlp -4 -w --extract-audio --audio-format mp3 -o "$HOME/Music/%(title)s.%(ext)s" --print after_move:filepath "$url" | tail -n1) || return
+  [[ -f "$mp3" ]] || { print -u2 "coy: no mp3 produced"; return 1 }
+  local raw="${mp3:t:r}"
+  local json
+  json=$(claude -p --model haiku --json-schema '{"type":"object","properties":{"title":{"type":"string"},"artist":{"type":"string"}},"required":["title","artist"]}' "Extract the song title and performing artist from this YouTube video title. Strip junk like '(Official Video)', '[HD]', 'Lyrics', channel names. If artist is unclear, use best guess from the title. Title: $raw") || return
+  local title=$(jq -r '.title // empty' <<<"$json")
+  local artist=$(jq -r '.artist // empty' <<<"$json")
+  [[ -z $title || -z $artist ]] && { print -u2 "coy: tag parse failed: $json"; return 1 }
+  local tmp="${mp3:r}.tagged.mp3"
+  ffmpeg -y -loglevel error -i "$mp3" -map 0 -c copy -metadata title="$title" -metadata artist="$artist" "$tmp" && mv -f "$tmp" "$mp3" && print "coy: $artist — $title"
+}
 ytpl() { mpv --script-opts=ytdl_hook-try_ytdl_first=yes "ytdl://ytsearch:$*" }
 alias yts='ytpl'
 
