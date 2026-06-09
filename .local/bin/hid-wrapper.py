@@ -66,9 +66,44 @@ def set_colors(mouse, pywal_colors):
     mouse.set_logo_color(pywal_colors[3])
 
 def blackout_openrgb():
-    subprocess.run(["openrgb", "--device", "0", "--color", "000000", "--mode", "direct"], capture_output=True)
-    subprocess.run(["openrgb", "--device", "1", "--color", "000000", "--mode", "direct"], capture_output=True)
-    subprocess.run(["openrgb", "--device", "3", "--color", "000000", "--mode", "direct"], capture_output=True)
+    from openrgb import OpenRGBClient
+    from openrgb.utils import RGBColor
+    try:
+        client = OpenRGBClient()
+    except Exception:
+        return
+    black = RGBColor(0, 0, 0)
+    for d in client.devices:
+        name = (d.name or "").lower()
+        if any(x in name for x in ["keyboard", "logitech", "mouse", "steelseries", "rival"]):
+            continue
+        for mode_name in ("Direct", "Static"):
+            try:
+                d.set_mode(mode_name)
+                break
+            except Exception:
+                continue
+        if "aorus" in name or "gigabyte" in name:
+            d_led_zones = [z for z in d.zones if "D_LED" in z.name]
+            for z in d_led_zones:
+                try: z.resize(60)
+                except Exception: pass
+            for z in d_led_zones:
+                try: z.set_colors([black] * len(z.leds))
+                except Exception: pass
+            for z in d.zones:
+                if z not in d_led_zones and z.leds:
+                    try: z.set_colors([black] * len(z.leds))
+                    except Exception: pass
+        else:
+            for z in d.zones:
+                if z.leds:
+                    try: z.set_colors([black] * len(z.leds))
+                    except Exception: pass
+        try: d.show()
+        except Exception: pass
+    try: client.disconnect()
+    except Exception: pass
 
 def restore_openrgb():
     subprocess.run(["wal-to-rgb"], capture_output=True)
