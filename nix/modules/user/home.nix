@@ -5,6 +5,7 @@ let
   pySinonEnv = pkgs.python3.withPackages (ps: with ps; [ requests beautifulsoup4 lxml unidecode ]);
   hidWrapperEnv = pkgs.python3.withPackages (ps: [
     ps.colour
+    ps.openrgb-python
     (pkgs.python3.pkgs.toPythonModule pkgs.rivalcfg)
   ]);
   lightEnv = pkgs.python3.withPackages (ps: with ps; [ requests numpy ]);
