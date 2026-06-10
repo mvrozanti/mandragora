@@ -8,6 +8,7 @@
 .gemini/skills/*
 result
 __pycache__/
+nix/hosts/mandragora-wsl/local.nix
 .worktrees/
 .axon/
 *.torrent

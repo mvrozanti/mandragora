@@ -129,6 +129,35 @@ that IT could read. Use app-specific passwords, OAuth tokens scoped
 to your personal accounts, or keep all secrets in `pass`/`gpg` with
 keys you carry separately.
 
+## Local-only work branch (work-PC mode)
+
+mandragora-wsl is designed to run on a machine where data must not
+leave the box (work laptops). The bootstrap puts your checkout on a
+local `work` branch that is **never pushed**:
+
+- `branch.work.pushRemote` is set to `no_push` (a non-existent
+  remote) so `git push` from inside `work` errors out instead of
+  silently shipping commits to github.
+- `merge.autoStash` is on, so uncommitted edits survive `nrs`.
+- `nrs` is rebound to `mandragora-wsl-switch`: it does
+  `git fetch origin master` → merge `FETCH_HEAD` into `work` →
+  `git add -A` → `nixos-rebuild switch`. No push, ever. Conflicts
+  stop the script and ask you to resolve by hand (`git commit`,
+  then re-run `nrs`).
+- Anything you don't want to commit at all goes in
+  `nix/hosts/mandragora-wsl/local.nix` — gitignored, auto-imported
+  by the host if present.
+
+To backport a fix from work-box → home repo, do it by hand:
+
+```bash
+git -C /etc/nixos/mandragora log master..work --oneline
+# copy the diffs you want, retype/apply on the home box
+```
+
+Override the branch name with `$env:MANDRAGORA_WORK_BRANCH` (passed
+through to bootstrap) if `work` collides with something.
+
 ## After install
 
 When the orchestrator prints `==> mandragora-wsl install complete.`

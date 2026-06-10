@@ -52,6 +52,7 @@ if ! command -v git >/dev/null 2>&1; then
 fi
 
 echo '[2/3] obtain mandragora repo'
+WORK_BRANCH="${MANDRAGORA_WORK_BRANCH:-work}"
 if [ -d "$REPO_DIR/.git" ]; then
     if confirm_replace "$REPO_DIR"; then
         sudo rm -rf "$REPO_DIR"
@@ -59,7 +60,7 @@ if [ -d "$REPO_DIR/.git" ]; then
         sudo chown "$USER:users" "$(dirname "$REPO_DIR")"
         git clone "$REPO_URL" "$REPO_DIR"
     else
-        git -C "$REPO_DIR" pull --ff-only
+        echo "    keeping existing checkout (no pull -- merge upstream via 'nrs' on demand)"
     fi
 else
     sudo mkdir -p "$(dirname "$REPO_DIR")"
@@ -67,7 +68,17 @@ else
     git clone "$REPO_URL" "$REPO_DIR"
 fi
 
+if ! git -C "$REPO_DIR" rev-parse --verify --quiet "$WORK_BRANCH" >/dev/null; then
+    echo "    creating local '$WORK_BRANCH' branch (never pushed)"
+    git -C "$REPO_DIR" checkout -b "$WORK_BRANCH"
+elif [ "$(git -C "$REPO_DIR" symbolic-ref --short HEAD 2>/dev/null)" != "$WORK_BRANCH" ]; then
+    git -C "$REPO_DIR" checkout "$WORK_BRANCH"
+fi
+git -C "$REPO_DIR" config merge.autoStash true
+git -C "$REPO_DIR" config branch."$WORK_BRANCH".pushRemote no_push
+
 echo '[3/3] build mandragora-wsl host'
+git -C "$REPO_DIR" add -A
 rebuild_log="$(log_to nixos-rebuild.log)"
 echo "    rebuild log -> $rebuild_log"
 set +e

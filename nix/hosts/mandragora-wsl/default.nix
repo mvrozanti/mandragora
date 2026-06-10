@@ -3,7 +3,7 @@
 {
   imports = [
     ../../pkgs/overlays.nix
-  ];
+  ] ++ lib.optional (builtins.pathExists ./local.nix) ./local.nix;
 
   mandragora.profile = "wsl";
 
@@ -110,9 +110,31 @@
       esac
       exec /mnt/c/Windows/explorer.exe "$target"
     '';
+    mandragoraWslSwitch = writeShellScriptBin "mandragora-wsl-switch" ''
+      set -e
+      repo=/etc/nixos/mandragora
+      cd "$repo"
+      branch=$(${pkgs.git}/bin/git symbolic-ref --short HEAD 2>/dev/null || echo DETACHED)
+      if [ "$branch" = "master" ] || [ "$branch" = "main" ]; then
+        echo "refusing to run on '$branch'. switch to your work branch first:" >&2
+        echo "  git -C $repo checkout -b work" >&2
+        exit 1
+      fi
+      echo "==> fetch origin master"
+      ${pkgs.git}/bin/git fetch origin master
+      echo "==> merge origin/master into $branch"
+      if ! ${pkgs.git}/bin/git -c merge.autoStash=true merge --no-edit FETCH_HEAD; then
+        echo "merge conflict. resolve, 'git commit', then re-run mandragora-wsl-switch." >&2
+        exit 1
+      fi
+      ${pkgs.git}/bin/git add -A
+      echo "==> nixos-rebuild switch"
+      exec sudo nixos-rebuild switch --flake "$repo#mandragora-wsl" --impure
+    '';
   in [
     win32yank
     xdgOpenShim
+    mandragoraWslSwitch
     (copyShim "wl-copy")
     (pasteShim "wl-paste")
     (copyShim "pbcopy")
@@ -135,7 +157,7 @@
     home.homeDirectory = "/home/m";
     home.stateVersion = "24.05";
     programs.zsh.shellAliases = {
-      nrs = lib.mkForce "git -C /etc/nixos/mandragora pull --rebase --autostash && sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora-wsl --impure";
+      nrs = lib.mkForce "mandragora-wsl-switch";
     };
   };
 
