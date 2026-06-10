@@ -1,14 +1,25 @@
 { config, pkgs, lib, ... }:
 
 let
-  dashboard = {
-    title = "Mandragora System";
-    uid = "mandragora-system";
+  mkSystemDashboard = {
+    title,
+    uid,
+    instance,
+    nic,
+    disk,
+    withGpu ? false,
+    withEbpf ? false,
+    withDirsize ? false,
+    withFsUsage ? false,
+  }: let
+    inst = ''instance="${instance}"'';
+  in {
+    inherit title uid;
     schemaVersion = 38;
     version = 1;
     refresh = "5m";
     time = { from = "now-24h"; to = "now"; };
-    panels = [
+    panels = (lib.optionals withDirsize [
       # ── Row: Directory Activity ──────────────────────────────────────────────
       {
         id = 1; type = "row"; title = "Directory Activity"; collapsed = false;
@@ -19,7 +30,7 @@ let
         gridPos = { x = 0; y = 1; w = 12; h = 9; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "topk(10, abs(delta(dirsize_bytes[5m])))";
+          expr = ''topk(10, abs(delta(dirsize_bytes{${inst}}[5m])))'';
           legendFormat = "{{path}}";
           refId = "A";
         } ];
@@ -39,7 +50,7 @@ let
         gridPos = { x = 12; y = 1; w = 12; h = 9; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "topk(10, abs(delta(dir_inode_count[5m])))";
+          expr = ''topk(10, abs(delta(dir_inode_count{${inst}}[5m])))'';
           legendFormat = "{{path}}";
           refId = "A";
         } ];
@@ -54,7 +65,7 @@ let
           tooltip = { mode = "multi"; sort = "desc"; };
         };
       }
-
+    ]) ++ (lib.optionals withGpu [
       # ── Row: GPU (NVIDIA) ───────────────────────────────────────────────────
       {
         id = 14; type = "row"; title = "GPU Performance"; collapsed = false;
@@ -66,13 +77,13 @@ let
         targets = [
           {
             datasource = { type = "prometheus"; uid = "prometheus"; };
-            expr = "nvidia_smi_utilization_gpu_ratio * 100";
+            expr = ''nvidia_smi_utilization_gpu_ratio{${inst}} * 100'';
             legendFormat = "GPU Core %";
             refId = "A";
           }
           {
             datasource = { type = "prometheus"; uid = "prometheus"; };
-            expr = "nvidia_smi_utilization_memory_ratio * 100";
+            expr = ''nvidia_smi_utilization_memory_ratio{${inst}} * 100'';
             legendFormat = "GPU Mem %";
             refId = "B";
           }
@@ -85,7 +96,7 @@ let
         gridPos = { x = 18; y = 11; w = 6; h = 8; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "nvidia_smi_temperature_gpu";
+          expr = ''nvidia_smi_temperature_gpu{${inst}}'';
           refId = "A";
         } ];
         fieldConfig = {
@@ -99,25 +110,25 @@ let
         };
         options = { textMode = "value"; colorMode = "value"; graphMode = "area"; };
       }
-
+    ]) ++ [
       # ── Row: Network ───────────────────────────────────────────────────────
       {
         id = 4; type = "row"; title = "Network"; collapsed = false;
         gridPos = { x = 0; y = 19; w = 24; h = 1; };
       }
       {
-        id = 5; type = "timeseries"; title = "Network Traffic (enp8s0)";
+        id = 5; type = "timeseries"; title = "Network Traffic (${nic})";
         gridPos = { x = 0; y = 20; w = 18; h = 8; };
         targets = [
           {
             datasource = { type = "prometheus"; uid = "prometheus"; };
-            expr = ''rate(node_network_receive_bytes_total{device="enp8s0"}[5m])'';
+            expr = ''rate(node_network_receive_bytes_total{${inst},device="${nic}"}[5m])'';
             legendFormat = "rx";
             refId = "A";
           }
           {
             datasource = { type = "prometheus"; uid = "prometheus"; };
-            expr = ''rate(node_network_transmit_bytes_total{device="enp8s0"}[5m])'';
+            expr = ''rate(node_network_transmit_bytes_total{${inst},device="${nic}"}[5m])'';
             legendFormat = "tx";
             refId = "B";
           }
@@ -130,7 +141,7 @@ let
         gridPos = { x = 18; y = 20; w = 3; h = 8; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = ''sum(increase(node_network_receive_bytes_total{device="enp8s0"}[24h]))'';
+          expr = ''sum(increase(node_network_receive_bytes_total{${inst},device="${nic}"}[24h]))'';
           refId = "A";
         } ];
         fieldConfig = { defaults = { unit = "bytes"; }; };
@@ -140,12 +151,12 @@ let
         gridPos = { x = 21; y = 20; w = 3; h = 8; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = ''sum(increase(node_network_transmit_bytes_total{device="enp8s0"}[24h]))'';
+          expr = ''sum(increase(node_network_transmit_bytes_total{${inst},device="${nic}"}[24h]))'';
           refId = "A";
         } ];
         fieldConfig = { defaults = { unit = "bytes"; }; };
       }
-
+    ] ++ (lib.optionals withEbpf [
       # ── Row: Per-cgroup network ────────────────────────────────────────────
       {
         id = 20; type = "row"; title = "WAN traffic by cgroup (eBPF)"; collapsed = false;
@@ -156,7 +167,7 @@ let
         gridPos = { x = 0; y = 29; w = 12; h = 9; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "topk(10, rate(ebpf_exporter_cgroup_wan_tcp_recv_bytes_total[5m]))";
+          expr = ''topk(10, rate(ebpf_exporter_cgroup_wan_tcp_recv_bytes_total{${inst}}[5m]))'';
           legendFormat = "{{cgroup}}";
           refId = "A";
         } ];
@@ -171,7 +182,7 @@ let
         gridPos = { x = 12; y = 29; w = 12; h = 9; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "topk(10, rate(ebpf_exporter_cgroup_wan_tcp_send_bytes_total[5m]))";
+          expr = ''topk(10, rate(ebpf_exporter_cgroup_wan_tcp_send_bytes_total{${inst}}[5m]))'';
           legendFormat = "{{cgroup}}";
           refId = "A";
         } ];
@@ -181,25 +192,25 @@ let
           tooltip = { mode = "multi"; sort = "desc"; };
         };
       }
-
+    ]) ++ [
       # ── Row: Disk I/O ──────────────────────────────────────────────────────
       {
         id = 8; type = "row"; title = "Disk I/O"; collapsed = false;
         gridPos = { x = 0; y = 38; w = 24; h = 1; };
       }
       {
-        id = 9; type = "timeseries"; title = "Disk I/O (nvme0n1)";
+        id = 9; type = "timeseries"; title = "Disk I/O (${disk})";
         gridPos = { x = 0; y = 39; w = 24; h = 8; };
         targets = [
           {
             datasource = { type = "prometheus"; uid = "prometheus"; };
-            expr = ''rate(node_disk_read_bytes_total{device="nvme0n1"}[5m])'';
+            expr = ''rate(node_disk_read_bytes_total{${inst},device="${disk}"}[5m])'';
             legendFormat = "read";
             refId = "A";
           }
           {
             datasource = { type = "prometheus"; uid = "prometheus"; };
-            expr = ''rate(node_disk_written_bytes_total{device="nvme0n1"}[5m])'';
+            expr = ''rate(node_disk_written_bytes_total{${inst},device="${disk}"}[5m])'';
             legendFormat = "write";
             refId = "B";
           }
@@ -218,13 +229,13 @@ let
         targets = [
           {
             datasource = { type = "prometheus"; uid = "prometheus"; };
-            expr = ''100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)'';
+            expr = ''100 - (avg(rate(node_cpu_seconds_total{${inst},mode="idle"}[5m])) * 100)'';
             legendFormat = "CPU %";
             refId = "A";
           }
           {
             datasource = { type = "prometheus"; uid = "prometheus"; };
-            expr = "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100";
+            expr = ''(1 - (node_memory_MemAvailable_bytes{${inst}} / node_memory_MemTotal_bytes{${inst}})) * 100'';
             legendFormat = "Memory %";
             refId = "B";
           }
@@ -236,7 +247,7 @@ let
         gridPos = { x = 18; y = 48; w = 3; h = 8; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "time() - node_boot_time_seconds";
+          expr = ''time() - node_boot_time_seconds{${inst}}'';
           refId = "A";
         } ];
         fieldConfig = { defaults = { unit = "s"; }; };
@@ -246,7 +257,7 @@ let
         gridPos = { x = 21; y = 48; w = 3; h = 8; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = "node_load1";
+          expr = ''node_load1{${inst}}'';
           refId = "A";
         } ];
         fieldConfig = { defaults = { unit = "short"; }; };
@@ -262,7 +273,7 @@ let
         gridPos = { x = 0; y = 57; w = 24; h = 9; };
         targets = [ {
           datasource = { type = "prometheus"; uid = "prometheus"; };
-          expr = ''avg by (mode) (rate(node_cpu_seconds_total{mode!~"idle|guest|guest_nice"}[5m])) * 100'';
+          expr = ''avg by (mode) (rate(node_cpu_seconds_total{${inst},mode!~"idle|guest|guest_nice"}[5m])) * 100'';
           legendFormat = "{{mode}}";
           refId = "A";
         } ];
@@ -282,10 +293,89 @@ let
           tooltip = { mode = "multi"; sort = "desc"; };
         };
       }
-    ];
+    ] ++ (lib.optionals withFsUsage [
+      # ── Row: Filesystem ────────────────────────────────────────────────────
+      {
+        id = 30; type = "row"; title = "Filesystem"; collapsed = false;
+        gridPos = { x = 0; y = 66; w = 24; h = 1; };
+      }
+      {
+        id = 31; type = "timeseries"; title = "Filesystem Used %";
+        gridPos = { x = 0; y = 67; w = 18; h = 8; };
+        targets = [ {
+          datasource = { type = "prometheus"; uid = "prometheus"; };
+          expr = ''100 * (1 - (node_filesystem_avail_bytes{${inst},fstype!~"tmpfs|overlay|squashfs"} / node_filesystem_size_bytes{${inst},fstype!~"tmpfs|overlay|squashfs"}))'';
+          legendFormat = "{{mountpoint}}";
+          refId = "A";
+        } ];
+        fieldConfig = {
+          defaults = {
+            unit = "percent";
+            min = 0;
+            max = 100;
+            thresholds = {
+              mode = "absolute";
+              steps = [ { color = "green"; value = null; } { color = "orange"; value = 80; } { color = "red"; value = 95; } ];
+            };
+          };
+        };
+        options = { legend = { displayMode = "list"; placement = "bottom"; }; };
+      }
+      {
+        id = 32; type = "stat"; title = "Root FS Free";
+        gridPos = { x = 18; y = 67; w = 6; h = 8; };
+        targets = [ {
+          datasource = { type = "prometheus"; uid = "prometheus"; };
+          expr = ''node_filesystem_avail_bytes{${inst},mountpoint="/"}'';
+          refId = "A";
+        } ];
+        fieldConfig = {
+          defaults = {
+            unit = "bytes";
+            thresholds = {
+              mode = "absolute";
+              steps = [ { color = "red"; value = null; } { color = "orange"; value = 5368709120; } { color = "green"; value = 21474836480; } ];
+            };
+          };
+        };
+        options = { textMode = "value"; colorMode = "value"; graphMode = "area"; };
+      }
+    ]);
   };
 
-  dashboardDir = pkgs.writeTextDir "mandragora-system.json" (builtins.toJSON dashboard);
+  dashboardDesktop = mkSystemDashboard {
+    title = "Mandragora Desktop";
+    uid = "mandragora-desktop";
+    instance = "mandragora-desktop";
+    nic = "enp8s0";
+    disk = "nvme0n1";
+    withGpu = true;
+    withEbpf = true;
+    withDirsize = true;
+  };
+
+  dashboardVps = mkSystemDashboard {
+    title = "Mandragora VPS";
+    uid = "mandragora-vps";
+    instance = "mandragora-vps";
+    nic = "enp0s6";
+    disk = "sda";
+    withGpu = false;
+    withEbpf = true;
+    withDirsize = true;
+    withFsUsage = true;
+  };
+
+  dashboardDir = pkgs.linkFarm "mandragora-grafana-dashboards" [
+    {
+      name = "mandragora-desktop.json";
+      path = pkgs.writeText "mandragora-desktop.json" (builtins.toJSON dashboardDesktop);
+    }
+    {
+      name = "mandragora-vps.json";
+      path = pkgs.writeText "mandragora-vps.json" (builtins.toJSON dashboardVps);
+    }
+  ];
 in
 
 {
@@ -298,17 +388,34 @@ in
         {
           job_name = "node";
           scrape_interval = "15s";
-          static_configs = [ { targets = [ "localhost:9100" ]; } ];
+          static_configs = [ {
+            targets = [ "localhost:9100" ];
+            labels = { instance = "mandragora-desktop"; };
+          } ];
+        }
+        {
+          job_name = "node-vps";
+          scrape_interval = "30s";
+          static_configs = [ {
+            targets = [ "100.84.78.83:9100" ];
+            labels = { instance = "mandragora-vps"; };
+          } ];
         }
         {
           job_name = "nvidia";
           scrape_interval = "1m";
-          static_configs = [ { targets = [ "localhost:9835" ]; } ];
+          static_configs = [ {
+            targets = [ "localhost:9835" ];
+            labels = { instance = "mandragora-desktop"; };
+          } ];
         }
         {
           job_name = "ebpf";
           scrape_interval = "15s";
-          static_configs = [ { targets = [ "localhost:9435" ]; } ];
+          static_configs = [ {
+            targets = [ "localhost:9435" ];
+            labels = { instance = "mandragora-desktop"; };
+          } ];
         }
       ];
     };
