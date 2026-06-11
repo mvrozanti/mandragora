@@ -50,6 +50,7 @@
     ../../modules/services/gource-renderer-prewarm.nix
     ../../modules/services/ytdl-web.nix
     ../../modules/services/vtag-web.nix
+    ../../modules/services/emotion-web.nix
     ../../modules/user/home-manager.nix
     ../../modules/audits/default.nix
   ];
@@ -85,4 +86,5 @@
     secretBlacklist = "keystats/words_basicauth";
   };
   mandragora.vtagWeb = { enable = true; targetDir = "/mnt/toshiba/hdd/gdrive/Levv/4chan"; };
+  mandragora.emotionWeb.enable = true;
 }
