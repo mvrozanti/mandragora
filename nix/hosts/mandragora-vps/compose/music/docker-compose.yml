@@ -1,25 +1,25 @@
 services:
 
-  music:
-    image: ${MUSIC_IMAGE:-nginx:1.27-alpine}
-    container_name: music
+  music-proxy:
+    image: alpine:3.20
+    container_name: music-proxy
     restart: unless-stopped
-    volumes:
-      - ${MUSIC_STATIC_VOLUME:-./static}:/usr/share/nginx/html:ro
+    command: ["sh", "-c", "while true; do sleep 3600; done"]
     networks:
       - seafile-net
     labels:
       caddy: https://music.${MVR_AC:-mvr.ac}
-      caddy.encode: zstd gzip
-      caddy.0_forward_auth: "authelia:9091"
-      caddy.0_forward_auth.uri: "/api/authz/forward-auth"
-      caddy.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy.1_reverse_proxy: "{{upstreams 80}}"
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost/"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
+      caddy.0_handle.forward_auth: "authelia:9091"
+      caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.0_handle.reverse_proxy: "${MUSIC_UPSTREAM:-100.115.80.79:8094}"
+      caddy.0_handle.reverse_proxy.flush_interval: "-1"
+      caddy.0_handle.reverse_proxy.transport: "http"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   seafile-net:

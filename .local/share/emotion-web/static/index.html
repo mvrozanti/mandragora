@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mvr.ac · music · emotion</title>
+<style>
+:root {
+  --bg: #050805;
+  --panel: #0a0e0a;
+  --fg: #b8ffc4;
+  --accent: #00ff66;
+  --dim: #4a6a4e;
+  --hover: #0f1810;
+  --line: #1a2418;
+  --warm: #ffb347;
+  --hot: #ff6b6b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); color: var(--fg); font-family: "Iosevka", "JetBrains Mono", "Fira Code", ui-monospace, monospace; min-height: 100vh; }
+body { padding: 1.5rem 1.25rem 3rem; }
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none;
+  background: radial-gradient(circle at 30% 20%, rgba(0,255,102,0.04), transparent 50%);
+  z-index: 0;
+}
+.wrap { position: relative; z-index: 1; max-width: 1500px; margin: 0 auto; }
+
+header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding-bottom: 0.5rem; flex-wrap: wrap; gap: 0.75rem;
+}
+h1 { font-size: 1.05rem; font-weight: normal; color: var(--fg); letter-spacing: 0.02em; }
+h1::before { content: '$ '; color: var(--accent); }
+h1 .cursor { color: var(--accent); animation: blink 1.1s infinite; }
+@keyframes blink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+.user { color: var(--dim); font-size: 0.78rem; }
+.user a { color: var(--accent); text-decoration: none; margin-left: 0.75rem; }
+.user a:hover { text-decoration: underline; }
+
+.statusbar {
+  display: flex; flex-wrap: wrap; gap: 0.45rem; padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line); margin-bottom: 0.75rem;
+}
+.pill {
+  font-size: 0.7rem; padding: 0.22rem 0.55rem;
+  border: 1px solid var(--line); background: var(--panel);
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim);
+  display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.pill b { font-weight: 500; color: var(--fg); letter-spacing: 0; text-transform: none; font-size: 0.74rem; }
+.pill.ok { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 6px rgba(0,255,102,0.18); }
+.pill.warm { color: var(--warm); border-color: var(--warm); }
+.pill.hot { color: var(--hot); border-color: var(--hot); }
+.pill .dot { width: 0.4rem; height: 0.4rem; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px currentColor; }
+.pill.muted { opacity: 0.6; }
+
+.controls {
+  display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;
+  padding: 0.5rem 0 0.75rem; margin-bottom: 0.75rem;
+}
+.controls input, .controls select, .controls button {
+  background: var(--panel); color: var(--fg); border: 1px solid var(--line);
+  padding: 0.4rem 0.6rem; font-family: inherit; font-size: 0.78rem;
+}
+.controls input { flex: 1 1 320px; min-width: 0; }
+.controls input:focus, .controls select:focus, .controls button:focus { outline: none; border-color: var(--accent); }
+.controls label { color: var(--dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; }
+.controls .count { color: var(--dim); font-size: 0.75rem; margin-left: auto; }
+.controls button { cursor: pointer; color: var(--accent); }
+.controls button:hover { background: var(--hover); border-color: var(--accent); }
+.controls button[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+thead th {
+  background: var(--panel); color: var(--accent); text-align: left;
+  padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--line);
+  cursor: pointer; user-select: none;
+  font-weight: 500; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+  position: sticky; top: 0;
+}
+thead th:hover { background: var(--hover); }
+thead th .arrow { color: var(--dim); margin-left: 0.25rem; font-size: 0.7rem; }
+thead th.sorted .arrow { color: var(--accent); }
+tbody tr { border-bottom: 1px solid var(--line); transition: background 0.08s; cursor: pointer; }
+tbody tr:hover { background: var(--hover); }
+tbody tr.untagged { color: var(--dim); }
+tbody tr.has-error td.prose { color: var(--hot); }
+tbody td { padding: 0.5rem 0.7rem; vertical-align: top; }
+td.prose { line-height: 1.45; max-width: 540px; }
+td.filename { color: var(--dim); font-size: 0.72rem; max-width: 280px; word-break: break-all; }
+td.num { font-variant-numeric: tabular-nums; text-align: right; color: var(--fg); white-space: nowrap; }
+td.tag { color: var(--accent); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+td.actions { white-space: nowrap; }
+td.actions button {
+  background: var(--panel); color: var(--accent); border: 1px solid var(--line);
+  font-family: inherit; font-size: 0.7rem; padding: 0.22rem 0.5rem; cursor: pointer;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+td.actions button:hover { background: var(--hover); border-color: var(--accent); }
+td.actions button[disabled] { opacity: 0.35; cursor: not-allowed; }
+.axisbar {
+  display: inline-block; vertical-align: middle; height: 6px; width: 56px;
+  background: var(--line); margin-right: 0.4rem; position: relative; overflow: hidden;
+}
+.axisbar > span { display: block; height: 100%; background: var(--accent); box-shadow: 0 0 4px rgba(0,255,102,0.35); }
+.axisbar.warm > span { background: var(--warm); box-shadow: 0 0 4px rgba(255,179,71,0.35); }
+.axisbar.hot > span { background: var(--hot); box-shadow: 0 0 4px rgba(255,107,107,0.35); }
+.axisbar.neg > span { background: var(--hot); }
+.axisval { font-size: 0.7rem; color: var(--dim); }
+
+tr.detail { display: none; background: var(--panel); }
+tr.detail.open { display: table-row; }
+tr.detail td { padding: 1rem 1rem 1.25rem; border-top: 1px dashed var(--line); }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.detail-grid h3 { font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.5rem; font-weight: 500; }
+.detail-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 0.5rem; padding: 0.2rem 0; font-size: 0.74rem; }
+.detail-row .lbl { color: var(--fg); }
+.detail-row .bar { display: block; height: 4px; width: 90px; background: var(--line); position: relative; }
+.detail-row .bar > span { display: block; height: 100%; background: var(--accent); box-shadow: 0 0 4px rgba(0,255,102,0.35); }
+.detail-row .val { color: var(--dim); font-variant-numeric: tabular-nums; min-width: 3.2rem; text-align: right; }
+
+.jobs { margin-top: 2rem; border-top: 1px solid var(--line); padding-top: 1.25rem; }
+.jobs h2 {
+  font-size: 0.78rem; font-weight: 500; color: var(--accent);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.75rem;
+}
+.job {
+  background: var(--panel); border: 1px solid var(--line); padding: 0.6rem 0.8rem;
+  margin-bottom: 0.5rem; font-size: 0.72rem; display: grid;
+  grid-template-columns: auto 1fr auto auto; gap: 0.6rem; align-items: center;
+}
+.job .jstate { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.12rem 0.4rem; border: 1px solid currentColor; color: var(--dim); }
+.job .jstate.running { color: var(--warm); }
+.job .jstate.queued { color: var(--dim); }
+.job .jstate.done { color: var(--accent); }
+.job .jstate.failed, .job .jstate.interrupted { color: var(--hot); }
+.job .jfiles { color: var(--fg); }
+.job .jmeta { color: var(--dim); }
+.job button { background: transparent; color: var(--accent); border: 1px solid var(--line); font-family: inherit; font-size: 0.7rem; padding: 0.15rem 0.45rem; cursor: pointer; }
+.job button:hover { background: var(--hover); border-color: var(--accent); }
+.joblog {
+  display: none; grid-column: 1 / -1; margin-top: 0.5rem;
+  background: var(--bg); padding: 0.6rem; font-size: 0.68rem;
+  white-space: pre-wrap; overflow-x: auto; max-height: 320px;
+  color: var(--dim); border: 1px solid var(--line);
+}
+.joblog.open { display: block; }
+
+.empty { padding: 4rem 1rem; text-align: center; color: var(--dim); }
+.empty code { background: var(--panel); padding: 0.1rem 0.4rem; border: 1px solid var(--line); color: var(--accent); }
+
+footer {
+  margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: baseline;
+  color: var(--dim); font-size: 0.72rem; flex-wrap: wrap; gap: 0.5rem;
+}
+footer a { color: var(--accent); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+@media (max-width: 800px) {
+  body { padding: 1rem 0.5rem 3rem; }
+  td.prose { max-width: none; }
+  td.filename { max-width: 180px; }
+  th.hide-sm, td.hide-sm { display: none; }
+  .detail-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>music · emotion<span class="cursor">_</span></h1>
+    <div class="user">
+      <a href="https://mvr.ac/">hub</a>
+      <a href="https://auth.mvr.ac/logout">logout</a>
+    </div>
+  </header>
+
+  <div class="statusbar" id="statusbar">
+    <span class="pill muted"><span class="dot"></span>loading status…</span>
+  </div>
+
+  <div class="controls">
+    <input id="q" type="search" placeholder="filter prose, filename, or top phrases…" autocomplete="off" autofocus>
+    <label for="show">show</label>
+    <select id="show">
+      <option value="all">all</option>
+      <option value="cached">tagged</option>
+      <option value="untagged">untagged</option>
+      <option value="errors">errored</option>
+    </select>
+    <label for="sort">sort</label>
+    <select id="sort">
+      <option value="arousal_desc">arousal ↓</option>
+      <option value="arousal_asc">arousal ↑</option>
+      <option value="valence_desc">valence ↓</option>
+      <option value="valence_asc">valence ↑</option>
+      <option value="filename_asc">filename a→z</option>
+      <option value="filename_desc">filename z→a</option>
+    </select>
+    <button id="tagSelected" disabled>tag visible untagged</button>
+    <span class="count" id="count">…</span>
+  </div>
+
+  <div id="content"><div class="empty">loading <code>/api/songs</code>…</div></div>
+
+  <section class="jobs" id="jobsSection" style="display:none">
+    <h2>jobs</h2>
+    <div id="jobsList"></div>
+  </section>
+
+  <footer>
+    <div>vocabulary ~120 phrases · CLAP music-trained + Essentia mood heads + gpt-oss prose</div>
+    <a href="/data/scores.csv">scores.csv</a> · <a href="/api/status">status.json</a>
+  </footer>
+</div>
+
+<script>
+const MOOD_KEYS = ["mood_acoustic","mood_aggressive","mood_electronic","mood_happy","mood_party","mood_relaxed","mood_sad"];
+
+let SONGS = [];
+let STATUS = null;
+let SORT = "arousal_desc";
+let SHOW = "all";
+let QUERY = "";
+let openJobLog = null;
+let lastVisible = [];
+
+function escapeHTML(s) {
+  return (s || "").toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function clamp01(x) { return Math.max(0, Math.min(1, x)); }
+function fmtAgo(ts) {
+  if (!ts) return "–";
+  const d = Date.now() / 1000 - ts;
+  if (d < 60) return Math.round(d) + "s ago";
+  if (d < 3600) return Math.round(d/60) + "m ago";
+  if (d < 86400) return Math.round(d/3600) + "h ago";
+  return Math.round(d/86400) + "d ago";
+}
+function axisBar(value, lo, hi) {
+  const f = parseFloat(value);
+  if (!isFinite(f)) return `<span class="axisval">–</span>`;
+  const norm = clamp01((f - lo) / (hi - lo));
+  let cls = "";
+  if (f < 0) cls = "neg";
+  else if (norm > 0.66) cls = "hot";
+  else if (norm > 0.33) cls = "warm";
+  return `<span class="axisbar ${cls}"><span style="width:${(norm*100).toFixed(1)}%"></span></span><span class="axisval">${f.toFixed(2)}</span>`;
+}
+function moodBar(value) {
+  const f = parseFloat(value);
+  if (!isFinite(f)) return `<span class="val">–</span>`;
+  const pct = clamp01(f);
+  return `<span class="bar"><span style="width:${(pct*100).toFixed(1)}%"></span></span><span class="val">${f.toFixed(3)}</span>`;
+}
+
+function detailHTML(r) {
+  const ess = (r._raw && r._raw.essentia) || {};
+  const clap = (r._raw && r._raw.clap) || {};
+  const moods = MOOD_KEYS.map(k => `
+    <div class="detail-row">
+      <span class="lbl">${k.replace('mood_','')}</span>
+      ${moodBar(ess[k])}
+    </div>`).join("");
+  const top = Object.entries(clap).sort((a,b) => b[1] - a[1]).slice(0, 8);
+  const claps = top.length
+    ? top.map(([p, s]) => `<div class="detail-row"><span class="lbl">${escapeHTML(p)}</span>${moodBar(s)}</div>`).join("")
+    : `<div class="detail-row"><span class="lbl axisval">no CLAP data yet</span></div>`;
+  const err = r.error ? `<p style="color:var(--hot);font-size:0.78rem;margin-top:0.6rem">${escapeHTML(r.error)}</p>` : "";
+  return `
+    <div class="detail-grid">
+      <div><h3>essentia mood heads</h3>${moods}</div>
+      <div><h3>top CLAP phrases</h3>${claps}</div>
+    </div>${err}`;
+}
+
+function rowHTML(r, idx) {
+  const cls = (!r.cached ? "untagged " : "") + (r.error ? "has-error " : "");
+  const prose = r.error
+    ? `error: ${escapeHTML(r.error)}`
+    : (r.prose ? escapeHTML(r.prose) : `<span class="axisval">${r.cached ? '(no prose yet)' : '(untagged)'}</span>`);
+  return `
+    <tr data-i="${idx}" class="${cls}">
+      <td class="num">${axisBar(r.arousal, -1.5, 1.5)}</td>
+      <td class="num hide-sm">${axisBar(r.valence, -1.5, 1.5)}</td>
+      <td class="tag hide-sm">${escapeHTML(r.mood_top || "")}</td>
+      <td class="prose">${prose}</td>
+      <td class="filename">${escapeHTML(r.filename)}</td>
+      <td class="actions"><button data-tag="${escapeHTML(r.filename)}">tag</button></td>
+    </tr>
+    <tr class="detail" data-detail="${idx}"><td colspan="6">${detailHTML(r)}</td></tr>`;
+}
+
+function filterRows() {
+  const q = QUERY.trim().toLowerCase();
+  let rows = SONGS.slice();
+  if (SHOW === "cached") rows = rows.filter(r => r.cached);
+  else if (SHOW === "untagged") rows = rows.filter(r => !r.cached);
+  else if (SHOW === "errors") rows = rows.filter(r => r.error);
+  if (q) {
+    rows = rows.filter(r => {
+      const top = (r.clap_top || []).map(t => t.phrase).join(" ");
+      const blob = [r.prose, r.filename, top, r.mood_top].filter(Boolean).join(" ").toLowerCase();
+      return blob.includes(q);
+    });
+  }
+  const [field, dir] = (() => {
+    if (SORT.startsWith("filename")) return ["filename", SORT.endsWith("asc") ? 1 : -1];
+    if (SORT.startsWith("valence")) return ["valence", SORT.endsWith("asc") ? 1 : -1];
+    return ["arousal", SORT.endsWith("asc") ? 1 : -1];
+  })();
+  rows.sort((a, b) => {
+    if (field === "filename") return dir * a.filename.localeCompare(b.filename);
+    const av = parseFloat(a[field]); const bv = parseFloat(b[field]);
+    const aN = isFinite(av), bN = isFinite(bv);
+    if (!aN && !bN) return 0;
+    if (!aN) return 1;
+    if (!bN) return -1;
+    return dir * (av - bv);
+  });
+  return rows;
+}
+
+function render() {
+  const rows = filterRows();
+  lastVisible = rows;
+  document.getElementById("count").textContent = `${rows.length} / ${SONGS.length} tracks`;
+  const arrow = field => SORT.startsWith(field) ? (SORT.endsWith("asc") ? "↑" : "↓") : "";
+  const cls = field => SORT.startsWith(field) ? "sorted" : "";
+
+  if (!rows.length) {
+    document.getElementById("content").innerHTML = `<div class="empty">no matches.</div>`;
+    document.getElementById("tagSelected").disabled = true;
+    return;
+  }
+  document.getElementById("content").innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th class="${cls('arousal')}" data-th="arousal">arousal <span class="arrow">${arrow('arousal') || '↕'}</span></th>
+          <th class="hide-sm ${cls('valence')}" data-th="valence">valence <span class="arrow">${arrow('valence') || '↕'}</span></th>
+          <th class="hide-sm">mood</th>
+          <th>prose</th>
+          <th class="${cls('filename')}" data-th="filename">filename <span class="arrow">${arrow('filename') || '↕'}</span></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>${rows.map((r, i) => rowHTML(r, i)).join("")}</tbody>
+    </table>`;
+
+  const untaggedVisible = rows.filter(r => !r.cached || r.error).length;
+  const btn = document.getElementById("tagSelected");
+  btn.disabled = untaggedVisible === 0;
+  btn.textContent = `tag ${untaggedVisible} untagged`;
+}
+
+function renderStatus() {
+  const bar = document.getElementById("statusbar");
+  if (!STATUS) {
+    bar.innerHTML = `<span class="pill muted"><span class="dot"></span>loading…</span>`;
+    return;
+  }
+  const t = STATUS.totals || {};
+  const gpu = STATUS.gpu_lock || {};
+  const cur = STATUS.current_job;
+  const pills = [];
+  pills.push(`<span class="pill ${t.cached >= t.audio_files ? 'ok' : 'muted'}"><span class="dot"></span>cached <b>${t.cached}/${t.audio_files}</b></span>`);
+  pills.push(`<span class="pill ${t.with_prose >= t.audio_files ? 'ok' : 'muted'}"><span class="dot"></span>prose <b>${t.with_prose}/${t.audio_files}</b></span>`);
+  if (gpu.held === true) pills.push(`<span class="pill warm"><span class="dot"></span>gpu held <b>${escapeHTML((gpu.raw || '').replace(/^HOLDER:\s*/i,''))}</b></span>`);
+  else if (gpu.held === false) pills.push(`<span class="pill ok"><span class="dot"></span>gpu free</span>`);
+  else pills.push(`<span class="pill hot"><span class="dot"></span>gpu ?</span>`);
+  pills.push(`<span class="pill ${STATUS.ollama ? 'ok' : 'hot'}"><span class="dot"></span>ollama <b>${STATUS.ollama ? 'up' : 'down'}</b></span>`);
+  if (cur) pills.push(`<span class="pill warm"><span class="dot"></span>job <b>${escapeHTML(cur.id)}</b> ${escapeHTML(cur.state)} · ${cur.filenames.length} file(s)</span>`);
+  if (STATUS.queue_len) pills.push(`<span class="pill muted"><span class="dot"></span>queued <b>${STATUS.queue_len}</b></span>`);
+  bar.innerHTML = pills.join("");
+}
+
+function renderJobs(jobs) {
+  const sec = document.getElementById("jobsSection");
+  if (!jobs.length) { sec.style.display = "none"; return; }
+  sec.style.display = "block";
+  const list = document.getElementById("jobsList");
+  jobs.sort((a, b) => (b.queued_at || 0) - (a.queued_at || 0));
+  list.innerHTML = jobs.slice(0, 20).map(j => {
+    const dur = j.ended_at && j.started_at ? `${Math.round(j.ended_at - j.started_at)}s` : (j.started_at ? `${Math.round(Date.now()/1000 - j.started_at)}s` : "");
+    return `
+      <div class="job" data-jid="${j.id}">
+        <span class="jstate ${j.state}">${j.state}</span>
+        <span class="jfiles">${escapeHTML(j.filenames.slice(0,2).join(', '))}${j.filenames.length > 2 ? ` +${j.filenames.length - 2}` : ''}</span>
+        <span class="jmeta">${fmtAgo(j.queued_at)} · ${dur} · ${(j.phases || []).join('+')}</span>
+        <button data-log="${j.id}">log</button>
+        <pre class="joblog" data-joblog="${j.id}"></pre>
+      </div>`;
+  }).join("");
+}
+
+async function loadSongs() {
+  try {
+    const r = await fetch("/api/songs", {cache:"no-store"});
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    SONGS = d.songs || [];
+    if (!SONGS.length) {
+      document.getElementById("content").innerHTML = `<div class="empty">no audio files in <code>~/Music</code>.</div>`;
+      document.getElementById("count").textContent = "0";
+      return;
+    }
+    render();
+  } catch (e) {
+    document.getElementById("content").innerHTML = `<div class="empty">failed: ${escapeHTML(e.message)}</div>`;
+  }
+}
+
+async function loadStatus() {
+  try {
+    const r = await fetch("/api/status", {cache:"no-store"});
+    if (r.ok) { STATUS = await r.json(); renderStatus(); }
+  } catch {}
+}
+
+async function loadJobs() {
+  try {
+    const r = await fetch("/api/jobs", {cache:"no-store"});
+    if (r.ok) {
+      const d = await r.json();
+      renderJobs(d.jobs || []);
+    }
+  } catch {}
+}
+
+async function loadJobLog(jid) {
+  try {
+    const r = await fetch(`/api/jobs/${jid}`, {cache:"no-store"});
+    if (r.ok) {
+      const d = await r.json();
+      const el = document.querySelector(`[data-joblog="${jid}"]`);
+      if (el) el.textContent = d.log_tail || "(no log)";
+    }
+  } catch {}
+}
+
+async function postTag(filenames, phases) {
+  const r = await fetch("/api/tag", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({filenames, phases}),
+  });
+  return r.json();
+}
+
+function bind() {
+  document.getElementById("q").addEventListener("input", e => { QUERY = e.target.value; render(); });
+  document.getElementById("sort").addEventListener("change", e => { SORT = e.target.value; render(); });
+  document.getElementById("show").addEventListener("change", e => { SHOW = e.target.value; render(); });
+  document.getElementById("tagSelected").addEventListener("click", async () => {
+    const filenames = lastVisible.filter(r => !r.cached || r.error).map(r => r.filename);
+    if (!filenames.length) return;
+    if (!confirm(`queue ${filenames.length} file(s) for tagging?`)) return;
+    await postTag(filenames, ["audio", "prose"]);
+    await loadJobs(); await loadStatus();
+  });
+  document.addEventListener("click", async e => {
+    const btnTag = e.target.closest("button[data-tag]");
+    if (btnTag) {
+      e.stopPropagation();
+      const fn = btnTag.dataset.tag;
+      const row = SONGS.find(r => r.filename === fn);
+      const phases = (row && row.cached && !row.prose && !row.error) ? ["prose"] : ["audio", "prose"];
+      btnTag.disabled = true; btnTag.textContent = "…";
+      await postTag([fn], phases);
+      await loadJobs(); await loadStatus();
+      return;
+    }
+    const logBtn = e.target.closest("button[data-log]");
+    if (logBtn) {
+      e.stopPropagation();
+      const jid = logBtn.dataset.log;
+      const el = document.querySelector(`[data-joblog="${jid}"]`);
+      if (!el) return;
+      const wasOpen = el.classList.contains("open");
+      document.querySelectorAll(".joblog.open").forEach(x => x.classList.remove("open"));
+      if (!wasOpen) {
+        el.classList.add("open");
+        openJobLog = jid;
+        await loadJobLog(jid);
+      } else {
+        openJobLog = null;
+      }
+      return;
+    }
+    const th = e.target.closest("thead th[data-th]");
+    if (th) {
+      const field = th.dataset.th;
+      const cur = SORT.startsWith(field);
+      SORT = field + "_" + (cur && SORT.endsWith("desc") ? "asc" : "desc");
+      document.getElementById("sort").value = SORT;
+      render();
+      return;
+    }
+    const tr = e.target.closest("tbody tr[data-i]");
+    if (tr) {
+      const i = tr.dataset.i;
+      const d = document.querySelector(`tr.detail[data-detail="${i}"]`);
+      if (d) d.classList.toggle("open");
+    }
+  });
+}
+
+async function poll() {
+  await loadStatus();
+  await loadJobs();
+  if (openJobLog) await loadJobLog(openJobLog);
+  if (STATUS && STATUS.current_job) {
+    await loadSongs();
+  }
+}
+
+async function boot() {
+  bind();
+  await loadStatus();
+  await Promise.all([loadSongs(), loadJobs()]);
+  setInterval(poll, 5000);
+}
+
+boot();
+</script>
+</body>
+</html>
