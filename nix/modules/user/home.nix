@@ -977,15 +977,15 @@ StartupWMClass=whatsapp-web
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/hooks/rtk-hook-gemini.sh";
   home.file.".gemini/hooks/.rtk-hook.sha256".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/hooks/.rtk-hook.sha256";
-  home.file.".local/share/applications/ragnarok.desktop".text = ''
-    [Desktop Entry]
-    Name=uaRO (Ragnarok Online)
-    Exec=ragnarok
-    Icon=/home/m/Games/uaro/prefix/drive_c/uaRO/icnbig.ico
-    Terminal=false
-    Type=Application
-    Categories=Game;
-    Comment=Start uaRO Patcher
-    Keywords=ragnarok;uaro;ro;
-  '';
+  home.file.".local/share/applications/ragnarok.desktop".text = '''
+[Desktop Entry]
+Name=uaRO (Ragnarok Online)
+Exec=ragnarok
+Icon=/home/m/Games/uaro/prefix/drive_c/uaRO/icnbig.ico
+Terminal=false
+Type=Application
+Categories=Game;
+Comment=Start uaRO Patcher
+Keywords=ragnarok;uaro;ro;
+''';
 }
