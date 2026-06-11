@@ -284,6 +284,7 @@ in
     (pkgs.writeShellScriptBin "hid-wrapper" ''exec ${hidWrapperEnv}/bin/python3 ${../../../.local/bin/hid-wrapper.py} "$@"'')
     (pkgs.writeShellScriptBin "light" ''exec ${lightEnv}/bin/python3 ${../../../.local/bin/light.py} "$@"'')
     yad
+    (pkgs.writeShellScriptBin "ragnarok" (builtins.readFile ../../../.local/bin/ragnarok.sh))
     (pkgs.writeShellScriptBin "screenshot-window" (builtins.readFile ../../../.local/bin/screenshot-window.sh))
 
     (pkgs.writeShellScriptBin "ait" (builtins.readFile ../../../.local/bin/ait.sh))
@@ -976,4 +977,15 @@ StartupWMClass=whatsapp-web
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/hooks/rtk-hook-gemini.sh";
   home.file.".gemini/hooks/.rtk-hook.sha256".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/hooks/.rtk-hook.sha256";
+  home.file.".local/share/applications/ragnarok.desktop".text = '''
+[Desktop Entry]
+Name=uaRO (Ragnarok Online)
+Exec=ragnarok
+Icon=/home/m/Games/uaro/prefix/drive_c/uaRO/icnbig.ico
+Terminal=false
+Type=Application
+Categories=Game;
+Comment=Start uaRO Patcher
+Keywords=ragnarok;uaro;ro;
+''';
 }
