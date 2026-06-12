@@ -85,9 +85,17 @@ thead th.sorted .arrow { color: var(--accent); }
 tbody tr { border-bottom: 1px solid var(--line); transition: background 0.08s; cursor: pointer; }
 tbody tr:hover { background: var(--hover); }
 tbody tr.untagged { color: var(--dim); }
-tbody tr.has-error td.prose { color: var(--hot); }
+tbody tr.has-error td.scenes { color: var(--hot); }
 tbody td { padding: 0.5rem 0.7rem; vertical-align: top; }
-td.prose { line-height: 1.45; max-width: 540px; }
+td.scenes { line-height: 1.6; max-width: 620px; }
+td.scenes .chip {
+  display: inline-block; padding: 0.18rem 0.55rem; margin: 0.14rem 0.22rem 0.14rem 0;
+  border: 1px solid var(--accent); color: var(--accent); background: rgba(0,255,102,0.05);
+  border-radius: 2px; font-size: 0.74rem; letter-spacing: 0.01em;
+}
+td.scenes .chip.dim { border-color: var(--dim); color: var(--dim); background: transparent; }
+td.scenes .chip.dimmer { opacity: 0.6; }
+td.scenes .chip.empty { font-style: italic; color: var(--dim); border-style: dashed; border-color: var(--line); background: transparent; }
 td.filename { color: var(--dim); font-size: 0.72rem; max-width: 280px; word-break: break-all; }
 td.num { font-variant-numeric: tabular-nums; text-align: right; color: var(--fg); white-space: nowrap; }
 td.tag { color: var(--accent); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
@@ -160,7 +168,7 @@ footer a:hover { text-decoration: underline; }
 
 @media (max-width: 800px) {
   body { padding: 1rem 0.5rem 3rem; }
-  td.prose { max-width: none; }
+  td.scenes { max-width: none; }
   td.filename { max-width: 180px; }
   th.hide-sm, td.hide-sm { display: none; }
   .detail-grid { grid-template-columns: 1fr; }
@@ -182,7 +190,7 @@ footer a:hover { text-decoration: underline; }
   </div>
 
   <div class="controls">
-    <input id="q" type="search" placeholder="filter prose, filename, or top phrases…" autocomplete="off" autofocus>
+    <input id="q" type="search" placeholder="filter scenes, mood, or filename…" autocomplete="off" autofocus>
     <label for="show">show</label>
     <select id="show">
       <option value="all">all</option>
@@ -211,7 +219,7 @@ footer a:hover { text-decoration: underline; }
   </section>
 
   <footer>
-    <div>vocabulary ~120 phrases · CLAP music-trained + Essentia mood heads + gpt-oss prose</div>
+    <div>~180 concrete sensory scenes · CLAP music-trained + Essentia mood heads · kiki/bouba</div>
     <a href="/data/scores.csv">scores.csv</a> · <a href="/api/status">status.json</a>
   </footer>
 </div>
@@ -256,9 +264,25 @@ function moodBar(value) {
   return `<span class="bar"><span style="width:${(pct*100).toFixed(1)}%"></span></span><span class="val">${f.toFixed(3)}</span>`;
 }
 
-function detailHTML(r) {
-  const ess = (r._raw && r._raw.essentia) || {};
-  const clap = (r._raw && r._raw.clap) || {};
+function chipsHTML(r) {
+  if (r.error) return `<span class="chip empty">error: ${escapeHTML(r.error)}</span>`;
+  if (!r.cached) return `<span class="chip empty">untagged</span>`;
+  const top = r.scene_top || [];
+  if (!top.length) return `<span class="chip empty">no scenes</span>`;
+  return top.map((t, i) => {
+    const cls = i === 0 ? "" : (i === 1 ? "dimmer" : "dim dimmer");
+    return `<span class="chip ${cls}" title="cosine ${(t.score || 0).toFixed(3)}">${escapeHTML(t.phrase)}</span>`;
+  }).join("");
+}
+
+function detailHTML() {
+  return `<div class="detail-grid"><span class="axisval">loading…</span></div>`;
+}
+
+function fullDetailHTML(payload, errMsg) {
+  const cache = (payload && payload.cache) || {};
+  const ess = cache.essentia || {};
+  const clap = cache.clap || {};
   const moods = MOOD_KEYS.map(k => `
     <div class="detail-row">
       <span class="lbl">${k.replace('mood_','')}</span>
@@ -268,29 +292,28 @@ function detailHTML(r) {
   const claps = top.length
     ? top.map(([p, s]) => `<div class="detail-row"><span class="lbl">${escapeHTML(p)}</span>${moodBar(s)}</div>`).join("")
     : `<div class="detail-row"><span class="lbl axisval">no CLAP data yet</span></div>`;
-  const err = r.error ? `<p style="color:var(--hot);font-size:0.78rem;margin-top:0.6rem">${escapeHTML(r.error)}</p>` : "";
+  const err = (errMsg || cache.error)
+    ? `<p style="color:var(--hot);font-size:0.78rem;margin-top:0.6rem">${escapeHTML(errMsg || cache.error)}</p>`
+    : "";
   return `
     <div class="detail-grid">
       <div><h3>essentia mood heads</h3>${moods}</div>
-      <div><h3>top CLAP phrases</h3>${claps}</div>
+      <div><h3>top CLAP scenes</h3>${claps}</div>
     </div>${err}`;
 }
 
 function rowHTML(r, idx) {
   const cls = (!r.cached ? "untagged " : "") + (r.error ? "has-error " : "");
-  const prose = r.error
-    ? `error: ${escapeHTML(r.error)}`
-    : (r.prose ? escapeHTML(r.prose) : `<span class="axisval">${r.cached ? '(no prose yet)' : '(untagged)'}</span>`);
   return `
-    <tr data-i="${idx}" class="${cls}">
+    <tr data-i="${idx}" class="${cls}" data-fn="${escapeHTML(r.filename)}">
       <td class="num">${axisBar(r.arousal, -1.5, 1.5)}</td>
       <td class="num hide-sm">${axisBar(r.valence, -1.5, 1.5)}</td>
       <td class="tag hide-sm">${escapeHTML(r.mood_top || "")}</td>
-      <td class="prose">${prose}</td>
+      <td class="scenes">${chipsHTML(r)}</td>
       <td class="filename">${escapeHTML(r.filename)}</td>
       <td class="actions"><button data-tag="${escapeHTML(r.filename)}">tag</button></td>
     </tr>
-    <tr class="detail" data-detail="${idx}"><td colspan="6">${detailHTML(r)}</td></tr>`;
+    <tr class="detail" data-detail="${idx}" data-detail-fn="${escapeHTML(r.filename)}"><td colspan="6">${detailHTML()}</td></tr>`;
 }
 
 function filterRows() {
@@ -301,8 +324,8 @@ function filterRows() {
   else if (SHOW === "errors") rows = rows.filter(r => r.error);
   if (q) {
     rows = rows.filter(r => {
-      const top = (r.clap_top || []).map(t => t.phrase).join(" ");
-      const blob = [r.prose, r.filename, top, r.mood_top].filter(Boolean).join(" ").toLowerCase();
+      const top = (r.scene_top || []).map(t => t.phrase).join(" ");
+      const blob = [r.filename, top, r.mood_top].filter(Boolean).join(" ").toLowerCase();
       return blob.includes(q);
     });
   }
@@ -342,7 +365,7 @@ function render() {
           <th class="${cls('arousal')}" data-th="arousal">arousal <span class="arrow">${arrow('arousal') || '↕'}</span></th>
           <th class="hide-sm ${cls('valence')}" data-th="valence">valence <span class="arrow">${arrow('valence') || '↕'}</span></th>
           <th class="hide-sm">mood</th>
-          <th>prose</th>
+          <th>scenes</th>
           <th class="${cls('filename')}" data-th="filename">filename <span class="arrow">${arrow('filename') || '↕'}</span></th>
           <th></th>
         </tr>
@@ -367,11 +390,9 @@ function renderStatus() {
   const cur = STATUS.current_job;
   const pills = [];
   pills.push(`<span class="pill ${t.cached >= t.audio_files ? 'ok' : 'muted'}"><span class="dot"></span>cached <b>${t.cached}/${t.audio_files}</b></span>`);
-  pills.push(`<span class="pill ${t.with_prose >= t.audio_files ? 'ok' : 'muted'}"><span class="dot"></span>prose <b>${t.with_prose}/${t.audio_files}</b></span>`);
   if (gpu.held === true) pills.push(`<span class="pill warm"><span class="dot"></span>gpu held <b>${escapeHTML((gpu.raw || '').replace(/^HOLDER:\s*/i,''))}</b></span>`);
   else if (gpu.held === false) pills.push(`<span class="pill ok"><span class="dot"></span>gpu free</span>`);
   else pills.push(`<span class="pill hot"><span class="dot"></span>gpu ?</span>`);
-  pills.push(`<span class="pill ${STATUS.ollama ? 'ok' : 'hot'}"><span class="dot"></span>ollama <b>${STATUS.ollama ? 'up' : 'down'}</b></span>`);
   if (cur) pills.push(`<span class="pill warm"><span class="dot"></span>job <b>${escapeHTML(cur.id)}</b> ${escapeHTML(cur.state)} · ${cur.filenames.length} file(s)</span>`);
   if (STATUS.queue_len) pills.push(`<span class="pill muted"><span class="dot"></span>queued <b>${STATUS.queue_len}</b></span>`);
   bar.innerHTML = pills.join("");
@@ -389,7 +410,7 @@ function renderJobs(jobs) {
       <div class="job" data-jid="${j.id}">
         <span class="jstate ${j.state}">${j.state}</span>
         <span class="jfiles">${escapeHTML(j.filenames.slice(0,2).join(', '))}${j.filenames.length > 2 ? ` +${j.filenames.length - 2}` : ''}</span>
-        <span class="jmeta">${fmtAgo(j.queued_at)} · ${dur} · ${(j.phases || []).join('+')}</span>
+        <span class="jmeta">${fmtAgo(j.queued_at)} · ${dur} · ${(j.filenames || []).length} file(s)</span>
         <button data-log="${j.id}">log</button>
         <pre class="joblog" data-joblog="${j.id}"></pre>
       </div>`;
@@ -441,13 +462,27 @@ async function loadJobLog(jid) {
   } catch {}
 }
 
-async function postTag(filenames, phases) {
+async function postTag(filenames) {
   const r = await fetch("/api/tag", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({filenames, phases}),
+    body: JSON.stringify({filenames}),
   });
   return r.json();
+}
+
+async function loadDetail(filename, container) {
+  try {
+    const r = await fetch(`/api/song/${encodeURIComponent(filename)}`, {cache:"no-store"});
+    if (!r.ok) {
+      container.innerHTML = fullDetailHTML(null, `HTTP ${r.status}`);
+      return;
+    }
+    const d = await r.json();
+    container.innerHTML = fullDetailHTML(d);
+  } catch (e) {
+    container.innerHTML = fullDetailHTML(null, e.message);
+  }
 }
 
 function bind() {
@@ -458,7 +493,7 @@ function bind() {
     const filenames = lastVisible.filter(r => !r.cached || r.error).map(r => r.filename);
     if (!filenames.length) return;
     if (!confirm(`queue ${filenames.length} file(s) for tagging?`)) return;
-    await postTag(filenames, ["audio", "prose"]);
+    await postTag(filenames);
     await loadJobs(); await loadStatus();
   });
   document.addEventListener("click", async e => {
@@ -466,10 +501,8 @@ function bind() {
     if (btnTag) {
       e.stopPropagation();
       const fn = btnTag.dataset.tag;
-      const row = SONGS.find(r => r.filename === fn);
-      const phases = (row && row.cached && !row.prose && !row.error) ? ["prose"] : ["audio", "prose"];
       btnTag.disabled = true; btnTag.textContent = "…";
-      await postTag([fn], phases);
+      await postTag([fn]);
       await loadJobs(); await loadStatus();
       return;
     }
@@ -503,7 +536,17 @@ function bind() {
     if (tr) {
       const i = tr.dataset.i;
       const d = document.querySelector(`tr.detail[data-detail="${i}"]`);
-      if (d) d.classList.toggle("open");
+      if (!d) return;
+      const opening = !d.classList.contains("open");
+      d.classList.toggle("open");
+      if (opening) {
+        const fn = d.dataset.detailFn;
+        const td = d.querySelector("td");
+        if (td && !td.dataset.fetched) {
+          td.dataset.fetched = "1";
+          loadDetail(fn, td);
+        }
+      }
     }
   });
 }
