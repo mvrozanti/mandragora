@@ -35,7 +35,7 @@ NIX_SHELL = os.environ.get("EMOTION_NIX_SHELL", shutil.which("nix-shell") or "/r
 GPU_LOCK = os.environ.get("EMOTION_GPU_LOCK", shutil.which("gpu-lock") or "/run/current-system/sw/bin/gpu-lock")
 
 EXTS = {".mp3", ".m4a", ".flac", ".ogg", ".opus", ".wav", ".aac", ".wma"}
-CACHE_VERSION = "v1-clap-essentia-fused"
+CACHE_VERSION = "v2-scene-vocab"
 MOOD_KEYS = [
     "mood_acoustic", "mood_aggressive", "mood_electronic",
     "mood_happy", "mood_party", "mood_relaxed", "mood_sad",
@@ -119,21 +119,12 @@ def run_job(job_id: str) -> None:
     only_file = EMOTION_DIR / "logs" / f"job-{job_id}.list"
     only_file.write_text("\n".join(job["filenames"]) + "\n")
 
-    phases = job.get("phases") or ["audio", "prose"]
-    parts = []
-    if "audio" in phases:
-        parts.append(
-            f"{GPU_LOCK} run --name emotion-web-{job_id} --expect 7200 -- "
-            f"{NIX_SHELL} --run \"uv run rank.py --skip-prose --only-file '{only_file}'\""
-        )
-    if "prose" in phases:
-        parts.append(
-            f"{NIX_SHELL} --run \"uv run rank.py --prose-only --only-file '{only_file}'\""
-        )
-    parts.append(
+    shellcmd = (
+        f"cd '{EMOTION_DIR}' && "
+        f"{GPU_LOCK} run --name emotion-web-{job_id} --expect 7200 -- "
+        f"{NIX_SHELL} --run \"uv run rank.py --only-file '{only_file}'\" && "
         f"{NIX_SHELL} --run \"uv run rank.py --rewrite-outputs\""
     )
-    shellcmd = f"cd '{EMOTION_DIR}' && " + " && ".join(parts)
 
     try:
         with log_path.open("w") as logf:
@@ -185,8 +176,7 @@ def _songs_summary() -> dict:
             "arousal": ess.get("arousal"),
             "mood_top": _mood_top(ess),
             "mood_top_score": max((ess[k] for k in MOOD_KEYS if k in ess), default=None),
-            "clap_top": [{"phrase": p, "score": s} for p, s in top],
-            "prose": d.get("prose"),
+            "scene_top": [{"phrase": p, "score": s} for p, s in top],
             "error": d.get("error"),
         })
     return {"songs": rows}
@@ -195,18 +185,15 @@ def _songs_summary() -> dict:
 def _status_payload() -> dict:
     files = discover()
     cached = 0
-    with_prose = 0
     for f in files:
         d = load_cached(f)
         if not d:
             continue
         if not d.get("error"):
             cached += 1
-        if d.get("prose"):
-            with_prose += 1
     current = next((j for j in jobs.values() if j.get("state") in ("queued", "running")), None)
     return {
-        "totals": {"audio_files": len(files), "cached": cached, "with_prose": with_prose},
+        "totals": {"audio_files": len(files), "cached": cached},
         "gpu_lock": gpu_lock_status(),
         "ollama": ollama_ok(),
         "queue_len": queue.qsize(),
@@ -299,13 +286,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return self._send_json(400, {"error": "invalid json"})
         if p == "/api/tag":
             filenames = data.get("filenames") or []
-            phases = data.get("phases") or ["audio", "prose"]
             if not isinstance(filenames, list) or not filenames:
                 return self._send_json(400, {"error": "filenames required"})
-            valid_phases = {"audio", "prose"}
-            phases = [ph for ph in phases if ph in valid_phases]
-            if not phases:
-                return self._send_json(400, {"error": "phases must be subset of [audio, prose]"})
             all_files = {f.name for f in discover()}
             unknown = [f for f in filenames if f not in all_files]
             if unknown:
@@ -315,7 +297,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 jobs[job_id] = {
                     "id": job_id,
                     "filenames": filenames,
-                    "phases": phases,
                     "state": "queued",
                     "queued_at": time.time(),
                 }
