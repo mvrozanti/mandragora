@@ -146,7 +146,7 @@ in
       WorkingDirectory = axonRepo;
       ExecStart = "${axonRoot}/bot.sh";
       Environment = [
-        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin:/home/m/.local/bin:${axonRepo}/build"
+        "PATH=${pkgs.axon}/bin:/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin:/home/m/.local/bin"
         "AXON_STATE_DIR=${axonState}"
         "AXON_BIND_HOST=100.115.80.79"
         "AXON_BIND_PORT=7070"
