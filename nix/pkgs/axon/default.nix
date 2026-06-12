@@ -15,11 +15,11 @@
 # the expected path before configure. Pinned to the same DuckDB version axon's
 # build.yml uses (AXON_DUCKDB_VERSION).
 let
-  duckdbVersion = "1.1.3";
+  duckdbVersion = "1.2.2";
 
   duckdbLinux = fetchurl {
     url = "https://github.com/duckdb/duckdb/releases/download/v${duckdbVersion}/libduckdb-linux-amd64.zip";
-    hash = "sha256-gRmb8BttSZQaOPQmytYOc8HM1D8fdppl7YCX1T/H5As=";
+    hash = "sha256-kbBvjUvKRxurT0bGdq4qWMnKGJh9DsPSX9laq6+e7z4=";
   };
 
   # Embedding model for semantic search / `axon capsule`. Without it axon
@@ -32,13 +32,13 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "axon";
-  version = "0.5.11-unstable-2026-05-18";
+  version = "1.2.1";
 
   src = fetchgit {
     url = "https://github.com/HideakiSolutions/axon.git";
-    rev = "9fb25cc7e2881ddd485b67e4778f4b70b726ae1b";
+    rev = "c3481780f2eafae912a31a3ead28443069e898e4";
     fetchSubmodules = true;
-    hash = "sha256-GwSGqfWzyVOIMHETXEnJ2zPFH+wMqlHSkulOstTAAXk=";
+    hash = "sha256-5zYwopP2dbBtgxY1s5VTsb1cKqt6KPFx3tbkSB2WpVA=";
   };
 
   nativeBuildInputs = [
