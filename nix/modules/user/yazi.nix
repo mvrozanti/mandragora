@@ -297,6 +297,7 @@ in
         { on = "B"; run = ''shell "ic %s" --block''; desc = "Yank bytes"; }
         { on = ";"; run = "hidden toggle"; desc = "Toggle hidden"; }
         { on = "|"; run = "filter"; desc = "Filter"; }
+        { on = "\\"; run = "escape --filter"; desc = "Clear filter"; }
         { on = "z"; run = "plugin zjump"; desc = "Zoxide jump (fzf)"; }
         { on = "<C-l>"; run = "refresh"; desc = "Reload"; }
         { on = "<C-v>"; run = ''shell "wl-paste -t image/png > $(mktemp -p . --suffix=.png paste-XXXXXX)"''; desc = "Paste PNG from clipboard"; }
@@ -306,7 +307,7 @@ in
         { on = [ "o" "N" ]; run = "sort natural --reverse=yes"; desc = "Sort natural desc"; }
         { on = [ "o" "a" ]; run = "sort alphabetical --reverse=no"; desc = "Sort alphabetical asc"; }
         { on = [ "o" "A" ]; run = "sort alphabetical --reverse=yes"; desc = "Sort alphabetical desc"; }
-        { on = [ "o" "z" ]; run = "sort random"; desc = "Sort random"; }
+        { on = [ "o" "z" ]; run = [ "sort natural" "sort random" ]; desc = "Sort random (reshuffle)"; }
         { on = [ "o" "s" ]; run = "sort size --reverse=yes"; desc = "Sort size desc"; }
         { on = [ "o" "S" ]; run = "sort size --reverse=no"; desc = "Sort size asc"; }
         { on = [ "o" "m" ]; run = "sort mtime --reverse=yes"; desc = "Sort mtime desc"; }

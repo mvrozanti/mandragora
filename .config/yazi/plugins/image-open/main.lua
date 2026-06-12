@@ -33,9 +33,19 @@ local function entry(self)
     end
   end
 
-  local cmd = Command("nsxiv"):arg("-ab"):arg("-n"):arg(tostring(idx)):arg("--")
+  if #urls == 0 then
+    ya.emit("open", { hovered = true })
+    return
+  end
+
+  local log = (os.getenv("XDG_CACHE_HOME") or (os.getenv("HOME") .. "/.cache")) .. "/image-open-yazi.log"
+  local cmd = Command("sh"):arg("-c"):arg('exec nsxiv "$@" 2>>"' .. log .. '"')
+    :arg("nsxiv"):arg("-ab"):arg("-n"):arg(tostring(idx)):arg("--")
   for _, u in ipairs(urls) do cmd = cmd:arg(u) end
-  cmd:stdin(Command.NULL):stdout(Command.NULL):stderr(Command.NULL):spawn()
+  local child, err = cmd:stdin(Command.NULL):stdout(Command.NULL):spawn()
+  if not child then
+    ya.notify { title = "image-open", content = tostring(err), level = "error", timeout = 5 }
+  end
 end
 
 return { entry = entry }
