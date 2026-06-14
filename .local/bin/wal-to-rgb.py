@@ -10,6 +10,18 @@ STOPS_PER_FAN = 4
 CHAIN_LENGTH = 60
 RAM_LEDS_PER_STOP = 2
 RAM_PALETTE_INDICES = [2, 6, 5, 1]
+STATE_PATH = Path.home() / ".cache/hid-config/state"
+
+def is_rgb_on():
+    try:
+        if STATE_PATH.exists():
+            return STATE_PATH.read_text().strip() == "True"
+    except Exception:
+        pass
+    return True
+
+if not is_rgb_on():
+    sys.exit(0)
 
 def from_hex(h):
     r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
