@@ -244,6 +244,17 @@ fi
 phase "commit prepared"
 
 echo ""
+echo "==> Pre-flight: evaluating other hosts..."
+for host in mandragora-wsl; do
+  if ! nix build "$WT#nixosConfigurations.$host.config.system.build.toplevel" --dry-run 2>/tmp/nix-eval-$host.log; then
+    echo "==> ABORTED: $host eval failed. Fix before pushing:" >&2
+    cat /tmp/nix-eval-$host.log >&2
+    exit 1
+  fi
+  echo "==> [ok] $host"
+done
+
+echo ""
 echo "==> Building..."
 set +e
 sudo nixos-rebuild switch --flake "$WT#mandragora-desktop" 2>&1 | tee /tmp/nixos-rebuild.log | grep --line-buffered -E "^(error:|building|activating|warning:|Failed|systemctl|Done\.)"

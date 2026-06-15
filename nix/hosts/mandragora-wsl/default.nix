@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 {
   imports = [
@@ -149,6 +149,7 @@
 
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
+  home-manager.extraSpecialArgs = { inherit inputs; };
   home-manager.users.m = { lib, pkgs, ... }: {
     imports = [ ../../modules/shared/home-cli.nix ]
       ++ lib.optional ((builtins.getEnv "MANDRAGORA_PERSONAL") == "1")
