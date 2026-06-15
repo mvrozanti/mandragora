@@ -1,8 +1,10 @@
 # ofin · brazilian personal finance dashboard
 
 Pluggy-backed dashboard for m's bank/card/investment data. Serves at
-https://ofin.mvr.ac (Authelia two-factor gated; `/webhook/*` is bypassed
-in `compose/authelia/config/configuration.yml` so Pluggy can POST events).
+https://ofin.mvr.ac (Authelia two-factor gated via the `forward_auth`
+Caddy labels in `docker-compose.yml`; `/webhook/*` is left open so Pluggy
+can POST events). The app has no server-side auth of its own — gating is
+entirely the proxy's job.
 
 ## Source
 
@@ -65,12 +67,21 @@ resync immediately. Manual sync via `POST /api/items/{id}/sync` or the
 - `/home/opc/ofin/db` → Postgres data, persistent. Routine VPS backup
   covers it.
 
-## Auth bypass for webhook
+## Auth — two parts, both required
 
-`compose/authelia/config/configuration.yml` has a `bypass` rule on
-`ofin.mvr.ac` resource `^/webhook/.*$` *before* the `two_factor` rule
-that covers the rest of the host. UI and REST API stay behind
-two-factor.
+Gating needs BOTH, or the host is wide open:
+1. **Caddy `forward_auth` labels** in `docker-compose.yml` — these make
+   Caddy actually route requests through Authelia. `0_handle @webhook`
+   bypasses `/webhook/*` (Pluggy); `1_handle` forward_auths everything
+   else. **Without these labels Caddy proxies straight to the app and
+   the Authelia rules below never run.**
+2. `compose/authelia/config/configuration.yml` — `bypass` on
+   `^/webhook/.*$` *before* the `two_factor` rule for the rest of the host.
+
+The app has no auth of its own (`OFIN_AUTHED` is a client-side display
+flag only), so the proxy is the sole gate. Incident 2026-06-14: the
+forward_auth labels were missing → `/api/*` served bank data unauth to
+the public internet. Fixed by adding them (mirrors the `fin` stack).
 
 ## Hub tile
 

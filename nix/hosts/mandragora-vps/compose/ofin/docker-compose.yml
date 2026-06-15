@@ -55,7 +55,13 @@ services:
     labels:
       caddy: https://ofin.${MVR_AC:-mvr.ac}
       caddy.encode: zstd gzip
-      caddy.reverse_proxy: "{{upstreams 8080}}"
+      caddy.@webhook.path: "/webhook/*"
+      caddy.0_handle: "@webhook"
+      caddy.0_handle.reverse_proxy: "{{upstreams 8080}}"
+      caddy.1_handle.0_forward_auth: "authelia:9091"
+      caddy.1_handle.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy.1_handle.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.1_handle.1_reverse_proxy: "{{upstreams 8080}}"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
       interval: 30s
