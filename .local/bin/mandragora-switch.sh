@@ -245,12 +245,8 @@ phase "commit prepared"
 
 echo ""
 echo "==> Building..."
-case "$(hostname)" in
-  mandragora-wsl) FLAKE_HOST=mandragora-wsl ;;
-  *)              FLAKE_HOST=mandragora-desktop ;;
-esac
 set +e
-sudo nixos-rebuild switch --flake "$WT#$FLAKE_HOST" 2>&1 | tee /tmp/nixos-rebuild.log | grep --line-buffered -E "^(error:|building|activating|warning:|Failed|systemctl|Done\.)"
+sudo nixos-rebuild switch --flake "$WT#mandragora-desktop" 2>&1 | tee /tmp/nixos-rebuild.log | grep --line-buffered -E "^(error:|building|activating|warning:|Failed|systemctl|Done\.)"
 RC=${PIPESTATUS[0]}
 set -e
 phase "nixos-rebuild switch (rc=$RC)"
