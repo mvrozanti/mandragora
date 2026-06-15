@@ -4,8 +4,8 @@ let
   vtagSrc = pkgs.fetchFromGitHub {
     owner = "mvrozanti";
     repo = "vtag";
-    rev = "055bc44c70130eca1df7bfa109ec8ff85133e71d";
-    sha256 = "sha256-I/5X9lGat/UYJvHek6k4PHvUwSxnGYj6asSicWeQ5mI=";
+    rev = "e458fe9ec3ba902c3d8492851b38cbec60376b7f";
+    sha256 = "sha256-i72bGVVVw8DZYcURuOImSbWtcJp8PJYljFhNdpq4208=";
   };
   gpuLockRoot = "/etc/nixos/mandragora/.local/share/gpu-lock";
   botPython = import ./bot-python.nix { inherit pkgs; };
