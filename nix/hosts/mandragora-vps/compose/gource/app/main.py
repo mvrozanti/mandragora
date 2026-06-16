@@ -65,6 +65,7 @@ class RenderParams(BaseModel):
     length_s: int = Field(default=DEFAULTS["length_s"], ge=10, le=300)
     width: int = Field(default=DEFAULTS["width"], ge=240, le=1920)
     height: int = Field(default=DEFAULTS["height"], ge=240, le=1920)
+    force: bool = False  # bypass cache + re-render (NOT part of hash_params -> overwrites same cache key)
 
     @field_validator("date_min", "date_max")
     @classmethod
@@ -341,14 +342,15 @@ async def render_endpoint(p: RenderParams, request: Request) -> JSONResponse:
     _validate_caps(p, allow_remote=True)
     jid = hash_params(p)
     existing = _jobs.get(jid)
-    if existing and existing.state == "done" and cache_path(jid).exists():
-        return JSONResponse(serialize_job(existing))
-    if cache_path(jid).exists():
-        j = Job(job_id=jid, params=p, state="done", backend="cache",
-                progress=1.0, message="cache hit",
-                video_url=f"/api/gource/video/{jid}")
-        _jobs[jid] = j
-        return JSONResponse(serialize_job(j))
+    if not p.force:
+        if existing and existing.state == "done" and cache_path(jid).exists():
+            return JSONResponse(serialize_job(existing))
+        if cache_path(jid).exists():
+            j = Job(job_id=jid, params=p, state="done", backend="cache",
+                    progress=1.0, message="cache hit",
+                    video_url=f"/api/gource/video/{jid}")
+            _jobs[jid] = j
+            return JSONResponse(serialize_job(j))
 
     retry = check_rate(client_ip(request))
     if retry is not None:
