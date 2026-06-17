@@ -51,6 +51,7 @@
     ../../modules/services/ytdl-web.nix
     ../../modules/services/vtag-web.nix
     ../../modules/services/emotion-web.nix
+    ../../modules/services/llm-visualizer.nix
     ../../modules/user/home-manager.nix
     ../../modules/audits/default.nix
   ];
