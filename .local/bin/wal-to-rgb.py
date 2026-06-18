@@ -20,8 +20,8 @@ def is_rgb_on():
         pass
     return True
 
-if not is_rgb_on():
-    sys.exit(0)
+RGB_ON = is_rgb_on()
+BLACK = RGBColor(0, 0, 0)
 
 def from_hex(h):
     r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
@@ -61,17 +61,20 @@ def fan_band_indices():
         indices.extend([stop_idx] * size)
     return indices
 
-colors_path = Path.home() / ".cache/matugen/colors.json"
-if not colors_path.exists():
-    sys.exit(0)
+fan_stops = []
+ram_stops = []
+if RGB_ON:
+    colors_path = Path.home() / ".cache/matugen/colors.json"
+    if not colors_path.exists():
+        sys.exit(0)
 
-try:
-    data = json.loads(colors_path.read_text())
-    palette = [data["colors"][f"color{i}"].lstrip("#") for i in range(16)]
-    fan_stops = pick_distinct_stops(palette, STOPS_PER_FAN)
-    ram_stops = [from_hex(palette[i]) for i in RAM_PALETTE_INDICES]
-except Exception:
-    sys.exit(1)
+    try:
+        data = json.loads(colors_path.read_text())
+        palette = [data["colors"][f"color{i}"].lstrip("#") for i in range(16)]
+        fan_stops = pick_distinct_stops(palette, STOPS_PER_FAN)
+        ram_stops = [from_hex(palette[i]) for i in RAM_PALETTE_INDICES]
+    except Exception:
+        sys.exit(1)
 
 try:
     client = OpenRGBClient()
@@ -107,14 +110,15 @@ for device in client.devices:
         d_led_zones = [z for z in device.zones if "D_LED" in z.name]
         for zone in d_led_zones:
             zone.resize(CHAIN_LENGTH)
-        chain = fan_chain_colors()
+        chain = fan_chain_colors() if RGB_ON else [BLACK] * CHAIN_LENGTH
         for zone in d_led_zones:
             zone.set_colors(chain)
     elif any(x in name for x in ["dram", "ene", "xpg"]):
         for zone in device.zones:
-            zone.set_colors(ram_colors(len(zone.leds)))
+            count = len(zone.leds)
+            zone.set_colors(ram_colors(count) if RGB_ON else [BLACK] * count)
     else:
-        device.set_color(fan_stops[0])
+        device.set_color(fan_stops[0] if RGB_ON else BLACK)
 
     try:
         device.show()
