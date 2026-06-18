@@ -261,7 +261,8 @@
           format = "{}";
           tooltip = true;
           on-click = "nwg-displays";
-          on-click-right = "monitor-menu pick";
+          on-click-right = "monitor-menu toggle";
+          on-click-middle = "monitor-menu pick";
         };
 
         "custom/security" = {

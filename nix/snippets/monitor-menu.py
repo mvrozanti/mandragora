@@ -98,7 +98,7 @@ def waybar():
         mark = "" if m.get("disabled") else ""
         tip.append(f"{mark}  {m['name']}  —  {state}")
     tip.append("")
-    tip.append("<i>click — arranger · right — quick menu</i>")
+    tip.append("<i>click — arranger · right — on/off · mid — menu</i>")
     print(
         json.dumps(
             {
@@ -300,10 +300,35 @@ def pick():
         mons = monitors()
 
 
+def power_toggle():
+    mons = monitors()
+    enabled = connected(mons)
+    primary = next(
+        (m for m in enabled if m["x"] == 0 and m["y"] == 0),
+        enabled[0] if enabled else None,
+    )
+    secondaries = [
+        m for m in mons if not primary or m["name"] != primary["name"]
+    ]
+    if not secondaries:
+        notify("only one display connected")
+        return 0
+    if any(m.get("disabled") for m in secondaries):
+        hypr("reload")
+        notify("secondary monitor(s) on")
+    else:
+        for m in secondaries:
+            hypr("keyword", "monitor", f"{m['name']},disable")
+        notify("secondary monitor(s) off")
+    return 0
+
+
 def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else "pick"
     if cmd == "waybar":
         return waybar()
+    if cmd == "toggle":
+        return power_toggle()
     return pick()
 
 
