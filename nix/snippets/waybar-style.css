@@ -246,6 +246,28 @@ tooltip {
     border-bottom: 2px solid @color5;
 }
 
+#custom-monitor {
+    padding: 0 10px;
+    color: @foreground;
+    border-bottom: 2px solid transparent;
+    transition: color 120ms ease, border-bottom-color 120ms ease;
+}
+
+#custom-monitor.active {
+    color: @color4;
+}
+
+#custom-monitor.hidden {
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+}
+
+#custom-monitor:hover {
+    color: @color5;
+    border-bottom: 2px solid @color5;
+}
+
 #custom-security {
     padding: 0 10px;
     color: @foreground;
