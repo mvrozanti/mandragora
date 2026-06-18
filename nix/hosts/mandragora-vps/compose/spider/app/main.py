@@ -69,10 +69,13 @@ async def crawl(request: Request):
         try:
             async for ev in spider.run():
                 if await request.is_disconnected():
+                    spider.request_stop()
                     break
                 yield f"event: {ev['type']}\ndata: {json.dumps(ev)}\n\n"
         except Exception as e:
             yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
+        finally:
+            spider.request_stop()
 
     return StreamingResponse(
         gen(),
