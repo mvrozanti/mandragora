@@ -286,6 +286,7 @@ in
     (pkgs.writeShellScriptBin "hid-wrapper" ''exec ${hidWrapperEnv}/bin/python3 ${../../../.local/bin/hid-wrapper.py} "$@"'')
     (pkgs.writeShellScriptBin "light" ''exec ${lightEnv}/bin/python3 ${../../../.local/bin/light.py} "$@"'')
     yad
+    nwg-displays
     (pkgs.writeShellScriptBin "ragnarok" (builtins.readFile ../../../.local/bin/ragnarok.sh))
     (pkgs.writeShellScriptBin "screenshot-window" (builtins.readFile ../../../.local/bin/screenshot-window.sh))
 
@@ -861,6 +862,14 @@ in
   home.activation.seedKeyledsd = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ ! -e "$HOME/.config/keyledsd.conf" ]; then
       install -Dm644 ${../../../.config/keyledsd/keyledsd.conf} "$HOME/.config/keyledsd.conf"
+    fi
+  '';
+
+  home.activation.seedMonitorsConf = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    MON_CONF="$HOME/.config/hypr/monitors.conf"
+    if [ ! -e "$MON_CONF" ]; then
+      mkdir -p "$(dirname "$MON_CONF")"
+      : > "$MON_CONF"
     fi
   '';
 

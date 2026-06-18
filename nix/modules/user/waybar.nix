@@ -260,7 +260,8 @@
           interval = 5;
           format = "{}";
           tooltip = true;
-          on-click = "monitor-menu pick";
+          on-click = "nwg-displays";
+          on-click-right = "monitor-menu pick";
         };
 
         "custom/security" = {
