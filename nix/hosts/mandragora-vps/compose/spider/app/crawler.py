@@ -135,6 +135,9 @@ class Spider:
         self._checked = set()
         self._stop = False
 
+    def request_stop(self):
+        self._stop = True
+
     async def _robot_ok(self, client, url: str) -> bool:
         if not self.opts.respect_robots:
             return True
@@ -208,6 +211,8 @@ class Spider:
 
             async def worker():
                 while True:
+                    if self._stop:
+                        return
                     try:
                         url, depth = await asyncio.wait_for(queue.get(), timeout=0.3)
                     except asyncio.TimeoutError:
@@ -217,7 +222,8 @@ class Spider:
                     active["n"] += 1
                     try:
                         async with sem:
-                            await self._visit(client, url, depth, queue, out)
+                            if not self._stop:
+                                await self._visit(client, url, depth, queue, out)
                     finally:
                         active["n"] -= 1
                         queue.task_done()
@@ -319,7 +325,7 @@ class Spider:
             host = urlparse(nxt).hostname or ""
             in_scope = _in_scope(self.start_host, host, self.opts.scope)
 
-            if self.opts.check_broken and nxt not in self._checked:
+            if self.opts.check_broken and not self._stop and nxt not in self._checked:
                 self._checked.add(nxt)
                 t = asyncio.create_task(self._check_link(client, nxt, cur, anchor, out))
                 self._bg.add(t)
