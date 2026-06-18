@@ -184,7 +184,8 @@ async def crawl(request: Request):
                         "events": events,
                     })
                 else:
-                    events.append(ev)
+                    if ev["type"] != "fetching":
+                        events.append(ev)
                     yield _sse(ev["type"], ev)
         except Exception as e:
             yield _sse("error", {"error": str(e)})
