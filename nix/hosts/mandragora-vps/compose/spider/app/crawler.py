@@ -133,6 +133,7 @@ class Spider:
         }
         self._bg = set()
         self._checked = set()
+        self._seq = 0
         self._stop = False
 
     def request_stop(self):
@@ -263,6 +264,9 @@ class Spider:
         if not await self._robot_ok(client, url):
             await out.put({"type": "skip", "url": url, "reason": "robots"})
             return
+        vid = self._seq
+        self._seq += 1
+        await out.put({"type": "fetching", "id": vid, "url": url, "depth": depth})
         cur = url
         try:
             resp = None
@@ -277,7 +281,7 @@ class Spider:
                 break
         except Exception as e:
             self.stats["errors"] += 1
-            await out.put({"type": "error", "url": url, "error": str(e)[:200]})
+            await out.put({"type": "error", "id": vid, "url": url, "error": str(e)[:200]})
             return
 
         self.stats["pages_crawled"] += 1
@@ -285,7 +289,7 @@ class Spider:
         ctype = resp.headers.get("content-type", "")
 
         if "html" not in ctype.lower():
-            await out.put({"type": "page", "url": cur, "status": status, "depth": depth, "title": "", "html_page": False, "matched": False, "snippets": [], "extracted": {}})
+            await out.put({"type": "page", "id": vid, "url": cur, "status": status, "depth": depth, "title": "", "html_page": False, "matched": False, "snippets": [], "extracted": {}})
             return
 
         html = resp.text
@@ -302,6 +306,7 @@ class Spider:
 
         await out.put({
             "type": "page",
+            "id": vid,
             "url": cur,
             "status": status,
             "depth": depth,

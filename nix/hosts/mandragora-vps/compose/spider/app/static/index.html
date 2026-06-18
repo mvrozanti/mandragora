@@ -50,6 +50,12 @@
   .tab b{color:var(--acc)}
   .exp{display:flex;gap:6px}
   .exp button{background:var(--panel);color:var(--dim);padding:5px 9px}
+  .live{border-bottom:1px solid var(--line);background:var(--panel);max-height:170px;overflow-y:auto}
+  .live .lhdr{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);padding:6px 18px 2px}
+  .live .lrow{display:flex;gap:9px;align-items:center;padding:2px 18px;font-size:12px}
+  .live .dot{width:7px;height:7px;border-radius:50%;background:var(--acc2);flex:none;animation:p 1s infinite}
+  .live .ld{color:var(--dim);flex:none}
+  .live .lu{color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .results{flex:1;overflow-y:auto;padding:6px 0}
   .item{padding:9px 18px;border-bottom:1px solid #1a2027}
   .item .u{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -157,6 +163,7 @@
         <button onclick="exportCSV()">csv</button>
       </div>
     </div>
+    <div class="live hide" id="live"></div>
     <div class="results" id="res">
       <div class="empty">configure a crawl on the left and hit <b>crawl</b>.</div>
     </div>
@@ -177,6 +184,7 @@
 let ctrl=null, running=false, pages=[], broken=[], view="match";
 const stat={pages:0,match:0,links:0,broken:0,err:0};
 let pend=[], pendBroken=false, raf=0;
+const inflight=new Map(); let pendLive=false;
 const INPUTS=["url","scope","depth","max_pages","concurrency","robots","terms","regex","ci","match_html","custom_regex","check_broken","ext_email","ext_phone"];
 const $=id=>document.getElementById(id);
 const esc=s=>(s||"").replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
@@ -222,6 +230,7 @@ async function start(e){
   }catch(_){}
 
   pages=[]; broken=[]; pend=[]; pendBroken=false;
+  inflight.clear(); pendLive=true;
   for(const k in stat) stat[k]=0;
   $("cachetag").classList.add("hide");
   flushNow(); render(); flash(useCache?"loading cache…":"connecting…");
@@ -257,6 +266,7 @@ function setRunning(on){
   $("go").textContent=on?"crawling…":"crawl";
   $("pulse").classList.toggle("run",on);
   INPUTS.forEach(id=>{const el=$(id); if(el)el.disabled=on;});
+  if(!on){ inflight.clear(); renderLive(); }
 }
 
 function fmtAgo(ts){
@@ -298,7 +308,10 @@ function handleEvent(chunk){
   if(name==="meta"){
     $("cachetag").classList.toggle("hide", !d.cached);
     if(d.cached) $("cachetag").textContent="cached · "+fmtAgo(d.created);
+  } else if(name==="fetching"){
+    inflight.set(d.id,{url:d.url,depth:d.depth}); pendLive=true; schedule();
   } else if(name==="page"){
+    if(d.id!=null){ inflight.delete(d.id); pendLive=true; }
     pages.push(d); stat.pages++;
     if(d.matched) stat.match++;
     if(d.status===undefined||d.status===null) stat.err++;
@@ -307,10 +320,12 @@ function handleEvent(chunk){
   } else if(name==="broken"){
     broken.push(d); stat.broken++; pendBroken=true; schedule();
   } else if(name==="done"){
+    inflight.clear(); pendLive=true;
     applyStats(d.stats); flushNow(); render();
     if(!pages.length) flash("done — 0 pages crawled (blocked/unreachable host?)");
   } else if(name==="error"){
-    flash("error: "+(d.error||"unknown"));
+    if(d.id!=null){ inflight.delete(d.id); pendLive=true; schedule(); }
+    else flash("error: "+(d.error||"unknown"));
   }
 }
 
@@ -328,8 +343,17 @@ function flush(){
     pend=[];
   }
   if(pendBroken){ if(view==="broken") render(); pendBroken=false; }
+  if(pendLive){ renderLive(); pendLive=false; }
 }
 function flushNow(){ if(raf){ cancelAnimationFrame(raf); raf=0; } flush(); }
+function renderLive(){
+  const el=$("live");
+  if(!inflight.size){ el.classList.add("hide"); el.innerHTML=""; return; }
+  const rows=[...inflight.values()].map(v=>
+    `<div class="lrow"><span class="dot"></span><span class="ld">d${v.depth}</span><span class="lu">${esc(v.url)}</span></div>`).join("");
+  el.innerHTML=`<div class="lhdr">fetching now · ${inflight.size}</div>`+rows;
+  el.classList.remove("hide");
+}
 
 function applyStats(s){ if(!s)return;
   stat.pages=s.pages_crawled; stat.match=s.matches; stat.links=s.links_seen; stat.broken=s.broken; stat.err=s.errors;
