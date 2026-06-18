@@ -36,6 +36,7 @@
     ../../modules/desktop/minecraft.nix
     ../../modules/desktop/ue5.nix
     ../../modules/desktop/claudecodebrowser.nix
+    ../../modules/desktop/claude-devtools.nix
     ../../modules/desktop/watch-judge.nix
     ../../modules/services/hub-services.nix
     ../../modules/services/ttyd.nix
