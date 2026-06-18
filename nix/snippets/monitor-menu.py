@@ -102,7 +102,7 @@ def waybar():
     print(
         json.dumps(
             {
-                "text": "",
+                "text": "󰍺",
                 "class": "active",
                 "tooltip": "\n".join(tip),
             }
