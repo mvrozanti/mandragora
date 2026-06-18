@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
-current=$(hyprctl activeworkspace -j | jq -r '.id')
-if [ "$current" = "1" ]; then
-    hyprctl dispatch workspace previous
+focused=$(hyprctl -j monitors all | jq -r '.[] | select(.focused) | .name')
+current=$(hyprctl -j activeworkspace | jq -r '.id')
+state="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/desktop-toggle-${focused}"
+
+if [ -f "$state" ]; then
+    prev=$(cat "$state")
+    rm -f "$state"
+    [ -n "$prev" ] && hyprctl dispatch workspace "$prev"
 else
-    hyprctl dispatch workspace 1
+    echo "$current" > "$state"
+    hyprctl dispatch workspace empty
 fi
