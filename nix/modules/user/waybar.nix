@@ -38,7 +38,7 @@
 
         "group/actions" = {
           orientation = "horizontal";
-          modules = [ "custom/security" "custom/rss" "custom/notif-menu" "custom/screencap" "custom/clipboard" "custom/powermenu" ];
+          modules = [ "custom/monitor" "custom/security" "custom/rss" "custom/notif-menu" "custom/screencap" "custom/clipboard" "custom/powermenu" ];
         };
 
         "group/info" = {
@@ -252,6 +252,15 @@
           tooltip-format = "Notification history — left-click to browse, right-click to toggle DND";
           on-click = "swaync-client -t -sw";
           on-click-right = "swaync-client -d -sw";
+        };
+
+        "custom/monitor" = {
+          exec = "monitor-menu waybar";
+          return-type = "json";
+          interval = 5;
+          format = "{}";
+          tooltip = true;
+          on-click = "monitor-menu pick";
         };
 
         "custom/security" = {
