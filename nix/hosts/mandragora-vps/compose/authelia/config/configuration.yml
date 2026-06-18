@@ -100,7 +100,8 @@ access_control:
                'nb.mvr.ac', 'tts.mvr.ac', 'stt.mvr.ac',
                'kl.mvr.ac', 'watch.mvr.ac', 'axon.mvr.ac',
                'ytdl.mvr.ac', 'vtag.mvr.ac', 'ofin.mvr.ac',
-               'music.mvr.ac', 'git.mvr.ac', 'semantic.mvr.ac']
+               'music.mvr.ac', 'git.mvr.ac', 'semantic.mvr.ac',
+               'spider.mvr.ac']
       policy: 'two_factor'
 
 notifier:
