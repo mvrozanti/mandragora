@@ -1,0 +1,33 @@
+services:
+
+  # Reverse-proxy-only stack. semantic.mvr.ac is gated behind authelia and
+  # forwarded over tailscale to the visualizer running on mandragora-desktop
+  # (100.115.80.79): the static frontend on :3001 and the FastAPI backend on
+  # :8000. /api/* is stripped and routed to the backend; everything else to
+  # the frontend. The backend runs LLM inference on the desktop GPU, so the
+  # authelia gate (two_factor) is mandatory — never expose this unauthenticated.
+  semantic-proxy:
+    image: alpine:3.20
+    container_name: semantic-proxy
+    restart: unless-stopped
+    command: ["sh", "-c", "while true; do sleep 3600; done"]
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://semantic.${MVR_AC:-mvr.ac}
+      caddy.0_handle_path: "/api/*"
+      caddy.0_handle_path.forward_auth: "authelia:9091"
+      caddy.0_handle_path.forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_handle_path.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.0_handle_path.reverse_proxy: "${SEMANTIC_API_UPSTREAM:-100.115.80.79:8000}"
+      caddy.0_handle_path.reverse_proxy.flush_interval: "-1"
+      caddy.0_handle_path.reverse_proxy.transport: "http"
+      caddy.1_handle.forward_auth: "authelia:9091"
+      caddy.1_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy.1_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.1_handle.reverse_proxy: "${SEMANTIC_WEB_UPSTREAM:-100.115.80.79:3001}"
+      caddy.1_handle.reverse_proxy.transport: "http"
+
+networks:
+  seafile-net:
+    external: true
