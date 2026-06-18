@@ -33,7 +33,11 @@ echo "$$" > "${LOCKFILE}.pid"
 if [ "$MODE" = worktree ]; then
   echo "==> Worktree mode: building + committing only $SRC (branch $(git -C "$SRC" symbolic-ref --short HEAD 2>/dev/null || echo detached)). Other agents' work in the main tree is untouched."
 else
-  echo "==> Main-tree mode: snapshotting all dirty files from $FLAKE."
+  if [ "$SWEEP_ALL" = 1 ]; then
+    echo "==> Main-tree mode (--all): sweeping every dirty path from $FLAKE."
+  else
+    echo "==> Main-tree mode: commits only explicitly-staged paths from $FLAKE (--all to sweep)."
+  fi
 fi
 
 WT="$LOCKDIR/mandragora-switch-wt"
@@ -66,15 +70,18 @@ if pgrep -x nixos-rebuild > /dev/null 2>&1; then
 fi
 
 FORCE=0
+SWEEP_ALL=0
 PASSTHRU_ARGS=()
 for arg in "$@"; do
   case "$arg" in
     -f|--force) FORCE=1 ;;
+    --all) SWEEP_ALL=1 ;;
     *) PASSTHRU_ARGS+=("$arg") ;;
   esac
 done
 set -- "${PASSTHRU_ARGS[@]}"
 [ -n "$MANDRAGORA_SWITCH_FORCE" ] && FORCE=1
+[ -n "$MANDRAGORA_SWITCH_ALL" ] && SWEEP_ALL=1
 
 STABILITY_WAIT=${MANDRAGORA_SWITCH_STABILITY_SECONDS:-2}
 if [ "$FORCE" -eq 0 ] && [ "$STABILITY_WAIT" -gt 0 ]; then
@@ -138,16 +145,39 @@ MASTER_HEAD=$(git -C "$FLAKE" rev-parse refs/heads/master)
 if [ "$MODE" = worktree ]; then
   WT="$SRC"
 else
-  DIRTY_TRACKED=()
-  while IFS= read -r -d '' p; do DIRTY_TRACKED+=("$p"); done < <(git -C "$FLAKE" diff --name-only -z HEAD)
-  DIRTY_UNTRACKED=()
-  while IFS= read -r -d '' p; do DIRTY_UNTRACKED+=("$p"); done < <(git -C "$FLAKE" ls-files --others --exclude-standard -z)
+  STAGED=()
+  while IFS= read -r -d '' p; do STAGED+=("$p"); done < <(git -C "$FLAKE" diff --cached --name-only -z)
+  UNSTAGED=()
+  while IFS= read -r -d '' p; do UNSTAGED+=("$p"); done < <(git -C "$FLAKE" diff --name-only -z)
+  UNTRACKED=()
+  while IFS= read -r -d '' p; do UNTRACKED+=("$p"); done < <(git -C "$FLAKE" ls-files --others --exclude-standard -z)
+
+  SNAP_TRACKED=()
+  SNAP_UNTRACKED=()
+  if [ "$SWEEP_ALL" = 1 ]; then
+    while IFS= read -r -d '' p; do SNAP_TRACKED+=("$p"); done < <(git -C "$FLAKE" diff --name-only -z HEAD)
+    SNAP_UNTRACKED=("${UNTRACKED[@]}")
+    echo "==> --all: sweeping every dirty path in the main tree into this commit."
+  elif [ "${#STAGED[@]}" -gt 0 ]; then
+    SNAP_TRACKED=("${STAGED[@]}")
+    echo "==> Committing only the ${#STAGED[@]} explicitly-staged path(s); unstaged/untracked files left untouched."
+  elif [ "${#UNSTAGED[@]}" -gt 0 ] || [ "${#UNTRACKED[@]}" -gt 0 ]; then
+    echo "==> ABORTED: main tree has uncommitted changes and nothing is staged." >&2
+    echo "==> mandragora-switch will not blindly 'git add -A' — that sweeps other agents' WIP into your commit." >&2
+    echo "==> Pick one:" >&2
+    echo "==>   - work in a worktree and run switch from there (commit auto-scopes to your files), or" >&2
+    echo "==>   - 'git add <your files>' then re-run (commits only what you staged), or" >&2
+    echo "==>   - 'mandragora-switch --all' to deliberately sweep everything." >&2
+    echo "==> Dirty paths:" >&2
+    git -C "$FLAKE" status --short | sed 's/^/    /' >&2
+    exit 1
+  fi
 
   rm -rf "$WT"
   git -C "$FLAKE" worktree prune 2>/dev/null || true
   git -C "$FLAKE" worktree add --detach "$WT" "$MASTER_HEAD" >/dev/null
 
-  for p in "${DIRTY_TRACKED[@]}"; do
+  for p in "${SNAP_TRACKED[@]}"; do
     if [ -e "$FLAKE/$p" ]; then
       mkdir -p "$WT/$(dirname "$p")"
       cp -a "$FLAKE/$p" "$WT/$p"
@@ -155,7 +185,7 @@ else
       rm -f "$WT/$p"
     fi
   done
-  for p in "${DIRTY_UNTRACKED[@]}"; do
+  for p in "${SNAP_UNTRACKED[@]}"; do
     mkdir -p "$WT/$(dirname "$p")"
     cp -a "$FLAKE/$p" "$WT/$p"
   done
