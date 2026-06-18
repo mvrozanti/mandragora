@@ -46,7 +46,7 @@
       }
     }
   },
-  "effortLevel": "high",
+  "effortLevel": "medium",
   "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
   "skipAutoPermissionPrompt": true
