@@ -145,10 +145,10 @@ fires. Use a worktree.
 ## Worktree-honoring mode
 
 `mandragora-switch` detects whether the current directory is inside a
-linked worktree of the flake (its `--git-common-dir` resolves to
-`/etc/nixos/mandragora/.git`). If so it runs in **worktree mode**;
-otherwise **main-tree mode** (the historical snapshot behavior,
-unchanged).
+linked worktree of the flake (its canonicalized `--git-common-dir`
+resolves to the realpath of `/etc/nixos/mandragora`, i.e.
+`/persistent/mandragora`). If so it runs in **worktree mode**;
+otherwise **main-tree mode**.
 
 In worktree mode the script:
 
@@ -178,3 +178,23 @@ cd .worktrees/my-task
 # ... edit only your files ...
 mandragora-switch "feat(x): my change"   # commit = your files, nothing else
 ```
+
+### Main-tree mode never sweeps blindly
+
+Worktree mode can't help an agent that runs `mandragora-switch` from
+the main checkout — that path used to `git add -A`, sweeping any other
+agent's uncommitted WIP into the commit (it bit a `feat(waybar)` commit
+that swallowed an active spider edit on 2026-06-17). So main-tree mode
+no longer guesses:
+
+- **Files explicitly staged** (`git add …`) → commits exactly those;
+  unstaged/untracked files are left untouched.
+- **Nothing staged, but the tree is dirty** → **aborts** with guidance
+  (use a worktree, `git add` your files, or `--all`). It will not
+  invent a `git add -A`.
+- **Clean tree** → rebuilds current master, commits nothing.
+- **`--all` / `MANDRAGORA_SWITCH_ALL=1`** → the old sweep-everything
+  behavior, opt-in and explicit.
+
+Net: the blind `git add -A` only ever runs behind an explicit `--all`.
+The default for both modes is "commit only what is provably yours."
