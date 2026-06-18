@@ -85,12 +85,12 @@
       <input type="text" id="url" placeholder="example.com" autocomplete="off" required>
       <label>scope</label>
       <select id="scope">
+        <option value="any" selected>any host (follow everywhere)</option>
         <option value="host">same host (example.com)</option>
         <option value="domain">same domain (*.example.com)</option>
-        <option value="any">any host (follow everywhere)</option>
       </select>
       <div class="row">
-        <div><label>max depth</label><input type="number" id="depth" value="2" min="0" max="8"></div>
+        <div><label>max depth</label><input type="number" id="depth" value="99" min="0" max="99"></div>
         <div><label>max pages</label><input type="number" id="max_pages" value="200" min="1" max="2000"></div>
       </div>
       <div class="row">
@@ -151,16 +151,16 @@
   </main>
 </div>
 <script>
-let es=null, pages=[], broken=[], view="match";
+let ctrl=null, pages=[], broken=[], view="match";
 const $=id=>document.getElementById(id);
 const esc=s=>(s||"").replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
-function start(e){
+async function start(e){
   e.preventDefault();
   stop();
   pages=[]; broken=[];
-  for(const k of["pages","match","links","broken","err"]) $("s_"+k).textContent=0;
-  render();
+  for(const k of ["pages","match","links","broken","err"]) $("s_"+k).textContent=0;
+  bumpTabs(); render();
   const p=new URLSearchParams();
   p.set("url",$("url").value.trim());
   p.set("scope",$("scope").value);
@@ -177,17 +177,46 @@ function start(e){
   const ex=[]; if($("ext_email").checked)ex.push("email"); if($("ext_phone").checked)ex.push("phone");
   p.set("extractors",ex.join(","));
 
-  es=new EventSource("/api/crawl?"+p.toString());
-  $("stop").disabled=false; $("go").disabled=true; $("pulse").classList.add("run");
-
-  es.addEventListener("page",ev=>{const d=JSON.parse(ev.data); pages.push(d); maybeAdd(d); bump();});
-  es.addEventListener("broken",ev=>{broken.push(JSON.parse(ev.data)); if(view==="broken")render(); bumpTabs();});
-  es.addEventListener("error",ev=>{try{const d=JSON.parse(ev.data); flash(d.error||"error");}catch(_){}});
-  es.addEventListener("done",ev=>{const d=JSON.parse(ev.data); applyStats(d.stats); finish();});
-  es.onerror=()=>{ if(es&&es.readyState===2) finish(); };
+  ctrl=new AbortController();
+  setRunning(true);
+  flash("connecting…");
+  let resp;
+  try{
+    resp=await fetch("/api/crawl?"+p.toString(),{headers:{Accept:"text/event-stream"},signal:ctrl.signal});
+  }catch(err){ flash("request failed: "+err.message); setRunning(false); return; }
+  if(!resp.ok){
+    const hint=(resp.status===401||resp.status===403)?" — session expired, reload the page":"";
+    flash("HTTP "+resp.status+" "+resp.statusText+hint); setRunning(false); return;
+  }
+  if(!resp.body){ flash("streaming unsupported by this browser"); setRunning(false); return; }
+  flash("crawling…");
+  const reader=resp.body.getReader(), dec=new TextDecoder(); let buf="";
+  try{
+    while(true){
+      const {done,value}=await reader.read();
+      if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      let i;
+      while((i=buf.indexOf("\n\n"))>=0){ handleEvent(buf.slice(0,i)); buf=buf.slice(i+2); }
+    }
+  }catch(err){ if(!(ctrl&&ctrl.signal.aborted)) flash("stream error: "+err.message); }
+  setRunning(false);
 }
-function stop(){ if(es){es.close();es=null;} finish(); }
-function finish(){ $("stop").disabled=true; $("go").disabled=false; $("pulse").classList.remove("run"); }
+function handleEvent(chunk){
+  let name=null, data="";
+  for(const line of chunk.split("\n")){
+    if(line.startsWith("event:")) name=line.slice(6).trim();
+    else if(line.startsWith("data:")) data+=line.slice(5).trim();
+  }
+  if(!data) return;
+  let d; try{ d=JSON.parse(data); }catch(_){ return; }
+  if(name==="page"){ pages.push(d); maybeAdd(d); bump(); }
+  else if(name==="broken"){ broken.push(d); if(view==="broken")render(); bumpTabs(); }
+  else if(name==="done"){ applyStats(d.stats); render(); if(!pages.length) flash("done — 0 pages crawled (blocked/unreachable host?)"); }
+  else if(name==="error"){ flash("error: "+(d.error||"unknown")); }
+}
+function stop(){ if(ctrl){ ctrl.abort(); ctrl=null; } setRunning(false); }
+function setRunning(on){ $("stop").disabled=!on; $("go").disabled=on; $("pulse").classList.toggle("run",on); }
 
 function applyStats(s){ if(!s)return;
   $("s_pages").textContent=s.pages_crawled; $("s_match").textContent=s.matches;
