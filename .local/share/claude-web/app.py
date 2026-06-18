@@ -57,31 +57,12 @@ async def pick_session(env: dict) -> str | None:
     return None
 
 
-async def find_existing_window(session: str, target: Path, env: dict) -> str | None:
-    rc, out, _ = await tmux(
-        "list-windows", "-t", session,
-        "-F", "#{window_index}\t#{@claude_dir}", env=env,
-    )
-    if rc != 0:
-        return None
-    needle = str(target)
-    for line in out.splitlines():
-        idx, _, dir_ = line.partition("\t")
-        if dir_ == needle:
-            return idx
-    return None
-
-
 async def tmux_spawn(target: Path) -> tuple[bool, str, str]:
     env = {**os.environ, "XDG_RUNTIME_DIR": XDG_RUNTIME_DIR, "HOME": str(HOME)}
     session = await pick_session(env)
     name = target.name or target.anchor.strip("/") or "claude"
 
     if session is not None:
-        existing = await find_existing_window(session, target, env)
-        if existing is not None:
-            await tmux("select-window", "-t", f"{session}:{existing}", env=env)
-            return True, f"{session}:{existing}", "already running"
         rc, out, err = await tmux(
             "new-window", "-t", f"{session}:", "-c", str(target),
             "-n", name, "-P", "-F", "#{window_index}", "claude", env=env,
