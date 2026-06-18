@@ -141,3 +141,40 @@ them as explicit aborts with diffs. They do **not** replace the
 worktree default — the staging-leak failure mode above happens
 inside the single switch that wins the flock, where neither guard
 fires. Use a worktree.
+
+## Worktree-honoring mode
+
+`mandragora-switch` detects whether the current directory is inside a
+linked worktree of the flake (its `--git-common-dir` resolves to
+`/etc/nixos/mandragora/.git`). If so it runs in **worktree mode**;
+otherwise **main-tree mode** (the historical snapshot behavior,
+unchanged).
+
+In worktree mode the script:
+
+- builds, stages, and commits **only that worktree** — no temporary
+  snapshot, no `git add -A` over the shared main tree;
+- is structurally isolated: another agent physically cannot write your
+  worktree, so the commit can only ever contain your own work. This is
+  the durable fix for the multi-agent staging leak — no flag to
+  remember, no pathspec to get right;
+- promotes the commit to `master` **ancestor-guarded**: fast-forward
+  only when the commit sits directly on top of the current master,
+  otherwise rebase onto current master first so no concurrent master
+  commit is lost;
+- after promoting, syncs the main tree's working copy of the promoted
+  files (only those that still matched the old master) so they don't
+  show as spuriously reverted and a later main-tree switch can't
+  snapshot a stale version back over them.
+
+The flock still serializes the whole machine — two agents in two
+worktrees take turns through the single `nixos-rebuild`, they don't run
+concurrently. The practical workflow becomes:
+
+```bash
+cd /etc/nixos/mandragora
+git worktree add .worktrees/my-task -b feat/my-task master
+cd .worktrees/my-task
+# ... edit only your files ...
+mandragora-switch "feat(x): my change"   # commit = your files, nothing else
+```
