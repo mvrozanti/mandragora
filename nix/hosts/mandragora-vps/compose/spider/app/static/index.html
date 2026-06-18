@@ -151,16 +151,21 @@
   </main>
 </div>
 <script>
-let ctrl=null, pages=[], broken=[], view="match";
+let ctrl=null, running=false, pages=[], broken=[], view="match";
+const stat={pages:0,match:0,links:0,broken:0,err:0};
+let pend=[], pendBroken=false, raf=0;
+const INPUTS=["url","scope","depth","max_pages","concurrency","robots","terms","regex","ci","match_html","custom_regex","check_broken","ext_email","ext_phone"];
 const $=id=>document.getElementById(id);
 const esc=s=>(s||"").replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const aborted=()=>ctrl&&ctrl.signal.aborted;
 
 async function start(e){
   e.preventDefault();
-  stop();
-  pages=[]; broken=[];
-  for(const k of ["pages","match","links","broken","err"]) $("s_"+k).textContent=0;
-  bumpTabs(); render();
+  if(running) return;
+  pages=[]; broken=[]; pend=[]; pendBroken=false;
+  for(const k in stat) stat[k]=0;
+  flushNow(); render(); flash("connecting…");
+
   const p=new URLSearchParams();
   p.set("url",$("url").value.trim());
   p.set("scope",$("scope").value);
@@ -179,11 +184,10 @@ async function start(e){
 
   ctrl=new AbortController();
   setRunning(true);
-  flash("connecting…");
   let resp;
   try{
     resp=await fetch("/api/crawl?"+p.toString(),{headers:{Accept:"text/event-stream"},signal:ctrl.signal});
-  }catch(err){ flash("request failed: "+err.message); setRunning(false); return; }
+  }catch(err){ if(!aborted())flash("request failed: "+err.message); setRunning(false); return; }
   if(!resp.ok){
     const hint=(resp.status===401||resp.status===403)?" — session expired, reload the page":"";
     flash("HTTP "+resp.status+" "+resp.statusText+hint); setRunning(false); return;
@@ -199,9 +203,19 @@ async function start(e){
       let i;
       while((i=buf.indexOf("\n\n"))>=0){ handleEvent(buf.slice(0,i)); buf=buf.slice(i+2); }
     }
-  }catch(err){ if(!(ctrl&&ctrl.signal.aborted)) flash("stream error: "+err.message); }
+  }catch(err){ if(!aborted()) flash("stream error: "+err.message); }
+  flushNow();
   setRunning(false);
 }
+function stop(){ if(ctrl) ctrl.abort(); setRunning(false); }
+function setRunning(on){
+  running=on;
+  $("stop").disabled=!on; $("go").disabled=on;
+  $("go").textContent=on?"crawling…":"crawl";
+  $("pulse").classList.toggle("run",on);
+  INPUTS.forEach(id=>{const el=$(id); if(el)el.disabled=on;});
+}
+
 function handleEvent(chunk){
   let name=null, data="";
   for(const line of chunk.split("\n")){
@@ -210,32 +224,44 @@ function handleEvent(chunk){
   }
   if(!data) return;
   let d; try{ d=JSON.parse(data); }catch(_){ return; }
-  if(name==="page"){ pages.push(d); maybeAdd(d); bump(); }
-  else if(name==="broken"){ broken.push(d); if(view==="broken")render(); bumpTabs(); }
-  else if(name==="done"){ applyStats(d.stats); render(); if(!pages.length) flash("done — 0 pages crawled (blocked/unreachable host?)"); }
-  else if(name==="error"){ flash("error: "+(d.error||"unknown")); }
+  if(name==="page"){
+    pages.push(d); stat.pages++;
+    if(d.matched) stat.match++;
+    if(d.status===undefined||d.status===null) stat.err++;
+    if(shouldShow(d)) pend.push(pageHTML(d));
+    schedule();
+  } else if(name==="broken"){
+    broken.push(d); stat.broken++; pendBroken=true; schedule();
+  } else if(name==="done"){
+    applyStats(d.stats); flushNow(); render();
+    if(!pages.length) flash("done — 0 pages crawled (blocked/unreachable host?)");
+  } else if(name==="error"){
+    flash("error: "+(d.error||"unknown"));
+  }
 }
-function stop(){ if(ctrl){ ctrl.abort(); ctrl=null; } setRunning(false); }
-function setRunning(on){ $("stop").disabled=!on; $("go").disabled=on; $("pulse").classList.toggle("run",on); }
+
+function schedule(){ if(!raf) raf=requestAnimationFrame(flush); }
+function flush(){
+  raf=0;
+  $("s_pages").textContent=stat.pages; $("s_match").textContent=stat.match;
+  $("s_links").textContent=stat.links; $("s_broken").textContent=stat.broken; $("s_err").textContent=stat.err;
+  $("c_match").textContent=stat.match; $("c_all").textContent=stat.pages; $("c_broken").textContent=stat.broken;
+  if(pend.length){
+    if(view!=="broken"){
+      const empty=$("res").querySelector(".empty"); if(empty)empty.remove();
+      $("res").insertAdjacentHTML("beforeend",pend.join(""));
+    }
+    pend=[];
+  }
+  if(pendBroken){ if(view==="broken") render(); pendBroken=false; }
+}
+function flushNow(){ if(raf){ cancelAnimationFrame(raf); raf=0; } flush(); }
 
 function applyStats(s){ if(!s)return;
-  $("s_pages").textContent=s.pages_crawled; $("s_match").textContent=s.matches;
-  $("s_links").textContent=s.links_seen; $("s_broken").textContent=s.broken; $("s_err").textContent=s.errors;
+  stat.pages=s.pages_crawled; stat.match=s.matches; stat.links=s.links_seen; stat.broken=s.broken; stat.err=s.errors;
 }
-function bump(){
-  $("s_pages").textContent=pages.length;
-  $("s_match").textContent=pages.filter(p=>p.matched).length;
-  $("s_err").textContent=pages.filter(p=>p.status===undefined).length;
-  bumpTabs();
-}
-function bumpTabs(){
-  $("c_match").textContent=pages.filter(p=>p.matched).length;
-  $("c_all").textContent=pages.length;
-  $("c_broken").textContent=broken.length;
-}
-function setView(v){ view=v; document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.v===v)); render(); }
+function setView(v){ view=v; document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.v===v)); pend=[]; render(); }
 function shouldShow(p){ return view==="all" || (view==="match"&&p.matched); }
-function maybeAdd(p){ if(shouldShow(p)){ const empty=$("res").querySelector(".empty"); if(empty)empty.remove(); $("res").insertAdjacentHTML("beforeend",pageHTML(p)); } bumpTabs(); }
 
 function statusClass(s){ if(s===undefined||s===0)return"s0"; return"s"+Math.floor(s/100)*100; }
 function pageHTML(p){
