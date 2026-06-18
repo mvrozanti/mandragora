@@ -66,6 +66,16 @@
   .ext .v{font-size:11px;color:var(--dim);background:var(--panel2);padding:1px 6px;border-radius:4px}
   .empty{color:var(--dim);text-align:center;padding:60px 20px}
   .hide{display:none}
+  .cachetag{font-size:11px;color:var(--warn);border:1px solid var(--warn);border-radius:4px;padding:1px 7px}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50}
+  .modal .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;max-width:440px;width:90%;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+  .mtitle{color:var(--acc);font-size:15px;margin-bottom:10px}
+  .mbody{color:var(--fg);font-size:13px;line-height:1.6;margin-bottom:16px}
+  .mbody b{color:var(--acc2)}
+  .mbtns{display:flex;gap:8px;justify-content:flex-end}
+  .mbtns button{background:var(--panel2);color:var(--fg)}
+  .mbtns .primary{background:var(--acc);color:#062018;border-color:var(--acc);font-weight:700}
+  .mbtns .ghost{color:var(--dim);background:transparent}
   .pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--acc);margin-right:6px}
   .pulse.run{animation:p 1s infinite}
   @keyframes p{0%,100%{opacity:1}50%{opacity:.25}}
@@ -134,6 +144,7 @@
       <span class="stat"><b id="s_links">0</b> <span>links</span></span>
       <span class="stat"><b id="s_broken">0</b> <span>broken</span></span>
       <span class="stat"><b id="s_err">0</b> <span>errors</span></span>
+      <span id="cachetag" class="cachetag hide">cached</span>
       <span class="spacer"></span>
       <div class="tabs">
         <div class="tab on" data-v="match" onclick="setView('match')">matches <b id="c_match">0</b></div>
@@ -150,6 +161,17 @@
     </div>
   </main>
 </div>
+<div id="modal" class="modal hide">
+  <div class="card">
+    <div class="mtitle">🗄 cached crawl found</div>
+    <div class="mbody" id="mbody"></div>
+    <div class="mbtns">
+      <button id="m_cache" class="primary">use cache</button>
+      <button id="m_fresh">crawl fresh</button>
+      <button id="m_cancel" class="ghost">cancel</button>
+    </div>
+  </div>
+</div>
 <script>
 let ctrl=null, running=false, pages=[], broken=[], view="match";
 const stat={pages:0,match:0,links:0,broken:0,err:0};
@@ -159,13 +181,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>(s||"").replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const aborted=()=>ctrl&&ctrl.signal.aborted;
 
-async function start(e){
-  e.preventDefault();
-  if(running) return;
-  pages=[]; broken=[]; pend=[]; pendBroken=false;
-  for(const k in stat) stat[k]=0;
-  flushNow(); render(); flash("connecting…");
-
+function buildParams(){
   const p=new URLSearchParams();
   p.set("url",$("url").value.trim());
   p.set("scope",$("scope").value);
@@ -181,12 +197,38 @@ async function start(e){
   p.set("check_broken",$("check_broken").checked);
   const ex=[]; if($("ext_email").checked)ex.push("email"); if($("ext_phone").checked)ex.push("phone");
   p.set("extractors",ex.join(","));
+  return p.toString();
+}
+
+async function start(e){
+  e.preventDefault();
+  if(running) return;
+  if(!$("url").value.trim()){ flash("enter a url first."); return; }
+  setRunning(true);
+  const params=buildParams();
+
+  let useCache=false;
+  try{
+    const r=await fetch("/api/cache/check?"+params);
+    if(r.ok){
+      const c=await r.json();
+      if(c.cached){
+        const ans=await ask(c);
+        if(ans==="cancel"){ setRunning(false); return; }
+        useCache=(ans==="cache");
+      }
+    }
+  }catch(_){}
+
+  pages=[]; broken=[]; pend=[]; pendBroken=false;
+  for(const k in stat) stat[k]=0;
+  $("cachetag").classList.add("hide");
+  flushNow(); render(); flash(useCache?"loading cache…":"connecting…");
 
   ctrl=new AbortController();
-  setRunning(true);
   let resp;
   try{
-    resp=await fetch("/api/crawl?"+p.toString(),{headers:{Accept:"text/event-stream"},signal:ctrl.signal});
+    resp=await fetch("/api/crawl?"+params+(useCache?"&use_cache=1":""),{headers:{Accept:"text/event-stream"},signal:ctrl.signal});
   }catch(err){ if(!aborted())flash("request failed: "+err.message); setRunning(false); return; }
   if(!resp.ok){
     const hint=(resp.status===401||resp.status===403)?" — session expired, reload the page":"";
@@ -216,6 +258,34 @@ function setRunning(on){
   INPUTS.forEach(id=>{const el=$(id); if(el)el.disabled=on;});
 }
 
+function fmtAgo(ts){
+  if(!ts) return "earlier";
+  const s=Math.floor(Date.now()/1000-ts);
+  if(s<60) return s+"s ago";
+  if(s<3600) return Math.floor(s/60)+"m ago";
+  if(s<86400) return Math.floor(s/3600)+"h ago";
+  return Math.floor(s/86400)+"d ago";
+}
+function ask(c){
+  return new Promise(res=>{
+    const m=$("modal");
+    $("mbody").innerHTML=`a previous crawl of <b>${esc(c.url||"")}</b> from <b>${fmtAgo(c.created)}</b> — `
+      +`${c.pages} pages, ${c.matches} matches, ${c.broken} broken. reuse those results, or crawl again?`;
+    m.classList.remove("hide");
+    const fin=v=>{ m.classList.add("hide"); cleanup(); res(v); };
+    const onKey=e=>{ if(e.key==="Escape") fin("cancel"); };
+    function cleanup(){
+      $("m_cache").onclick=$("m_fresh").onclick=$("m_cancel").onclick=m.onclick=null;
+      document.removeEventListener("keydown",onKey);
+    }
+    $("m_cache").onclick=()=>fin("cache");
+    $("m_fresh").onclick=()=>fin("fresh");
+    $("m_cancel").onclick=()=>fin("cancel");
+    m.onclick=e=>{ if(e.target===m) fin("cancel"); };
+    document.addEventListener("keydown",onKey);
+  });
+}
+
 function handleEvent(chunk){
   let name=null, data="";
   for(const line of chunk.split("\n")){
@@ -224,7 +294,10 @@ function handleEvent(chunk){
   }
   if(!data) return;
   let d; try{ d=JSON.parse(data); }catch(_){ return; }
-  if(name==="page"){
+  if(name==="meta"){
+    $("cachetag").classList.toggle("hide", !d.cached);
+    if(d.cached) $("cachetag").textContent="cached · "+fmtAgo(d.created);
+  } else if(name==="page"){
     pages.push(d); stat.pages++;
     if(d.matched) stat.match++;
     if(d.status===undefined||d.status===null) stat.err++;

@@ -7,6 +7,10 @@ services:
     image: ${SPIDER_IMAGE:-mandragora/spider:local}
     container_name: spider
     restart: unless-stopped
+    environment:
+      - SPIDER_CACHE_DIR=/data/cache
+    volumes:
+      - ${SPIDER_DATA_VOLUME:-./data}:/data
     networks:
       - seafile-net
     labels:
