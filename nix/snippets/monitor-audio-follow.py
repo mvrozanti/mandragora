@@ -7,6 +7,7 @@ import threading
 import time
 
 DRM = "/sys/class/drm"
+DEBUG = os.environ.get("AUDIO_FOLLOW_DEBUG") == "1"
 
 _state_lock = threading.Lock()
 _timer_lock = threading.Lock()
@@ -111,17 +112,50 @@ def sink_inputs():
     return rows
 
 
+def read_ppid(pid):
+    try:
+        with open(f"/proc/{pid}/status") as fh:
+            for line in fh:
+                if line.startswith("PPid:"):
+                    return int(line.split()[1])
+    except (OSError, ValueError):
+        return None
+    return None
+
+
+def resolve_monitor(pid, winmap):
+    seen = 0
+    while pid and pid > 1 and seen < 24:
+        if pid in winmap:
+            return winmap[pid]
+        pid = read_ppid(pid)
+        seen += 1
+    return None
+
+
+def log(msg):
+    print(f"[audio-follow] {msg}", flush=True)
+
+
 def reroute():
     with _state_lock:
         sink_map = dict(SINK_MAP)
     if not sink_map:
         return
-    pmap = pid_to_monitor_name()
+    winmap = pid_to_monitor_name()
     for idx, pid, cur_sink in sink_inputs():
-        if not pid or pid not in pmap:
+        if not pid:
+            if DEBUG:
+                log(f"stream {idx}: no pid, skipping")
             continue
-        want = sink_map.get(pmap[pid])
+        monname = resolve_monitor(pid, winmap)
+        if not monname:
+            if DEBUG:
+                log(f"stream {idx} pid={pid}: no owning window, skipping")
+            continue
+        want = sink_map.get(monname)
         if want and want != cur_sink:
+            log(f"stream {idx} pid={pid} -> {monname}: {cur_sink} => {want}")
             run(["pactl", "move-sink-input", idx, want])
 
 
@@ -194,6 +228,7 @@ def watch_hypr():
 
 def main():
     refresh_sink_map()
+    log(f"sink map: {SINK_MAP}")
     reroute()
     threads = [
         threading.Thread(target=watch_pactl, daemon=True),
