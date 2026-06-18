@@ -2,7 +2,20 @@
 set -eo pipefail
 FLAKE="/etc/nixos/mandragora"
 
-cd "$FLAKE"
+SRC="$FLAKE"
+MODE="main"
+if git -C "$PWD" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  _top=$(git -C "$PWD" rev-parse --show-toplevel 2>/dev/null || true)
+  _common=$(git -C "$PWD" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)
+  _mainwt=""
+  [ -n "$_common" ] && _mainwt=$(dirname "$_common")
+  if [ "$_mainwt" = "$FLAKE" ] && [ -n "$_top" ] && [ "$_top" != "$FLAKE" ]; then
+    MODE="worktree"
+    SRC="$_top"
+  fi
+fi
+
+cd "$SRC"
 
 LOCKDIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 mkdir -p "$LOCKDIR"
@@ -16,13 +29,19 @@ if ! flock -n 9; then
 fi
 echo "$$" > "${LOCKFILE}.pid"
 
+if [ "$MODE" = worktree ]; then
+  echo "==> Worktree mode: building + committing only $SRC (branch $(git -C "$SRC" symbolic-ref --short HEAD 2>/dev/null || echo detached)). Other agents' work in the main tree is untouched."
+else
+  echo "==> Main-tree mode: snapshotting all dirty files from $FLAKE."
+fi
+
 WT="$LOCKDIR/mandragora-switch-wt"
 TMPFILE=""
 SAVED_FLAG=""
 cleanup() {
   rm -f "${LOCKFILE}.pid"
   [ -n "$TMPFILE" ] && rm -f "$TMPFILE" "$SAVED_FLAG"
-  if [ -d "$WT" ]; then
+  if [ "$MODE" = main ] && [ -d "$WT" ]; then
     git -C "$FLAKE" worktree remove --force "$WT" 2>/dev/null || rm -rf "$WT"
     git -C "$FLAKE" worktree prune 2>/dev/null || true
   fi
@@ -97,40 +116,49 @@ if [ "$FORCE" -eq 0 ] && [ "$STABILITY_WAIT" -gt 0 ]; then
 fi
 
 echo "==> Fetching origin..."
-if ! git fetch origin; then
+if ! git -C "$FLAKE" fetch origin; then
   echo "==> WARNING: git fetch failed. Proceeding without sync check." >&2
-elif [ "$(git rev-list --count HEAD..origin/master)" -gt 0 ]; then
-  echo "==> Remote is ahead by $(git rev-list --count HEAD..origin/master) commit(s). Rebasing..."
-  if ! git pull --rebase --autostash origin master; then
-    echo "==> FAILED: rebase conflict. Resolve manually then re-run." >&2
-    exit 1
+elif [ "$(git -C "$FLAKE" rev-list --count refs/heads/master..origin/master)" -gt 0 ]; then
+  AHEAD_ORIGIN=$(git -C "$FLAKE" rev-list --count refs/heads/master..origin/master)
+  if [ "$MODE" = main ]; then
+    echo "==> Remote is ahead by $AHEAD_ORIGIN commit(s). Rebasing master..."
+    if ! git -C "$FLAKE" pull --rebase --autostash origin master; then
+      echo "==> FAILED: rebase conflict. Resolve manually then re-run." >&2
+      exit 1
+    fi
+  else
+    echo "==> Remote master ahead by $AHEAD_ORIGIN commit(s); will fold in during promote."
   fi
 fi
 phase "git fetch/rebase"
 
-MASTER_HEAD=$(git -C "$FLAKE" rev-parse HEAD)
+MASTER_HEAD=$(git -C "$FLAKE" rev-parse refs/heads/master)
 
-DIRTY_TRACKED=()
-while IFS= read -r -d '' p; do DIRTY_TRACKED+=("$p"); done < <(git -C "$FLAKE" diff --name-only -z HEAD)
-DIRTY_UNTRACKED=()
-while IFS= read -r -d '' p; do DIRTY_UNTRACKED+=("$p"); done < <(git -C "$FLAKE" ls-files --others --exclude-standard -z)
+if [ "$MODE" = worktree ]; then
+  WT="$SRC"
+else
+  DIRTY_TRACKED=()
+  while IFS= read -r -d '' p; do DIRTY_TRACKED+=("$p"); done < <(git -C "$FLAKE" diff --name-only -z HEAD)
+  DIRTY_UNTRACKED=()
+  while IFS= read -r -d '' p; do DIRTY_UNTRACKED+=("$p"); done < <(git -C "$FLAKE" ls-files --others --exclude-standard -z)
 
-rm -rf "$WT"
-git -C "$FLAKE" worktree prune 2>/dev/null || true
-git -C "$FLAKE" worktree add --detach "$WT" "$MASTER_HEAD" >/dev/null
+  rm -rf "$WT"
+  git -C "$FLAKE" worktree prune 2>/dev/null || true
+  git -C "$FLAKE" worktree add --detach "$WT" "$MASTER_HEAD" >/dev/null
 
-for p in "${DIRTY_TRACKED[@]}"; do
-  if [ -e "$FLAKE/$p" ]; then
+  for p in "${DIRTY_TRACKED[@]}"; do
+    if [ -e "$FLAKE/$p" ]; then
+      mkdir -p "$WT/$(dirname "$p")"
+      cp -a "$FLAKE/$p" "$WT/$p"
+    else
+      rm -f "$WT/$p"
+    fi
+  done
+  for p in "${DIRTY_UNTRACKED[@]}"; do
     mkdir -p "$WT/$(dirname "$p")"
     cp -a "$FLAKE/$p" "$WT/$p"
-  else
-    rm -f "$WT/$p"
-  fi
-done
-for p in "${DIRTY_UNTRACKED[@]}"; do
-  mkdir -p "$WT/$(dirname "$p")"
-  cp -a "$FLAKE/$p" "$WT/$p"
-done
+  done
+fi
 
 cd "$WT"
 export MANDRAGORA_REPO="$WT"
@@ -283,18 +311,37 @@ fi
 
 if [ "$COMMIT_SKIPPED" -eq 0 ]; then
   NEW_COMMIT=$(git -C "$WT" rev-parse HEAD)
-  if ! git -C "$FLAKE" update-ref -m "mandragora-switch: promote $NEW_COMMIT" refs/heads/master "$NEW_COMMIT" "$MASTER_HEAD"; then
-    echo "==> Master moved during build; rebasing snapshot commit onto current master..."
+
+  PROMOTED=0
+  if git -C "$WT" merge-base --is-ancestor "$MASTER_HEAD" "$NEW_COMMIT" 2>/dev/null \
+     && git -C "$FLAKE" update-ref -m "mandragora-switch: promote $NEW_COMMIT" \
+          refs/heads/master "$NEW_COMMIT" "$MASTER_HEAD" 2>/dev/null; then
+    PROMOTED=1
+  fi
+  if [ "$PROMOTED" -eq 0 ]; then
+    echo "==> Master moved or commit not on top of it; rebasing onto current master..."
     if ! git -C "$WT" fetch "$FLAKE" master >/dev/null 2>&1 \
       || ! git -C "$WT" rebase FETCH_HEAD; then
-      echo "==> FAILED: rebase conflict between snapshot commit and concurrent master changes. Resolve in $WT, then manually update master." >&2
+      echo "==> FAILED: rebase conflict between your commit and concurrent master changes. Resolve in $WT, then manually update master." >&2
       exit 1
     fi
     NEW_COMMIT=$(git -C "$WT" rev-parse HEAD)
     git -C "$FLAKE" update-ref refs/heads/master "$NEW_COMMIT"
   fi
+
+  if [ "$MODE" = worktree ]; then
+    while IFS= read -r f; do
+      [ -z "$f" ] && continue
+      if git -C "$FLAKE" diff --quiet "$MASTER_HEAD" -- "$f" 2>/dev/null; then
+        git -C "$FLAKE" checkout HEAD -- "$f" 2>/dev/null || true
+      else
+        echo "==> NOTE: $f also changed in the main tree; left as-is there (resolve manually)." >&2
+      fi
+    done < <(git -C "$FLAKE" diff --name-only HEAD)
+  fi
+
   cd "$FLAKE"
-  phase "promote snapshot to master"
+  phase "promote to master"
 
   MAX_PUSH_ATTEMPTS=${MANDRAGORA_SWITCH_PUSH_ATTEMPTS:-3}
   attempt=0
