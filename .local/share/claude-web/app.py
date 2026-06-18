@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 
+import aiohttp
 from aiohttp import web
 
 HOME = Path(os.environ.get("HOME", "/home/m")).resolve()
@@ -17,6 +18,12 @@ LISTEN_PORT = int(os.environ.get("CLAUDE_WEB_PORT", "7682"))
 XDG_RUNTIME_DIR = os.environ.get("XDG_RUNTIME_DIR", "/run/user/1000")
 FALLBACK_SESSION = os.environ.get("CLAUDE_WEB_FALLBACK_SESSION", "claude")
 EXCLUDE = {".git", "node_modules", "__pycache__", ".venv", ".direnv", ".cache", ".tmp"}
+DEVTOOLS_UPSTREAM = os.environ.get("CLAUDE_DEVTOOLS_UPSTREAM", "http://127.0.0.1:3456")
+_HOP_HEADERS = {
+    "connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
+    "te", "trailers", "transfer-encoding", "upgrade", "content-length",
+    "content-encoding", "host",
+}
 
 
 def resolve_dir(raw: str | None) -> Path:
@@ -148,6 +155,44 @@ async def api_launch(req: web.Request) -> web.Response:
     ok, session, msg = await tmux_spawn(target)
     status = 200 if ok else 500
     return web.json_response({"ok": ok, "session": session, "dir": str(target), "msg": msg}, status=status)
+
+
+async def _proxy_devtools(req: web.Request, upstream_path: str) -> web.StreamResponse:
+    session: aiohttp.ClientSession = req.app["dt_client"]
+    url = DEVTOOLS_UPSTREAM + upstream_path
+    if req.query_string:
+        url += "?" + req.query_string
+    fwd = {k: v for k, v in req.headers.items() if k.lower() not in _HOP_HEADERS}
+    body = await req.read() if req.body_exists else None
+    try:
+        up = await session.request(req.method, url, headers=fwd, data=body, allow_redirects=False)
+    except aiohttp.ClientError as exc:
+        return web.Response(status=502, text=f"claude-devtools upstream unreachable: {exc}")
+    resp = web.StreamResponse(status=up.status)
+    for k, v in up.headers.items():
+        if k.lower() not in _HOP_HEADERS:
+            resp.headers[k] = v
+    await resp.prepare(req)
+    try:
+        async for chunk in up.content.iter_any():
+            await resp.write(chunk)
+    except (ConnectionResetError, asyncio.CancelledError):
+        pass
+    finally:
+        up.release()
+    try:
+        await resp.write_eof()
+    except (ConnectionResetError, asyncio.CancelledError):
+        pass
+    return resp
+
+
+async def dt_app(req: web.Request) -> web.StreamResponse:
+    return await _proxy_devtools(req, "/" + req.match_info.get("tail", ""))
+
+
+async def dt_api(req: web.Request) -> web.StreamResponse:
+    return await _proxy_devtools(req, "/api/" + req.match_info.get("tail", ""))
 
 
 INDEX_HTML = r"""<!DOCTYPE html>
@@ -374,6 +419,25 @@ INDEX_HTML = r"""<!DOCTYPE html>
     .ok-wrap { padding: 1rem 0 0.5rem; gap: 1rem; }
     .check { width: 80px; height: 80px; }
   }
+
+  .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
+  .tab {
+    background: var(--panel); border: 1px solid var(--line); color: var(--dim);
+    font: inherit; font-size: 0.82rem; padding: 0.4rem 1.1rem; cursor: pointer;
+    transition: background 0.12s, color 0.12s, border-color 0.12s; letter-spacing: 0.03em;
+  }
+  .tab:hover { color: var(--fg); }
+  .tab.active { color: var(--accent); border-color: var(--accent); background: var(--hover); }
+  #dt-pane { height: 82dvh; border: 1px solid var(--line); background: var(--bg); }
+  #dt-frame { width: 100%; height: 100%; border: 0; display: block; }
+  .wrap.dt-active { max-width: 1400px; transition: max-width 0.2s ease; }
+
+  @media (max-width: 600px) {
+    .wrap.dt-active { max-width: none; }
+    .tabs { margin-bottom: 0.5rem; flex-shrink: 0; }
+    #spawn-pane { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+    #dt-pane { flex: 1 1 auto; min-height: 0; height: auto; border: 0; }
+  }
 </style>
 </head>
 <body>
@@ -385,11 +449,20 @@ INDEX_HTML = r"""<!DOCTYPE html>
       <a href="https://auth.mvr.ac/logout">logout</a>
     </div>
   </header>
-  <div class="card" id="root"></div>
-  <footer>
-    <span>mvr.ac · claude</span>
-    <span><a href="https://hub.mvr.ac">hub</a> · <a href="https://mvr.ac">root</a></span>
-  </footer>
+  <nav class="tabs">
+    <button type="button" class="tab active" data-tab="spawn">spawn</button>
+    <button type="button" class="tab" data-tab="devtools">devtools</button>
+  </nav>
+  <div id="spawn-pane">
+    <div class="card" id="root"></div>
+    <footer>
+      <span>mvr.ac · claude</span>
+      <span><a href="https://hub.mvr.ac">hub</a> · <a href="https://mvr.ac">root</a></span>
+    </footer>
+  </div>
+  <div id="dt-pane" hidden>
+    <iframe id="dt-frame" title="claude-devtools" referrerpolicy="no-referrer"></iframe>
+  </div>
 </div>
 <script>
 if ('virtualKeyboard' in navigator) navigator.virtualKeyboard.overlaysContent = true;
@@ -686,6 +759,21 @@ if (dirParam !== null) {
   window.addEventListener('hashchange', navigate);
   navigate();
 }
+
+const tabBtns = document.querySelectorAll('.tab');
+const spawnPane = document.getElementById('spawn-pane');
+const dtPane = document.getElementById('dt-pane');
+const dtFrame = document.getElementById('dt-frame');
+const wrapEl = document.querySelector('.wrap');
+function showTab(name) {
+  const dt = name === 'devtools';
+  if (dt && !dtFrame.src) dtFrame.src = '/devtools/';
+  spawnPane.hidden = dt;
+  dtPane.hidden = !dt;
+  wrapEl.classList.toggle('dt-active', dt);
+  tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+}
+tabBtns.forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
 </script>
 </body>
 </html>
@@ -697,12 +785,27 @@ async def index(req: web.Request) -> web.Response:
     return web.Response(text=html, content_type="text/html")
 
 
+async def _open_dt_client(app: web.Application) -> None:
+    app["dt_client"] = aiohttp.ClientSession(
+        timeout=aiohttp.ClientTimeout(total=None, sock_read=None),
+    )
+
+
+async def _close_dt_client(app: web.Application) -> None:
+    await app["dt_client"].close()
+
+
 def main() -> None:
     app = web.Application()
+    app.on_startup.append(_open_dt_client)
+    app.on_cleanup.append(_close_dt_client)
     app.router.add_get("/", index)
     app.router.add_get("/api/list", api_list)
     app.router.add_get("/api/zoxide", api_zoxide)
     app.router.add_post("/api/launch", api_launch)
+    app.router.add_route("*", "/devtools", dt_app)
+    app.router.add_route("*", "/devtools/{tail:.*}", dt_app)
+    app.router.add_route("*", "/api/{tail:.*}", dt_api)
     web.run_app(app, host=LISTEN_HOST, port=LISTEN_PORT, access_log=None, print=lambda *_: None)
 
 
