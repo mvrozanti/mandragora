@@ -179,22 +179,28 @@ cd .worktrees/my-task
 mandragora-switch "feat(x): my change"   # commit = your files, nothing else
 ```
 
-### Main-tree mode never sweeps blindly
+### Main-tree mode is publish-only (airtight)
 
 Worktree mode can't help an agent that runs `mandragora-switch` from
 the main checkout — that path used to `git add -A`, sweeping any other
 agent's uncommitted WIP into the commit (it bit a `feat(waybar)` commit
-that swallowed an active spider edit on 2026-06-17). So main-tree mode
-no longer guesses:
+that swallowed an active spider edit on 2026-06-17). Staged-vs-unstaged
+gating wasn't enough either: an agent could `git add -A && switch` and
+still sweep. So the main tree no longer creates commits from
+working-tree state at all:
 
-- **Files explicitly staged** (`git add …`) → commits exactly those;
-  unstaged/untracked files are left untouched.
-- **Nothing staged, but the tree is dirty** → **aborts** with guidance
-  (use a worktree, `git add` your files, or `--all`). It will not
-  invent a `git add -A`.
-- **Clean tree** → rebuilds current master, commits nothing.
-- **`--all` / `MANDRAGORA_SWITCH_ALL=1`** → the old sweep-everything
-  behavior, opt-in and explicit.
+- **Dirty tree (anything uncommitted), default** → **aborts**. The main
+  tree is publish-only; commit from a worktree instead. There is no
+  staged-only path.
+- **Clean tree** → rebuilds current master and pushes any unpushed
+  master commits (e.g. after a manual `git commit` on master). Commits
+  nothing itself.
+- **`--all`** → deliberately sweep every dirty path and commit — but
+  **only honored on an interactive terminal**. A non-interactive caller
+  (any agent: no TTY, or `GEMINI_CLI` set) is refused even with `--all`.
 
-Net: the blind `git add -A` only ever runs behind an explicit `--all`.
-The default for both modes is "commit only what is provably yours."
+That last rule is what makes it airtight: an agent has **no** path to
+commit arbitrary state from the shared main tree — it is structurally
+forced into a worktree (where the commit is isolated to its own files).
+The only escape is a human at a real terminal typing `--all`. The blind
+`git add -A` exists nowhere else.

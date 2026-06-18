@@ -36,7 +36,7 @@ else
   if [ "$SWEEP_ALL" = 1 ]; then
     echo "==> Main-tree mode (--all): sweeping every dirty path from $FLAKE."
   else
-    echo "==> Main-tree mode: commits only explicitly-staged paths from $FLAKE (--all to sweep)."
+    echo "==> Main-tree mode: publish-only (builds + pushes; never commits working-tree state). Use a worktree to commit."
   fi
 fi
 
@@ -81,7 +81,9 @@ for arg in "$@"; do
 done
 set -- "${PASSTHRU_ARGS[@]}"
 [ -n "$MANDRAGORA_SWITCH_FORCE" ] && FORCE=1
-[ -n "$MANDRAGORA_SWITCH_ALL" ] && SWEEP_ALL=1
+
+INTERACTIVE=1
+if [ ! -t 0 ] || [ ! -t 1 ] || [ -n "$GEMINI_CLI" ]; then INTERACTIVE=0; fi
 
 STABILITY_WAIT=${MANDRAGORA_SWITCH_STABILITY_SECONDS:-2}
 if [ "$FORCE" -eq 0 ] && [ "$STABILITY_WAIT" -gt 0 ]; then
@@ -145,32 +147,31 @@ MASTER_HEAD=$(git -C "$FLAKE" rev-parse refs/heads/master)
 if [ "$MODE" = worktree ]; then
   WT="$SRC"
 else
-  STAGED=()
-  while IFS= read -r -d '' p; do STAGED+=("$p"); done < <(git -C "$FLAKE" diff --cached --name-only -z)
-  UNSTAGED=()
-  while IFS= read -r -d '' p; do UNSTAGED+=("$p"); done < <(git -C "$FLAKE" diff --name-only -z)
   UNTRACKED=()
   while IFS= read -r -d '' p; do UNTRACKED+=("$p"); done < <(git -C "$FLAKE" ls-files --others --exclude-standard -z)
 
   SNAP_TRACKED=()
   SNAP_UNTRACKED=()
-  if [ "$SWEEP_ALL" = 1 ]; then
-    while IFS= read -r -d '' p; do SNAP_TRACKED+=("$p"); done < <(git -C "$FLAKE" diff --name-only -z HEAD)
-    SNAP_UNTRACKED=("${UNTRACKED[@]}")
-    echo "==> --all: sweeping every dirty path in the main tree into this commit."
-  elif [ "${#STAGED[@]}" -gt 0 ]; then
-    SNAP_TRACKED=("${STAGED[@]}")
-    echo "==> Committing only the ${#STAGED[@]} explicitly-staged path(s); unstaged/untracked files left untouched."
-  elif [ "${#UNSTAGED[@]}" -gt 0 ] || [ "${#UNTRACKED[@]}" -gt 0 ]; then
-    echo "==> ABORTED: main tree has uncommitted changes and nothing is staged." >&2
-    echo "==> mandragora-switch will not blindly 'git add -A' — that sweeps other agents' WIP into your commit." >&2
-    echo "==> Pick one:" >&2
-    echo "==>   - work in a worktree and run switch from there (commit auto-scopes to your files), or" >&2
-    echo "==>   - 'git add <your files>' then re-run (commits only what you staged), or" >&2
-    echo "==>   - 'mandragora-switch --all' to deliberately sweep everything." >&2
-    echo "==> Dirty paths:" >&2
-    git -C "$FLAKE" status --short | sed 's/^/    /' >&2
-    exit 1
+  if [ -n "$(git -C "$FLAKE" status --porcelain)" ]; then
+    if [ "$SWEEP_ALL" -eq 1 ] && [ "$INTERACTIVE" -eq 1 ]; then
+      while IFS= read -r -d '' p; do SNAP_TRACKED+=("$p"); done < <(git -C "$FLAKE" diff --name-only -z HEAD)
+      SNAP_UNTRACKED=("${UNTRACKED[@]}")
+      echo "==> --all (interactive): sweeping every dirty path in the main tree into this commit."
+    elif [ "$SWEEP_ALL" -eq 1 ]; then
+      echo "==> ABORTED: --all is refused without an interactive terminal." >&2
+      echo "==> An agent must never sweep the shared main tree. Commit from a worktree:" >&2
+      echo "==>   git worktree add .worktrees/<task> -b <branch> master && cd .worktrees/<task>" >&2
+      exit 1
+    else
+      echo "==> ABORTED: the main tree is publish-only — mandragora-switch will not commit working-tree state from here." >&2
+      echo "==> This is what prevents one agent's switch from sweeping another's WIP." >&2
+      echo "==> Commit from a worktree (auto-scoped to your files):" >&2
+      echo "==>   git worktree add .worktrees/<task> -b <branch> master && cd .worktrees/<task>" >&2
+      echo "==> (interactive only) or 'mandragora-switch --all' to deliberately sweep everything here." >&2
+      echo "==> Dirty paths:" >&2
+      git -C "$FLAKE" status --short | sed 's/^/    /' >&2
+      exit 1
+    fi
   fi
 
   rm -rf "$WT"
@@ -300,9 +301,14 @@ else
   git commit -m "$MSG"
 fi
 
-if [ "$MODE" = worktree ] && [ "$COMMIT_SKIPPED" -eq 1 ]; then
-  if ! git -C "$WT" merge-base --is-ancestor "$(git -C "$WT" rev-parse HEAD)" "$MASTER_HEAD" 2>/dev/null; then
-    echo "==> Worktree already has commit(s) ahead of master; will promote them."
+if [ "$COMMIT_SKIPPED" -eq 1 ]; then
+  if [ "$MODE" = worktree ]; then
+    if ! git -C "$WT" merge-base --is-ancestor "$(git -C "$WT" rev-parse HEAD)" "$MASTER_HEAD" 2>/dev/null; then
+      echo "==> Worktree already has commit(s) ahead of master; will promote them."
+      COMMIT_SKIPPED=0
+    fi
+  elif [ "$(git -C "$FLAKE" rev-list --count origin/master..refs/heads/master 2>/dev/null || echo 0)" -gt 0 ]; then
+    echo "==> master has unpushed commit(s); will push them."
     COMMIT_SKIPPED=0
   fi
 fi
