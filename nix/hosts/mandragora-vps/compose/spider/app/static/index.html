@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>spider · mvr.ac</title>
+<style>
+  :root{
+    --bg:#0b0d10; --panel:#13171c; --panel2:#181d24; --line:#232a33;
+    --fg:#d7dee7; --dim:#8693a3; --acc:#5ad6a8; --acc2:#7aa2ff;
+    --warn:#e0b341; --bad:#e0556b; --mono:ui-monospace,"JetBrains Mono",SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 var(--mono);}
+  a{color:var(--acc2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  header{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  header h1{margin:0;font-size:20px;letter-spacing:.5px;color:var(--acc)}
+  header h1 span{color:var(--dim)}
+  header .sub{color:var(--dim);font-size:12px}
+  .wrap{display:grid;grid-template-columns:330px 1fr;gap:0;min-height:calc(100vh - 60px)}
+  form{padding:18px;border-right:1px solid var(--line);background:var(--panel);overflow-y:auto}
+  fieldset{border:1px solid var(--line);border-radius:8px;margin:0 0 14px;padding:12px}
+  legend{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:1px;padding:0 6px}
+  label{display:block;margin:8px 0 4px;color:var(--dim);font-size:12px}
+  input[type=text],input[type=number],textarea,select{
+    width:100%;background:var(--bg);border:1px solid var(--line);color:var(--fg);
+    border-radius:6px;padding:8px;font:13px var(--mono);outline:none}
+  input:focus,textarea:focus,select:focus{border-color:var(--acc)}
+  textarea{resize:vertical;min-height:64px}
+  .row{display:flex;gap:8px}
+  .row>*{flex:1}
+  .chk{display:flex;align-items:center;gap:7px;margin:6px 0;color:var(--fg);font-size:12px;cursor:pointer}
+  .chk input{accent-color:var(--acc)}
+  .btns{display:flex;gap:8px;margin-top:6px}
+  button{font:13px var(--mono);border-radius:6px;border:1px solid var(--line);cursor:pointer;padding:9px 12px}
+  #go{flex:2;background:var(--acc);color:#062018;border-color:var(--acc);font-weight:700}
+  #go:hover{filter:brightness(1.08)}
+  #stop{flex:1;background:var(--panel2);color:var(--bad)}
+  #stop:disabled{opacity:.4;cursor:default}
+  main{display:flex;flex-direction:column;min-width:0}
+  .bar{display:flex;gap:18px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--panel2);
+    flex-wrap:wrap;align-items:center;font-size:12px}
+  .stat b{color:var(--acc);font-size:15px}
+  .stat span{color:var(--dim)}
+  .spacer{flex:1}
+  .tabs{display:flex;gap:4px}
+  .tab{padding:5px 11px;border-radius:6px;color:var(--dim);cursor:pointer;border:1px solid transparent}
+  .tab.on{color:var(--fg);background:var(--panel);border-color:var(--line)}
+  .tab b{color:var(--acc)}
+  .exp{display:flex;gap:6px}
+  .exp button{background:var(--panel);color:var(--dim);padding:5px 9px}
+  .results{flex:1;overflow-y:auto;padding:6px 0}
+  .item{padding:9px 18px;border-bottom:1px solid #1a2027}
+  .item .u{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .item .u .badge{font-size:10px;padding:1px 6px;border-radius:4px;border:1px solid var(--line);color:var(--dim)}
+  .item .u .d{color:var(--dim);font-size:11px}
+  .item.match{background:rgba(90,214,168,.05);border-left:2px solid var(--acc)}
+  .s200{color:var(--acc)} .s300{color:var(--acc2)} .s400,.s0{color:var(--bad)} .s500{color:var(--warn)}
+  .snips{margin-top:5px}
+  .snip{font-size:12px;color:var(--dim);padding:3px 0;border-left:2px solid var(--line);padding-left:8px;margin:3px 0}
+  .snip mark{background:rgba(224,179,65,.28);color:var(--warn);padding:0 2px;border-radius:2px}
+  .snip .t{color:var(--acc2)}
+  .ext{margin-top:5px;display:flex;gap:6px;flex-wrap:wrap}
+  .ext .k{font-size:11px;color:var(--bg);background:var(--acc);padding:1px 6px;border-radius:4px}
+  .ext .v{font-size:11px;color:var(--dim);background:var(--panel2);padding:1px 6px;border-radius:4px}
+  .empty{color:var(--dim);text-align:center;padding:60px 20px}
+  .hide{display:none}
+  .pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--acc);margin-right:6px}
+  .pulse.run{animation:p 1s infinite}
+  @keyframes p{0%,100%{opacity:1}50%{opacity:.25}}
+  @media(max-width:760px){.wrap{grid-template-columns:1fr}form{border-right:none;border-bottom:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🕷 spider<span>.mvr.ac</span></h1>
+  <div class="sub">crawl a site · filter pages by text · extract patterns · find broken links</div>
+</header>
+<div class="wrap">
+  <form id="f" onsubmit="return start(event)">
+    <fieldset>
+      <legend>target</legend>
+      <label>start url</label>
+      <input type="text" id="url" placeholder="example.com" autocomplete="off" required>
+      <label>scope</label>
+      <select id="scope">
+        <option value="host">same host (example.com)</option>
+        <option value="domain">same domain (*.example.com)</option>
+        <option value="any">any host (follow everywhere)</option>
+      </select>
+      <div class="row">
+        <div><label>max depth</label><input type="number" id="depth" value="2" min="0" max="8"></div>
+        <div><label>max pages</label><input type="number" id="max_pages" value="200" min="1" max="2000"></div>
+      </div>
+      <div class="row">
+        <div><label>concurrency</label><input type="number" id="concurrency" value="6" min="1" max="16"></div>
+      </div>
+      <label class="chk"><input type="checkbox" id="robots" checked> respect robots.txt</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>text filter</legend>
+      <label>terms (one per line — ALL must match)</label>
+      <textarea id="terms" placeholder="careers&#10;remote"></textarea>
+      <label class="chk"><input type="checkbox" id="regex"> treat terms as regex</label>
+      <label class="chk"><input type="checkbox" id="ci" checked> case-insensitive</label>
+      <label class="chk"><input type="checkbox" id="match_html"> search raw HTML (not just visible text)</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>extract</legend>
+      <label class="chk"><input type="checkbox" id="ext_email"> emails</label>
+      <label class="chk"><input type="checkbox" id="ext_phone"> phone numbers</label>
+      <label>custom regex</label>
+      <input type="text" id="custom_regex" placeholder="\bAPI_[A-Z0-9]+\b" autocomplete="off">
+    </fieldset>
+
+    <fieldset>
+      <legend>links</legend>
+      <label class="chk"><input type="checkbox" id="check_broken"> check every link for broken status</label>
+    </fieldset>
+
+    <div class="btns">
+      <button id="go" type="submit">crawl</button>
+      <button id="stop" type="button" onclick="stop()" disabled>stop</button>
+    </div>
+  </form>
+
+  <main>
+    <div class="bar">
+      <span class="stat"><span class="pulse" id="pulse"></span><b id="s_pages">0</b> <span>pages</span></span>
+      <span class="stat"><b id="s_match">0</b> <span>matches</span></span>
+      <span class="stat"><b id="s_links">0</b> <span>links</span></span>
+      <span class="stat"><b id="s_broken">0</b> <span>broken</span></span>
+      <span class="stat"><b id="s_err">0</b> <span>errors</span></span>
+      <span class="spacer"></span>
+      <div class="tabs">
+        <div class="tab on" data-v="match" onclick="setView('match')">matches <b id="c_match">0</b></div>
+        <div class="tab" data-v="all" onclick="setView('all')">all <b id="c_all">0</b></div>
+        <div class="tab" data-v="broken" onclick="setView('broken')">broken <b id="c_broken">0</b></div>
+      </div>
+      <div class="exp">
+        <button onclick="exportJSON()">json</button>
+        <button onclick="exportCSV()">csv</button>
+      </div>
+    </div>
+    <div class="results" id="res">
+      <div class="empty">configure a crawl on the left and hit <b>crawl</b>.</div>
+    </div>
+  </main>
+</div>
+<script>
+let es=null, pages=[], broken=[], view="match";
+const $=id=>document.getElementById(id);
+const esc=s=>(s||"").replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function start(e){
+  e.preventDefault();
+  stop();
+  pages=[]; broken=[];
+  for(const k of["pages","match","links","broken","err"]) $("s_"+k).textContent=0;
+  render();
+  const p=new URLSearchParams();
+  p.set("url",$("url").value.trim());
+  p.set("scope",$("scope").value);
+  p.set("depth",$("depth").value);
+  p.set("max_pages",$("max_pages").value);
+  p.set("concurrency",$("concurrency").value);
+  p.set("robots",$("robots").checked);
+  p.set("terms",$("terms").value);
+  p.set("regex",$("regex").checked);
+  p.set("ci",$("ci").checked);
+  p.set("match_html",$("match_html").checked);
+  p.set("custom_regex",$("custom_regex").value);
+  p.set("check_broken",$("check_broken").checked);
+  const ex=[]; if($("ext_email").checked)ex.push("email"); if($("ext_phone").checked)ex.push("phone");
+  p.set("extractors",ex.join(","));
+
+  es=new EventSource("/api/crawl?"+p.toString());
+  $("stop").disabled=false; $("go").disabled=true; $("pulse").classList.add("run");
+
+  es.addEventListener("page",ev=>{const d=JSON.parse(ev.data); pages.push(d); maybeAdd(d); bump();});
+  es.addEventListener("broken",ev=>{broken.push(JSON.parse(ev.data)); if(view==="broken")render(); bumpTabs();});
+  es.addEventListener("error",ev=>{try{const d=JSON.parse(ev.data); flash(d.error||"error");}catch(_){}});
+  es.addEventListener("done",ev=>{const d=JSON.parse(ev.data); applyStats(d.stats); finish();});
+  es.onerror=()=>{ if(es&&es.readyState===2) finish(); };
+}
+function stop(){ if(es){es.close();es=null;} finish(); }
+function finish(){ $("stop").disabled=true; $("go").disabled=false; $("pulse").classList.remove("run"); }
+
+function applyStats(s){ if(!s)return;
+  $("s_pages").textContent=s.pages_crawled; $("s_match").textContent=s.matches;
+  $("s_links").textContent=s.links_seen; $("s_broken").textContent=s.broken; $("s_err").textContent=s.errors;
+}
+function bump(){
+  $("s_pages").textContent=pages.length;
+  $("s_match").textContent=pages.filter(p=>p.matched).length;
+  $("s_err").textContent=pages.filter(p=>p.status===undefined).length;
+  bumpTabs();
+}
+function bumpTabs(){
+  $("c_match").textContent=pages.filter(p=>p.matched).length;
+  $("c_all").textContent=pages.length;
+  $("c_broken").textContent=broken.length;
+}
+function setView(v){ view=v; document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.v===v)); render(); }
+function shouldShow(p){ return view==="all" || (view==="match"&&p.matched); }
+function maybeAdd(p){ if(shouldShow(p)){ const empty=$("res").querySelector(".empty"); if(empty)empty.remove(); $("res").insertAdjacentHTML("beforeend",pageHTML(p)); } bumpTabs(); }
+
+function statusClass(s){ if(s===undefined||s===0)return"s0"; return"s"+Math.floor(s/100)*100; }
+function pageHTML(p){
+  const snips=(p.snippets||[]).map(s=>`<div class="snip"><span class="t">${esc(s.term)}</span> · ${esc(s.snippet)}</div>`).join("");
+  let ext="";
+  if(p.extracted&&Object.keys(p.extracted).length){
+    ext='<div class="ext">'+Object.entries(p.extracted).map(([k,v])=>
+      `<span class="k">${esc(k)}</span><span class="v">${esc(v.slice(0,8).join(", "))}${v.length>8?" +"+(v.length-8):""}</span>`).join("")+'</div>';
+  }
+  return `<div class="item ${p.matched?'match':''}">
+    <div class="u"><span class="badge ${statusClass(p.status)}">${p.status??"ERR"}</span>
+      <a href="${esc(p.url)}" target="_blank">${esc(p.url)}</a>
+      <span class="d">d${p.depth}${p.title?" · "+esc(p.title):""}</span></div>
+    ${snips?'<div class="snips">'+snips+'</div>':''}${ext}</div>`;
+}
+function brokenHTML(b){
+  return `<div class="item"><div class="u"><span class="badge s400">${b.status||"ERR"}</span>
+    <a href="${esc(b.url)}" target="_blank">${esc(b.url)}</a></div>
+    <div class="snip">on <a href="${esc(b.from)}" target="_blank">${esc(b.from)}</a>${b.anchor?' · "'+esc(b.anchor)+'"':''}</div></div>`;
+}
+function render(){
+  const r=$("res");
+  let list;
+  if(view==="broken") list=broken.map(brokenHTML);
+  else list=pages.filter(shouldShow).map(pageHTML);
+  r.innerHTML = list.length?list.join(""):'<div class="empty">nothing here yet.</div>';
+}
+function flash(msg){ const r=$("res"); const e=r.querySelector(".empty"); if(e)e.textContent=msg; }
+
+function dl(name,text,type){ const b=new Blob([text],{type}); const a=document.createElement("a");
+  a.href=URL.createObjectURL(b); a.download=name; a.click(); }
+function exportJSON(){ dl("spider.json",JSON.stringify({pages,broken},null,2),"application/json"); }
+function exportCSV(){
+  const rows=[["url","status","depth","matched","title","emails","phones","custom"]];
+  for(const p of pages){const e=p.extracted||{};
+    rows.push([p.url,p.status??"",p.depth,p.matched,p.title||"",(e.email||[]).join(" "),(e.phone||[]).join(" "),(e.custom||[]).join(" ")]);}
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\n");
+  dl("spider.csv",csv,"text/csv");
+}
+</script>
+</body>
+</html>

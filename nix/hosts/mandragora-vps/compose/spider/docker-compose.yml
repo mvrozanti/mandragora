@@ -1,0 +1,27 @@
+services:
+
+  spider:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: ${SPIDER_IMAGE:-mandragora/spider:local}
+    container_name: spider
+    restart: unless-stopped
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://spider.${MVR_AC:-mvr.ac}
+      caddy.0_handle.forward_auth: "authelia:9091"
+      caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.0_handle.reverse_proxy: "{{upstreams 8080}}"
+      caddy.0_handle.reverse_proxy.flush_interval: "-1"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true
