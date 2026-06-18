@@ -23,6 +23,7 @@ in
     ./rss-menu.nix
     ./security-menu.nix
     ./weather-menu.nix
+    ./monitor-menu.nix
     ./minecraft.nix
     ./skills.nix
     ./axon.nix
