@@ -39,6 +39,10 @@
         href: https://axon.mvr.ac
         description: Code dependency graph + context capsule + dialogue browser (C++/Preact, multi-repo aggregate served from the desktop)
         icon: si-graphology.svg
+    - semantic:
+        href: https://semantic.mvr.ac
+        description: LLM-reasoned analogies + conceptual semantic arithmetic with 3D embedding viz (Ollama on the desktop GPU, GloVe baseline)
+        icon: si-openai.svg
     - ttyd terminal:
         href: https://term.mvr.ac
         description: Web shell on the desktop, tailnet-only
