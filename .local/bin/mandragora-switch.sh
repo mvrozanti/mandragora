@@ -4,12 +4,13 @@ FLAKE="/etc/nixos/mandragora"
 
 SRC="$FLAKE"
 MODE="main"
+FLAKE_REAL=$(realpath "$FLAKE" 2>/dev/null || echo "$FLAKE")
 if git -C "$PWD" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   _top=$(git -C "$PWD" rev-parse --show-toplevel 2>/dev/null || true)
   _common=$(git -C "$PWD" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)
   _mainwt=""
-  [ -n "$_common" ] && _mainwt=$(dirname "$_common")
-  if [ "$_mainwt" = "$FLAKE" ] && [ -n "$_top" ] && [ "$_top" != "$FLAKE" ]; then
+  [ -n "$_common" ] && _mainwt=$(realpath "$(dirname "$_common")" 2>/dev/null || dirname "$_common")
+  if [ "$_mainwt" = "$FLAKE_REAL" ] && [ -n "$_top" ] && [ "$_top" != "$FLAKE_REAL" ] && [ "$_top" != "$FLAKE" ]; then
     MODE="worktree"
     SRC="$_top"
   fi
