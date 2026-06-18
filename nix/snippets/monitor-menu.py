@@ -98,7 +98,7 @@ def waybar():
         mark = "" if m.get("disabled") else ""
         tip.append(f"{mark}  {m['name']}  —  {state}")
     tip.append("")
-    tip.append("<i>click — display settings</i>")
+    tip.append("<i>click — arranger · right — quick menu</i>")
     print(
         json.dumps(
             {
