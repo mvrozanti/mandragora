@@ -300,6 +300,13 @@ else
   git commit -m "$MSG"
 fi
 
+if [ "$MODE" = worktree ] && [ "$COMMIT_SKIPPED" -eq 1 ]; then
+  if ! git -C "$WT" merge-base --is-ancestor "$(git -C "$WT" rev-parse HEAD)" "$MASTER_HEAD" 2>/dev/null; then
+    echo "==> Worktree already has commit(s) ahead of master; will promote them."
+    COMMIT_SKIPPED=0
+  fi
+fi
+
 phase "commit prepared"
 
 echo ""
