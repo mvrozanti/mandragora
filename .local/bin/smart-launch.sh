@@ -6,7 +6,8 @@ LOG="/tmp/smart-launch.log"
 echo "--- $(date) ---" >> "$LOG"
 echo "Searching for: $IDENTIFIER" >> "$LOG"
 
-# Try to find window by any field matching the identifier
+ORIGIN_MON=$(hyprctl monitors -j | jq -r '.[] | select(.focused) | .name')
+
 ID_LOWER=$(echo "$IDENTIFIER" | tr '[:upper:]' '[:lower:]')
 READ=$(hyprctl clients -j | jq -r --arg id "$ID_LOWER" '.[] | select((.class | ascii_downcase) == $id or (.initialClass | ascii_downcase) == $id or (.title | ascii_downcase) == $id or (.initialTitle | ascii_downcase) == $id) | [.address, (.workspace.id | tostring), .class, .title] | @tsv' | head -1)
 
@@ -16,6 +17,7 @@ if [ -n "$READ" ]; then
     CLASS=$(echo "$READ" | cut -f3)
     TITLE=$(echo "$READ" | cut -f4)
     echo "Found: Address $ADDR, WS $WS, Class $CLASS, Title $TITLE" >> "$LOG"
+    [ -n "$ORIGIN_MON" ] && hyprctl dispatch moveworkspacetomonitor "$WS" "$ORIGIN_MON"
     hyprctl dispatch workspace "$WS"
     hyprctl dispatch focuswindow "address:$ADDR"
     hyprctl dispatch bringactivetotop
@@ -27,6 +29,7 @@ else
         WS=$(hyprctl clients -j | jq -r --arg id "$ID_LOWER" '.[] | select((.class | ascii_downcase) == $id or (.initialClass | ascii_downcase) == $id) | .workspace.id' | head -1)
         if [ -n "$WS" ] && [ "$WS" != "null" ]; then
             echo "Window appeared on WS $WS, switching" >> "$LOG"
+            [ -n "$ORIGIN_MON" ] && hyprctl dispatch moveworkspacetomonitor "$WS" "$ORIGIN_MON"
             hyprctl dispatch workspace "$WS"
             hyprctl dispatch focuswindow "class:$IDENTIFIER"
             break
