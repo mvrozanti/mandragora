@@ -85,25 +85,44 @@ def pid_to_monitor_name():
     return res
 
 
+def client_to_pid():
+    out = {}
+    cur = None
+    for line in run(["pactl", "list", "clients"]).splitlines():
+        s = line.strip()
+        head = re.match(r"Client #(\d+)", s)
+        if head:
+            cur = head.group(1)
+        elif "application.process.id" in s and cur is not None:
+            m = re.search(r'"(\d+)"', s)
+            if m:
+                out[cur] = int(m.group(1))
+    return out
+
+
 def sink_inputs():
     idx2name = sink_index_to_name()
+    cli2pid = client_to_pid()
     out = run(["pactl", "list", "sink-inputs"])
     rows = []
-    cur_idx = cur_sink = cur_pid = None
+    cur_idx = cur_sink = cur_pid = cur_client = None
 
     def flush():
         if cur_idx is not None:
-            rows.append((cur_idx, cur_pid, idx2name.get(cur_sink)))
+            pid = cur_pid if cur_pid else cli2pid.get(cur_client)
+            rows.append((cur_idx, pid, idx2name.get(cur_sink)))
 
     for line in out.splitlines():
         s = line.strip()
         head = re.match(r"Sink Input #(\d+)", s)
         if head:
             flush()
-            cur_idx, cur_sink, cur_pid = head.group(1), None, None
+            cur_idx, cur_sink, cur_pid, cur_client = head.group(1), None, None, None
             continue
         if s.startswith("Sink:"):
             cur_sink = s.split(":", 1)[1].strip()
+        elif s.startswith("Client:"):
+            cur_client = s.split(":", 1)[1].strip()
         elif "application.process.id" in s:
             m = re.search(r'"(\d+)"', s)
             if m:
@@ -140,6 +159,10 @@ def log(msg):
 def reroute():
     with _state_lock:
         sink_map = dict(SINK_MAP)
+    if not sink_map:
+        refresh_sink_map()
+        with _state_lock:
+            sink_map = dict(SINK_MAP)
     if not sink_map:
         return
     winmap = pid_to_monitor_name()
