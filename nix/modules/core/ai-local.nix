@@ -120,7 +120,7 @@ in
         gpu-lock
       ];
 
-      environment.sessionVariables.BRUNO_PASSTHROUGH = "gemini,qwen,claude,crush";
+      environment.sessionVariables.BRUNO_PASSTHROUGH = "gemini,qwen";
     }
 
     (lib.mkIf cfg.agentic.enable {
