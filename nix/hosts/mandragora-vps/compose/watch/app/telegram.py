@@ -29,8 +29,9 @@ def _esc(s: str | None) -> str:
 async def _post(method: str, payload: dict) -> dict | None:
     if not BOT_TOKEN:
         return None
+    read_timeout = float(payload.get("timeout", 0)) + 20.0
     try:
-        async with httpx.AsyncClient(timeout=20.0) as c:
+        async with httpx.AsyncClient(timeout=read_timeout) as c:
             r = await c.post(f"{API}/{method}", json=payload)
         if r.status_code >= 400:
             log.warning("tg %s failed: %s %s", method, r.status_code, r.text[:200])
