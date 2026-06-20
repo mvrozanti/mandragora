@@ -169,9 +169,17 @@ token value; copy it into `/home/opc/watch/.env` when provisioning.
 
 ## Bring-up
 
+Never `rsync --delete` the top-level `watch/` dir — `.env` and
+`data/watch.db` live there, are gitignored (absent from source), and
+`--delete` would wipe them. Sync `app/` (pure repo code) and the
+compose file separately:
+
 ```
 rsync -av --delete \
-  nix/hosts/mandragora-vps/compose/watch/ \
+  nix/hosts/mandragora-vps/compose/watch/app/ \
+  opc@mandragora-vps:/home/opc/watch/app/
+rsync -av \
+  nix/hosts/mandragora-vps/compose/watch/docker-compose.yml \
   opc@mandragora-vps:/home/opc/watch/
 ssh opc@mandragora-vps 'cd /home/opc/watch && docker compose up -d --build'
 ```
