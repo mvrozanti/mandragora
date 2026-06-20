@@ -199,6 +199,37 @@ def refresh_sink_map():
         SINK_MAP = new
 
 
+def focused_monitor_name():
+    try:
+        mons = json.loads(run(["hyprctl", "-j", "monitors"]))
+    except json.JSONDecodeError:
+        return None
+    for m in mons:
+        if m.get("focused"):
+            return m.get("name")
+    return None
+
+
+def current_default_sink():
+    return run(["pactl", "get-default-sink"]).strip()
+
+
+def set_default_for_focused():
+    with _state_lock:
+        sink_map = dict(SINK_MAP)
+    if not sink_map:
+        refresh_sink_map()
+        with _state_lock:
+            sink_map = dict(SINK_MAP)
+    name = focused_monitor_name()
+    if not name:
+        return
+    want = sink_map.get(name)
+    if want and want != current_default_sink():
+        log(f"default sink -> {name}: {want}")
+        run(["pactl", "set-default-sink", want])
+
+
 def watch_pactl():
     while True:
         proc = subprocess.Popen(
@@ -225,7 +256,6 @@ def watch_hypr():
         "movewindow",
         "movewindowv2",
         "openwindow",
-        "focusedmon",
         "workspace",
         "workspacev2",
         "windowtitle",
@@ -243,6 +273,10 @@ def watch_hypr():
                 ev = line.split(">>", 1)[0]
                 if ev in map_events:
                     refresh_sink_map()
+                    set_default_for_focused()
+                    schedule()
+                elif ev.startswith("focusedmon"):
+                    set_default_for_focused()
                     schedule()
                 elif ev in triggers:
                     schedule()
@@ -253,6 +287,7 @@ def main():
     refresh_sink_map()
     log(f"sink map: {SINK_MAP}")
     reroute()
+    set_default_for_focused()
     threads = [
         threading.Thread(target=watch_pactl, daemon=True),
         threading.Thread(target=watch_hypr, daemon=True),
