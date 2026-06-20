@@ -46,6 +46,7 @@ in
 
   home.packages = with pkgs; [
     xdg-desktop-portal-gtk
+    (callPackage ../../pkgs/hypr-kdeconnect-portal { })
     bubblewrap
     ripgrep
     droidcam
