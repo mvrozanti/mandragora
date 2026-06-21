@@ -55,12 +55,15 @@ in
       Type = "simple";
       WorkingDirectory = "/home/m/Projects/im-gen";
       ExecStart = "/home/m/Projects/im-gen/bot.sh";
-      Environment = "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin";
+      Environment = [
+        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
+        "TORCHINDUCTOR_COMPILE_THREADS=4"
+      ];
       Restart = "on-failure";
       RestartSec = 10;
       TimeoutStartSec = "5min";
       Slice = "im-gen.slice";
-      MemoryMax = "22G";
+      MemoryMax = "18G";
       MemorySwapMax = "0";
       OOMScoreAdjust = 1000;
       OOMPolicy = "kill";
