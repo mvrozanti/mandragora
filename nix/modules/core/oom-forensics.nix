@@ -4,6 +4,7 @@ let
   tripwirePath = lib.makeBinPath [
     pkgs.gawk
     pkgs.coreutils
+    pkgs.findutils
     pkgs.procps
     pkgs.util-linux
     pkgs.systemd
@@ -27,7 +28,7 @@ in
   environment.systemPackages = [ pkgs.atop ];
 
   systemd.tmpfiles.rules = [
-    "d /var/log/oom-tripwire 0755 root root 30d"
+    "d /var/log/oom-tripwire 0700 root root 30d"
   ];
 
   systemd.services.oom-tripwire = {
