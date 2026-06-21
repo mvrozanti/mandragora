@@ -308,9 +308,9 @@ coy() {
   [[ -f "$mp3" ]] || { print -u2 "coy: no mp3 produced"; return 1 }
   local raw="${mp3:t:r}"
   local json
-  json=$(claude -p --model haiku --json-schema '{"type":"object","properties":{"title":{"type":"string"},"artist":{"type":"string"}},"required":["title","artist"]}' "Extract the song title and performing artist from this YouTube video title. Strip junk like '(Official Video)', '[HD]', 'Lyrics', channel names. If artist is unclear, use best guess from the title. Title: $raw") || return
-  local title=$(jq -r '.title // empty' <<<"$json")
-  local artist=$(jq -r '.artist // empty' <<<"$json")
+  json=$(claude -p --model haiku --output-format json --json-schema '{"type":"object","properties":{"title":{"type":"string"},"artist":{"type":"string"}},"required":["title","artist"]}' "Extract the song title and performing artist from this YouTube video title. Strip junk like '(Official Video)', '[HD]', 'Lyrics', channel names. If artist is unclear, use best guess from the title. Title: $raw") || return
+  local title=$(jq -r '.structured_output.title // empty' <<<"$json")
+  local artist=$(jq -r '.structured_output.artist // empty' <<<"$json")
   [[ -z $title || -z $artist ]] && { print -u2 "coy: tag parse failed: $json"; return 1 }
   local tmp="${mp3:r}.tagged.mp3"
   ffmpeg -y -loglevel error -i "$mp3" -map 0 -c copy -metadata title="$title" -metadata artist="$artist" "$tmp" && mv -f "$tmp" "$mp3" && print "coy: $artist — $title"
