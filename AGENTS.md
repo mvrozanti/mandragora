@@ -176,6 +176,19 @@ rationale, recipes, or the incident that produced the rule.
     the audit failure is pre-existing and unrelated to your change,
     report the situation and stop — do not ask the user to choose
     each time; the isolation default is the answer.
+19. **Never local-build what upstream will cache** — after a flake
+    update, run `nix build --dry-run` on the toplevel before switching.
+    If the "will be built" list has a heavy package (libreoffice, wine,
+    chromium, kernel modules, CUDA, llvm, rust) compiling from source,
+    the day-old nixos-unstable channel has merely outrun Hydra's binary
+    cache — DO NOT switch. The local source build fills RAM+swap and
+    systemd-oomd SIGKILLs the Hyprland session (this took the desktop
+    down twice on 2026-06-21 over a yt-dlp bump). Park the commits on a
+    worktree branch and wait a day or two for the cache to fill; then
+    the switch is download-only. Only if it genuinely cannot wait, cage
+    the build in a `MemoryMax`/`MemorySwapMax` scope so it cannot reach
+    the oomd kill threshold. Applies to every agent running
+    `mandragora-switch` or `nixos-rebuild`.
 
 ---
 
