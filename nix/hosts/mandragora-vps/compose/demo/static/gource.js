@@ -13,6 +13,8 @@
   let pollTimer = null;
   let currentJob = null;
 
+  const reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
   function showStatus(html) {
     statusEl.innerHTML = html;
     statusEl.classList.add("visible");
@@ -24,12 +26,32 @@
     video.load();
   }
 
-  function showVideo(url, meta) {
+  function seekToPoster() {
+    const d = video.duration;
+    if (isFinite(d) && d > 1) {
+      try { video.currentTime = Math.min(d - 0.1, d * 0.45); } catch (_) {}
+    }
+  }
+
+  function showVideo(url, meta, opts) {
+    opts = opts || {};
     video.src = url;
     downloadLink.href = url;
     metaText.textContent = meta || "";
     videoWrap.classList.add("visible");
-    video.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+    const onMeta = () => {
+      video.removeEventListener("loadedmetadata", onMeta);
+      if (opts.autoplay && !reduceMotion) {
+        const p = video.play();
+        if (p && p.catch) p.catch(() => seekToPoster());
+      } else {
+        seekToPoster();
+      }
+    };
+    video.addEventListener("loadedmetadata", onMeta);
+
+    if (opts.scroll) video.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   function setSubmitting(submitting) {
@@ -142,7 +164,7 @@
       paint(s);
       if (s.state === "done") {
         setSubmitting(false);
-        showVideo(s.video_url || `${API}/video/${jobId}`, fmtBackend(s.backend));
+        showVideo(s.video_url || `${API}/video/${jobId}`, fmtBackend(s.backend), { autoplay: true, scroll: true });
         return;
       }
       if (s.state === "failed") {
@@ -176,7 +198,7 @@
       paint(r);
       if (r.state === "done") {
         setSubmitting(false);
-        showVideo(r.video_url || `${API}/video/${r.job_id}`, fmtBackend(r.backend));
+        showVideo(r.video_url || `${API}/video/${r.job_id}`, fmtBackend(r.backend), { autoplay: true, scroll: true });
         return;
       }
       scheduleNext(r.job_id, 800);
@@ -212,8 +234,11 @@
       }
       const url = d.video_url || `${API}/video/${d.job_id}`;
       const meta = d.backend ? `last render — ${fmtBackend(d.backend)}` : "last render";
-      showVideo(url, meta);
-      showStatus(`<span class="state done">last render</span><span class="meta">params pre-filled — adjust and re-render, or just press play</span>`);
+      showVideo(url, meta, { autoplay: true, scroll: false });
+      const hint = reduceMotion
+        ? "params pre-filled — press play, or adjust and render a new one"
+        : "params pre-filled — adjust and hit render for a new one";
+      showStatus(`<span class="state done">last render</span><span class="meta">${hint}</span>`);
     } catch (_) { /* no-op; form stays empty */ }
   }
 
