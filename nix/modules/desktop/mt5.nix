@@ -14,4 +14,7 @@ let
 in
 {
   environment.systemPackages = [ bootstrap server ];
+
+  sops.secrets."metatrader/login" = { owner = "m"; mode = "0400"; };
+  sops.secrets."metatrader/senha" = { owner = "m"; mode = "0400"; };
 }
