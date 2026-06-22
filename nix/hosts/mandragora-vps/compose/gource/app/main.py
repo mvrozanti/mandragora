@@ -107,7 +107,7 @@ _rate_buckets: dict[str, deque[float]] = {}
 def hash_params(p: RenderParams) -> str:
     canon = json.dumps(
         {
-            "v": 1,
+            "v": 2,
             "date_min": p.date_min,
             "date_max": p.date_max,
             "length_s": p.length_s,
