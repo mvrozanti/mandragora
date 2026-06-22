@@ -28,6 +28,43 @@ async def _run(cmd: list[str], cwd: Optional[Path] = None, timeout: float = 600)
     return proc.returncode or 0, out.decode("utf-8", "replace"), err.decode("utf-8", "replace")
 
 
+async def _probe_duration(path: Path) -> float:
+    rc, out, e = await _run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+         "-of", "default=noprint_wrappers=1:nokey=1", str(path)],
+        timeout=30,
+    )
+    if rc != 0:
+        raise RuntimeError(f"ffprobe failed: {e.strip()}")
+    try:
+        return float(out.strip())
+    except ValueError:
+        raise RuntimeError(f"ffprobe gave no duration: {out.strip()!r}")
+
+
+async def _retime(src: Path, dst: Path, target_s: float, fps: int, crf: int) -> None:
+    d = await _probe_duration(src)
+    if d <= 0:
+        raise RuntimeError("source duration non-positive")
+    if abs(d - target_s) <= 0.5:
+        src.rename(dst)
+        return
+    factor = target_s / d
+    log.info("retime %.2fs -> %.2fs (factor %.4f)", d, target_s, factor)
+    rc, _, e = await _run(
+        ["ffmpeg", "-y", "-i", str(src),
+         "-filter:v", f"setpts={factor:.6f}*PTS",
+         "-an", "-r", str(fps),
+         "-c:v", "libx264", "-preset", "veryfast", "-crf", str(crf),
+         "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+         "-loglevel", "error", str(dst)],
+        timeout=max(120, int(target_s) * 6 + 60),
+    )
+    if rc != 0:
+        raise RuntimeError(f"retime ffmpeg failed: {e.strip()[-400:]}")
+    src.unlink(missing_ok=True)
+
+
 async def ensure_repo() -> Path:
     REPO_DIR.parent.mkdir(parents=True, exist_ok=True)
     if not (REPO_DIR / ".git").exists():
@@ -101,6 +138,7 @@ async def render(
 
     seconds_per_day = max(0.01, length_s / float(days))
     fps = 60
+    raw_path = out_path.with_name(out_path.stem + ".raw.mp4")
 
     gource_cmd = [
         "xvfb-run", "-a", "-s", f"-screen 0 {width}x{height}x24",
@@ -132,7 +170,7 @@ async def render(
         "-pix_fmt", "yuv420p",
         "-movflags", "+faststart",
         "-loglevel", "error",
-        str(out_path),
+        str(raw_path),
     ]
 
     shell_cmd = " ".join(shlex.quote(a) for a in gource_cmd) + \
@@ -176,7 +214,13 @@ async def render(
         raise RuntimeError(f"render watchdog killed pipeline after {deadline}s")
     if rc != 0:
         raise RuntimeError(f"pipeline exited {rc}: {stderr_data.decode('utf-8', 'replace').strip()[-400:]}")
-    if not out_path.exists() or out_path.stat().st_size < 1024:
+    if not raw_path.exists() or raw_path.stat().st_size < 1024:
         raise RuntimeError("output mp4 missing or too small")
+    if progress_cb:
+        await progress_cb(0.90, "normalizing length")
+    try:
+        await _retime(raw_path, out_path, float(length_s), fps, 23)
+    finally:
+        raw_path.unlink(missing_ok=True)
     if progress_cb:
         await progress_cb(0.98, "finalizing")

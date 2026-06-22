@@ -110,6 +110,43 @@ async def _run(cmd: list[str], cwd: Optional[Path] = None, timeout: float = 600)
     return proc.returncode or 0, out.decode("utf-8", "replace"), err.decode("utf-8", "replace")
 
 
+async def _probe_duration(path: Path) -> float:
+    rc, out, e = await _run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+         "-of", "default=noprint_wrappers=1:nokey=1", str(path)],
+        timeout=30,
+    )
+    if rc != 0:
+        raise RuntimeError(f"ffprobe failed: {e.strip()}")
+    try:
+        return float(out.strip())
+    except ValueError:
+        raise RuntimeError(f"ffprobe gave no duration: {out.strip()!r}")
+
+
+async def _retime(src: Path, dst: Path, target_s: float, fps: int, crf: int) -> None:
+    d = await _probe_duration(src)
+    if d <= 0:
+        raise RuntimeError("source duration non-positive")
+    if abs(d - target_s) <= 0.5:
+        src.rename(dst)
+        return
+    factor = target_s / d
+    log.info("retime %.2fs -> %.2fs (factor %.4f)", d, target_s, factor)
+    rc, _, e = await _run(
+        ["ffmpeg", "-y", "-i", str(src),
+         "-filter:v", f"setpts={factor:.6f}*PTS",
+         "-an", "-r", str(fps),
+         "-c:v", "libx264", "-preset", "veryfast", "-crf", str(crf),
+         "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+         "-loglevel", "error", str(dst)],
+        timeout=max(120, int(target_s) * 6 + 60),
+    )
+    if rc != 0:
+        raise RuntimeError(f"retime ffmpeg failed: {e.strip()[-400:]}")
+    src.unlink(missing_ok=True)
+
+
 def _git(*args: str) -> list[str]:
     return ["git", "-c", "safe.directory=*", *args]
 
@@ -162,6 +199,7 @@ async def _render_to(p: RenderParams, out_path: Path) -> None:
 
     seconds_per_day = max(0.01, p.length_s / float(days))
     fps = 60
+    raw_path = out_path.with_name(out_path.stem + ".raw.mp4")
 
     gource_args = [
         "gource",
@@ -192,7 +230,7 @@ async def _render_to(p: RenderParams, out_path: Path) -> None:
         "-pix_fmt", "yuv420p",
         "-movflags", "+faststart",
         "-loglevel", "error",
-        str(out_path),
+        str(raw_path),
     ]
 
     display = f":{99 + (hash(out_path.name) % 50)}"
@@ -253,10 +291,14 @@ async def _render_to(p: RenderParams, out_path: Path) -> None:
     if rc != 0:
         log.error("pipeline rc=%s stderr=%s", rc, stderr_text[-2000:])
         raise HTTPException(500, f"pipeline exited {rc}: {stderr_text[-400:]}")
-    if not out_path.exists() or out_path.stat().st_size < 1024:
-        size = out_path.stat().st_size if out_path.exists() else 0
+    if not raw_path.exists() or raw_path.stat().st_size < 1024:
+        size = raw_path.stat().st_size if raw_path.exists() else 0
         log.error("output mp4 missing or too small (size=%d) stderr=%s", size, stderr_text[-2000:])
         raise HTTPException(500, f"output mp4 missing or too small (size={size})")
+    try:
+        await _retime(raw_path, out_path, float(p.length_s), fps, 21)
+    finally:
+        raw_path.unlink(missing_ok=True)
 
 
 @app.get("/healthz")
