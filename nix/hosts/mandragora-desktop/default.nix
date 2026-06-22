@@ -7,6 +7,7 @@
     ../../modules/core/vm.nix
     ../../modules/core/persistence-vms.nix
     ../../modules/core/storage.nix
+    ../../modules/core/gdrive.nix
     ../../modules/core/impermanence.nix
     ../../modules/core/boot.nix
     ../../modules/core/graphics.nix
@@ -63,6 +64,7 @@
   ];
 
   mandragora.profile = "desktop";
+  mandragora.gdrive.enable = true;
   mandragora.ai.agentic.enable = true;
   mandragora.ai.uncensored.enable = true;
   services.mandragora-seafile.enable = true;
