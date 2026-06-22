@@ -15,6 +15,13 @@
  *     onPanelOpen?: (panel) => void,             // decorate the reader panel
  *     onPanelClose?: () => void,
  *     layoutCacheKey?: 'vault-graph-layout-v1',  // bump to invalidate localStorage layout
+ *     theme?: {                                  // group colors are auto-generated, equally hue-spaced
+ *       hueOffset?: 140,                         //   rotate the wheel (deg); 140 anchors near the brand green
+ *       saturation?: 48,                         //   HSL S% for every group swatch
+ *       lightness?: 62,                          //   HSL L% for every group swatch
+ *       unresolvedColor?: '#4a4f5a',             //   the muted color for dangling/unresolved nodes
+ *     },
+ *     palette?: ['#hex', …],                     // explicit override — wins over `theme`, cycles if shorter than #groups
  *   });
  *
  * `panel` passed to onPanelOpen:
@@ -112,14 +119,20 @@
     window.addEventListener("resize", resize);
 
     const groups = Array.from(new Set(data.nodes.map(n => n.group))).sort();
-    const palette = [
-      "#00ff66", "#cfa64a", "#7fcf8a", "#cf6a7a", "#c79ad0",
-      "#d8c277", "#5fb89e", "#cf9a5a", "#9ec77a", "#7ac28a",
-      "#cf6a6a", "#a78aaa", "#a7c98a", "#7ac0a0", "#c08a6a",
-    ];
+    const theme = opts.theme || {};
+    const saturation = theme.saturation ?? 48;
+    const lightness = theme.lightness ?? 62;
+    const hueOffset = theme.hueOffset ?? 140;
+    const unresolvedColor = theme.unresolvedColor ?? "#4a4f5a";
+    const colored = groups.filter(g => g !== "_unresolved");
+    const huePalette = n => Array.from({ length: n }, (_, i) =>
+      `hsl(${((hueOffset + (i * 360) / n) % 360).toFixed(1)} ${saturation}% ${lightness}%)`);
+    const palette = (Array.isArray(opts.palette) && opts.palette.length)
+      ? opts.palette
+      : huePalette(colored.length || 1);
     const groupColor = {};
-    groups.forEach((g, i) => groupColor[g] = palette[i % palette.length]);
-    groupColor["_unresolved"] = "#4a4f5a";
+    colored.forEach((g, i) => groupColor[g] = palette[i % palette.length]);
+    groupColor["_unresolved"] = unresolvedColor;
 
     mount.querySelector("#counts").textContent =
       `${data.nodes.length} notes · ${data.links.length} links`;
