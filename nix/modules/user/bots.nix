@@ -21,6 +21,9 @@ let
   axonWebRoot = "/etc/nixos/mandragora/.local/share/axon-web";
   axonWebState = "/home/m/.local/share/axon-web";
   axonWebRepo = "/home/m/Projects/axon-web";
+  intPython = import ../../pkgs/int-python.nix { inherit pkgs; };
+  intRoot = "/home/m/Projects/4chan-international-visualizer";
+  intState = "/home/m/.local/share/4chan-int";
 in
 {
   home.activation.botsState = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -33,6 +36,7 @@ in
     mkdir -p ${vtagState}/logs
     mkdir -p ${axonState}/logs
     mkdir -p ${axonWebState}/logs
+    mkdir -p ${intState}/hf-cache
     if [ -e /home/m/Projects/gpu-lock ] && [ ! -L /home/m/Projects/gpu-lock ]; then
       rm -rf /home/m/Projects/gpu-lock
     fi
@@ -282,6 +286,97 @@ in
     };
     Install = {
       WantedBy = [ "default.target" ];
+    };
+  };
+
+  systemd.user.services.int-scraper = {
+    Unit = {
+      Description = "4chan /int/ scraper (CPU, always-on; country reply graph + enrichment queue)";
+      After = [ "graphical-session.target" "network-online.target" ];
+      Wants = [ "network-online.target" ];
+      ConditionPathExists = [ "${intRoot}/backend/scraper.py" ];
+    };
+    Service = {
+      Type = "simple";
+      WorkingDirectory = "${intRoot}/backend";
+      ExecStart = "${intPython}/bin/python ${intRoot}/backend/scraper.py";
+      Environment = [
+        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
+        "INT_DB=${intState}/int.db"
+      ];
+      Restart = "always";
+      RestartSec = 10;
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
+
+  systemd.user.services.int-api = {
+    Unit = {
+      Description = "4chan /int/ read API (Flask, tailnet-bound; consumed by 4chan.mvr.ac)";
+      After = [ "graphical-session.target" "network-online.target" ];
+      Wants = [ "network-online.target" ];
+      ConditionPathExists = [ "${intRoot}/backend/api.py" ];
+    };
+    Service = {
+      Type = "simple";
+      WorkingDirectory = "${intRoot}/backend";
+      ExecStart = "${intPython}/bin/python ${intRoot}/backend/api.py";
+      Environment = [
+        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
+        "INT_DB=${intState}/int.db"
+        "INT_API_HOST=100.115.80.79"
+        "INT_API_PORT=2718"
+      ];
+      Restart = "always";
+      RestartSec = 10;
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
+
+  systemd.user.services.int-enrich = {
+    Unit = {
+      Description = "4chan /int/ enrichment drain (GPU via gpu-lock; topics + emotions, deferred when GPU busy)";
+      After = [ "graphical-session.target" "network-online.target" ];
+      Wants = [ "network-online.target" ];
+      ConditionPathExists = [
+        "/dev/nvidia0"
+        "${intRoot}/backend/run-enrich.sh"
+      ];
+    };
+    Service = {
+      Type = "oneshot";
+      WorkingDirectory = "${intRoot}/backend";
+      ExecStart = "${intRoot}/backend/run-enrich.sh";
+      Environment = [
+        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
+        "INT_DB=${intState}/int.db"
+        "INT_VENV=${intRoot}/backend/.venv"
+        "HF_HOME=${intState}/hf-cache"
+      ];
+      TimeoutStartSec = "30min";
+      MemoryMax = "14G";
+      MemorySwapMax = "0";
+      OOMScoreAdjust = 1000;
+      OOMPolicy = "kill";
+      ManagedOOMSwap = "kill";
+      ManagedOOMMemoryPressure = "kill";
+    };
+  };
+
+  systemd.user.timers.int-enrich = {
+    Unit = {
+      Description = "Periodic 4chan /int/ enrichment drain";
+    };
+    Timer = {
+      OnBootSec = "5min";
+      OnUnitInactiveSec = "2min";
+    };
+    Install = {
+      WantedBy = [ "timers.target" ];
     };
   };
 
