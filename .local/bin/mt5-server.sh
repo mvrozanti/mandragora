@@ -13,5 +13,5 @@ if [ ! -x "$LINUX_VENV/bin/python" ]; then
   exit 1
 fi
 
-echo ">> starting mt5linux bridge on $HOST:$PORT (wine python: $WINPY)"
-exec "$LINUX_VENV/bin/python" -m mt5linux --host "$HOST" --port "$PORT" -w wine "$WINPY"
+echo ">> starting mt5linux rpyc bridge in wine python on $HOST:$PORT"
+exec wine "$WINPY" -m mt5linux --host "$HOST" -p "$PORT"
