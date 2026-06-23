@@ -12,9 +12,6 @@ services:
       caddy: https://4chan.${MVR_AC:-mvr.ac}
       caddy.encode: zstd gzip
       caddy.0_handle: "/api/*"
-      caddy.0_handle.forward_auth: "authelia:9091"
-      caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
-      caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
       caddy.0_handle.reverse_proxy: "${FOURCHAN_API_UPSTREAM:-100.115.80.79:2718}"
       caddy.1_handle.reverse_proxy: "{{upstreams 80}}"
     healthcheck:
