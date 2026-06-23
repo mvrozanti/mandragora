@@ -16,7 +16,16 @@ services:
       - seafile-net
     labels:
       caddy: https://api.${MVR_AC:-mvr.ac}
-      caddy.reverse_proxy: "{{upstreams 8080}}"
+      caddy.header.Strict-Transport-Security: max-age=31536000;includeSubDomains
+      caddy.header.X-Content-Type-Options: nosniff
+      caddy.header.X-Frame-Options: SAMEORIGIN
+      caddy.header.Referrer-Policy: strict-origin-when-cross-origin
+      caddy.header.Permissions-Policy: geolocation=(),microphone=(),camera=()
+      caddy.header.-Server: ""
+      caddy.@docs.path: "/docs /docs/* /redoc /openapi.json"
+      caddy.0_handle: "@docs"
+      caddy.0_handle.respond: "404"
+      caddy.1_handle.reverse_proxy: "{{upstreams 8080}}"
     logging:
       driver: json-file
       options:

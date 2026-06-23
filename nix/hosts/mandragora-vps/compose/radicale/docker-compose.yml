@@ -28,6 +28,12 @@ services:
       - seafile-net
     labels:
       caddy: https://${RADICALE_HOSTNAME:-cal.mvr.ac}
+      caddy.header.Strict-Transport-Security: max-age=31536000;includeSubDomains
+      caddy.header.X-Content-Type-Options: nosniff
+      caddy.header.X-Frame-Options: SAMEORIGIN
+      caddy.header.Referrer-Policy: strict-origin-when-cross-origin
+      caddy.header.Permissions-Policy: geolocation=(),microphone=(),camera=()
+      caddy.header.-Server: ""
       caddy.reverse_proxy: "{{upstreams 5232}}"
 
 networks:

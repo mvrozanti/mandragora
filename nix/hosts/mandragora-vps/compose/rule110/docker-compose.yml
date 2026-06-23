@@ -10,6 +10,12 @@ services:
       - seafile-net
     labels:
       caddy_0: https://rule110.${MVR_AC:-mvr.ac}
+      caddy_0.header.Strict-Transport-Security: max-age=31536000;includeSubDomains
+      caddy_0.header.X-Content-Type-Options: nosniff
+      caddy_0.header.X-Frame-Options: SAMEORIGIN
+      caddy_0.header.Referrer-Policy: strict-origin-when-cross-origin
+      caddy_0.header.Permissions-Policy: geolocation=(),microphone=(),camera=()
+      caddy_0.header.-Server: ""
       caddy_0.encode: zstd gzip
       caddy_0.reverse_proxy: "{{upstreams 80}}"
     healthcheck:
