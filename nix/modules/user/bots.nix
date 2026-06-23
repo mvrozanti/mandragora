@@ -303,6 +303,7 @@ in
       Environment = [
         "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
         "INT_DB=${intState}/int.db"
+        "INT_BOARDS=int,pol"
       ];
       Restart = "always";
       RestartSec = 10;
@@ -326,6 +327,7 @@ in
       Environment = [
         "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
         "INT_DB=${intState}/int.db"
+        "INT_BOARDS=int,pol"
         "INT_API_HOST=100.115.80.79"
         "INT_API_PORT=2718"
       ];
