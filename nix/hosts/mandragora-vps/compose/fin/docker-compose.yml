@@ -19,16 +19,25 @@ services:
       - seafile-net
     labels:
       caddy: https://fin.${MVR_AC:-mvr.ac}
+      caddy.header.Strict-Transport-Security: max-age=31536000;includeSubDomains
+      caddy.header.X-Content-Type-Options: nosniff
+      caddy.header.X-Frame-Options: SAMEORIGIN
+      caddy.header.Referrer-Policy: strict-origin-when-cross-origin
+      caddy.header.Permissions-Policy: geolocation=(),microphone=(),camera=()
+      caddy.header.-Server: ""
       caddy.encode: zstd gzip
+      caddy.@docs.path: "/docs /docs/* /redoc /openapi.json"
       caddy.@autopilot.path: "/autopilot* /api/autopilot/*"
-      caddy.0_handle: "@autopilot"
-      caddy.0_handle.0_forward_auth: "authelia:9091"
-      caddy.0_handle.0_forward_auth.uri: "/api/authz/forward-auth"
-      caddy.0_handle.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy.0_handle.1_reverse_proxy: "{{upstreams 8080}}"
-      caddy.1_handle_path: "/api/gource/*"
-      caddy.1_handle_path.reverse_proxy: "gource-fin:8080"
-      caddy.2_handle.0_reverse_proxy: "{{upstreams 8080}}"
+      caddy.0_handle: "@docs"
+      caddy.0_handle.respond: "404"
+      caddy.1_handle: "@autopilot"
+      caddy.1_handle.0_forward_auth: "authelia:9091"
+      caddy.1_handle.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy.1_handle.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.1_handle.1_reverse_proxy: "{{upstreams 8080}}"
+      caddy.2_handle_path: "/api/gource/*"
+      caddy.2_handle_path.reverse_proxy: "gource-fin:8080"
+      caddy.3_handle.0_reverse_proxy: "{{upstreams 8080}}"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
       interval: 30s
