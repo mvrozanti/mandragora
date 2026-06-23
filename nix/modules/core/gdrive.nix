@@ -67,7 +67,10 @@ in
 
       serviceConfig = {
         Type = "notify";
-        ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p ${cfg.mountPoint}";
+        ExecStartPre = [
+          "-${pkgs.fuse3}/bin/fusermount3 -uz ${cfg.mountPoint}"
+          "${pkgs.coreutils}/bin/mkdir -p ${cfg.mountPoint}"
+        ];
         ExecStart = lib.concatStringsSep " " ([
           "${pkgs.rclone}/bin/rclone mount"
           "${cfg.remote}: ${cfg.mountPoint}"
@@ -84,6 +87,7 @@ in
           "--log-level=INFO"
         ] ++ lib.optional cfg.readOnly "--read-only");
         ExecStop = "${pkgs.fuse3}/bin/fusermount3 -u ${cfg.mountPoint}";
+        TimeoutStartSec = "600s";
         Restart = "on-failure";
         RestartSec = "10s";
       };
