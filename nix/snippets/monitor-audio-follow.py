@@ -165,8 +165,13 @@ def reroute():
             sink_map = dict(SINK_MAP)
     if not sink_map:
         return
+    managed = set(sink_map.values())
     winmap = pid_to_monitor_name()
     for idx, pid, cur_sink in sink_inputs():
+        if cur_sink not in managed:
+            if DEBUG:
+                log(f"stream {idx}: on manual sink {cur_sink}, leaving put")
+            continue
         if not pid:
             if DEBUG:
                 log(f"stream {idx}: no pid, skipping")
