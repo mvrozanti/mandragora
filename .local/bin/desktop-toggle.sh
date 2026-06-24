@@ -8,11 +8,6 @@ if [ -f "$state" ]; then
     rm -f "$state"
     [ -n "$prev" ] && hyprctl dispatch workspace "$prev"
 else
-    used=$(hyprctl -j workspaces | jq '[.[].id]')
-    target=20
-    while echo "$used" | jq -e --argjson t "$target" 'index($t) != null' >/dev/null; do
-        target=$((target+1))
-    done
     echo "$current" > "$state"
-    hyprctl dispatch workspace "$target"
+    hyprctl dispatch workspace empty
 fi
