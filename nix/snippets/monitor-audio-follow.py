@@ -229,8 +229,14 @@ def set_default_for_focused():
     name = focused_monitor_name()
     if not name:
         return
+    managed = set(sink_map.values())
+    cur = current_default_sink()
+    if cur and cur not in managed:
+        if DEBUG:
+            log(f"default on manual sink {cur}, not stealing for focus")
+        return
     want = sink_map.get(name)
-    if want and want != current_default_sink():
+    if want and want != cur:
         log(f"default sink -> {name}: {want}")
         run(["pactl", "set-default-sink", want])
 
