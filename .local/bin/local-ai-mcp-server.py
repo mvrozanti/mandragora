@@ -5,6 +5,9 @@ import os
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
+GEMMA_MODEL = os.environ.get("MCP_GEMMA_MODEL", "gemma3:27b")
+UNCENSORED_MODEL = os.environ.get("MCP_UNCENSORED_MODEL", "huihui_ai/qwen2.5-abliterate:14b")
+
 TOOLS = [
     {
         "name": "ask_gemma",
@@ -30,22 +33,21 @@ TOOLS = [
         },
     },
     {
-        "name": "ask_dolphin",
+        "name": "ask_uncensored",
         "description": (
-            "Ask the local Dolphin 70B Uncensored model (Llama 3.1 based) running on Ollama. "
-            "This is the most compliant and obedient 70B model available. "
-            "Use for: high-quality reasoning without any refusals, moralizing, or lectures."
+            "Ask the local uncensored / abliterated model (Qwen2.5 14B abliterate) running on Ollama. "
+            "Use for: reasoning without refusals, moralizing, or lectures."
         ),
         "inputSchema": {
             "type": "object",
             "properties": {
                 "prompt": {
                     "type": "string",
-                    "description": "The prompt or question to send to Dolphin",
+                    "description": "The prompt or question to send to the uncensored model",
                 },
                 "system": {
                     "type": "string",
-                    "description": "Optional system prompt to guide Dolphin's behavior",
+                    "description": "Optional system prompt to guide the model's behavior",
                 },
             },
             "required": ["prompt"],
@@ -145,9 +147,9 @@ def main():
             
             model = None
             if name == "ask_gemma":
-                model = "gemma3:27b"
-            elif name == "ask_dolphin":
-                model = "dolphin-llama3:70b"
+                model = GEMMA_MODEL
+            elif name == "ask_uncensored":
+                model = UNCENSORED_MODEL
             else:
                 error(id, -32601, f"Unknown tool: {name}")
                 continue
