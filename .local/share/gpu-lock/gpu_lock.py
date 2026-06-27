@@ -119,7 +119,9 @@ class _GpuLock:
             "since": time.time(),
             "expected_seconds": expected_seconds,
         }
-        HOLDER_FILE.write_text(json.dumps(payload))
+        tmp = HOLDER_FILE.with_name(f"{HOLDER_FILE.name}.{os.getpid()}.tmp")
+        tmp.write_text(json.dumps(payload))
+        os.replace(tmp, HOLDER_FILE)
 
     def _clear_holder(self) -> None:
         try:
