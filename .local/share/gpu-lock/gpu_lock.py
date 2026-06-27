@@ -39,12 +39,13 @@ from __future__ import annotations
 import contextlib
 import errno
 import fcntl
+import inspect
 import json
 import logging
 import os
 import time
 from pathlib import Path
-from typing import Iterator
+from typing import Callable, Iterator
 
 log = logging.getLogger("gpu_lock")
 
@@ -82,13 +83,46 @@ class GpuBusy(Exception):
         return max(0.0, since + expected - time.time())
 
 
-class _GpuLock:
-    def __init__(self) -> None:
-        self._fd: int | None = None
-        self._held_by_us = False
-        self._name: str | None = None
-        self._since: float | None = None
+class _Lease:
+    """Handle for one held GPU lease. Owns its own fd; release is idempotent."""
 
+    def __init__(
+        self,
+        fd: int,
+        name: str,
+        since: float,
+        expected_seconds: float | None,
+        clear_holder: Callable[[], None],
+    ) -> None:
+        self._fd = fd
+        self.name = name
+        self.since = since
+        self.expected_seconds = expected_seconds
+        self._clear_holder = clear_holder
+        self._released = False
+
+    @property
+    def held(self) -> bool:
+        return not self._released
+
+    def release(self) -> None:
+        if self._released:
+            return
+        self._released = True
+        self._clear_holder()
+        try:
+            fcntl.flock(self._fd, fcntl.LOCK_UN)
+        except OSError as e:
+            if e.errno != errno.EBADF:
+                raise
+        try:
+            os.close(self._fd)
+        except OSError:
+            pass
+        log.info("released GPU lock (held %.1fs as %s)", time.time() - self.since, self.name)
+
+
+class _GpuLock:
     def _ensure_dir(self) -> None:
         LOCK_DIR.mkdir(parents=True, exist_ok=True)
         try:
@@ -112,11 +146,11 @@ class _GpuLock:
                 pass
         return holder
 
-    def _write_holder(self, name: str, expected_seconds: float | None) -> None:
+    def _write_holder(self, name: str, expected_seconds: float | None, since: float) -> None:
         payload = {
             "pid": os.getpid(),
             "name": name,
-            "since": time.time(),
+            "since": since,
             "expected_seconds": expected_seconds,
         }
         tmp = HOLDER_FILE.with_name(f"{HOLDER_FILE.name}.{os.getpid()}.tmp")
@@ -132,16 +166,9 @@ class _GpuLock:
     def current_holder(self) -> dict | None:
         return self._read_holder()
 
-    @contextlib.contextmanager
-    def acquire(
-        self,
-        name: str,
-        expected_seconds: float | None = None,
-    ) -> Iterator[None]:
-        """Try to acquire the GPU lock without blocking. Raises GpuBusy if held."""
+    def _open_locked(self, name: str, expected_seconds: float | None) -> _Lease:
         self._ensure_dir()
         fd = os.open(str(LOCK_FILE), os.O_CREAT | os.O_RDWR, 0o666)
-
         try:
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
@@ -151,72 +178,100 @@ class _GpuLock:
         except BaseException:
             os.close(fd)
             raise
-
-        self._fd = fd
-        self._held_by_us = True
-        self._name = name
-        self._since = time.time()
-        self._write_holder(name, expected_seconds)
-
+        since = time.time()
+        try:
+            self._write_holder(name, expected_seconds, since)
+        except BaseException:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_UN)
+            except OSError:
+                pass
+            os.close(fd)
+            raise
         log.info("acquired GPU lock as %s (pid=%d)", name, os.getpid())
-        try:
-            yield
-        finally:
-            self.release()
+        return _Lease(fd, name, since, expected_seconds, self._clear_holder)
 
-    def release(self) -> None:
-        if not self._held_by_us:
-            return
-        self._clear_holder()
+    @contextlib.contextmanager
+    def acquire(
+        self,
+        name: str,
+        expected_seconds: float | None = None,
+        on_release: Callable[[], object] | None = None,
+    ) -> Iterator[_Lease]:
+        """Acquire the GPU lock without blocking. Raises GpuBusy if held.
+
+        Yields a `_Lease`. The lock is intentionally non-reentrant: a nested
+        acquire in the same process raises GpuBusy rather than silently
+        re-entering, so two concurrent async tasks each fail fast instead of
+        sharing one lease. `on_release`, if given, runs just before release.
+        """
+        lease = self._open_locked(name, expected_seconds)
         try:
-            fcntl.flock(self._fd, fcntl.LOCK_UN)
-        except OSError as e:
-            if e.errno != errno.EBADF:
-                raise
-        try:
-            os.close(self._fd)
-        except OSError:
-            pass
-        log.info(
-            "released GPU lock (held %.1fs as %s)",
-            time.time() - (self._since or time.time()),
-            self._name,
-        )
-        self._fd = None
-        self._held_by_us = False
-        self._name = None
-        self._since = None
+            yield lease
+        finally:
+            if on_release is not None:
+                try:
+                    on_release()
+                except Exception:
+                    log.exception("on_release hook failed for %s", name)
+            lease.release()
 
     @contextlib.asynccontextmanager
     async def acquire_async(
         self,
         name: str,
         expected_seconds: float | None = None,
+        on_release: Callable[[], object] | None = None,
     ):
-        """Async wrapper around the non-blocking acquire."""
-        cm = self.acquire(name, expected_seconds=expected_seconds)
-        cm.__enter__()
+        """Async wrapper around the non-blocking acquire.
+
+        `on_release` may be sync or return an awaitable; it runs (awaited if
+        needed) just before the lock is released.
+        """
+        lease = self._open_locked(name, expected_seconds)
         try:
-            yield
+            yield lease
         finally:
-            cm.__exit__(None, None, None)
+            if on_release is not None:
+                try:
+                    result = on_release()
+                    if inspect.isawaitable(result):
+                        await result
+                except Exception:
+                    log.exception("on_release hook failed for %s", name)
+            lease.release()
 
 
 gpu_lock = _GpuLock()
 
 
-def cli_status() -> int:
-    """Print current holder (for ad-hoc inspection)."""
+def _holder_with_derived() -> dict | None:
     holder = gpu_lock.current_holder()
+    if not holder:
+        return None
+    since = holder.get("since")
+    expected = holder.get("expected_seconds")
+    now = time.time()
+    if isinstance(since, (int, float)):
+        holder["held_for"] = max(0.0, now - since)
+        if isinstance(expected, (int, float)):
+            holder["expected_remaining"] = max(0.0, since + expected - now)
+    return holder
+
+
+def cli_status(as_json: bool = False) -> int:
+    """Print current holder (for ad-hoc inspection)."""
+    holder = _holder_with_derived()
+    if as_json:
+        print(json.dumps({"holder": holder}))
+        return 0
     if holder:
-        held_for = time.time() - holder.get("since", time.time())
-        expected = holder.get("expected_seconds")
         eta = ""
-        if expected is not None:
-            remaining = max(0.0, holder.get("since", time.time()) + expected - time.time())
-            eta = f" expected_remaining={remaining:.1f}s"
+        if "expected_remaining" in holder:
+            eta = f" expected_remaining={holder['expected_remaining']:.1f}s"
         print(
-            f"HOLDER: pid={holder['pid']} name={holder['name']} held_for={held_for:.1f}s{eta}"
+            f"HOLDER: pid={holder['pid']} name={holder['name']} "
+            f"held_for={holder.get('held_for', 0.0):.1f}s{eta}"
         )
     else:
         print("HOLDER: (none)")
