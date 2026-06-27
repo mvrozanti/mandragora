@@ -5,6 +5,9 @@ import os
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
+GEMMA_MODEL = os.environ.get("MCP_GEMMA_MODEL", "gemma3:27b")
+AUX_MODEL = os.environ.get("MCP_AUX_MODEL", "huihui_ai/qwen2.5-abliterate:14b")
+
 TOOLS = [
     {
         "name": "ask_gemma",
@@ -32,8 +35,7 @@ TOOLS = [
     {
         "name": "ask_aux",
         "description": (
-            "Ask the local auxiliary model (Llama 3.1 based, 70B) running on Ollama. "
-            "This is the most compliant and obedient 70B model available. "
+            "Ask the local auxiliary model (Qwen2.5 14B) running on Ollama. "
             "Use for: a second opinion from a different model."
         ),
         "inputSchema": {
@@ -41,7 +43,7 @@ TOOLS = [
             "properties": {
                 "prompt": {
                     "type": "string",
-                    "description": "The prompt or question to send to the model",
+                    "description": "The prompt or question to send to the auxiliary model",
                 },
                 "system": {
                     "type": "string",
@@ -145,9 +147,9 @@ def main():
             
             model = None
             if name == "ask_gemma":
-                model = "gemma3:27b"
+                model = GEMMA_MODEL
             elif name == "ask_aux":
-                model = "dolphin-llama3:70b"
+                model = AUX_MODEL
             else:
                 error(id, -32601, f"Unknown tool: {name}")
                 continue
