@@ -154,13 +154,20 @@ class _GpuLock:
             "expected_seconds": expected_seconds,
         }
         tmp = HOLDER_FILE.with_name(f"{HOLDER_FILE.name}.{os.getpid()}.tmp")
-        tmp.write_text(json.dumps(payload))
-        os.replace(tmp, HOLDER_FILE)
+        try:
+            tmp.write_text(json.dumps(payload))
+            os.replace(tmp, HOLDER_FILE)
+        except BaseException:
+            try:
+                tmp.unlink()
+            except OSError:
+                pass
+            raise
 
     def _clear_holder(self) -> None:
         try:
             HOLDER_FILE.unlink()
-        except FileNotFoundError:
+        except (FileNotFoundError, PermissionError):
             pass
 
     def current_holder(self) -> dict | None:
@@ -181,13 +188,11 @@ class _GpuLock:
         since = time.time()
         try:
             self._write_holder(name, expected_seconds, since)
-        except BaseException:
-            try:
-                fcntl.flock(fd, fcntl.LOCK_UN)
-            except OSError:
-                pass
-            os.close(fd)
-            raise
+        except Exception:
+            log.warning(
+                "could not write holder metadata for %s; lock still held",
+                name, exc_info=True,
+            )
         log.info("acquired GPU lock as %s (pid=%d)", name, os.getpid())
         return _Lease(fd, name, since, expected_seconds, self._clear_holder)
 
