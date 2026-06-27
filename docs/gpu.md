@@ -100,13 +100,19 @@ except GpuBusy as busy:
 
 ---
 
-## Ollama is the awkward case
+## Ollama clients hold the lock too
 
-Ollama runs as a systemd service (`services.ollama` in `nix/modules/core/ai-local.nix`), always wanting GPU. It is **not** in the lease system today. The protocol is:
+Ollama runs as a systemd service (`services.ollama` in `nix/modules/core/ai-local.nix`), but it does **not** hold the GPU continuously: a model only occupies VRAM while loaded, and unloads once `keep_alive` expires. An idle Ollama holds no VRAM, so it does not need a manual `systemctl stop` before other GPU jobs — that older protocol is retired.
 
-> **Before launching an `imagegen` or `trading` job that needs the GPU, manually `sudo systemctl stop ollama`. Restart it (`sudo systemctl start ollama`) when done.**
+Instead, every Ollama *client* participates in the lease directly (`llm-via-telegram`, `vtag`, `stt-via-telegram`, `local-ai-mcp-server`). The contract:
 
-This is friction-tolerable because (a) trading runs are pre-planned, not ad-hoc, and (b) the user is the only client of all three workloads, so coordination is single-headed. If forgetting becomes a real problem, upgrade to a `gpu-arbiter.service` wrapper that holds the lock on Ollama's behalf and stops/restarts it when other workloads claim. The arbiter is **deferred until forgetting causes a real incident** — adding it now is speculative complexity.
+> Wrap each `/api/chat`|`/api/generate` call in `gpu_lock.acquire_async(...)`, and `await evict_model(...)` in the `finally` — **while still holding the lock**, before releasing.
+
+The eviction is mandatory, not optional. Releasing the lock with the model still resident lets the next holder (e.g. im-gen Flux) fault with CUDA OOM even though the lock looked free (the 2026-04-27 incident). The shared eviction helpers live at `.local/share/gpu-lock/gpu_lock_ollama.py` — `wait_for_unload`, `evict_others`, `evict_model` — and clients import them rather than re-implementing.
+
+**Never pin `keep_alive=-1`.** A SIGKILL/oomd skips the `finally` and leaks the whole model into VRAM until reboot. Use a bounded value (e.g. `"10m"`) so any leak self-clears.
+
+There is no Layer-2 proxy and none is planned. A bare `crush` against `127.0.0.1:11434` from a one-off shell is the only remaining bypass; treat it as user-supervised, not a contract violation.
 
 ---
 
