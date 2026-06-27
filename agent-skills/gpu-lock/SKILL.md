@@ -16,10 +16,10 @@ Anything that touches CUDA: PyTorch, TensorFlow, diffusers, Ollama clients (crus
 **CLI (any language):**
 
 ```
-gpu-lock run --name <yourname> --expect <seconds> -- <cmd>
+gpu-lock run --name <yourname> --expect <seconds> [--wait <seconds>] -- <cmd>
 ```
 
-Tries the `fcntl` mutex on `/dev/shm/gpu-lock/gpu.lock` non-blocking. If free: runs cmd, releases on exit. If held: exits 75 (`EX_TEMPFAIL`) and prints `{"error":"gpu-busy","holder":{...}}` JSON to stderr. The running holder is never signalled.
+Tries the `fcntl` mutex on `/dev/shm/gpu-lock/gpu.lock` non-blocking. If free: runs cmd, releases on exit. If held: exits 75 (`EX_TEMPFAIL`) and prints `{"error":"gpu-busy","holder":{...}}` JSON to stderr. The running holder is never signalled. Add `--wait <seconds>` to poll (backoff) for a free lock instead of failing fast.
 
 **Python library (in-tree projects):**
 
@@ -38,6 +38,8 @@ except GpuBusy as busy:
 
 `PYTHONPATH` must include `/etc/nixos/mandragora/.local/share/gpu-lock` for the import to resolve. Mandragora-managed services already set this; ad-hoc scripts can either set it themselves or just use the CLI wrapper.
 
+`acquire`/`acquire_async` also accept an optional `on_release` callback (sync, or awaited in the async form) that runs just before release — a convenient home for the `torch.cuda.empty_cache()` / `evict_model(...)` cleanup. Best-effort, not SIGKILL-proof.
+
 ## Hard rules
 
 1. **PyTorch users MUST `torch.cuda.empty_cache()` before exit.** Without it, the caching allocator keeps the pages and the next holder sees a near-full GPU. Real incident on 2026-04-27: a Flux render left 13.7 GiB of cached pages, forcing every subsequent Ollama call into CPU offload mode (2+ minute response times until im-gen restarted).
@@ -47,7 +49,7 @@ except GpuBusy as busy:
 
 ## Inspection
 
-- `gpu-lock status` — current holder (pid, name, held_for, expected_remaining)
+- `gpu-lock status [--json]` — current holder (pid, name, held_for, expected_remaining); `--json` emits `{"holder": {...}|null}`
 - State files in `/dev/shm/gpu-lock/` (RAM-backed, auto-clears on reboot): `gpu.lock` (the fcntl mutex), `gpu.lock.holder` (JSON)
 
 ## Long form

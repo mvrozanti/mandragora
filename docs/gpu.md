@@ -28,12 +28,12 @@ The library lives at `.local/share/gpu-lock/gpu_lock.py`, the CLI at `.local/sha
 ### Subcommands
 
 ```
-gpu-lock run --name <name> --expect <seconds> -- <cmd> [args...]
-gpu-lock status
+gpu-lock run --name <name> --expect <seconds> [--wait <seconds>] -- <cmd> [args...]
+gpu-lock status [--json]
 ```
 
-- `run` tries to acquire the lock without blocking, spawns `cmd`, releases on exit. If the lock is held, exits `75` (`EX_TEMPFAIL`) and prints `{"error":"gpu-busy","holder":{...}}` JSON to stderr.
-- `status` shows the current holder (pid, name, held_for, expected_remaining).
+- `run` tries to acquire the lock without blocking, spawns `cmd`, releases on exit. If the lock is held, exits `75` (`EX_TEMPFAIL`) and prints `{"error":"gpu-busy","holder":{...}}` JSON to stderr. With `--wait <seconds>` it polls (exponential backoff, capped at 5s) up to that long for a free lock before giving up — opt-in; the default stays fail-fast.
+- `status` shows the current holder (pid, name, held_for, expected_remaining). `--json` emits `{"holder": {...}|null}` (with derived `held_for`/`expected_remaining`) for waybar/scripts.
 
 ### Storage
 
@@ -48,6 +48,8 @@ gpu-lock status
 3. **PID death releases the lock.** `fcntl` flocks are released by the kernel on process exit, so a crashed holder doesn't wedge the system — the next acquirer just gets the lock. (The stale `gpu.lock.holder` JSON file may linger for a moment until overwritten, but the lock itself is free.)
 4. **No `eta`, no priority, no queue ordering.** First non-busy `acquire` wins. `expected_seconds` is metadata for `status` and `GpuBusy.expected_remaining()`, not enforced.
 5. **PyTorch holders MUST clean VRAM before release.** Call `torch.cuda.empty_cache()` before exiting the `with gpu_lock.acquire(...)` block, or the caching allocator keeps the pages and the next holder sees a near-full GPU. This bit us on 2026-04-27.
+6. **Non-reentrant by design.** The mutex is a cross-process `flock`; a nested `acquire` in the same process raises `GpuBusy` rather than re-entering. Deliberate — under the bots' async event loop two concurrent tasks must each fail fast, never silently share one lease. `acquire` yields a `_Lease` (introspectable, idempotent `release()`); existing `with`/`async with` callers can ignore it.
+7. **`on_release` hook (optional).** `acquire`/`acquire_async` take an `on_release` callback run just before the lock is released — sync, or awaited if the async form's callback returns a coroutine. Use it for the rule-5 cleanup (`torch.cuda.empty_cache` / `evict_model`). Best-effort only: a SIGKILL/oomd still skips it, so it does not replace a bounded `keep_alive`.
 
 ### Idiomatic use
 
