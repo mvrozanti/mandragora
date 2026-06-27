@@ -21,10 +21,9 @@ import shutil
 import subprocess
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 
-LOCK_DIR = Path(os.environ.get("GPU_LOCK_DIR", "/dev/shm/gpu-lock"))
-HOLDER_FILE = LOCK_DIR / "gpu.lock.holder"
+from gpu_lock import _holder_with_derived as read_holder
+
 NVIDIA_SMI = os.environ.get("NVIDIA_SMI", "nvidia-smi")
 DISK_PATH = os.environ.get("DISK_PATH", "/persistent")
 CPU_SAMPLE_SECONDS = float(os.environ.get("CPU_SAMPLE_SECONDS", "0.1"))
@@ -37,38 +36,6 @@ QUERY_FIELDS = [
     "power.draw",
     "name",
 ]
-
-
-def _pid_alive(pid: int) -> bool:
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    return True
-
-
-def read_holder() -> dict | None:
-    try:
-        raw = HOLDER_FILE.read_text()
-    except FileNotFoundError:
-        return None
-    try:
-        holder = json.loads(raw)
-    except json.JSONDecodeError:
-        return None
-    pid = holder.get("pid")
-    if isinstance(pid, int) and not _pid_alive(pid):
-        return None
-    since = holder.get("since")
-    expected = holder.get("expected_seconds")
-    now = time.time()
-    if isinstance(since, (int, float)):
-        holder["held_for"] = max(0.0, now - since)
-        if isinstance(expected, (int, float)):
-            holder["expected_remaining"] = max(0.0, since + expected - now)
-    return holder
 
 
 def read_gpu() -> dict | None:
