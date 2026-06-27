@@ -1,0 +1,75 @@
+"""Ollama VRAM coordination helpers, shared across gpu_lock callers.
+
+The shared GPU lock (`gpu_lock`) only guarantees mutual exclusion on the
+acquire/release contract. It does not free VRAM by itself: when an Ollama
+client returns from /api/chat or /api/generate, the model stays resident
+until `keep_alive` (default 5 min) expires. Releasing the gpu_lock at that
+point lets the next holder (e.g. im-gen Flux) fault with CUDA OOM even
+though the lock looked free.
+
+`wait_for_unload` polls /api/ps; `evict_model` forces an immediate unload
+and confirms it. Callers `await evict_model(...)` *while still holding the
+gpu_lock*, before releasing.
+
+Single source of truth: llm-via-telegram (`bot/helpers/ollama.py`) and
+vtag (`pipeline/ollama_lifecycle.py`) import these via thin shims.
+Importable wherever the gpu-lock dir is on PYTHONPATH.
+"""
+from __future__ import annotations
+
+import asyncio
+import logging
+
+import httpx
+
+log = logging.getLogger(__name__)
+
+__all__ = ["wait_for_unload", "evict_others", "evict_model"]
+
+
+async def wait_for_unload(base_url: str, model: str, timeout: float = 10.0) -> bool:
+    base = base_url.rstrip("/")
+    deadline = asyncio.get_running_loop().time() + timeout
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        while True:
+            try:
+                resp = await client.get(f"{base}/api/ps")
+                resp.raise_for_status()
+                loaded = [m.get("name", "") for m in resp.json().get("models", [])]
+                if not any(name == model or name.startswith(f"{model}:") for name in loaded):
+                    return True
+            except httpx.HTTPError as exc:
+                log.debug("ps poll failed: %s", exc)
+            if asyncio.get_running_loop().time() >= deadline:
+                log.warning("model %s still loaded after %.1fs", model, timeout)
+                return False
+            await asyncio.sleep(0.2)
+
+
+async def evict_others(base_url: str, keep: str) -> None:
+    base = base_url.rstrip("/")
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(f"{base}/api/ps")
+            resp.raise_for_status()
+            loaded = [m.get("name", "") for m in resp.json().get("models", [])]
+    except httpx.HTTPError as exc:
+        log.debug("evict_others: ps failed: %s", exc)
+        return
+    for name in loaded:
+        if name != keep and not name.startswith(f"{keep}:"):
+            log.info("evicting %s to free VRAM before loading %s", name, keep)
+            await evict_model(base_url, name)
+
+
+async def evict_model(base_url: str, model: str, timeout: float = 30.0) -> bool:
+    base = base_url.rstrip("/")
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            await client.post(
+                f"{base}/api/generate",
+                json={"model": model, "keep_alive": 0},
+            )
+    except httpx.HTTPError as exc:
+        log.debug("evict POST failed (model may already be unloaded): %s", exc)
+    return await wait_for_unload(base_url, model, timeout=timeout)
