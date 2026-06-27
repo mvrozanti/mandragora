@@ -999,6 +999,10 @@ StartupWMClass=whatsapp-web
     $DRY_RUN_CMD install $VERBOSE_ARG -Dm644 "$repo/GEMINI.md"         "$HOME/.ai-shared/GEMINI.md"
     $DRY_RUN_CMD install $VERBOSE_ARG -Dm644 "$repo/docs/local-llm.md" "$HOME/.ai-shared/local-llm.md"
     $DRY_RUN_CMD install $VERBOSE_ARG -Dm644 "$repo/RTK.md"            "$HOME/.ai-shared/RTK.md"
+    $DRY_RUN_CMD rm -rf "$HOME/.ai-shared/rules"
+    $DRY_RUN_CMD cp -r "$repo/.ai-shared/rules" "$HOME/.ai-shared/rules"
+    $DRY_RUN_CMD chmod -R u+w "$HOME/.ai-shared/rules"
+    $DRY_RUN_CMD mkdir -p "$HOME/.ai-shared/templates"
     $DRY_RUN_CMD rm -f "$HOME/.claude/CLAUDE.md" "$HOME/.qwen/QWEN.md" "$HOME/.claude/RTK.md"
   '';
   home.file.".claude/hooks/rtk-rewrite.sh".source =
