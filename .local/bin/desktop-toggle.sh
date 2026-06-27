@@ -10,5 +10,5 @@ if [ -f "$state" ]; then
     [ -n "$prev" ] && hyprctl dispatch workspace "$prev"
 else
     echo "$current" > "$state"
-    hyprctl dispatch focusworkspaceoncurrentmonitor "$((90 + monid))"
+    hyprctl dispatch focusworkspaceoncurrentmonitor "name:nixos${monid}"
 fi
