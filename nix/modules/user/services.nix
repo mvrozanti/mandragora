@@ -115,6 +115,21 @@
     };
   };
 
+  systemd.user.services.rgb-restore = {
+    Unit = {
+      Description = "Re-apply pywal RGB (mouse, RAM, AIO/mobo) after an openrgb restart";
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = [
+        "${config.home.profileDirectory}/bin/hid-wrapper"
+        "${pkgs.systemd}/bin/systemctl --user restart wal-to-rgb-daemon.service"
+      ];
+      RemainAfterExit = false;
+    };
+  };
+
   systemd.user.services.webhook-notifier = {
     Unit = {
       Description = "Subscribe to webhook.mvr.ac SSE and emit desktop notifications";

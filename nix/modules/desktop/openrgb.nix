@@ -50,6 +50,17 @@ let
     [ -f "$cfg" ] || exit 0
     ${pkgs.python3}/bin/python3 ${scopeDetectorsPy} "$cfg"
   '';
+
+  rgbRestoreBridgeScript = pkgs.writeShellScript "rgb-restore-bridge" ''
+    set -u
+    for _ in $(${pkgs.coreutils}/bin/seq 1 40); do
+      if ${pkgs.iproute2}/bin/ss -Htln 'sport = :6742' | ${pkgs.gnugrep}/bin/grep -q .; then
+        break
+      fi
+      ${pkgs.coreutils}/bin/sleep 0.5
+    done
+    ${pkgs.systemd}/bin/systemctl --user start rgb-restore.service || true
+  '';
 in {
   services.hardware.openrgb = {
     enable = true;
@@ -79,6 +90,20 @@ in {
       OnUnitActiveSec = "1h";
       Unit = "openrgb-rescope.service";
       Persistent = true;
+    };
+  };
+
+  systemd.services.rgb-restore-bridge = {
+    description = "After openrgb (re)starts, wait for the SDK then re-apply user RGB";
+    after = [ "openrgb.service" ];
+    partOf = [ "openrgb.service" ];
+    wantedBy = [ "openrgb.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      User = "m";
+      Group = "users";
+      Environment = "XDG_RUNTIME_DIR=/run/user/1000";
+      ExecStart = "${rgbRestoreBridgeScript}";
     };
   };
 
