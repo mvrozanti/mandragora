@@ -17,7 +17,8 @@ if [ -n "$READ" ]; then
     CLASS=$(echo "$READ" | cut -f3)
     TITLE=$(echo "$READ" | cut -f4)
     echo "Found: Address $ADDR, WS $WS, Class $CLASS, Title $TITLE" >> "$LOG"
-    [ -n "$ORIGIN_MON" ] && hyprctl dispatch moveworkspacetomonitor "$WS" "$ORIGIN_MON"
+    # Window already exists: go to where it lives (focus its monitor+ws+window),
+    # do NOT drag its workspace onto the current monitor.
     hyprctl dispatch workspace "$WS"
     hyprctl dispatch focuswindow "address:$ADDR"
     hyprctl dispatch bringactivetotop
