@@ -13,6 +13,7 @@ in {
         GPU_STATUS_HOST = "0.0.0.0";
         GPU_STATUS_PORT = "6684";
         GPU_LOCK_DIR = "/dev/shm/gpu-lock";
+        PYTHONPATH = "/etc/nixos/mandragora/.local/share/gpu-lock";
         NVIDIA_SMI = "/run/current-system/sw/bin/nvidia-smi";
       };
       serviceConfig = {
