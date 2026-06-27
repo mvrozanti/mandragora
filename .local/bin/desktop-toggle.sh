@@ -9,5 +9,5 @@ if [ -f "$state" ]; then
     [ -n "$prev" ] && hyprctl dispatch workspace "$prev"
 else
     echo "$current" > "$state"
-    hyprctl dispatch workspace 1
+    hyprctl dispatch workspace emptym
 fi
