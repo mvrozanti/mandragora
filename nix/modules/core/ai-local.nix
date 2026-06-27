@@ -31,6 +31,30 @@ let
         --run 'if [ -n "$TMUX" ]; then export TERM=xterm-256color; fi'
     '';
   };
+
+  pullModelService = model: {
+    description = "Pre-pull ${model}";
+    after = [ "ollama.service" "network-online.target" ];
+    requires = [ "ollama.service" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+    path = [ pkgs.curl ];
+    script = ''
+      for i in $(seq 1 30); do
+        curl -fsS http://100.115.80.79:11434/api/version >/dev/null && break
+        sleep 1
+      done
+      exec curl -fsS --no-buffer -X POST http://100.115.80.79:11434/api/pull \
+        -H 'Content-Type: application/json' \
+        -d '{"model":"${model}","stream":false}'
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      TimeoutStartSec = "2h";
+    };
+  };
+  sanitizeTag = lib.replaceStrings [ ":" "/" "." "_" ] [ "-" "-" "-" "-" ];
 in
 {
   options.mandragora = {
@@ -69,6 +93,17 @@ in
         default = "huihui_ai/qwen2.5-abliterate:14b";
         description = "Ollama tag for an uncensored / abliterated chat model.";
       };
+    };
+
+    ai.extraModels = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = ''
+        Additional Ollama tags pre-pulled declaratively. These back
+        always-on consumers that hardcode their own model (MCP server,
+        oterm/gemma, thought embeddings, telegram bot, crush secondary)
+        and would otherwise rely on a manual `ollama pull`.
+      '';
     };
   };
 
@@ -122,6 +157,12 @@ in
 
       environment.sessionVariables.BRUNO_PASSTHROUGH = "gemini,qwen";
     }
+
+    (lib.mkIf (cfg.extraModels != [ ]) {
+      systemd.services = lib.listToAttrs (map
+        (m: lib.nameValuePair "ollama-pull-${sanitizeTag m}" (pullModelService m))
+        cfg.extraModels);
+    })
 
     (lib.mkIf cfg.agentic.enable {
       assertions = [{
