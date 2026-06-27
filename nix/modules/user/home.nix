@@ -984,7 +984,23 @@ StartupWMClass=whatsapp-web
   home.file.".gemini/settings.json".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/settings.json";
   home.file.".gemini/GEMINI.md".source =
-    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/GEMINI.md";
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/GEMINI.md";
+  home.file.".gemini/AGENTS.md".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/AGENTS.md";
+  home.file.".claude/CLAUDE.md".source =
+    config.lib.file.mkOutOfStoreSymlink "/home/m/.ai-shared/AGENTS.md";
+  home.file.".qwen/QWEN.md".source =
+    config.lib.file.mkOutOfStoreSymlink "/home/m/.ai-shared/AGENTS.md";
+
+  home.activation.aiSharedDocs = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+    repo=/etc/nixos/mandragora
+    $DRY_RUN_CMD install $VERBOSE_ARG -Dm644 "$repo/AGENTS.md"         "$HOME/.ai-shared/AGENTS.md"
+    $DRY_RUN_CMD install $VERBOSE_ARG -Dm644 "$repo/CLAUDE.md"         "$HOME/.ai-shared/CLAUDE.md"
+    $DRY_RUN_CMD install $VERBOSE_ARG -Dm644 "$repo/GEMINI.md"         "$HOME/.ai-shared/GEMINI.md"
+    $DRY_RUN_CMD install $VERBOSE_ARG -Dm644 "$repo/docs/local-llm.md" "$HOME/.ai-shared/local-llm.md"
+    $DRY_RUN_CMD install $VERBOSE_ARG -Dm644 "$repo/RTK.md"            "$HOME/.ai-shared/RTK.md"
+    $DRY_RUN_CMD rm -f "$HOME/.claude/CLAUDE.md" "$HOME/.qwen/QWEN.md" "$HOME/.claude/RTK.md"
+  '';
   home.file.".claude/hooks/rtk-rewrite.sh".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/hooks/rtk-rewrite.sh";
   home.file.".gemini/hooks/rtk-hook-gemini.sh".source =
