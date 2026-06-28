@@ -30,7 +30,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   src = fetchzip {
     url = "https://registry.npmjs.org/@anthropic-ai/claude-code-${arch.npmArch}/-/claude-code-${arch.npmArch}-${finalAttrs.version}.tgz";
-    hash = arch.hash;
+    inherit (arch) hash;
   };
 
   nativeBuildInputs = [ autoPatchelfHook makeWrapper ];

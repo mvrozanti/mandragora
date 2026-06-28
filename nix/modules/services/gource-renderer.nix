@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ lib, pkgs, ... }:
 
 let
   port = 9991;
@@ -16,7 +16,7 @@ let
   ];
 in {
   mandragora.hub.services.gource-renderer = {
-    port = port;
+    inherit port;
     systemd = {
       description = "On-demand gource render service (tailnet-bound, headless NVIDIA GPU). VPS gource-api proxies here when reachable.";
       after = [ "network-online.target" "tailscaled.service" ];

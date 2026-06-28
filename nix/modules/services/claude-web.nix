@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 
 let
   port = 7682;
@@ -6,7 +6,7 @@ let
   pyEnv = pkgs.python3.withPackages (ps: [ ps.aiohttp ]);
 in {
   mandragora.hub.services.claude-web = {
-    port = port;
+    inherit port;
     userService = true;
     systemd = {
       description = "claude.mvr.ac — add a tmux window running claude to the current session, web dir picker";

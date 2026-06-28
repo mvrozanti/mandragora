@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ lib, pkgs, ... }:
 let
   # axon's `group_impact` reads ~/.axon/registry.json to enumerate sibling
   # repos and report cross-repo blast radius for a file path. The Mandragora

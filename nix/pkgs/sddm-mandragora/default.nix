@@ -1,7 +1,7 @@
 { runCommand, sddm-astronaut }:
 runCommand "sddm-mandragora-theme"
   {
-    propagatedBuildInputs = sddm-astronaut.propagatedBuildInputs;
+    inherit (sddm-astronaut) propagatedBuildInputs;
   }
   ''
     src=${sddm-astronaut}/share/sddm/themes/sddm-astronaut-theme

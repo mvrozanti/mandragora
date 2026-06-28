@@ -7,7 +7,7 @@ let
   mkPythonBin = name: src:
     pkgs.stdenv.mkDerivation {
       inherit name;
-      src = src;
+      inherit src;
       dontUnpack = true;
       installPhase = ''
         mkdir -p $out/bin

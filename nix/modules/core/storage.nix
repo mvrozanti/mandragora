@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   boot.supportedFilesystems = [ "ntfs" "exfat" ];

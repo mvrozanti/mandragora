@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, ... }:
 
 let
   inherit (lib) mkOption types filterAttrs mapAttrs' nameValuePair mapAttrsToList unique recursiveUpdate;

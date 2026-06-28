@@ -10,7 +10,7 @@
 , kdePackages
 }:
 
-stdenv.mkDerivation (finalAttrs: {
+stdenv.mkDerivation (_finalAttrs: {
   pname = "hypr-kdeconnect-portal";
   version = "0-unstable-2026-06-19";
 

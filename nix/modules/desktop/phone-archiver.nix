@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 
 let
   pyEnv = pkgs.python3.withPackages (ps: [ ps.pillow ]);

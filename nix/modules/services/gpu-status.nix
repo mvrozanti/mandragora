@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 
 let
   src = ../../../.local/share/gpu-status/gpu_status.py;

@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ lib, ... }:
 
 let
   musicStignore = ../../../.config/syncthing/music.stignore;

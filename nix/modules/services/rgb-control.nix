@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 
 let
   src = "/persistent/mandragora/.local/share/rgb-control/rgb-control.py";

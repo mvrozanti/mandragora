@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 
 let
   nbVaultSync = pkgs.writers.writePython3Bin "nb-vault-sync" {

@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ lib, pkgs, ... }:
 
 let
   cipherDir = "/home/m/.local/share/im-gen-cipher";

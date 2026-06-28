@@ -1,9 +1,9 @@
-{ ... }:
+_:
 
 {
   nixpkgs.overlays = [
-    (final: prev: {
-      openldap = prev.openldap.overrideAttrs (oldAttrs: {
+    (_final: prev: {
+      openldap = prev.openldap.overrideAttrs (_oldAttrs: {
         doCheck = false;
       });
     })
