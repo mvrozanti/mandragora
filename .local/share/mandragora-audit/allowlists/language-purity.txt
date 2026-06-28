@@ -1,0 +1,42 @@
+# Pre-existing inline non-Nix blocks at audit landing time (Rule 2).
+# Each entry is path:line from repo root, or a bare path for the whole file.
+# Migrate to .config/<app>/ + builtins.readFile, then drop the line.
+flake.nix:66
+nix/hosts/mandragora-usb/default.nix:76
+nix/hosts/mandragora-vps/home.nix:39
+nix/modules/audits/repo.nix:28
+nix/modules/core/ai-local.nix:185
+nix/modules/core/ai-local.nix:224
+nix/modules/core/ai-local.nix:249
+nix/modules/core/ai-local.nix:42
+nix/modules/core/boot.nix:51
+nix/modules/core/boot.nix:7
+nix/modules/core/impermanence.nix:19
+nix/modules/core/monitoring.nix:540
+nix/modules/core/secrets.nix:102
+nix/modules/core/secrets.nix:95
+nix/modules/core/storage.nix:13
+nix/modules/core/storage.nix:91
+nix/modules/core/vm.nix:58
+nix/modules/desktop/bluetooth.nix:3
+nix/modules/desktop/keyledsd.nix:38
+nix/modules/desktop/keyledsd.nix:44
+nix/modules/desktop/keystats.nix:126
+nix/modules/desktop/rival-mouse.nix:4
+nix/modules/shared/home-personal.nix:21
+nix/modules/shared/zsh.nix:10
+nix/modules/user/home.nix:1014
+nix/modules/user/home.nix:372
+nix/modules/user/home.nix:405
+nix/modules/user/home.nix:594
+nix/modules/user/home.nix:702
+nix/modules/user/home.nix:775
+nix/modules/user/home.nix:792
+nix/modules/user/home.nix:909
+nix/modules/user/home.nix:961
+nix/modules/user/home.nix:970
+nix/modules/user/tmux.nix:20
+nix/pkgs/refiner/default.nix:26
+nix/pkgs/ue5/env.nix:104
+nix/pkgs/ue5/env.nix:118
+nix/pkgs/ue5/env.nix:131
