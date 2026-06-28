@@ -1,4 +1,4 @@
-{ ... }: {
+_: {
   nixpkgs.overlays = [
     (_final: prev: {
       autoclaude = prev.callPackage ./autoclaude/default.nix { };
