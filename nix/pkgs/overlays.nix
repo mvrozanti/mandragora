@@ -1,6 +1,6 @@
-{ pkgs, ... }: {
+{ ... }: {
   nixpkgs.overlays = [
-    (final: prev: {
+    (_final: prev: {
       autoclaude = prev.callPackage ./autoclaude/default.nix { };
       axon = prev.callPackage ./axon/default.nix { };
       claude-code = prev.callPackage ./claude-code/default.nix { };

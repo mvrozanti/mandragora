@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 
 let
   port = 7691;
@@ -6,7 +6,7 @@ let
   pyEnv = pkgs.python3.withPackages (ps: [ ps.aiohttp ]);
 in {
   mandragora.hub.services.edgard-web = {
-    port = port;
+    inherit port;
     userService = true;
     systemd = {
       description = "cv-es.mvr.ac — Edgard's CV workshop (Typst editor + sandboxed assistant)";

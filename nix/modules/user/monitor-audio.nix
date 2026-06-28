@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ pkgs, ... }:
 
 let
   monitor-audio-follow = pkgs.writeShellApplication {

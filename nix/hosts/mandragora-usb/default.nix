@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ pkgs, ... }:
 
 let
   installScripts = pkgs.runCommand "mandragora-install-scripts" { } ''

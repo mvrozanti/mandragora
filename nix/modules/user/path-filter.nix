@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ lib, pkgs, ... }:
 
 let
   scrubber = pkgs.writeShellScriptBin "recent-files-scrub"
