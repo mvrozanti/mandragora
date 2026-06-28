@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ pkgs, lib, ... }:
 
 let
   auditTree = pkgs.runCommand "mandragora-audit-tree" { } ''
@@ -17,6 +17,8 @@ let
       pkgs.findutils
       pkgs.gawk
       pkgs.bash
+      pkgs.statix
+      pkgs.deadnix
     ]}:$PATH
     exec ${pkgs.bash}/bin/bash "$AUDIT_HOME/audit.sh" "$@"
   '';

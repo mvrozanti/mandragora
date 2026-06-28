@@ -4,7 +4,7 @@
 flake.nix:65
 nix/hosts/mandragora-usb/default.nix:76
 nix/hosts/mandragora-vps/home.nix:39
-nix/modules/audits/repo.nix:28
+nix/modules/audits/repo.nix:30
 nix/modules/core/ai-local.nix:185
 nix/modules/core/ai-local.nix:224
 nix/modules/core/ai-local.nix:249
