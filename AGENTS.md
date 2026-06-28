@@ -97,7 +97,11 @@ rationale, recipes, or the incident that produced the rule.
 2. **Language purity** — non-Nix code (shell/Python/CSS/Lua) lives in
    XDG-mirrored dirs at the repo root and is loaded via
    \`builtins.readFile\` or \`pkgs.writeShellScript\`. Never embed config
-   strings in \`.nix\` via \`extraConfig\`.
+   strings in \`.nix\` via \`extraConfig\`. Enforced by \`mandragora-audit\`
+   check \`07-language-purity\`, which flags any inline \`''\` heredoc
+   (and double-quoted \`extraConfig\`) except build phases and
+   \`writeShellScript\` wrappers; pre-existing exemptions live in
+   \`.local/share/mandragora-audit/allowlists/language-purity.txt\`.
 3. **No comments in code** — clean naming and structure must
    self-document. Existing comments are removed, not preserved.
 4. **Zero plain-text secrets** — sops-nix + age for everything. Never
