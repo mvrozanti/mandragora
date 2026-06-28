@@ -218,3 +218,28 @@ change the default boot generation, so a reboot rolls back.
 After every `.nix` edit, run `nix-instantiate --parse <file> >/dev/null`
 (AGENTS.md Rule 11). After every `.config/hypr/*.conf` edit or
 `hyprctl reload`, run `hyprctl configerrors`.
+
+## Linting & repo invariants
+
+`mandragora-audit` runs the repo-invariant check suite. It gates every
+commit through the git pre-commit hook and runs again inside
+`mandragora-switch`. Run it by hand any time:
+
+| Command | Scope |
+|---------|-------|
+| `mandragora-audit` | full tree, all checks |
+| `mandragora-audit --check statix` | one check (`statix`, `deadnix`, `language-purity`, …) |
+| `mandragora-audit --list` | list every check |
+
+Checks scope to changed/staged files, so pre-existing findings in
+untouched files never block a commit. Two of them lint Nix quality:
+
+- **`08-statix`** — AST antipattern lint (bool comparison, useless parens,
+  manual `inherit`, eta-reduction, …). Auto-fix with `statix fix <file>`.
+  Rule config lives in `statix.toml`; `repeated_keys` (W20) is disabled
+  there because flat `foo.bar.x = …` assignments are idiomatic NixOS and
+  merging them into nested blocks hurts readability.
+- **`09-deadnix`** — dead-code scan (unused `let` bindings and lambda
+  args). Auto-remove with `deadnix --edit <file>`.
+
+Both ship with the audit's PATH, so no manual install is needed.
