@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 
 let
   ytdlApp = pkgs.writers.writePython3Bin "ytdl-web" {

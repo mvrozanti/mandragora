@@ -1,4 +1,4 @@
-{ config, osConfig, pkgs, lib, ... }:
+{ osConfig, pkgs, lib, ... }:
 
 let
   botPython = import ../../pkgs/bot-python.nix { inherit pkgs; };

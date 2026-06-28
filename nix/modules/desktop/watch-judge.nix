@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ pkgs, ... }:
 
 let
   bridge = pkgs.writers.writePython3Bin "watch-judge-bridge" {

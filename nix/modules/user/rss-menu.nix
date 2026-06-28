@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ pkgs, ... }:
 
 let
   pyEnv = pkgs.python3.withPackages (ps: with ps; [ feedparser ]);

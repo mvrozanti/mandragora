@@ -1,4 +1,4 @@
-{ config, lib, pkgs, inputs, ... }:
+{ pkgs, inputs, ... }:
 
 # Shared CLI baseline imported by every mandragora host.
 # Add things here when they should be on BOTH desktop and WSL.
