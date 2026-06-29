@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import os
 import sqlite3
@@ -122,7 +123,7 @@ def bootstrap_release_sources() -> None:
             continue
         try:
             c.execute(
-                "INSERT INTO watchers (kind, target, name, created_at, push) VALUES (?, ?, ?, ?, 0)",
+                "INSERT INTO watchers (kind, target, name, created_at, push) VALUES (?, ?, ?, ?, 1)",
                 ("github_release", target, f"release: {target}", now_iso()),
             )
             added += 1
@@ -344,12 +345,13 @@ async def poll_now(wid: int) -> dict:
         raise HTTPException(502, f"fetch failed: {exc}")
     c = conn()
     inserted = 0
+    suppress = r["cursor"] is None and r["kind"] == "github_release"
     for ev in events:
         try:
             c.execute(
                 """
-                INSERT INTO events (watcher_id, external_id, title, summary, link, occurred_at, received_at, raw)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO events (watcher_id, external_id, title, summary, link, occurred_at, received_at, raw, last_reminder_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     wid,
@@ -359,7 +361,8 @@ async def poll_now(wid: int) -> dict:
                     ev.get("link") or "",
                     ev.get("occurred_at") or now_iso(),
                     now_iso(),
-                    "",
+                    json.dumps(ev.get("raw") or {})[:32768],
+                    now_iso() if suppress else None,
                 ),
             )
             inserted += 1
