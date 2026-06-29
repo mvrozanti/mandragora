@@ -1,11 +1,11 @@
 { lib, buildNpmPackage, makeWrapper, nodejs, pkg-config, libsecret, python3 }:
 buildNpmPackage {
   pname = "forge-cli";
-  version = "12.20.1";
+  version = "12.22.0";
 
   src = ./.;
 
-  npmDepsHash = "sha256-1BRyuZ6i+vy7pGK413SQJB8kXBm4bCRoywGmMDBjyzA=";
+  npmDepsHash = "sha256-1Qzk/PiBI6olbNSW9GQN8OG+fUVrL6mNBCYk6pLbgoY=";
   npmDepsFetcherVersion = 2;
   npmFlags = [ "--legacy-peer-deps" ];
   makeCacheWritable = true;
