@@ -26,7 +26,7 @@ let
     fi
 
     if [ ! -f "$repo/.next/standalone/server.js" ]; then
-      npm ci
+      npm ci --include=dev
       npm run build:dist
     fi
 
