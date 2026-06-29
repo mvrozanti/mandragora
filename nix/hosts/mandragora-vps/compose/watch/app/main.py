@@ -29,6 +29,10 @@ DATA_DIR = Path(os.environ.get("WATCH_DATA_DIR", "/data"))
 DB_PATH = DATA_DIR / "watch.db"
 STATIC_DIR = Path(__file__).parent / "static"
 PUBLIC_BASE = os.environ.get("WATCH_PUBLIC_BASE", "https://watch.mvr.ac")
+SUMMARY_MAX = int(os.environ.get("WATCH_SUMMARY_MAX", "16000"))
+RELEASE_SOURCES = Path(
+    os.environ.get("WATCH_RELEASE_SOURCES", str(Path(__file__).parent / "release-sources.txt"))
+)
 
 
 def now_iso() -> str:
@@ -86,6 +90,7 @@ def init_db() -> None:
         "ALTER TABLE watchers ADD COLUMN requires_ack INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE watchers ADD COLUMN reminder_interval INTEGER NOT NULL DEFAULT 3600",
         "ALTER TABLE watchers ADD COLUMN ai_spec TEXT",
+        "ALTER TABLE watchers ADD COLUMN push INTEGER NOT NULL DEFAULT 1",
         "ALTER TABLE events ADD COLUMN acked_at TEXT",
         "ALTER TABLE events ADD COLUMN last_reminder_at TEXT",
         "ALTER TABLE events ADD COLUMN ai_verdict TEXT",
@@ -101,9 +106,37 @@ def init_db() -> None:
     c.close()
 
 
+def bootstrap_release_sources() -> None:
+    if not RELEASE_SOURCES.exists():
+        return
+    c = conn()
+    added = 0
+    for raw in RELEASE_SOURCES.read_text().splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            continue
+        try:
+            target = sources.validate_target("github_release", line)
+        except ValueError:
+            log.warning("release-sources: bad repo %r", line)
+            continue
+        try:
+            c.execute(
+                "INSERT INTO watchers (kind, target, name, created_at, push) VALUES (?, ?, ?, ?, 0)",
+                ("github_release", target, f"release: {target}", now_iso()),
+            )
+            added += 1
+        except sqlite3.IntegrityError:
+            pass
+    c.close()
+    if added:
+        log.info("release-sources: registered %d release watchers", added)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    bootstrap_release_sources()
     tasks = [
         asyncio.create_task(poller.run_forever(conn)),
         asyncio.create_task(tg.run_forever(conn)),
@@ -138,6 +171,7 @@ def watcher_dict(row: sqlite3.Row, event_count: int = 0, unacked: int = 0) -> di
         "requires_ack": bool(row["requires_ack"]),
         "reminder_interval": int(row["reminder_interval"]),
         "ai_spec": row["ai_spec"] if "ai_spec" in row.keys() else None,
+        "push": bool(row["push"]) if "push" in row.keys() else True,
         "event_count": event_count,
         "unacked_count": unacked,
     }
@@ -214,11 +248,12 @@ async def create_watcher(payload: dict) -> dict:
     ai_spec = payload.get("ai_spec")
     if ai_spec is not None:
         ai_spec = str(ai_spec)[:4000] or None
+    push = 0 if ("push" in payload and not payload["push"]) else 1
     c = conn()
     try:
         c.execute(
-            "INSERT INTO watchers (kind, target, name, created_at, requires_ack, reminder_interval, ai_spec) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (kind, target, name, now_iso(), requires_ack, reminder_interval, ai_spec),
+            "INSERT INTO watchers (kind, target, name, created_at, requires_ack, reminder_interval, ai_spec, push) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (kind, target, name, now_iso(), requires_ack, reminder_interval, ai_spec, push),
         )
     except sqlite3.IntegrityError:
         c.close()
@@ -247,6 +282,9 @@ async def patch_watcher(wid: int, payload: dict) -> dict:
     if "name" in payload:
         fields.append("name = ?")
         params.append(str(payload["name"])[:200])
+    if "push" in payload:
+        fields.append("push = ?")
+        params.append(1 if payload["push"] else 0)
     if "ai_spec" in payload:
         spec = payload["ai_spec"]
         if spec in (None, ""):
@@ -317,7 +355,7 @@ async def poll_now(wid: int) -> dict:
                     wid,
                     ev.get("external_id", ""),
                     (ev.get("title") or "")[:500],
-                    (ev.get("summary") or "")[:2000],
+                    (ev.get("summary") or "")[:SUMMARY_MAX],
                     ev.get("link") or "",
                     ev.get("occurred_at") or now_iso(),
                     now_iso(),
@@ -342,6 +380,7 @@ async def list_events(
     watcher_id: int | None = None,
     unacked: int = 0,
     verdict: str | None = None,
+    kind: str | None = None,
 ) -> list[dict]:
     c = conn()
     q = """
@@ -356,6 +395,9 @@ async def list_events(
     if before is not None:
         where.append("e.id < ?")
         params.append(before)
+    if kind:
+        where.append("w.kind = ?")
+        params.append(kind)
     if unacked:
         where.append("e.acked_at IS NULL")
     if verdict:

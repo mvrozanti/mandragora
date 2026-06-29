@@ -30,6 +30,10 @@ SOURCE_KINDS: dict[str, dict[str, str]] = {
         "label": "GitHub repo",
         "target_hint": "owner/repo",
     },
+    "github_release": {
+        "label": "GitHub releases (changelog)",
+        "target_hint": "hyprwm/hyprland",
+    },
     "reddit_user": {
         "label": "Reddit user",
         "target_hint": "spez",
@@ -89,6 +93,9 @@ def validate_target(kind: str, target: str) -> str:
     elif kind == "github_repo":
         if t.count("/") != 1 or " " in t:
             raise ValueError("github_repo expects owner/repo")
+    elif kind == "github_release":
+        if t.count("/") != 1 or " " in t:
+            raise ValueError("github_release expects owner/repo")
     elif kind == "reddit_user":
         if t.lower().startswith("u/"):
             t = t[2:]
@@ -137,6 +144,8 @@ async def fetch(kind: str, target: str, cursor: str | None) -> tuple[list[dict[s
         return await _fetch_github_user(target, cursor)
     if kind == "github_repo":
         return await _fetch_github_repo(target, cursor)
+    if kind == "github_release":
+        return await _fetch_github_releases(target, cursor)
     if kind == "reddit_user":
         return await _fetch_reddit_user(target, cursor)
     if kind == "reddit_sub":
@@ -262,6 +271,48 @@ async def _fetch_github_repo(repo: str, cursor: str | None) -> tuple[list[dict[s
             newest_cursor = eid
     events.reverse()
     return events, newest_cursor
+
+
+RELEASE_BODY_MAX = int(os.environ.get("WATCH_RELEASE_BODY_MAX", "12000"))
+
+
+async def _fetch_github_releases(repo: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    url = f"https://api.github.com/repos/{repo}/releases"
+    async with httpx.AsyncClient(timeout=20.0, headers=_github_headers()) as c:
+        r = await c.get(url, params={"per_page": 30})
+    if r.status_code == 404:
+        return [], cursor
+    r.raise_for_status()
+    items = r.json() or []
+    cursor_id = int(cursor) if cursor and cursor.isdigit() else None
+    newest = cursor_id
+    events: list[dict[str, Any]] = []
+    for it in items:
+        if it.get("draft"):
+            continue
+        rid = it.get("id")
+        if rid is None:
+            continue
+        rid = int(rid)
+        if cursor_id is not None and rid <= cursor_id:
+            continue
+        tag = it.get("tag_name") or ""
+        name = it.get("name") or tag
+        pre = " (prerelease)" if it.get("prerelease") else ""
+        body = (it.get("body") or "").strip()
+        title = f"{repo} {tag}{pre}".strip() if tag else f"{repo}: {name}{pre}"
+        events.append({
+            "external_id": str(rid),
+            "title": title,
+            "summary": body[:RELEASE_BODY_MAX],
+            "link": it.get("html_url") or f"https://github.com/{repo}/releases",
+            "occurred_at": it.get("published_at") or it.get("created_at"),
+            "raw": {"id": rid, "tag": tag, "name": name, "prerelease": bool(it.get("prerelease"))},
+        })
+        if newest is None or rid > newest:
+            newest = rid
+    events.reverse()
+    return events, str(newest) if newest is not None else cursor
 
 
 async def _fetch_reddit_user(name: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
