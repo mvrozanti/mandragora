@@ -9,7 +9,7 @@ let
 
   launcher = pkgs.writeShellScript "cc-lens-launch" ''
     set -euo pipefail
-    export PATH="${lib.makeBinPath [ nodejs pkgs.git pkgs.coreutils ]}:$PATH"
+    export PATH="${lib.makeBinPath [ nodejs pkgs.git pkgs.coreutils pkgs.bash ]}:$PATH"
 
     repo=${repo}
     rev=${rev}
@@ -37,7 +37,7 @@ in
   systemd.user.services.cc-lens = {
     description = "cc-lens — lens.mvr.ac · local analytics dashboard for Claude Code (~/.claude)";
     wantedBy = [ "default.target" ];
-    path = [ nodejs pkgs.git pkgs.coreutils ];
+    path = [ nodejs pkgs.git pkgs.coreutils pkgs.bash ];
     serviceConfig = {
       Type = "simple";
       ExecStart = "${launcher}";
