@@ -55,3 +55,4 @@ Currently enabled instances (one per desktop-backed hub vhost):
 | `7682` | `claude.mvr.ac` | claude-web (aiohttp dir picker that spawns detached `tmux + claude`; no in-browser shell) |
 | `6684` | `hub.mvr.ac` `/api/gpu*` | gpu-status (JSON snapshot: gpu_lock holder + nvidia-smi) |
 | `6685` | `ytdl.mvr.ac` | ytdl-web (yt-dlp → ~/Music mp3 dropper) |
+| `7683` | `lens.mvr.ac` | cc-lens (Next.js analytics dashboard over ~/.claude) |
