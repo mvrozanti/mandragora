@@ -4,12 +4,22 @@ FastAPI app + background poller that watches external sources (GitHub
 users/repos, Reddit users/subs) and emits new items as webhook POSTs.
 Served at `https://watch.mvr.ac`, Authelia-gated.
 
+> **Agent directive — no LLM without asking.** Watchers are plain HTTP
+> feed pollers (GitHub/Reddit/RSS/Atom/etc). The only LLM path is the
+> opt-in `ai_spec` relevance judge, and the release layer deliberately
+> never uses it. Do **not** wire any LLM/model call into a watcher,
+> source, or feature (auto-summarizing changelogs, classifying events,
+> generating digests, AI-tagging…) without asking the user first. When
+> a task looks like it needs a model, stop and ask before spending LLM
+> power — default to dumb feed logic.
+
 ## What it polls
 
 | kind              | endpoint                                                 |
 |-------------------|----------------------------------------------------------|
 | `github_user`     | `/users/:login/events/public`                            |
 | `github_repo`     | `/repos/:owner/:repo/events`                             |
+| `github_release`  | `/repos/:owner/:repo/releases` (full changelog body)     |
 | `reddit_user`     | `/user/:name.json`                                       |
 | `reddit_sub`      | `/r/:name/new.json`                                      |
 | `youtube_channel` | `https://www.youtube.com/feeds/videos.xml?channel_id=…`  |
@@ -21,6 +31,41 @@ Served at `https://watch.mvr.ac`, Authelia-gated.
 Twitter intentionally skipped — nitter is unreliable, RSSHub self-host
 is the planned route. Add a `twitter_*` kind in `sources.py` when
 ready.
+
+## Release layer (changelog feed)
+
+The `github_release` kind turns the perception layer into a **release
+layer**: a low-noise feed of the changelogs for the software the system
+actually uses. Unlike `github_repo` (which streams every push/star/fork
+event), it hits the Releases API and emits one item per published
+release — title `owner/repo TAG`, the full markdown release body inline
+(capped `WATCH_RELEASE_BODY_MAX`, default 12000 chars), link, date.
+Drafts are skipped; prereleases are tagged `(prerelease)`.
+
+The curated list lives in `app/release-sources.txt` — one `owner/repo`
+per line, `#` comments allowed. On startup `bootstrap_release_sources()`
+registers a **feed-only** `github_release` watcher (`push=0`) for each
+line, idempotently (matched on `(kind, target)`). Edit the file and
+restart to add repos; to drop one, remove its line *and* delete the
+watcher in the UI (bootstrap only adds, and re-adds a still-listed repo
+on the next restart). Only repos that publish GitHub *Releases* work
+here — tag-only projects (nixpkgs, home-manager, sops-nix …) have no
+Releases output, so track those with an `rss` watcher pointed at
+`https://github.com/OWNER/REPO/tags.atom` instead.
+
+Read it in the web UI under the **releases** tab — release bodies render
+as markdown in a collapsible `notes` block. The release layer is
+consume-on-demand by design: feed-only watchers are stored and shown but
+**never** pushed to Telegram/webhook.
+
+### Feed-only (`push`) flag
+
+Every watcher has a `push` flag (default `1`). When `push=0` its events
+are still polled, stored, AI-judged, and visible in the UI, but the
+poller skips Telegram/webhook fanout for them entirely. Toggle per
+watcher with the `mute`/`unmute` button (or `PATCH /api/watchers/:id`
+`{"push": false}`); the add-watcher form has a "push" checkbox. This is
+what makes the release layer dashboard-only without a second pipeline.
 
 ## Ack-required notifications
 

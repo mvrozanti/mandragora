@@ -1,0 +1,45 @@
+# release-sources.txt — the "release layer" curated list
+#
+# One GitHub repo (owner/repo) per line. On startup the watch app
+# registers a feed-only `github_release` watcher for each (push=0, so
+# they appear in the watch.mvr.ac "releases" view but never ping
+# Telegram). Lines are matched on (kind, target) so re-adds are no-ops.
+#
+# `#` starts a comment. Blank lines ignored. To stop tracking a repo,
+# remove its line AND delete the watcher in the UI (the bootstrap only
+# adds; it never deletes, and would re-add a still-listed repo on the
+# next restart).
+#
+# Only works for repos that publish GitHub *Releases* (with changelog
+# bodies). Tag-only projects (nixpkgs, home-manager, sops-nix, …) have
+# no Releases API output — track those by adding an `rss` watcher in
+# the UI pointed at https://github.com/OWNER/REPO/tags.atom instead.
+
+# --- desktop / wm ---
+hyprwm/hyprland
+hyprwm/hyprpaper
+hyprwm/hyprlock
+hyprwm/hypridle
+Alexays/Waybar
+
+# --- terminal / shell tooling ---
+neovim/neovim
+sxyazi/yazi
+tmux/tmux
+junegunn/fzf
+BurntSushi/ripgrep
+sharkdp/fd
+sharkdp/bat
+eza-community/eza
+ajeetdsouza/zoxide
+jesseduffield/lazygit
+starship/starship
+
+# --- media / ai ---
+mpv-player/mpv
+ollama/ollama
+
+# --- tag-only examples (do NOT uncomment as github_release; use rss) ---
+# https://github.com/NixOS/nixpkgs/tags.atom
+# https://github.com/nix-community/home-manager/tags.atom
+# https://github.com/Mic92/sops-nix/tags.atom
