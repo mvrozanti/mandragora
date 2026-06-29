@@ -14,6 +14,7 @@ import telegram as tg
 log = logging.getLogger("watch.poller")
 
 POLL_INTERVAL = int(os.environ.get("WATCH_POLL_INTERVAL", "300"))
+SUMMARY_MAX = int(os.environ.get("WATCH_SUMMARY_MAX", "16000"))
 WEBHOOK_URL = os.environ.get("WATCH_WEBHOOK_URL", "").strip()
 PUBLIC_BASE = os.environ.get("WATCH_PUBLIC_BASE", "https://watch.mvr.ac")
 PUSH_MAYBE = os.environ.get("WATCH_PUSH_MAYBE", "0").strip().lower() in ("1", "true", "yes", "on")
@@ -71,9 +72,10 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
     rows = c.execute(
         """
         SELECT e.*, w.id AS w_id, w.kind AS w_kind, w.target AS w_target, w.name AS w_name,
-               w.requires_ack AS w_req, w.reminder_interval AS w_ri, w.ai_spec AS w_spec
+               w.requires_ack AS w_req, w.reminder_interval AS w_ri, w.ai_spec AS w_spec,
+               w.push AS w_push
         FROM events e JOIN watchers w ON w.id = e.watcher_id
-        WHERE e.acked_at IS NULL AND w.enabled = 1
+        WHERE e.acked_at IS NULL AND w.enabled = 1 AND w.push = 1
         ORDER BY e.id ASC
         """
     ).fetchall()
@@ -149,7 +151,7 @@ def _insert_event(c: sqlite3.Connection, watcher_id: int, ev: dict[str, Any]) ->
                 watcher_id,
                 ev.get("external_id", ""),
                 (ev.get("title") or "")[:500],
-                (ev.get("summary") or "")[:2000],
+                (ev.get("summary") or "")[:SUMMARY_MAX],
                 ev.get("link") or "",
                 ev.get("occurred_at") or now_iso(),
                 now_iso(),
