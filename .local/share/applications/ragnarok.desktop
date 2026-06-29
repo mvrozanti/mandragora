@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=uaRO (Ragnarok Online)
+Exec=ragnarok
+Icon=/home/m/Games/uaro/prefix/drive_c/uaRO/icnbig.ico
+Terminal=false
+Type=Application
+Categories=Game;
+Comment=Start uaRO Patcher
+Keywords=ragnarok;uaro;ro;
