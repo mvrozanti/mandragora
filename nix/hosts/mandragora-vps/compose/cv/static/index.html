@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marcelo Vironda Rozanti · CV</title>
+<style>
+:root{--bg:#050805;--panel:#0a0e0a;--fg:#b8ffc4;--accent:#00ff66;--dim:#4a6a4e;--hover:#0f1810;--line:#1a2418;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--fg);font-family:"Iosevka","JetBrains Mono","Fira Code",ui-monospace,monospace;min-height:100vh;}
+body{padding:2.5rem 2rem;position:relative;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 30% 20%,rgba(0,255,102,0.04),transparent 50%);z-index:0;}
+.wrap{position:relative;z-index:1;max-width:880px;margin:0 auto;}
+header{padding-bottom:1.5rem;border-bottom:1px solid var(--line);margin-bottom:2rem;}
+h1{font-size:1.1rem;font-weight:normal;letter-spacing:0.02em;}
+h1::before{content:'$ ';color:var(--accent);}
+.sub{color:var(--dim);font-size:0.8rem;margin-top:0.5rem;line-height:1.6;}
+.sub a{color:var(--accent);text-decoration:none;}
+.sub a:hover{text-decoration:underline;}
+section{margin-bottom:2rem;}
+h2{font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);opacity:0.8;margin-bottom:0.75rem;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:0.75rem;}
+.card{background:var(--panel);border:1px solid var(--line);padding:1.1rem;text-decoration:none;color:var(--fg);display:flex;flex-direction:column;gap:0.3rem;transition:border-color .12s,background .12s,transform .12s;position:relative;overflow:hidden;}
+.card:hover{border-color:var(--accent);background:var(--hover);transform:translateY(-1px);}
+.card::after{content:'';position:absolute;top:0;left:0;width:0;height:1px;background:var(--accent);box-shadow:0 0 10px var(--accent);transition:width .2s ease-out;}
+.card:hover::after{width:100%;}
+.card .name{font-size:1rem;font-weight:500;}
+.card .desc{font-size:0.73rem;color:var(--dim);line-height:1.4;}
+.card .dl{font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);opacity:0.7;margin-top:0.25rem;}
+footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);display:flex;justify-content:space-between;color:var(--dim);font-size:0.72rem;}
+footer a{color:var(--accent);text-decoration:none;}
+footer a:hover{text-decoration:underline;}
+@media(max-width:600px){body{padding:1.25rem 1rem;}.grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>marcelo vironda rozanti — cv</h1>
+    <div class="sub">senior backend engineer · jvm · fintech · são paulo<br>source: <a href="https://github.com/mvrozanti/cv">github.com/mvrozanti/cv</a></div>
+  </header>
+
+  <section>
+    <h2>english</h2>
+    <div class="grid">
+      <a class="card" href="marcelo-vironda-rozanti-en-impact.pdf" download>
+        <div class="name">impact</div>
+        <div class="desc">designed two-pager · outcome bullets · recruiter eye</div>
+        <div class="dl">download pdf →</div>
+      </a>
+      <a class="card" href="marcelo-vironda-rozanti-en-ats.pdf" download>
+        <div class="name">ats / plain-text</div>
+        <div class="desc">single-column · keyword-dense · machine-readable</div>
+        <div class="dl">download pdf →</div>
+      </a>
+      <a class="card" href="marcelo-vironda-rozanti-en-original.pdf" download>
+        <div class="name">original</div>
+        <div class="desc">hand-authored altacv · classic layout</div>
+        <div class="dl">download pdf →</div>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <h2>português</h2>
+    <div class="grid">
+      <a class="card" href="marcelo-vironda-rozanti-pt-impact.pdf" download>
+        <div class="name">impacto</div>
+        <div class="desc">duas páginas · bullets de resultado · olhar do recrutador</div>
+        <div class="dl">baixar pdf →</div>
+      </a>
+      <a class="card" href="marcelo-vironda-rozanti-pt-ats.pdf" download>
+        <div class="name">ats / texto puro</div>
+        <div class="desc">coluna única · denso em keywords · legível por máquina</div>
+        <div class="dl">baixar pdf →</div>
+      </a>
+      <a class="card" href="marcelo-vironda-rozanti-pt-original.pdf" download>
+        <div class="name">original</div>
+        <div class="desc">altacv autoral · layout clássico</div>
+        <div class="dl">baixar pdf →</div>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <span>cv.mvr.ac</span>
+    <span><a href="https://mvr.ac">mvr.ac</a> · <a href="https://github.com/mvrozanti">github</a></span>
+  </footer>
+</div>
+</body>
+</html>
