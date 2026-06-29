@@ -1,0 +1,29 @@
+services:
+
+  cv:
+    image: ${CV_IMAGE:-nginx:1.27-alpine}
+    container_name: cv
+    restart: unless-stopped
+    volumes:
+      - ${CV_STATIC_VOLUME:-./static}:/usr/share/nginx/html:ro
+    networks:
+      - seafile-net
+    labels:
+      caddy_0: https://cv.${MVR_AC:-mvr.ac}
+      caddy_0.header.Strict-Transport-Security: max-age=31536000;includeSubDomains
+      caddy_0.header.X-Content-Type-Options: nosniff
+      caddy_0.header.X-Frame-Options: SAMEORIGIN
+      caddy_0.header.Referrer-Policy: strict-origin-when-cross-origin
+      caddy_0.header.Permissions-Policy: geolocation=(),microphone=(),camera=()
+      caddy_0.header.-Server: ""
+      caddy_0.encode: zstd gzip
+      caddy_0.reverse_proxy: "{{upstreams 80}}"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true
