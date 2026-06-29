@@ -49,8 +49,9 @@ async def poll_once(conn_factory) -> dict[str, int]:
             continue
         c = conn_factory()
         try:
+            suppress = row["cursor"] is None and row["kind"] == "github_release"
             for ev in events:
-                _insert_event(c, row["id"], ev)
+                _insert_event(c, row["id"], ev, mark_seen=suppress)
                 stats["events"] += 1
             c.execute(
                 "UPDATE watchers SET cursor = ?, last_polled_at = ?, last_error = NULL WHERE id = ?",
@@ -82,6 +83,12 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
     c.close()
     now_ts = datetime.now(timezone.utc).timestamp()
     for r in rows:
+        if r["w_kind"] == "github_release":
+            try:
+                if json.loads(r["raw"] or "{}").get("prerelease"):
+                    continue
+            except (ValueError, TypeError):
+                pass
         if r["w_spec"]:
             verdict = r["ai_verdict"]
             if verdict is None:
@@ -140,12 +147,12 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
     return pushed, reminded
 
 
-def _insert_event(c: sqlite3.Connection, watcher_id: int, ev: dict[str, Any]) -> None:
+def _insert_event(c: sqlite3.Connection, watcher_id: int, ev: dict[str, Any], mark_seen: bool = False) -> None:
     try:
         c.execute(
             """
-            INSERT INTO events (watcher_id, external_id, title, summary, link, occurred_at, received_at, raw)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO events (watcher_id, external_id, title, summary, link, occurred_at, received_at, raw, last_reminder_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 watcher_id,
@@ -156,6 +163,7 @@ def _insert_event(c: sqlite3.Connection, watcher_id: int, ev: dict[str, Any]) ->
                 ev.get("occurred_at") or now_iso(),
                 now_iso(),
                 json.dumps(ev.get("raw") or {})[:32768],
+                now_iso() if mark_seen else None,
             ),
         )
     except sqlite3.IntegrityError:

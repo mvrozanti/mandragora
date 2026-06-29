@@ -44,19 +44,29 @@ Drafts are skipped; prereleases are tagged `(prerelease)`.
 
 The curated list lives in `app/release-sources.txt` — one `owner/repo`
 per line, `#` comments allowed. On startup `bootstrap_release_sources()`
-registers a **feed-only** `github_release` watcher (`push=0`) for each
-line, idempotently (matched on `(kind, target)`). Edit the file and
-restart to add repos; to drop one, remove its line *and* delete the
-watcher in the UI (bootstrap only adds, and re-adds a still-listed repo
-on the next restart). Only repos that publish GitHub *Releases* work
-here — tag-only projects (nixpkgs, home-manager, sops-nix …) have no
-Releases output, so track those with an `rss` watcher pointed at
+registers a `github_release` watcher (`push=1`) for each line,
+idempotently (matched on `(kind, target)`). Edit the file and restart
+to add repos; to drop one, remove its line *and* delete the watcher in
+the UI (bootstrap only adds, and re-adds a still-listed repo on the next
+restart). Only repos that publish GitHub *Releases* work here — tag-only
+projects (nixpkgs, home-manager, sops-nix …) have no Releases output, so
+track those with an `rss` watcher pointed at
 `https://github.com/OWNER/REPO/tags.atom` instead.
 
 Read it in the web UI under the **releases** tab — release bodies render
-as markdown in a collapsible `notes` block. The release layer is
-consume-on-demand by design: feed-only watchers are stored and shown but
-**never** pushed to Telegram/webhook.
+as markdown in a collapsible `notes` block. The same items also reach
+Telegram, on a **stable-only** policy:
+
+- **Web/dashboard shows everything** the watcher fetched — stable and
+  prerelease, including the full backlog.
+- **Telegram pushes stable releases only.** Prereleases/nightlies
+  (`prerelease: true`) are skipped at push time in `_push_pending` —
+  they stay on the dashboard but never ping. No LLM is involved; it is
+  a flag check.
+- **Backlog never dumps.** On a release watcher's *first* poll
+  (`cursor IS NULL`) the fetched events are inserted already-marked-seen
+  (`last_reminder_at` set), so adding a repo backfills the dashboard
+  silently and only releases published *after* tracking starts ping.
 
 ### Feed-only (`push`) flag
 
@@ -64,8 +74,8 @@ Every watcher has a `push` flag (default `1`). When `push=0` its events
 are still polled, stored, AI-judged, and visible in the UI, but the
 poller skips Telegram/webhook fanout for them entirely. Toggle per
 watcher with the `mute`/`unmute` button (or `PATCH /api/watchers/:id`
-`{"push": false}`); the add-watcher form has a "push" checkbox. This is
-what makes the release layer dashboard-only without a second pipeline.
+`{"push": false}`); the add-watcher form has a "push" checkbox. Mute a
+single noisy release watcher this way without touching the rest.
 
 ## Ack-required notifications
 
