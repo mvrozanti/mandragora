@@ -17,6 +17,7 @@
     ../../modules/core/ai-local.nix
     ../../modules/core/monitoring.nix
     ../../modules/core/oom-forensics.nix
+    ../../modules/core/oom-protection.nix
     ../../modules/core/tailscale.nix
     ../../modules/desktop/hyprland.nix
     ../../modules/desktop/input-method.nix
