@@ -82,19 +82,20 @@
     enableRootSlice = true;
     enableUserSlices = true;
     settings.OOM = {
-      SwapUsedLimit = "80%";
+      SwapUsedLimit = "95%";
       DefaultMemoryPressureDurationSec = "20s";
     };
   };
 
-  systemd.slices."user".sliceConfig.ManagedOOMSwap = "kill";
+  systemd.slices."user".sliceConfig.ManagedOOMSwap = "auto";
 
   systemd.user.units."slice".text = lib.mkForce ''
     [Slice]
-    ManagedOOMMemoryPressure=kill
-    ManagedOOMMemoryPressureLimit=80%
-    ManagedOOMSwap=kill
+    ManagedOOMMemoryPressure=auto
+    ManagedOOMSwap=auto
   '';
+
+  systemd.services.display-manager.serviceConfig.OOMScoreAdjust = -900;
 
   security.apparmor.enable = true;
 
