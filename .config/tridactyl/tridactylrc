@@ -56,6 +56,7 @@ bind i js (() => { const key = "__tri_grayscale"; const current = document.docum
 
 " ── GitHub ───────────────────────────────────────────────────────────────────
 autocmd DocLoad github.com js document.querySelector("div.flash")?.remove()
+bindurl https://github.com gs js (document.querySelector('.starring-container:not(.on) button[aria-label^="Star" i], .starring-container.on button[aria-label^="Unstar" i]') || document.querySelector('button[data-testid="star-button"], button[aria-label^="Star" i], button[aria-label^="Unstar" i]'))?.click()
 
 " ── YouTube ──────────────────────────────────────────────────────────────────
 unbindurl https://www.youtube.com /
