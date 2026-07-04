@@ -1,7 +1,7 @@
 services:
 
   logs-ui:
-    image: ${LOGS_UI_IMAGE:-nginx:1.27-alpine}
+    image: ${LOGS_UI_IMAGE:-nginx:stable-alpine}
     container_name: logs-ui
     restart: unless-stopped
     volumes:

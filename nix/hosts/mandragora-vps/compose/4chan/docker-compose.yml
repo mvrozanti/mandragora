@@ -1,7 +1,7 @@
 services:
 
   fourchan:
-    image: ${FOURCHAN_IMAGE:-nginx:1.27-alpine}
+    image: ${FOURCHAN_IMAGE:-nginx:stable-alpine}
     container_name: fourchan
     restart: unless-stopped
     volumes:

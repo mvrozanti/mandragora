@@ -8,7 +8,7 @@ Explore was too heavy and the Drilldown app was still a Grafana panel.
 
 | Container | Image | Role |
 |---|---|---|
-| `logs-ui` | `nginx:1.27-alpine` | Serves `static/index.html`. Also carries the Caddy labels for `https://log.mvr.ac` — the UI on `/`, a Loki API proxy on `/api/loki/*`. |
+| `logs-ui` | `nginx:stable-alpine` | Serves `static/index.html`. Also carries the Caddy labels for `https://log.mvr.ac` — the UI on `/`, a Loki API proxy on `/api/loki/*`. |
 
 ## Caddy routing on `log.mvr.ac`
 
