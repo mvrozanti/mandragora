@@ -1,7 +1,7 @@
 services:
 
   vuln:
-    image: ${VULN_IMAGE:-nginx:1.27-alpine}
+    image: ${VULN_IMAGE:-nginx:stable-alpine}
     container_name: vuln
     restart: unless-stopped
     volumes:

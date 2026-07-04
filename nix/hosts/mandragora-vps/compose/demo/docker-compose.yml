@@ -1,7 +1,7 @@
 services:
 
   demo:
-    image: ${DEMO_IMAGE:-nginx:1.27-alpine}
+    image: ${DEMO_IMAGE:-nginx:stable-alpine}
     container_name: demo
     restart: unless-stopped
     volumes:

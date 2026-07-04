@@ -12,7 +12,7 @@ landed.
 
 | Container | Image | Hosts |
 |---|---|---|
-| `hub` | `nginx:1.27-alpine` | `hub.mvr.ac` (static button grid) + all duckdns→mvr.ac 302 redirects + label-only Caddy entries for `term./slither./grafana./mpd./rgb./gen./llama./claude.mvr.ac` |
+| `hub` | `nginx:stable-alpine` | `hub.mvr.ac` (static button grid) + all duckdns→mvr.ac 302 redirects + label-only Caddy entries for `term./slither./grafana./mpd./rgb./gen./llama./claude.mvr.ac` |
 
 Replaced the previous `gethomepage/homepage` container — the YAML-
 dashboard model was overkill for what is functionally a list of
