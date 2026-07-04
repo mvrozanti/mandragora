@@ -356,6 +356,7 @@ in
       ExecStart = "${intRoot}/backend/run-enrich.sh";
       Environment = [
         "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
+        "LD_LIBRARY_PATH=/run/current-system/sw/share/nix-ld/lib"
         "INT_DB=${intState}/int.db"
         "INT_VENV=${intRoot}/backend/.venv"
         "HF_HOME=${intState}/hf-cache"
