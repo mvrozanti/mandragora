@@ -1,1 +1,3 @@
 static/report.json
+static/report-*.json
+static/hosts.json

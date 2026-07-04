@@ -12,9 +12,22 @@ let
     ];
     text = builtins.readFile ../../../.local/bin/cve-scan.sh;
   };
+
+  vulnPublish = pkgs.writeShellApplication {
+    name = "vuln-publish";
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.rsync
+      pkgs.openssh
+      pkgs.coreutils
+      pkgs.gnused
+      pkgs.inetutils
+    ];
+    text = builtins.readFile ../../../.local/bin/vuln-publish.sh;
+  };
 in
 {
-  environment.systemPackages = [ cveScan ];
+  environment.systemPackages = [ cveScan vulnPublish ];
 
   systemd.user.services.cve-scan = {
     description = "Mandragora CVE scan against current system closure";
