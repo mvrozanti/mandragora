@@ -134,7 +134,7 @@ def cmd_waybar(_args):
         cls = "idle"
 
     icon = ICON_LOCKED if holder else ICON_IDLE
-    text = f"{icon}  {util_str}"
+    text = f'<span size="x-large">{icon}</span>  {util_str}'
 
     tip = []
     if holder:

@@ -41,5 +41,8 @@ glyph.transform(psMat.translate(bearing - bx0, 0.0))
 _, _, bx1, _ = glyph.boundingBox()
 glyph.width = int(bx1 + bearing)
 
+glyph.addExtrema()
+glyph.round()
+
 font.generate(outfile)
 font.close()
