@@ -35,7 +35,7 @@ in
         };
         serviceConfig = {
           ExecStart = "${vtagPkgs.vtag-server}/bin/vtag-server";
-          Restart = "on-failure";
+          Restart = "always";
           RestartSec = "5s";
           ProtectHome = false;
           PrivateTmp = true;
