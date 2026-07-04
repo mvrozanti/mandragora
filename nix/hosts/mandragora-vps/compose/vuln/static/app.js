@@ -27,7 +27,7 @@ function sevOf(score) {
 }
 
 // host -> { generated, entries: [{pname, version, max, cves, noise}] }
-let STATE = { reports: {}, hosts: [], view: "all", showNoise: false, filter: "" };
+let STATE = { reports: {}, hosts: [], view: "all", showNoise: false, fixableOnly: false, filter: "" };
 
 function nvdUrl(id) { return `https://nvd.nist.gov/vuln/detail/${id}`; }
 
@@ -65,6 +65,14 @@ function currentEntries() {
   return rep.entries.map((e) => ({ ...e, hosts: [STATE.view] }));
 }
 
+// An entry is fixable if any of its CVEs has a fix available. Trivy sets
+// cve.fixed explicitly; vulnix reports omit it (undefined) — those are always
+// fixable via `nix flake update`, so treat missing as fixable.
+function entryFixable(e) {
+  if (!e.cves.length) return false;
+  return e.cves.some((c) => c.fixed !== false);
+}
+
 function worstSevForHost(host) {
   const rep = STATE.reports[host];
   if (!rep) return "unk";
@@ -99,11 +107,15 @@ function render() {
   const buckets = { crit: [], high: [], med: [], low: [], unk: [] };
   for (const e of real) buckets[sevOf(e.max)].push(e);
 
+  const fixable = real.filter(entryFixable);
+  const critFixable = buckets.crit.filter(entryFixable).length;
+
   const summary = document.getElementById("summary");
   const clean = real.length === 0;
   summary.innerHTML =
     `<div class="card ${clean ? "clean" : ""}"><div class="n">${real.length}</div><div class="k">flagged pkgs</div></div>` +
-    `<div class="card crit"><div class="n">${buckets.crit.length}</div><div class="k">critical</div></div>` +
+    `<div class="card fix" title="packages with an upstream fix available"><div class="n">${fixable.length}</div><div class="k">fixable</div></div>` +
+    `<div class="card crit"><div class="n">${buckets.crit.length}</div><div class="k">critical <span class="sub">${critFixable} fixable</span></div></div>` +
     `<div class="card high"><div class="n">${buckets.high.length}</div><div class="k">high</div></div>` +
     `<div class="card med"><div class="n">${buckets.med.length}</div><div class="k">medium</div></div>` +
     `<div class="card low"><div class="n">${buckets.low.length}</div><div class="k">low</div></div>` +
@@ -112,6 +124,7 @@ function render() {
   const q = STATE.filter.trim().toLowerCase();
   let shown = all.slice();
   if (!STATE.showNoise) shown = shown.filter((e) => !e.noise);
+  if (STATE.fixableOnly) shown = shown.filter(entryFixable);
   if (q) shown = shown.filter((e) =>
     e.pname.toLowerCase().includes(q) || e.cves.some((c) => c.id.toLowerCase().includes(q)));
   shown.sort((a, b) => b.max - a.max || a.pname.localeCompare(b.pname));
@@ -129,15 +142,18 @@ function render() {
     const cves = e.cves.slice().sort((a, b) => b.score - a.score).map((c) =>
       `<li class="cve"><a href="${nvdUrl(c.id)}" target="_blank" rel="noopener">${c.id}</a>` +
       `<span class="cs"> ${c.score ? c.score.toFixed(1) : "—"}</span>` +
+      `${c.fixed === false ? '<span class="nofix-dot" title="no upstream fix">no-fix</span>' : ""}` +
       `${c.desc ? " · " + escapeHtml(c.desc) : ""}</li>`).join("");
     const hostBadges = (STATE.view === "all" && e.hosts)
       ? e.hosts.map((h) => `<span class="host-badge">${escapeHtml(h)}</span>`).join("") : "";
+    const noFix = !e.noise && !entryFixable(e);
     return `<div class="pkg ${sev}">
       <div class="pkg-head">
         <span class="score ${scoreCls}">${e.max ? e.max.toFixed(1) : "—"}</span>
         <span class="pname">${escapeHtml(e.pname)}</span>
         <span class="ver">${escapeHtml(e.version || "")}</span>
         ${hostBadges}
+        ${noFix ? '<span class="badge nofix">no upstream fix</span>' : ""}
         ${e.noise ? '<span class="badge">suppressed</span>' : ""}
       </div>
       <ul class="cves">${cves}</ul>
@@ -211,5 +227,6 @@ async function load() {
 }
 
 document.getElementById("show-noise").addEventListener("change", (e) => { STATE.showNoise = e.target.checked; render(); });
+document.getElementById("fixable-only").addEventListener("change", (e) => { STATE.fixableOnly = e.target.checked; render(); });
 document.getElementById("filter").addEventListener("input", (e) => { STATE.filter = e.target.value; render(); });
 load();
