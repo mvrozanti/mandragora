@@ -49,4 +49,10 @@ in
       Persistent = true;
     };
   };
+
+  systemd.user.paths.cve-scan = {
+    description = "Re-run the CVE scan when a new system generation appears";
+    wantedBy = [ "default.target" ];
+    pathConfig.PathModified = "/nix/var/nix/profiles";
+  };
 }
