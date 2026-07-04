@@ -1,6 +1,8 @@
 { pkgs, ... }:
 
 {
+  imports = [ ./gpu-menu.nix ];
+
   systemd.user.services.waybar = {
     Unit.StartLimitIntervalSec = "0";
     Service.RestartSec = "3";
@@ -175,12 +177,12 @@
           interval = 5;
         };
         "custom/gpu" = {
-          format = "  {}%";
-          exec = toString (pkgs.writeShellScript "gpu-util" ''
-            v=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null)
-            if [[ "$v" =~ ^[0-9]+$ ]]; then echo "$v"; else echo "-"; fi
-          '');
+          format = "{}";
+          exec = "gpu-menu waybar";
+          return-type = "json";
           interval = 5;
+          tooltip = true;
+          on-click = "gpu-menu pick";
         };
 
 
