@@ -104,7 +104,7 @@ in
     {
       services.ollama = {
         enable = true;
-        package = pkgs.ollama-cuda;
+        package = pkgs.callPackage ../../pkgs/ollama-bin { };
         # Bind to all interfaces. The host firewall only opens 11434 on
         # tailscale0 (rule below), so external access stays tailnet-only.
         # Without 0.0.0.0 the localhost consumers (bot.py `_evict_ollama`,
