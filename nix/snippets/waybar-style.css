@@ -118,6 +118,16 @@ tooltip {
     border-bottom: 2px solid @color4;
 }
 
+#custom-gpu.locked {
+    color: @color1;
+    border-bottom: 2px solid @color1;
+}
+
+#custom-gpu.error {
+    color: @color8;
+    border-bottom: 2px solid @color8;
+}
+
 
 #memory {
     padding: 0 8px;
