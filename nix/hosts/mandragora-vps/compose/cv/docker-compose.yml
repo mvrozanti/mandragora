@@ -1,7 +1,7 @@
 services:
 
   cv:
-    image: ${CV_IMAGE:-nginx:1.27-alpine}
+    image: ${CV_IMAGE:-nginx:stable-alpine}
     container_name: cv
     restart: unless-stopped
     volumes:

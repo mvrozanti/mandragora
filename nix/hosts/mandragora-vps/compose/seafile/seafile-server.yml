@@ -31,7 +31,7 @@ services:
         max-file: "3"
 
   redis:
-    image: ${SEAFILE_REDIS_IMAGE:-redis}
+    image: ${SEAFILE_REDIS_IMAGE:-redis:7-alpine}
     container_name: seafile-redis
     restart: unless-stopped
     command:
@@ -77,8 +77,8 @@ services:
       - ENABLE_GO_FILESERVER=${ENABLE_GO_FILESERVER:-true}
       - ENABLE_SEADOC=${ENABLE_SEADOC:-true}
       - SEADOC_SERVER_URL=${SEAFILE_SERVER_PROTOCOL:-http}://${SEAFILE_SERVER_HOSTNAME:?Variable is not set or empty}/sdoc-server
-      - CACHE_PROVIDER=${CACHE_PROVIDER:-redis}
-      - REDIS_HOST=${REDIS_HOST:-redis}
+      - CACHE_PROVIDER=${CACHE_PROVIDER:-redis:7-alpine}
+      - REDIS_HOST=${REDIS_HOST:-redis:7-alpine}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       - MEMCACHED_HOST=${MEMCACHED_HOST:-memcached}
