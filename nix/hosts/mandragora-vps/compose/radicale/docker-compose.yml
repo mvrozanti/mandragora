@@ -1,7 +1,7 @@
 services:
 
   radicale:
-    image: ${RADICALE_IMAGE:-tomsquest/docker-radicale:3.5.4.0}
+    image: ${RADICALE_IMAGE:-tomsquest/docker-radicale:3.7.5.0}
     container_name: radicale
     restart: unless-stopped
     init: true
