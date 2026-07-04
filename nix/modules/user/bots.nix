@@ -218,6 +218,7 @@ in
         "TTS_CLONE_STATE_DIR=${ttsCloneCoreState}"
         "TTS_CLONE_BIND_HOST=0.0.0.0"
         "TTS_CLONE_BIND_PORT=8092"
+        "MAX_GEN_CHARS=5000"
       ];
       Restart = "on-failure";
       RestartSec = 10;
