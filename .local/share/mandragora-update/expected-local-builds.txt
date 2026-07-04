@@ -8,7 +8,6 @@ libcutensor
 ^nodejs-[0-9]
 ^wine
 open-webui
-^forge-cli
 ^nvidia-
 ^linux-zen
 -modules$
