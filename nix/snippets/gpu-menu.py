@@ -11,8 +11,8 @@ from pathlib import Path
 LOCK_DIR = Path(os.environ.get("GPU_LOCK_DIR", "/dev/shm/gpu-lock"))
 HOLDER_FILE = LOCK_DIR / "gpu.lock.holder"
 
-ICON_IDLE = '<span font_family="Font Awesome 7 Free Solid"></span>'
-ICON_LOCKED = '<span font_family="Font Awesome 7 Free Solid"></span>'
+ICON_IDLE = '󰡴'
+ICON_LOCKED = '󰡴'
 
 
 def read_holder():
