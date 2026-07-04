@@ -1,0 +1,8 @@
+^linux-[0-9].*-modules
+-modules-shrunk$
+^initrd-linux
+v4l2loopback
+^nvidia-
+keyleds
+openrgb
+^bruno
