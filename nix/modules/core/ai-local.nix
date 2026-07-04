@@ -119,6 +119,8 @@ in
 
       networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 11434 ];
 
+      security.polkit.extraConfig = builtins.readFile ../../../.local/share/polkit-rules/ollama-manage.js;
+
       systemd.services.ollama = {
         restartIfChanged = false;
         stopIfChanged = false;
