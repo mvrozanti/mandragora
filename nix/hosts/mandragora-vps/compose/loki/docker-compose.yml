@@ -1,7 +1,7 @@
 services:
 
   loki:
-    image: ${LOKI_IMAGE:-grafana/loki:3.5.5}
+    image: ${LOKI_IMAGE:-grafana/loki:3.6.11}
     container_name: loki
     restart: unless-stopped
     command: ["-config.file=/etc/loki/loki-config.yml"]
@@ -25,7 +25,7 @@ services:
         max-file: "3"
 
   promtail:
-    image: ${PROMTAIL_IMAGE:-grafana/promtail:3.5.5}
+    image: ${PROMTAIL_IMAGE:-grafana/promtail:3.6.11}
     container_name: loki-promtail
     restart: unless-stopped
     command: ["-config.file=/etc/promtail/promtail.yml"]
