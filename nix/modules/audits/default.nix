@@ -22,7 +22,7 @@ let
 
 in
 {
-  imports = [ ./cve-scan.nix ./repo.nix ];
+  imports = [ ./cve-scan.nix ./vuln-publish.nix ./repo.nix ];
 
   environment.systemPackages = [ strayscli ];
 

@@ -1,0 +1,31 @@
+services:
+
+  vuln:
+    image: ${VULN_IMAGE:-nginx:1.27-alpine}
+    container_name: vuln
+    restart: unless-stopped
+    volumes:
+      - ${VULN_STATIC_VOLUME:-./static}:/usr/share/nginx/html:ro
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://vuln.${MVR_AC:-mvr.ac}
+      caddy.0_forward_auth: "authelia:9091"
+      caddy.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.1_handle.reverse_proxy: "{{upstreams 80}}"
+      caddy.header.Strict-Transport-Security: max-age=31536000;includeSubDomains
+      caddy.header.X-Content-Type-Options: nosniff
+      caddy.header.X-Frame-Options: SAMEORIGIN
+      caddy.header.Referrer-Policy: strict-origin-when-cross-origin
+      caddy.header.-Server: ""
+      caddy.encode: zstd gzip
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true
