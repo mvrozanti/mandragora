@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f2ea" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1b1916" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="food">
+<title>food</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/favicon.svg">
+<link rel="manifest" href="/app.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="top">
+  <h1>food<span class="dotmark"></span></h1>
+  <span id="sync" class="sync">·</span>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button class="tab is-active" data-view="list" role="tab">List <span id="count" class="pill"></span></button>
+  <button class="tab" data-view="add" role="tab">Add</button>
+</nav>
+
+<main>
+  <section id="view-list" class="view is-active">
+    <div id="list" class="groups"></div>
+    <div id="list-empty" class="empty" hidden>
+      <p class="big">Nothing on the list yet.</p>
+      <button class="primary" data-goto="add">Add something</button>
+    </div>
+    <div id="list-actions" class="list-actions" hidden>
+      <span id="remaining" class="muted"></span>
+      <button id="clear-checked" class="ghost">Clear checked</button>
+    </div>
+  </section>
+
+  <section id="view-add" class="view">
+    <div class="addbar">
+      <input id="search" type="search" inputmode="search" autocomplete="off"
+             autocapitalize="none" placeholder="Search, or type anything to add…"
+             enterkeyhint="done">
+      <button id="add-free" class="add-free" aria-label="Add typed item">＋</button>
+    </div>
+    <div id="catalog" class="groups"></div>
+    <div id="catalog-empty" class="empty" hidden></div>
+  </section>
+</main>
+
+<script src="/app.js" defer></script>
+</body>
+</html>
