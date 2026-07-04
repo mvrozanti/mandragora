@@ -37,14 +37,4 @@ in
       TimeoutStartSec = "3h";
     };
   };
-
-  systemd.timers.mandragora-update-probe = {
-    description = "Timer for the nightly mandragora-update probe";
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnCalendar = "*-*-* 04:30:00";
-      Persistent = true;
-      RandomizedDelaySec = "30min";
-    };
-  };
 }
