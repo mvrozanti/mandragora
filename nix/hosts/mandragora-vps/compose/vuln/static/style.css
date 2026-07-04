@@ -73,6 +73,18 @@ header {
   background: var(--panel2);
 }
 
+.card.fix .n { color: var(--ok); }
+.card .k .sub { color: var(--dim); font-size: .68rem; margin-left: .3rem; }
+.badge.nofix { color: var(--unk); border-color: var(--unk); }
+.pkg .nofix-dot {
+  font-size: .6rem;
+  color: var(--unk);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0 .25rem;
+  margin-left: .3rem;
+}
+
 .summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
