@@ -1,0 +1,31 @@
+services:
+
+  food:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: ${FOOD_IMAGE:-mandragora/food:local}
+    container_name: food
+    restart: unless-stopped
+    environment:
+      - PORT=8080
+      - FOOD_DATA_DIR=/data
+    volumes:
+      - ${FOOD_DATA_VOLUME:-./data}:/data
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://food.${MVR_AC:-mvr.ac}
+      caddy.0_forward_auth: "authelia:9091"
+      caddy.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.1_reverse_proxy: "{{upstreams 8080}}"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true
