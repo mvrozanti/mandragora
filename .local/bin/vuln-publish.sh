@@ -33,6 +33,19 @@ jq --arg gen "$GENERATED" --arg host "$HOST" '{
   } ]
 }' "$LATEST" > "$SLIM"
 
-echo "→ publishing $(jq '.entries|length' "$SLIM") entries (generated $GENERATED) to $REMOTE:$REMOTE_DIR/report.json"
-rsync -a "$SLIM" "$REMOTE:$REMOTE_DIR/report.json"
+REPORT="report-${HOST}.json"
+echo "→ publishing $(jq '.entries|length' "$SLIM") entries as ${HOST} (generated ${GENERATED}) to ${REMOTE}:${REMOTE_DIR}/${REPORT}"
+rsync -a "$SLIM" "${REMOTE}:${REMOTE_DIR}/${REPORT}"
+
+# Regenerate the host manifest from the directory listing on the VPS so the
+# dashboard can enumerate every host that has ever published. Each publish
+# self-heals the manifest, so a race between hosts just recomputes the union.
+# The remote body is a quoted heredoc (no client-side expansion); REMOTE_DIR
+# is passed as the positional arg.
+ssh "$REMOTE" bash -s "$REMOTE_DIR" <<'EOSSH'
+set -euo pipefail
+cd "$1"
+printf '[%s]\n' "$(ls report-*.json 2>/dev/null | sed -E 's/^report-(.*)\.json$/"\1"/' | paste -sd, -)" > hosts.json
+EOSSH
+
 echo "→ done. https://vuln.mvr.ac"

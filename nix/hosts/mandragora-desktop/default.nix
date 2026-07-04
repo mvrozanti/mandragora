@@ -16,6 +16,7 @@
     ../../modules/core/wifi.nix
     ../../modules/core/ai-local.nix
     ../../modules/core/monitoring.nix
+    ../../modules/core/vuln-scan.nix
     ../../modules/core/oom-forensics.nix
     ../../modules/core/oom-protection.nix
     ../../modules/core/nix-auto-update.nix
