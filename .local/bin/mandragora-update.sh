@@ -232,9 +232,16 @@ fi
 NEW_COMMIT=$(git -C "$WT" rev-parse HEAD)
 
 echo ""
-phase "Building ($ACTION) — daemon memory cap keeps this session-safe..."
+phase "Building ($ACTION) — capped in heavy.slice so a runaway build can't OOM the session..."
 set +e
-$SUDO nixos-rebuild "$ACTION" --flake "${WT}#${HOST}" 2>&1 \
+if [ "$(id -u)" -eq 0 ]; then
+  CAP=(systemd-run --scope --collect --quiet -p MemoryMax=22G -p MemorySwapMax=4G --)
+elif command -v cage >/dev/null 2>&1; then
+  CAP=(cage)
+else
+  CAP=()
+fi
+"${CAP[@]}" $SUDO nixos-rebuild "$ACTION" --flake "${WT}#${HOST}" 2>&1 \
   | tee /tmp/mandragora-update-rebuild.log \
   | grep --line-buffered -E "^(error:|building|activating|warning:|Failed|Done\.)"
 RC=${PIPESTATUS[0]}

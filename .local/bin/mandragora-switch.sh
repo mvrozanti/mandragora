@@ -327,9 +327,10 @@ for host in mandragora-wsl; do
 done
 
 echo ""
-echo "==> Building..."
+echo "==> Building (capped in heavy.slice — a runaway build dies alone, not the session)..."
 set +e
-sudo nixos-rebuild switch --flake "$WT#mandragora-desktop" 2>&1 | tee /tmp/nixos-rebuild.log | grep --line-buffered -E "^(error:|building|activating|warning:|Failed|systemctl|Done\.)"
+if command -v cage >/dev/null 2>&1; then CAP=(cage); else CAP=(); fi
+"${CAP[@]}" sudo nixos-rebuild switch --flake "$WT#mandragora-desktop" 2>&1 | tee /tmp/nixos-rebuild.log | grep --line-buffered -E "^(error:|building|activating|warning:|Failed|systemctl|Done\.)"
 RC=${PIPESTATUS[0]}
 set -e
 phase "nixos-rebuild switch (rc=$RC)"
