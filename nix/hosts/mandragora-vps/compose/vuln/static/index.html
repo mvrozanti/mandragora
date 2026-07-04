@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>vuln · mandragora</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>🛡️</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="brand">🛡️ <span>vuln</span></div>
+    <div class="meta" id="meta">loading…</div>
+    <a class="home" href="https://hub.mvr.ac">hub ↩</a>
+  </header>
+
+  <section class="summary" id="summary"></section>
+
+  <div class="controls">
+    <label class="toggle"><input type="checkbox" id="show-noise"> show suppressed (name-collision false positives)</label>
+    <input type="search" id="filter" placeholder="filter package / CVE…">
+  </div>
+
+  <main id="list"></main>
+
+  <footer>
+    vulnix against current-system closure ·
+    <span id="foot-host">mandragora-desktop</span> ·
+    fix: <code>nix flake update &amp;&amp; mandragora-switch</code>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
