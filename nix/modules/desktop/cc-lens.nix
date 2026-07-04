@@ -4,7 +4,7 @@ let
   repo = "/home/m/Projects/cc-lens";
   upstream = "https://github.com/Arindam200/cc-lens";
   rev = "745115fce61872c3e985dc496f357b3893d910da";
-  nodejs = pkgs.nodejs_20;
+  nodejs = pkgs.nodejs_22;
   port = 7683;
 
   launcher = pkgs.writeShellScript "cc-lens-launch" ''
