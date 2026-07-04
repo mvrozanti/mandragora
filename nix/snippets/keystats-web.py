@@ -258,6 +258,7 @@ const KB_ROWS = [
 ];
 
 function clamp01(x){return Math.max(0,Math.min(1,x));}
+function esc(s){return String(s).replace(/[<>&"']/g, c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;"}[c]));}
 
 function rgbFor(intensity){
   const c1 = [42,45,53];
@@ -368,7 +369,7 @@ function renderBars(svgId, rows, labelFn){
   rows.forEach((r,i)=>{
     const bw=(r.count/max)*(w-pad-70);
     const y=pad+i*bh;
-    s += `<text x="${pad-6}" y="${(y+bh/2+3).toFixed(0)}" text-anchor="end">${labelFn(r)}</text>`;
+    s += `<text x="${pad-6}" y="${(y+bh/2+3).toFixed(0)}" text-anchor="end">${esc(labelFn(r))}</text>`;
     s += `<rect class="bar" x="${pad}" y="${(y+2).toFixed(0)}" width="${bw.toFixed(1)}" height="${(bh-4).toFixed(1)}"/>`;
     s += `<text x="${(pad+bw+4).toFixed(0)}" y="${(y+bh/2+3).toFixed(0)}">${r.count}</text>`;
   });
@@ -474,7 +475,7 @@ function renderWords(rows){
     if(t > 0.85) cls = "w hot";
     else if(t > 0.6) cls = "w warm";
     else if(t > 0.3) cls = "w cool";
-    const w = r.word.replace(/[<>&"']/g, c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;"}[c]));
+    const w = esc(r.word);
     return `<span class="${cls}" style="font-size:${px}px" title="${r.count}">${w}</span>`;
   }).join("");
 }
@@ -674,7 +675,7 @@ def q_time_of_day(conn) -> list:
     cur = conn.cursor()
     cutoff = int(time.time() // 60) - 7 * 24 * 60
     rows = cur.execute(
-        "SELECT ((minute_epoch * 60 - 10800) / 3600) % 24 AS hour, "
+        "SELECT CAST(strftime('%H', minute_epoch * 60, 'unixepoch', 'localtime') AS INTEGER) AS hour, "
         "SUM(chars) AS chars "
         "FROM wpm_bucket WHERE minute_epoch >= ? "
         "GROUP BY hour ORDER BY hour",
@@ -701,8 +702,8 @@ def q_words() -> list:
 def q_weekday_heatmap(conn) -> list:
     cur = conn.cursor()
     rows = cur.execute(
-        "SELECT CAST(strftime('%w', minute_epoch * 60 - 10800, 'unixepoch') AS INTEGER) AS dow, "
-        "((minute_epoch * 60 - 10800) / 3600) % 24 AS hour, "
+        "SELECT CAST(strftime('%w', minute_epoch * 60, 'unixepoch', 'localtime') AS INTEGER) AS dow, "
+        "CAST(strftime('%H', minute_epoch * 60, 'unixepoch', 'localtime') AS INTEGER) AS hour, "
         "SUM(chars) AS chars "
         "FROM wpm_bucket GROUP BY dow, hour"
     ).fetchall()

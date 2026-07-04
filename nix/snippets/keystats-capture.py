@@ -154,7 +154,6 @@ class State:
         self.active_class_since = 0.0
         self.session_start = int(time.time())
         self.class_keystroke_counts = {}
-        self.shift_down = False
         self.word_buf = []
         self.word_candidates = defaultdict(dict)
         self.word_persist_queue = {}
@@ -345,12 +344,6 @@ def evdev_loop(state: State, stop: threading.Event) -> None:
                     break
                 if event.type != evdev.ecodes.EV_KEY:
                     continue
-                if event.code in SHIFT_KEYS:
-                    if event.value == 1:
-                        state.shift_down = True
-                    elif event.value == 0:
-                        state.shift_down = False
-                    continue
                 if event.value != 1:
                     continue
                 on_keystroke(state, event.code, event.timestamp())
@@ -380,7 +373,8 @@ def finalize_word(state: State, ts: float) -> None:
         state.word_persist_queue[word] = state.word_persist_queue.get(word, 0) + total
         del state.word_candidates[word]
     if len(state.word_candidates) > CANDIDATE_CAP:
-        for k in list(state.word_candidates.keys())[:CANDIDATE_CAP // 4]:
+        ranked = sorted(state.word_candidates.items(), key=lambda kv: sum(kv[1].values()))
+        for k, _ in ranked[:CANDIDATE_CAP // 4]:
             del state.word_candidates[k]
 
 
@@ -392,21 +386,23 @@ def on_keystroke(state: State, keycode: int, ts: float) -> None:
             state.word_buf.clear()
             return
         state.keycode_counts[keycode] = state.keycode_counts.get(keycode, 0) + 1
-        if state.last_key is not None and ts - state.last_key_time < 2.0:
-            bg = (state.last_key, keycode)
-            state.bigram_counts[bg] = state.bigram_counts.get(bg, 0) + 1
-        state.last_key = keycode
-        state.last_key_time = ts
+        if state.active_class:
+            state.class_keystroke_counts[state.active_class] = (
+                state.class_keystroke_counts.get(state.active_class, 0) + 1
+            )
         minute = int(ts // 60)
         chars, words = state.wpm_buckets.get(minute, (0, 0))
         chars += 1
         if keycode == KEY_SPACE:
             words += 1
         state.wpm_buckets[minute] = (chars, words)
-        if state.active_class:
-            state.class_keystroke_counts[state.active_class] = (
-                state.class_keystroke_counts.get(state.active_class, 0) + 1
-            )
+        if keycode in SHIFT_KEYS:
+            return
+        if state.last_key is not None and ts - state.last_key_time < 2.0:
+            bg = (state.last_key, keycode)
+            state.bigram_counts[bg] = state.bigram_counts.get(bg, 0) + 1
+        state.last_key = keycode
+        state.last_key_time = ts
 
         if not TEXT_ENABLED:
             return
@@ -444,7 +440,6 @@ def hypr_socket_path() -> str:
 
 
 async def hypr_loop(state: State, stop: threading.Event) -> None:
-    loop = asyncio.get_event_loop()
     while not stop.is_set():
         sock = hypr_socket_path()
         if not sock or not Path(sock).exists():
@@ -476,6 +471,7 @@ def handle_hypr_event(state: State, line: str) -> None:
             state.active_class = cls
             state.active_title = title
             state.active_class_since = time.time()
+            state.last_key = None
             state.word_buf.clear()
     elif name == "activewindowv2":
         pass
