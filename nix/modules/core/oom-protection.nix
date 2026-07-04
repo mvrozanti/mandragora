@@ -17,10 +17,5 @@ in
     };
   };
 
-  systemd.services.nix-daemon.serviceConfig = {
-    MemoryHigh = "20G";
-    MemoryMax = "24G";
-  };
-
   environment.systemPackages = [ cage ];
 }
