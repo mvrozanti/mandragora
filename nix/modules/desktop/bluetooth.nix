@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   boot.extraModprobeConfig = ''
     # Disable power saving features that cause Realtek/btusb choppiness
@@ -44,6 +44,8 @@
   };
 
   services.blueman.enable = true;
+
+  systemd.user.services.blueman-applet.enable = lib.mkForce false;
 
   environment.systemPackages = with pkgs; [
     bluez
