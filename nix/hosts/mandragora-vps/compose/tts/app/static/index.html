@@ -86,6 +86,7 @@ a { color: var(--accent); text-decoration: none; }
     </div>
     <div class="status" id="status"></div>
     <audio id="audio" controls hidden></audio>
+    <a id="download" class="ghost" style="display:none;margin-top:0.8rem;" download>download .wav</a>
     <div class="meta" id="meta"></div>
   </div>
 
@@ -368,7 +369,7 @@ $('go').addEventListener('click', async () => {
   $('status').textContent = kind === 'clone'
     ? 'synthesizing… (first cloned call loads the F5-TTS model, may take ~30s)'
     : 'synthesizing…';
-  $('audio').hidden = true; $('meta').textContent = '';
+  $('audio').hidden = true; $('meta').textContent = ''; $('download').style.display = 'none';
   try {
     let res, elapsed;
     if (kind === 'piper') {
@@ -393,7 +394,11 @@ $('go').addEventListener('click', async () => {
       throw new Error(`HTTP ${res.status}: ${detail.slice(0, 200)}`);
     }
     const blob = await res.blob();
-    $('audio').src = URL.createObjectURL(blob); $('audio').hidden = false;
+    const url = URL.createObjectURL(blob);
+    $('audio').src = url; $('audio').hidden = false;
+    const safe = name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const dl = $('download');
+    dl.href = url; dl.download = `${safe}.wav`; dl.style.display = 'inline-block';
     $('audio').play().catch(() => {});
     $('status').textContent = 'done';
     $('meta').textContent = `${kind}:${name} · ${(blob.size / 1024).toFixed(1)} KB` +
