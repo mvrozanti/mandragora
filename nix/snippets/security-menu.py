@@ -151,21 +151,30 @@ def cmd_waybar(_args) -> int:
         return 0
 
     buckets, suppressed = bucketize(data)
-    crit = len(buckets["CRITICAL"])
-    high = len(buckets["HIGH"])
-    med = len(buckets["MEDIUM"])
-    low = len(buckets["LOW"])
-    unk = len(buckets["UNKNOWN"])
-    total = crit + high + med + low + unk
 
-    severe = crit + high
+    def sev_pkgs(*labels):
+        s = set()
+        for lb in labels:
+            for entry, *_ in buckets[lb]:
+                s.add((entry.get("pname"), entry.get("version")))
+        return s
+
+    crit_pkgs = sev_pkgs("CRITICAL")
+    crit = len(crit_pkgs)
+    high = len(sev_pkgs("HIGH") - crit_pkgs)
+    med = len(sev_pkgs("MEDIUM"))
+    low = len(sev_pkgs("LOW"))
+    unk = len(sev_pkgs("UNKNOWN"))
+    total = len(sev_pkgs("CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"))
+
+    badge = crit if crit else high
     if crit:
         cls = "critical"
     elif high:
         cls = "high"
     else:
         cls = "clean"
-    text = f"{severe} {icon}" if severe else icon
+    text = f"{badge} {icon}" if badge else icon
 
     age = ""
     if mtime is not None:
@@ -175,6 +184,7 @@ def cmd_waybar(_args) -> int:
             age = ""
 
     tip_lines = [f"<b>CVE scan</b> — {age}" if age else "<b>CVE scan</b>"]
+    tip_lines.append("<i>distinct packages by top severity</i>")
     tip_lines.append("")
     tip_lines.append(f"CRITICAL ≥9.0  {crit}")
     tip_lines.append(f"HIGH     7–9   {high}")
@@ -183,7 +193,8 @@ def cmd_waybar(_args) -> int:
     if unk:
         tip_lines.append(f"UNKNOWN  -     {unk}")
     tip_lines.append("")
-    tip_lines.append(f"<i>{total} flagged · {suppressed} suppressed</i>")
+    tip_lines.append(f"<i>{total} pkgs flagged · {suppressed} suppressed</i>")
+    tip_lines.append("<i>vulnix over-reports nixpkgs backports</i>")
     tip_lines.append("<i>click — browse · right — rescan</i>")
 
     payload = {
