@@ -41,7 +41,6 @@
     mediainfo
     nodejs
     yarn
-    forge-cli
     autoclaude
     chafa
     graphviz
