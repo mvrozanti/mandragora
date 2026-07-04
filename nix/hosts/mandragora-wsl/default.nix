@@ -3,6 +3,7 @@
 {
   imports = [
     ../../pkgs/overlays.nix
+    ../../modules/core/vuln-scan.nix
   ] ++ lib.optional (builtins.pathExists ./local.nix) ./local.nix;
 
   mandragora.profile = "wsl";

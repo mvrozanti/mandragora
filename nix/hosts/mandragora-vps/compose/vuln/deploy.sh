@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Deploy vuln.mvr.ac static dashboard to the VPS, then push the latest
-# CVE report. report.json is gitignored (written by vuln-publish), so
-# the static rsync excludes it and never clobbers the live report.
+# Deploy vuln.mvr.ac static dashboard to the VPS, then push this host's
+# latest CVE report. Per-host report-*.json and hosts.json are gitignored
+# (written by vuln-publish on each host), so the static rsync excludes them
+# and never clobbers the live reports of other hosts.
 set -euo pipefail
 
 REPO_STATIC="$(cd "$(dirname "$0")/static" && pwd)"
@@ -11,6 +12,8 @@ REMOTE_DIR="${REMOTE_DIR:-/home/opc/vuln/static}"
 echo "→ rsyncing $REPO_STATIC/ to $REMOTE:$REMOTE_DIR/"
 rsync -av --delete \
   --exclude='/report.json' \
+  --exclude='/report-*.json' \
+  --exclude='/hosts.json' \
   "$REPO_STATIC/" "$REMOTE:$REMOTE_DIR/"
 
 if command -v vuln-publish >/dev/null 2>&1; then

@@ -37,6 +37,42 @@ header {
 .home { margin-left: auto; color: var(--dim); text-decoration: none; }
 .home:hover { color: var(--fg); }
 
+.tabs {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.5rem 0;
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--dim);
+  font: inherit;
+  border-radius: 999px;
+  padding: .35rem .8rem;
+  cursor: pointer;
+}
+.tab:hover { color: var(--fg); }
+.tab.active { color: var(--fg); border-color: var(--fg); background: var(--panel2); }
+.tab .dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--unk); }
+.tab.sev-crit .dot { background: var(--crit); }
+.tab.sev-high .dot { background: var(--high); }
+.tab.sev-med  .dot { background: var(--med); }
+.tab.sev-low  .dot { background: var(--low); }
+.tab .cnt { color: var(--dim); font-size: .78rem; }
+
+.host-badge {
+  font-size: .65rem;
+  color: var(--low);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 .3rem;
+  background: var(--panel2);
+}
+
 .summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
