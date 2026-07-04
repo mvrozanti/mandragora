@@ -8,6 +8,11 @@ _: {
       du-exporter = prev.callPackage ./du-exporter/default.nix { };
       ebpf-network-config = prev.callPackage ./ebpf-network-config/default.nix { };
       sddm-mandragora = prev.callPackage ./sddm-mandragora/default.nix { };
+      nerd-fonts = prev.nerd-fonts // {
+        iosevka = prev.callPackage ./iosevka-nerd-font-nvidia/default.nix {
+          iosevkaNerd = prev.nerd-fonts.iosevka;
+        };
+      };
     })
   ];
 }
