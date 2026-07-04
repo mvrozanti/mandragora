@@ -95,10 +95,10 @@ notify_pending() {
 }
 
 rev_as_of_days() {
-  local days="$1" cutoff
+  local days="$1" cutoff body
   cutoff=$(date -u -d "-${days} days" +%Y-%m-%dT%H:%M:%SZ)
-  curl -fsSL "https://api.github.com/repos/NixOS/nixpkgs/commits?sha=${BRANCH}&until=${cutoff}&per_page=1" 2>/dev/null \
-    | grep -m1 '"sha"' | sed -E 's/.*"sha": ?"([0-9a-f]{40})".*/\1/'
+  body=$(curl -fsSL "https://api.github.com/repos/NixOS/nixpkgs/commits?sha=${BRANCH}&until=${cutoff}&per_page=1" 2>/dev/null) || return 0
+  printf '%s' "$body" | grep -oE '"sha": ?"[0-9a-f]{40}"' | head -n1 | grep -oE '[0-9a-f]{40}' || true
 }
 
 ALLOWLIST="$WT/.local/share/mandragora-update/expected-local-builds.txt"
@@ -183,10 +183,12 @@ if [ -n "$BLOCKERS" ]; then
   FOUND=0
   for d in 1 2 3 5 7 10 "$SETTLE_DAYS"; do
     [ "$d" -gt "$SETTLE_DAYS" ] && continue
-    rev=$(rev_as_of_days "$d")
+    rev=$(rev_as_of_days "$d") || rev=""
     if [ -z "$rev" ]; then echo "==> (could not resolve rev for -${d}d; skipping)" >&2; continue; fi
     phase "Trying nixpkgs @ -${d}d (${rev:0:12})..."
-    nix flake lock --override-input nixpkgs "github:nixos/nixpkgs/${rev}" >/dev/null 2>&1
+    if ! nix flake lock --override-input nixpkgs "github:nixos/nixpkgs/${rev}" >/dev/null 2>&1; then
+      echo "==> (lock override failed for ${rev:0:12}; skipping)" >&2; continue
+    fi
     if gate && [ -z "$(heavy_builds "$GATELOG")" ]; then
       CHOSEN_DAYS="$d"; FOUND=1
       phase "Cache-warm at -${d}d — download-only."
