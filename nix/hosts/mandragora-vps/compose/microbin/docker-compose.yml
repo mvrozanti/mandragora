@@ -5,10 +5,13 @@ services:
     container_name: microbin
     restart: unless-stopped
     environment:
-      - MICROBIN_PUBLIC_PATH=https://paste.${MVR_AC:-mvr.ac}
+      - MICROBIN_PUBLIC_PATH=https://clip.${MVR_AC:-mvr.ac}
+      - MICROBIN_SHORT_PATH=https://clip.${MVR_AC:-mvr.ac}/
+      - MICROBIN_HASH_IDS=true
+      - MICROBIN_CUSTOM_CSS=https://hub.${MVR_AC:-mvr.ac}/clip.css
       - MICROBIN_BIND=0.0.0.0
       - MICROBIN_PORT=8080
-      - MICROBIN_TITLE=mandragora paste
+      - MICROBIN_TITLE=clip
       - MICROBIN_HIDE_FOOTER=true
       - MICROBIN_HIDE_HEADER=false
       - MICROBIN_HIDE_LOGO=false
@@ -21,7 +24,7 @@ services:
     networks:
       - seafile-net
     labels:
-      caddy: https://paste.${MVR_AC:-mvr.ac}
+      caddy: https://clip.${MVR_AC:-mvr.ac}, https://paste.${MVR_AC:-mvr.ac}, https://p.${MVR_AC:-mvr.ac}
       caddy.0_forward_auth: "authelia:9091"
       caddy.0_forward_auth.uri: "/api/authz/forward-auth"
       caddy.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"

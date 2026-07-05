@@ -1,0 +1,27 @@
+@import url("https://clip.mvr.ac/static/water.css");
+
+pre, code {
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+img, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+textarea, input, select {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden;
+}
