@@ -8,7 +8,7 @@ cage — run a heavy command inside the memory-capped heavy.slice cgroup.
 Usage: cage <command> [args...]
 
 Runs the command in heavy.slice (MemoryHigh=16G soft throttle,
-MemoryMax=20G hard kill, ManagedOOMMemoryPressure=kill; dies before the spine).
+MemoryMax=20G hard kill, first to die under pressure, OOMScoreAdjust=500).
 If it blows the cap it dies alone; the compositor, tmux, claude, and the
 rest of the session are never touched. Use for builds, training runs,
 data crunching, anything you know is hungry. All cage'd jobs share the
@@ -23,4 +23,5 @@ exec systemd-run \
   --scope \
   --collect \
   --quiet \
+  -p OOMScoreAdjust=500 \
   -- "$@"

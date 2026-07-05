@@ -94,11 +94,20 @@ function addFood(food) {
   render();
 }
 
+function rememberNew(name) {
+  fetch("/api/inbox", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  }).catch(() => {});
+}
+
 function addCustom(rawName) {
   const name = (rawName || "").trim();
   if (!name) return;
   const id = "custom:" + norm(name).replace(/[^a-z0-9]+/g, "-") + ":" + Date.now();
   state.list.items.push({ id, name, category: "other", qty: 1, checked: false, custom: true });
+  rememberNew(name);
   buzz();
   persist();
   $("#search").value = "";
