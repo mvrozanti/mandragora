@@ -169,7 +169,7 @@ def waybar_payload() -> dict:
            ORDER BY urgency DESC, COALESCE(published_ts, fetched_ts) DESC
            LIMIT 8"""
     ).fetchall()
-    icon = ""
+    icon = ""
     if unread == 0:
         text = icon
         cls = "empty"
