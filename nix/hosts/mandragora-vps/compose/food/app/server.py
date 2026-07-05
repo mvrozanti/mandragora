@@ -1,11 +1,13 @@
 import json
 import os
+import unicodedata
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PUBLIC = os.path.join(ROOT, "public")
 DATA_DIR = os.environ.get("FOOD_DATA_DIR", "/data")
 LIST_PATH = os.path.join(DATA_DIR, "list.json")
+INBOX_PATH = os.path.join(DATA_DIR, "inbox.json")
 CATALOG_PATH = os.path.join(DATA_DIR, "catalog.json")
 PORT = int(os.environ.get("PORT", "8080"))
 
@@ -30,11 +32,42 @@ def read_list():
 
 
 def write_list(payload):
+    write_json(LIST_PATH, payload)
+
+
+def write_json(path, payload):
     os.makedirs(DATA_DIR, exist_ok=True)
-    tmp = LIST_PATH + ".tmp"
+    tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as fh:
         json.dump(payload, fh, ensure_ascii=False, indent=2)
-    os.replace(tmp, LIST_PATH)
+    os.replace(tmp, path)
+
+
+def read_inbox():
+    try:
+        with open(INBOX_PATH, "r", encoding="utf-8") as fh:
+            return json.load(fh)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"items": [], "updated": None}
+
+
+def append_inbox(name, note):
+    inbox = read_inbox()
+    key = norm(name)
+    if not key:
+        return inbox
+    for it in inbox["items"]:
+        if norm(it.get("name")) == key:
+            return inbox
+    inbox["items"].append({"name": name.strip(), "note": (note or "").strip()})
+    inbox["updated"] = None
+    write_json(INBOX_PATH, inbox)
+    return inbox
+
+
+def norm(s):
+    folded = unicodedata.normalize("NFD", (s or "").strip().lower())
+    return "".join(c for c in folded if not unicodedata.combining(c))
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -59,25 +92,46 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, b"ok", "text/plain; charset=utf-8")
         if path == "/api/list":
             return self._json(200, read_list())
+        if path == "/api/inbox":
+            return self._json(200, read_inbox())
         if path == "/catalog.json":
             return self._serve_catalog()
         return self._serve_static(path)
 
-    def do_PUT(self):
-        if self.path.split("?", 1)[0] != "/api/list":
-            return self._json(404, {"error": "not found"})
+    def _body(self):
         length = int(self.headers.get("Content-Length", "0"))
         raw = self.rfile.read(length) if length else b"{}"
+        return json.loads(raw.decode("utf-8"))
+
+    def do_PUT(self):
+        path = self.path.split("?", 1)[0]
         try:
-            payload = json.loads(raw.decode("utf-8"))
+            payload = self._body()
         except (ValueError, UnicodeDecodeError):
             return self._json(400, {"error": "invalid json"})
-        if not isinstance(payload, dict) or not isinstance(payload.get("items"), list):
-            return self._json(400, {"error": "expected {items: [...]}"})
-        write_list(payload)
-        return self._json(200, payload)
+        if path == "/api/list":
+            if not isinstance(payload, dict) or not isinstance(payload.get("items"), list):
+                return self._json(400, {"error": "expected {items: [...]}"})
+            write_list(payload)
+            return self._json(200, payload)
+        if path == "/api/inbox":
+            if not isinstance(payload, dict) or not isinstance(payload.get("items"), list):
+                return self._json(400, {"error": "expected {items: [...]}"})
+            write_json(INBOX_PATH, payload)
+            return self._json(200, payload)
+        return self._json(404, {"error": "not found"})
 
-    do_POST = do_PUT
+    def do_POST(self):
+        path = self.path.split("?", 1)[0]
+        if path == "/api/inbox":
+            try:
+                payload = self._body()
+            except (ValueError, UnicodeDecodeError):
+                return self._json(400, {"error": "invalid json"})
+            if not isinstance(payload, dict) or not isinstance(payload.get("name"), str):
+                return self._json(400, {"error": "expected {name: ...}"})
+            return self._json(200, append_inbox(payload["name"], payload.get("note")))
+        return self.do_PUT()
 
     def _serve_catalog(self):
         try:
