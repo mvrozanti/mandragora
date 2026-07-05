@@ -35,7 +35,7 @@
 
         "group/network" = {
           orientation = "horizontal";
-          modules = [ "custom/network" ];
+          modules = [ "custom/network-menu" "custom/network" ];
         };
 
         "group/actions" = {
@@ -213,6 +213,24 @@
             echo "↑ $(human "$dtx") ↓ $(human "$drx")"
           '');
           interval = 5;
+        };
+
+        "custom/network-menu" = {
+          exec = toString (pkgs.writeShellScript "net-menu" ''
+            iface=$(${pkgs.iproute2}/bin/ip route show default 2>/dev/null | ${pkgs.gawk}/bin/awk '/default/ {print $5; exit}')
+            reachable=0
+            if [ -n "$iface" ] && ${pkgs.iputils}/bin/ping -c1 -W1 1.1.1.1 >/dev/null 2>&1; then
+              reachable=1
+            fi
+            if [ "$reachable" = 1 ]; then
+              printf '{"text":"","class":"online","tooltip":"Online via %s"}\n' "$iface"
+            else
+              printf '{"text":"󰖪","class":"offline","tooltip":"No internet — click to open wifi manager"}\n'
+            fi
+          '');
+          return-type = "json";
+          interval = 5;
+          on-click = "kitty --class impala -o close_on_child_death=yes -e impala";
         };
 
         clock = {
