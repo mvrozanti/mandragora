@@ -29,6 +29,7 @@
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+html, body { max-width: 100%; overflow-x: hidden; }
 html { -webkit-text-size-adjust: 100%; }
 
 body {
@@ -167,7 +168,7 @@ main { padding: 0 16px; max-width: 640px; margin: 0 auto; }
   border-radius: 999px;
   white-space: nowrap;
 }
-.chip.subtle { color: var(--muted); }
+.chip.subtle { color: var(--muted); white-space: normal; }
 
 .qty { display: flex; align-items: center; gap: 2px; flex: none; }
 .q {
@@ -217,7 +218,7 @@ main { padding: 0 16px; max-width: 640px; margin: 0 auto; }
   cursor: pointer;
 }
 
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
 .card {
   text-align: left;
   padding: 12px;
