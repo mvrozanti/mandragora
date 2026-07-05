@@ -100,6 +100,18 @@ tooltip {
     border-bottom: 2px solid @color8;
 }
 
+#custom-network-menu.offline {
+    padding: 0 10px;
+    color: @color1;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+#custom-network-menu.online {
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+}
+
 #custom-network {
     padding: 0 8px;
     min-width: 180px;
