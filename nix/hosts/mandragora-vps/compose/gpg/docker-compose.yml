@@ -1,12 +1,22 @@
 services:
 
   gpg:
-    image: ${GPG_IMAGE:-nginx:stable-alpine}
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: ${GPG_IMAGE:-mandragora/gpg:local}
     container_name: gpg
     restart: unless-stopped
+    environment:
+      - GPG_DATA_DIR=/data
+      - GPG_MAX_MSG_BYTES=${GPG_MAX_MSG_BYTES:-65536}
+      - GPG_MAX_MESSAGES=${GPG_MAX_MESSAGES:-5000}
+      - GPG_MAX_TOTAL_BYTES=${GPG_MAX_TOTAL_BYTES:-268435456}
+      - GPG_RATE_PER_MIN=${GPG_RATE_PER_MIN:-3}
+      - GPG_RATE_PER_DAY=${GPG_RATE_PER_DAY:-50}
+      - GPG_IP_SALT=${GPG_IP_SALT:-mandragora-gpg}
     volumes:
-      - ${GPG_STATIC_VOLUME:-./static}:/usr/share/nginx/html:ro
-      - ${GPG_NGINX_CONF:-./nginx.conf}:/etc/nginx/conf.d/default.conf:ro
+      - ${GPG_DATA_VOLUME:-./data}:/data
     networks:
       - seafile-net
     labels:
@@ -18,9 +28,15 @@ services:
       caddy_0.header.Permissions-Policy: geolocation=(),microphone=(),camera=()
       caddy_0.header.-Server: ""
       caddy_0.encode: zstd gzip
-      caddy_0.reverse_proxy: "{{upstreams 80}}"
+      caddy_0.0_@api: "path /api/*"
+      caddy_0.1_handle: "@api"
+      caddy_0.1_handle.forward_auth: "authelia:9091"
+      caddy_0.1_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy_0.1_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy_0.1_handle.reverse_proxy: "{{upstreams 8080}}"
+      caddy_0.2_handle.reverse_proxy: "{{upstreams 8080}}"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz', timeout=3).read()"]
       interval: 30s
       timeout: 5s
       retries: 3
