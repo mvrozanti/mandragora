@@ -257,12 +257,37 @@ def watch_pactl():
         time.sleep(1)
 
 
-def watch_hypr():
-    sig = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE")
-    if not sig:
-        return
+def live_hypr_signature():
     xdg = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
-    path = f"{xdg}/hypr/{sig}/.socket2.sock"
+    base = f"{xdg}/hypr"
+    best = None
+    best_mtime = -1.0
+    try:
+        entries = os.listdir(base)
+    except OSError:
+        return None
+    for entry in entries:
+        try:
+            mtime = os.stat(f"{base}/{entry}/.socket2.sock").st_mtime
+        except OSError:
+            continue
+        if mtime > best_mtime:
+            best_mtime = mtime
+            best = entry
+    return best
+
+
+def adopt_hypr_instance():
+    sig = live_hypr_signature()
+    changed = bool(sig) and os.environ.get("HYPRLAND_INSTANCE_SIGNATURE") != sig
+    if changed:
+        os.environ["HYPRLAND_INSTANCE_SIGNATURE"] = sig
+        log(f"hyprland instance -> {sig}")
+    return sig, changed
+
+
+def watch_hypr():
+    xdg = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
     triggers = {
         "movewindow",
         "movewindowv2",
@@ -273,6 +298,15 @@ def watch_hypr():
     }
     map_events = {"monitoradded", "monitoraddedv2", "monitorremoved"}
     while True:
+        sig, changed = adopt_hypr_instance()
+        if not sig:
+            time.sleep(2)
+            continue
+        if changed:
+            refresh_sink_map()
+            set_default_for_focused()
+            schedule()
+        path = f"{xdg}/hypr/{sig}/.socket2.sock"
         try:
             sock = socket.socket(socket.AF_UNIX)
             sock.connect(path)
@@ -295,6 +329,7 @@ def watch_hypr():
 
 
 def main():
+    adopt_hypr_instance()
     refresh_sink_map()
     log(f"sink map: {SINK_MAP}")
     reroute()

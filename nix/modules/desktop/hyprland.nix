@@ -75,7 +75,7 @@
     description = "Watch wayland-1 socket for compositor restart";
     wantedBy = [ "default.target" ];
     pathConfig = {
-      PathExists = "%t/wayland-1";
+      PathModified = "%t/wayland-1";
       Unit = "wayland-socket-restart-deps.service";
     };
   };
@@ -84,9 +84,8 @@
     description = "Restart user services holding stale wayland refs after compositor restart";
     serviceConfig = {
       Type = "oneshot";
-      RemainAfterExit = true;
       ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
-      ExecStart = "${pkgs.systemd}/bin/systemctl --user try-restart kdeconnectd.service xdg-desktop-portal.service xdg-desktop-portal-hyprland.service";
+      ExecStart = "${pkgs.systemd}/bin/systemctl --user try-restart kdeconnectd.service xdg-desktop-portal.service xdg-desktop-portal-hyprland.service monitor-audio-follow.service";
     };
   };
 }
