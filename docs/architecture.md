@@ -357,7 +357,7 @@ locally:
   shell suite at `.local/share/mandragora-audit/` that enforces the AGENTS.md
   non-negotiables mechanically (no-extraconfig, doc-links, conventional-commits,
   hyprland-config, hub-tile, no-projects-in-local-share, language-purity,
-  statix, deadnix). It runs on staged files via the pre-commit/commit-msg
+  statix, deadnix, shellcheck). It runs on staged files via the pre-commit/commit-msg
   hooks and in full before `mandragora-switch` stages. Full reference:
   [`./audits.md`](./audits.md).
 - **Flake build guards (`checks`)** — `flake.nix` exposes `checks.<system>`
