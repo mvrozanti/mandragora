@@ -165,7 +165,6 @@ k() {
 
 P()   { curl -sF "file=@-" https://0x0.st }
 gr()  { git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
-gdc() { git diff HEAD HEAD~1 }
 
 [ -f "$HOME/.local/bin/resty" ] && source "$HOME/.local/bin/resty" >/dev/null 2>&1
 
