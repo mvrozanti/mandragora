@@ -27,6 +27,7 @@ let
     runtimeInputs = [
       pkgs.restic
       pkgs.openssh
+      pkgs.curl
       pkgs.coreutils
     ];
     text = builtins.readFile ../../snippets/restic-backup.sh;
@@ -38,6 +39,7 @@ let
       pkgs.restic
       pkgs.openssh
       pkgs.age
+      pkgs.curl
       pkgs.coreutils
     ];
     text = builtins.readFile ../../snippets/lifeboat-verify.sh;
@@ -48,6 +50,7 @@ let
     runtimeInputs = [
       pkgs.coreutils
       pkgs.libnotify
+      pkgs.curl
       notifyBin
     ];
     text = builtins.readFile ../../snippets/backup-alert.sh;
@@ -62,7 +65,7 @@ let
     WorkingDirectory = "/home/m";
     Nice = 15;
     IOSchedulingClass = "idle";
-    OnFailure = "backup-failed@%n.service";
+    OnFailure = "backup-failed@%N.service";
     EnvironmentFile = config.sops.secrets."llm_via_telegram/env".path;
   };
 in
@@ -141,6 +144,7 @@ in
         "AGE_KEY_FILE=${ageKeyFile}"
         notifyEnv
       ];
+      ExecStartPre = "${passgen}/bin/restic-passgen";
       ExecStart = "${lifeboatVerify}/bin/restic-lifeboat-verify";
     };
   };
