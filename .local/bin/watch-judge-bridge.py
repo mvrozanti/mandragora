@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import datetime
 import json
 import logging
 import os
@@ -11,6 +12,18 @@ VPS = os.environ.get("WATCH_JUDGE_VPS", "opc@mandragora-vps")
 MODEL = os.environ.get("WATCH_JUDGE_MODEL", "gemini-2.5-flash")
 LIMIT = int(os.environ.get("WATCH_JUDGE_LIMIT", "10"))
 TIMEOUT = int(os.environ.get("WATCH_JUDGE_TIMEOUT", "60"))
+CLAIM_TTL = int(os.environ.get("WATCH_JUDGE_CLAIM_TTL", "900"))
+BUSY_TIMEOUT_MS = int(os.environ.get("WATCH_BUSY_TIMEOUT_MS", "5000"))
+
+
+def now_iso() -> str:
+    return datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def stale_cutoff_iso() -> str:
+    cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(seconds=CLAIM_TTL)
+    return cutoff.isoformat(timespec="seconds").replace("+00:00", "Z")
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("watch-judge-bridge")
@@ -41,16 +54,21 @@ def remote_python(script: str) -> str:
 
 
 def fetch_pending() -> list[dict]:
+    payload = json.dumps({"stale": stale_cutoff_iso(), "limit": LIMIT, "busy": BUSY_TIMEOUT_MS})
     script = textwrap.dedent(
         f"""\
         import sqlite3, json
+        a = json.loads({payload!r})
         c = sqlite3.connect("/data/watch.db"); c.row_factory = sqlite3.Row
+        c.execute("PRAGMA busy_timeout=%d" % a["busy"])
         rows = c.execute(
             "SELECT e.id AS id, e.title AS title, e.summary AS summary, e.link AS link, "
             "e.occurred_at AS occurred_at, w.kind AS kind, w.target AS target, w.ai_spec AS ai_spec "
             "FROM events e JOIN watchers w ON w.id = e.watcher_id "
             "WHERE e.ai_verdict IS NULL AND w.ai_spec IS NOT NULL AND w.enabled = 1 "
-            "ORDER BY e.id DESC LIMIT {LIMIT}"
+            "AND (e.ai_claimed_at IS NULL OR e.ai_claimed_at < ?) "
+            "ORDER BY e.id DESC LIMIT ?",
+            (a["stale"], a["limit"]),
         ).fetchall()
         print(json.dumps([dict(r) for r in rows]))
         """
@@ -59,19 +77,48 @@ def fetch_pending() -> list[dict]:
     return json.loads(out or "[]")
 
 
-def write_verdict(event_id: int, verdict: str, reason: str) -> None:
-    payload = json.dumps({"id": event_id, "verdict": verdict, "reason": reason})
+def claim_event(event_id: int) -> bool:
+    payload = json.dumps({"id": event_id, "now": now_iso(), "stale": stale_cutoff_iso(), "busy": BUSY_TIMEOUT_MS})
     script = textwrap.dedent(
         f"""\
-        import sqlite3, json, datetime
-        p = json.loads({payload!r})
+        import sqlite3, json
+        a = json.loads({payload!r})
         c = sqlite3.connect("/data/watch.db")
-        now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00","Z")
-        c.execute("UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_judged_at = ? WHERE id = ?", (p["verdict"], p["reason"][:500], now, p["id"]))
-        c.commit(); c.close()
+        c.execute("PRAGMA busy_timeout=%d" % a["busy"])
+        cur = c.execute(
+            "UPDATE events SET ai_claimed_at = ? "
+            "WHERE id = ? AND ai_verdict IS NULL AND (ai_claimed_at IS NULL OR ai_claimed_at < ?)",
+            (a["now"], a["id"], a["stale"]),
+        )
+        c.commit()
+        print(cur.rowcount)
+        c.close()
         """
     )
-    remote_python(script)
+    out = remote_python(script)
+    return out.strip() == "1"
+
+
+def write_verdict(event_id: int, verdict: str, reason: str) -> bool:
+    payload = json.dumps({"id": event_id, "verdict": verdict, "reason": reason[:500], "now": now_iso(), "busy": BUSY_TIMEOUT_MS})
+    script = textwrap.dedent(
+        f"""\
+        import sqlite3, json
+        p = json.loads({payload!r})
+        c = sqlite3.connect("/data/watch.db")
+        c.execute("PRAGMA busy_timeout=%d" % p["busy"])
+        cur = c.execute(
+            "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_judged_at = ?, ai_claimed_at = NULL "
+            "WHERE id = ? AND ai_verdict IS NULL",
+            (p["verdict"], p["reason"], p["now"], p["id"]),
+        )
+        c.commit()
+        print(cur.rowcount)
+        c.close()
+        """
+    )
+    out = remote_python(script)
+    return out.strip() == "1"
 
 
 def build_prompt(ev: dict) -> str:
@@ -134,7 +181,15 @@ def main() -> int:
         return 0
     log.info("judging %d events", len(queue))
     judged = 0
+    skipped = 0
     for ev in queue:
+        try:
+            if not claim_event(ev["id"]):
+                skipped += 1
+                continue
+        except Exception as exc:
+            log.warning("claim failed id=%s: %s", ev["id"], exc)
+            continue
         try:
             verdict, reason = call_gemini(build_prompt(ev))
         except QuotaExceeded as exc:
@@ -144,13 +199,17 @@ def main() -> int:
             log.warning("judge error id=%s: %s", ev["id"], exc)
             continue
         try:
-            write_verdict(ev["id"], verdict, reason)
+            wrote = write_verdict(ev["id"], verdict, reason)
         except Exception as exc:
             log.error("write-back failed id=%s: %s", ev["id"], exc)
             continue
+        if not wrote:
+            skipped += 1
+            log.info("id=%s already judged by another writer, dropping verdict", ev["id"])
+            continue
         log.info("id=%s verdict=%s reason=%s", ev["id"], verdict, reason)
         judged += 1
-    log.info("done, judged=%d", judged)
+    log.info("done, judged=%d skipped=%d", judged, skipped)
     return 0
 
 
