@@ -157,12 +157,6 @@ already wrong today; everything else is drift.
     more collide across `zshrc.zsh` and `zsh.nix`. Dedupe and pick one
     home per alias.
 
-23. **Delete or re-source `windowrules.conf`.**
-    `.config/hypr/hyprland.conf` sources only the matugen palette and
-    `monitors.conf`; `.config/hypr/windowrules.conf` (3.6K) is loaded
-    by nothing, and its rules live inline in `hyprland.conf`. Dead
-    config that looks live is worse than none.
-
 24. **Deduplicate keyledsd snippets.**
     `nix/snippets/lightning.lua` and
     `nix/snippets/keyledsd-effects/lightning.lua` are parallel copies.
