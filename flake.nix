@@ -146,6 +146,7 @@
           usb-closure-size = guards.closureSizeGuard;
           profile-eval = guards.profileEvalGuard;
           usb-sops-key = guards.sopsKeyGuard;
+          hyprland-config = guards.hyprlandConfigGuard;
         };
 
       homeConfigurations."m@mandragora-vps" = home-manager.lib.homeManagerConfiguration {
