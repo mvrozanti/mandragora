@@ -1,6 +1,7 @@
 { config, pkgs, lib, ... }:
 
 let
+  tailnet = builtins.fromJSON (builtins.readFile ../../snippets/tailnet.json);
   mkSystemDashboard = {
     title,
     uid,
@@ -417,7 +418,7 @@ in
           {
             name = "Loki";
             type = "loki";
-            url = "http://100.84.78.83:3100";
+            url = "http://${tailnet.vps.ip}:3100";
             uid = "loki";
             jsonData = { maxLines = 20000; timeout = 60; };
           }
