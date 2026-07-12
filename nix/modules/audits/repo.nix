@@ -9,18 +9,21 @@ let
 
   mandragora-audit = pkgs.writeShellScriptBin "mandragora-audit" ''
     export AUDIT_HOME="${auditTree}"
-    export PATH=${lib.makeBinPath [
-      pkgs.git
-      pkgs.ripgrep
-      pkgs.gnugrep
-      pkgs.coreutils
-      pkgs.findutils
-      pkgs.gawk
-      pkgs.bash
-      pkgs.statix
-      pkgs.deadnix
-      pkgs.shellcheck
-    ]}:$PATH
+    export PATH=${
+      lib.makeBinPath [
+        pkgs.git
+        pkgs.ripgrep
+        pkgs.gnugrep
+        pkgs.coreutils
+        pkgs.findutils
+        pkgs.gawk
+        pkgs.bash
+        pkgs.statix
+        pkgs.deadnix
+        pkgs.shellcheck
+        pkgs.nixfmt-rfc-style
+      ]
+    }:$PATH
     exec ${pkgs.bash}/bin/bash "$AUDIT_HOME/audit.sh" "$@"
   '';
 in
@@ -28,10 +31,11 @@ in
   environment.systemPackages = [ mandragora-audit ];
 
   system.activationScripts.mandragoraGitHooks = {
-    text = builtins.replaceStrings
-      [ "@auditTree@" "@sed@" "@grep@" ]
-      [ "${auditTree}" "${pkgs.gnused}/bin/sed" "${pkgs.gnugrep}/bin/grep" ]
-      (builtins.readFile ./setup-git-hooks.sh);
+    text =
+      builtins.replaceStrings
+        [ "@auditTree@" "@sed@" "@grep@" ]
+        [ "${auditTree}" "${pkgs.gnused}/bin/sed" "${pkgs.gnugrep}/bin/grep" ]
+        (builtins.readFile ./setup-git-hooks.sh);
     deps = [ ];
   };
 }
