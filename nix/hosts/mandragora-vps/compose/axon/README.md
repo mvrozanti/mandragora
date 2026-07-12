@@ -78,7 +78,7 @@ ssh opc@mandragora-vps 'cd /home/opc/axon && docker compose up -d'
 - `axon.mvr.ac` must be in `authelia/config/configuration.yml`
   access_control rules (`two_factor`) and authelia must be restarted,
   otherwise the default-deny gives 403.
-- Hub tile + `hub/config/services.yaml` entry must be present so
+- Hub tile in `hub/static/index.html` must be present so
   `mandragora-audit 05-hub-tile` stays green.
 - Desktop must run **both** systemd user services:
   - `axon` — needs `axon` on PATH (or `~/.local/bin/axon` or

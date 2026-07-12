@@ -166,13 +166,16 @@ already wrong today; everything else is drift.
 
 ## Dead weight
 
-25. **Purge committed runtime artifacts.**
-    Git tracks `nix/snippets/__pycache__/keyleds-host-mode.cpython-313.pyc`
-    (bytecode) and `.local/share/rgb-control/state.json` (mutable
-    runtime state — every daemon write dirties the repo). The
-    `compose/hub/config/` gethomepage YAMLs are leftovers from the
-    pre-rewrite hub, and `.local/bin/mbsync-notify.sh` is legacy.
-    Delete, then gitignore `__pycache__/` and runtime state paths.
+25. **Retire the legacy `mbsync-notify` launcher.**
+    The committed runtime artifacts are gone — the
+    `keyleds-host-mode` bytecode, the tracked
+    `.local/share/rgb-control/state.json`, and the pre-rewrite
+    `compose/hub/config/` gethomepage YAMLs were purged and the
+    runtime-state paths gitignored. What remains is
+    `.local/bin/mbsync-notify.sh`, still built into a
+    `writeShellScriptBin` by `nix/modules/user/home.nix`; drop that
+    wrapper and its `mandragora-pkg-diff` filter entry, then delete
+    the script.
 
 ## Operations and resilience
 
