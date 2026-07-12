@@ -5,6 +5,9 @@ let
 
   rss-menu = pkgs.writeShellApplication {
     name = "rss-menu";
+    text = ''
+      exec ${pyEnv}/bin/python3 ${../../snippets/rss-menu.py} "$@"
+    '';
     runtimeInputs = with pkgs; [
       rofi
       libnotify
@@ -12,9 +15,6 @@ let
       procps
       systemd
     ];
-    text = ''
-      exec ${pyEnv}/bin/python3 ${../../snippets/rss-menu.py} "$@"
-    '';
   };
 in
 {

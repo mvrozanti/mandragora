@@ -4,7 +4,5 @@
 flake.nix:80
 nix/modules/core/secrets.nix:105
 nix/modules/core/secrets.nix:98
-nix/modules/user/rss-menu.nix:15
-nix/modules/user/security-menu.nix:13
 nix/modules/user/terminal.nix:158
 nix/pkgs/refiner/default.nix:26
