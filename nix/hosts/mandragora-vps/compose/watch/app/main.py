@@ -102,6 +102,12 @@ def init_db() -> None:
             c.execute(stmt)
         except sqlite3.OperationalError:
             pass
+    try:
+        c.execute(
+            "UPDATE watchers SET push = 0 WHERE kind = 'github_release' AND name = 'release: ' || target AND push = 1"
+        )
+    except sqlite3.OperationalError:
+        pass
     c.execute("CREATE INDEX IF NOT EXISTS events_unacked ON events(acked_at, last_reminder_at)")
     c.execute("CREATE INDEX IF NOT EXISTS events_ai_verdict ON events(ai_verdict, ai_judged_at)")
     c.close()
@@ -123,7 +129,7 @@ def bootstrap_release_sources() -> None:
             continue
         try:
             c.execute(
-                "INSERT INTO watchers (kind, target, name, created_at, push) VALUES (?, ?, ?, ?, 1)",
+                "INSERT INTO watchers (kind, target, name, created_at, push) VALUES (?, ?, ?, ?, 0)",
                 ("github_release", target, f"release: {target}", now_iso()),
             )
             added += 1
