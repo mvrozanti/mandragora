@@ -359,7 +359,6 @@ in
     (pkgs.writeShellScriptBin "bonsai" (builtins.readFile ../../../.local/bin/bonsai.sh))
     (pkgs.writeShellScriptBin "eit" (builtins.readFile ../../../.local/bin/eit.sh))
     (pkgs.writeShellScriptBin "filedropper" (builtins.readFile ../../../.local/bin/filedropper.sh))
-    (pkgs.writeShellScriptBin "mbsync-notify" (builtins.readFile ../../../.local/bin/mbsync-notify.sh))
     (pkgs.writeShellScriptBin "mvnexec" (builtins.readFile ../../../.local/bin/mvnexec.sh))
     (pkgs.writeShellScriptBin "pentr" (builtins.readFile ../../../.local/bin/pentr.sh))
     (pkgs.writeShellScriptBin "qit" (builtins.readFile ../../../.local/bin/qit.sh))

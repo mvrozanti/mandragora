@@ -29,18 +29,9 @@ group.
    to `builtins.readFile` snippets a few per session until the allowlist
    is empty; each conversion also makes the config testable outside Nix.
 
-## Dead weight
-
-2. **Retire the legacy `mbsync-notify` launcher.**
-   `.local/bin/mbsync-notify.sh` is still built into a
-   `writeShellScriptBin` by `nix/modules/user/home.nix` (line 362) and
-   still carried in the `mandragora-pkg-diff` filter list
-   (`.local/bin/mandragora-pkg-diff.sh:119`). Drop that wrapper and its
-   filter entry, then delete the script.
-
 ## Operations and resilience
 
-3. **Extend the backup tiers to photos/bulk.**
+2. **Extend the backup tiers to photos/bulk.**
    The resilient tier ships: `nix/modules/core/backup.nix` runs a daily
    restic backup of `/persistent/home/m/Documents` to the VPS plus a
    weekly `restic-lifeboat` job that verifies age-key validity and repo
