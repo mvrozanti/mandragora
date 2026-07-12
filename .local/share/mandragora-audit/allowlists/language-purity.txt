@@ -1,7 +1,7 @@
 # Pre-existing inline non-Nix blocks at audit landing time (Rule 2).
 # Each entry is path:line from repo root, or a bare path for the whole file.
 # Migrate to .config/<app>/ + builtins.readFile, then drop the line.
-flake.nix:65
+flake.nix:80
 nix/modules/core/secrets.nix:102
 nix/modules/core/secrets.nix:95
 nix/modules/user/terminal.nix:150
