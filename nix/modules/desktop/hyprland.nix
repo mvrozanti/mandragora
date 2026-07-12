@@ -29,7 +29,10 @@
       pkgs.xdg-desktop-portal-gtk
     ];
     config.common = {
-      default = [ "hyprland" "gtk" ];
+      default = [
+        "hyprland"
+        "gtk"
+      ];
       "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
       "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
     };
@@ -41,8 +44,9 @@
     wireplumber = {
       enable = true;
       configPackages = [
-        (pkgs.writeTextDir "share/wireplumber/wireplumber.conf.d/99-hdmi-default.conf"
-          (builtins.readFile ../../../.config/wireplumber/hdmi-default.conf))
+        (pkgs.writeTextDir "share/wireplumber/wireplumber.conf.d/99-hdmi-default.conf" (
+          builtins.readFile ../../../.config/wireplumber/hdmi-default.conf
+        ))
       ];
     };
     alsa.enable = true;

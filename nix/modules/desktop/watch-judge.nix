@@ -2,7 +2,13 @@
 
 let
   bridge = pkgs.writers.writePython3Bin "watch-judge-bridge" {
-    flakeIgnore = [ "E501" "W503" "E402" "E741" "E265" ];
+    flakeIgnore = [
+      "E501"
+      "W503"
+      "E402"
+      "E741"
+      "E265"
+    ];
   } (builtins.readFile ../../../.local/bin/watch-judge-bridge.py);
 in
 {

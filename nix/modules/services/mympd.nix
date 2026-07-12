@@ -3,7 +3,8 @@
 let
   workdir = "/var/lib/mympd";
   cachedir = "/var/cache/mympd";
-in {
+in
+{
   environment.systemPackages = [ pkgs.mympd ];
 
   users.users.mympd = {
@@ -13,7 +14,7 @@ in {
     createHome = false;
     extraGroups = [ "mpd" ];
   };
-  users.groups.mympd = {};
+  users.groups.mympd = { };
 
   systemd.tmpfiles.rules = [
     "d ${workdir}  0750 mympd mympd - -"
@@ -24,7 +25,11 @@ in {
     port = 6680;
     systemd = {
       description = "myMPD — modern MPD web client";
-      after = [ "network.target" "tailscaled.service" "mpd.service" ];
+      after = [
+        "network.target"
+        "tailscaled.service"
+        "mpd.service"
+      ];
       wants = [ "tailscaled.service" ];
       wantedBy = [ "multi-user.target" ];
       environment = {
@@ -45,7 +50,10 @@ in {
         ProtectHome = true;
         PrivateTmp = true;
         NoNewPrivileges = true;
-        ReadWritePaths = [ workdir cachedir ];
+        ReadWritePaths = [
+          workdir
+          cachedir
+        ];
       };
     };
   };

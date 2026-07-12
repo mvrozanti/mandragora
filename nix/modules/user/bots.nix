@@ -1,4 +1,9 @@
-{ osConfig, pkgs, lib, ... }:
+{
+  osConfig,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   tailnet = builtins.fromJSON (builtins.readFile ../../snippets/tailnet.json);
@@ -47,7 +52,10 @@ in
   systemd.user.services.stt-via-telegram = {
     Unit = {
       Description = "STT-via-Telegram bot (faster-whisper large-v3 on RTX 5070 Ti, EN/PT)";
-      After = [ "graphical-session.target" "network-online.target" ];
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+      ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [
         "/dev/nvidia0"
@@ -76,7 +84,10 @@ in
   systemd.user.services.stt-core = {
     Unit = {
       Description = "STT core service (faster-whisper FastAPI, EN/PT, tailnet-bound)";
-      After = [ "graphical-session.target" "network-online.target" ];
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+      ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [
         "/dev/nvidia0"
@@ -106,7 +117,10 @@ in
   systemd.user.services.axon = {
     Unit = {
       Description = "Axon HTTP API (loopback, multi-repo aggregate; consumed by axon-web)";
-      After = [ "graphical-session.target" "network-online.target" ];
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+      ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [
         "${axonRoot}/bot.sh"
@@ -134,7 +148,11 @@ in
   systemd.user.services.axon-web = {
     Unit = {
       Description = "Axon SPA + thin Node runtime (tailnet-bound; proxies /api/* to axon)";
-      After = [ "graphical-session.target" "network-online.target" "axon.service" ];
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+        "axon.service"
+      ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [
         "${axonWebRoot}/bot.sh"
@@ -166,7 +184,10 @@ in
   systemd.user.services.tts-clone-core = {
     Unit = {
       Description = "TTS voice-imitation core service (F5-TTS on RTX 5070 Ti, tailnet-bound)";
-      After = [ "graphical-session.target" "network-online.target" ];
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+      ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [
         "/dev/nvidia0"
@@ -196,7 +217,10 @@ in
   systemd.user.services.teacher-teach = {
     Unit = {
       Description = "Teacher — Socratic Telegram tutor (Claude API)";
-      After = [ "graphical-session.target" "network-online.target" ];
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+      ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [
         "${teacherRoot}/teacher/main.py"
@@ -231,7 +255,10 @@ in
   systemd.user.services.llm-via-telegram = {
     Unit = {
       Description = "LLM-via-Telegram bot (Ollama-backed local model, GPU-coordinated)";
-      After = [ "graphical-session.target" "network-online.target" ];
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+      ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [ "/dev/nvidia0" ];
     };
@@ -257,7 +284,10 @@ in
   systemd.user.services.int-scraper = {
     Unit = {
       Description = "4chan /int/ scraper (CPU, always-on; country reply graph + enrichment queue)";
-      After = [ "graphical-session.target" "network-online.target" ];
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+      ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [ "${intRoot}/backend/scraper.py" ];
     };
@@ -281,7 +311,10 @@ in
   systemd.user.services.int-api = {
     Unit = {
       Description = "4chan /int/ read API (Flask, tailnet-bound; consumed by 4chan.mvr.ac)";
-      After = [ "graphical-session.target" "network-online.target" ];
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+      ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [ "${intRoot}/backend/api.py" ];
     };
@@ -307,7 +340,10 @@ in
   systemd.user.services.int-enrich = {
     Unit = {
       Description = "4chan /int/ enrichment drain (GPU via gpu-lock; topics + emotions, deferred when GPU busy)";
-      After = [ "graphical-session.target" "network-online.target" ];
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+      ];
       Wants = [ "network-online.target" ];
       ConditionPathExists = [
         "/dev/nvidia0"

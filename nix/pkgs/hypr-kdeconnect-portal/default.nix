@@ -1,13 +1,14 @@
-{ lib
-, stdenv
-, cmake
-, pkg-config
-, wayland
-, wayland-scanner
-, libxkbcommon
-, libei
-, qt6
-, kdePackages
+{
+  lib,
+  stdenv,
+  cmake,
+  pkg-config,
+  wayland,
+  wayland-scanner,
+  libxkbcommon,
+  libei,
+  qt6,
+  kdePackages,
 }:
 
 stdenv.mkDerivation (_finalAttrs: {

@@ -1,4 +1,12 @@
-{ stdenv, fetchurl, autoPatchelfHook, autoAddDriverRunpath, zstd, vulkan-loader, makeWrapper }:
+{
+  stdenv,
+  fetchurl,
+  autoPatchelfHook,
+  autoAddDriverRunpath,
+  zstd,
+  vulkan-loader,
+  makeWrapper,
+}:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "ollama-bin";
@@ -11,8 +19,16 @@ stdenv.mkDerivation (finalAttrs: {
 
   sourceRoot = ".";
 
-  nativeBuildInputs = [ autoPatchelfHook autoAddDriverRunpath zstd makeWrapper ];
-  buildInputs = [ stdenv.cc.cc.lib vulkan-loader ];
+  nativeBuildInputs = [
+    autoPatchelfHook
+    autoAddDriverRunpath
+    zstd
+    makeWrapper
+  ];
+  buildInputs = [
+    stdenv.cc.cc.lib
+    vulkan-loader
+  ];
 
   autoPatchelfIgnoreMissingDeps = [ "libcuda.so.1" ];
 

@@ -24,8 +24,8 @@
 
   systemd.user.services.mpd-discord-rpc = {
     Unit = {
-    After = [ "mpd.service" ];
-    Wants = [ "mpd.service" ];
+      After = [ "mpd.service" ];
+      Wants = [ "mpd.service" ];
     };
     Service = {
       Environment = "RUST_LOG=mpd_discord_rpc=info,discord_presence=off";
@@ -61,11 +61,20 @@
         "GPG_TTY=/dev/tty"
         "SASL_PATH=${pkgs.cyrus_sasl.out}/lib/sasl2:${pkgs.cyrus-sasl-xoauth2}/lib/sasl2"
       ];
-      ExecStart = "${pkgs.writeShellApplication {
-        name = "mbsync-hotmail-sync";
-        runtimeInputs = with pkgs; [ isync libnotify gnugrep gnused coreutils notmuch ];
-        text = builtins.readFile ../../../.local/bin/mbsync-hotmail-sync.sh;
-      }}/bin/mbsync-hotmail-sync";
+      ExecStart = "${
+        pkgs.writeShellApplication {
+          name = "mbsync-hotmail-sync";
+          runtimeInputs = with pkgs; [
+            isync
+            libnotify
+            gnugrep
+            gnused
+            coreutils
+            notmuch
+          ];
+          text = builtins.readFile ../../../.local/bin/mbsync-hotmail-sync.sh;
+        }
+      }/bin/mbsync-hotmail-sync";
     };
   };
 
@@ -100,7 +109,10 @@
   systemd.user.services.wal-to-rgb-aio-restore = {
     Unit = {
       Description = "Restore AIO chain (D_LED1 Bottom) from pywal palette on boot";
-      After = [ "graphical-session.target" "wal-to-rgb-daemon.service" ];
+      After = [
+        "graphical-session.target"
+        "wal-to-rgb-daemon.service"
+      ];
       Wants = [ "wal-to-rgb-daemon.service" ];
       ConditionPathExists = "%h/.cache/matugen/colors.json";
     };
@@ -133,16 +145,28 @@
   systemd.user.services.webhook-notifier = {
     Unit = {
       Description = "Subscribe to webhook.mvr.ac SSE and emit desktop notifications";
-      After = [ "graphical-session.target" "network-online.target" ];
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+      ];
       Wants = [ "network-online.target" ];
     };
     Service = {
       Type = "simple";
-      ExecStart = "${pkgs.writeShellApplication {
-        name = "webhook-notifier";
-        runtimeInputs = with pkgs; [ curl jq libnotify xdg-utils coreutils tailscale ];
-        text = builtins.readFile ../../../.local/bin/webhook-notifier.sh;
-      }}/bin/webhook-notifier";
+      ExecStart = "${
+        pkgs.writeShellApplication {
+          name = "webhook-notifier";
+          runtimeInputs = with pkgs; [
+            curl
+            jq
+            libnotify
+            xdg-utils
+            coreutils
+            tailscale
+          ];
+          text = builtins.readFile ../../../.local/bin/webhook-notifier.sh;
+        }
+      }/bin/webhook-notifier";
       Restart = "always";
       RestartSec = 5;
     };

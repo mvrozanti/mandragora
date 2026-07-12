@@ -3,22 +3,38 @@
 let
   bootstrap = pkgs.writeShellApplication {
     name = "mt5-bootstrap";
-    runtimeInputs = [ pkgs.wineWowPackages.staging pkgs.winetricks pkgs.uv pkgs.curl ];
+    runtimeInputs = [
+      pkgs.wineWowPackages.staging
+      pkgs.winetricks
+      pkgs.uv
+      pkgs.curl
+    ];
     text = builtins.readFile ../../../.local/bin/mt5-bootstrap.sh;
   };
   server = pkgs.writeShellApplication {
     name = "mt5-server";
-    runtimeInputs = [ pkgs.wineWowPackages.staging pkgs.uv ];
+    runtimeInputs = [
+      pkgs.wineWowPackages.staging
+      pkgs.uv
+    ];
     text = builtins.readFile ../../../.local/bin/mt5-server.sh;
   };
   headless = pkgs.writeShellApplication {
     name = "mt5-headless";
-    runtimeInputs = [ pkgs.wineWowPackages.staging pkgs.xorg.xvfb pkgs.coreutils ];
+    runtimeInputs = [
+      pkgs.wineWowPackages.staging
+      pkgs.xorg.xvfb
+      pkgs.coreutils
+    ];
     text = builtins.readFile ../../../.local/bin/mt5-headless.sh;
   };
 in
 {
-  environment.systemPackages = [ bootstrap server headless ];
+  environment.systemPackages = [
+    bootstrap
+    server
+    headless
+  ];
 
   systemd.user.services.mt5 = {
     description = "Headless MT5 terminal + mt5linux rpyc bridge";

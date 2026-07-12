@@ -3,11 +3,13 @@
 let
   strayscli = pkgs.writeShellApplication {
     name = "strays";
-    runtimeInputs = [ pkgs.findutils pkgs.util-linux ];
-    text = builtins.replaceStrings
-      [ "@VAULT@" "@USER_HOME@" ]
-      [ "/persistent" "/home/m" ]
-      (builtins.readFile ../../../.local/bin/strays.sh);
+    runtimeInputs = [
+      pkgs.findutils
+      pkgs.util-linux
+    ];
+    text = builtins.replaceStrings [ "@VAULT@" "@USER_HOME@" ] [ "/persistent" "/home/m" ] (
+      builtins.readFile ../../../.local/bin/strays.sh
+    );
   };
 
   healthCheckWatch = pkgs.replaceVars ../../../.local/bin/health-check.sh {
@@ -34,7 +36,19 @@ in
     description = "Mandragora audit — watch (critical checks)";
     after = [ "local-fs.target" ];
     wants = [ "local-fs.target" ];
-    path = with pkgs; [ gawk coreutils gnused gnugrep findutils util-linux btrfs-progs smartmontools systemd iproute2 lm_sensors ];
+    path = with pkgs; [
+      gawk
+      coreutils
+      gnused
+      gnugrep
+      findutils
+      util-linux
+      btrfs-progs
+      smartmontools
+      systemd
+      iproute2
+      lm_sensors
+    ];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = "${pkgs.bash}/bin/bash ${healthCheckWatch}";
@@ -57,7 +71,19 @@ in
     description = "Mandragora audit — daily digest (full report)";
     after = [ "local-fs.target" ];
     wants = [ "local-fs.target" ];
-    path = with pkgs; [ gawk coreutils gnused gnugrep findutils util-linux btrfs-progs smartmontools systemd iproute2 lm_sensors ];
+    path = with pkgs; [
+      gawk
+      coreutils
+      gnused
+      gnugrep
+      findutils
+      util-linux
+      btrfs-progs
+      smartmontools
+      systemd
+      iproute2
+      lm_sensors
+    ];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = "${pkgs.bash}/bin/bash ${healthCheckDigest}";

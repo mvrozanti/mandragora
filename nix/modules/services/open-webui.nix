@@ -2,7 +2,8 @@ _:
 
 let
   port = 6683;
-in {
+in
+{
   services.open-webui = {
     enable = true;
     host = "0.0.0.0";
@@ -19,8 +20,15 @@ in {
   };
 
   systemd.services.open-webui = {
-    after = [ "ollama.service" "ollama-context-proxy.service" "tailscaled.service" ];
-    wants = [ "ollama.service" "ollama-context-proxy.service" ];
+    after = [
+      "ollama.service"
+      "ollama-context-proxy.service"
+      "tailscaled.service"
+    ];
+    wants = [
+      "ollama.service"
+      "ollama-context-proxy.service"
+    ];
   };
 
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ port ];

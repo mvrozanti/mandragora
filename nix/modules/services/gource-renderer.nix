@@ -5,7 +5,12 @@ let
   port = 9991;
   host = tailnet.desktop.ip;
   src = ../../../.local/share/gource-renderer/server.py;
-  pyEnv = pkgs.python3.withPackages (ps: [ ps.fastapi ps.uvicorn ps.httpx ps.pydantic ]);
+  pyEnv = pkgs.python3.withPackages (ps: [
+    ps.fastapi
+    ps.uvicorn
+    ps.httpx
+    ps.pydantic
+  ]);
   runtimePath = lib.makeBinPath [
     pkgs.gource
     pkgs.ffmpeg-full
@@ -15,13 +20,20 @@ let
     pkgs.coreutils
     pkgs.bash
   ];
-in {
+in
+{
   mandragora.hub.services.gource-renderer = {
     inherit port;
     systemd = {
       description = "On-demand gource render service (tailnet-bound, headless NVIDIA GPU). VPS gource-api proxies here when reachable.";
-      after = [ "network-online.target" "tailscaled.service" ];
-      wants = [ "network-online.target" "tailscaled.service" ];
+      after = [
+        "network-online.target"
+        "tailscaled.service"
+      ];
+      wants = [
+        "network-online.target"
+        "tailscaled.service"
+      ];
       wantedBy = [ "multi-user.target" ];
       restartTriggers = [ (builtins.readFile ../../../.local/share/gource-renderer/server.py) ];
       environment = {

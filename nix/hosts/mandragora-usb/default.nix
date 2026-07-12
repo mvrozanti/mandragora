@@ -25,7 +25,10 @@ in
 
   networking.hostName = "mandragora-usb";
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   nixpkgs.config.allowUnfree = true;
 
@@ -35,7 +38,10 @@ in
 
   users.users.m = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" ];
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+    ];
     shell = pkgs.zsh;
     initialPassword = "mandragora";
   };
@@ -45,18 +51,20 @@ in
   programs.tmux.enable = true;
   programs.nix-ld.enable = true;
 
-  environment.systemPackages = (with pkgs; [
-    networkmanager
-    pciutils
-    usbutils
-    parted
-    gptfdisk
-    dosfstools
-    e2fsprogs
-    util-linux
-    nixos-install-tools
-    nodejs_22
-  ]) ++ [ installScripts ];
+  environment.systemPackages =
+    (with pkgs; [
+      networkmanager
+      pciutils
+      usbutils
+      parted
+      gptfdisk
+      dosfstools
+      e2fsprogs
+      util-linux
+      nixos-install-tools
+      nodejs_22
+    ])
+    ++ [ installScripts ];
 
   environment.variables.npm_config_prefix = "/persist/npm-global";
   environment.sessionVariables.PATH = [ "/persist/npm-global/bin" ];
@@ -66,7 +74,10 @@ in
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
-    path = with pkgs; [ nodejs_22 coreutils ];
+    path = with pkgs; [
+      nodejs_22
+      coreutils
+    ];
     serviceConfig = {
       Type = "oneshot";
       User = "m";
@@ -92,7 +103,10 @@ in
   fileSystems."/persist" = {
     device = "/dev/disk/by-label/mandragora-persist";
     fsType = "ext4";
-    options = [ "nofail" "x-systemd.device-timeout=10" ];
+    options = [
+      "nofail"
+      "x-systemd.device-timeout=10"
+    ];
   };
 
   systemd.tmpfiles.rules = [

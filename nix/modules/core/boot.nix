@@ -4,10 +4,9 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  boot.loader.systemd-boot.extraInstallCommands = builtins.replaceStrings
-    [ "@coreutils@" "@gnused@" ]
-    [ "${pkgs.coreutils}" "${pkgs.gnused}" ]
-    (builtins.readFile ./systemd-boot-generation-labels.sh);
+  boot.loader.systemd-boot.extraInstallCommands =
+    builtins.replaceStrings [ "@coreutils@" "@gnused@" ] [ "${pkgs.coreutils}" "${pkgs.gnused}" ]
+      (builtins.readFile ./systemd-boot-generation-labels.sh);
 
   boot.initrd.systemd.enable = true;
 
@@ -28,8 +27,12 @@
 
   boot.blacklistedKernelModules = [ "sp5100_tco" ];
 
-  boot.kernelModules = [ "i2c_piix4" "i2c_dev" "v4l2loopback" ];
+  boot.kernelModules = [
+    "i2c_piix4"
+    "i2c_dev"
+    "v4l2loopback"
+  ];
   boot.extraModulePackages = [ config.boot.kernelPackages.v4l2loopback ];
-  
+
   boot.extraModprobeConfig = builtins.readFile ../../snippets/v4l2loopback-modprobe.conf;
 }

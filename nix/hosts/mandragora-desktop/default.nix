@@ -70,7 +70,11 @@ in
   mandragora.gdrive.enable = true;
   mandragora.ai.agentic.enable = true;
   mandragora.ai.aux.enable = true;
-  mandragora.ai.extraModels = [ models.gemma models.secondary models.embeddings ];
+  mandragora.ai.extraModels = [
+    models.gemma
+    models.secondary
+    models.embeddings
+  ];
   services.mandragora-seafile.enable = true;
   mandragora.claudecodebrowser.enable = true;
 
@@ -80,7 +84,10 @@ in
   time.timeZone = "America/Sao_Paulo";
   i18n.defaultLocale = "en_US.UTF-8";
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
   nix.settings.auto-optimise-store = true;
   services.dbus.implementation = "broker";
   services.irqbalance.enable = true;
@@ -98,6 +105,9 @@ in
     allowedClasses = [ ];
     secretBlacklist = "keystats/words_basicauth";
   };
-  mandragora.vtagWeb = { enable = true; targetDir = "/mnt/toshiba/hdd/gdrive/Levv/4chan"; };
+  mandragora.vtagWeb = {
+    enable = true;
+    targetDir = "/mnt/toshiba/hdd/gdrive/Levv/4chan";
+  };
   mandragora.emotionWeb.enable = true;
 }

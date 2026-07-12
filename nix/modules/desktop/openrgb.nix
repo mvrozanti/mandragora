@@ -5,7 +5,10 @@ let
     "ENE SMBus DRAM"
     "Gigabyte RGB Fusion 2 USB"
   ];
-  detectorAllowPatterns = [ "^ENE.*DRAM$" "^ENE.*$" ];
+  detectorAllowPatterns = [
+    "^ENE.*DRAM$"
+    "^ENE.*$"
+  ];
 
   scopeDetectorsPy = pkgs.writeText "openrgb-scope-detectors.py" ''
     import json, re, sys
@@ -61,7 +64,8 @@ let
     done
     ${pkgs.systemd}/bin/systemctl --user start rgb-restore.service || true
   '';
-in {
+in
+{
   services.hardware.openrgb = {
     enable = true;
     package = pkgs.openrgb-with-all-plugins;

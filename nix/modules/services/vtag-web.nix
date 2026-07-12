@@ -1,8 +1,13 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.mandragora.vtagWeb;
-  vtagPkgs = pkgs.callPackage ../../pkgs/vtag-cli.nix {};
+  vtagPkgs = pkgs.callPackage ../../pkgs/vtag-cli.nix { };
 in
 {
   options.mandragora.vtagWeb = {

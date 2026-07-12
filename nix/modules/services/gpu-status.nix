@@ -3,7 +3,8 @@
 let
   src = ../../../.local/share/gpu-status/gpu_status.py;
   gpuLock = ../../../.local/share/gpu-lock;
-in {
+in
+{
   mandragora.hub.services.gpu-status = {
     port = 6684;
     systemd = {

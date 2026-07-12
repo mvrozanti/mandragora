@@ -12,7 +12,10 @@
   p = "~/Projects";
   c = "~/.config";
   t = "~/.local/share/Trash";
-  "/" = { path = "/"; lfPrefix = "g"; };
+  "/" = {
+    path = "/";
+    lfPrefix = "g";
+  };
   d = "~/Downloads";
   D = "~/Documents";
   M = "~/Music";

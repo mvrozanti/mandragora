@@ -3,7 +3,12 @@
 let
   monitor-audio-follow = pkgs.writeShellApplication {
     name = "monitor-audio-follow";
-    runtimeInputs = with pkgs; [ pulseaudio hyprland jq coreutils ];
+    runtimeInputs = with pkgs; [
+      pulseaudio
+      hyprland
+      jq
+      coreutils
+    ];
     text = ''
       exec ${pkgs.python3}/bin/python3 ${../../snippets/monitor-audio-follow.py} "$@"
     '';
