@@ -1,0 +1,9 @@
+export UE_ROOT="${UE_ROOT:-/persistent/etc/UnrealEngine}"
+export PROJECT_ROOT="${PROJECT_ROOT:-$PWD}"
+export DOTNET_ROOT="@dotnet-sdk@/share/dotnet"
+export LD_LIBRARY_PATH="/run/opengl-driver/lib:/run/opengl-driver-32/lib:${LD_LIBRARY_PATH:-}"
+export VK_ICD_FILENAMES="/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.json"
+export __GL_THREADED_OPTIMIZATIONS=1
+export QT_QPA_PLATFORM=wayland
+export GDK_BACKEND=wayland
+export SDL_VIDEODRIVER=wayland

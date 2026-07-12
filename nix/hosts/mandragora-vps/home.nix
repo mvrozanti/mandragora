@@ -36,9 +36,7 @@
       tsstat = "tailscale status";
       tsip = "tailscale ip -4";
     };
-    initContent = ''
-      export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"
-    '';
+    initContent = builtins.readFile ../../snippets/vps-zsh-path.zsh;
   };
 
   programs.git = {

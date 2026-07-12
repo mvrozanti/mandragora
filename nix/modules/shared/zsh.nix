@@ -7,9 +7,7 @@ let cfg = config.mandragora; in {
     }
 
     (lib.mkIf (cfg.profile == "live") {
-      programs.zsh.shellInit = ''
-        export PS1='%F{cyan}mandragora-live%f:%~%# '
-      '';
+      programs.zsh.shellInit = builtins.readFile ../../snippets/zsh-live-prompt.zsh;
     })
   ];
 }

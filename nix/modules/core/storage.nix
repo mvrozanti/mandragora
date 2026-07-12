@@ -10,10 +10,7 @@
     "L+ /media - - - - /mnt"
   ];
 
-  services.udev.extraRules = ''
-    # Shared mounts for udisks2 (mount to /mnt instead of /run/media/$USER)
-    ENV{ID_FS_USAGE}=="filesystem", ENV{UDISKS_FILESYSTEM_SHARED}="1"
-  '';
+  services.udev.extraRules = builtins.readFile ../../snippets/udisks-shared-mounts.rules;
   fileSystems."/" = {
     device = "/dev/disk/by-label/NIXOS";
     fsType = "btrfs";

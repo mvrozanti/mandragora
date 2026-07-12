@@ -362,68 +362,7 @@ in
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "widget.gtk.native-context-menus" = false;
       };
-      userChrome = ''
-        menupopup,
-        panel,
-        .menupopup-arrowscrollbox {
-          background-color: rgba(0, 0, 0, 0.18) !important;
-          --panel-background: rgba(0, 0, 0, 0.18) !important;
-          --arrowpanel-background: rgba(0, 0, 0, 0.18) !important;
-          backdrop-filter: blur(20px);
-        }
-        menupopup menuitem,
-        menupopup menu {
-          background-color: transparent !important;
-          color: #ffffff !important;
-        }
-        menupopup menuitem[_moz-menuactive="true"],
-        menupopup menu[_moz-menuactive="true"] {
-          background-color: rgba(255, 255, 255, 0.15) !important;
-        }
-        menupopup menuseparator {
-          border-color: rgba(255, 255, 255, 0.15) !important;
-        }
-        #PopupAutoComplete,
-        #PopupAutoComplete .autocomplete-richlistbox,
-        #PopupAutoCompleteRichResult,
-        #PopupAutoCompleteRichResult .autocomplete-richlistbox,
-        #PopupSearchAutoComplete,
-        #PopupSearchAutoComplete .autocomplete-richlistbox {
-          background-color: rgba(0, 0, 0, 0.50) !important;
-          --panel-background: rgba(0, 0, 0, 0.50) !important;
-          --autocomplete-popup-background: rgba(0, 0, 0, 0.50) !important;
-          --urlbarView-background: rgba(0, 0, 0, 0.50) !important;
-        }
-        #statuspanel,
-        #statuspanel-inner,
-        #statuspanel-label {
-          appearance: none !important;
-          -moz-appearance: none !important;
-          background-color: rgba(20, 20, 24, 0.92) !important;
-          color: #ffffff !important;
-          backdrop-filter: blur(60px) saturate(1.8) !important;
-          border: 1px solid rgba(255, 255, 255, 0.08) !important;
-          border-radius: 8px !important;
-          padding: 3px 8px !important;
-          margin: 4px !important;
-          font-weight: 500 !important;
-        }
-        tooltip {
-          appearance: none !important;
-          -moz-appearance: none !important;
-          -moz-window-shadow: none !important;
-          background-color: rgba(20, 20, 24, 0.92) !important;
-          color: #ffffff !important;
-          backdrop-filter: blur(60px) saturate(1.8) !important;
-          border: 1px solid rgba(255, 255, 255, 0.08) !important;
-          border-radius: 8px !important;
-          padding: 4px 8px !important;
-        }
-        tooltip > .tooltip-label {
-          color: #ffffff !important;
-          background-color: transparent !important;
-        }
-      '';
+      userChrome = builtins.readFile ../../snippets/firefox-userchrome-default.css;
     };
     profiles.chess = {
       id = 2;
@@ -435,12 +374,7 @@ in
         "widget.wayland.vsync.enabled" = false;
         "gfx.webrender.compositor" = false;
       };
-      userChrome = ''
-        #TabsToolbar { visibility: collapse !important; }
-        #nav-bar { visibility: collapse !important; }
-        #sidebar-box { display: none !important; }
-        #titlebar { display: none !important; }
-      '';
+      userChrome = builtins.readFile ../../snippets/firefox-userchrome-kiosk.css;
     };
     profiles.whatsapp = {
       id = 1;
@@ -452,12 +386,7 @@ in
         "widget.wayland.vsync.enabled" = false;
         "gfx.webrender.compositor" = false;
       };
-      userChrome = ''
-        #TabsToolbar { visibility: collapse !important; }
-        #nav-bar { visibility: collapse !important; }
-        #sidebar-box { display: none !important; }
-        #titlebar { display: none !important; }
-      '';
+      userChrome = builtins.readFile ../../snippets/firefox-userchrome-kiosk.css;
     };
   };
 }

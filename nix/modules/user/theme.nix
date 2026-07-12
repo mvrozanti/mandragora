@@ -16,68 +16,8 @@
       name = "breeze-dark";
       package = pkgs.kdePackages.breeze-icons;
     };
-    gtk3.extraCss = ''
-      window.dialog,
-      window.dialog.background,
-      window.dialog.csd,
-      window.dialog.solid-csd,
-      window.dialog decoration,
-      window.dialog headerbar,
-      window.dialog .titlebar,
-      window.dialog box,
-      window.dialog grid,
-      window.dialog stack,
-      window.dialog scrolledwindow,
-      window.dialog viewport,
-      window.dialog notebook,
-      window.dialog paned,
-      window.dialog paned > separator,
-      filechooser,
-      filechooser box,
-      filechooser grid,
-      filechooser stack,
-      filechooser scrolledwindow,
-      filechooser viewport,
-      filechooser paned,
-      filechooser placessidebar,
-      filechooser placessidebar list,
-      filechooser placessidebar list row,
-      filechooser .view,
-      filechooser pathbar,
-      filechooser pathbar > box {
-        background-color: rgba(0, 0, 0, 0.4);
-        background-image: none;
-      }
-    '';
-    gtk4.extraCss = ''
-      window.dialog,
-      window.dialog.background,
-      window.dialog.csd,
-      window.dialog headerbar,
-      window.dialog .titlebar,
-      window.dialog windowhandle,
-      window.dialog box,
-      window.dialog grid,
-      window.dialog stack,
-      window.dialog scrolledwindow,
-      window.dialog viewport,
-      window.dialog paned,
-      filechooser,
-      filechooser box,
-      filechooser grid,
-      filechooser stack,
-      filechooser scrolledwindow,
-      filechooser viewport,
-      filechooser paned,
-      filechooser placessidebar,
-      filechooser placessidebar listview,
-      filechooser placessidebar listview row,
-      filechooser listview,
-      filechooser pathbar {
-        background-color: rgba(0, 0, 0, 0.4) !important;
-        background-image: none !important;
-      }
-    '';
+    gtk3.extraCss = builtins.readFile ../../snippets/gtk3-dialog-transparency.css;
+    gtk4.extraCss = builtins.readFile ../../snippets/gtk4-dialog-transparency.css;
   };
 
   qt = {
