@@ -149,8 +149,7 @@ via `sops`. Never write a plain-text secret into a `.nix` file. See
 ### Edit a Hyprland keybind / window rule / animation
 
 The Hyprland config is in `.config/hypr/`:
-- `.config/hypr/hyprland.conf` — primary config.
-- `.config/hypr/windowrules.conf` — window placement rules.
+- `.config/hypr/hyprland.conf` — primary config (keybinds, window rules, animations).
 
 It's loaded by `nix/modules/desktop/hyprland.nix` via `builtins.readFile`.
 After editing, reload Hyprland with `hyprctl reload` (no rebuild needed,
