@@ -1,5 +1,8 @@
 { pkgs, lib, ... }:
 
+let
+  tailnet = builtins.fromJSON (builtins.readFile ../../snippets/tailnet.json);
+in
 {
   services.victoriametrics = {
     enable = true;
@@ -19,7 +22,7 @@
           job_name = "node-vps";
           scrape_interval = "30s";
           static_configs = [ {
-            targets = [ "100.84.78.83:9100" ];
+            targets = [ "${tailnet.vps.ip}:9100" ];
             labels = { instance = "mandragora-vps"; };
           } ];
         }

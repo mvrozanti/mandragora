@@ -1,5 +1,8 @@
 { pkgs, ... }:
 
+let
+  tailnet = builtins.fromJSON (builtins.readFile ../../snippets/tailnet.json);
+in
 {
   services.tailscale = {
     enable = true;
@@ -7,7 +10,7 @@
     useRoutingFeatures = "client";
   };
 
-  networking.hosts."100.84.78.83" = [ "term.mvr.ac" "claude.mvr.ac" "mandragora-vps" ];
+  networking.hosts.${tailnet.vps.ip} = [ "term.mvr.ac" "claude.mvr.ac" "mandragora-vps" ];
 
   environment.systemPackages = [ pkgs.tailscale ];
 }
