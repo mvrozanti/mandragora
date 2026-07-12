@@ -2,7 +2,7 @@
 
 let
   port = 11435;
-  src = "/persistent/mandragora/.local/share/ollama-context-proxy/proxy.py";
+  src = ../../../.local/share/ollama-context-proxy/proxy.py;
   pyEnv = pkgs.python3.withPackages (ps: [ ps.aiohttp ]);
   systemPromptFile = pkgs.writeText "mvr-system-prompt.txt" (builtins.readFile ../../../AGENTS.md);
 in {

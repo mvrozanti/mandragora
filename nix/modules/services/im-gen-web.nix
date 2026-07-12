@@ -3,6 +3,7 @@
 let
   repo = "/home/m/Projects/im-gen";
   webApp = "${repo}/webui/app.py";
+  gpuLock = ../../../.local/share/gpu-lock;
 
   launcher = pkgs.writeShellScript "im-gen-web-launch" ''
     set -euo pipefail
@@ -46,7 +47,7 @@ let
       export CIVITAI_TOKEN="$(cat "$CIVITAI_SECRET_PATH")"
     fi
 
-    export PYTHONPATH="${repo}/webui:/etc/nixos/mandragora/.local/share/gpu-lock''${PYTHONPATH:+:$PYTHONPATH}"
+    export PYTHONPATH="${repo}/webui:${gpuLock}''${PYTHONPATH:+:$PYTHONPATH}"
     export CC="${pkgs.gcc}/bin/gcc"
     export CXX="${pkgs.gcc}/bin/g++"
 

@@ -7,7 +7,7 @@ let
     rev = "711fba0f8140f10f01405dd89e8ba182f1de237b";
     sha256 = "sha256-MyyoPGklxu1LZS6vn1h4FOFJOcoYfycowknV4mQXU+M=";
   };
-  gpuLockRoot = "/etc/nixos/mandragora/.local/share/gpu-lock";
+  gpuLockRoot = ../../.local/share/gpu-lock;
   botPython = import ./bot-python.nix { inherit pkgs; };
 
   vtag = pkgs.writeShellApplication {
