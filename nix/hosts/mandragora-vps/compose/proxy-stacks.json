@@ -1,0 +1,82 @@
+{
+  "_note": "Manifest for the label-only reverse-proxy shim stacks. Consumed by generate-proxy-stacks.py, which rewrites each compose/<name>/docker-compose.yml in place. Upstream host keys resolve against ../../../snippets/tailnet.json. Run the generator after editing; audit check 11-proxy-stacks gates drift.",
+  "stacks": [
+    {
+      "name": "axon",
+      "kind": "authelia-simple",
+      "host": "axon",
+      "upstream_var": "AXON_UPSTREAM",
+      "upstream_host": "desktop",
+      "upstream_port": 7070,
+      "logging": false
+    },
+    {
+      "name": "kl",
+      "kind": "authelia-simple",
+      "host": "kl",
+      "upstream_var": "KL_UPSTREAM",
+      "upstream_host": "desktop",
+      "upstream_port": 6900,
+      "logging": true
+    },
+    {
+      "name": "music",
+      "kind": "authelia-simple",
+      "host": "music",
+      "upstream_var": "MUSIC_UPSTREAM",
+      "upstream_host": "desktop",
+      "upstream_port": 8094,
+      "logging": true
+    },
+    {
+      "name": "vtag",
+      "kind": "authelia-simple",
+      "host": "vtag",
+      "upstream_var": "VTAG_UPSTREAM",
+      "upstream_host": "desktop",
+      "upstream_port": 8093,
+      "logging": true
+    },
+    {
+      "name": "stt",
+      "kind": "authelia-simple",
+      "host": "stt",
+      "upstream_var": "STT_UPSTREAM",
+      "upstream_host": "desktop",
+      "upstream_port": 8091,
+      "request_body_max_size": "200MB",
+      "logging": false
+    },
+    {
+      "name": "semantic",
+      "kind": "authelia-split",
+      "host": "semantic",
+      "comment": [
+        "Reverse-proxy-only stack. semantic.mvr.ac is gated behind authelia and",
+        "forwarded over tailscale to the visualizer running on mandragora-desktop",
+        "({desktop}): the static frontend on :3001 and the FastAPI backend on",
+        ":8000. /api/* is stripped and routed to the backend; everything else to",
+        "the frontend. The backend runs LLM inference on the desktop GPU, so the",
+        "authelia gate (two_factor) is mandatory — never expose this unauthenticated."
+      ],
+      "api_upstream_var": "SEMANTIC_API_UPSTREAM",
+      "api_upstream_host": "desktop",
+      "api_upstream_port": 8000,
+      "web_upstream_var": "SEMANTIC_WEB_UPSTREAM",
+      "web_upstream_host": "desktop",
+      "web_upstream_port": 3001,
+      "logging": false
+    },
+    {
+      "name": "cv-es",
+      "kind": "basic-auth",
+      "host": "cv-es",
+      "basic_auth_user": "edgard",
+      "basic_auth_var": "CV_ES_BCRYPT",
+      "upstream_var": "CV_ES_UPSTREAM",
+      "upstream_host": "desktop",
+      "upstream_port": 7691,
+      "logging": false
+    }
+  ]
+}
