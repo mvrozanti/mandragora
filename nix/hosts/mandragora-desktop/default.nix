@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 let
   models = builtins.fromJSON (builtins.readFile ../../snippets/local-llm-models.json);
