@@ -1,6 +1,7 @@
 { osConfig, pkgs, lib, ... }:
 
 let
+  tailnet = builtins.fromJSON (builtins.readFile ../../snippets/tailnet.json);
   botPython = import ../../pkgs/bot-python.nix { inherit pkgs; };
   teacherPython = import ../../pkgs/teacher-python.nix { inherit pkgs; };
   llmViaTelegramRoot = "/home/m/Projects/llm-via-telegram";
@@ -155,7 +156,7 @@ in
       Environment = [
         "PATH=${pkgs.axon}/bin:/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin:/home/m/.local/bin"
         "AXON_STATE_DIR=${axonState}"
-        "AXON_BIND_HOST=100.115.80.79"
+        "AXON_BIND_HOST=${tailnet.desktop.ip}"
         "AXON_BIND_PORT=7070"
       ];
       Restart = "on-failure";
@@ -185,7 +186,7 @@ in
       Environment = [
         "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin:/home/m/.local/bin"
         "AXON_WEB_STATE_DIR=${axonWebState}"
-        "AXON_WEB_HOST=100.115.80.79"
+        "AXON_WEB_HOST=${tailnet.desktop.ip}"
         "AXON_WEB_PORT=8081"
         "AXON_UPSTREAM=http://127.0.0.1:7070"
         "AXON_WEB_ROOT=${axonWebRepo}/dist"
@@ -329,7 +330,7 @@ in
         "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
         "INT_DB=${intState}/int.db"
         "INT_BOARDS=int,pol"
-        "INT_API_HOST=100.115.80.79"
+        "INT_API_HOST=${tailnet.desktop.ip}"
         "INT_API_PORT=2718"
       ];
       Restart = "always";

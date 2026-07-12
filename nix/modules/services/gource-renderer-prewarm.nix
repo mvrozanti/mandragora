@@ -1,8 +1,9 @@
 { pkgs, ... }:
 
 let
-  desktopUrl = "http://100.115.80.79:9991";
-  vpsHost = "opc@100.84.78.83";
+  tailnet = builtins.fromJSON (builtins.readFile ../../snippets/tailnet.json);
+  desktopUrl = "http://${tailnet.desktop.ip}:9991";
+  vpsHost = "opc@${tailnet.vps.ip}";
   vpsCacheDir = "/home/opc/gource/cache";
   prewarmScript = pkgs.writeShellScript "gource-prewarm.sh" ''
     set -euo pipefail
