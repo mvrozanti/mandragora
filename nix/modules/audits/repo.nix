@@ -19,6 +19,7 @@ let
       pkgs.bash
       pkgs.statix
       pkgs.deadnix
+      pkgs.shellcheck
     ]}:$PATH
     exec ${pkgs.bash}/bin/bash "$AUDIT_HOME/audit.sh" "$@"
   '';

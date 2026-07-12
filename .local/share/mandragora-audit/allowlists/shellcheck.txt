@@ -1,0 +1,46 @@
+# Shell scripts grandfathered past check 10 (shellcheck, severity warning+)
+# at audit landing time. Each entry is an exact path from repo root.
+# The check gates NEW scripts; these carry pre-existing findings whose
+# burn-down is future work. Fix a script, then drop its line here.
+#
+# The audit's own check scripts and lib live here because the dispatcher
+# sources them without a shebang (bash "$check"), which shellcheck flags
+# as SC2148; that is by design, not a bug to fix.
+.local/bin/ait.sh
+.local/bin/bonsai.sh
+.local/bin/center-window.sh
+.local/bin/cycle-audio-output.sh
+.local/bin/eit.sh
+.local/bin/lipsum.sh
+.local/bin/mandragora-diff-last.sh
+.local/bin/mandragora-diff.sh
+.local/bin/mandragora-switch.sh
+.local/bin/mt5-bootstrap.sh
+.local/bin/mt5-headless.sh
+.local/bin/mt5-server.sh
+.local/bin/mvnexec.sh
+.local/bin/oracle-hosts-inject.sh
+.local/bin/pentr.sh
+.local/bin/pop.sh
+.local/bin/qit.sh
+.local/bin/rofi-capture-menu.sh
+.local/bin/rofi-run.sh
+.local/bin/sit.sh
+.local/bin/spawn-claude-tmux.sh
+.local/bin/theme-engine.sh
+.local/bin/vm-usb-prep.sh
+.local/share/mandragora-audit/audit.sh
+.local/share/mandragora-audit/checks/01-no-extraconfig.sh
+.local/share/mandragora-audit/checks/02-doc-links.sh
+.local/share/mandragora-audit/checks/03-conventional-commits.sh
+.local/share/mandragora-audit/checks/04-hyprland-config.sh
+.local/share/mandragora-audit/checks/05-hub-tile.sh
+.local/share/mandragora-audit/checks/06-no-projects-in-local-share.sh
+.local/share/mandragora-audit/checks/07-language-purity.sh
+.local/share/mandragora-audit/checks/08-statix.sh
+.local/share/mandragora-audit/checks/09-deadnix.sh
+.local/share/mandragora-audit/checks/10-shellcheck.sh
+.local/share/mandragora-audit/lib/common.sh
+nix/snippets/recent-files-scrub.sh
+nix/snippets/waybar-bluetooth.sh
+nix/snippets/waybar-brightness.sh
