@@ -4,7 +4,7 @@ os = require("os")
 buffer = RenderTarget:new()
 
 function get_notification()
-    cmd = "dunstctl history | jq '.data[0][0].timestamp.data'"
+    cmd = "swaync-client -c"
     handle = assert(io.popen(cmd, 'r'))
     notification = handle:read("*line")
     handle:close()
