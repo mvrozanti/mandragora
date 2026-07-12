@@ -46,9 +46,9 @@ Full common-tasks reference and aliases: [`docs/workflow.md`](docs/workflow.md).
 ## Audits
 
 A deterministic, errors-only shell suite (`mandragora-audit`) enforces the
-repo invariants — language purity, no comments, doc-link integrity, hub
-tiles, hyprland syntax — as a pre-commit gate. Detail:
-[`docs/audits.md`](docs/audits.md).
+repo invariants — language purity, doc-link integrity, hub tiles, hyprland
+syntax, `nixfmt-rfc-style` formatting, shellcheck, and more — as a
+pre-commit gate. Detail: [`docs/audits.md`](docs/audits.md).
 
 ## Docs
 

@@ -357,12 +357,13 @@ locally:
   shell suite at `.local/share/mandragora-audit/` that enforces the AGENTS.md
   non-negotiables mechanically (no-extraconfig, doc-links, conventional-commits,
   hyprland-config, hub-tile, no-projects-in-local-share, language-purity,
-  statix, deadnix, shellcheck). It runs on staged files via the pre-commit/commit-msg
-  hooks and in full before `mandragora-switch` stages. Full reference:
-  [`./audits.md`](./audits.md).
+  statix, deadnix, shellcheck, proxy-stacks, nixfmt). It runs on staged files
+  via the pre-commit/commit-msg hooks and in full before `mandragora-switch`
+  stages. Full reference: [`./audits.md`](./audits.md).
 - **Flake build guards (`checks`)** — `flake.nix` exposes `checks.<system>`
-  (closure-size, profile-eval, sops-key guards from
-  `nix/modules/shared/build-checks.nix`) that fail evaluation on regressions.
+  (closure-size, profile-eval, sops-key, hyprland-config, usb-install-bats
+  guards from `nix/modules/shared/build-checks.nix`) that fail evaluation on
+  regressions.
 - **USB installer tests** — five `bats` suites under
   `nix/hosts/mandragora-usb/tests/install/` (`test_detect`, `test_format`,
   `test_install`, `test_lib`, `test_render_config`) cover the install scripts.
