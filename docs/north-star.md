@@ -51,13 +51,3 @@ group.
    set. Pick a destination (bigger VPS volume, off-site object store, or
    local cold disk) and wire the remaining tiers to the same restic
    pattern.
-
-4. **Migrate `rgb-control` state off the live repo path.**
-   The service code now loads from the store — every `ExecStart` points
-   at a store path, no running unit executes from
-   `/persistent/mandragora/...`. The one residual writer is
-   `rgb-control`: `.local/share/rgb-control/rgb-control.py` (lines 55–56)
-   still hardcodes `STATE_DIR = /persistent/mandragora/.local/share/rgb-control`
-   and writes `state.json` there. Point it at an XDG state dir (or
-   `/persistent/rgb-control/`) so a mid-rebase repo or worktree checkout
-   can't shift where runtime state lands.
