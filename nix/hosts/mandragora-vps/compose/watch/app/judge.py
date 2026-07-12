@@ -26,6 +26,13 @@ USER_AGENT = os.environ.get(
 
 VERDICTS = {"GO", "MAYBE", "NO"}
 
+QUOTA_SIGNALS = ("quota", "rate limit", "rate-limit", "resource_exhausted", "too many requests")
+
+
+class QuotaExceeded(RuntimeError):
+    pass
+
+
 SYSTEM_PROMPT = (
     "You are a strict relevance judge for a notification pipeline. "
     "Given a target spec (what the user actually cares about), a candidate event, "
@@ -184,7 +191,10 @@ async def judge_event(ai_spec: str, event: dict[str, Any]) -> tuple[str, str]:
     async with httpx.AsyncClient(timeout=OLLAMA_TIMEOUT) as c:
         r = await c.post(f"{OLLAMA_URL}/api/generate", json=payload)
     if r.status_code >= 400:
-        raise RuntimeError(f"ollama http {r.status_code}: {r.text[:300]}")
+        body = r.text[:300]
+        if r.status_code == 429 or any(sig in body.lower() for sig in QUOTA_SIGNALS):
+            raise QuotaExceeded(f"ollama http {r.status_code}: {body}")
+        raise RuntimeError(f"ollama http {r.status_code}: {body}")
     doc = r.json()
     text = doc.get("response") or ""
     if not text:
@@ -210,6 +220,9 @@ async def judge_pending(conn_factory) -> dict[str, int]:
     for r in rows:
         try:
             verdict, reason = await judge_event(r["w_spec"], dict(r))
+        except QuotaExceeded as exc:
+            log.warning("judge quota exceeded, deferring batch: %s", exc)
+            break
         except Exception as exc:
             stats["errors"] += 1
             log.warning("judge error event_id=%s: %s", r["id"], exc)
