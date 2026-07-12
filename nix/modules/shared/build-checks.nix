@@ -61,6 +61,32 @@ let
       (lib.range 0 15)
   );
 
+  usbInstallBatsGuard = pkgs.runCommand "usb-install-bats-guard-excludes-test_detect" {
+    nativeBuildInputs = [
+      pkgs.bats
+      pkgs.coreutils
+      pkgs.gnugrep
+      pkgs.gawk
+      pkgs.gnused
+    ];
+  } ''
+    export HOME="$TMPDIR"
+    ${pkgs.coreutils}/bin/cp -r ${self}/nix/hosts/mandragora-usb usb
+    ${pkgs.coreutils}/bin/chmod -R u+w usb
+    ${pkgs.coreutils}/bin/chmod +x usb/install/*.sh
+    cd usb/tests/install
+    rc=0
+    for suite in test_lib test_format test_render_config test_install; do
+      echo "===== $suite ====="
+      ${pkgs.bats}/bin/bats "$suite.bats" || rc=1
+    done
+    if [ "$rc" -ne 0 ]; then
+      echo "FAIL: usb installer bats suites failed" >&2
+      exit 1
+    fi
+    touch $out
+  '';
+
   hyprlandConfigGuard = pkgs.runCommand "hyprland-config-guard" {
     nativeBuildInputs = [ pkgs.hyprland ];
   } ''
@@ -85,5 +111,5 @@ let
   '';
 in
 {
-  inherit closureSizeGuard sopsKeyGuard profileEvalGuard hyprlandConfigGuard;
+  inherit closureSizeGuard sopsKeyGuard profileEvalGuard hyprlandConfigGuard usbInstallBatsGuard;
 }

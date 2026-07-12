@@ -147,6 +147,7 @@
           profile-eval = guards.profileEvalGuard;
           usb-sops-key = guards.sopsKeyGuard;
           hyprland-config = guards.hyprlandConfigGuard;
+          usb-install-bats = guards.usbInstallBatsGuard;
         };
 
       homeConfigurations."m@mandragora-vps" = home-manager.lib.homeManagerConfiguration {
