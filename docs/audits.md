@@ -61,6 +61,8 @@ the audit's `/nix/store` derivation.
 | 08 | `statix` | — | statix antipatterns in changed `.nix` files; skips unparseable files. Config in `statix.toml`. |
 | 09 | `deadnix` | — | Dead code (unused `let` bindings / lambda args) in changed `.nix` files. |
 | 10 | `shellcheck` | — | shellcheck findings (severity warning+) in changed shell scripts — `.sh` under `.local/bin/`, `.local/share/`, `nix/snippets/`, `docs/install/`, `agent-skills/`, plus extensionless executables with a bash/sh shebang; skips when shellcheck absent. Allowlist: `allowlists/shellcheck.txt` (paths from repo root). |
+| 11 | `proxy-stacks` | — | Hand-edited docker-proxy compose files under `nix/hosts/mandragora-vps/compose/` that no longer match `generate-proxy-stacks.py --check` against `proxy-stacks.json`; skips when the generator, manifest, or python3 is absent. |
+| 12 | `nixfmt` | — | Changed `.nix` files not formatted by `nixfmt-rfc-style`; skips when nixfmt absent. No allowlist — the whole tree is formatted, so there are no grandfather cases. |
 
 ## Adding a check
 

@@ -56,7 +56,7 @@ already wrong today; everything else is drift.
 6. **Refresh [`architecture.md`](architecture.md).**
    It claims "single host" (line 3) while the flake ships four
    (desktop, wsl, usb, vps), and "There is no test suite" (line 287)
-   while `mandragora-audit` runs nine checks and the USB installer has
+   while `mandragora-audit` runs twelve checks and the USB installer has
    five bats suites. The module inventory predates several directories.
    This is the first doc an agent loads for structure; wrong claims
    here propagate.
@@ -98,7 +98,7 @@ already wrong today; everything else is drift.
 13. **Adopt a Nix formatter.**
     No `formatter` output in the flake, no format gate in the audit.
     Pick `nixfmt-rfc-style` (or alejandra), format the tree once, add
-    check `11-format`. Ends per-agent style drift at the source.
+    check `12-nixfmt`. Ends per-agent style drift at the source.
 
 14. **Burn down the language-purity allowlist.**
     `.local/share/mandragora-audit/allowlists/language-purity.txt`

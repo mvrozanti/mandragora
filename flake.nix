@@ -37,7 +37,17 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, sops-nix, impermanence, nixos-generators, nixos-wsl, ... }@inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      sops-nix,
+      impermanence,
+      nixos-generators,
+      nixos-wsl,
+      ...
+    }@inputs:
     let
       system = "x86_64-linux";
       inherit (nixpkgs) lib;
@@ -45,7 +55,8 @@
       hostsDir = ./nix/hosts;
 
       autoHostNames = builtins.attrNames (
-        lib.filterAttrs (name: type:
+        lib.filterAttrs (
+          name: type:
           type == "directory"
           && builtins.pathExists (hostsDir + "/${name}/default.nix")
           && name != "mandragora-usb"
@@ -60,26 +71,36 @@
         ./nix/modules/shared/zsh.nix
         ./nix/modules/shared/nvim.nix
         ./nix/modules/shared/overlays.nix
-        (let rev = self.rev or self.dirtyRev or "dirty"; in {
-          system.configurationRevision = rev;
-          system.systemBuilderCommands = ''
-            echo -n "${rev}" > $out/git-revision
-          '';
-        })
+        (
+          let
+            rev = self.rev or self.dirtyRev or "dirty";
+          in
+          {
+            system.configurationRevision = rev;
+            system.systemBuilderCommands = ''
+              echo -n "${rev}" > $out/git-revision
+            '';
+          }
+        )
       ];
 
-      mkSystem = name: nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = { inherit inputs; };
-        modules = sharedModules ++ [
-          (hostsDir + "/${name}/default.nix")
-          home-manager.nixosModules.home-manager
-          sops-nix.nixosModules.sops
-          impermanence.nixosModules.impermanence
-        ] ++ lib.optional
-          (builtins.pathExists (hostsDir + "/${name}/hardware-configuration.nix"))
-          (hostsDir + "/${name}/hardware-configuration.nix");
-      };
+      mkSystem =
+        name:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = { inherit inputs; };
+          modules =
+            sharedModules
+            ++ [
+              (hostsDir + "/${name}/default.nix")
+              home-manager.nixosModules.home-manager
+              sops-nix.nixosModules.sops
+              impermanence.nixosModules.impermanence
+            ]
+            ++ lib.optional (builtins.pathExists (hostsDir + "/${name}/hardware-configuration.nix")) (
+              hostsDir + "/${name}/hardware-configuration.nix"
+            );
+        };
 
       autoConfigs = lib.genAttrs autoHostNames mkSystem;
     in
@@ -126,23 +147,31 @@
 
       devShells.${system}.ue5 =
         (import ./nix/pkgs/ue5/env.nix {
-          pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+          };
         }).devShell;
 
       apps.${system}.refiner = {
         type = "app";
-        program = "${(import ./nix/pkgs/refiner/default.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
-          usbImage = self.packages.${system}.usbImage;
-        })}/bin/refiner";
+        program = "${
+          (import ./nix/pkgs/refiner/default.nix {
+            pkgs = nixpkgs.legacyPackages.${system};
+            usbImage = self.packages.${system}.usbImage;
+          })
+        }/bin/refiner";
       };
+
+      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-rfc-style;
 
       checks.${system} =
         let
           guards = import ./nix/modules/shared/build-checks.nix {
             inherit self nixpkgs system;
           };
-        in {
+        in
+        {
           usb-closure-size = guards.closureSizeGuard;
           profile-eval = guards.profileEvalGuard;
           usb-sops-key = guards.sopsKeyGuard;
