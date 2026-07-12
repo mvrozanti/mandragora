@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 let
-  src = "/persistent/mandragora/.local/share/rgb-control/rgb-control.py";
+  src = ../../../.local/share/rgb-control/rgb-control.py;
   pyEnv = pkgs.python3.withPackages (ps: [ ps.aiohttp ps.openrgb-python ]);
   recoverScript = pkgs.writeShellScript "rgb-control-recover-keyleds" ''
     set +e
