@@ -35,15 +35,11 @@ in
     (pkgs.writeTextFile {
       name = "keyleds-keyd-uaccess-rules";
       destination = "/etc/udev/rules.d/65-keyleds-keyd.rules";
-      text = ''
-        KERNEL=="event*", SUBSYSTEM=="input", ATTRS{name}=="keyd virtual keyboard", TAG+="uaccess"
-      '';
+      text = builtins.readFile ../../snippets/keyd-virtual-keyboard-uaccess.rules;
     })
   ];
 
-  services.udev.extraRules = ''
-    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c339", MODE="0660", TAG+="uaccess"
-  '';
+  services.udev.extraRules = builtins.readFile ../../snippets/keyledsd-hidraw-uaccess.rules;
 
   systemd.user.services.keyledsd = {
     description = "Keyleds RGB keyboard daemon";
