@@ -24,5 +24,5 @@ Mandragora uses `sops-nix` for its native integration with the NixOS module syst
 - **NEVER** propose a Nix module that contains a string like `password = "123456";`.
 - **ALWAYS** check for the existence of a corresponding `sops.secrets` entry before configuring a service that requires authentication.
 
-## 6. Key Recovery (The "Lifeboat")
+## 5. Key Recovery (The "Lifeboat")
 A master `age` key must be stored in physical "Cold Storage" (e.g., a paper backup or a dedicated USB in a safe) to prevent total lockout if all machines are lost.
