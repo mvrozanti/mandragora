@@ -16,12 +16,10 @@
   environment.etc."machine-id".source = "/persistent/etc/machine-id";
   environment.etc."nixos/mandragora".source = "/persistent/mandragora";
 
-  system.activationScripts.purgeBogusCredentialSecret = ''
-    if [ -f /persistent/var/lib/systemd/credential.secret ] && \
-       [ "$(${pkgs.coreutils}/bin/stat -c %s /persistent/var/lib/systemd/credential.secret)" = "4096" ]; then
-      ${pkgs.coreutils}/bin/rm -f /persistent/var/lib/systemd/credential.secret
-    fi
-  '';
+  system.activationScripts.purgeBogusCredentialSecret = builtins.replaceStrings
+    [ "@coreutils@" ]
+    [ "${pkgs.coreutils}" ]
+    (builtins.readFile ./purge-bogus-credential-secret.sh);
 
   environment.persistence."/persistent" = {
     hideMounts = true;

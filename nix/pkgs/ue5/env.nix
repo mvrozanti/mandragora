@@ -101,39 +101,16 @@ let
     name = "ue5-fhs";
     targetPkgs = _: buildTools ++ runtimeLibs;
     multiPkgs = _: runtimeLibs;
-    profile = ''
-      export UE_ROOT="''${UE_ROOT:-/persistent/etc/UnrealEngine}"
-      export PROJECT_ROOT="''${PROJECT_ROOT:-$PWD}"
-      export DOTNET_ROOT="${pkgs.dotnet-sdk_8}/share/dotnet"
-      export LD_LIBRARY_PATH="/run/opengl-driver/lib:/run/opengl-driver-32/lib:''${LD_LIBRARY_PATH:-}"
-      export VK_ICD_FILENAMES="/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.json"
-      export __GL_THREADED_OPTIMIZATIONS=1
-      export QT_QPA_PLATFORM=wayland
-      export GDK_BACKEND=wayland
-      export SDL_VIDEODRIVER=wayland
-    '';
+    profile = builtins.replaceStrings
+      [ "@dotnet-sdk@" ]
+      [ "${pkgs.dotnet-sdk_8}" ]
+      (builtins.readFile ./fhs-profile.sh);
     runScript = "bash";
   };
 
-  discoverUproject = ''
-    if [ -z "''${UPROJECT:-}" ]; then
-      shopt -s nullglob
-      candidates=("''${PROJECT_ROOT:?PROJECT_ROOT not set}"/*.uproject)
-      shopt -u nullglob
-      if [ ''${#candidates[@]} -eq 0 ]; then
-        echo "error: no *.uproject in $PROJECT_ROOT (set UPROJECT to override)" >&2
-        exit 1
-      fi
-      UPROJECT="''${candidates[0]}"
-    fi
-  '';
+  discoverUproject = builtins.readFile ./discover-uproject.sh;
 
-  discoverTarget = ''
-    if [ -z "''${UE_TARGET:-}" ]; then
-      base="$(basename "$UPROJECT" .uproject)"
-      UE_TARGET="''${base}Editor"
-    fi
-  '';
+  discoverTarget = builtins.readFile ./discover-target.sh;
 
   mkScript = name: body: pkgs.writeShellScriptBin name body;
 

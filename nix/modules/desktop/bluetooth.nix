@@ -1,11 +1,6 @@
 { pkgs, lib, ... }:
 {
-  boot.extraModprobeConfig = ''
-    # Disable power saving features that cause Realtek/btusb choppiness
-    options btusb enable_autosuspend=0
-    options rtw89_pci disable_aspm=y
-    options rtw89_core disable_lps_deep=y
-  '';
+  boot.extraModprobeConfig = builtins.readFile ../../snippets/bluetooth-modprobe.conf;
 
   hardware.bluetooth = {
     enable = true;

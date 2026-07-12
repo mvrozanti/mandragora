@@ -120,9 +120,7 @@ in
       (pkgs.writeTextFile {
         name = "keystats-keyd-uaccess";
         destination = "/etc/udev/rules.d/66-keystats-keyd.rules";
-        text = ''
-          KERNEL=="event*", SUBSYSTEM=="input", ATTRS{name}=="keyd virtual keyboard", TAG+="uaccess"
-        '';
+        text = builtins.readFile ../../snippets/keyd-virtual-keyboard-uaccess.rules;
       })
     ];
 

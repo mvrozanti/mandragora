@@ -2,26 +2,7 @@
 # Each entry is path:line from repo root, or a bare path for the whole file.
 # Migrate to .config/<app>/ + builtins.readFile, then drop the line.
 flake.nix:65
-nix/hosts/mandragora-vps/home.nix:39
-nix/modules/core/boot.nix:51
-nix/modules/core/boot.nix:7
-nix/modules/core/impermanence.nix:19
 nix/modules/core/secrets.nix:102
 nix/modules/core/secrets.nix:95
-nix/modules/core/storage.nix:13
-nix/modules/desktop/bluetooth.nix:3
-nix/modules/desktop/keyledsd.nix:38
-nix/modules/desktop/keyledsd.nix:44
-nix/modules/desktop/keystats.nix:123
-nix/modules/desktop/rival-mouse.nix:4
-nix/modules/shared/zsh.nix:10
-nix/modules/user/home.nix:365
-nix/modules/user/home.nix:438
-nix/modules/user/home.nix:455
 nix/modules/user/terminal.nix:150
-nix/modules/user/theme.nix:19
-nix/modules/user/theme.nix:52
 nix/pkgs/refiner/default.nix:26
-nix/pkgs/ue5/env.nix:104
-nix/pkgs/ue5/env.nix:118
-nix/pkgs/ue5/env.nix:131

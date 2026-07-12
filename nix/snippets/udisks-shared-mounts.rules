@@ -1,0 +1,2 @@
+# Shared mounts for udisks2 (mount to /mnt instead of /run/media/$USER)
+ENV{ID_FS_USAGE}=="filesystem", ENV{UDISKS_FILESYSTEM_SHARED}="1"
