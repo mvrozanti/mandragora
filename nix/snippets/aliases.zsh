@@ -1,5 +1,3 @@
-alias -g la='eza -a'
-
 alias mv='mv -iv'
 alias cp='cp -riv'
 alias md='mkdir -vp'
@@ -130,7 +128,6 @@ alias cojqv-='co | jq | v -'
 alias cocurl='co | xargs curl -s'
 alias cocurll='co | xargs curl -s | less'
 alias cocd='eval "$(co)"'
-cocp.() { cp "$(co)" . }
 co2ip() { f=/tmp/co2i-$(date +%s).png; wl-paste --type image/png > "$f" && echo -n "$f" }
 co2ipc() { co2ip | c -n }
 co2nsxiv() { wl-paste --type image/png > /tmp/img; nsxiv /tmp/img }
@@ -138,9 +135,6 @@ alias cov='nvim "$(co)"'
 
 alias p='P | c -n'
 
-alias weather='curl -s wttr.in | head -n -1'
-alias W='curl -s v2.wttr.in | head -n -1'
-alias serve='python3 -m http.server 2717'
 alias getredir='curl -Ls -o /dev/null -w %{url_effective}'
 alias cu='curl'
 alias timecurl='curl -w "%{time_total}"'
@@ -183,7 +177,7 @@ alias GD='git daemon --base-path=. --export-all'
 alias gaca='git add .; git commit --amend'
 alias lg='lazygit'
 alias coga='co | git apply'
-gcm() { git commit -m "$*" }
+gcmm() { git commit -m "$*" }
 gca() { local msg="$*"; git add .; [[ -z $msg ]] && git commit -a || git commit -m "$msg" }
 gcap() { gca "$@" && git push }
 gacap() { gaca; git push -f "$@" }
@@ -192,8 +186,8 @@ gg() { git grep "$@" $(git rev-list --all) }
 gC() { git config pack.threads 1; git config pack.deltaCacheSize 1; git config core.packedGitWindowSize 16m; git config core.packedGitLimit 128m; git config pack.windowMemory 512m; git gc --aggressive; git prune }
 git-obliterate() { git filter-branch -f --index-filter "git rm -rf --cached --ignore-unmatch $@" HEAD }
 gdc() { git diff HEAD HEAD~1 }
-gcd() { [[ $# -eq 1 ]] && git diff "$1" }
-gd() { [[ "$#" -eq 1 ]] && git diff "$@" || { git ls-files -o --exclude-standard | xargs -I{} git add {} 2>/dev/null; git add .; git diff --staged; git reset 2>/dev/null } }
+gd1() { [[ $# -eq 1 ]] && git diff "$1" }
+gda() { [[ "$#" -eq 1 ]] && git diff "$@" || { git ls-files -o --exclude-standard | xargs -I{} git add {} 2>/dev/null; git add .; git diff --staged; git reset 2>/dev/null } }
 
 alias D='date "+%d-%m-%Y %H:%M"'
 alias whatisthis='uname -mrs'
@@ -201,21 +195,15 @@ alias H='cd -'
 alias poof='shutdown -h 0'
 alias ctl='systemctl'
 alias sctl='sudo systemctl'
-alias smv='sudo mv'
-alias srm='sudo rm'
-alias schmod='sudo chmod'
 alias schown='sudo chown'
 alias slns='sudo ln -s'
-alias sf='sudo find / -iname'
 alias fuck='sudo '
-alias ka='killall -I'
 alias pk='pkill'
 alias scan4sd='echo 1 | sudo tee /sys/bus/pci/rescan'
 alias top='btop'
 
 wpa() { watch "ps aux | grep \"$@\" | head -n -1" }
 
-alias g='grep -i'
 alias gv='grep -v'
 alias a='ag'
 alias ag='ag --search-binary --hidden --color'
@@ -228,7 +216,6 @@ alias t1='tail -n1'
 alias unquote="sed 's/^\"//g;s/\"$//g'"
 alias trdn='tr -d "\n"'
 alias base64='base64 -w0'
-alias e='echo'
 alias en='echo -n'
 append() { [[ "$#" -eq 2 ]] && grep -FIxvf "$2" "$1" | head -n -1 >> "$2" }
 urldecode() { echo "$@" | awk -niord '{printf RT?$0chr("0x"substr(RT,2)):$0}' RS=%.. }
@@ -269,7 +256,6 @@ aka() { grep "$@" /etc/hosts | cut -d' ' -f1 }
 throw() { local fp=$(realpath "$1" | cut -c9-); (cd "$HOME"; rsync -R "$fp" "$2":~) }
 sshasap() { while ! nc -z -w1 "$1" 22; do sleep 1; done; ssh "$1" }
 
-alias u='unp -U'
 alias unp='unp -U'
 Zt() { tar -czvf "$1.tar.gz" "${@:2}" }
 Zz() { [[ "$#" -ge 2 ]] && zip -r "$1.zip" "${@:2}" }
@@ -381,7 +367,6 @@ alias dcud='docker-compose up -d'
 alias dcd='docker-compose down'
 dbt() { docker build -t "$@" . }
 
-alias rh='runhaskell'
 alias tron='ssh sshtron.zachlatta.com'
 alias sdf='ssh mvrozanti@sdf.org'
 alias ecdsa='ssh-keygen -l -f /etc/ssh/ssh_host_ecdsa_key.pub'
@@ -397,11 +382,9 @@ alias sc='sc-im'
 lo() { libreoffice "$1" 2>&1 >/dev/null & }
 alias jn='jupyter notebook'
 alias showcolors='for a in {40..47}; do echo -ne "\e[0;30;${a}m  \e[0;37;39m "; done'
-alias diff='diff --color=auto'
 alias make-gource-mandragora='git --no-pager log --date=raw | grep -E "^\s+.+|Date" | sed -E "s/Date:\s+//g" | sed "N;s/\n//" | sed -E "s/(\S+)\s-\S+\s+(.+)/\1|\2/g" > caption_file'
 alias tls='task list'
 td() { [[ -n "$@" ]] && task "$@" delete }
-alias ta='task add'
 rpc() { realpath "$@" | c -n }
 
 sa() { awk -v name="$*" 'BEGIN{re="^(alias )?"name"(=|\\()"} $0~re{p=1;print;if($0~"^alias "||$0~"}.*;? *$")p=0;next} p{print;if($0~"^} *;? *$")p=0}' "${BASH_SOURCE[0]:-${(%):-%x}}" }
