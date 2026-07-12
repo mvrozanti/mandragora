@@ -25,6 +25,7 @@ Single LLM router. Every survivor doc is one hop from here.
 | Multi-agent file-rewrite hazard + recovery | [`multi-agent-safety.md`](multi-agent-safety.md) |
 | Local LLM migration checklist | [`model-migration.md`](model-migration.md) |
 | Repo-invariant test suite (mechanical rule enforcement) | [`audits.md`](audits.md) |
+| North Star (30-item improvement roadmap from full-repo audit) | [`north-star.md`](north-star.md) |
 | Incident Archive (post-mortems, root cause analysis) | [`incidents/`](incidents/) |
 
 ## Cross-cutting agent rules (outside repo)
