@@ -7,8 +7,8 @@ strays) — those audit the *running system*; this audits the *repo*
 before changes land.
 
 Anti-goal: no LLMs in the audit loop. Shell + standard CLI tools plus
-purpose-built linters (`statix`, `deadnix`, `hyprctl`); no interpreter
-or model in the loop. If a check needs judgment, it doesn't belong here.
+purpose-built linters (`statix`, `deadnix`, `shellcheck`, `hyprctl`);
+no interpreter or model in the loop. If a check needs judgment, it doesn't belong here.
 
 ## Layout
 
@@ -60,6 +60,7 @@ the audit's `/nix/store` derivation.
 | 07 | `language-purity` | R2 | New inline `''…''` non-Nix heredocs (and `extraConfig = "…"`) in `.nix` files, excluding build phases, `writeShellScript*` wrappers, and prose-metadata attrs. Allowlist: `allowlists/language-purity.txt` (`path` or `path:line`). |
 | 08 | `statix` | — | statix antipatterns in changed `.nix` files; skips unparseable files. Config in `statix.toml`. |
 | 09 | `deadnix` | — | Dead code (unused `let` bindings / lambda args) in changed `.nix` files. |
+| 10 | `shellcheck` | — | shellcheck findings (severity warning+) in changed shell scripts — `.sh` under `.local/bin/`, `.local/share/`, `nix/snippets/`, `docs/install/`, `agent-skills/`, plus extensionless executables with a bash/sh shebang; skips when shellcheck absent. Allowlist: `allowlists/shellcheck.txt` (paths from repo root). |
 
 ## Adding a check
 
@@ -83,7 +84,7 @@ the audit's `/nix/store` derivation.
 - Reading `secrets/` for validation — never. Use `sops` metadata
   if a secret-presence check is needed.
 - Python or other interpreters in the loop — shell + standard CLI
-  tools only; the sole compiled deps are the Nix linters `statix`
-  and `deadnix` (and `hyprctl` on desktop hosts).
+  tools only; the sole compiled deps are the linters `statix`,
+  `deadnix`, and `shellcheck` (and `hyprctl` on desktop hosts).
 - LLM-based checks. The whole point is to stop trusting agent
   self-reports; layering an LLM under that defeats it.
