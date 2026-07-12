@@ -321,7 +321,7 @@ def parse_mpv():
 
 
 def parse_waybar():
-    f = REPO / "modules/user/waybar.nix"
+    f = REPO / "nix/modules/user/waybar.nix"
     if not f.exists():
         return
     for i, raw in enumerate(f.read_text().splitlines(), 1):
