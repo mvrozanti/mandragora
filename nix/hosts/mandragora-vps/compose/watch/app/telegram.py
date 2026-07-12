@@ -348,7 +348,7 @@ async def _cmd_judge(conn_factory, args: list[str]) -> str:
     now = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     c = conn_factory()
     c.execute(
-        "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_judged_at = ? WHERE id = ?",
+        "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_judged_at = ?, ai_claimed_at = NULL WHERE id = ?",
         (verdict, reason[:500], now, eid),
     )
     c.close()
