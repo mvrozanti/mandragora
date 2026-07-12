@@ -1,6 +1,20 @@
+import json
 import os
 import sqlite3
 from pathlib import Path
+
+_MODELS_JSON = "/etc/nixos/mandragora/nix/snippets/local-llm-models.json"
+
+
+def _model_tag(role, fallback):
+    try:
+        with open(_MODELS_JSON) as fh:
+            return json.load(fh)[role]
+    except (OSError, KeyError, ValueError):
+        return fallback
+
+
+gemma_model = _model_tag("gemma", "gemma3:27b")
 
 data_dir = (
     Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "oterm-gemma"
@@ -37,7 +51,7 @@ if is_new:
     """)
     conn.execute(
         "INSERT INTO chat (name, model, system, format, keep_alive) VALUES (?, ?, ?, ?, ?)",
-        ("gemma", "gemma3:27b", "", "", 5),
+        ("gemma", gemma_model, "", "", 5),
     )
 
 try:

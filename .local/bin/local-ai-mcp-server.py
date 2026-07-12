@@ -5,8 +5,21 @@ import os
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
-GEMMA_MODEL = os.environ.get("MCP_GEMMA_MODEL", "gemma3:27b")
-UNCENSORED_MODEL = os.environ.get("MCP_UNCENSORED_MODEL", "huihui_ai/qwen2.5-abliterate:14b")
+_MODELS_JSON = "/etc/nixos/mandragora/nix/snippets/local-llm-models.json"
+
+
+def _model_tag(role, fallback):
+    try:
+        with open(_MODELS_JSON) as fh:
+            return json.load(fh)[role]
+    except (OSError, KeyError, ValueError):
+        return fallback
+
+
+GEMMA_MODEL = os.environ.get("MCP_GEMMA_MODEL", _model_tag("gemma", "gemma3:27b"))
+UNCENSORED_MODEL = os.environ.get(
+    "MCP_UNCENSORED_MODEL", _model_tag("uncensored", "huihui_ai/qwen2.5-abliterate:14b")
+)
 
 TOOLS = [
     {

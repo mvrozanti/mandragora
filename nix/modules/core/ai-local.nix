@@ -4,6 +4,8 @@ let
   cfg = config.mandragora.ai;
   gpu = config.mandragora.hardware.gpu;
 
+  models = builtins.fromJSON (builtins.readFile ../../snippets/local-llm-models.json);
+
   mkPythonBin = name: src:
     pkgs.stdenv.mkDerivation {
       inherit name;
@@ -61,7 +63,7 @@ in
       enable = lib.mkEnableOption "Local agentic LLM stack";
       model = lib.mkOption {
         type = lib.types.str;
-        default = "gpt-oss:20b";
+        default = models.agentic;
         description = "Ollama tag for the primary local model.";
       };
     };
@@ -74,7 +76,7 @@ in
       };
       model = lib.mkOption {
         type = lib.types.str;
-        default = "qwen2.5vl:7b";
+        default = models.vtag;
         description = "Ollama tag for the vtag VLM.";
       };
     };
@@ -83,7 +85,7 @@ in
       enable = lib.mkEnableOption "Pre-pull an uncensored / abliterated local model";
       model = lib.mkOption {
         type = lib.types.str;
-        default = "huihui_ai/qwen2.5-abliterate:14b";
+        default = models.uncensored;
         description = "Ollama tag for an uncensored / abliterated chat model.";
       };
     };

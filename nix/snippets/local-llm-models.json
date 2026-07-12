@@ -1,0 +1,8 @@
+{
+  "agentic": "gpt-oss:20b",
+  "vtag": "qwen2.5vl:7b",
+  "uncensored": "huihui_ai/qwen2.5-abliterate:14b",
+  "gemma": "gemma3:27b",
+  "secondary": "qwen3:14b",
+  "embeddings": "nomic-embed-text"
+}
