@@ -25,6 +25,7 @@ in
     ../../modules/core/oom-protection.nix
     ../../modules/core/nix-auto-update.nix
     ../../modules/core/tailscale.nix
+    ../../modules/core/docker.nix
     ../../modules/desktop/hyprland.nix
     ../../modules/desktop/input-method.nix
     ../../modules/desktop/sddm.nix
