@@ -44,18 +44,16 @@ let
     '';
   };
 
-  decayBin = pkgs.writeShellApplication {
-    name = "keystats-text-decay";
-    runtimeInputs = [ pkgs.sqlcipher pkgs.coreutils ];
+  retentionBin = pkgs.writeShellApplication {
+    name = "keystats-retention";
+    runtimeInputs = [ pkgs.sqlcipher ];
     text = ''
-      key=$(cat /run/secrets/keystats-text-db-key)
-      cutoff=$(( $(date +%s) - 30 * 86400 ))
-      ${pkgs.sqlcipher}/bin/sqlcipher /persistent/keystats/text.db <<SQL
-      PRAGMA key = "x'$key'";
-      PRAGMA cipher_compatibility = 4;
-      UPDATE word_count SET count = count / 2 WHERE last_seen < $cutoff;
-      DELETE FROM word_count WHERE count = 0;
-      SQL
+      export KEYSTATS_DB_KEY_FILE="''${KEYSTATS_DB_KEY_FILE:-/run/secrets/keystats-db-key}"
+      export KEYSTATS_DB_PATH="''${KEYSTATS_DB_PATH:-/persistent/keystats/stats.db}"
+      export KEYSTATS_RAW_RETENTION_DAYS="''${KEYSTATS_RAW_RETENTION_DAYS:-90}"
+      export KEYSTATS_WORD_DECAY_DAYS="''${KEYSTATS_WORD_DECAY_DAYS:-30}"
+      ${textEnvExports}
+      exec ${pyEnv}/bin/python3 ${../../snippets/keystats-retention.py} "$@"
     '';
   };
 in
@@ -96,8 +94,7 @@ in
   };
 
   config = {
-    environment.systemPackages = [ pkgs.sqlcipher captureBin webBin ]
-      ++ lib.optional textEnabled decayBin;
+    environment.systemPackages = [ pkgs.sqlcipher captureBin webBin retentionBin ];
 
     sops.secrets = {
       "keystats/db_key" = {
@@ -155,24 +152,29 @@ in
       };
     };
 
-    systemd.user.services.keystats-text-decay = lib.mkIf textEnabled {
-      description = "nightly decay of keystats text.db word counts";
+    systemd.user.services.keystats-retention = {
+      description = "keystats retention: roll up + prune raw events >90d, decay word counts";
+      after = [ "sops-nix.service" ];
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${decayBin}/bin/keystats-text-decay";
+        ExecStart = "${retentionBin}/bin/keystats-retention";
         ReadWritePaths = [ "/persistent/keystats" ];
         ProtectHome = "read-only";
         PrivateTmp = true;
         NoNewPrivileges = true;
+        RestrictAddressFamilies = "AF_UNIX";
+        MemoryMax = "256M";
+        MemorySwapMax = "0";
       };
     };
 
-    systemd.user.timers.keystats-text-decay = lib.mkIf textEnabled {
-      description = "trigger nightly keystats text decay";
+    systemd.user.timers.keystats-retention = {
+      description = "trigger daily keystats retention pass";
       wantedBy = [ "timers.target" ];
       timerConfig = {
         OnCalendar = "daily";
         Persistent = true;
+        RandomizedDelaySec = "1h";
       };
     };
 
