@@ -40,11 +40,15 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
+BUSY_TIMEOUT_MS = int(os.environ.get("WATCH_BUSY_TIMEOUT_MS", "5000"))
+
+
 def conn() -> sqlite3.Connection:
     c = sqlite3.connect(DB_PATH, isolation_level=None)
     c.row_factory = sqlite3.Row
     c.execute("PRAGMA journal_mode=WAL")
     c.execute("PRAGMA foreign_keys=ON")
+    c.execute(f"PRAGMA busy_timeout={BUSY_TIMEOUT_MS}")
     return c
 
 
@@ -97,6 +101,7 @@ def init_db() -> None:
         "ALTER TABLE events ADD COLUMN ai_verdict TEXT",
         "ALTER TABLE events ADD COLUMN ai_reason TEXT",
         "ALTER TABLE events ADD COLUMN ai_judged_at TEXT",
+        "ALTER TABLE events ADD COLUMN ai_claimed_at TEXT",
     ):
         try:
             c.execute(stmt)

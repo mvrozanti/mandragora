@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from html.parser import HTMLParser
 from typing import Any
 
@@ -17,6 +17,7 @@ OLLAMA_TIMEOUT = float(os.environ.get("WATCH_OLLAMA_TIMEOUT", "180"))
 OLLAMA_NUM_CTX = int(os.environ.get("WATCH_OLLAMA_NUM_CTX", "16384"))
 JUDGE_INTERVAL = int(os.environ.get("WATCH_JUDGE_INTERVAL", "30"))
 JUDGE_BATCH = int(os.environ.get("WATCH_JUDGE_BATCH", "3"))
+CLAIM_TTL = int(os.environ.get("WATCH_JUDGE_CLAIM_TTL", "900"))
 LINK_MAX_CHARS = int(os.environ.get("WATCH_LINK_MAX_CHARS", "8000"))
 LINK_TIMEOUT = float(os.environ.get("WATCH_LINK_TIMEOUT", "20"))
 USER_AGENT = os.environ.get(
@@ -31,6 +32,26 @@ QUOTA_SIGNALS = ("quota", "rate limit", "rate-limit", "resource_exhausted", "too
 
 class QuotaExceeded(RuntimeError):
     pass
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def _stale_cutoff_iso() -> str:
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=CLAIM_TTL)
+    return cutoff.isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+CLAIM_SQL = (
+    "UPDATE events SET ai_claimed_at = ? "
+    "WHERE id = ? AND ai_verdict IS NULL AND (ai_claimed_at IS NULL OR ai_claimed_at < ?)"
+)
+
+WRITE_VERDICT_SQL = (
+    "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_judged_at = ?, ai_claimed_at = NULL "
+    "WHERE id = ? AND ai_verdict IS NULL"
+)
 
 
 SYSTEM_PROMPT = (
@@ -202,8 +223,26 @@ async def judge_event(ai_spec: str, event: dict[str, Any]) -> tuple[str, str]:
     return _parse_verdict_json(text)
 
 
+def _claim_event(conn_factory, event_id: int) -> bool:
+    c = conn_factory()
+    try:
+        cur = c.execute(CLAIM_SQL, (_now_iso(), event_id, _stale_cutoff_iso()))
+        return cur.rowcount == 1
+    finally:
+        c.close()
+
+
+def _write_verdict(conn_factory, event_id: int, verdict: str, reason: str) -> bool:
+    c = conn_factory()
+    try:
+        cur = c.execute(WRITE_VERDICT_SQL, (verdict, reason[:500], _now_iso(), event_id))
+        return cur.rowcount == 1
+    finally:
+        c.close()
+
+
 async def judge_pending(conn_factory) -> dict[str, int]:
-    stats = {"judged": 0, "go": 0, "maybe": 0, "no": 0, "errors": 0}
+    stats = {"judged": 0, "go": 0, "maybe": 0, "no": 0, "errors": 0, "skipped": 0}
     c = conn_factory()
     rows = c.execute(
         """
@@ -211,13 +250,17 @@ async def judge_pending(conn_factory) -> dict[str, int]:
                w.ai_spec AS w_spec, w.kind AS w_kind, w.target AS w_target
         FROM events e JOIN watchers w ON w.id = e.watcher_id
         WHERE e.ai_verdict IS NULL AND w.ai_spec IS NOT NULL AND w.enabled = 1
+          AND (e.ai_claimed_at IS NULL OR e.ai_claimed_at < ?)
         ORDER BY e.id ASC
         LIMIT ?
         """,
-        (JUDGE_BATCH,),
+        (_stale_cutoff_iso(), JUDGE_BATCH),
     ).fetchall()
     c.close()
     for r in rows:
+        if not _claim_event(conn_factory, r["id"]):
+            stats["skipped"] += 1
+            continue
         try:
             verdict, reason = await judge_event(r["w_spec"], dict(r))
         except QuotaExceeded as exc:
@@ -227,13 +270,9 @@ async def judge_pending(conn_factory) -> dict[str, int]:
             stats["errors"] += 1
             log.warning("judge error event_id=%s: %s", r["id"], exc)
             continue
-        now = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
-        c = conn_factory()
-        c.execute(
-            "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_judged_at = ? WHERE id = ?",
-            (verdict, reason[:500], now, r["id"]),
-        )
-        c.close()
+        if not _write_verdict(conn_factory, r["id"], verdict, reason):
+            stats["skipped"] += 1
+            continue
         stats["judged"] += 1
         stats[verdict.lower()] = stats.get(verdict.lower(), 0) + 1
     return stats
