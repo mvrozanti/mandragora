@@ -6,6 +6,48 @@ Stacks section verified against the live host on 2026-07-12 (`docker ps` + `ls /
 
 ---
 
+## Deploying
+
+One driver deploys the ordinary stacks: [`deploy-stacks.sh`](deploy-stacks.sh).
+
+```
+deploy-stacks.sh [--dry-run] [--diff] [--no-up] <stack>... | --all
+```
+
+Per stack it `rsync -a --delete`s `compose/<stack>/` to
+`opc@mandragora-vps:/home/opc/<stack>/`, then `docker compose up -d` in
+that slot. `--all` iterates every `compose/*/` dir that carries a
+`docker-compose.yml`. `--dry-run` shows the itemized rsync plan and skips
+the up; `--diff` prints a compact change list (implies no up); `--no-up`
+syncs without restarting.
+
+Safety, by construction:
+
+- **Remote `.env`/`*.env` are never sent and never deleted** (protect
+  filter + exclude). The colocated root-owned secret files stay put.
+- **Each stack's own `.gitignore` is honoured** (`--exclude-from`), so
+  remote-only runtime state (`data/`, `*_data/`, generated reports,
+  `*.bak.*`) survives `--delete`.
+- **A `.no-deploy` marker file refuses the stack** and makes `--all` skip
+  it. It exists for stacks whose remote state is live-only or has drifted
+  from the repo, so a blanket sync cannot clobber them. Currently marked:
+  `cv`, `demo`, `fin`, `food`, `gpg`, `hub`, `loki`, `ofin`, `rule110`
+  (plus `seafile`, which has no `docker-compose.yml` and is skipped by
+  `--all` regardless). These keep their own procedure — several have a
+  bespoke `compose/<stack>/deploy.sh` that builds from an external project
+  repo or preserves live data the compose dir does not hold (`fin`/`ofin`
+  pull from `~/Projects/*`; `demo` preserves `static/vault/`; `hub` holds
+  live `config/*.yaml`; `loki` holds the log WAL; `rule110`/`cv` build or
+  carry static assets that are not in the repo dir). The `4chan` and `cv`
+  frontends are still built + pushed by their own `deploy.sh`; the driver
+  only syncs the compose dir and brings the container up.
+
+The six live-only slots with no repo compose at all (`git`, `chess`,
+`voice`, `btc-tob-capture`, `palpitador`, `basilica` — see the Drift
+table below) have no `compose/` dir, so `--all` never touches them.
+
+---
+
 ## Part 1 — Compose stacks
 
 31 stacks are declared under [`compose/`](compose/) (32 directories; `crypto-fetcher/` is a retired tombstone, no compose — see [`compose/README.md`](compose/README.md#retired-stacks)). All 31 are live on the VPS. Public hostnames are `*.mvr.ac` unless noted; the `mvrozanti.duckdns.org` counterparts 302-redirect to `mvr.ac` via the `hub` stack. Most vhosts sit behind Authelia (`auth.mvr.ac`); the "Gate" column marks the exceptions.
