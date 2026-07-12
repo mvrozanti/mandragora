@@ -22,12 +22,20 @@ group.
 
 1. **Burn down the language-purity allowlist.**
    `.local/share/mandragora-audit/allowlists/language-purity.txt` still
-   grandfathers a handful of inline-heredoc violations of Rule 2
-   (`flake.nix`, `nix/modules/core/secrets.nix` ×2,
-   `nix/modules/user/{rss-menu,security-menu,terminal}.nix`,
-   `nix/pkgs/refiner/default.nix` — currently 7 entries). Convert them
-   to `builtins.readFile` snippets a few per session until the allowlist
-   is empty; each conversion also makes the config testable outside Nix.
+   grandfathers 5 inline blocks: `flake.nix:80`
+   (`systemBuilderCommands` writing `$out/git-revision`),
+   `nix/modules/core/secrets.nix:98`+`:105` (sops template `content`
+   with `${config.sops.placeholder…}` interpolation, resolved at
+   activation), `nix/modules/user/terminal.nix:158` (kitty
+   `extraConfig` one-line `include`), and `nix/pkgs/refiner/default.nix:26`
+   (`writeShellApplication` body templating `${usbImage}`/`${ovmf}`/
+   `${scripts}` store paths). Each survivor either carries Nix
+   interpolation that a static `builtins.readFile` snippet cannot
+   reproduce byte-for-byte, or is the sanctioned `writeShellApplication`
+   mechanism itself — so the plain extract-to-snippet route no longer
+   applies. Any further reduction needs a different tactic (e.g. a
+   template file plus `substituteAll`), only worth it if it stays
+   byte-identical.
 
 ## Operations and resilience
 
