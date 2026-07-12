@@ -4,7 +4,7 @@ let
   tailnet = builtins.fromJSON (builtins.readFile ../../snippets/tailnet.json);
   port = 9991;
   host = tailnet.desktop.ip;
-  src = "/persistent/mandragora/.local/share/gource-renderer/server.py";
+  src = ../../../.local/share/gource-renderer/server.py;
   pyEnv = pkgs.python3.withPackages (ps: [ ps.fastapi ps.uvicorn ps.httpx ps.pydantic ]);
   runtimePath = lib.makeBinPath [
     pkgs.gource

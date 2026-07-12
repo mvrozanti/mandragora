@@ -2,7 +2,7 @@
 
 let
   port = 7682;
-  src = "/persistent/mandragora/.local/share/claude-web/app.py";
+  src = ../../../.local/share/claude-web/app.py;
   pyEnv = pkgs.python3.withPackages (ps: [ ps.aiohttp ]);
 in {
   mandragora.hub.services.claude-web = {

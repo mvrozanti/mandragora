@@ -16,10 +16,10 @@ let
   teacherRoot = "/home/m/Projects/teacher";
   teacherState = "/home/m/.local/share/teacher";
   vtagState = "/home/m/.local/share/vtag";
-  axonRoot = "/etc/nixos/mandragora/.local/share/axon";
+  axonRoot = ../../../.local/share/axon;
   axonState = "/home/m/.local/share/axon";
   axonRepo = "/home/m/Projects/axon";
-  axonWebRoot = "/etc/nixos/mandragora/.local/share/axon-web";
+  axonWebRoot = ../../../.local/share/axon-web;
   axonWebState = "/home/m/.local/share/axon-web";
   axonWebRepo = "/home/m/Projects/axon-web";
   intPython = import ../../pkgs/int-python.nix { inherit pkgs; };
