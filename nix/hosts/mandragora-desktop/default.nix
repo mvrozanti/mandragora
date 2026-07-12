@@ -1,5 +1,8 @@
 { ... }:
 
+let
+  models = builtins.fromJSON (builtins.readFile ../../snippets/local-llm-models.json);
+in
 {
   imports = [
     ../../pkgs/overlays.nix
@@ -66,7 +69,7 @@
   mandragora.gdrive.enable = true;
   mandragora.ai.agentic.enable = true;
   mandragora.ai.aux.enable = true;
-  mandragora.ai.extraModels = [ "gemma3:27b" "qwen3:14b" "nomic-embed-text" ];
+  mandragora.ai.extraModels = [ models.gemma models.secondary models.embeddings ];
   services.mandragora-seafile.enable = true;
   mandragora.claudecodebrowser.enable = true;
 
