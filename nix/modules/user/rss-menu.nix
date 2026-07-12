@@ -5,7 +5,13 @@ let
 
   rss-menu = pkgs.writeShellApplication {
     name = "rss-menu";
-    runtimeInputs = with pkgs; [ rofi libnotify xdg-utils procps systemd ];
+    runtimeInputs = with pkgs; [
+      rofi
+      libnotify
+      xdg-utils
+      procps
+      systemd
+    ];
     text = ''
       exec ${pyEnv}/bin/python3 ${../../snippets/rss-menu.py} "$@"
     '';
@@ -17,7 +23,10 @@ in
   systemd.user.services.rss-menu-poll = {
     Unit = {
       Description = "Fetch & LLM-classify RSS feeds for waybar rss-menu";
-      After = [ "graphical-session.target" "network-online.target" ];
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+      ];
       Wants = [ "network-online.target" ];
     };
     Service = {

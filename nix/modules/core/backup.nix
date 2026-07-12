@@ -9,30 +9,47 @@ let
   limitUploadKiB = "8192";
   excludeFile = ../../snippets/restic-excludes.txt;
 
-  notifyBin = pkgs.writeShellScriptBin "telegram-notify"
-    (builtins.readFile ../../../.local/bin/telegram-notify.sh);
+  notifyBin = pkgs.writeShellScriptBin "telegram-notify" (
+    builtins.readFile ../../../.local/bin/telegram-notify.sh
+  );
 
   passgen = pkgs.writeShellApplication {
     name = "restic-passgen";
-    runtimeInputs = [ pkgs.coreutils pkgs.openssl ];
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.openssl
+    ];
     text = builtins.readFile ../../snippets/restic-passgen.sh;
   };
 
   resticBackup = pkgs.writeShellApplication {
     name = "restic-backup";
-    runtimeInputs = [ pkgs.restic pkgs.openssh pkgs.coreutils ];
+    runtimeInputs = [
+      pkgs.restic
+      pkgs.openssh
+      pkgs.coreutils
+    ];
     text = builtins.readFile ../../snippets/restic-backup.sh;
   };
 
   lifeboatVerify = pkgs.writeShellApplication {
     name = "restic-lifeboat-verify";
-    runtimeInputs = [ pkgs.restic pkgs.openssh pkgs.age pkgs.coreutils ];
+    runtimeInputs = [
+      pkgs.restic
+      pkgs.openssh
+      pkgs.age
+      pkgs.coreutils
+    ];
     text = builtins.readFile ../../snippets/lifeboat-verify.sh;
   };
 
   backupAlert = pkgs.writeShellApplication {
     name = "backup-alert";
-    runtimeInputs = [ pkgs.coreutils pkgs.libnotify notifyBin ];
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.libnotify
+      notifyBin
+    ];
     text = builtins.readFile ../../snippets/backup-alert.sh;
   };
 
@@ -71,8 +88,14 @@ in
 
   systemd.services.restic-backup = {
     description = "Daily resilient-tier restic backup of ~/Documents to the VPS";
-    after = [ "network-online.target" "tailscaled.service" ];
-    wants = [ "network-online.target" "tailscaled.service" ];
+    after = [
+      "network-online.target"
+      "tailscaled.service"
+    ];
+    wants = [
+      "network-online.target"
+      "tailscaled.service"
+    ];
     serviceConfig = hardening // {
       TimeoutStartSec = "6h";
       Environment = [
@@ -101,8 +124,14 @@ in
 
   systemd.services.restic-lifeboat = {
     description = "Weekly lifeboat verification: age key validity + restic repo integrity";
-    after = [ "network-online.target" "tailscaled.service" ];
-    wants = [ "network-online.target" "tailscaled.service" ];
+    after = [
+      "network-online.target"
+      "tailscaled.service"
+    ];
+    wants = [
+      "network-online.target"
+      "tailscaled.service"
+    ];
     serviceConfig = hardening // {
       TimeoutStartSec = "2h";
       Environment = [

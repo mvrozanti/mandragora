@@ -1,6 +1,9 @@
 { config, lib, ... }:
 
-let cfg = config.mandragora; in {
+let
+  cfg = config.mandragora;
+in
+{
   config = lib.mkMerge [
     {
       programs.zsh.enable = true;

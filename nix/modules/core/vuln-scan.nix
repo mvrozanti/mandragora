@@ -27,7 +27,10 @@ let
   };
 in
 {
-  environment.systemPackages = [ cveScan vulnPublish ];
+  environment.systemPackages = [
+    cveScan
+    vulnPublish
+  ];
 
   systemd.user.services.cve-scan = {
     description = "Mandragora CVE scan against current system closure";

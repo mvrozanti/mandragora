@@ -1,14 +1,32 @@
 { pkgs, ... }:
 
 let
-  pyDictEnv = pkgs.python3.withPackages (ps: with ps; [ requests beautifulsoup4 lxml ]);
-  pySinonEnv = pkgs.python3.withPackages (ps: with ps; [ requests beautifulsoup4 lxml unidecode ]);
+  pyDictEnv = pkgs.python3.withPackages (
+    ps: with ps; [
+      requests
+      beautifulsoup4
+      lxml
+    ]
+  );
+  pySinonEnv = pkgs.python3.withPackages (
+    ps: with ps; [
+      requests
+      beautifulsoup4
+      lxml
+      unidecode
+    ]
+  );
   hidWrapperEnv = pkgs.python3.withPackages (ps: [
     ps.colour
     ps.openrgb-python
     (pkgs.python3.pkgs.toPythonModule pkgs.rivalcfg)
   ]);
-  lightEnv = pkgs.python3.withPackages (ps: with ps; [ requests numpy ]);
+  lightEnv = pkgs.python3.withPackages (
+    ps: with ps; [
+      requests
+      numpy
+    ]
+  );
   walToRgbEnv = pkgs.python3.withPackages (ps: with ps; [ openrgb-python ]);
 in
 {
@@ -77,7 +95,7 @@ in
 
     mpv
     (pkgs.nsxiv.overrideAttrs (oldAttrs: {
-      patches = (oldAttrs.patches or []) ++ [ ../../pkgs/nsxiv/commands.patch ];
+      patches = (oldAttrs.patches or [ ]) ++ [ ../../pkgs/nsxiv/commands.patch ];
       postPatch = (oldAttrs.postPatch or "") + "cp ${../../pkgs/nsxiv/config.h} config.def.h";
     }))
     zathura
@@ -90,7 +108,13 @@ in
 
     gh-dash
     neovim
-    (python3.withPackages (ps: with ps; [ pynvim grip psutil ]))
+    (python3.withPackages (
+      ps: with ps; [
+        pynvim
+        grip
+        psutil
+      ]
+    ))
     zoxide
     gnupg
 
@@ -227,33 +251,73 @@ in
     qt6.qtwayland
 
     (pkgs.writeShellScriptBin "smart-launch" (builtins.readFile ../../../.local/bin/smart-launch.sh))
-    (pkgs.writeShellScriptBin "obsidian-launch" (builtins.readFile ../../../.local/bin/obsidian-launch.sh))
-    (pkgs.writeShellScriptBin "obsidian-workspace-watcher" (builtins.readFile ../../../.local/bin/obsidian-workspace-watcher.sh))
-    (pkgs.writeShellScriptBin "mandragora-switch" (builtins.readFile ../../../.local/bin/mandragora-switch.sh))
-    (pkgs.writeShellScriptBin "spawn-claude-tmux" (builtins.readFile ../../../.local/bin/spawn-claude-tmux.sh))
+    (pkgs.writeShellScriptBin "obsidian-launch" (
+      builtins.readFile ../../../.local/bin/obsidian-launch.sh
+    ))
+    (pkgs.writeShellScriptBin "obsidian-workspace-watcher" (
+      builtins.readFile ../../../.local/bin/obsidian-workspace-watcher.sh
+    ))
+    (pkgs.writeShellScriptBin "mandragora-switch" (
+      builtins.readFile ../../../.local/bin/mandragora-switch.sh
+    ))
+    (pkgs.writeShellScriptBin "spawn-claude-tmux" (
+      builtins.readFile ../../../.local/bin/spawn-claude-tmux.sh
+    ))
     (pkgs.writeShellScriptBin "safe-claude" (builtins.readFile ../../../.local/bin/safe-claude.sh))
-    (pkgs.writeShellScriptBin "mandragora-commit-push" (builtins.readFile ../../../.local/bin/mandragora-commit-push.sh))
+    (pkgs.writeShellScriptBin "mandragora-commit-push" (
+      builtins.readFile ../../../.local/bin/mandragora-commit-push.sh
+    ))
     (pkgs.writeShellScriptBin "sss" (builtins.readFile ../../../.local/bin/sss.sh))
-    (pkgs.writeShellScriptBin "mandragora-diff" (builtins.readFile ../../../.local/bin/mandragora-diff.sh))
-    (pkgs.writeShellScriptBin "mandragora-diff-last" (builtins.readFile ../../../.local/bin/mandragora-diff-last.sh))
-    (pkgs.writeShellScriptBin "circleci-fetch" (builtins.readFile ../../../.local/bin/circleci-fetch.sh))
-    (pkgs.writeShellScriptBin "mandragora-winvm" (builtins.readFile ../../../.local/bin/mandragora-winvm.sh))
-    (pkgs.writeShellScriptBin "rofi-ide-picker" (builtins.readFile ../../../.local/bin/rofi-ide-picker.sh))
-    (pkgs.writeShellScriptBin "rofi-tool-picker" (builtins.readFile ../../../.local/bin/rofi-tool-picker.sh))
+    (pkgs.writeShellScriptBin "mandragora-diff" (
+      builtins.readFile ../../../.local/bin/mandragora-diff.sh
+    ))
+    (pkgs.writeShellScriptBin "mandragora-diff-last" (
+      builtins.readFile ../../../.local/bin/mandragora-diff-last.sh
+    ))
+    (pkgs.writeShellScriptBin "circleci-fetch" (
+      builtins.readFile ../../../.local/bin/circleci-fetch.sh
+    ))
+    (pkgs.writeShellScriptBin "mandragora-winvm" (
+      builtins.readFile ../../../.local/bin/mandragora-winvm.sh
+    ))
+    (pkgs.writeShellScriptBin "rofi-ide-picker" (
+      builtins.readFile ../../../.local/bin/rofi-ide-picker.sh
+    ))
+    (pkgs.writeShellScriptBin "rofi-tool-picker" (
+      builtins.readFile ../../../.local/bin/rofi-tool-picker.sh
+    ))
     (pkgs.writeShellScriptBin "rofi-run" (builtins.readFile ../../../.local/bin/rofi-run.sh))
-    (pkgs.writeShellScriptBin "rofi-db-picker" (builtins.readFile ../../../.local/bin/rofi-db-picker.sh))
-    (pkgs.writeShellScriptBin "cycle-audio-output" (builtins.readFile ../../../.local/bin/cycle-audio-output.sh))
+    (pkgs.writeShellScriptBin "rofi-db-picker" (
+      builtins.readFile ../../../.local/bin/rofi-db-picker.sh
+    ))
+    (pkgs.writeShellScriptBin "cycle-audio-output" (
+      builtins.readFile ../../../.local/bin/cycle-audio-output.sh
+    ))
     (pkgs.writeShellScriptBin "zathura-cycle" (builtins.readFile ../../../.local/bin/zathura-cycle.sh))
-    (pkgs.writeShellScriptBin "window-to-corner" (builtins.readFile ../../../.local/bin/window-to-corner.sh))
+    (pkgs.writeShellScriptBin "window-to-corner" (
+      builtins.readFile ../../../.local/bin/window-to-corner.sh
+    ))
     (pkgs.writeShellScriptBin "gap-adjust" (builtins.readFile ../../../.local/bin/gap-adjust.sh))
     (pkgs.writeShellScriptBin "blur-adjust" (builtins.readFile ../../../.local/bin/blur-adjust.sh))
-    (pkgs.writeShellScriptBin "opacity-adjust" (builtins.readFile ../../../.local/bin/opacity-adjust.sh))
-    (pkgs.writeShellScriptBin "rofi-wallpaper-picker" (builtins.readFile ../../../.local/bin/rofi-wallpaper-picker.sh))
-    (pkgs.writeShellScriptBin "clipboard-menu" (builtins.readFile ../../../.local/bin/clipboard-menu.sh))
-    (pkgs.writeShellScriptBin "rofi-power-menu" (builtins.readFile ../../../.local/bin/rofi-power-menu.sh))
-    (pkgs.writeShellScriptBin "rofi-capture-menu" (builtins.readFile ../../../.local/bin/rofi-capture-menu.sh))
+    (pkgs.writeShellScriptBin "opacity-adjust" (
+      builtins.readFile ../../../.local/bin/opacity-adjust.sh
+    ))
+    (pkgs.writeShellScriptBin "rofi-wallpaper-picker" (
+      builtins.readFile ../../../.local/bin/rofi-wallpaper-picker.sh
+    ))
+    (pkgs.writeShellScriptBin "clipboard-menu" (
+      builtins.readFile ../../../.local/bin/clipboard-menu.sh
+    ))
+    (pkgs.writeShellScriptBin "rofi-power-menu" (
+      builtins.readFile ../../../.local/bin/rofi-power-menu.sh
+    ))
+    (pkgs.writeShellScriptBin "rofi-capture-menu" (
+      builtins.readFile ../../../.local/bin/rofi-capture-menu.sh
+    ))
     (pkgs.writeShellScriptBin "screencap" (builtins.readFile ../../../.local/bin/screencap.sh))
-    (pkgs.writeShellScriptBin "screenkey-toggle" (builtins.readFile ../../../.local/bin/screenkey-toggle.sh))
+    (pkgs.writeShellScriptBin "screenkey-toggle" (
+      builtins.readFile ../../../.local/bin/screenkey-toggle.sh
+    ))
     (pkgs.writeShellScriptBin "capture" (builtins.readFile ../../../.local/bin/capture.sh))
     (pkgs.writeShellScriptBin "compv" (builtins.readFile ../../../.local/bin/compv.sh))
     (pkgs.writeShellScriptBin "ic" (builtins.readFile ../../../.local/bin/ic.sh))
@@ -267,7 +331,9 @@ in
     (pkgs.writeShellScriptBin "lipsum" (builtins.readFile ../../../.local/bin/lipsum.sh))
     (pkgs.writeShellScriptBin "wiki" (builtins.readFile ../../../.local/bin/wiki.sh))
     (pkgs.writeShellScriptBin "after" (builtins.readFile ../../../.local/bin/after.sh))
-    (pkgs.writeShellScriptBin "are-processes-related" (builtins.readFile ../../../.local/bin/are-processes-related.sh))
+    (pkgs.writeShellScriptBin "are-processes-related" (
+      builtins.readFile ../../../.local/bin/are-processes-related.sh
+    ))
     (pkgs.writeShellScriptBin "explode_tmux" (builtins.readFile ../../../.local/bin/explode_tmux.sh))
     (pkgs.writeShellScriptBin "implode_tmux" (builtins.readFile ../../../.local/bin/implode_tmux.sh))
     (pkgs.writeShellScriptBin "superscript" ''exec ${pkgs.python3}/bin/python3 ${../../../.local/bin/superscript.py} "$@"'')
@@ -276,14 +342,18 @@ in
     (pkgs.writeShellScriptBin "dict" ''exec ${pyDictEnv}/bin/python3 ${../../../.local/bin/dict.py} "$@"'')
     (pkgs.writeShellScriptBin "sinon" ''exec ${pySinonEnv}/bin/python3 ${../../../.local/bin/sinon.py} "$@"'')
     (pkgs.writeShellScriptBin "biggest-pane" (builtins.readFile ../../../.local/bin/biggest-pane.sh))
-    (pkgs.writeShellScriptBin "desktop-toggle" (builtins.readFile ../../../.local/bin/desktop-toggle.sh))
+    (pkgs.writeShellScriptBin "desktop-toggle" (
+      builtins.readFile ../../../.local/bin/desktop-toggle.sh
+    ))
     (pkgs.writeShellScriptBin "pop" (builtins.readFile ../../../.local/bin/pop.sh))
     (pkgs.writeShellScriptBin "hid-wrapper" ''exec ${hidWrapperEnv}/bin/python3 ${../../../.local/bin/hid-wrapper.py} "$@"'')
     (pkgs.writeShellScriptBin "light" ''exec ${lightEnv}/bin/python3 ${../../../.local/bin/light.py} "$@"'')
     yad
     nwg-displays
     (pkgs.writeShellScriptBin "ragnarok" (builtins.readFile ../../../.local/bin/ragnarok.sh))
-    (pkgs.writeShellScriptBin "screenshot-window" (builtins.readFile ../../../.local/bin/screenshot-window.sh))
+    (pkgs.writeShellScriptBin "screenshot-window" (
+      builtins.readFile ../../../.local/bin/screenshot-window.sh
+    ))
 
     (pkgs.writeShellScriptBin "ait" (builtins.readFile ../../../.local/bin/ait.sh))
     (pkgs.writeShellScriptBin "bonsai" (builtins.readFile ../../../.local/bin/bonsai.sh))
@@ -297,23 +367,30 @@ in
     (pkgs.writeShellScriptBin "sit" (builtins.readFile ../../../.local/bin/sit.sh))
 
     (pkgs.writeShellScriptBin "health-check" (builtins.readFile ../../../.local/bin/health-check.sh))
-    (pkgs.writeShellScriptBin "keyledsd-reload" (builtins.readFile ../../../.local/bin/keyledsd-reload.sh))
+    (pkgs.writeShellScriptBin "keyledsd-reload" (
+      builtins.readFile ../../../.local/bin/keyledsd-reload.sh
+    ))
     (pkgs.writeShellScriptBin "restore-theme" (builtins.readFile ../../../.local/bin/restore-theme.sh))
     (pkgs.writeShellScriptBin "gemma" ''exec ${pkgs.python3}/bin/python3 ${../../../.local/bin/gemma.py} "$@"'')
     (pkgs.writeShellScriptBin "wal-to-rgb" ''exec ${walToRgbEnv}/bin/python3 ${../../../.local/bin/wal-to-rgb.py} "$@"'')
     (pkgs.writeShellScriptBin "wal-to-rgb-daemon" ''exec ${walToRgbEnv}/bin/python3 ${../../../.local/bin/wal-to-rgb-daemon.py} "$@"'')
     (pkgs.writeShellScriptBin "strays" (
-      builtins.replaceStrings ["@VAULT@" "@USER_HOME@"] ["/persistent" "/home/m"]
-        (builtins.readFile ../../../.local/bin/strays.sh)
+      builtins.replaceStrings [ "@VAULT@" "@USER_HOME@" ] [ "/persistent" "/home/m" ] (
+        builtins.readFile ../../../.local/bin/strays.sh
+      )
     ))
 
     (pkgs.writeShellScriptBin "blur-strength" (builtins.readFile ../../../.local/bin/blur-strength.sh))
     (pkgs.writeShellScriptBin "record-window" (builtins.readFile ../../../.local/bin/record-window.sh))
     (pkgs.writeShellScriptBin "center-window" (builtins.readFile ../../../.local/bin/center-window.sh))
-    (pkgs.writeShellScriptBin "cycle-kbd-layouts" (builtins.readFile ../../../.local/bin/cycle-kbd-layouts.sh))
+    (pkgs.writeShellScriptBin "cycle-kbd-layouts" (
+      builtins.readFile ../../../.local/bin/cycle-kbd-layouts.sh
+    ))
     (pkgs.writeShellScriptBin "resize-window" (builtins.readFile ../../../.local/bin/resize-window.sh))
     (pkgs.writeShellScriptBin "scratchpad" (builtins.readFile ../../../.local/bin/scratchpad.sh))
-    (pkgs.writeShellScriptBin "scratchpad-summon" (builtins.readFile ../../../.local/bin/scratchpad-summon.sh))
+    (pkgs.writeShellScriptBin "scratchpad-summon" (
+      builtins.readFile ../../../.local/bin/scratchpad-summon.sh
+    ))
     (pkgs.writeShellScriptBin "imagine" (builtins.readFile ../../../.local/bin/imagine.sh))
     gpick
     hyprpicker

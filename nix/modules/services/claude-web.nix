@@ -4,7 +4,8 @@ let
   port = 7682;
   src = ../../../.local/share/claude-web/app.py;
   pyEnv = pkgs.python3.withPackages (ps: [ ps.aiohttp ]);
-in {
+in
+{
   mandragora.hub.services.claude-web = {
     inherit port;
     userService = true;

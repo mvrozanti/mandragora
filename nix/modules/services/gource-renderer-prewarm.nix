@@ -39,11 +39,20 @@ let
       "${vpsHost}" "mv -f ${vpsCacheDir}/$jid.mp4.part ${vpsCacheDir}/$jid.mp4"
     echo "→ done"
   '';
-in {
+in
+{
   systemd.services.gource-renderer-prewarm = {
     description = "Pre-render the default-params gource video and push it into the VPS cache.";
-    after = [ "gource-renderer.service" "network-online.target" "tailscaled.service" ];
-    wants = [ "gource-renderer.service" "network-online.target" "tailscaled.service" ];
+    after = [
+      "gource-renderer.service"
+      "network-online.target"
+      "tailscaled.service"
+    ];
+    wants = [
+      "gource-renderer.service"
+      "network-online.target"
+      "tailscaled.service"
+    ];
     serviceConfig = {
       Type = "oneshot";
       User = "m";

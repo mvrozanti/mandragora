@@ -11,33 +11,105 @@ let
   # user mutations untouched on subsequent rebuilds.
   registry = {
     repos = [
-      { name = "mandragora";          root = "/etc/nixos/mandragora";                              db_path = "/etc/nixos/mandragora/.axon/index.duckdb"; }
-      { name = "axon";                root = "/home/m/Projects/axon";                              db_path = "/home/m/Projects/axon/.axon/index.duckdb"; }
-      { name = "thought";             root = "/home/m/Projects/thought";                           db_path = "/home/m/Projects/thought/.axon/index.duckdb"; }
-      { name = "im-gen";              root = "/home/m/Projects/im-gen";                            db_path = "/home/m/Projects/im-gen/.axon/index.duckdb"; }
-      { name = "orderbook-algotrading"; root = "/home/m/Projects/orderbook-algotrading";    db_path = "/home/m/Projects/orderbook-algotrading/.axon/index.duckdb"; }
-      { name = "vtag";                root = "/etc/nixos/mandragora/.local/share/vtag";            db_path = "/etc/nixos/mandragora/.local/share/vtag/.axon/index.duckdb"; }
-      { name = "gpu-lock";            root = "/etc/nixos/mandragora/.local/share/gpu-lock";        db_path = "/etc/nixos/mandragora/.local/share/gpu-lock/.axon/index.duckdb"; }
-      { name = "llm-via-telegram";    root = "/home/m/Projects/llm-via-telegram";                  db_path = "/home/m/Projects/llm-via-telegram/.axon/index.duckdb"; }
-      { name = "stt-via-telegram";    root = "/home/m/Projects/stt-via-telegram";                  db_path = "/home/m/Projects/stt-via-telegram/.axon/index.duckdb"; }
-      { name = "stt-core";            root = "/home/m/Projects/stt-core";                          db_path = "/home/m/Projects/stt-core/.axon/index.duckdb"; }
-      { name = "tts-clone-core";      root = "/home/m/Projects/tts-clone-core";                    db_path = "/home/m/Projects/tts-clone-core/.axon/index.duckdb"; }
-      { name = "ollama-context-proxy"; root = "/etc/nixos/mandragora/.local/share/ollama-context-proxy"; db_path = "/etc/nixos/mandragora/.local/share/ollama-context-proxy/.axon/index.duckdb"; }
-      { name = "claude-web";          root = "/etc/nixos/mandragora/.local/share/claude-web";      db_path = "/etc/nixos/mandragora/.local/share/claude-web/.axon/index.duckdb"; }
-      { name = "mandragora-audit";    root = "/etc/nixos/mandragora/.local/share/mandragora-audit"; db_path = "/etc/nixos/mandragora/.local/share/mandragora-audit/.axon/index.duckdb"; }
-      { name = "rgb-control";         root = "/etc/nixos/mandragora/.local/share/rgb-control";    db_path = "/etc/nixos/mandragora/.local/share/rgb-control/.axon/index.duckdb"; }
+      {
+        name = "mandragora";
+        root = "/etc/nixos/mandragora";
+        db_path = "/etc/nixos/mandragora/.axon/index.duckdb";
+      }
+      {
+        name = "axon";
+        root = "/home/m/Projects/axon";
+        db_path = "/home/m/Projects/axon/.axon/index.duckdb";
+      }
+      {
+        name = "thought";
+        root = "/home/m/Projects/thought";
+        db_path = "/home/m/Projects/thought/.axon/index.duckdb";
+      }
+      {
+        name = "im-gen";
+        root = "/home/m/Projects/im-gen";
+        db_path = "/home/m/Projects/im-gen/.axon/index.duckdb";
+      }
+      {
+        name = "orderbook-algotrading";
+        root = "/home/m/Projects/orderbook-algotrading";
+        db_path = "/home/m/Projects/orderbook-algotrading/.axon/index.duckdb";
+      }
+      {
+        name = "vtag";
+        root = "/etc/nixos/mandragora/.local/share/vtag";
+        db_path = "/etc/nixos/mandragora/.local/share/vtag/.axon/index.duckdb";
+      }
+      {
+        name = "gpu-lock";
+        root = "/etc/nixos/mandragora/.local/share/gpu-lock";
+        db_path = "/etc/nixos/mandragora/.local/share/gpu-lock/.axon/index.duckdb";
+      }
+      {
+        name = "llm-via-telegram";
+        root = "/home/m/Projects/llm-via-telegram";
+        db_path = "/home/m/Projects/llm-via-telegram/.axon/index.duckdb";
+      }
+      {
+        name = "stt-via-telegram";
+        root = "/home/m/Projects/stt-via-telegram";
+        db_path = "/home/m/Projects/stt-via-telegram/.axon/index.duckdb";
+      }
+      {
+        name = "stt-core";
+        root = "/home/m/Projects/stt-core";
+        db_path = "/home/m/Projects/stt-core/.axon/index.duckdb";
+      }
+      {
+        name = "tts-clone-core";
+        root = "/home/m/Projects/tts-clone-core";
+        db_path = "/home/m/Projects/tts-clone-core/.axon/index.duckdb";
+      }
+      {
+        name = "ollama-context-proxy";
+        root = "/etc/nixos/mandragora/.local/share/ollama-context-proxy";
+        db_path = "/etc/nixos/mandragora/.local/share/ollama-context-proxy/.axon/index.duckdb";
+      }
+      {
+        name = "claude-web";
+        root = "/etc/nixos/mandragora/.local/share/claude-web";
+        db_path = "/etc/nixos/mandragora/.local/share/claude-web/.axon/index.duckdb";
+      }
+      {
+        name = "mandragora-audit";
+        root = "/etc/nixos/mandragora/.local/share/mandragora-audit";
+        db_path = "/etc/nixos/mandragora/.local/share/mandragora-audit/.axon/index.duckdb";
+      }
+      {
+        name = "rgb-control";
+        root = "/etc/nixos/mandragora/.local/share/rgb-control";
+        db_path = "/etc/nixos/mandragora/.local/share/rgb-control/.axon/index.duckdb";
+      }
     ];
     groups = {
       mandragora = [
-        "mandragora" "axon" "thought" "im-gen"
-        "vtag" "gpu-lock" "llm-via-telegram" "stt-via-telegram"
-        "stt-core" "tts-clone-core"
-        "ollama-context-proxy" "claude-web" "mandragora-audit"
+        "mandragora"
+        "axon"
+        "thought"
+        "im-gen"
+        "vtag"
+        "gpu-lock"
+        "llm-via-telegram"
+        "stt-via-telegram"
+        "stt-core"
+        "tts-clone-core"
+        "ollama-context-proxy"
+        "claude-web"
+        "mandragora-audit"
         "rgb-control"
       ];
       bots = [
-        "vtag" "llm-via-telegram" "stt-via-telegram"
-        "stt-core" "tts-clone-core"
+        "vtag"
+        "llm-via-telegram"
+        "stt-via-telegram"
+        "stt-core"
+        "tts-clone-core"
         "ollama-context-proxy"
       ];
     };

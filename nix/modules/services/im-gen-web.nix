@@ -53,7 +53,8 @@ let
 
     exec "$VENV_PY" ${webApp} "$@"
   '';
-in {
+in
+{
   mandragora.hub.services.im-gen-web = {
     port = 6682;
     userService = true;
@@ -67,7 +68,11 @@ in {
         GEN_PORT = "6682";
         IM_GEN_DIR = repo;
       };
-      path = [ pkgs.coreutils pkgs.bash pkgs.gcc ];
+      path = [
+        pkgs.coreutils
+        pkgs.bash
+        pkgs.gcc
+      ];
       serviceConfig = {
         Type = "simple";
         WorkingDirectory = repo;
@@ -85,7 +90,12 @@ in {
         ManagedOOMMemoryPressure = "kill";
       };
       unitConfig = {
-        ConditionPathExists = [ "/dev/nvidia0" "${repo}/invokeai-venv/bin/python" "${repo}/bot.py" "${webApp}" ];
+        ConditionPathExists = [
+          "/dev/nvidia0"
+          "${repo}/invokeai-venv/bin/python"
+          "${repo}/bot.py"
+          "${webApp}"
+        ];
       };
     };
   };

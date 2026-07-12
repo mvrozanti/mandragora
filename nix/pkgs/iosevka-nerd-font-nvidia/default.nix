@@ -1,4 +1,8 @@
-{ stdenvNoCC, fontforge, iosevkaNerd }:
+{
+  stdenvNoCC,
+  fontforge,
+  iosevkaNerd,
+}:
 
 stdenvNoCC.mkDerivation {
   pname = "iosevka-nerd-font-nvidia";

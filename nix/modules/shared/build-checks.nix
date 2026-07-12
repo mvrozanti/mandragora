@@ -1,4 +1,8 @@
-{ self, nixpkgs, system }:
+{
+  self,
+  nixpkgs,
+  system,
+}:
 
 let
   pkgs = nixpkgs.legacyPackages.${system};
@@ -57,59 +61,70 @@ let
       $foreground = rgba(e2e3d8ff)
       $background = rgba(12140eff)
     ''
-    + lib.concatMapStrings (n: "$color${toString n} = rgba(808080ff)\n")
-      (lib.range 0 15)
+    + lib.concatMapStrings (n: "$color${toString n} = rgba(808080ff)\n") (lib.range 0 15)
   );
 
-  usbInstallBatsGuard = pkgs.runCommand "usb-install-bats-guard-excludes-test_detect" {
-    nativeBuildInputs = [
-      pkgs.bats
-      pkgs.coreutils
-      pkgs.gnugrep
-      pkgs.gawk
-      pkgs.gnused
-    ];
-  } ''
-    export HOME="$TMPDIR"
-    ${pkgs.coreutils}/bin/cp -r ${self}/nix/hosts/mandragora-usb usb
-    ${pkgs.coreutils}/bin/chmod -R u+w usb
-    ${pkgs.coreutils}/bin/chmod +x usb/install/*.sh
-    cd usb/tests/install
-    rc=0
-    for suite in test_lib test_format test_render_config test_install; do
-      echo "===== $suite ====="
-      ${pkgs.bats}/bin/bats "$suite.bats" || rc=1
-    done
-    if [ "$rc" -ne 0 ]; then
-      echo "FAIL: usb installer bats suites failed" >&2
-      exit 1
-    fi
-    touch $out
-  '';
+  usbInstallBatsGuard =
+    pkgs.runCommand "usb-install-bats-guard-excludes-test_detect"
+      {
+        nativeBuildInputs = [
+          pkgs.bats
+          pkgs.coreutils
+          pkgs.gnugrep
+          pkgs.gawk
+          pkgs.gnused
+        ];
+      }
+      ''
+        export HOME="$TMPDIR"
+        ${pkgs.coreutils}/bin/cp -r ${self}/nix/hosts/mandragora-usb usb
+        ${pkgs.coreutils}/bin/chmod -R u+w usb
+        ${pkgs.coreutils}/bin/chmod +x usb/install/*.sh
+        cd usb/tests/install
+        rc=0
+        for suite in test_lib test_format test_render_config test_install; do
+          echo "===== $suite ====="
+          ${pkgs.bats}/bin/bats "$suite.bats" || rc=1
+        done
+        if [ "$rc" -ne 0 ]; then
+          echo "FAIL: usb installer bats suites failed" >&2
+          exit 1
+        fi
+        touch $out
+      '';
 
-  hyprlandConfigGuard = pkgs.runCommand "hyprland-config-guard" {
-    nativeBuildInputs = [ pkgs.hyprland ];
-  } ''
-    conf="${self}/.config/hypr/hyprland.conf"
-    if [ ! -f "$conf" ]; then
-      touch $out
-      exit 0
-    fi
-    export HOME="$TMPDIR"
-    export XDG_RUNTIME_DIR="$TMPDIR/xdg-runtime"
-    ${pkgs.coreutils}/bin/mkdir -p "$XDG_RUNTIME_DIR"
-    staged="$TMPDIR/hyprland.conf"
-    ${pkgs.coreutils}/bin/cat ${hyprlandColorStub} > "$staged"
-    ${pkgs.gnused}/bin/sed -E '/^[[:space:]]*source[[:space:]]*=[[:space:]]*~/d' \
-      "$conf" >> "$staged"
-    if ! ${pkgs.hyprland}/bin/Hyprland --verify-config -c "$staged" > "$TMPDIR/out" 2>&1; then
-      echo "FAIL: hyprland config errors in .config/hypr/hyprland.conf" >&2
-      ${pkgs.gnused}/bin/sed -n '/Config parsing result/,$p' "$TMPDIR/out" >&2
-      exit 1
-    fi
-    touch $out
-  '';
+  hyprlandConfigGuard =
+    pkgs.runCommand "hyprland-config-guard"
+      {
+        nativeBuildInputs = [ pkgs.hyprland ];
+      }
+      ''
+        conf="${self}/.config/hypr/hyprland.conf"
+        if [ ! -f "$conf" ]; then
+          touch $out
+          exit 0
+        fi
+        export HOME="$TMPDIR"
+        export XDG_RUNTIME_DIR="$TMPDIR/xdg-runtime"
+        ${pkgs.coreutils}/bin/mkdir -p "$XDG_RUNTIME_DIR"
+        staged="$TMPDIR/hyprland.conf"
+        ${pkgs.coreutils}/bin/cat ${hyprlandColorStub} > "$staged"
+        ${pkgs.gnused}/bin/sed -E '/^[[:space:]]*source[[:space:]]*=[[:space:]]*~/d' \
+          "$conf" >> "$staged"
+        if ! ${pkgs.hyprland}/bin/Hyprland --verify-config -c "$staged" > "$TMPDIR/out" 2>&1; then
+          echo "FAIL: hyprland config errors in .config/hypr/hyprland.conf" >&2
+          ${pkgs.gnused}/bin/sed -n '/Config parsing result/,$p' "$TMPDIR/out" >&2
+          exit 1
+        fi
+        touch $out
+      '';
 in
 {
-  inherit closureSizeGuard sopsKeyGuard profileEvalGuard hyprlandConfigGuard usbInstallBatsGuard;
+  inherit
+    closureSizeGuard
+    sopsKeyGuard
+    profileEvalGuard
+    hyprlandConfigGuard
+    usbInstallBatsGuard
+    ;
 }

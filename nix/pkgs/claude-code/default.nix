@@ -22,7 +22,9 @@ let
       hash = "sha256-bxIsR192xpJdy1ITWsBmKrpcZy6wy4mr3ym5/T47Leg=";
     };
   };
-  arch = archMap.${stdenv.hostPlatform.system} or (throw "claude-code: unsupported system ${stdenv.hostPlatform.system}");
+  arch =
+    archMap.${stdenv.hostPlatform.system}
+      or (throw "claude-code: unsupported system ${stdenv.hostPlatform.system}");
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "claude-code";
@@ -33,7 +35,10 @@ stdenv.mkDerivation (finalAttrs: {
     inherit (arch) hash;
   };
 
-  nativeBuildInputs = [ autoPatchelfHook makeWrapper ];
+  nativeBuildInputs = [
+    autoPatchelfHook
+    makeWrapper
+  ];
   buildInputs = [ stdenv.cc.libc ];
 
   dontBuild = true;
@@ -67,6 +72,9 @@ stdenv.mkDerivation (finalAttrs: {
     license = lib.licenses.unfree;
     mainProgram = "claude";
     sourceProvenance = with lib.sourceTypes; [ binaryBytecode ];
-    platforms = [ "x86_64-linux" "aarch64-linux" ];
+    platforms = [
+      "x86_64-linux"
+      "aarch64-linux"
+    ];
   };
 })

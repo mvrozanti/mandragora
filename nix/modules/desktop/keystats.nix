@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.mandragora.keystats;
@@ -6,11 +11,17 @@ let
   textAllowlist = builtins.concatStringsSep "," cfg.captureText.allowedClasses;
   textSecretBlacklist = cfg.captureText.secretBlacklist;
   textBlacklistPath =
-    if textSecretBlacklist != null
-    then "/run/secrets/keystats-text-blacklist"
-    else "/persistent/keystats/blacklist.txt";
+    if textSecretBlacklist != null then
+      "/run/secrets/keystats-text-blacklist"
+    else
+      "/persistent/keystats/blacklist.txt";
 
-  pyEnv = pkgs.python3.withPackages (ps: with ps; [ evdev sqlcipher3 ]);
+  pyEnv = pkgs.python3.withPackages (
+    ps: with ps; [
+      evdev
+      sqlcipher3
+    ]
+  );
 
   textEnvExports = lib.optionalString textEnabled ''
     export KEYSTATS_TEXT_DB_KEY_FILE="''${KEYSTATS_TEXT_DB_KEY_FILE:-/run/secrets/keystats-text-db-key}"
@@ -63,8 +74,11 @@ in
       enable = lib.mkEnableOption "typed-word capture for kl.mvr.ac wordcloud (privacy-sensitive)";
       allowedClasses = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [];
-        example = [ "obsidian" "code-url-handler" ];
+        default = [ ];
+        example = [
+          "obsidian"
+          "code-url-handler"
+        ];
         description = ''
           Hyprland window classes from which typed words may be captured.
           Empty list = capture from EVERY focused window (BLOCKED_CLASSES
@@ -94,7 +108,12 @@ in
   };
 
   config = {
-    environment.systemPackages = [ pkgs.sqlcipher captureBin webBin retentionBin ];
+    environment.systemPackages = [
+      pkgs.sqlcipher
+      captureBin
+      webBin
+      retentionBin
+    ];
 
     sops.secrets = {
       "keystats/db_key" = {
@@ -102,13 +121,15 @@ in
         mode = "0400";
         path = "/run/secrets/keystats-db-key";
       };
-    } // lib.optionalAttrs textEnabled {
+    }
+    // lib.optionalAttrs textEnabled {
       "keystats/text_db_key" = {
         owner = "m";
         mode = "0400";
         path = "/run/secrets/keystats-text-db-key";
       };
-    } // lib.optionalAttrs (textEnabled && textSecretBlacklist != null) {
+    }
+    // lib.optionalAttrs (textEnabled && textSecretBlacklist != null) {
       ${textSecretBlacklist} = {
         owner = "m";
         mode = "0400";
@@ -126,14 +147,19 @@ in
 
     systemd.tmpfiles.rules = [
       "d /persistent/keystats 0700 m users - -"
-    ] ++ lib.optional (textEnabled && textSecretBlacklist == null)
-      "f /persistent/keystats/blacklist.txt 0600 m users - -";
+    ]
+    ++ lib.optional (
+      textEnabled && textSecretBlacklist == null
+    ) "f /persistent/keystats/blacklist.txt 0600 m users - -";
 
     systemd.user.services.keystats-capture = {
       description = "keystroke aggregator (evdev + Hyprland-gated, SQLCipher)";
       wantedBy = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
-      after = [ "graphical-session.target" "sops-nix.service" ];
+      after = [
+        "graphical-session.target"
+        "sops-nix.service"
+      ];
       requires = [ "graphical-session.target" ];
       serviceConfig = {
         ExecStart = "${captureBin}/bin/keystats-capture";
@@ -182,7 +208,10 @@ in
       systemd = {
         description = "kl.mvr.ac — keystats web UI (read-only SQLCipher)";
         wantedBy = [ "default.target" ];
-        after = [ "default.target" "keystats-capture.service" ];
+        after = [
+          "default.target"
+          "keystats-capture.service"
+        ];
         serviceConfig = {
           ExecStart = "${webBin}/bin/keystats-web";
           Restart = "on-failure";

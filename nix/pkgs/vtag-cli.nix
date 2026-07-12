@@ -12,7 +12,10 @@ let
 
   vtag = pkgs.writeShellApplication {
     name = "vtag";
-    runtimeInputs = [ botPython pkgs.exiftool ];
+    runtimeInputs = [
+      botPython
+      pkgs.exiftool
+    ];
     text = ''
       export PYTHONPATH=${gpuLockRoot}:${vtagSrc}''${PYTHONPATH:+:$PYTHONPATH}
       exec ${botPython}/bin/python3 ${vtagSrc}/cli.py "$@"
@@ -21,7 +24,10 @@ let
 
   vfind = pkgs.writeShellApplication {
     name = "vfind";
-    runtimeInputs = [ botPython pkgs.exiftool ];
+    runtimeInputs = [
+      botPython
+      pkgs.exiftool
+    ];
     text = ''
       exec ${botPython}/bin/python3 ${vtagSrc}/find.py "$@"
     '';
@@ -29,7 +35,10 @@ let
 
   vtag-server = pkgs.writeShellApplication {
     name = "vtag-server";
-    runtimeInputs = [ botPython pkgs.exiftool ];
+    runtimeInputs = [
+      botPython
+      pkgs.exiftool
+    ];
     text = ''
       export PYTHONPATH=${gpuLockRoot}:${vtagSrc}''${PYTHONPATH:+:$PYTHONPATH}
       exec ${botPython}/bin/python3 ${vtagSrc}/server.py "$@"

@@ -10,9 +10,18 @@ in
   systemd.user.services.llm-visualizer-backend = {
     description = "llm-visualizer backend — analogy + semantic-arithmetic API (Ollama, tailnet only)";
     wantedBy = [ "default.target" ];
-    after = [ "default.target" "network-online.target" "tailscaled.service" ];
+    after = [
+      "default.target"
+      "network-online.target"
+      "tailscaled.service"
+    ];
     wants = [ "network-online.target" ];
-    path = [ pkgs.uv pkgs.python3 pkgs.bash pkgs.coreutils ];
+    path = [
+      pkgs.uv
+      pkgs.python3
+      pkgs.bash
+      pkgs.coreutils
+    ];
     environment = {
       LD_LIBRARY_PATH = ldLib;
       PYTHONUTF8 = "1";

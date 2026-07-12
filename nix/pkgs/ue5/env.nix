@@ -101,10 +101,9 @@ let
     name = "ue5-fhs";
     targetPkgs = _: buildTools ++ runtimeLibs;
     multiPkgs = _: runtimeLibs;
-    profile = builtins.replaceStrings
-      [ "@dotnet-sdk@" ]
-      [ "${pkgs.dotnet-sdk_8}" ]
-      (builtins.readFile ./fhs-profile.sh);
+    profile = builtins.replaceStrings [ "@dotnet-sdk@" ] [ "${pkgs.dotnet-sdk_8}" ] (
+      builtins.readFile ./fhs-profile.sh
+    );
     runScript = "bash";
   };
 
@@ -152,7 +151,13 @@ let
     exec "''${UE_ROOT:?UE_ROOT not set}/Engine/Binaries/Linux/UnrealEditor" "$UPROJECT" "$@"
   '';
 
-  scripts = [ ue5-setup ue5-build-engine ue5-generate ue5-build ue5-editor ];
+  scripts = [
+    ue5-setup
+    ue5-build-engine
+    ue5-generate
+    ue5-build
+    ue5-editor
+  ];
 
   devShell = pkgs.mkShell {
     packages = [ fhs ] ++ scripts;
@@ -180,5 +185,11 @@ let
 in
 {
   inherit fhs scripts devShell;
-  inherit ue5-setup ue5-build-engine ue5-generate ue5-build ue5-editor;
+  inherit
+    ue5-setup
+    ue5-build-engine
+    ue5-generate
+    ue5-build
+    ue5-editor
+    ;
 }
