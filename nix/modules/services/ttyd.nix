@@ -7,7 +7,10 @@
     port = 7681;
     systemd = {
       description = "ttyd web shell (tailnet-only)";
-      after = [ "network.target" "tailscaled.service" ];
+      after = [
+        "network.target"
+        "tailscaled.service"
+      ];
       wants = [ "tailscaled.service" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {

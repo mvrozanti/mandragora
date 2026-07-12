@@ -21,31 +21,68 @@
 
         modules-left = [ "hyprland/workspaces" ];
         modules-center = [ ];
-        modules-right = [ "group/audio" "group/hardware" "group/network" "group/info" "group/actions" "tray" ];
+        modules-right = [
+          "group/audio"
+          "group/hardware"
+          "group/network"
+          "group/info"
+          "group/actions"
+          "tray"
+        ];
 
         "group/audio" = {
           orientation = "horizontal";
-          modules = [ "custom/mpd" "custom/mpd-prev" "custom/mpd-toggle" "custom/mpd-next" "custom/mpd-single" "custom/mpd-random" "custom/volume" "bluetooth" ];
+          modules = [
+            "custom/mpd"
+            "custom/mpd-prev"
+            "custom/mpd-toggle"
+            "custom/mpd-next"
+            "custom/mpd-single"
+            "custom/mpd-random"
+            "custom/volume"
+            "bluetooth"
+          ];
         };
 
         "group/hardware" = {
           orientation = "horizontal";
-          modules = [ "disk" "memory" "temperature" "cpu" "custom/gpu" ];
+          modules = [
+            "disk"
+            "memory"
+            "temperature"
+            "cpu"
+            "custom/gpu"
+          ];
         };
 
         "group/network" = {
           orientation = "horizontal";
-          modules = [ "custom/network-menu" "custom/network" ];
+          modules = [
+            "custom/network-menu"
+            "custom/network"
+          ];
         };
 
         "group/actions" = {
           orientation = "horizontal";
-          modules = [ "custom/monitor" "custom/security" "custom/rss" "custom/notif-menu" "custom/screencap" "custom/clipboard" "custom/powermenu" ];
+          modules = [
+            "custom/monitor"
+            "custom/security"
+            "custom/rss"
+            "custom/notif-menu"
+            "custom/screencap"
+            "custom/clipboard"
+            "custom/powermenu"
+          ];
         };
 
         "group/info" = {
           orientation = "horizontal";
-          modules = [ "custom/weather" "clock" "custom/brightness" ];
+          modules = [
+            "custom/weather"
+            "clock"
+            "custom/brightness"
+          ];
         };
 
         "hyprland/workspaces" = {
@@ -185,49 +222,52 @@
           on-click = "gpu-menu pick";
         };
 
-
         "custom/network" = {
-          exec = toString (pkgs.writeShellScript "net-rate" ''
-            iface=$(ip route show default 2>/dev/null | awk '/default/ {print $5; exit}')
-            if [ -z "$iface" ]; then echo "disconnected"; exit; fi
-            rx=$(cat /sys/class/net/$iface/statistics/rx_bytes 2>/dev/null || echo 0)
-            tx=$(cat /sys/class/net/$iface/statistics/tx_bytes 2>/dev/null || echo 0)
-            now=$(date +%s)
-            prev=/tmp/net-rate-$iface
-            if [ -f "$prev" ]; then
-              read -r prx ptx pt < "$prev"
-              dt=$(( now - pt ))
-              if [ "$dt" -gt 0 ]; then
-                drx=$(( (rx - prx) / dt ))
-                dtx=$(( (tx - ptx) / dt ))
+          exec = toString (
+            pkgs.writeShellScript "net-rate" ''
+              iface=$(ip route show default 2>/dev/null | awk '/default/ {print $5; exit}')
+              if [ -z "$iface" ]; then echo "disconnected"; exit; fi
+              rx=$(cat /sys/class/net/$iface/statistics/rx_bytes 2>/dev/null || echo 0)
+              tx=$(cat /sys/class/net/$iface/statistics/tx_bytes 2>/dev/null || echo 0)
+              now=$(date +%s)
+              prev=/tmp/net-rate-$iface
+              if [ -f "$prev" ]; then
+                read -r prx ptx pt < "$prev"
+                dt=$(( now - pt ))
+                if [ "$dt" -gt 0 ]; then
+                  drx=$(( (rx - prx) / dt ))
+                  dtx=$(( (tx - ptx) / dt ))
+                else drx=0; dtx=0; fi
               else drx=0; dtx=0; fi
-            else drx=0; dtx=0; fi
-            printf "%s %s %s\n" "$rx" "$tx" "$now" > "$prev"
-            human() {
-              local b=$1
-              if   [ "$b" -ge 1073741824 ]; then echo "$(( b / 1073741824 )) GB/s"
-              elif [ "$b" -ge 1048576 ];    then echo "$(( b / 1048576 )) MB/s"
-              elif [ "$b" -ge 1024 ];       then echo "$(( b / 1024 )) KB/s"
-              else echo "$b B/s"; fi
-            }
-            echo "↑ $(human "$dtx") ↓ $(human "$drx")"
-          '');
+              printf "%s %s %s\n" "$rx" "$tx" "$now" > "$prev"
+              human() {
+                local b=$1
+                if   [ "$b" -ge 1073741824 ]; then echo "$(( b / 1073741824 )) GB/s"
+                elif [ "$b" -ge 1048576 ];    then echo "$(( b / 1048576 )) MB/s"
+                elif [ "$b" -ge 1024 ];       then echo "$(( b / 1024 )) KB/s"
+                else echo "$b B/s"; fi
+              }
+              echo "↑ $(human "$dtx") ↓ $(human "$drx")"
+            ''
+          );
           interval = 5;
         };
 
         "custom/network-menu" = {
-          exec = toString (pkgs.writeShellScript "net-menu" ''
-            iface=$(${pkgs.iproute2}/bin/ip route show default 2>/dev/null | ${pkgs.gawk}/bin/awk '/default/ {print $5; exit}')
-            reachable=0
-            if [ -n "$iface" ] && ${pkgs.iputils}/bin/ping -c1 -W1 1.1.1.1 >/dev/null 2>&1; then
-              reachable=1
-            fi
-            if [ "$reachable" = 1 ]; then
-              printf '{"text":"","class":"online","tooltip":"Online via %s"}\n' "$iface"
-            else
-              printf '{"text":"󰖪","class":"offline","tooltip":"No internet — click to open wifi manager"}\n'
-            fi
-          '');
+          exec = toString (
+            pkgs.writeShellScript "net-menu" ''
+              iface=$(${pkgs.iproute2}/bin/ip route show default 2>/dev/null | ${pkgs.gawk}/bin/awk '/default/ {print $5; exit}')
+              reachable=0
+              if [ -n "$iface" ] && ${pkgs.iputils}/bin/ping -c1 -W1 1.1.1.1 >/dev/null 2>&1; then
+                reachable=1
+              fi
+              if [ "$reachable" = 1 ]; then
+                printf '{"text":"","class":"online","tooltip":"Online via %s"}\n' "$iface"
+              else
+                printf '{"text":"󰖪","class":"offline","tooltip":"No internet — click to open wifi manager"}\n'
+              fi
+            ''
+          );
           return-type = "json";
           interval = 5;
           on-click = "kitty --class impala -o close_on_child_death=yes -e impala";

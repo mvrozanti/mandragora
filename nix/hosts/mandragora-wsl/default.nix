@@ -1,10 +1,16 @@
-{ lib, pkgs, inputs, ... }:
+{
+  lib,
+  pkgs,
+  inputs,
+  ...
+}:
 
 {
   imports = [
     ../../pkgs/overlays.nix
     ../../modules/core/vuln-scan.nix
-  ] ++ lib.optional (builtins.pathExists ./local.nix) ./local.nix;
+  ]
+  ++ lib.optional (builtins.pathExists ./local.nix) ./local.nix;
 
   mandragora.profile = "wsl";
 
@@ -39,7 +45,10 @@
     LC_ALL = "en_US.UTF-8";
   };
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
   nix.settings.auto-optimise-store = true;
   nixpkgs.config.allowUnfree = true;
 
@@ -52,116 +61,124 @@
 
   security.sudo.wheelNeedsPassword = false;
 
-  environment.systemPackages = with pkgs; let
-    win32yank = stdenvNoCC.mkDerivation rec {
-      pname = "win32yank";
-      version = "0.1.1";
-      src = fetchzip {
-        url = "https://github.com/equalsraf/win32yank/releases/download/v${version}/win32yank-x64.zip";
-        sha256 = "0gclg5cpbq0qxnj8jfnxsrxyq5is1hka4ydwi4w8p18rqvaw8az2";
-        stripRoot = false;
+  environment.systemPackages =
+    with pkgs;
+    let
+      win32yank = stdenvNoCC.mkDerivation rec {
+        pname = "win32yank";
+        version = "0.1.1";
+        src = fetchzip {
+          url = "https://github.com/equalsraf/win32yank/releases/download/v${version}/win32yank-x64.zip";
+          sha256 = "0gclg5cpbq0qxnj8jfnxsrxyq5is1hka4ydwi4w8p18rqvaw8az2";
+          stripRoot = false;
+        };
+        dontBuild = true;
+        installPhase = ''
+          runHook preInstall
+          install -Dm755 win32yank.exe $out/bin/win32yank.exe
+          runHook postInstall
+        '';
+        meta = with lib; {
+          description = "Clipboard tool for WSL using Win32 API (UTF-8 native)";
+          homepage = "https://github.com/equalsraf/win32yank";
+          license = licenses.asl20;
+          platforms = platforms.linux;
+        };
       };
-      dontBuild = true;
-      installPhase = ''
-        runHook preInstall
-        install -Dm755 win32yank.exe $out/bin/win32yank.exe
-        runHook postInstall
+      clipCopy = writeShellScript "mandragora-clip-copy" ''
+        exec ${win32yank}/bin/win32yank.exe -i --crlf
       '';
-      meta = with lib; {
-        description = "Clipboard tool for WSL using Win32 API (UTF-8 native)";
-        homepage = "https://github.com/equalsraf/win32yank";
-        license = licenses.asl20;
-        platforms = platforms.linux;
-      };
-    };
-    clipCopy = writeShellScript "mandragora-clip-copy" ''
-      exec ${win32yank}/bin/win32yank.exe -i --crlf
-    '';
-    clipPaste = writeShellScript "mandragora-clip-paste" ''
-      exec ${win32yank}/bin/win32yank.exe -o --lf
-    '';
-    copyShim = name: writeShellScriptBin name "exec ${clipCopy}";
-    pasteShim = name: writeShellScriptBin name "exec ${clipPaste}";
-    xclipShim = writeShellScriptBin "xclip" ''
-      for arg in "$@"; do
-        case "$arg" in
-          -o|-out|--output) exec ${clipPaste} ;;
+      clipPaste = writeShellScript "mandragora-clip-paste" ''
+        exec ${win32yank}/bin/win32yank.exe -o --lf
+      '';
+      copyShim = name: writeShellScriptBin name "exec ${clipCopy}";
+      pasteShim = name: writeShellScriptBin name "exec ${clipPaste}";
+      xclipShim = writeShellScriptBin "xclip" ''
+        for arg in "$@"; do
+          case "$arg" in
+            -o|-out|--output) exec ${clipPaste} ;;
+          esac
+        done
+        exec ${clipCopy}
+      '';
+      xselShim = writeShellScriptBin "xsel" ''
+        for arg in "$@"; do
+          case "$arg" in
+            -i|--input)  exec ${clipCopy} ;;
+            -o|--output) exec ${clipPaste} ;;
+          esac
+        done
+        exec ${clipCopy}
+      '';
+      xdgOpenShim = writeShellScriptBin "xdg-open" ''
+        target="$1"
+        case "$target" in
+          http://*|https://*|mailto:*|ftp://*|file://*) ;;
+          *)
+            if [ -e "$target" ]; then
+              target="$(wslpath -w "$target")"
+            fi
+            ;;
         esac
-      done
-      exec ${clipCopy}
-    '';
-    xselShim = writeShellScriptBin "xsel" ''
-      for arg in "$@"; do
-        case "$arg" in
-          -i|--input)  exec ${clipCopy} ;;
-          -o|--output) exec ${clipPaste} ;;
-        esac
-      done
-      exec ${clipCopy}
-    '';
-    xdgOpenShim = writeShellScriptBin "xdg-open" ''
-      target="$1"
-      case "$target" in
-        http://*|https://*|mailto:*|ftp://*|file://*) ;;
-        *)
-          if [ -e "$target" ]; then
-            target="$(wslpath -w "$target")"
-          fi
-          ;;
-      esac
-      exec /mnt/c/Windows/explorer.exe "$target"
-    '';
-    mandragoraWslSwitch = writeShellScriptBin "mandragora-wsl-switch" ''
-      set -e
-      repo=/etc/nixos/mandragora
-      cd "$repo"
-      branch=$(${pkgs.git}/bin/git symbolic-ref --short HEAD 2>/dev/null || echo DETACHED)
-      if [ "$branch" = "master" ] || [ "$branch" = "main" ]; then
-        echo "refusing to run on '$branch'. switch to your work branch first:" >&2
-        echo "  git -C $repo checkout -b work" >&2
-        exit 1
-      fi
-      echo "==> fetch origin master"
-      ${pkgs.git}/bin/git fetch origin master
-      echo "==> merge origin/master into $branch"
-      if ! ${pkgs.git}/bin/git -c merge.autoStash=true merge --no-edit FETCH_HEAD; then
-        echo "merge conflict. resolve, 'git commit', then re-run mandragora-wsl-switch." >&2
-        exit 1
-      fi
-      ${pkgs.git}/bin/git add -A
-      echo "==> nixos-rebuild switch"
-      exec sudo nixos-rebuild switch --flake "$repo#mandragora-wsl" --impure
-    '';
-  in [
-    win32yank
-    xdgOpenShim
-    mandragoraWslSwitch
-    (copyShim "wl-copy")
-    (pasteShim "wl-paste")
-    (copyShim "pbcopy")
-    (pasteShim "pbpaste")
-    (copyShim "clipcopy")
-    (pasteShim "clippaste")
-    xclipShim
-    xselShim
-  ];
+        exec /mnt/c/Windows/explorer.exe "$target"
+      '';
+      mandragoraWslSwitch = writeShellScriptBin "mandragora-wsl-switch" ''
+        set -e
+        repo=/etc/nixos/mandragora
+        cd "$repo"
+        branch=$(${pkgs.git}/bin/git symbolic-ref --short HEAD 2>/dev/null || echo DETACHED)
+        if [ "$branch" = "master" ] || [ "$branch" = "main" ]; then
+          echo "refusing to run on '$branch'. switch to your work branch first:" >&2
+          echo "  git -C $repo checkout -b work" >&2
+          exit 1
+        fi
+        echo "==> fetch origin master"
+        ${pkgs.git}/bin/git fetch origin master
+        echo "==> merge origin/master into $branch"
+        if ! ${pkgs.git}/bin/git -c merge.autoStash=true merge --no-edit FETCH_HEAD; then
+          echo "merge conflict. resolve, 'git commit', then re-run mandragora-wsl-switch." >&2
+          exit 1
+        fi
+        ${pkgs.git}/bin/git add -A
+        echo "==> nixos-rebuild switch"
+        exec sudo nixos-rebuild switch --flake "$repo#mandragora-wsl" --impure
+      '';
+    in
+    [
+      win32yank
+      xdgOpenShim
+      mandragoraWslSwitch
+      (copyShim "wl-copy")
+      (pasteShim "wl-paste")
+      (copyShim "pbcopy")
+      (pasteShim "pbpaste")
+      (copyShim "clipcopy")
+      (pasteShim "clippaste")
+      xclipShim
+      xselShim
+    ];
 
   programs.zsh.enable = true;
 
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
   home-manager.extraSpecialArgs = { inherit inputs; };
-  home-manager.users.m = { lib, ... }: {
-    imports = [ ../../modules/shared/home-cli.nix ]
-      ++ lib.optional ((builtins.getEnv "MANDRAGORA_PERSONAL") == "1")
-        ../../modules/shared/home-personal.nix;
-    home.username = "m";
-    home.homeDirectory = "/home/m";
-    home.stateVersion = "24.05";
-    programs.zsh.shellAliases = {
-      nrs = lib.mkForce "mandragora-wsl-switch";
+  home-manager.users.m =
+    { lib, ... }:
+    {
+      imports = [
+        ../../modules/shared/home-cli.nix
+      ]
+      ++ lib.optional (
+        (builtins.getEnv "MANDRAGORA_PERSONAL") == "1"
+      ) ../../modules/shared/home-personal.nix;
+      home.username = "m";
+      home.homeDirectory = "/home/m";
+      home.stateVersion = "24.05";
+      programs.zsh.shellAliases = {
+        nrs = lib.mkForce "mandragora-wsl-switch";
+      };
     };
-  };
 
   system.stateVersion = "24.05";
 }

@@ -2,9 +2,17 @@
 
 let
   ytdlApp = pkgs.writers.writePython3Bin "ytdl-web" {
-    flakeIgnore = [ "E501" "E265" "E302" "E305" "E402" "W605" ];
+    flakeIgnore = [
+      "E501"
+      "E265"
+      "E302"
+      "E305"
+      "E402"
+      "W605"
+    ];
   } (builtins.readFile ../../snippets/ytdl-web.py);
-in {
+in
+{
   mandragora.hub.services.ytdl-web = {
     port = 6685;
     userService = true;
@@ -19,7 +27,11 @@ in {
         YTDL_YT_DLP = "${pkgs.yt-dlp}/bin/yt-dlp";
         YTDL_FFMPEG_LOCATION = "${pkgs.ffmpeg}/bin";
       };
-      path = [ pkgs.yt-dlp pkgs.ffmpeg pkgs.coreutils ];
+      path = [
+        pkgs.yt-dlp
+        pkgs.ffmpeg
+        pkgs.coreutils
+      ];
       serviceConfig = {
         Type = "simple";
         ExecStart = "${ytdlApp}/bin/ytdl-web";

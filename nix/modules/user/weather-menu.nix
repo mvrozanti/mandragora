@@ -5,7 +5,10 @@ let
 
   weather-menu = pkgs.writeShellApplication {
     name = "weather-menu";
-    runtimeInputs = with pkgs; [ rofi libnotify ];
+    runtimeInputs = with pkgs; [
+      rofi
+      libnotify
+    ];
     text = ''
       exec ${pyEnv}/bin/python3 ${../../snippets/weather-menu.py} "$@"
     '';

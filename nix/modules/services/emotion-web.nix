@@ -1,8 +1,13 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.mandragora.emotionWeb;
-  emotionWebPkg = pkgs.callPackage ../../pkgs/emotion-web.nix {};
+  emotionWebPkg = pkgs.callPackage ../../pkgs/emotion-web.nix { };
 in
 {
   options.mandragora.emotionWeb = {

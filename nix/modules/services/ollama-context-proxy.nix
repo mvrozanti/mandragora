@@ -5,7 +5,8 @@ let
   src = ../../../.local/share/ollama-context-proxy/proxy.py;
   pyEnv = pkgs.python3.withPackages (ps: [ ps.aiohttp ]);
   systemPromptFile = pkgs.writeText "mvr-system-prompt.txt" (builtins.readFile ../../../AGENTS.md);
-in {
+in
+{
   systemd.services.ollama-context-proxy = {
     description = "Reverse proxy in front of Ollama that injects AGENTS.md as a default system message";
     after = [ "ollama.service" ];

@@ -1,4 +1,12 @@
-{ lib, stdenvNoCC, buildNpmPackage, fetchFromGitHub, nodejs_22, makeWrapper, cacert }:
+{
+  lib,
+  stdenvNoCC,
+  buildNpmPackage,
+  fetchFromGitHub,
+  nodejs_22,
+  makeWrapper,
+  cacert,
+}:
 
 let
   src = fetchFromGitHub {
@@ -11,7 +19,10 @@ let
   googleFontsRaw = stdenvNoCC.mkDerivation {
     pname = "cc-lens-google-fonts-raw";
     version = "unstable-2026-06-19";
-    nativeBuildInputs = [ nodejs_22 cacert ];
+    nativeBuildInputs = [
+      nodejs_22
+      cacert
+    ];
     dontUnpack = true;
     buildPhase = ''
       runHook preBuild

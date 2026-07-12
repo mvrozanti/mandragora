@@ -1,4 +1,9 @@
-{ stdenvNoCC, clang, libbpf, prometheus-ebpf-exporter }:
+{
+  stdenvNoCC,
+  clang,
+  libbpf,
+  prometheus-ebpf-exporter,
+}:
 stdenvNoCC.mkDerivation {
   pname = "ebpf-network-config";
   version = "0.1.0";

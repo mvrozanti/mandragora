@@ -5,7 +5,12 @@ let
   effectFiles = builtins.readDir effectsDir;
   workspaceWatcher = pkgs.writeShellApplication {
     name = "keyleds-workspace-watcher";
-    runtimeInputs = [ pkgs.socat pkgs.jq pkgs.systemd pkgs.hyprland ];
+    runtimeInputs = [
+      pkgs.socat
+      pkgs.jq
+      pkgs.systemd
+      pkgs.hyprland
+    ];
     text = builtins.readFile ../../../.local/bin/keyleds-workspace-watcher.sh;
   };
   keyleds-ticpu = pkgs.keyleds.overrideAttrs (old: {
@@ -19,16 +24,24 @@ let
     };
     patches = [ ../../snippets/keyleds-extra-input.patch ];
     postPatch = "";
-    buildInputs = (old.buildInputs or []) ++ [ pkgs.libevdev ];
+    buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.libevdev ];
     postInstall = (old.postInstall or "") + ''
-      ${lib.concatStringsSep "\n" (map (name:
-        "cp ${pkgs.writeText name (builtins.readFile (effectsDir + "/${name}"))} $out/share/keyledsd/effects/${name}"
-      ) (builtins.attrNames effectFiles))}
+      ${lib.concatStringsSep "\n" (
+        map (
+          name:
+          "cp ${
+            pkgs.writeText name (builtins.readFile (effectsDir + "/${name}"))
+          } $out/share/keyledsd/effects/${name}"
+        ) (builtins.attrNames effectFiles)
+      )}
     '';
   });
 in
 {
-  environment.systemPackages = [ keyleds-ticpu workspaceWatcher ];
+  environment.systemPackages = [
+    keyleds-ticpu
+    workspaceWatcher
+  ];
 
   services.udev.packages = [
     keyleds-ticpu
@@ -60,7 +73,10 @@ in
     description = "Forward Hyprland workspace events to keyledsd context";
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
-    after = [ "graphical-session.target" "keyledsd.service" ];
+    after = [
+      "graphical-session.target"
+      "keyledsd.service"
+    ];
     requires = [ "keyledsd.service" ];
     serviceConfig = {
       ExecStart = "${workspaceWatcher}/bin/keyleds-workspace-watcher";

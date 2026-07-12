@@ -6,7 +6,12 @@
   networking.useDHCP = false;
   networking.interfaces.enp8s0 = {
     useDHCP = false;
-    ipv4.addresses = [{ address = "192.168.0.27"; prefixLength = 24; }];
+    ipv4.addresses = [
+      {
+        address = "192.168.0.27";
+        prefixLength = 24;
+      }
+    ];
     tempAddress = "default";
   };
   networking.defaultGateway = "192.168.0.1";
@@ -20,7 +25,10 @@
     enable = true;
     resolveLocalQueries = false;
     settings = {
-      server = [ "1.1.1.1" "1.0.0.1" ];
+      server = [
+        "1.1.1.1"
+        "1.0.0.1"
+      ];
       addn-hosts = [ config.sops.templates."hosts-oracle".path ];
       listen-address = "127.0.0.1";
       bind-interfaces = true;
@@ -30,7 +38,16 @@
   users.users.m = {
     isNormalUser = true;
     description = "Mandragora Primary User";
-    extraGroups = [ "input" "networkmanager" "wheel" "video" "audio" "i2c" "plugdev" "ydotool" ];
+    extraGroups = [
+      "input"
+      "networkmanager"
+      "wheel"
+      "video"
+      "audio"
+      "i2c"
+      "plugdev"
+      "ydotool"
+    ];
     shell = pkgs.zsh;
     linger = true;
   };

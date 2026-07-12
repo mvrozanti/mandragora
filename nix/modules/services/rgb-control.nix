@@ -2,7 +2,10 @@
 
 let
   src = ../../../.local/share/rgb-control/rgb-control.py;
-  pyEnv = pkgs.python3.withPackages (ps: [ ps.aiohttp ps.openrgb-python ]);
+  pyEnv = pkgs.python3.withPackages (ps: [
+    ps.aiohttp
+    ps.openrgb-python
+  ]);
   recoverScript = pkgs.writeShellScript "rgb-control-recover-keyleds" ''
     set +e
     export XDG_RUNTIME_DIR=/run/user/1000
@@ -10,12 +13,17 @@ let
     ${pkgs.systemd}/bin/systemctl --user restart keyleds-workspace-watcher.service
     exit 0
   '';
-in {
+in
+{
   mandragora.hub.services.rgb-control = {
     port = 6681;
     systemd = {
       description = "rgb-control web — per-device openrgb UI";
-      after = [ "network.target" "tailscaled.service" "openrgb.service" ];
+      after = [
+        "network.target"
+        "tailscaled.service"
+        "openrgb.service"
+      ];
       wants = [ "tailscaled.service" ];
       requires = [ "openrgb.service" ];
       wantedBy = [ "multi-user.target" ];
@@ -26,7 +34,10 @@ in {
         XDG_RUNTIME_DIR = "/run/user/1000";
         DBUS_SESSION_BUS_ADDRESS = "unix:path=/run/user/1000/bus";
       };
-      path = [ pkgs.openrgb-with-all-plugins pkgs.systemd ];
+      path = [
+        pkgs.openrgb-with-all-plugins
+        pkgs.systemd
+      ];
       serviceConfig = {
         User = "m";
         Group = "users";

@@ -1,12 +1,15 @@
 { config, pkgs, ... }:
 
 let
-  updateBin = pkgs.writeShellScriptBin "mandragora-update"
-    (builtins.readFile ../../../.local/bin/mandragora-update.sh);
-  watchBin = pkgs.writeShellScriptBin "mandragora-update-watch"
-    (builtins.readFile ../../../.local/bin/mandragora-update-watch.sh);
-  notifyBin = pkgs.writeShellScriptBin "telegram-notify"
-    (builtins.readFile ../../../.local/bin/telegram-notify.sh);
+  updateBin = pkgs.writeShellScriptBin "mandragora-update" (
+    builtins.readFile ../../../.local/bin/mandragora-update.sh
+  );
+  watchBin = pkgs.writeShellScriptBin "mandragora-update-watch" (
+    builtins.readFile ../../../.local/bin/mandragora-update-watch.sh
+  );
+  notifyBin = pkgs.writeShellScriptBin "telegram-notify" (
+    builtins.readFile ../../../.local/bin/telegram-notify.sh
+  );
   buildPath = [
     config.nix.package
     pkgs.nixos-rebuild
@@ -23,11 +26,18 @@ let
   ];
 in
 {
-  environment.systemPackages = [ updateBin watchBin notifyBin ];
+  environment.systemPackages = [
+    updateBin
+    watchBin
+    notifyBin
+  ];
 
   systemd.services.mandragora-update-probe = {
     description = "On-demand cache-warm nixpkgs update probe (auto-switch); no timer, manual use only";
-    after = [ "network-online.target" "nix-daemon.service" ];
+    after = [
+      "network-online.target"
+      "nix-daemon.service"
+    ];
     wants = [ "network-online.target" ];
     path = buildPath;
     environment = {
@@ -45,9 +55,15 @@ in
 
   systemd.services.mandragora-update-watch = {
     description = "Weekly build-test of the pending nixpkgs update; pings when it builds clean (never switches)";
-    after = [ "network-online.target" "nix-daemon.service" ];
+    after = [
+      "network-online.target"
+      "nix-daemon.service"
+    ];
     wants = [ "network-online.target" ];
-    path = buildPath ++ [ watchBin notifyBin ];
+    path = buildPath ++ [
+      watchBin
+      notifyBin
+    ];
     environment = {
       MANDRAGORA_REPO = "/etc/nixos/mandragora";
       MANDRAGORA_HOST = "mandragora-desktop";

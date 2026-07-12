@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   home.file.".XCompose".source = ../../../.XCompose;
@@ -48,20 +53,20 @@
   '';
 
   home.activation.seedObsStudio = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    OBS_PROFILE_DIR="$HOME/.config/obs-studio/basic/profiles/Untitled"
-    if [ ! -e "$OBS_PROFILE_DIR/basic.ini" ]; then
-      mkdir -p "$OBS_PROFILE_DIR"
-      cat <<EOF > "$OBS_PROFILE_DIR/basic.ini"
-[General]
-Name=Untitled
+        OBS_PROFILE_DIR="$HOME/.config/obs-studio/basic/profiles/Untitled"
+        if [ ! -e "$OBS_PROFILE_DIR/basic.ini" ]; then
+          mkdir -p "$OBS_PROFILE_DIR"
+          cat <<EOF > "$OBS_PROFILE_DIR/basic.ini"
+    [General]
+    Name=Untitled
 
-[SimpleOutput]
-FilePath=$HOME/Videos
+    [SimpleOutput]
+    FilePath=$HOME/Videos
 
-[AdvOut]
-RecFilePath=$HOME/Videos
-EOF
-    fi
+    [AdvOut]
+    RecFilePath=$HOME/Videos
+    EOF
+        fi
   '';
 
   home.file.".config/nsxiv" = {
@@ -114,12 +119,16 @@ EOF
     source = ../../snippets/waybar-brightness.sh;
     executable = true;
   };
-  home.file.".local/share/applications/chess-com.desktop".source = pkgs.replaceVars ../../../.local/share/applications/chess-com.desktop {
-    icon = "${pkgs.gnome-chess}/share/icons/hicolor/scalable/apps/org.gnome.Chess.svg";
-  };
-  home.file.".local/share/applications/whatsapp-web.desktop".source = pkgs.replaceVars ../../../.local/share/applications/whatsapp-web.desktop {
-    icon = "${pkgs.zapzap}/share/icons/hicolor/scalable/apps/com.rtosta.zapzap.svg";
-  };
+  home.file.".local/share/applications/chess-com.desktop".source =
+    pkgs.replaceVars ../../../.local/share/applications/chess-com.desktop
+      {
+        icon = "${pkgs.gnome-chess}/share/icons/hicolor/scalable/apps/org.gnome.Chess.svg";
+      };
+  home.file.".local/share/applications/whatsapp-web.desktop".source =
+    pkgs.replaceVars ../../../.local/share/applications/whatsapp-web.desktop
+      {
+        icon = "${pkgs.zapzap}/share/icons/hicolor/scalable/apps/com.rtosta.zapzap.svg";
+      };
   home.file.".claude/settings.json".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/settings.json";
   home.file.".claude/settings.local.json".source =
@@ -155,5 +164,6 @@ EOF
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/hooks/rtk-hook-gemini.sh";
   home.file.".gemini/hooks/.rtk-hook.sha256".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/hooks/.rtk-hook.sha256";
-  home.file.".local/share/applications/ragnarok.desktop".source = ../../../.local/share/applications/ragnarok.desktop;
+  home.file.".local/share/applications/ragnarok.desktop".source =
+    ../../../.local/share/applications/ragnarok.desktop;
 }

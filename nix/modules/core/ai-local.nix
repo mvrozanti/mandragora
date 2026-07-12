@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   cfg = config.mandragora.ai;
@@ -6,7 +11,8 @@ let
 
   models = builtins.fromJSON (builtins.readFile ../../snippets/local-llm-models.json);
 
-  mkPythonBin = name: src:
+  mkPythonBin =
+    name: src:
     pkgs.stdenv.mkDerivation {
       inherit name;
       inherit src;
@@ -36,7 +42,10 @@ let
 
   pullModelService = model: {
     description = "Pre-pull ${model}";
-    after = [ "ollama.service" "network-online.target" ];
+    after = [
+      "ollama.service"
+      "network-online.target"
+    ];
     requires = [ "ollama.service" ];
     wants = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
@@ -126,8 +135,14 @@ in
       systemd.services.ollama = {
         restartIfChanged = false;
         stopIfChanged = false;
-        after = [ "tailscaled.service" "network-online.target" ];
-        wants = [ "tailscaled.service" "network-online.target" ];
+        after = [
+          "tailscaled.service"
+          "network-online.target"
+        ];
+        wants = [
+          "tailscaled.service"
+          "network-online.target"
+        ];
         serviceConfig = {
           Restart = lib.mkForce "on-failure";
           RestartSec = "5s";
@@ -142,7 +157,6 @@ in
         };
       };
 
-
       environment.systemPackages = [
         crush-wrapped
         pkgs.beep
@@ -156,25 +170,30 @@ in
     }
 
     (lib.mkIf (cfg.extraModels != [ ]) {
-      systemd.services = lib.listToAttrs (map
-        (m: lib.nameValuePair "ollama-pull-${sanitizeTag m}" (pullModelService m))
-        cfg.extraModels);
+      systemd.services = lib.listToAttrs (
+        map (m: lib.nameValuePair "ollama-pull-${sanitizeTag m}" (pullModelService m)) cfg.extraModels
+      );
     })
 
     (lib.mkIf cfg.agentic.enable {
-      assertions = [{
-        assertion = gpu.vramGB != null && gpu.vramGB >= 16;
-        message = ''
-          mandragora.ai.agentic.enable requires mandragora.hardware.gpu.vramGB >= 16.
-          The local model fits in VRAM.
-        '';
-      }];
+      assertions = [
+        {
+          assertion = gpu.vramGB != null && gpu.vramGB >= 16;
+          message = ''
+            mandragora.ai.agentic.enable requires mandragora.hardware.gpu.vramGB >= 16.
+            The local model fits in VRAM.
+          '';
+        }
+      ];
 
       environment.systemPackages = [ ];
 
       systemd.services.ollama-pull-agentic = {
         description = "Pre-pull primary local model";
-        after = [ "ollama.service" "network-online.target" ];
+        after = [
+          "ollama.service"
+          "network-online.target"
+        ];
         requires = [ "ollama.service" ];
         wants = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];
@@ -190,13 +209,15 @@ in
     })
 
     (lib.mkIf cfg.vtag.enable {
-      assertions = [{
-        assertion = gpu.vramGB != null && gpu.vramGB >= 12;
-        message = ''
-          mandragora.ai.vtag.enable requires mandragora.hardware.gpu.vramGB >= 12.
-          Qwen2.5-VL 7B Q4_K_M needs ~6 GB plus headroom for Flux coexistence.
-        '';
-      }];
+      assertions = [
+        {
+          assertion = gpu.vramGB != null && gpu.vramGB >= 12;
+          message = ''
+            mandragora.ai.vtag.enable requires mandragora.hardware.gpu.vramGB >= 12.
+            Qwen2.5-VL 7B Q4_K_M needs ~6 GB plus headroom for Flux coexistence.
+          '';
+        }
+      ];
 
       environment.systemPackages = [
         vtagCli.vtag
@@ -206,7 +227,10 @@ in
 
       systemd.services.ollama-pull-vtag = {
         description = "Pre-pull vtag VLM";
-        after = [ "ollama.service" "network-online.target" ];
+        after = [
+          "ollama.service"
+          "network-online.target"
+        ];
         requires = [ "ollama.service" ];
         wants = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];
@@ -224,7 +248,10 @@ in
     (lib.mkIf cfg.uncensored.enable {
       systemd.services.ollama-pull-uncensored = {
         description = "Pre-pull uncensored / abliterated model";
-        after = [ "ollama.service" "network-online.target" ];
+        after = [
+          "ollama.service"
+          "network-online.target"
+        ];
         requires = [ "ollama.service" ];
         wants = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];

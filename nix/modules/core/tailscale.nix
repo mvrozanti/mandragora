@@ -10,7 +10,11 @@ in
     useRoutingFeatures = "client";
   };
 
-  networking.hosts.${tailnet.vps.ip} = [ "term.mvr.ac" "claude.mvr.ac" "mandragora-vps" ];
+  networking.hosts.${tailnet.vps.ip} = [
+    "term.mvr.ac"
+    "claude.mvr.ac"
+    "mandragora-vps"
+  ];
 
   environment.systemPackages = [ pkgs.tailscale ];
 }

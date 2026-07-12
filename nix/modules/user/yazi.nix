@@ -1,19 +1,36 @@
-{ config, lib, pkgs, osConfig ? null, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  osConfig ? null,
+  ...
+}:
 
 let
-  profile = if osConfig != null && osConfig ? mandragora
-            then osConfig.mandragora.profile
-            else "desktop";
+  profile =
+    if osConfig != null && osConfig ? mandragora then osConfig.mandragora.profile else "desktop";
   isWsl = profile == "wsl";
   zxDirs = import ./zx-dirs.nix;
   homeDir = config.home.homeDirectory;
   normalize = v: if builtins.isString v then { path = v; } else v;
   expandHome = p: lib.replaceStrings [ "~" ] [ homeDir ] p;
-  jumpKeymap = lib.attrValues (lib.mapAttrs (k: v:
-    let e = normalize v;
+  jumpKeymap = lib.attrValues (
+    lib.mapAttrs (
+      k: v:
+      let
+        e = normalize v;
         path = expandHome e.path;
-    in { on = [ "g" k ]; run = "cd ${path}"; desc = "cd ${e.path}"; }
-  ) zxDirs);
+      in
+      {
+        on = [
+          "g"
+          k
+        ];
+        run = "cd ${path}";
+        desc = "cd ${e.path}";
+      }
+    ) zxDirs
+  );
 
   yaziUnwrappedPatched = pkgs.yazi-unwrapped.overrideAttrs (old: {
     postPatch = (old.postPatch or "") + ''
@@ -26,7 +43,7 @@ let
     yazi-unwrapped = yaziUnwrappedPatched;
   };
 
-  zjumpPlugin = pkgs.runCommand "zjump-yazi" {} ''
+  zjumpPlugin = pkgs.runCommand "zjump-yazi" { } ''
     mkdir -p $out
     cat > $out/main.lua <<'LUA'
     local M = {}
@@ -54,7 +71,7 @@ let
     LUA
   '';
 
-  zoxideAddPlugin = pkgs.runCommand "zoxide-add-yazi" {} ''
+  zoxideAddPlugin = pkgs.runCommand "zoxide-add-yazi" { } ''
     mkdir -p $out
     cat > $out/main.lua <<'LUA'
     local M = {}
@@ -69,7 +86,7 @@ let
     LUA
   '';
 
-  tmuxCwdPublishPlugin = pkgs.runCommand "tmux-cwd-publish-yazi" {} ''
+  tmuxCwdPublishPlugin = pkgs.runCommand "tmux-cwd-publish-yazi" { } ''
     mkdir -p $out
     cat > $out/main.lua <<'LUA'
     local M = {}
@@ -87,12 +104,12 @@ let
     LUA
   '';
 
-  imageOpenPlugin = pkgs.runCommand "image-open-yazi" {} ''
+  imageOpenPlugin = pkgs.runCommand "image-open-yazi" { } ''
     mkdir -p $out
     cp ${../../../.config/yazi/plugins/image-open/main.lua} $out/main.lua
   '';
 
-  paneFgPlugin = pkgs.runCommand "pane-fg-yazi" {} ''
+  paneFgPlugin = pkgs.runCommand "pane-fg-yazi" { } ''
     mkdir -p $out
     cat > $out/main.lua <<'LUA'
     local M = {}
@@ -155,7 +172,11 @@ in
 
     settings = {
       mgr = {
-        ratio = [ 1 2 3 ];
+        ratio = [
+          1
+          2
+          3
+        ];
         sort_by = "mtime";
         sort_sensitive = false;
         sort_reverse = true;
@@ -165,7 +186,12 @@ in
         show_symlink = true;
         scrolloff = 8;
         find_sensitive = false;
-        mouse_events = [ "click" "scroll" "touch" "move" ];
+        mouse_events = [
+          "click"
+          "scroll"
+          "touch"
+          "move"
+        ];
         time_format = "%Y %b %_d %H:%M:%S";
       };
       preview = {
@@ -178,51 +204,134 @@ in
       };
       plugin = lib.optionalAttrs isWsl {
         prepend_previewers = [
-          { mime = "image/*"; run = "noop"; }
-          { mime = "video/*"; run = "noop"; }
+          {
+            mime = "image/*";
+            run = "noop";
+          }
+          {
+            mime = "video/*";
+            run = "noop";
+          }
         ];
       };
       opener = {
         edit = [
-          { run = ''$EDITOR "$@"''; block = true; for = "unix"; }
+          {
+            run = ''$EDITOR "$@"'';
+            block = true;
+            for = "unix";
+          }
         ];
         open = [
-          { run = ''xdg-open "$@"''; desc = "xdg-open"; orphan = true; for = "unix"; }
+          {
+            run = ''xdg-open "$@"'';
+            desc = "xdg-open";
+            orphan = true;
+            for = "unix";
+          }
         ];
         play = [
-          { run = ''mpv "$@"''; orphan = true; for = "unix"; }
+          {
+            run = ''mpv "$@"'';
+            orphan = true;
+            for = "unix";
+          }
         ];
         view-image = [
-          { run = ''nsxiv -ab -- "$@"''; orphan = true; for = "unix"; }
+          {
+            run = ''nsxiv -ab -- "$@"'';
+            orphan = true;
+            for = "unix";
+          }
         ];
         view-pdf = [
-          { run = ''zathura "$@"''; orphan = true; for = "unix"; }
+          {
+            run = ''zathura "$@"'';
+            orphan = true;
+            for = "unix";
+          }
         ];
         view-archive = [
-          { run = ''atool --list -- "$@" | ${"$"}{PAGER:-less}''; block = true; for = "unix"; }
+          {
+            run = ''atool --list -- "$@" | ${"$"}{PAGER:-less}'';
+            block = true;
+            for = "unix";
+          }
         ];
         office = [
-          { run = ''libreoffice "$@"''; orphan = true; for = "unix"; }
+          {
+            run = ''libreoffice "$@"'';
+            orphan = true;
+            for = "unix";
+          }
         ];
       };
       open = {
         rules = [
-          { mime = "text/*"; use = [ "edit" ]; }
-          { mime = "image/*"; use = [ "view-image" ]; }
-          { mime = "video/*"; use = [ "play" ]; }
-          { mime = "audio/*"; use = [ "play" ]; }
-          { mime = "application/pdf"; use = [ "view-pdf" ]; }
-          { mime = "application/epub+zip"; use = [ "view-pdf" ]; }
-          { mime = "application/zip"; use = [ "view-archive" ]; }
-          { mime = "application/x-tar"; use = [ "view-archive" ]; }
-          { mime = "application/x-7z-compressed"; use = [ "view-archive" ]; }
-          { mime = "application/x-rar"; use = [ "view-archive" ]; }
-          { mime = "application/vnd.openxmlformats-officedocument.*"; use = [ "office" ]; }
-          { mime = "application/msword"; use = [ "office" ]; }
-          { mime = "application/vnd.ms-excel"; use = [ "office" ]; }
-          { mime = "application/vnd.ms-powerpoint"; use = [ "office" ]; }
-          { mime = "application/vnd.oasis.opendocument.*"; use = [ "office" ]; }
-          { name = "*"; use = [ "open" ]; }
+          {
+            mime = "text/*";
+            use = [ "edit" ];
+          }
+          {
+            mime = "image/*";
+            use = [ "view-image" ];
+          }
+          {
+            mime = "video/*";
+            use = [ "play" ];
+          }
+          {
+            mime = "audio/*";
+            use = [ "play" ];
+          }
+          {
+            mime = "application/pdf";
+            use = [ "view-pdf" ];
+          }
+          {
+            mime = "application/epub+zip";
+            use = [ "view-pdf" ];
+          }
+          {
+            mime = "application/zip";
+            use = [ "view-archive" ];
+          }
+          {
+            mime = "application/x-tar";
+            use = [ "view-archive" ];
+          }
+          {
+            mime = "application/x-7z-compressed";
+            use = [ "view-archive" ];
+          }
+          {
+            mime = "application/x-rar";
+            use = [ "view-archive" ];
+          }
+          {
+            mime = "application/vnd.openxmlformats-officedocument.*";
+            use = [ "office" ];
+          }
+          {
+            mime = "application/msword";
+            use = [ "office" ];
+          }
+          {
+            mime = "application/vnd.ms-excel";
+            use = [ "office" ];
+          }
+          {
+            mime = "application/vnd.ms-powerpoint";
+            use = [ "office" ];
+          }
+          {
+            mime = "application/vnd.oasis.opendocument.*";
+            use = [ "office" ];
+          }
+          {
+            name = "*";
+            use = [ "open" ];
+          }
         ];
       };
     };
@@ -230,29 +339,80 @@ in
     theme = {
       mgr = {
         border_symbol = " ";
-        border_style = { fg = "reset"; };
-        hovered = { fg = "black"; bg = "yellow"; };
-        preview_hovered = { underline = true; };
-        selected = { fg = "black"; bg = "magenta"; };
-        copied = { fg = "black"; bg = "green"; };
-        cut = { fg = "black"; bg = "red"; };
-        find_keyword = { fg = "yellow"; bold = true; italic = true; underline = true; };
-        find_position = { fg = "magenta"; bold = true; italic = true; };
-        marker_copied = { fg = "green"; };
-        marker_cut = { fg = "red"; };
-        marker_marked = { fg = "cyan"; };
-        marker_selected = { fg = "yellow"; };
-        count_copied = { fg = "green"; };
-        count_cut = { fg = "red"; };
-        count_selected = { fg = "yellow"; };
+        border_style = {
+          fg = "reset";
+        };
+        hovered = {
+          fg = "black";
+          bg = "yellow";
+        };
+        preview_hovered = {
+          underline = true;
+        };
+        selected = {
+          fg = "black";
+          bg = "magenta";
+        };
+        copied = {
+          fg = "black";
+          bg = "green";
+        };
+        cut = {
+          fg = "black";
+          bg = "red";
+        };
+        find_keyword = {
+          fg = "yellow";
+          bold = true;
+          italic = true;
+          underline = true;
+        };
+        find_position = {
+          fg = "magenta";
+          bold = true;
+          italic = true;
+        };
+        marker_copied = {
+          fg = "green";
+        };
+        marker_cut = {
+          fg = "red";
+        };
+        marker_marked = {
+          fg = "cyan";
+        };
+        marker_selected = {
+          fg = "yellow";
+        };
+        count_copied = {
+          fg = "green";
+        };
+        count_cut = {
+          fg = "red";
+        };
+        count_selected = {
+          fg = "yellow";
+        };
       };
       status = {
-        sep_left = { open = " "; close = " "; };
-        sep_right = { open = " "; close = " "; };
+        sep_left = {
+          open = " ";
+          close = " ";
+        };
+        sep_right = {
+          open = " ";
+          close = " ";
+        };
       };
       tabs = {
-        sep_inner = { open = " "; close = " "; };
-        sep_outer = { open = " "; close = " "; };
+        sep_inner = {
+          open = " ";
+          close = " ";
+        };
+        sep_outer = {
+          open = " ";
+          close = " ";
+        };
       };
       mode = {
         normal_main = { };
@@ -263,70 +423,341 @@ in
         unset_alt = { };
       };
       indicator = {
-        padding = { open = " "; close = " "; };
-        parent = { underline = true; };
-        current = { underline = true; };
-        preview = { underline = true; };
+        padding = {
+          open = " ";
+          close = " ";
+        };
+        parent = {
+          underline = true;
+        };
+        current = {
+          underline = true;
+        };
+        preview = {
+          underline = true;
+        };
       };
     };
 
     keymap = {
       mgr.prepend_keymap = jumpKeymap ++ [
-        { on = "d"; run = "yank --cut"; desc = "Cut (lf style)"; }
-        { on = "x"; run = "escape"; desc = "Neutralized (lf had no x)"; }
-        { on = "r"; run = "escape"; desc = "Neutralized — use a/cw/A"; }
-        { on = "<Tab>"; run = "escape"; desc = "Neutralized (no tabs habit from lf)"; }
-        { on = "1"; run = "escape"; desc = "Neutralized (no tab digits)"; }
-        { on = "2"; run = "escape"; desc = "Neutralized (no tab digits)"; }
-        { on = "3"; run = "escape"; desc = "Neutralized (no tab digits)"; }
-        { on = "4"; run = "escape"; desc = "Neutralized (no tab digits)"; }
-        { on = "5"; run = "escape"; desc = "Neutralized (no tab digits)"; }
-        { on = "6"; run = "escape"; desc = "Neutralized (no tab digits)"; }
-        { on = "7"; run = "escape"; desc = "Neutralized (no tab digits)"; }
-        { on = "8"; run = "escape"; desc = "Neutralized (no tab digits)"; }
-        { on = "9"; run = "escape"; desc = "Neutralized (no tab digits)"; }
-        { on = "<C-r>"; run = "refresh"; desc = "Reload (lf style)"; }
-        { on = "a"; run = "rename --cursor=before_ext"; desc = "Rename"; }
-        { on = [ "c" "w" ]; run = "rename --cursor=before_ext"; desc = "Rename"; }
-        { on = "A"; run = "rename --cursor=end"; desc = "Rename (end)"; }
-        { on = "I"; run = ''shell "{ du -sh -- %s; echo; file -- %s; } | less" --block''; desc = "File info + size"; }
-        { on = "i"; run = ''shell "nsxiv -ab -- $(dirname %s | head -1)" --orphan''; desc = "nsxiv on dir"; }
-        { on = "P"; run = ''shell "echo -n %s | wl-copy"''; desc = "Yank path"; }
-        { on = "N"; run = ''shell "basename %s | tr -d '\n' | wl-copy"''; desc = "Yank name"; }
-        { on = "<C-n>"; run = ''shell "basename %s | tr -d '\n' | wl-copy"''; desc = "Yank name"; }
-        { on = "B"; run = ''shell "ic %s" --block''; desc = "Yank bytes"; }
-        { on = ";"; run = "hidden toggle"; desc = "Toggle hidden"; }
-        { on = "|"; run = "filter"; desc = "Filter"; }
-        { on = "\\"; run = "escape --filter"; desc = "Clear filter"; }
-        { on = "z"; run = "plugin zjump"; desc = "Zoxide jump (fzf)"; }
-        { on = "<C-l>"; run = "refresh"; desc = "Reload"; }
-        { on = "<C-v>"; run = ''shell "wl-paste -t image/png > $(mktemp -p . --suffix=.png paste-XXXXXX)"''; desc = "Paste PNG from clipboard"; }
-        { on = "<C-V>"; run = ''shell "wl-paste -t image/jpeg > $(mktemp -p . --suffix=.jpg paste-XXXXXX)"''; desc = "Paste JPEG from clipboard"; }
-        { on = "D"; run = ''shell "trash-put -- %s"''; desc = "Trash"; }
-        { on = [ "o" "n" ]; run = "sort natural --reverse=no"; desc = "Sort natural asc"; }
-        { on = [ "o" "N" ]; run = "sort natural --reverse=yes"; desc = "Sort natural desc"; }
-        { on = [ "o" "a" ]; run = "sort alphabetical --reverse=no"; desc = "Sort alphabetical asc"; }
-        { on = [ "o" "A" ]; run = "sort alphabetical --reverse=yes"; desc = "Sort alphabetical desc"; }
-        { on = [ "o" "z" ]; run = [ "sort natural" "sort random" ]; desc = "Sort random (reshuffle)"; }
-        { on = [ "o" "s" ]; run = "sort size --reverse=yes"; desc = "Sort size desc"; }
-        { on = [ "o" "S" ]; run = "sort size --reverse=no"; desc = "Sort size asc"; }
-        { on = [ "o" "m" ]; run = "sort mtime --reverse=yes"; desc = "Sort mtime desc"; }
-        { on = [ "o" "M" ]; run = "sort mtime --reverse=no"; desc = "Sort mtime asc"; }
-        { on = [ "o" "c" ]; run = "sort mtime --reverse=no"; desc = "Sort mtime asc (was lf ctime)"; }
-        { on = [ "o" "C" ]; run = "sort mtime --reverse=yes"; desc = "Sort mtime desc (was lf ctime)"; }
-        { on = "e"; run = ''shell "$EDITOR %s" --block''; desc = "Edit in $EDITOR"; }
-        { on = [ "b" "w" ]; run = ''shell "setbg %s" --orphan''; desc = "Set wallpaper"; }
-        { on = "M"; run = "create --dir"; desc = "mkdir"; }
-        { on = "U"; run = ''shell "unp -U %s" --block''; desc = "Unzip"; }
-        { on = "H"; run = "back"; desc = "History back"; }
-        { on = "L"; run = "forward"; desc = "History forward"; }
-        { on = "<PageDown>"; run = "arrow 50%"; desc = "Half page down"; }
-        { on = "<PageUp>"; run = "arrow -50%"; desc = "Half page up"; }
-        { on = "<C-f>"; run = "arrow 50%"; desc = "Half page down"; }
-        { on = "<C-b>"; run = "arrow -50%"; desc = "Half page up"; }
-        { on = "l"; run = "plugin image-open"; desc = "Enter dir / open image set / open file"; }
-        { on = "<Right>"; run = "plugin image-open"; desc = "Enter dir / open image set / open file"; }
-        { on = "<Enter>"; run = "plugin image-open"; desc = "Enter dir / open image set / open file"; }
+        {
+          on = "d";
+          run = "yank --cut";
+          desc = "Cut (lf style)";
+        }
+        {
+          on = "x";
+          run = "escape";
+          desc = "Neutralized (lf had no x)";
+        }
+        {
+          on = "r";
+          run = "escape";
+          desc = "Neutralized — use a/cw/A";
+        }
+        {
+          on = "<Tab>";
+          run = "escape";
+          desc = "Neutralized (no tabs habit from lf)";
+        }
+        {
+          on = "1";
+          run = "escape";
+          desc = "Neutralized (no tab digits)";
+        }
+        {
+          on = "2";
+          run = "escape";
+          desc = "Neutralized (no tab digits)";
+        }
+        {
+          on = "3";
+          run = "escape";
+          desc = "Neutralized (no tab digits)";
+        }
+        {
+          on = "4";
+          run = "escape";
+          desc = "Neutralized (no tab digits)";
+        }
+        {
+          on = "5";
+          run = "escape";
+          desc = "Neutralized (no tab digits)";
+        }
+        {
+          on = "6";
+          run = "escape";
+          desc = "Neutralized (no tab digits)";
+        }
+        {
+          on = "7";
+          run = "escape";
+          desc = "Neutralized (no tab digits)";
+        }
+        {
+          on = "8";
+          run = "escape";
+          desc = "Neutralized (no tab digits)";
+        }
+        {
+          on = "9";
+          run = "escape";
+          desc = "Neutralized (no tab digits)";
+        }
+        {
+          on = "<C-r>";
+          run = "refresh";
+          desc = "Reload (lf style)";
+        }
+        {
+          on = "a";
+          run = "rename --cursor=before_ext";
+          desc = "Rename";
+        }
+        {
+          on = [
+            "c"
+            "w"
+          ];
+          run = "rename --cursor=before_ext";
+          desc = "Rename";
+        }
+        {
+          on = "A";
+          run = "rename --cursor=end";
+          desc = "Rename (end)";
+        }
+        {
+          on = "I";
+          run = ''shell "{ du -sh -- %s; echo; file -- %s; } | less" --block'';
+          desc = "File info + size";
+        }
+        {
+          on = "i";
+          run = ''shell "nsxiv -ab -- $(dirname %s | head -1)" --orphan'';
+          desc = "nsxiv on dir";
+        }
+        {
+          on = "P";
+          run = ''shell "echo -n %s | wl-copy"'';
+          desc = "Yank path";
+        }
+        {
+          on = "N";
+          run = ''shell "basename %s | tr -d '\n' | wl-copy"'';
+          desc = "Yank name";
+        }
+        {
+          on = "<C-n>";
+          run = ''shell "basename %s | tr -d '\n' | wl-copy"'';
+          desc = "Yank name";
+        }
+        {
+          on = "B";
+          run = ''shell "ic %s" --block'';
+          desc = "Yank bytes";
+        }
+        {
+          on = ";";
+          run = "hidden toggle";
+          desc = "Toggle hidden";
+        }
+        {
+          on = "|";
+          run = "filter";
+          desc = "Filter";
+        }
+        {
+          on = "\\";
+          run = "escape --filter";
+          desc = "Clear filter";
+        }
+        {
+          on = "z";
+          run = "plugin zjump";
+          desc = "Zoxide jump (fzf)";
+        }
+        {
+          on = "<C-l>";
+          run = "refresh";
+          desc = "Reload";
+        }
+        {
+          on = "<C-v>";
+          run = ''shell "wl-paste -t image/png > $(mktemp -p . --suffix=.png paste-XXXXXX)"'';
+          desc = "Paste PNG from clipboard";
+        }
+        {
+          on = "<C-V>";
+          run = ''shell "wl-paste -t image/jpeg > $(mktemp -p . --suffix=.jpg paste-XXXXXX)"'';
+          desc = "Paste JPEG from clipboard";
+        }
+        {
+          on = "D";
+          run = ''shell "trash-put -- %s"'';
+          desc = "Trash";
+        }
+        {
+          on = [
+            "o"
+            "n"
+          ];
+          run = "sort natural --reverse=no";
+          desc = "Sort natural asc";
+        }
+        {
+          on = [
+            "o"
+            "N"
+          ];
+          run = "sort natural --reverse=yes";
+          desc = "Sort natural desc";
+        }
+        {
+          on = [
+            "o"
+            "a"
+          ];
+          run = "sort alphabetical --reverse=no";
+          desc = "Sort alphabetical asc";
+        }
+        {
+          on = [
+            "o"
+            "A"
+          ];
+          run = "sort alphabetical --reverse=yes";
+          desc = "Sort alphabetical desc";
+        }
+        {
+          on = [
+            "o"
+            "z"
+          ];
+          run = [
+            "sort natural"
+            "sort random"
+          ];
+          desc = "Sort random (reshuffle)";
+        }
+        {
+          on = [
+            "o"
+            "s"
+          ];
+          run = "sort size --reverse=yes";
+          desc = "Sort size desc";
+        }
+        {
+          on = [
+            "o"
+            "S"
+          ];
+          run = "sort size --reverse=no";
+          desc = "Sort size asc";
+        }
+        {
+          on = [
+            "o"
+            "m"
+          ];
+          run = "sort mtime --reverse=yes";
+          desc = "Sort mtime desc";
+        }
+        {
+          on = [
+            "o"
+            "M"
+          ];
+          run = "sort mtime --reverse=no";
+          desc = "Sort mtime asc";
+        }
+        {
+          on = [
+            "o"
+            "c"
+          ];
+          run = "sort mtime --reverse=no";
+          desc = "Sort mtime asc (was lf ctime)";
+        }
+        {
+          on = [
+            "o"
+            "C"
+          ];
+          run = "sort mtime --reverse=yes";
+          desc = "Sort mtime desc (was lf ctime)";
+        }
+        {
+          on = "e";
+          run = ''shell "$EDITOR %s" --block'';
+          desc = "Edit in $EDITOR";
+        }
+        {
+          on = [
+            "b"
+            "w"
+          ];
+          run = ''shell "setbg %s" --orphan'';
+          desc = "Set wallpaper";
+        }
+        {
+          on = "M";
+          run = "create --dir";
+          desc = "mkdir";
+        }
+        {
+          on = "U";
+          run = ''shell "unp -U %s" --block'';
+          desc = "Unzip";
+        }
+        {
+          on = "H";
+          run = "back";
+          desc = "History back";
+        }
+        {
+          on = "L";
+          run = "forward";
+          desc = "History forward";
+        }
+        {
+          on = "<PageDown>";
+          run = "arrow 50%";
+          desc = "Half page down";
+        }
+        {
+          on = "<PageUp>";
+          run = "arrow -50%";
+          desc = "Half page up";
+        }
+        {
+          on = "<C-f>";
+          run = "arrow 50%";
+          desc = "Half page down";
+        }
+        {
+          on = "<C-b>";
+          run = "arrow -50%";
+          desc = "Half page up";
+        }
+        {
+          on = "l";
+          run = "plugin image-open";
+          desc = "Enter dir / open image set / open file";
+        }
+        {
+          on = "<Right>";
+          run = "plugin image-open";
+          desc = "Enter dir / open image set / open file";
+        }
+        {
+          on = "<Enter>";
+          run = "plugin image-open";
+          desc = "Enter dir / open image set / open file";
+        }
       ];
     };
   };

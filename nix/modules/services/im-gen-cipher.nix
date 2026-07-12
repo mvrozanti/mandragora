@@ -4,7 +4,8 @@ let
   cipherDir = "/home/m/.local/share/im-gen-cipher";
   mountPoint = "/home/m/Pictures/im-gen";
   passFile = "/home/m/.config/im-gen-encfs/passphrase";
-in {
+in
+{
   systemd.user.services.im-gen-cipher = {
     description = "gocryptfs mount for ~/Pictures/im-gen (at-rest encrypted)";
     wantedBy = [ "default.target" ];
@@ -23,7 +24,10 @@ in {
       PrivateMounts = false;
     };
     unitConfig = {
-      ConditionPathExists = [ cipherDir passFile ];
+      ConditionPathExists = [
+        cipherDir
+        passFile
+      ];
     };
   };
 }

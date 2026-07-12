@@ -3,7 +3,10 @@
 let
   oracleHostsInject = pkgs.writeShellApplication {
     name = "oracle-hosts-inject";
-    runtimeInputs = with pkgs; [ coreutils gnused ];
+    runtimeInputs = with pkgs; [
+      coreutils
+      gnused
+    ];
     text = builtins.readFile ../../../.local/bin/oracle-hosts-inject.sh;
   };
 in

@@ -2,7 +2,10 @@
 
 {
   # NVIDIA & Wayland Base
-  services.xserver.videoDrivers = [ "nvidia" "amdgpu" ];
+  services.xserver.videoDrivers = [
+    "nvidia"
+    "amdgpu"
+  ];
 
   hardware.nvidia = {
     open = true;
@@ -16,7 +19,12 @@
     enable32Bit = true;
   };
 
-  boot.kernelModules = [ "nvidia" "nvidia_modeset" "nvidia_drm" "nvidia_uvm" ];
+  boot.kernelModules = [
+    "nvidia"
+    "nvidia_modeset"
+    "nvidia_drm"
+    "nvidia_uvm"
+  ];
 
   mandragora.hardware.gpu.vramGB = 16;
 }

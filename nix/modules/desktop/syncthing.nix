@@ -53,7 +53,10 @@ in
         phone = {
           id = phoneDeviceId;
           name = "phone";
-          addresses = [ phoneTailnetAddress "dynamic" ];
+          addresses = [
+            phoneTailnetAddress
+            "dynamic"
+          ];
           autoAcceptFolders = false;
         };
       };
@@ -77,11 +80,21 @@ in
           };
         };
         "phone-dcim" = phoneFolder "mandragora-phone-dcim" "Phone DCIM" "/home/m/Pictures/PhoneInbox/dcim";
-        "phone-pictures" = phoneFolder "mandragora-phone-pictures" "Phone Pictures" "/home/m/Pictures/PhoneInbox/pictures";
-        "phone-movies" = phoneFolder "mandragora-phone-movies" "Phone Movies" "/home/m/Pictures/PhoneInbox/movies";
-        "phone-whatsapp" = phoneFolder "mandragora-phone-whatsapp" "Phone WhatsApp" "/home/m/Pictures/PhoneInbox/whatsapp";
-        "phone-recordings" = phoneFolder "mandragora-phone-recordings" "Phone Recordings" "/home/m/Pictures/PhoneInbox/recordings";
-        "phone-downloads" = phoneFolder "mandragora-phone-downloads" "Phone Downloads" "/home/m/Pictures/PhoneInbox/downloads";
+        "phone-pictures" =
+          phoneFolder "mandragora-phone-pictures" "Phone Pictures"
+            "/home/m/Pictures/PhoneInbox/pictures";
+        "phone-movies" =
+          phoneFolder "mandragora-phone-movies" "Phone Movies"
+            "/home/m/Pictures/PhoneInbox/movies";
+        "phone-whatsapp" =
+          phoneFolder "mandragora-phone-whatsapp" "Phone WhatsApp"
+            "/home/m/Pictures/PhoneInbox/whatsapp";
+        "phone-recordings" =
+          phoneFolder "mandragora-phone-recordings" "Phone Recordings"
+            "/home/m/Pictures/PhoneInbox/recordings";
+        "phone-downloads" =
+          phoneFolder "mandragora-phone-downloads" "Phone Downloads"
+            "/home/m/Pictures/PhoneInbox/downloads";
       };
     };
   };

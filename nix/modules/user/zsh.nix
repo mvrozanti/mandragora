@@ -1,12 +1,29 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   # zX directory shortcuts: edit ./zx-dirs.nix — it's the single source
   # of truth shared with modules/user/yazi.nix. Do not add z<letter> aliases here.
   zxDirs = import ./zx-dirs.nix;
-  normalize = v: if builtins.isString v then { path = v; zshPrefix = "z"; } else { zshPrefix = "z"; } // v;
-  zxAliases = lib.mapAttrs' (k: v:
-    let e = normalize v; in lib.nameValuePair "${e.zshPrefix}${k}" e.path
+  normalize =
+    v:
+    if builtins.isString v then
+      {
+        path = v;
+        zshPrefix = "z";
+      }
+    else
+      { zshPrefix = "z"; } // v;
+  zxAliases = lib.mapAttrs' (
+    k: v:
+    let
+      e = normalize v;
+    in
+    lib.nameValuePair "${e.zshPrefix}${k}" e.path
   ) zxDirs;
 in
 {
@@ -104,7 +121,10 @@ in
       SSH_KEY_PATH = "$HOME/.ssh/rsa_id";
     };
 
-    initContent = builtins.readFile ../../../.config/zsh/zshrc.zsh + "\n" + builtins.readFile ../../snippets/aliases.zsh;
+    initContent =
+      builtins.readFile ../../../.config/zsh/zshrc.zsh
+      + "\n"
+      + builtins.readFile ../../snippets/aliases.zsh;
 
     plugins = [
       {
@@ -114,7 +134,7 @@ in
       }
     ];
   };
-  
+
   programs.fzf = {
     enable = true;
     enableZshIntegration = true;

@@ -1,4 +1,10 @@
-{ config, lib, pkgs, inputs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  inputs,
+  ...
+}:
 
 let
   cfg = config.mandragora.claudecodebrowser;
@@ -27,13 +33,15 @@ let
     exec ${pyEnv}/bin/python ${src}/native-host/claudecodebrowser_host.py "$@"
   '';
 
-  nativeManifest = pkgs.writeText "claudecodebrowser.json" (builtins.toJSON {
-    name = "claudecodebrowser";
-    description = "ClaudeCodeBrowser Native Messaging Host";
-    path = "${nativeHostBin}";
-    type = "stdio";
-    allowed_extensions = [ extensionId ];
-  });
+  nativeManifest = pkgs.writeText "claudecodebrowser.json" (
+    builtins.toJSON {
+      name = "claudecodebrowser";
+      description = "ClaudeCodeBrowser Native Messaging Host";
+      path = "${nativeHostBin}";
+      type = "stdio";
+      allowed_extensions = [ extensionId ];
+    }
+  );
 
   # nixpkgs Firefox is built with --with-default-mozilla-five-home and ships a
   # private $out/lib/mozilla/native-messaging-hosts/ directory. The system-wide
@@ -46,18 +54,24 @@ let
   # Unsigned xpi with the id rewritten to extensionId. Installable on
   # ESR/Developer/Nightly (signatures.required=false) or via about:debugging.
   # Stable Firefox refuses unsigned in about:addons — use the signed xpi below.
-  extensionXpi = pkgs.runCommand "claudecodebrowser-unsigned.xpi" {
-    nativeBuildInputs = [ pkgs.zip pkgs.jq ];
-  } ''
-    cp -r ${src}/extension ext
-    chmod -R u+w ext
-    jq --arg id "${extensionId}" '
-      .browser_specific_settings.gecko.id = $id
-    ' ext/manifest.json > ext/manifest.json.tmp
-    mv ext/manifest.json.tmp ext/manifest.json
-    cd ext
-    zip -r -X "$out" . -x '*.DS_Store'
-  '';
+  extensionXpi =
+    pkgs.runCommand "claudecodebrowser-unsigned.xpi"
+      {
+        nativeBuildInputs = [
+          pkgs.zip
+          pkgs.jq
+        ];
+      }
+      ''
+        cp -r ${src}/extension ext
+        chmod -R u+w ext
+        jq --arg id "${extensionId}" '
+          .browser_specific_settings.gecko.id = $id
+        ' ext/manifest.json > ext/manifest.json.tmp
+        mv ext/manifest.json.tmp ext/manifest.json
+        cd ext
+        zip -r -X "$out" . -x '*.DS_Store'
+      '';
 
   xpiPathBin = pkgs.writeShellScriptBin "claudecodebrowser-xpi" ''
     echo ${extensionXpi}
@@ -72,7 +86,12 @@ let
 
   signBin = pkgs.writeShellApplication {
     name = "claudecodebrowser-sign";
-    runtimeInputs = with pkgs; [ web-ext jq coreutils gnused ];
+    runtimeInputs = with pkgs; [
+      web-ext
+      jq
+      coreutils
+      gnused
+    ];
     text = ''
       set -euo pipefail
 
@@ -119,7 +138,8 @@ let
   };
 
   installedXpi = if hasSignedXpi then signedXpiPath else extensionXpi;
-in {
+in
+{
   options.mandragora.claudecodebrowser = {
     enable = lib.mkEnableOption "ClaudeCodeBrowser MCP + Firefox automation bridge";
 
@@ -131,12 +151,17 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ serverBin stdioBin agentBin xpiPathBin signBin ];
+    environment.systemPackages = [
+      serverBin
+      stdioBin
+      agentBin
+      xpiPathBin
+      signBin
+    ];
 
     # Kept for non-Firefox-wrapped consumers (other Mozilla-derived browsers).
     # The nixpkgs Firefox build only sees its own private dir; see nativeHostPkg.
-    environment.etc."mozilla/native-messaging-hosts/claudecodebrowser.json".source =
-      nativeManifest;
+    environment.etc."mozilla/native-messaging-hosts/claudecodebrowser.json".source = nativeManifest;
 
     home-manager.users.m.programs.firefox.nativeMessagingHosts = [ nativeHostPkg ];
 
@@ -170,7 +195,10 @@ in {
         ProtectKernelTunables = true;
         ProtectKernelModules = true;
         ProtectControlGroups = true;
-        RestrictAddressFamilies = [ "AF_INET" "AF_UNIX" ];
+        RestrictAddressFamilies = [
+          "AF_INET"
+          "AF_UNIX"
+        ];
         RestrictNamespaces = true;
         LockPersonality = true;
         MemoryDenyWriteExecute = true;

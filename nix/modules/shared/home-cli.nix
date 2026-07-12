@@ -28,7 +28,13 @@
     tokei
     shellcheck
     neovim
-    (python3.withPackages (ps: with ps; [ pynvim grip psutil ]))
+    (python3.withPackages (
+      ps: with ps; [
+        pynvim
+        grip
+        psutil
+      ]
+    ))
     trash-cli
     gnupg
 
@@ -48,7 +54,9 @@
     asciinema
     inputs.bruno-tama.packages.${pkgs.system}.default
 
-    (pkgs.writeShellScriptBin "mandragora-pkg-diff" (builtins.readFile ../../../.local/bin/mandragora-pkg-diff.sh))
+    (pkgs.writeShellScriptBin "mandragora-pkg-diff" (
+      builtins.readFile ../../../.local/bin/mandragora-pkg-diff.sh
+    ))
   ];
 
   programs.direnv = {

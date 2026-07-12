@@ -4,7 +4,7 @@
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 9100 ];
-    allowedUDPPorts = [];
+    allowedUDPPorts = [ ];
     logRefusedConnections = false;
     interfaces.enp8s0.allowedTCPPorts = [ 6600 ];
     interfaces.tailscale0.allowedTCPPorts = [ 3000 ];
@@ -42,39 +42,44 @@
   security.sudo = {
     execWheelOnly = true;
     extraConfig = builtins.readFile ../../etc/sudo.conf;
-    extraRules = [{
-      users = [ "m" ];
-      commands = [
-        {
-          command = "/run/current-system/sw/bin/nixos-rebuild";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/systemctl start openrgb";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/systemctl stop openrgb";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/systemctl restart openrgb";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/nix-env -p /nix/var/nix/profiles/system --delete-generations *";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/bin/switch-to-configuration boot";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/sops";
-          options = [ "NOPASSWD" "SETENV" ];
-        }
-      ];
-    }];
+    extraRules = [
+      {
+        users = [ "m" ];
+        commands = [
+          {
+            command = "/run/current-system/sw/bin/nixos-rebuild";
+            options = [ "NOPASSWD" ];
+          }
+          {
+            command = "/run/current-system/sw/bin/systemctl start openrgb";
+            options = [ "NOPASSWD" ];
+          }
+          {
+            command = "/run/current-system/sw/bin/systemctl stop openrgb";
+            options = [ "NOPASSWD" ];
+          }
+          {
+            command = "/run/current-system/sw/bin/systemctl restart openrgb";
+            options = [ "NOPASSWD" ];
+          }
+          {
+            command = "/run/current-system/sw/bin/nix-env -p /nix/var/nix/profiles/system --delete-generations *";
+            options = [ "NOPASSWD" ];
+          }
+          {
+            command = "/run/current-system/bin/switch-to-configuration boot";
+            options = [ "NOPASSWD" ];
+          }
+          {
+            command = "/run/current-system/sw/bin/sops";
+            options = [
+              "NOPASSWD"
+              "SETENV"
+            ];
+          }
+        ];
+      }
+    ];
   };
 
   systemd.oomd = {

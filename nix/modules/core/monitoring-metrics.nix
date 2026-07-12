@@ -13,34 +13,50 @@ in
         {
           job_name = "node";
           scrape_interval = "15s";
-          static_configs = [ {
-            targets = [ "localhost:9100" ];
-            labels = { instance = "mandragora-desktop"; };
-          } ];
+          static_configs = [
+            {
+              targets = [ "localhost:9100" ];
+              labels = {
+                instance = "mandragora-desktop";
+              };
+            }
+          ];
         }
         {
           job_name = "node-vps";
           scrape_interval = "30s";
-          static_configs = [ {
-            targets = [ "${tailnet.vps.ip}:9100" ];
-            labels = { instance = "mandragora-vps"; };
-          } ];
+          static_configs = [
+            {
+              targets = [ "${tailnet.vps.ip}:9100" ];
+              labels = {
+                instance = "mandragora-vps";
+              };
+            }
+          ];
         }
         {
           job_name = "nvidia";
           scrape_interval = "1m";
-          static_configs = [ {
-            targets = [ "localhost:9835" ];
-            labels = { instance = "mandragora-desktop"; };
-          } ];
+          static_configs = [
+            {
+              targets = [ "localhost:9835" ];
+              labels = {
+                instance = "mandragora-desktop";
+              };
+            }
+          ];
         }
         {
           job_name = "ebpf";
           scrape_interval = "15s";
-          static_configs = [ {
-            targets = [ "localhost:9435" ];
-            labels = { instance = "mandragora-desktop"; };
-          } ];
+          static_configs = [
+            {
+              targets = [ "localhost:9435" ];
+              labels = {
+                instance = "mandragora-desktop";
+              };
+            }
+          ];
         }
       ];
     };

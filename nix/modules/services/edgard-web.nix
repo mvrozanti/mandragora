@@ -4,7 +4,8 @@ let
   port = 7691;
   backendDir = "/home/m/Projects/Edgard/web/backend";
   pyEnv = pkgs.python3.withPackages (ps: [ ps.aiohttp ]);
-in {
+in
+{
   mandragora.hub.services.edgard-web = {
     inherit port;
     userService = true;

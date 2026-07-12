@@ -3,7 +3,11 @@
 let
   vmUsbPrep = pkgs.writeShellApplication {
     name = "vm-usb-prep";
-    runtimeInputs = [ pkgs.acl pkgs.coreutils pkgs.gnused ];
+    runtimeInputs = [
+      pkgs.acl
+      pkgs.coreutils
+      pkgs.gnused
+    ];
     text = builtins.readFile ../../../.local/bin/vm-usb-prep.sh;
   };
 in
@@ -21,7 +25,11 @@ in
 
   programs.virt-manager.enable = true;
 
-  users.users.m.extraGroups = [ "libvirtd" "kvm" "qemu-libvirtd" ];
+  users.users.m.extraGroups = [
+    "libvirtd"
+    "kvm"
+    "qemu-libvirtd"
+  ];
 
   boot.kernelModules = [ "kvm-amd" ];
 
@@ -32,7 +40,10 @@ in
   systemd.services.libvirt-fresh-encryption-key = {
     description = "Wipe libvirt secrets-encryption-key so virt-secret-init-encryption regenerates with the current credential.secret";
     wantedBy = [ "multi-user.target" ];
-    before = [ "virt-secret-init-encryption.service" "libvirtd.service" ];
+    before = [
+      "virt-secret-init-encryption.service"
+      "libvirtd.service"
+    ];
     after = [ "local-fs.target" ];
     unitConfig = {
       DefaultDependencies = false;
@@ -67,11 +78,15 @@ in
     vmUsbPrep
   ];
 
-  security.sudo.extraRules = [{
-    users = [ "m" ];
-    commands = [{
-      command = "/run/current-system/sw/bin/vm-usb-prep";
-      options = [ "NOPASSWD" ];
-    }];
-  }];
+  security.sudo.extraRules = [
+    {
+      users = [ "m" ];
+      commands = [
+        {
+          command = "/run/current-system/sw/bin/vm-usb-prep";
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
 }

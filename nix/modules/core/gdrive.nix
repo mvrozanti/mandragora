@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.mandragora.gdrive;
@@ -61,7 +66,10 @@ in
 
     systemd.services.rclone-gdrive = {
       description = "rclone mount: Google Drive at ${toString cfg.mountPoint}";
-      after = [ "network-online.target" "run-secrets.d.mount" ];
+      after = [
+        "network-online.target"
+        "run-secrets.d.mount"
+      ];
       wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
 
@@ -71,21 +79,24 @@ in
           "-${pkgs.fuse3}/bin/fusermount3 -uz ${cfg.mountPoint}"
           "${pkgs.coreutils}/bin/mkdir -p ${cfg.mountPoint}"
         ];
-        ExecStart = lib.concatStringsSep " " ([
-          "${pkgs.rclone}/bin/rclone mount"
-          "${cfg.remote}: ${cfg.mountPoint}"
-          "--config=${config.sops.secrets."gdrive/rclone_conf".path}"
-          "--allow-other"
-          "--uid=${toString cfg.uid}"
-          "--gid=${toString cfg.gid}"
-          "--umask=022"
-          "--dir-cache-time=1000h"
-          "--poll-interval=15s"
-          "--vfs-cache-mode=full"
-          "--vfs-cache-max-age=24h"
-          "--cache-dir=${cfg.cacheDir}"
-          "--log-level=INFO"
-        ] ++ lib.optional cfg.readOnly "--read-only");
+        ExecStart = lib.concatStringsSep " " (
+          [
+            "${pkgs.rclone}/bin/rclone mount"
+            "${cfg.remote}: ${cfg.mountPoint}"
+            "--config=${config.sops.secrets."gdrive/rclone_conf".path}"
+            "--allow-other"
+            "--uid=${toString cfg.uid}"
+            "--gid=${toString cfg.gid}"
+            "--umask=022"
+            "--dir-cache-time=1000h"
+            "--poll-interval=15s"
+            "--vfs-cache-mode=full"
+            "--vfs-cache-max-age=24h"
+            "--cache-dir=${cfg.cacheDir}"
+            "--log-level=INFO"
+          ]
+          ++ lib.optional cfg.readOnly "--read-only"
+        );
         ExecStop = "${pkgs.fuse3}/bin/fusermount3 -u ${cfg.mountPoint}";
         TimeoutStartSec = "600s";
         Restart = "on-failure";

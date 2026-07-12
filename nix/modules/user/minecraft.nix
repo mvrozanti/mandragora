@@ -34,43 +34,55 @@ let
     name=chicken-client 1.21.11
   '';
 
-  mmcPackJson = pkgs.writeText "meteor-mmc-pack.json" (builtins.toJSON {
-    formatVersion = 1;
-    components = [
-      {
-        cachedName = "LWJGL 3";
-        cachedVersion = "3.3.3";
-        cachedVolatile = true;
-        dependencyOnly = true;
-        uid = "org.lwjgl3";
-        version = "3.3.3";
-      }
-      {
-        cachedName = "Minecraft";
-        cachedRequires = [ { suggests = "3.3.3"; uid = "org.lwjgl3"; } ];
-        cachedVersion = "1.21.11";
-        important = true;
-        uid = "net.minecraft";
-        version = "1.21.11";
-      }
-      {
-        cachedName = "Intermediary Mappings";
-        cachedRequires = [ { equals = "1.21.11"; uid = "net.minecraft"; } ];
-        cachedVersion = "1.21.11";
-        cachedVolatile = true;
-        dependencyOnly = true;
-        uid = "net.fabricmc.intermediary";
-        version = "1.21.11";
-      }
-      {
-        cachedName = "Fabric Loader";
-        cachedRequires = [ { uid = "net.fabricmc.intermediary"; } ];
-        cachedVersion = "0.18.2";
-        uid = "net.fabricmc.fabric-loader";
-        version = "0.18.2";
-      }
-    ];
-  });
+  mmcPackJson = pkgs.writeText "meteor-mmc-pack.json" (
+    builtins.toJSON {
+      formatVersion = 1;
+      components = [
+        {
+          cachedName = "LWJGL 3";
+          cachedVersion = "3.3.3";
+          cachedVolatile = true;
+          dependencyOnly = true;
+          uid = "org.lwjgl3";
+          version = "3.3.3";
+        }
+        {
+          cachedName = "Minecraft";
+          cachedRequires = [
+            {
+              suggests = "3.3.3";
+              uid = "org.lwjgl3";
+            }
+          ];
+          cachedVersion = "1.21.11";
+          important = true;
+          uid = "net.minecraft";
+          version = "1.21.11";
+        }
+        {
+          cachedName = "Intermediary Mappings";
+          cachedRequires = [
+            {
+              equals = "1.21.11";
+              uid = "net.minecraft";
+            }
+          ];
+          cachedVersion = "1.21.11";
+          cachedVolatile = true;
+          dependencyOnly = true;
+          uid = "net.fabricmc.intermediary";
+          version = "1.21.11";
+        }
+        {
+          cachedName = "Fabric Loader";
+          cachedRequires = [ { uid = "net.fabricmc.intermediary"; } ];
+          cachedVersion = "0.18.2";
+          uid = "net.fabricmc.fabric-loader";
+          version = "0.18.2";
+        }
+      ];
+    }
+  );
 
   minecraft-launcher = pkgs.writeShellScriptBin "minecraft" ''
     INSTANCE=$(find ~/.local/share/PrismLauncher/instances -name mmc-pack.json -exec ${pkgs.jq}/bin/jq -r '.components[] | select(.uid=="net.minecraft") | .version + " " + input_filename' {} + | sort -V | tail -n 1 | ${pkgs.gawk}/bin/awk '{print $2}' | xargs dirname | xargs basename)

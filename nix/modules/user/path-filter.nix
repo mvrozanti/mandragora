@@ -1,8 +1,9 @@
 { lib, pkgs, ... }:
 
 let
-  scrubber = pkgs.writeShellScriptBin "recent-files-scrub"
-    (builtins.readFile ../../snippets/recent-files-scrub.sh);
+  scrubber = pkgs.writeShellScriptBin "recent-files-scrub" (
+    builtins.readFile ../../snippets/recent-files-scrub.sh
+  );
 in
 {
   home.packages = [ scrubber ];
@@ -13,7 +14,13 @@ in
     };
     Service = {
       Type = "oneshot";
-      Environment = "PATH=${lib.makeBinPath [ pkgs.python3 pkgs.coreutils pkgs.bash ]}";
+      Environment = "PATH=${
+        lib.makeBinPath [
+          pkgs.python3
+          pkgs.coreutils
+          pkgs.bash
+        ]
+      }";
       ExecStart = "${scrubber}/bin/recent-files-scrub";
     };
   };

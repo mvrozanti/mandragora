@@ -10,7 +10,9 @@ let
     pkgs.systemd
     pkgs.inetutils
   ];
-  tripwireScript = pkgs.writeShellScript "oom-tripwire" (builtins.readFile ../../../.local/bin/oom-tripwire.sh);
+  tripwireScript = pkgs.writeShellScript "oom-tripwire" (
+    builtins.readFile ../../../.local/bin/oom-tripwire.sh
+  );
 in
 {
   programs.atop = {

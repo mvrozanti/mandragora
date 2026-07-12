@@ -1,10 +1,14 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   home.username = "m";
   home.homeDirectory = "/home/m";
   home.stateVersion = "23.11";
-
 
   home.sessionVariables = {
     EDITOR = "nvim";
