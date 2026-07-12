@@ -2,6 +2,7 @@
 
 let
   pkgs = nixpkgs.legacyPackages.${system};
+  inherit (nixpkgs) lib;
 
   usbClosureInfo = pkgs.closureInfo {
     rootPaths = [ self.nixosConfigurations.mandragora-usb.config.system.build.toplevel ];
@@ -50,13 +51,35 @@ let
     touch $out
   '';
 
+  hyprlandColorStub = pkgs.writeText "matugen-color-stub.conf" (
+    ''
+      $wallpaper = /dev/null
+      $foreground = rgba(e2e3d8ff)
+      $background = rgba(12140eff)
+    ''
+    + lib.concatMapStrings (n: "$color${toString n} = rgba(808080ff)\n")
+      (lib.range 0 15)
+  );
+
   hyprlandConfigGuard = pkgs.runCommand "hyprland-config-guard" {
     nativeBuildInputs = [ pkgs.hyprland ];
   } ''
     conf="${self}/.config/hypr/hyprland.conf"
-    if [ -f "$conf" ]; then
-      ${pkgs.hyprland}/bin/Hyprland --verify-config -c "$conf" 2>&1 || {
-        echo "FAIL: hyprland config errors in $conf" >&2; exit 1; }
+    if [ ! -f "$conf" ]; then
+      touch $out
+      exit 0
+    fi
+    export HOME="$TMPDIR"
+    export XDG_RUNTIME_DIR="$TMPDIR/xdg-runtime"
+    ${pkgs.coreutils}/bin/mkdir -p "$XDG_RUNTIME_DIR"
+    staged="$TMPDIR/hyprland.conf"
+    ${pkgs.coreutils}/bin/cat ${hyprlandColorStub} > "$staged"
+    ${pkgs.gnused}/bin/sed -E '/^[[:space:]]*source[[:space:]]*=[[:space:]]*~/d' \
+      "$conf" >> "$staged"
+    if ! ${pkgs.hyprland}/bin/Hyprland --verify-config -c "$staged" > "$TMPDIR/out" 2>&1; then
+      echo "FAIL: hyprland config errors in .config/hypr/hyprland.conf" >&2
+      ${pkgs.gnused}/bin/sed -n '/Config parsing result/,$p' "$TMPDIR/out" >&2
+      exit 1
     fi
     touch $out
   '';
