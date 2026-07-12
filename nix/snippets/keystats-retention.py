@@ -41,19 +41,20 @@ def prune_stats(now: int) -> None:
         cur = conn.cursor()
         cur.execute(
             """
-            CREATE TABLE IF NOT EXISTS wpm_daily(
-              day_epoch INTEGER PRIMARY KEY,
+            CREATE TABLE IF NOT EXISTS wpm_hourly(
+              hour_epoch INTEGER PRIMARY KEY,
               chars INTEGER NOT NULL,
               words INTEGER NOT NULL
             )
             """
         )
         cur.execute(
-            "INSERT INTO wpm_daily(day_epoch, chars, words) "
-            "SELECT (minute_epoch / 1440) * 1440 AS day_epoch, "
+            "INSERT INTO wpm_hourly(hour_epoch, chars, words) "
+            "SELECT minute_epoch / 60 AS hour_epoch, "
             "SUM(chars), SUM(words) FROM wpm_bucket "
-            "WHERE minute_epoch < ? GROUP BY day_epoch "
-            "ON CONFLICT(day_epoch) DO UPDATE SET chars = excluded.chars, words = excluded.words",
+            "WHERE minute_epoch < ? GROUP BY hour_epoch "
+            "ON CONFLICT(hour_epoch) DO UPDATE SET "
+            "chars = chars + excluded.chars, words = words + excluded.words",
             (cutoff_minute,),
         )
         rolled = cur.rowcount
@@ -64,7 +65,7 @@ def prune_stats(now: int) -> None:
         conn.commit()
         cur.execute("VACUUM")
         print(
-            f"keystats-retention: stats rolled_days={rolled} "
+            f"keystats-retention: stats rolled_hours={rolled} "
             f"pruned_minutes={deleted_minutes} pruned_sessions={deleted_sessions} "
             f"retention_days={RAW_RETENTION_DAYS}",
             file=sys.stderr,

@@ -699,14 +699,31 @@ def q_words() -> list:
         conn.close()
 
 
+WEEKDAY_HEATMAP_SQL = (
+    "SELECT CAST(strftime('%w', sec, 'unixepoch', 'localtime') AS INTEGER) AS dow, "
+    "CAST(strftime('%H', sec, 'unixepoch', 'localtime') AS INTEGER) AS hour, "
+    "SUM(chars) AS chars FROM ({src}) GROUP BY dow, hour"
+)
+
+WEEKDAY_HEATMAP_UNION_SRC = (
+    "SELECT minute_epoch * 60 AS sec, chars FROM wpm_bucket "
+    "UNION ALL "
+    "SELECT hour_epoch * 3600 AS sec, chars FROM wpm_hourly"
+)
+
+WEEKDAY_HEATMAP_BUCKET_SRC = "SELECT minute_epoch * 60 AS sec, chars FROM wpm_bucket"
+
+
 def q_weekday_heatmap(conn) -> list:
     cur = conn.cursor()
-    rows = cur.execute(
-        "SELECT CAST(strftime('%w', minute_epoch * 60, 'unixepoch', 'localtime') AS INTEGER) AS dow, "
-        "CAST(strftime('%H', minute_epoch * 60, 'unixepoch', 'localtime') AS INTEGER) AS hour, "
-        "SUM(chars) AS chars "
-        "FROM wpm_bucket GROUP BY dow, hour"
-    ).fetchall()
+    try:
+        rows = cur.execute(
+            WEEKDAY_HEATMAP_SQL.format(src=WEEKDAY_HEATMAP_UNION_SRC)
+        ).fetchall()
+    except sqlcipher3.OperationalError:
+        rows = cur.execute(
+            WEEKDAY_HEATMAP_SQL.format(src=WEEKDAY_HEATMAP_BUCKET_SRC)
+        ).fetchall()
     grid = [[0] * 24 for _ in range(7)]
     for dow, hour, chars in rows:
         if dow is None or hour is None:
