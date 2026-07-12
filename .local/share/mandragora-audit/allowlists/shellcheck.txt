@@ -40,6 +40,7 @@
 .local/share/mandragora-audit/checks/08-statix.sh
 .local/share/mandragora-audit/checks/09-deadnix.sh
 .local/share/mandragora-audit/checks/10-shellcheck.sh
+.local/share/mandragora-audit/checks/11-proxy-stacks.sh
 .local/share/mandragora-audit/lib/common.sh
 nix/snippets/recent-files-scrub.sh
 nix/snippets/waybar-bluetooth.sh
