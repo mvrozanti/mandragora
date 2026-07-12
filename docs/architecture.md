@@ -1,6 +1,6 @@
 # Architecture
 
-**Type:** infra (NixOS flake, single host)
+**Type:** infra (NixOS flake, multi-target)
 **Architecture pattern:** Modular flake with strict separation of concerns
 
 ## 0. Vision
@@ -13,11 +13,23 @@ whole system is comprehensible to a single individual.
 
 ## 1. Executive summary
 
-The system is a single-host NixOS flake. There is one machine
-(`mandragora-desktop`), one user (`m`), and one nixosConfiguration. Every
-runtime concern is expressed as a Nix module under `nix/modules/`. The host
-composition file (`nix/hosts/mandragora-desktop/default.nix`) imports those
-modules, and the flake (`flake.nix`) wires everything to pinned inputs.
+The flake centers on one workstation (`mandragora-desktop`) but ships four
+targets for one user (`m`). Every runtime concern is expressed as a Nix
+module under `nix/modules/`. Each host's composition file
+(`nix/hosts/<host>/default.nix`) imports those modules, and the flake
+(`flake.nix`) wires everything to pinned inputs.
+
+| Target | Kind | Built by |
+| ------ | ---- | -------- |
+| `mandragora-desktop` | NixOS workstation (the primary host) | `nixosConfigurations.mandragora-desktop` |
+| `mandragora-wsl` | NixOS-WSL guest | `nixosConfigurations.mandragora-wsl` |
+| `mandragora-usb` | NixOS live/installer image | `nixosConfigurations.mandragora-usb` + `packages.usbImage` (raw-efi generator) + `apps.refiner` (QEMU boot-test harness) |
+| `mandragora-vps` | Oracle Linux ARM VPS — **not a NixOS host** | `homeConfigurations."m@mandragora-vps"` (aarch64 home-manager) + docker-compose stacks under `nix/hosts/mandragora-vps/compose/` |
+
+Only `mandragora-desktop` is described in the sections below; it is the one
+machine that runs the full impermanence/desktop/theming stack. The vps is
+managed as a home-manager profile plus caddy-fronted compose stacks, not via
+`nixos-rebuild`.
 
 The defining architectural choice is **impermanence**: the root filesystem is
 wiped on every boot, and only `/nix`, `/persistent`, and `/home/m`
@@ -51,14 +63,19 @@ mechanism for the configuration source itself.
 
 ```
 flake.nix
+├─ nix/modules/shared/*.nix                       (cross-host: profile, overlays, zsh, nvim, build-checks)
 └─ nixosConfigurations.mandragora-desktop
    └─ nix/hosts/mandragora-desktop/default.nix
-      ├─ nix/pkgs/overlays.nix                    (custom overlays)
       ├─ nix/modules/core/*.nix                   (OS-level concerns)
       ├─ nix/modules/desktop/*.nix                (GUI session)
+      ├─ nix/modules/services/*.nix               (self-hosted web/GPU services)
       ├─ nix/modules/user/home-manager.nix        (loads home-manager → home.nix)
-      └─ nix/modules/audits/default.nix           (state-drift checks)
+      └─ nix/modules/audits/default.nix           (runtime state-drift checks)
 ```
+
+The `nix/modules/shared/overlays.nix` set (which wires `nix/pkgs/`) is shared
+across all NixOS targets via `flake.nix`'s `sharedModules`, not imported
+per-host.
 
 ### One concern per module
 
@@ -208,69 +225,82 @@ file.
 
 ## 9. Module Inventory
 
+Modules are grouped by concern under `nix/modules/<area>/`. Rather than
+enumerate every file (the tree grows faster than this doc), each directory is
+summarized by its role and a few representative modules; read the directory
+itself for the current full list.
+
 ### Core (`nix/modules/core/`)
 
-| Module                     | Responsibility                                              |
-| -------------------------- | ----------------------------------------------------------- |
-| `globals.nix`              | System packages, nix-ld, fonts                              |
-| `boot.nix`                 | systemd-boot, kernel selection, kernel parameters           |
-| `storage.nix`              | `fileSystems`, swap, mount options                          |
-| `impermanence.nix`         | Persistent-paths whitelist (the reboot survival list)       |
-| `persistence-vms.nix`      | VM disk persistence                                         |
-| `secrets.nix`              | sops-nix wiring, age key path, secret declarations          |
-| `security.nix`             | SSH, firewall, polkit, sudo                                 |
-| `graphics.nix`             | NVIDIA proprietary, Wayland environment variables           |
-| `monitoring.nix`           | Prometheus + Grafana                                        |
-| `ai-local.nix`             | Local LLM runtime                                           |
-| `vm.nix`                   | libvirt / qemu host                                         |
+OS-level system concerns. Boot and storage (`boot.nix`, `storage.nix`,
+`impermanence.nix`, `persistence-vms.nix`), security and networking
+(`secrets.nix`, `security.nix`, `wifi.nix`, `tailscale.nix`), hardware and
+runtime (`graphics.nix`, `ai-local.nix`, `vm.nix`, `gdrive.nix`), and
+observability/maintenance (`monitoring.nix` — Prometheus + Grafana,
+`nix-auto-update.nix`, `vuln-scan.nix`, `oom-protection.nix`,
+`oom-forensics.nix`). `impermanence.nix` holds the reboot-survival whitelist;
+`secrets.nix` wires sops-nix and the age key path.
 
 ### Desktop (`nix/modules/desktop/`)
 
-| Module             | Responsibility                                        |
-| ------------------ | ----------------------------------------------------- |
-| `hyprland.nix`     | Compositor enable + config wiring                     |
-| `sddm.nix`         | Display manager (Wayland session, autologin → Hyprland, sddm-mandragora theme) |
-| `kdeconnect.nix`   | Phone bridge                                          |
-| `keyd.nix`         | Capslock ↔ Esc remap (kernel-level)                  |
-| `keyledsd.nix`     | Logitech keyboard LED control                         |
-| `openrgb.nix`      | Generic RGB device control                            |
-| `rival-mouse.nix`  | SteelSeries Rival USB power-state udev rule           |
-| `ydotool.nix`      | uinput-based input synthesis (Wayland-safe xdotool)   |
-| `seafile.nix`      | Self-hosted sync client                               |
-| `steam.nix`        | Steam + gamemode                                      |
-| `minecraft.nix`    | Minecraft launcher / server                           |
+The GUI session and peripherals. Session (`hyprland.nix`, `sddm.nix`,
+`input-method.nix`), input/LED/RGB hardware (`keyd.nix`, `keyledsd.nix`,
+`keystats.nix`, `openrgb.nix`, `rival-mouse.nix`, `ydotool.nix`), sync and
+bridges (`seafile.nix`, `syncthing.nix`, `kdeconnect.nix`,
+`phone-archiver.nix`), gaming (`steam.nix`, `wine-gaming.nix`, `minecraft.nix`,
+`mt5.nix`, `ue5.nix`), and Claude-Code desktop integrations (`cc-lens.nix`,
+`claudecodebrowser.nix`, `watch-judge.nix`). One file per device/concern is
+the rule (e.g. `keyledsd.nix` is its own module, not a section of a generic
+peripherals file).
+
+### Services (`nix/modules/services/`)
+
+Self-hosted web and GPU-backed services that run on the desktop host — image
+generation (`im-gen-web.nix`, `im-gen-slice.nix`, `im-gen-cipher.nix`),
+LLM/web frontends (`open-webui.nix`, `ollama-context-proxy.nix`,
+`llm-visualizer.nix`, `ttyd.nix`, `claude-web.nix`), media and misc web apps
+(`mympd.nix`, `ytdl-web.nix`, `vtag-web.nix`, `emotion-web.nix`,
+`edgard-web.nix`, `slither-io.nix`, `gource-renderer.nix`), and the
+`hub-services.nix` aggregator.
 
 ### User (`nix/modules/user/`)
 
-| Module               | Responsibility                                              |
-| -------------------- | ----------------------------------------------------------- |
-| `home-manager.nix`   | Enables home-manager NixOS module, imports `home.nix`       |
-| `home.nix`           | User packages, `programs.*`, theming integration            |
-| `zsh.nix`            | zsh config, plugins, aliases (consumes `nix/snippets/aliases.zsh`) |
-| `tmux.nix`           | tmux config (consumes `.config/tmux/tmux.conf`)             |
-| `waybar.nix`         | Waybar config (consumes `.config/waybar/`, `nix/snippets/waybar-*`) |
-| `yazi.nix`           | yazi file manager                                           |
-| `services.nix`       | User systemd services                                       |
-| `bots.nix`           | Telegram-bridged bots (im-gen Flux, llm-via-telegram)       |
-| `skills.nix`         | Wires `agent-skills/{handoff,pickup,nrp}` into `~/.claude/skills` and `~/.gemini/skills` |
-| `minecraft.nix`      | User-side Minecraft (PrismLauncher etc.)                    |
-| `zx-dirs.nix`        | XDG user directories                                        |
+home-manager scope. `home-manager.nix` enables the NixOS module and imports
+`home.nix` (the large user-packages/`programs.*`/theming file). Program config
+that consumes XDG-mirrored files (`zsh.nix`, `tmux.nix`, `waybar.nix`,
+`yazi.nix`), user systemd units (`services.nix`), agent/bot integrations
+(`bots.nix` — Telegram-bridged im-gen Flux + llm-via-telegram, `axon.nix`,
+`autoclaude.nix`, `skills.nix`, `nb-vault-sync.nix`), the wofi/rofi menus
+(`gpu-menu.nix`, `monitor-menu.nix`, `rss-menu.nix`, `security-menu.nix`,
+`weather-menu.nix`), and `zx-dirs.nix` (XDG user directories). `skills.nix`
+wires `agent-skills/{handoff,pickup,nrp}` into `~/.claude/skills` and
+`~/.gemini/skills`.
+
+### Shared (`nix/modules/shared/`)
+
+Cross-host modules loaded via `flake.nix`'s `sharedModules` list, so every
+NixOS target gets them: `profile.nix`, `common-packages.nix`, `zsh.nix`,
+`nvim.nix`, `overlays.nix` (wires `nix/pkgs/`), and `build-checks.nix` (the
+flake `checks` guards — see §13).
 
 ### Audits (`nix/modules/audits/`)
 
-| File                | Responsibility                                              |
-| ------------------- | ----------------------------------------------------------- |
-| `default.nix`       | Audit module entry                                          |
-| `strays.sh`         | Detects state outside declared persistent paths             |
+Runtime state-drift checks for the running system: `default.nix` (module
+entry, wires the periodic checks), `strays.sh` (detects state written outside
+declared persistent paths), and `repo.nix` (packages `mandragora-audit` and
+sets `core.hooksPath` for the repo-tier commit checks). The repo-tier check
+suite itself lives at `.local/share/mandragora-audit/` — see §13 and
+[`./audits.md`](./audits.md).
 
 ## 10. Custom Packages (`nix/pkgs/`)
 
-| Package         | Purpose                                                       |
-| --------------- | ------------------------------------------------------------- |
-| `overlays.nix`  | Wires every overlay into the host's nixpkgs instance          |
-| `claude-code/`  | Anthropic Claude Code CLI (locally packaged)                  |
-| `du-exporter/`  | Custom Prometheus exporter for disk-usage metrics             |
-| `rtk/`          | Custom tooling                                                |
+Locally packaged derivations, wired into every NixOS target's nixpkgs via
+`nix/modules/shared/overlays.nix` (which imports `nix/pkgs/overlays.nix`).
+Representative packages: `claude-code/` (Anthropic Claude Code CLI),
+`du-exporter/` (custom Prometheus disk-usage exporter), `rtk/` (the token-saver
+CLI proxy), `sddm-mandragora/` (the SDDM theme), `axon/`, `refiner/` (the USB
+image QEMU boot-test harness behind `apps.refiner`), and `ue5/` (Unreal Engine
+devShell, exposed as `devShells.ue5`).
 
 To add a new local package: create `nix/pkgs/<name>/default.nix` and register it
 in `nix/pkgs/overlays.nix`.
@@ -284,8 +314,10 @@ Edit (anywhere — repo is bind-mounted at /etc/nixos/mandragora and /persistent
   → Commit   (`git add -A && git commit && git push`, or `mandragora-switch` alias)
 ```
 
-There is no test suite. Verification is empirical — does the feature work?
-Does the audit pass? Does the system reboot cleanly?
+Verification combines automated gates with empirical checks: the pre-commit
+hook runs the `mandragora-audit` repo checks on staged files, `flake.nix`
+exposes build guards under `checks`, and beyond that — does the feature work?
+Does the system reboot cleanly? See §13 for the full test/audit surface.
 
 The repo lives at two paths simultaneously:
 - `/etc/nixos/mandragora/` — the canonical path consumed by `nixos-rebuild`.
@@ -296,35 +328,56 @@ Both are the same git working tree.
 
 ## 12. Deployment Architecture
 
-There is no remote deployment. The "deploy" is `nixos-rebuild switch` on the
-machine itself. For full reinstall (replacement hardware, new disk, etc.),
-the procedure is:
+For `mandragora-desktop` there is no remote deployment — the "deploy" is
+`nixos-rebuild switch` on the machine itself. The other targets deploy
+differently: `mandragora-usb` is built to an image (`nix build .#usbImage`)
+and boot-tested in QEMU (`nix run .#refiner`); `mandragora-vps` deploys as a
+home-manager profile (`home-manager switch --flake .#m@mandragora-vps`) plus
+`docker compose up` of the stacks under `nix/hosts/mandragora-vps/compose/`
+(no nixos-rebuild — it is Oracle Linux).
+
+For a full desktop reinstall (replacement hardware, new disk, etc.), the
+procedure is:
 
 1. Boot from a NixOS live USB.
-2. Run `docs/install/format-drive.sh` (Btrfs partition + subvolume layout).
-3. Run `docs/install/mount-install.sh` (mounts subvolumes for the install).
-4. Run `docs/install/bootstrap-age-key.sh` (imports the age key from external USB).
-5. Run `docs/install/install.sh` (`nixos-install --flake .#mandragora-desktop`).
-6. Reboot, log in, verify.
+2. Partition + lay out Btrfs subvolumes, mount them, generate the age key and
+   encrypt secrets against it, then `nixos-install --flake .#mandragora-desktop`
+   against the mounted target. The scripts driving each step live under
+   `docs/install/` and `nix/hosts/mandragora-usb/install/`.
+3. Reboot, log in, verify.
 
-See [`install/INSTALL.md`](install/INSTALL.md) for the runbook.
+See [`install/INSTALL.md`](install/INSTALL.md) for the step-by-step runbook.
 
 ## 13. Testing Strategy
 
-There is no automated test suite. The closest things are:
+There is no cloud CI pipeline, but several automated test/gate layers run
+locally:
 
-- **`nix/modules/audits/`** — shell-script audits run periodically on the host
-  to detect state drift, stray files, and imperative state.
-- **`nixos-rebuild test`** — applies a configuration without making it the
-  boot default, useful for testing risky changes.
-- **`nixos-rebuild dry-run`** / `dry-activate` — validates the configuration
-  evaluates and would activate.
-- **Empirical verification** — for any change, the user tests the feature
-  directly and notes the result in the handoff system (`~/.ai-shared/handoffs/`).
+- **Repo audit suite (`mandragora-audit`)** — a deterministic, errors-only
+  shell suite at `.local/share/mandragora-audit/` that enforces the AGENTS.md
+  non-negotiables mechanically (no-extraconfig, doc-links, conventional-commits,
+  hyprland-config, hub-tile, no-projects-in-local-share, language-purity,
+  statix, deadnix). It runs on staged files via the pre-commit/commit-msg
+  hooks and in full before `mandragora-switch` stages. Full reference:
+  [`./audits.md`](./audits.md).
+- **Flake build guards (`checks`)** — `flake.nix` exposes `checks.<system>`
+  (closure-size, profile-eval, sops-key guards from
+  `nix/modules/shared/build-checks.nix`) that fail evaluation on regressions.
+- **USB installer tests** — five `bats` suites under
+  `nix/hosts/mandragora-usb/tests/install/` (`test_detect`, `test_format`,
+  `test_install`, `test_lib`, `test_render_config`) cover the install scripts.
+- **Runtime audits (`nix/modules/audits/`)** — shell audits run periodically
+  on the host to detect state drift, stray files, and imperative state.
+- **`nixos-rebuild test` / `dry-run` / `dry-activate`** — apply or validate a
+  configuration without making it the boot default; useful for risky changes.
+- **Empirical verification** — for anything the above can't gate, the user
+  tests the feature directly and notes the result in the handoff system
+  (`~/.ai-shared/handoffs/`).
 
-The deliberate absence of CI is appropriate for a single-host config: there
-is no team, no PR review pipeline, and the only "production" is the user's
-own desktop, where empirical verification is immediate.
+The absence of a *cloud* CI pipeline is appropriate for a solo config: there
+is no team and no PR review pipeline, and the only desktop "production" is the
+user's own machine, where empirical verification is immediate. The gates that
+do exist are the ones that catch agent mistakes before they land.
 
 ## 14. Hard constraints (architectural invariants)
 
@@ -349,7 +402,7 @@ The canonical statement is in [`../AGENTS.md`](../AGENTS.md).
 | System | Relationship |
 | ------ | ------------ |
 | `arch-slave` | Reference machine + bulk storage + Seafile server. Stays Arch+pacman; not managed by this flake. Seafile runs here; Mandragora connects as a client. Backup logic lives in Mandragora Nix config (push, not pull). |
-| Oracle VPS | Future use — not currently hosting anything. Intended as off-site mirror for critical data. |
+| Oracle VPS (`mandragora-vps`) | Solo-owned production ARM VPS on Oracle Linux (**not** NixOS). Managed as the `homeConfigurations."m@mandragora-vps"` home-manager profile plus caddy-fronted `docker compose` stacks under `nix/hosts/mandragora-vps/compose/` (the `*.mvr.ac` subdomains). Also an off-site secrets/backup mirror. |
 | Notebook | Future NixOS host — not yet defined in the flake. |
 
 ## 16. References
