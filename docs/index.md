@@ -19,6 +19,7 @@ Single LLM router. Every survivor doc is one hop from here.
 | Edit → rebuild → verify → commit (full common-tasks reference) | [`workflow.md`](workflow.md) |
 | What survives reboot (impermanence + user-data ranking) | [`persistence.md`](persistence.md) |
 | Secrets contract (sops-nix, age, agent rules) | [`secrets.md`](secrets.md) |
+| Keystats threat model (keylog DB: collection, encryption, key readers, retention) | [`keystats.md`](keystats.md) |
 | Worktree isolation + mid-switch guard (Rule 10 detail) | [`worktrees.md`](worktrees.md) |
 | GPU coordination + `gpu-lock` rationale (Rule 15 detail) | [`gpu.md`](gpu.md) |
 | Python deps (Nix patterns + upstream-venv exemption, Rule 7 detail) | [`python.md`](python.md) |

@@ -12,7 +12,7 @@ nix/modules/core/storage.nix:13
 nix/modules/desktop/bluetooth.nix:3
 nix/modules/desktop/keyledsd.nix:38
 nix/modules/desktop/keyledsd.nix:44
-nix/modules/desktop/keystats.nix:126
+nix/modules/desktop/keystats.nix:123
 nix/modules/desktop/rival-mouse.nix:4
 nix/modules/shared/zsh.nix:10
 nix/modules/user/home.nix:372
