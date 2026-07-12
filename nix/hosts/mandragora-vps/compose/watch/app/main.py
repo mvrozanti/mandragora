@@ -518,12 +518,12 @@ async def rejudge_event(eid: int) -> dict:
         verdict, reason = await judge.judge_event(row["w_spec"], dict(row))
     except judge.QuotaExceeded as exc:
         c.close()
-        raise HTTPException(429, f"gemini quota exceeded: {exc}")
+        raise HTTPException(429, f"judge quota exceeded: {exc}")
     except Exception as exc:
         c.close()
         raise HTTPException(502, f"judge failed: {exc}")
     c.execute(
-        "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_judged_at = ? WHERE id = ?",
+        "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_judged_at = ?, ai_claimed_at = NULL WHERE id = ?",
         (verdict, reason[:500], now_iso(), eid),
     )
     c.close()

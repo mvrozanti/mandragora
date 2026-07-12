@@ -121,6 +121,28 @@ def write_verdict(event_id: int, verdict: str, reason: str) -> bool:
     return out.strip() == "1"
 
 
+def release_claim(event_id: int) -> bool:
+    payload = json.dumps({"id": event_id, "busy": BUSY_TIMEOUT_MS})
+    script = textwrap.dedent(
+        f"""\
+        import sqlite3, json
+        p = json.loads({payload!r})
+        c = sqlite3.connect("/data/watch.db")
+        c.execute("PRAGMA busy_timeout=%d" % p["busy"])
+        cur = c.execute(
+            "UPDATE events SET ai_claimed_at = NULL "
+            "WHERE id = ? AND ai_verdict IS NULL",
+            (p["id"],),
+        )
+        c.commit()
+        print(cur.rowcount)
+        c.close()
+        """
+    )
+    out = remote_python(script)
+    return out.strip() == "1"
+
+
 def build_prompt(ev: dict) -> str:
     spec = ev.get("ai_spec") or ""
     return (
@@ -193,6 +215,10 @@ def main() -> int:
         try:
             verdict, reason = call_gemini(build_prompt(ev))
         except QuotaExceeded as exc:
+            try:
+                release_claim(ev["id"])
+            except Exception as rel_exc:
+                log.warning("claim release failed id=%s: %s", ev["id"], rel_exc)
             log.warning("quota exceeded, deferring %d remaining: %s", len(queue) - judged, exc)
             return 0
         except Exception as exc:
