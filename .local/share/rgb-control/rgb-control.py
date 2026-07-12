@@ -52,8 +52,16 @@ OPENRGB_PORT = int(os.environ.get("OPENRGB_SERVER_PORT", "6742"))
 WRITE_LOCK = "/tmp/openrgb-write.lock"
 PAUSE_SENTINEL = Path(os.environ.get("XDG_RUNTIME_DIR", "/run/user/1000")) / "rgb-control-paused"
 
-STATE_DIR = Path("/persistent/mandragora/.local/share/rgb-control")
+STATE_DIR = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local" / "state")) / "rgb-control"
 STATE_FILE = STATE_DIR / "state.json"
+LEGACY_STATE_FILE = Path("/persistent/mandragora/.local/share/rgb-control/state.json")
+
+
+def migrate_state() -> None:
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    if not STATE_FILE.exists() and LEGACY_STATE_FILE.exists():
+        shutil.copy2(LEGACY_STATE_FILE, STATE_FILE)
+        log.info("migrated rgb-control state from %s to %s", LEGACY_STATE_FILE, STATE_FILE)
 
 HOME = Path(os.environ.get("HOME", "/home/m"))
 SAFE_CONFIG = HOME / ".config" / "OpenRGB"
@@ -1587,7 +1595,7 @@ async def page_device_redirect(_: web.Request) -> web.Response:
 
 
 def main() -> None:
-    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    migrate_state()
     app = web.Application()
     app.on_startup.append(startup_recovery)
     app.add_routes([

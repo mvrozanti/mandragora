@@ -20,4 +20,3 @@ nix/hosts/mandragora-wsl/local.nix
 .config/transmission/dht.dat
 .config/transmission/stats.json
 .config/transmission/queue.json
-.local/share/rgb-control/state.json
