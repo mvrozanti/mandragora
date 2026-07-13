@@ -1,48 +1,25 @@
 { config, pkgs, ... }:
 
 let
-  repository = "sftp:opc@mandragora-vps:/home/opc/backups/restic";
-  passwordFile = "/persistent/backup/restic.pass";
-  markerDir = "/persistent/backup";
   ageKeyFile = config.sops.age.keyFile;
-  backupPaths = [ "/persistent/home/m/Documents" ];
-  limitUploadKiB = "8192";
-  excludeFile = ../../snippets/restic-excludes.txt;
+  backupUser = "m";
+  vpsHost = "mandragora-vps";
+  remoteDir = "/home/opc/backups/age-key";
+  markerDir = "/persistent/backup";
 
   notifyBin = pkgs.writeShellScriptBin "telegram-notify" (
     builtins.readFile ../../../.local/bin/telegram-notify.sh
   );
 
-  passgen = pkgs.writeShellApplication {
-    name = "restic-passgen";
+  ageKeyBackup = pkgs.writeShellApplication {
+    name = "age-key-backup";
     runtimeInputs = [
-      pkgs.coreutils
-      pkgs.openssl
-    ];
-    text = builtins.readFile ../../snippets/restic-passgen.sh;
-  };
-
-  resticBackup = pkgs.writeShellApplication {
-    name = "restic-backup";
-    runtimeInputs = [
-      pkgs.restic
-      pkgs.openssh
-      pkgs.curl
-      pkgs.coreutils
-    ];
-    text = builtins.readFile ../../snippets/restic-backup.sh;
-  };
-
-  lifeboatVerify = pkgs.writeShellApplication {
-    name = "restic-lifeboat-verify";
-    runtimeInputs = [
-      pkgs.restic
+      pkgs.util-linux
       pkgs.openssh
       pkgs.age
-      pkgs.curl
       pkgs.coreutils
     ];
-    text = builtins.readFile ../../snippets/lifeboat-verify.sh;
+    text = builtins.readFile ../../snippets/age-key-backup.sh;
   };
 
   backupAlert = pkgs.writeShellApplication {
@@ -57,23 +34,8 @@ let
   };
 
   notifyEnv = "MANDRAGORA_NOTIFY_BIN=${notifyBin}/bin/telegram-notify";
-
-  hardening = {
-    Type = "oneshot";
-    User = "m";
-    Group = "users";
-    WorkingDirectory = "/home/m";
-    Nice = 15;
-    IOSchedulingClass = "idle";
-    OnFailure = "backup-failed@%N.service";
-    EnvironmentFile = config.sops.secrets."llm_via_telegram/env".path;
-  };
 in
 {
-  systemd.tmpfiles.rules = [
-    "d ${markerDir} 0700 m users - -"
-  ];
-
   systemd.services."backup-failed@" = {
     description = "Alert + persistent marker when %i fails";
     serviceConfig = {
@@ -89,8 +51,8 @@ in
     };
   };
 
-  systemd.services.restic-backup = {
-    description = "Daily resilient-tier restic backup of ~/Documents to the VPS";
+  systemd.services.age-key-backup = {
+    description = "Weekly disaster-recovery mirror of the sops age key to the VPS";
     after = [
       "network-online.target"
       "tailscaled.service"
@@ -99,58 +61,26 @@ in
       "network-online.target"
       "tailscaled.service"
     ];
-    serviceConfig = hardening // {
-      TimeoutStartSec = "6h";
+    serviceConfig = {
+      Type = "oneshot";
+      Nice = 15;
+      IOSchedulingClass = "idle";
+      TimeoutStartSec = "20m";
+      OnFailure = "backup-failed@%N.service";
+      EnvironmentFile = config.sops.secrets."llm_via_telegram/env".path;
       Environment = [
-        "HOME=/home/m"
-        "RESTIC_REPOSITORY=${repository}"
-        "RESTIC_PASSWORD_FILE=${passwordFile}"
-        "RESTIC_EXCLUDE_FILE=${excludeFile}"
-        "RESTIC_LIMIT_UPLOAD_KIB=${limitUploadKiB}"
-        notifyEnv
-        "BACKUP_PATHS=${builtins.concatStringsSep " " backupPaths}"
-      ];
-      ExecStartPre = "${passgen}/bin/restic-passgen";
-      ExecStart = "${resticBackup}/bin/restic-backup";
-    };
-  };
-
-  systemd.timers.restic-backup = {
-    description = "Daily trigger for the resilient-tier restic backup";
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnCalendar = "*-*-* 03:30:00";
-      Persistent = true;
-      RandomizedDelaySec = "45m";
-    };
-  };
-
-  systemd.services.restic-lifeboat = {
-    description = "Weekly lifeboat verification: age key validity + restic repo integrity";
-    after = [
-      "network-online.target"
-      "tailscaled.service"
-    ];
-    wants = [
-      "network-online.target"
-      "tailscaled.service"
-    ];
-    serviceConfig = hardening // {
-      TimeoutStartSec = "2h";
-      Environment = [
-        "HOME=/home/m"
-        "RESTIC_REPOSITORY=${repository}"
-        "RESTIC_PASSWORD_FILE=${passwordFile}"
         "AGE_KEY_FILE=${ageKeyFile}"
+        "BACKUP_USER=${backupUser}"
+        "VPS_HOST=${vpsHost}"
+        "REMOTE_DIR=${remoteDir}"
         notifyEnv
       ];
-      ExecStartPre = "${passgen}/bin/restic-passgen";
-      ExecStart = "${lifeboatVerify}/bin/restic-lifeboat-verify";
+      ExecStart = "${ageKeyBackup}/bin/age-key-backup";
     };
   };
 
-  systemd.timers.restic-lifeboat = {
-    description = "Weekly trigger for lifeboat verification";
+  systemd.timers.age-key-backup = {
+    description = "Weekly trigger for the age-key disaster-recovery mirror";
     wantedBy = [ "timers.target" ];
     timerConfig = {
       OnCalendar = "Sat 06:00:00";
