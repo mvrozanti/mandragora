@@ -26,3 +26,5 @@ Mandragora uses `sops-nix` for its native integration with the NixOS module syst
 
 ## 5. Key Recovery (The "Lifeboat")
 A master `age` key must be stored in physical "Cold Storage" (e.g., a paper backup or a dedicated USB in a safe) to prevent total lockout if all machines are lost.
+
+In addition to cold storage, the `age-key-backup` service (`nix/modules/core/backup.nix`) mirrors the key weekly to `mandragora-vps` at `/home/opc/backups/age-key/keys.txt` and verifies the copy — see [`docs/persistence.md`](persistence.md) §2–3 for the stream/verify mechanics and restore runbook.
