@@ -3,6 +3,7 @@
 let
   ageKeyFile = config.sops.age.keyFile;
   backupUser = "m";
+  remoteUser = "opc";
   vpsHost = "mandragora-vps";
   remoteDir = "/home/opc/backups/age-key";
   markerDir = "/persistent/backup";
@@ -61,16 +62,19 @@ in
       "network-online.target"
       "tailscaled.service"
     ];
+    unitConfig = {
+      OnFailure = "backup-failed@%N.service";
+    };
     serviceConfig = {
       Type = "oneshot";
       Nice = 15;
       IOSchedulingClass = "idle";
       TimeoutStartSec = "20m";
-      OnFailure = "backup-failed@%N.service";
       EnvironmentFile = config.sops.secrets."llm_via_telegram/env".path;
       Environment = [
         "AGE_KEY_FILE=${ageKeyFile}"
         "BACKUP_USER=${backupUser}"
+        "REMOTE_USER=${remoteUser}"
         "VPS_HOST=${vpsHost}"
         "REMOTE_DIR=${remoteDir}"
         notifyEnv

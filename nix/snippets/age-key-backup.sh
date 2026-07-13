@@ -3,6 +3,7 @@ set -euo pipefail
 
 : "${AGE_KEY_FILE:?AGE_KEY_FILE must be set}"
 : "${BACKUP_USER:?BACKUP_USER must be set}"
+: "${REMOTE_USER:?REMOTE_USER must be set}"
 : "${VPS_HOST:?VPS_HOST must be set}"
 : "${REMOTE_DIR:?REMOTE_DIR must be set}"
 
@@ -28,7 +29,7 @@ if ! age-keygen -y "$AGE_KEY_FILE" >/dev/null 2>&1; then
 fi
 
 ssh_opts=(-o BatchMode=yes -o StrictHostKeyChecking=accept-new)
-remote="${BACKUP_USER}@${VPS_HOST}"
+remote="${REMOTE_USER}@${VPS_HOST}"
 
 if ! runuser -u "$BACKUP_USER" -- ssh "${ssh_opts[@]}" "$remote" \
     "umask 077; mkdir -p ${REMOTE_DIR} && cat > ${REMOTE_DIR}/keys.txt" \
