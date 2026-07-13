@@ -84,6 +84,10 @@ in
         owner = "m";
         mode = "0400";
       };
+      "clerk/secret" = {
+        owner = "m";
+        mode = "0400";
+      };
     };
 
     templates."hosts-oracle" = {
