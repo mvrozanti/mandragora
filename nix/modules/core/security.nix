@@ -100,6 +100,20 @@
     ManagedOOMSwap=auto
   '';
 
+  # 2026-07-14 03:45 incident: a leaking GPU-training scope drove /user.slice
+  # memory pressure past oomd's 80% line and oomd picked the login SESSION
+  # scope as its victim (256MB, but the highest pgscan) — Hyprland died, the
+  # 17GB trainer survived. Sessions are never the right sacrifice: the
+  # graphical session dying loses the whole desktop, while any batch scope is
+  # restartable. Drop-in on the session scope template marks them avoid.
+  systemd.units."session-.scope" = {
+    overrideStrategy = "asDropin";
+    text = ''
+      [Scope]
+      ManagedOOMPreference=avoid
+    '';
+  };
+
   systemd.services.display-manager.serviceConfig.OOMScoreAdjust = -900;
 
   security.apparmor.enable = true;
