@@ -334,6 +334,7 @@ in
     (pkgs.writeShellScriptBin "are-processes-related" (
       builtins.readFile ../../../.local/bin/are-processes-related.sh
     ))
+    (pkgs.writeShellScriptBin "ea-destage-fix" (builtins.readFile ../../../.local/bin/ea-destage-fix.sh))
     (pkgs.writeShellScriptBin "explode_tmux" (builtins.readFile ../../../.local/bin/explode_tmux.sh))
     (pkgs.writeShellScriptBin "implode_tmux" (builtins.readFile ../../../.local/bin/implode_tmux.sh))
     (pkgs.writeShellScriptBin "superscript" ''exec ${pkgs.python3}/bin/python3 ${../../../.local/bin/superscript.py} "$@"'')
