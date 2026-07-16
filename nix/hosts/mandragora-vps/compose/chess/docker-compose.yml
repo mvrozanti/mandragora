@@ -22,8 +22,11 @@ services:
       caddy_0.0_handle: "@api"
       caddy_0.0_handle.reverse_proxy: "${CHESS_BACKEND:-100.115.80.79:8080}"
       caddy_0.1_handle.reverse_proxy: "{{upstreams 80}}"
+      caddy_1: https://ccrelay.${MVR_AC:-mvr.ac}
+      caddy_1.reverse_proxy: https://api.chess.com
+      caddy_1.reverse_proxy.header_up: Host api.chess.com
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
       interval: 30s
       timeout: 5s
       retries: 3
