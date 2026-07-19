@@ -14,7 +14,11 @@
     ];
     tempAddress = "default";
   };
-  networking.defaultGateway = "192.168.0.1";
+  networking.defaultGateway = {
+    address = "192.168.0.1";
+    interface = "enp8s0";
+    metric = 100;
+  };
 
   boot.kernel.sysctl = {
     "net.ipv6.conf.enp8s0.accept_ra" = 2;
