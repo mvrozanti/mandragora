@@ -43,6 +43,7 @@ in
     ./security-menu.nix
     ./weather-menu.nix
     ./monitor-menu.nix
+    ./network-menu.nix
     ./monitor-audio.nix
     ./minecraft.nix
     ./skills.nix
