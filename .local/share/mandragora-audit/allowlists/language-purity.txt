@@ -6,3 +6,4 @@ nix/modules/core/secrets.nix:109
 nix/modules/core/secrets.nix:102
 nix/modules/user/terminal.nix:158
 nix/pkgs/refiner/default.nix:26
+nix/modules/core/security.nix:111
