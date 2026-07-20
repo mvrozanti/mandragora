@@ -38,6 +38,24 @@
     };
   };
 
+  services.pipewire.wireplumber.extraConfig."11-bluez-priority" = {
+    "monitor.bluez.rules" = [
+      {
+        matches = [ { "node.name" = "~bluez_output.*"; } ];
+        actions.update-props = {
+          "priority.session" = 2000;
+          "priority.driver" = 2000;
+        };
+      }
+    ];
+  };
+
+  services.pipewire.wireplumber.extraConfig."12-follow-default" = {
+    "wireplumber.settings" = {
+      "node.stream.restore-target" = false;
+    };
+  };
+
   services.blueman.enable = true;
 
   systemd.user.services.blueman-applet.enable = lib.mkForce false;
