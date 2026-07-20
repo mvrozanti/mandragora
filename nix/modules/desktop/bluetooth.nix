@@ -18,12 +18,20 @@
     };
   };
 
-  systemd.services.bt-autoconnect-jbl = {
-    description = "Auto-connect the trusted JBL Wave Beam 2 when present";
-    after = [ "bluetooth.service" ];
-    wants = [ "bluetooth.service" ];
-    wantedBy = [ "multi-user.target" ];
-    path = [ pkgs.bluez ];
+  systemd.user.services.bt-autoconnect-jbl = {
+    description = "Auto-connect the trusted JBL Wave Beam 2 and heal missing audio sink";
+    after = [
+      "pipewire.service"
+      "wireplumber.service"
+    ];
+    wants = [ "wireplumber.service" ];
+    wantedBy = [ "default.target" ];
+    path = [
+      pkgs.systemd
+      pkgs.pipewire
+      pkgs.coreutils
+      pkgs.gnugrep
+    ];
     serviceConfig = {
       ExecStart = "${pkgs.bash}/bin/bash ${../../snippets/bt-autoconnect.sh}";
       Restart = "always";
