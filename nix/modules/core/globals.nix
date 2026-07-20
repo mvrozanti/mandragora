@@ -71,7 +71,7 @@
     grim
     slurp
     wf-recorder
-    flameshot
+    satty
     playerctl
     brightnessctl
     pamixer

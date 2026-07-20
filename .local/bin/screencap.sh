@@ -163,7 +163,12 @@ screenshot_full() {
 }
 
 screenshot_region() {
-  flameshot gui
+  local geom file
+  geom=$(slurp_geom)
+  [[ -z "$geom" ]] && return 0
+  file="$outdir/screenshot-$(date +%Y%m%d-%H%M%S).png"
+  grim -g "$geom" - | satty --filename - --output-filename "$file" --copy-command wl-copy --early-exit
+  [[ -f "$file" ]] && preview_image "$file"
   mark_flash
 }
 
