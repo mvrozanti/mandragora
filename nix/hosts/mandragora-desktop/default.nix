@@ -46,7 +46,6 @@ in
     ../../modules/desktop/mt5.nix
     ../../modules/desktop/minecraft.nix
     ../../modules/desktop/ue5.nix
-    ../../modules/desktop/claudecodebrowser.nix
     ../../modules/desktop/cc-lens.nix
     ../../modules/desktop/watch-judge.nix
     ../../modules/services/hub-services.nix
@@ -82,7 +81,6 @@ in
     models.embeddings
   ];
   services.mandragora-seafile.enable = true;
-  mandragora.claudecodebrowser.enable = true;
 
   nixpkgs.hostPlatform = "x86_64-linux";
   nixpkgs.config.allowUnfree = true;

@@ -26,11 +26,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    claudecodebrowser = {
-      url = "github:nanogenomic/ClaudeCodeBrowser/d5f6bbe9fef2cfe82474722320af7e04499fb10d";
-      flake = false;
-    };
-
     bruno-tama = {
       url = "github:mvrozanti/bruno-tama";
       inputs.nixpkgs.follows = "nixpkgs";
