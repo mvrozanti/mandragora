@@ -20,23 +20,6 @@
         "type": "github"
       }
     },
-    "claudecodebrowser": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1778526149,
-        "narHash": "sha256-Hbj3i+DezUcctRi18+WyJjkfsq2GxN8EtCX+WBxo30A=",
-        "owner": "nanogenomic",
-        "repo": "ClaudeCodeBrowser",
-        "rev": "d5f6bbe9fef2cfe82474722320af7e04499fb10d",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nanogenomic",
-        "repo": "ClaudeCodeBrowser",
-        "rev": "d5f6bbe9fef2cfe82474722320af7e04499fb10d",
-        "type": "github"
-      }
-    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -205,7 +188,6 @@
     "root": {
       "inputs": {
         "bruno-tama": "bruno-tama",
-        "claudecodebrowser": "claudecodebrowser",
         "home-manager": "home-manager",
         "impermanence": "impermanence",
         "nixos-generators": "nixos-generators",

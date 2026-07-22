@@ -115,7 +115,7 @@ steam|steam-run|retroarch.*|prismlauncher|openjdk|minecraft|ue5-launcher|idea-os
 zapzap|droidcam|scrcpy|tradingview|impala|
 strays|setbg|shfthue|pop|sit|smart-launch|safe-claude|spawn-claude-tmux|
 mandragora-(audit|switch|diff|diff-last|winvm|commit-push)|
-claudecodebrowser-.*|crush-wrapped|gemini-cli|gh-dash|
+crush-wrapped|gemini-cli|gh-dash|
 isync-xoauth2|msmtp|aerc|notmuch|khal|password-store|gnome-keyring|
 nvtop|gpu-lock|recent-files-scrub|restore-theme|resize-window|record-window|
 rofi-.*|rss-menu|security-menu|weather-menu|window-to-corner|scratchpad.*|screenshot-window|
