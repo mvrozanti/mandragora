@@ -18,8 +18,17 @@ PORT = int(os.environ.get("YTDL_PORT", "6685"))
 MUSIC_DIR = Path(os.environ.get("YTDL_MUSIC_DIR", os.path.expanduser("~/Music")))
 YT_DLP = os.environ.get("YTDL_YT_DLP", shutil.which("yt-dlp") or "yt-dlp")
 FFMPEG_LOCATION = os.environ.get("YTDL_FFMPEG_LOCATION", "")
+CLAUDE_BIN = os.environ.get("YTDL_CLAUDE", shutil.which("claude") or "claude")
+TAG_MODEL = os.environ.get("YTDL_TAG_MODEL", "haiku")
 JOB_TTL = int(os.environ.get("YTDL_JOB_TTL", "86400"))
 MAX_JOBS = 200
+
+TAG_SCHEMA = '{"type":"object","properties":{"title":{"type":"string"},"artist":{"type":"string"}},"required":["title","artist"]}'
+TAG_PROMPT = (
+    "Extract the song title and performing artist from this YouTube video title. "
+    "Strip junk like '(Official Video)', '[HD]', 'Lyrics', channel names. "
+    "If artist is unclear, use best guess from the title. Title: "
+)
 
 URL_RE = re.compile(r"^https?://[^\s]+$")
 
@@ -41,6 +50,8 @@ def make_job(url):
         "started": now(),
         "finished": None,
         "filename": None,
+        "title": None,
+        "artist": None,
         "exit_code": None,
         "log": deque(maxlen=400),
     }
@@ -63,6 +74,61 @@ def gc_jobs():
                 job_order.remove(jid)
             except ValueError:
                 pass
+
+
+def tag_mp3(job):
+    fn = job.get("filename")
+    if not fn:
+        return
+    path = MUSIC_DIR / fn
+    if not path.is_file():
+        return
+    raw = path.stem
+    try:
+        proc = subprocess.run(
+            [CLAUDE_BIN, "-p", "--model", TAG_MODEL, "--output-format", "json",
+             "--json-schema", TAG_SCHEMA, TAG_PROMPT + raw],
+            capture_output=True, text=True, timeout=120,
+        )
+    except Exception as exc:
+        job["log"].append(f"tag: claude failed: {exc!r}")
+        return
+    if proc.returncode != 0:
+        job["log"].append(f"tag: claude exit {proc.returncode}: {proc.stderr.strip()[:200]}")
+        return
+    try:
+        data = json.loads(proc.stdout)
+        so = data.get("structured_output") or {}
+        title = so.get("title")
+        artist = so.get("artist")
+    except Exception as exc:
+        job["log"].append(f"tag: parse failed: {exc!r}")
+        return
+    if not title or not artist:
+        job["log"].append(f"tag: empty title/artist: {proc.stdout.strip()[:200]}")
+        return
+    ffmpeg = os.path.join(FFMPEG_LOCATION, "ffmpeg") if FFMPEG_LOCATION else "ffmpeg"
+    tmp = path.with_suffix(".tagged.mp3")
+    try:
+        r = subprocess.run(
+            [ffmpeg, "-y", "-loglevel", "error", "-i", str(path), "-map", "0",
+             "-c", "copy", "-metadata", f"title={title}", "-metadata", f"artist={artist}", str(tmp)],
+            capture_output=True, text=True, timeout=120,
+        )
+    except Exception as exc:
+        job["log"].append(f"tag: ffmpeg failed: {exc!r}")
+        return
+    if r.returncode == 0 and tmp.is_file():
+        os.replace(tmp, path)
+        job["title"] = title
+        job["artist"] = artist
+        job["log"].append(f"tag: {artist} — {title}")
+    else:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+        job["log"].append(f"tag: ffmpeg exit {r.returncode}: {r.stderr.strip()[:200]}")
 
 
 def run_yt_dlp(job):
@@ -102,7 +168,15 @@ def run_yt_dlp(job):
                 job["filename"] = os.path.basename(m.group(1))
         rc = proc.wait()
         job["exit_code"] = rc
-        job["status"] = "done" if rc == 0 else "failed"
+        if rc == 0:
+            job["status"] = "tagging"
+            try:
+                tag_mp3(job)
+            except Exception as exc:
+                job["log"].append(f"tag: unexpected error: {exc!r}")
+            job["status"] = "done"
+        else:
+            job["status"] = "failed"
     except Exception as exc:
         job["log"].append(f"ERROR: {exc!r}")
         job["status"] = "failed"
@@ -152,10 +226,12 @@ li.job { background:var(--panel); border:1px solid var(--line); padding:0.7rem 0
 .job .tag { font-size:0.62rem; letter-spacing:0.15em; text-transform:uppercase; padding:0.08rem 0.4rem; border:1px solid var(--dim); color:var(--dim); }
 .job .tag.queued { color:var(--dim); border-color:var(--dim); }
 .job .tag.running { color:var(--warn); border-color:var(--warn); }
+.job .tag.tagging { color:var(--warn); border-color:var(--warn); }
 .job .tag.done { color:var(--accent); border-color:var(--accent); }
 .job .tag.failed { color:var(--err); border-color:var(--err); }
 .job .url { font-size:0.72rem; color:var(--dim); word-break:break-all; flex:1 1 auto; min-width:0; }
 .job .file { font-size:0.82rem; color:var(--fg); word-break:break-all; }
+.job .meta { font-size:0.74rem; color:var(--accent); word-break:break-all; }
 .job .tail { font-size:0.7rem; color:var(--dim); white-space:pre-wrap; word-break:break-all; max-height:4.2em; overflow:hidden; }
 .empty { color:var(--dim); font-size:0.78rem; padding:1rem 0; text-align:center; }
 footer { margin-top:2rem; padding-top:1rem; border-top:1px solid var(--line); color:var(--dim); font-size:0.7rem; display:flex; justify-content:space-between; }
@@ -203,6 +279,7 @@ async function refresh(){
           <span style="color:var(--dim);font-size:0.7rem">${fmtTime(j.started)}</span>
         </div>
         ${j.filename ? `<div class="file">${esc(j.filename)}</div>` : ''}
+        ${j.artist && j.title ? `<div class="meta">♪ ${esc(j.artist)} — ${esc(j.title)}</div>` : ''}
         ${j.log_tail && j.log_tail.length ? `<div class="tail">${esc(j.log_tail.join('\\n'))}</div>` : ''}
       </li>
     `).join('');
