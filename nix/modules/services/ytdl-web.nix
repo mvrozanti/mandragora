@@ -26,11 +26,14 @@ in
         YTDL_MUSIC_DIR = "/home/m/Music";
         YTDL_YT_DLP = "${pkgs.yt-dlp}/bin/yt-dlp";
         YTDL_FFMPEG_LOCATION = "${pkgs.ffmpeg}/bin";
+        YTDL_CLAUDE = "${pkgs.claude-code}/bin/claude";
+        YTDL_TAG_MODEL = "haiku";
       };
       path = [
         pkgs.yt-dlp
         pkgs.ffmpeg
         pkgs.coreutils
+        pkgs.claude-code
       ];
       serviceConfig = {
         Type = "simple";
