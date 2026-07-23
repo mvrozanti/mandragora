@@ -1,5 +1,8 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(rsync:*)"
+    ],
     "deny": [
       "Bash(python -m venv *)",
       "Bash(python3 -m venv *)",
@@ -44,10 +47,17 @@
         "source": "github",
         "repo": "JuliusBrussee/caveman"
       }
+    },
+    "tellonce": {
+      "source": {
+        "source": "github",
+        "repo": "YujunZhou/tellonce"
+      }
     }
   },
-  "effortLevel": "high",
+  "effortLevel": "xhigh",
   "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
+  "theme": "dark",
   "skipAutoPermissionPrompt": true
 }
