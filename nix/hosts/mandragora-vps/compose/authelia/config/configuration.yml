@@ -92,7 +92,7 @@ access_control:
         - '^/api/autopilot/.*$'
       policy: 'two_factor'
     - domain: 'fin.mvr.ac'
-      policy: 'bypass'
+      policy: 'two_factor'
     - domain: ['grafana.mvr.ac', 'term.mvr.ac', 'paste.mvr.ac',
                'clip.mvr.ac', 'p.mvr.ac',
                'slither.mvr.ac', 'hub.mvr.ac', 'seafile.mvr.ac',
