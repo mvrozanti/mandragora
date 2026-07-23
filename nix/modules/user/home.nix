@@ -245,6 +245,7 @@ in
     zapzap
     gnome-chess
     tradingview
+    electrum
     openrgb
     matugen
     qgnomeplatform
