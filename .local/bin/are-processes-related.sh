@@ -5,11 +5,11 @@ if [ $# -ne 2 ]; then
 fi
 
 ptree1=$(pstree -p "$1")
-if [[ "$ptree1" == *"$2"* ]]; then
+if [[ "$ptree1" == *"($2)"* ]]; then
     echo "Processes $1 and $2 are related"
 else
     ptree2=$(pstree -p "$2")
-    if [[ "$ptree2" == *"$1"* ]]; then
+    if [[ "$ptree2" == *"($1)"* ]]; then
         echo "Processes $1 and $2 are related"
     else
         echo "Processes $1 and $2 are not related"
