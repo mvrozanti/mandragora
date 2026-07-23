@@ -266,6 +266,9 @@ in
       builtins.readFile ../../../.local/bin/spawn-claude-tmux.sh
     ))
     (pkgs.writeShellScriptBin "safe-claude" (builtins.readFile ../../../.local/bin/safe-claude.sh))
+    (pkgs.writeShellScriptBin "claude-deepseek" (
+      builtins.readFile ../../../.local/bin/claude-deepseek.sh
+    ))
     (pkgs.writeShellScriptBin "mandragora-commit-push" (
       builtins.readFile ../../../.local/bin/mandragora-commit-push.sh
     ))

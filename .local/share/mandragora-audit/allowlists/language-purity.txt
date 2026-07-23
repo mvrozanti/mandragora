@@ -2,8 +2,8 @@
 # Each entry is path:line from repo root, or a bare path for the whole file.
 # Migrate to .config/<app>/ + builtins.readFile, then drop the line.
 flake.nix:75
-nix/modules/core/secrets.nix:109
-nix/modules/core/secrets.nix:102
+nix/modules/core/secrets.nix:113
+nix/modules/core/secrets.nix:106
 nix/modules/user/terminal.nix:158
 nix/pkgs/refiner/default.nix:26
 nix/modules/core/security.nix:111
