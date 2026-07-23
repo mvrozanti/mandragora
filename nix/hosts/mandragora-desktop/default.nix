@@ -43,6 +43,7 @@ in
     ../../modules/desktop/phone-archiver.nix
     ../../modules/desktop/steam.nix
     ../../modules/desktop/wine-gaming.nix
+    ../../modules/desktop/soundboard.nix
     ../../modules/desktop/mt5.nix
     ../../modules/desktop/minecraft.nix
     ../../modules/desktop/ue5.nix
