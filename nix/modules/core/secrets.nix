@@ -88,6 +88,10 @@ in
         owner = "m";
         mode = "0400";
       };
+      "deepseek/api_key" = {
+        owner = "m";
+        mode = "0400";
+      };
     };
 
     templates."hosts-oracle" = {
