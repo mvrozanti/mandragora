@@ -26,6 +26,12 @@ checks after a fix, anything. The only exceptions: genuinely
 interactive work (TTY-bound sudo prompts, GUI clicks, decisions only
 the user can make) and standing risky-action gates (destructive ops
 still need explicit confirmation per the global Claude Code rules).
+On the rare occasion you must hand the user a command to run
+themselves (a TTY-bound \`sudo\`, an interactive login), format it to
+survive a terminal paste: break long or multi-part commands across
+lines with trailing backslashes, or write it to a script and hand
+over a one-line \`bash /tmp/x.sh\`. A wrapped one-liner splits
+mid-token — a \`for … in <list>\` broken across the wrap errors out.
 
 **Decision discipline:** Proactivity extends past commands to the
 choices made while working. When a fork has a clearly reasonable
