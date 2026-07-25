@@ -1,0 +1,25 @@
+services:
+
+  gokapi:
+    image: ${GOKAPI_IMAGE:-f0rc3/gokapi:latest}
+    container_name: gokapi
+    restart: unless-stopped
+    volumes:
+      - ${GOKAPI_CONFIG_VOLUME:-./config}:/app/config
+      - ${GOKAPI_DATA_VOLUME:-./data}:/app/data
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://share.${MVR_AC:-mvr.ac}
+      caddy.@protected.path: "/admin /admin/* /apiKeys /apiKeys/* /uploadChunk /uploadStatus /users /users/* /logs /logs/* /filerequests /filerequests/* /changePassword /auth/token /e2eSetup /downloadPresigned /setup /setup/* /login /logout /forgotpw /index"
+      caddy.0_handle: "@protected"
+      caddy.0_handle.forward_auth: "authelia:9091"
+      caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.0_handle.reverse_proxy: "{{upstreams 53842}}"
+      caddy.1_handle.reverse_proxy: "{{upstreams 53842}}"
+      caddy.1_handle.request_body.max_size: "20GB"
+
+networks:
+  seafile-net:
+    external: true
