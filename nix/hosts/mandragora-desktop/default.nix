@@ -55,6 +55,7 @@ in
     ../../modules/services/edgard-web.nix
     ../../modules/services/slither-io.nix
     ../../modules/services/mympd.nix
+    ../../modules/services/filebrowser.nix
     ../../modules/services/rgb-control.nix
     ../../modules/services/im-gen-slice.nix
     ../../modules/services/im-gen-cipher.nix

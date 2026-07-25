@@ -103,7 +103,8 @@ access_control:
                'ytdl.mvr.ac', 'vtag.mvr.ac', 'ofin.mvr.ac',
                'music.mvr.ac', 'git.mvr.ac', 'semantic.mvr.ac',
                'spider.mvr.ac', '4chan.mvr.ac', 'lens.mvr.ac',
-               'vuln.mvr.ac', 'food.mvr.ac', 'share.mvr.ac']
+               'vuln.mvr.ac', 'food.mvr.ac', 'share.mvr.ac',
+               'files.mvr.ac']
       policy: 'two_factor'
 
 notifier:
