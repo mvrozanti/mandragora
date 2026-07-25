@@ -1,0 +1,5 @@
+.env
+data/*
+!data/gokapi.sqlite
+config/log.txt
+*.bak.*

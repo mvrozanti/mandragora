@@ -1,0 +1,38 @@
+{
+  "Authentication": {
+    "Method": 3,
+    "SaltAdmin": "ycqsCmn1LX2DsyvRzgQRzff6uEFCmZ",
+    "SaltFiles": "nNs2V95YAtL2oVHNHQtZE4r8QUlivY",
+    "Username": "admin@gokapi",
+    "HeaderKey": "Remote-User",
+    "OauthProvider": "",
+    "OAuthClientId": "",
+    "OAuthClientSecret": "",
+    "OauthGroupScope": "",
+    "OAuthRecheckInterval": 12,
+    "OAuthGroups": [],
+    "OnlyRegisteredUsers": false
+  },
+  "Port": ":53842",
+  "ServerUrl": "https://share.mvr.ac/",
+  "RedirectUrl": "https://hub.mvr.ac/",
+  "PublicName": "share",
+  "DataDir": "data",
+  "DatabaseUrl": "sqlite:///app/data/gokapi.sqlite",
+  "ConfigVersion": 22,
+  "MaxFileSizeMB": 20480,
+  "MaxMemory": 50,
+  "ChunkSize": 45,
+  "MaxParallelUploads": 3,
+  "Encryption": {
+    "Level": 0,
+    "Cipher": null,
+    "Salt": "",
+    "Checksum": "",
+    "ChecksumSalt": ""
+  },
+  "UseSsl": false,
+  "PicturesAlwaysLocal": false,
+  "SaveIp": false,
+  "IncludeFilename": true
+}
