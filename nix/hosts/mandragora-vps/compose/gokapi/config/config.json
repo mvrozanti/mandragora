@@ -15,7 +15,7 @@
   },
   "Port": ":53842",
   "ServerUrl": "https://share.mvr.ac/",
-  "RedirectUrl": "https://hub.mvr.ac/",
+  "RedirectUrl": "https://share.mvr.ac/admin",
   "PublicName": "share",
   "DataDir": "data",
   "DatabaseUrl": "sqlite:///app/data/gokapi.sqlite",
