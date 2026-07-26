@@ -4,6 +4,21 @@ set -euo pipefail
 SB_DIR="${SOUNDBOARD_DIR:-$HOME/.local/share/soundboard}"
 PIDFILE="${XDG_RUNTIME_DIR:-/tmp}/soundboard.pids"
 TARGET="Soundboard"
+PTT="${SOUNDBOARD_PTT:-1}"
+PTT_KEY="${SOUNDBOARD_PTT_KEY:-100}"
+
+ptt_play() {
+  local f="$1" mpv_pid=""
+  release_ptt() { [[ "$PTT" == 1 ]] && ydotool key "${PTT_KEY}:0" 2>/dev/null || true; }
+  trap 'kill "$mpv_pid" 2>/dev/null || true; release_ptt; exit 0' TERM INT
+  [[ "$PTT" == 1 ]] && ydotool key "${PTT_KEY}:1" 2>/dev/null || true
+  mpv --no-terminal --no-config --vid=no --vo=null --force-window=no \
+      --keep-open=no --idle=no --really-quiet \
+      --audio-device="pipewire/$TARGET" "$f" &
+  mpv_pid=$!
+  wait "$mpv_pid" 2>/dev/null || true
+  release_ptt
+}
 
 play() {
   local f="$1"
@@ -12,18 +27,25 @@ play() {
     notify-send "Soundboard" "not found: $1"
     exit 1
   fi
-  mpv --no-terminal --no-config --vid=no --vo=null --force-window=no \
-      --keep-open=no --idle=no --really-quiet \
-      --audio-device="pipewire/$TARGET" "$f" &
+  ptt_play "$f" &
   echo $! >>"$PIDFILE"
 }
 
 stop() {
   [[ -f "$PIDFILE" ]] || return 0
+  local pids=()
   while read -r pid; do
+    [[ -n "$pid" ]] || continue
     kill "$pid" 2>/dev/null || true
+    pids+=("$pid")
   done <"$PIDFILE"
   : >"$PIDFILE"
+  for pid in "${pids[@]}"; do
+    for _ in $(seq 1 50); do
+      kill -0 "$pid" 2>/dev/null || break
+      sleep 0.02
+    done
+  done
 }
 
 case "${1:-menu}" in
