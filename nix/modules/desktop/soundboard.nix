@@ -9,6 +9,7 @@ let
       libnotify
       findutils
       coreutils
+      ydotool
     ];
     text = builtins.readFile ../../../.local/bin/soundboard.sh;
   };
