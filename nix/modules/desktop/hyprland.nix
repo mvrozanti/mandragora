@@ -1,4 +1,14 @@
 { pkgs, ... }:
+let
+  xdphReloadGuard = pkgs.writeShellApplication {
+    name = "xdph-reload-guard";
+    runtimeInputs = [
+      pkgs.socat
+      pkgs.systemd
+    ];
+    text = builtins.readFile ../../../.local/bin/xdph-reload-guard.sh;
+  };
+in
 {
   programs.hyprland = {
     enable = true;
@@ -90,6 +100,18 @@
       Type = "oneshot";
       ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
       ExecStart = "${pkgs.systemd}/bin/systemctl --user try-restart kdeconnectd.service xdg-desktop-portal.service xdg-desktop-portal-hyprland.service monitor-audio-follow.service";
+    };
+  };
+
+  systemd.user.services.xdph-reload-guard = {
+    description = "Restart xdg-desktop-portal on Hyprland config reload to keep screencast alive";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    serviceConfig = {
+      ExecStart = "${xdphReloadGuard}/bin/xdph-reload-guard";
+      Restart = "on-failure";
+      RestartSec = "3s";
     };
   };
 }
