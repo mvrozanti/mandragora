@@ -3,12 +3,16 @@ set -u
 
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/waybar"
 STATE_FILE="$STATE_DIR/brightness.env"
+LOCK_FILE="$STATE_DIR/brightness.lock"
 SHADER_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/hypr"
 SHADER_FILE="$SHADER_DIR/brightness.frag"
 STEP=5
-MIN=20
+MIN=10
 
 mkdir -p "$STATE_DIR" "$SHADER_DIR"
+
+exec 9>"$LOCK_FILE"
+flock 9
 
 BRIGHTNESS=on
 BRIGHTNESS_VAL=100
@@ -18,10 +22,12 @@ BRIGHTNESS_VAL=100
 [[ "$BRIGHTNESS_VAL" -gt 100 ]] && BRIGHTNESS_VAL=100
 
 write_state() {
-    cat >"$STATE_FILE" <<EOF
+    local tmp_file="$STATE_FILE.tmp"
+    cat >"$tmp_file" <<EOF
 BRIGHTNESS=$1
 BRIGHTNESS_VAL=$2
 EOF
+    mv "$tmp_file" "$STATE_FILE"
 }
 
 write_shader() {
