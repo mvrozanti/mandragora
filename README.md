@@ -28,7 +28,7 @@ carries a WSL profile, a bootable rescue USB, and an Oracle VPS.
 
 | Host | Purpose |
 | ---- | ------- |
-| `mandragora-desktop` | Primary Ryzen 9 7900X / RTX 5070 Ti workstation — Hyprland, impermanent Btrfs root, full ricing pipeline |
+| `mandragora-desktop` | Primary workstation — Hyprland, impermanent Btrfs root, full ricing pipeline |
 | `mandragora-wsl` | Same profile under WSL2 — corporate-laptop fallback ([`docs/appendix/wsl/README.md`](docs/appendix/wsl/README.md)) |
 | `mandragora-usb` | Bootable installer / rescue image — `nix build .#usbImage`, test-driven via `nix run .#refiner -- --auto` |
 | `mandragora-vps` | Oracle Cloud aarch64 VPS — **not NixOS**; home-manager + Docker Compose stacks behind a Caddy proxy ([`nix/hosts/mandragora-vps/INVENTORY.md`](nix/hosts/mandragora-vps/INVENTORY.md)) |
