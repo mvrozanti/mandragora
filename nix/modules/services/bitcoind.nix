@@ -19,7 +19,10 @@ in
     prune = 550;
     dbCache = 4000;
     rpc.users.${rpcUser}.passwordHMAC = rpcPasswordHMAC;
-    extraCmdlineOptions = [ "-server" ];
+    extraCmdlineOptions = [
+      "-server"
+      "-par=16"
+    ];
   };
 
   users.users.m.extraGroups = [ "bitcoind-main" ];
