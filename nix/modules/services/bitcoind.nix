@@ -5,7 +5,8 @@ let
   rpcPasswordHMAC = "1bbd4992a3070619550ab6f640155db9$f2e79d9d97ff4e8e61469e26d1716db1eda5eefffad94f89c636ce5cc0719250";
   bitcoinCli = pkgs.writeShellScriptBin "bitcoin-cli-m" ''
     exec ${pkgs.bitcoind}/bin/bitcoin-cli \
-      -datadir=/persistent/bitcoin \
+      -rpcconnect=127.0.0.1 \
+      -rpcport=8332 \
       -rpcuser=${rpcUser} \
       -stdinrpcpass \
       "$@" < ${config.sops.secrets."bitcoin/rpc_password".path}
