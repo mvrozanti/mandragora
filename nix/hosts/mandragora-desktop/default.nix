@@ -50,6 +50,7 @@ in
     ../../modules/desktop/cc-lens.nix
     ../../modules/desktop/watch-judge.nix
     ../../modules/services/hub-services.nix
+  ../../modules/services/bitcoind.nix
     ../../modules/services/ttyd.nix
     ../../modules/services/claude-web.nix
     ../../modules/services/edgard-web.nix
