@@ -92,6 +92,10 @@ in
         owner = "m";
         mode = "0400";
       };
+      "bitcoin/rpc_password" = {
+        owner = "m";
+        mode = "0400";
+      };
     };
 
     templates."hosts-oracle" = {
