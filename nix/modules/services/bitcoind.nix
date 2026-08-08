@@ -21,7 +21,7 @@ in
     rpc.users.${rpcUser}.passwordHMAC = rpcPasswordHMAC;
     extraCmdlineOptions = [
       "-server"
-      "-par=16"
+      "-par=8"
     ];
   };
 
