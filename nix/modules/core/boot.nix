@@ -30,7 +30,6 @@
   boot.kernelModules = [
     "i2c_piix4"
     "i2c_dev"
-    "pcspkr"
     "v4l2loopback"
   ];
   boot.extraModulePackages = [ config.boot.kernelPackages.v4l2loopback ];
