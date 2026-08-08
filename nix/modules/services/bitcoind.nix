@@ -2,7 +2,7 @@
 
 let
   rpcUser = "m";
-  rpcPasswordHMAC = "1bbd4992a3070619550ab6f640155db9$f2e79d9d97ff4e8e61469e26d1716db1eda5eefffad94f89c636ce5cc0719250";
+  rpcPasswordHMAC = "b18e46fb5dc3569e007eb1d91d4d457a$7675ed852f946c3a000d36c6434c559f2fb588814dd1959302e96d65cbaa19e9";
   bitcoinCli = pkgs.writeShellScriptBin "bitcoin-cli-m" ''
     exec ${pkgs.bitcoind}/bin/bitcoin-cli \
       -rpcconnect=127.0.0.1 \
