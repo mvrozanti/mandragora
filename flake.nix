@@ -25,11 +25,6 @@
       url = "github:nix-community/NixOS-WSL";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    bruno-tama = {
-      url = "github:mvrozanti/bruno-tama";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
