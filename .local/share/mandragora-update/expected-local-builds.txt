@@ -16,6 +16,5 @@ open-webui
 v4l2loopback
 keyleds
 openrgb
-^bruno
 ^axon
 ^autoclaude
