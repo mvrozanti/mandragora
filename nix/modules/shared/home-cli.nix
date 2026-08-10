@@ -1,4 +1,4 @@
-{ pkgs, inputs, ... }:
+{ pkgs, ... }:
 
 # Shared CLI baseline imported by every mandragora host.
 # Add things here when they should be on BOTH desktop and WSL.
@@ -52,7 +52,6 @@
     graphviz
     erdtree
     asciinema
-    inputs.bruno-tama.packages.${pkgs.system}.default
 
     (pkgs.writeShellScriptBin "mandragora-pkg-diff" (
       builtins.readFile ../../../.local/bin/mandragora-pkg-diff.sh

@@ -165,8 +165,6 @@ in
         local-ai-mcp-server
         gpu-lock
       ];
-
-      environment.sessionVariables.BRUNO_PASSTHROUGH = "gemini,qwen";
     }
 
     (lib.mkIf (cfg.extraModels != [ ]) {
