@@ -115,6 +115,7 @@ in
   mandragora.vtagWeb = {
     enable = true;
     targetDir = "/mnt/toshiba/hdd/gdrive/Levv/4chan";
+    listenHost = "100.115.80.79";
   };
   mandragora.emotionWeb.enable = true;
 }
