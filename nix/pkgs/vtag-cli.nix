@@ -4,8 +4,8 @@ let
   vtagSrc = pkgs.fetchFromGitHub {
     owner = "mvrozanti";
     repo = "vtag";
-    rev = "711fba0f8140f10f01405dd89e8ba182f1de237b";
-    sha256 = "sha256-MyyoPGklxu1LZS6vn1h4FOFJOcoYfycowknV4mQXU+M=";
+    rev = "7205b9d7935fa038fb1c5a8c45a1e373a8150040";
+    sha256 = "sha256-uG0S8ROnVdZKGKlnwEPy+TvYaWxz+cexyqj+yr2So3U=";
   };
   gpuLockRoot = ../../.local/share/gpu-lock;
   botPython = import ./bot-python.nix { inherit pkgs; };

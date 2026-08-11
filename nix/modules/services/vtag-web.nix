@@ -23,6 +23,15 @@ in
         the user clicks Start. Set per host; no default.
       '';
     };
+    listenHost = lib.mkOption {
+      type = lib.types.str;
+      default = "127.0.0.1";
+      description = ''
+        Address vtag-server binds. Defaults to loopback. Set to the host's
+        tailscale IP so the VPS caddy proxy (vtag.mvr.ac) can reach it while
+        the tailscale0-only firewall keeps port 8093 off the LAN/public net.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -35,6 +44,7 @@ in
         after = [ "default.target" ];
         environment = {
           VTAG_HUB_TARGET_DIR = toString cfg.targetDir;
+          VTAG_HUB_LISTEN_HOST = cfg.listenHost;
           VTAG_HUB_LISTEN_PORT = "8093";
           VTAG_HUB_VTAG_BIN = "${vtagPkgs.vtag}/bin/vtag";
         };
