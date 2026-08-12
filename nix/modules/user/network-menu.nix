@@ -9,7 +9,7 @@ let
     runtimeInputs = with pkgs; [
       rofi
       libnotify
-      iwd
+      systemd
       iproute2
       iputils
     ];
