@@ -198,11 +198,11 @@ def waybar():
     if not net:
         icon, cls = "󰖪", "offline"
     elif dev == WIFI_IF or state.startswith("wifi"):
-        icon, cls = "", "hotspot"
+        icon, cls = "󰖩", "hotspot"
     elif dev == LAN_IF:
         icon, cls = "󰈀", "online"
     else:
-        icon, cls = "", "online"
+        icon, cls = "󰛳", "online"
     mode = read_run("mode", "auto")
     ssid = current_ssid() if dev != LAN_IF or not net else None
     tip = ["<b>Network</b>", ""]
