@@ -33,6 +33,7 @@
       "/var/log"
       "/var/lib/nixos"
       "/var/lib/bluetooth"
+      "/var/lib/iwd"
       "/var/lib/systemd"
       "/var/lib/OpenRGB"
       "/etc/NetworkManager/system-connections"
