@@ -55,6 +55,7 @@ in
       nrb = "sudo nixos-rebuild boot --flake /etc/nixos/mandragora#mandragora-desktop";
       nrt = "sudo nixos-rebuild test --flake /etc/nixos/mandragora#mandragora-desktop";
       cava = "cava -p ~/.cache/matugen/cava";
+      wifi = "impala";
       nix-shell = "nix shell nixpkgs#";
       droidcam-mic = "pacmd load-module module-alsa-source device=hw:Loopback,1,0";
       droidcam-cam = "mpv av://v4l2:/dev/video10";
