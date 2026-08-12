@@ -10,27 +10,37 @@ let
   profile =
     if osConfig != null && osConfig ? mandragora then osConfig.mandragora.profile else "desktop";
   isWsl = profile == "wsl";
+  isDesktop = profile == "desktop";
   zxDirs = import ./zx-dirs.nix;
   homeDir = config.home.homeDirectory;
   normalize = v: if builtins.isString v then { path = v; } else v;
   expandHome = p: lib.replaceStrings [ "~" ] [ homeDir ] p;
-  jumpKeymap = lib.attrValues (
-    lib.mapAttrs (
-      k: v:
-      let
-        e = normalize v;
-        path = expandHome e.path;
-      in
-      {
-        on = [
-          "g"
-          k
-        ];
-        run = "cd ${path}";
-        desc = "cd ${e.path}";
-      }
-    ) zxDirs
-  );
+  jumpKeymap =
+    lib.attrValues (
+      lib.mapAttrs (
+        k: v:
+        let
+          e = normalize v;
+          path = expandHome e.path;
+        in
+        {
+          on = [
+            "g"
+            k
+          ];
+          run = "cd ${path}";
+          desc = "cd ${e.path}";
+        }
+      ) zxDirs
+    )
+    ++ lib.optional isDesktop {
+      on = [
+        "g"
+        "f"
+      ];
+      run = "cd /mnt/sandisk/Filmes";
+      desc = "cd /mnt/sandisk/Filmes";
+    };
 
   yaziUnwrappedPatched = pkgs.yazi-unwrapped.overrideAttrs (old: {
     postPatch = (old.postPatch or "") + ''
