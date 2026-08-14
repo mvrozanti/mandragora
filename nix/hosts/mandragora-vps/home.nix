@@ -18,6 +18,7 @@
     unzip
     tmux
     claude-code
+    swi-prolog
   ];
 
   programs.home-manager.enable = true;
