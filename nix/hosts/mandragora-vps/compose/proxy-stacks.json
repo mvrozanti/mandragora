@@ -20,15 +20,6 @@
       "logging": true
     },
     {
-      "name": "music",
-      "kind": "authelia-simple",
-      "host": "music",
-      "upstream_var": "MUSIC_UPSTREAM",
-      "upstream_host": "desktop",
-      "upstream_port": 8094,
-      "logging": true
-    },
-    {
       "name": "vtag",
       "kind": "authelia-simple",
       "host": "vtag",
