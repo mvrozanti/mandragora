@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>music.mvr.ac — dissection</title>
+<meta name="description" content="A ten-chapter visual dissection of one song.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body class="track">
+<div id="status" class="status mono">reading the signal</div>
+<main id="essay" hidden>
+
+<section class="chapter hero" id="ch1">
+  <div class="hero-grid">
+    <figure class="disc-wrap">
+      <img id="disc" class="disc" alt="the whole song rendered as a polar disc" hidden>
+    </figure>
+    <div class="hero-copy">
+      <p class="brand mono"><a href="./">music.mvr.ac</a></p>
+      <p class="kicker mono" id="h-artist"></p>
+      <h1 id="h-title"></h1>
+      <p class="epigraph" id="h-scenes"></p>
+      <div class="chips" id="h-chips"></div>
+      <div class="transport" id="transport">
+        <button id="play" class="playbtn" aria-label="play">
+          <svg viewBox="0 0 24 24" class="ic ic-play" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
+          <svg viewBox="0 0 24 24" class="ic ic-pause" aria-hidden="true"><path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z"/></svg>
+        </button>
+        <span class="time mono"><span id="t-now">0:00</span> / <span id="t-dur">0:00</span></span>
+        <div class="seekbar" id="seek"><div class="fill" id="seek-fill"></div></div>
+      </div>
+      <p id="audio-note" class="banner mono" hidden></p>
+      <nav class="toc mono" id="toc" aria-label="chapters"></nav>
+    </div>
+  </div>
+</section>
+
+<section class="chapter" id="ch2">
+  <header class="chhead"><span class="chnum mono">02</span>
+    <div><h2>Waveform &amp; dynamics</h2>
+    <p class="howto">The amplitude envelope above, perceived loudness below; the dashed rule is the whole-track integrated level.</p></div>
+  </header>
+  <div class="chbody" id="b2"></div>
+</section>
+
+<section class="chapter" id="ch3">
+  <header class="chhead"><span class="chnum mono">03</span>
+    <div><h2>Spectrum</h2>
+    <p class="howto">Three renderings of the same air — raw STFT, mel-warped, constant-Q — where brightness is energy and height is frequency.</p></div>
+  </header>
+  <div class="chbody" id="b3"></div>
+</section>
+
+<section class="chapter" id="ch4">
+  <header class="chhead"><span class="chnum mono">04</span>
+    <div><h2>Harmony</h2>
+    <p class="howto">Twelve pitch classes over time, the key each stretch sits in, and the harmonic path traced through tonnetz space.</p></div>
+  </header>
+  <div class="chbody" id="b4"></div>
+</section>
+
+<section class="chapter" id="ch5">
+  <header class="chhead"><span class="chnum mono">05</span>
+    <div><h2>Rhythm</h2>
+    <p class="howto">Where the pulse lives — tempo energy, onsets with cluster-colored beats, a timbre barcode, and the interval-to-interval fingerprint.</p></div>
+  </header>
+  <div class="chbody" id="b5"></div>
+</section>
+
+<section class="chapter" id="ch6">
+  <header class="chhead"><span class="chnum mono">06</span>
+    <div><h2>Texture</h2>
+    <p class="howto">Timbre under the microscope — cepstral stripes, the song split into harmonic and percussive skeletons, and the curves that summarize brightness and noisiness.</p></div>
+  </header>
+  <div class="chbody" id="b6"></div>
+</section>
+
+<section class="chapter" id="ch7">
+  <header class="chhead"><span class="chnum mono">07</span>
+    <div><h2>Structure</h2>
+    <p class="howto">The song against itself — repetition as symmetry, sections as colored blocks, novelty spiking at the seams, arcs joining repeated material.</p></div>
+  </header>
+  <div class="chbody" id="b7"></div>
+</section>
+
+<section class="chapter" id="ch8">
+  <header class="chhead"><span class="chnum mono">08</span>
+    <div><h2>Stereo field</h2>
+    <p class="howto">How wide the image is — channel correlation, mid against side, and twenty-four instants of the goniometer; click one to go there.</p></div>
+  </header>
+  <div class="chbody" id="b8"></div>
+</section>
+
+<section class="chapter" id="ch9" hidden>
+  <header class="chhead"><span class="chnum mono">09</span>
+    <div><h2>Feeling</h2>
+    <p class="howto">Machine-estimated emotion — the valence–arousal path over the whole song, seven moods through time, and what the model thought it was hearing.</p></div>
+  </header>
+  <div class="chbody" id="b9"></div>
+</section>
+
+<section class="chapter" id="ch10">
+  <header class="chhead"><span class="chnum mono">10</span>
+    <div><h2>Chaos</h2>
+    <p class="howto">Order against disorder — the phase portrait of the signal, and its compressibility over time.</p></div>
+  </header>
+  <div class="chbody" id="b10"></div>
+</section>
+
+<footer class="colophon">
+  <p>Made by machines listening closely: <span class="mono">CLAP</span> heard the scenes and the feeling, <span class="mono">Essentia</span> judged mood and key, <span class="mono">librosa</span> drew everything with a time axis.</p>
+  <nav><a href="./">all tracks</a><a href="/emotion/">the explorer</a><a href="https://hub.mvr.ac">hub.mvr.ac</a></nav>
+</footer>
+
+</main>
+
+<div class="dock" id="dock" hidden>
+  <button id="dock-play" class="playbtn small" aria-label="play">
+    <svg viewBox="0 0 24 24" class="ic ic-play" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
+    <svg viewBox="0 0 24 24" class="ic ic-pause" aria-hidden="true"><path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z"/></svg>
+  </button>
+  <span class="time mono"><span id="dock-now">0:00</span></span>
+  <div class="seekbar" id="dock-seek"><div class="fill" id="dock-seek-fill"></div></div>
+  <span class="dock-title mono" id="dock-title"></span>
+</div>
+
+<audio id="audio" preload="none"></audio>
+<noscript><p class="status mono">this instrument needs javascript</p></noscript>
+<script type="module" src="js/track.js"></script>
+</body>
+</html>
