@@ -13,6 +13,7 @@
     tree
     fastfetch
     jq
+    fx
     sops
     age
     openssh

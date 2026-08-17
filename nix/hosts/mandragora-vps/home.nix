@@ -11,6 +11,7 @@
     btop
     tree
     jq
+    fx
     ripgrep
     fd
     fastfetch
