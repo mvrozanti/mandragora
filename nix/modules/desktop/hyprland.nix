@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 let
   xdphReloadGuard = pkgs.writeShellApplication {
     name = "xdph-reload-guard";
@@ -7,6 +7,21 @@ let
       pkgs.systemd
     ];
     text = builtins.readFile ../../../.local/bin/xdph-reload-guard.sh;
+  };
+  awwwRestore = pkgs.writeShellApplication {
+    name = "awww-restore";
+    runtimeInputs = [
+      pkgs.awww
+      pkgs.coreutils
+    ];
+    text = builtins.readFile ../../../.local/bin/awww-restore.sh;
+  };
+  sessionAutostarts = {
+    awww-daemon = "${pkgs.awww}/bin/awww-daemon";
+    cliphist-store = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
+    polkit-gnome-agent = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+    kdeconnect-indicator = "${pkgs.kdePackages.kdeconnect-kde}/bin/kdeconnect-indicator";
+    blueman-applet = "${pkgs.blueman}/bin/blueman-applet";
   };
 in
 {
@@ -94,24 +109,61 @@ in
     };
   };
 
-  systemd.user.services.wayland-socket-restart-deps = {
-    description = "Restart user services holding stale wayland refs after compositor restart";
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
-      ExecStart = "${pkgs.systemd}/bin/systemctl --user try-restart kdeconnectd.service xdg-desktop-portal.service xdg-desktop-portal-hyprland.service monitor-audio-follow.service";
-    };
-  };
+  systemd.user.services =
+    lib.mapAttrs (name: exec: {
+      description = "Hyprland session autostart: ${name}";
+      wantedBy = [ "hyprland-session.target" ];
+      partOf = [ "hyprland-session.target" ];
+      after = [ "hyprland-session.target" ];
+      unitConfig = {
+        StartLimitIntervalSec = 60;
+        StartLimitBurst = 10;
+      };
+      serviceConfig = {
+        ExecStart = exec;
+        Restart = "on-failure";
+        RestartSec = "2s";
+      };
+    }) sessionAutostarts
+    // {
+      wayland-socket-restart-deps = {
+        description = "Restart user services holding stale wayland refs after compositor restart";
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
+          ExecStart = [
+            "${pkgs.systemd}/bin/systemctl --user try-restart kdeconnectd.service xdg-desktop-portal.service xdg-desktop-portal-hyprland.service monitor-audio-follow.service"
+            "${pkgs.systemd}/bin/systemctl --user restart ${
+              lib.concatStringsSep " " (map (n: "${n}.service") (builtins.attrNames sessionAutostarts))
+            }"
+            "${pkgs.systemd}/bin/systemctl --user restart awww-restore.service"
+          ];
+        };
+      };
 
-  systemd.user.services.xdph-reload-guard = {
-    description = "Restart xdg-desktop-portal on Hyprland config reload to keep screencast alive";
-    wantedBy = [ "graphical-session.target" ];
-    partOf = [ "graphical-session.target" ];
-    after = [ "graphical-session.target" ];
-    serviceConfig = {
-      ExecStart = "${xdphReloadGuard}/bin/xdph-reload-guard";
-      Restart = "on-failure";
-      RestartSec = "3s";
+      awww-restore = {
+        description = "Re-apply the last wallpaper image after awww-daemon starts";
+        wantedBy = [ "hyprland-session.target" ];
+        after = [
+          "hyprland-session.target"
+          "awww-daemon.service"
+        ];
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${awwwRestore}/bin/awww-restore";
+        };
+      };
+
+      xdph-reload-guard = {
+        description = "Restart xdg-desktop-portal on Hyprland config reload to keep screencast alive";
+        wantedBy = [ "graphical-session.target" ];
+        partOf = [ "graphical-session.target" ];
+        after = [ "graphical-session.target" ];
+        serviceConfig = {
+          ExecStart = "${xdphReloadGuard}/bin/xdph-reload-guard";
+          Restart = "on-failure";
+          RestartSec = "3s";
+        };
+      };
     };
-  };
 }

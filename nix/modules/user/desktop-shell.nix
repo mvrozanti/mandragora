@@ -12,12 +12,7 @@
     enable = true;
     settings = {
       exec-once = [
-        "awww-daemon"
         "restore-theme"
-        "wl-paste --watch cliphist store"
-        "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
-        "kdeconnect-indicator"
-        "blueman-applet"
       ];
     };
     extraConfig = builtins.readFile ../../../.config/hypr/hyprland.conf;
