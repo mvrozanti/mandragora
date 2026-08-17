@@ -39,6 +39,7 @@
     };
   };
 
+  # Use a simpler WirePlumber config that doesn't restrict roles or codecs unless needed
   services.pipewire.wireplumber.extraConfig."10-bluez-clean" = {
     "monitor.bluez.properties" = {
       "bluez5.enable-hw-volume" = false;
@@ -60,7 +61,6 @@
   services.pipewire.wireplumber.extraConfig."12-follow-default" = {
     "wireplumber.settings" = {
       "node.stream.restore-target" = false;
-      "node.restore-default-targets" = false;
     };
   };
 
