@@ -133,6 +133,7 @@ in
     git-lfs
     upx
     kubectl
+    oci-cli
     mediainfo
     img2pdf
     typst
