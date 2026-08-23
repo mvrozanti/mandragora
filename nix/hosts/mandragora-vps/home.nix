@@ -17,6 +17,7 @@
     fastfetch
     file
     unzip
+    openssl
     tmux
     claude-code
     swi-prolog
