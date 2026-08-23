@@ -17,6 +17,7 @@
     sops
     age
     openssh
+    openssl
     less
     file
     unzip
