@@ -43,6 +43,8 @@ import inspect
 import json
 import logging
 import os
+import shutil
+import subprocess
 import time
 from pathlib import Path
 from typing import Callable, Iterator
@@ -81,6 +83,57 @@ class GpuBusy(Exception):
         if since is None or expected is None:
             return None
         return max(0.0, since + expected - time.time())
+
+
+def _foreign_gpu_holder() -> dict | None:
+    """Return a synthetic holder for an unmanaged GPU process, or None.
+
+    Cooperative holders are tracked via the flock; this detects a process
+    using the GPU without holding the lock (e.g. a Proton game). Any process
+    occupying at least GPU_LOCK_FOREIGN_VRAM_MIB (default 1000) of VRAM
+    counts; the always-on desktop apps sit well below that.
+    """
+    threshold = int(os.environ.get("GPU_LOCK_FOREIGN_VRAM_MIB", "1000"))
+    if threshold <= 0:
+        return None
+    smi = shutil.which("nvidia-smi")
+    if not smi:
+        return None
+    try:
+        proc = subprocess.run(
+            [smi, "--query-compute-apps=pid,process_name,used_memory",
+             "--format=csv,noheader"],
+            capture_output=True, text=True, timeout=3,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if proc.returncode != 0:
+        return None
+    me = os.getpid()
+    biggest = None
+    for line in proc.stdout.splitlines():
+        fields = [field.strip() for field in line.split(",")]
+        if len(fields) < 3:
+            continue
+        try:
+            pid = int(fields[0])
+            vram = float(fields[-1].split()[0])
+        except (ValueError, IndexError):
+            continue
+        if pid in (0, me) or vram < threshold:
+            continue
+        if biggest is None or vram > biggest[0]:
+            biggest = (vram, pid, fields[1:-1])
+    if biggest is None:
+        return None
+    _, pid, name_fields = biggest
+    name = ",".join(name_fields).strip().replace("\\", "/").rsplit("/", 1)[-1].strip()
+    return {
+        "pid": pid,
+        "name": f"{name or f'pid {pid}'} (unmanaged)",
+        "since": time.time(),
+        "expected_seconds": None,
+    }
 
 
 class _Lease:
@@ -185,6 +238,13 @@ class _GpuLock:
         except BaseException:
             os.close(fd)
             raise
+        foreign = _foreign_gpu_holder()
+        if foreign is not None:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_UN)
+            finally:
+                os.close(fd)
+            raise GpuBusy(foreign)
         since = time.time()
         try:
             self._write_holder(name, expected_seconds, since)
@@ -265,10 +325,11 @@ def _holder_with_derived() -> dict | None:
 
 
 def cli_status(as_json: bool = False) -> int:
-    """Print current holder (for ad-hoc inspection)."""
+    """Print the current holder and any unmanaged GPU user."""
     holder = _holder_with_derived()
+    foreign = _foreign_gpu_holder() if holder is None else None
     if as_json:
-        print(json.dumps({"holder": holder}))
+        print(json.dumps({"holder": holder, "unmanaged": foreign}))
         return 0
     if holder:
         eta = ""
@@ -278,6 +339,8 @@ def cli_status(as_json: bool = False) -> int:
             f"HOLDER: pid={holder['pid']} name={holder['name']} "
             f"held_for={holder.get('held_for', 0.0):.1f}s{eta}"
         )
+    elif foreign:
+        print(f"UNMANAGED: pid={foreign['pid']} name={foreign['name']}")
     else:
         print("HOLDER: (none)")
     return 0
