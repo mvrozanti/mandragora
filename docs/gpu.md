@@ -119,9 +119,28 @@ There is no Layer-2 proxy and none is planned. A bare `crush` against `127.0.0.1
 
 ---
 
+## Unmanaged GPU users (games, manual apps)
+
+Cooperative holders opt in via `acquire`. A game launched through Steam/Proton
+does not — it takes the GPU directly, so an empty lock does not mean the GPU is
+free. To close that gap, `acquire` (and `gpu-lock run`) also checks for an
+**unmanaged** GPU process before taking the lock: if any process other than
+itself occupies at least `GPU_LOCK_FOREIGN_VRAM_MIB` (default `1000`) of VRAM
+(`nvidia-smi --query-compute-apps`), the acquire raises `GpuBusy` with a
+synthetic `{"name": "<proc> (unmanaged)", ...}` holder, and the job defers
+exactly as if a cooperative holder were present.
+
+The always-on desktop stack (Hyprland, Firefox, kitty, swaync, Xwayland, idle
+bots) sits well under 1 GiB, so only a real foreground app — a game, a manual
+CUDA session — trips it. Set `GPU_LOCK_FOREIGN_VRAM_MIB=0` to disable the check,
+or raise it if a legitimate background process is misclassified. This is
+best-effort: sampled at acquire time, not enforced at the kernel.
+
+---
+
 ## What `gpu-lock` does NOT do
 
-- It does not prevent you from launching a CUDA process. Nothing intercepts at the kernel level. `gpu-lock` is a *convention*, not enforcement.
+- It does not prevent you from launching a CUDA process. Nothing intercepts at the kernel level. `gpu-lock` is a *convention*, not enforcement; the unmanaged-user check above is a best-effort sample, not a guarantee.
 - It does not stop or start Ollama for you. See the section above.
 - It does not detect VRAM exhaustion. If your workload OOMs, that is on you.
 - It does not preempt, queue, or rate-limit. One tenant at a time, fail-fast on contention.
