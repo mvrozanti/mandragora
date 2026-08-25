@@ -48,5 +48,5 @@ curl -s http://100.84.78.83:9100/metrics | head -5    # → metric lines
 From off-tailnet (should fail):
 
 ```
-curl -sI --connect-timeout 3 http://146.235.51.189:9100/metrics  # → timeout
+curl -sI --connect-timeout 3 http://129.148.45.172:9100/metrics  # → timeout
 ```

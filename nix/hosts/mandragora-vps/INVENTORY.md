@@ -140,7 +140,7 @@ The sections below are the frozen pre-migration inventory. The container list in
 | Image OCID | `ocid1.image.oc1.sa-saopaulo-1.aaaaaaaayh5xunxnrwgeg4cbgyfgsst4hcvyjdhjij5kqimyhrlary3xo4oq` (Oracle Linux 8.10 aarch64 UEK) |
 | VNIC private IP | `10.0.0.112` in subnet `10.0.0.0/24` (router `10.0.0.1`, MAC `02:00:17:03:91:87`) |
 | VNIC OCID | `ocid1.vnic.oc1.sa-saopaulo-1.abtxeljrlatmbicxkwrxrkmukt5ordto4pvijkgsi7em6twvg7hnthvpnkjq` |
-| Public DNS | `mvrozanti.duckdns.org` → `146.235.51.189` |
+| Public DNS | `mvrozanti.duckdns.org` → `129.148.45.172` |
 | Created | 2024-07-23 by `mvrozanti@hotmail.com` |
 
 ## Boot / disk
