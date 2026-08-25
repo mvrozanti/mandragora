@@ -84,5 +84,7 @@ The mirror is **encrypted to a lifeboat age recipient** before it leaves the des
 Retrieve it for cold storage with:
 
 ```
-sss.sh --decrypt --extract '["age_backup"]["lifeboat_key"]'
+sudo SOPS_AGE_KEY_FILE=/persistent/secrets/keys.txt \
+  sops decrypt --extract '["age_backup"]["lifeboat_key"]' \
+  /etc/nixos/mandragora/secrets/secrets.yaml
 ```
