@@ -54,6 +54,7 @@ in
     ../../modules/services/ttyd.nix
     ../../modules/services/claude-web.nix
     ../../modules/services/slither-io.nix
+    ../../modules/services/lenia-bridge.nix
     ../../modules/services/mympd.nix
     ../../modules/services/filebrowser.nix
     ../../modules/services/rgb-control.nix
