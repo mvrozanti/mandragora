@@ -1,9 +1,9 @@
 #version 300 es
 precision highp float;
 precision highp int;
-precision highp sampler2D;
+precision highp sampler2DArray;
 
-uniform sampler2D uState;
+uniform sampler2DArray uState;
 uniform ivec2 uSize;
 uniform vec2 uFrom;
 uniform vec2 uTo;
@@ -12,9 +12,9 @@ uniform float uRingRadius;
 uniform float uStrength;
 uniform float uSeed;
 uniform int uMode;
-uniform vec3 uChannelMix;
+uniform float uChannelMix[NCH];
 
-out vec4 outColor;
+//__OUTPUTS__
 
 float hash(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -33,14 +33,12 @@ float wrappedSegmentDistance(vec2 p, vec2 a, vec2 b) {
   vec2 ab = b - a;
   ab -= field * floor(ab / field + 0.5);
   vec2 ap = wrappedDelta(p, a);
-  float denom = max(dot(ab, ab), 1e-6);
-  float t = clamp(dot(ap, ab) / denom, 0.0, 1.0);
+  float t = clamp(dot(ap, ab) / max(dot(ab, ab), 1e-6), 0.0, 1.0);
   return length(ap - ab * t);
 }
 
 void main() {
   ivec2 ip = ivec2(gl_FragCoord.xy);
-  vec4 prev = texelFetch(uState, ip, 0);
   vec2 p = vec2(ip) + 0.5;
 
   float falloff;
@@ -48,16 +46,21 @@ void main() {
     float d = abs(length(wrappedDelta(p, uFrom)) - uRingRadius);
     falloff = smoothstep(uRadius, uRadius * 0.15, d);
   } else {
-    float d = wrappedSegmentDistance(p, uFrom, uTo);
-    falloff = smoothstep(uRadius, uRadius * 0.15, d);
+    falloff = smoothstep(uRadius, uRadius * 0.15, wrappedSegmentDistance(p, uFrom, uTo));
   }
 
-  vec3 grain = vec3(
-    0.45 + 0.55 * hash(vec2(ip) + uSeed),
-    0.45 + 0.55 * hash(vec2(ip) + uSeed + 17.0),
-    0.45 + 0.55 * hash(vec2(ip) + uSeed + 43.0));
+  vec4 prev[LAYERS];
+  for (int l = 0; l < LAYERS; l++) prev[l] = texelFetch(uState, ivec3(ip, l), 0);
 
-  vec3 value = clamp(prev.rgb + uStrength * falloff * grain * uChannelMix, 0.0, 1.0);
-  float peak = max(value.r, max(value.g, value.b));
-  outColor = vec4(value, max(peak, prev.a));
+  float next[NCH];
+  float peak = 0.0;
+  for (int c = 0; c < NCH; c++) {
+    float grain = 0.45 + 0.55 * hash(vec2(ip) + uSeed + float(c) * 17.0);
+    float v = clamp(prev[c / 4][c % 4] + uStrength * falloff * grain * uChannelMix[c], 0.0, 1.0);
+    next[c] = v;
+    peak = max(peak, v);
+  }
+  float trail = max(peak, texelFetch(uState, ivec3(ip, LAYERS), 0).r);
+
+//__WRITES__
 }

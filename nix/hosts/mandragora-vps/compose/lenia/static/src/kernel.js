@@ -64,6 +64,8 @@ export function buildSpecies(species) {
     tapData,
     weightData,
     src: new Int32Array(kernels.map((k) => k.src)),
+    srcLayer: new Int32Array(kernels.map((k) => Math.floor(k.src / 4))),
+    srcComp: new Int32Array(kernels.map((k) => k.src % 4)),
     dst: new Int32Array(kernels.map((k) => k.dst)),
     mu: new Float32Array(kernels.map((k) => k.m)),
     sigma: new Float32Array(kernels.map((k) => k.s)),
@@ -92,12 +94,11 @@ export function kernelProfile(species, samples = 128) {
   return profile;
 }
 
-export function seedField(size, radius, coverage, density, channels = 4, planes = 1) {
+export function seedChannels(size, radius, coverage, density, channels) {
   const data = new Float32Array(size * size * channels);
   const block = Math.max(1, Math.round(radius * 0.7));
   const patchRadius = Math.max(radius * 2.6, block * 4);
-  const patchArea = Math.PI * patchRadius * patchRadius;
-  const patches = Math.max(1, Math.round((coverage * size * size) / patchArea * 0.55));
+  const patches = Math.max(1, Math.round((coverage * size * size) / (Math.PI * patchRadius * patchRadius) * 0.55));
 
   for (let p = 0; p < patches; p++) {
     const cx = Math.random() * size;
@@ -109,6 +110,12 @@ export function seedField(size, radius, coverage, density, channels = 4, planes 
     for (let i = 0; i < noise.length; i++) {
       noise[i] = Math.random() < density ? 0.25 + 0.75 * Math.random() : 0;
     }
+    const dominant = Math.floor(Math.random() * channels);
+    const width = channels > 4 ? 1.0 : channels;
+    const bias = new Float32Array(channels);
+    for (let c = 0; c < channels; c++) {
+      bias[c] = Math.exp(-Math.pow((c - dominant) / width, 2));
+    }
     const x0 = Math.round(cx - r);
     const y0 = Math.round(cy - r);
     for (let y = 0; y < span; y++) {
@@ -116,18 +123,32 @@ export function seedField(size, radius, coverage, density, channels = 4, planes 
       for (let x = 0; x < span; x++) {
         const dx = x - r;
         if (dx * dx + dy * dy > r * r) continue;
-        const gx = ((x0 + x) % size + size) % size;
-        const gy = ((y0 + y) % size + size) % size;
         const value = noise[Math.floor(y / block) * across + Math.floor(x / block)];
         if (value <= 0) continue;
+        const gx = ((x0 + x) % size + size) % size;
+        const gy = ((y0 + y) % size + size) % size;
         const index = (gy * size + gx) * channels;
-        for (let c = 0; c < planes; c++) {
-          const jitter = planes === 1 ? value : value * (0.45 + 0.55 * Math.random());
-          if (jitter > data[index + c]) data[index + c] = jitter;
+        for (let c = 0; c < channels; c++) {
+          const v = value * bias[c];
+          if (v > data[index + c]) data[index + c] = v;
         }
-        if (channels === 4) data[index + 3] = data[index];
       }
     }
   }
   return data;
+}
+
+export function splitLayers(data, size, channels, layers) {
+  const out = [];
+  for (let l = 0; l < layers; l++) {
+    const buf = new Float32Array(size * size * 4);
+    for (let i = 0; i < size * size; i++) {
+      for (let j = 0; j < 4; j++) {
+        const c = l * 4 + j;
+        buf[i * 4 + j] = c < channels ? data[i * channels + c] : 0;
+      }
+    }
+    out.push(buf);
+  }
+  return out;
 }

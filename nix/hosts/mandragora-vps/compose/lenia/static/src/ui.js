@@ -125,6 +125,19 @@ export class ControlPanel {
     return this;
   }
 
+  repopulate(key, items) {
+    const control = this.controls.get(key);
+    if (!control) return;
+    const select = control.input;
+    select.textContent = '';
+    items.forEach((item, index) => {
+      const option = element('option', null, item.label ?? item);
+      option.value = item.value ?? index;
+      select.append(option);
+    });
+    select.value = this.params[key];
+  }
+
   actions(items) {
     const row = element('div', 'actions');
     items.forEach(({ label, key, hint }) => {
