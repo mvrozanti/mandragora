@@ -103,8 +103,17 @@ export class MpdLink {
     return fired;
   }
 
+  get selfHosted() {
+    const host = typeof location === 'undefined' ? '' : location.hostname;
+    return host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host === '';
+  }
+
   describe() {
-    if (this.bridge === false) return 'no MPD bridge on this host';
+    if (this.bridge === false) {
+      return this.selfHosted
+        ? 'bridge offline — is serve.py running?'
+        : 'public deploy · MPD audio needs the local server';
+    }
     if (!this.source) return 'off';
     if (this.error && !this.live) return this.error;
     if (!this.live) return 'connecting…';
