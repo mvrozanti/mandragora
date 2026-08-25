@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lenia — continuous cellular automaton</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='9' fill='none' stroke='%23e0567f' stroke-width='3'/></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell" data-paused="false">
+
+  <canvas id="field"></canvas>
+
+  <aside class="panel">
+    <header class="masthead">
+      <h1 class="wordmark">Lenia</h1>
+      <p class="subtitle">continuous&nbsp;cellular&nbsp;automaton<span class="sep">/</span>webgl2</p>
+      <p class="species-name" id="species-name"></p>
+      <p class="preset-note" id="preset-note"></p>
+    </header>
+
+    <div class="plots">
+      <figure class="plot">
+        <figcaption>kernel <em>K(r)</em></figcaption>
+        <canvas id="kernel-plot"></canvas>
+      </figure>
+      <figure class="plot">
+        <figcaption>growth <em>G(u)</em></figcaption>
+        <canvas id="growth-plot"></canvas>
+      </figure>
+    </div>
+
+    <div class="panel-scroll" id="panel-body"></div>
+
+    <footer class="legend">
+      <span><kbd>drag</kbd> seed</span>
+      <span><kbd>shift</kbd> erase</span>
+      <span><kbd>alt</kbd> pan</span>
+      <span><kbd>wheel</kbd> zoom</span>
+      <span><kbd>space</kbd> pause</span>
+      <span><kbd>r</kbd> reseed</span>
+      <span><kbd>c</kbd> clear</span>
+      <span><kbd>v</kbd> recentre</span>
+      <span><kbd>h</kbd> hide</span>
+      <span><kbd>f</kbd> fullscreen</span>
+      <span><kbd>1–9</kbd> species</span>
+      <span><kbd>n</kbd> new wild</span>
+      <span><kbd>m</kbd> mutate</span>
+      <span><kbd>a</kbd> audio</span>
+    </footer>
+  </aside>
+
+  <div class="hud">
+    <div class="hud-row"><span>fps</span><b id="hud-fps">—</b></div>
+    <div class="hud-row"><span>gen</span><b id="hud-gen">000000</b></div>
+    <div class="hud-row"><span>grid</span><b id="hud-grid">—</b></div>
+    <div class="hud-row"><span>taps</span><b id="hud-taps">—</b></div>
+    <div class="hud-row"><span>zoom</span><b id="hud-zoom">1.00×</b></div>
+    <div class="hud-row"><span>state</span><b id="hud-precision">—</b></div>
+    <div class="hud-row"><span>kernels</span><b id="hud-kernels">—</b></div>
+  </div>
+
+  <button class="panel-toggle" id="panel-toggle" title="Toggle panel (h)">
+    <span></span><span></span><span></span>
+  </button>
+
+  <div class="brush-ring" id="brush-ring"></div>
+
+  <div class="paused-mark">paused</div>
+
+  <div class="boot" id="boot">
+    <div class="boot-ring"></div>
+    <p>compiling kernels</p>
+  </div>
+
+  <div class="fatal" id="fatal" hidden>
+    <h2 id="fatal-title">The simulation failed to start</h2>
+    <p id="fatal-message"></p>
+    <dl class="fatal-report" id="fatal-report"></dl>
+    <pre class="fatal-stack" id="fatal-stack"></pre>
+    <p class="fatal-hint">Full capability report at <a href="webgl-check.html">webgl-check.html</a>.</p>
+  </div>
+
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
