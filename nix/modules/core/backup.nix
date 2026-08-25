@@ -6,6 +6,7 @@ let
   remoteUser = "opc";
   vpsHost = "mandragora-vps";
   remoteDir = "/home/opc/backups/age-key";
+  lifeboatRecipient = "age1kndldqz9kkcjmrndvnd0cun8clac7un0ggt6xf47mvs84qp7cpyq60y040";
   markerDir = "/persistent/backup";
 
   notifyBin = pkgs.writeShellScriptBin "telegram-notify" (
@@ -77,6 +78,7 @@ in
         "REMOTE_USER=${remoteUser}"
         "VPS_HOST=${vpsHost}"
         "REMOTE_DIR=${remoteDir}"
+        "LIFEBOAT_RECIPIENT=${lifeboatRecipient}"
         notifyEnv
       ];
       ExecStart = "${ageKeyBackup}/bin/age-key-backup";
