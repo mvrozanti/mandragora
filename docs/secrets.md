@@ -77,4 +77,12 @@ files, so the two drivers do not interfere.
 ## 6. Key Recovery (The "Lifeboat")
 A master `age` key must be stored in physical "Cold Storage" (e.g., a paper backup or a dedicated USB in a safe) to prevent total lockout if all machines are lost.
 
-In addition to cold storage, the `age-key-backup` service (`nix/modules/core/backup.nix`) mirrors the key weekly to `mandragora-vps` at `/home/opc/backups/age-key/keys.txt` and verifies the copy — see [`docs/persistence.md`](persistence.md) §2–3 for the stream/verify mechanics and restore runbook.
+In addition to cold storage, the `age-key-backup` service (`nix/modules/core/backup.nix`) mirrors the key weekly to `mandragora-vps` and verifies the copy — see [`docs/persistence.md`](persistence.md) §2–3 for the stream/verify mechanics and restore runbook.
+
+The mirror is **encrypted to a lifeboat age recipient** before it leaves the desktop, landing at `/home/opc/backups/age-key/keys.txt.age`. This matters because the ciphertext the master key unlocks is published in a public repo: a plaintext mirror would make a VPS compromise a total secret compromise. The lifeboat identity's private half lives in sops at `age_backup/lifeboat_key` and, critically, must **also** be kept in cold storage — in the disaster where the desktop is gone, sops cannot be read, and without the lifeboat identity the VPS mirror is unopenable.
+
+Retrieve it for cold storage with:
+
+```
+sss.sh --decrypt --extract '["age_backup"]["lifeboat_key"]'
+```
