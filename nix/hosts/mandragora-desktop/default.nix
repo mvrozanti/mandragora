@@ -53,7 +53,6 @@ in
     ../../modules/services/bitcoind.nix
     ../../modules/services/ttyd.nix
     ../../modules/services/claude-web.nix
-    ../../modules/services/edgard-web.nix
     ../../modules/services/slither-io.nix
     ../../modules/services/mympd.nix
     ../../modules/services/filebrowser.nix

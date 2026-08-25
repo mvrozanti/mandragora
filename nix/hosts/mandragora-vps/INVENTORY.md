@@ -94,7 +94,6 @@ Several stacks are thin **reverse-proxy shims**: an `alpine` container that only
 | `vtag` | `vtag.mvr.ac` | Image tagger UI | `100.115.80.79:8093` |
 | `music` | `music.mvr.ac` | Emotion-tagging music explorer | `100.115.80.79:8094` |
 | `kl` | `kl.mvr.ac` | (desktop service) | `100.115.80.79:6900` |
-| `cv-es` | `cv-es.mvr.ac` | CV workshop editor | `100.115.80.79:7691` |
 | `semantic` | `semantic.mvr.ac` | LLM semantic-arithmetic visualizer (API + web split) | `100.115.80.79:8000` / `:3001` |
 | `voice` | `voice.mvr.ac` | (desktop voice service) — **live-only, not in repo** | `100.115.80.79` |
 

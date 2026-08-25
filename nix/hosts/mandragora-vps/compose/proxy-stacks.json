@@ -57,17 +57,6 @@
       "web_upstream_host": "desktop",
       "web_upstream_port": 3001,
       "logging": false
-    },
-    {
-      "name": "cv-es",
-      "kind": "basic-auth",
-      "host": "cv-es",
-      "basic_auth_user": "edgard",
-      "basic_auth_var": "CV_ES_BCRYPT",
-      "upstream_var": "CV_ES_UPSTREAM",
-      "upstream_host": "desktop",
-      "upstream_port": 7691,
-      "logging": false
     }
   ]
 }
