@@ -1,0 +1,3 @@
+This stack has live-only or divergent-from-repo remote state; the unified
+driver (../deploy-stacks.sh) refuses it so --all cannot clobber it. Deploy it
+with its own procedure instead. See INVENTORY.md > Deploying.

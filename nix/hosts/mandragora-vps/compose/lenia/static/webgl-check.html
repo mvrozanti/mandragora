@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>WebGL capability report</title>
+<style>
+  body { background:#06070a; color:#ccd2df; font:13px/1.6 "JetBrains Mono","DejaVu Sans Mono",monospace; margin:0; padding:28px 32px; }
+  h1 { font-size:15px; letter-spacing:.24em; text-transform:uppercase; color:#69707f; margin:0 0 20px; font-weight:400; }
+  table { border-collapse:collapse; width:100%; max-width:1100px; }
+  td { padding:4px 14px 4px 0; vertical-align:top; border-bottom:1px solid rgba(190,205,235,.08); }
+  td:first-child { color:#69707f; white-space:nowrap; width:1%; }
+  .ok { color:#6fc98a; } .bad { color:#e0567f; } .warn { color:#e8913f; }
+  #ext { color:#454b58; font-size:11px; line-height:1.7; word-break:break-all; }
+  .verdict { margin-top:22px; padding:14px 18px; border:1px solid rgba(190,205,235,.2); font-size:15px; max-width:1100px; }
+</style>
+</head>
+<body>
+<h1>WebGL capability report</h1>
+<table id="out"></table>
+<div class="verdict" id="verdict">running…</div>
+<script>
+const out = document.getElementById('out');
+function row(label, value, cls) {
+  const tr = out.insertRow();
+  tr.insertCell().textContent = label;
+  const td = tr.insertCell();
+  td.textContent = value;
+  if (cls) td.className = cls;
+  if (label === 'extensions') td.id = 'ext';
+}
+
+row('userAgent', navigator.userAgent);
+
+const canvas = document.createElement('canvas');
+const gl1 = canvas.getContext('webgl');
+row('webgl1 context', gl1 ? 'present' : 'NULL', gl1 ? 'ok' : 'bad');
+
+const probe = document.createElement('canvas');
+let gl = null, err = '';
+try {
+  gl = probe.getContext('webgl2', { alpha:false, antialias:false, depth:false, stencil:false, powerPreference:'high-performance' });
+} catch (e) { err = String(e); }
+row('webgl2 context', gl ? 'present' : ('NULL ' + err), gl ? 'ok' : 'bad');
+
+let verdict, cls;
+if (!gl) {
+  verdict = 'WebGL2 is not available at all. The float extension is not the problem.';
+  cls = 'bad';
+} else {
+  const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+  row('vendor', gl.getParameter(gl.VENDOR));
+  row('renderer', gl.getParameter(gl.RENDERER));
+  if (dbg) {
+    row('unmasked vendor', gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL));
+    row('unmasked renderer', gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL));
+  } else {
+    row('unmasked renderer', 'WEBGL_debug_renderer_info blocked (privacy.resistFingerprinting?)', 'warn');
+  }
+  row('version', gl.getParameter(gl.VERSION));
+  row('glsl', gl.getParameter(gl.SHADING_LANGUAGE_VERSION));
+  row('max texture size', gl.getParameter(gl.MAX_TEXTURE_SIZE));
+
+  const full = gl.getExtension('EXT_color_buffer_float');
+  const half = gl.getExtension('EXT_color_buffer_half_float');
+  const lin  = gl.getExtension('OES_texture_float_linear');
+  row('EXT_color_buffer_float', full ? 'YES' : 'NO', full ? 'ok' : 'bad');
+  row('EXT_color_buffer_half_float', half ? 'YES' : 'NO', half ? 'ok' : 'warn');
+  row('OES_texture_float_linear', lin ? 'YES' : 'NO', lin ? 'ok' : 'warn');
+
+  function renderable(fmt) {
+    try {
+      const t = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.texStorage2D(gl.TEXTURE_2D, 1, gl[fmt], 8, 8);
+      const f = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, f);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+      const s = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.deleteFramebuffer(f); gl.deleteTexture(t);
+      return s === gl.FRAMEBUFFER_COMPLETE ? 'renderable' : 'INCOMPLETE 0x' + s.toString(16);
+    } catch (e) { return 'threw: ' + e.message; }
+  }
+  row('RGBA32F target', renderable('RGBA32F'), renderable('RGBA32F') === 'renderable' ? 'ok' : 'bad');
+  row('RGBA16F target', renderable('RGBA16F'), renderable('RGBA16F') === 'renderable' ? 'ok' : 'bad');
+  row('extensions', (gl.getSupportedExtensions() || []).join('  '));
+
+  if (full) { verdict = 'Everything the simulation needs is present. The failure is elsewhere.'; cls = 'ok'; }
+  else if (half) { verdict = 'No EXT_color_buffer_float, but half-float rendering works — the app can run on RGBA16F.'; cls = 'warn'; }
+  else { verdict = 'No float render targets of any kind. This GPU/driver path cannot run the simulation.'; cls = 'bad'; }
+}
+const v = document.getElementById('verdict');
+v.textContent = verdict;
+v.className = 'verdict ' + cls;
+</script>
+</body>
+</html>

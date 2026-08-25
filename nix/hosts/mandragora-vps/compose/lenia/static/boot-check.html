@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Boot diagnostic</title>
+<style>
+  body { background:#06070a; color:#ccd2df; font:13px/1.7 "JetBrains Mono","DejaVu Sans Mono",monospace; margin:0; padding:28px 32px; }
+  h1 { font-size:15px; letter-spacing:.24em; text-transform:uppercase; color:#69707f; margin:0 0 18px; font-weight:400; }
+  #status { font-size:19px; padding:12px 18px; border:1px solid rgba(190,205,235,.2); margin-bottom:20px; max-width:1400px; }
+  .ok { color:#6fc98a; } .bad { color:#e0567f; }
+  pre { white-space:pre-wrap; word-break:break-word; font-size:12px; color:#e8913f; max-width:1400px; margin:0 0 18px; }
+  .step { color:#454b58; }
+  .step b { color:#6fc98a; font-weight:400; }
+  .step i { color:#e0567f; font-style:normal; }
+</style>
+</head>
+<body>
+<h1>Boot diagnostic</h1>
+<div id="status">running…</div>
+<pre id="err"></pre>
+<div id="steps"></div>
+<script>
+const real = window.fetch;
+window.fetch = (path) => {
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', path, false);
+  xhr.send(null);
+  return Promise.resolve({ ok: xhr.status === 200, status: xhr.status, text: () => Promise.resolve(xhr.responseText) });
+};
+</script>
+<script type="module">
+import { LeniaEngine } from './src/engine.js';
+import { PRESETS } from './src/presets.js';
+import { createParams } from './src/params.js';
+
+const steps = document.getElementById('steps');
+const mark = (name, ok, extra) => {
+  const d = document.createElement('div');
+  d.className = 'step';
+  d.innerHTML = `${ok ? '<b>[ok]</b>' : '<i>[fail]</i>'} ${name}` + (extra ? ` <span>${extra}</span>` : '');
+  steps.append(d);
+};
+
+const status = document.getElementById('status');
+const errBox = document.getElementById('err');
+
+try {
+  mark('import src/engine.js + presets.js', true);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 640; canvas.height = 480;
+  Object.defineProperty(canvas, 'clientWidth', { value: 640 });
+  Object.defineProperty(canvas, 'clientHeight', { value: 480 });
+  document.body.append(canvas);
+  canvas.style.display = 'none';
+
+  const params = createParams(PRESETS[0]);
+  const engine = new LeniaEngine(canvas, params);
+  mark('construct LeniaEngine', true);
+
+  await engine.init();
+  mark('engine.init()', true, `taps=${engine.kernelTaps} kernels=${engine.kernelCount} grid=${engine.size} mips=${engine.mips.length}`);
+
+  engine.randomize();
+  mark('randomize()', true);
+  engine.step(3);
+  mark('step(3)', true, `gen=${engine.generation}`);
+  engine.draw(1.0);
+  mark('draw()', true);
+
+  const gl = engine.gl;
+  const glErr = gl.getError();
+  mark('gl.getError()', glErr === 0, glErr === 0 ? 'NO_ERROR' : '0x' + glErr.toString(16));
+
+  const px = new Float32Array(4);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, engine.state.read.framebuffer);
+  gl.readPixels(engine.size >> 1, engine.size >> 1, 1, 1, gl.RGBA, gl.FLOAT, px);
+  mark('readPixels centre', true, `[${[...px].map(v => v.toFixed(4)).join(', ')}]`);
+
+  status.textContent = glErr === 0 ? 'BOOT OK — the engine initialises and steps cleanly.' : 'Booted, but GL reported an error.';
+  status.className = glErr === 0 ? 'ok' : 'bad';
+} catch (e) {
+  status.textContent = 'BOOT FAILED: ' + e.message;
+  status.className = 'bad';
+  errBox.textContent = e.stack || String(e);
+}
+</script>
+</body>
+</html>
