@@ -24,7 +24,7 @@ syncs without restarting.
 Safety, by construction:
 
 - **Remote `.env`/`*.env` are never sent and never deleted** (protect
-  filter + exclude). The colocated root-owned secret files stay put.
+  filter + exclude). The colocated secret files stay put.
 - **Each stack's own `.gitignore` is honoured** (`--exclude-from`), so
   remote-only runtime state (`data/`, `*_data/`, generated reports,
   `*.bak.*`) survives `--delete`.
