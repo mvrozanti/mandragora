@@ -1,0 +1,21 @@
+{
+  "entries": [
+    { "name": "authelia",          "remote": "authelia/.env",                     "type": "dotenv", "uid": 0,    "gid": 0,    "mode": "600" },
+    { "name": "authelia-users",    "remote": "authelia/config/users_database.yml", "type": "binary", "uid": 0,    "gid": 0,    "mode": "440" },
+    { "name": "basilica",          "remote": "basilica/.env",                     "type": "dotenv", "uid": 1000, "gid": 1000, "mode": "600" },
+    { "name": "basilica-bolao",    "remote": "basilica/bolao/.env",               "type": "dotenv", "uid": 1000, "gid": 1000, "mode": "664" },
+    { "name": "chess",             "remote": "chess/.env",                        "type": "dotenv", "uid": 1000, "gid": 1000, "mode": "664" },
+    { "name": "drive-crypto-stox", "remote": "drive/crypto-stox/.env",            "type": "dotenv", "uid": 1000, "gid": 1001, "mode": "644" },
+    { "name": "fin",               "remote": "fin/.env",                          "type": "dotenv", "uid": 1000, "gid": 1000, "mode": "664" },
+    { "name": "git",               "remote": "git/.env",                          "type": "dotenv", "uid": 1000, "gid": 1000, "mode": "600" },
+    { "name": "hub",               "remote": "hub/.env",                          "type": "dotenv", "uid": 0,    "gid": 0,    "mode": "600" },
+    { "name": "microbin",          "remote": "microbin/.env",                     "type": "dotenv", "uid": 0,    "gid": 0,    "mode": "600" },
+    { "name": "mvr-api",           "remote": "mvr-api/.env",                      "type": "dotenv", "uid": 1000, "gid": 1000, "mode": "600" },
+    { "name": "nb",                "remote": "nb/.env",                           "type": "dotenv", "uid": 1000, "gid": 1000, "mode": "600" },
+    { "name": "ofin",              "remote": "ofin/.env",                         "type": "dotenv", "uid": 1000, "gid": 1000, "mode": "600" },
+    { "name": "radicale-users",    "remote": "radicale/config/users",             "type": "binary", "uid": 2999, "gid": 2999, "mode": "440" },
+    { "name": "seafile",           "remote": "seafile/.env",                      "type": "dotenv", "uid": 0,    "gid": 0,    "mode": "600" },
+    { "name": "voice",             "remote": "voice/.env",                        "type": "dotenv", "uid": 1000, "gid": 1000, "mode": "664" },
+    { "name": "watch",             "remote": "watch/.env",                        "type": "dotenv", "uid": 1000, "gid": 1000, "mode": "664" }
+  ]
+}

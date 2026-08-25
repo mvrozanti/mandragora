@@ -61,7 +61,7 @@ upgrade and references `seafile-mc:12.0.14`. Not tracked here.
 Every secret-bearing value in the tracked YAMLs is a `${VAR}`
 reference resolved at runtime from an `.env` file colocated with the
 compose project (e.g. `/home/opc/seafile/.env`). The `.env` files are
-**root-owned**, **not** in this repo, and are excluded by the
+**not** in this repo and are excluded by the
 `.gitignore` here. Never read or paste their contents.
 
 The `INIT_SEAFILE_ADMIN_PASSWORD=${INIT_SEAFILE_ADMIN_PASSWORD:-asecret}`
