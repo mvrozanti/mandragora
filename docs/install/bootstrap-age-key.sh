@@ -13,6 +13,25 @@ for tool in age-keygen sops openssl; do
   }
 done
 
+FORCE="${MANDRAGORA_BOOTSTRAP_FORCE:-0}"
+if [ "$FORCE" != "1" ]; then
+  for existing in "$SOPS_YAML" "$SECRETS_FILE"; do
+    if [ -f "$existing" ]; then
+      echo "Refusing to clobber $existing" >&2
+      echo "" >&2
+      echo "This script is FIRST-INSTALL ONLY. It rewrites .sops.yaml with a single" >&2
+      echo "recipient and replaces secrets.yaml with a fresh one-key file, which on an" >&2
+      echo "established system destroys every other recipient and every stored secret." >&2
+      echo "" >&2
+      echo "To add a recipient to an existing install, edit .sops.yaml and run" >&2
+      echo "'sops updatekeys' on each file under secrets/ instead." >&2
+      echo "" >&2
+      echo "Override with MANDRAGORA_BOOTSTRAP_FORCE=1 only on a genuinely new machine." >&2
+      exit 1
+    fi
+  done
+fi
+
 if [ ! -f "$KEY_FILE" ]; then
   echo "Generating age key..."
   age-keygen -o "$KEY_FILE"

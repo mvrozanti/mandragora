@@ -16,12 +16,13 @@ the VPS itself by `deploy.sh` (no docker needed on the desktop).
 - `client_id` is hard-coded into `deploy.sh` (treat as moderately
   sensitive; widget never sees it, only the server-side `/auth` exchange
   does). Override per-run with `PLUGGY_CLIENT_ID=...`.
-- `client_secret` lives in sops at `pluggy.client_secret`
-  (`nix/modules/core/secrets.nix` declares it as
-  `sops.secrets."pluggy/client_secret"`, owner=m, 0400). sops-nix mounts
-  it at `/run/secrets/pluggy/client_secret` on activation; `deploy.sh`
-  reads that file directly (no sops CLI, no age key handling). If the
-  file isn't there, run a desktop rebuild first.
+- `client_secret` is declared in sops as
+  `sops.secrets."pluggy/client_secret"` (`nix/modules/core/secrets.nix`,
+  owner=m, 0400) and sops-nix mounts it at
+  `/run/secrets/pluggy/client_secret` on the desktop. **`deploy.sh` does
+  not read it.** The `.env` that `deploy.sh` writes contains no Pluggy
+  values at all, so a deploy alone leaves the container without
+  credentials; supply them out of band until this is wired up.
 - `webhook_secret` is optional. Set `PLUGGY_WEBHOOK_SECRET=...` in the
   deploy env; if empty, the receiver skips HMAC verification.
 
