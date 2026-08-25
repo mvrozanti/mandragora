@@ -579,8 +579,8 @@ async function boot() {
   applyAccent();
   applyPreset(params.preset);
   const bridge = await mpd.probe();
-  document.body.dataset.bridge = bridge ? 'on' : 'off';
-  if (!bridge) {
+  document.body.dataset.bridge = bridge === true ? 'on' : (bridge === 'auth' ? 'auth' : 'off');
+  if (bridge !== true) {
     params.audioEnabled = false;
     params.paletteFromArt = false;
     params.speciesPerTrack = false;

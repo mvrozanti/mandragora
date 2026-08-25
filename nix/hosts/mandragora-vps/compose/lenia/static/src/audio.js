@@ -24,7 +24,13 @@ export class MpdLink {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const response = await fetch('mpd/status', { cache: 'no-store', signal: controller.signal });
+      const response = await fetch('mpd/status', {
+        cache: 'no-store', signal: controller.signal, redirect: 'manual'
+      });
+      if (response.type === 'opaqueredirect' || response.status === 401 || response.status === 403) {
+        this.bridge = 'auth';
+        return this.bridge;
+      }
       if (!response.ok) throw new Error(String(response.status));
       await response.json();
       this.bridge = true;
@@ -45,7 +51,7 @@ export class MpdLink {
   }
 
   open() {
-    if (this.source || this.bridge === false) return;
+    if (this.source || this.bridge !== true) return;
     this.error = '';
     try {
       this.source = new EventSource('mpd/stream');
@@ -109,6 +115,7 @@ export class MpdLink {
   }
 
   describe() {
+    if (this.bridge === 'auth') return 'sign in at auth.mvr.ac to drive this with MPD';
     if (this.bridge === false) {
       return this.selfHosted
         ? 'bridge offline — is serve.py running?'

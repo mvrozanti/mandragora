@@ -348,6 +348,7 @@ body[data-rings="2"] .control[data-key="beta3"] { display: none; }
   background: linear-gradient(rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0));
 }
 
+body[data-bridge="auth"] .control[data-key="audioEnabled"],
 body[data-bridge="off"] .control[data-key="audioEnabled"],
 body[data-bridge="off"] .control[data-key="paletteFromArt"],
 body[data-bridge="off"] .control[data-key="speciesPerTrack"],
@@ -359,6 +360,7 @@ body[data-bridge="off"] .control[data-key="audioChannels"],
 body[data-bridge="off"] .control[data-key="audioSpawn"],
 body[data-bridge="off"] .control[data-key="audioNutrient"],
 body[data-bridge="off"] .control[data-key="audioStarve"],
+body[data-bridge="auth"] .meter,
 body[data-bridge="off"] .meter {
   opacity: 0.32;
   pointer-events: none;
