@@ -18,7 +18,10 @@ services:
       caddy_0.header.Permissions-Policy: geolocation=(),microphone=(),camera=()
       caddy_0.header.-Server: ""
       caddy_0.encode: zstd gzip
-      caddy_0.reverse_proxy: "{{upstreams 80}}"
+      caddy_0.0_handle: "/mpd/*"
+      caddy_0.0_handle.reverse_proxy: "${LENIA_BRIDGE_UPSTREAM:-100.115.80.79:8173}"
+      caddy_0.0_handle.reverse_proxy.flush_interval: "-1"
+      caddy_0.1_handle.reverse_proxy: "{{upstreams 80}}"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost/"]
       interval: 30s
