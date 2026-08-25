@@ -11,6 +11,15 @@
       "logging": false
     },
     {
+      "name": "btc",
+      "kind": "authelia-simple",
+      "host": "btc",
+      "upstream_var": "BTC_UPSTREAM",
+      "upstream_host": "desktop",
+      "upstream_port": 8420,
+      "logging": true
+    },
+    {
       "name": "kl",
       "kind": "authelia-simple",
       "host": "kl",
@@ -20,13 +29,24 @@
       "logging": true
     },
     {
-      "name": "vtag",
-      "kind": "authelia-simple",
-      "host": "vtag",
-      "upstream_var": "VTAG_UPSTREAM",
-      "upstream_host": "desktop",
-      "upstream_port": 8093,
-      "logging": true
+      "name": "semantic",
+      "kind": "authelia-split",
+      "host": "semantic",
+      "comment": [
+        "Reverse-proxy-only stack. semantic.mvr.ac is gated behind authelia and",
+        "forwarded over tailscale to the visualizer running on mandragora-desktop",
+        "({desktop}): the static frontend on :3001 and the FastAPI backend on",
+        ":8000. /api/* is stripped and routed to the backend; everything else to",
+        "the frontend. The backend runs LLM inference on the desktop GPU, so the",
+        "authelia gate (two_factor) is mandatory \u2014 never expose this unauthenticated."
+      ],
+      "api_upstream_var": "SEMANTIC_API_UPSTREAM",
+      "api_upstream_host": "desktop",
+      "api_upstream_port": 8000,
+      "web_upstream_var": "SEMANTIC_WEB_UPSTREAM",
+      "web_upstream_host": "desktop",
+      "web_upstream_port": 3001,
+      "logging": false
     },
     {
       "name": "stt",
@@ -39,24 +59,22 @@
       "logging": false
     },
     {
-      "name": "semantic",
-      "kind": "authelia-split",
-      "host": "semantic",
-      "comment": [
-        "Reverse-proxy-only stack. semantic.mvr.ac is gated behind authelia and",
-        "forwarded over tailscale to the visualizer running on mandragora-desktop",
-        "({desktop}): the static frontend on :3001 and the FastAPI backend on",
-        ":8000. /api/* is stripped and routed to the backend; everything else to",
-        "the frontend. The backend runs LLM inference on the desktop GPU, so the",
-        "authelia gate (two_factor) is mandatory — never expose this unauthenticated."
-      ],
-      "api_upstream_var": "SEMANTIC_API_UPSTREAM",
-      "api_upstream_host": "desktop",
-      "api_upstream_port": 8000,
-      "web_upstream_var": "SEMANTIC_WEB_UPSTREAM",
-      "web_upstream_host": "desktop",
-      "web_upstream_port": 3001,
+      "name": "voice",
+      "kind": "authelia-simple",
+      "host": "voice",
+      "upstream_var": "VOICE_UPSTREAM",
+      "upstream_host": "desktop",
+      "upstream_port": 8094,
       "logging": false
+    },
+    {
+      "name": "vtag",
+      "kind": "authelia-simple",
+      "host": "vtag",
+      "upstream_var": "VTAG_UPSTREAM",
+      "upstream_host": "desktop",
+      "upstream_port": 8093,
+      "logging": true
     }
   ]
 }

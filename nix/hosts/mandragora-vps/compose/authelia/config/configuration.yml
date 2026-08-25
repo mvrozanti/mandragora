@@ -108,7 +108,8 @@ access_control:
                'music.mvr.ac', 'git.mvr.ac', 'semantic.mvr.ac',
                'spider.mvr.ac', '4chan.mvr.ac', 'lens.mvr.ac',
                'vuln.mvr.ac', 'food.mvr.ac', 'share.mvr.ac',
-               'files.mvr.ac']
+               'files.mvr.ac', 'btc.mvr.ac', 'voice.mvr.ac',
+               'git.mvr.ac']
       policy: 'two_factor'
 
 notifier:
