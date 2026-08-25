@@ -49,7 +49,14 @@ export function randomSpecies(rng = Math.random, options = {}) {
   };
 }
 
+function loadPerDestination(kernels) {
+  const load = {};
+  for (const k of kernels) load[k.dst] = (load[k.dst] || 0) + Math.abs(k.h);
+  return load;
+}
+
 export function mutateSpecies(species, amount = 0.15, rng = Math.random) {
+  const before = loadPerDestination(species.kernels);
   const next = cloneSpecies(species);
   next.name = `${species.name.replace(/ ·.*$/, '')} · mutated`;
   next.note = 'mutated from a parent parameter set';
@@ -59,6 +66,10 @@ export function mutateSpecies(species, amount = 0.15, rng = Math.random) {
     k.h = Math.min(1.5, Math.max(0.02, k.h * (1 + (rng() * 2 - 1) * amount)));
     k.r = Math.min(1, Math.max(0.2, k.r * (1 + (rng() * 2 - 1) * amount * 0.6)));
   });
+  const after = loadPerDestination(next.kernels);
+  for (const k of next.kernels) {
+    if (after[k.dst] > 0 && before[k.dst] > 0) k.h = (k.h / after[k.dst]) * before[k.dst];
+  }
   return next;
 }
 
@@ -99,4 +110,48 @@ export function speciesForTrack(pool, key, amount = 0.16) {
   child.parent = base;
   child.seed = seed;
   return child;
+}
+
+export function spectralSpecies(channels = 8, options = {}) {
+  const rng = options.rng ?? Math.random;
+  const R = options.R ?? 14;
+  const kernels = [];
+
+  for (let c = 0; c < channels; c++) {
+    const t = channels === 1 ? 0.5 : c / (channels - 1);
+    kernels.push({
+      src: c, dst: c,
+      r: 0.55 + 0.45 * (1 - t),
+      b: [1],
+      m: 0.13 + 0.12 * t,
+      s: 0.014 + 0.020 * (1 - t),
+      h: 1
+    });
+  }
+
+  for (let c = 0; c < channels; c++) {
+    const up = (c + 1) % channels;
+    kernels.push({
+      src: c, dst: up, r: 0.85, b: [1, 0.4],
+      m: 0.20, s: 0.045, h: options.coupling ?? 0.28
+    });
+    const down = (c + channels - 1) % channels;
+    kernels.push({
+      src: c, dst: down, r: 0.45, b: [1],
+      m: 0.16, s: 0.035, h: -(options.inhibition ?? 0.16)
+    });
+  }
+
+  const load = new Float64Array(channels);
+  for (const k of kernels) load[k.dst] += Math.abs(k.h);
+  const target = options.drive ?? 1;
+  for (const k of kernels) {
+    if (load[k.dst] > 0) k.h = (k.h / load[k.dst]) * target;
+  }
+
+  return {
+    name: options.name ?? `Spectral ${channels}`,
+    note: options.note ?? `${channels} channels, one per frequency band; neighbours excite upward and inhibit downward`,
+    channels, R, T: options.T ?? 12, kernels
+  };
 }

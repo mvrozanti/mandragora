@@ -117,6 +117,57 @@ export function createTarget(gl, width, height, internalFormat, filter) {
   return { texture, framebuffer, width, height };
 }
 
+export function createLayeredTarget(gl, size, layers) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
+  gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA32F, size, size, layers);
+  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+  const framebuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+  const buffers = [];
+  for (let i = 0; i < layers; i++) {
+    gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, texture, 0, i);
+    buffers.push(gl.COLOR_ATTACHMENT0 + i);
+  }
+  gl.drawBuffers(buffers);
+  const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+  if (status !== gl.FRAMEBUFFER_COMPLETE) {
+    throw new Error(`Incomplete layered framebuffer (${size}, ${layers} layers): 0x${status.toString(16)}`);
+  }
+  return { texture, framebuffer, buffers, width: size, height: size, layers, layered: true };
+}
+
+export function bindLayered(gl, target) {
+  gl.bindFramebuffer(gl.FRAMEBUFFER, target.framebuffer);
+  gl.drawBuffers(target.buffers);
+  gl.viewport(0, 0, target.width, target.height);
+}
+
+export function withOutputs(source, layers, channels) {
+  const decls = [];
+  const writes = [];
+  for (let l = 0; l < layers; l++) {
+    decls.push(`layout(location = ${l}) out vec4 outLayer${l};`);
+  }
+  for (let l = 0; l < layers - 1; l++) {
+    const comps = [0, 1, 2, 3].map((i) => {
+      const c = l * 4 + i;
+      return c < channels ? `next[${c}]` : '0.0';
+    });
+    writes.push(`  outLayer${l} = vec4(${comps.join(', ')});`);
+  }
+  writes.push(`  outLayer${layers - 1} = vec4(trail, 0.0, 0.0, 1.0);`);
+  return source
+    .replace('//__OUTPUTS__', decls.join('\n'))
+    .replace('//__WRITES__', writes.join('\n'));
+}
+
 export function destroyTarget(gl, target) {
   if (!target) return;
   gl.deleteTexture(target.texture);
@@ -137,6 +188,15 @@ export function bindTextures(gl, uniforms, bindings) {
   bindings.forEach(([name, texture], index) => {
     gl.activeTexture(gl.TEXTURE0 + index);
     gl.bindTexture(gl.TEXTURE_2D, texture);
+    if (uniforms[name] !== undefined) gl.uniform1i(uniforms[name], index);
+  });
+}
+
+export function bindTexturesArray(gl, uniforms, bindings, arrayNames = []) {
+  const arrays = new Set(arrayNames);
+  bindings.forEach(([name, texture], index) => {
+    gl.activeTexture(gl.TEXTURE0 + index);
+    gl.bindTexture(arrays.has(name) ? gl.TEXTURE_2D_ARRAY : gl.TEXTURE_2D, texture);
     if (uniforms[name] !== undefined) gl.uniform1i(uniforms[name], index);
   });
 }

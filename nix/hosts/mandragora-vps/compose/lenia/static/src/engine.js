@@ -1,8 +1,9 @@
 import {
-  createContext, loadShaderSources, createProgram, withDefines,
-  createTarget, destroyTarget, bindTarget, bindTextures, drawQuad
+  createContext, loadShaderSources, createProgram, withDefines, withOutputs,
+  createTarget, createLayeredTarget, bindLayered, destroyTarget, bindTarget,
+  bindTextures, bindTexturesArray, drawQuad
 } from './gl.js';
-import { buildSpecies, seedField } from './kernel.js';
+import { buildSpecies, seedChannels, splitLayers } from './kernel.js';
 
 const SHADER_FILES = [
   'quad.vert', 'step.frag', 'paint.frag', 'render.frag',
@@ -22,7 +23,7 @@ export class LeniaEngine {
     const { gl, capabilities } = createContext(canvas);
     this.gl = gl;
     this.capabilities = capabilities;
-    this.stepPrograms = new Map();
+    this.shapePrograms = new Map();
     this.mips = [];
     this.state = null;
     this.scene = null;
@@ -40,25 +41,15 @@ export class LeniaEngine {
     gl.bindVertexArray(this.vao);
     const vert = this.sources['quad.vert'];
     this.programs = {
-      paint: createProgram(gl, vert, this.sources['paint.frag'], 'paint'),
-      render: createProgram(gl, vert, this.sources['render.frag'], 'render'),
       bright: createProgram(gl, vert, this.sources['bright.frag'], 'bright'),
       down: createProgram(gl, vert, this.sources['downsample.frag'], 'downsample'),
       up: createProgram(gl, vert, this.sources['upsample.frag'], 'upsample'),
-      composite: createProgram(gl, vert, this.sources['composite.frag'], 'composite'),
-      reduce: createProgram(gl, vert, this.sources['reduce.frag'], 'reduce')
+      composite: createProgram(gl, vert, this.sources['composite.frag'], 'composite')
     };
     this.reduceTarget = createTarget(gl, REDUCE_GRID, REDUCE_GRID, gl.RGBA32F, gl.NEAREST);
     this.reduceBuffer = new Float32Array(REDUCE_GRID * REDUCE_GRID * 4);
     this.nutrientTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, this.nutrientTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, NUTRIENT_SIZE, NUTRIENT_SIZE, 0, gl.RGBA, gl.FLOAT,
-      new Float32Array(NUTRIENT_SIZE * NUTRIENT_SIZE * 4));
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_2D, null);
+    this.nutrientLayers = 0;
     this.tapTexture = gl.createTexture();
     this.weightTexture = gl.createTexture();
     this.rebuildSpecies();
@@ -66,13 +57,36 @@ export class LeniaEngine {
     this.resizeView();
   }
 
-  stepProgram(taps, count, rows) {
-    const key = `${taps}:${count}:${rows}`;
-    if (!this.stepPrograms.has(key)) {
-      const source = withDefines(this.sources['step.frag'], { NTAPS: taps, NK: count, KROWS: rows });
-      this.stepPrograms.set(key, createProgram(this.gl, this.sources['quad.vert'], source, `step<${key}>`));
+  channelDriveArray() {
+    const channels = this.params.channels();
+    if (!this.driveBuffer || this.driveBuffer.length !== channels) {
+      this.driveBuffer = new Float32Array(channels);
     }
-    return this.stepPrograms.get(key);
+    const cd = this.params.mod.channelDrive;
+    for (let c = 0; c < channels; c++) this.driveBuffer[c] = cd[c] ?? 0;
+    return this.driveBuffer;
+  }
+
+  shape() {
+    const channels = this.params.channels();
+    const layers = Math.ceil(channels / 4);
+    return { channels, layers, total: layers + 1 };
+  }
+
+  shaped(name, source, extraDefines = {}, outputs = 0) {
+    const { channels, layers, total } = this.shape();
+    const key = `${name}:${channels}:${layers}:${JSON.stringify(extraDefines)}`;
+    if (!this.shapePrograms.has(key)) {
+      let src = withDefines(source, { NCH: channels, LAYERS: layers, NUTRIENT_SIZE: NUTRIENT_SIZE, ...extraDefines });
+      if (outputs) src = withOutputs(src, total, channels);
+      this.shapePrograms.set(key, createProgram(this.gl, this.sources['quad.vert'], src, key));
+    }
+    return this.shapePrograms.get(key);
+  }
+
+  stepProgram(taps, count, rows) {
+    return this.shaped('step', this.sources['step.frag'],
+      { NTAPS: taps, NK: count, KROWS: rows }, 1);
   }
 
   uploadKernelTexture(texture, width, height, data) {
@@ -106,6 +120,9 @@ export class LeniaEngine {
   }
 
   rebuildSpecies() {
+    if (this.state && this.state.read.layers !== this.shape().total) {
+      this.resizeSimulation(this.size);
+    }
     const built = buildSpecies(this.params.resolveSpecies());
     this.built = built;
     this.kernelTaps = built.taps;
@@ -116,20 +133,19 @@ export class LeniaEngine {
   }
 
   stateFormat() {
-    const gl = this.gl;
-    const wants32 = this.params.precision !== 'float16';
-    this.precision = wants32 && this.capabilities.full ? 'float32' : 'float16';
-    return this.precision === 'float32' ? gl.RGBA32F : gl.RGBA16F;
+    this.precision = 'float32';
+    return this.gl.RGBA32F;
   }
 
   resizeSimulation(size) {
     const gl = this.gl;
     const previous = this.state;
-    const format = this.stateFormat();
     this.size = size;
+    this.stateFormat();
+    const total = this.shape().total;
     this.state = {
-      read: createTarget(gl, size, size, format, gl.NEAREST),
-      write: createTarget(gl, size, size, format, gl.NEAREST)
+      read: createLayeredTarget(gl, size, total),
+      write: createLayeredTarget(gl, size, total)
     };
     if (previous) {
       destroyTarget(gl, previous.read);
@@ -173,30 +189,41 @@ export class LeniaEngine {
   clear() {
     const gl = this.gl;
     for (const target of [this.state.read, this.state.write]) {
-      bindTarget(gl, target);
+      bindLayered(gl, target);
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
     }
     this.generation = 0;
   }
 
-  randomize() {
+  uploadState(target, layerBuffers) {
     const gl = this.gl;
-    const data = seedField(this.size, this.params.radius, this.params.seedCoverage,
-                           this.params.seedDensity, 4, this.params.channels());
-    gl.bindTexture(gl.TEXTURE_2D, this.state.read.texture);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this.size, this.size, gl.RGBA, gl.FLOAT, data);
-    gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, target.texture);
+    layerBuffers.forEach((buf, layer) => {
+      gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, layer, this.size, this.size, 1,
+        gl.RGBA, gl.FLOAT, buf);
+    });
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+  }
+
+  randomize() {
+    const { channels, layers } = this.shape();
+    this.clear();
+    const data = seedChannels(this.size, this.params.radius, this.params.seedCoverage,
+                              this.params.seedDensity, channels);
+    this.uploadState(this.state.read, splitLayers(data, this.size, channels, layers));
     this.generation = 0;
   }
 
   stamp({ from, to, radius, ringRadius = 0, strength, mode = 0, mix = null }) {
     const gl = this.gl;
-    const { program, uniforms } = this.programs.paint;
-    const channelMix = mix ?? (this.params.channels() === 1 ? [1, 0, 0] : [1, 1, 1]);
+    const { program, uniforms } = this.shaped('paint', this.sources['paint.frag'], {}, 1);
+    const channels = this.params.channels();
+    const channelMix = new Float32Array(channels);
+    for (let c = 0; c < channels; c++) channelMix[c] = mix ? (mix[c] ?? mix[c % mix.length]) : 1;
     gl.useProgram(program);
-    bindTarget(gl, this.state.write);
-    bindTextures(gl, uniforms, [['uState', this.state.read.texture]]);
+    bindLayered(gl, this.state.write);
+    bindTexturesArray(gl, uniforms, [['uState', this.state.read.texture]], ['uState']);
     gl.uniform2i(uniforms.uSize, this.size, this.size);
     gl.uniform2f(uniforms.uFrom, from.x, from.y);
     gl.uniform2f(uniforms.uTo, to.x, to.y);
@@ -204,7 +231,7 @@ export class LeniaEngine {
     gl.uniform1f(uniforms.uRingRadius, ringRadius);
     gl.uniform1f(uniforms.uStrength, strength);
     gl.uniform1i(uniforms.uMode, mode);
-    gl.uniform3f(uniforms.uChannelMix, channelMix[0], channelMix[1], channelMix[2]);
+    gl.uniform1fv(uniforms.uChannelMix, channelMix);
     gl.uniform1f(uniforms.uSeed, Math.random() * 1000);
     drawQuad(gl);
     this.swap();
@@ -229,11 +256,31 @@ export class LeniaEngine {
     this.spawnSeed({ x: this.size / 2, y: this.size / 2 }, 0.7, 0.95);
   }
 
-  setNutrient(data) {
+  ensureNutrient(layers) {
     const gl = this.gl;
-    gl.bindTexture(gl.TEXTURE_2D, this.nutrientTexture);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, NUTRIENT_SIZE, NUTRIENT_SIZE, gl.RGBA, gl.FLOAT, data);
-    gl.bindTexture(gl.TEXTURE_2D, null);
+    if (this.nutrientLayers === layers) return;
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.nutrientTexture);
+    gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.RGBA32F, NUTRIENT_SIZE, NUTRIENT_SIZE, layers, 0,
+      gl.RGBA, gl.FLOAT, new Float32Array(NUTRIENT_SIZE * NUTRIENT_SIZE * 4 * layers));
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
+    this.nutrientLayers = layers;
+  }
+
+  setNutrient(channelField) {
+    const gl = this.gl;
+    const { channels, layers } = this.shape();
+    this.ensureNutrient(layers);
+    const buffers = splitLayers(channelField, NUTRIENT_SIZE, channels, layers);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.nutrientTexture);
+    buffers.forEach((buf, layer) => {
+      gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, layer, NUTRIENT_SIZE, NUTRIENT_SIZE, 1,
+        gl.RGBA, gl.FLOAT, buf);
+    });
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
   }
 
   step(count) {
@@ -242,8 +289,9 @@ export class LeniaEngine {
     const { program, uniforms } = this.stepProgram(built.taps, built.count, built.rows);
     gl.useProgram(program);
     gl.uniform2i(uniforms.uSize, this.size, this.size);
-    gl.uniform1iv(uniforms.uSrc, built.src);
-    gl.uniform1iv(uniforms.uDst, built.dst);
+    gl.uniform1iv(uniforms.uSrcLayer, built.srcLayer);
+    gl.uniform1iv(uniforms.uSrcComp, built.srcComp);
+    gl.uniform1iv(uniforms.uDstIdx, built.dst);
     const growth = this.growthArrays();
     gl.uniform1fv(uniforms.uMu, growth.mu);
     gl.uniform1fv(uniforms.uSigma, growth.sigma);
@@ -252,16 +300,16 @@ export class LeniaEngine {
     gl.uniform1f(uniforms.uTrailDecay, this.params.trailDecay);
     gl.uniform1f(uniforms.uNutrientAmount, this.params.mod.nutrient);
     gl.uniform1f(uniforms.uStarve, this.params.mod.starve);
-    const cd = this.params.mod.channelDrive;
-    gl.uniform3f(uniforms.uChannelDrive, cd[0], cd[1], cd[2]);
+    gl.uniform1fv(uniforms.uChannelDrive, this.channelDriveArray());
+    this.ensureNutrient(this.shape().layers);
     for (let i = 0; i < count; i++) {
-      bindTarget(gl, this.state.write);
-      bindTextures(gl, uniforms, [
+      bindLayered(gl, this.state.write);
+      bindTexturesArray(gl, uniforms, [
         ['uState', this.state.read.texture],
         ['uTaps', this.tapTexture],
         ['uWeights', this.weightTexture],
         ['uNutrient', this.nutrientTexture]
-      ]);
+      ], ['uState', 'uNutrient']);
       drawQuad(gl);
       this.swap();
       this.generation++;
@@ -270,10 +318,10 @@ export class LeniaEngine {
 
   renderScene() {
     const gl = this.gl;
-    const { program, uniforms } = this.programs.render;
+    const { program, uniforms } = this.shaped('render', this.sources['render.frag']);
     gl.useProgram(program);
     bindTarget(gl, this.scene);
-    bindTextures(gl, uniforms, [['uState', this.state.read.texture]]);
+    bindTexturesArray(gl, uniforms, [['uState', this.state.read.texture]], ['uState']);
     gl.uniform2i(uniforms.uSize, this.size, this.size);
     gl.uniform2f(uniforms.uPan, this.pan.x, this.pan.y);
     gl.uniform1f(uniforms.uZoom, this.zoom);
@@ -354,10 +402,10 @@ export class LeniaEngine {
 
   reduce() {
     const gl = this.gl;
-    const { program, uniforms } = this.programs.reduce;
+    const { program, uniforms } = this.shaped('reduce', this.sources['reduce.frag']);
     gl.useProgram(program);
     bindTarget(gl, this.reduceTarget);
-    bindTextures(gl, uniforms, [['uState', this.state.read.texture]]);
+    bindTexturesArray(gl, uniforms, [['uState', this.state.read.texture]], ['uState']);
     gl.uniform2i(uniforms.uSize, this.size, this.size);
     gl.uniform1i(uniforms.uBlock, Math.max(1, Math.floor(this.size / REDUCE_GRID)));
     drawQuad(gl);

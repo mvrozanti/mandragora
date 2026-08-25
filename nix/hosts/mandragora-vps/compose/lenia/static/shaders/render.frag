@@ -2,8 +2,9 @@
 precision highp float;
 precision highp int;
 precision highp sampler2D;
+precision highp sampler2DArray;
 
-uniform sampler2D uState;
+uniform sampler2DArray uState;
 uniform ivec2 uSize;
 uniform vec2 uPan;
 uniform float uZoom;
@@ -21,32 +22,51 @@ uniform vec3 uCustomPrimaries[3];
 in vec2 vUv;
 out vec4 outColor;
 
-vec4 fetchWrapped(ivec2 p) {
-  return texelFetch(uState, (p + uSize) % uSize, 0);
+vec4 fetchWrapped(ivec2 p, int layer) {
+  return texelFetch(uState, ivec3((p + uSize) % uSize, layer), 0);
 }
 
-float peakOf(vec4 s) {
-  return uChannels == 1 ? s.r : max(s.r, max(s.g, s.b));
+float channelAt(ivec2 p, int c) {
+  return fetchWrapped(p, c / 4)[c % 4];
 }
 
-vec4 gField;
+vec3 spectralHue(float t) {
+  return clamp(vec3(
+    1.5 - abs(4.0 * t - 3.0),
+    1.5 - abs(4.0 * t - 2.0),
+    1.5 - abs(4.0 * t - 1.0)), 0.0, 1.0);
+}
+
+float gChan[NCH];
+float gPeak;
 float gRange;
+float gTrail;
 
 void sampleField(vec2 uv) {
   vec2 t = fract(uv) * vec2(uSize) - 0.5;
   vec2 f = fract(t);
   ivec2 b = ivec2(floor(t));
-  vec4 s00 = fetchWrapped(b);
-  vec4 s10 = fetchWrapped(b + ivec2(1, 0));
-  vec4 s01 = fetchWrapped(b + ivec2(0, 1));
-  vec4 s11 = fetchWrapped(b + ivec2(1, 1));
   vec2 g = f * f * (3.0 - 2.0 * f);
-  gField = mix(mix(s00, s10, g.x), mix(s01, s11, g.x), g.y);
-  float p00 = peakOf(s00);
-  float p10 = peakOf(s10);
-  float p01 = peakOf(s01);
-  float p11 = peakOf(s11);
-  gRange = max(max(p00, p10), max(p01, p11)) - min(min(p00, p10), min(p01, p11));
+
+  gPeak = 0.0;
+  for (int c = 0; c < NCH; c++) {
+    float v00 = channelAt(b, c);
+    float v10 = channelAt(b + ivec2(1, 0), c);
+    float v01 = channelAt(b + ivec2(0, 1), c);
+    float v11 = channelAt(b + ivec2(1, 1), c);
+    float v = mix(mix(v00, v10, g.x), mix(v01, v11, g.x), g.y);
+    gChan[c] = v;
+    gPeak = max(gPeak, v);
+  }
+
+  float hi = 0.0;
+  float lo = 1.0;
+  for (int c = 0; c < NCH; c++) {
+    hi = max(hi, gChan[c]);
+    lo = min(lo, gChan[c]);
+  }
+  gRange = hi - lo;
+  gTrail = fetchWrapped(b, LAYERS).r;
 }
 
 vec3 gradient(float t, vec3 c0, vec3 c1, vec3 c2, vec3 c3, vec3 c4) {
@@ -129,34 +149,35 @@ void main() {
   vec2 uv = centered / uZoom + 0.5 + uPan;
   sampleField(uv);
 
-  vec4 s = gField;
-  float value = peakOf(s);
-  float trail = s.a;
+  float value = gPeak;
+  vec3 col = vec3(0.0);
 
-  vec3 col;
   if (uPalette == 6) {
-    float shaped = pow(uChannels == 1 ? value : max(s.r, max(s.g, s.b)), uContrast);
-    col = palette(shaped) * step(0.004, shaped);
-  } else if (uChannels == 1) {
+    col = palette(pow(value, uContrast)) * step(0.004, value);
+  } else if (NCH == 1) {
     float shaped = pow(value, uContrast);
     col = palette(shaped) * (0.10 + 1.05 * shaped);
   } else {
-    vec3 shaped = pow(max(s.rgb, 0.0), vec3(uContrast));
-    float average = (shaped.r + shaped.g + shaped.b) / 3.0;
-    vec3 spread = max(average + (shaped - average) * uChannelSep, 0.0);
-    vec3 c0, c1, c2;
-    channelPrimaries(c0, c1, c2);
-    col = c0 * spread.r + c1 * spread.g + c2 * spread.b;
-    col *= 0.62;
-    float overlap = min(shaped.r, min(shaped.g, shaped.b));
-    col += vec3(1.0, 0.95, 0.90) * overlap * overlap * 0.28;
+    float total = 0.0;
+    for (int c = 0; c < NCH; c++) total += gChan[c];
+    float average = total / float(NCH);
+    for (int c = 0; c < NCH; c++) {
+      float shaped = pow(max(gChan[c], 0.0), uContrast);
+      float spread = max(average + (shaped - average) * uChannelSep, 0.0);
+      vec3 hue = NCH <= 3
+        ? (c == 0 ? vec3(1.0, 0.18, 0.42) : c == 1 ? vec3(0.30, 0.90, 0.45) : vec3(0.25, 0.45, 1.0))
+        : spectralHue(float(c) / float(NCH - 1));
+      col += hue * spread;
+    }
+    col *= 0.62 * 3.0 / float(NCH);
+    float overlap = 1.0;
+    for (int c = 0; c < NCH; c++) overlap = min(overlap, gChan[c]);
+    col += vec3(1.0, 0.95, 0.90) * overlap * overlap * (NCH <= 3 ? 0.28 : 0.10);
   }
 
-  float ghost = max(trail - value, 0.0);
+  float ghost = max(gTrail - value, 0.0);
   col += palette(0.30) * ghost * ghost * uTrailAmount;
-
-  float rim = gRange * smoothstep(0.03, 0.35, value);
-  col += palette(0.80) * rim * uEdgeAmount * 1.6;
+  col += palette(0.80) * gRange * smoothstep(0.03, 0.35, value) * uEdgeAmount * 1.6;
 
   float core = smoothstep(0.72, 1.0, value);
   col += vec3(1.0, 0.95, 0.90) * core * core * 0.12;

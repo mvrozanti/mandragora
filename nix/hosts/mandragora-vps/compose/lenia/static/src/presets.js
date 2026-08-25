@@ -1,4 +1,4 @@
-import { singleKernel } from './species.js';
+import { singleKernel, spectralSpecies } from './species.js';
 
 export const CLASSIC = [
   singleKernel('Orbium', 'canonical single-ring Lenia; gliders and soft cell division',
@@ -148,7 +148,18 @@ export const DISCOVERED = [
   }
 ];
 
-export const PRESETS = [...CLASSIC, ...DISCOVERED];
+export const SPECTRAL = [
+  spectralSpecies(8, { name: 'Spectrum 8', R: 14, T: 16, drive: 1.25, coupling: 0.15, inhibition: 0.5,
+    note: '8 channels, one per band. Bright bands feed the band above and suppress the one below' }),
+  spectralSpecies(8, { name: 'Spectrum 8 · brisk', R: 14, T: 13, drive: 1.1, coupling: 0.15, inhibition: 0.6,
+    note: 'same wiring on a faster clock; smaller, busier bodies' }),
+  spectralSpecies(4, { name: 'Spectrum 4', R: 13, T: 15, drive: 1.1, coupling: 0.15, inhibition: 0.6,
+    note: '4 coarse bands; the cheapest spectral mode' }),
+  spectralSpecies(12, { name: 'Spectrum 12', R: 15, T: 17, drive: 1.05, coupling: 0.12, inhibition: 0.6,
+    note: '12 channels — finest frequency resolution, heaviest to run' })
+];
+
+export const PRESETS = [...CLASSIC, ...DISCOVERED, ...SPECTRAL];
 
 export const PALETTES = [
   { name: 'Magenta Deep', accent: '#e0567f' },
@@ -165,7 +176,9 @@ export const ART_PALETTE = 5;
 export const GRID_SIZES = [128, 192, 256, 384, 512, 768, 1024];
 
 export const DEFAULTS = {
-  preset: CLASSIC.length,
+  mode: 1,
+  patch: '',
+  preset: 0,
   size: 512,
   stepsPerFrame: 1,
   palette: 0,
@@ -194,8 +207,8 @@ export const DEFAULTS = {
   audioBass: 0.6,
   audioMid: 0.7,
   audioTreble: 0.6,
-  audioSpawn: 0.6,
-  audioNutrient: 0.6,
+  audioSpawn: 0.45,
+  audioNutrient: 1.1,
   audioChannels: 0.9,
   homeostat: true,
   audioStarve: 0.35,

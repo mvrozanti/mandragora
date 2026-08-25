@@ -1,10 +1,10 @@
 import { LeniaEngine } from './engine.js';
 import { describeWebGL } from './gl.js';
 import { ControlPanel, drawKernelProfile, drawGrowthProfile, drawBandMeter } from './ui.js';
-import { PRESETS, DISCOVERED, PALETTES, GRID_SIZES, DEFAULTS, ART_PALETTE } from './presets.js';
+import { PRESETS, CLASSIC, DISCOVERED, SPECTRAL, PALETTES, GRID_SIZES, DEFAULTS, ART_PALETTE } from './presets.js';
 import { kernelProfile } from './kernel.js';
 import { createParams } from './params.js';
-import { randomSpecies, mutateSpecies, speciesForTrack, hashString } from './species.js';
+import { randomSpecies, mutateSpecies, speciesForTrack, hashString, spectralSpecies } from './species.js';
 import { paletteFromImage, paletteFromSeed } from './artwork.js';
 import { MpdLink } from './audio.js';
 
@@ -30,6 +30,32 @@ const params = createParams(PRESETS[DEFAULTS.preset]);
 params.running = true;
 
 const mpd = new MpdLink();
+
+const MODES = [
+  { name: 'Classic', note: 'one channel. Texture, not creatures — the original Lenia.', list: CLASSIC },
+  { name: 'Discovered', note: 'three channels found by parameter search. Bodies with membranes.', list: DISCOVERED },
+  { name: 'Spectral', note: 'one channel per frequency band. The music is the chemistry.', list: SPECTRAL }
+];
+
+function modeList() { return MODES[params.mode].list; }
+function speciesItems() { return modeList().map((s, i) => ({ label: `${s.name}  ·  ${s.channels}ch`, value: i })); }
+
+const PATCH_KEY = 'lenia.patches';
+const PATCH_FIELDS = [
+  'palette', 'glow', 'contrast', 'channelSep', 'trailDecay', 'trailAmount', 'edgeAmount',
+  'bloomIntensity', 'bloomThreshold', 'bloomKnee', 'bloomRadius', 'dispersion',
+  'exposure', 'vignette', 'grain', 'tonemap', 'stepsPerFrame', 'size',
+  'audioDrive', 'audioBass', 'audioMid', 'audioTreble', 'audioChannels',
+  'audioSpawn', 'audioNutrient', 'audioStarve', 'seedCoverage', 'seedDensity',
+  'radius', 'timescale', 'muShift', 'sigmaScale', 'heightScale'
+];
+
+function loadPatches() {
+  try { return JSON.parse(localStorage.getItem(PATCH_KEY)) || {}; } catch { return {}; }
+}
+function storePatches(all) {
+  try { localStorage.setItem(PATCH_KEY, JSON.stringify(all)); } catch { /* quota */ }
+}
 
 function accent() {
   if (params.palette === ART_PALETTE && params.artAccent) return params.artAccent;
@@ -61,7 +87,38 @@ function adoptSpecies(species) {
 }
 
 function applyPreset(index) {
-  adoptSpecies(PRESETS[index]);
+  const list = modeList();
+  adoptSpecies(list[Math.min(index, list.length - 1)]);
+}
+
+function refreshPatchList(selected = '') {
+  const names = Object.keys(loadPatches()).sort();
+  panel.repopulate('patch', [{ label: names.length ? '— select —' : '— none saved —', value: '' },
+    ...names.map((n) => ({ label: n, value: n }))]);
+  params.patch = selected;
+  panel.sync('patch');
+}
+
+function capturePatch() {
+  const snapshot = { species: JSON.parse(JSON.stringify(params.species)), mode: params.mode };
+  PATCH_FIELDS.forEach((f) => { snapshot[f] = params[f]; });
+  return snapshot;
+}
+
+function applyPatch(name) {
+  const patch = loadPatches()[name];
+  if (!patch) return;
+  PATCH_FIELDS.forEach((f) => { if (patch[f] !== undefined) params[f] = patch[f]; });
+  if (typeof patch.mode === 'number') {
+    params.mode = patch.mode;
+    panel.repopulate('preset', speciesItems());
+    document.getElementById('mode-note').textContent = MODES[params.mode].note;
+  }
+  if (patch.species) adoptSpecies(patch.species);
+  panel.syncAll();
+  applyAccent();
+  refreshPlots();
+  engine.resizeView();
 }
 
 function handleChange(key, value, options) {
@@ -71,6 +128,24 @@ function handleChange(key, value, options) {
     if (key === 'clear') engine.clear();
     if (key === 'resetView') { engine.zoom = 1; engine.pan.x = 0; engine.pan.y = 0; }
     if (key === 'snapshot') snapshot();
+    if (key === 'savePatch') {
+      const suggested = `${params.species.name} ${new Date().toISOString().slice(11, 16)}`;
+      const name = (typeof prompt === 'function' ? prompt('Patch name', suggested) : suggested) || suggested;
+      const all = loadPatches();
+      all[name] = capturePatch();
+      storePatches(all);
+      refreshPatchList(name);
+      return;
+    }
+    if (key === 'loadPatch') { if (params.patch) applyPatch(params.patch); return; }
+    if (key === 'deletePatch') {
+      if (!params.patch) return;
+      const all = loadPatches();
+      delete all[params.patch];
+      storePatches(all);
+      refreshPatchList('');
+      return;
+    }
     if (key === 'newSpecies') {
       adoptSpecies(randomSpecies(Math.random, { channels: params.channels(), name: 'Wild sample' }));
     }
@@ -79,6 +154,16 @@ function handleChange(key, value, options) {
     if (key === 'toChannels3') adoptSpecies(randomSpecies(Math.random, { channels: 3, name: 'Wild sample · 3ch' }));
     return;
   }
+  if (key === 'mode') {
+    params.mode = value;
+    params.preset = 0;
+    panel.repopulate('preset', speciesItems());
+    document.getElementById('mode-note').textContent = MODES[value].note;
+    document.body.dataset.mode = MODES[value].name.toLowerCase();
+    applyPreset(0);
+    return;
+  }
+  if (key === 'patch') return;
   if (key === 'preset') { applyPreset(value); return; }
   if (key === 'size') { engine.resizeSimulation(value); engine.randomize(); updateHud(true); return; }
   if (key === 'renderScale') { engine.resizeView(); return; }
@@ -114,8 +199,19 @@ function handleChange(key, value, options) {
 const panel = new ControlPanel(panelRoot, params, handleChange);
 
 panel
+  .group('Lab', 'Pick a rule family, then a species inside it. Patches remember everything below.')
+  .choice('mode', 'Mode', MODES.map((m, i) => ({ label: m.name, value: i })))
+  .readout('mode-note', MODES[0].note)
+  .choice('patch', 'Patch', [{ label: '— none —', value: '' }])
+  .actions([
+    { label: 'Save', key: 'savePatch', hint: 'store the whole current setup' },
+    { label: 'Load', key: 'loadPatch' },
+    { label: 'Delete', key: 'deletePatch' }
+  ]);
+
+panel
   .group('Organism', 'Kernel geometry and growth response. These define the species.')
-  .choice('preset', 'Species', PRESETS.map((p, i) => ({ label: `${p.name}  ·  ${p.channels}ch`, value: i })))
+  .choice('preset', 'Species', [{ label: '…', value: 0 }])
   .actions([
     { label: 'Wild 1ch', key: 'toChannels1', hint: 'sample a random single-channel species' },
     { label: 'Wild 3ch', key: 'toChannels3', hint: 'sample a random three-channel species' },
@@ -262,7 +358,8 @@ function watchViability(fallback) {
 function onTrackChange(key) {
   if (params.paletteFromArt) adoptTrackPalette(key);
   if (params.speciesPerTrack) {
-    const derived = speciesForTrack(DISCOVERED, key);
+    const pool = modeList().length ? modeList() : DISCOVERED;
+    const derived = speciesForTrack(pool, key);
     adoptSpecies(derived);
     watchViability(derived.parent);
   }
@@ -292,54 +389,59 @@ function updateHud(force) {
 }
 
 const NUTRIENT_SIZE = 64;
-const nutrientField = new Float32Array(NUTRIENT_SIZE * NUTRIENT_SIZE * 4);
-const BAND_RING = [0.12, 0.30, 0.48, 0.66, 0.84];
-const BAND_CHANNELS = [
-  [1.00, 0.05, 0.00],
-  [0.65, 0.35, 0.00],
-  [0.05, 1.00, 0.05],
-  [0.00, 0.35, 0.65],
-  [0.00, 0.05, 1.00]
-];
+let nutrientField = new Float32Array(0);
 
-function buildNutrient(bands) {
-  const sigma = 0.11;
+function bandFor(channel, channels, bandCount) {
+  if (channels === 1) return Math.floor(bandCount / 2);
+  const t = channel / (channels - 1);
+  return Math.min(bandCount - 1, Math.round(t * (bandCount - 1)));
+}
+
+function channelRing(channel, channels) {
+  return channels === 1 ? 0.45 : 0.12 + 0.76 * (channel / (channels - 1));
+}
+
+function buildNutrient(bands, channels) {
+  const need = NUTRIENT_SIZE * NUTRIENT_SIZE * channels;
+  if (nutrientField.length !== need) nutrientField = new Float32Array(need);
+  nutrientField.fill(0);
+  const sigma = channels > 4 ? 0.07 : 0.11;
   const inv = 1 / (2 * sigma * sigma);
-  for (let y = 0; y < NUTRIENT_SIZE; y++) {
-    const dy = (y + 0.5) / NUTRIENT_SIZE - 0.5;
-    for (let x = 0; x < NUTRIENT_SIZE; x++) {
-      const dx = (x + 0.5) / NUTRIENT_SIZE - 0.5;
-      const r = Math.sqrt(dx * dx + dy * dy) * 2;
-      let cr = 0, cg = 0, cb = 0;
-      for (let b = 0; b < 5; b++) {
-        const energy = bands[b];
-        if (energy < 0.02) continue;
-        const d = r - BAND_RING[b];
-        const w = energy * Math.exp(-d * d * inv);
-        cr += w * BAND_CHANNELS[b][0];
-        cg += w * BAND_CHANNELS[b][1];
-        cb += w * BAND_CHANNELS[b][2];
+  for (let c = 0; c < channels; c++) {
+    const energy = bands[bandFor(c, channels, bands.length)];
+    if (energy < 0.02) continue;
+    const ring = channelRing(c, channels);
+    for (let y = 0; y < NUTRIENT_SIZE; y++) {
+      const dy = (y + 0.5) / NUTRIENT_SIZE - 0.5;
+      for (let x = 0; x < NUTRIENT_SIZE; x++) {
+        const dx = (x + 0.5) / NUTRIENT_SIZE - 0.5;
+        const d = Math.sqrt(dx * dx + dy * dy) * 2 - ring;
+        nutrientField[(y * NUTRIENT_SIZE + x) * channels + c] = energy * Math.exp(-d * d * inv);
       }
-      const i = (y * NUTRIENT_SIZE + x) * 4;
-      nutrientField[i] = cr;
-      nutrientField[i + 1] = cg;
-      nutrientField[i + 2] = cb;
     }
   }
   return nutrientField;
 }
 
 function spawnCreature(bands) {
+  const channels = params.channels();
   let band = 0;
-  for (let b = 1; b < 5; b++) if (bands[b] > bands[band]) band = b;
+  for (let b = 1; b < bands.length; b++) if (bands[b] > bands[band]) band = b;
+  const channel = channels === 1 ? 0
+    : Math.min(channels - 1, Math.round((band / (bands.length - 1)) * (channels - 1)));
   const angle = Math.random() * Math.PI * 2;
-  const fieldRadius = BAND_RING[band] * engine.size * 0.5;
+  const fieldRadius = channelRing(channel, channels) * engine.size * 0.5;
   const centre = {
     x: engine.size / 2 + Math.cos(angle) * fieldRadius,
     y: engine.size / 2 + Math.sin(angle) * fieldRadius
   };
-  const mix = params.channels() === 1 ? [1, 0, 0] : BAND_CHANNELS[band].map((v) => 0.55 + 0.45 * v);
-  engine.spawnSeed(centre, 1.05 - band * 0.09, Math.min(1, params.audioSpawn * 1.5), mix);
+  const mix = new Float32Array(channels);
+  for (let c = 0; c < channels; c++) {
+    const spread = Math.exp(-Math.pow((c - channel) / 1.2, 2));
+    mix[c] = 0.25 + 0.75 * spread;
+  }
+  const scale = channels > 4 ? 0.85 : 1.05 - band * 0.02;
+  engine.spawnSeed(centre, scale, Math.min(1, params.audioSpawn * 1.5), mix);
 }
 
 function applyAudio(dtSeconds) {
@@ -347,13 +449,15 @@ function applyAudio(dtSeconds) {
   const fired = mpd.advance(Math.min(dtSeconds, 0.25));
   const drive = params.audioDrive;
   const b = mpd.bands;
-  const bass = Math.max(b[0], b[1] * 0.6);
-  const mid = Math.max(b[2], b[1] * 0.5);
-  const treble = Math.max(b[4], b[3] * 0.7);
+  const n = b.length;
+  const bass = Math.max(b[0], b[1] * 0.7);
+  const mid = b[Math.floor(n / 2)];
+  const treble = Math.max(b[n - 1], b[n - 2] * 0.8);
   const level = mpd.smoothLevel;
 
-  params.mod.mu = -params.audioBass * drive * bass * 0.022;
-  params.mod.height = 1 + params.audioBass * drive * bass * 0.28;
+  const legacy = Math.min(1, 3 / Math.max(1, params.channels()));
+  params.mod.mu = -params.audioBass * drive * bass * 0.022 * legacy;
+  params.mod.height = 1 + params.audioBass * drive * bass * 0.28 * legacy;
   params.mod.bloom = 1 + params.audioMid * drive * mid * 1.1;
   params.mod.glow = 1 + params.audioMid * drive * level * 0.55;
   params.mod.separation = 1 + params.audioTreble * drive * treble * 1.3;
@@ -361,26 +465,24 @@ function applyAudio(dtSeconds) {
   params.mod.exposure = 1 + drive * level * 0.22;
 
   const playing = mpd.live && mpd.playing;
-  const bucket = [
-    Math.max(b[0], b[1] * 0.7),
-    Math.max(b[1] * 0.4, b[2], b[3] * 0.5),
-    Math.max(b[3] * 0.6, b[4])
-  ];
+  const channels = params.channels();
   const cd = params.mod.channelDrive;
-  if (playing && params.channels() === 3) {
-    const meanBucket = (bucket[0] + bucket[1] + bucket[2]) / 3;
-    for (let c = 0; c < 3; c++) {
-      cd[c] = params.audioChannels * drive * (bucket[c] - meanBucket) * 0.16;
+  if (cd.length !== channels) { cd.length = channels; cd.fill(0); }
+  if (playing && channels > 1) {
+    let mean = 0;
+    for (let c = 0; c < channels; c++) mean += b[bandFor(c, channels, b.length)];
+    mean /= channels;
+    for (let c = 0; c < channels; c++) {
+      cd[c] = params.audioChannels * drive * (b[bandFor(c, channels, b.length)] - mean) * 0.16;
     }
   } else if (playing) {
     cd[0] = params.audioChannels * drive * (level - 0.4) * 0.06;
-    cd[1] = cd[2] = 0;
   } else {
-    cd[0] = cd[1] = cd[2] = 0;
+    cd.fill(0);
   }
   params.mod.nutrient = playing ? params.audioNutrient * drive * 0.35 : 0;
   params.mod.starve = playing ? params.audioStarve * drive * Math.max(0, 0.55 - level) * 0.5 : 0;
-  if (playing) engine.setNutrient(buildNutrient(b));
+  if (playing) engine.setNutrient(buildNutrient(b, channels));
 
   if (fired && params.audioSpawn > 0) spawnCreature(b);
 
@@ -577,6 +679,10 @@ async function boot() {
     throw error;
   }
   applyAccent();
+  panel.repopulate('preset', speciesItems());
+  document.getElementById('mode-note').textContent = MODES[params.mode].note;
+  document.body.dataset.mode = MODES[params.mode].name.toLowerCase();
+  refreshPatchList('');
   applyPreset(params.preset);
   const bridge = await mpd.probe();
   document.body.dataset.bridge = bridge === true ? 'on' : (bridge === 'auth' ? 'auth' : 'off');
