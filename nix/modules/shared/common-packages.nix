@@ -26,5 +26,6 @@
     python3Packages.docx2txt
     showmethekey
     swi-prolog
+    (callPackage ../../pkgs/aescrypt.nix { })
   ];
 }

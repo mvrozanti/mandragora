@@ -21,6 +21,7 @@
     tmux
     claude-code
     swi-prolog
+    (callPackage ../../pkgs/aescrypt.nix { })
   ];
 
   programs.home-manager.enable = true;
