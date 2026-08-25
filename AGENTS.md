@@ -58,7 +58,7 @@ expands the blast radius.
 ## VPS Operations
 
 \`mandragora-vps\` (tailscale: \`100.84.78.83\`, public IP
-\`146.235.51.189\`, SSH alias \`opc@mandragora-vps\`) is the user's
+\`129.148.45.172\`, SSH alias \`opc@mandragora-vps\`) is the user's
 solo-owned production VPS. Agents may operate it directly for ordinary
 provisioning and deployment of the user's own stacks. Routine
 operations that do not require asking first:

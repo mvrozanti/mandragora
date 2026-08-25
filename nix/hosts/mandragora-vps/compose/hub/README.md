@@ -85,7 +85,7 @@ bridge gateway via `extra_hosts` declared in `seafile/caddy.yml`.
 | `mvr.ac` (apex) | A | `185.199.111.153` | GitHub Pages anycast |
 | `mvr.ac` (apex) | AAAA | `2606:50c0:8000::153` (and `8001`/`8002`/`8003::153`) | optional IPv6 to GH Pages |
 | `www` | CNAME | `mvrozanti.github.io.` | GH redirects www→apex |
-| `*` | A | `146.235.51.189` | wildcard → Oracle VPS (covers every `<svc>.mvr.ac`) |
+| `*` | A | `129.148.45.172` | wildcard → Oracle VPS (covers every `<svc>.mvr.ac`) |
 
 The wildcard `*` keeps the registrar config short — every new
 subdomain we add to the hub Just Works without touching DNS.
