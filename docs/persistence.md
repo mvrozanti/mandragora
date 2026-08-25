@@ -51,7 +51,11 @@ off-host backup on the system.
   in the tree — **encrypted to a dedicated lifeboat age recipient**
   before it leaves the desktop.
 - **Where:** `/home/opc/backups/age-key/keys.txt.age` on
-  `mandragora-vps`, reached over the tailnet.
+  `mandragora-vps`, reached over the tailnet. Alongside it sits
+  `lifeboat.aes` — the lifeboat identity itself, AES-256 encrypted under
+  a passphrase (see §3). Together those two files make the VPS a
+  self-sufficient recovery point: nothing else is needed but the
+  passphrase.
 - **Why encrypted:** the ciphertext this key unlocks is published in a
   public GitHub repo, so a plaintext mirror made a VPS compromise
   equivalent to a total secret compromise. The lifeboat recipient's
@@ -92,11 +96,29 @@ sudo install -o root -g root -m 0600 /tmp/keys.txt /persistent/secrets/keys.txt
 sudo shred -u /tmp/keys.txt /tmp/keys.age
 ```
 
-`lifeboat-key.txt` is the cold-storage copy of the lifeboat identity.
-**Without it the VPS mirror cannot be opened** — that is the point of
-the design. If the desktop is still alive, the same identity is readable
-from sops at `age_backup/lifeboat_key`, but in the disaster this runbook
-describes it will not be.
+`lifeboat-key.txt` is the lifeboat identity. **Without it the VPS mirror
+cannot be opened** — that is the point of the design. There are three
+places to get it, in descending order of preference:
+
+1. **Cold storage** (paper / USB in a safe). Authoritative.
+2. **The VPS itself**, at `/home/opc/backups/age-key/lifeboat.aes`,
+   AES-256-CBC under a passphrase. This is what makes the VPS a complete
+   recovery point — VPS access plus the passphrase reconstructs
+   everything, no physical media required. Decrypt it with `aescrypt -d`,
+   or with plain openssl on any machine that lacks the tooling:
+
+   ```
+   openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -md sha256 -a \
+     -in lifeboat.aes -out lifeboat-key.txt
+   ```
+
+3. **sops**, at `age_backup/lifeboat_key` — convenience only, since it
+   needs the master key this whole runbook exists to recover.
+
+The consequence worth internalising: that passphrase is now the single
+point of failure in both directions. It is the only thing between a VPS
+compromise and the entire secret store, and forgetting it makes the
+off-site copy unopenable. Keep cold storage regardless.
 
 With `/persistent/secrets/keys.txt` back in place, sops-nix can decrypt
 every secret in the tree on the next rebuild. Everything else user-data
