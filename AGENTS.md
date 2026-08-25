@@ -158,13 +158,23 @@ rationale, recipes, or the incident that produced the rule.
     PyTorch / Ollama work serializes through \`gpu-lock\`; PyTorch
     holders must \`torch.cuda.empty_cache()\` before release. Detail:
     [\`docs/gpu.md\`](docs/gpu.md), \`~/.ai-shared/rules/gpu-lock.md\`.
-16. **Every \`*.mvr.ac\` subdomain needs a hub tile** — \`mandragora-audit\`
-    check \`05-hub-tile\` cross-references every \`https://<sub>.mvr.ac\`
-    caddy host under \`nix/hosts/mandragora-vps/compose/\` against the
-    tile list in \`hub/static/index.html\` and fails any missing pair.
+16. **If it is served, it is on the hub. No exceptions, never ask.**
+    Standing instruction: bringing up any \`*.mvr.ac\` host and adding
+    its hub tile are *one* task, and the tile is not done until it is
+    **deployed** to \`hub.mvr.ac\`. The user must never have to ask for
+    a tile. \`mandragora-audit\` check \`05-hub-tile\` enforces this
+    against **live truth**, not repo intent — it reads the caddy admin
+    API for every host actually being served, so hosts declared outside
+    \`compose/\` (forgejo, hand-added stacks) are caught too, and it
+    diffs the deployed \`hub.mvr.ac\` against the repo copy so a stale
+    hub is itself a failure. Deploy with \`rsync -a
+    nix/hosts/mandragora-vps/compose/hub/static/index.html
+    opc@mandragora-vps:/home/opc/hub/static/index.html\`. When the VPS
+    is unreachable the check degrades to repo-only and says so loudly.
     Intentional exemptions live in
-    \`.local/share/mandragora-audit/allowlists/hub-tile.txt\`. Detail:
-    \`~/.ai-shared/rules/mvr-hub-tile.md\`.
+    \`.local/share/mandragora-audit/allowlists/hub-tile.txt\`; adding one
+    is a decision to state out loud, not a way to quiet the check.
+    Detail: \`~/.ai-shared/rules/mvr-hub-tile.md\`.
 17. **No projects under \`.local/share/\`** — that directory is the XDG
     dotfiles mirror, not a project tree. Anything carrying project
     markers (\`.git\`, \`pyproject.toml\`, \`Cargo.toml\`, \`package.json\`,
