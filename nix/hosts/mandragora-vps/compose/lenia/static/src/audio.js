@@ -1,4 +1,4 @@
-const BAND_COUNT = 5;
+export const BAND_COUNT = 8;
 
 export class MpdLink {
   constructor() {
@@ -70,7 +70,13 @@ export class MpdLink {
       this.artist = payload.artist || '';
       this.album = payload.album || '';
       this.uri = payload.uri || '';
-      this.raw = payload.bands && payload.bands.length === BAND_COUNT ? payload.bands : this.raw;
+      if (Array.isArray(payload.bands) && payload.bands.length) {
+        if (payload.bands.length !== this.raw.length) {
+          this.raw = new Array(payload.bands.length).fill(0);
+          this.bands = new Array(payload.bands.length).fill(0);
+        }
+        this.raw = payload.bands;
+      }
       this.level = typeof payload.level === 'number' ? payload.level : 0;
       if (payload.onset) this.onset = 1;
     });
@@ -98,7 +104,7 @@ export class MpdLink {
   advance(dt) {
     const silent = !this.live || !this.playing;
     const release = Math.pow(0.0025, dt);
-    for (let i = 0; i < BAND_COUNT; i++) {
+    for (let i = 0; i < this.bands.length; i++) {
       const target = silent ? 0 : this.raw[i];
       this.bands[i] = target > this.bands[i] ? target : this.bands[i] * release;
     }
