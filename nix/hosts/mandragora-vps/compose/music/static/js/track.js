@@ -1,5 +1,5 @@
 import {
-  TOK, CAT, clamp, timeCss, fmtTime, fmtHz,
+  TOK, CAT, MONO, clamp, timeCss, magmaCss, fmtTime, fmtHz,
   prepCanvas, path, strokePath, timePath, text, hline, vline,
   finiteExtent, quantile, heatmap,
 } from "./draw.js";
@@ -30,10 +30,6 @@ function el(tag, cls, html) {
   if (cls) e.className = cls;
   if (html != null) e.innerHTML = html;
   return e;
-}
-
-function sceneText(s) {
-  return Array.isArray(s) ? s[0] : s;
 }
 
 function signed(v, digits = 2) {
@@ -286,6 +282,15 @@ function setupAudio(ok) {
   state.useAudio = true;
   audioEl.preload = "metadata";
   audioEl.src = "audio/" + encodeURIComponent(slug) + ".mp3";
+  if (params.get("debug")) {
+    for (const ev of ["seeking", "seeked", "stalled", "waiting", "suspend", "error", "canplay", "playing"]) {
+      audioEl.addEventListener(ev, () => {
+        const br = [];
+        for (let i = 0; i < audioEl.buffered.length; i++) br.push(audioEl.buffered.start(i).toFixed(1) + "-" + audioEl.buffered.end(i).toFixed(1));
+        console.log("[audio]", ev, "t=" + audioEl.currentTime.toFixed(2), "rs=" + audioEl.readyState, "ns=" + audioEl.networkState, "buf=" + br.join(","));
+      });
+    }
+  }
   audioEl.addEventListener("ended", () => setPlaying(false));
   audioEl.addEventListener("error", () => degradeToClock(state.playing));
   audioEl.addEventListener("loadedmetadata", () => {
@@ -298,7 +303,7 @@ function setupAudio(ok) {
 
 function fallbackMeta() {
   const words = slug.split("-").map(w => w ? w[0].toUpperCase() + w.slice(1) : w);
-  return { slug, artist: "", title: words.join(" "), scenes: [] };
+  return { slug, artist: "", title: words.join(" ") };
 }
 
 function buildHero() {
@@ -306,10 +311,6 @@ function buildHero() {
   $("h-artist").textContent = m.artist || "";
   $("h-title").textContent = m.title || slug;
   document.title = (m.artist ? m.artist + " — " : "") + (m.title || slug) + " · music.mvr.ac";
-  const scenes = (m.scenes || []).map(sceneText).filter(Boolean);
-  $("h-scenes").textContent = scenes.join(" / ");
-  if (!scenes.length) $("h-scenes").hidden = true;
-
   const disc = $("disc");
   const dmeta = D.images && (D.images.polar || D.images.polar_thumb);
   if (dmeta) {
@@ -394,71 +395,164 @@ function columnStats(arr, i0, i1, mode) {
   return isFinite(v) ? v : 0;
 }
 
-function buildWave() {
+function sectionSpans() {
+  if (GRAMMAR && GRAMMAR.sections && GRAMMAR.sections.length) return GRAMMAR.sections;
+  return (D.structure.segments || []).map(s => ({ t0: s.start, t1: s.end, label: s.label }));
+}
+
+function letterIdx(l) {
+  return Math.max(0, String(l).charCodeAt(0) - 65);
+}
+
+function beatIndexAt(t) {
+  const bt = D.beats.times;
+  let lo = 0, hi = bt.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (bt[mid] <= t) lo = mid; else hi = mid - 1;
+  }
+  return lo;
+}
+
+let DBOFF = null;
+function downbeatOffset() {
+  if (DBOFF != null) return DBOFF;
+  DBOFF = 0;
+  if (!GRAMMAR) return DBOFF;
+  const bt = D.beats.times;
+  const mass = [0, 0, 0, 0];
+  for (const tok of GRAMMAR.tokens) {
+    if (!tok.family || tok.family[0] !== "K") continue;
+    const bi = beatIndexAt(tok.t0);
+    const span = (bt[bi + 1] || bt[bi] + 0.42) - bt[bi];
+    if ((tok.t0 - bt[bi]) / span < 0.25) mass[bi % 4]++;
+  }
+  let best = 0;
+  for (let o = 1; o < 4; o++) if (mass[o] > mass[best]) best = o;
+  DBOFF = best;
+  return DBOFF;
+}
+
+function buildPump() {
   const b = $("b2");
   const wf = D.waveform;
-  const c1 = canvasBlock(b, 190, {
-    label: "waveform",
-    legend: [["peak envelope", "rgba(230,237,243,.35)"], ["rms core", TOK.accent]],
-  });
+  const bt = (D.beats && D.beats.times) || [];
+  if (bt.length < 16) {
+    const c0 = canvasBlock(b, 140, { label: "level · rms" });
+    renders.push(() => {
+      const { ctx, w, h } = prepCanvas(c0, 140);
+      const n = wf.rms.length;
+      const [, mx] = finiteExtent(wf.rms);
+      path(ctx, n, i => i / (n - 1) * w, i => h - 6 - clamp(wf.rms[i] / (mx || 1), 0, 1) * (h - 12));
+      strokePath(ctx, TOK.accent, 1.4);
+    });
+    return;
+  }
+  const P = 32;
+  const rows = [];
+  for (const sec of sectionSpans()) {
+    let k0 = beatIndexAt(sec.t0);
+    if (bt[k0] < sec.t0 - 0.01) k0++;
+    const shape = new Float64Array(P);
+    let nb = 0;
+    for (let k = k0; k + 1 < bt.length && bt[k + 1] <= sec.t1 + 0.01; k++) {
+      const a = bt[k], span = bt[k + 1] - a;
+      if (span <= 0) continue;
+      for (let j = 0; j < P; j++) {
+        const idx = (a + span * (j + 0.5) / P) * wf.pps;
+        const i0 = Math.min(Math.floor(idx), wf.rms.length - 2);
+        const f = idx - i0;
+        shape[j] += wf.rms[i0] * (1 - f) + wf.rms[i0 + 1] * f;
+      }
+      nb++;
+    }
+    if (nb < 8) continue;
+    let pk = 1e-9;
+    for (let j = 0; j < P; j++) { shape[j] /= nb; if (shape[j] > pk) pk = shape[j]; }
+    const db = [];
+    for (let j = 0; j < P; j++) db.push(clamp(20 * Math.log10(shape[j] / pk + 1e-6), -18, 0));
+    rows.push({ sec, db, nb });
+  }
+  if (rows.length) {
+    const p = panel(b, "the pump · each section's beat folded on itself, dB below its own peak");
+    const gridEl = el("div", "pump");
+    const labCol = el("div", "pump-labels");
+    const cwrap = el("div", "pump-canvas");
+    const c = el("canvas");
+    const rowH = 22;
+    const hCss = rows.length * rowH + 6;
+    c.style.height = hCss + "px";
+    cwrap.appendChild(c);
+    const tick = el("div", "pump-tick");
+    cwrap.appendChild(tick);
+    gridEl.appendChild(labCol);
+    gridEl.appendChild(cwrap);
+    p.appendChild(gridEl);
+    const labs = [];
+    rows.forEach(r => {
+      const lb = el("button", "pump-label", esc(r.sec.label) + " <i>" + fmtTime(r.sec.t0) + "</i>");
+      lb.style.height = rowH + "px";
+      lb.addEventListener("click", () => { seek(r.sec.t0); if (!state.playing) setPlaying(true); });
+      labCol.appendChild(lb);
+      labs.push(lb);
+    });
+    renders.push(() => {
+      const { ctx, w } = prepCanvas(c, hCss);
+      const cw = w / P;
+      rows.forEach((r, ri) => {
+        for (let j = 0; j < P; j++) {
+          ctx.fillStyle = magmaCss(clamp(1 + r.db[j] / 18, 0, 1) * 0.92, 1);
+          ctx.fillRect(j * cw, ri * rowH + 3, cw - 1, rowH - 5);
+        }
+      });
+    });
+    let liveRow = -1;
+    subs.push(t => {
+      let idx = -1;
+      for (let i = 0; i < rows.length; i++) if (t >= rows[i].sec.t0 && t < rows[i].sec.t1) { idx = i; break; }
+      if (idx !== liveRow) {
+        if (liveRow >= 0) labs[liveRow].classList.remove("on");
+        if (idx >= 0) labs[idx].classList.add("on");
+        liveRow = idx;
+      }
+      if (idx >= 0 && state.playing) {
+        const bi = beatIndexAt(t);
+        const span = (bt[bi + 1] || bt[bi] + 0.42) - bt[bi];
+        const ph = clamp((t - bt[bi]) / span, 0, 1);
+        tick.style.opacity = "1";
+        tick.style.left = (ph * 100) + "%";
+        tick.style.top = (idx * rowH + 2) + "px";
+        tick.style.height = (rowH - 4) + "px";
+      } else {
+        tick.style.opacity = "0";
+      }
+    });
+    p.appendChild(el("p", "caption", "dark cells are the duck of the sidechain; a flat bright row does not pump · click a section to hear it"));
+  }
+  const c2 = canvasBlock(b, 120, { label: "punch · crest factor per beat, dB" });
   renders.push(() => {
-    const { ctx, w, h } = prepCanvas(c1, 190);
-    const n = wf.max.length;
-    const mid = h / 2, amp = h / 2 - 8;
-    hline(ctx, mid, w, TOK.grid);
-    ctx.beginPath();
-    for (let x = 0; x < w; x++) {
-      const i0 = Math.floor(x / w * n), i1 = Math.max(i0 + 1, Math.floor((x + 1) / w * n));
-      const hi = columnStats(wf.max, i0, i1, "max");
-      ctx.lineTo(x, mid - clamp(hi, 0, 1) * amp);
+    const { ctx, w, h } = prepCanvas(c2, 120);
+    hline(ctx, h - 8, w, TOK.grid);
+    for (let k = 0; k + 1 < bt.length; k++) {
+      const i0 = Math.floor(bt[k] * wf.pps);
+      const i1 = Math.max(i0 + 1, Math.floor(bt[k + 1] * wf.pps));
+      let pk = 1e-9, rs = 0, n = 0;
+      for (let i = i0; i < Math.min(i1, wf.rms.length); i++) {
+        const a = Math.max(Math.abs(wf.min[i] || 0), Math.abs(wf.max[i] || 0));
+        if (a > pk) pk = a;
+        rs += wf.rms[i] || 0;
+        n++;
+      }
+      if (!n || rs <= 0) continue;
+      const crest = clamp(20 * Math.log10(pk / (rs / n)), 3, 15);
+      const norm = (crest - 3) / 12;
+      const x0 = bt[k] / state.duration * w;
+      const x1 = bt[k + 1] / state.duration * w;
+      ctx.fillStyle = "rgba(192,132,252," + (0.25 + 0.6 * norm).toFixed(3) + ")";
+      ctx.fillRect(x0, h - 8 - norm * (h - 18), Math.max(0.8, x1 - x0 - 0.3), norm * (h - 18));
     }
-    for (let x = w - 1; x >= 0; x--) {
-      const i0 = Math.floor(x / w * n), i1 = Math.max(i0 + 1, Math.floor((x + 1) / w * n));
-      const lo = columnStats(wf.min, i0, i1, "min");
-      ctx.lineTo(x, mid - clamp(lo, -1, 0) * amp);
-    }
-    ctx.closePath();
-    ctx.fillStyle = "rgba(230,237,243,0.26)";
-    ctx.fill();
-    ctx.beginPath();
-    for (let x = 0; x < w; x++) {
-      const i0 = Math.floor(x / w * n), i1 = Math.max(i0 + 1, Math.floor((x + 1) / w * n));
-      const r = columnStats(wf.rms, i0, i1, "max");
-      ctx.lineTo(x, mid - clamp(r, 0, 1) * amp);
-    }
-    for (let x = w - 1; x >= 0; x--) {
-      const i0 = Math.floor(x / w * n), i1 = Math.max(i0 + 1, Math.floor((x + 1) / w * n));
-      const r = columnStats(wf.rms, i0, i1, "max");
-      ctx.lineTo(x, mid + clamp(r, 0, 1) * amp);
-    }
-    ctx.closePath();
-    ctx.fillStyle = "rgba(192,132,252,0.55)";
-    ctx.fill();
-  });
-
-  const ld = D.loudness;
-  const c2 = canvasBlock(b, 150, {
-    label: "loudness · lufs",
-    legend: [["momentary", "rgba(139,148,158,.8)"], ["short-term", TOK.accent], ["integrated " + ld.integrated.toFixed(1), TOK.ink]],
-  });
-  renders.push(() => {
-    const { ctx, w, h } = prepCanvas(c2, 150);
-    const [lm] = finiteExtent(ld.momentary);
-    const [ls] = finiteExtent(ld.short_term);
-    const lo = clamp(Math.floor(Math.min(lm, ls, ld.integrated) / 10) * 10, -70, -20);
-    const hi = 0;
-    const y = v => h - 4 - (clamp(v, lo, hi) - lo) / (hi - lo) * (h - 14);
-    for (let g = hi; g >= lo; g -= 10) {
-      hline(ctx, y(g), w);
-      text(ctx, String(g), 4, y(g) - 3, { size: 9 });
-    }
-    const n = ld.momentary.length;
-    const x = i => i / (n - 1) * w;
-    path(ctx, n, x, i => isFinite(ld.momentary[i]) ? y(ld.momentary[i]) : NaN);
-    strokePath(ctx, "rgba(139,148,158,0.65)", 1);
-    path(ctx, n, x, i => isFinite(ld.short_term[i]) ? y(ld.short_term[i]) : NaN);
-    strokePath(ctx, TOK.accent, 2);
-    hline(ctx, y(ld.integrated), w, "rgba(230,237,243,0.8)", [5, 4]);
+    text(ctx, "15", 4, 14, { size: 9 });
+    text(ctx, "3", 4, h - 12, { size: 9 });
   });
 }
 
@@ -521,49 +615,182 @@ function buildHarmony() {
     strip.appendChild(kb);
   }
 
-  const duo = el("div", "duo");
-  b.appendChild(duo);
-  const p3 = panel(duo, "tonnetz trajectory · dims 0-1, fifths plane, dark to bright is start to end");
-  const tc = el("canvas");
-  tc.style.height = "420px";
-  p3.appendChild(tc);
-  renders.push(() => {
-    const { ctx, w, h } = prepCanvas(tc, 420);
-    const dims = D.tonnetz.dims;
-    const n = dims.length;
-    let ext = 0.01;
-    for (const d of dims) {
-      ext = Math.max(ext, Math.abs(d[0]), Math.abs(d[1]));
-    }
-    ext *= 1.15;
-    const side = Math.min(w - 16, h - 16);
-    const cx = w / 2, cy = h / 2;
-    const px = v => cx + v / ext * side / 2;
-    const py = v => cy - v / ext * side / 2;
-    ctx.strokeStyle = TOK.grid;
-    ctx.strokeRect(cx - side / 2 + 0.5, cy - side / 2 + 0.5, side, side);
-    ctx.beginPath();
-    ctx.moveTo(cx - side / 2, cy);
-    ctx.lineTo(cx + side / 2, cy);
-    ctx.moveTo(cx, cy - side / 2);
-    ctx.lineTo(cx, cy + side / 2);
-    ctx.stroke();
-    const step = Math.max(1, Math.floor(n / 2400));
-    const m = Math.floor(n / step);
-    timePath(ctx, m, i => px(dims[i * step][0]), i => py(dims[i * step][1]), { width: 1.6, alpha: 0.55 });
-    const a = dims[0], z = dims[n - 1];
-    ctx.fillStyle = TOK.ink;
-    ctx.beginPath();
-    ctx.arc(px(a[0]), py(a[1]), 3.5, 0, 7);
-    ctx.fill();
-    ctx.fillStyle = TOK.accent;
-    ctx.beginPath();
-    ctx.arc(px(z[0]), py(z[1]), 3.5, 0, 7);
-    ctx.fill();
-    text(ctx, "start", px(a[0]) + 7, py(a[1]) + 3, { color: TOK.ink, size: 9 });
-    text(ctx, "end", px(z[0]) + 7, py(z[1]) + 3, { color: TOK.accent, size: 9 });
+  buildPianoRoll(b);
+}
+
+function buildPianoRoll(b) {
+  if (!GRAMMAR) return;
+  const toks = GRAMMAR.tokens.filter(t => t.family && "BLP".includes(t.stream));
+  if (!toks.length) return;
+  const { rows } = laneLayout();
+  let lo = Infinity, hi = -Infinity;
+  for (const t of toks) { if (t.pitch_bin < lo) lo = t.pitch_bin; if (t.pitch_bin > hi) hi = t.pitch_bin; }
+  lo = Math.max(0, lo - 2); hi = hi + 2;
+  const c = canvasBlock(b, 300, {
+    label: "piano roll · bass, lead and air as played, semitones above C1",
+    legend: [["bass", STREAM_HUES.B], ["lead", STREAM_HUES.L], ["pad-fx", STREAM_HUES.P]],
   });
-  squareImg(duo, "helix", "chroma helix · the song wound around the circle of pitch");
+  renders.push(() => {
+    const { ctx, w, h } = prepCanvas(c, 300);
+    const semi = (h - 18) / Math.max(hi - lo, 1);
+    const y = bin => h - 10 - (bin - lo) * semi;
+    for (let bin = Math.ceil(lo / 12) * 12; bin <= hi; bin += 12) {
+      hline(ctx, y(bin), w, "rgba(139,148,158,0.22)");
+      text(ctx, "C" + (1 + bin / 12), 4, y(bin) - 3, { size: 9, color: TOK.muted });
+    }
+    const x = t => t / state.duration * w;
+    for (const tok of toks) {
+      const r = rows[tok.family];
+      if (!r) continue;
+      const alpha = 0.25 + 0.75 * clamp((tok.peak_db + 45) / 45, 0.05, 1);
+      ctx.fillStyle = famColor(tok.family, r.idx, r.nfam, alpha);
+      ctx.fillRect(x(tok.t0), y(tok.pitch_bin) - Math.max(semi * 0.8, 2) / 2,
+        Math.max(x(tok.t1) - x(tok.t0), 1.5), Math.max(semi * 0.8, 2));
+    }
+  });
+}
+
+function buildSequencer(b) {
+  if (!GRAMMAR || !D.beats || D.beats.times.length < 16) return;
+  const bt = D.beats.times;
+  const off = downbeatOffset();
+  const { rows } = laneLayout();
+  const famList = GRAMMAR.devices.map(d => d.id);
+  const secs = [];
+  for (const sec of sectionSpans()) {
+    let k0 = beatIndexAt(sec.t0);
+    if (bt[k0] < sec.t0 - 0.01) k0++;
+    let k1 = k0;
+    while (k1 + 1 < bt.length && bt[k1 + 1] <= sec.t1 + 0.01) k1++;
+    const bars = Math.floor((k1 - k0) / 4);
+    if (bars < 4) continue;
+    secs.push({ sec, k0, k1, bars, occ: {} });
+  }
+  if (!secs.length) return;
+  for (const tok of GRAMMAR.tokens) {
+    if (!tok.family) continue;
+    const bi = beatIndexAt(tok.t0);
+    const span = (bt[bi + 1] || bt[bi] + 0.42) - bt[bi];
+    const six = clamp(Math.floor((tok.t0 - bt[bi]) / span * 4), 0, 3);
+    const step = (((bi - off) % 4 + 4) % 4) * 4 + six;
+    for (const sc of secs) {
+      if (bi >= sc.k0 && bi < sc.k1) {
+        if (!sc.occ[tok.family]) sc.occ[tok.family] = new Float64Array(16);
+        sc.occ[tok.family][step] += 1;
+        break;
+      }
+    }
+  }
+  const active = famList.filter(f => secs.some(sc => sc.occ[f]));
+  if (!active.length) return;
+  const p = panel(b, "sequencer · what the machine plays, one 16-step bar per section");
+  const wrap = el("div", "scrollwrap");
+  const holder = el("div", "seq-holder");
+  wrap.appendChild(holder);
+  p.appendChild(wrap);
+  const c = el("canvas");
+  const LAB = 44, SEC_W = 148, ROW_H = 13, HDR = 20;
+  const totalW = LAB + secs.length * SEC_W;
+  const hCss = HDR + active.length * ROW_H + 6;
+  c.style.width = totalW + "px";
+  c.style.height = hCss + "px";
+  holder.style.width = totalW + "px";
+  holder.appendChild(c);
+  const cur = el("div", "seq-cur");
+  holder.appendChild(cur);
+  renders.push(() => {
+    const { ctx } = prepCanvas(c, hCss);
+    active.forEach((f, ri) => {
+      const r = rows[f];
+      ctx.fillStyle = famColor(f, r.idx, r.nfam, 1);
+      ctx.font = "9px " + MONO;
+      ctx.fillText(f, 4, HDR + ri * ROW_H + ROW_H - 4);
+    });
+    secs.forEach((sc, si) => {
+      const x0 = LAB + si * SEC_W;
+      text(ctx, sc.sec.label + " " + fmtTime(sc.sec.t0), x0 + 2, 12, { size: 9, color: TOK.muted });
+      const cellW = (SEC_W - 10) / 16;
+      for (let st = 0; st < 16; st++) {
+        if (st % 4 === 0) {
+          ctx.fillStyle = "rgba(139,148,158,0.14)";
+          ctx.fillRect(x0 + st * cellW, HDR - 3, 1, active.length * ROW_H + 4);
+        }
+      }
+      active.forEach((f, ri) => {
+        const r = rows[f];
+        const occ = sc.occ[f];
+        for (let st = 0; st < 16; st++) {
+          const v = occ ? clamp(occ[st] / sc.bars, 0, 1) : 0;
+          ctx.fillStyle = v > 0.04 ? famColor(f, r.idx, r.nfam, 0.15 + 0.85 * v)
+            : "rgba(139,148,158,0.06)";
+          ctx.fillRect(x0 + st * cellW + 0.5, HDR + ri * ROW_H + 1, cellW - 1.5, ROW_H - 2.5);
+        }
+      });
+    });
+  });
+  wrap.addEventListener("pointerdown", ev => {
+    const r = holder.getBoundingClientRect();
+    const px = ev.clientX - r.left - LAB;
+    if (px < 0) return;
+    const si = Math.floor(px / SEC_W);
+    if (secs[si]) { seek(secs[si].sec.t0); if (!state.playing) setPlaying(true); }
+  });
+  subs.push(t => {
+    let si = -1;
+    for (let i = 0; i < secs.length; i++) if (t >= secs[i].sec.t0 && t < secs[i].sec.t1) { si = i; break; }
+    if (si < 0 || !state.playing) { cur.style.opacity = "0"; return; }
+    const bi = beatIndexAt(t);
+    const span = (bt[bi + 1] || bt[bi] + 0.42) - bt[bi];
+    const six = clamp(Math.floor((t - bt[bi]) / span * 4), 0, 3);
+    const step = (((bi - off) % 4 + 4) % 4) * 4 + six;
+    const cellW = (SEC_W - 10) / 16;
+    cur.style.opacity = "1";
+    cur.style.left = (LAB + si * SEC_W + step * cellW) + "px";
+    cur.style.width = cellW + "px";
+    cur.style.top = (HDR - 3) + "px";
+    cur.style.height = (active.length * ROW_H + 4) + "px";
+  });
+  p.appendChild(el("p", "caption", "cell brightness is how often that device hits that 16th across the section's bars · click a block to hear its section"));
+}
+
+function buildMicrotiming(b) {
+  if (!GRAMMAR || !D.beats || D.beats.times.length < 16) return;
+  const bt = D.beats.times;
+  const devs = [];
+  for (const tok of GRAMMAR.tokens) {
+    if (!tok.family) continue;
+    const bi = beatIndexAt(tok.t0);
+    const span = (bt[bi + 1] || bt[bi] + 0.42) - bt[bi];
+    const pos = (tok.t0 - bt[bi]) / span * 4;
+    const near = Math.round(pos);
+    const dev = (pos - near) * span / 4 * 1000;
+    if (Math.abs(dev) <= 60) {
+      if (!devs[bi]) devs[bi] = [];
+      devs[bi].push(dev);
+    }
+  }
+  const c = canvasBlock(b, 110, {
+    label: "microtiming · median push (early) and drag (late) per beat, ms",
+    legend: [["early", "#38bdf8"], ["late", "#fb7185"]],
+  });
+  renders.push(() => {
+    const { ctx, w, h } = prepCanvas(c, 110);
+    const mid = h / 2;
+    hline(ctx, mid, w, TOK.grid);
+    text(ctx, "+20", 4, 14, { size: 9 });
+    text(ctx, "-20", 4, h - 6, { size: 9 });
+    for (let k = 0; k < bt.length; k++) {
+      const arr = devs[k];
+      if (!arr || !arr.length) continue;
+      arr.sort((a, b2) => a - b2);
+      const med = arr[arr.length >> 1];
+      const x0 = bt[k] / state.duration * w;
+      const hgt = clamp(Math.abs(med) / 20, 0, 1) * (mid - 10);
+      ctx.fillStyle = med < 0 ? "rgba(56,189,248,0.8)" : "rgba(251,113,133,0.8)";
+      if (med < 0) ctx.fillRect(x0, mid - hgt, 1.4, hgt);
+      else ctx.fillRect(x0, mid, 1.4, hgt);
+    }
+  });
 }
 
 function buildRhythm() {
@@ -573,87 +800,8 @@ function buildRhythm() {
   rasterBlock(b, "tempogram", "tempogram" + (tmeta ? " · " + yDesc(tmeta) : "") +
     " · global " + (Math.round((D.beats.bpm || 0) * 10) / 10) + " bpm");
 
-  const on = D.onsets, bt = D.beats;
-  const clusterLegend = [];
-  for (let k = 0; k < Math.min(bt.n_clusters || 5, 8); k++) clusterLegend.push(["cluster " + (k + 1), CAT[k % 8]]);
-  const c1 = canvasBlock(b, 160, {
-    label: "onset strength · ticks are beats, colored by timbre cluster",
-    legend: clusterLegend,
-  });
-  renders.push(() => {
-    const { ctx, w, h } = prepCanvas(c1, 160);
-    const n = on.strength.length;
-    const [, mx] = finiteExtent(on.strength);
-    const x = i => i / (n - 1) * w;
-    const y = v => h - 22 - clamp(v / (mx || 1), 0, 1) * (h - 30);
-    ctx.beginPath();
-    ctx.moveTo(0, h - 22);
-    for (let i = 0; i < n; i++) ctx.lineTo(x(i), y(on.strength[i] || 0));
-    ctx.lineTo(w, h - 22);
-    ctx.closePath();
-    ctx.fillStyle = "rgba(139,148,158,0.28)";
-    ctx.fill();
-    hline(ctx, h - 22, w, TOK.grid);
-    ctx.lineWidth = 1;
-    for (let i = 0; i < bt.times.length; i++) {
-      const bx = bt.times[i] / state.duration * w;
-      ctx.strokeStyle = CAT[(bt.clusters[i] ?? 0) % 8];
-      ctx.globalAlpha = 0.85;
-      ctx.beginPath();
-      ctx.moveTo(bx, h - 18);
-      ctx.lineTo(bx, h - 4);
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-  });
-
-  const c2 = canvasBlock(b, 64, { label: "timbre barcode · one stripe per beat" });
-  renders.push(() => {
-    const { ctx, w, h } = prepCanvas(c2, 64);
-    const times = bt.times, cl = bt.clusters;
-    const dtb = times.length > 1 ? times[1] - times[0] : 0.4;
-    for (let i = 0; i < times.length; i++) {
-      const x0 = times[i] / state.duration * w;
-      const x1 = ((times[i + 1] ?? times[i] + dtb)) / state.duration * w;
-      ctx.fillStyle = CAT[(cl[i] ?? 0) % 8];
-      ctx.fillRect(x0, 4, Math.max(0.6, x1 - x0 - 0.4), h - 8);
-    }
-  });
-
-  const p3 = panel(b, "ioi poincare · interval n against interval n+1, dark to bright is start to end");
-  const c3 = el("canvas");
-  c3.style.height = "380px";
-  p3.appendChild(c3);
-  renders.push(() => {
-    const { ctx, w, h } = prepCanvas(c3, 380);
-    const t = on.times;
-    const iois = [];
-    for (let i = 1; i < t.length; i++) {
-      const d = t[i] - t[i - 1];
-      if (d > 0.02 && d < 2.5) iois.push(d);
-    }
-    const hi = Math.max(0.2, quantile(iois, 0.98) * 1.15);
-    const side = Math.min(w - 60, h - 44);
-    const ox = (w - side) / 2 + 14, oy = 12;
-    const px = v => ox + clamp(v / hi, 0, 1) * side;
-    const py = v => oy + side - clamp(v / hi, 0, 1) * side;
-    ctx.strokeStyle = TOK.grid;
-    ctx.strokeRect(ox + 0.5, oy + 0.5, side, side);
-    ctx.beginPath();
-    ctx.moveTo(px(0), py(0));
-    ctx.lineTo(px(hi), py(hi));
-    ctx.stroke();
-    for (let i = 0; i + 1 < iois.length; i++) {
-      ctx.fillStyle = timeCss(i / (iois.length - 1), 0.55);
-      ctx.beginPath();
-      ctx.arc(px(iois[i]), py(iois[i + 1]), 2.2, 0, 7);
-      ctx.fill();
-    }
-    text(ctx, "ioi n (s)", ox + side / 2, oy + side + 16, { align: "center", size: 9 });
-    text(ctx, "0", ox - 4, py(0) + 3, { align: "right", size: 9 });
-    text(ctx, hi.toFixed(2), ox - 4, py(hi) + 3, { align: "right", size: 9 });
-    text(ctx, hi.toFixed(2), px(hi), oy + side + 16, { align: "center", size: 9 });
-  });
+  buildSequencer(b);
+  buildMicrotiming(b);
 }
 
 function buildTexture() {
@@ -721,18 +869,18 @@ function buildStructure() {
   rasterBlock(b, "ssm", "self-similarity · both axes are time, bright blocks repeat", { narrow: true });
   rasterBlock(b, "timelag", "time-lag view · horizontal streaks are repeats at a fixed offset", { narrow: true });
 
-  const segs = D.structure.segments || [];
-  const p = panel(b, "sections · " + segs.length + " segments, letters name repeated material");
+  const spans = sectionSpans();
+  const p = panel(b, "sections · " + spans.length + " blocks from the device stream, letters name repeated material");
   const ribbon = el("div", "ribbon");
   p.appendChild(ribbon);
   registerTA(ribbon);
   const blocks = [];
-  for (const s of segs) {
+  for (const s of spans) {
     const sb = el("div", "segblock");
-    sb.style.setProperty("--c", CAT[(s.cluster ?? 0) % 8]);
-    sb.style.left = (s.start / state.duration * 100) + "%";
-    sb.style.width = (Math.max(0, s.end - s.start) / state.duration * 100) + "%";
-    sb.title = s.label + " · " + fmtTime(s.start) + "-" + fmtTime(s.end);
+    sb.style.setProperty("--c", CAT[letterIdx(s.label) % 8]);
+    sb.style.left = (s.t0 / state.duration * 100) + "%";
+    sb.style.width = (Math.max(0, s.t1 - s.t0) / state.duration * 100) + "%";
+    sb.title = s.label + " · " + fmtTime(s.t0) + "-" + fmtTime(s.t1);
     sb.innerHTML = '<span class="kl">' + esc(s.label) + "</span>";
     ribbon.appendChild(sb);
     blocks.push({ el: sb, s });
@@ -741,7 +889,7 @@ function buildStructure() {
   subs.push(t => {
     let idx = -1;
     for (let i = 0; i < blocks.length; i++) {
-      if (t >= blocks[i].s.start && t < blocks[i].s.end) { idx = i; break; }
+      if (t >= blocks[i].s.t0 && t < blocks[i].s.t1) { idx = i; break; }
     }
     if (idx !== liveSeg) {
       if (liveSeg >= 0) blocks[liveSeg].el.classList.remove("on");
@@ -751,8 +899,10 @@ function buildStructure() {
   });
 
   const nv = D.novelty;
+  const arr = GRAMMAR && GRAMMAR.arrangement && GRAMMAR.arrangement.curve && GRAMMAR.arrangement.curve.length ? GRAMMAR.arrangement : null;
   const c1 = canvasBlock(b, 140, {
-    label: "novelty · vertical rules are detected boundaries",
+    label: "novelty · timbre-harmony novelty filled, device-stream change on top, rules at section starts",
+    legend: [["timbre novelty", "rgba(139,148,158,.6)"], ["arrangement change", TOK.accent]],
   });
   renders.push(() => {
     const { ctx, w, h } = prepCanvas(c1, 140);
@@ -767,22 +917,66 @@ function buildStructure() {
     ctx.closePath();
     ctx.fillStyle = "rgba(139,148,158,0.3)";
     ctx.fill();
-    for (const bd of D.structure.boundaries || []) {
-      if (bd < 0.5 || bd > state.duration - 0.5) continue;
-      vline(ctx, bd / state.duration * w, h, "rgba(192,132,252,0.55)", [3, 3]);
+    if (arr) {
+      const m = arr.curve.length;
+      const [, amx] = finiteExtent(arr.curve);
+      path(ctx, m, i => i / (m - 1) * w, i => h - 5 - clamp((arr.curve[i] || 0) / (amx || 1), 0, 1) * (h - 10));
+      strokePath(ctx, TOK.accent, 1.6);
+    }
+    for (const sec of sectionSpans().slice(1)) {
+      vline(ctx, sec.t0 / state.duration * w, h, "rgba(192,132,252,0.55)", [3, 3]);
     }
   });
 
   const mo = D.motifs && D.motifs.pairs || [];
   const c2 = canvasBlock(b, 220, {
-    label: "repeated material · an arc joins a passage to its echo",
-    legend: [["passage", "rgba(230,237,243,.55)"], ["echo", TOK.accent], ["arc, brighter is stronger", "#fb7185"]],
+    label: "repeated phrases · arcs join recurrences of the same device pattern",
+    legend: [["compound phrase", "rgba(230,237,243,.5)"], ["section repeat", TOK.accent]],
   });
   renders.push(() => {
     const { ctx, w, h } = prepCanvas(c2, 220);
     const baseY = h - 14;
     hline(ctx, baseY + 7, w, TOK.grid);
     const x = t => t / state.duration * w;
+    if (GRAMMAR && GRAMMAR.compounds && GRAMMAR.compounds.length) {
+      for (const comp of GRAMMAR.compounds.slice(0, 12)) {
+        const tally = {};
+        for (const fid of comp.pattern) tally[fid[0]] = (tally[fid[0]] || 0) + 1;
+        let sid = comp.pattern[0][0];
+        for (const k2 in tally) if (tally[k2] > tally[sid]) sid = k2;
+        const rgb = hexRgb(STREAM_HUES[sid] || "#8b949e");
+        ctx.strokeStyle = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ",0.32)";
+        ctx.lineWidth = 1 + 0.4 * comp.pattern.length;
+        for (let i = 0; i + 1 < comp.at.length; i++) {
+          const xa = x(comp.at[i]), xb = x(comp.at[i + 1]);
+          const lift = clamp(20 + Math.abs(xb - xa) * 0.5, 20, (baseY - 12) * 2);
+          ctx.beginPath();
+          ctx.moveTo(xa, baseY);
+          ctx.quadraticCurveTo((xa + xb) / 2, baseY - lift, xb, baseY);
+          ctx.stroke();
+        }
+      }
+      const seen = {};
+      ctx.strokeStyle = "rgba(192,132,252,0.5)";
+      ctx.lineWidth = 2.5;
+      for (const sec of sectionSpans()) {
+        const mid = (sec.t0 + sec.t1) / 2;
+        if (seen[sec.label] != null) {
+          const xa = x(seen[sec.label]), xb = x(mid);
+          const lift = clamp(30 + Math.abs(xb - xa) * 0.55, 30, (baseY - 12) * 2);
+          ctx.beginPath();
+          ctx.moveTo(xa, baseY);
+          ctx.quadraticCurveTo((xa + xb) / 2, baseY - lift, xb, baseY);
+          ctx.stroke();
+        }
+        seen[sec.label] = mid;
+      }
+      for (const sec of sectionSpans()) {
+        ctx.fillStyle = "rgba(230,237,243,0.5)";
+        ctx.fillRect(x(sec.t0), baseY + 2, 1.5, 5);
+      }
+      return;
+    }
     for (const pr of mo) {
       const xa = x((pr.a_start + pr.a_end) / 2);
       const xb = x((pr.b_start + pr.b_end) / 2);
@@ -853,50 +1047,218 @@ function buildStereo() {
     strokePath(ctx, "#f472b6", 1.6);
   });
 
+  buildLiveGonio(b);
+}
+
+function buildLiveGonio(b) {
+  const st = D.stereo;
   const frames = st.lissajous || [];
-  const p = panel(b, "goniometer · twenty-four instants, the lit frame is now");
-  const grid = el("div", "gonio-grid");
-  p.appendChild(grid);
-  const cells = [];
-  for (const fr of frames) {
-    const btn = el("button", "gframe");
-    btn.title = "seek to " + fmtTime(fr.t);
-    const c = el("canvas");
-    c.width = 120;
-    c.height = 120;
-    btn.appendChild(c);
-    btn.appendChild(el("span", null, fmtTime(fr.t)));
-    btn.addEventListener("click", () => seek(fr.t));
-    grid.appendChild(btn);
-    cells.push({ btn, fr });
+  const p = panel(b, "goniometer · live while playing, nearest sampled instant when paused");
+  const c = el("canvas", "gonio-live");
+  p.appendChild(c);
+  const ga = { tried: false, ready: false, side: 0, lastFrame: -2 };
+  function size() {
+    const side = Math.min(c.clientWidth || 420, 460);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = Math.round(side * dpr);
+    c.height = Math.round(side * dpr);
     const ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ga.side = side;
+    return ctx;
+  }
+  function cross(ctx, s) {
     ctx.strokeStyle = TOK.grid;
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(10, 110);
-    ctx.lineTo(110, 10);
-    ctx.moveTo(10, 10);
-    ctx.lineTo(110, 110);
+    ctx.moveTo(8, s - 8);
+    ctx.lineTo(s - 8, 8);
+    ctx.moveTo(8, 8);
+    ctx.lineTo(s - 8, s - 8);
     ctx.stroke();
-    ctx.fillStyle = "rgba(230,237,243,0.5)";
+    text(ctx, "L", 10, 18, { size: 9, color: TOK.muted });
+    text(ctx, "R", s - 16, 18, { size: 9, color: TOK.muted });
+  }
+  function drawStatic(fi) {
+    const ctx = size();
+    const s = ga.side;
+    ctx.clearRect(0, 0, s, s);
+    cross(ctx, s);
+    const fr = frames[fi];
+    if (!fr) return;
+    ctx.fillStyle = "rgba(230,237,243,0.55)";
     for (let i = 0; i < fr.x.length; i++) {
-      const px = 60 + clamp(fr.x[i], -1, 1) * 55;
-      const py = 60 - clamp(fr.y[i], -1, 1) * 55;
+      const px = s / 2 + clamp(fr.x[i], -1, 1) * (s / 2 - 10);
+      const py = s / 2 - clamp(fr.y[i], -1, 1) * (s / 2 - 10);
       ctx.fillRect(px, py, 1.4, 1.4);
     }
+    text(ctx, fmtTime(fr.t), s / 2, s - 6, { align: "center", size: 9, color: TOK.muted });
   }
-  let liveG = -1;
+  renders.push(() => { ga.lastFrame = -2; ga.sized = false; });
   subs.push(t => {
-    let best = -1, bd = Infinity;
-    for (let i = 0; i < cells.length; i++) {
-      const d = Math.abs(cells[i].fr.t - t);
+    if (state.playing && state.useAudio && !RM) {
+      if (!ga.tried) {
+        ga.tried = true;
+        try {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          const actx = new AC();
+          const src = actx.createMediaElementSource(audioEl);
+          const split = actx.createChannelSplitter(2);
+          const anL = actx.createAnalyser();
+          const anR = actx.createAnalyser();
+          anL.fftSize = 2048;
+          anR.fftSize = 2048;
+          src.connect(split);
+          split.connect(anL, 0);
+          split.connect(anR, 1);
+          src.connect(actx.destination);
+          ga.actx = actx;
+          ga.anL = anL;
+          ga.anR = anR;
+          ga.bufL = new Float32Array(anL.fftSize);
+          ga.bufR = new Float32Array(anR.fftSize);
+          ga.ready = true;
+        } catch (e) {}
+      }
+      if (ga.actx && ga.actx.state === "suspended") ga.actx.resume();
+      if (ga.ready) {
+        let ctx;
+        if (!ga.sized) { ctx = size(); ga.sized = true; ctx.clearRect(0, 0, ga.side, ga.side); }
+        else ctx = c.getContext("2d");
+        const s = ga.side;
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.fillStyle = "rgba(0,0,0,0.14)";
+        ctx.fillRect(0, 0, s, s);
+        ctx.globalCompositeOperation = "source-over";
+        cross(ctx, s);
+        ga.anL.getFloatTimeDomainData(ga.bufL);
+        ga.anR.getFloatTimeDomainData(ga.bufR);
+        ctx.fillStyle = "rgba(230,237,243,0.6)";
+        for (let i = 0; i < ga.bufL.length; i += 2) {
+          const px = s / 2 + clamp(ga.bufL[i], -1, 1) * (s / 2 - 10);
+          const py = s / 2 - clamp(ga.bufR[i], -1, 1) * (s / 2 - 10);
+          ctx.fillRect(px, py, 1.4, 1.4);
+        }
+        ga.lastFrame = -2;
+        return;
+      }
+    }
+    if (!frames.length) return;
+    let best = 0, bd = Infinity;
+    for (let i = 0; i < frames.length; i++) {
+      const d = Math.abs(frames[i].t - t);
       if (d < bd) { bd = d; best = i; }
     }
-    if (best !== liveG) {
-      if (liveG >= 0) cells[liveG].btn.classList.remove("live");
-      if (best >= 0) cells[best].btn.classList.add("live");
-      liveG = best;
+    if (best !== ga.lastFrame) {
+      ga.lastFrame = best;
+      ga.sized = false;
+      drawStatic(best);
     }
   });
+}
+
+function buildNicheMap(b) {
+  const toks = GRAMMAR.tokens;
+  const { rows } = laneLayout();
+  const fLo = 30, fHi = 11025;
+  const c = canvasBlock(b, 260, {
+    label: "niche map · who owns which band, when",
+    legend: GRAMMAR.streams.map(s => [s.id + " · " + s.name, STREAM_HUES[s.id]]),
+  });
+  renders.push(() => {
+    const { ctx, w, h } = prepCanvas(c, 260);
+    const y = f => h - 12 - Math.log(clamp(f, fLo, fHi) / fLo) / Math.log(fHi / fLo) * (h - 20);
+    for (const g of [100, 1000, 10000]) {
+      hline(ctx, y(g), w, "rgba(139,148,158,0.2)");
+      text(ctx, fmtHz(g), 4, y(g) - 3, { size: 9, color: TOK.muted });
+    }
+    const x = t => t / state.duration * w;
+    for (const tok of toks) {
+      if (!tok.family) continue;
+      const r = rows[tok.family];
+      if (!r) continue;
+      const f = tok.centroid_hz || r.dev.register_hz.med;
+      const alpha = 0.18 + 0.62 * clamp((tok.peak_db + 45) / 45, 0.05, 1);
+      ctx.fillStyle = famColor(tok.family, r.idx, r.nfam, alpha);
+      ctx.fillRect(x(tok.t0), y(f) - 1.5, Math.max(x(tok.t1) - x(tok.t0), 1.2), 3);
+    }
+  });
+}
+
+function buildInteractionMatrix(b) {
+  const toks = GRAMMAR.tokens.filter(t => t.family);
+  const ids = GRAMMAR.devices.map(d => d.id);
+  const idx = {};
+  ids.forEach((f, i) => { idx[f] = i; });
+  const n = ids.length;
+  const counts = new Float64Array(n * n);
+  const firsts = {};
+  for (let i = 0; i < toks.length; i++) {
+    const a = toks[i];
+    for (let j = i + 1; j < toks.length; j++) {
+      const lag = toks[j].t0 - a.t0;
+      if (lag > 0.25) break;
+      const bF = toks[j].family;
+      if (bF === a.family) continue;
+      const key = idx[a.family] * n + idx[bF];
+      counts[key]++;
+      if (!firsts[key]) firsts[key] = [];
+      if (firsts[key].length < 3) firsts[key].push(a.t0);
+    }
+  }
+  let mx = 0;
+  for (let k = 0; k < counts.length; k++) if (counts[k] > mx) mx = counts[k];
+  if (!mx) return;
+  const { rows } = laneLayout();
+  const p = panel(b, "call and response · row triggers column within 250 ms");
+  const CELL = 16, LB = 34;
+  const side = LB + n * CELL + 4;
+  const c = el("canvas", "matrix-canvas");
+  c.style.width = side + "px";
+  c.style.height = side + "px";
+  p.appendChild(c);
+  renders.push(() => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = Math.round(side * dpr);
+    c.height = Math.round(side * dpr);
+    const ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ids.forEach((f, i) => {
+      const r = rows[f];
+      ctx.fillStyle = famColor(f, r.idx, r.nfam, 1);
+      ctx.font = "8px " + MONO;
+      ctx.fillText(f, 2, LB + i * CELL + CELL - 4);
+      ctx.save();
+      ctx.translate(LB + i * CELL + CELL - 4, LB - 4);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(f, 0, 0);
+      ctx.restore();
+    });
+    for (let a = 0; a < n; a++) {
+      for (let bx = 0; bx < n; bx++) {
+        const v = counts[a * n + bx] / mx;
+        ctx.fillStyle = v > 0 ? timeCss(0.16 + v * 0.74, 0.2 + 0.8 * v) : "rgba(139,148,158,0.05)";
+        ctx.fillRect(LB + bx * CELL, LB + a * CELL, CELL - 1, CELL - 1);
+      }
+    }
+  });
+  const pairs = [];
+  for (let k = 0; k < counts.length; k++) if (counts[k] > 0) pairs.push([counts[k], k]);
+  pairs.sort((x, y2) => y2[0] - x[0]);
+  const list = el("div", "glist");
+  p.appendChild(list);
+  for (const [cnt, k] of pairs.slice(0, 10)) {
+    const a = ids[Math.floor(k / n)], bF = ids[k % n];
+    const item = el("span", "gitem");
+    item.appendChild(el("b", "gtok", esc(a) + " → " + esc(bF)));
+    item.appendChild(el("span", "garrow", "×" + cnt));
+    for (const t of (firsts[k] || []).slice(0, 2)) {
+      const btn = el("button", "gseek", fmtTime(t));
+      btn.addEventListener("click", () => { seek(t); if (!state.playing) setPlaying(true); });
+      item.appendChild(btn);
+    }
+    list.appendChild(item);
+  }
 }
 
 function moodLabel(k) {
@@ -1029,41 +1391,6 @@ function buildFeeling() {
     for (const cell of moodCells) drawMood(cell, i);
   });
 
-  const p3 = panel(b, "what the model saw · the leading scene phrase along the song");
-  const river = el("div", "river");
-  p3.appendChild(river);
-  registerTA(river);
-  const scenes = EMO.scenes || [];
-  const spans = [];
-  for (const sc of scenes) {
-    const phrase = sc.top && sc.top[0] ? sceneText(sc.top[0][0] != null ? sc.top[0][0] : sc.top[0]) : "";
-    const last = spans[spans.length - 1];
-    if (last && last.phrase === phrase) last.end = sc.t + hop;
-    else spans.push({ phrase, start: Math.max(0, sc.t - hop / 2), end: sc.t + hop });
-  }
-  const spanEls = [];
-  spans.forEach((sp, i) => {
-    const frac = (sp.end - sp.start) / state.duration;
-    const d = el("div", "rspan lane" + (i % 2 + 1) + (frac < 0.012 ? " tiny" : ""));
-    d.style.left = (sp.start / state.duration * 100) + "%";
-    d.style.width = (Math.max(0.5, frac * 100)) + "%";
-    d.textContent = sp.phrase;
-    d.title = sp.phrase + " · " + fmtTime(sp.start);
-    river.appendChild(d);
-    spanEls.push({ el: d, sp });
-  });
-  let liveSpan = -1;
-  subs.push(t => {
-    let idx = -1;
-    for (let i = 0; i < spanEls.length; i++) {
-      if (t >= spanEls[i].sp.start && t < spanEls[i].sp.end) { idx = i; break; }
-    }
-    if (idx !== liveSpan) {
-      if (liveSpan >= 0) spanEls[liveSpan].el.classList.remove("live");
-      if (idx >= 0) spanEls[idx].el.classList.add("live");
-      liveSpan = idx;
-    }
-  });
 }
 
 function buildChaos() {
@@ -1189,7 +1516,7 @@ function laneLayout() {
   return { rows, height: y };
 }
 
-function drawLanes(c, hCss, t0, t1) {
+function drawLanes(c, hCss, t0, t1, opts) {
   const { rows, height } = laneLayout();
   const rowH = (hCss - 14) / height;
   const beats = (D.beats && D.beats.times) || [];
@@ -1220,15 +1547,17 @@ function drawLanes(c, hCss, t0, t1) {
       const pw = Math.max(x(tok.t1) - px0, 1.5);
       ctx.fillRect(px0, 6 + r.y * rowH - off, pw, Math.max(rowH * 0.8, 2));
     }
-    ctx.save();
-    ctx.shadowColor = "rgba(0,0,0,0.9)";
-    ctx.shadowBlur = 3;
-    for (const fid in rows) {
-      const r = rows[fid];
-      text(ctx, fid + " (" + r.dev.n + ")", 4, 6 + r.y * rowH + rowH * 0.65,
-        { size: 9, color: STREAM_HUES[fid[0]] });
+    if (!opts || opts.labels !== false) {
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.9)";
+      ctx.shadowBlur = 3;
+      for (const fid in rows) {
+        const r = rows[fid];
+        text(ctx, fid + " (" + r.dev.n + ")", 4, 6 + r.y * rowH + rowH * 0.65,
+          { size: 9, color: STREAM_HUES[fid[0]] });
+      }
+      ctx.restore();
     }
-    ctx.restore();
   });
 }
 
@@ -1265,7 +1594,17 @@ function buildDeviceLanes(b) {
   inner.appendChild(c2);
   const loopMark = el("div", "loopmark");
   inner.appendChild(loopMark);
-  drawLanes(c2, hCss, 0, state.duration);
+  const labWrap = el("div", "lane-labels");
+  const ll = laneLayout();
+  const rowH2 = (hCss - 14) / ll.height;
+  for (const fid in ll.rows) {
+    const sp = el("span", null, esc(fid));
+    sp.style.top = (6 + ll.rows[fid].y * rowH2) + "px";
+    sp.style.color = STREAM_HUES[fid[0]];
+    labWrap.appendChild(sp);
+  }
+  inner.insertBefore(labWrap, c2);
+  drawLanes(c2, hCss, 0, state.duration, { labels: false });
   const beatDur = D.beats && D.beats.bpm ? 60 / D.beats.bpm : 0.42;
   inner.addEventListener("pointerdown", ev => {
     if (!loopState.on || ev.button !== 0) return;
@@ -1460,7 +1799,9 @@ function buildGrammar() {
   }
 
   buildDeviceLanes(b);
+  buildNicheMap(b);
   buildDeviceCards(b);
+  buildInteractionMatrix(b);
   buildOperatorLanes(b);
   buildCompounds(b);
   buildPairs(b);
@@ -1501,7 +1842,7 @@ async function boot() {
   $("essay").hidden = false;
 
   buildHero();
-  buildWave();
+  buildPump();
   buildSpectrum();
   buildHarmony();
   buildRhythm();
