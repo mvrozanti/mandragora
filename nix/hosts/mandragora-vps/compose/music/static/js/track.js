@@ -18,7 +18,7 @@ const registry = [];
 const subs = [];
 const renders = [];
 let lastTick = -1;
-let D = null, META = null, EMO = null;
+let D = null, META = null, EMO = null, GRAMMAR = null, LLM = null, CLAPW = null;
 const playBtns = [];
 
 function esc(s) {
@@ -1101,16 +1101,386 @@ function buildChaos() {
   });
 }
 
+function opColor(name) {
+  const MAP = {
+    repeat: CAT[6],
+    transpose: CAT[0],
+    dilate: CAT[1],
+    echo: CAT[7],
+    fragment: CAT[4],
+    ornament: CAT[5],
+    accel_run: CAT[3],
+    climb: CAT[1],
+    rupture: CAT[2],
+  };
+  return MAP[name] || TOK.muted;
+}
+
+function grammarBars(parent, label, rows, legend, caption) {
+  const p = panel(parent, label);
+  if (legend) p.appendChild(legendRow(legend));
+  const g = el("div", "gbars");
+  const labCol = el("div", "glabel-col");
+  const tracks = el("div", "gtracks");
+  g.appendChild(labCol);
+  g.appendChild(tracks);
+  p.appendChild(g);
+  registerTA(tracks);
+  const lanes = [];
+  for (const row of rows) {
+    labCol.appendChild(el("span", "glabel", esc(row.label)));
+    const spans = el("div", "gspans");
+    spans.style.setProperty("--c", row.color);
+    for (const s of row.spans) {
+      const b = el("span", "gspan");
+      b.style.left = (s.t0 / state.duration * 100) + "%";
+      const w = (s.t1 - s.t0) / state.duration * 100;
+      b.style.width = Math.max(0.1, w) + "%";
+      if (s.t1 - s.t0 < 1.5) b.classList.add("pt");
+      b.title = s.title;
+      spans.appendChild(b);
+    }
+    tracks.appendChild(spans);
+    lanes.push(spans);
+  }
+  if (caption) p.appendChild(el("p", "caption", caption));
+  subs.push(t => {
+    for (let i = 0; i < rows.length; i++) {
+      lanes[i].classList.toggle("live", rows[i].spans.some(s => t >= s.t0 && t < s.t1));
+    }
+  });
+  return p;
+}
+
+function parseMoment(str) {
+  const m = String(str).match(/(\d+):(\d+)/);
+  return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : null;
+}
+
+const STREAM_HUES = { K: "#fb7185", S: "#fbbf24", H: "#a3e635", B: "#38bdf8", L: "#34d399", P: "#c084fc" };
+const STREAM_ORDER = ["P", "H", "L", "S", "K", "B"];
+const loopState = { on: false, t0: 0, t1: 0 };
+
+function hexRgb(hex) {
+  return [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+}
+
+function famColor(fid, idx, nfam, alpha) {
+  const [r, g, b] = hexRgb(STREAM_HUES[fid[0]]);
+  const f = 1 - 0.45 * (idx / Math.max(nfam - 1, 1));
+  return "rgba(" + Math.round(r * f) + "," + Math.round(g * f) + "," +
+    Math.round(b * f) + "," + alpha.toFixed(3) + ")";
+}
+
+function laneLayout() {
+  const byStream = {};
+  for (const d of GRAMMAR.devices) {
+    (byStream[d.id[0]] = byStream[d.id[0]] || []).push(d);
+  }
+  const rows = {};
+  let y = 0;
+  for (const sid of STREAM_ORDER) {
+    const fams = byStream[sid] || [];
+    fams.forEach((d, i) => {
+      rows[d.id] = { y: y++, idx: i, nfam: fams.length, dev: d };
+    });
+    if (fams.length) y += 0.6;
+  }
+  return { rows, height: y };
+}
+
+function drawLanes(c, hCss, t0, t1) {
+  const { rows, height } = laneLayout();
+  const rowH = (hCss - 14) / height;
+  const beats = (D.beats && D.beats.times) || [];
+  renders.push(() => {
+    const { ctx, w } = prepCanvas(c, hCss);
+    const x = t => (t - t0) / (t1 - t0) * w;
+    const secW = w / (t1 - t0);
+    if (secW > 12) {
+      for (let i = 0; i < beats.length; i++) {
+        const bt = beats[i];
+        if (bt < t0 || bt > t1) continue;
+        ctx.fillStyle = i % 4 === 0 ? "rgba(139,148,158,0.18)" : "rgba(139,148,158,0.07)";
+        ctx.fillRect(x(bt), 0, 1, hCss);
+      }
+    }
+    for (const tok of GRAMMAR.tokens) {
+      if (!tok.family || tok.t1 < t0 || tok.t0 > t1) continue;
+      const r = rows[tok.family];
+      if (!r) continue;
+      const pb = r.dev.pitch_bin;
+      const rng = Math.max(pb.max - pb.min, 1);
+      const off = "BLP".includes(tok.family[0])
+        ? ((tok.pitch_bin - pb.min) / rng - 0.5) * 0.5 * rowH
+        : 0;
+      const alpha = 0.25 + 0.75 * clamp((tok.peak_db + 45) / 45, 0.05, 1);
+      ctx.fillStyle = famColor(tok.family, r.idx, r.nfam, alpha);
+      const px0 = x(tok.t0);
+      const pw = Math.max(x(tok.t1) - px0, 1.5);
+      ctx.fillRect(px0, 6 + r.y * rowH - off, pw, Math.max(rowH * 0.8, 2));
+    }
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.9)";
+    ctx.shadowBlur = 3;
+    for (const fid in rows) {
+      const r = rows[fid];
+      text(ctx, fid + " (" + r.dev.n + ")", 4, 6 + r.y * rowH + rowH * 0.65,
+        { size: 9, color: STREAM_HUES[fid[0]] });
+    }
+    ctx.restore();
+  });
+}
+
+function buildDeviceLanes(b) {
+  const g = GRAMMAR;
+  const legend = g.streams.map(s => [s.id + " · " + s.name, STREAM_HUES[s.id]]);
+  const { height } = laneLayout();
+  const hCss = Math.max(180, Math.round(height * 13) + 14);
+  const c1 = canvasBlock(b, hCss,
+    { label: "device lanes · " + g.n_families + " families over " +
+      g.n_gestures + " sound events", legend });
+  drawLanes(c1, hCss, 0, state.duration);
+  c1.parentElement.parentElement.parentElement.appendChild(
+    el("p", "caption", "every mark is one gesture in one source lane · " +
+      "vertical offset inside harmonic lanes is pitch · opacity is loudness · " +
+      "0:00 — " + fmtTime(state.duration)));
+
+  const p = panel(b, "device lanes · detail (scroll, click to hear)");
+  const loopBtn = el("button", "fit-toggle mono", "loop: off");
+  loopBtn.addEventListener("click", () => {
+    loopState.on = !loopState.on;
+    if (!loopState.on) loopState.t1 = 0;
+    loopBtn.textContent = loopState.on ? "loop: 8 beats" : "loop: off";
+    loopBtn.classList.toggle("active", loopState.on);
+  });
+  p.querySelector(".plabel").appendChild(loopBtn);
+  const inner = taBlock(p, {});
+  const c2 = el("canvas");
+  const pxPerS = 24;
+  const wide = Math.min(Math.round(state.duration * pxPerS), 16000);
+  c2.style.width = wide + "px";
+  c2.style.height = hCss + "px";
+  inner.style.width = wide + "px";
+  inner.appendChild(c2);
+  const loopMark = el("div", "loopmark");
+  inner.appendChild(loopMark);
+  drawLanes(c2, hCss, 0, state.duration);
+  const beatDur = D.beats && D.beats.bpm ? 60 / D.beats.bpm : 0.42;
+  inner.addEventListener("pointerdown", ev => {
+    if (!loopState.on || ev.button !== 0) return;
+    const r = inner.getBoundingClientRect();
+    const f = clamp((ev.clientX - r.left) / r.width, 0, 1);
+    loopState.t0 = f * state.duration;
+    loopState.t1 = loopState.t0 + 8 * beatDur;
+    loopMark.style.left = (f * 100) + "%";
+    loopMark.style.width = (8 * beatDur / state.duration * 100) + "%";
+    loopMark.style.opacity = "1";
+  });
+  subs.push(t => {
+    if (loopState.on && loopState.t1 && t > loopState.t1) seek(loopState.t0);
+    if (!loopState.on) loopMark.style.opacity = "0";
+  });
+  p.appendChild(el("p", "caption",
+    "24 px/s · beat grid behind the marks · toggle loop, then click a spot to cycle 8 beats"));
+}
+
+function buildDeviceCards(b) {
+  const llmArt = {};
+  for (const a of (LLM && LLM.artifacts) || []) llmArt[a.id] = a;
+  const clapDev = (CLAPW && CLAPW.devices) || {};
+  const cp = panel(b, "device inventory · what each family is");
+  const cards = el("div", "gcards");
+  cp.appendChild(cards);
+  const { rows } = laneLayout();
+  for (const d of GRAMMAR.devices) {
+    const r = rows[d.id];
+    const l = llmArt[d.id];
+    const card = el("div", "gcard");
+    card.style.setProperty("--c", famColor(d.id, r.idx, r.nfam, 1));
+    const head = el("div", "ghead");
+    head.appendChild(el("span", "galias", esc(l && l.alias ? l.alias : d.stream + " device")));
+    head.appendChild(el("span", "gid mono", esc(d.id)));
+    card.appendChild(head);
+    if (l && l.description) card.appendChild(el("p", "gdesc", esc(l.description)));
+    const props = el("div", "gprops");
+    props.appendChild(el("span", "gprop", "<i>events</i> " + d.n));
+    props.appendChild(el("span", "gprop", "<i>dur</i> " + d.dur_s.min.toFixed(2) + "-" + d.dur_s.max.toFixed(2) + "s"));
+    props.appendChild(el("span", "gprop", "<i>register</i> " + fmtHz(d.register_hz.min) + "-" + fmtHz(d.register_hz.max)));
+    props.appendChild(el("span", "gprop", "<i>peak</i> " + d.peak_db.med.toFixed(0) + " dB"));
+    card.appendChild(props);
+    const clap = clapDev[d.id];
+    if (clap && clap.top && clap.top.length) {
+      card.appendChild(el("p", "gkeep", "<i>machine hears</i> " +
+        clap.top.slice(0, 3).map(x => esc(x[0])).join(" · ")));
+    }
+    if (l && l.invariant) card.appendChild(el("p", "gkeep", "<i>invariant</i> " + esc(l.invariant)));
+    if (l && l.variable) card.appendChild(el("p", "gkeep", "<i>variable</i> " + esc(l.variable)));
+    const exes = el("div", "gprops");
+    d.exemplars.forEach((ex, i) => {
+      const btn = el("button", "gseek", "hear " + (i + 1) + " · " + fmtTime(ex.t0));
+      btn.addEventListener("click", () => {
+        if (loopState.on) {
+          loopState.t0 = Math.max(ex.t0 - 0.1, 0);
+          loopState.t1 = ex.t1 + 1.5;
+        }
+        seek(Math.max(ex.t0 - 0.1, 0));
+        if (!state.playing) setPlaying(true);
+      });
+      exes.appendChild(btn);
+    });
+    card.appendChild(exes);
+    cards.appendChild(card);
+  }
+}
+
+function buildOperatorLanes(b) {
+  const ops = GRAMMAR.operators || {};
+  const names = Object.keys(ops).filter(n => ops[n].count > 0);
+  if (!names.length) return;
+  const total = names.reduce((s, n) => s + ops[n].count, 0);
+  const rows = names.map(n => ({
+    label: n + " ×" + ops[n].count,
+    color: opColor(n),
+    spans: ops[n].instances.map(o => ({
+      t0: o.t0,
+      t1: Math.max(o.t1 != null ? o.t1 : o.t0, o.t0 + 0.1),
+      title: n + " · " + fmtTime(o.t0) +
+        (o.family ? " · " + o.family : "") +
+        (o.semitones != null ? " · " + (o.semitones > 0 ? "+" : "") + o.semitones + " st" : "") +
+        (o.ratio != null ? " · ×" + o.ratio : "") +
+        (o.n != null ? " · n=" + o.n : "") +
+        (o.drop_db != null ? " · -" + o.drop_db + " dB" : ""),
+    })),
+  }));
+  grammarBars(b, "transformations · " + total + " operator instances (sampled lanes)", rows,
+    names.map(n => [n, opColor(n)]),
+    "each lane shows up to 40 sampled instances · 0:00 — " + fmtTime(state.duration));
+
+  if (LLM && LLM.operators && LLM.operators.length) {
+    const cp = panel(b, "operator effects · input → output");
+    const cards = el("div", "gcards");
+    cp.appendChild(cards);
+    for (const o of LLM.operators) {
+      const card = el("div", "gcard");
+      card.style.setProperty("--c", opColor(o.name));
+      const head = el("div", "ghead");
+      head.appendChild(el("span", "galias", esc(o.name)));
+      head.appendChild(el("span", "gid mono", o.preserves_identity ? "preserves identity" : "changes identity"));
+      card.appendChild(head);
+      card.appendChild(el("p", "gdesc", esc(o.input) + " → " + esc(o.output)));
+      if (o.effect) card.appendChild(el("p", "gkeep", "<i>effect</i> " + esc(o.effect)));
+      cards.appendChild(card);
+    }
+  }
+}
+
+function buildCompounds(b) {
+  const comps = GRAMMAR.compounds || [];
+  if (!comps.length) return;
+  const p = panel(b, "compounds · recurring multi-device phrases");
+  const list = el("div", "glist");
+  p.appendChild(list);
+  for (const c of comps.slice(0, 16)) {
+    const item = el("span", "gitem");
+    item.appendChild(el("b", "gtok", esc(c.pattern.join(" → "))));
+    item.appendChild(el("span", "garrow", "×" + c.count));
+    c.at.slice(0, 4).forEach(t => {
+      const btn = el("button", "gseek", fmtTime(t));
+      btn.addEventListener("click", () => { seek(t); if (!state.playing) setPlaying(true); });
+      item.appendChild(btn);
+    });
+    list.appendChild(item);
+  }
+}
+
+function buildPairs(b) {
+  const ss = GRAMMAR.self_similarity || [];
+  if (!ss.length) return;
+  const p = panel(b, "long-range self-similarity · the same gesture, far apart");
+  const list = el("div", "glist");
+  p.appendChild(list);
+  for (const t of ss.slice(0, 18)) {
+    const item = el("span", "gitem");
+    const a = el("button", "gseek", fmtTime(t.a_t0));
+    a.addEventListener("click", () => { seek(t.a_t0); if (!state.playing) setPlaying(true); });
+    const d = el("button", "gseek", fmtTime(t.b_t0));
+    d.addEventListener("click", () => { seek(t.b_t0); if (!state.playing) setPlaying(true); });
+    item.appendChild(a);
+    item.appendChild(el("span", "garrow", "→"));
+    item.appendChild(el("span", "gtok dim",
+      esc(t.kind + (t.kind === "transpose" ? " " + (t.semitones > 0 ? "+" : "") + t.semitones + " st"
+        : (t.kind === "dilate" ? " ×" + t.dur_ratio : "")))));
+    item.appendChild(el("span", "garrow", "→"));
+    item.appendChild(d);
+    item.appendChild(el("b", "gtok", esc(t.family_a)));
+    list.appendChild(item);
+  }
+}
+
+function buildGrammarText(b) {
+  const g = LLM.grammar;
+  const p = panel(b, "generative grammar · bnf");
+  if (g.start) {
+    p.appendChild(el("p", "gkeep", "<i>start</i> <span class=\"gtok\">" + esc(g.start) + "</span>"));
+  }
+  const pre = el("pre", "bnf");
+  pre.textContent = g.rules.join("\n");
+  p.appendChild(pre);
+}
+
+function buildDerivations(b) {
+  const p = panel(b, "derivations · click a moment to hear it");
+  const steps = el("div", "gsteps");
+  p.appendChild(steps);
+  for (const d of LLM.derivations) {
+    const card = el("div", "gstep");
+    const sec = parseMoment(d.moment);
+    const tag = sec != null
+      ? el("button", "gseek", esc(d.moment))
+      : el("span", "gseek", esc(d.moment));
+    if (sec != null) tag.addEventListener("click", () => seek(sec));
+    card.appendChild(tag);
+    const ol = el("ol", "gsteplist");
+    for (const s of d.steps) ol.appendChild(el("li", null, esc(s)));
+    card.appendChild(ol);
+    steps.appendChild(card);
+  }
+}
+
+function buildGrammar() {
+  const b = $("b11");
+
+  if (LLM && LLM.hypothesis) {
+    const p = panel(b, "executive hypothesis · the latent generative device");
+    p.appendChild(el("p", "gprose", esc(LLM.hypothesis)));
+    if (LLM.identity_invariants) {
+      p.appendChild(el("p", "gkeep", "<i>identity invariants</i> " + esc(LLM.identity_invariants)));
+    }
+  }
+
+  buildDeviceLanes(b);
+  buildDeviceCards(b);
+  buildOperatorLanes(b);
+  buildCompounds(b);
+  buildPairs(b);
+  if (LLM && LLM.grammar && LLM.grammar.rules && LLM.grammar.rules.length) buildGrammarText(b);
+  if (LLM && LLM.derivations && LLM.derivations.length) buildDerivations(b);
+}
+
 async function boot() {
-  let data, mf, emo;
+  let data, mf, emo, grammar, llm, clapw;
   try {
-    [mf, data, emo] = await Promise.all([
+    [mf, data, emo, grammar, llm, clapw] = await Promise.all([
       fetch("tracks/manifest.json").then(r => r.ok ? r.json() : null).catch(() => null),
       fetch(base + "data.json").then(r => {
         if (!r.ok) throw new Error(String(r.status));
         return r.json();
       }),
       fetch(base + "emotion.json").then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch(base + "grammar.json").then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch(base + "grammar_llm.json").then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch(base + "grammar_clap.json").then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
   } catch (e) {
     $("status").textContent = "this track could not be read";
@@ -1118,6 +1488,9 @@ async function boot() {
   }
   D = data;
   EMO = emo && emo.times && emo.times.length ? emo : null;
+  GRAMMAR = grammar && grammar.schema === 2 && grammar.devices?.length ? grammar : null;
+  CLAPW = clapw && clapw.devices ? clapw : null;
+  LLM = llm && (llm.hypothesis || llm.artifacts?.length || llm.grammar?.rules?.length) ? llm : null;
   META = ((mf && mf.tracks) || []).find(t => t.slug === slug) || fallbackMeta();
   state.duration = D.duration || META.duration || 1;
 
@@ -1138,6 +1511,8 @@ async function boot() {
   if (EMO) buildFeeling();
   else $("ch9").remove();
   buildChaos();
+  if (GRAMMAR) buildGrammar();
+  else $("ch11").remove();
   buildToc();
 
   for (const r of renders) r();
