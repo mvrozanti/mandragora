@@ -284,7 +284,9 @@ panel
   .slider('audioChannels', 'Bands → channels', 0, 2, 0.01)
   .slider('audioSpawn', 'Onset → creatures', 0, 1, 0.01)
   .slider('audioNutrient', 'Spectrum → nutrient', 0, 2, 0.01)
-  .slider('audioStarve', 'Silence → starvation', 0, 1, 0.01);
+  .slider('audioStarve', 'Silence → starvation', 0, 1, 0.01)
+  .slider('targetDensity', 'Target density', 0.05, 0.5, 0.01)
+  .slider('densityGain', 'Density hold', 0, 2, 0.01);
 
 const audioStatus = document.getElementById('audio-status');
 const audioMeter = document.getElementById('audio-meter');
@@ -497,6 +499,22 @@ function applyAudio(dtSeconds) {
   drawBandMeter(audioMeter, mpd.bands, level, accent(), mpd.live && mpd.playing);
 }
 
+let regulatorCountdown = 12;
+
+function densityRegulator() {
+  if (--regulatorCountdown > 0) return;
+  regulatorCountdown = 12;
+  if (params.channels() <= 3 || params.densityGain <= 0) { params.mod.density = 0; return; }
+  const reduced = engine.reduce();
+  let sum = 0;
+  const n = reduced.length / 4;
+  for (let i = 0; i < n; i++) sum += reduced[i * 4];
+  const mass = sum / n;
+  const error = params.targetDensity - mass;
+  const wanted = Math.max(-0.35, Math.min(0.35, error * params.densityGain));
+  params.mod.density += (wanted - params.mod.density) * 0.35;
+}
+
 let homeostatCountdown = 60;
 
 function homeostat() {
@@ -539,6 +557,7 @@ function frame(now) {
 
   engine.resizeView();
   applyAudio(dt / 1000);
+  densityRegulator();
   homeostat();
   if (params.running && params.stepsPerFrame > 0) engine.step(params.stepsPerFrame);
   engine.draw(now / 1000);

@@ -19,6 +19,7 @@ uniform float uDt;
 uniform float uTrailDecay;
 uniform float uNutrientAmount;
 uniform float uStarve;
+uniform float uDensityBias;
 uniform float uChannelDrive[NCH];
 
 //__OUTPUTS__
@@ -73,7 +74,7 @@ void main() {
   for (int c = 0; c < NCH; c++) {
     float base = prev[c / 4][c % 4];
     float shaped = (food[c / 4][c % 4] - meanFood) * uNutrientAmount;
-    float audio = (shaped + uChannelDrive[c] - uStarve) * tissue;
+    float audio = (shaped + uChannelDrive[c] - uStarve + uDensityBias) * tissue;
     float v = clamp(base + uDt * (delta[c] + audio), 0.0, 1.0);
     next[c] = v;
     nextPeak = max(nextPeak, v);
