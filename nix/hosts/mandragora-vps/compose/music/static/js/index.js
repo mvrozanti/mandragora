@@ -7,9 +7,6 @@ function esc(s) {
   return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 }
 
-function sceneText(s) {
-  return Array.isArray(s) ? s[0] : s;
-}
 
 function valGlyph(v) {
   if (v == null || !isFinite(v)) return "·";
@@ -22,14 +19,12 @@ function tile(tr) {
   const a = document.createElement("a");
   a.className = "tile";
   a.href = "track.html?t=" + encodeURIComponent(tr.slug);
-  const scenes = (tr.scenes || []).map(sceneText).join(" · ");
   const bpm = tr.bpm ? Math.round(tr.bpm * 10) / 10 : null;
   a.innerHTML =
     '<span class="tdisc"><img src="' + esc(tr.cover || "") + '" alt="" loading="lazy" decoding="async"></span>' +
     '<span class="tmeta">' +
     '<span class="tartist">' + esc(tr.artist || "") + "</span>" +
     '<span class="ttitle">' + esc(tr.title || tr.slug) + "</span>" +
-    (scenes ? '<span class="tscenes">' + esc(scenes) + "</span>" : "") +
     '<span class="chips">' +
     (bpm ? '<span class="chip"><b>' + bpm + "</b><i>bpm</i></span>" : "") +
     (tr.key ? '<span class="chip"><b>' + esc(tr.key) + "</b></span>" : "") +
