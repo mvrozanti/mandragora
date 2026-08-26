@@ -1,4 +1,4 @@
-export const BAND_COUNT = 8;
+export const BAND_COUNT = 32;
 
 export class MpdLink {
   constructor() {
@@ -83,6 +83,30 @@ export class MpdLink {
     this.source.addEventListener('error', () => {
       this.error = 'stream interrupted';
     });
+  }
+
+  buckets(n) {
+    if (!this._buckets || this._buckets.length !== n) this._buckets = new Float32Array(n);
+    const src = this.bands;
+    const len = src.length;
+    if (!len || n <= 0) return this._buckets;
+    for (let i = 0; i < n; i++) {
+      const lo = Math.floor((i * len) / n);
+      const hi = Math.max(lo + 1, Math.floor(((i + 1) * len) / n));
+      let peak = 0;
+      for (let j = lo; j < hi && j < len; j++) if (src[j] > peak) peak = src[j];
+      this._buckets[i] = peak;
+    }
+    return this._buckets;
+  }
+
+  slice(from, to) {
+    const src = this.bands;
+    const lo = Math.floor(from * src.length);
+    const hi = Math.max(lo + 1, Math.floor(to * src.length));
+    let peak = 0;
+    for (let j = lo; j < hi && j < src.length; j++) if (src[j] > peak) peak = src[j];
+    return peak;
   }
 
   get trackKey() {
