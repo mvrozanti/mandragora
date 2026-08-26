@@ -28,6 +28,8 @@ bind L forward
 " ── Tabs ─────────────────────────────────────────────────────────────────────
 bind J tabnext
 bind K tabprev
+bind W tabprev
+bind S tabnext
 bind t tabnew
 bind x tabclose
 bind D tabduplicate
