@@ -4,7 +4,7 @@ import { ControlPanel, drawKernelProfile, drawGrowthProfile, drawBandMeter } fro
 import { PRESETS, CLASSIC, DISCOVERED, SPECTRAL, PALETTES, GRID_SIZES, DEFAULTS, ART_PALETTE } from './presets.js';
 import { kernelProfile } from './kernel.js';
 import { createParams } from './params.js';
-import { randomSpecies, mutateSpecies, speciesForTrack, hashString, spectralSpecies } from './species.js';
+import { randomSpecies, mutateSpecies, speciesForTrack, hashString, spectralSpecies, spectralAtWidth } from './species.js';
 import { paletteFromImage, paletteFromSeed } from './artwork.js';
 import { MpdLink } from './audio.js';
 
@@ -76,6 +76,8 @@ const engine = new LeniaEngine(canvas, params);
 
 function adoptSpecies(species) {
   params.adopt(species);
+  params.bands = species.channels;
+  panel.sync('bands');
   presetNote.textContent = species.note;
   document.body.dataset.channels = String(species.channels);
   speciesName.textContent = species.name;
@@ -128,6 +130,18 @@ function handleChange(key, value, options) {
     if (key === 'clear') engine.clear();
     if (key === 'resetView') { engine.zoom = 1; engine.pan.x = 0; engine.pan.y = 0; }
     if (key === 'snapshot') snapshot();
+    if (key === 'buildBands') {
+      const n = Math.max(2, Math.min(16, Math.round(params.bands)));
+      if (params.mode !== 2) {
+        params.mode = 2;
+        panel.repopulate('preset', speciesItems());
+        document.getElementById('mode-note').textContent = MODES[2].note;
+        document.body.dataset.mode = 'spectral';
+        panel.sync('mode');
+      }
+      adoptSpecies(spectralAtWidth(n));
+      return;
+    }
     if (key === 'savePatch') {
       const suggested = `${params.species.name} ${new Date().toISOString().slice(11, 16)}`;
       const name = (typeof prompt === 'function' ? prompt('Patch name', suggested) : suggested) || suggested;
@@ -202,6 +216,8 @@ panel
   .group('Lab', 'Pick a rule family, then a species inside it. Patches remember everything below.')
   .choice('mode', 'Mode', MODES.map((m, i) => ({ label: m.name, value: i })))
   .readout('mode-note', MODES[0].note)
+  .slider('bands', 'Bands = channels', 2, 16, 1)
+  .actions([{ label: 'Build at this width', key: 'buildBands', hint: 'one channel per frequency bucket' }])
   .choice('patch', 'Patch', [{ label: '— none —', value: '' }])
   .actions([
     { label: 'Save', key: 'savePatch', hint: 'store the whole current setup' },
@@ -393,24 +409,18 @@ function updateHud(force) {
 const NUTRIENT_SIZE = 64;
 let nutrientField = new Float32Array(0);
 
-function bandFor(channel, channels, bandCount) {
-  if (channels === 1) return Math.floor(bandCount / 2);
-  const t = channel / (channels - 1);
-  return Math.min(bandCount - 1, Math.round(t * (bandCount - 1)));
-}
-
 function channelRing(channel, channels) {
   return channels === 1 ? 0.45 : 0.12 + 0.76 * (channel / (channels - 1));
 }
 
-function buildNutrient(bands, channels) {
+function buildNutrient(buckets, channels) {
   const need = NUTRIENT_SIZE * NUTRIENT_SIZE * channels;
   if (nutrientField.length !== need) nutrientField = new Float32Array(need);
   nutrientField.fill(0);
   const sigma = channels > 4 ? 0.07 : 0.11;
   const inv = 1 / (2 * sigma * sigma);
   for (let c = 0; c < channels; c++) {
-    const energy = bands[bandFor(c, channels, bands.length)];
+    const energy = buckets[c];
     if (energy < 0.02) continue;
     const ring = channelRing(c, channels);
     for (let y = 0; y < NUTRIENT_SIZE; y++) {
@@ -425,12 +435,10 @@ function buildNutrient(bands, channels) {
   return nutrientField;
 }
 
-function spawnCreature(bands) {
+function spawnCreature(buckets) {
   const channels = params.channels();
-  let band = 0;
-  for (let b = 1; b < bands.length; b++) if (bands[b] > bands[band]) band = b;
-  const channel = channels === 1 ? 0
-    : Math.min(channels - 1, Math.round((band / (bands.length - 1)) * (channels - 1)));
+  let channel = 0;
+  for (let c = 1; c < buckets.length; c++) if (buckets[c] > buckets[channel]) channel = c;
   const angle = Math.random() * Math.PI * 2;
   const fieldRadius = channelRing(channel, channels) * engine.size * 0.5;
   const centre = {
@@ -442,7 +450,7 @@ function spawnCreature(bands) {
     const spread = Math.exp(-Math.pow((c - channel) / 1.2, 2));
     mix[c] = 0.25 + 0.75 * spread;
   }
-  const scale = channels > 4 ? 0.85 : 1.05 - band * 0.02;
+  const scale = channels > 4 ? 0.85 : 1.05 - channel * 0.02;
   engine.spawnSeed(centre, scale, Math.min(1, params.audioSpawn * 1.5), mix);
 }
 
@@ -451,10 +459,11 @@ function applyAudio(dtSeconds) {
   const fired = mpd.advance(Math.min(dtSeconds, 0.25));
   const drive = params.audioDrive;
   const b = mpd.bands;
-  const n = b.length;
-  const bass = Math.max(b[0], b[1] * 0.7);
-  const mid = b[Math.floor(n / 2)];
-  const treble = Math.max(b[n - 1], b[n - 2] * 0.8);
+  const channels = params.channels();
+  const buckets = mpd.buckets(channels);
+  const bass = mpd.slice(0.0, 0.14);
+  const mid = mpd.slice(0.40, 0.62);
+  const treble = mpd.slice(0.80, 1.0);
   const level = mpd.smoothLevel;
 
   const legacy = Math.min(1, 3 / Math.max(1, params.channels()));
@@ -467,15 +476,14 @@ function applyAudio(dtSeconds) {
   params.mod.exposure = 1 + drive * level * 0.22;
 
   const playing = mpd.live && mpd.playing;
-  const channels = params.channels();
   const cd = params.mod.channelDrive;
   if (cd.length !== channels) { cd.length = channels; cd.fill(0); }
   if (playing && channels > 1) {
     let mean = 0;
-    for (let c = 0; c < channels; c++) mean += b[bandFor(c, channels, b.length)];
+    for (let c = 0; c < channels; c++) mean += buckets[c];
     mean /= channels;
     for (let c = 0; c < channels; c++) {
-      cd[c] = params.audioChannels * drive * (b[bandFor(c, channels, b.length)] - mean) * 0.16;
+      cd[c] = params.audioChannels * drive * (buckets[c] - mean) * 0.16;
     }
   } else if (playing) {
     cd[0] = params.audioChannels * drive * (level - 0.4) * 0.06;
@@ -484,9 +492,9 @@ function applyAudio(dtSeconds) {
   }
   params.mod.nutrient = playing ? params.audioNutrient * drive * 0.35 : 0;
   params.mod.starve = playing ? params.audioStarve * drive * Math.max(0, 0.55 - level) * 0.5 : 0;
-  if (playing) engine.setNutrient(buildNutrient(b, channels));
+  if (playing) engine.setNutrient(buildNutrient(buckets, channels));
 
-  if (fired && params.audioSpawn > 0) spawnCreature(b);
+  if (fired && params.audioSpawn > 0) spawnCreature(buckets);
 
   const key = mpd.trackKey;
   if (mpd.live && key && key !== currentTrackKey) {
@@ -496,7 +504,7 @@ function applyAudio(dtSeconds) {
 
   audioStatus.textContent = mpd.describe();
   audioStatus.dataset.live = String(mpd.live && mpd.playing);
-  drawBandMeter(audioMeter, mpd.bands, level, accent(), mpd.live && mpd.playing);
+  drawBandMeter(audioMeter, buckets, level, accent(), mpd.live && mpd.playing);
 }
 
 let regulatorCountdown = 12;
