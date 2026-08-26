@@ -294,6 +294,7 @@ export const GRID_SIZES = [128, 192, 256, 384, 512, 768, 1024];
 export const DEFAULTS = {
   mode: 1,
   patch: '',
+  bands: 8,
   preset: 0,
   size: 512,
   stepsPerFrame: 1,

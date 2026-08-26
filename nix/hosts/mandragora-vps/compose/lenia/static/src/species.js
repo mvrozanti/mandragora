@@ -117,14 +117,18 @@ export function spectralSpecies(channels = 8, options = {}) {
   const R = options.R ?? 14;
   const kernels = [];
 
+  const muBase = options.muBase ?? 0.13;
+  const muSpan = options.muSpan ?? 0.12;
+  const sigBase = options.sigBase ?? 0.014;
+  const sigSpan = options.sigSpan ?? 0.020;
   for (let c = 0; c < channels; c++) {
     const t = channels === 1 ? 0.5 : c / (channels - 1);
     kernels.push({
       src: c, dst: c,
       r: 0.55 + 0.45 * (1 - t),
       b: [1],
-      m: 0.13 + 0.12 * t,
-      s: 0.014 + 0.020 * (1 - t),
+      m: muBase + muSpan * t,
+      s: sigBase + sigSpan * (1 - t),
       h: 1
     });
   }
@@ -154,4 +158,17 @@ export function spectralSpecies(channels = 8, options = {}) {
     note: options.note ?? `${channels} channels, one per frequency band; neighbours excite upward and inhibit downward`,
     channels, R, T: options.T ?? 12, kernels
   };
+}
+
+export const SPECTRAL_BEST = {
+  R: 17, T: 18, drive: 1.1303, coupling: 0.2179, inhibition: 1.3649,
+  muBase: 0.1028, muSpan: 0.1248, sigBase: 0.0248, sigSpan: 0.015
+};
+
+export function spectralAtWidth(channels) {
+  return spectralSpecies(channels, {
+    ...SPECTRAL_BEST,
+    name: `Spectrum ${channels}`,
+    note: `${channels} channels, ${channels} frequency buckets — one band each, no band shared or discarded`
+  });
 }
