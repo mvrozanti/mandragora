@@ -300,6 +300,7 @@ export class LeniaEngine {
     gl.uniform1f(uniforms.uTrailDecay, this.params.trailDecay);
     gl.uniform1f(uniforms.uNutrientAmount, this.params.mod.nutrient);
     gl.uniform1f(uniforms.uStarve, this.params.mod.starve);
+    gl.uniform1f(uniforms.uDensityBias, this.params.mod.density);
     gl.uniform1fv(uniforms.uChannelDrive, this.channelDriveArray());
     this.ensureNutrient(this.shape().layers);
     for (let i = 0; i < count; i++) {
