@@ -1,4 +1,4 @@
-# `vtag.mvr.ac` — runner UI for `vtag` image tagger
+# `meme.mvr.ac` — runner UI for `vtag` image tagger
 
 Authelia-gated reverse proxy for the desktop-side `vtag-server` user service.
 Caddy on the docker-proxy terminates TLS and forward-auths every request
