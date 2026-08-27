@@ -8,7 +8,7 @@ services:
     networks:
       - seafile-net
     labels:
-      caddy: https://vtag.${MVR_AC:-mvr.ac}
+      caddy: https://meme.${MVR_AC:-mvr.ac}
       caddy.0_handle.forward_auth: "authelia:9091"
       caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
       caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"

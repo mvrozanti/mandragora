@@ -14,7 +14,7 @@ in
     enable = lib.mkOption {
       type = lib.types.bool;
       default = false;
-      description = "Enable the vtag.mvr.ac runner web UI (port 8093, user service).";
+      description = "Enable the meme.mvr.ac runner web UI (port 8093, user service).";
     };
     targetDir = lib.mkOption {
       type = lib.types.path;
@@ -28,7 +28,7 @@ in
       default = "127.0.0.1";
       description = ''
         Address vtag-server binds. Defaults to loopback. Set to the host's
-        tailscale IP so the VPS caddy proxy (vtag.mvr.ac) can reach it while
+        tailscale IP so the VPS caddy proxy (meme.mvr.ac) can reach it while
         the tailscale0-only firewall keeps port 8093 off the LAN/public net.
       '';
     };
@@ -39,7 +39,7 @@ in
       port = 8093;
       userService = true;
       systemd = {
-        description = "vtag.mvr.ac — vtag runner web UI";
+        description = "meme.mvr.ac — vtag runner web UI";
         wantedBy = [ "default.target" ];
         after = [ "default.target" ];
         environment = {
