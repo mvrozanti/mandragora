@@ -70,7 +70,7 @@
     {
       "name": "vtag",
       "kind": "authelia-simple",
-      "host": "vtag",
+      "host": "meme",
       "upstream_var": "VTAG_UPSTREAM",
       "upstream_host": "desktop",
       "upstream_port": 8093,
