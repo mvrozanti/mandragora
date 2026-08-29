@@ -14,7 +14,7 @@ let
 in
 {
   services.bitcoind.main = {
-    enable = true;
+    enable = false;
     dataDir = "/persistent/bitcoin";
     prune = 550;
     dbCache = 4000;
@@ -25,12 +25,5 @@ in
     ];
   };
 
-  users.users.m.extraGroups = [ "bitcoind-main" ];
-
   environment.systemPackages = [ bitcoinCli ];
-
-  systemd.services.bitcoind-main = {
-    requires = [ "persistent.mount" ];
-    after = [ "persistent.mount" ];
-  };
 }
