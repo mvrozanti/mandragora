@@ -11,6 +11,8 @@ export class MpdLink {
     this.album = '';
     this.uri = '';
     this.raw = new Array(BAND_COUNT).fill(0);
+    this.timbre = { centroid: 0, spread: 0, flatness: 0, rolloff: 0, flux: 0, crest: 0 };
+    this.smoothTimbre = { ...this.timbre };
     this.bands = new Array(BAND_COUNT).fill(0);
     this.level = 0;
     this.smoothLevel = 0;
@@ -78,6 +80,7 @@ export class MpdLink {
         this.raw = payload.bands;
       }
       this.level = typeof payload.level === 'number' ? payload.level : 0;
+      if (payload.timbre) Object.assign(this.timbre, payload.timbre);
       if (payload.onset) this.onset = 1;
     });
     this.source.addEventListener('error', () => {
@@ -134,6 +137,11 @@ export class MpdLink {
     }
     const target = silent ? 0 : this.level;
     this.smoothLevel = target > this.smoothLevel ? target : this.smoothLevel * release;
+    const follow = 1 - Math.pow(0.12, dt);
+    for (const key of Object.keys(this.smoothTimbre)) {
+      const want = silent ? 0 : this.timbre[key];
+      this.smoothTimbre[key] += (want - this.smoothTimbre[key]) * follow;
+    }
     const fired = this.onset > 0 && !silent;
     this.onset = 0;
     return fired;

@@ -12,6 +12,9 @@ uniform float uRingRadius;
 uniform float uStrength;
 uniform float uSeed;
 uniform int uMode;
+uniform float uPetals;
+uniform float uPetalDepth;
+uniform float uAngle;
 uniform float uChannelMix[NCH];
 
 //__OUTPUTS__
@@ -42,7 +45,13 @@ void main() {
   vec2 p = vec2(ip) + 0.5;
 
   float falloff;
-  if (uMode == 1) {
+  if (uMode == 2) {
+    vec2 dp = wrappedDelta(p, uFrom);
+    float theta = atan(dp.y, dp.x) + uAngle;
+    float rose = uRingRadius * (1.0 + uPetalDepth * cos(uPetals * theta));
+    float d = abs(length(dp) - rose);
+    falloff = smoothstep(uRadius, uRadius * 0.15, d);
+  } else if (uMode == 1) {
     float d = abs(length(wrappedDelta(p, uFrom)) - uRingRadius);
     falloff = smoothstep(uRadius, uRadius * 0.15, d);
   } else {

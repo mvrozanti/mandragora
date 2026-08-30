@@ -327,6 +327,7 @@ export const DEFAULTS = {
   audioSpawn: 0.45,
   audioNutrient: 1.1,
   audioChannels: 0.9,
+  audioTimbre: 1,
   homeostat: true,
   targetDensity: 0.20,
   densityGain: 0.9,

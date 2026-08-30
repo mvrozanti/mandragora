@@ -110,10 +110,14 @@ export class LeniaEngine {
         height: new Float32Array(kernels.length)
       };
     }
+    const morphMu = mod.morphMu;
+    const morphSigma = mod.morphSigma;
     for (let i = 0; i < kernels.length; i++) {
       const k = kernels[i];
-      this.growth.mu[i] = Math.min(0.9, Math.max(0.005, k.m + this.params.muShift + mod.mu));
-      this.growth.sigma[i] = Math.min(0.3, Math.max(0.002, k.s * this.params.sigmaScale));
+      const dMu = morphMu && k.dst < morphMu.length ? morphMu[k.dst] : 0;
+      const xSigma = morphSigma && k.dst < morphSigma.length ? morphSigma[k.dst] : 1;
+      this.growth.mu[i] = Math.min(0.9, Math.max(0.005, k.m + this.params.muShift + mod.mu + dMu));
+      this.growth.sigma[i] = Math.min(0.3, Math.max(0.002, k.s * this.params.sigmaScale * xSigma));
       this.growth.height[i] = k.h * this.params.heightScale * mod.height;
     }
     return this.growth;
@@ -215,7 +219,7 @@ export class LeniaEngine {
     this.generation = 0;
   }
 
-  stamp({ from, to, radius, ringRadius = 0, strength, mode = 0, mix = null }) {
+  stamp({ from, to, radius, ringRadius = 0, strength, mode = 0, mix = null, rose = {} }) {
     const gl = this.gl;
     const { program, uniforms } = this.shaped('paint', this.sources['paint.frag'], {}, 1);
     const channels = this.params.channels();
@@ -231,6 +235,9 @@ export class LeniaEngine {
     gl.uniform1f(uniforms.uRingRadius, ringRadius);
     gl.uniform1f(uniforms.uStrength, strength);
     gl.uniform1i(uniforms.uMode, mode);
+    gl.uniform1f(uniforms.uPetals, rose.petals ?? 0);
+    gl.uniform1f(uniforms.uPetalDepth, rose.depth ?? 0);
+    gl.uniform1f(uniforms.uAngle, rose.angle ?? 0);
     gl.uniform1fv(uniforms.uChannelMix, channelMix);
     gl.uniform1f(uniforms.uSeed, Math.random() * 1000);
     drawQuad(gl);
@@ -243,6 +250,10 @@ export class LeniaEngine {
 
   spawnRing(centre, ringRadius, width, strength, mix = null) {
     this.stamp({ from: centre, to: centre, radius: width, ringRadius, strength, mode: 1, mix });
+  }
+
+  stampRose(centre, ringRadius, width, strength, mix, rose) {
+    this.stamp({ from: centre, to: centre, radius: width, ringRadius, strength, mode: 2, mix, rose });
   }
 
   spawnSeed(centre, scale, strength, mix = null) {
