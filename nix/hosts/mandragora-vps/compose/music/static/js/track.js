@@ -107,6 +107,26 @@ function registerTA(container, t0 = 0, t1 = null, seekable = true) {
   if (seekable) {
     container.addEventListener("pointerdown", ev => {
       if (ev.button !== 0) return;
+      if (ev.pointerType === "touch" && !container.classList.contains("seekbar")) {
+        const sx = ev.clientX, sy = ev.clientY, st = performance.now();
+        const tup = e2 => {
+          container.removeEventListener("pointerup", tup);
+          container.removeEventListener("pointercancel", tcancel);
+          if (Math.abs(e2.clientX - sx) < 12 && Math.abs(e2.clientY - sy) < 12
+              && performance.now() - st < 500) {
+            const r = container.getBoundingClientRect();
+            const f = clamp((e2.clientX - r.left) / r.width, 0, 1);
+            seek(t0 + f * (t1 - t0));
+          }
+        };
+        const tcancel = () => {
+          container.removeEventListener("pointerup", tup);
+          container.removeEventListener("pointercancel", tcancel);
+        };
+        container.addEventListener("pointerup", tup);
+        container.addEventListener("pointercancel", tcancel);
+        return;
+      }
       ev.preventDefault();
       try { container.setPointerCapture(ev.pointerId); } catch (e) {}
       const move = e2 => {
@@ -630,6 +650,7 @@ function buildPianoRoll(b) {
     label: "piano roll · bass, lead and air as played, semitones above C1",
     legend: [["bass", STREAM_HUES.B], ["lead", STREAM_HUES.L], ["pad-fx", STREAM_HUES.P]],
   });
+  c.classList.add("wide-min");
   renders.push(() => {
     const { ctx, w, h } = prepCanvas(c, 300);
     const semi = (h - 18) / Math.max(hi - lo, 1);
@@ -729,11 +750,19 @@ function buildSequencer(b) {
     });
   });
   wrap.addEventListener("pointerdown", ev => {
-    const r = holder.getBoundingClientRect();
-    const px = ev.clientX - r.left - LAB;
-    if (px < 0) return;
-    const si = Math.floor(px / SEC_W);
-    if (secs[si]) { seek(secs[si].sec.t0); if (!state.playing) setPlaying(true); }
+    if (ev.button !== 0) return;
+    const sx = ev.clientX, sy = ev.clientY, st = performance.now();
+    const go = e2 => {
+      wrap.removeEventListener("pointerup", go);
+      if (Math.abs(e2.clientX - sx) > 12 || Math.abs(e2.clientY - sy) > 12
+          || performance.now() - st > 500) return;
+      const r = holder.getBoundingClientRect();
+      const px = e2.clientX - r.left - LAB;
+      if (px < 0) return;
+      const si = Math.floor(px / SEC_W);
+      if (secs[si]) { seek(secs[si].sec.t0); if (!state.playing) setPlaying(true); }
+    };
+    wrap.addEventListener("pointerup", go);
   });
   subs.push(t => {
     let si = -1;
@@ -1165,6 +1194,7 @@ function buildNicheMap(b) {
     label: "niche map · who owns which band, when",
     legend: GRAMMAR.streams.map(s => [s.id + " · " + s.name, STREAM_HUES[s.id]]),
   });
+  c.classList.add("wide-min");
   renders.push(() => {
     const { ctx, w, h } = prepCanvas(c, 260);
     const y = f => h - 12 - Math.log(clamp(f, fLo, fHi) / fLo) / Math.log(fHi / fLo) * (h - 20);
@@ -1230,7 +1260,9 @@ function buildInteractionMatrix(b) {
   const c = el("canvas", "matrix-canvas");
   c.style.width = side + "px";
   c.style.height = side + "px";
-  p.appendChild(c);
+  const mwrap = el("div", "matrix-wrap");
+  mwrap.appendChild(c);
+  p.appendChild(mwrap);
   renders.push(() => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     c.width = Math.round(side * dpr);
