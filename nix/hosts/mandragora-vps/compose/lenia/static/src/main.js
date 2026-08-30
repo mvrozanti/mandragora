@@ -441,7 +441,7 @@ function buildNutrient(buckets, channels) {
 
 function soundToShape(timbre, buckets) {
   const channels = params.channels();
-  const petals = 3 + Math.round(timbre.centroid * 6);
+  const petals = 3 + Math.round(timbre.centroid * 9);
   const depth = 0.12 + timbre.flatness * 0.45;
   const angle = timbre.rolloff * Math.PI * 2;
   const ring = 0.14 + 0.72 * timbre.centroid;
@@ -455,7 +455,7 @@ function soundToShape(timbre, buckets) {
 }
 
 function spawnCreature(buckets) {
-  const shape = soundToShape(mpd.smoothTimbre, buckets);
+  const shape = soundToShape(mpd.shaped, buckets);
   const fieldRadius = shape.ring * engine.size * 0.5;
   const centre = {
     x: engine.size / 2 + Math.cos(shape.azimuth) * fieldRadius,
