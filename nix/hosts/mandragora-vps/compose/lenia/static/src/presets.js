@@ -292,7 +292,8 @@ export const ART_PALETTE = 5;
 export const GRID_SIZES = [128, 192, 256, 384, 512, 768, 1024];
 
 export const DEFAULTS = {
-  mode: 1,
+  config: 0,
+  mode: 2,
   patch: '',
   bands: 8,
   preset: 0,
