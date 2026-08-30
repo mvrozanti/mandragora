@@ -242,3 +242,18 @@ body.track{padding-bottom:64px}
 .matrix-canvas{display:block;margin-top:.5rem}
 .lane-labels{position:sticky;left:0;width:0;height:0;z-index:2;overflow:visible}
 .lane-labels span{position:absolute;left:4px;font-family:var(--mono);font-size:9px;text-shadow:0 0 4px #000,0 0 4px #000;white-space:nowrap}
+.gseek{font-family:var(--mono);font-size:.68rem;color:var(--accent);background:rgba(192,132,252,.07);border:1px solid var(--line);border-radius:3px;padding:2px 8px;cursor:pointer;letter-spacing:.04em}
+.gseek:hover{border-color:var(--accent)}
+.matrix-wrap{overflow-x:auto;overscroll-behavior-x:contain}
+@media (max-width:700px){
+  .wide-min{min-width:680px}
+}
+@media (max-width:640px){
+  .pump{grid-template-columns:60px 1fr;gap:5px}
+  .pump-label{font-size:.55rem;padding-right:3px}
+  .glabel{font-size:.6rem;line-height:16px}
+  .gseek{padding:5px 10px}
+  .gitem{gap:7px;row-gap:5px}
+  .lane-labels span{font-size:8px}
+  .gonio-live{max-width:360px}
+}
