@@ -16,9 +16,11 @@ export function createParams(species, overrides = {}) {
   params.customPrimaries = new Float32Array([
     1.00, 0.18, 0.42, 0.52, 0.24, 1.00, 1.00, 0.68, 0.34
   ]);
-  params.mod = { mu: 0, height: 1, glow: 1, bloom: 1, separation: 1, edge: 1, exposure: 1, nutrient: 0, starve: 0, density: 0, channelDrive: [0, 0, 0] };
+  params.mod = { mu: 0, height: 1, glow: 1, bloom: 1, separation: 1, edge: 1, exposure: 1, nutrient: 0, starve: 0, density: 0, channelDrive: [0, 0, 0], morphMu: null, morphSigma: null };
   params.resetMod = () => Object.assign(params.mod,
     { mu: 0, height: 1, glow: 1, bloom: 1, separation: 1, edge: 1, exposure: 1, nutrient: 0, starve: 0, density: 0 });
+  params.mod.morphMu = null;
+  params.mod.morphSigma = null;
   params.mod.channelDrive = [0, 0, 0];
 
   params.channels = () => params.species.channels;
@@ -46,9 +48,11 @@ export function createParams(species, overrides = {}) {
   params.customPrimaries = new Float32Array([
     1.00, 0.18, 0.42, 0.52, 0.24, 1.00, 1.00, 0.68, 0.34
   ]);
-  params.mod = { mu: 0, height: 1, glow: 1, bloom: 1, separation: 1, edge: 1, exposure: 1, nutrient: 0, starve: 0, density: 0, channelDrive: [0, 0, 0] };
+  params.mod = { mu: 0, height: 1, glow: 1, bloom: 1, separation: 1, edge: 1, exposure: 1, nutrient: 0, starve: 0, density: 0, channelDrive: [0, 0, 0], morphMu: null, morphSigma: null };
   params.resetMod = () => Object.assign(params.mod,
     { mu: 0, height: 1, glow: 1, bloom: 1, separation: 1, edge: 1, exposure: 1, nutrient: 0, starve: 0, density: 0 });
+  params.mod.morphMu = null;
+  params.mod.morphSigma = null;
   params.mod.channelDrive = [0, 0, 0];
   };
 

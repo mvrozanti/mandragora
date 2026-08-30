@@ -4,7 +4,7 @@ import { ControlPanel, drawKernelProfile, drawGrowthProfile, drawBandMeter } fro
 import { PRESETS, CLASSIC, DISCOVERED, SPECTRAL, PALETTES, GRID_SIZES, DEFAULTS, ART_PALETTE } from './presets.js';
 import { kernelProfile } from './kernel.js';
 import { createParams } from './params.js';
-import { randomSpecies, mutateSpecies, speciesForTrack, hashString, spectralSpecies, spectralAtWidth } from './species.js';
+import { randomSpecies, mutateSpecies, speciesForTrack, hashString, spectralSpecies, spectralAtWidth, mulberry32 } from './species.js';
 import { paletteFromImage, paletteFromSeed } from './artwork.js';
 import { MpdLink } from './audio.js';
 
@@ -74,8 +74,11 @@ function applyAccent() {
 
 const engine = new LeniaEngine(canvas, params);
 
+let engineReady = false;
+
 function adoptSpecies(species) {
   params.adopt(species);
+  if (!engineReady) return;
   params.bands = species.channels;
   panel.sync('bands');
   presetNote.textContent = species.note;
@@ -298,6 +301,7 @@ panel
   .slider('audioMid', 'Mid → bloom', 0, 2, 0.01)
   .slider('audioTreble', 'Treble → colour', 0, 2, 0.01)
   .slider('audioChannels', 'Bands → channels', 0, 2, 0.01)
+  .slider('audioTimbre', 'Timbre → physics', 0, 2, 0.01)
   .slider('audioSpawn', 'Onset → creatures', 0, 1, 0.01)
   .slider('audioNutrient', 'Spectrum → nutrient', 0, 2, 0.01)
   .slider('audioStarve', 'Silence → starvation', 0, 1, 0.01)
@@ -435,23 +439,68 @@ function buildNutrient(buckets, channels) {
   return nutrientField;
 }
 
-function spawnCreature(buckets) {
+function soundToShape(timbre, buckets) {
   const channels = params.channels();
-  let channel = 0;
-  for (let c = 1; c < buckets.length; c++) if (buckets[c] > buckets[channel]) channel = c;
-  const angle = Math.random() * Math.PI * 2;
-  const fieldRadius = channelRing(channel, channels) * engine.size * 0.5;
-  const centre = {
-    x: engine.size / 2 + Math.cos(angle) * fieldRadius,
-    y: engine.size / 2 + Math.sin(angle) * fieldRadius
-  };
+  const petals = 3 + Math.round(timbre.centroid * 6);
+  const depth = 0.12 + timbre.flatness * 0.45;
+  const angle = timbre.rolloff * Math.PI * 2;
+  const ring = 0.14 + 0.72 * timbre.centroid;
+  const azimuth = (timbre.spread * 5.1 + timbre.crest * 2.3) * Math.PI * 2;
+  const size = 0.7 + 0.6 * (1 - timbre.centroid);
   const mix = new Float32Array(channels);
+  let peak = 1e-6;
+  for (let c = 0; c < channels; c++) peak = Math.max(peak, buckets[c]);
+  for (let c = 0; c < channels; c++) mix[c] = 0.2 + 0.8 * (buckets[c] / peak);
+  return { petals, depth, angle, ring, azimuth, size, mix };
+}
+
+function spawnCreature(buckets) {
+  const shape = soundToShape(mpd.smoothTimbre, buckets);
+  const fieldRadius = shape.ring * engine.size * 0.5;
+  const centre = {
+    x: engine.size / 2 + Math.cos(shape.azimuth) * fieldRadius,
+    y: engine.size / 2 + Math.sin(shape.azimuth) * fieldRadius
+  };
+  const R = Math.max(6, Math.round(params.radius)) * shape.size;
+  engine.stampRose(centre, R * 1.6, R * 0.55, Math.min(1, params.audioSpawn * 1.5), shape.mix,
+    { petals: shape.petals, depth: shape.depth, angle: shape.angle });
+  engine.stampRose(centre, R * 0.7, R * 0.5, Math.min(1, params.audioSpawn * 1.2), shape.mix,
+    { petals: shape.petals, depth: shape.depth * 0.6, angle: shape.angle + Math.PI / shape.petals });
+}
+
+const TIMBRE_KEYS = ['centroid', 'spread', 'flatness', 'rolloff', 'flux', 'crest'];
+let morphRows = null;
+
+function morphMatrix(channels) {
+  if (morphRows && morphRows.channels === channels) return morphRows;
+  const rng = mulberry32(7777 + channels);
+  const mu = [], sigma = [];
   for (let c = 0; c < channels; c++) {
-    const spread = Math.exp(-Math.pow((c - channel) / 1.2, 2));
-    mix[c] = 0.25 + 0.75 * spread;
+    mu.push(TIMBRE_KEYS.map(() => (rng() * 2 - 1)));
+    sigma.push(TIMBRE_KEYS.map(() => (rng() * 2 - 1)));
   }
-  const scale = channels > 4 ? 0.85 : 1.05 - channel * 0.02;
-  engine.spawnSeed(centre, scale, Math.min(1, params.audioSpawn * 1.5), mix);
+  morphRows = { channels, mu, sigma };
+  return morphRows;
+}
+
+function applyTimbreMorph(playing) {
+  const channels = params.channels();
+  const mod = params.mod;
+  if (!mod.morphMu || mod.morphMu.length !== channels) {
+    mod.morphMu = new Float32Array(channels);
+    mod.morphSigma = new Float32Array(channels).fill(1);
+  }
+  const amount = params.audioTimbre * (playing ? 1 : 0);
+  if (amount <= 0) { mod.morphMu.fill(0); mod.morphSigma.fill(1); return; }
+  const t = mpd.smoothTimbre;
+  const vec = TIMBRE_KEYS.map((k) => t[k] - 0.35);
+  const rows = morphMatrix(channels);
+  for (let c = 0; c < channels; c++) {
+    let dm = 0, ds = 0;
+    for (let i = 0; i < vec.length; i++) { dm += rows.mu[c][i] * vec[i]; ds += rows.sigma[c][i] * vec[i]; }
+    mod.morphMu[c] = dm * 0.028 * amount;
+    mod.morphSigma[c] = Math.max(0.55, Math.min(1.8, 1 + ds * 0.30 * amount));
+  }
 }
 
 function applyAudio(dtSeconds) {
@@ -490,6 +539,7 @@ function applyAudio(dtSeconds) {
   } else {
     cd.fill(0);
   }
+  applyTimbreMorph(playing);
   params.mod.nutrient = playing ? params.audioNutrient * drive * 0.35 : 0;
   params.mod.starve = playing ? params.audioStarve * drive * Math.max(0, 0.55 - level) * 0.5 : 0;
   if (playing) engine.setNutrient(buildNutrient(buckets, channels));
@@ -705,6 +755,7 @@ async function boot() {
     showFatal(error);
     throw error;
   }
+  engineReady = true;
   applyAccent();
   panel.repopulate('preset', speciesItems());
   document.getElementById('mode-note').textContent = MODES[params.mode].note;
@@ -724,7 +775,7 @@ async function boot() {
   if (params.audioEnabled) mpd.open();
   shell.dataset.paused = 'false';
   document.getElementById('boot').classList.add('gone');
-  window.lenia = { engine, params, panel, applyPreset, adoptSpecies, mpd, tick: frame, setAudio: (on) => { params.audioEnabled = on; panel.sync('audioEnabled'); handleChange('audioEnabled', on, {}); } };
+  window.lenia = { engine, params, panel, applyPreset, adoptSpecies, mpd, tick: frame, soundToShape, setAudio: (on) => { params.audioEnabled = on; panel.sync('audioEnabled'); handleChange('audioEnabled', on, {}); } };
   requestAnimationFrame(frame);
 }
 
