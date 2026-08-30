@@ -28,6 +28,7 @@ let
     ensure_pkg PIL Pillow
     ensure_pkg yaml PyYAML
     ensure_pkg timm timm
+    ensure_pkg open_clip open_clip_torch
 
     LD_EXTRAS=""
     [ -d /run/opengl-driver/lib ] && LD_EXTRAS="$LD_EXTRAS:/run/opengl-driver/lib"
