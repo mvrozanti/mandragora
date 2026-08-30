@@ -13,6 +13,8 @@ export class MpdLink {
     this.raw = new Array(BAND_COUNT).fill(0);
     this.timbre = { centroid: 0, spread: 0, flatness: 0, rolloff: 0, flux: 0, crest: 0 };
     this.smoothTimbre = { ...this.timbre };
+    this.shaped = { ...this.timbre };
+    this._stretch = {};
     this.bands = new Array(BAND_COUNT).fill(0);
     this.level = 0;
     this.smoothLevel = 0;
@@ -138,9 +140,16 @@ export class MpdLink {
     const target = silent ? 0 : this.level;
     this.smoothLevel = target > this.smoothLevel ? target : this.smoothLevel * release;
     const follow = 1 - Math.pow(0.12, dt);
+    const relax = Math.pow(0.5, dt / 6);
     for (const key of Object.keys(this.smoothTimbre)) {
-      const want = silent ? 0 : this.timbre[key];
-      this.smoothTimbre[key] += (want - this.smoothTimbre[key]) * follow;
+      const raw = silent ? 0 : this.timbre[key];
+      this.smoothTimbre[key] += (raw - this.smoothTimbre[key]) * follow;
+      let span = this._stretch[key];
+      if (!span) span = this._stretch[key] = { lo: raw - 0.02, hi: raw + 0.02 };
+      span.lo = raw < span.lo ? raw : span.lo + (raw - span.lo) * (1 - relax);
+      span.hi = raw > span.hi ? raw : span.hi - (span.hi - raw) * (1 - relax);
+      const width = Math.max(span.hi - span.lo, 0.06);
+      this.shaped[key] = Math.min(1, Math.max(0, (raw - span.lo) / width));
     }
     const fired = this.onset > 0 && !silent;
     this.onset = 0;
