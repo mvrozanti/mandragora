@@ -1,0 +1,14 @@
+default partial alphanumeric_keys
+xkb_symbols "basic" {
+    include "us(intl)"
+    name[Group1] = "English (US, Brazilian AltGr accents)";
+
+    key <AC01> { [ a, A, aacute, acircumflex ] };
+    key <AD03> { [ e, E, eacute, ecircumflex ] };
+    key <AD08> { [ i, I, iacute, icircumflex ] };
+    key <AD09> { [ o, O, oacute, ocircumflex ] };
+    key <AD07> { [ u, U, uacute, ucircumflex ] };
+    key <AB06> { [ n, N, atilde, Atilde ] };
+    key <AB07> { [ m, M, otilde, Otilde ] };
+    key <TLDE> { [ dead_grave, dead_tilde, agrave, Agrave ] };
+};
