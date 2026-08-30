@@ -111,8 +111,15 @@ rationale, recipes, or the incident that produced the rule.
 3. **No comments in code** — clean naming and structure must
    self-document. Existing comments are removed, not preserved.
 4. **Zero plain-text secrets** — sops-nix + age for everything. Never
-   open, read, log, or grep \`secrets/\`. Detail:
-   [\`docs/secrets.md\`](docs/secrets.md).
+   open, read, log, or grep \`secrets/\`. The knowledge vault is bound by
+   the same rule and is the easier place to forget it: it is served
+   publicly at \`demo.mvr.ac\` with indexing allowed, so a note may
+   describe a mechanism, an incident, or a threat model, but never
+   carries the material itself — no keys, tokens, passwords, connection
+   strings, or \`.env\` values, not even partial ones. Enforced by
+   \`mandragora-audit\` check \`14-vault-secrets\`; a hit means remove the
+   value *and* rotate the credential, because publication is not
+   reversible. Detail: [\`docs/secrets.md\`](docs/secrets.md).
 5. **Impermanence awareness** — root is wiped on every boot; only
    \`/nix\`, \`/persistent\`, and \`/home/m\` (bind-mounted) survive. Detail:
    [\`docs/persistence.md\`](docs/persistence.md).
