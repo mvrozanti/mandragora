@@ -2,6 +2,7 @@ import { LeniaEngine } from './engine.js';
 import { describeWebGL } from './gl.js';
 import { ControlPanel, drawKernelProfile, drawGrowthProfile, drawBandMeter } from './ui.js';
 import { PRESETS, CLASSIC, DISCOVERED, SPECTRAL, PALETTES, GRID_SIZES, DEFAULTS, ART_PALETTE } from './presets.js';
+import { CONFIGS } from './configs.js';
 import { kernelProfile } from './kernel.js';
 import { createParams } from './params.js';
 import { randomSpecies, mutateSpecies, speciesForTrack, hashString, spectralSpecies, spectralAtWidth, mulberry32 } from './species.js';
@@ -96,6 +97,27 @@ function applyPreset(index) {
   adoptSpecies(list[Math.min(index, list.length - 1)]);
 }
 
+function applyConfig(index) {
+  const cfg = CONFIGS[Math.max(0, Math.min(CONFIGS.length - 1, index))];
+  const target = SPECTRAL.find((s) => s.name === cfg.species) || SPECTRAL[0];
+  params.mode = 2;
+  params.preset = Math.max(0, SPECTRAL.indexOf(target));
+  panel.repopulate('preset', speciesItems());
+  document.getElementById('mode-note').textContent = MODES[2].note;
+  document.getElementById('config-note').textContent = cfg.note;
+  document.body.dataset.mode = 'spectral';
+  adoptSpecies(target);
+  Object.assign(params, cfg.settings);
+  params.audioEnabled = true;
+  if (mpd.bridge === true && !mpd.source) mpd.open();
+  panel.syncAll();
+  engine.resizeSimulation(params.size);
+  engine.rebuildSpecies();
+  engine.randomize();
+  refreshPlots();
+  updateHud(true);
+}
+
 function refreshPatchList(selected = '') {
   const names = Object.keys(loadPatches()).sort();
   panel.repopulate('patch', [{ label: names.length ? '— select —' : '— none saved —', value: '' },
@@ -133,6 +155,7 @@ function handleChange(key, value, options) {
     if (key === 'clear') engine.clear();
     if (key === 'resetView') { engine.zoom = 1; engine.pan.x = 0; engine.pan.y = 0; }
     if (key === 'snapshot') snapshot();
+    if (key === 'applyConfig') { applyConfig(params.config); return; }
     if (key === 'buildBands') {
       const n = Math.max(2, Math.min(16, Math.round(params.bands)));
       if (params.mode !== 2) {
@@ -169,6 +192,11 @@ function handleChange(key, value, options) {
     if (key === 'mutate') adoptSpecies(mutateSpecies(params.species, 0.2));
     if (key === 'toChannels1') adoptSpecies(randomSpecies(Math.random, { channels: 1, name: 'Wild sample · 1ch' }));
     if (key === 'toChannels3') adoptSpecies(randomSpecies(Math.random, { channels: 3, name: 'Wild sample · 3ch' }));
+    return;
+  }
+  if (key === 'config') {
+    document.getElementById('config-note').textContent = CONFIGS[value].note;
+    applyConfig(value);
     return;
   }
   if (key === 'mode') {
@@ -214,6 +242,12 @@ function handleChange(key, value, options) {
 }
 
 const panel = new ControlPanel(panelRoot, params, handleChange);
+
+panel
+  .group('Config', 'One click sets everything. All three are driven by MPD: the music reshapes the growth rule itself.')
+  .choice('config', 'Config', CONFIGS.map((c, i) => ({ label: `#${c.number}  ${c.name}`, value: i })))
+  .readout('config-note', CONFIGS[0].note)
+  .actions([{ label: 'Apply', key: 'applyConfig' }, { label: 'Reseed', key: 'randomize' }]);
 
 panel
   .group('Lab', 'Pick a rule family, then a species inside it. Patches remember everything below.')
@@ -756,12 +790,13 @@ async function boot() {
     throw error;
   }
   engineReady = true;
+  document.querySelectorAll('.group').forEach((g, i) => { if (i > 0) g.classList.add('collapsed'); });
   applyAccent();
   panel.repopulate('preset', speciesItems());
   document.getElementById('mode-note').textContent = MODES[params.mode].note;
   document.body.dataset.mode = MODES[params.mode].name.toLowerCase();
   refreshPatchList('');
-  applyPreset(params.preset);
+  applyConfig(params.config);
   const bridge = await mpd.probe();
   document.body.dataset.bridge = bridge === true ? 'on' : (bridge === 'auth' ? 'auth' : 'off');
   if (bridge !== true) {
