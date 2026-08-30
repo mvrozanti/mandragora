@@ -190,8 +190,7 @@
                 # Note: These should ideally match your hyprland.conf input block
                 ${pkgs.hyprland}/bin/hyprctl keyword input:repeat_rate 50
                 ${pkgs.hyprland}/bin/hyprctl keyword input:repeat_delay 300
-                ${pkgs.hyprland}/bin/hyprctl keyword input:kb_layout us
-                ${pkgs.hyprland}/bin/hyprctl keyword input:kb_variant intl
+                ${pkgs.hyprland}/bin/hyprctl keyword input:kb_layout usbr
             fi
         done
       '';
