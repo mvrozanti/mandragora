@@ -3,6 +3,7 @@ import { describeWebGL } from './gl.js';
 import { ControlPanel, drawKernelProfile, drawGrowthProfile, drawBandMeter } from './ui.js';
 import { PRESETS, CLASSIC, DISCOVERED, SPECTRAL, PALETTES, GRID_SIZES, DEFAULTS, ART_PALETTE } from './presets.js';
 import { CONFIGS } from './configs.js';
+import { SOLITONS } from './solitons.js';
 import { kernelProfile } from './kernel.js';
 import { createParams } from './params.js';
 import { randomSpecies, mutateSpecies, speciesForTrack, hashString, spectralSpecies, spectralAtWidth, mulberry32 } from './species.js';
@@ -35,7 +36,8 @@ const mpd = new MpdLink();
 const MODES = [
   { name: 'Classic', note: 'one channel. Texture, not creatures — the original Lenia.', list: CLASSIC },
   { name: 'Discovered', note: 'three channels found by parameter search. Bodies with membranes.', list: DISCOVERED },
-  { name: 'Spectral', note: 'one channel per frequency band. The music is the chemistry.', list: SPECTRAL }
+  { name: 'Spectral', note: 'one channel per frequency band. The music is the chemistry.', list: SPECTRAL },
+  { name: 'Solitons', note: 'travelling creatures on empty black. Each sound spawns its own species; nothing else feeds them.', list: SOLITONS }
 ];
 
 function modeList() { return MODES[params.mode].list; }
@@ -99,13 +101,15 @@ function applyPreset(index) {
 
 function applyConfig(index) {
   const cfg = CONFIGS[Math.max(0, Math.min(CONFIGS.length - 1, index))];
-  const target = SPECTRAL.find((s) => s.name === cfg.species) || SPECTRAL[0];
-  params.mode = 2;
-  params.preset = Math.max(0, SPECTRAL.indexOf(target));
+  const mode = cfg.mode ?? 2;
+  const list = MODES[mode].list;
+  const target = list.find((s) => s.name === cfg.species) || list[0];
+  params.mode = mode;
+  params.preset = Math.max(0, list.indexOf(target));
   panel.repopulate('preset', speciesItems());
-  document.getElementById('mode-note').textContent = MODES[2].note;
+  document.getElementById('mode-note').textContent = MODES[mode].note;
   document.getElementById('config-note').textContent = cfg.note;
-  document.body.dataset.mode = 'spectral';
+  document.body.dataset.mode = MODES[mode].name.toLowerCase();
   adoptSpecies(target);
   Object.assign(params, cfg.settings);
   params.audioEnabled = true;
@@ -113,9 +117,20 @@ function applyConfig(index) {
   panel.syncAll();
   engine.resizeSimulation(params.size);
   engine.rebuildSpecies();
-  engine.randomize();
+  if (mode === 3) seedSolitonWorld(target); else engine.randomize();
   refreshPlots();
   updateHud(true);
+}
+
+function seedSolitonWorld(sp) {
+  engine.clear();
+  const n = Math.max(5, Math.round(engine.size / 70));
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const c = { x: Math.random() * engine.size, y: Math.random() * engine.size };
+    engine.stamp({ from: c, to: { x: c.x + Math.cos(a) * sp.R * 0.35, y: c.y + Math.sin(a) * sp.R * 0.2 },
+      radius: sp.R * 0.95, strength: 1.0, mode: 0, mix: [1] });
+  }
 }
 
 function refreshPatchList(selected = '') {
@@ -488,7 +503,72 @@ function soundToShape(timbre, buckets) {
   return { petals, depth, angle, ring, azimuth, size, mix };
 }
 
+let lastSpawnGen = -1e9;
+
+function cullColonies() {
+  // a spawn occasionally nucleates a colony instead of a soliton; erase the densest
+  // patch when total mass exceeds the ceiling so one bad seed cannot take the world.
+  const reduced = engine.reduce();
+  const N = 32;
+  let total = 0, peak = 0, px = 0, py = 0;
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      const v = reduced[(y * N + x) * 4];
+      total += v;
+      if (v > peak) { peak = v; px = x; py = y; }
+    }
+  }
+  const mass = total / (N * N);
+  if (mass <= params.solitonMass * 1.4) return;
+  const cell = engine.size / N;
+  const centre = { x: (px + 0.5) * cell, y: (py + 0.5) * cell };
+  engine.stamp({ from: centre, to: centre, radius: cell * 6.0, strength: -1.0, mode: 0, mix: [1] });
+}
+
+function spawnSoliton(buckets) {
+  if (engine.generation - lastSpawnGen < params.solitonCooldown) return;
+  const t = mpd.shaped;
+  const idx = Math.min(SOLITONS.length - 1,
+    Math.floor(t.centroid * SOLITONS.length));      // sound picks the species
+  const sp = SOLITONS[idx];
+  const reduced = engine.reduce();
+  const N = 32;
+  let count = 0, total = 0;
+  const empty = [];
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      const v = reduced[(y * N + x) * 4];
+      total += v;
+      if (v > 0.05) count++;
+      if (v < 0.002) {
+        let clear = true;
+        for (let dy = -3; dy <= 3 && clear; dy++) {
+          for (let dx = -3; dx <= 3; dx++) {
+            if (reduced[((((y + dy) + N) % N) * N + (((x + dx) + N) % N)) * 4] > 0.004) { clear = false; break; }
+          }
+        }
+        if (clear) empty.push([x, y]);
+      }
+    }
+  }
+  const mass = total / (N * N);
+  if (mass > params.solitonMass || count > params.solitonCap || !empty.length) return;
+  lastSpawnGen = engine.generation;
+  const spot = empty[Math.floor(Math.random() * empty.length)];
+  const cell = engine.size / N;
+  const angle = t.rolloff * Math.PI * 2;
+  const centre = { x: (spot[0] + 0.5) * cell, y: (spot[1] + 0.5) * cell };
+  const R = sp.R;
+  engine.stamp({
+    from: centre,
+    to: { x: centre.x + Math.cos(angle) * R * 0.35, y: centre.y + Math.sin(angle) * R * 0.2 },
+    radius: R * 0.95, strength: 1.0, mode: 0, mix: [1]
+  });
+  if (params.species.name !== sp.name) { /* species is fixed per world; seed only */ }
+}
+
 function spawnCreature(buckets) {
+  if (params.mode === 3) { spawnSoliton(buckets); return; }
   const shape = soundToShape(mpd.shaped, buckets);
   const fieldRadius = shape.ring * engine.size * 0.5;
   const centre = {
@@ -573,10 +653,24 @@ function applyAudio(dtSeconds) {
   } else {
     cd.fill(0);
   }
-  applyTimbreMorph(playing);
-  params.mod.nutrient = playing ? params.audioNutrient * drive * 0.35 : 0;
-  params.mod.starve = playing ? params.audioStarve * drive * Math.max(0, 0.55 - level) * 0.5 : 0;
-  if (playing) engine.setNutrient(buildNutrient(buckets, channels));
+  const solitonWorld = params.mode === 3;
+  if (solitonWorld) {
+    // solitons live in a narrow band — the music must not touch the rule at all.
+    // it may still spawn them, and still drive colour and light.
+    params.mod.density = 0;
+    params.mod.nutrient = 0;
+    params.mod.starve = 0;
+    params.mod.mu = 0;
+    params.mod.height = 1;
+    if (params.mod.channelDrive) params.mod.channelDrive.fill(0);
+    if (params.mod.morphMu) { params.mod.morphMu.fill(0); params.mod.morphSigma.fill(1); }
+    if (engine.generation % 24 === 0) cullColonies();
+  } else {
+    applyTimbreMorph(playing);
+    params.mod.nutrient = playing ? params.audioNutrient * drive * 0.35 : 0;
+    params.mod.starve = playing ? params.audioStarve * drive * Math.max(0, 0.55 - level) * 0.5 : 0;
+    if (playing) engine.setNutrient(buildNutrient(buckets, channels));
+  }
 
   if (fired && params.audioSpawn > 0) spawnCreature(buckets);
 
@@ -595,8 +689,8 @@ let regulatorCountdown = 12;
 
 function densityRegulator() {
   if (--regulatorCountdown > 0) return;
-  regulatorCountdown = 12;
-  if (params.channels() <= 3 || params.densityGain <= 0) { params.mod.density = 0; return; }
+  regulatorCountdown = 6;
+  if (params.mode === 3 || params.channels() <= 3 || params.densityGain <= 0) { params.mod.density = 0; return; }
   const reduced = engine.reduce();
   let sum = 0;
   const n = reduced.length / 4;
@@ -610,6 +704,7 @@ function densityRegulator() {
 let homeostatCountdown = 60;
 
 function homeostat() {
+  if (params.mode === 3) return;
   if (!params.homeostat || !params.running || params.stepsPerFrame === 0) return;
   if (--homeostatCountdown > 0) return;
   homeostatCountdown = 45;

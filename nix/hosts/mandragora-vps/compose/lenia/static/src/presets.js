@@ -293,7 +293,10 @@ export const GRID_SIZES = [128, 192, 256, 384, 512, 768, 1024];
 
 export const DEFAULTS = {
   config: 0,
-  mode: 2,
+  mode: 3,
+  solitonCap: 26,
+  solitonMass: 0.012,
+  solitonCooldown: 320,
   patch: '',
   bands: 8,
   preset: 0,
