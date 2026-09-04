@@ -6,11 +6,11 @@
 }:
 
 let
-  cfg = config.mandragora.vtagWeb;
-  vtagPkgs = pkgs.callPackage ../../pkgs/vtag-cli.nix { };
+  cfg = config.mandragora.memeWeb;
+  memePkgs = pkgs.callPackage ../../pkgs/meme-cli.nix { };
 in
 {
-  options.mandragora.vtagWeb = {
+  options.mandragora.memeWeb = {
     enable = lib.mkOption {
       type = lib.types.bool;
       default = false;
@@ -19,7 +19,7 @@ in
     targetDir = lib.mkOption {
       type = lib.types.path;
       description = ''
-        Directory the vtag-server subprocess will recursively tag when
+        Directory the meme-server subprocess will recursively tag when
         the user clicks Start. Set per host; no default.
       '';
     };
@@ -27,7 +27,7 @@ in
       type = lib.types.str;
       default = "127.0.0.1";
       description = ''
-        Address vtag-server binds. Defaults to loopback. Set to the host's
+        Address meme-server binds. Defaults to loopback. Set to the host's
         tailscale IP so the VPS caddy proxy (meme.mvr.ac) can reach it while
         the tailscale0-only firewall keeps port 8093 off the LAN/public net.
       '';
@@ -35,21 +35,22 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    mandragora.hub.services.vtag-web = {
+    mandragora.hub.services.meme-web = {
       port = 8093;
       userService = true;
       systemd = {
-        description = "meme.mvr.ac — vtag runner web UI";
+        description = "meme.mvr.ac — meme runner web UI";
         wantedBy = [ "default.target" ];
         after = [ "default.target" ];
         environment = {
+          VTAG_STATE_DIR = "/home/m/.local/share/meme";
           VTAG_HUB_TARGET_DIR = toString cfg.targetDir;
           VTAG_HUB_LISTEN_HOST = cfg.listenHost;
           VTAG_HUB_LISTEN_PORT = "8093";
-          VTAG_HUB_VTAG_BIN = "${vtagPkgs.vtag}/bin/vtag";
+          VTAG_HUB_VTAG_BIN = "${memePkgs.meme}/bin/meme";
         };
         serviceConfig = {
-          ExecStart = "${vtagPkgs.vtag-server}/bin/vtag-server";
+          ExecStart = "${memePkgs.meme-server}/bin/meme-server";
           Restart = "always";
           RestartSec = "5s";
           ProtectHome = false;

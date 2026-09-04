@@ -68,10 +68,10 @@
       "logging": false
     },
     {
-      "name": "vtag",
+      "name": "meme",
       "kind": "authelia-simple",
       "host": "meme",
-      "upstream_var": "VTAG_UPSTREAM",
+      "upstream_var": "MEME_UPSTREAM",
       "upstream_host": "desktop",
       "upstream_port": 8093,
       "logging": true

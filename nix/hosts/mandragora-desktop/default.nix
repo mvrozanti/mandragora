@@ -67,7 +67,7 @@ in
     ../../modules/services/gource-renderer.nix
     ../../modules/services/gource-renderer-prewarm.nix
     ../../modules/services/ytdl-web.nix
-    ../../modules/services/vtag-web.nix
+    ../../modules/services/meme-web.nix
     ../../modules/services/emotion-web.nix
     ../../modules/services/llm-visualizer.nix
     ../../modules/user/home-manager.nix
@@ -112,7 +112,7 @@ in
     allowedClasses = [ ];
     secretBlacklist = "keystats/words_basicauth";
   };
-  mandragora.vtagWeb = {
+  mandragora.memeWeb = {
     enable = true;
     targetDir = "/mnt/toshiba/hdd/gdrive/Levv/4chan";
     listenHost = "100.115.80.79";

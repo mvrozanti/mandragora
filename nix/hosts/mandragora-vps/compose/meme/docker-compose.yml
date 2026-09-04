@@ -1,8 +1,8 @@
 services:
 
-  vtag-proxy:
+  meme-proxy:
     image: alpine:3.20
-    container_name: vtag-proxy
+    container_name: meme-proxy
     restart: unless-stopped
     command: ["sh", "-c", "while true; do sleep 3600; done"]
     networks:
@@ -12,7 +12,7 @@ services:
       caddy.0_handle.forward_auth: "authelia:9091"
       caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
       caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy.0_handle.reverse_proxy: "${VTAG_UPSTREAM:-100.115.80.79:8093}"
+      caddy.0_handle.reverse_proxy: "${MEME_UPSTREAM:-100.115.80.79:8093}"
       caddy.0_handle.reverse_proxy.flush_interval: "-1"
       caddy.0_handle.reverse_proxy.transport: "http"
     logging:

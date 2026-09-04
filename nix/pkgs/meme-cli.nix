@@ -1,7 +1,7 @@
 { pkgs }:
 
 let
-  vtagSrc = pkgs.fetchFromGitHub {
+  memeSrc = pkgs.fetchFromGitHub {
     owner = "mvrozanti";
     repo = "vtag";
     rev = "f01b62409fe0ce18b7b357806f67e06cc38a18cb";
@@ -10,15 +10,15 @@ let
   gpuLockRoot = ../../.local/share/gpu-lock;
   botPython = import ./bot-python.nix { inherit pkgs; };
 
-  vtag = pkgs.writeShellApplication {
-    name = "vtag";
+  meme = pkgs.writeShellApplication {
+    name = "meme";
     runtimeInputs = [
       botPython
       pkgs.exiftool
     ];
     text = ''
-      export PYTHONPATH=${gpuLockRoot}:${vtagSrc}''${PYTHONPATH:+:$PYTHONPATH}
-      exec ${botPython}/bin/python3 ${vtagSrc}/cli.py "$@"
+      export PYTHONPATH=${gpuLockRoot}:${memeSrc}''${PYTHONPATH:+:$PYTHONPATH}
+      exec ${botPython}/bin/python3 ${memeSrc}/cli.py "$@"
     '';
   };
 
@@ -29,22 +29,22 @@ let
       pkgs.exiftool
     ];
     text = ''
-      exec ${botPython}/bin/python3 ${vtagSrc}/find.py "$@"
+      exec ${botPython}/bin/python3 ${memeSrc}/find.py "$@"
     '';
   };
 
-  vtag-server = pkgs.writeShellApplication {
-    name = "vtag-server";
+  meme-server = pkgs.writeShellApplication {
+    name = "meme-server";
     runtimeInputs = [
       botPython
       pkgs.exiftool
     ];
     text = ''
-      export PYTHONPATH=${gpuLockRoot}:${vtagSrc}''${PYTHONPATH:+:$PYTHONPATH}
-      exec ${botPython}/bin/python3 ${vtagSrc}/server.py "$@"
+      export PYTHONPATH=${gpuLockRoot}:${memeSrc}''${PYTHONPATH:+:$PYTHONPATH}
+      exec ${botPython}/bin/python3 ${memeSrc}/server.py "$@"
     '';
   };
 in
 {
-  inherit vtag vfind vtag-server;
+  inherit meme vfind meme-server;
 }

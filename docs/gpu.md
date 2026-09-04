@@ -107,7 +107,7 @@ except GpuBusy as busy:
 
 Ollama runs as a systemd service (`services.ollama` in `nix/modules/core/ai-local.nix`), but it does **not** hold the GPU continuously: a model only occupies VRAM while loaded, and unloads once `keep_alive` expires. An idle Ollama holds no VRAM, so it does not need a manual `systemctl stop` before other GPU jobs — that older protocol is retired.
 
-Instead, every Ollama *client* participates in the lease directly (`llm-via-telegram`, `vtag`, `stt-via-telegram`, `local-ai-mcp-server`). The contract:
+Instead, every Ollama *client* participates in the lease directly (`llm-via-telegram`, `meme`, `stt-via-telegram`, `local-ai-mcp-server`). The contract:
 
 > Wrap each `/api/chat`|`/api/generate` call in `gpu_lock.acquire_async(...)`, and `await evict_model(...)` in the `finally` — **while still holding the lock**, before releasing.
 
