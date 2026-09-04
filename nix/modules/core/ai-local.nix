@@ -28,7 +28,7 @@ let
   gemma = mkPythonBin "gemma" ../../../.local/bin/gemma.py;
   local-ai-mcp-server = mkPythonBin "local-ai-mcp-server" ../../../.local/bin/local-ai-mcp-server.py;
   gpu-lock = import ../../pkgs/gpu-lock.nix { inherit pkgs; };
-  vtagCli = import ../../pkgs/vtag-cli.nix { inherit pkgs; };
+  memeCli = import ../../pkgs/meme-cli.nix { inherit pkgs; };
 
   crush-wrapped = pkgs.symlinkJoin {
     name = "crush-wrapped";
@@ -77,16 +77,16 @@ in
       };
     };
 
-    ai.vtag = {
+    ai.meme = {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Expose vtag / vfind CLIs and pre-pull the VLM model.";
+        description = "Expose meme / vfind CLIs and pre-pull the VLM model.";
       };
       model = lib.mkOption {
         type = lib.types.str;
-        default = models.vtag;
-        description = "Ollama tag for the vtag VLM.";
+        default = models.meme;
+        description = "Ollama tag for the meme VLM.";
       };
     };
 
@@ -206,25 +206,25 @@ in
       };
     })
 
-    (lib.mkIf cfg.vtag.enable {
+    (lib.mkIf cfg.meme.enable {
       assertions = [
         {
           assertion = gpu.vramGB != null && gpu.vramGB >= 12;
           message = ''
-            mandragora.ai.vtag.enable requires mandragora.hardware.gpu.vramGB >= 12.
+            mandragora.ai.meme.enable requires mandragora.hardware.gpu.vramGB >= 12.
             Qwen2.5-VL 7B Q4_K_M needs ~6 GB plus headroom for Flux coexistence.
           '';
         }
       ];
 
       environment.systemPackages = [
-        vtagCli.vtag
-        vtagCli.vfind
+        memeCli.meme
+        memeCli.vfind
         pkgs.exiftool
       ];
 
-      systemd.services.ollama-pull-vtag = {
-        description = "Pre-pull vtag VLM";
+      systemd.services.ollama-pull-meme = {
+        description = "Pre-pull meme VLM";
         after = [
           "ollama.service"
           "network-online.target"
@@ -238,7 +238,7 @@ in
           Type = "oneshot";
           RemainAfterExit = true;
           TimeoutStartSec = "2h";
-          Environment = "MODEL=${cfg.vtag.model}";
+          Environment = "MODEL=${cfg.meme.model}";
         };
       };
     })

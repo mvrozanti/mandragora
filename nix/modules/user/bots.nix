@@ -20,7 +20,7 @@ let
   ttsCloneCoreState = "/home/m/.local/share/tts-clone-core";
   teacherRoot = "/home/m/Projects/teacher";
   teacherState = "/home/m/.local/share/teacher";
-  vtagState = "/home/m/.local/share/vtag";
+  memeState = "/home/m/.local/share/meme";
   axonRoot = ../../../.local/share/axon;
   axonState = "/home/m/.local/share/axon";
   axonRepo = "/home/m/Projects/axon";
@@ -39,7 +39,7 @@ in
     mkdir -p ${ttsCloneCoreState}/refs ${ttsCloneCoreState}/out ${ttsCloneCoreState}/hf-cache
     mkdir -p ${teacherState}/data ${teacherState}/logs
     [ -f ${teacherState}/.env ] || install -m 0600 /dev/null ${teacherState}/.env
-    mkdir -p ${vtagState}/logs
+    mkdir -p ${memeState}/logs
     mkdir -p ${axonState}/logs
     mkdir -p ${axonWebState}/logs
     mkdir -p ${intState}/hf-cache

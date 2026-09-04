@@ -15,7 +15,7 @@ Deployed (and imported by consumers) at
 ```json
 {
   "agentic": "gpt-oss:20b",
-  "vtag": "qwen2.5vl:7b",
+  "meme": "qwen2.5vl:7b",
   "uncensored": "huihui_ai/qwen2.5-abliterate:14b",
   "gemma": "gemma3:27b",
   "secondary": "qwen3:14b",
@@ -28,7 +28,7 @@ Roles, and who reads each:
 - `agentic` — primary agentic model. `mandragora.ai.agentic.model`
   default in `nix/modules/core/ai-local.nix`; crush primary
   (manual, see below).
-- `vtag` — VLM. `mandragora.ai.vtag.model` default in
+- `meme` — VLM. `mandragora.ai.meme.model` default in
   `nix/modules/core/ai-local.nix`.
 - `uncensored` — abliterated chat model. `mandragora.ai.uncensored.model`
   default in `nix/modules/core/ai-local.nix`; backs the MCP
@@ -44,7 +44,7 @@ Roles, and who reads each:
 Changing a role key in the JSON flows through automatically:
 
 1. **Declarative pulls** — `nix/modules/core/ai-local.nix` reads the
-   JSON with `builtins.fromJSON` for the `agentic`/`vtag`/`uncensored`
+   JSON with `builtins.fromJSON` for the `agentic`/`meme`/`uncensored`
    option defaults. `nix/hosts/mandragora-desktop/default.nix` builds
    `mandragora.ai.extraModels` from `gemma`/`secondary`/`embeddings`.
    A pull unit is generated per tag, so every tag in one of these
@@ -92,9 +92,9 @@ repos. Listed for completeness:
    `llm_via_telegram/env` sops secret. Reads `AGENTS.md` +
    `docs/local-llm.md` for its system prompt, talks to raw ollama
    `:11434`.
-3. **vtag** — fetched from GitHub (`nix/pkgs/vtag-cli.nix`); the VLM
-   tag it pulls is the `vtag` role via the pre-pull unit, but vtag's
-   own default lives upstream.
+3. **meme** — fetched from GitHub (`nix/pkgs/meme-cli.nix`); the VLM
+   tag it pulls is the `meme` role via the pre-pull unit, but the
+   upstream default lives in the vtag repo.
 
 ## Wrap-up
 

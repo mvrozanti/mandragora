@@ -12,7 +12,7 @@ and confirms it. Callers `await evict_model(...)` *while still holding the
 gpu_lock*, before releasing.
 
 Single source of truth: llm-via-telegram (`bot/helpers/ollama.py`) and
-vtag (`pipeline/ollama_lifecycle.py`) import these via thin shims.
+meme (`pipeline/ollama_lifecycle.py`) import these via thin shims.
 Importable wherever the gpu-lock dir is on PYTHONPATH.
 """
 from __future__ import annotations
