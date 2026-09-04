@@ -32,9 +32,9 @@ let
         db_path = "/home/m/Projects/orderbook-algotrading/.axon/index.duckdb";
       }
       {
-        name = "vtag";
-        root = "/etc/nixos/mandragora/.local/share/vtag";
-        db_path = "/etc/nixos/mandragora/.local/share/vtag/.axon/index.duckdb";
+        name = "meme";
+        root = "/home/m/Projects/vtag";
+        db_path = "/home/m/Projects/vtag/.axon/index.duckdb";
       }
       {
         name = "gpu-lock";
@@ -87,7 +87,7 @@ let
         "mandragora"
         "axon"
         "thought"
-        "vtag"
+        "meme"
         "gpu-lock"
         "llm-via-telegram"
         "stt-via-telegram"
@@ -99,7 +99,7 @@ let
         "rgb-control"
       ];
       bots = [
-        "vtag"
+        "meme"
         "llm-via-telegram"
         "stt-via-telegram"
         "stt-core"

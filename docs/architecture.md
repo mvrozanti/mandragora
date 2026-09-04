@@ -258,7 +258,7 @@ peripherals file).
 Self-hosted web and GPU-backed services that run on the desktop host —
 LLM/web frontends (`open-webui.nix`, `ollama-context-proxy.nix`,
 `llm-visualizer.nix`, `ttyd.nix`, `claude-web.nix`), media and misc web apps
-(`mympd.nix`, `ytdl-web.nix`, `vtag-web.nix`, `emotion-web.nix`,
+(`mympd.nix`, `ytdl-web.nix`, `meme-web.nix`, `emotion-web.nix`,
 `slither-io.nix`, `gource-renderer.nix`), and the
 `hub-services.nix` aggregator.
 

@@ -91,7 +91,7 @@ Several stacks are thin **reverse-proxy shims**: an `alpine` container that only
 | Stack | Hostname | Purpose | Desktop upstream |
 |---|---|---|---|
 | `stt` | `stt.mvr.ac` | Speech-to-text UI | `100.115.80.79:8091` |
-| `vtag` | `meme.mvr.ac` | Image tagger UI | `100.115.80.79:8093` |
+| `meme` | `meme.mvr.ac` | Image tagger UI | `100.115.80.79:8093` |
 | `music` | `music.mvr.ac` | Emotion-tagging music explorer | `100.115.80.79:8094` |
 | `kl` | `kl.mvr.ac` | (desktop service) | `100.115.80.79:6900` |
 | `semantic` | `semantic.mvr.ac` | LLM semantic-arithmetic visualizer (API + web split) | `100.115.80.79:8000` / `:3001` |
