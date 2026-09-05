@@ -12,12 +12,6 @@ services:
       - "${TAILNET_VPS_IP:-100.84.78.83}:3100:3100"
     networks:
       - seafile-net
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
     logging:
       driver: json-file
       options:
