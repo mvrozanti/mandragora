@@ -3,4 +3,3 @@ auth
 api
 paste
 p
-ccrelay
