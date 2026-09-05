@@ -532,6 +532,8 @@ function buildPump() {
       });
     });
     let liveRow = -1;
+    let lastPh = -1;
+    let tickRow = -1;
     subs.push(t => {
       let idx = -1;
       for (let i = 0; i < rows.length; i++) if (t >= rows[i].sec.t0 && t < rows[i].sec.t1) { idx = i; break; }
@@ -543,12 +545,19 @@ function buildPump() {
       if (idx >= 0 && state.playing) {
         const bi = beatIndexAt(t);
         const span = (bt[bi + 1] || bt[bi] + 0.42) - bt[bi];
-        const ph = clamp((t - bt[bi]) / span, 0, 1);
-        tick.style.opacity = "1";
-        tick.style.left = (ph * 100) + "%";
-        tick.style.top = (idx * rowH + 2) + "px";
-        tick.style.height = (rowH - 4) + "px";
-      } else {
+        const ph = Math.round(clamp((t - bt[bi]) / span, 0, 1) * 200) / 2;
+        if (ph !== lastPh) {
+          lastPh = ph;
+          tick.style.left = ph + "%";
+        }
+        if (idx !== tickRow) {
+          tickRow = idx;
+          tick.style.opacity = "1";
+          tick.style.top = (idx * rowH + 2) + "px";
+          tick.style.height = (rowH - 4) + "px";
+        }
+      } else if (tickRow !== -1) {
+        tickRow = -1;
         tick.style.opacity = "0";
       }
     });
@@ -769,14 +778,21 @@ function buildSequencer(b) {
     };
     wrap.addEventListener("pointerup", go);
   });
+  let lastCell = "";
   subs.push(t => {
     let si = -1;
     for (let i = 0; i < secs.length; i++) if (t >= secs[i].sec.t0 && t < secs[i].sec.t1) { si = i; break; }
-    if (si < 0 || !state.playing) { cur.style.opacity = "0"; return; }
+    if (si < 0 || !state.playing) {
+      if (lastCell !== "") { lastCell = ""; cur.style.opacity = "0"; }
+      return;
+    }
     const bi = beatIndexAt(t);
     const span = (bt[bi + 1] || bt[bi] + 0.42) - bt[bi];
     const six = clamp(Math.floor((t - bt[bi]) / span * 4), 0, 3);
     const step = (((bi - off) % 4 + 4) % 4) * 4 + six;
+    const key = si + ":" + step;
+    if (key === lastCell) return;
+    lastCell = key;
     const cellW = (SEC_W - 10) / 16;
     cur.style.opacity = "1";
     cur.style.left = (LAB + si * SEC_W + step * cellW) + "px";
@@ -1090,7 +1106,13 @@ function buildLiveGonio(b) {
   const p = panel(b, "goniometer · live while playing, nearest sampled instant when paused");
   const c = el("canvas", "gonio-live");
   p.appendChild(c);
-  const ga = { tried: false, ready: false, side: 0, lastFrame: -2 };
+  const ga = { tried: false, ready: false, side: 0, lastFrame: -2, seen: false };
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(es => { ga.seen = es[0].isIntersecting; },
+      { rootMargin: "120px" }).observe(c);
+  } else {
+    ga.seen = true;
+  }
   function size() {
     const side = Math.min(c.clientWidth || 420, 460);
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -1130,6 +1152,7 @@ function buildLiveGonio(b) {
   }
   renders.push(() => { ga.lastFrame = -2; ga.sized = false; });
   subs.push(t => {
+    if (!ga.seen) return;
     if (state.playing && state.useAudio && !RM) {
       if (!ga.tried) {
         ga.tried = true;
