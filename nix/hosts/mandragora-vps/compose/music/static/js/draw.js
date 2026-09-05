@@ -54,10 +54,14 @@ export function fmtHz(v) {
   return v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 0 : 1).replace(/\.0$/, "") + "k" : String(Math.round(v));
 }
 
+export const MAX_CANVAS_DIM = 8192;
+
 export function prepCanvas(canvas, hCss) {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const host = canvas.parentElement;
   const w = Math.max(40, canvas.clientWidth || (host ? host.clientWidth : 0));
+  const fit = Math.min(MAX_CANVAS_DIM / Math.max(w, 1),
+    MAX_CANVAS_DIM / Math.max(hCss, 1));
+  const dpr = Math.min(window.devicePixelRatio || 1, 2, fit);
   canvas.style.height = hCss + "px";
   canvas.width = Math.max(1, Math.round(w * dpr));
   canvas.height = Math.max(1, Math.round(hCss * dpr));

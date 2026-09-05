@@ -279,11 +279,16 @@ function keyColor(name) {
 }
 
 async function probeAudio() {
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 6000);
   try {
-    const r = await fetch("audio/" + encodeURIComponent(slug) + ".mp3", { method: "HEAD", redirect: "manual" });
+    const r = await fetch("audio/" + encodeURIComponent(slug) + ".mp3",
+      { method: "HEAD", redirect: "manual", signal: ac.signal });
     return r.ok;
   } catch (e) {
     return false;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -1325,7 +1330,6 @@ function buildInteractionMatrix(b) {
     }
   }
 }
-}
 
 function moodLabel(k) {
   return k.replace(/^mood_/, "");
@@ -1876,6 +1880,7 @@ function buildGrammar() {
 }
 
 async function boot() {
+  const failed = [];
   let data, mf, emo, grammar, llm, clapw;
   try {
     [mf, data, emo, grammar, llm, clapw] = await Promise.all([
@@ -1901,30 +1906,53 @@ async function boot() {
   META = ((mf && mf.tracks) || []).find(t => t.slug === slug) || fallbackMeta();
   state.duration = D.duration || META.duration || 1;
 
-  const ok = await probeAudio();
-  setupAudio(ok);
-
   $("status").remove();
   $("essay").hidden = false;
 
-  buildHero();
-  buildPump();
-  buildSpectrum();
-  buildHarmony();
-  buildRhythm();
-  buildTexture();
-  buildStructure();
-  buildStereo();
-  if (EMO) buildFeeling();
-  else $("ch9").remove();
-  buildChaos();
-  if (GRAMMAR) buildGrammar();
-  else $("ch11").remove();
-  buildToc();
+  const chapters = [
+    ["hero", buildHero],
+    ["pump", buildPump],
+    ["spectrum", buildSpectrum],
+    ["harmony", buildHarmony],
+    ["rhythm", buildRhythm],
+    ["texture", buildTexture],
+    ["structure", buildStructure],
+    ["stereo", buildStereo],
+    ["feeling", () => { if (EMO) buildFeeling(); else $("ch9").remove(); }],
+    ["chaos", buildChaos],
+    ["grammar", () => { if (GRAMMAR) buildGrammar(); else $("ch11").remove(); }],
+    ["toc", buildToc],
+  ];
+  for (const [name, fn] of chapters) {
+    try {
+      fn();
+    } catch (e) {
+      console.error("[chapter " + name + "]", e);
+      failed.push(name);
+    }
+  }
 
-  for (const r of renders) r();
+  probeAudio().then(setupAudio).catch(() => setupAudio(false));
+
+  for (const r of renders) {
+    try {
+      r();
+    } catch (e) {
+      console.error("[render]", e);
+    }
+  }
+  if (failed.length && params.get("debug")) {
+    const n = el("p", "banner", "chapters failed: " + esc(failed.join(", ")));
+    document.querySelector(".masthead").appendChild(n);
+  }
   addEventListener("resize", debounce(() => {
-    for (const r of renders) r();
+    for (const r of renders) {
+      try {
+        r();
+      } catch (e) {
+        console.error("[render]", e);
+      }
+    }
     tick(true);
   }, 160));
 
