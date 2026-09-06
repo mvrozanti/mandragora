@@ -35,8 +35,10 @@ enable_drag() {
 apply_state() {
   if is_bf4; then
     disable_drag
+    hyprctl keyword input:accel_profile flat >/dev/null 2>&1 || true
   else
     enable_drag
+    hyprctl keyword input:accel_profile "" >/dev/null 2>&1 || true
     hyprctl keyword input:sensitivity 0 >/dev/null 2>&1 || true
   fi
 }
