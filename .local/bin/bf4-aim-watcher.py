@@ -9,7 +9,7 @@ import evdev
 DEVICE_NAME = "keyd virtual keyboard"
 ALT_KEYS = {evdev.ecodes.KEY_LEFTALT, evdev.ecodes.KEY_RIGHTALT}
 MATCH_RE = re.compile(r"[Bb]attlefield|[Bb][Ff]4")
-AIM_SENSITIVITY = "-0.9"
+AIM_SENSITIVITY = "-0.67"
 
 
 def find_device():
