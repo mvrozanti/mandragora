@@ -26,7 +26,7 @@ in
   ];
 
   systemd.user.services.bf4-mode-watcher = {
-    description = "Suppress alt+drag and reset aim sensitivity on BF4 focus change";
+    description = "Toggle Hyprland BF4 submap and aim sensitivity on focus";
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
@@ -38,7 +38,7 @@ in
   };
 
   systemd.user.services.bf4-aim-watcher = {
-    description = "Set mouse sensitivity to 1/10 while Alt is held in BF4";
+    description = "Halve mouse sensitivity while Alt is held in BF4";
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
