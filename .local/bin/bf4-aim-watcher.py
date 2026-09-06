@@ -65,16 +65,18 @@ def run():
                 if event.type != evdev.ecodes.EV_KEY or event.code not in ALT_KEYS:
                     continue
                 if event.value == 1 and not aim_on and is_bf4_focused():
-                    set_sensitivity("-0.5")
+                    set_sensitivity("-0.9")
                     aim_on = True
                 elif event.value == 0 and aim_on:
                     set_sensitivity("0")
                     aim_on = False
+        except OSError:
+            pass
         finally:
+            if aim_on:
+                set_sensitivity("0")
+                aim_on = False
             dev.close()
-        if aim_on:
-            set_sensitivity("0")
-            aim_on = False
 
 
 if __name__ == "__main__":
