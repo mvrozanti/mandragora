@@ -38,7 +38,7 @@ in
   };
 
   systemd.user.services.bf4-aim-watcher = {
-    description = "Set mouse sensitivity to 33% while Alt is held in BF4";
+    description = "Set mouse sensitivity to 50% while Alt is held in BF4";
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
