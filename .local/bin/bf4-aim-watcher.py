@@ -9,6 +9,7 @@ import evdev
 DEVICE_NAME = "keyd virtual keyboard"
 ALT_KEYS = {evdev.ecodes.KEY_LEFTALT, evdev.ecodes.KEY_RIGHTALT}
 MATCH_RE = re.compile(r"[Bb]attlefield|[Bb][Ff]4")
+AIM_SENSITIVITY = "-0.9"
 
 
 def find_device():
@@ -41,15 +42,41 @@ def is_bf4_focused():
     return bool(MATCH_RE.search(f"{cls} {title}"))
 
 
-def set_sensitivity(value):
+def get_accel_profile():
+    proc = subprocess.run(
+        ["hyprctl", "getoption", "input:accel_profile", "-j"],
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0 or not proc.stdout.strip():
+        return ""
+    try:
+        data = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return ""
+    return data.get("str") or ""
+
+
+def set_keyword(keyword, value):
     subprocess.run(
-        ["hyprctl", "keyword", "input:sensitivity", value],
+        ["hyprctl", "keyword", keyword, value],
         capture_output=True,
     )
 
 
+def aim_on_state():
+    set_keyword("input:accel_profile", "flat")
+    set_keyword("input:sensitivity", AIM_SENSITIVITY)
+
+
+def aim_off_state(accel):
+    set_keyword("input:accel_profile", accel)
+    set_keyword("input:sensitivity", "0")
+
+
 def run():
     aim_on = False
+    default_accel = get_accel_profile()
     while True:
         path = find_device()
         if not path:
@@ -65,16 +92,18 @@ def run():
                 if event.type != evdev.ecodes.EV_KEY or event.code not in ALT_KEYS:
                     continue
                 if event.value == 1 and not aim_on and is_bf4_focused():
-                    set_sensitivity("-0.5")
+                    aim_on_state()
                     aim_on = True
                 elif event.value == 0 and aim_on:
-                    set_sensitivity("0")
+                    aim_off_state(default_accel)
                     aim_on = False
+        except OSError:
+            pass
         finally:
+            if aim_on:
+                aim_off_state(default_accel)
+                aim_on = False
             dev.close()
-        if aim_on:
-            set_sensitivity("0")
-            aim_on = False
 
 
 if __name__ == "__main__":
