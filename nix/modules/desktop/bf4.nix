@@ -1,11 +1,7 @@
 { pkgs, ... }:
 
 let
-  bf4Aim = pkgs.writeShellApplication {
-    name = "bf4-aim";
-    runtimeInputs = [ pkgs.hyprland ];
-    text = builtins.readFile ../../../.local/bin/bf4-aim.sh;
-  };
+  pyEnv = pkgs.python3.withPackages (ps: [ ps.evdev ]);
   bf4ModeWatcher = pkgs.writeShellApplication {
     name = "bf4-mode-watcher";
     runtimeInputs = [
@@ -15,11 +11,18 @@ let
     ];
     text = builtins.readFile ../../../.local/bin/bf4-mode-watcher.sh;
   };
+  bf4AimWatcher = pkgs.writeShellApplication {
+    name = "bf4-aim-watcher";
+    runtimeInputs = [ pkgs.hyprland ];
+    text = ''
+      exec ${pyEnv}/bin/python3 ${../../../.local/bin/bf4-aim-watcher.py} "$@"
+    '';
+  };
 in
 {
   environment.systemPackages = [
-    bf4Aim
     bf4ModeWatcher
+    bf4AimWatcher
   ];
 
   systemd.user.services.bf4-mode-watcher = {
@@ -29,6 +32,18 @@ in
     after = [ "graphical-session.target" ];
     serviceConfig = {
       ExecStart = "${bf4ModeWatcher}/bin/bf4-mode-watcher";
+      Restart = "on-failure";
+      RestartSec = "3s";
+    };
+  };
+
+  systemd.user.services.bf4-aim-watcher = {
+    description = "Halve mouse sensitivity while Alt is held in BF4";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    serviceConfig = {
+      ExecStart = "${bf4AimWatcher}/bin/bf4-aim-watcher";
       Restart = "on-failure";
       RestartSec = "3s";
     };
