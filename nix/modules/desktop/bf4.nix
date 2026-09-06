@@ -26,7 +26,7 @@ in
   ];
 
   systemd.user.services.bf4-mode-watcher = {
-    description = "Suppress alt+drag and reset aim sensitivity on BF4 focus change";
+    description = "Suppress alt+drag and flatten mouse acceleration on BF4 focus change";
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
