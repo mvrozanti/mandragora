@@ -20,11 +20,23 @@ is_bf4() {
   [[ "${class} ${title}" =~ ${MATCH_RE} ]]
 }
 
+disable_drag() {
+  hyprctl keyword unbind 'ALT,mouse:272' >/dev/null 2>&1 || true
+  hyprctl keyword unbind 'ALT,mouse:273' >/dev/null 2>&1 || true
+}
+
+enable_drag() {
+  hyprctl keyword unbind 'ALT,mouse:272' >/dev/null 2>&1 || true
+  hyprctl keyword unbind 'ALT,mouse:273' >/dev/null 2>&1 || true
+  hyprctl keyword bindm 'ALT,mouse:272,movewindow' >/dev/null 2>&1 || true
+  hyprctl keyword bindm 'ALT,mouse:273,resizewindow' >/dev/null 2>&1 || true
+}
+
 apply_state() {
   if is_bf4; then
-    hyprctl dispatch submap bf4 >/dev/null 2>&1 || true
+    disable_drag
   else
-    hyprctl dispatch submap reset >/dev/null 2>&1 || true
+    enable_drag
     hyprctl keyword input:sensitivity 0 >/dev/null 2>&1 || true
   fi
 }
@@ -33,6 +45,6 @@ apply_state
 
 exec socat -u "UNIX-CONNECT:$sock2" - | while IFS= read -r line; do
   case "$line" in
-    activewindow\>\>*|activewindowv2\>\>*) apply_state ;;
+    activewindow\>\>*|activewindowv2\>\>*|configreloaded\>\>*) apply_state ;;
   esac
 done
