@@ -8,7 +8,8 @@ import evdev
 
 DEVICE_NAME = "keyd virtual keyboard"
 ALT_KEYS = {evdev.ecodes.KEY_LEFTALT, evdev.ecodes.KEY_RIGHTALT}
-MATCH_RE = re.compile(r"[Bb]attlefield|[Bb][Ff]4")
+CLASS_RE = re.compile(r"^steam_app_[0-9a-z_]+$|[Bb][Ff]4|[Bb]attlefield")
+TITLE_RE = re.compile(r"^[Bb]attlefield 4$|^[Bb][Ff]4$")
 AIM_SENSITIVITY = "-0.5"
 
 
@@ -39,7 +40,7 @@ def is_bf4_focused():
         return False
     cls = data.get("class") or ""
     title = data.get("title") or ""
-    return bool(MATCH_RE.search(f"{cls} {title}"))
+    return bool(CLASS_RE.search(cls)) and bool(TITLE_RE.search(title))
 
 
 def set_sensitivity(value):
