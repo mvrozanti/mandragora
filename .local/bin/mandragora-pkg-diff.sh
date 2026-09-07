@@ -111,7 +111,7 @@ fcitx5.*|ibus|
 mympd|mpd|ncmpcpp|mpc|cava|
 ttyd|grafana|local-ai-mcp-server|nb-vault-sync|
 seafile.*|seaf-onboard|sqlcipher|
-steam|steam-run|retroarch.*|prismlauncher|openjdk|minecraft|ue5-launcher|idea-oss|
+steam|steam-run|retroarch.*|prismlauncher|openjdk|minecraft|idea-oss|
 zapzap|droidcam|scrcpy|tradingview|impala|
 strays|setbg|shfthue|pop|sit|smart-launch|safe-claude|spawn-claude-tmux|
 mandragora-(audit|switch|diff|diff-last|winvm|commit-push)|

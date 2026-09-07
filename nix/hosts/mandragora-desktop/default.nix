@@ -47,7 +47,6 @@ in
     ../../modules/desktop/soundboard.nix
     ../../modules/desktop/mt5.nix
     ../../modules/desktop/minecraft.nix
-    ../../modules/desktop/ue5.nix
     ../../modules/desktop/cc-lens.nix
     ../../modules/desktop/watch-judge.nix
     ../../modules/services/hub-services.nix
