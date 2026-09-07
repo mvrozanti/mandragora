@@ -20,7 +20,7 @@
     options = [
       "subvol=root-active"
       "compress=zstd:1"
-      "noatime"
+      "relatime"
       "ssd"
       "discard=async"
       "space_cache=v2"
@@ -33,7 +33,7 @@
     options = [
       "subvol=nix"
       "compress=zstd:1"
-      "noatime"
+      "relatime"
       "ssd"
       "discard=async"
       "space_cache=v2"
@@ -46,7 +46,7 @@
     options = [
       "subvol=persistent"
       "compress=zstd:1"
-      "noatime"
+      "relatime"
       "ssd"
       "discard=async"
       "space_cache=v2"
@@ -60,7 +60,7 @@
     options = [
       "subvol=games"
       "compress=zstd:1"
-      "noatime"
+      "relatime"
       "ssd"
       "discard=async"
       "space_cache=v2"
