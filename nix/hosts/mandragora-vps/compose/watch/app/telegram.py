@@ -26,25 +26,49 @@ def _esc(s: str | None) -> str:
     return html.escape(s or "", quote=False)
 
 
+PERMANENT_FAILURE = {"ok": False, "permanent": True}
+
+MAX_RETRY_AFTER = 60.0
+
+
+def _retry_after_seconds(response: httpx.Response) -> float:
+    try:
+        requested = float((response.json().get("parameters") or {}).get("retry_after") or 0)
+    except Exception:
+        requested = 0.0
+    return min(max(requested, 1.0), MAX_RETRY_AFTER)
+
+
 async def _post(method: str, payload: dict) -> dict | None:
     if not BOT_TOKEN:
         return None
     read_timeout = float(payload.get("timeout", 0)) + 20.0
-    try:
-        async with httpx.AsyncClient(timeout=read_timeout) as c:
-            r = await c.post(f"{API}/{method}", json=payload)
+    for attempt in (0, 1):
+        try:
+            async with httpx.AsyncClient(timeout=read_timeout) as c:
+                r = await c.post(f"{API}/{method}", json=payload)
+        except Exception as exc:
+            log.warning("tg %s exception: %s", method, exc)
+            return None
+        if r.status_code == 429 and attempt == 0:
+            delay = _retry_after_seconds(r)
+            log.warning("tg %s throttled, retrying in %ss", method, delay)
+            await asyncio.sleep(delay)
+            continue
+        if 400 <= r.status_code < 500 and r.status_code != 429:
+            log.error("tg %s rejected: %s %s", method, r.status_code, r.text[:200])
+            return PERMANENT_FAILURE
         if r.status_code >= 400:
             log.warning("tg %s failed: %s %s", method, r.status_code, r.text[:200])
             return None
         return r.json()
-    except Exception as exc:
-        log.warning("tg %s exception: %s", method, exc)
-        return None
+    return None
 
 
-async def push_event(watcher: Any, ev: dict[str, Any]) -> None:
+async def push_event(watcher: Any, ev: dict[str, Any]) -> bool:
     if not enabled():
-        return
+        log.error("telegram push skipped: TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID unset")
+        return False
     title = ev.get("title") or "(no title)"
     summary = ev.get("summary") or ""
     link = ev.get("link") or ""
@@ -85,9 +109,12 @@ async def push_event(watcher: Any, ev: dict[str, Any]) -> None:
         if link:
             row.append({"text": "open", "url": link})
         payload["reply_markup"] = {"inline_keyboard": [row]}
+    delivered = True
     for chat_id in ALLOWED_CHAT_IDS:
         payload["chat_id"] = chat_id
-        await _post("sendMessage", payload)
+        if await _post("sendMessage", payload) is None:
+            delivered = False
+    return delivered
 
 
 HELP = (
@@ -460,7 +487,7 @@ async def _handle_callback(conn_factory, cb: dict) -> None:
 
 async def run_forever(conn_factory) -> None:
     if not enabled():
-        log.info("telegram disabled (no token / chat_id)")
+        log.error("telegram disabled: TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID unset, no notifications will be sent")
         return
     log.info("telegram polling getUpdates for chat_ids=%s", ALLOWED_CHAT_IDS)
     offset = 0
