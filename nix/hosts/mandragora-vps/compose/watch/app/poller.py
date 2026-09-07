@@ -18,7 +18,6 @@ POLL_INTERVAL = int(os.environ.get("WATCH_POLL_INTERVAL", "300"))
 SUMMARY_MAX = int(os.environ.get("WATCH_SUMMARY_MAX", "16000"))
 WEBHOOK_URL = os.environ.get("WATCH_WEBHOOK_URL", "").strip()
 PUBLIC_BASE = os.environ.get("WATCH_PUBLIC_BASE", "https://watch.mvr.ac")
-PUSH_MAYBE = os.environ.get("WATCH_PUSH_MAYBE", "0").strip().lower() in ("1", "true", "yes", "on")
 USER_AGENT = os.environ.get(
     "WATCH_USER_AGENT",
     "mandragora-watch/0.1 (+https://watch.mvr.ac)",
@@ -90,14 +89,8 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
                     continue
             except (ValueError, TypeError):
                 pass
-        if r["w_spec"]:
-            verdict = r["ai_verdict"]
-            if verdict is None:
-                continue
-            if verdict == "NO":
-                continue
-            if verdict == "MAYBE" and not PUSH_MAYBE:
-                continue
+        if r["w_spec"] and r["ai_verdict"] != "GO":
+            continue
         last = r["last_reminder_at"]
         if last is None:
             due = True
