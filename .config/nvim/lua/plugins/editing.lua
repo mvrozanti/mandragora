@@ -37,6 +37,16 @@ return {
         label = {
           uppercase = false,
         },
+        modes = {
+          char = {
+            jump_labels = true,
+            jump = {
+              autojump = true,
+              register = true,
+              nohlsearch = true,
+            },
+          },
+        },
       })
     end,
   },
