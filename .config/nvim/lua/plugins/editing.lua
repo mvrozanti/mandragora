@@ -43,18 +43,13 @@ return {
 
   {
     'MagicDuck/grug-far.nvim',
+    lazy = false,
     keys = {
       {
         '<leader>sr',
         mode = 'n',
         function() require('grug-far').open({ prefills = { search = vim.fn.expand('<cword>') } }) end,
         desc = 'Search and replace (word under cursor)',
-      },
-      {
-        '<C-h>',
-        mode = 'v',
-        function() require('grug-far').with_visual_selection({ prefills = { paths = vim.fn.expand('%') } }) end,
-        desc = 'Replace selection with live preview',
       },
     },
   },
