@@ -8,6 +8,8 @@
 
 return {
 
+  { 'tpope/vim-sleuth' },
+
   -- ── flash.nvim: replaces vim-easymotion (10x faster, Lua-native) ──────────
   {
     'folke/flash.nvim',
@@ -30,7 +32,7 @@ return {
       require('flash').setup({
         labels = 'asdfghjklqwertyuiopzxcvbnm',
         search = {
-          mode = 'search',
+          mode = 'exact',
         },
         label = {
           uppercase = false,
