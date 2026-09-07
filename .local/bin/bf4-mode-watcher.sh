@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-MATCH_RE='[Bb]attlefield|[Bb][Ff]4'
+CLASS_RE='^steam_app_[0-9a-z_]+$|[Bb][Ff]4|[Bb]attlefield'
+TITLE_RE='^[Bb]attlefield 4$|^[Bb][Ff]4$'
 
 if [ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
   echo "HYPRLAND_INSTANCE_SIGNATURE not set" >&2
@@ -17,7 +18,7 @@ is_bf4() {
   [ -n "$json" ] || return 1
   class="$(printf '%s' "$json" | jq -r '.class // empty' 2>/dev/null)"
   title="$(printf '%s' "$json" | jq -r '.title // empty' 2>/dev/null)"
-  [[ "${class} ${title}" =~ ${MATCH_RE} ]]
+  [[ "${class}" =~ ${CLASS_RE} ]] && [[ "${title}" =~ ${TITLE_RE} ]]
 }
 
 disable_drag() {
@@ -35,10 +36,8 @@ enable_drag() {
 apply_state() {
   if is_bf4; then
     disable_drag
-    hyprctl keyword input:accel_profile flat >/dev/null 2>&1 || true
   else
     enable_drag
-    hyprctl keyword input:accel_profile "" >/dev/null 2>&1 || true
     hyprctl keyword input:sensitivity 0 >/dev/null 2>&1 || true
   fi
 }
