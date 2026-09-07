@@ -9,6 +9,7 @@
     ../user/zsh.nix
     ../user/tmux.nix
     ../user/yazi.nix
+    ../user/skills.nix
   ];
 
   home.packages = with pkgs; [

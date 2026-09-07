@@ -261,6 +261,7 @@ Specialized procedures defined in \`agent-skills/\` (exposed to agents via \`act
 - **gpu-lock** — Coordinate GPU/VRAM usage across agents.
 - **hotkeys** — Audit and update system-wide keybindings.
 - **handoff / pickup** — Pass task context between agents.
+- **confused** — Resolve an ambiguous request via multiple-choice questions: stems are objectives, options are consequences. Also pulled when a rebuild+switch aborts on a judgement call.
 
 ---
 

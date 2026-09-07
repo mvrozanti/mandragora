@@ -26,6 +26,10 @@ let
       n = "nb-vault-sync";
       s = ../../../agent-skills/nb-vault-sync;
     }
+    {
+      n = "confused";
+      s = ../../../agent-skills/confused;
+    }
   ];
 
   mkEntries =
