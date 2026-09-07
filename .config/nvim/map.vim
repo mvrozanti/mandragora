@@ -61,6 +61,7 @@ vn <CR> c<CR>
 nn <C-Tab> gK
 map <silent> <F2> :Goyo <CR>
 vn <C-r> "hy:.,$s/<C-r>h//gc<left><left><left>
+vn <C-h> <Cmd>lua require('grug-far').with_visual_selection({ prefills = { paths = vim.fn.expand('%') } })<CR>
 vn D "hy:%g!/<C-r>h/d"
 nn <Del> "_<Del>
 nn x "_x
