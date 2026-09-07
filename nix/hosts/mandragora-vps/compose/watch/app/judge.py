@@ -25,7 +25,11 @@ USER_AGENT = os.environ.get(
     "mandragora-watch/0.1 (+https://watch.mvr.ac)",
 )
 
-VERDICTS = {"GO", "MAYBE", "NO"}
+VERDICTS = {"GO", "UNCLEAR", "NO"}
+
+CORROBORATE = os.environ.get("WATCH_CORROBORATE", "1").strip().lower() in ("1", "true", "yes", "on")
+CORROBORATE_WINDOW_HOURS = int(os.environ.get("WATCH_CORROBORATE_WINDOW", "72"))
+CORROBORATE_CANDIDATES = int(os.environ.get("WATCH_CORROBORATE_CANDIDATES", "12"))
 
 QUOTA_SIGNALS = ("quota", "rate limit", "rate-limit", "resource_exhausted", "too many requests")
 
@@ -49,8 +53,15 @@ CLAIM_SQL = (
 )
 
 WRITE_VERDICT_SQL = (
-    "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_judged_at = ?, ai_claimed_at = NULL "
+    "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_claim = ?, ai_judged_at = ?, ai_claimed_at = NULL "
     "WHERE id = ? AND ai_verdict IS NULL"
+)
+
+RELEASE_CLAIM_SQL = "UPDATE events SET ai_claimed_at = NULL WHERE id = ? AND ai_verdict IS NULL"
+
+PROMOTE_SQL = (
+    "UPDATE events SET ai_verdict = 'GO', ai_reason = ?, ai_judged_at = ? "
+    "WHERE id = ? AND ai_verdict = 'UNCLEAR'"
 )
 
 
@@ -60,17 +71,22 @@ SYSTEM_PROMPT = (
     "and the fetched text content at the event's link, decide whether the event is a "
     "genuine match for the spec.\n\n"
     "Return ONLY a single line of JSON, no markdown, no prose, no <think> tags:\n"
-    '{"verdict":"GO|MAYBE|NO","reason":"<=200 chars"}\n\n'
+    '{"verdict":"GO|UNCLEAR|NO","reason":"<=200 chars","claim":"<=160 chars"}\n\n'
     "Definitions:\n"
     "- GO: the link content clearly satisfies EVERY explicit requirement in the spec "
-    "(e.g. correct device generation AND firmware range AND a working release/exploit). "
-    "Quote the matched fields in the reason.\n"
-    "- MAYBE: link content positively evidences every explicit spec requirement, but "
-    "deliverability is unclear (e.g. dev preview asserts correct device+firmware with no "
-    "artifact yet).\n"
-    "- NO: off-topic, wrong device/firmware/version, speculation, OR the link content "
-    "fails to positively assert any explicit spec requirement. Missing required info is "
-    "NO, not MAYBE. A notification the user has to hand-verify is a failed filter.\n\n"
+    "(e.g. correct device generation AND firmware range AND a working release/exploit) "
+    "and states it as established fact. Quote the matched fields in the reason.\n"
+    "- UNCLEAR: the content positively evidences every explicit spec requirement, but the "
+    "assertion itself is weak — an unverified single report, a rumor attributed to no "
+    "source, or a preview with nothing shipped yet. Corroboration from another source "
+    "will promote it. Never use UNCLEAR for missing information.\n"
+    "- NO: off-topic, wrong device/firmware/version, speculation about something that has "
+    "not happened, OR the link content fails to positively assert any explicit spec "
+    "requirement. Missing required info is NO, not UNCLEAR.\n\n"
+    "The claim field is one normalized sentence naming exactly what is asserted (actor, "
+    "artifact, action), written so two independent articles about the same underlying "
+    "event yield near-identical claims. Omit outlet names, dates, and adjectives. Use an "
+    "empty string when the verdict is NO.\n\n"
     "Hard rules:\n"
     "1. If the spec lists concrete constraints (model number, firmware range, version, "
     "platform) and the content does not positively assert each one, return NO.\n"
@@ -79,6 +95,17 @@ SYSTEM_PROMPT = (
     "those also do not positively assert each required field, return NO.\n"
     "4. Reason must cite which required field matched or which is missing/mismatched. "
     "Never invent facts not present in the provided text."
+)
+
+
+SAME_CLAIM_PROMPT = (
+    "You decide whether two short claims describe the same underlying real-world event.\n"
+    "Return ONLY a single line of JSON: "
+    '{"same":true|false,"reason":"<=120 chars"}\n'
+    "Same means identical actor, identical artifact or system, and identical action. "
+    "Two outlets reporting one event are the same claim. A different version, a different "
+    "product, a different vulnerability, or a later follow-up development is NOT the same "
+    "claim. When in doubt, return false."
 )
 
 
@@ -171,42 +198,38 @@ def build_user_prompt(ai_spec: str, event: dict[str, Any], link_text: str, fetch
 _JSON_OBJ_RE = re.compile(r"\{.*\}", re.DOTALL)
 
 
-def _parse_verdict_json(text: str) -> tuple[str, str]:
+def _parse_json_object(text: str) -> dict:
     text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
-    raw = text
     try:
-        parsed = json.loads(raw)
+        return json.loads(text)
     except json.JSONDecodeError:
-        m = _JSON_OBJ_RE.search(raw)
+        m = _JSON_OBJ_RE.search(text)
         if not m:
-            raise RuntimeError(f"no json object in response: {raw[:200]}")
-        parsed = json.loads(m.group(0))
+            raise RuntimeError(f"no json object in response: {text[:200]}")
+        return json.loads(m.group(0))
+
+
+def _parse_verdict_json(text: str) -> tuple[str, str, str]:
+    parsed = _parse_json_object(text)
     verdict = str(parsed.get("verdict", "")).upper().strip()
     reason = str(parsed.get("reason", ""))[:500]
+    claim = str(parsed.get("claim", "") or "")[:300]
     if verdict not in VERDICTS:
         raise RuntimeError(f"bad verdict: {verdict!r}")
-    return verdict, reason
+    return verdict, reason, claim
 
 
-async def judge_event(ai_spec: str, event: dict[str, Any]) -> tuple[str, str]:
-    link_text, fetch_err = await fetch_link(event.get("link") or "")
+async def _generate(system: str, prompt: str, schema: dict, num_predict: int = 512) -> str:
     payload = {
         "model": OLLAMA_MODEL,
-        "system": SYSTEM_PROMPT,
-        "prompt": build_user_prompt(ai_spec, event, link_text, fetch_err),
+        "system": system,
+        "prompt": prompt,
         "stream": False,
-        "format": {
-            "type": "object",
-            "properties": {
-                "verdict": {"type": "string", "enum": ["GO", "MAYBE", "NO"]},
-                "reason": {"type": "string"},
-            },
-            "required": ["verdict", "reason"],
-        },
+        "format": schema,
         "options": {
             "temperature": 0.0,
             "num_ctx": OLLAMA_NUM_CTX,
-            "num_predict": 512,
+            "num_predict": num_predict,
         },
     }
     async with httpx.AsyncClient(timeout=OLLAMA_TIMEOUT) as c:
@@ -220,7 +243,48 @@ async def judge_event(ai_spec: str, event: dict[str, Any]) -> tuple[str, str]:
     text = doc.get("response") or ""
     if not text:
         raise RuntimeError(f"ollama empty response: {json.dumps(doc)[:200]}")
+    return text
+
+
+VERDICT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "verdict": {"type": "string", "enum": ["GO", "UNCLEAR", "NO"]},
+        "reason": {"type": "string"},
+        "claim": {"type": "string"},
+    },
+    "required": ["verdict", "reason", "claim"],
+}
+
+SAME_CLAIM_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "same": {"type": "boolean"},
+        "reason": {"type": "string"},
+    },
+    "required": ["same", "reason"],
+}
+
+
+async def judge_event(ai_spec: str, event: dict[str, Any]) -> tuple[str, str, str]:
+    link_text, fetch_err = await fetch_link(event.get("link") or "")
+    text = await _generate(
+        SYSTEM_PROMPT,
+        build_user_prompt(ai_spec, event, link_text, fetch_err),
+        VERDICT_SCHEMA,
+    )
     return _parse_verdict_json(text)
+
+
+async def same_claim(claim_a: str, claim_b: str) -> tuple[bool, str]:
+    text = await _generate(
+        SAME_CLAIM_PROMPT,
+        f"CLAIM A:\n{claim_a}\n\nCLAIM B:\n{claim_b}\n",
+        SAME_CLAIM_SCHEMA,
+        num_predict=200,
+    )
+    parsed = _parse_json_object(text)
+    return bool(parsed.get("same")), str(parsed.get("reason", ""))[:200]
 
 
 def _claim_event(conn_factory, event_id: int) -> bool:
@@ -232,17 +296,25 @@ def _claim_event(conn_factory, event_id: int) -> bool:
         c.close()
 
 
-def _write_verdict(conn_factory, event_id: int, verdict: str, reason: str) -> bool:
+def _release_claim(conn_factory, event_id: int) -> None:
     c = conn_factory()
     try:
-        cur = c.execute(WRITE_VERDICT_SQL, (verdict, reason[:500], _now_iso(), event_id))
+        c.execute(RELEASE_CLAIM_SQL, (event_id,))
+    finally:
+        c.close()
+
+
+def _write_verdict(conn_factory, event_id: int, verdict: str, reason: str, claim: str = "") -> bool:
+    c = conn_factory()
+    try:
+        cur = c.execute(WRITE_VERDICT_SQL, (verdict, reason[:500], claim[:300] or None, _now_iso(), event_id))
         return cur.rowcount == 1
     finally:
         c.close()
 
 
 async def judge_pending(conn_factory) -> dict[str, int]:
-    stats = {"judged": 0, "go": 0, "maybe": 0, "no": 0, "errors": 0, "skipped": 0}
+    stats = {"judged": 0, "go": 0, "unclear": 0, "no": 0, "errors": 0, "skipped": 0}
     c = conn_factory()
     rows = c.execute(
         """
@@ -251,7 +323,7 @@ async def judge_pending(conn_factory) -> dict[str, int]:
         FROM events e JOIN watchers w ON w.id = e.watcher_id
         WHERE e.ai_verdict IS NULL AND w.ai_spec IS NOT NULL AND w.enabled = 1
           AND (e.ai_claimed_at IS NULL OR e.ai_claimed_at < ?)
-        ORDER BY e.id ASC
+        ORDER BY e.id DESC
         LIMIT ?
         """,
         (_stale_cutoff_iso(), JUDGE_BATCH),
@@ -262,15 +334,17 @@ async def judge_pending(conn_factory) -> dict[str, int]:
             stats["skipped"] += 1
             continue
         try:
-            verdict, reason = await judge_event(r["w_spec"], dict(r))
+            verdict, reason, claim = await judge_event(r["w_spec"], dict(r))
         except QuotaExceeded as exc:
+            _release_claim(conn_factory, r["id"])
             log.warning("judge quota exceeded, deferring batch: %s", exc)
             break
         except Exception as exc:
+            _release_claim(conn_factory, r["id"])
             stats["errors"] += 1
             log.warning("judge error event_id=%s: %s", r["id"], exc)
             continue
-        if not _write_verdict(conn_factory, r["id"], verdict, reason):
+        if not _write_verdict(conn_factory, r["id"], verdict, reason, claim):
             stats["skipped"] += 1
             continue
         stats["judged"] += 1
@@ -278,16 +352,93 @@ async def judge_pending(conn_factory) -> dict[str, int]:
     return stats
 
 
+def _corroboration_cutoff_iso() -> str:
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=CORROBORATE_WINDOW_HOURS)
+    return cutoff.isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def _promote(conn_factory, event_id: int, reason: str) -> bool:
+    c = conn_factory()
+    try:
+        cur = c.execute(PROMOTE_SQL, (reason[:500], _now_iso(), event_id))
+        return cur.rowcount == 1
+    finally:
+        c.close()
+
+
+async def corroborate_pending(conn_factory) -> dict[str, int]:
+    stats = {"checked": 0, "promoted": 0, "errors": 0}
+    if not CORROBORATE:
+        return stats
+    cutoff = _corroboration_cutoff_iso()
+    c = conn_factory()
+    unclear = c.execute(
+        """
+        SELECT e.id, e.watcher_id, e.ai_claim, e.title, w.name AS w_name
+        FROM events e JOIN watchers w ON w.id = e.watcher_id
+        WHERE e.ai_verdict = 'UNCLEAR' AND e.ai_claim IS NOT NULL AND e.ai_claim != ''
+          AND e.acked_at IS NULL AND e.received_at >= ? AND w.enabled = 1 AND w.push = 1
+        ORDER BY e.id DESC
+        """,
+        (cutoff,),
+    ).fetchall()
+    c.close()
+    resolved: set[int] = set()
+    for row in unclear:
+        if row["id"] in resolved:
+            continue
+        c = conn_factory()
+        candidates = c.execute(
+            """
+            SELECT e.id, e.ai_claim, e.ai_verdict, w.name AS w_name
+            FROM events e JOIN watchers w ON w.id = e.watcher_id
+            WHERE e.ai_verdict IN ('GO', 'UNCLEAR') AND e.ai_claim IS NOT NULL AND e.ai_claim != ''
+              AND e.watcher_id != ? AND e.id != ? AND e.received_at >= ?
+            ORDER BY e.id DESC
+            LIMIT ?
+            """,
+            (row["watcher_id"], row["id"], cutoff, CORROBORATE_CANDIDATES),
+        ).fetchall()
+        c.close()
+        for candidate in candidates:
+            stats["checked"] += 1
+            try:
+                matched, why = await same_claim(row["ai_claim"], candidate["ai_claim"])
+            except QuotaExceeded as exc:
+                log.warning("corroboration quota exceeded, deferring: %s", exc)
+                return stats
+            except Exception as exc:
+                stats["errors"] += 1
+                log.warning("corroboration error event_id=%s vs %s: %s", row["id"], candidate["id"], exc)
+                continue
+            if not matched:
+                continue
+            source = candidate["w_name"] or candidate["id"]
+            if _promote(conn_factory, row["id"], f"corroborated by event {candidate['id']} ({source}): {why}"):
+                stats["promoted"] += 1
+                resolved.add(row["id"])
+            if candidate["ai_verdict"] == "UNCLEAR" and _promote(
+                conn_factory, candidate["id"], f"corroborated by event {row['id']} ({row['w_name']}): {why}"
+            ):
+                stats["promoted"] += 1
+                resolved.add(candidate["id"])
+            break
+    return stats
+
+
 async def run_forever(conn_factory) -> None:
     log.info(
-        "judge starting model=%s ollama=%s interval=%ss batch=%s",
-        OLLAMA_MODEL, OLLAMA_URL, JUDGE_INTERVAL, JUDGE_BATCH,
+        "judge starting model=%s ollama=%s interval=%ss batch=%s corroborate=%s window=%sh",
+        OLLAMA_MODEL, OLLAMA_URL, JUDGE_INTERVAL, JUDGE_BATCH, CORROBORATE, CORROBORATE_WINDOW_HOURS,
     )
     while True:
         try:
             stats = await judge_pending(conn_factory)
             if stats["judged"] or stats["errors"]:
                 log.info("judge done %s", stats)
+            corroboration = await corroborate_pending(conn_factory)
+            if corroboration["promoted"] or corroboration["errors"]:
+                log.info("corroboration done %s", corroboration)
         except Exception as exc:
             log.exception("judge loop error: %s", exc)
         await asyncio.sleep(JUDGE_INTERVAL)

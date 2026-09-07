@@ -107,11 +107,13 @@ def init_db() -> None:
         "ALTER TABLE events ADD COLUMN ai_reason TEXT",
         "ALTER TABLE events ADD COLUMN ai_judged_at TEXT",
         "ALTER TABLE events ADD COLUMN ai_claimed_at TEXT",
+        "ALTER TABLE events ADD COLUMN ai_claim TEXT",
     ):
         try:
             c.execute(stmt)
         except sqlite3.OperationalError:
             pass
+    c.execute("UPDATE events SET ai_verdict = 'UNCLEAR' WHERE ai_verdict = 'MAYBE'")
     try:
         c.execute(
             "UPDATE watchers SET push = 0 WHERE kind = 'github_release' AND name = 'release: ' || target AND push = 1"
@@ -477,6 +479,7 @@ async def list_events(
             "last_reminder_at": r["last_reminder_at"],
             "ai_verdict": r["ai_verdict"],
             "ai_reason": r["ai_reason"],
+            "ai_claim": r["ai_claim"],
             "ai_judged_at": r["ai_judged_at"],
         })
     c.close()
@@ -547,7 +550,7 @@ async def rejudge_event(eid: int) -> dict:
         c.close()
         raise HTTPException(400, "watcher has no ai_spec")
     try:
-        verdict, reason = await judge.judge_event(row["w_spec"], dict(row))
+        verdict, reason, claim = await judge.judge_event(row["w_spec"], dict(row))
     except judge.QuotaExceeded as exc:
         c.close()
         raise HTTPException(429, f"judge quota exceeded: {exc}")
@@ -555,8 +558,8 @@ async def rejudge_event(eid: int) -> dict:
         c.close()
         raise HTTPException(502, f"judge failed: {exc}")
     c.execute(
-        "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_judged_at = ?, ai_claimed_at = NULL WHERE id = ?",
-        (verdict, reason[:500], now_iso(), eid),
+        "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_claim = ?, ai_judged_at = ?, ai_claimed_at = NULL WHERE id = ?",
+        (verdict, reason[:500], claim[:300] or None, now_iso(), eid),
     )
     c.close()
-    return {"ok": True, "verdict": verdict, "reason": reason}
+    return {"ok": True, "verdict": verdict, "reason": reason, "claim": claim}
