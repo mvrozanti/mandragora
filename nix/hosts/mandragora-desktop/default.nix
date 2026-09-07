@@ -36,6 +36,7 @@ in
     ../../modules/desktop/keyledsd.nix
     ../../modules/desktop/keystats.nix
     ../../modules/desktop/ydotool.nix
+    ../../modules/desktop/espanso.nix
     ../../modules/desktop/openrgb.nix
     ../../modules/desktop/rival-mouse.nix
     ../../modules/desktop/seafile.nix
