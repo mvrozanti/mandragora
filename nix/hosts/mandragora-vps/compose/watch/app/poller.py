@@ -9,6 +9,7 @@ from typing import Any
 import httpx
 
 import sources
+import stats
 import telegram as tg
 
 log = logging.getLogger("watch.poller")
@@ -150,6 +151,7 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
             continue
         if channels:
             pushed += 1
+            stats.set_meta(conn_factory, "last_push_at", now_iso())
         if is_reminder:
             reminded += 1
         c = conn_factory()

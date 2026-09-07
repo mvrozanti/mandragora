@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 import judge
 import poller
 import sources
+import stats
 import telegram as tg
 
 
@@ -89,6 +90,10 @@ def init_db() -> None:
           ON events(watcher_id, id DESC);
         CREATE INDEX IF NOT EXISTS events_received_desc
           ON events(received_at DESC);
+        CREATE TABLE IF NOT EXISTS meta (
+          key TEXT PRIMARY KEY,
+          value TEXT
+        );
         """
     )
     for stmt in (
@@ -145,25 +150,31 @@ def bootstrap_release_sources() -> None:
         log.info("release-sources: registered %d release watchers", added)
 
 
+TASKS: dict[str, asyncio.Task] = {}
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
     bootstrap_release_sources()
-    tasks = [
-        asyncio.create_task(poller.run_forever(conn)),
-        asyncio.create_task(tg.run_forever(conn)),
-        asyncio.create_task(judge.run_forever(conn)),
-    ]
+    if not tg.enabled():
+        log.error("telegram unconfigured: TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID missing from .env")
+    TASKS.update(
+        poller=asyncio.create_task(poller.run_forever(conn)),
+        telegram=asyncio.create_task(tg.run_forever(conn)),
+        judge=asyncio.create_task(judge.run_forever(conn)),
+    )
     try:
         yield
     finally:
-        for t in tasks:
+        for t in TASKS.values():
             t.cancel()
-        for t in tasks:
+        for t in TASKS.values():
             try:
                 await t
             except asyncio.CancelledError:
                 pass
+        TASKS.clear()
 
 
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
@@ -207,9 +218,30 @@ def event_dict(row: sqlite3.Row, watcher: sqlite3.Row | None = None) -> dict:
     }
 
 
+def task_states() -> dict[str, str]:
+    states = {}
+    for name, task in TASKS.items():
+        if name == "telegram" and not tg.enabled():
+            states[name] = "disabled"
+        else:
+            states[name] = "dead" if task.done() else "alive"
+    return states
+
+
 @app.get("/healthz")
 async def healthz() -> dict:
-    return {"ok": True}
+    states = task_states()
+    degraded = [f"{name}_task_dead" for name, state in states.items() if state == "dead"]
+    if not tg.enabled():
+        degraded.append("telegram_unconfigured")
+    snapshot = stats.collect(conn)
+    return {
+        "ok": not degraded,
+        "degraded": degraded,
+        "telegram_enabled": tg.enabled(),
+        "tasks": states,
+        **snapshot,
+    }
 
 
 @app.get("/", response_class=HTMLResponse)
