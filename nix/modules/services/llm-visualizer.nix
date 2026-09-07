@@ -44,8 +44,6 @@ in
       Type = "simple";
       WorkingDirectory = backendDir;
       ExecStart = "${supervisor}/bin/llm-visualizer-supervisor ${pkgs.uv}/bin/uv run --project ${projectDir} uvicorn main:app --host 127.0.0.1 --port 18000";
-      Restart = "on-failure";
-      RestartSec = 5;
     };
   };
 
@@ -66,8 +64,6 @@ in
     serviceConfig = {
       Type = "simple";
       ExecStart = "${supervisor}/bin/llm-visualizer-supervisor ${pkgs.python3}/bin/python -m http.server 18001 --bind 127.0.0.1 --directory ${buildDir}";
-      Restart = "on-failure";
-      RestartSec = 5;
     };
   };
 }
