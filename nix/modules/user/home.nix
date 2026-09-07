@@ -46,7 +46,6 @@ in
     ./network-menu.nix
     ./monitor-audio.nix
     ./minecraft.nix
-    ./skills.nix
     ./axon.nix
     ./nb-vault-sync.nix
     ./path-filter.nix
