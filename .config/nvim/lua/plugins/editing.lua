@@ -99,6 +99,9 @@ return {
       },
     },
     cmd = 'Telescope',
+    keys = {
+      { '<F1>', '<cmd>Telescope keymaps<CR>', desc = 'Search keymaps' },
+    },
     config = function()
       local telescope = require('telescope')
       local actions = require('telescope.actions')
