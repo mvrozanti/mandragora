@@ -29,7 +29,7 @@ def now_iso() -> str:
 
 
 async def poll_once(conn_factory) -> dict[str, int]:
-    stats = {"watchers": 0, "events": 0, "errors": 0, "fanout": 0, "reminders": 0}
+    stats = {"watchers": 0, "events": 0, "errors": 0, "pushed": 0, "reminders": 0}
     c = conn_factory()
     rows = c.execute("SELECT * FROM watchers WHERE enabled = 1").fetchall()
     c.close()
@@ -61,7 +61,7 @@ async def poll_once(conn_factory) -> dict[str, int]:
         finally:
             c.close()
     pushed, reminded = await _push_pending(conn_factory)
-    stats["fanout"] += pushed
+    stats["pushed"] += pushed
     stats["reminders"] += reminded
     return stats
 
@@ -135,10 +135,21 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
             "ai_verdict": r["ai_verdict"],
             "ai_reason": r["ai_reason"],
         }
+        channels = 0
+        delivered = True
         if WEBHOOK_URL:
-            if await _fanout(watcher_proxy, ev_proxy):
-                pushed += 1
-        await tg.push_event(watcher_proxy, ev_proxy)
+            channels += 1
+            if not await _fanout(watcher_proxy, ev_proxy):
+                delivered = False
+        if tg.enabled():
+            channels += 1
+            if not await tg.push_event(watcher_proxy, ev_proxy):
+                delivered = False
+        if channels and not delivered:
+            log.warning("delivery unconfirmed, retrying next cycle event_id=%s", r["id"])
+            continue
+        if channels:
+            pushed += 1
         if is_reminder:
             reminded += 1
         c = conn_factory()
