@@ -7,6 +7,7 @@ import sys
 import time
 
 LISTEN_FD = 3
+LISTEN_FDS = int(os.environ.get("LISTEN_FDS", "0") or "0")
 
 UPSTREAM_ADDR = os.environ.get("UPSTREAM_ADDR", "127.0.0.1")
 UPSTREAM_PORT = int(os.environ.get("UPSTREAM_PORT", "18000"))
@@ -96,6 +97,8 @@ class IdleSupervisor:
 async def run():
     if len(sys.argv) < 2:
         return 2
+    if LISTEN_FDS < 1:
+        return 0
 
     supervisor = IdleSupervisor()
     supervisor.start_child()
