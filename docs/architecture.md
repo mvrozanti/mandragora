@@ -248,7 +248,7 @@ The GUI session and peripherals. Session (`hyprland.nix`, `sddm.nix`,
 `keystats.nix`, `openrgb.nix`, `rival-mouse.nix`, `ydotool.nix`), sync and
 bridges (`seafile.nix`, `syncthing.nix`, `kdeconnect.nix`,
 `phone-archiver.nix`), gaming (`steam.nix`, `wine-gaming.nix`, `minecraft.nix`,
-`mt5.nix`, `ue5.nix`), and Claude-Code desktop integrations (`cc-lens.nix`,
+`mt5.nix`), and Claude-Code desktop integrations (`cc-lens.nix`,
 `watch-judge.nix`). One file per device/concern is
 the rule (e.g. `keyledsd.nix` is its own module, not a section of a generic
 peripherals file).
@@ -299,8 +299,7 @@ Locally packaged derivations, wired into every NixOS target's nixpkgs via
 Representative packages: `claude-code/` (Anthropic Claude Code CLI),
 `du-exporter/` (custom Prometheus disk-usage exporter), `rtk/` (the token-saver
 CLI proxy), `sddm-mandragora/` (the SDDM theme), `axon/`, `refiner/` (the USB
-image QEMU boot-test harness behind `apps.refiner`), and `ue5/` (Unreal Engine
-devShell, exposed as `devShells.ue5`).
+image QEMU boot-test harness behind `apps.refiner`).
 
 To add a new local package: create `nix/pkgs/<name>/default.nix` and register it
 in `nix/pkgs/overlays.nix`.
