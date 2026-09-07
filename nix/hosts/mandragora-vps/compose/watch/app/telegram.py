@@ -83,8 +83,8 @@ async def push_event(watcher: Any, ev: dict[str, Any]) -> bool:
     badge = ""
     if verdict == "GO":
         badge = "🟢 GO "
-    elif verdict == "MAYBE":
-        badge = "🟡 MAYBE "
+    elif verdict == "UNCLEAR":
+        badge = "🟡 UNCLEAR "
     text_lines = [
         f"{badge}{prefix}<b>{_esc(kind)}</b> · <code>{_esc(target)}</code>",
         _esc(title),
@@ -366,7 +366,7 @@ async def _cmd_judge(conn_factory, args: list[str]) -> str:
     if not row["w_spec"]:
         return f"watcher has no ai_spec"
     try:
-        verdict, reason = await J.judge_event(row["w_spec"], dict(row))
+        verdict, reason, claim = await J.judge_event(row["w_spec"], dict(row))
     except J.QuotaExceeded as exc:
         return f"quota exceeded: {_esc(str(exc)[:200])}"
     except Exception as exc:
@@ -375,11 +375,12 @@ async def _cmd_judge(conn_factory, args: list[str]) -> str:
     now = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     c = conn_factory()
     c.execute(
-        "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_judged_at = ?, ai_claimed_at = NULL WHERE id = ?",
-        (verdict, reason[:500], now, eid),
+        "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_claim = ?, ai_judged_at = ?, ai_claimed_at = NULL WHERE id = ?",
+        (verdict, reason[:500], claim[:300] or None, now, eid),
     )
     c.close()
-    return f"<b>{_esc(verdict)}</b>: {_esc(reason)}"
+    claim_line = f"\nclaim: {_esc(claim)}" if claim else ""
+    return f"<b>{_esc(verdict)}</b>: {_esc(reason)}{claim_line}"
 
 
 async def _cmd_verdicts(conn_factory, args: list[str]) -> str:
