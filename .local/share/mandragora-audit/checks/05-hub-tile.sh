@@ -5,13 +5,29 @@ CHECK="${AUDIT_NAME:-hub-tile}"
 ALLOWLIST=$(audit_load_allowlist "$AUDIT_HOME/allowlists/hub-tile.txt")
 
 COMPOSE_DIR="$MANDRAGORA_REPO/nix/hosts/mandragora-vps/compose"
-HUB_INDEX="$COMPOSE_DIR/hub/static/index.html"
+HUB_STATIC="$COMPOSE_DIR/hub/static"
+HUB_INDEX="$HUB_STATIC/index.html"
+HUB_SERVICES="$HUB_STATIC/services.json"
 VPS="${MANDRAGORA_VPS_SSH:-opc@100.84.78.83}"
 
 if [ ! -d "$COMPOSE_DIR" ] || [ ! -f "$HUB_INDEX" ]; then
   audit_pass "$CHECK" "vps compose dir or hub index missing; skipped"
   exit 0
 fi
+
+subs_from_services_json() {
+  python3 -c '
+import json, sys
+try:
+    doc = json.loads(sys.stdin.read() or "{}")
+except ValueError:
+    sys.exit(0)
+for svc in doc.get("services", []):
+    host = svc.get("host", "")
+    if host.endswith(".mvr.ac") and host != "mvr.ac":
+        print(host[: -len(".mvr.ac")])
+' 2>/dev/null
+}
 
 subs_from_compose() {
   grep -rEho 'https://[a-z0-9-]+\.\$\{MVR_AC[^}]+\}|https://\$\{[A-Z_]+:-[a-z0-9-]+\.mvr\.ac\}' "$COMPOSE_DIR" 2>/dev/null \
@@ -22,6 +38,13 @@ subs_from_compose() {
 
 subs_from_hub_file() {
   grep -Eo 'https://[a-z0-9-]+\.mvr\.ac' "$1" | sed -E 's#https://([a-z0-9-]+)\.mvr\.ac#\1#' | sort -u
+}
+
+subs_tiled_in_repo() {
+  {
+    [ -f "$HUB_SERVICES" ] && subs_from_services_json < "$HUB_SERVICES"
+    subs_from_hub_file "$HUB_INDEX"
+  } | sort -u
 }
 
 subs_from_live_caddy() {
@@ -45,7 +68,7 @@ report_missing() {
   done <<< "$1"
 }
 
-tiled=$(subs_from_hub_file "$HUB_INDEX")
+tiled=$(subs_tiled_in_repo)
 
 report_missing "compose" "$(subs_from_compose)"
 
@@ -56,15 +79,22 @@ if [ -z "$live_hosts" ]; then
 else
   report_missing "live caddy" "$live_hosts"
 
-  live_hub=$(timeout 20 ssh -o BatchMode=yes -o ConnectTimeout=8 "$VPS" \
-    'cat /home/opc/hub/static/index.html' 2>/dev/null)
-  if [ -n "$live_hub" ]; then
+  live_services=$(timeout 20 ssh -o BatchMode=yes -o ConnectTimeout=8 "$VPS" \
+    'cat /home/opc/hub/static/services.json 2>/dev/null' 2>/dev/null)
+  if [ -n "$live_services" ]; then
+    live_hub="$live_services"
+    live_tiled=$(printf '%s' "$live_services" | subs_from_services_json | sort -u)
+  else
+    live_hub=$(timeout 20 ssh -o BatchMode=yes -o ConnectTimeout=8 "$VPS" \
+      'cat /home/opc/hub/static/index.html' 2>/dev/null)
     live_tiled=$(printf '%s' "$live_hub" | grep -Eo 'https://[a-z0-9-]+\.mvr\.ac' \
       | sed -E 's#https://([a-z0-9-]+)\.mvr\.ac#\1#' | sort -u)
+  fi
+  if [ -n "$live_hub" ]; then
     drift=$(comm -23 <(printf '%s\n' "$tiled") <(printf '%s\n' "$live_tiled"))
     if [ -n "$drift" ]; then
       audit_fail "$CHECK" "hub.mvr.ac is stale — tiles in the repo but not deployed: $(printf '%s' "$drift" | tr '\n' ' ')"
-      echo "    Deploy it: rsync -a $COMPOSE_DIR/hub/static/index.html $VPS:/home/opc/hub/static/index.html" >&2
+      echo "    Deploy it: rsync -a $HUB_STATIC/ $VPS:/home/opc/hub/static/" >&2
       violations=$((violations + 1))
     fi
   fi
@@ -75,6 +105,6 @@ if [ "$violations" -eq 0 ]; then
   exit 0
 fi
 
-echo "    Rule 16: add <a class=\"tile\"> entry in $HUB_INDEX, then deploy the hub." >&2
+echo "    Rule 16: add the service to $HUB_SERVICES, then deploy the hub." >&2
 echo "    To intentionally skip a subdomain, add it to allowlists/hub-tile.txt." >&2
 exit 1
