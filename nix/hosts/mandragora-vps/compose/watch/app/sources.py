@@ -107,7 +107,7 @@ def _github_headers() -> dict[str, str]:
     return h
 
 
-REDDIT_MIN_INTERVAL = float(os.environ.get("WATCH_REDDIT_MIN_INTERVAL", "12"))
+REDDIT_MIN_INTERVAL = float(os.environ.get("WATCH_REDDIT_MIN_INTERVAL", "60"))
 REDDIT_SUMMARY_MAX = int(os.environ.get("WATCH_REDDIT_SUMMARY_MAX", "4000"))
 _REDDIT_HOST_RE = re.compile(r"^https?://([a-z0-9-]+\.)*(reddit\.com|redd\.it)(/|$)", re.I)
 _reddit_gate = {"lock": None, "last": 0.0}

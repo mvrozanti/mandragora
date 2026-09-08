@@ -151,10 +151,18 @@ Two consequences of the Atom shape. Reddit *HTML* permalinks are `403` here too,
 so an entry's link is set to the post's outbound URL — parsed out of the entry's
 `content` — and only falls back to the permalink for self-posts, where the body
 is already in `content` and is kept whole (`WATCH_REDDIT_SUMMARY_MAX`, 4 k) rather
-than clipped to a headline. And the feeds rate-limit hard: requests are paced
-`WATCH_REDDIT_MIN_INTERVAL` (12s) apart, which matters because the poller walks
-watchers back to back and several reddit watchers land in one cycle. Search
-results also include subreddit hits (`t5_` ids); those are dropped.
+than clipped to a headline. Search results also include subreddit hits (`t5_`
+ids); those are dropped.
+
+The feeds rate-limit at roughly one request per minute from this address —
+measured 2026-09-08: four probes 60s apart all returned `200`, four probes 30s
+apart returned `200` then three `429`s. Four reddit watchers cannot all poll in
+one cycle, and pacing them 60s apart inside the cycle would stall every other
+watcher behind them, so `ration_reddit` admits `WATCH_REDDIT_PER_CYCLE` (1) of
+them per pass, least-recently-polled first. At the 300s poll interval each reddit
+watcher is checked every ~20 minutes, which is ample for "has the season
+dropped". `WATCH_REDDIT_MIN_INTERVAL` (60s) stays as a floor for manual
+`/poll` calls, and rationing means the poller itself never waits on it.
 
 ## Release layer (changelog feed)
 
@@ -426,7 +434,8 @@ no second pipeline.
 MVR_AC=mvr.ac
 WATCH_POLL_INTERVAL=300
 WATCH_MAX_EVENTS_PER_WATCHER=500
-WATCH_REDDIT_MIN_INTERVAL=12
+WATCH_REDDIT_MIN_INTERVAL=60
+WATCH_REDDIT_PER_CYCLE=1
 WATCH_REDDIT_SUMMARY_MAX=4000
 WATCH_WEBHOOK_URL=https://webhook.mvr.ac/h/<slug>
 GITHUB_PAT=ghp_xxx
