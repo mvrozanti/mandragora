@@ -12,11 +12,15 @@ Snapshot fields
 - disk: dict | null — used_gb, total_gb, used_pct for DISK_PATH (the
   meaningful persistent FS on impermanence hosts)
 - ts: float — unix timestamp of the snapshot
+
+Also serves /api/theme: the matugen palette setbg generated from the current
+wallpaper, so every mvr.ac surface can wear the colours of the desk.
 """
 from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import time
@@ -27,6 +31,10 @@ from gpu_lock import _holder_with_derived as read_holder
 NVIDIA_SMI = os.environ.get("NVIDIA_SMI", "nvidia-smi")
 DISK_PATH = os.environ.get("DISK_PATH", "/persistent")
 CPU_SAMPLE_SECONDS = float(os.environ.get("CPU_SAMPLE_SECONDS", "0.1"))
+THEME_FILE = os.path.expanduser(
+    os.environ.get("HUB_THEME_FILE", "~/.cache/matugen/hub-theme.json")
+)
+ALLOWED_ORIGIN = re.compile(r"^https://([a-z0-9-]+\.)*mvr\.ac$")
 QUERY_FIELDS = [
     "utilization.gpu",
     "utilization.memory",
@@ -134,20 +142,56 @@ def snapshot() -> dict:
     }
 
 
+def read_theme() -> dict | None:
+    try:
+        with open(THEME_FILE, "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, PermissionError, ValueError, OSError):
+        return None
+
+
 class _Handler(BaseHTTPRequestHandler):
-    def do_GET(self) -> None:
-        if self.path.rstrip("/") not in ("", "/status", "/api/gpu"):
-            self.send_response(404)
+    def _cors_headers(self) -> None:
+        origin = self.headers.get("Origin")
+        if origin and ALLOWED_ORIGIN.match(origin):
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Access-Control-Allow-Credentials", "true")
+        self.send_header("Vary", "Origin")
+
+    def _respond(self, code: int, payload: bytes | None) -> None:
+        self.send_response(code)
+        self._cors_headers()
+        if payload is None:
             self.send_header("Content-Length", "0")
-            self.end_headers()
-            return
-        payload = json.dumps(snapshot()).encode("utf-8")
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Cache-Control", "no-store")
-        self.send_header("Content-Length", str(len(payload)))
+        else:
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(payload)))
         self.end_headers()
-        self.wfile.write(payload)
+        if payload is not None:
+            self.wfile.write(payload)
+
+    def do_OPTIONS(self) -> None:
+        self.send_response(204)
+        self._cors_headers()
+        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+    def do_GET(self) -> None:
+        path = self.path.split("?")[0].rstrip("/")
+        if path == "/api/theme":
+            theme = read_theme()
+            self._respond(
+                503 if theme is None else 200,
+                None if theme is None else json.dumps(theme).encode("utf-8"),
+            )
+            return
+        if path not in ("", "/status", "/api/gpu"):
+            self._respond(404, None)
+            return
+        self._respond(200, json.dumps(snapshot()).encode("utf-8"))
 
     def log_message(self, format: str, *args) -> None:
         return
