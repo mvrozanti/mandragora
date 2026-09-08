@@ -66,7 +66,10 @@
     if (w.push) out.push('<span class="mv-pill">notifies</span>');
     if (w.requires_ack) out.push('<span class="mv-pill is-warn">nags hourly</span>');
     if (!w.ai_spec) out.push('<span class="mv-pill">everything passes</span>');
-    if (w.spec_lint && w.spec_lint.decidable === false) out.push('<span class="mv-pill is-warn">spec unanswerable</span>');
+    if (w.spec_lint && w.spec_lint.decidable === false) {
+      var why = (w.spec_lint.problems || []).join(" · ") || "open the watcher for detail";
+      out.push('<span class="mv-pill is-warn" title="' + esc(why) + '">spec unanswerable</span>');
+    }
     return out.join("");
   };
 
