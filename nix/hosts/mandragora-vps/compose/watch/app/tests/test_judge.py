@@ -170,12 +170,36 @@ def test_corroboration_ignores_different_subjects(db, make_watcher, make_event):
     assert judge.corroborate_pending(db)["promoted"] == 0
 
 
-def test_corroboration_ignores_different_incidents(db, make_watcher, make_event):
+def test_corroboration_ignores_unrelated_incident_families(db, make_watcher, make_event):
     hn = make_watcher(kind="hn_search", target="electrum")
     rss = make_watcher(kind="rss", target="https://news.example/feed")
     make_event(hn, verdict="UNCLEAR", subject="electrum bitcoin wallet", incident="vulnerability")
     make_event(rss, verdict="UNCLEAR", subject="electrum bitcoin wallet", incident="release")
     assert judge.corroborate_pending(db)["promoted"] == 0
+
+
+def test_corroboration_spans_one_incident_family(db, make_watcher, make_event):
+    hn = make_watcher(kind="hn_search", target="electrum")
+    rss = make_watcher(kind="rss", target="https://news.example/feed")
+    make_event(hn, verdict="UNCLEAR", subject="electrum bitcoin wallet", incident="exploit")
+    make_event(rss, verdict="UNCLEAR", subject="electrum bitcoin wallet", incident="phishing")
+    assert judge.corroborate_pending(db)["promoted"] == 2
+
+
+@pytest.mark.parametrize(
+    "incident,family",
+    [
+        ("exploit", "security"),
+        ("phishing", "security"),
+        ("supply-chain", "security"),
+        ("outage", "availability"),
+        ("release", "shipping"),
+        ("announcement", "shipping"),
+        ("nonsense", "other"),
+    ],
+)
+def test_incident_families(incident, family):
+    assert judge.incident_family(incident) == family
 
 
 def test_corroboration_requires_distinct_watchers(db, make_watcher, make_event):
