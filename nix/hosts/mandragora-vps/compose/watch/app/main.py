@@ -342,12 +342,16 @@ async def create_watcher(payload: dict) -> dict:
     ai_spec = payload.get("ai_spec")
     if ai_spec is not None:
         ai_spec = str(ai_spec)[:4000] or None
+    must_mention = payload.get("must_mention")
+    if must_mention is not None:
+        must_mention = str(must_mention)[:200] or None
     push = 0 if ("push" in payload and not payload["push"]) else 1
     c = conn()
     try:
         c.execute(
-            "INSERT INTO watchers (kind, target, name, created_at, requires_ack, reminder_interval, ai_spec, push) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (kind, target, name, now_iso(), requires_ack, reminder_interval, ai_spec, push),
+            "INSERT INTO watchers (kind, target, name, created_at, requires_ack, reminder_interval, "
+            "ai_spec, push, must_mention) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (kind, target, name, now_iso(), requires_ack, reminder_interval, ai_spec, push, must_mention),
         )
     except sqlite3.IntegrityError:
         c.close()
