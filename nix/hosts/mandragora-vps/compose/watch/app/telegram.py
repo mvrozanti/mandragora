@@ -9,6 +9,7 @@ from typing import Any
 import httpx
 
 import sources
+import stats
 
 log = logging.getLogger("watch.telegram")
 
@@ -136,6 +137,7 @@ HELP = (
     "/spec &lt;watcher_id&gt; &lt;text&gt; — set AI relevance spec (empty clears)\n"
     "/judge &lt;event_id&gt; — re-run AI verdict on an event\n"
     "/verdicts &lt;watcher_id&gt; — recent verdict tallies\n"
+    "/status — funnel counts, backlog, last poll and push, spec warnings\n"
 )
 
 
@@ -412,6 +414,14 @@ async def _cmd_verdicts(conn_factory, args: list[str]) -> str:
     return "\n".join(f"<code>{r['v']}</code>: {r['c']}" for r in rows)
 
 
+async def _cmd_status(conn_factory) -> str:
+    return stats.format_status(
+        stats.collect(conn_factory),
+        enabled(),
+        stats.undecidable_specs(conn_factory),
+    )
+
+
 async def _cmd_remind(conn_factory, args: list[str]) -> str:
     if len(args) < 2 or not args[0].isdigit() or not args[1].isdigit():
         return "usage: /remind &lt;watcher_id&gt; &lt;seconds&gt;"
@@ -466,6 +476,8 @@ async def _dispatch(conn_factory, chat_id: int, text: str) -> str | None:
         return await _cmd_judge(conn_factory, args)
     if cmd == "/verdicts":
         return await _cmd_verdicts(conn_factory, args)
+    if cmd == "/status":
+        return await _cmd_status(conn_factory)
     return None
 
 
