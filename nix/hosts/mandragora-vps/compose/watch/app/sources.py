@@ -1,3 +1,5 @@
+import asyncio
+import html
 import os
 import re
 import time
@@ -105,11 +107,35 @@ def _github_headers() -> dict[str, str]:
     return h
 
 
+REDDIT_MIN_INTERVAL = float(os.environ.get("WATCH_REDDIT_MIN_INTERVAL", "12"))
+REDDIT_SUMMARY_MAX = int(os.environ.get("WATCH_REDDIT_SUMMARY_MAX", "4000"))
+_REDDIT_HOST_RE = re.compile(r"^https?://([a-z0-9-]+\.)*(reddit\.com|redd\.it)(/|$)", re.I)
+_reddit_gate = {"lock": None, "last": 0.0}
+
+
 def _reddit_headers() -> dict[str, str]:
     return {
         "User-Agent": USER_AGENT,
-        "Accept": "application/json",
+        "Accept": "application/atom+xml, application/rss+xml, text/xml;q=0.9, */*;q=0.5",
     }
+
+
+async def _reddit_pace() -> None:
+    if _reddit_gate["lock"] is None:
+        _reddit_gate["lock"] = asyncio.Lock()
+    async with _reddit_gate["lock"]:
+        gap = REDDIT_MIN_INTERVAL - (time.monotonic() - _reddit_gate["last"])
+        if gap > 0:
+            await asyncio.sleep(gap)
+        _reddit_gate["last"] = time.monotonic()
+
+
+def reddit_outbound_link(content_html: str, permalink: str) -> str:
+    for href in re.findall(r'href="([^"]+)"', html.unescape(content_html or "")):
+        url = html.unescape(href).strip()
+        if url.startswith(("http://", "https://")) and not _REDDIT_HOST_RE.match(url):
+            return url
+    return permalink
 
 
 def validate_target(kind: str, target: str) -> str:
@@ -344,63 +370,67 @@ async def _fetch_github_releases(repo: str, cursor: str | None) -> tuple[list[di
     return events, str(newest) if newest is not None else cursor
 
 
-async def _fetch_reddit_user(name: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
-    url = f"https://www.reddit.com/user/{name}.json"
-    async with httpx.AsyncClient(timeout=20.0, headers=_reddit_headers()) as c:
-        r = await c.get(url, params={"limit": 25, "raw_json": 1})
+async def _fetch_reddit_feed(url: str, params: dict[str, Any], cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    await _reddit_pace()
+    async with httpx.AsyncClient(timeout=20.0, headers=_reddit_headers(), follow_redirects=True) as c:
+        r = await c.get(url, params=params)
     if r.status_code == 404:
         return [], cursor
     _raise_for_throttle(r, "reddit")
     r.raise_for_status()
-    return _parse_reddit_listing(r.json(), cursor)
+    return _parse_reddit_feed(r.text, cursor)
+
+
+async def _fetch_reddit_user(name: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    return await _fetch_reddit_feed(f"https://www.reddit.com/user/{name}.rss", {"limit": 25}, cursor)
 
 
 async def _fetch_reddit_sub(name: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
-    url = f"https://www.reddit.com/r/{name}/new.json"
-    async with httpx.AsyncClient(timeout=20.0, headers=_reddit_headers()) as c:
-        r = await c.get(url, params={"limit": 25, "raw_json": 1})
-    if r.status_code == 404:
-        return [], cursor
-    _raise_for_throttle(r, "reddit")
-    r.raise_for_status()
-    return _parse_reddit_listing(r.json(), cursor)
+    return await _fetch_reddit_feed(f"https://www.reddit.com/r/{name}/new.rss", {"limit": 25}, cursor)
 
 
-def _parse_reddit_listing(doc: dict[str, Any], cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
-    children = ((doc or {}).get("data") or {}).get("children") or []
-    events: list[dict[str, Any]] = []
-    newest_cursor = cursor
+def _parse_reddit_feed(text: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    try:
+        root = ET.fromstring(text)
+    except ET.ParseError as exc:
+        raise RuntimeError(f"reddit feed parse error: {exc}")
+    ns = {"a": "http://www.w3.org/2005/Atom"}
     cursor_ts = float(cursor) if cursor else None
-    for ch in children:
-        d = ch.get("data") or {}
-        fullname = d.get("name") or ""
-        created = d.get("created_utc")
-        if not fullname or created is None:
+    newest_cursor = cursor
+    events: list[dict[str, Any]] = []
+    for e in root.findall("a:entry", ns):
+        id_el = e.find("a:id", ns)
+        title_el = e.find("a:title", ns)
+        link_el = e.find("a:link", ns)
+        content_el = e.find("a:content", ns)
+        updated_el = e.find("a:updated", ns)
+        if updated_el is None:
+            updated_el = e.find("a:published", ns)
+        ext_id = (id_el.text if id_el is not None else "") or ""
+        permalink = (link_el.get("href") if link_el is not None else "") or ""
+        if not ext_id:
+            ext_id = permalink
+        if not ext_id or ext_id.startswith("t5_"):
             continue
-        if cursor_ts is not None and float(created) <= cursor_ts:
+        ts = _parse_rss_date(updated_el.text if updated_el is not None else "")
+        if cursor_ts is not None and ts is not None and ts <= cursor_ts:
             continue
-        kind = ch.get("kind")
-        permalink = d.get("permalink") or ""
-        link = f"https://www.reddit.com{permalink}" if permalink else (d.get("url") or "")
-        if kind == "t3":
-            title = f"post: {d.get('title','')}"
-            summary = (d.get("selftext") or "")[:280]
-        elif kind == "t1":
-            title = f"comment in r/{d.get('subreddit','')}: {d.get('link_title','')}"
-            summary = (d.get("body") or "")[:280]
-        else:
-            title = d.get("title") or fullname
-            summary = ""
+        content = (content_el.text if content_el is not None else "") or ""
+        title = (title_el.text if title_el is not None else "") or "(untitled)"
+        if ext_id.startswith("t1_"):
+            title = f"comment: {title}"
+        elif ext_id.startswith("t3_"):
+            title = f"post: {title}"
         events.append({
-            "external_id": fullname,
+            "external_id": ext_id,
             "title": title,
-            "summary": summary,
-            "link": link,
-            "occurred_at": _utc_iso(created),
-            "raw": d,
+            "summary": _strip_html(html.unescape(content))[:REDDIT_SUMMARY_MAX],
+            "link": reddit_outbound_link(content, permalink),
+            "occurred_at": _utc_iso(ts) if ts is not None else None,
+            "raw": {"id": ext_id, "permalink": permalink},
         })
-        if newest_cursor is None or float(created) > float(newest_cursor):
-            newest_cursor = str(created)
+        if ts is not None and (newest_cursor is None or ts > float(newest_cursor)):
+            newest_cursor = str(ts)
     events.reverse()
     return events, newest_cursor
 
@@ -584,14 +614,8 @@ async def _fetch_hn_search(query: str, cursor: str | None) -> tuple[list[dict[st
 
 
 async def _fetch_reddit_search(query: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
-    params = {"q": query, "sort": "new", "restrict_sr": "0", "limit": 25, "raw_json": 1}
-    async with httpx.AsyncClient(timeout=20.0, headers=_reddit_headers()) as c:
-        r = await c.get("https://www.reddit.com/search.json", params=params)
-    if r.status_code == 404:
-        return [], cursor
-    _raise_for_throttle(r, "reddit")
-    r.raise_for_status()
-    return _parse_reddit_listing(r.json(), cursor)
+    params = {"q": query, "sort": "new", "restrict_sr": "0", "limit": 25}
+    return await _fetch_reddit_feed("https://www.reddit.com/search.rss", params, cursor)
 
 
 async def _fetch_rss(url: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
