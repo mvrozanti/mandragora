@@ -124,15 +124,27 @@ range, version, platform — so the judge has something to enforce.
 
 ### Corroboration
 
-Every verdict carries a normalized `claim`: one sentence naming the
-actor, artifact and action, written so two outlets covering one event
-produce near-identical claims. Each cycle the judge compares each
-`UNCLEAR` claim against claims from *other* watchers inside
-`WATCH_CORROBORATE_WINDOW` hours (default 72). When two independent
-sources assert the same thing, both events are promoted to `GO` with
-reason `corroborated by event <id>` and the normal push gate delivers
-them. One source saying something shaky stays quiet; two sources
-agreeing is the confirmation.
+Every verdict is tagged with a normalized `subject` (the product or
+system, e.g. `electrum bitcoin wallet`) and an `incident` drawn from a
+fixed list (`vulnerability`, `exploit`, `phishing`, `supply-chain`,
+`malware`, `outage`, `release`, `announcement`, `other`), plus a
+human-readable `claim` for display.
+
+Each cycle, an `UNCLEAR` event is matched against events from *other*
+watchers inside `WATCH_CORROBORATE_WINDOW` hours (default 72) carrying
+the same `incident` and a matching `subject`. A match promotes both to
+`GO` with reason `corroborated by event <id>` and the normal push gate
+delivers them. One source saying something shaky stays quiet; two
+independent sources agreeing is the confirmation.
+
+Matching is **deterministic string work, not a second LLM opinion** —
+subjects match on exact equality or token subset (`electrum wallet`
+corroborates `electrum bitcoin wallet`; `wallet` alone is too generic
+to match). An earlier design asked the model whether two free-text
+claims described the same event; qwen3:14b reliably answered "no" over
+wording differences alone ("flaw" vs "attack" about one incident), which
+would have made `UNCLEAR` just as much a dead end as `MAYBE` was.
+Extraction is what the model is good at; equivalence judgement is not.
 
 ### Spec decidability
 

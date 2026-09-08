@@ -40,15 +40,16 @@ def make_watcher(db):
 @pytest.fixture
 def make_event(db):
     def _make(watcher_id, external_id="e1", title="title", verdict=None, claim=None, link="https://example.invalid/a",
-              last_reminder_at=None, acked_at=None, raw=None, received_at=None):
+              last_reminder_at=None, acked_at=None, raw=None, received_at=None, subject=None, incident=None):
         import main
 
         c = db()
         c.execute(
             "INSERT INTO events (watcher_id, external_id, title, summary, link, occurred_at, received_at, raw, "
-            "acked_at, last_reminder_at, ai_verdict, ai_claim) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "acked_at, last_reminder_at, ai_verdict, ai_claim, ai_subject, ai_incident) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (watcher_id, external_id, title, "summary", link, main.now_iso(), received_at or main.now_iso(),
-             raw, acked_at, last_reminder_at, verdict, claim),
+             raw, acked_at, last_reminder_at, verdict, claim, subject, incident),
         )
         row = c.execute(
             "SELECT id FROM events WHERE watcher_id = ? AND external_id = ?", (watcher_id, external_id)
