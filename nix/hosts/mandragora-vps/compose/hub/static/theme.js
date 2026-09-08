@@ -2,7 +2,10 @@
   var script = document.currentScript;
   var endpoint = (script && script.dataset.endpoint) || "/api/theme";
   var credentials = (script && script.dataset.credentials) || "same-origin";
+  var pollSeconds = script && script.dataset.poll !== undefined ? Number(script.dataset.poll) : 5;
   var storageKey = "mv-theme";
+  var lastRaw = null;
+  var timer = null;
 
   var TOKENS = {
     surface: "--mv-bg",
@@ -38,21 +41,53 @@
     root.style.setProperty("--mv-line-strong", theme.outline || theme.on_surface_variant);
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta && isHex(theme.surface)) meta.setAttribute("content", theme.surface);
+    window.dispatchEvent(new CustomEvent("mv-theme", { detail: theme }));
     return true;
   }
 
+  function adopt(raw) {
+    if (raw === lastRaw) return;
+    var theme;
+    try { theme = JSON.parse(raw); } catch (e) { return; }
+    if (!apply(theme)) return;
+    lastRaw = raw;
+    try { localStorage.setItem(storageKey, raw); } catch (e) {}
+  }
+
+  function refresh() {
+    return fetch(endpoint, { credentials: credentials, cache: "no-store" })
+      .then(function (r) { return r.ok ? r.text() : Promise.reject(r.status); })
+      .then(adopt)
+      .catch(function () {});
+  }
+
+  function start() {
+    if (timer || !(pollSeconds > 0)) return;
+    timer = setInterval(refresh, pollSeconds * 1000);
+  }
+
+  function stop() {
+    if (!timer) return;
+    clearInterval(timer);
+    timer = null;
+  }
+
+  function wake() {
+    if (document.visibilityState === "hidden") { stop(); return; }
+    refresh();
+    start();
+  }
+
   try {
-    apply(JSON.parse(localStorage.getItem(storageKey)));
+    var cached = localStorage.getItem(storageKey);
+    if (cached) adopt(cached);
   } catch (e) {}
 
-  fetch(endpoint, { credentials: credentials, cache: "no-store" })
-    .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
-    .then(function (theme) {
-      if (apply(theme)) {
-        try { localStorage.setItem(storageKey, JSON.stringify(theme)); } catch (e) {}
-      }
-    })
-    .catch(function () {});
+  refresh();
+  start();
+  document.addEventListener("visibilitychange", wake);
+  window.addEventListener("focus", refresh);
+  window.addEventListener("pageshow", refresh);
 
-  window.mvTheme = { apply: apply, tokens: TOKENS };
+  window.mvTheme = { apply: apply, refresh: refresh, tokens: TOKENS };
 })();
