@@ -49,7 +49,6 @@ in
     ../../modules/desktop/mt5.nix
     ../../modules/desktop/minecraft.nix
     ../../modules/desktop/cc-lens.nix
-    ../../modules/desktop/watch-judge.nix
     ../../modules/services/hub-services.nix
     ../../modules/services/bitcoind.nix
     ../../modules/services/ttyd.nix
