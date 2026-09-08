@@ -6,6 +6,7 @@
 
   var data = null;
   var health = {};
+  var clicks = {};
 
   var groupLabel = function (id) {
     var g = data.groups.filter(function (x) { return x.id === id; })[0];
@@ -44,13 +45,24 @@
 
   var STATE_WORD = { ok: "up", warn: "degraded", down: "down", unknown: "not probed yet" };
 
+  var recordClick = function (host) {
+    clicks[host] = (clicks[host] || 0) + 1;
+    fetch("/api/clicks", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ host: host }),
+      keepalive: true
+    }).catch(function () {});
+  };
+
   var rowHTML = function (s) {
     var open = s.access === "open";
     var state = stateOf(s);
     var label = s.host + " — " + s.desc + " — on " + machine(s.where).label +
       (open ? " — reachable without signing in" : " — behind authelia") + " — " + STATE_WORD[state];
     return '<a class="mv-row' + (state === "down" ? " is-down" : "") + '" href="' + esc(linkOf(s)) +
-      '" target="_blank" rel="noopener" aria-label="' + esc(label) + '">' +
+      '" target="_blank" rel="noopener" data-host="' + esc(s.host) + '" aria-label="' + esc(label) + '">' +
       '<span class="mv-dot mv-row__state is-' + state + '" aria-hidden="true"></span>' +
       '<span class="mv-badge ' + (open ? "is-open" : "is-gated") + '" aria-hidden="true">' + lockSvg(open) + "</span>" +
       '<span class="mv-row__host">' + esc(s.host) + "</span></a>";
@@ -179,12 +191,30 @@
   var start = function () { if (timer) return; poll(); timer = setInterval(poll, 4000); };
   var stop = function () { if (!timer) return; clearInterval(timer); timer = null; };
 
-  fetch("services.json", { cache: "no-cache" })
-    .then(function (r) { return r.json(); })
-    .then(function (json) {
-      data = json;
+  var sortByUse = function () {
+    var order = {};
+    data.services.forEach(function (s, i) { order[s.host] = i; });
+    data.services.sort(function (a, b) {
+      return (clicks[b.host] || 0) - (clicks[a.host] || 0) || order[a.host] - order[b.host];
+    });
+  };
+
+  Promise.all([
+    fetch("services.json", { cache: "no-cache" }).then(function (r) { return r.json(); }),
+    fetch("/api/clicks", { credentials: "same-origin", cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; })
+  ])
+    .then(function (res) {
+      data = res[0];
+      clicks = (res[1] && res[1].clicks) || {};
+      sortByUse();
       renderList();
       poll();
+      $("list").addEventListener("click", function (e) {
+        var row = e.target.closest(".mv-row");
+        if (row && row.dataset.host) recordClick(row.dataset.host);
+      });
     })
     .catch(function () {
       $("list").innerHTML = '<p class="mv-empty">services.json failed to load</p>';
