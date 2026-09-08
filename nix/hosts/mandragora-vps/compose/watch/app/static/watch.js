@@ -160,6 +160,11 @@
       '<div><p class="wa-panel__label">what fired it</p>' + trig + "</div>" +
       (kind.emits ? '<p class="wa-emits"><b>this source gives us</b> ' + esc(kind.emits) + "</p>" : "") +
       lintBlock +
+      '<div class="wa-field"><label for="must-' + w.id + '">must mention</label>' +
+      '<input class="wa-input" id="must-' + w.id + '" value="' + esc(w.must_mention || "") +
+      '" placeholder="e.g. electrum — a trigger is refused unless the text names this">' +
+      '<p class="wa-emits">Checked literally against the title, summary and fetched article. ' +
+      'This is what stops the judge asserting a subject the source never named.</p></div>' +
       '<div class="wa-field"><label for="spec-' + w.id + '">what counts as a trigger</label>' +
       '<textarea class="wa-area" id="spec-' + w.id + '" placeholder="leave blank and everything this source emits counts">' +
       esc(w.ai_spec || "") + "</textarea></div>" +
@@ -207,6 +212,8 @@
       '<div class="wa-field"><label for="f-kind">source</label><select class="wa-select" id="f-kind">' + opts + "</select></div>" +
       '<div class="wa-field"><label for="f-target">target</label><input class="wa-input" id="f-target" placeholder="owner/repo, @handle, search terms…"></div>' +
       '<div class="wa-field wide"><label for="f-name">what are you waiting for</label><input class="wa-input" id="f-name" placeholder="e.g. severance s3 gets a date"></div>' +
+      '<div class="wa-field wide"><label for="f-must">must mention</label>' +
+      '<input class="wa-input" id="f-must" placeholder="a literal the text must contain — blank to skip"></div>' +
       '<div class="wa-field wide"><label for="f-spec">what counts as a trigger</label>' +
       '<textarea class="wa-area" id="f-spec" placeholder="leave blank and everything this source emits counts"></textarea></div>' +
       '<div class="wa-checks wide"><label><input type="checkbox" id="f-push" checked> notify me on telegram when it fires</label>' +
@@ -291,7 +298,10 @@
       }
     },
     savespec: function (arg) {
-      withBusy(api("PATCH", "/api/watchers/" + arg, { ai_spec: $("spec-" + arg).value.trim() }), "saved");
+      withBusy(api("PATCH", "/api/watchers/" + arg, {
+        ai_spec: $("spec-" + arg).value.trim(),
+        must_mention: $("must-" + arg).value.trim()
+      }), "saved");
     },
     del: function (arg) {
       var w = find(arg);
@@ -332,6 +342,7 @@
       target: $("f-target").value.trim(),
       name: $("f-name").value.trim(),
       ai_spec: $("f-spec").value.trim() || null,
+      must_mention: $("f-must").value.trim() || null,
       requires_ack: $("f-ack").checked,
       push: $("f-push").checked
     };

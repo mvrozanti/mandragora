@@ -41,6 +41,37 @@ itself (`acked_at`) is universal and is what moves a watch to *done*. That rewor
 `requires_ack = 0` on 28 watchers, accepted 950 outstanding events, and cleared 3
 stale verdicts left on a watcher whose spec had been removed.
 
+## The judge may not assert a subject the source never named
+
+A 14b model told us, in its own words, that *"Major bitcoin wallet flaw drains 594
+BTC in 25-minute sweep"* was a headline asserting an **Electrum** security flaw. It
+was not; Electrum appears nowhere in it. Three of seven lifetime GO verdicts were
+this exact failure — a confident reason naming a product the text never mentions,
+because the spec had primed the model to look for it.
+
+The system prompt already said "do not infer" and "never invent facts not present in
+the provided text". Instructing a small model not to hallucinate is not a control.
+So, as with corroboration matching, the check is **deterministic set logic**:
+
+- `judge.ground_verdict` runs after every judgement. Anything that is not already NO
+  is checked against the event's title, summary and fetched body.
+- If the watcher sets **`must_mention`**, those literals are authoritative: absent
+  from the text means NO, whatever the model said. This is the precise dial —
+  watchers 28 and 30 carry `electrum`.
+- With no `must_mention`, the fallback is the model's own extracted `subject`: every
+  distinctive term in it must appear in the text. Generic words
+  (`SUBJECT_STOPWORDS`) do not count.
+- A refused verdict says exactly why: *"subject is not named in the source: electrum
+  absent from the title, summary and fetched text"*.
+
+Re-judging the seven historical GOs under this rule left **two**, both of which name
+Electrum in the headline. The gate refused two outright; the model itself withdrew
+two more on a second look.
+
+`must_mention` only applies to watchers that have an `ai_spec`, because only those
+reach the judge. A watcher with no spec forwards everything its source emits by
+design — for those, the source is the filter.
+
 ## Backing off
 
 Sources are polled every `WATCH_POLL_INTERVAL` (300s) **only while healthy**. On
