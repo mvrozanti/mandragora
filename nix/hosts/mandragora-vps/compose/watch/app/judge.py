@@ -54,7 +54,8 @@ CLAIM_SQL = (
 )
 
 WRITE_VERDICT_SQL = (
-    "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_claim = ?, ai_judged_at = ?, ai_claimed_at = NULL "
+    "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_claim = ?, ai_subject = ?, ai_incident = ?, "
+    "ai_judged_at = ?, ai_claimed_at = NULL "
     "WHERE id = ? AND ai_verdict IS NULL"
 )
 
@@ -84,10 +85,15 @@ SYSTEM_PROMPT = (
     "- NO: off-topic, wrong device/firmware/version, speculation about something that has "
     "not happened, OR the link content fails to positively assert any explicit spec "
     "requirement. Missing required info is NO, not UNCLEAR.\n\n"
-    "The claim field is one normalized sentence naming exactly what is asserted (actor, "
-    "artifact, action), written so two independent articles about the same underlying "
-    "event yield near-identical claims. Omit outlet names, dates, and adjectives. Use an "
-    "empty string when the verdict is NO.\n\n"
+    "The claim field is one plain sentence naming exactly what is asserted. Omit outlet "
+    "names, dates, and adjectives. Use an empty string when the verdict is NO.\n\n"
+    "The subject field names the specific product, project or system the claim is about, "
+    "lowercase, no version numbers, no outlet names — for example 'electrum bitcoin wallet' "
+    "or 'claude code'. Always use the same wording for the same subject so independent "
+    "reports about one product agree. Use an empty string when the verdict is NO.\n\n"
+    "The incident field classifies what happened, chosen from: "
+    "vulnerability, exploit, phishing, supply-chain, malware, outage, release, "
+    "announcement, other.\n\n"
     "Hard rules:\n"
     "1. If the spec lists concrete constraints (model number, firmware range, version, "
     "platform) and the content does not positively assert each one, return NO.\n"
@@ -99,15 +105,40 @@ SYSTEM_PROMPT = (
 )
 
 
-SAME_CLAIM_PROMPT = (
-    "You decide whether two short claims describe the same underlying real-world event.\n"
-    "Return ONLY a single line of JSON: "
-    '{"same":true|false,"reason":"<=120 chars"}\n'
-    "Same means identical actor, identical artifact or system, and identical action. "
-    "Two outlets reporting one event are the same claim. A different version, a different "
-    "product, a different vulnerability, or a later follow-up development is NOT the same "
-    "claim. When in doubt, return false."
-)
+INCIDENT_KINDS = [
+    "vulnerability",
+    "exploit",
+    "phishing",
+    "supply-chain",
+    "malware",
+    "outage",
+    "release",
+    "announcement",
+    "other",
+]
+
+SUBJECT_MIN_TOKENS = 2
+SUBJECT_MIN_SINGLE_TOKEN = 8
+
+_SUBJECT_NOISE_RE = re.compile(r"[^a-z0-9]+")
+
+
+def normalize_subject(subject: str) -> str:
+    return _SUBJECT_NOISE_RE.sub(" ", (subject or "").lower()).strip()
+
+
+def subjects_match(left: str, right: str) -> bool:
+    if not left or not right:
+        return False
+    if left == right:
+        return True
+    left_tokens, right_tokens = set(left.split()), set(right.split())
+    smaller, larger = sorted((left_tokens, right_tokens), key=len)
+    if not smaller or not smaller.issubset(larger):
+        return False
+    if len(smaller) >= SUBJECT_MIN_TOKENS:
+        return True
+    return len(next(iter(smaller))) >= SUBJECT_MIN_SINGLE_TOKEN
 
 
 SPEC_LINT_PROMPT = (
@@ -252,14 +283,19 @@ def _parse_json_object(text: str) -> dict:
         return json.loads(m.group(0))
 
 
-def _parse_verdict_json(text: str) -> tuple[str, str, str]:
+def _parse_verdict_json(text: str) -> dict[str, str]:
     parsed = _parse_json_object(text)
     verdict = str(parsed.get("verdict", "")).upper().strip()
-    reason = str(parsed.get("reason", ""))[:500]
-    claim = str(parsed.get("claim", "") or "")[:300]
     if verdict not in VERDICTS:
         raise RuntimeError(f"bad verdict: {verdict!r}")
-    return verdict, reason, claim
+    incident = str(parsed.get("incident", "") or "").lower().strip()
+    return {
+        "verdict": verdict,
+        "reason": str(parsed.get("reason", ""))[:500],
+        "claim": str(parsed.get("claim", "") or "")[:300],
+        "subject": normalize_subject(str(parsed.get("subject", "") or ""))[:200],
+        "incident": incident if incident in INCIDENT_KINDS else "other",
+    }
 
 
 async def _generate(system: str, prompt: str, schema: dict, num_predict: int = 512) -> str:
@@ -295,21 +331,14 @@ VERDICT_SCHEMA = {
         "verdict": {"type": "string", "enum": ["GO", "UNCLEAR", "NO"]},
         "reason": {"type": "string"},
         "claim": {"type": "string"},
+        "subject": {"type": "string"},
+        "incident": {"type": "string", "enum": INCIDENT_KINDS},
     },
-    "required": ["verdict", "reason", "claim"],
-}
-
-SAME_CLAIM_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "same": {"type": "boolean"},
-        "reason": {"type": "string"},
-    },
-    "required": ["same", "reason"],
+    "required": ["verdict", "reason", "claim", "subject", "incident"],
 }
 
 
-async def judge_event(ai_spec: str, event: dict[str, Any]) -> tuple[str, str, str]:
+async def judge_event(ai_spec: str, event: dict[str, Any]) -> dict[str, str]:
     link_text, fetch_err = await fetch_link(event.get("link") or "")
     text = await _generate(
         SYSTEM_PROMPT,
@@ -338,17 +367,6 @@ async def lint_spec(kind: str, target: str, spec: str) -> dict:
     }
 
 
-async def same_claim(claim_a: str, claim_b: str) -> tuple[bool, str]:
-    text = await _generate(
-        SAME_CLAIM_PROMPT,
-        f"CLAIM A:\n{claim_a}\n\nCLAIM B:\n{claim_b}\n",
-        SAME_CLAIM_SCHEMA,
-        num_predict=200,
-    )
-    parsed = _parse_json_object(text)
-    return bool(parsed.get("same")), str(parsed.get("reason", ""))[:200]
-
-
 def _claim_event(conn_factory, event_id: int) -> bool:
     c = conn_factory()
     try:
@@ -366,10 +384,21 @@ def _release_claim(conn_factory, event_id: int) -> None:
         c.close()
 
 
-def _write_verdict(conn_factory, event_id: int, verdict: str, reason: str, claim: str = "") -> bool:
+def _write_verdict(conn_factory, event_id: int, judgement: dict[str, str]) -> bool:
     c = conn_factory()
     try:
-        cur = c.execute(WRITE_VERDICT_SQL, (verdict, reason[:500], claim[:300] or None, _now_iso(), event_id))
+        cur = c.execute(
+            WRITE_VERDICT_SQL,
+            (
+                judgement["verdict"],
+                judgement.get("reason", "")[:500],
+                judgement.get("claim") or None,
+                judgement.get("subject") or None,
+                judgement.get("incident") or None,
+                _now_iso(),
+                event_id,
+            ),
+        )
         return cur.rowcount == 1
     finally:
         c.close()
@@ -396,7 +425,7 @@ async def judge_pending(conn_factory) -> dict[str, int]:
             stats["skipped"] += 1
             continue
         try:
-            verdict, reason, claim = await judge_event(r["w_spec"], dict(r))
+            judgement = await judge_event(r["w_spec"], dict(r))
         except QuotaExceeded as exc:
             _release_claim(conn_factory, r["id"])
             log.warning("judge quota exceeded, deferring batch: %s", exc)
@@ -406,11 +435,12 @@ async def judge_pending(conn_factory) -> dict[str, int]:
             stats["errors"] += 1
             log.warning("judge error event_id=%s: %s", r["id"], exc)
             continue
-        if not _write_verdict(conn_factory, r["id"], verdict, reason, claim):
+        if not _write_verdict(conn_factory, r["id"], judgement):
             stats["skipped"] += 1
             continue
         stats["judged"] += 1
-        stats[verdict.lower()] = stats.get(verdict.lower(), 0) + 1
+        verdict = judgement["verdict"].lower()
+        stats[verdict] = stats.get(verdict, 0) + 1
     return stats
 
 
@@ -464,7 +494,7 @@ def _promote(conn_factory, event_id: int, reason: str) -> bool:
         c.close()
 
 
-async def corroborate_pending(conn_factory) -> dict[str, int]:
+def corroborate_pending(conn_factory) -> dict[str, int]:
     stats = {"checked": 0, "promoted": 0, "errors": 0}
     if not CORROBORATE:
         return stats
@@ -472,9 +502,9 @@ async def corroborate_pending(conn_factory) -> dict[str, int]:
     c = conn_factory()
     unclear = c.execute(
         """
-        SELECT e.id, e.watcher_id, e.ai_claim, e.title, w.name AS w_name
+        SELECT e.id, e.watcher_id, e.ai_subject, e.ai_incident, w.name AS w_name
         FROM events e JOIN watchers w ON w.id = e.watcher_id
-        WHERE e.ai_verdict = 'UNCLEAR' AND e.ai_claim IS NOT NULL AND e.ai_claim != ''
+        WHERE e.ai_verdict = 'UNCLEAR' AND e.ai_subject IS NOT NULL AND e.ai_subject != ''
           AND e.acked_at IS NULL AND e.received_at >= ? AND w.enabled = 1 AND w.push = 1
         ORDER BY e.id DESC
         """,
@@ -488,35 +518,27 @@ async def corroborate_pending(conn_factory) -> dict[str, int]:
         c = conn_factory()
         candidates = c.execute(
             """
-            SELECT e.id, e.ai_claim, e.ai_verdict, w.name AS w_name
+            SELECT e.id, e.ai_subject, e.ai_verdict, w.name AS w_name
             FROM events e JOIN watchers w ON w.id = e.watcher_id
-            WHERE e.ai_verdict IN ('GO', 'UNCLEAR') AND e.ai_claim IS NOT NULL AND e.ai_claim != ''
-              AND e.watcher_id != ? AND e.id != ? AND e.received_at >= ?
+            WHERE e.ai_verdict IN ('GO', 'UNCLEAR') AND e.ai_subject IS NOT NULL AND e.ai_subject != ''
+              AND e.ai_incident = ? AND e.watcher_id != ? AND e.id != ? AND e.received_at >= ?
             ORDER BY e.id DESC
             LIMIT ?
             """,
-            (row["watcher_id"], row["id"], cutoff, CORROBORATE_CANDIDATES),
+            (row["ai_incident"], row["watcher_id"], row["id"], cutoff, CORROBORATE_CANDIDATES),
         ).fetchall()
         c.close()
         for candidate in candidates:
             stats["checked"] += 1
-            try:
-                matched, why = await same_claim(row["ai_claim"], candidate["ai_claim"])
-            except QuotaExceeded as exc:
-                log.warning("corroboration quota exceeded, deferring: %s", exc)
-                return stats
-            except Exception as exc:
-                stats["errors"] += 1
-                log.warning("corroboration error event_id=%s vs %s: %s", row["id"], candidate["id"], exc)
+            if not subjects_match(row["ai_subject"], candidate["ai_subject"]):
                 continue
-            if not matched:
-                continue
+            agreement = f"{row['ai_incident']} affecting {row['ai_subject']}"
             source = candidate["w_name"] or candidate["id"]
-            if _promote(conn_factory, row["id"], f"corroborated by event {candidate['id']} ({source}): {why}"):
+            if _promote(conn_factory, row["id"], f"corroborated by event {candidate['id']} ({source}): {agreement}"):
                 stats["promoted"] += 1
                 resolved.add(row["id"])
             if candidate["ai_verdict"] == "UNCLEAR" and _promote(
-                conn_factory, candidate["id"], f"corroborated by event {row['id']} ({row['w_name']}): {why}"
+                conn_factory, candidate["id"], f"corroborated by event {row['id']} ({row['w_name']}): {agreement}"
             ):
                 stats["promoted"] += 1
                 resolved.add(candidate["id"])
@@ -534,7 +556,7 @@ async def run_forever(conn_factory) -> None:
             stats = await judge_pending(conn_factory)
             if stats["judged"] or stats["errors"]:
                 log.info("judge done %s", stats)
-            corroboration = await corroborate_pending(conn_factory)
+            corroboration = corroborate_pending(conn_factory)
             if corroboration["promoted"] or corroboration["errors"]:
                 log.info("corroboration done %s", corroboration)
             lint = await lint_pending_specs(conn_factory)
