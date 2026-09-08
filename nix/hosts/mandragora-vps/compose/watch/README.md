@@ -72,6 +72,36 @@ two more on a second look.
 reach the judge. A watcher with no spec forwards everything its source emits by
 design — for those, the source is the filter.
 
+## Give the judge something to read
+
+`fetch_link` on a Google News RSS link returns **HTTP 200 and zero characters**. The
+link is not an article; it is a 587 KB Angular shell that resolves the real URL
+client-side over an internal RPC. The publisher address appears nowhere in the page —
+the only external URLs in it are Google fonts, analytics and logos.
+
+So every event from the `gnews` watcher was judged on a headline. "Does this report a
+security vulnerability affecting Electrum?" asked of twelve words like *"CZ Warns
+Bitcoin Holders After $70 Million Wallet Exploit"* is not a comprehension task, it is
+a guess — which is why the model kept asserting Electrum. Tightening the search query
+would not have helped: it changes what arrives, not what can be read.
+
+`lint_spec` did not catch it because `SOURCE_EMITS["rss"]` promises "the article body
+reachable only by fetching that link". For Google News that promise is false, so the
+lint vouched for a spec its source could not support.
+
+The fix is the source. Four publisher feeds replaced it — BleepingComputer, Security
+Affairs, The Hacker News, Malwarebytes — whose items link straight to articles that
+fetch 6–8 k characters of readable text. Being four separate watchers also makes them
+eligible to corroborate each other, which one aggregated feed never could. The old
+`gnews` watcher is paused rather than deleted, so its two genuine historical triggers
+survive.
+
+**`must_mention` runs before the model, not after.** The link is fetched, the required
+literals are checked against title + summary + body, and only then is the LLM called.
+General security feeds carry a lot of traffic — the first poll took 95 items, none of
+which name Electrum anywhere — and none of those cost a judgement. Because the body
+counts, an article that only mentions Electrum halfway down still gets read properly.
+
 ## Backing off
 
 Sources are polled every `WATCH_POLL_INTERVAL` (300s) **only while healthy**. On

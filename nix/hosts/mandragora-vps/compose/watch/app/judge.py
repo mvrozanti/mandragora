@@ -398,20 +398,39 @@ def ground_verdict(
         missing = ungrounded_terms(judgement.get("subject", ""), *texts)
     if not missing:
         return judgement
-    grounded = dict(judgement)
-    grounded["verdict"] = "NO"
-    grounded["reason"] = (
-        "subject is not named in the source: "
-        + ", ".join(missing)
-        + " absent from the title, summary and fetched text"
-    )[:500]
-    grounded["claim"] = ""
-    grounded["subject"] = ""
-    return grounded
+    return {**judgement, **refusal(missing)}
+
+
+def refusal(missing: list[str]) -> dict[str, str]:
+    return {
+        "verdict": "NO",
+        "reason": (
+            "subject is not named in the source: "
+            + ", ".join(missing)
+            + " absent from the title, summary and fetched text"
+        )[:500],
+        "claim": "",
+        "subject": "",
+        "incident": "other",
+    }
 
 
 async def judge_event(ai_spec: str, event: dict[str, Any]) -> dict[str, str]:
     link_text, fetch_err = await fetch_link(event.get("link") or "")
+    required = required_terms(event)
+    if required:
+        haystack = " ".join(
+            t
+            for t in (
+                str(event.get("title") or ""),
+                str(event.get("summary") or ""),
+                link_text or "",
+            )
+            if t
+        ).lower()
+        missing = [t for t in required if t not in haystack]
+        if missing:
+            return refusal(missing)
     text = await _generate(
         SYSTEM_PROMPT,
         build_user_prompt(ai_spec, event, link_text, fetch_err),
