@@ -13,6 +13,50 @@ Served at `https://watch.mvr.ac`, Authelia-gated.
 > a task looks like it needs a model, stop and ask before spending LLM
 > power — default to dumb feed logic.
 
+
+## The model: a watch is a standing question
+
+Each watcher is a question you are waiting on, and it is in exactly one state:
+
+| state | meaning |
+|---|---|
+| **waiting** | nothing has fired yet |
+| **triggered** | something fired and you have not accepted it |
+| **done** | everything that fired has been accepted, in the web UI or from the Telegram link |
+
+A *trigger* is an event that reached you: a `GO` verdict, or — for a watcher with no
+`ai_spec` — any event, since everything that source emits passes by definition. The
+SQL predicate is `TRIGGER_PREDICATE` in `main.py`; `/api/watchers` carries
+`state`, `trigger_count` and `open_trigger_count`, and
+`/api/watchers/{id}/triggers` returns only what fired.
+
+Rejected events are never shown in the UI. They still exist, and the funnel is still
+in `/healthz` for diagnosis, but the page is the watches and their properties — not
+a log.
+
+**Ack is now nagging, and nagging is opt-in.** `requires_ack` means "re-notify me
+hourly until I accept this" and is reserved for urgent security watches — as of the
+2026-09-08 rework, watchers 28 and 30 (`electrum-sec`) and nothing else. Acceptance
+itself (`acked_at`) is universal and is what moves a watch to *done*. That rework set
+`requires_ack = 0` on 28 watchers, accepted 950 outstanding events, and cleared 3
+stale verdicts left on a watcher whose spec had been removed.
+
+## Backing off
+
+Sources are polled every `WATCH_POLL_INTERVAL` (300s) **only while healthy**. On
+failure the watcher gets `fail_count += 1` and a persisted `retry_after`:
+`min(300 · 2^(fails-1), 6h)` plus ~10% jitter, and the poller's own query skips it
+until then. A `403` or `429` raises `sources.RateLimited`, which carries the server's
+`Retry-After` when it sends one, and the backoff takes whichever wait is longer.
+Success resets both columns.
+
+This exists because four `reddit_search` watchers were retried every five minutes for
+weeks against a `403`, which is less "the source blocked us" than "we asked to be
+blocked". The cooldown is shown on the tile ("retrying in 42m") because a silently
+skipped source looks exactly like a working one. See the vault note
+`decisions/pollers must back off.md`.
+
+
 ## What it polls
 
 | kind              | endpoint                                                 |

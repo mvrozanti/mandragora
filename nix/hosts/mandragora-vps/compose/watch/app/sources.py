@@ -14,6 +14,35 @@ GITHUB_PAT = os.environ.get("GITHUB_PAT", "").strip()
 TWITCH_CLIENT_ID = os.environ.get("TWITCH_CLIENT_ID", "").strip()
 TWITCH_CLIENT_SECRET = os.environ.get("TWITCH_CLIENT_SECRET", "").strip()
 
+class RateLimited(RuntimeError):
+    def __init__(self, message: str, retry_after: float | None = None) -> None:
+        super().__init__(message)
+        self.retry_after = retry_after
+
+
+def _retry_after_seconds(response: httpx.Response) -> float | None:
+    headers = getattr(response, "headers", None)
+    raw = headers.get("Retry-After") if headers else None
+    if not raw:
+        return None
+    try:
+        return max(0.0, float(raw))
+    except (TypeError, ValueError):
+        return None
+
+
+def _raise_for_throttle(response: httpx.Response, source: str) -> None:
+    if response.status_code not in (403, 429):
+        return
+    wait = _retry_after_seconds(response)
+    if response.status_code == 429:
+        raise RateLimited(f"{source} rate-limited the request (429)", wait)
+    raise RateLimited(
+        f"{source} refused the request (403) — rate-limited or IP-blocked; backing off",
+        wait,
+    )
+
+
 _YT_CHANNEL_ID_RE = re.compile(r"UC[A-Za-z0-9_-]{22}")
 _YT_HANDLE_RE = re.compile(r"^[A-Za-z0-9_.\-]{3,30}$")
 _TWITCH_LOGIN_RE = re.compile(r"^[A-Za-z0-9_]{3,25}$")
@@ -321,8 +350,7 @@ async def _fetch_reddit_user(name: str, cursor: str | None) -> tuple[list[dict[s
         r = await c.get(url, params={"limit": 25, "raw_json": 1})
     if r.status_code == 404:
         return [], cursor
-    if r.status_code == 403:
-        raise RuntimeError("reddit refused the request (403) — this source IP is likely blocked")
+    _raise_for_throttle(r, "reddit")
     r.raise_for_status()
     return _parse_reddit_listing(r.json(), cursor)
 
@@ -333,8 +361,7 @@ async def _fetch_reddit_sub(name: str, cursor: str | None) -> tuple[list[dict[st
         r = await c.get(url, params={"limit": 25, "raw_json": 1})
     if r.status_code == 404:
         return [], cursor
-    if r.status_code == 403:
-        raise RuntimeError("reddit refused the request (403) — this source IP is likely blocked")
+    _raise_for_throttle(r, "reddit")
     r.raise_for_status()
     return _parse_reddit_listing(r.json(), cursor)
 
@@ -562,8 +589,7 @@ async def _fetch_reddit_search(query: str, cursor: str | None) -> tuple[list[dic
         r = await c.get("https://www.reddit.com/search.json", params=params)
     if r.status_code == 404:
         return [], cursor
-    if r.status_code == 403:
-        raise RuntimeError("reddit refused the request (403) — this source IP is likely blocked")
+    _raise_for_throttle(r, "reddit")
     r.raise_for_status()
     return _parse_reddit_listing(r.json(), cursor)
 
