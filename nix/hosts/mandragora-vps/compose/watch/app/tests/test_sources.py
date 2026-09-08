@@ -105,6 +105,19 @@ def test_atom_feed_is_parsed():
     events, cursor = sources._parse_feed(ATOM_FEED, None)
     assert events[0]["title"] == "4.5.9"
     assert events[0]["link"] == "https://example.invalid/releases/4.5.9"
+    assert events[0]["summary"] == "security fix"
+
+
+def test_atom_entry_keeps_its_updated_timestamp():
+    events, cursor = sources._parse_feed(ATOM_FEED, None)
+    assert events[0]["occurred_at"] is not None
+    assert cursor is not None
+
+
+def test_atom_cursor_suppresses_seen_entries():
+    _, cursor = sources._parse_feed(ATOM_FEED, None)
+    events, _ = sources._parse_feed(ATOM_FEED, cursor)
+    assert events == []
 
 
 def test_malformed_feed_raises():

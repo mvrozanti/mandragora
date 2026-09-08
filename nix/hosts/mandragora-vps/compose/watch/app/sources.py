@@ -610,9 +610,13 @@ def _parse_feed(text: str, cursor: str | None) -> tuple[list[dict[str, Any]], st
         for e in entries:
             id_el = e.find("a:id", ns)
             title_el = e.find("a:title", ns)
-            updated_el = e.find("a:updated", ns) or e.find("a:published", ns)
+            updated_el = e.find("a:updated", ns)
+            if updated_el is None:
+                updated_el = e.find("a:published", ns)
             link_el = e.find("a:link", ns)
-            summary_el = e.find("a:summary", ns) or e.find("a:content", ns)
+            summary_el = e.find("a:summary", ns)
+            if summary_el is None:
+                summary_el = e.find("a:content", ns)
             ext_id = (id_el.text if id_el is not None else "") or ""
             link = link_el.get("href") if link_el is not None else ""
             if not ext_id:
