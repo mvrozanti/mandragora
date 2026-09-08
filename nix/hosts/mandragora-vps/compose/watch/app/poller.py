@@ -49,7 +49,7 @@ async def poll_once(conn_factory) -> dict[str, int]:
             continue
         c = conn_factory()
         try:
-            suppress = row["cursor"] is None and row["kind"] == "github_release"
+            suppress = row["cursor"] is None and new_cursor is not None
             for ev in events:
                 _insert_event(c, row["id"], ev, mark_seen=suppress)
                 stats["events"] += 1

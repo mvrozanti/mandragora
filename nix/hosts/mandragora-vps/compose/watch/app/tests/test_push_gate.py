@@ -121,6 +121,57 @@ def test_ack_watcher_holds_inside_interval(db, make_watcher, make_event, capture
     assert captured_sends == []
 
 
+def test_first_poll_backfill_never_pages(db, make_watcher, captured_sends, monkeypatch):
+    import sources
+
+    wid = make_watcher(kind="hn_search", target="electrum", ai_spec=None)
+
+    async def fetch(kind, target, cursor):
+        return [{"external_id": "old-story", "title": "a 2019 incident", "link": "https://x/1"}], "1788813931"
+
+    monkeypatch.setattr(sources, "fetch", fetch)
+    asyncio.run(poller.poll_once(db))
+    assert captured_sends == []
+    c = db()
+    row = c.execute("SELECT last_reminder_at FROM events WHERE watcher_id = ?", (wid,)).fetchone()
+    c.close()
+    assert row["last_reminder_at"] is not None
+
+
+def test_second_poll_pages_normally(db, make_watcher, captured_sends, monkeypatch):
+    import sources
+
+    wid = make_watcher(kind="hn_search", target="electrum", ai_spec=None)
+    batches = [
+        ([{"external_id": "old", "title": "backlog", "link": "https://x/1"}], "100"),
+        ([{"external_id": "fresh", "title": "new incident", "link": "https://x/2"}], "200"),
+    ]
+
+    async def fetch(kind, target, cursor):
+        return batches.pop(0)
+
+    monkeypatch.setattr(sources, "fetch", fetch)
+    asyncio.run(poller.poll_once(db))
+    asyncio.run(poller.poll_once(db))
+    c = db()
+    fresh = c.execute("SELECT id FROM events WHERE external_id = 'fresh'").fetchone()["id"]
+    c.close()
+    assert captured_sends == [fresh]
+
+
+def test_cursorless_source_still_pages(db, make_watcher, captured_sends, monkeypatch):
+    import sources
+
+    make_watcher(kind="hn_search", target="electrum", ai_spec=None)
+
+    async def fetch(kind, target, cursor):
+        return [{"external_id": "only", "title": "no cursor source", "link": "https://x/1"}], None
+
+    monkeypatch.setattr(sources, "fetch", fetch)
+    asyncio.run(poller.poll_once(db))
+    assert len(captured_sends) == 1
+
+
 def test_confirmed_push_records_last_push_at(db, make_watcher, make_event, captured_sends):
     import stats
 

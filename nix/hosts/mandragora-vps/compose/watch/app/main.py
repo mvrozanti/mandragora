@@ -404,7 +404,7 @@ async def poll_now(wid: int) -> dict:
         raise HTTPException(502, f"fetch failed: {exc}")
     c = conn()
     inserted = 0
-    suppress = r["cursor"] is None and r["kind"] == "github_release"
+    suppress = r["cursor"] is None and new_cursor is not None
     for ev in events:
         try:
             c.execute(
