@@ -112,7 +112,7 @@ a { color: var(--mv-accent); }
 .mv-row__name { font-size: var(--mv-text-md); font-weight: 500; display: flex; align-items: baseline; gap: var(--mv-space-2); flex-wrap: wrap; }
 .mv-row__desc { display: block; font-size: var(--mv-text-base); color: var(--mv-text-dim); line-height: var(--mv-leading-tight); margin-top: 2px; }
 .mv-row__host { grid-column: 2; font-family: var(--mv-font-mono); font-size: var(--mv-text-xs); color: var(--mv-text-ghost); margin-top: 3px; }
-.mv-row__host.is-open { color: var(--mv-accent); }
+.mv-lock { width: 12px; height: 12px; color: var(--mv-accent); flex: 0 0 auto; align-self: center; }
 .mv-row.is-down { background: color-mix(in srgb, var(--mv-down) 7%, transparent); }
 .mv-row mark { background: none; color: var(--mv-accent); }
 

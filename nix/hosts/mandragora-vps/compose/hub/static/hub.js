@@ -46,17 +46,23 @@
     return "ok";
   };
 
+  var UNLOCKED = '<svg class="mv-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<rect x="4" y="11" width="14" height="9" rx="2"></rect>' +
+    '<path d="M8 11V7a4 4 0 0 1 7.7-1.5"></path></svg>';
+
   var rowHTML = function (s) {
     var state = stateOf(s);
     var dotClass = state === "ok" ? "is-ok" : state === "slow" ? "is-warn" : state === "down" ? "is-down" : "";
-    var label = s.name + " — " + s.desc + " — on " + machine(s.where).label;
+    var label = s.name + " — " + s.desc + " — on " + machine(s.where).label +
+      (s.access === "open" ? " — reachable without signing in" : "");
     return '<a class="mv-row mv-row--' + s.where + (state === "down" ? " is-down" : "") + '"' +
       ' href="' + esc(linkOf(s)) + '" target="_blank" rel="noopener" aria-label="' + esc(label) + '">' +
       '<span class="mv-dot mv-row__state ' + dotClass + '" aria-hidden="true"></span>' +
       '<span><span class="mv-row__name">' + highlight(s.name) +
-      (s.access === "open" ? '<span class="mv-pill">open</span>' : "") + "</span>" +
+      (s.access === "open" ? UNLOCKED : "") + "</span>" +
       '<span class="mv-row__desc">' + esc(s.desc) + "</span></span>" +
-      '<span class="mv-row__host' + (s.access === "open" ? " is-open" : "") + '">' + esc(s.host) + "</span></a>";
+      '<span class="mv-row__host">' + esc(s.host) + "</span></a>";
   };
 
   var matches = function (s) {
@@ -66,22 +72,13 @@
   };
 
   var renderList = function () {
-    var out = "";
-    var total = 0;
-    data.groups.forEach(function (g) {
-      var items = data.services.filter(function (s) { return s.group === g.id && matches(s); });
-      if (!items.length) return;
-      total += items.length;
-      out += '<section class="mv-group"><div class="mv-group__head">' +
-        '<h2 class="mv-label">' + esc(g.label) + "</h2>" +
-        '<span class="mv-group__rule"></span>' +
-        '<span class="mv-group__count">' + items.length + "</span></div>" +
-        '<div class="mv-list">' + items.map(rowHTML).join("") + "</div></section>";
-    });
-    $("list").innerHTML = out || '<p class="mv-empty">nothing matches &ldquo;' + esc(query) + '&rdquo;</p>';
-    $("count").textContent = total === data.services.length
+    var items = data.services.filter(matches);
+    $("list").innerHTML = items.length
+      ? '<div class="mv-list">' + items.map(rowHTML).join("") + "</div>"
+      : '<p class="mv-empty">nothing matches &ldquo;' + esc(query) + '&rdquo;</p>';
+    $("count").textContent = items.length === data.services.length
       ? data.services.length + " services"
-      : total + " of " + data.services.length;
+      : items.length + " of " + data.services.length;
   };
 
   var renderChips = function () {

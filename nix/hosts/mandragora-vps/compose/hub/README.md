@@ -45,10 +45,14 @@ needed for content changes.
 | `services.json` | the inventory — one source of truth | no |
 | `index.html` | markup skeleton, ~50 lines | no |
 
-The page is the **V1 "field"** direction: a topic-grouped list where the
-machine that answers for a service is carried as a colour stripe rather
-than as position, with the two host panels compressed into a collapsible
-status band. Mobile-first — the band is a `<details>` that starts closed
+The page is the **V1 "field"** direction: one flat list — no section
+headers, the way the old tile grid had none — where the machine that
+answers for a service is carried as a colour stripe rather than as
+position, and the two host panels compress into a collapsible status
+band. Topic lives in the filter chips instead of in headings, so
+grouping is available on demand without costing vertical space.
+Services reachable without signing in carry an open padlock; everything
+else is gated and unmarked, because the gate is the default. Mobile-first — the band is a `<details>` that starts closed
 below 760px, the chip row scrolls horizontally, rows are 48px tap
 targets, and the search field is `16px` so iOS does not zoom on focus.
 
@@ -115,8 +119,10 @@ so they cannot collide, and have no dependencies. To adopt:
    the Authelia session cookie carries; a service that is not logged in
    silently keeps the baked palette.
 3. Build the page out of `.mv-topbar`, `.mv-card`, `.mv-meter`,
-   `.mv-pill`, `.mv-dot`, `.mv-alert`, `.mv-search`, `.mv-chip`,
-   `.mv-group`, `.mv-row`, `.mv-legend`, `.mv-footer`. Anything the
+   `.mv-pill`, `.mv-dot`, `.mv-lock`, `.mv-alert`, `.mv-search`,
+   `.mv-chip`, `.mv-group`, `.mv-row`, `.mv-legend`, `.mv-footer`.
+   (`.mv-group` is vocabulary the hub itself no longer uses — a service
+   with fewer, longer lists still wants headed sections.) Anything the
    service needs beyond those belongs in its own stylesheet, not in
    `components.css` — until two services need it, at which point it is
    promoted.
