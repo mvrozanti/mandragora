@@ -6,8 +6,6 @@
 
   var data = null;
   var health = {};
-  var query = "";
-  var group = "all";
 
   var groupLabel = function (id) {
     var g = data.groups.filter(function (x) { return x.id === id; })[0];
@@ -31,13 +29,6 @@
   };
   var pct = function (v) { return v == null ? "–" : v.toFixed(0) + "%"; };
 
-  var highlight = function (name) {
-    if (!query) return esc(name);
-    var i = name.toLowerCase().indexOf(query);
-    if (i < 0) return esc(name);
-    return esc(name.slice(0, i)) + "<mark>" + esc(name.slice(i, i + query.length)) + "</mark>" + esc(name.slice(i + query.length));
-  };
-
   var stateOf = function (s) {
     var h = health[s.host];
     if (!h) return "unknown";
@@ -59,32 +50,15 @@
     return '<a class="mv-row mv-row--' + s.where + (state === "down" ? " is-down" : "") + '"' +
       ' href="' + esc(linkOf(s)) + '" target="_blank" rel="noopener" aria-label="' + esc(label) + '">' +
       '<span class="mv-dot mv-row__state ' + dotClass + '" aria-hidden="true"></span>' +
-      '<span><span class="mv-row__name">' + highlight(s.name) +
+      '<span><span class="mv-row__name">' + esc(s.name) +
       (s.access === "open" ? UNLOCKED : "") + "</span>" +
       '<span class="mv-row__desc">' + esc(s.desc) + "</span></span>" +
       '<span class="mv-row__host">' + esc(s.host) + "</span></a>";
   };
 
-  var matches = function (s) {
-    if (group !== "all" && s.group !== group) return false;
-    if (!query) return true;
-    return s.haystack.indexOf(query) >= 0;
-  };
-
   var renderList = function () {
-    var items = data.services.filter(matches);
-    $("list").innerHTML = items.length
-      ? '<div class="mv-list">' + items.map(rowHTML).join("") + "</div>"
-      : '<p class="mv-empty">nothing matches &ldquo;' + esc(query) + '&rdquo;</p>';
-    $("count").textContent = items.length === data.services.length
-      ? data.services.length + " services"
-      : items.length + " of " + data.services.length;
-  };
-
-  var renderChips = function () {
-    $("chips").innerHTML = [{ id: "all", label: "everything" }].concat(data.groups).map(function (g) {
-      return '<button class="mv-chip" type="button" data-group="' + g.id + '" aria-pressed="' + (g.id === group) + '">' + esc(g.label) + "</button>";
-    }).join("");
+    $("list").innerHTML = '<div class="mv-list">' + data.services.map(rowHTML).join("") + "</div>";
+    $("count").textContent = data.services.length + " services";
   };
 
   var renderLegend = function () {
@@ -194,36 +168,9 @@
     .then(function (r) { return r.json(); })
     .then(function (json) {
       data = json;
-      data.services.forEach(function (s) {
-        s.haystack = [s.name, s.host, s.desc, groupLabel(s.group), machine(s.where).label, s.access].join(" ").toLowerCase();
-      });
-      renderChips();
       renderLegend();
       renderList();
       loadHealth();
-
-      $("chips").addEventListener("click", function (e) {
-        var b = e.target.closest(".mv-chip");
-        if (!b) return;
-        group = b.dataset.group;
-        Array.prototype.forEach.call($("chips").querySelectorAll(".mv-chip"), function (x) {
-          x.setAttribute("aria-pressed", String(x === b));
-        });
-        renderList();
-      });
-
-      var input = $("q");
-      input.addEventListener("input", function () { query = input.value.trim().toLowerCase(); renderList(); });
-      input.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") { input.value = ""; query = ""; renderList(); }
-        if (e.key === "Enter") {
-          var first = $("list").querySelector(".mv-row");
-          if (first) first.click();
-        }
-      });
-      document.addEventListener("keydown", function (e) {
-        if (e.key === "/" && document.activeElement !== input) { e.preventDefault(); input.focus(); }
-      });
     })
     .catch(function () {
       $("list").innerHTML = '<p class="mv-empty">services.json failed to load</p>';

@@ -7,22 +7,9 @@
 .hub__status { margin-top: var(--mv-space-4); }
 .hub__status-grid { display: grid; gap: var(--mv-space-3); }
 
-.hub__controls {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  display: grid;
-  gap: var(--mv-space-2);
-  margin: var(--mv-space-4) 0 var(--mv-space-2);
-  padding: var(--mv-space-2) 0;
-  background: var(--mv-bg);
-}
-.hub__controls::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--mv-line); }
-
-.hub__legend { padding: var(--mv-space-1) 0 var(--mv-space-2); }
+.hub__legend { padding: var(--mv-space-4) 0 var(--mv-space-2); border-top: 1px solid var(--mv-line); margin-top: var(--mv-space-4); }
 
 @media (min-width: 760px) {
   .hub { padding-left: var(--mv-space-6); padding-right: var(--mv-space-6); padding-top: var(--mv-space-6); }
   .hub__status-grid { grid-template-columns: repeat(3, 1fr); align-items: start; }
-  .hub__controls { grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); align-items: center; gap: var(--mv-space-4); }
 }
