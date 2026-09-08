@@ -35,7 +35,12 @@ in
       enable = true;
       highlight = "fg=12";
     };
-    syntaxHighlighting.enable = true;
+    syntaxHighlighting = {
+      enable = true;
+      styles = {
+        comment = "fg=gray";
+      };
+    };
 
     history = {
       size = 1000000;
