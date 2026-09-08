@@ -132,7 +132,12 @@ human-readable `claim` for display.
 
 Each cycle, an `UNCLEAR` event is matched against events from *other*
 watchers inside `WATCH_CORROBORATE_WINDOW` hours (default 72) carrying
-the same `incident` and a matching `subject`. A match promotes both to
+a matching `subject` and an incident from the same family — `security`
+(vulnerability, exploit, phishing, supply-chain, malware),
+`availability`, `shipping`, or `other`. Families exist because one
+incident is legitimately labelled differently by different outlets: the
+same Electrum attack came back as `exploit` from one source and
+`phishing` from another. A match promotes both to
 `GO` with reason `corroborated by event <id>` and the normal push gate
 delivers them. One source saying something shaky stays quiet; two
 independent sources agreeing is the confirmation.

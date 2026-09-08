@@ -117,6 +117,21 @@ INCIDENT_KINDS = [
     "other",
 ]
 
+INCIDENT_FAMILIES = {
+    "security": ("vulnerability", "exploit", "phishing", "supply-chain", "malware"),
+    "availability": ("outage",),
+    "shipping": ("release", "announcement"),
+    "other": ("other",),
+}
+
+
+def incident_family(incident: str) -> str:
+    for family, members in INCIDENT_FAMILIES.items():
+        if incident in members:
+            return family
+    return "other"
+
+
 SUBJECT_MIN_TOKENS = 2
 SUBJECT_MIN_SINGLE_TOKEN = 8
 
@@ -515,24 +530,27 @@ def corroborate_pending(conn_factory) -> dict[str, int]:
     for row in unclear:
         if row["id"] in resolved:
             continue
+        family = incident_family(row["ai_incident"] or "other")
+        members = INCIDENT_FAMILIES[family]
         c = conn_factory()
         candidates = c.execute(
-            """
-            SELECT e.id, e.ai_subject, e.ai_verdict, w.name AS w_name
+            f"""
+            SELECT e.id, e.ai_subject, e.ai_verdict, e.ai_incident, w.name AS w_name
             FROM events e JOIN watchers w ON w.id = e.watcher_id
             WHERE e.ai_verdict IN ('GO', 'UNCLEAR') AND e.ai_subject IS NOT NULL AND e.ai_subject != ''
-              AND e.ai_incident = ? AND e.watcher_id != ? AND e.id != ? AND e.received_at >= ?
+              AND e.ai_incident IN ({','.join('?' * len(members))})
+              AND e.watcher_id != ? AND e.id != ? AND e.received_at >= ?
             ORDER BY e.id DESC
             LIMIT ?
             """,
-            (row["ai_incident"], row["watcher_id"], row["id"], cutoff, CORROBORATE_CANDIDATES),
+            (*members, row["watcher_id"], row["id"], cutoff, CORROBORATE_CANDIDATES),
         ).fetchall()
         c.close()
         for candidate in candidates:
             stats["checked"] += 1
             if not subjects_match(row["ai_subject"], candidate["ai_subject"]):
                 continue
-            agreement = f"{row['ai_incident']} affecting {row['ai_subject']}"
+            agreement = f"{family} report on {row['ai_subject']}"
             source = candidate["w_name"] or candidate["id"]
             if _promote(conn_factory, row["id"], f"corroborated by event {candidate['id']} ({source}): {agreement}"):
                 stats["promoted"] += 1
