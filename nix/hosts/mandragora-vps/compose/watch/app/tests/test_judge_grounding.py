@@ -140,3 +140,13 @@ def test_must_mention_lets_the_model_run_when_the_body_names_it(monkeypatch):
         "w_must_mention": "electrum",
     }))
     assert out["verdict"] == "GO"
+
+
+def test_create_watcher_persists_must_mention():
+    import inspect
+
+    import main
+
+    src = inspect.getsource(main.create_watcher)
+    assert "must_mention" in src, "create_watcher silently dropped must_mention once already"
+    assert src.count("must_mention") >= 3
