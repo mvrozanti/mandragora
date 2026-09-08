@@ -248,8 +248,8 @@ The GUI session and peripherals. Session (`hyprland.nix`, `sddm.nix`,
 `keystats.nix`, `openrgb.nix`, `rival-mouse.nix`, `ydotool.nix`), sync and
 bridges (`seafile.nix`, `syncthing.nix`, `kdeconnect.nix`,
 `phone-archiver.nix`), gaming (`steam.nix`, `wine-gaming.nix`, `minecraft.nix`,
-`mt5.nix`), and Claude-Code desktop integrations (`cc-lens.nix`,
-`watch-judge.nix`). One file per device/concern is
+`mt5.nix`), and Claude-Code desktop integrations
+(`cc-lens.nix`). One file per device/concern is
 the rule (e.g. `keyledsd.nix` is its own module, not a section of a generic
 peripherals file).
 
