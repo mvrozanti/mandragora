@@ -4,6 +4,7 @@ import logging
 import os
 import re
 from datetime import datetime, timedelta, timezone
+from difflib import SequenceMatcher
 from html.parser import HTMLParser
 from typing import Any
 
@@ -158,21 +159,30 @@ def subjects_match(left: str, right: str) -> bool:
 
 SPEC_LINT_PROMPT = (
     "You audit notification filters. A user wrote a spec describing what they want to be "
-    "notified about, attached to one source that emits a fixed shape of material. Decide "
-    "whether a careful reader could answer yes or no to that spec from what this source "
-    "actually emits, without guessing.\n\n"
+    "notified about, attached to one source. You are told exactly what material the judge "
+    "will hold when it applies that spec. Decide whether a careful reader holding that "
+    "material could reach a definite yes or no, without guessing.\n\n"
     "Return ONLY a single line of JSON: "
     '{"decidable":true|false,"problems":["<=100 chars each"],"suggestion":"<=300 chars"}\n\n'
-    "decidable is false when the spec demands facts the source never carries (asking a "
-    "title-only search to confirm details that only appear in an article body), when it "
-    "requires an official announcement the source cannot distinguish from commentary, when "
-    "its terms are subjective with no test, or when nothing this source emits could ever "
-    "satisfy it.\n"
-    "decidable is true when a reader could apply the spec to typical material from this "
-    "source and reach a definite verdict, even if most items will be rejected.\n"
-    "suggestion rewrites the spec so it is decidable against this source, preserving the "
-    "user's intent. Leave suggestion empty when decidable is true."
+    "The judge always fetches and reads the page behind an item's link. Article bodies, "
+    "release notes and linked announcements are therefore part of the material. NEVER call "
+    "a spec undecidable because the answer lives in the article body rather than the title "
+    "or headline -- that body is available.\n"
+    "decidable is false only when: the spec turns on facts no published source carries "
+    "(private, internal or unpublished information); its terms are subjective with no "
+    "stated test (\"important\", \"interesting\", \"a big deal\"); or this source is about a "
+    "wholly different subject, so no item it ever returns could bear on the spec.\n"
+    "decidable is true when a typical item from this source, read together with the page it "
+    "links to, could settle the spec either way -- even if most items are rejected, even if "
+    "matching items are rare, and even if the source is a broad search that returns mostly "
+    "noise. Rare is not undecidable.\n"
+    "suggestion rewrites the spec so it is decidable, preserving the user's intent, and must "
+    "differ from the spec. Leave suggestion empty when decidable is true."
 )
+
+SUGGESTION_ECHO_RATIO = 0.75
+SUGGESTION_ECHO_HEAD = 60
+SPEC_LINT_VERSION = 2
 
 SPEC_LINT_SCHEMA = {
     "type": "object",
@@ -189,12 +199,12 @@ SOURCE_EMITS = {
     "github_repo": "commits on one GitHub repository: message, author, timestamp",
     "github_release": "GitHub release entries: tag, release title, and the full release-notes body",
     "reddit_user": "one Reddit account's posts and comments: title and body text",
-    "reddit_sub": "posts from one subreddit: title, selftext, and outbound link",
+    "reddit_sub": "posts from one subreddit: title, selftext, and the full text of the page the post links to",
     "youtube_channel": "video entries from one channel: title and description only, never the spoken content",
     "twitch_stream": "live/offline transitions for one streamer: stream title and game name only",
-    "hn_search": "Hacker News search hits: story title, url, and points, without the linked article body",
-    "reddit_search": "Reddit search hits across subreddits: post title, subreddit, and outbound link",
-    "rss": "entries from one feed: headline, summary or excerpt, and a link, with the article body reachable only by fetching that link",
+    "hn_search": "Hacker News search hits: story title and points, plus the full text of the page the story links to",
+    "reddit_search": "Reddit search hits across subreddits: post title, subreddit, and the full text of the page the post links to",
+    "rss": "feed entries: headline, summary or excerpt, plus the full text of the page the entry links to",
 }
 
 
@@ -439,22 +449,40 @@ async def judge_event(ai_spec: str, event: dict[str, Any]) -> dict[str, str]:
     return ground_verdict(_parse_verdict_json(text), event, link_text)
 
 
+def _normalize_for_echo(text: str) -> str:
+    return re.sub(r"[^a-z0-9 ]+", " ", re.sub(r"\s+", " ", text.lower())).strip()
+
+
+def echoes_spec(suggestion: str, spec: str) -> bool:
+    a, b = _normalize_for_echo(suggestion), _normalize_for_echo(spec)
+    if not a:
+        return True
+    head = min(len(a), len(b), SUGGESTION_ECHO_HEAD)
+    if head and (a[:head] == b[:head] or a in b or b in a):
+        return True
+    return SequenceMatcher(None, a, b).ratio() >= SUGGESTION_ECHO_RATIO
+
+
 async def lint_spec(kind: str, target: str, spec: str) -> dict:
-    emits = SOURCE_EMITS.get(kind, "items with a title, a summary, and a link")
+    emits = SOURCE_EMITS.get(kind, "a title, a summary, and the full text of the page the item links to")
     prompt = (
         f"SOURCE KIND: {kind}\n"
         f"SOURCE TARGET: {target}\n"
-        f"THIS SOURCE EMITS: {emits}\n"
-        "The judge also fetches the text at each item's link when one exists.\n\n"
+        f"MATERIAL THE JUDGE WILL HOLD: {emits}\n\n"
         f"SPEC:\n{spec}\n"
     )
     text = await _generate(SPEC_LINT_PROMPT, prompt, SPEC_LINT_SCHEMA, num_predict=400)
     parsed = _parse_json_object(text)
+    decidable = bool(parsed.get("decidable"))
     problems = [str(p)[:100] for p in (parsed.get("problems") or [])][:5]
+    suggestion = str(parsed.get("suggestion", "") or "")[:300]
+    if decidable or echoes_spec(suggestion, spec):
+        suggestion = ""
     return {
-        "decidable": bool(parsed.get("decidable")),
-        "problems": problems,
-        "suggestion": str(parsed.get("suggestion", ""))[:300],
+        "version": SPEC_LINT_VERSION,
+        "decidable": decidable,
+        "problems": [] if decidable else problems,
+        "suggestion": suggestion,
     }
 
 
@@ -536,16 +564,26 @@ async def judge_pending(conn_factory) -> dict[str, int]:
     return stats
 
 
+def lint_is_stale(spec_lint_at: str | None, spec_lint: str | None) -> bool:
+    if not spec_lint_at:
+        return True
+    try:
+        stored = json.loads(spec_lint or "{}")
+    except (TypeError, ValueError):
+        return True
+    return stored.get("version") != SPEC_LINT_VERSION
+
+
 async def lint_pending_specs(conn_factory) -> dict[str, int]:
     stats = {"linted": 0, "undecidable": 0, "errors": 0}
     c = conn_factory()
-    rows = c.execute(
-        "SELECT id, kind, target, ai_spec FROM watchers "
-        "WHERE enabled = 1 AND ai_spec IS NOT NULL AND spec_lint_at IS NULL "
-        "ORDER BY id DESC LIMIT ?",
-        (SPEC_LINT_BATCH,),
+    candidates = c.execute(
+        "SELECT id, kind, target, ai_spec, spec_lint, spec_lint_at FROM watchers "
+        "WHERE enabled = 1 AND ai_spec IS NOT NULL AND ai_spec != '' "
+        "ORDER BY id DESC"
     ).fetchall()
     c.close()
+    rows = [r for r in candidates if lint_is_stale(r["spec_lint_at"], r["spec_lint"])][:SPEC_LINT_BATCH]
     for row in rows:
         try:
             result = await lint_spec(row["kind"], row["target"], row["ai_spec"])

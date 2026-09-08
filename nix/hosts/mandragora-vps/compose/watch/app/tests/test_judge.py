@@ -242,7 +242,8 @@ def test_spec_lint_is_recorded(db, make_watcher, monkeypatch):
     wid = make_watcher()
 
     async def lint(kind, target, spec):
-        return {"decidable": False, "problems": ["titles only"], "suggestion": "narrow it"}
+        return {"version": judge.SPEC_LINT_VERSION, "decidable": False,
+                "problems": ["titles only"], "suggestion": "narrow it"}
 
     monkeypatch.setattr(judge, "lint_spec", lint)
     stats = asyncio.run(judge.lint_pending_specs(db))
@@ -260,7 +261,7 @@ def test_spec_lint_runs_once_per_spec(db, make_watcher, monkeypatch):
 
     async def lint(kind, target, spec):
         calls.append(spec)
-        return {"decidable": True, "problems": [], "suggestion": ""}
+        return {"version": judge.SPEC_LINT_VERSION, "decidable": True, "problems": [], "suggestion": ""}
 
     monkeypatch.setattr(judge, "lint_spec", lint)
     asyncio.run(judge.lint_pending_specs(db))

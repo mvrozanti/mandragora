@@ -87,7 +87,9 @@ would not have helped: it changes what arrives, not what can be read.
 
 `lint_spec` did not catch it because `SOURCE_EMITS["rss"]` promises "the article body
 reachable only by fetching that link". For Google News that promise is false, so the
-lint vouched for a spec its source could not support.
+lint vouched for a spec its source could not support. Aggregator feeds remain the one
+case where the fetch does not reach an article, and the reason publisher feeds are
+preferred; the lint cannot tell them apart from the feed URL alone.
 
 The fix is the source. Four publisher feeds replaced it — BleepingComputer, Security
 Affairs, The Hacker News, Malwarebytes — whose items link straight to articles that
@@ -278,11 +280,30 @@ Extraction is what the model is good at; equivalence judgement is not.
 A spec that demands facts its source never carries produces an endless
 `NO` streak that reads exactly like a broken pipeline — this is what
 kept the stack silent through Aug 2026. Each spec is audited once
-against what its source kind actually emits (`hn_search` yields titles,
-`github_release` yields release notes, and so on). Undecidable specs
+against the material the judge will actually hold. Undecidable specs
 are flagged with the problems found and a suggested rewrite, visible in
 `GET /api/watchers`, the web UI, `/list` and `/status`. Editing a spec
 requeues the check. The flag is advisory — nothing is ever blocked.
+
+The audit is only as good as its description of the source, and through Sep 2026
+that description was wrong in the strict direction. `SOURCE_EMITS` listed the
+pre-fetch row (`hn_search` = "title, url and points, **without** the linked
+article body") while `judge_event` has always fetched the linked page first and
+handed it to the model. The prompt then named that exact case — "asking a
+title-only search to confirm details that only appear in an article body" — as
+its first example of undecidable. Every spec that relied on the body was
+therefore condemned: 8 of 13 spec'd watchers wore "spec unanswerable", including
+`pluribus s2 release`, and the only specs that passed were the ones carrying an
+explicit "judge from the headline alone" clause. `SOURCE_EMITS` now describes
+what the judge holds, the prompt forbids the body-is-missing verdict outright,
+and rarity is stated not to imply undecidability.
+
+Two guards came out of it. A `suggestion` that merely echoes the spec back is
+dropped rather than shown — the model returned the spec verbatim for w7 and w26.
+And each result carries `SPEC_LINT_VERSION`; `lint_pending_specs` re-lints any
+watcher whose stored version is behind, so changing the prompt no longer leaves a
+DB full of verdicts from the prompt that produced them. Bump the version whenever
+the prompt or `SOURCE_EMITS` changes.
 
 The judge runs as its own asyncio loop, decoupled from the poller, so
 slow local-LLM calls never block source polling. `WATCH_JUDGE_INTERVAL`
