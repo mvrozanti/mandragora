@@ -75,6 +75,18 @@ already answering `/api/gpu` over the tailnet, so this is an endpoint,
 not a component. When mandragora is asleep the hub keeps the last
 palette it saw; `theme.css` carries a baked default for a cold browser.
 
+`theme.js` follows `setbg` **live**: it polls every 5s while the tab is
+visible (`data-poll="<seconds>"`, `0` disables), and re-fetches
+immediately on focus, tab-visibility and bfcache restore — so the common
+case, running `setbg` and alt-tabbing to the browser, repaints on
+arrival rather than on a timer. It only touches the DOM when the payload
+actually changes, and emits a `mv-theme` event on `window` with the new
+palette so a page with charts or a canvas can redraw:
+
+```js
+window.addEventListener("mv-theme", function (e) { redraw(e.detail.primary); });
+```
+
 **State colours are never themed.** matugen's own `error` token can
 collide with its `primary` (under a rose wallpaper both land on
 `#ffb3af`), so `--mv-ok` / `--mv-warn` / `--mv-down` are fixed

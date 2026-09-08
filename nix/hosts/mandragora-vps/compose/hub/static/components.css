@@ -11,6 +11,7 @@ body {
   line-height: var(--mv-leading);
   -webkit-font-smoothing: antialiased;
   overflow-wrap: break-word;
+  transition: background-color var(--mv-dur) var(--mv-ease), color var(--mv-dur) var(--mv-ease);
 }
 
 a { color: var(--mv-accent); }
@@ -43,7 +44,7 @@ a { color: var(--mv-accent); }
 .mv-topbar__user a { text-decoration: none; }
 .mv-topbar__user a:hover { text-decoration: underline; }
 
-.mv-status { border: 1px solid var(--mv-line); border-radius: var(--mv-radius-2); background: var(--mv-bg-raised); }
+.mv-status { border: 1px solid var(--mv-line); border-radius: var(--mv-radius-2); background: var(--mv-bg-raised); transition: background-color var(--mv-dur) var(--mv-ease), border-color var(--mv-dur) var(--mv-ease); }
 .mv-status__summary { list-style: none; cursor: pointer; padding: var(--mv-space-3); min-height: var(--mv-tap); display: flex; align-items: center; gap: var(--mv-space-2); }
 .mv-status__summary::-webkit-details-marker { display: none; }
 .mv-status__summary::after { content: "▾"; margin-left: auto; color: var(--mv-text-ghost); font-size: var(--mv-text-sm); transition: transform var(--mv-dur) var(--mv-ease); }
@@ -54,7 +55,7 @@ a { color: var(--mv-accent); }
 .mv-glance b { color: var(--mv-text); font-weight: 400; }
 .mv-glance span { display: inline-flex; align-items: center; gap: var(--mv-space-2); white-space: nowrap; }
 
-.mv-card { border: 1px solid var(--mv-line); border-radius: var(--mv-radius-2); background: var(--mv-bg-elevated); padding: var(--mv-space-3); display: flex; flex-direction: column; gap: 2px; }
+.mv-card { border: 1px solid var(--mv-line); border-radius: var(--mv-radius-2); background: var(--mv-bg-elevated); padding: var(--mv-space-3); display: flex; flex-direction: column; gap: 2px; transition: background-color var(--mv-dur) var(--mv-ease), border-color var(--mv-dur) var(--mv-ease); }
 .mv-card__name { display: flex; align-items: center; gap: var(--mv-space-2); font-size: var(--mv-text-md); font-weight: 600; }
 .mv-card__meta { font-family: var(--mv-font-mono); font-size: var(--mv-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--mv-text-ghost); margin-bottom: var(--mv-space-2); }
 .mv-card__note { font-family: var(--mv-font-mono); font-size: var(--mv-text-sm); color: var(--mv-text-dim); margin-top: var(--mv-space-2); }
