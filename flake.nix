@@ -135,6 +135,17 @@
         ];
       };
 
+      devShells.${system}.watch = nixpkgs.legacyPackages.${system}.mkShell {
+        packages = [
+          (nixpkgs.legacyPackages.${system}.python312.withPackages (ps: with ps; [
+            fastapi
+            httpx
+            uvicorn
+            pytest
+          ]))
+        ];
+      };
+
       apps.${system}.refiner = {
         type = "app";
         program = "${
