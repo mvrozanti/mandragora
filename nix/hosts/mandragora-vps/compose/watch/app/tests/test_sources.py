@@ -125,6 +125,45 @@ def test_malformed_feed_raises():
         sources._parse_feed("<rss><channel>", None)
 
 
+def test_reddit_block_is_reported_not_swallowed(monkeypatch):
+    import asyncio
+
+    import httpx
+
+    class _Blocked:
+        status_code = 403
+        text = "<html>blocked</html>"
+
+    async def blocked(self, url, params=None):
+        return _Blocked()
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", blocked)
+    for fetcher, target in [
+        (sources._fetch_reddit_search, "electrum"),
+        (sources._fetch_reddit_sub, "bitcoin"),
+        (sources._fetch_reddit_user, "spez"),
+    ]:
+        with pytest.raises(RuntimeError, match="403"):
+            asyncio.run(fetcher(target, None))
+
+
+def test_reddit_missing_target_stays_empty(monkeypatch):
+    import asyncio
+
+    import httpx
+
+    class _Gone:
+        status_code = 404
+        text = ""
+
+    async def gone(self, url, params=None):
+        return _Gone()
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", gone)
+    events, cursor = asyncio.run(sources._fetch_reddit_sub("deleted", None))
+    assert events == [] and cursor is None
+
+
 def test_rss_date_parsing():
     assert sources._parse_rss_date("Mon, 07 Sep 2026 12:00:00 GMT") is not None
     assert sources._parse_rss_date("not a date") is None

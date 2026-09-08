@@ -319,8 +319,10 @@ async def _fetch_reddit_user(name: str, cursor: str | None) -> tuple[list[dict[s
     url = f"https://www.reddit.com/user/{name}.json"
     async with httpx.AsyncClient(timeout=20.0, headers=_reddit_headers()) as c:
         r = await c.get(url, params={"limit": 25, "raw_json": 1})
-    if r.status_code in (404, 403):
+    if r.status_code == 404:
         return [], cursor
+    if r.status_code == 403:
+        raise RuntimeError("reddit refused the request (403) — this source IP is likely blocked")
     r.raise_for_status()
     return _parse_reddit_listing(r.json(), cursor)
 
@@ -329,8 +331,10 @@ async def _fetch_reddit_sub(name: str, cursor: str | None) -> tuple[list[dict[st
     url = f"https://www.reddit.com/r/{name}/new.json"
     async with httpx.AsyncClient(timeout=20.0, headers=_reddit_headers()) as c:
         r = await c.get(url, params={"limit": 25, "raw_json": 1})
-    if r.status_code in (404, 403):
+    if r.status_code == 404:
         return [], cursor
+    if r.status_code == 403:
+        raise RuntimeError("reddit refused the request (403) — this source IP is likely blocked")
     r.raise_for_status()
     return _parse_reddit_listing(r.json(), cursor)
 
@@ -556,8 +560,10 @@ async def _fetch_reddit_search(query: str, cursor: str | None) -> tuple[list[dic
     params = {"q": query, "sort": "new", "restrict_sr": "0", "limit": 25, "raw_json": 1}
     async with httpx.AsyncClient(timeout=20.0, headers=_reddit_headers()) as c:
         r = await c.get("https://www.reddit.com/search.json", params=params)
-    if r.status_code in (404, 403):
+    if r.status_code == 404:
         return [], cursor
+    if r.status_code == 403:
+        raise RuntimeError("reddit refused the request (403) — this source IP is likely blocked")
     r.raise_for_status()
     return _parse_reddit_listing(r.json(), cursor)
 
