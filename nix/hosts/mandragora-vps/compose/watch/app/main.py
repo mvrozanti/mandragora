@@ -105,6 +105,7 @@ def init_db() -> None:
         "ALTER TABLE watchers ADD COLUMN spec_lint_at TEXT",
         "ALTER TABLE watchers ADD COLUMN fail_count INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE watchers ADD COLUMN retry_after TEXT",
+        "ALTER TABLE watchers ADD COLUMN must_mention TEXT",
         "ALTER TABLE events ADD COLUMN acked_at TEXT",
         "ALTER TABLE events ADD COLUMN last_reminder_at TEXT",
         "ALTER TABLE events ADD COLUMN ai_verdict TEXT",
@@ -230,6 +231,7 @@ def watcher_dict(
         "requires_ack": bool(row["requires_ack"]),
         "reminder_interval": int(row["reminder_interval"]),
         "ai_spec": row["ai_spec"] if "ai_spec" in row.keys() else None,
+        "must_mention": row["must_mention"] if "must_mention" in row.keys() else None,
         "push": bool(row["push"]) if "push" in row.keys() else True,
         "spec_lint": _spec_lint_dict(row),
         "event_count": event_count,
@@ -377,6 +379,13 @@ async def patch_watcher(wid: int, payload: dict) -> dict:
     if "push" in payload:
         fields.append("push = ?")
         params.append(1 if payload["push"] else 0)
+    if "must_mention" in payload:
+        must = payload["must_mention"]
+        if must in (None, ""):
+            fields.append("must_mention = NULL")
+        else:
+            fields.append("must_mention = ?")
+            params.append(str(must)[:200])
     if "ai_spec" in payload:
         spec = payload["ai_spec"]
         if spec in (None, ""):
@@ -654,7 +663,8 @@ async def rejudge_event(eid: int) -> dict:
     c = conn()
     row = c.execute(
         """
-        SELECT e.*, w.ai_spec AS w_spec, w.kind AS w_kind, w.target AS w_target, w.name AS w_name
+        SELECT e.*, w.ai_spec AS w_spec, w.kind AS w_kind, w.target AS w_target, w.name AS w_name,
+               w.must_mention AS w_must_mention
         FROM events e JOIN watchers w ON w.id = e.watcher_id WHERE e.id = ?
         """,
         (eid,),

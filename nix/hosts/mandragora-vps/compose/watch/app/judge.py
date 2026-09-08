@@ -353,6 +353,63 @@ VERDICT_SCHEMA = {
 }
 
 
+SUBJECT_STOPWORDS = {
+    "the", "and", "for", "with", "app", "apps", "tool", "tools", "software",
+    "client", "clients", "service", "project", "platform", "system", "systems",
+}
+
+
+def subject_terms(subject: str) -> list[str]:
+    return [
+        term
+        for term in re.findall(r"[a-z0-9][a-z0-9.+_-]{2,}", (subject or "").lower())
+        if term not in SUBJECT_STOPWORDS
+    ]
+
+
+def ungrounded_terms(subject: str, *texts: str) -> list[str]:
+    terms = subject_terms(subject)
+    if not terms:
+        return []
+    haystack = " ".join(t for t in texts if t).lower()
+    return [term for term in terms if term not in haystack]
+
+
+def required_terms(event: dict[str, Any]) -> list[str]:
+    raw = str(event.get("w_must_mention") or "")
+    return [t.strip().lower() for t in re.split(r"[,\s]+", raw) if t.strip()]
+
+
+def ground_verdict(
+    judgement: dict[str, str], event: dict[str, Any], link_text: str = ""
+) -> dict[str, str]:
+    if judgement.get("verdict") == "NO":
+        return judgement
+    texts = (
+        str(event.get("title") or ""),
+        str(event.get("summary") or ""),
+        link_text or "",
+    )
+    haystack = " ".join(t for t in texts if t).lower()
+    required = required_terms(event)
+    if required:
+        missing = [t for t in required if t not in haystack]
+    else:
+        missing = ungrounded_terms(judgement.get("subject", ""), *texts)
+    if not missing:
+        return judgement
+    grounded = dict(judgement)
+    grounded["verdict"] = "NO"
+    grounded["reason"] = (
+        "subject is not named in the source: "
+        + ", ".join(missing)
+        + " absent from the title, summary and fetched text"
+    )[:500]
+    grounded["claim"] = ""
+    grounded["subject"] = ""
+    return grounded
+
+
 async def judge_event(ai_spec: str, event: dict[str, Any]) -> dict[str, str]:
     link_text, fetch_err = await fetch_link(event.get("link") or "")
     text = await _generate(
@@ -360,7 +417,7 @@ async def judge_event(ai_spec: str, event: dict[str, Any]) -> dict[str, str]:
         build_user_prompt(ai_spec, event, link_text, fetch_err),
         VERDICT_SCHEMA,
     )
-    return _parse_verdict_json(text)
+    return ground_verdict(_parse_verdict_json(text), event, link_text)
 
 
 async def lint_spec(kind: str, target: str, spec: str) -> dict:
@@ -425,7 +482,8 @@ async def judge_pending(conn_factory) -> dict[str, int]:
     rows = c.execute(
         """
         SELECT e.id AS id, e.title, e.summary, e.link, e.occurred_at, e.external_id,
-               w.ai_spec AS w_spec, w.kind AS w_kind, w.target AS w_target
+               w.ai_spec AS w_spec, w.kind AS w_kind, w.target AS w_target,
+               w.must_mention AS w_must_mention
         FROM events e JOIN watchers w ON w.id = e.watcher_id
         WHERE e.ai_verdict IS NULL AND w.ai_spec IS NOT NULL AND w.enabled = 1
           AND (e.ai_claimed_at IS NULL OR e.ai_claimed_at < ?)
