@@ -56,10 +56,45 @@ else is gated and unmarked, because the gate is the default. Mobile-first — th
 below 760px, the chip row scrolls horizontally, rows are 48px tap
 targets, and the search field is `16px` so iOS does not zoom on focus.
 
-`/` focuses the filter. The filter matches name, host, description,
-group **and machine label**, so typing `mandragora` narrows to the ten
-desktop-backed services — which is the "what dies when the desktop
-sleeps" question without a second filter axis.
+A row is three marks and nothing else: a health dot, a lock badge, and
+the hostname. Public services carry a filled accent badge; gated ones a
+dim outlined box, so the badge column reads as a strip. Names and
+descriptions are gone — the hostname is the name.
+
+### Health probes, and what green actually means
+
+`host-stats` probes every entry in `services.json` once a minute (6 at a
+time, 8s timeout, one retry) and serves the result at `/api/health`. It
+probes the **public hostname over HTTPS**, so it exercises the real path:
+DNS, TLS, the Caddy route, and Authelia.
+
+| result | state |
+|---|---|
+| 2xx, 3xx, **401, 403** | ok |
+| other 4xx | warn |
+| 5xx, or a connection error twice running | down |
+| slower than `PROBE_SLOW_MS` (5s) | warn |
+
+**401 and 403 count as healthy.** Authelia answers 401 to anything that
+does not look like a browser navigation, so a gated vhost returning 401
+means the gate is alive and doing its job. Latency deliberately does not
+drive state: the probe reaches the VPS's own public IP through hairpin
+NAT, and a cold start can push a whole round past any sane threshold —
+the first round after a container restart produced 32 false warnings
+before this was fixed. `ms` is still reported, just not acted on.
+
+**The honest limit:** Authelia's `forward_auth` runs *before* the
+`reverse_proxy`, so for the 35 gated services a 401 is returned without
+the upstream ever being contacted. Green therefore means *the front door
+answers*, not *the container behind it is alive*. It reliably catches a
+dead VPS, an expired cert, a missing route, a 404 path and any problem on
+the 10 public services end-to-end. Catching a dead upstream behind the
+gate needs a second probe against the container on `seafile-net`, which
+would mean carrying each service's upstream address in `services.json`.
+
+A service whose root is not a sensible health target can name one:
+`"probe": "/healthz"` — `api.mvr.ac` uses this, because its root is a
+FastAPI 404 by design.
 
 ### Colours come from `setbg`
 

@@ -7,8 +7,6 @@
 .hub__status { margin-top: var(--mv-space-4); }
 .hub__status-grid { display: grid; gap: var(--mv-space-3); }
 
-.hub__legend { padding: var(--mv-space-4) 0 var(--mv-space-2); border-top: 1px solid var(--mv-line); margin-top: var(--mv-space-4); }
-
 @media (min-width: 760px) {
   .hub { padding-left: var(--mv-space-6); padding-right: var(--mv-space-6); padding-top: var(--mv-space-6); }
   .hub__status-grid { grid-template-columns: repeat(3, 1fr); align-items: start; }

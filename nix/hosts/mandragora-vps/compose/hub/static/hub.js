@@ -31,41 +31,34 @@
 
   var stateOf = function (s) {
     var h = health[s.host];
-    if (!h) return "unknown";
-    if (h.up === false) return "down";
-    if (h.ms != null && h.ms > 600) return "slow";
-    return "ok";
+    return h && h.state ? h.state : "unknown";
   };
 
-  var UNLOCKED = '<svg class="mv-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
-    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<rect x="4" y="11" width="14" height="9" rx="2"></rect>' +
-    '<path d="M8 11V7a4 4 0 0 1 7.7-1.5"></path></svg>';
+  var LOCK_OPEN = '<rect x="4" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 7.7-1.5"></path>';
+  var LOCK_SHUT = '<rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8.5 11V7.5a3.5 3.5 0 0 1 7 0V11"></path>';
+  var lockSvg = function (open) {
+    return '<svg class="mv-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      (open ? LOCK_OPEN : LOCK_SHUT) + "</svg>";
+  };
+
+  var STATE_WORD = { ok: "up", warn: "degraded", down: "down", unknown: "not probed yet" };
 
   var rowHTML = function (s) {
+    var open = s.access === "open";
     var state = stateOf(s);
-    var dotClass = state === "ok" ? "is-ok" : state === "slow" ? "is-warn" : state === "down" ? "is-down" : "";
-    var label = s.name + " — " + s.desc + " — on " + machine(s.where).label +
-      (s.access === "open" ? " — reachable without signing in" : "");
-    return '<a class="mv-row mv-row--' + s.where + (state === "down" ? " is-down" : "") + '"' +
-      ' href="' + esc(linkOf(s)) + '" target="_blank" rel="noopener" aria-label="' + esc(label) + '">' +
-      '<span class="mv-dot mv-row__state ' + dotClass + '" aria-hidden="true"></span>' +
-      '<span><span class="mv-row__name">' + esc(s.name) +
-      (s.access === "open" ? UNLOCKED : "") + "</span>" +
-      '<span class="mv-row__desc">' + esc(s.desc) + "</span></span>" +
+    var label = s.host + " — " + s.desc + " — on " + machine(s.where).label +
+      (open ? " — reachable without signing in" : " — behind authelia") + " — " + STATE_WORD[state];
+    return '<a class="mv-row' + (state === "down" ? " is-down" : "") + '" href="' + esc(linkOf(s)) +
+      '" target="_blank" rel="noopener" aria-label="' + esc(label) + '">' +
+      '<span class="mv-dot mv-row__state is-' + state + '" aria-hidden="true"></span>' +
+      '<span class="mv-badge ' + (open ? "is-open" : "is-gated") + '" aria-hidden="true">' + lockSvg(open) + "</span>" +
       '<span class="mv-row__host">' + esc(s.host) + "</span></a>";
   };
 
   var renderList = function () {
     $("list").innerHTML = '<div class="mv-list">' + data.services.map(rowHTML).join("") + "</div>";
     $("count").textContent = data.services.length + " services";
-  };
-
-  var renderLegend = function () {
-    $("legend").innerHTML = data.machines.map(function (m) {
-      var n = data.services.filter(function (s) { return s.where === m.id; }).length;
-      return '<span><i style="background:var(--mv-machine-' + m.id + ')"></i><b>' + esc(m.label) + "</b> " + n + "</span>";
-    }).join("");
   };
 
   var meterHTML = function (label, value, percent, warnAt, criticalAt) {
@@ -80,6 +73,21 @@
   var pushAlert = function (level, title, detail) {
     alerts.push('<div class="mv-alert"><span class="mv-dot mv-alert__dot is-' + level + '"></span>' +
       "<div><b>" + title + "</b><em>" + detail + "</em></div></div>");
+  };
+
+  var serviceAlerts = function () {
+    if (!data) return;
+    var bad = data.services.filter(function (s) {
+      var st = stateOf(s);
+      return st === "down" || st === "warn";
+    });
+    bad.sort(function (a, b) { return stateOf(a) === "down" ? -1 : stateOf(b) === "down" ? 1 : 0; });
+    bad.slice(0, 6).forEach(function (s) {
+      var h = health[s.host] || {};
+      pushAlert(stateOf(s) === "down" ? "down" : "warn", esc(s.host),
+        (h.code ? h.code : "no answer") + (h.ms != null ? " · " + h.ms + "ms" : ""));
+    });
+    if (bad.length > 6) pushAlert("warn", (bad.length - 6) + " more not healthy", "see the list below");
   };
 
   var deskCard = function (d) {
@@ -133,13 +141,16 @@
       esc(machine("desk").label) + "</b> " + (d ? (d.gpu ? "gpu " + pct(d.gpu.util_pct) : "up") + (d.locked ? " · lock held" : "") : "offline") + "</span>");
     parts.push('<span><i class="mv-dot ' + (v ? (v.disk && v.disk.used_pct >= 70 ? "is-warn" : "is-ok") : "is-down") + '"></i><b>vps</b> ' +
       (v ? "disk " + pct(v.disk && v.disk.used_pct) : "offline") + "</span>");
-    parts.push("<span>" + (alerts.length ? alerts.length + " need attention" : "all clear") + "</span>");
+    var bad = data ? data.services.filter(function (s) { return stateOf(s) === "down" || stateOf(s) === "warn"; }).length : 0;
+    parts.push('<span><i class="mv-dot ' + (bad ? "is-warn" : "is-ok") + '"></i>' +
+      (bad ? bad + " service" + (bad > 1 ? "s" : "") + " need attention" : "all services up") + "</span>");
     $("glance").innerHTML = parts.join("");
   };
 
   var renderStatus = function (d, v) {
     alerts = [];
     var cards = deskCard(d) + vpsCard(v);
+    serviceAlerts();
     var alertCard = '<div class="mv-card"><div class="mv-card__meta">needs attention</div>' +
       (alerts.length ? alerts.join("") : '<div class="mv-alert"><span class="mv-dot mv-alert__dot is-ok"></span><div><b>all clear</b><em>no thresholds crossed</em></div></div>') +
       "</div>";
@@ -148,29 +159,32 @@
   };
 
   var timer = null;
+  var lastHealth = "";
+  var grab = function (path) {
+    return fetch(path, { credentials: "same-origin", cache: "no-store" })
+      .then(function (r) { return r.ok ? r.text() : null; })
+      .catch(function () { return null; });
+  };
   var poll = function () {
-    Promise.all([
-      fetch("/api/gpu", { credentials: "same-origin", cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
-      fetch("/api/vps", { credentials: "same-origin", cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
-    ]).then(function (res) { renderStatus(res[0], res[1]); });
+    Promise.all([grab("/api/gpu"), grab("/api/vps"), grab("/api/health")]).then(function (res) {
+      if (res[2] && res[2] !== lastHealth) {
+        lastHealth = res[2];
+        try { health = (JSON.parse(res[2]) || {}).services || {}; } catch (e) { health = {}; }
+        if (data) renderList();
+      }
+      var parse = function (t) { try { return t ? JSON.parse(t) : null; } catch (e) { return null; } };
+      renderStatus(parse(res[0]), parse(res[1]));
+    });
   };
   var start = function () { if (timer) return; poll(); timer = setInterval(poll, 4000); };
   var stop = function () { if (!timer) return; clearInterval(timer); timer = null; };
-
-  var loadHealth = function () {
-    fetch("/api/health", { credentials: "same-origin", cache: "no-store" })
-      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
-      .then(function (h) { health = h || {}; renderList(); })
-      .catch(function () {});
-  };
 
   fetch("services.json", { cache: "no-cache" })
     .then(function (r) { return r.json(); })
     .then(function (json) {
       data = json;
-      renderLegend();
       renderList();
-      loadHealth();
+      poll();
     })
     .catch(function () {
       $("list").innerHTML = '<p class="mv-empty">services.json failed to load</p>';

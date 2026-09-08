@@ -68,6 +68,6 @@
 
     { "name": "rgb", "host": "rgb.mvr.ac", "group": "infra", "desc": "openrgb presets", "access": "priv", "where": "desk" },
     { "name": "auth", "host": "auth.mvr.ac", "group": "infra", "desc": "authelia · sso + 2fa · session settings", "access": "priv", "where": "vps" },
-    { "name": "api", "host": "api.mvr.ac", "group": "infra", "desc": "mvr-api · data for the root site", "access": "open", "where": "vps" }
+    { "name": "api", "host": "api.mvr.ac", "group": "infra", "desc": "mvr-api · data for the root site", "access": "open", "where": "vps", "probe": "/healthz" }
   ]
 }
