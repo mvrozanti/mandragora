@@ -103,6 +103,8 @@ def init_db() -> None:
         "ALTER TABLE watchers ADD COLUMN push INTEGER NOT NULL DEFAULT 1",
         "ALTER TABLE watchers ADD COLUMN spec_lint TEXT",
         "ALTER TABLE watchers ADD COLUMN spec_lint_at TEXT",
+        "ALTER TABLE watchers ADD COLUMN fail_count INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE watchers ADD COLUMN retry_after TEXT",
         "ALTER TABLE events ADD COLUMN acked_at TEXT",
         "ALTER TABLE events ADD COLUMN last_reminder_at TEXT",
         "ALTER TABLE events ADD COLUMN ai_verdict TEXT",
@@ -195,7 +197,24 @@ def _spec_lint_dict(row: sqlite3.Row) -> dict | None:
         return None
 
 
-def watcher_dict(row: sqlite3.Row, event_count: int = 0, unacked: int = 0) -> dict:
+TRIGGER_PREDICATE = "(w.ai_spec IS NULL OR e.ai_verdict = 'GO')"
+
+
+def watcher_state(triggers: int, open_triggers: int) -> str:
+    if open_triggers:
+        return "triggered"
+    if triggers:
+        return "done"
+    return "waiting"
+
+
+def watcher_dict(
+    row: sqlite3.Row,
+    event_count: int = 0,
+    unacked: int = 0,
+    triggers: int = 0,
+    open_triggers: int = 0,
+) -> dict:
     return {
         "id": row["id"],
         "kind": row["kind"],
@@ -206,6 +225,8 @@ def watcher_dict(row: sqlite3.Row, event_count: int = 0, unacked: int = 0) -> di
         "created_at": row["created_at"],
         "last_polled_at": row["last_polled_at"],
         "last_error": row["last_error"],
+        "fail_count": row["fail_count"] if "fail_count" in row.keys() else 0,
+        "retry_after": row["retry_after"] if "retry_after" in row.keys() else None,
         "requires_ack": bool(row["requires_ack"]),
         "reminder_interval": int(row["reminder_interval"]),
         "ai_spec": row["ai_spec"] if "ai_spec" in row.keys() else None,
@@ -213,6 +234,9 @@ def watcher_dict(row: sqlite3.Row, event_count: int = 0, unacked: int = 0) -> di
         "spec_lint": _spec_lint_dict(row),
         "event_count": event_count,
         "unacked_count": unacked,
+        "trigger_count": triggers,
+        "open_trigger_count": open_triggers,
+        "state": watcher_state(triggers, open_triggers),
     }
 
 
@@ -271,22 +295,30 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 @app.get("/api/kinds")
 async def list_kinds() -> dict:
-    return sources.SOURCE_KINDS
+    import judge
+
+    return {
+        kind: {**meta, "emits": judge.SOURCE_EMITS.get(kind)}
+        for kind, meta in sources.SOURCE_KINDS.items()
+    }
 
 
 @app.get("/api/watchers")
 async def list_watchers() -> list[dict]:
     c = conn()
     rows = c.execute(
-        """
+        f"""
         SELECT w.*,
           (SELECT COUNT(*) FROM events e WHERE e.watcher_id = w.id) AS n,
-          (SELECT COUNT(*) FROM events e WHERE e.watcher_id = w.id AND e.acked_at IS NULL) AS un
+          (SELECT COUNT(*) FROM events e WHERE e.watcher_id = w.id AND e.acked_at IS NULL) AS un,
+          (SELECT COUNT(*) FROM events e WHERE e.watcher_id = w.id AND {TRIGGER_PREDICATE}) AS trig,
+          (SELECT COUNT(*) FROM events e WHERE e.watcher_id = w.id AND {TRIGGER_PREDICATE}
+             AND e.acked_at IS NULL) AS trig_open
         FROM watchers w
         ORDER BY w.created_at DESC
         """
     ).fetchall()
-    out = [watcher_dict(r, r["n"], r["un"]) for r in rows]
+    out = [watcher_dict(r, r["n"], r["un"], r["trig"], r["trig_open"]) for r in rows]
     c.close()
     return out
 
@@ -363,10 +395,18 @@ async def patch_watcher(wid: int, payload: dict) -> dict:
         c.close()
         raise HTTPException(404, "watcher not found")
     row = c.execute("SELECT * FROM watchers WHERE id = ?", (wid,)).fetchone()
-    n = c.execute("SELECT COUNT(*) AS c FROM events WHERE watcher_id = ?", (wid,)).fetchone()["c"]
-    un = c.execute("SELECT COUNT(*) AS c FROM events WHERE watcher_id = ? AND acked_at IS NULL", (wid,)).fetchone()["c"]
+    counts = c.execute(
+        """
+        SELECT COUNT(*) AS n,
+               SUM(CASE WHEN acked_at IS NULL THEN 1 ELSE 0 END) AS un,
+               SUM(CASE WHEN ? IS NULL OR ai_verdict = 'GO' THEN 1 ELSE 0 END) AS trig,
+               SUM(CASE WHEN (? IS NULL OR ai_verdict = 'GO') AND acked_at IS NULL THEN 1 ELSE 0 END) AS trig_open
+        FROM events WHERE watcher_id = ?
+        """,
+        (row["ai_spec"], row["ai_spec"], wid),
+    ).fetchone()
     c.close()
-    return watcher_dict(row, n, un)
+    return watcher_dict(row, counts["n"] or 0, counts["un"] or 0, counts["trig"] or 0, counts["trig_open"] or 0)
 
 
 @app.delete("/api/watchers/{wid}")
@@ -502,6 +542,38 @@ async def list_events(
     return out
 
 
+@app.get("/api/watchers/{wid}/triggers")
+async def watcher_triggers(wid: int, limit: int = Query(50, ge=1, le=200)) -> list[dict]:
+    c = conn()
+    rows = c.execute(
+        f"""
+        SELECT e.*, w.name AS w_name, w.kind AS w_kind, w.target AS w_target,
+               w.requires_ack AS w_req, w.ai_spec AS w_spec
+        FROM events e JOIN watchers w ON w.id = e.watcher_id
+        WHERE e.watcher_id = ? AND {TRIGGER_PREDICATE}
+        ORDER BY e.id DESC LIMIT ?
+        """,
+        (wid, limit),
+    ).fetchall()
+    c.close()
+    return [
+        {
+            "id": r["id"],
+            "watcher_id": r["watcher_id"],
+            "title": r["title"],
+            "summary": r["summary"],
+            "link": r["link"],
+            "occurred_at": r["occurred_at"],
+            "received_at": r["received_at"],
+            "acked_at": r["acked_at"],
+            "ai_verdict": r["ai_verdict"],
+            "ai_reason": r["ai_reason"],
+            "ai_claim": r["ai_claim"],
+        }
+        for r in rows
+    ]
+
+
 @app.get("/ack/{eid}", response_class=HTMLResponse)
 async def ack_via_url(eid: int) -> HTMLResponse:
     c = conn()
@@ -546,6 +618,34 @@ async def ack_all(wid: int) -> dict:
     )
     c.close()
     return {"ok": True, "acked": cur.rowcount}
+
+
+@app.post("/api/watchers/{wid}/lint")
+async def relint_watcher(wid: int) -> dict:
+    import judge
+
+    c = conn()
+    row = c.execute("SELECT * FROM watchers WHERE id = ?", (wid,)).fetchone()
+    if not row:
+        c.close()
+        raise HTTPException(404, "watcher not found")
+    if not row["ai_spec"]:
+        c.close()
+        raise HTTPException(400, "watcher has no ai_spec")
+    try:
+        lint = await judge.lint_spec(row["kind"], row["target"], row["ai_spec"])
+    except judge.QuotaExceeded as exc:
+        c.close()
+        raise HTTPException(429, f"judge quota exceeded: {exc}")
+    except Exception as exc:
+        c.close()
+        raise HTTPException(502, f"lint failed: {exc}")
+    c.execute(
+        "UPDATE watchers SET spec_lint = ?, spec_lint_at = ? WHERE id = ?",
+        (json.dumps(lint), now_iso(), wid),
+    )
+    c.close()
+    return {"ok": True, "spec_lint": lint}
 
 
 @app.post("/api/events/{eid}/judge")

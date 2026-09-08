@@ -167,3 +167,34 @@ def test_reddit_missing_target_stays_empty(monkeypatch):
 def test_rss_date_parsing():
     assert sources._parse_rss_date("Mon, 07 Sep 2026 12:00:00 GMT") is not None
     assert sources._parse_rss_date("not a date") is None
+
+
+def test_reddit_throttle_is_rate_limited_and_honours_retry_after(monkeypatch):
+    import asyncio
+
+    import httpx
+
+    class _Throttled:
+        status_code = 429
+        text = "slow down"
+        headers = {"Retry-After": "900"}
+
+    async def throttled(self, url, params=None):
+        return _Throttled()
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", throttled)
+    with pytest.raises(sources.RateLimited) as caught:
+        asyncio.run(sources._fetch_reddit_sub("bitcoin", None))
+    assert caught.value.retry_after == 900.0
+
+
+def test_retry_after_tolerates_missing_or_junk_headers():
+    class _NoHeaders:
+        status_code = 403
+
+    class _JunkHeader:
+        status_code = 429
+        headers = {"Retry-After": "soon"}
+
+    assert sources._retry_after_seconds(_NoHeaders()) is None
+    assert sources._retry_after_seconds(_JunkHeader()) is None

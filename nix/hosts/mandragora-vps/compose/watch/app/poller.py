@@ -2,8 +2,9 @@ import asyncio
 import json
 import logging
 import os
+import random
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import httpx
@@ -24,14 +25,35 @@ USER_AGENT = os.environ.get(
 )
 
 
+BACKOFF_CAP_SECONDS = int(os.environ.get("WATCH_BACKOFF_CAP", "21600"))
+
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def backoff_seconds(fail_count: int, hinted: float | None = None) -> float:
+    grown = POLL_INTERVAL * (2 ** max(0, fail_count - 1))
+    wait = min(float(grown), float(BACKOFF_CAP_SECONDS))
+    if hinted:
+        wait = max(wait, min(float(hinted), float(BACKOFF_CAP_SECONDS)))
+    jitter = wait * 0.1 * random.random()
+    return wait + jitter
+
+
+def retry_at_iso(seconds: float) -> str:
+    moment = datetime.now(timezone.utc) + timedelta(seconds=seconds)
+    return moment.isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
 async def poll_once(conn_factory) -> dict[str, int]:
     stats = {"watchers": 0, "events": 0, "errors": 0, "pushed": 0, "reminders": 0}
     c = conn_factory()
-    rows = c.execute("SELECT * FROM watchers WHERE enabled = 1").fetchall()
+    rows = c.execute(
+        "SELECT * FROM watchers WHERE enabled = 1 "
+        "AND (retry_after IS NULL OR retry_after <= ?)",
+        (now_iso(),),
+    ).fetchall()
     c.close()
     for row in rows:
         stats["watchers"] += 1
@@ -39,11 +61,18 @@ async def poll_once(conn_factory) -> dict[str, int]:
             events, new_cursor = await sources.fetch(row["kind"], row["target"], row["cursor"])
         except Exception as exc:
             stats["errors"] += 1
-            log.warning("poll failed kind=%s target=%s err=%s", row["kind"], row["target"], exc)
+            fails = (row["fail_count"] or 0) + 1
+            hinted = getattr(exc, "retry_after", None)
+            wait = backoff_seconds(fails, hinted)
+            log.warning(
+                "poll failed kind=%s target=%s fails=%s backoff=%.0fs err=%s",
+                row["kind"], row["target"], fails, wait, exc,
+            )
             c = conn_factory()
             c.execute(
-                "UPDATE watchers SET last_error = ?, last_polled_at = ? WHERE id = ?",
-                (str(exc)[:500], now_iso(), row["id"]),
+                "UPDATE watchers SET last_error = ?, last_polled_at = ?, fail_count = ?, "
+                "retry_after = ? WHERE id = ?",
+                (str(exc)[:500], now_iso(), fails, retry_at_iso(wait), row["id"]),
             )
             c.close()
             continue
@@ -54,7 +83,8 @@ async def poll_once(conn_factory) -> dict[str, int]:
                 _insert_event(c, row["id"], ev, mark_seen=suppress)
                 stats["events"] += 1
             c.execute(
-                "UPDATE watchers SET cursor = ?, last_polled_at = ?, last_error = NULL WHERE id = ?",
+                "UPDATE watchers SET cursor = ?, last_polled_at = ?, last_error = NULL, "
+                "fail_count = 0, retry_after = NULL WHERE id = ?",
                 (new_cursor, now_iso(), row["id"]),
             )
             _prune(c, row["id"])
