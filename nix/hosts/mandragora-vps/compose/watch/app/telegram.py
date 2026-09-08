@@ -382,7 +382,7 @@ async def _cmd_judge(conn_factory, args: list[str]) -> str:
     if not row["w_spec"]:
         return f"watcher has no ai_spec"
     try:
-        verdict, reason, claim = await J.judge_event(row["w_spec"], dict(row))
+        judgement = await J.judge_event(row["w_spec"], dict(row))
     except J.QuotaExceeded as exc:
         return f"quota exceeded: {_esc(str(exc)[:200])}"
     except Exception as exc:
@@ -391,12 +391,23 @@ async def _cmd_judge(conn_factory, args: list[str]) -> str:
     now = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     c = conn_factory()
     c.execute(
-        "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_claim = ?, ai_judged_at = ?, ai_claimed_at = NULL WHERE id = ?",
-        (verdict, reason[:500], claim[:300] or None, now, eid),
+        "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_claim = ?, ai_subject = ?, ai_incident = ?, "
+        "ai_judged_at = ?, ai_claimed_at = NULL WHERE id = ?",
+        (
+            judgement["verdict"],
+            judgement["reason"][:500],
+            judgement["claim"] or None,
+            judgement["subject"] or None,
+            judgement["incident"] or None,
+            now,
+            eid,
+        ),
     )
     c.close()
-    claim_line = f"\nclaim: {_esc(claim)}" if claim else ""
-    return f"<b>{_esc(verdict)}</b>: {_esc(reason)}{claim_line}"
+    detail = ""
+    if judgement["subject"]:
+        detail = f"\n{_esc(judgement['incident'])} · {_esc(judgement['subject'])}"
+    return f"<b>{_esc(judgement['verdict'])}</b>: {_esc(judgement['reason'])}{detail}"
 
 
 async def _cmd_verdicts(conn_factory, args: list[str]) -> str:
