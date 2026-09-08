@@ -96,3 +96,47 @@ def test_without_must_mention_every_subject_term_must_appear():
 def test_must_mention_accepts_several_terms():
     assert judge.required_terms({"w_must_mention": "electrum, bitcoin core"}) == ["electrum", "bitcoin", "core"]
     assert judge.required_terms({}) == []
+
+
+def test_must_mention_skips_the_model_entirely(monkeypatch):
+    import asyncio
+
+    called = []
+
+    async def _no_fetch(url):
+        return "", None
+
+    async def _boom(*a, **k):
+        called.append(a)
+        raise AssertionError("the model must not be called when the literal is absent")
+
+    monkeypatch.setattr(judge, "fetch_link", _no_fetch)
+    monkeypatch.setattr(judge, "_generate", _boom)
+    out = asyncio.run(judge.judge_event("spec", {
+        "title": "Major bitcoin wallet flaw drains 594 BTC",
+        "summary": "",
+        "w_must_mention": "electrum",
+    }))
+    assert out["verdict"] == "NO"
+    assert "electrum" in out["reason"]
+    assert called == []
+
+
+def test_must_mention_lets_the_model_run_when_the_body_names_it(monkeypatch):
+    import asyncio, json as _json
+
+    async def _body(url):
+        return "the flaw affects Electrum on desktop", None
+
+    async def _generate(system, prompt, schema, num_predict=512):
+        return _json.dumps({"verdict": "GO", "reason": "body asserts it", "claim": "c",
+                            "subject": "electrum bitcoin wallet", "incident": "vulnerability"})
+
+    monkeypatch.setattr(judge, "fetch_link", _body)
+    monkeypatch.setattr(judge, "_generate", _generate)
+    out = asyncio.run(judge.judge_event("spec", {
+        "title": "Major bitcoin wallet flaw",
+        "summary": "",
+        "w_must_mention": "electrum",
+    }))
+    assert out["verdict"] == "GO"
