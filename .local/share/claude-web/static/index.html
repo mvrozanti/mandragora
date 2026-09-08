@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#13140d">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>claude · mvr.ac</title>
+<link rel="stylesheet" href="/static/theme.css">
+<link rel="stylesheet" href="/static/components.css">
+<link rel="stylesheet" href="/static/claude.css">
+<script src="/static/theme.js" data-endpoint="https://hub.mvr.ac/api/theme" data-credentials="include"></script>
+</head>
+<body>
+<div class="cw">
+
+  <header class="mv-topbar">
+    <span class="mv-topbar__name">claude</span>
+    <span class="mv-topbar__count">spawn a session in tmux</span>
+    <span class="mv-topbar__user">
+      <a href="https://hub.mvr.ac">hub</a>
+      <a href="https://auth.mvr.ac/logout">sign out</a>
+    </span>
+  </header>
+
+  <main id="view"><p class="mv-empty">loading</p></main>
+
+  <footer class="mv-footer">
+    <span>claude.mvr.ac</span>
+    <span>opens a tmux window in your current session</span>
+    <span><a href="https://hub.mvr.ac">hub</a></span>
+  </footer>
+
+</div>
+<script src="/static/claude.js"></script>
+</body>
+</html>
