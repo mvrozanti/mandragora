@@ -31,15 +31,86 @@ sees the labels.
 
 ## Static UI
 
-`static/index.html` is bind-mounted into nginx at
-`/usr/share/nginx/html`. Terminal-themed CSS grid of tile buttons;
-edit and `docker restart hub` (or just refresh — nginx serves the
-mounted file directly, no restart needed for content changes).
+`static/` is bind-mounted into nginx at `/usr/share/nginx/html`. Edit
+and refresh — nginx serves the mounted files directly, no restart
+needed for content changes.
 
-Authelia gates the vhost via `forward_auth`, so the page is only
-served after a successful login at `auth.mvr.ac`. The visible
-buttons all point to other Authelia-gated subdomains; the session
-cookie carries through so clicks don't require re-auth.
+| File | Layer | Reusable |
+|---|---|---|
+| `theme.css` | design tokens (`--mv-*`) + baked fallback palette | **yes** |
+| `components.css` | the `.mv-*` component vocabulary | **yes** |
+| `theme.js` | reads `/api/theme`, applies + caches the matugen palette | **yes** |
+| `hub.css` | page frame for this page only | no |
+| `hub.js` | renders the hub from `services.json` | no |
+| `services.json` | the inventory — one source of truth | no |
+| `index.html` | markup skeleton, ~50 lines | no |
+
+The page is the **V1 "field"** direction: a topic-grouped list where the
+machine that answers for a service is carried as a colour stripe rather
+than as position, with the two host panels compressed into a collapsible
+status band. Mobile-first — the band is a `<details>` that starts closed
+below 760px, the chip row scrolls horizontally, rows are 48px tap
+targets, and the search field is `16px` so iOS does not zoom on focus.
+
+`/` focuses the filter. The filter matches name, host, description,
+group **and machine label**, so typing `mandragora` narrows to the ten
+desktop-backed services — which is the "what dies when the desktop
+sleeps" question without a second filter axis.
+
+### Colours come from `setbg`
+
+`setbg` runs matugen over the wallpaper and fans the result into kitty,
+waybar, mako, rofi, tmux, cava, hyprland and the keyboard LEDs. The hub
+joins that fan-out instead of holding its own opinion:
+
+```
+setbg → matugen → ~/.cache/matugen/hub-theme.json   (templates/hub-theme.json)
+                → gpu-status :6684  GET /api/theme
+                → hub.mvr.ac/api/theme  (caddy_0.0_@desk_api)
+                → theme.js sets --mv-* on :root, caches in localStorage
+```
+
+The desktop is the only machine that knows the wallpaper, and it was
+already answering `/api/gpu` over the tailnet, so this is an endpoint,
+not a component. When mandragora is asleep the hub keeps the last
+palette it saw; `theme.css` carries a baked default for a cold browser.
+
+**State colours are never themed.** matugen's own `error` token can
+collide with its `primary` (under a rose wallpaper both land on
+`#ffb3af`), so `--mv-ok` / `--mv-warn` / `--mv-down` are fixed
+constants, and state is additionally encoded in *form* — filled dot,
+hollow ring, filled dot with a halo plus a tinted row.
+
+### Adopting the system in another service
+
+The three reusable files are self-contained, prefixed `--mv-` / `.mv-`
+so they cannot collide, and have no dependencies. To adopt:
+
+1. Copy `theme.css`, `components.css` and `theme.js` into the service.
+2. Link them, then point `theme.js` at the hub, which is the only host
+   that proxies the desktop:
+
+   ```html
+   <link rel="stylesheet" href="theme.css">
+   <link rel="stylesheet" href="components.css">
+   <script src="theme.js"
+           data-endpoint="https://hub.mvr.ac/api/theme"
+           data-credentials="include"></script>
+   ```
+
+   Same-origin (the hub itself) needs neither attribute. `gpu-status`
+   answers CORS for any `https://*.mvr.ac` origin with credentials, so
+   the Authelia session cookie carries; a service that is not logged in
+   silently keeps the baked palette.
+3. Build the page out of `.mv-topbar`, `.mv-card`, `.mv-meter`,
+   `.mv-pill`, `.mv-dot`, `.mv-alert`, `.mv-search`, `.mv-chip`,
+   `.mv-group`, `.mv-row`, `.mv-legend`, `.mv-footer`. Anything the
+   service needs beyond those belongs in its own stylesheet, not in
+   `components.css` — until two services need it, at which point it is
+   promoted.
+
+Rule of thumb: a service should never declare a raw hex. If it needs a
+colour that is not a `--mv-*` token, that is a gap in the token set.
 
 ## Caddy labels carried by this container
 
