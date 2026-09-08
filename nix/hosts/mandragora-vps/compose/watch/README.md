@@ -106,20 +106,44 @@ based on actual link content, not just title/summary.
 
 Verdicts:
 
-- `GO` — pushed (Telegram badge `🟢 GO`). Link content positively
-  asserts every explicit spec requirement.
-- `MAYBE` — stored but **not pushed by default**. Visible in the web
-  UI for manual review. Set `WATCH_PUSH_MAYBE=1` to restore push
-  behavior (badge `🟡 MAYBE` + reason).
+- `GO` — pushed (Telegram badge `🟢 GO`). Content positively asserts
+  every explicit spec requirement and states it as established fact.
+- `UNCLEAR` — every spec requirement is evidenced but the assertion
+  itself is weak (unverified single report, rumor with no source,
+  preview with nothing shipped). Not pushed on its own; held for
+  corroboration, below.
 - `NO` — stored but never pushed; reminders never fire.
 - pending (`ai_verdict IS NULL`) — also not pushed; re-judged next
   judge cycle.
 
 The judge prompt treats missing required spec fields (e.g. spec says
 "PW12 fw 5.18.x" but the link omits generation or firmware) as `NO`,
-not `MAYBE`. A notification the user has to hand-verify is a failed
+not `UNCLEAR`. A notification the user has to hand-verify is a failed
 filter. Write specs with concrete constraints — model number, firmware
 range, version, platform — so the judge has something to enforce.
+
+### Corroboration
+
+Every verdict carries a normalized `claim`: one sentence naming the
+actor, artifact and action, written so two outlets covering one event
+produce near-identical claims. Each cycle the judge compares each
+`UNCLEAR` claim against claims from *other* watchers inside
+`WATCH_CORROBORATE_WINDOW` hours (default 72). When two independent
+sources assert the same thing, both events are promoted to `GO` with
+reason `corroborated by event <id>` and the normal push gate delivers
+them. One source saying something shaky stays quiet; two sources
+agreeing is the confirmation.
+
+### Spec decidability
+
+A spec that demands facts its source never carries produces an endless
+`NO` streak that reads exactly like a broken pipeline — this is what
+kept the stack silent through Aug 2026. Each spec is audited once
+against what its source kind actually emits (`hn_search` yields titles,
+`github_release` yields release notes, and so on). Undecidable specs
+are flagged with the problems found and a suggested rewrite, visible in
+`GET /api/watchers`, the web UI, `/list` and `/status`. Editing a spec
+requeues the check. The flag is advisory — nothing is ever blocked.
 
 The judge runs as its own asyncio loop, decoupled from the poller, so
 slow local-LLM calls never block source polling. `WATCH_JUDGE_INTERVAL`
@@ -131,7 +155,7 @@ cycle. If link fetch fails (timeout, 4xx, binary content type), the
 model falls back to title+summary; per the hard rules above, missing
 required fields → `NO`, so unverifiable events stay silent.
 
-`.env` (all optional, defaults in `docker-compose.yml`):
+`.env` (all optional, defaults live in the code):
 ```
 WATCH_OLLAMA_URL=http://100.115.80.79:11434    # desktop tailnet
 WATCH_OLLAMA_MODEL=qwen3:14b
@@ -141,13 +165,53 @@ WATCH_JUDGE_INTERVAL=30
 WATCH_JUDGE_BATCH=3
 WATCH_LINK_MAX_CHARS=8000
 WATCH_LINK_TIMEOUT=20
-WATCH_PUSH_MAYBE=0
+WATCH_CORROBORATE=1
+WATCH_CORROBORATE_WINDOW=72
+WATCH_CORROBORATE_CANDIDATES=12
+WATCH_SPEC_LINT_BATCH=2
 ```
 
 Telegram: `/spec <id> <text>` sets the spec, `/judge <event_id>`
 forces re-judge, `/verdicts <id>` tallies. Web UI exposes the same
 via the per-watcher `spec` button and the `re-judge` button on each
 event row.
+
+## Knowing whether it is working
+
+Silence is ambiguous: a healthy pipeline whose filters reject
+everything looks identical to a dead one. Two places answer it.
+
+`GET /healthz` always returns 200 (so the container healthcheck keeps
+meaning "process serves HTTP") and reports `ok`, a `degraded` list,
+per-task liveness for the poller/judge/telegram loops,
+`telegram_enabled`, `last_poll_at`, `last_push_at`, `pending_unjudged`,
+watcher tallies, and verdict funnels over 24h and lifetime.
+
+Telegram `/status` renders the same funnel from the phone, plus any
+undecidable-spec warnings. `last push: never` with a healthy funnel
+means the filters are rejecting everything; `telegram: DISABLED` or a
+dead task means the pipeline itself is broken.
+
+## Delivery
+
+A push is only recorded once every configured channel confirms it.
+Telegram 429s are retried once honoring `retry_after`; transient
+failures (network, 5xx, exhausted retry) leave `last_reminder_at`
+unset so the next poll cycle tries again. Permanent 4xx rejections are
+logged at ERROR and not retried forever. When no channel is configured
+at all, events are marked delivered so the dashboard stays usable, and
+the missing configuration is logged at ERROR on every startup.
+
+## Tests
+
+```
+nix develop /etc/nixos/mandragora#watch -c \
+  pytest nix/hosts/mandragora-vps/compose/watch/app
+```
+
+The image builds through a `test` stage that runs the same suite, so
+`docker compose up -d --build` fails on a red test and the deployed
+image never carries pytest.
 
 ## Kindle Paperwhite gen 12 jailbreak watch
 
@@ -207,6 +271,11 @@ GITHUB_PAT=ghp_xxx
 TELEGRAM_BOT_TOKEN=123456:abc
 TELEGRAM_CHAT_ID=12345678
 ```
+
+The container reads this file via compose `env_file`, which resolves
+relative to the compose file rather than the invoking shell's cwd. A
+missing `.env` now fails the compose command outright instead of
+silently starting with empty credentials.
 
 `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` are optional. When both are
 set, the bot pushes every new event to the chat and accepts commands:
