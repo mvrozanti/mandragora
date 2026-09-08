@@ -11,7 +11,7 @@ services:
     labels:
       caddy_0: https://hub.${MVR_AC:-mvr.ac}
       caddy_0.0_@desk_api: "path /api/gpu /api/gpu/* /api/theme /api/theme/*"
-      caddy_0.0_@vps_api: "path /api/vps /api/vps/*"
+      caddy_0.0_@vps_api: "path /api/vps /api/vps/* /api/health /api/health/*"
       caddy_0.1_handle: "@desk_api"
       caddy_0.1_handle.forward_auth: "authelia:9091"
       caddy_0.1_handle.forward_auth.uri: "/api/authz/forward-auth"
@@ -130,11 +130,14 @@ services:
     command: ["python", "-u", "/app/host_stats.py"]
     volumes:
       - ./host-stats/host_stats.py:/app/host_stats.py:ro
+      - ./static/services.json:/app/services.json:ro
       - /:/host/rootfs:ro,rslave
     environment:
       HOST_STATS_HOST: "0.0.0.0"
       HOST_STATS_PORT: "8081"
       DISK_PATH: /host/rootfs
+      SERVICES_FILE: /app/services.json
+      PROBE_INTERVAL: "60"
     networks:
       - seafile-net
     healthcheck:
