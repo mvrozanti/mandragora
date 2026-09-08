@@ -98,6 +98,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 .event .verdict.NO { color: var(--dim); border-color: var(--dim); }
 .event .verdict.pending { color: var(--dim); border-color: var(--dim); font-style: italic; }
 .event .ai-reason { color: var(--dim); font-size: 0.7rem; font-style: italic; margin-top: 0.2rem; }
+.lint { color: var(--warn); font-size: 0.7rem; margin-top: 0.25rem; border-left: 2px solid var(--warn); padding-left: 0.4rem; }
 textarea { background: var(--bg); color: var(--fg); border: 1px solid var(--line); font-family: inherit; font-size: 0.75rem; padding: 0.4rem 0.5rem; width: 100%; resize: vertical; min-height: 4rem; }
 textarea:focus { outline: none; border-color: var(--accent); }
 .empty { color: var(--dim); font-size: 0.8rem; text-align: center; padding: 2rem; }
@@ -258,6 +259,7 @@ async function loadWatchers() {
         <span>last: ${w.last_polled_at || 'never'}</span>
       </div>
       ${w.last_error ? `<div class="err">err: ${escapeHtml(w.last_error)}</div>` : ''}
+      ${w.spec_lint && !w.spec_lint.decidable ? `<div class="lint">spec not answerable from this source: ${escapeHtml((w.spec_lint.problems || []).join('; '))}${w.spec_lint.suggestion ? `<br>try: ${escapeHtml(w.spec_lint.suggestion)}` : ''}</div>` : ''}
       <div class="row-btns">
         <button class="btn dim" onclick="event.stopPropagation(); setFilter(${w.id})">view</button>
         <button class="btn dim" onclick="event.stopPropagation(); pollNow(${w.id})">poll</button>

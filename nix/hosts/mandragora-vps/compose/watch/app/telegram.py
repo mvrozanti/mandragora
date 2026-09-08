@@ -1,5 +1,6 @@
 import asyncio
 import html
+import json
 import logging
 import os
 import sqlite3
@@ -143,7 +144,7 @@ async def _cmd_list(conn_factory) -> str:
     rows = c.execute(
         """
         SELECT w.id, w.kind, w.target, w.name, w.enabled, w.last_polled_at, w.last_error,
-               w.requires_ack, w.reminder_interval, w.ai_spec,
+               w.requires_ack, w.reminder_interval, w.ai_spec, w.spec_lint,
                (SELECT COUNT(*) FROM events e WHERE e.watcher_id = w.id AND e.acked_at IS NULL) AS un
         FROM watchers w ORDER BY w.id
         """
@@ -158,7 +159,16 @@ async def _cmd_list(conn_factory) -> str:
         ai = " 🤖ai" if r["ai_spec"] else ""
         unacked = f" un={r['un']}" if r["un"] else ""
         err = f"\n  err: {_esc(r['last_error'][:120])}" if r["last_error"] else ""
-        lines.append(f"<code>{r['id']}</code> {_esc(r['kind'])}:{_esc(r['target'])}{flag}{ack}{ai}{unacked}{err}")
+        lint = ""
+        if r["spec_lint"]:
+            try:
+                verdict = json.loads(r["spec_lint"])
+            except ValueError:
+                verdict = {}
+            if verdict and not verdict.get("decidable"):
+                problems = "; ".join(verdict.get("problems") or []) or "spec not answerable from this source"
+                lint = f"\n  ⚠ {_esc(problems[:160])}"
+        lines.append(f"<code>{r['id']}</code> {_esc(r['kind'])}:{_esc(r['target'])}{flag}{ack}{ai}{unacked}{err}{lint}")
     return "\n".join(lines)
 
 
@@ -337,14 +347,18 @@ async def _cmd_spec(conn_factory, args: list[str]) -> str:
     spec = " ".join(args[1:]).strip()
     c = conn_factory()
     if not spec:
-        cur = c.execute("UPDATE watchers SET ai_spec = NULL WHERE id = ?", (wid,))
+        cur = c.execute(
+            "UPDATE watchers SET ai_spec = NULL, spec_lint = NULL, spec_lint_at = NULL WHERE id = ?", (wid,)
+        )
         c.close()
         return f"cleared ai_spec on {wid}" if cur.rowcount else "not found"
-    cur = c.execute("UPDATE watchers SET ai_spec = ? WHERE id = ?", (spec[:4000], wid))
+    cur = c.execute(
+        "UPDATE watchers SET ai_spec = ?, spec_lint = NULL, spec_lint_at = NULL WHERE id = ?", (spec[:4000], wid)
+    )
     c.close()
     if not cur.rowcount:
         return "not found"
-    return f"ai_spec set on {wid} ({len(spec)} chars)"
+    return f"ai_spec set on {wid} ({len(spec)} chars), decidability check queued"
 
 
 async def _cmd_judge(conn_factory, args: list[str]) -> str:
