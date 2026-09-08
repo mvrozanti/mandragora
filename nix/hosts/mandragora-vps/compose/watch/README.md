@@ -125,17 +125,34 @@ skipped source looks exactly like a working one. See the vault note
 | `github_user`     | `/users/:login/events/public`                            |
 | `github_repo`     | `/repos/:owner/:repo/events`                             |
 | `github_release`  | `/repos/:owner/:repo/releases` (full changelog body)     |
-| `reddit_user`     | `/user/:name.json`                                       |
-| `reddit_sub`      | `/r/:name/new.json`                                      |
+| `reddit_user`     | `/user/:name.rss`                                        |
+| `reddit_sub`      | `/r/:name/new.rss`                                       |
 | `youtube_channel` | `https://www.youtube.com/feeds/videos.xml?channel_id=…`  |
 | `twitch_stream`   | Helix `/streams?user_login=…` (live transitions only)    |
 | `hn_search`       | HN Algolia `search_by_date?query=…&tags=story`           |
-| `reddit_search`   | `https://www.reddit.com/search.json?q=…&sort=new`        |
+| `reddit_search`   | `https://www.reddit.com/search.rss?q=…&sort=new`         |
 | `rss`             | any RSS 2.0 / Atom feed URL                              |
 
 Twitter intentionally skipped — nitter is unreliable, RSSHub self-host
 is the planned route. Add a `twitter_*` kind in `sources.py` when
 ready.
+
+### Reddit answers `.rss`, not `.json`
+
+Reddit's JSON API returns `403` to this VPS — Oracle Cloud address space is
+blocked outright, and no User-Agent changes that. The Atom endpoints on the same
+paths answer `200`. Four `reddit_search` watchers sat at zero events from May to
+Sep 2026 because the stack asked for `search.json`; the same query against
+`search.rss` returns 25 entries. Never move a reddit kind back to `.json`.
+
+Two consequences of the Atom shape. Reddit *HTML* permalinks are `403` here too,
+so an entry's link is set to the post's outbound URL — parsed out of the entry's
+`content` — and only falls back to the permalink for self-posts, where the body
+is already in `content` and is kept whole (`WATCH_REDDIT_SUMMARY_MAX`, 4 k) rather
+than clipped to a headline. And the feeds rate-limit hard: requests are paced
+`WATCH_REDDIT_MIN_INTERVAL` (12s) apart, which matters because the poller walks
+watchers back to back and several reddit watchers land in one cycle. Search
+results also include subreddit hits (`t5_` ids); those are dropped.
 
 ## Release layer (changelog feed)
 
@@ -388,6 +405,8 @@ no second pipeline.
 MVR_AC=mvr.ac
 WATCH_POLL_INTERVAL=300
 WATCH_MAX_EVENTS_PER_WATCHER=500
+WATCH_REDDIT_MIN_INTERVAL=12
+WATCH_REDDIT_SUMMARY_MAX=4000
 WATCH_WEBHOOK_URL=https://webhook.mvr.ac/h/<slug>
 GITHUB_PAT=ghp_xxx
 TELEGRAM_BOT_TOKEN=123456:abc

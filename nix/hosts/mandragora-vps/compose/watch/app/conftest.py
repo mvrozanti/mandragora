@@ -7,6 +7,13 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent))
 
 
+@pytest.fixture(autouse=True)
+def no_reddit_pacing(monkeypatch):
+    import sources
+
+    monkeypatch.setattr(sources, "REDDIT_MIN_INTERVAL", 0.0)
+
+
 @pytest.fixture
 def db(tmp_path, monkeypatch):
     monkeypatch.setenv("WATCH_DATA_DIR", str(tmp_path))
