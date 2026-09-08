@@ -49,3 +49,66 @@ def test_manual_poll_clears_the_backoff(db, make_watcher, monkeypatch):
     assert row["fail_count"] == 0
     assert row["retry_after"] is None
     assert row["last_error"] is None
+
+
+class _Row(dict):
+    def __getitem__(self, k):
+        return dict.__getitem__(self, k)
+
+
+def _rows(*specs):
+    return [_Row(id=i, kind=k, last_polled_at=p) for i, k, p in specs]
+
+
+def test_only_one_reddit_watcher_polls_per_cycle():
+    import poller
+
+    rows = _rows(
+        (1, "rss", "2026-01-01T00:00:00Z"),
+        (2, "reddit_search", "2026-09-08T10:00:00Z"),
+        (3, "reddit_search", "2026-09-08T08:00:00Z"),
+        (4, "reddit_sub", "2026-09-08T09:00:00Z"),
+        (5, "github_release", "2026-01-01T00:00:00Z"),
+    )
+    kept = poller.ration_reddit(rows)
+    assert [r["id"] for r in kept] == [1, 3, 5]
+
+
+def test_rationing_prefers_the_least_recently_polled():
+    import poller
+
+    rows = _rows(
+        (2, "reddit_search", "2026-09-08T10:00:00Z"),
+        (3, "reddit_search", None),
+        (4, "reddit_user", "2026-09-08T09:00:00Z"),
+    )
+    assert [r["id"] for r in poller.ration_reddit(rows)] == [3]
+
+
+def test_non_reddit_watchers_are_never_rationed():
+    import poller
+
+    rows = _rows(
+        (1, "rss", None),
+        (2, "hn_search", None),
+        (3, "github_release", None),
+    )
+    assert poller.ration_reddit(rows) == rows
+
+
+def test_a_single_reddit_watcher_is_left_alone():
+    import poller
+
+    rows = _rows((1, "reddit_search", None), (2, "rss", None))
+    assert poller.ration_reddit(rows) == rows
+
+
+def test_ration_limit_is_configurable():
+    import poller
+
+    rows = _rows(
+        (1, "reddit_search", "2026-09-08T10:00:00Z"),
+        (2, "reddit_search", "2026-09-08T08:00:00Z"),
+        (3, "reddit_search", "2026-09-08T09:00:00Z"),
+    )
+    assert [r["id"] for r in poller.ration_reddit(rows, limit=2)] == [2, 3]
