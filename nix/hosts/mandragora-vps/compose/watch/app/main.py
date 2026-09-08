@@ -483,7 +483,8 @@ async def poll_now(wid: int) -> dict:
         except sqlite3.IntegrityError:
             pass
     c.execute(
-        "UPDATE watchers SET cursor = ?, last_polled_at = ?, last_error = NULL WHERE id = ?",
+        "UPDATE watchers SET cursor = ?, last_polled_at = ?, last_error = NULL, "
+        "fail_count = 0, retry_after = NULL WHERE id = ?",
         (new_cursor, now_iso(), wid),
     )
     c.close()
