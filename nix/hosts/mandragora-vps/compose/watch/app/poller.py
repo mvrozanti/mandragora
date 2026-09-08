@@ -26,6 +26,7 @@ USER_AGENT = os.environ.get(
 
 
 BACKOFF_CAP_SECONDS = int(os.environ.get("WATCH_BACKOFF_CAP", "21600"))
+REDDIT_PER_CYCLE = int(os.environ.get("WATCH_REDDIT_PER_CYCLE", "1"))
 
 
 def now_iso() -> str:
@@ -46,6 +47,16 @@ def retry_at_iso(seconds: float) -> str:
     return moment.isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
+def ration_reddit(rows: list, limit: int | None = None) -> list:
+    cap = REDDIT_PER_CYCLE if limit is None else limit
+    reddit = [r for r in rows if str(r["kind"]).startswith("reddit")]
+    if len(reddit) <= cap:
+        return rows
+    oldest = sorted(reddit, key=lambda r: (r["last_polled_at"] or ""))[:cap]
+    keep = {r["id"] for r in oldest}
+    return [r for r in rows if not str(r["kind"]).startswith("reddit") or r["id"] in keep]
+
+
 async def poll_once(conn_factory) -> dict[str, int]:
     stats = {"watchers": 0, "events": 0, "errors": 0, "pushed": 0, "reminders": 0}
     c = conn_factory()
@@ -55,6 +66,7 @@ async def poll_once(conn_factory) -> dict[str, int]:
         (now_iso(),),
     ).fetchall()
     c.close()
+    rows = ration_reddit(rows)
     for row in rows:
         stats["watchers"] += 1
         try:
