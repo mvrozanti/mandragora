@@ -10,9 +10,9 @@ services:
       - seafile-net
     labels:
       caddy_0: https://hub.${MVR_AC:-mvr.ac}
-      caddy_0.0_@gpu_api: "path /api/gpu /api/gpu/*"
+      caddy_0.0_@desk_api: "path /api/gpu /api/gpu/* /api/theme /api/theme/*"
       caddy_0.0_@vps_api: "path /api/vps /api/vps/*"
-      caddy_0.1_handle: "@gpu_api"
+      caddy_0.1_handle: "@desk_api"
       caddy_0.1_handle.forward_auth: "authelia:9091"
       caddy_0.1_handle.forward_auth.uri: "/api/authz/forward-auth"
       caddy_0.1_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
