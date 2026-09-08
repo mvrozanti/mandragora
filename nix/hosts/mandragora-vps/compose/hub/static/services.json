@@ -1,0 +1,73 @@
+{
+  "machines": [
+    { "id": "desk", "label": "mandragora", "meta": "desktop · hyprland · rtx 5070 ti" },
+    { "id": "vps", "label": "mandragora-vps", "meta": "oracle cloud · docker · caddy" },
+    { "id": "edge", "label": "github pages", "meta": "apex · anycast · no vps in the path" }
+  ],
+  "groups": [
+    { "id": "files", "label": "files & sharing" },
+    { "id": "media", "label": "media" },
+    { "id": "ai", "label": "ai & gpu" },
+    { "id": "dev", "label": "code & automation" },
+    { "id": "obs", "label": "observability" },
+    { "id": "lab", "label": "lab" },
+    { "id": "money", "label": "money" },
+    { "id": "me", "label": "me" },
+    { "id": "infra", "label": "infrastructure" }
+  ],
+  "services": [
+    { "name": "seafile", "host": "seafile.mvr.ac", "group": "files", "desc": "files, sync, photos", "access": "priv", "where": "vps" },
+    { "name": "files", "host": "files.mvr.ac", "group": "files", "desc": "filebrowser · publish any path", "access": "priv", "where": "vps" },
+    { "name": "send", "host": "share.mvr.ac", "group": "files", "desc": "gokapi · file drop", "access": "priv", "where": "vps" },
+    { "name": "clip", "host": "clip.mvr.ac", "group": "files", "desc": "microbin · short paste", "access": "priv", "where": "vps" },
+
+    { "name": "mpd", "host": "mpd.mvr.ac", "group": "media", "desc": "myMPD · queue, library", "access": "priv", "where": "desk" },
+    { "name": "ytdl", "host": "ytdl.mvr.ac", "group": "media", "desc": "yt-dlp → ~/Music · mp3", "access": "priv", "where": "desk" },
+    { "name": "analyzer", "host": "music.mvr.ac", "group": "media", "desc": "one song, every modelable transmission", "access": "open", "where": "vps" },
+    { "name": "emotion", "host": "voice.mvr.ac", "group": "media", "desc": "CLAP + essentia · per-track feeling", "access": "priv", "where": "vps" },
+    { "name": "meme", "host": "meme.mvr.ac", "group": "media", "desc": "image tag runner · progress / restart", "access": "priv", "where": "vps" },
+
+    { "name": "chat", "host": "chat.mvr.ac", "group": "ai", "desc": "open-webui · local ollama", "access": "priv", "where": "desk" },
+    { "name": "image gen", "host": "gen.mvr.ac", "group": "ai", "desc": "flux · prompt → image", "access": "priv", "where": "desk" },
+    { "name": "claude", "host": "claude.mvr.ac", "group": "ai", "desc": "spawn tmux+claude · attach from app", "access": "priv", "where": "desk" },
+    { "name": "lens", "host": "lens.mvr.ac", "group": "ai", "desc": "cc-lens · claude code usage", "access": "priv", "where": "desk" },
+    { "name": "notebook", "host": "nb.mvr.ac", "group": "ai", "desc": "open-notebook · research", "access": "priv", "where": "vps" },
+    { "name": "semantic", "host": "semantic.mvr.ac", "group": "ai", "desc": "analogy + semantic arithmetic", "access": "priv", "where": "vps" },
+    { "name": "tts", "host": "tts.mvr.ac", "group": "ai", "desc": "piper · text → speech", "access": "priv", "where": "vps" },
+    { "name": "stt", "host": "stt.mvr.ac", "group": "ai", "desc": "whisper · speech → text", "access": "priv", "where": "vps" },
+
+    { "name": "forgejo", "host": "git.mvr.ac", "group": "dev", "desc": "self-hosted git forge", "access": "priv", "where": "vps" },
+    { "name": "axon", "host": "axon.mvr.ac", "group": "dev", "desc": "code dep graph · capsules · dialogue", "access": "priv", "where": "vps" },
+    { "name": "spider", "host": "spider.mvr.ac", "group": "dev", "desc": "crawl · extract · broken links", "access": "priv", "where": "vps" },
+    { "name": "perception", "host": "watch.mvr.ac", "group": "dev", "desc": "github/reddit poller · fans into webhook", "access": "priv", "where": "vps" },
+    { "name": "webhook", "host": "webhook.mvr.ac", "group": "dev", "desc": "public ingress · desktop notifies", "access": "priv", "where": "vps" },
+    { "name": "term", "host": "term.mvr.ac", "group": "dev", "desc": "ttyd · tailnet only", "access": "priv", "where": "desk" },
+
+    { "name": "grafana", "host": "grafana.mvr.ac", "url": "https://grafana.mvr.ac/d/mandragora-system/mandragora-system?orgId=1&from=now-24h&to=now&timezone=browser&refresh=5m", "group": "obs", "desc": "cpu · gpu · disk · ebpf", "access": "priv", "where": "desk" },
+    { "name": "log", "host": "log.mvr.ac", "group": "obs", "desc": "loki · journald · docker", "access": "priv", "where": "vps" },
+    { "name": "vuln", "host": "vuln.mvr.ac", "group": "obs", "desc": "vulnix · CVE scan of the closure", "access": "priv", "where": "vps" },
+    { "name": "kl", "host": "kl.mvr.ac", "group": "obs", "desc": "keystroke heatmap · WPM", "access": "priv", "where": "vps" },
+
+    { "name": "chess lens", "host": "chess.mvr.ac", "group": "lab", "desc": "chess.com → stockfish → clickhouse", "access": "priv", "where": "vps" },
+    { "name": "rule 110", "host": "rule110.mvr.ac", "group": "lab", "desc": "bf → tm → cts → rule 110 viz", "access": "open", "where": "vps" },
+    { "name": "lenia", "host": "lenia.mvr.ac", "group": "lab", "desc": "continuous cellular automaton · webgl2", "access": "open", "where": "vps" },
+    { "name": "slither sim", "host": "slither.mvr.ac", "url": "https://slither.mvr.ac/simulator.html", "group": "lab", "desc": "browser sim + dashboard", "access": "priv", "where": "desk" },
+    { "name": "manifold", "host": "manifold.mvr.ac", "group": "lab", "desc": "software maps · frozen layout · semantic zoom", "access": "open", "where": "vps" },
+    { "name": "vault", "host": "demo.mvr.ac", "group": "lab", "desc": "fake-obsidian · notes graph", "access": "open", "where": "vps" },
+    { "name": "4chan /int/", "host": "4chan.mvr.ac", "group": "lab", "desc": "country reply graph · live", "access": "priv", "where": "vps" },
+    { "name": "brain wallet", "host": "btc.mvr.ac", "group": "lab", "desc": "bitcoin brain-wallet scanner", "access": "priv", "where": "vps" },
+
+    { "name": "fin", "host": "fin.mvr.ac", "group": "money", "desc": "orderbook-algotrading paper-trade live", "access": "open", "where": "vps" },
+    { "name": "ofin", "host": "ofin.mvr.ac", "group": "money", "desc": "pluggy · contas · cartões · investimentos", "access": "priv", "where": "vps" },
+
+    { "name": "cv", "host": "cv.mvr.ac", "group": "me", "desc": "marcelo rozanti · 6 versions · en/pt · pdf", "access": "open", "where": "vps" },
+    { "name": "gpg", "host": "gpg.mvr.ac", "group": "me", "desc": "public pgp key · text/plain", "access": "open", "where": "vps" },
+    { "name": "calendar", "host": "cal.mvr.ac", "group": "me", "desc": "caldav · davx⁵", "access": "priv", "where": "vps" },
+    { "name": "shopping", "host": "food.mvr.ac", "group": "me", "desc": "cooking vault · mobile list", "access": "priv", "where": "vps" },
+    { "name": "root", "host": "mvr.ac", "group": "me", "desc": "the public front door", "access": "open", "where": "edge" },
+
+    { "name": "rgb", "host": "rgb.mvr.ac", "group": "infra", "desc": "openrgb presets", "access": "priv", "where": "desk" },
+    { "name": "auth", "host": "auth.mvr.ac", "group": "infra", "desc": "authelia · sso + 2fa · session settings", "access": "priv", "where": "vps" },
+    { "name": "api", "host": "api.mvr.ac", "group": "infra", "desc": "mvr-api · data for the root site", "access": "open", "where": "vps" }
+  ]
+}
