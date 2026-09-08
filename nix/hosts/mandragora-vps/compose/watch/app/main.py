@@ -101,6 +101,8 @@ def init_db() -> None:
         "ALTER TABLE watchers ADD COLUMN reminder_interval INTEGER NOT NULL DEFAULT 3600",
         "ALTER TABLE watchers ADD COLUMN ai_spec TEXT",
         "ALTER TABLE watchers ADD COLUMN push INTEGER NOT NULL DEFAULT 1",
+        "ALTER TABLE watchers ADD COLUMN spec_lint TEXT",
+        "ALTER TABLE watchers ADD COLUMN spec_lint_at TEXT",
         "ALTER TABLE events ADD COLUMN acked_at TEXT",
         "ALTER TABLE events ADD COLUMN last_reminder_at TEXT",
         "ALTER TABLE events ADD COLUMN ai_verdict TEXT",
@@ -182,6 +184,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 
 
+def _spec_lint_dict(row: sqlite3.Row) -> dict | None:
+    if "spec_lint" not in row.keys() or not row["spec_lint"]:
+        return None
+    try:
+        return json.loads(row["spec_lint"])
+    except ValueError:
+        return None
+
+
 def watcher_dict(row: sqlite3.Row, event_count: int = 0, unacked: int = 0) -> dict:
     return {
         "id": row["id"],
@@ -197,6 +208,7 @@ def watcher_dict(row: sqlite3.Row, event_count: int = 0, unacked: int = 0) -> di
         "reminder_interval": int(row["reminder_interval"]),
         "ai_spec": row["ai_spec"] if "ai_spec" in row.keys() else None,
         "push": bool(row["push"]) if "push" in row.keys() else True,
+        "spec_lint": _spec_lint_dict(row),
         "event_count": event_count,
         "unacked_count": unacked,
     }
@@ -338,6 +350,8 @@ async def patch_watcher(wid: int, payload: dict) -> dict:
         else:
             fields.append("ai_spec = ?")
             params.append(str(spec)[:4000])
+        fields.append("spec_lint = NULL")
+        fields.append("spec_lint_at = NULL")
     if not fields:
         raise HTTPException(400, "nothing to update")
     params.append(wid)

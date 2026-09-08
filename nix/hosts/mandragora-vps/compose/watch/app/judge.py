@@ -30,6 +30,7 @@ VERDICTS = {"GO", "UNCLEAR", "NO"}
 CORROBORATE = os.environ.get("WATCH_CORROBORATE", "1").strip().lower() in ("1", "true", "yes", "on")
 CORROBORATE_WINDOW_HOURS = int(os.environ.get("WATCH_CORROBORATE_WINDOW", "72"))
 CORROBORATE_CANDIDATES = int(os.environ.get("WATCH_CORROBORATE_CANDIDATES", "12"))
+SPEC_LINT_BATCH = int(os.environ.get("WATCH_SPEC_LINT_BATCH", "2"))
 
 QUOTA_SIGNALS = ("quota", "rate limit", "rate-limit", "resource_exhausted", "too many requests")
 
@@ -107,6 +108,48 @@ SAME_CLAIM_PROMPT = (
     "product, a different vulnerability, or a later follow-up development is NOT the same "
     "claim. When in doubt, return false."
 )
+
+
+SPEC_LINT_PROMPT = (
+    "You audit notification filters. A user wrote a spec describing what they want to be "
+    "notified about, attached to one source that emits a fixed shape of material. Decide "
+    "whether a careful reader could answer yes or no to that spec from what this source "
+    "actually emits, without guessing.\n\n"
+    "Return ONLY a single line of JSON: "
+    '{"decidable":true|false,"problems":["<=100 chars each"],"suggestion":"<=300 chars"}\n\n'
+    "decidable is false when the spec demands facts the source never carries (asking a "
+    "title-only search to confirm details that only appear in an article body), when it "
+    "requires an official announcement the source cannot distinguish from commentary, when "
+    "its terms are subjective with no test, or when nothing this source emits could ever "
+    "satisfy it.\n"
+    "decidable is true when a reader could apply the spec to typical material from this "
+    "source and reach a definite verdict, even if most items will be rejected.\n"
+    "suggestion rewrites the spec so it is decidable against this source, preserving the "
+    "user's intent. Leave suggestion empty when decidable is true."
+)
+
+SPEC_LINT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "decidable": {"type": "boolean"},
+        "problems": {"type": "array", "items": {"type": "string"}},
+        "suggestion": {"type": "string"},
+    },
+    "required": ["decidable", "problems", "suggestion"],
+}
+
+SOURCE_EMITS = {
+    "github_user": "public activity events for one GitHub account: pushes, stars, forks, issue and PR openings, with repo names and short payload text",
+    "github_repo": "commits on one GitHub repository: message, author, timestamp",
+    "github_release": "GitHub release entries: tag, release title, and the full release-notes body",
+    "reddit_user": "one Reddit account's posts and comments: title and body text",
+    "reddit_sub": "posts from one subreddit: title, selftext, and outbound link",
+    "youtube_channel": "video entries from one channel: title and description only, never the spoken content",
+    "twitch_stream": "live/offline transitions for one streamer: stream title and game name only",
+    "hn_search": "Hacker News search hits: story title, url, and points, without the linked article body",
+    "reddit_search": "Reddit search hits across subreddits: post title, subreddit, and outbound link",
+    "rss": "entries from one feed: headline, summary or excerpt, and a link, with the article body reachable only by fetching that link",
+}
 
 
 class _HTMLTextExtractor(HTMLParser):
@@ -276,6 +319,25 @@ async def judge_event(ai_spec: str, event: dict[str, Any]) -> tuple[str, str, st
     return _parse_verdict_json(text)
 
 
+async def lint_spec(kind: str, target: str, spec: str) -> dict:
+    emits = SOURCE_EMITS.get(kind, "items with a title, a summary, and a link")
+    prompt = (
+        f"SOURCE KIND: {kind}\n"
+        f"SOURCE TARGET: {target}\n"
+        f"THIS SOURCE EMITS: {emits}\n"
+        "The judge also fetches the text at each item's link when one exists.\n\n"
+        f"SPEC:\n{spec}\n"
+    )
+    text = await _generate(SPEC_LINT_PROMPT, prompt, SPEC_LINT_SCHEMA, num_predict=400)
+    parsed = _parse_json_object(text)
+    problems = [str(p)[:100] for p in (parsed.get("problems") or [])][:5]
+    return {
+        "decidable": bool(parsed.get("decidable")),
+        "problems": problems,
+        "suggestion": str(parsed.get("suggestion", ""))[:300],
+    }
+
+
 async def same_claim(claim_a: str, claim_b: str) -> tuple[bool, str]:
     text = await _generate(
         SAME_CLAIM_PROMPT,
@@ -349,6 +411,42 @@ async def judge_pending(conn_factory) -> dict[str, int]:
             continue
         stats["judged"] += 1
         stats[verdict.lower()] = stats.get(verdict.lower(), 0) + 1
+    return stats
+
+
+async def lint_pending_specs(conn_factory) -> dict[str, int]:
+    stats = {"linted": 0, "undecidable": 0, "errors": 0}
+    c = conn_factory()
+    rows = c.execute(
+        "SELECT id, kind, target, ai_spec FROM watchers "
+        "WHERE enabled = 1 AND ai_spec IS NOT NULL AND spec_lint_at IS NULL "
+        "ORDER BY id DESC LIMIT ?",
+        (SPEC_LINT_BATCH,),
+    ).fetchall()
+    c.close()
+    for row in rows:
+        try:
+            result = await lint_spec(row["kind"], row["target"], row["ai_spec"])
+        except QuotaExceeded as exc:
+            log.warning("spec lint quota exceeded, deferring: %s", exc)
+            break
+        except Exception as exc:
+            stats["errors"] += 1
+            log.warning("spec lint error watcher_id=%s: %s", row["id"], exc)
+            continue
+        c = conn_factory()
+        c.execute(
+            "UPDATE watchers SET spec_lint = ?, spec_lint_at = ? WHERE id = ?",
+            (json.dumps(result), _now_iso(), row["id"]),
+        )
+        c.close()
+        stats["linted"] += 1
+        if not result["decidable"]:
+            stats["undecidable"] += 1
+            log.warning(
+                "watcher %s spec is undecidable against %s: %s",
+                row["id"], row["kind"], "; ".join(result["problems"]) or "no detail",
+            )
     return stats
 
 
@@ -439,6 +537,9 @@ async def run_forever(conn_factory) -> None:
             corroboration = await corroborate_pending(conn_factory)
             if corroboration["promoted"] or corroboration["errors"]:
                 log.info("corroboration done %s", corroboration)
+            lint = await lint_pending_specs(conn_factory)
+            if lint["linted"] or lint["errors"]:
+                log.info("spec lint done %s", lint)
         except Exception as exc:
             log.exception("judge loop error: %s", exc)
         await asyncio.sleep(JUDGE_INTERVAL)
