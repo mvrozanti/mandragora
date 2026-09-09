@@ -7,7 +7,8 @@ GW="${NET_FAILOVER_GW:-192.168.0.1}"
 M_PRIMARY="${NET_FAILOVER_M_PRIMARY:-100}"
 M_DEMOTED="${NET_FAILOVER_M_DEMOTED:-3000}"
 INTERVAL="${NET_FAILOVER_INTERVAL:-4}"
-PROBES="${NET_FAILOVER_PROBES:-8.8.8.8 1.1.1.1}"
+PROBES="${NET_FAILOVER_PROBES:-http://1.1.1.1/ http://1.0.0.1/}"
+PROBE_TIMEOUT="${NET_FAILOVER_PROBE_TIMEOUT:-2}"
 
 RUNDIR=/run/net-failover
 MODEFILE="$RUNDIR/mode"
@@ -17,7 +18,8 @@ mkdir -p "$RUNDIR"
 probe() {
   local dev="$1" target
   for target in $PROBES; do
-    if ping -I "$dev" -c1 -W2 "$target" >/dev/null 2>&1; then
+    if curl -4 -s -o /dev/null --interface "$dev" \
+      --connect-timeout "$PROBE_TIMEOUT" --max-time "$PROBE_TIMEOUT" "$target"; then
       return 0
     fi
   done
