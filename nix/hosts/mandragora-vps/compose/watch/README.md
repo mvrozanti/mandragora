@@ -11,7 +11,9 @@ Served at `https://watch.mvr.ac`, Authelia-gated.
 > source, or feature (auto-summarizing changelogs, classifying events,
 > generating digests, AI-tagging…) without asking the user first. When
 > a task looks like it needs a model, stop and ask before spending LLM
-> power — default to dumb feed logic.
+> power — default to dumb feed logic. Before adding an `ai_spec` at all, check
+> whether the question has a fact source: `tvmaze_season` replaced three
+> spec'd watchers that were 96% of the judge's entire workload.
 
 
 ## The model: a watch is a standing question
@@ -134,6 +136,7 @@ skipped source looks exactly like a working one. See the vault note
 | `hn_search`       | HN Algolia `search_by_date?query=…&tags=story`           |
 | `reddit_search`   | `https://www.reddit.com/search.rss?q=…&sort=new`         |
 | `rss`             | any RSS 2.0 / Atom feed URL                              |
+| `tvmaze_season`   | TVmaze `/shows/:id?embed=seasons`, one season's status   |
 
 Twitter intentionally skipped — nitter is unreliable, RSSHub self-host
 is the planned route. Add a `twitter_*` kind in `sources.py` when
@@ -163,6 +166,39 @@ them per pass, least-recently-polled first. At the 300s poll interval each reddi
 watcher is checked every ~20 minutes, which is ample for "has the season
 dropped". `WATCH_REDDIT_MIN_INTERVAL` (60s) stays as a floor for manual
 `/poll` calls, and rationing means the poller itself never waits on it.
+
+## Ask a fact source before you ask a model
+
+Three `reddit_search` watchers — severance s3, pluribus s2, hazbin s3 — were
+1460 of the 1496 events waiting on a verdict on 2026-09-09. Each asked
+`qwen3:14b` roughly 1500 questions a day to catch an answer that arrives once a
+year, which is why the judge loop kept a 14b model resident in 11 GB of VRAM
+around the clock and why it was switched off. Switching it off made every
+`ai_spec` watcher silent, including the security ones.
+
+None of those three was a fuzzy question. TVmaze already carries the answer as a
+field:
+
+```
+Severance  44933  season 3: premiereDate=null   ← the row exists, undated
+Pluribus   86175  season 2: premiereDate=null
+Hazbin     43094  seasons 1-2 only              ← a season 3 row appearing IS the event
+```
+
+`tvmaze_season` (target `<show>:<season>`, e.g. `severance:3`, resolved to
+`44933:3` at add time) polls that one endpoint and stores the season's state as
+its cursor: `absent`, `listed`, `listed:eps=10`, `dated:<date>`,
+`aired:<date>`. Every transition is one event with a headline that says what
+changed. The first poll records the baseline silently, exactly like the release
+layer's backlog suppression, so adding a watcher today pings you the day the
+premiere date appears and again the day it airs — not before.
+
+The general rule this encodes: **when a question has a fact source, poll the
+fact source.** A model asked to read fan chatter is guessing at something an API
+states outright, and it costs a GPU to guess. GitHub Releases, TVmaze, Steam
+appdetails, PyPI and endoflife.date all answer their own questions. The judge is
+for the questions with no such source — a CVE mentioning a specific wallet, a
+jailbreak for a specific firmware — and those arrive a handful at a time.
 
 ## Release layer (changelog feed)
 

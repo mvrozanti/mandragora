@@ -211,6 +211,7 @@ SOURCE_EMITS = {
     "hn_search": "Hacker News search hits: story title and points, plus the full text of the page the story links to",
     "reddit_search": "Reddit search hits across subreddits: post title, subreddit, and the full text of the page the post links to",
     "rss": "feed entries: headline, summary or excerpt, plus the full text of the page the entry links to",
+    "tvmaze_season": "structured season status from TVmaze: whether the season is listed, its episode order, and its premiere date — a fact table, never prose",
 }
 
 
