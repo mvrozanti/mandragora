@@ -16,6 +16,14 @@ OLLAMA_URL = os.environ.get("WATCH_OLLAMA_URL", "http://100.115.80.79:11434").rs
 OLLAMA_MODEL = os.environ.get("WATCH_OLLAMA_MODEL", "qwen3:14b").strip()
 OLLAMA_TIMEOUT = float(os.environ.get("WATCH_OLLAMA_TIMEOUT", "180"))
 OLLAMA_NUM_CTX = int(os.environ.get("WATCH_OLLAMA_NUM_CTX", "16384"))
+OLLAMA_KEEP_ALIVE = os.environ.get("WATCH_OLLAMA_KEEP_ALIVE", "60s").strip()
+FALLBACK_URL = os.environ.get("WATCH_JUDGE_FALLBACK_URL", "").strip().rstrip("/")
+FALLBACK_MODEL = os.environ.get("WATCH_JUDGE_FALLBACK_MODEL", "deepseek-chat").strip()
+FALLBACK_KEY = os.environ.get("WATCH_JUDGE_FALLBACK_KEY", "").strip()
+FALLBACK_TIMEOUT = float(os.environ.get("WATCH_JUDGE_FALLBACK_TIMEOUT", "120"))
+DEADLINE_HOURS = int(os.environ.get("WATCH_JUDGE_DEADLINE_HOURS", "24"))
+STALL_HOURS = float(os.environ.get("WATCH_JUDGE_STALL_HOURS", "1"))
+SWEEP_BATCH = int(os.environ.get("WATCH_JUDGE_SWEEP_BATCH", "20"))
 JUDGE_ENABLED = os.environ.get("WATCH_JUDGE_ENABLED", "0").strip().lower() in {
     "1",
     "true",
@@ -331,12 +339,54 @@ def _parse_verdict_json(text: str) -> dict[str, str]:
 
 
 async def _generate(system: str, prompt: str, schema: dict, num_predict: int = 512) -> str:
+    try:
+        return await _generate_ollama(system, prompt, schema, num_predict)
+    except (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout) as exc:
+        if not (FALLBACK_URL and FALLBACK_KEY):
+            raise
+        log.warning("ollama unreachable (%s), falling back to %s", exc, FALLBACK_MODEL)
+        return await _generate_fallback(system, prompt, num_predict)
+
+
+async def _generate_fallback(system: str, prompt: str, num_predict: int) -> str:
+    payload = {
+        "model": FALLBACK_MODEL,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.0,
+        "max_tokens": num_predict,
+        "response_format": {"type": "json_object"},
+        "stream": False,
+    }
+    async with httpx.AsyncClient(timeout=FALLBACK_TIMEOUT) as c:
+        r = await c.post(
+            f"{FALLBACK_URL}/chat/completions",
+            json=payload,
+            headers={"Authorization": f"Bearer {FALLBACK_KEY}"},
+        )
+    if r.status_code >= 400:
+        body = r.text[:300]
+        if r.status_code == 429 or any(sig in body.lower() for sig in QUOTA_SIGNALS):
+            raise QuotaExceeded(f"fallback http {r.status_code}: {body}")
+        raise RuntimeError(f"fallback http {r.status_code}: {body}")
+    doc = r.json()
+    choices = doc.get("choices") or []
+    text = (choices[0].get("message", {}).get("content") if choices else "") or ""
+    if not text:
+        raise RuntimeError(f"fallback empty response: {json.dumps(doc)[:200]}")
+    return text
+
+
+async def _generate_ollama(system: str, prompt: str, schema: dict, num_predict: int) -> str:
     payload = {
         "model": OLLAMA_MODEL,
         "system": system,
         "prompt": prompt,
         "stream": False,
         "format": schema,
+        "keep_alive": OLLAMA_KEEP_ALIVE,
         "options": {
             "temperature": 0.0,
             "num_ctx": OLLAMA_NUM_CTX,
@@ -571,6 +621,94 @@ async def judge_pending(conn_factory) -> dict[str, int]:
     return stats
 
 
+def _deadline_cutoff_iso() -> str:
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=DEADLINE_HOURS)
+    return cutoff.isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+ESCALATE_SQL = (
+    "UPDATE events SET escalated_at = ?, ai_reason = ? "
+    "WHERE id = ? AND ai_verdict IS NULL AND escalated_at IS NULL"
+)
+
+
+async def deterministic_disposition(event: dict[str, Any]) -> tuple[str, str]:
+    required = required_terms(event)
+    if not required:
+        return "escalate", f"unjudged after {DEADLINE_HOURS}h; no literal gate on this watcher"
+    def _missing(*texts: str) -> list[str]:
+        haystack = " ".join(t for t in texts if t).lower()
+        return [t for t in required if t not in haystack]
+    title = str(event.get("title") or "")
+    summary = str(event.get("summary") or "")
+    if not _missing(title, summary):
+        return "escalate", f"unjudged after {DEADLINE_HOURS}h; required terms present in the source"
+    link_text, _ = await fetch_link(event.get("link") or "")
+    missing = _missing(title, summary, link_text)
+    if not missing:
+        return "escalate", f"unjudged after {DEADLINE_HOURS}h; required terms present in the source"
+    return "reject", refusal(missing)["reason"]
+
+
+def judge_is_progressing(conn_factory) -> bool:
+    if not JUDGE_ENABLED:
+        return False
+    c = conn_factory()
+    try:
+        row = c.execute("SELECT MAX(ai_judged_at) AS t FROM events").fetchone()
+    finally:
+        c.close()
+    last = row["t"] if row else None
+    if not last:
+        return False
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=STALL_HOURS)
+    return str(last) >= cutoff.isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+async def sweep_deadline(conn_factory) -> dict[str, int]:
+    stats = {"escalated": 0, "rejected": 0, "errors": 0}
+    if DEADLINE_HOURS <= 0:
+        return stats
+    if judge_is_progressing(conn_factory):
+        return stats
+    c = conn_factory()
+    rows = c.execute(
+        """
+        SELECT e.id AS id, e.title, e.summary, e.link,
+               w.must_mention AS w_must_mention
+        FROM events e JOIN watchers w ON w.id = e.watcher_id
+        WHERE e.ai_verdict IS NULL AND e.escalated_at IS NULL
+          AND w.ai_spec IS NOT NULL AND w.enabled = 1
+          AND e.received_at < ?
+        ORDER BY e.id ASC
+        LIMIT ?
+        """,
+        (_deadline_cutoff_iso(), SWEEP_BATCH),
+    ).fetchall()
+    c.close()
+    for r in rows:
+        try:
+            action, reason = await deterministic_disposition(dict(r))
+        except Exception as exc:
+            stats["errors"] += 1
+            log.warning("deadline sweep error event_id=%s: %s", r["id"], exc)
+            continue
+        c = conn_factory()
+        try:
+            if action == "escalate":
+                c.execute(ESCALATE_SQL, (_now_iso(), reason[:500], r["id"]))
+                stats["escalated"] += 1
+            else:
+                c.execute(
+                    WRITE_VERDICT_SQL,
+                    ("NO", reason[:500], None, None, "other", _now_iso(), r["id"]),
+                )
+                stats["rejected"] += 1
+        finally:
+            c.close()
+    return stats
+
+
 def lint_is_stale(spec_lint_at: str | None, spec_lint: str | None) -> bool:
     if not spec_lint_at:
         return True
@@ -687,27 +825,34 @@ def corroborate_pending(conn_factory) -> dict[str, int]:
 
 
 async def run_forever(conn_factory) -> None:
-    if not JUDGE_ENABLED:
+    if JUDGE_ENABLED:
         log.info(
-            "judge disabled (WATCH_JUDGE_ENABLED unset); no background model calls, "
-            "ai_spec watchers stay unjudged and will not push"
+            "judge starting model=%s ollama=%s keep_alive=%s fallback=%s interval=%ss batch=%s "
+            "corroborate=%s window=%sh deadline=%sh",
+            OLLAMA_MODEL, OLLAMA_URL, OLLAMA_KEEP_ALIVE, FALLBACK_MODEL if FALLBACK_KEY else "none",
+            JUDGE_INTERVAL, JUDGE_BATCH, CORROBORATE, CORROBORATE_WINDOW_HOURS, DEADLINE_HOURS,
         )
-        return
-    log.info(
-        "judge starting model=%s ollama=%s interval=%ss batch=%s corroborate=%s window=%sh",
-        OLLAMA_MODEL, OLLAMA_URL, JUDGE_INTERVAL, JUDGE_BATCH, CORROBORATE, CORROBORATE_WINDOW_HOURS,
-    )
+    else:
+        log.info(
+            "judge model loop disabled (WATCH_JUDGE_ENABLED unset); deterministic deadline sweep "
+            "still runs, escalating unjudged events after %sh",
+            DEADLINE_HOURS,
+        )
     while True:
         try:
-            stats = await judge_pending(conn_factory)
-            if stats["judged"] or stats["errors"]:
-                log.info("judge done %s", stats)
-            corroboration = corroborate_pending(conn_factory)
-            if corroboration["promoted"] or corroboration["errors"]:
-                log.info("corroboration done %s", corroboration)
-            lint = await lint_pending_specs(conn_factory)
-            if lint["linted"] or lint["errors"]:
-                log.info("spec lint done %s", lint)
+            if JUDGE_ENABLED:
+                stats = await judge_pending(conn_factory)
+                if stats["judged"] or stats["errors"]:
+                    log.info("judge done %s", stats)
+                corroboration = corroborate_pending(conn_factory)
+                if corroboration["promoted"] or corroboration["errors"]:
+                    log.info("corroboration done %s", corroboration)
+                lint = await lint_pending_specs(conn_factory)
+                if lint["linted"] or lint["errors"]:
+                    log.info("spec lint done %s", lint)
+            sweep = await sweep_deadline(conn_factory)
+            if sweep["escalated"] or sweep["rejected"] or sweep["errors"]:
+                log.info("deadline sweep %s", sweep)
         except Exception as exc:
             log.exception("judge loop error: %s", exc)
         await asyncio.sleep(JUDGE_INTERVAL)
