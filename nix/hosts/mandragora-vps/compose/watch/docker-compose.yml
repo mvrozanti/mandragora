@@ -11,6 +11,7 @@ services:
       - .env
     environment:
       - WATCH_DATA_DIR=/data
+      - WATCH_JUDGE_ENABLED=1
     volumes:
       - ${WATCH_DATA_VOLUME:-./data}:/data
     networks:
