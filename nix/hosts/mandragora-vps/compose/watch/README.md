@@ -229,6 +229,21 @@ Reminders piggy-back on the poll loop, so the effective minimum
 
 ## AI relevance judge
 
+**Off by default.** The background judge loop is gated behind
+`WATCH_JUDGE_ENABLED`, which defaults to `0`. Watchers do not reach for
+the local model on their own any more: at `WATCH_JUDGE_INTERVAL=30` and
+`WATCH_JUDGE_BATCH=3` the loop sustained ~180 judgements/hour, which
+matched the event intake rate, so the queue never drained and
+`qwen3:14b` stayed pinned in 11 GB of the desktop's VRAM around the
+clock. Across the whole history that bought 2 `GO` verdicts against
+1676 `NO`.
+
+With the loop off, `ai_spec` watchers stay at `ai_verdict IS NULL` and
+so never push (see the pending row below). `POST /api/events/{eid}/judge`
+and spec lint still reach the model, because those are started by hand.
+Set `WATCH_JUDGE_ENABLED=1` in the compose `environment:` to restore the
+loop.
+
 Setting an `ai_spec` (string describing what counts as a real match)
 on a watcher gates every new event through the local LLM (qwen3:14b
 on the desktop's RTX 5070 Ti, reached via tailnet) before any push
@@ -246,7 +261,7 @@ Verdicts:
   corroboration, below.
 - `NO` — stored but never pushed; reminders never fire.
 - pending (`ai_verdict IS NULL`) — also not pushed; re-judged next
-  judge cycle.
+  judge cycle, or left pending indefinitely while the loop is off.
 
 The judge prompt treats missing required spec fields (e.g. spec says
 "PW12 fw 5.18.x" but the link omits generation or firmware) as `NO`,

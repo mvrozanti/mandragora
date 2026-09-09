@@ -16,6 +16,12 @@ OLLAMA_URL = os.environ.get("WATCH_OLLAMA_URL", "http://100.115.80.79:11434").rs
 OLLAMA_MODEL = os.environ.get("WATCH_OLLAMA_MODEL", "qwen3:14b").strip()
 OLLAMA_TIMEOUT = float(os.environ.get("WATCH_OLLAMA_TIMEOUT", "180"))
 OLLAMA_NUM_CTX = int(os.environ.get("WATCH_OLLAMA_NUM_CTX", "16384"))
+JUDGE_ENABLED = os.environ.get("WATCH_JUDGE_ENABLED", "0").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 JUDGE_INTERVAL = int(os.environ.get("WATCH_JUDGE_INTERVAL", "30"))
 JUDGE_BATCH = int(os.environ.get("WATCH_JUDGE_BATCH", "3"))
 CLAIM_TTL = int(os.environ.get("WATCH_JUDGE_CLAIM_TTL", "900"))
@@ -680,6 +686,12 @@ def corroborate_pending(conn_factory) -> dict[str, int]:
 
 
 async def run_forever(conn_factory) -> None:
+    if not JUDGE_ENABLED:
+        log.info(
+            "judge disabled (WATCH_JUDGE_ENABLED unset); no background model calls, "
+            "ai_spec watchers stay unjudged and will not push"
+        )
+        return
     log.info(
         "judge starting model=%s ollama=%s interval=%ss batch=%s corroborate=%s window=%sh",
         OLLAMA_MODEL, OLLAMA_URL, JUDGE_INTERVAL, JUDGE_BATCH, CORROBORATE, CORROBORATE_WINDOW_HOURS,
