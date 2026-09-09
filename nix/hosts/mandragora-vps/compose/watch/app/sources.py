@@ -48,6 +48,7 @@ def _raise_for_throttle(response: httpx.Response, source: str) -> None:
 _YT_CHANNEL_ID_RE = re.compile(r"UC[A-Za-z0-9_-]{22}")
 _YT_HANDLE_RE = re.compile(r"^[A-Za-z0-9_.\-]{3,30}$")
 _TWITCH_LOGIN_RE = re.compile(r"^[A-Za-z0-9_]{3,25}$")
+_TVMAZE_TARGET_RE = re.compile(r"^(.+?):(\d{1,3})$")
 _twitch_token_cache: dict[str, Any] = {"token": "", "expires_at": 0.0}
 _github_account_type_cache: dict[str, str] = {}
 
@@ -92,6 +93,10 @@ SOURCE_KINDS: dict[str, dict[str, str]] = {
     "rss": {
         "label": "RSS / Atom feed",
         "target_hint": "https://www.mobileread.com/forums/external.php?type=RSS2&forumids=150",
+    },
+    "tvmaze_season": {
+        "label": "TV season status (TVmaze)",
+        "target_hint": "severance:3 or 44933:3",
     },
 }
 
@@ -189,6 +194,8 @@ def validate_target(kind: str, target: str) -> str:
         if len(t) > 500:
             raise ValueError("rss url too long")
         return t
+    elif kind == "tvmaze_season":
+        return _resolve_tvmaze_target(target.strip())
     else:
         raise ValueError(f"unknown kind: {kind}")
     return t
@@ -215,6 +222,8 @@ async def fetch(kind: str, target: str, cursor: str | None) -> tuple[list[dict[s
         return await _fetch_reddit_search(target, cursor)
     if kind == "rss":
         return await _fetch_rss(target, cursor)
+    if kind == "tvmaze_season":
+        return await _fetch_tvmaze_season(target, cursor)
     raise ValueError(f"unknown kind: {kind}")
 
 
@@ -573,6 +582,87 @@ async def _fetch_twitch_stream(login: str, cursor: str | None) -> tuple[list[dic
         "raw": stream,
     }
     return [event], stream_id
+
+
+TVMAZE_API = "https://api.tvmaze.com"
+
+
+def _resolve_tvmaze_target(target: str) -> str:
+    m = _TVMAZE_TARGET_RE.match(target)
+    if not m:
+        raise ValueError("tvmaze_season expects <show>:<season>, e.g. severance:3 or 44933:3")
+    show, number = m.group(1).strip(), int(m.group(2))
+    if number < 1:
+        raise ValueError("tvmaze_season expects a season number >= 1")
+    if not show:
+        raise ValueError("tvmaze_season expects a show name or tvmaze id")
+    if show.isdigit():
+        return f"{int(show)}:{number}"
+    with httpx.Client(timeout=15.0, headers={"User-Agent": USER_AGENT}) as c:
+        r = c.get(f"{TVMAZE_API}/search/shows", params={"q": show})
+    if r.status_code != 200:
+        raise ValueError(f"tvmaze show lookup failed: HTTP {r.status_code}")
+    hits = r.json() or []
+    if not hits:
+        raise ValueError(f"tvmaze has no show matching {show!r}")
+    return f"{int(hits[0]['show']['id'])}:{number}"
+
+
+def _parse_tvmaze_target(target: str) -> tuple[int, int]:
+    show, _, number = target.partition(":")
+    return int(show), int(number)
+
+
+def tvmaze_state(season: dict[str, Any] | None, today: str) -> str:
+    if season is None:
+        return "absent"
+    premiere = str(season.get("premiereDate") or "").strip()
+    if premiere:
+        return f"aired:{premiere}" if premiere <= today else f"dated:{premiere}"
+    order = season.get("episodeOrder")
+    return f"listed:eps={order}" if order else "listed"
+
+
+def tvmaze_headline(show_name: str, number: int, state: str) -> str:
+    head, _, detail = state.partition(":")
+    if head == "absent":
+        return f"{show_name} season {number} is not listed on TVmaze"
+    if head == "aired":
+        return f"{show_name} season {number} premiered {detail}"
+    if head == "dated":
+        return f"{show_name} season {number} premiere dated {detail}"
+    if detail.startswith("eps="):
+        return f"{show_name} season {number} ordered — {detail[4:]} episodes, no premiere date yet"
+    return f"{show_name} season {number} listed — no premiere date yet"
+
+
+async def _fetch_tvmaze_season(target: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    show_id, number = _parse_tvmaze_target(target)
+    async with httpx.AsyncClient(timeout=20.0, headers={"User-Agent": USER_AGENT}) as c:
+        r = await c.get(f"{TVMAZE_API}/shows/{show_id}", params={"embed": "seasons"})
+    if r.status_code == 404:
+        raise ValueError(f"tvmaze show {show_id} not found")
+    _raise_for_throttle(r, "tvmaze")
+    r.raise_for_status()
+    doc = r.json() or {}
+    show_name = doc.get("name") or f"show {show_id}"
+    seasons = ((doc.get("_embedded") or {}).get("seasons")) or []
+    season = next((s for s in seasons if s.get("number") == number), None)
+    today = time.strftime("%Y-%m-%d", time.gmtime())
+    state = tvmaze_state(season, today)
+    if cursor == state:
+        return [], state
+    channel = (doc.get("network") or doc.get("webChannel") or {}).get("name") or ""
+    summary_bits = [b for b in (channel, f"show status: {doc.get('status') or 'unknown'}") if b]
+    event = {
+        "external_id": f"{show_id}:{number}:{state}",
+        "title": tvmaze_headline(show_name, number, state),
+        "summary": " · ".join(summary_bits),
+        "link": (season or {}).get("url") or doc.get("url") or f"https://www.tvmaze.com/shows/{show_id}",
+        "occurred_at": _utc_iso(time.time()),
+        "raw": {"state": state, "season": season, "show": show_name},
+    }
+    return [event], state
 
 
 async def _fetch_hn_search(query: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
