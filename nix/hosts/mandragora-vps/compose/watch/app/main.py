@@ -115,6 +115,7 @@ def init_db() -> None:
         "ALTER TABLE events ADD COLUMN ai_claim TEXT",
         "ALTER TABLE events ADD COLUMN ai_subject TEXT",
         "ALTER TABLE events ADD COLUMN ai_incident TEXT",
+        "ALTER TABLE events ADD COLUMN escalated_at TEXT",
     ):
         try:
             c.execute(stmt)
@@ -198,7 +199,7 @@ def _spec_lint_dict(row: sqlite3.Row) -> dict | None:
         return None
 
 
-TRIGGER_PREDICATE = "(w.ai_spec IS NULL OR e.ai_verdict = 'GO')"
+TRIGGER_PREDICATE = "(w.ai_spec IS NULL OR e.ai_verdict = 'GO' OR e.escalated_at IS NOT NULL)"
 
 
 def watcher_state(triggers: int, open_triggers: int) -> str:
@@ -265,8 +266,12 @@ def task_states() -> dict[str, str]:
     for name, task in TASKS.items():
         if name == "telegram" and not tg.enabled():
             states[name] = "disabled"
+        elif task.done():
+            states[name] = "dead"
+        elif name == "judge" and not judge.JUDGE_ENABLED:
+            states[name] = "sweep-only"
         else:
-            states[name] = "dead" if task.done() else "alive"
+            states[name] = "alive"
     return states
 
 
@@ -282,6 +287,9 @@ async def healthz() -> dict:
         "degraded": degraded,
         "telegram_enabled": tg.enabled(),
         "tasks": states,
+        "judge_model_loop": judge.JUDGE_ENABLED,
+        "judge_deadline_hours": judge.DEADLINE_HOURS,
+        "judge_fallback": judge.FALLBACK_MODEL if judge.FALLBACK_KEY else None,
         **snapshot,
     }
 
@@ -412,8 +420,9 @@ async def patch_watcher(wid: int, payload: dict) -> dict:
         """
         SELECT COUNT(*) AS n,
                SUM(CASE WHEN acked_at IS NULL THEN 1 ELSE 0 END) AS un,
-               SUM(CASE WHEN ? IS NULL OR ai_verdict = 'GO' THEN 1 ELSE 0 END) AS trig,
-               SUM(CASE WHEN (? IS NULL OR ai_verdict = 'GO') AND acked_at IS NULL THEN 1 ELSE 0 END) AS trig_open
+               SUM(CASE WHEN ? IS NULL OR ai_verdict = 'GO' OR escalated_at IS NOT NULL THEN 1 ELSE 0 END) AS trig,
+               SUM(CASE WHEN (? IS NULL OR ai_verdict = 'GO' OR escalated_at IS NOT NULL)
+                        AND acked_at IS NULL THEN 1 ELSE 0 END) AS trig_open
         FROM events WHERE watcher_id = ?
         """,
         (row["ai_spec"], row["ai_spec"], wid),
@@ -551,6 +560,7 @@ async def list_events(
             "ai_reason": r["ai_reason"],
             "ai_claim": r["ai_claim"],
             "ai_judged_at": r["ai_judged_at"],
+            "escalated_at": r["escalated_at"],
         })
     c.close()
     return out
@@ -583,6 +593,7 @@ async def watcher_triggers(wid: int, limit: int = Query(50, ge=1, le=200)) -> li
             "ai_verdict": r["ai_verdict"],
             "ai_reason": r["ai_reason"],
             "ai_claim": r["ai_claim"],
+            "escalated_at": r["escalated_at"],
         }
         for r in rows
     ]

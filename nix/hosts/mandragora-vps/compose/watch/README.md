@@ -200,6 +200,50 @@ appdetails, PyPI and endoflife.date all answer their own questions. The judge is
 for the questions with no such source — a CVE mentioning a specific wallet, a
 jailbreak for a specific firmware — and those arrive a handful at a time.
 
+## The judge must never be the reason nothing fires
+
+`ai_spec` used to be a hard, fail-closed gate: no verdict meant no push, with no
+timeout and no fallback, so a judge that was off was indistinguishable from a
+world where nothing had happened. It stayed that way from 2026-09-08 to
+2026-09-09 with 1496 events held behind it.
+
+There are now two judges, and only one of them needs a model.
+
+**The deterministic sweep runs whether or not the model loop does.** Every
+`WATCH_JUDGE_INTERVAL` it takes events that are past `WATCH_JUDGE_DEADLINE_HOURS`
+(24) without a verdict and disposes of them with set logic alone:
+
+- the watcher's `must_mention` literals are checked against title, summary and
+  the fetched body — absent means `NO`, written with the usual refusal reason.
+  Watchers with a literal gate therefore self-clear forever, with no model.
+- anything the literals cannot dismiss — or any event on a watcher with no
+  `must_mention` — is **escalated**: `escalated_at` is stamped, `ai_verdict`
+  stays `NULL`, and the push gate lets it through badged `⚪ UNJUDGED`.
+
+A false positive costs one Telegram message. A false negative costs the entire
+point of the system. The escalation is deliberately the cheap failure.
+
+**The sweep holds while the model loop is working.** If `WATCH_JUDGE_ENABLED` is
+on and any verdict has been written in the last `WATCH_JUDGE_STALL_HOURS` (1),
+the sweep does nothing at all — a deep queue that is draining is not a stalled
+pipeline, and escalating out from under a working model would push events the
+model was about to reject. With the loop off, or with no verdict for an hour,
+the sweep runs. That rule is also what makes a backlog safe to deploy into.
+
+**Held events are no longer pruned.** `_prune` trimmed to
+`WATCH_MAX_EVENTS_PER_WATCHER` by id regardless of verdict, so w6 and w7 sat at
+exactly 500/500 all-unjudged: events were being deleted before anything ever
+looked at them. Judged events still trim at the cap; unjudged ones survive until
+`cap × WATCH_UNJUDGED_KEEP_FACTOR` (4) as a runaway stop.
+
+**Silence is now reported.** When more than `WATCH_ALERT_PENDING` (200) events
+are waiting on a verdict, the poller sends one Telegram alert per
+`WATCH_ALERT_INTERVAL` (6h) naming the backlog, the escalated count and the last
+push. `/healthz` reports `judge_model_loop`, `judge_deadline_hours`,
+`judge_fallback` and `escalated_open`; a judge that is off by configuration now
+reads `sweep-only` rather than `dead`, and the dashboard banner says what will
+still happen rather than "nothing will fire until it is back".
+
 ## Release layer (changelog feed)
 
 The `github_release` kind turns the perception layer into a **release
@@ -364,6 +408,19 @@ watcher whose stored version is behind, so changing the prompt no longer leaves 
 DB full of verdicts from the prompt that produced them. Bump the version whenever
 the prompt or `SOURCE_EMITS` changes.
 
+**The model no longer stays resident.** Every ollama call carries
+`keep_alive` (`WATCH_OLLAMA_KEEP_ALIVE`, default `60s`), so the model unloads a
+minute after the queue goes quiet instead of holding 11 GB indefinitely. With
+the show watchers moved to `tvmaze_season` the queue is quiet almost always, so
+the GPU sees a few seconds of work a day rather than a permanent tenant.
+
+**When the desktop is unreachable, an OpenAI-compatible endpoint takes over.**
+Set `WATCH_JUDGE_FALLBACK_URL`, `WATCH_JUDGE_FALLBACK_KEY` and
+`WATCH_JUDGE_FALLBACK_MODEL` and a connection failure to ollama retries there
+(`deepseek/api_key` in the desktop sops store is the intended key). Unset, the
+call simply fails and the event stays pending until the deadline sweep reaches
+it. The chain is: local model → cloud model → deterministic escalation.
+
 The judge runs as its own asyncio loop, decoupled from the poller, so
 slow local-LLM calls never block source polling. `WATCH_JUDGE_INTERVAL`
 (default 30s) controls cycle cadence; `WATCH_JUDGE_BATCH` (default 3)
@@ -388,6 +445,13 @@ WATCH_CORROBORATE=1
 WATCH_CORROBORATE_WINDOW=72
 WATCH_CORROBORATE_CANDIDATES=12
 WATCH_SPEC_LINT_BATCH=2
+WATCH_OLLAMA_KEEP_ALIVE=60s
+WATCH_JUDGE_DEADLINE_HOURS=24
+WATCH_JUDGE_STALL_HOURS=1
+WATCH_JUDGE_SWEEP_BATCH=20
+WATCH_JUDGE_FALLBACK_URL=https://api.deepseek.com
+WATCH_JUDGE_FALLBACK_MODEL=deepseek-chat
+WATCH_JUDGE_FALLBACK_KEY=sk-xxx
 ```
 
 Telegram: `/spec <id> <text>` sets the spec, `/judge <event_id>`
@@ -488,6 +552,9 @@ WATCH_MAX_EVENTS_PER_WATCHER=500
 WATCH_REDDIT_MIN_INTERVAL=60
 WATCH_REDDIT_PER_CYCLE=1
 WATCH_REDDIT_SUMMARY_MAX=4000
+WATCH_UNJUDGED_KEEP_FACTOR=4
+WATCH_ALERT_PENDING=200
+WATCH_ALERT_INTERVAL=21600
 WATCH_WEBHOOK_URL=https://webhook.mvr.ac/h/<slug>
 GITHUB_PAT=ghp_xxx
 TELEGRAM_BOT_TOKEN=123456:abc

@@ -68,6 +68,18 @@ def pending_unjudged(conn_factory) -> int:
     return int(row["n"])
 
 
+def escalated_open(conn_factory) -> int:
+    c = conn_factory()
+    try:
+        row = c.execute(
+            "SELECT COUNT(*) AS n FROM events e JOIN watchers w ON w.id = e.watcher_id "
+            "WHERE e.escalated_at IS NOT NULL AND e.acked_at IS NULL AND w.enabled = 1"
+        ).fetchone()
+    finally:
+        c.close()
+    return int(row["n"])
+
+
 def event_totals(conn_factory, since: str | None = None) -> int:
     query = "SELECT COUNT(*) AS n FROM events"
     params: list = []
@@ -131,6 +143,7 @@ def collect(conn_factory) -> dict:
         "last_poll_at": last_poll_at(conn_factory),
         "last_push_at": get_meta(conn_factory, "last_push_at"),
         "pending_unjudged": pending_unjudged(conn_factory),
+        "escalated_open": escalated_open(conn_factory),
         "events_24h": event_totals(conn_factory, hours_ago_iso(24)),
         "events_total": event_totals(conn_factory),
         "funnel_24h": funnel_counts(conn_factory, hours_ago_iso(24)),
@@ -151,7 +164,7 @@ def format_status(snapshot: dict, telegram_enabled: bool, undecidable: list[dict
         f"events: {snapshot.get('events_24h', 0)} in 24h · {snapshot.get('events_total', 0)} total",
         f"24h funnel: {_funnel_line(snapshot.get('funnel_24h') or {})}",
         f"lifetime: {_funnel_line(snapshot.get('funnel_lifetime') or {})}",
-        f"pending unjudged: {snapshot.get('pending_unjudged', 0)}",
+        f"pending unjudged: {snapshot.get('pending_unjudged', 0)} · escalated open: {snapshot.get('escalated_open', 0)}",
         f"last poll: {snapshot.get('last_poll_at') or 'never'}",
         f"last push: {snapshot.get('last_push_at') or 'never'}",
         f"telegram: {'enabled' if telegram_enabled else 'DISABLED'}",

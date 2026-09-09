@@ -27,6 +27,8 @@ USER_AGENT = os.environ.get(
 
 BACKOFF_CAP_SECONDS = int(os.environ.get("WATCH_BACKOFF_CAP", "21600"))
 REDDIT_PER_CYCLE = int(os.environ.get("WATCH_REDDIT_PER_CYCLE", "1"))
+ALERT_PENDING = int(os.environ.get("WATCH_ALERT_PENDING", "200"))
+ALERT_INTERVAL = int(os.environ.get("WATCH_ALERT_INTERVAL", "21600"))
 
 
 def now_iso() -> str:
@@ -58,7 +60,7 @@ def ration_reddit(rows: list, limit: int | None = None) -> list:
 
 
 async def poll_once(conn_factory) -> dict[str, int]:
-    stats = {"watchers": 0, "events": 0, "errors": 0, "pushed": 0, "reminders": 0}
+    stats = {"watchers": 0, "events": 0, "errors": 0, "pushed": 0, "reminders": 0, "alerts": 0}
     c = conn_factory()
     rows = c.execute(
         "SELECT * FROM watchers WHERE enabled = 1 "
@@ -105,6 +107,8 @@ async def poll_once(conn_factory) -> dict[str, int]:
     pushed, reminded = await _push_pending(conn_factory)
     stats["pushed"] += pushed
     stats["reminders"] += reminded
+    if await _health_alert(conn_factory):
+        stats["alerts"] = 1
     return stats
 
 
@@ -131,7 +135,7 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
                     continue
             except (ValueError, TypeError):
                 pass
-        if r["w_spec"] and r["ai_verdict"] != "GO":
+        if r["w_spec"] and r["ai_verdict"] != "GO" and not r["escalated_at"]:
             continue
         last = r["last_reminder_at"]
         if last is None:
@@ -170,6 +174,7 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
             "is_reminder": is_reminder,
             "ai_verdict": r["ai_verdict"],
             "ai_reason": r["ai_reason"],
+            "escalated_at": r["escalated_at"],
         }
         channels = 0
         delivered = True
@@ -220,6 +225,19 @@ def _insert_event(c: sqlite3.Connection, watcher_id: int, ev: dict[str, Any], ma
 
 def _prune(c: sqlite3.Connection, watcher_id: int) -> None:
     cap = int(os.environ.get("WATCH_MAX_EVENTS_PER_WATCHER", "500"))
+    held_factor = max(1, int(os.environ.get("WATCH_UNJUDGED_KEEP_FACTOR", "4")))
+    c.execute(
+        """
+        DELETE FROM events
+        WHERE watcher_id = ? AND ai_verdict IS NOT NULL AND id NOT IN (
+          SELECT id FROM events
+          WHERE watcher_id = ?
+          ORDER BY id DESC
+          LIMIT ?
+        )
+        """,
+        (watcher_id, watcher_id, cap),
+    )
     c.execute(
         """
         DELETE FROM events
@@ -230,8 +248,41 @@ def _prune(c: sqlite3.Connection, watcher_id: int) -> None:
           LIMIT ?
         )
         """,
-        (watcher_id, watcher_id, cap),
+        (watcher_id, watcher_id, cap * held_factor),
     )
+
+
+def _alert_due(conn_factory, now_ts: float) -> bool:
+    last = stats.get_meta(conn_factory, "last_health_alert_at")
+    if not last:
+        return True
+    try:
+        last_ts = datetime.fromisoformat(last.replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return True
+    return now_ts - last_ts >= ALERT_INTERVAL
+
+
+async def _health_alert(conn_factory) -> bool:
+    if ALERT_PENDING <= 0 or not tg.enabled():
+        return False
+    pending = stats.pending_unjudged(conn_factory)
+    if pending < ALERT_PENDING:
+        return False
+    if not _alert_due(conn_factory, datetime.now(timezone.utc).timestamp()):
+        return False
+    escalated = stats.escalated_open(conn_factory)
+    last_push = stats.get_meta(conn_factory, "last_push_at") or "never"
+    text = (
+        f"⚠ <b>watch backlog</b>\n"
+        f"{pending} events waiting on a verdict · {escalated} escalated unjudged\n"
+        f"last push: {last_push}\n"
+        f"<a href=\"{PUBLIC_BASE.rstrip('/')}/healthz\">healthz</a>"
+    )
+    if not await tg.broadcast(text):
+        return False
+    stats.set_meta(conn_factory, "last_health_alert_at", now_iso())
+    return True
 
 
 async def _fanout(watcher: Any, ev: dict[str, Any]) -> bool:

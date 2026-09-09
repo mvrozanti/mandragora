@@ -67,6 +67,20 @@ async def _post(method: str, payload: dict) -> dict | None:
     return None
 
 
+async def broadcast(text: str) -> bool:
+    if not enabled():
+        return False
+    ok = True
+    for chat_id in ALLOWED_CHAT_IDS:
+        res = await _post(
+            "sendMessage",
+            {"chat_id": chat_id, "text": text, "parse_mode": "HTML", "disable_web_page_preview": True},
+        )
+        if not res or res is PERMANENT_FAILURE:
+            ok = False
+    return ok
+
+
 async def push_event(watcher: Any, ev: dict[str, Any]) -> bool:
     if not enabled():
         log.error("telegram push skipped: TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID unset")
@@ -87,6 +101,8 @@ async def push_event(watcher: Any, ev: dict[str, Any]) -> bool:
         badge = "🟢 GO "
     elif verdict == "UNCLEAR":
         badge = "🟡 UNCLEAR "
+    elif ev.get("escalated_at"):
+        badge = "⚪ UNJUDGED "
     text_lines = [
         f"{badge}{prefix}<b>{_esc(kind)}</b> · <code>{_esc(target)}</code>",
         _esc(title),
