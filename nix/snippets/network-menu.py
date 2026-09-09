@@ -12,6 +12,7 @@ IWD_BUS = "net.connman.iwd"
 IWD_STATION = "net.connman.iwd.Station"
 IWD_NETWORK = "net.connman.iwd.Network"
 BAR_FLOORS = (-82, -74, -66, -58)
+PROBE_URLS = ("http://1.1.1.1/", "http://[2606:4700:4700::1111]/")
 
 
 def run(args, inp=None, timeout=None):
@@ -53,8 +54,12 @@ def default_iface():
 
 
 def online():
-    for target in ("8.8.8.8", "1.1.1.1"):
-        if run(["ping", "-c1", "-W1", target]).returncode == 0:
+    for url in PROBE_URLS:
+        probe = run(
+            ["curl", "-s", "-o", "/dev/null", "--connect-timeout", "2", "--max-time", "3", url],
+            timeout=5,
+        )
+        if probe.returncode == 0:
             return True
     return False
 

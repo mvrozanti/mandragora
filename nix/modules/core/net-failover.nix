@@ -33,7 +33,7 @@ in
     after = [ "network.target" ];
     path = [
       pkgs.iproute2
-      pkgs.iputils
+      pkgs.curl
       pkgs.util-linux
       pkgs.gawk
       pkgs.gnugrep
