@@ -102,8 +102,20 @@
     var h = state.health;
     if (h) {
       Object.keys(h.tasks || {}).forEach(function (name) {
-        if (h.tasks[name] !== "alive") out.push('<div class="wa-alert is-down"><b>' + name + " is not running</b> — nothing will fire until it is back</div>");
+        var st = h.tasks[name];
+        if (st === "alive" || st === "disabled") return;
+        if (st === "sweep-only") {
+          out.push('<div class="wa-alert"><b>judge model loop is off</b> — spec\u2019d events are dismissed by their literal gate, and anything it cannot dismiss is escalated unjudged after ' +
+            (h.judge_deadline_hours || 24) + "h</div>");
+          return;
+        }
+        out.push('<div class="wa-alert is-down"><b>' + name + " is not running</b> — restart it; unjudged events escalate after " +
+          (h.judge_deadline_hours || 24) + "h rather than waiting forever</div>");
       });
+      if ((h.escalated_open || 0) > 0) {
+        out.push('<div class="wa-alert"><b>' + h.escalated_open + " event" + (h.escalated_open > 1 ? "s" : "") +
+          " escalated unjudged</b> — pushed without a model verdict, judge them yourself</div>");
+      }
       if (!h.telegram_enabled) out.push('<div class="wa-alert"><b>telegram is not configured</b> — nothing can notify you</div>');
     }
     var broken = state.watchers.filter(function (w) { return w.last_error; });
@@ -128,6 +140,7 @@
     return '<div class="wa-trig' + (t.acked_at ? " is-accepted" : "") + '">' +
       '<a class="wa-trig__title" href="' + esc(t.link || "#") + '" target="_blank" rel="noopener">' + esc(t.title) + "</a>" +
       '<div class="wa-trig__meta"><span>' + ago(t.received_at) + "</span>" +
+      (t.escalated_at && t.ai_verdict !== "GO" ? "<span>\u26aa unjudged</span>" : "") +
       (t.acked_at ? "<span>accepted</span>" : "") + "</div>" +
       (t.ai_reason ? '<div class="wa-trig__reason">' + esc(t.ai_reason) + "</div>" : "") +
       (t.acked_at ? "" : '<div class="wa-acts"><button class="wa-btn primary" data-act="accept" data-arg="' +
