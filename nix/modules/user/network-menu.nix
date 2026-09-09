@@ -11,7 +11,7 @@ let
       libnotify
       systemd
       iproute2
-      iputils
+      curl
     ];
   };
 in
