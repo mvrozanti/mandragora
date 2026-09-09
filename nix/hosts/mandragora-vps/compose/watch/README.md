@@ -414,12 +414,23 @@ minute after the queue goes quiet instead of holding 11 GB indefinitely. With
 the show watchers moved to `tvmaze_season` the queue is quiet almost always, so
 the GPU sees a few seconds of work a day rather than a permanent tenant.
 
-**When the desktop is unreachable, an OpenAI-compatible endpoint takes over.**
-Set `WATCH_JUDGE_FALLBACK_URL`, `WATCH_JUDGE_FALLBACK_KEY` and
-`WATCH_JUDGE_FALLBACK_MODEL` and a connection failure to ollama retries there
-(`deepseek/api_key` in the desktop sops store is the intended key). Unset, the
-call simply fails and the event stays pending until the deadline sweep reaches
-it. The chain is: local model → cloud model → deterministic escalation.
+**There is a slot for a remote model, and it is deliberately empty.** Setting
+`WATCH_JUDGE_FALLBACK_URL` + `_KEY` + `_MODEL` makes a connection failure to
+ollama retry against any OpenAI-compatible endpoint. Unset — the default, and
+the current state — the call simply fails and the event stays pending until the
+deadline sweep reaches it. The chain is local model → deterministic escalation,
+with a cloud model as an optional middle link.
+
+It stays empty because the fallback only fires when the desktop is unreachable,
+and the desktop does not go down: five weeks of uptime as of 2026-09-09. The
+measured load behind the slot is ~16 model calls a day (41 events arrive; the
+`must_mention` gates refuse 153 of every 284 for free, including every one of
+the four security feeds), so a paid endpoint would buy insurance against a
+scenario that has not occurred, and a free tier would too. If the slot is ever
+filled, the free Gemini tier the retired desktop bridge used is the obvious
+candidate — but only as a backend *inside* this judge. A second judging loop
+with its own prompt is what commit `d9fb5d0d` removed, because two judges
+claiming the same events made a verdict depend on which loop won the race.
 
 The judge runs as its own asyncio loop, decoupled from the poller, so
 slow local-LLM calls never block source polling. `WATCH_JUDGE_INTERVAL`
@@ -449,9 +460,9 @@ WATCH_OLLAMA_KEEP_ALIVE=60s
 WATCH_JUDGE_DEADLINE_HOURS=24
 WATCH_JUDGE_STALL_HOURS=1
 WATCH_JUDGE_SWEEP_BATCH=20
-WATCH_JUDGE_FALLBACK_URL=https://api.deepseek.com
-WATCH_JUDGE_FALLBACK_MODEL=deepseek-chat
-WATCH_JUDGE_FALLBACK_KEY=sk-xxx
+WATCH_JUDGE_FALLBACK_URL=                      # empty by design, see above
+WATCH_JUDGE_FALLBACK_MODEL=
+WATCH_JUDGE_FALLBACK_KEY=
 ```
 
 Telegram: `/spec <id> <text>` sets the spec, `/judge <event_id>`
