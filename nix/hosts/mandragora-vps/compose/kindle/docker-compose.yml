@@ -1,0 +1,37 @@
+services:
+
+  kindle:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: ${KINDLE_IMAGE:-mandragora/kindle:local}
+    container_name: kindle
+    restart: unless-stopped
+    environment:
+      - PORT=8080
+      - KINDLE_EMAIL=${KINDLE_EMAIL:-}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_SECURITY=${SMTP_SECURITY:-starttls}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - FROM_ADDR=${FROM_ADDR:-}
+      - FROM_NAME=${FROM_NAME:-}
+      - MAX_UPLOAD_MB=${MAX_UPLOAD_MB:-25}
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://kindle.${MVR_AC:-mvr.ac}
+      caddy.0_forward_auth: "authelia:9091"
+      caddy.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.1_reverse_proxy: "{{upstreams 8080}}"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true

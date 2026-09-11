@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#13140d">
+<meta name="color-scheme" content="dark">
+<title>kindle · mvr.ac</title>
+<style>
+:root {
+  --bg: #13140d;
+  --raised: #1b1c15;
+  --elevated: #1f2019;
+  --text: #e3e3d7;
+  --dim: #c6c8b8;
+  --ghost: #909284;
+  --line: #46483c;
+  --accent: #bbcf81;
+  --on-accent: #283500;
+  --ok: #4ec17d;
+  --down: #e06c6c;
+  --mono: "Iosevka", "JetBrains Mono", "Fira Code", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+.wrap { max-width: 680px; margin: 0 auto; padding: 40px 20px 64px; }
+header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 28px; }
+header .name { font-size: 22px; font-weight: 700; letter-spacing: 0.02em; }
+header .host { color: var(--ghost); font-family: var(--mono); font-size: 13px; }
+.drop {
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  background: var(--raised);
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--dim);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.drop:hover { border-color: var(--accent); }
+.drop.over { border-color: var(--accent); background: var(--elevated); }
+.drop .big { font-size: 18px; color: var(--text); margin-bottom: 6px; }
+.drop .hint { font-size: 13px; color: var(--ghost); }
+.drop input { display: none; }
+.title-row { display: flex; gap: 10px; margin-top: 20px; align-items: center; }
+.title-row input {
+  flex: 1;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 11px 13px;
+  font-size: 15px;
+  outline: none;
+}
+.title-row input:focus { border-color: var(--accent); }
+.queue { margin: 20px 0 0; list-style: none; padding: 0; }
+.queue li {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--raised);
+  margin-bottom: 8px;
+}
+.queue .fname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--mono); font-size: 13px; }
+.queue .fsize { color: var(--ghost); font-size: 12px; font-family: var(--mono); }
+.queue .x { background: none; border: none; color: var(--ghost); cursor: pointer; font-size: 16px; padding: 0 4px; }
+.queue .x:hover { color: var(--down); }
+button.send {
+  width: 100%;
+  margin-top: 16px;
+  padding: 13px;
+  border: none;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+button.send:disabled { opacity: 0.4; cursor: not-allowed; }
+.results { margin-top: 20px; list-style: none; padding: 0; }
+.results li {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 8px; margin-bottom: 6px;
+  font-size: 13px;
+}
+.results li.ok { background: rgba(78, 193, 125, 0.12); color: var(--ok); }
+.results li.bad { background: rgba(224, 108, 108, 0.12); color: var(--down); }
+.results .fname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--mono); }
+footer { margin-top: 40px; color: var(--ghost); font-size: 12px; font-family: var(--mono); }
+footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="name">kindle</span>
+    <span class="host">kindle.mvr.ac · send-to-kindle</span>
+  </header>
+
+  <div class="drop" id="drop">
+    <div class="big">drop files · tap to browse</div>
+    <div class="hint">pdf · epub · doc · txt · images</div>
+    <input type="file" id="file" multiple>
+  </div>
+
+  <div class="title-row">
+    <input type="text" id="title" placeholder="title (optional — defaults to filename)">
+  </div>
+
+  <ul class="queue" id="queue"></ul>
+
+  <button class="send" id="send" disabled>send to kindle</button>
+
+  <ul class="results" id="results"></ul>
+
+  <footer>
+    files are emailed to your <span id="target">@kindle.com</span> address and sync over whispernet ·
+    <a href="https://mvr.ac">mvr.ac</a>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var drop = $("drop"), file = $("file"), queue = $("queue");
+  var title = $("title"), send = $("send"), results = $("results"), target = $("target");
+  var items = [];
+
+  var fmtSize = function (n) {
+    if (n < 1024) return n + " B";
+    if (n < 1048576) return (n / 1024).toFixed(1) + " KB";
+    return (n / 1048576).toFixed(1) + " MB";
+  };
+
+  var render = function () {
+    queue.innerHTML = "";
+    items.forEach(function (f, i) {
+      var li = document.createElement("li");
+      var name = document.createElement("span");
+      name.className = "fname";
+      name.textContent = f.name;
+      var size = document.createElement("span");
+      size.className = "fsize";
+      size.textContent = fmtSize(f.size);
+      var x = document.createElement("button");
+      x.className = "x";
+      x.textContent = "×";
+      x.addEventListener("click", function () { items.splice(i, 1); render(); });
+      li.appendChild(name);
+      li.appendChild(size);
+      li.appendChild(x);
+      queue.appendChild(li);
+    });
+    send.disabled = items.length === 0;
+  };
+
+  var addFiles = function (list) {
+    for (var i = 0; i < list.length; i++) {
+      items.push(list[i]);
+    }
+    render();
+  };
+
+  drop.addEventListener("click", function () { file.click(); });
+  file.addEventListener("change", function () { addFiles(file.files); file.value = ""; });
+
+  ["dragenter", "dragover"].forEach(function (e) {
+    drop.addEventListener(e, function (ev) { ev.preventDefault(); drop.classList.add("over"); });
+  });
+  ["dragleave", "drop"].forEach(function (e) {
+    drop.addEventListener(e, function (ev) { ev.preventDefault(); drop.classList.remove("over"); });
+  });
+  drop.addEventListener("drop", function (ev) { addFiles(ev.dataTransfer.files); });
+
+  var showResult = function (r) {
+    var li = document.createElement("li");
+    li.className = r.status === "sent" ? "ok" : "bad";
+    var name = document.createElement("span");
+    name.className = "fname";
+    name.textContent = r.filename;
+    var msg = document.createElement("span");
+    msg.textContent = r.status === "sent" ? "sent" : (r.error || "error");
+    li.appendChild(name);
+    li.appendChild(msg);
+    results.insertBefore(li, results.firstChild);
+  };
+
+  send.addEventListener("click", function () {
+    if (!items.length) return;
+    send.disabled = true;
+    var fd = new FormData();
+    items.forEach(function (f) { fd.append("files", f); });
+    if (title.value.trim()) fd.append("title", title.value.trim());
+    fetch("/api/send", { method: "POST", body: fd })
+      .then(function (res) { return res.json().catch(function () { return {}; }); })
+      .then(function (data) {
+        (data.results || []).forEach(showResult);
+      })
+      .catch(function (err) {
+        showResult({ filename: "request failed", status: "error", error: String(err) });
+      })
+      .finally(function () {
+        items = [];
+        title.value = "";
+        render();
+      });
+  });
+})();
+</script>
+</body>
+</html>
