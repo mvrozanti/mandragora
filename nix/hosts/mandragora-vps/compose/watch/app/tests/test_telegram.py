@@ -117,14 +117,21 @@ def test_status_command_renders_funnel(db, make_watcher, make_event):
     assert "GO 1" in reply
 
 
-def test_spec_command_requeues_lint(db, make_watcher):
+def test_match_command_sets_a_rule(db, make_watcher):
+    import telegram as tg
+
     wid = make_watcher()
+    out = asyncio.run(tg._cmd_match(db, [str(wid), "paperwhite", "AND", "jailbreak"]))
+    assert "paperwhite AND jailbreak" in out
     c = db()
-    c.execute("UPDATE watchers SET spec_lint = '{}', spec_lint_at = 'now' WHERE id = ?", (wid,))
+    row = c.execute("SELECT match_rule FROM watchers WHERE id = ?", (wid,)).fetchone()
     c.close()
-    asyncio.run(tg._dispatch(db, 1, f"/spec {wid} a tighter spec"))
-    c = db()
-    row = c.execute("SELECT ai_spec, spec_lint, spec_lint_at FROM watchers WHERE id = ?", (wid,)).fetchone()
-    c.close()
-    assert row["ai_spec"] == "a tighter spec"
-    assert row["spec_lint"] is None and row["spec_lint_at"] is None
+    assert row["match_rule"] == "paperwhite AND jailbreak"
+
+
+def test_match_command_rejects_a_broken_rule(db, make_watcher):
+    import telegram as tg
+
+    wid = make_watcher()
+    out = asyncio.run(tg._cmd_match(db, [str(wid), "a", "AND"]))
+    assert "will not parse" in out

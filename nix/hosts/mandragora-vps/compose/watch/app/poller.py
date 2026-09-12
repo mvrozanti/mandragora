@@ -9,6 +9,7 @@ from typing import Any
 
 import httpx
 
+import match as matcher
 import sources
 import stats
 import telegram as tg
@@ -120,7 +121,7 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
         """
         SELECT e.*, w.id AS w_id, w.kind AS w_kind, w.target AS w_target, w.name AS w_name,
                w.requires_ack AS w_req, w.reminder_interval AS w_ri, w.ai_spec AS w_spec,
-               w.push AS w_push
+               w.push AS w_push, w.match_rule AS w_match
         FROM events e JOIN watchers w ON w.id = e.watcher_id
         WHERE e.acked_at IS NULL AND w.enabled = 1 AND w.push = 1
         ORDER BY e.id ASC
@@ -135,6 +136,8 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
                     continue
             except (ValueError, TypeError):
                 pass
+        if not _passes_match(r):
+            continue
         if r["w_spec"] and r["ai_verdict"] != "GO" and not r["escalated_at"]:
             continue
         last = r["last_reminder_at"]
@@ -204,6 +207,17 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
         c.execute("UPDATE events SET last_reminder_at = ? WHERE id = ?", (now_iso(), r["id"]))
         c.close()
     return pushed, reminded
+
+
+def _passes_match(row: Any) -> bool:
+    rule = row["w_match"] if "w_match" in row.keys() else None
+    if not (rule or "").strip():
+        return True
+    try:
+        return matcher.matches(rule, row["title"] or "", row["summary"] or "")
+    except matcher.MatchError as exc:
+        log.warning("bad match rule on watcher %s (%s): letting event through", row["w_id"], exc)
+        return True
 
 
 def group_delivery_count(conn_factory, watcher_id: int) -> tuple[int, int, str | None]:

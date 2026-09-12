@@ -60,7 +60,5 @@ def test_target_parses_back_to_show_and_season():
 
 
 def test_kind_is_registered_everywhere():
-    import judge
-
     assert "tvmaze_season" in sources.SOURCE_KINDS
-    assert "tvmaze_season" in judge.SOURCE_EMITS
+    assert "tvmaze_season" in sources.SOURCE_EMITS

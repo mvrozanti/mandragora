@@ -28,14 +28,14 @@ def db(tmp_path, monkeypatch):
 @pytest.fixture
 def make_watcher(db):
     def _make(kind="hn_search", target="electrum", name=None, ai_spec="spec", push=1, requires_ack=0,
-              reminder_interval=3600, enabled=1):
+              reminder_interval=3600, enabled=1, match_rule=None):
         import main
 
         c = db()
         c.execute(
-            "INSERT INTO watchers (kind, target, name, created_at, enabled, requires_ack, reminder_interval, ai_spec, push) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (kind, target, name or f"{kind}:{target}", main.now_iso(), enabled, requires_ack, reminder_interval, ai_spec, push),
+            "INSERT INTO watchers (kind, target, name, created_at, enabled, requires_ack, reminder_interval, ai_spec, push, match_rule) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (kind, target, name or f"{kind}:{target}", main.now_iso(), enabled, requires_ack, reminder_interval, ai_spec, push, match_rule),
         )
         row = c.execute("SELECT id FROM watchers WHERE kind = ? AND target = ?", (kind, target)).fetchone()
         c.close()

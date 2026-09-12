@@ -11,7 +11,6 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-import judge
 import poller
 import sources
 import stats
@@ -119,6 +118,7 @@ def init_db() -> None:
         "ALTER TABLE events ADD COLUMN notified_at TEXT",
         "ALTER TABLE watchers ADD COLUMN stop_after INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE watchers ADD COLUMN watch_group TEXT",
+        "ALTER TABLE watchers ADD COLUMN match_rule TEXT",
     ):
         try:
             c.execute(stmt)
@@ -134,7 +134,23 @@ def init_db() -> None:
     c.execute("CREATE INDEX IF NOT EXISTS events_unacked ON events(acked_at, last_reminder_at)")
     c.execute("CREATE INDEX IF NOT EXISTS events_ai_verdict ON events(ai_verdict, ai_judged_at)")
     c.execute("CREATE INDEX IF NOT EXISTS watchers_group ON watchers(watch_group)")
+    _migrate_must_mention_to_match(c)
     c.close()
+
+
+def _migrate_must_mention_to_match(c: sqlite3.Connection) -> None:
+    import match as matcher
+
+    rows = c.execute(
+        "SELECT id, must_mention FROM watchers "
+        "WHERE match_rule IS NULL AND must_mention IS NOT NULL AND TRIM(must_mention) != ''"
+    ).fetchall()
+    for row in rows:
+        expr = matcher.from_must_mention(row["must_mention"])
+        if expr:
+            c.execute("UPDATE watchers SET match_rule = ? WHERE id = ?", (expr, row["id"]))
+    if rows:
+        log.info("migrated %d must_mention gates to match rules", len(rows))
 
 
 def bootstrap_release_sources() -> None:
@@ -176,7 +192,6 @@ async def lifespan(app: FastAPI):
     TASKS.update(
         poller=asyncio.create_task(poller.run_forever(conn)),
         telegram=asyncio.create_task(tg.run_forever(conn)),
-        judge=asyncio.create_task(judge.run_forever(conn)),
     )
     try:
         yield
@@ -272,8 +287,6 @@ def task_states() -> dict[str, str]:
             states[name] = "disabled"
         elif task.done():
             states[name] = "dead"
-        elif name == "judge" and not judge.JUDGE_ENABLED:
-            states[name] = "sweep-only"
         else:
             states[name] = "alive"
     return states
@@ -291,9 +304,7 @@ async def healthz() -> dict:
         "degraded": degraded,
         "telegram_enabled": tg.enabled(),
         "tasks": states,
-        "judge_model_loop": judge.JUDGE_ENABLED,
-        "judge_deadline_hours": judge.DEADLINE_HOURS,
-        "judge_fallback": judge.FALLBACK_MODEL if judge.FALLBACK_KEY else None,
+        "model_calls_possible": False,
         **snapshot,
     }
 
@@ -309,10 +320,8 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 @app.get("/api/kinds")
 async def list_kinds() -> dict:
-    import judge
-
     return {
-        kind: {**meta, "emits": judge.SOURCE_EMITS.get(kind)}
+        kind: {**meta, "emits": sources.SOURCE_EMITS.get(kind)}
         for kind, meta in sources.SOURCE_KINDS.items()
     }
 
@@ -337,22 +346,31 @@ async def list_watchers() -> list[dict]:
     return out
 
 
+@app.get("/api/templates")
+async def list_templates() -> dict:
+    import compose
+
+    return compose.TEMPLATES
+
+
 @app.post("/api/compose")
 async def compose_watch(payload: dict) -> dict:
     import compose
 
-    condition = (payload.get("condition") or "").strip()
-    if not condition:
-        raise HTTPException(400, "condition is required")
-    if len(condition) > 2000:
-        raise HTTPException(400, "condition too long")
+    template = (payload.get("template") or "").strip()
+    args = payload.get("args") or []
+    if isinstance(args, str):
+        args = args.split()
+    if not isinstance(args, list):
+        raise HTTPException(400, "args must be a list or a string")
+    args = [str(a) for a in args][:20]
     try:
-        return await compose.preview(condition)
-    except judge.QuotaExceeded as exc:
-        raise HTTPException(429, f"model quota exceeded: {exc}")
+        return await compose.preview(template, args)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
     except Exception as exc:
         log.warning("compose failed: %s", exc)
-        raise HTTPException(502, f"could not compose a plan: {exc}")
+        raise HTTPException(502, f"could not build a plan: {exc}")
 
 
 @app.post("/api/compose/create")
@@ -372,9 +390,9 @@ async def create_composed_watch(payload: dict) -> dict:
         for row in rows:
             try:
                 c.execute(
-                    "INSERT INTO watchers (kind, target, name, created_at, ai_spec, push, "
+                    "INSERT INTO watchers (kind, target, name, created_at, match_rule, push, "
                     "stop_after, watch_group) VALUES (?, ?, ?, ?, ?, 1, ?, ?)",
-                    (row["kind"], row["target"], row["name"], now_iso(), row["ai_spec"],
+                    (row["kind"], row["target"], row["name"], now_iso(), row["match_rule"],
                      row["stop_after"], row["watch_group"]),
                 )
                 created.append(row)
@@ -699,72 +717,3 @@ async def ack_all(wid: int) -> dict:
     return {"ok": True, "acked": cur.rowcount}
 
 
-@app.post("/api/watchers/{wid}/lint")
-async def relint_watcher(wid: int) -> dict:
-    import judge
-
-    c = conn()
-    row = c.execute("SELECT * FROM watchers WHERE id = ?", (wid,)).fetchone()
-    if not row:
-        c.close()
-        raise HTTPException(404, "watcher not found")
-    if not row["ai_spec"]:
-        c.close()
-        raise HTTPException(400, "watcher has no ai_spec")
-    try:
-        lint = await judge.lint_spec(row["kind"], row["target"], row["ai_spec"])
-    except judge.QuotaExceeded as exc:
-        c.close()
-        raise HTTPException(429, f"judge quota exceeded: {exc}")
-    except Exception as exc:
-        c.close()
-        raise HTTPException(502, f"lint failed: {exc}")
-    c.execute(
-        "UPDATE watchers SET spec_lint = ?, spec_lint_at = ? WHERE id = ?",
-        (json.dumps(lint), now_iso(), wid),
-    )
-    c.close()
-    return {"ok": True, "spec_lint": lint}
-
-
-@app.post("/api/events/{eid}/judge")
-async def rejudge_event(eid: int) -> dict:
-    import judge
-    c = conn()
-    row = c.execute(
-        """
-        SELECT e.*, w.ai_spec AS w_spec, w.kind AS w_kind, w.target AS w_target, w.name AS w_name,
-               w.must_mention AS w_must_mention
-        FROM events e JOIN watchers w ON w.id = e.watcher_id WHERE e.id = ?
-        """,
-        (eid,),
-    ).fetchone()
-    if not row:
-        c.close()
-        raise HTTPException(404, "event not found")
-    if not row["w_spec"]:
-        c.close()
-        raise HTTPException(400, "watcher has no ai_spec")
-    try:
-        judgement = await judge.judge_event(row["w_spec"], dict(row))
-    except judge.QuotaExceeded as exc:
-        c.close()
-        raise HTTPException(429, f"judge quota exceeded: {exc}")
-    except Exception as exc:
-        c.close()
-        raise HTTPException(502, f"judge failed: {exc}")
-    c.execute(
-        "UPDATE events SET ai_verdict = ?, ai_reason = ?, ai_claim = ?, ai_subject = ?, ai_incident = ?, "
-        "ai_judged_at = ?, ai_claimed_at = NULL WHERE id = ?",
-        (
-            judgement["verdict"],
-            judgement["reason"][:500],
-            judgement["claim"] or None,
-            judgement["subject"] or None,
-            judgement["incident"] or None,
-            now_iso(),
-            eid,
-        ),
-    )
-    c.close()
-    return {"ok": True, **judgement}
