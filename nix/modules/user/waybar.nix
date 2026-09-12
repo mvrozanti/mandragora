@@ -198,7 +198,7 @@
 
         memory = {
           format = " {percentage}%";
-          interval = 5;
+          interval = 0.5;
           tooltip-format = "{used:0.1f}G / {total:0.1f}G";
         };
 
@@ -207,17 +207,18 @@
           format = " {temperatureC}°";
           hwmon-path-abs = "/sys/devices/pci0000:00/0000:00:18.3/hwmon";
           input-filename = "temp1_input";
+          interval = 0.5;
         };
 
         cpu = {
           format = "  {usage}%";
-          interval = 5;
+          interval = 0.5;
         };
         "custom/gpu" = {
           format = "{}";
           exec = "gpu-menu waybar";
           return-type = "json";
-          interval = 5;
+          interval = 2;
           tooltip = true;
           on-click = "gpu-menu pick";
         };
