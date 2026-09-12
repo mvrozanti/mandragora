@@ -59,15 +59,6 @@
       "logging": false
     },
     {
-      "name": "voice",
-      "kind": "authelia-simple",
-      "host": "voice",
-      "upstream_var": "VOICE_UPSTREAM",
-      "upstream_host": "desktop",
-      "upstream_port": 8094,
-      "logging": false
-    },
-    {
       "name": "meme",
       "kind": "authelia-simple",
       "host": "meme",

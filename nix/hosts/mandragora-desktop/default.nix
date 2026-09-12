@@ -66,6 +66,7 @@ in
     ../../modules/services/ytdl-web.nix
     ../../modules/services/meme-web.nix
     ../../modules/services/emotion-web.nix
+    ../../modules/services/voice-alter-core.nix
     ../../modules/services/llm-visualizer.nix
     ../../modules/user/home-manager.nix
     ../../modules/audits/default.nix
@@ -115,4 +116,5 @@ in
     listenHost = "100.115.80.79";
   };
   mandragora.emotionWeb.enable = true;
+  mandragora.voiceAlterCore.enable = true;
 }
