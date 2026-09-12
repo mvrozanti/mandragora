@@ -4,16 +4,14 @@ FastAPI app + background poller that watches external sources (GitHub
 users/repos, Reddit users/subs) and emits new items as webhook POSTs.
 Served at `https://watch.mvr.ac`, Authelia-gated.
 
-> **Agent directive — no LLM without asking.** Watchers are plain HTTP
-> feed pollers (GitHub/Reddit/RSS/Atom/etc). The only LLM path is the
-> opt-in `ai_spec` relevance judge, and the release layer deliberately
-> never uses it. Do **not** wire any LLM/model call into a watcher,
-> source, or feature (auto-summarizing changelogs, classifying events,
-> generating digests, AI-tagging…) without asking the user first. When
-> a task looks like it needs a model, stop and ask before spending LLM
-> power — default to dumb feed logic. Before adding an `ai_spec` at all, check
-> whether the question has a fact source: `tvmaze_season` replaced three
-> spec'd watchers that were 96% of the judge's entire workload.
+> **Agent directive — there is no model in this system, and that is the
+> design.** Every watcher is a plain HTTP poller and every decision is a
+> keyword rule or a structured field. Do **not** add an LLM call to a
+> watcher, source, template or feature — not for summarising changelogs,
+> classifying events, generating digests or tagging anything. The model was
+> removed on 2026-09-12 after measurement, not preference: see *Why there is
+> no model* below. If you believe a question genuinely needs one, stop and
+> ask the user first, and bring numbers.
 
 
 ## The model: a watch is a standing question
@@ -27,7 +25,7 @@ Each watcher is a question you are waiting on, and it is in exactly one state:
 | **done** | everything that fired has been accepted, in the web UI or from the Telegram link |
 
 A *trigger* is an event that reached you: a `GO` verdict, or — for a watcher with no
-`ai_spec` — any event, since everything that source emits passes by definition. The
+`match_rule` — any event, since everything that source emits passes by definition. The
 SQL predicate is `TRIGGER_PREDICATE` in `main.py`; `/api/watchers` carries
 `state`, `trigger_count` and `open_trigger_count`, and
 `/api/watchers/{id}/triggers` returns only what fired.
@@ -42,69 +40,6 @@ hourly until I accept this" and is reserved for urgent security watches — as o
 itself (`acked_at`) is universal and is what moves a watch to *done*. That rework set
 `requires_ack = 0` on 28 watchers, accepted 950 outstanding events, and cleared 3
 stale verdicts left on a watcher whose spec had been removed.
-
-## The judge may not assert a subject the source never named
-
-A 14b model told us, in its own words, that *"Major bitcoin wallet flaw drains 594
-BTC in 25-minute sweep"* was a headline asserting an **Electrum** security flaw. It
-was not; Electrum appears nowhere in it. Three of seven lifetime GO verdicts were
-this exact failure — a confident reason naming a product the text never mentions,
-because the spec had primed the model to look for it.
-
-The system prompt already said "do not infer" and "never invent facts not present in
-the provided text". Instructing a small model not to hallucinate is not a control.
-So, as with corroboration matching, the check is **deterministic set logic**:
-
-- `judge.ground_verdict` runs after every judgement. Anything that is not already NO
-  is checked against the event's title, summary and fetched body.
-- If the watcher sets **`must_mention`**, those literals are authoritative: absent
-  from the text means NO, whatever the model said. This is the precise dial —
-  watchers 28 and 30 carry `electrum`.
-- With no `must_mention`, the fallback is the model's own extracted `subject`: every
-  distinctive term in it must appear in the text. Generic words
-  (`SUBJECT_STOPWORDS`) do not count.
-- A refused verdict says exactly why: *"subject is not named in the source: electrum
-  absent from the title, summary and fetched text"*.
-
-Re-judging the seven historical GOs under this rule left **two**, both of which name
-Electrum in the headline. The gate refused two outright; the model itself withdrew
-two more on a second look.
-
-`must_mention` only applies to watchers that have an `ai_spec`, because only those
-reach the judge. A watcher with no spec forwards everything its source emits by
-design — for those, the source is the filter.
-
-## Give the judge something to read
-
-`fetch_link` on a Google News RSS link returns **HTTP 200 and zero characters**. The
-link is not an article; it is a 587 KB Angular shell that resolves the real URL
-client-side over an internal RPC. The publisher address appears nowhere in the page —
-the only external URLs in it are Google fonts, analytics and logos.
-
-So every event from the `gnews` watcher was judged on a headline. "Does this report a
-security vulnerability affecting Electrum?" asked of twelve words like *"CZ Warns
-Bitcoin Holders After $70 Million Wallet Exploit"* is not a comprehension task, it is
-a guess — which is why the model kept asserting Electrum. Tightening the search query
-would not have helped: it changes what arrives, not what can be read.
-
-`lint_spec` did not catch it because `SOURCE_EMITS["rss"]` promises "the article body
-reachable only by fetching that link". For Google News that promise is false, so the
-lint vouched for a spec its source could not support. Aggregator feeds remain the one
-case where the fetch does not reach an article, and the reason publisher feeds are
-preferred; the lint cannot tell them apart from the feed URL alone.
-
-The fix is the source. Four publisher feeds replaced it — BleepingComputer, Security
-Affairs, The Hacker News, Malwarebytes — whose items link straight to articles that
-fetch 6–8 k characters of readable text. Being four separate watchers also makes them
-eligible to corroborate each other, which one aggregated feed never could. The old
-`gnews` watcher is paused rather than deleted, so its two genuine historical triggers
-survive.
-
-**`must_mention` runs before the model, not after.** The link is fetched, the required
-literals are checked against title + summary + body, and only then is the LLM called.
-General security feeds carry a lot of traffic — the first poll took 95 items, none of
-which name Electrum anywhere — and none of those cost a judgement. Because the body
-counts, an article that only mentions Electrum halfway down still gets read properly.
 
 ## Backing off
 
@@ -167,83 +102,6 @@ watcher is checked every ~20 minutes, which is ample for "has the season
 dropped". `WATCH_REDDIT_MIN_INTERVAL` (60s) stays as a floor for manual
 `/poll` calls, and rationing means the poller itself never waits on it.
 
-## Ask a fact source before you ask a model
-
-Three `reddit_search` watchers — severance s3, pluribus s2, hazbin s3 — were
-1460 of the 1496 events waiting on a verdict on 2026-09-09. Each asked
-`qwen3:14b` roughly 1500 questions a day to catch an answer that arrives once a
-year, which is why the judge loop kept a 14b model resident in 11 GB of VRAM
-around the clock and why it was switched off. Switching it off made every
-`ai_spec` watcher silent, including the security ones.
-
-None of those three was a fuzzy question. TVmaze already carries the answer as a
-field:
-
-```
-Severance  44933  season 3: premiereDate=null   ← the row exists, undated
-Pluribus   86175  season 2: premiereDate=null
-Hazbin     43094  seasons 1-2 only              ← a season 3 row appearing IS the event
-```
-
-`tvmaze_season` (target `<show>:<season>`, e.g. `severance:3`, resolved to
-`44933:3` at add time) polls that one endpoint and stores the season's state as
-its cursor: `absent`, `listed`, `listed:eps=10`, `dated:<date>`,
-`aired:<date>`. Every transition is one event with a headline that says what
-changed. The first poll records the baseline silently, exactly like the release
-layer's backlog suppression, so adding a watcher today pings you the day the
-premiere date appears and again the day it airs — not before.
-
-The general rule this encodes: **when a question has a fact source, poll the
-fact source.** A model asked to read fan chatter is guessing at something an API
-states outright, and it costs a GPU to guess. GitHub Releases, TVmaze, Steam
-appdetails, PyPI and endoflife.date all answer their own questions. The judge is
-for the questions with no such source — a CVE mentioning a specific wallet, a
-jailbreak for a specific firmware — and those arrive a handful at a time.
-
-## The judge must never be the reason nothing fires
-
-`ai_spec` used to be a hard, fail-closed gate: no verdict meant no push, with no
-timeout and no fallback, so a judge that was off was indistinguishable from a
-world where nothing had happened. It stayed that way from 2026-09-08 to
-2026-09-09 with 1496 events held behind it.
-
-There are now two judges, and only one of them needs a model.
-
-**The deterministic sweep runs whether or not the model loop does.** Every
-`WATCH_JUDGE_INTERVAL` it takes events that are past `WATCH_JUDGE_DEADLINE_HOURS`
-(24) without a verdict and disposes of them with set logic alone:
-
-- the watcher's `must_mention` literals are checked against title, summary and
-  the fetched body — absent means `NO`, written with the usual refusal reason.
-  Watchers with a literal gate therefore self-clear forever, with no model.
-- anything the literals cannot dismiss — or any event on a watcher with no
-  `must_mention` — is **escalated**: `escalated_at` is stamped, `ai_verdict`
-  stays `NULL`, and the push gate lets it through badged `⚪ UNJUDGED`.
-
-A false positive costs one Telegram message. A false negative costs the entire
-point of the system. The escalation is deliberately the cheap failure.
-
-**The sweep holds while the model loop is working.** If `WATCH_JUDGE_ENABLED` is
-on and any verdict has been written in the last `WATCH_JUDGE_STALL_HOURS` (1),
-the sweep does nothing at all — a deep queue that is draining is not a stalled
-pipeline, and escalating out from under a working model would push events the
-model was about to reject. With the loop off, or with no verdict for an hour,
-the sweep runs. That rule is also what makes a backlog safe to deploy into.
-
-**Held events are no longer pruned.** `_prune` trimmed to
-`WATCH_MAX_EVENTS_PER_WATCHER` by id regardless of verdict, so w6 and w7 sat at
-exactly 500/500 all-unjudged: events were being deleted before anything ever
-looked at them. Judged events still trim at the cap; unjudged ones survive until
-`cap × WATCH_UNJUDGED_KEEP_FACTOR` (4) as a runaway stop.
-
-**Silence is now reported.** When more than `WATCH_ALERT_PENDING` (200) events
-are waiting on a verdict, the poller sends one Telegram alert per
-`WATCH_ALERT_INTERVAL` (6h) naming the backlog, the escalated count and the last
-push. `/healthz` reports `judge_model_loop`, `judge_deadline_hours`,
-`judge_fallback` and `escalated_open`; a judge that is off by configuration now
-reads `sweep-only` rather than `dead`, and the dashboard banner says what will
-still happen rather than "nothing will fire until it is back".
-
 ## Release layer (changelog feed)
 
 The `github_release` kind turns the perception layer into a **release
@@ -283,7 +141,7 @@ Telegram, on a **stable-only** policy:
 ### Feed-only (`push`) flag
 
 Every watcher has a `push` flag (default `1`). When `push=0` its events
-are still polled, stored, AI-judged, and visible in the UI, but the
+are still polled, stored, matched, and visible in the UI, but the
 poller skips Telegram/webhook fanout for them entirely. Toggle per
 watcher with the `mute`/`unmute` button (or `PATCH /api/watchers/:id`
 `{"push": false}`); the add-watcher form has a "push" checkbox. Mute a
@@ -307,168 +165,92 @@ via the web UI, `/ackrequire <id> on|off`, or `/remind <id> <seconds>`.
 Reminders piggy-back on the poll loop, so the effective minimum
 `reminder_interval` is `WATCH_POLL_INTERVAL` (default 300s).
 
-## AI relevance judge
+## Why there is no model
 
-**Off by default.** The background judge loop is gated behind
-`WATCH_JUDGE_ENABLED`, which defaults to `0`. Watchers do not reach for
-the local model on their own any more: at `WATCH_JUDGE_INTERVAL=30` and
-`WATCH_JUDGE_BATCH=3` the loop sustained ~180 judgements/hour, which
-matched the event intake rate, so the queue never drained and
-`qwen3:14b` stayed pinned in 11 GB of the desktop's VRAM around the
-clock. Across the whole history that bought 2 `GO` verdicts against
-1676 `NO`.
+This stack ran an LLM relevance judge from May to September 2026. It was removed
+after being measured against the database it had been judging.
 
-With the loop off, `ai_spec` watchers stay at `ai_verdict IS NULL` and
-so never push (see the pending row below). `POST /api/events/{eid}/judge`
-and spec lint still reach the model, because those are started by hand.
-Set `WATCH_JUDGE_ENABLED=1` in the compose `environment:` to restore the
-loop.
+| measurement | result |
+|---|---|
+| Events the four security RSS feeds delivered | 212 |
+| Refused by the literal keyword `electrum` before any model ran | **212** |
+| Times the model was called on those feeds | **0** |
+| Real Electrum stories the keyword `electrum` catches | **4** |
+| Real Electrum stories the model ever passed | **2** |
+| AI-gated watchers that ever delivered anything, lifetime | **0 of 10** |
 
-Setting an `ai_spec` (string describing what counts as a real match)
-on a watcher gates every new event through the local LLM (qwen3:14b
-on the desktop's RTX 5070 Ti, reached via tailnet) before any push
-happens. The judge fetches the event's `link` URL, strips HTML/JSON,
-and feeds the body to the model alongside the spec — verdicts are
-based on actual link content, not just title/summary.
+The keyword did not merely match the model. It beat it: replaying `electrum` over
+all 337 events those watchers ever saw returns four genuine stories, including
+"Electrum Bitcoin wallets under siege" and a Bitmessage zero-day used to steal
+Electrum keys — both of which the model withheld.
 
-Verdicts:
+The clearest case was the kindle watcher. On 2026-09-12 a post titled *"KPM does
+not work after jailbreak with Vera on Paperwhite 12th gen"* — a report of the
+exact jailbreak w4 exists to find — was judged `NO`, because the post's firmware
+was 5.17.1.0.4 and the spec demanded 5.18+. The judge applied the spec correctly
+and thereby destroyed the only signal that mattered. 74 jailbreak posts were
+withheld this way. `paperwhite AND jailbreak` delivers them.
 
-- `GO` — pushed (Telegram badge `🟢 GO`). Content positively asserts
-  every explicit spec requirement and states it as established fact.
-- `UNCLEAR` — every spec requirement is evidenced but the assertion
-  itself is weak (unverified single report, rumor with no source,
-  preview with nothing shipped). Not pushed on its own; held for
-  corroboration, below.
-- `NO` — stored but never pushed; reminders never fire.
-- pending (`ai_verdict IS NULL`) — also not pushed; re-judged next
-  judge cycle, or left pending indefinitely while the loop is off.
+The general lesson: an over-precise rule enforced by a literal-minded reader
+fails *closed and silently*, and silence is the one failure mode this system
+cannot afford. A keyword rule fails open — you get some noise, you dismiss it,
+and you keep the signal.
 
-The judge prompt treats missing required spec fields (e.g. spec says
-"PW12 fw 5.18.x" but the link omits generation or firmware) as `NO`,
-not `UNCLEAR`. A notification the user has to hand-verify is a failed
-filter. Write specs with concrete constraints — model number, firmware
-range, version, platform — so the judge has something to enforce.
+## Match rules
 
-### Corroboration
+`match_rule` on a watcher is a boolean expression evaluated over the event's
+title and summary (`app/match.py`, no network, no dependencies):
 
-Every verdict is tagged with a normalized `subject` (the product or
-system, e.g. `electrum bitcoin wallet`) and an `incident` drawn from a
-fixed list (`vulnerability`, `exploit`, `phishing`, `supply-chain`,
-`malware`, `outage`, `release`, `announcement`, `other`), plus a
-human-readable `claim` for display.
-
-Each cycle, an `UNCLEAR` event is matched against events from *other*
-watchers inside `WATCH_CORROBORATE_WINDOW` hours (default 72) carrying
-a matching `subject` and an incident from the same family — `security`
-(vulnerability, exploit, phishing, supply-chain, malware),
-`availability`, `shipping`, or `other`. Families exist because one
-incident is legitimately labelled differently by different outlets: the
-same Electrum attack came back as `exploit` from one source and
-`phishing` from another. A match promotes both to
-`GO` with reason `corroborated by event <id>` and the normal push gate
-delivers them. One source saying something shaky stays quiet; two
-independent sources agreeing is the confirmation.
-
-Matching is **deterministic string work, not a second LLM opinion** —
-subjects match on exact equality or token subset (`electrum wallet`
-corroborates `electrum bitcoin wallet`; `wallet` alone is too generic
-to match). An earlier design asked the model whether two free-text
-claims described the same event; qwen3:14b reliably answered "no" over
-wording differences alone ("flaw" vs "attack" about one incident), which
-would have made `UNCLEAR` just as much a dead end as `MAYBE` was.
-Extraction is what the model is good at; equivalence judgement is not.
-
-### Spec decidability
-
-A spec that demands facts its source never carries produces an endless
-`NO` streak that reads exactly like a broken pipeline — this is what
-kept the stack silent through Aug 2026. Each spec is audited once
-against the material the judge will actually hold. Undecidable specs
-are flagged with the problems found and a suggested rewrite, visible in
-`GET /api/watchers`, the web UI, `/list` and `/status`. Editing a spec
-requeues the check. The flag is advisory — nothing is ever blocked.
-
-The audit is only as good as its description of the source, and through Sep 2026
-that description was wrong in the strict direction. `SOURCE_EMITS` listed the
-pre-fetch row (`hn_search` = "title, url and points, **without** the linked
-article body") while `judge_event` has always fetched the linked page first and
-handed it to the model. The prompt then named that exact case — "asking a
-title-only search to confirm details that only appear in an article body" — as
-its first example of undecidable. Every spec that relied on the body was
-therefore condemned: 8 of 13 spec'd watchers wore "spec unanswerable", including
-`pluribus s2 release`, and the only specs that passed were the ones carrying an
-explicit "judge from the headline alone" clause. `SOURCE_EMITS` now describes
-what the judge holds, the prompt forbids the body-is-missing verdict outright,
-and rarity is stated not to imply undecidability.
-
-Two guards came out of it. A `suggestion` that merely echoes the spec back is
-dropped rather than shown — the model returned the spec verbatim for w7 and w26.
-And each result carries `SPEC_LINT_VERSION`; `lint_pending_specs` re-lints any
-watcher whose stored version is behind, so changing the prompt no longer leaves a
-DB full of verdicts from the prompt that produced them. Bump the version whenever
-the prompt or `SOURCE_EMITS` changes.
-
-**The model no longer stays resident.** Every ollama call carries
-`keep_alive` (`WATCH_OLLAMA_KEEP_ALIVE`, default `60s`), so the model unloads a
-minute after the queue goes quiet instead of holding 11 GB indefinitely. With
-the show watchers moved to `tvmaze_season` the queue is quiet almost always, so
-the GPU sees a few seconds of work a day rather than a permanent tenant.
-
-**There is a slot for a remote model, and it is deliberately empty.** Setting
-`WATCH_JUDGE_FALLBACK_URL` + `_KEY` + `_MODEL` makes a connection failure to
-ollama retry against any OpenAI-compatible endpoint. Unset — the default, and
-the current state — the call simply fails and the event stays pending until the
-deadline sweep reaches it. The chain is local model → deterministic escalation,
-with a cloud model as an optional middle link.
-
-It stays empty because the fallback only fires when the desktop is unreachable,
-and the desktop does not go down: five weeks of uptime as of 2026-09-09. The
-measured load behind the slot is ~16 model calls a day (41 events arrive; the
-`must_mention` gates refuse 153 of every 284 for free, including every one of
-the four security feeds), so a paid endpoint would buy insurance against a
-scenario that has not occurred, and a free tier would too. If the slot is ever
-filled, the free Gemini tier the retired desktop bridge used is the obvious
-candidate — but only as a backend *inside* this judge. A second judging loop
-with its own prompt is what commit `d9fb5d0d` removed, because two judges
-claiming the same events made a verdict depend on which loop won the race.
-
-The judge runs as its own asyncio loop, decoupled from the poller, so
-slow local-LLM calls never block source polling. `WATCH_JUDGE_INTERVAL`
-(default 30s) controls cycle cadence; `WATCH_JUDGE_BATCH` (default 3)
-caps events per cycle. Unjudged events queue indefinitely — no rush.
-
-If the desktop ollama is unreachable, the judge logs and retries next
-cycle. If link fetch fails (timeout, 4xx, binary content type), the
-model falls back to title+summary; per the hard rules above, missing
-required fields → `NO`, so unverifiable events stay silent.
-
-`.env` (all optional, defaults live in the code):
 ```
-WATCH_OLLAMA_URL=http://100.115.80.79:11434    # desktop tailnet
-WATCH_OLLAMA_MODEL=qwen3:14b
-WATCH_OLLAMA_TIMEOUT=180
-WATCH_OLLAMA_NUM_CTX=16384
-WATCH_JUDGE_INTERVAL=30
-WATCH_JUDGE_BATCH=3
-WATCH_LINK_MAX_CHARS=8000
-WATCH_LINK_TIMEOUT=20
-WATCH_CORROBORATE=1
-WATCH_CORROBORATE_WINDOW=72
-WATCH_CORROBORATE_CANDIDATES=12
-WATCH_SPEC_LINT_BATCH=2
-WATCH_OLLAMA_KEEP_ALIVE=60s
-WATCH_JUDGE_DEADLINE_HOURS=24
-WATCH_JUDGE_STALL_HOURS=1
-WATCH_JUDGE_SWEEP_BATCH=20
-WATCH_JUDGE_FALLBACK_URL=                      # empty by design, see above
-WATCH_JUDGE_FALLBACK_MODEL=
-WATCH_JUDGE_FALLBACK_KEY=
+electrum
+paperwhite AND jailbreak
+electrum AND (vulnerability OR exploit OR phishing)
+"browser extension" OR "claude in chrome"
+paperwhite AND jailbreak AND NOT ipod
 ```
 
-Telegram: `/spec <id> <text>` sets the spec, `/judge <event_id>`
-forces re-judge, `/verdicts <id>` tallies. Web UI exposes the same
-via the per-watcher `spec` button and the `re-judge` button on each
-event row.
+- Whitespace means `AND`. `AND`/`OR`/`NOT` are operators only in uppercase, so a
+  lowercase `and` is a literal word.
+- Terms match on **word boundaries**, so `electrum` no longer matches
+  *Electrostatic* or *Electron* — the two things that cost 31 model calls on HN.
+- `"quoted phrases"` match as a phrase, tolerating runs of whitespace.
+- An empty rule means everything the source emits reaches you.
+
+Set one with `/match <watcher_id> <rule>` or the web UI. An unparseable rule is
+rejected at the point you set it; a rule that somehow breaks at poll time lets the
+event through rather than swallowing it.
+
+The old `must_mention` column migrates into `match_rule` automatically on startup.
+
+## Templates: registering a watch
+
+The hard part of this system was never the polling — it was registering a watch.
+Choosing a source kind, a target, a spec strict enough to decide and loose enough
+to match, and a literal gate, where any one being wrong produces silence that
+looks exactly like "it has not happened yet". Ten watchers died that way.
+
+So registration is a template plus a live check. `/watch` with no arguments lists
+them:
+
+| template | example |
+|---|---|
+| `tv` | `/watch tv severance 3` |
+| `advisory` | `/watch advisory spesmilo/electrum` |
+| `release` | `/watch release neovim/neovim 0.12` |
+| `feeds` | `/watch feeds electrum https://www.bleepingcomputer.com/feed/` |
+| `sub` | `/watch sub kindlejailbreak paperwhite AND jailbreak` |
+| `repo` | `/watch repo spesmilo/electrum` |
+
+Nothing saves until the plan is checked against reality: every target is
+format-validated, **existence-checked against the real API**
+(`sources.target_exists` — it catches invented repos, dead feeds, and the
+tag-only-repo trap where a project publishes tags but no Releases), then fetched
+live, and the match rule is run over real items with the result shown. All of it
+is instant and free.
+
+`stop_after` ends a watch once it has said its piece — 1 for a season releasing,
+0 for an ongoing condition — counted across every source in one plan via
+`watch_group`, so two sources answering one question stop together.
 
 ## Knowing whether it is working
 
@@ -477,8 +259,8 @@ everything looks identical to a dead one. Two places answer it.
 
 `GET /healthz` always returns 200 (so the container healthcheck keeps
 meaning "process serves HTTP") and reports `ok`, a `degraded` list,
-per-task liveness for the poller/judge/telegram loops,
-`telegram_enabled`, `last_poll_at`, `last_push_at`, `pending_unjudged`,
+per-task liveness for the poller and telegram loops, `model_calls_possible`
+(always `false`), `telegram_enabled`, `last_poll_at`, `last_push_at`,
 watcher tallies, and verdict funnels over 24h and lifetime.
 
 Telegram `/status` renders the same funnel from the phone, plus any
