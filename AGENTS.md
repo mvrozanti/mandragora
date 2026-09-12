@@ -273,7 +273,7 @@ Specialized procedures defined in \`agent-skills/\` (exposed to agents via \`act
 3. Verify  test the change works
 \`\`\`
 
-Aliases (\`nrc\`, \`nrs\`, \`nrp\`, \`nrb\`, \`nrt\`) and the full
+Aliases (\`nrc\`, \`nrs\`, \`nrp\`) and the full
 common-tasks reference live in [\`docs/workflow.md\`](docs/workflow.md).
 
 ---

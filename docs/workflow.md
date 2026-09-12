@@ -46,8 +46,6 @@ Aliases (in `nix/modules/user/zsh.nix`):
 | `nrc` | `mandragora-switch` (full cycle with commit-message editor) |
 | `nrs` | `mandragora-switch !` (skip diff editor, no commit) |
 | `nrp` | `mandragora-commit-push` (commit + push only, no rebuild — used when only docs/markdown changed) |
-| `nrb` | rebuild boot |
-| `nrt` | rebuild test |
 
 If `mandragora-switch` is unavailable (e.g., during initial install or
 recovery), the manual equivalent is:
