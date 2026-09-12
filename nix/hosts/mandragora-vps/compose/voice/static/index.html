@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>voice · mvr.ac</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <h1>voice changer</h1>
+    <p class="sub">mic in → transform → monitor out</p>
+  </header>
+
+  <main>
+    <section class="row">
+      <button id="start" type="button">start mic</button>
+      <span id="status" class="status">idle</span>
+    </section>
+
+    <section class="field">
+      <label for="mode">mode</label>
+      <select id="mode">
+        <option value="bypass">bypass</option>
+        <option value="pitch">pitch</option>
+        <option value="deeper">deeper</option>
+        <option value="higher">higher</option>
+        <option value="helium">helium</option>
+        <option value="demon">demon</option>
+        <option value="robot">robot</option>
+        <option value="radio">radio</option>
+        <option value="telephone">telephone</option>
+        <option value="echo">echo</option>
+        <option value="reverb">reverb</option>
+        <option value="ai">ai (rvc)</option>
+      </select>
+    </section>
+
+    <section class="field">
+      <label for="pitch">pitch <span id="pitchVal">0 st</span></label>
+      <input id="pitch" type="range" min="-12" max="12" value="0" step="1">
+    </section>
+
+    <section class="field">
+      <label for="delay">delay <span id="delayVal">150 ms</span></label>
+      <input id="delay" type="range" min="0" max="1000" value="150" step="10">
+    </section>
+
+    <section class="meter">
+      <meter id="level" min="0" max="1" value="0"></meter>
+      <span id="rtt" class="rtt"></span>
+    </section>
+  </main>
+
+  <script src="/js/dsp.js"></script>
+  <script src="/js/ws.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
