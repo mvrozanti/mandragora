@@ -26,9 +26,14 @@ SYSTEM_PROMPT = (
     "told. Leave `spec` as an empty string when the source only emits the event in question "
     "anyway, so that every item from it is worth sending — a season's premiere date "
     "appearing, a streamer going live. Write a spec only where the source emits a mix of "
-    "relevant and irrelevant items and something must read them. A spec must be decidable "
-    "from an item's title, summary and the text of the page it links to, and must name the "
-    "concrete constraints that matter: version, generation, firmware, platform.\n\n"
+    "relevant and irrelevant items and something must read them.\n\n"
+    "Write the spec as a plain English requirement addressed to a careful reader, never as a "
+    "boolean expression over the title. Do NOT write things like \"title contains X or Y\" or "
+    "\"points > 100\" — a reader, not a filter, decides this, and it reads the linked article "
+    "as well as the title. State the constraints that a genuine match must satisfy and that a "
+    "near-miss would fail: the exact generation or model, the version or firmware range, the "
+    "platform, and whether the thing must already exist rather than be planned or discussed. "
+    "A spec that a closely-related but wrong item would also satisfy is a broken spec.\n\n"
     "stop_after: how many times this watch should fire before it is finished. Use 1 for a "
     "one-time event that cannot recur — a season being released, a device being jailbroken, "
     "a specific version shipping. Use 0 for an ongoing condition that can happen repeatedly, "
@@ -228,6 +233,8 @@ def format_preview(result: dict) -> str:
         lines.append(f"    rule: {rule}")
         for j in probe.get("judged", []):
             lines.append(f"    [{j['verdict']}] {j['title'][:60]}")
+            if j.get("reason"):
+                lines.append(f"        {j['reason'][:110]}")
     stop = plan.get("stop_after") or 0
     lines.append("")
     lines.append(f"stops after: {stop if stop else 'never — ongoing'}")

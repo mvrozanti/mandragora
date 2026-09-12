@@ -229,7 +229,8 @@
         " <span class=\"wa-hint\">" + (s.available || 0) + " items right now</span>" +
         '<div class="wa-preview__why">' + rule + "</div>" +
         (s.judged || []).map(function (j) {
-          return '<div class="wa-preview__j"><b>' + esc(j.verdict) + "</b> " + esc(j.title) + "</div>";
+          return '<div class="wa-preview__j"><b>' + esc(j.verdict) + "</b> " + esc(j.title) +
+            (j.reason ? '<div class="wa-preview__why">' + esc(j.reason) + "</div>" : "") + "</div>";
         }).join("") + "</div>");
     });
     out.push('<div class="wa-preview__stop">' +
