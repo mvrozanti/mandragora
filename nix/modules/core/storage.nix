@@ -13,7 +13,9 @@
     "L+ /media - - - - /mnt"
   ];
 
-  services.udev.extraRules = builtins.readFile ../../snippets/udisks-shared-mounts.rules;
+  services.udev.extraRules =
+    builtins.readFile ../../snippets/udisks-shared-mounts.rules
+    + builtins.readFile ../../snippets/mtp-uaccess.rules;
 
   services.udev.packages = [ pkgs.libmtp.out ];
 
