@@ -25,7 +25,7 @@
     { "name": "mpd", "host": "mpd.mvr.ac", "group": "media", "desc": "myMPD · queue, library", "access": "priv", "where": "desk" },
     { "name": "ytdl", "host": "ytdl.mvr.ac", "group": "media", "desc": "yt-dlp → ~/Music · mp3", "access": "priv", "where": "desk" },
     { "name": "analyzer", "host": "music.mvr.ac", "group": "media", "desc": "one song, every modelable transmission", "access": "open", "where": "vps" },
-    { "name": "emotion", "host": "voice.mvr.ac", "group": "media", "desc": "CLAP + essentia · per-track feeling", "access": "priv", "where": "vps" },
+    { "name": "voice", "host": "voice.mvr.ac", "group": "media", "desc": "live voice morph · dsp + rvc", "access": "priv", "where": "vps" },
     { "name": "meme", "host": "meme.mvr.ac", "group": "media", "desc": "image tag runner · progress / restart", "access": "priv", "where": "vps" },
 
     { "name": "chat", "host": "chat.mvr.ac", "group": "ai", "desc": "open-webui · local ollama", "access": "priv", "where": "desk" },
