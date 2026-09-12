@@ -14,8 +14,8 @@ let
   runtimePath = lib.makeBinPath [
     pkgs.gource
     pkgs.ffmpeg-full
-    pkgs.xorg.xorgserver
-    pkgs.xorg.xauth
+    pkgs.xorg-server
+    pkgs.xauth
     pkgs.git
     pkgs.coreutils
     pkgs.bash
