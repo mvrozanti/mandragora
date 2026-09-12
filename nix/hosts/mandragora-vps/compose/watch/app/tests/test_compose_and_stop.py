@@ -11,7 +11,7 @@ def _plan(**kw):
         "name": "severance season 3",
         "condition": "severance season 3 is released",
         "stop_after": 1,
-        "sources": [{"kind": "tvmaze_season", "target": "severance:3", "spec": "", "why": "fact source"}],
+        "sources": [{"kind": "tvmaze_season", "target": "severance:3", "match": "", "why": "fact source"}],
     }
     base.update(kw)
     return base
@@ -19,8 +19,8 @@ def _plan(**kw):
 
 def test_plan_rows_skips_unreachable_sources():
     plan = _plan(sources=[
-        {"kind": "tvmaze_season", "target": "severance:3", "spec": "", "why": ""},
-        {"kind": "rss", "target": "https://invented.invalid/feed", "spec": "x", "why": ""},
+        {"kind": "tvmaze_season", "target": "severance:3", "match": "", "why": ""},
+        {"kind": "rss", "target": "https://invented.invalid/feed", "match": "x", "why": ""},
     ])
     checked = [
         {"ok": True, "resolved_target": "44933:3"},
@@ -34,8 +34,8 @@ def test_plan_rows_skips_unreachable_sources():
 
 def test_plan_rows_share_one_group_and_stop_condition():
     plan = _plan(stop_after=2, sources=[
-        {"kind": "hn_search", "target": "a", "spec": "s", "why": ""},
-        {"kind": "reddit_search", "target": "b", "spec": "s", "why": ""},
+        {"kind": "hn_search", "target": "a", "match": "s", "why": ""},
+        {"kind": "reddit_search", "target": "b", "match": "s", "why": ""},
     ])
     checked = [{"ok": True, "resolved_target": "a"}, {"ok": True, "resolved_target": "b"}]
     rows = compose.plan_rows(plan, checked)
@@ -43,28 +43,24 @@ def test_plan_rows_share_one_group_and_stop_condition():
     assert all(r["stop_after"] == 2 for r in rows)
 
 
-def test_empty_spec_becomes_no_ai_gate():
+def test_empty_rule_becomes_no_gate_at_all():
     rows = compose.plan_rows(_plan(), [{"ok": True, "resolved_target": "44933:3"}])
-    assert rows[0]["ai_spec"] is None
+    assert rows[0]["match_rule"] is None
 
 
-def test_spec_is_carried_through():
-    plan = _plan(sources=[{"kind": "hn_search", "target": "q", "spec": "must be real", "why": ""}])
+def test_rule_is_carried_through():
+    plan = _plan(sources=[{"kind": "hn_search", "target": "q", "match": "electrum", "why": ""}])
     rows = compose.plan_rows(plan, [{"ok": True, "resolved_target": "q"}])
-    assert rows[0]["ai_spec"] == "must be real"
+    assert rows[0]["match_rule"] == "electrum"
 
 
 def test_preview_warns_when_nothing_is_reachable(monkeypatch):
-    async def fake_compose(condition):
-        return _plan(sources=[{"kind": "rss", "target": "https://nope.invalid/f", "spec": "", "why": ""}])
-
     async def fake_probe(entry):
         return {**entry, "ok": False, "error": "source unreachable", "resolved_target": None,
                 "samples": []}
 
-    monkeypatch.setattr(compose, "compose_plan", fake_compose)
     monkeypatch.setattr(compose, "probe_source", fake_probe)
-    result = asyncio.run(compose.preview("anything"))
+    result = asyncio.run(compose.preview("advisory", ["spesmilo/electrum"]))
     assert result["usable"] == 0
     assert any("nothing would ever fire" in w for w in result["warnings"])
 

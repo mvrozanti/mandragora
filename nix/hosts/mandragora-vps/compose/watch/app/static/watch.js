@@ -224,7 +224,7 @@
           '<div class="wa-preview__why">' + esc(s.error || "") + "</div></div>");
         return;
       }
-      var rule = s.spec ? esc(s.spec) : "everything it emits reaches you";
+      var rule = s.match ? esc(s.match) : "everything it emits reaches you";
       out.push('<div class="wa-preview__src">✓ ' + esc(s.kind) + " · " + target +
         " <span class=\"wa-hint\">" + (s.available || 0) + " items right now</span>" +
         '<div class="wa-preview__why">' + rule + "</div>" +
@@ -250,12 +250,20 @@
       return true;
     }
     if (state.asking) {
+      var tpl = state.templates || {};
+      var opts = Object.keys(tpl).map(function (k) {
+        return '<option value="' + k + '"' + (state.template === k ? " selected" : "") + ">" +
+          esc(tpl[k].label) + "</option>";
+      }).join("");
+      var cur = tpl[state.template] || {};
       $("add").innerHTML = '<form class="wa-form" id="askform">' +
-        '<div class="wa-field wide"><label for="f-ask">what do you want to know?</label>' +
-        '<textarea class="wa-area" id="f-ask" rows="2" placeholder="severance season 3 is released"></textarea>' +
-        '<div class="wa-hint">plain words. it picks the sources, shows you what it would have decided on live data, then asks.</div></div>' +
+        '<div class="wa-field wide"><label for="f-tpl">what do you want to know?</label>' +
+        '<select class="wa-select" id="f-tpl" data-act="pickt">' + opts + "</select></div>" +
+        '<div class="wa-field wide"><label for="f-args">' + esc((cur.fields || []).join(", ")) + "</label>" +
+        '<input class="wa-input" id="f-args" placeholder="' + esc((cur.example || "").split(" ").slice(1).join(" ")) + '"></div>' +
+        '<div class="wa-hint">no model involved. it checks every source against live data before saving.</div>' +
         '<div class="wa-acts wide"><button class="wa-btn primary" type="submit">' +
-        (state.composing ? "looking…" : "find the sources") + "</button>" +
+        (state.composing ? "checking…" : "check it") + "</button>" +
         '<button class="wa-btn" type="button" data-act="cancelask">cancel</button></div></form>';
       return true;
     }
@@ -340,7 +348,18 @@
     },
     openadd: function () { state.addOpen = true; render(); },
     canceladd: function () { state.addOpen = false; render(); },
-    openask: function () { state.asking = true; state.preview = null; render(); },
+    openask: function () {
+      state.asking = true; state.preview = null;
+      if (!state.templates) {
+        api("GET", "/api/templates").then(function (t) {
+          state.templates = t;
+          state.template = state.template || Object.keys(t)[0];
+          render();
+        }).catch(function () {});
+      }
+      render();
+    },
+    pickt: function () {},
     cancelask: function () { state.asking = false; state.preview = null; state.composing = false; render(); },
     savewatch: function () {
       var p = state.preview;
@@ -410,11 +429,13 @@
   document.addEventListener("submit", function (ev) {
     if (ev.target.id === "askform") {
       ev.preventDefault();
-      var condition = $("f-ask").value.trim();
-      if (!condition) { toast("say what you want to know", true); return; }
+      var tplSel = $("f-tpl");
+      var argv = $("f-args").value.trim();
+      if (!tplSel || !argv) { toast("fill in the blanks", true); return; }
+      state.template = tplSel.value;
       state.composing = true;
       render();
-      api("POST", "/api/compose", { condition: condition }).then(function (res) {
+      api("POST", "/api/compose", { template: tplSel.value, args: argv }).then(function (res) {
         state.composing = false;
         state.preview = res;
         render();
