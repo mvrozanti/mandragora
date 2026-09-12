@@ -8,7 +8,7 @@ import sources
 
 log = logging.getLogger("watch.compose")
 
-PROBE_ITEMS = int(os.environ.get("WATCH_COMPOSE_PROBE_ITEMS", "3"))
+PROBE_ITEMS = int(os.environ.get("WATCH_COMPOSE_PROBE_ITEMS", "12"))
 COMPOSE_NUM_CTX = int(os.environ.get("WATCH_COMPOSE_NUM_CTX", "8192"))
 
 
