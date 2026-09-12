@@ -289,20 +289,39 @@ The image builds through a `test` stage that runs the same suite, so
 `docker compose up -d --build` fails on a red test and the deployed
 image never carries pytest.
 
-## Kindle Paperwhite gen 12 jailbreak watch
+## Kindle Paperwhite gen 12 jailbreak watch — answered
 
-Three watchers cover the realistic sources for new Kindle PW12 (fw
-≥ 5.9) jailbreaks. All three are good candidates for `requires_ack`
-since the signal is rare and high-value:
+**The question this watch existed to answer is answered.** Two jailbreaks cover
+the PW12:
+
+| | released | PW12 firmware range | method |
+|---|---|---|---|
+| **Véra** | 2026-08-10 | 5.17.1 – **5.19.6** | the Kindle's own web browser, no computer |
+| **SpiderCat** | 2026-09-01 | 5.16.3 – **5.19.5** | download one book and open it |
+
+Only Véra reaches 5.19.6, so a device already on the newest firmware has exactly
+one route. Both live at [kindlemodding.org](https://kindlemodding.org/jailbreaking/),
+whose wizard checks a specific device and firmware. A Kindle left online will
+happily update itself out of range while you procrastinate.
+
+The watch did not deliver either of them, and the reason is the whole argument in
+*Why there is no model*. On 2026-09-12 the reddit watcher saw *"KPM does not work
+after jailbreak with Vera on Paperwhite 12th gen"* and the judge returned `NO` —
+"firmware 5.17.1.0.4 < 5.18" — because the spec demanded 5.18+ and that post
+happened to mention an older firmware. The spec was right about the firmware it
+cared about and wrong about the post, and a month of Véra coverage went by unread.
+
+The sources now, all keyword-gated:
 
 ```
-/addack rss      https://www.mobileread.com/forums/external.php?type=RSS2&forumids=150
-/addack hn_search     kindle paperwhite jailbreak
-/addack reddit_search kindle paperwhite jailbreak 5.9
+rss        https://blog.the-ebook-reader.com/feed/   jailbreak
+rss        mobileread forum 150 (Kindle Developer's Corner)   paperwhite AND jailbreak
+reddit_search / hn_search   kindle paperwhite jailbreak   paperwhite AND jailbreak
 ```
 
-Forum 150 on MobileRead is the Kindle Developer's Corner — historically
-where every Kindle JB drops first.
+The ebook-reader blog is the one that actually carried both announcements, and
+`jailbreak` matches roughly one item in fifteen there — low volume, high signal.
+Forum 150 on MobileRead remains where jailbreaks historically drop first.
 
 ## Fan-out
 
