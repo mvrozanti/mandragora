@@ -31,8 +31,8 @@ let
       s = ../../../agent-skills/confused;
     }
     {
-      n = "elicit";
-      s = ../../../agent-skills/elicit;
+      n = "elicit-ui";
+      s = ../../../agent-skills/elicit-ui;
     }
   ];
 
