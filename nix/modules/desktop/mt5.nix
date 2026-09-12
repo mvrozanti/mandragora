@@ -23,7 +23,7 @@ let
     name = "mt5-headless";
     runtimeInputs = [
       pkgs.wineWowPackages.staging
-      pkgs.xorg.xvfb
+      pkgs.xvfb
       pkgs.coreutils
     ];
     text = builtins.readFile ../../../.local/bin/mt5-headless.sh;
