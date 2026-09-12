@@ -1,9 +1,9 @@
 ---
-name: elicit
-description: Use when a decision will be made by looking — UI/UX, layout, visual identity, information architecture, a redesign or migration of an existing surface, "which of these should it be", "make it look better". Ships several working directions as one published, fully interactive HTML artifact wired to real data, then builds exactly the one chosen. Use instead of AskUserQuestion whenever the options differ in how they look or behave rather than in what outcome they produce. Triggered explicitly via /elicit.
+name: elicit-ui
+description: Use when a decision will be made by looking — UI/UX, layout, visual identity, information architecture, a redesign or migration of an existing surface, "which of these should it be", "make it look better". Ships several working directions as one published, fully interactive HTML artifact wired to real data, then builds exactly the one chosen. Use instead of AskUserQuestion whenever the options differ in how they look or behave rather than in what outcome they produce. Triggered explicitly via /elicit-ui.
 ---
 
-# elicit — Show the Options, Don't Describe Them
+# elicit-ui — Show the Options, Don't Describe Them
 
 ## Overview
 
@@ -21,13 +21,13 @@ and pick from.
 | Decision | Skill |
 |---|---|
 | "Should this break loudly or stay frozen?" | `confused` — text, objectives |
-| "Which layout / which identity / which IA?" | **`elicit`** — artifact, directions |
+| "Which layout / which identity / which IA?" | **`elicit-ui`** — artifact, directions |
 | "Should it land today or park until reviewed?" | `confused` |
-| "How should dream and the graph relate?" | **`elicit`** |
+| "How should dream and the graph relate?" | **`elicit-ui`** |
 | "Who else needs to reuse this?" | `confused` |
-| "Make it look better" | **`elicit`** |
+| "Make it look better" | **`elicit-ui`** |
 
-When a task has both kinds, elicit first — the visual choice usually deletes
+When a task has both kinds, run `elicit-ui` first — the visual choice usually deletes
 half the text questions.
 
 ## Lineage
