@@ -177,6 +177,8 @@
       home.stateVersion = "24.05";
       programs.zsh.shellAliases = {
         nrs = lib.mkForce "mandragora-wsl-switch";
+        nrb = lib.mkForce "mandragora-wsl-switch";
+        nrt = lib.mkForce "mandragora-wsl-switch";
       };
       programs.zsh.initContent = lib.mkAfter (builtins.readFile ../../snippets/zsh-wsl-sudo-forward.zsh);
     };
