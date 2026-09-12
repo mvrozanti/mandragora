@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy fin.mvr.ac — sync orderbook-algotrading source to VPS,
+# Deploy fin.mvr.ac — sync algotrading source to VPS,
 # build the fin-mvr-ac container, and bring the stack up.
 #
 # Idempotent. Re-run after changes to webui/ on the desktop.
@@ -10,7 +10,7 @@
 # Env overrides:
 #   REMOTE             ssh target           default opc@100.84.78.83
 #   REMOTE_DIR         slot on VPS          default /home/opc/fin
-#   LOCAL_REPO         orderbook source     default ~/Projects/orderbook-algotrading
+#   LOCAL_REPO         orderbook source     default ~/Projects/algotrading
 #   FIN_DATA_DIR       paper-trade data     default /home/opc/dnl_paper
 #
 # Usage:
@@ -21,7 +21,7 @@ set -euo pipefail
 
 REMOTE="${REMOTE:-opc@100.84.78.83}"
 REMOTE_DIR="${REMOTE_DIR:-/home/opc/fin}"
-LOCAL_REPO="${LOCAL_REPO:-$HOME/Projects/orderbook-algotrading}"
+LOCAL_REPO="${LOCAL_REPO:-$HOME/Projects/algotrading}"
 FIN_DATA_DIR="${FIN_DATA_DIR:-/home/opc/dnl_paper}"
 COMPOSE_SRC="$(cd "$(dirname "$0")" && pwd)/docker-compose.yml"
 

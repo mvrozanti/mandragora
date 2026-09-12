@@ -1,6 +1,6 @@
-# fin · live view of orderbook-algotrading
+# fin · live view of algotrading
 
-Public read-only dashboard for the orderbook-algotrading paper-trade
+Public read-only dashboard for the algotrading paper-trade
 state. Serves at https://fin.mvr.ac (no auth — paper-trade data is
 non-sensitive, OSS-bound).
 
@@ -10,12 +10,12 @@ guarantees" below).
 
 ## Source
 
-Container is built from `~/Projects/orderbook-algotrading/webui/`.
+Container is built from `~/Projects/algotrading/webui/`.
 Build on desktop, transfer image to VPS, run.
 
 ```bash
 # Desktop
-cd ~/Projects/orderbook-algotrading
+cd ~/Projects/algotrading
 docker build -f webui/Dockerfile -t fin-mvr-ac:latest .
 docker save fin-mvr-ac:latest | ssh opc@mandragora-vps "docker load"
 
