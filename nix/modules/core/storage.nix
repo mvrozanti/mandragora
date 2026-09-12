@@ -14,6 +14,15 @@
   ];
 
   services.udev.extraRules = builtins.readFile ../../snippets/udisks-shared-mounts.rules;
+
+  services.udev.packages = [ pkgs.libmtp.out ];
+
+  environment.systemPackages = with pkgs; [
+    android-file-transfer
+    jmtpfs
+    libmtp
+  ];
+
   fileSystems."/" = {
     device = "/dev/disk/by-label/NIXOS";
     fsType = "btrfs";
