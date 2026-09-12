@@ -98,6 +98,31 @@ SOURCE_KINDS: dict[str, dict[str, str]] = {
         "label": "TV season status (TVmaze)",
         "target_hint": "severance:3 or 44933:3",
     },
+    "github_advisory": {
+        "label": "GitHub security advisories",
+        "target_hint": "spesmilo/electrum",
+    },
+    "osv_package": {
+        "label": "OSV vulnerability database",
+        "target_hint": "PyPI:electrum",
+    },
+}
+
+
+SOURCE_EMITS = {
+    "github_user": "public activity events for one GitHub account: pushes, stars, forks, issue and PR openings, with repo names and short payload text",
+    "github_repo": "commits on one GitHub repository: message, author, timestamp",
+    "github_release": "GitHub release entries: tag, release title, and the full release-notes body",
+    "reddit_user": "one Reddit account's posts and comments: title and body text",
+    "reddit_sub": "posts from one subreddit: title, selftext, and the full text of the page the post links to",
+    "youtube_channel": "video entries from one channel: title and description only, never the spoken content",
+    "twitch_stream": "live/offline transitions for one streamer: stream title and game name only",
+    "hn_search": "Hacker News search hits: story title and points, plus the full text of the page the story links to",
+    "reddit_search": "Reddit search hits across subreddits: post title, subreddit, and the full text of the page the post links to",
+    "rss": "feed entries: headline, summary or excerpt, plus the full text of the page the entry links to",
+    "tvmaze_season": "structured season status from TVmaze: whether the season is listed, its episode order, and its premiere date — a fact table, never prose",
+    "github_advisory": "security advisories published by a GitHub project itself: identifier, severity, summary and description — a fact table, never prose",
+    "osv_package": "vulnerability records for one package from the OSV database: identifier, aliases, summary and details — a fact table, never prose",
 }
 
 
@@ -196,13 +221,21 @@ def validate_target(kind: str, target: str) -> str:
         return t
     elif kind == "tvmaze_season":
         return _resolve_tvmaze_target(target.strip())
+    elif kind == "github_advisory":
+        if t.count("/") != 1 or " " in t:
+            raise ValueError("github_advisory expects owner/repo")
+    elif kind == "osv_package":
+        eco, _, name = target.strip().partition(":")
+        if not eco or not name or " " in target.strip():
+            raise ValueError("osv_package expects <ecosystem>:<name>, e.g. PyPI:electrum")
+        return f"{eco.strip()}:{name.strip()}"
     else:
         raise ValueError(f"unknown kind: {kind}")
     return t
 
 
 async def target_exists(kind: str, target: str) -> tuple[bool, str]:
-    if kind in ("github_repo", "github_release"):
+    if kind in ("github_repo", "github_release", "github_advisory"):
         url = f"https://api.github.com/repos/{target}"
     elif kind == "github_user":
         url = f"https://api.github.com/users/{target}"
@@ -211,7 +244,8 @@ async def target_exists(kind: str, target: str) -> tuple[bool, str]:
     async with httpx.AsyncClient(timeout=15.0, headers=_github_headers()) as c:
         r = await c.get(url)
     if r.status_code == 404:
-        return False, f"github has no {kind.split('_')[1]} called {target}"
+        noun = "user" if kind == "github_user" else "repo"
+        return False, f"github has no {noun} called {target}"
     if r.status_code >= 400:
         return True, f"could not verify {target} (HTTP {r.status_code})"
     if kind == "github_release":
@@ -245,6 +279,10 @@ async def fetch(kind: str, target: str, cursor: str | None) -> tuple[list[dict[s
         return await _fetch_rss(target, cursor)
     if kind == "tvmaze_season":
         return await _fetch_tvmaze_season(target, cursor)
+    if kind == "github_advisory":
+        return await _fetch_github_advisories(target, cursor)
+    if kind == "osv_package":
+        return await _fetch_osv_package(target, cursor)
     raise ValueError(f"unknown kind: {kind}")
 
 
@@ -603,6 +641,79 @@ async def _fetch_twitch_stream(login: str, cursor: str | None) -> tuple[list[dic
         "raw": stream,
     }
     return [event], stream_id
+
+
+OSV_API = "https://api.osv.dev/v1/query"
+
+
+async def _fetch_github_advisories(repo: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    async with httpx.AsyncClient(timeout=20.0, headers=_github_headers()) as c:
+        r = await c.get(
+            f"https://api.github.com/repos/{repo}/security-advisories",
+            params={"per_page": 30, "state": "published"},
+        )
+    if r.status_code == 404:
+        return [], cursor or ""
+    _raise_for_throttle(r, "github")
+    r.raise_for_status()
+    events: list[dict[str, Any]] = []
+    newest = cursor
+    for it in r.json() or []:
+        ghsa = str(it.get("ghsa_id") or "")
+        if not ghsa:
+            continue
+        published = str(it.get("published_at") or "")
+        if cursor and published and published <= cursor:
+            continue
+        severity = str(it.get("severity") or "unknown").lower()
+        summary = str(it.get("summary") or "").strip()
+        cve = it.get("cve_id") or ""
+        body = str(it.get("description") or "")[:4000]
+        events.append({
+            "external_id": ghsa,
+            "title": f"{repo} {severity.upper()} advisory: {summary}"[:400],
+            "summary": " · ".join(x for x in (cve, ghsa, body) if x)[:8000],
+            "link": it.get("html_url") or f"https://github.com/{repo}/security/advisories/{ghsa}",
+            "occurred_at": published or _utc_iso(time.time()),
+            "raw": {"ghsa_id": ghsa, "severity": severity, "cve_id": cve},
+        })
+        if newest is None or published > newest:
+            newest = published
+    events.reverse()
+    return events, newest or ""
+
+
+async def _fetch_osv_package(target: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    ecosystem, _, name = target.partition(":")
+    payload = {"package": {"name": name, "ecosystem": ecosystem}}
+    async with httpx.AsyncClient(timeout=20.0, headers={"User-Agent": USER_AGENT}) as c:
+        r = await c.post(OSV_API, json=payload)
+    _raise_for_throttle(r, "osv")
+    r.raise_for_status()
+    events: list[dict[str, Any]] = []
+    newest = cursor
+    for it in (r.json() or {}).get("vulns") or []:
+        vid = str(it.get("id") or "")
+        if not vid:
+            continue
+        published = str(it.get("published") or "")
+        if cursor and published and published <= cursor:
+            continue
+        summary = str(it.get("summary") or "").strip()
+        details = str(it.get("details") or "")[:4000]
+        aliases = " ".join(it.get("aliases") or [])
+        events.append({
+            "external_id": vid,
+            "title": f"{name} advisory {vid}: {summary}"[:400],
+            "summary": " · ".join(x for x in (aliases, details) if x)[:8000],
+            "link": f"https://osv.dev/vulnerability/{vid}",
+            "occurred_at": published or _utc_iso(time.time()),
+            "raw": {"id": vid, "aliases": it.get("aliases") or []},
+        })
+        if newest is None or published > newest:
+            newest = published
+    events.reverse()
+    return events, newest or ""
 
 
 TVMAZE_API = "https://api.tvmaze.com"
