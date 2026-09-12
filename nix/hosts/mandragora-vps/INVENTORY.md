@@ -38,9 +38,9 @@ Safety, by construction:
   repo or preserves live data the compose dir does not hold (`fin`/`ofin`
   pull from `~/Projects/*`; `demo` preserves `static/vault/`; `hub` holds
   live `config/*.yaml`; `loki` holds the log WAL; `rule110`/`cv` build or
-  carry static assets that are not in the repo dir). The `4chan` and `cv`
-  frontends are still built + pushed by their own `deploy.sh`; the driver
-  only syncs the compose dir and brings the container up.
+  carry static assets that are not in the repo dir). The `cv` frontend is
+  still built + pushed by its own `deploy.sh`; the driver only syncs the
+  compose dir and brings the container up.
 
 The six live-only slots with no repo compose at all (`git`, `chess`,
 `voice`, `btc-tob-capture`, `palpitador`, `basilica` — see the Drift
@@ -62,7 +62,6 @@ Several stacks are thin **reverse-proxy shims**: an `alpine` container that only
 | `seafile` | `seafile.mvr.ac` | Seafile file sync/share + SeaDoc + per-stack Caddy (`seafile`, `seafile-mysql`, `seafile-redis`, `seadoc`, `seafile-caddy`); sync/WebDAV paths bypass Authelia | Authelia (UI only) | local |
 | `demo` | `demo.mvr.ac` | Public vault knowledge-graph viewer + gource render UI | none | uses `gource` |
 | `cv` | `cv.mvr.ac` | Public static CV download page | none | local (static) |
-| `4chan` | `4chan.mvr.ac` | Static 4chan-international-visualizer UI (`fourchan` container) | none | desktop `:2718` (API) |
 | `rule110` | `rule110.mvr.ac` | Rule-110 compiler visualization (static) | none | local (static) |
 | `gpg` | `gpg.mvr.ac` | PGP public key (content-negotiated) + encrypted mail drop | partial (gated inbox) | local |
 | `mvr-api` | `api.mvr.ac` | GitHub-contributions API backing the `mvr.ac` landing page | none | local |
@@ -121,7 +120,7 @@ Six things run on the VPS with no compose stack committed to this repo. They wer
 | `palpitador/` → `palpitador` | `palpitador.com.br` | nginx static site on an **external domain** (not `mvr.ac`) | separate project; external TLS |
 | `basilica/` | — | `bolao` betting-pool web app + Python server, **parked** (no compose, nothing running) | WIP slot, not yet deployed |
 
-Legacy `/home/opc/` dirs from the pre-hub era also remain (`4chan-international-visualizer`, `crypto-experiments`, `drive`, `high-frequency-trading-experiments`, `dnl_paper`, `cry`, plus loose files `aspect.asc`, `iptables-rules`, `rules.v4`, `duckdns_update.sh`) — sources/data referenced by Part 2, not compose stacks.
+Legacy `/home/opc/` dirs from the pre-hub era also remain (`crypto-experiments`, `drive`, `high-frequency-trading-experiments`, `dnl_paper`, `cry`, plus loose files `aspect.asc`, `iptables-rules`, `rules.v4`, `duckdns_update.sh`) — sources/data referenced by Part 2, not compose stacks.
 
 ---
 
@@ -206,7 +205,6 @@ Decision (2026-04-29): OpenVPN is not migrating. Tailscale covers the same need 
 |---|---|---|
 | `seafile/` | 14 G | Seafile data (`shared/seafile` 14G, `db/` 251M). |
 | `orderbook_collector/` | 2.7 G | `collector.py`, `ob_collector_parquet.py`, `ob_collector_robust.py`, `setup.sh`, `data/` (parquet), logs. |
-| `4chan-international-visualizer/` | ? | Personal project. |
 | `aspect.asc` | ? | Single file. |
 | `cry/` | ? | Personal project. |
 | `crypto-experiments/` | (parent of crypto-fetcher) | |
