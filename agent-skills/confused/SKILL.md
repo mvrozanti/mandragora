@@ -49,7 +49,7 @@ wrong question.
   listening.
 - **The decision is visual.** Layout, identity, information architecture, "which
   of these should it look like" — a text list of design options is the wrong
-  instrument. Use `elicit`: ship working directions as an artifact and let the
+  instrument. Use `elicit-ui`: ship working directions as an artifact and let the
   user pick by looking.
 
 ## Workflow
@@ -200,7 +200,7 @@ Every option names an end state. None names a git command.
 6. **Never smuggle a rule into a vote.** Non-negotiables are not options.
 7. **Contract before building.** <=5 lines: what you will do, what you will
    not touch, what you assumed. Then build without further questions.
-8. **Hand visual decisions to `elicit`.** If the options differ in how they look
+8. **Hand visual decisions to `elicit-ui`.** If the options differ in how they look
    or behave rather than in what becomes true, they must be shown, not listed.
 
 ## Common Mistakes
