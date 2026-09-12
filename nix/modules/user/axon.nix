@@ -32,9 +32,9 @@ let
         db_path = "/home/m/Projects/im-gen/.axon/index.duckdb";
       }
       {
-        name = "orderbook-algotrading";
-        root = "/home/m/Projects/orderbook-algotrading";
-        db_path = "/home/m/Projects/orderbook-algotrading/.axon/index.duckdb";
+        name = "algotrading";
+        root = "/home/m/Projects/algotrading";
+        db_path = "/home/m/Projects/algotrading/.axon/index.duckdb";
       }
       {
         name = "meme";
