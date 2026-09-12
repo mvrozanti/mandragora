@@ -57,7 +57,7 @@
     { "name": "vault", "host": "demo.mvr.ac", "group": "lab", "desc": "fake-obsidian · notes graph", "access": "open", "where": "vps" },
     { "name": "brain wallet", "host": "btc.mvr.ac", "group": "lab", "desc": "bitcoin brain-wallet scanner", "access": "priv", "where": "vps" },
 
-    { "name": "fin", "host": "fin.mvr.ac", "group": "money", "desc": "orderbook-algotrading paper-trade live", "access": "open", "where": "vps" },
+    { "name": "fin", "host": "fin.mvr.ac", "group": "money", "desc": "algotrading paper-trade live", "access": "open", "where": "vps" },
     { "name": "ofin", "host": "ofin.mvr.ac", "group": "money", "desc": "pluggy · contas · cartões · investimentos", "access": "priv", "where": "vps" },
 
     { "name": "cv", "host": "cv.mvr.ac", "group": "me", "desc": "marcelo rozanti · 6 versions · en/pt · pdf", "access": "open", "where": "vps" },
