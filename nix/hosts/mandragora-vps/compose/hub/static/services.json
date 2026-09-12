@@ -55,7 +55,6 @@
     { "name": "slither sim", "host": "slither.mvr.ac", "url": "https://slither.mvr.ac/simulator.html", "group": "lab", "desc": "browser sim + dashboard", "access": "priv", "where": "desk" },
     { "name": "manifold", "host": "manifold.mvr.ac", "group": "lab", "desc": "software maps · frozen layout · semantic zoom", "access": "open", "where": "vps" },
     { "name": "vault", "host": "demo.mvr.ac", "group": "lab", "desc": "fake-obsidian · notes graph", "access": "open", "where": "vps" },
-    { "name": "4chan /int/", "host": "4chan.mvr.ac", "group": "lab", "desc": "country reply graph · live", "access": "priv", "where": "vps" },
     { "name": "brain wallet", "host": "btc.mvr.ac", "group": "lab", "desc": "bitcoin brain-wallet scanner", "access": "priv", "where": "vps" },
 
     { "name": "fin", "host": "fin.mvr.ac", "group": "money", "desc": "orderbook-algotrading paper-trade live", "access": "open", "where": "vps" },
