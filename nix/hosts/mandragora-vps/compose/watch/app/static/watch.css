@@ -84,3 +84,11 @@
   .wa-form { grid-template-columns: 1fr 1fr; }
   .wa-form .wide { grid-column: 1 / -1; }
 }
+
+.wa-preview { border: 1px solid var(--mv-line); border-radius: var(--mv-radius-2); padding: var(--mv-space-4); margin-bottom: var(--mv-space-4); background: var(--mv-bg-raised); }
+.wa-preview__src { margin-top: var(--mv-space-3); font-size: var(--mv-text-base); }
+.wa-preview__src.is-bad { color: var(--mv-text-dim); }
+.wa-preview__why { margin-left: var(--mv-space-4); color: var(--mv-text-dim); font-size: var(--mv-text-sm); border-left: 2px solid var(--mv-line); padding-left: var(--mv-space-3); }
+.wa-preview__j { margin-left: var(--mv-space-4); color: var(--mv-text-dim); font-size: var(--mv-text-xs); }
+.wa-preview__stop { margin-top: var(--mv-space-4); font-size: var(--mv-text-sm); color: var(--mv-text-dim); }
+.wa-preview__warn { margin-top: var(--mv-space-3); font-size: var(--mv-text-sm); color: var(--mv-warn); }

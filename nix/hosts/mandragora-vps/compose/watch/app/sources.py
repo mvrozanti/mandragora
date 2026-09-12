@@ -201,6 +201,27 @@ def validate_target(kind: str, target: str) -> str:
     return t
 
 
+async def target_exists(kind: str, target: str) -> tuple[bool, str]:
+    if kind in ("github_repo", "github_release"):
+        url = f"https://api.github.com/repos/{target}"
+    elif kind == "github_user":
+        url = f"https://api.github.com/users/{target}"
+    else:
+        return True, ""
+    async with httpx.AsyncClient(timeout=15.0, headers=_github_headers()) as c:
+        r = await c.get(url)
+    if r.status_code == 404:
+        return False, f"github has no {kind.split('_')[1]} called {target}"
+    if r.status_code >= 400:
+        return True, f"could not verify {target} (HTTP {r.status_code})"
+    if kind == "github_release":
+        async with httpx.AsyncClient(timeout=15.0, headers=_github_headers()) as c:
+            rel = await c.get(f"https://api.github.com/repos/{target}/releases", params={"per_page": 1})
+        if rel.status_code < 400 and not (rel.json() or []):
+            return False, f"{target} publishes no GitHub Releases — track its tags.atom feed instead"
+    return True, ""
+
+
 async def fetch(kind: str, target: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
     if kind == "github_user":
         return await _fetch_github_user(target, cursor)

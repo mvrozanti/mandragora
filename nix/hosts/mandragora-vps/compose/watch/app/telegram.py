@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import sqlite3
+import uuid
 from typing import Any
 
 import httpx
@@ -137,6 +138,8 @@ async def push_event(watcher: Any, ev: dict[str, Any]) -> bool:
 
 HELP = (
     "<b>mandragora-watch</b>\n"
+    "/watch &lt;what you want to know&gt; — describe it in plain words; picks the sources,\n"
+    "    shows what it would have decided on live data, then asks you to confirm\n"
     "/list — show watchers\n"
     "/add &lt;kind&gt; &lt;target&gt; [name] — add watcher\n"
     "/addack &lt;kind&gt; &lt;target&gt; [name] — add watcher that nags until acked\n"
@@ -426,6 +429,82 @@ async def _cmd_judge(conn_factory, args: list[str]) -> str:
     return f"<b>{_esc(judgement['verdict'])}</b>: {_esc(judgement['reason'])}{detail}"
 
 
+PENDING_PLANS: dict[str, dict] = {}
+
+
+async def _cmd_watch(conn_factory, args: list[str]) -> str:
+    import compose
+
+    condition = " ".join(args).strip()
+    if not condition:
+        return (
+            "usage: /watch &lt;what you want to know&gt;\n"
+            "example: <code>/watch severance season 3 is released</code>"
+        )
+    await broadcast("⏳ working out where to look…")
+    try:
+        result = await compose.preview(condition)
+    except Exception as exc:
+        log.warning("compose failed: %s", exc)
+        return f"could not work out a plan: {_esc(str(exc)[:200])}"
+    if not result["usable"]:
+        return "no source I can reach would answer that.\n" + _esc(compose.format_preview(result))
+    token = uuid.uuid4().hex[:8]
+    PENDING_PLANS[token] = result
+    for stale in list(PENDING_PLANS)[:-8]:
+        PENDING_PLANS.pop(stale, None)
+    body = compose.format_preview(result)
+    await _post_with_confirm(body, token)
+    return ""
+
+
+async def _post_with_confirm(body: str, token: str) -> None:
+    for chat_id in ALLOWED_CHAT_IDS:
+        await _post("sendMessage", {
+            "chat_id": chat_id,
+            "text": body,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True,
+            "reply_markup": {"inline_keyboard": [[
+                {"text": "✓ watch this", "callback_data": f"mkwatch:{token}"},
+                {"text": "✗ discard", "callback_data": f"nowatch:{token}"},
+            ]]},
+        })
+
+
+async def _create_from_token(conn_factory, token: str) -> str:
+    import compose
+    import main
+
+    result = PENDING_PLANS.pop(token, None)
+    if not result:
+        return "that plan expired — run /watch again"
+    rows = compose.plan_rows(result["plan"], result["sources"])
+    if not rows:
+        return "nothing usable in that plan"
+    created = 0
+    c = conn_factory()
+    try:
+        for row in rows:
+            try:
+                c.execute(
+                    "INSERT INTO watchers (kind, target, name, created_at, ai_spec, push, "
+                    "stop_after, watch_group) VALUES (?, ?, ?, ?, ?, 1, ?, ?)",
+                    (row["kind"], row["target"], row["name"], main.now_iso(), row["ai_spec"],
+                     row["stop_after"], row["watch_group"]),
+                )
+                created += 1
+            except sqlite3.IntegrityError:
+                pass
+    finally:
+        c.close()
+    if not created:
+        return "already watching every source in that plan"
+    stop = result["plan"].get("stop_after") or 0
+    tail = f" · stops after {stop}" if stop else " · ongoing"
+    return f"✓ watching — {created} source{'s' if created != 1 else ''}{tail}"
+
+
 async def _cmd_verdicts(conn_factory, args: list[str]) -> str:
     if not args or not args[0].isdigit():
         return "usage: /verdicts &lt;watcher_id&gt;"
@@ -505,6 +584,8 @@ async def _dispatch(conn_factory, chat_id: int, text: str) -> str | None:
         return await _cmd_verdicts(conn_factory, args)
     if cmd == "/status":
         return await _cmd_status(conn_factory)
+    if cmd == "/watch":
+        return await _cmd_watch(conn_factory, args)
     return None
 
 
@@ -517,6 +598,15 @@ async def _handle_callback(conn_factory, cb: dict) -> None:
         return
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+    if data.startswith("mkwatch:"):
+        text = await _create_from_token(conn_factory, data.split(":", 1)[1])
+        await _post("answerCallbackQuery", {"callback_query_id": cb_id, "text": text[:190]})
+        await broadcast(_esc(text))
+        return
+    if data.startswith("nowatch:"):
+        PENDING_PLANS.pop(data.split(":", 1)[1], None)
+        await _post("answerCallbackQuery", {"callback_query_id": cb_id, "text": "discarded"})
+        return
     if data.startswith("ack:"):
         try:
             eid = int(data.split(":", 1)[1])
