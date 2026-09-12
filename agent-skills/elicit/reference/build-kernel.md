@@ -167,9 +167,29 @@ the holder, instead of silently failing the way the current app does.
 - Write page content only — no `<!DOCTYPE>`, `<html>`, `<head>`, `<body>`.
 - The rendered page must open at rest, populated, nothing waiting on scroll.
 
-## Verify once, then publish
+## Verify: jsdom for behaviour, one screenshot for paint
 
-Wrap the fragment and render it headless. One look, one pass of fixes, publish.
+**Run it under jsdom first** — a thrown error leaves a blank bezel that looks
+like a CSS bug. `new Function(src)` is **not** enough: it parses in function
+scope, so a top-level `function top(){}` (or `name`, `status`, `length`, `self`,
+`parent`, `origin`, `location`, `history`, `closed`, `frames`) compiles clean
+there while being a whole-script `SyntaxError` in a real document.
+
+```js
+const {JSDOM,VirtualConsole}=require("jsdom");
+const vc=new VirtualConsole(); vc.on("jsdomError",e=>{console.error("ERR",e.message)});
+const html=require("fs").readFileSync("deck.html","utf8");
+const dom=new JSDOM('<!doctype html><html><head></head><body>'+html+'</body></html>',
+  {runScripts:"dangerously", virtualConsole:vc,
+   beforeParse(w){ w.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){}}) }});
+```
+
+Then assert behaviour, not presence: dispatch real `MouseEvent`s at the rail and
+the controls, and re-count the DOM afterwards. Wrap each direction's script in an
+IIFE so no top-level name can collide with a `window` property.
+
+jsdom does not paint, so it cannot catch layout. Take exactly one screenshot for
+that, then one pass of fixes:
 
 ```bash
 { printf '<!doctype html><html><head><meta charset="utf-8"></head><body>';
@@ -178,13 +198,6 @@ firefox --headless --profile "$PWD/ffprof" --window-size 1500,900 \
         --screenshot "$PWD/shot.png" "file://$PWD/preview.html"
 ```
 
-Syntax-check every block before rendering; a thrown error leaves a blank bezel
-that looks like a CSS bug:
+(`--screenshot` works on this box; it is *geckodriver* that crashes. No chromium.)
 
-```bash
-node -e 'const s=require("fs").readFileSync("deck.html","utf8");
-[...s.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach((m,i)=>{
-  try{new Function(m[1]);console.log(i+1,"OK")}catch(e){console.log(i+1,e.message)}})'
-```
-
-Do not build a test loop. The live artifact is the review surface.
+Do not build a test loop beyond that. The live artifact is the review surface.
