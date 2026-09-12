@@ -57,7 +57,6 @@ alias vm='[[ -f CMakeLists.txt ]] && v CMakeLists.txt || v Makefile'
 alias vcm='v CMakeLists.txt'
 alias V='nvim -c "let g:startify_disable_at_vimenter=1"'
 alias vi='V'
-alias vt='v .travis.yml'
 for _i in {0..9}; do alias "v$_i"="nvim -c \"normal ''$_i\""; done; unset _i
 alias nvimdiff='nvim -d'
 alias vimdiff='nvim -d'
