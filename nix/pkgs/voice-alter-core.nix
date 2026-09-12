@@ -5,6 +5,7 @@ let
   py = pkgs.python3.withPackages (p: [
     p.fastapi
     p.uvicorn
+    p.websockets
   ]);
 in
 pkgs.writeShellApplication {
