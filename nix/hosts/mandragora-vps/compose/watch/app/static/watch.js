@@ -215,10 +215,58 @@
     }).join("");
   };
 
+  var previewHTML = function (p) {
+    var out = ['<div class="wa-preview"><b>' + esc(p.plan.name) + "</b>"];
+    p.sources.forEach(function (s) {
+      var target = esc(s.resolved_target || s.target);
+      if (!s.ok) {
+        out.push('<div class="wa-preview__src is-bad">✗ ' + esc(s.kind) + " · " + target +
+          '<div class="wa-preview__why">' + esc(s.error || "") + "</div></div>");
+        return;
+      }
+      var rule = s.spec ? esc(s.spec) : "everything it emits reaches you";
+      out.push('<div class="wa-preview__src">✓ ' + esc(s.kind) + " · " + target +
+        " <span class=\"wa-hint\">" + (s.available || 0) + " items right now</span>" +
+        '<div class="wa-preview__why">' + rule + "</div>" +
+        (s.judged || []).map(function (j) {
+          return '<div class="wa-preview__j"><b>' + esc(j.verdict) + "</b> " + esc(j.title) + "</div>";
+        }).join("") + "</div>");
+    });
+    out.push('<div class="wa-preview__stop">' +
+      (p.plan.stop_after ? "stops after " + p.plan.stop_after + " message" + (p.plan.stop_after > 1 ? "s" : "")
+                         : "keeps watching — no stop condition") + "</div>");
+    (p.warnings || []).forEach(function (w) {
+      out.push('<div class="wa-preview__warn">⚠ ' + esc(w) + "</div>");
+    });
+    out.push('<div class="wa-acts"><button class="wa-btn primary" data-act="savewatch">watch this</button>' +
+      '<button class="wa-btn" data-act="cancelask">start over</button></div></div>');
+    return out.join("");
+  };
+
+  var renderAsk = function () {
+    if (state.preview) {
+      $("add").innerHTML = previewHTML(state.preview);
+      return true;
+    }
+    if (state.asking) {
+      $("add").innerHTML = '<form class="wa-form" id="askform">' +
+        '<div class="wa-field wide"><label for="f-ask">what do you want to know?</label>' +
+        '<textarea class="wa-area" id="f-ask" rows="2" placeholder="severance season 3 is released"></textarea>' +
+        '<div class="wa-hint">plain words. it picks the sources, shows you what it would have decided on live data, then asks.</div></div>' +
+        '<div class="wa-acts wide"><button class="wa-btn primary" type="submit">' +
+        (state.composing ? "looking…" : "find the sources") + "</button>" +
+        '<button class="wa-btn" type="button" data-act="cancelask">cancel</button></div></form>';
+      return true;
+    }
+    return false;
+  };
+
   var renderAdd = function () {
+    if (renderAsk()) return;
     if (!state.addOpen) {
       $("add").innerHTML = '<div class="wa-acts" style="margin-bottom:var(--mv-space-3)">' +
-        '<button class="wa-btn primary" data-act="openadd">add a watch</button></div>';
+        '<button class="wa-btn primary" data-act="openask">watch something</button>' +
+        '<button class="wa-btn" data-act="openadd">add a source by hand</button></div>';
       return;
     }
     var opts = Object.keys(state.kinds).map(function (k) {
@@ -291,6 +339,14 @@
     },
     openadd: function () { state.addOpen = true; render(); },
     canceladd: function () { state.addOpen = false; render(); },
+    openask: function () { state.asking = true; state.preview = null; render(); },
+    cancelask: function () { state.asking = false; state.preview = null; state.composing = false; render(); },
+    savewatch: function () {
+      var p = state.preview;
+      if (!p) return;
+      withBusy(api("POST", "/api/compose/create", { plan: p.plan, sources: p.sources })
+        .then(function () { state.asking = false; state.preview = null; }), "watching");
+    },
     accept: function (arg) { withBusy(api("POST", "/api/events/" + arg + "/ack"), "accepted"); },
     acceptall: function (arg) { withBusy(api("POST", "/api/watchers/" + arg + "/ack-all"), "all accepted"); },
     poll: function (arg) { withBusy(api("POST", "/api/watchers/" + arg + "/poll"), "checked"); },
@@ -351,6 +407,23 @@
   });
 
   document.addEventListener("submit", function (ev) {
+    if (ev.target.id === "askform") {
+      ev.preventDefault();
+      var condition = $("f-ask").value.trim();
+      if (!condition) { toast("say what you want to know", true); return; }
+      state.composing = true;
+      render();
+      api("POST", "/api/compose", { condition: condition }).then(function (res) {
+        state.composing = false;
+        state.preview = res;
+        render();
+      }).catch(function (e) {
+        state.composing = false;
+        render();
+        toast(String(e && e.message ? e.message : e), true);
+      });
+      return;
+    }
     if (ev.target.id !== "addform") return;
     ev.preventDefault();
     var payload = {

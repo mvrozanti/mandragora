@@ -116,6 +116,9 @@ def init_db() -> None:
         "ALTER TABLE events ADD COLUMN ai_subject TEXT",
         "ALTER TABLE events ADD COLUMN ai_incident TEXT",
         "ALTER TABLE events ADD COLUMN escalated_at TEXT",
+        "ALTER TABLE events ADD COLUMN notified_at TEXT",
+        "ALTER TABLE watchers ADD COLUMN stop_after INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE watchers ADD COLUMN watch_group TEXT",
     ):
         try:
             c.execute(stmt)
@@ -130,6 +133,7 @@ def init_db() -> None:
         pass
     c.execute("CREATE INDEX IF NOT EXISTS events_unacked ON events(acked_at, last_reminder_at)")
     c.execute("CREATE INDEX IF NOT EXISTS events_ai_verdict ON events(ai_verdict, ai_judged_at)")
+    c.execute("CREATE INDEX IF NOT EXISTS watchers_group ON watchers(watch_group)")
     c.close()
 
 
@@ -331,6 +335,56 @@ async def list_watchers() -> list[dict]:
     out = [watcher_dict(r, r["n"], r["un"], r["trig"], r["trig_open"]) for r in rows]
     c.close()
     return out
+
+
+@app.post("/api/compose")
+async def compose_watch(payload: dict) -> dict:
+    import compose
+
+    condition = (payload.get("condition") or "").strip()
+    if not condition:
+        raise HTTPException(400, "condition is required")
+    if len(condition) > 2000:
+        raise HTTPException(400, "condition too long")
+    try:
+        return await compose.preview(condition)
+    except judge.QuotaExceeded as exc:
+        raise HTTPException(429, f"model quota exceeded: {exc}")
+    except Exception as exc:
+        log.warning("compose failed: %s", exc)
+        raise HTTPException(502, f"could not compose a plan: {exc}")
+
+
+@app.post("/api/compose/create")
+async def create_composed_watch(payload: dict) -> dict:
+    import compose
+
+    plan = payload.get("plan")
+    checked = payload.get("sources")
+    if not isinstance(plan, dict) or not isinstance(checked, list):
+        raise HTTPException(400, "plan and sources are required")
+    rows = compose.plan_rows(plan, checked)
+    if not rows:
+        raise HTTPException(400, "no usable source in the plan")
+    created = []
+    c = conn()
+    try:
+        for row in rows:
+            try:
+                c.execute(
+                    "INSERT INTO watchers (kind, target, name, created_at, ai_spec, push, "
+                    "stop_after, watch_group) VALUES (?, ?, ?, ?, ?, 1, ?, ?)",
+                    (row["kind"], row["target"], row["name"], now_iso(), row["ai_spec"],
+                     row["stop_after"], row["watch_group"]),
+                )
+                created.append(row)
+            except sqlite3.IntegrityError:
+                log.info("compose: watcher already exists %s:%s", row["kind"], row["target"])
+    finally:
+        c.close()
+    if not created:
+        raise HTTPException(409, "every source in the plan is already being watched")
+    return {"ok": True, "created": created, "group": created[0]["watch_group"]}
 
 
 @app.post("/api/watchers")

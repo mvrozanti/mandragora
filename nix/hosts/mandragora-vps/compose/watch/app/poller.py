@@ -192,12 +192,76 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
         if channels:
             pushed += 1
             stats.set_meta(conn_factory, "last_push_at", now_iso())
+            c = conn_factory()
+            try:
+                c.execute("UPDATE events SET notified_at = ? WHERE id = ?", (now_iso(), r["id"]))
+            finally:
+                c.close()
+            await _honour_stop_condition(conn_factory, r["w_id"])
         if is_reminder:
             reminded += 1
         c = conn_factory()
         c.execute("UPDATE events SET last_reminder_at = ? WHERE id = ?", (now_iso(), r["id"]))
         c.close()
     return pushed, reminded
+
+
+def group_delivery_count(conn_factory, watcher_id: int) -> tuple[int, int, str | None]:
+    c = conn_factory()
+    try:
+        row = c.execute(
+            "SELECT stop_after, watch_group FROM watchers WHERE id = ?", (watcher_id,)
+        ).fetchone()
+        if row is None:
+            return 0, 0, None
+        stop_after = int(row["stop_after"] or 0)
+        group = row["watch_group"]
+        if stop_after <= 0:
+            return stop_after, 0, group
+        if group:
+            delivered = c.execute(
+                "SELECT COUNT(*) AS n FROM events e JOIN watchers w ON w.id = e.watcher_id "
+                "WHERE w.watch_group = ? AND e.notified_at IS NOT NULL",
+                (group,),
+            ).fetchone()["n"]
+        else:
+            delivered = c.execute(
+                "SELECT COUNT(*) AS n FROM events WHERE watcher_id = ? AND notified_at IS NOT NULL",
+                (watcher_id,),
+            ).fetchone()["n"]
+    finally:
+        c.close()
+    return stop_after, int(delivered), group
+
+
+async def _honour_stop_condition(conn_factory, watcher_id: int) -> bool:
+    stop_after, delivered, group = group_delivery_count(conn_factory, watcher_id)
+    if stop_after <= 0 or delivered < stop_after:
+        return False
+    c = conn_factory()
+    try:
+        if group:
+            rows = c.execute(
+                "SELECT id, name FROM watchers WHERE watch_group = ? AND enabled = 1", (group,)
+            ).fetchall()
+            c.execute("UPDATE watchers SET enabled = 0 WHERE watch_group = ?", (group,))
+        else:
+            rows = c.execute(
+                "SELECT id, name FROM watchers WHERE id = ? AND enabled = 1", (watcher_id,)
+            ).fetchall()
+            c.execute("UPDATE watchers SET enabled = 0 WHERE id = ?", (watcher_id,))
+    finally:
+        c.close()
+    if not rows:
+        return False
+    name = rows[0]["name"]
+    log.info("watch complete, stopping name=%s watchers=%s", name, [r["id"] for r in rows])
+    if tg.enabled():
+        await tg.broadcast(
+            f"✅ <b>watch complete</b>\n{tg._esc(name)}\n"
+            f"fired {delivered} time{'s' if delivered != 1 else ''} and has stopped"
+        )
+    return True
 
 
 def _insert_event(c: sqlite3.Connection, watcher_id: int, ev: dict[str, Any], mark_seen: bool = False) -> None:
