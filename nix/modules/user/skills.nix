@@ -30,6 +30,10 @@ let
       n = "confused";
       s = ../../../agent-skills/confused;
     }
+    {
+      n = "elicit";
+      s = ../../../agent-skills/elicit;
+    }
   ];
 
   mkEntries =
