@@ -17,7 +17,7 @@ local Screen = Device.screen
 local PIECE_DIR = "/mnt/us/mandragora/chess/pieces"
 local STATE_FILE = "/mnt/us/mandragora/state/chess.lua"
 
-local GREY = Blitbuffer.gray and Blitbuffer.gray(0.72) or Blitbuffer.COLOR_LIGHT_GRAY
+local GREY = Blitbuffer.COLOR_LIGHT_GRAY
 local WHITE = Blitbuffer.COLOR_WHITE
 local BLACK = Blitbuffer.COLOR_BLACK
 
@@ -60,7 +60,7 @@ function ChessBoard:layout()
     local board_x = math.floor((w - board) / 2)
     local button_h = math.floor(h * 0.066)
     local button_y = h - button_h - margin
-    local head_h = math.floor((h - board - button_h - margin * 2) * 0.44)
+    local head_h = math.floor(h * 0.083)
     local board_y = head_h
     local foot_y = board_y + board
     return {
@@ -197,16 +197,18 @@ function ChessBoard:paintTo(bb, x, y)
 
     local head = TextWidget:new{
         text = self:statusLine(),
-        face = Font:getFace("tfont", math.floor(L.head_h * 0.30)),
+        face = Font:getFace("tfont", math.floor(L.head_h * 0.32)),
     }
-    head:paintTo(bb, x + 28, y + math.floor(L.head_h * 0.28))
+    local head_size = head:getSize()
+    local head_top = y + math.floor(L.margin * 0.5)
+    head:paintTo(bb, x + L.board_x, head_top)
     head:free()
 
     local sub = TextWidget:new{
         text = Engine.describe(self.cfg),
         face = Font:getFace("infofont", math.floor(L.head_h * 0.17)),
     }
-    sub:paintTo(bb, x + 28, y + math.floor(L.head_h * 0.62))
+    sub:paintTo(bb, x + L.board_x, head_top + head_size.h + math.floor(L.margin * 0.25))
     sub:free()
 
     for row = 0, 7 do
@@ -235,6 +237,20 @@ function ChessBoard:paintTo(bb, x, y)
                                y + sy + math.floor(L.square / 2), dot, BLACK)
             end
         end
+    end
+
+    local coord_face = Font:getFace("infofont", math.floor(L.square * 0.17))
+    for i = 0, 7 do
+        local file_label = string.char(string.byte("a") + (self.flipped and 7 - i or i))
+        local rank_label = tostring(self.flipped and i + 1 or 8 - i)
+        local fw = TextWidget:new{ text = file_label, face = coord_face }
+        fw:paintTo(bb, x + L.board_x + i * L.square + math.floor(L.square * 0.06),
+                       y + L.board_y + L.board - math.floor(L.square * 0.26))
+        fw:free()
+        local rw = TextWidget:new{ text = rank_label, face = coord_face }
+        rw:paintTo(bb, x + L.board_x + L.board - math.floor(L.square * 0.19),
+                       y + L.board_y + i * L.square + math.floor(L.square * 0.05))
+        rw:free()
     end
 
     local inset = math.floor(L.square * 0.07)
