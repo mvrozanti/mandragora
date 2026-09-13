@@ -256,8 +256,13 @@ Everything else the desktop serves is firewalled to `tailscale0`. MPD is the
 deliberate exception, and it looks wrong on purpose:
 
 ```nix
-networking.firewall.interfaces.enp8s0.allowedTCPPorts = [ 6600 ];
+networking.firewall.interfaces.enp8s0.allowedTCPPorts = [ 6600 ];   # core/security.nix, MPD
+networking.firewall.interfaces.enp8s0.allowedTCPPorts = [ 6612 ];   # services/mpd-vis.nix
 ```
+
+Both ports, and for the same reason — `mandragora-mpd-vis` is reached by the
+same LuaSocket in the same widget, so its port has to sit on the same
+interface as MPD's. The two rules live in different modules and merge.
 
 The Kindle talks to MPD with plain LuaSocket from inside KOReader, and by the
 section above a plain socket on this device has no route to the tailnet. Only
