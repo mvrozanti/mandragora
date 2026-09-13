@@ -65,7 +65,14 @@ if ! /mnt/us/koreader/luajit -e 'assert(loadfile("$SETTINGS"))' 2>/dev/null; the
   exit 1
 fi
 rm -f ${SETTINGS}.prev /tmp/kindle-settings.want
-( setsid /bin/sh /mnt/us/koreader/koreader.sh >/dev/null 2>&1 & ) &
+if [ -x /var/local/kmc/bin/kpm ]; then
+  /var/local/kmc/bin/kpm launch koreader --asap >/dev/null 2>&1
+else
+  ( setsid /bin/sh /mnt/us/koreader/koreader.sh >/dev/null 2>&1 & ) &
+fi
+i=0
+while [ \$i -lt 45 ]; do pgrep -f reader.lua >/dev/null 2>&1 && break; i=\$((i+1)); sleep 1; done
+pgrep -f reader.lua >/dev/null 2>&1 || echo "WARNING: koreader did not come back — device is on the amazon ui" >&2
 REMOTE
 
 echo "kindle-settings: applied, KOReader restarting (first-run backup at $BACKUP)"
