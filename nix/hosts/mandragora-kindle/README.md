@@ -384,6 +384,27 @@ path), `_BIND`, `_PORT`, `_DEFAULT_MOVETIME`, `_MAX_MOVETIME`, `_THREADS`,
 The port sits on `enp8s0` for exactly the reason the MPD ports do; read the
 section above before deciding it belongs on `tailscale0`.
 
+## The framework status bar
+
+Amazon's own status bar repaints on its own minute tick over whatever KOReader
+last drew, so it crept onto Portrait's art and forced the dashboard's header
+40px down. It is redundant here — SimpleUI draws its own clock, wifi and
+battery — and the two are told apart by format: **12-hour is the framework,
+24-hour is SimpleUI**. Seeing `2:54 PM` on a full-screen widget is the tell.
+
+`start.sh` hides it at boot through the one property the framework exposes:
+
+```sh
+lipc-set-prop com.lab126.pillow disableEnablePillow \
+  '{"clientId":"mandragora","pillowId":"default_status_bar","hide":true}'
+```
+
+Two honest caveats. **Passing `hide:false` did not bring it back** in testing —
+the bar stayed gone across a minute tick — so treat this as one-way within a
+session; a reboot restores it, and `start.sh` then hides it again. And the call
+is guarded: if `lipc-set-prop` is missing or fails, boot carries on and says so
+in the log rather than failing.
+
 ## Getting out of things
 
 The device has three ways back to the home screen, and which one applies depends
