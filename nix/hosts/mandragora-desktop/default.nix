@@ -38,6 +38,7 @@ in
     ../../modules/desktop/ydotool.nix
     ../../modules/desktop/espanso.nix
     ../../modules/desktop/openrgb.nix
+    ../../modules/desktop/kindle-sync.nix
     ../../modules/desktop/rival-mouse.nix
     ../../modules/desktop/seafile.nix
     ../../modules/desktop/syncthing.nix

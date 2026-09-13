@@ -92,38 +92,42 @@ giving up.
 
 ## Dashboard
 
-`kindle-dash` renders a status dashboard **on the desktop** (no Python on the
-device — see Constraints) and pushes it to the device as a plain PNG; the device
-only draws it. Two pieces:
+The Dash tile is a **KOReader widget that pulls its own data**. It queries
+VictoriaMetrics directly over the tailnet and draws native widgets; nothing is
+rendered on the desktop and nothing is pushed to the device.
 
-- `nix/hosts/mandragora-kindle/dash/render.py` — Pillow layout engine. Takes a
-  JSON blob describing hosts/metrics/services on stdin (or `--data file`) and
-  writes a `1272×1696` 8-bit grayscale PNG: `MANDRAGORA` wordmark + a live clock,
-  one bordered panel per host (desktop / vps / kindle) with a status dot,
-  an `ONLINE`/`OFFLINE` tag, and stat tiles (label, big value, optional
-  sub-text and a thick progress bar), a tailnet-triangle glyph, and a footer.
-  Pure black-on-white with one flat mid-gray for secondary text — no gradients,
-  no anti-aliased hairlines (borders/bars are ≥3px, plain `ImageDraw` rectangles
-  so edges stay crisp on the panel's 8bpp buffer). Font is Iosevka Nerd Font
-  (already on the desktop), resolved at every run via `fc-match` rather than a
-  baked-in `/nix/store` path, so it survives GC.
-- `.local/bin/kindle-dash.sh` — queries VictoriaMetrics
-  (`http://localhost:8428`) for `node_load1`, `node_memory_{MemAvailable,MemTotal}_bytes`,
-  `node_filesystem_{avail,size}_bytes{mountpoint="/"}`, `nvidia_smi_utilization_gpu_ratio`,
-  `nvidia_smi_temperature_gpu` (desktop + vps via their `instance` label), and
-  `kindle_{battery_percent,charging,storage_used_percent,uptime_seconds,art_images,service_up}`
-  plus `up{instance=...}` for the online/offline dot, formats them (human byte
-  sizes, used-fraction bars, compact uptime), builds the JSON with `jq`, renders
-  via `nix shell --impure … python3.withPackages (ps: [ps.pillow])`, and ships
-  the PNG with `ssh root@kindle 'cat > /mnt/us/mandragora/dash/latest.png'`
-  (no `scp` on this dropbear — see Constraints).
-- `nix/hosts/mandragora-kindle/scriptlets/mandragora-dash.sh` — the on-device
-  half: `fbink --image` of `dash/latest.png`, `--dither --waveform GC16`, same
-  as `mandragora-portrait.sh`.
+- `koplugin/mandragora.koplugin/dash.lua` — a full-screen `InputContainer` whose
+  child paints straight into the blitbuffer. One `curl` through the HTTP proxy
+  (`localhost:1056`) fetches all 25 series in a single query — about 3.5 KB —
+  parsed with KOReader's bundled `json`. Re-fetches every 30 s on a `UIManager`
+  timer, `partial` refresh each tick and a `full` every eighth to clear
+  accumulated ghosting. Tap re-fetches now; double-tap or a vertical swipe
+  closes. When VictoriaMetrics is unreachable the footer reads
+  `stale - <reason>` and the last good numbers stay on screen.
 
-Run `kindle-dash` whenever the numbers should refresh (a cron/systemd timer is
-the obvious next step, e.g. hourly — see the Energy note); the device tile just
-redraws whatever is already on disk.
+The single query is one selector with a `mountpoint=~"/|"` filter — the empty
+alternative matters, because in PromQL an absent label matches the empty string,
+so that one filter narrows the filesystem series to `/` while leaving every
+non-filesystem metric untouched. Without it the same query returns 85 series of
+mostly bind-mount noise instead of 25.
+
+Two traps this went through, both worth not repeating:
+
+- **Never draw with FBInk from inside a KOReader session.** The first version was
+  a scriptlet that wrote `/dev/fb0` directly. KOReader does not know the screen
+  changed, so its next repaint — a clock tick, a quote refresh, any partial
+  update — stamps its widgets back on top of the image. Everything must go
+  through KOReader widgets. `Status` still has this defect.
+- **KOReader font sizes are not pixels.** `Font:getFace(name, size)` scales by
+  screen DPI, so a "size 62" face is far larger than 62 px on this 300 dpi panel.
+  Laying out from assumed pixel heights put every element on top of the next.
+  Positions now come from measured `TextWidget:getSize()`, and the wordmark
+  auto-shrinks until it fits its share of the width.
+
+`dash/render.py` and `.local/bin/kindle-dash.sh` are the older server-side
+renderer — a Pillow layout engine producing a `1272x1696` greyscale PNG, still
+useful for a pushed still (a desk frame, a screensaver) but no longer what the
+tile uses.
 
 The `kindle_*` series come from the scrape job in `nix/modules/core/monitoring-metrics.nix`; see the panel README for how
 `/metrics` is gated to the tailnet and why polling has a pause switch.
@@ -253,15 +257,24 @@ on where you are:
 
 | where | way out |
 |---|---|
-| **open book** | long-press the **bottom-right corner** (the plugin's own zone), or tap the top → the **folder icon**, second from the right |
-| **file browser** | the bottom bar's **Home** — the house, third of five |
+| **open book** | **tap the top-left corner**, or long-press the **bottom-right corner** (the plugin's own zone), or tap the top → the **folder icon**, second from the right |
+| **file browser** | **tap the top-left corner**, or the bottom bar's **Home** — the house, third of five |
 | **portrait / mpd widget** | double-tap, or swipe up/down |
 
 The bottom bar's first tab is labelled *Library* but its internal id is `home`,
 and the one labelled *Home* is `homescreen` — SimpleUI's own naming, and the
 easiest thing to misread when reading `sui_settings.lua`.
 
-The corner gesture is registered by `mandragora.koplugin` itself rather than
+The top-left **tap** is bound in `gestures.lua` to SimpleUI's own
+`simpleui_go_homescreen` action, in both reader and file-browser modes. It has
+to be that action and not KOReader's `filemanager`: the latter fires the `Home`
+event, which is a no-op when you are already in the file browser and can never
+reach SimpleUI's home screen, since that is a different screen SimpleUI draws.
+Beware that the corner sits inside `DSWIPE_ZONE_LEFT_EDGE`, the full-height
+left-hand column — so a *tap* there goes home while a *swipe down* dims the
+frontlight.
+
+The bottom-right corner gesture is registered by `mandragora.koplugin` itself rather than
 bound through KOReader's Gestures plugin, and it is **reader-only on purpose**.
 SimpleUI puts a full-width `hold` zone on both its top bar and its nav bar
 (`sui_topbar.lua`, `sui_bottombar.lua`) — a long-press anywhere on either opens
@@ -294,6 +307,43 @@ step a fresh device still needs.
 `simpleui/sui_settings.reference.lua` is a snapshot of the whole settings file
 from 2026-09-12, kept as a record of what the working configuration looked like
 rather than as something any script applies.
+
+## Library and wallpaper sync
+
+Books and wallpapers reach the device by themselves; there is no Sync tile and
+nothing to run by hand.
+
+- `.local/bin/kindle-sync.sh` — diffs a local manifest against the device by
+  path and size and tars across only what is missing, so the library reconciles
+  incrementally rather than re-pushing every time. Refuses to push if the device
+  would drop below a free-space floor, and exits 0 quietly when the device is
+  unreachable, which is its normal state.
+- `.local/bin/kindle-sync-watch.sh` — an inotify loop over
+  `~/Documents/library/books` and `~/Pictures/wllpps`, debounced so unpacking a
+  folder of books is one sync and not forty. **Not** a `systemd.path` unit:
+  those do not watch recursively, so every book in a subdirectory would be
+  missed.
+- `nix/modules/desktop/kindle-sync.nix` — the user service, plus a 30-minute
+  timer that reconciles whatever changed while the device was asleep.
+
+Wallpapers are delegated to `kindle-art`, which converts only what is missing.
+Packaging it surfaced a latent bug worth remembering: its parallel convert
+shells out to `bash`, which is **not on a systemd unit's PATH**, so conversion
+died with exit 127. It had only ever worked because interactive shells have bash.
+
+## Desktop commands, and where they are defined
+
+`kindle-art` and `kindle-sync` are `writeShellApplication`s in
+`nix/modules/desktop/kindle-sync.nix`, so their runtime dependencies
+(imagemagick, openssh, inotify-tools) are closed over rather than borrowed from
+whatever happens to be installed. `kindle-push`, `kindle-dash` and
+`kindle-layout` are still plain `writeShellScriptBin`s in `home.nix` and rely on
+the ambient environment.
+
+Define each one **once**. `kindle-art` was briefly declared in both files; the
+per-user profile shadows the system one, so the version actually on `PATH` was
+the unwrapped one, working only because imagemagick happened to be installed
+globally.
 
 ## Energy
 
