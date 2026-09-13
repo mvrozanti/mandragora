@@ -1,13 +1,11 @@
 services:
 
   # Reverse-proxy-only stack. fly.mvr.ac is gated behind authelia and
-  # forwarded over tailscale to the slither-io server on mandragora-desktop
-  # (100.115.80.79:8088), which hosts the MaleCNS fly brain panel at
-  # /simulator.html#brain. The upstream drives the desktop GPU, so the
-  # authelia gate is mandatory. serve.py enforces its own path allowlist
-  # (PUBLIC_STATIC_FILES / PUBLIC_STATIC_PREFIXES) and 403s anything else,
-  # so no caddy-side whitelist is duplicated here.
-  # The brain daemon is started on demand (systemctl --user start
+  # forwarded over tailscale to the flybrain panel on mandragora-desktop
+  # (100.115.80.79:8097) -- a dedicated app for the MaleCNS connectome, not a
+  # page inside another project. The upstream drives the desktop GPU, so
+  # the authelia gate is mandatory.
+  # The connectome daemon is started on demand (systemctl --user start
   # fly-brain); the panel renders a shaped offline state when it is down.
   fly-proxy:
     image: alpine:3.20
@@ -21,7 +19,7 @@ services:
       caddy.0_handle.forward_auth: "authelia:9091"
       caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
       caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy.0_handle.reverse_proxy: "${FLY_UPSTREAM:-100.115.80.79:8088}"
+      caddy.0_handle.reverse_proxy: "${FLY_UPSTREAM:-100.115.80.79:8097}"
       caddy.0_handle.reverse_proxy.flush_interval: "-1"
       caddy.0_handle.reverse_proxy.transport: "http"
 
