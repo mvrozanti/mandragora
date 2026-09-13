@@ -64,3 +64,6 @@ in this repo.
   test-driven via `nix run .#refiner -- --auto`).
 - [`kindle.md`](kindle.md) — `mandragora-kindle`, a jailbroken Paperwhite 12 on
   the tailnet: intent, layout, workflow, monitoring and the app tiers.
+- [`authelia-skin.md`](authelia-skin.md) — stubbing the `auth.mvr.ac`
+  portal locally so the TOTP screen can be styled and screenshotted
+  without a real login.
