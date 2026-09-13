@@ -186,29 +186,29 @@ reader those bars do not exist, and the zone overrides `readerhighlight_hold` an
 
 ## SimpleUI layout
 
-`simpleui/sui_settings.reference.lua` is a **snapshot, not a source of truth** —
-a copy of the working configuration so a wiped device can be put back by hand
-rather than rediscovered. The layout it captures:
+The home-screen rows are declared in `simpleui/layout.conf` — one line per
+quick-action row, ids separated by spaces — and applied with `kindle-layout`:
 
 ```
-row 1 — apps     portrait · mpd · dash · status · sync
-row 2 — system   continue · bookmarks · brightness · night · wifi · power
+mandragora_portrait mandragora_dash mandragora_mpd mandragora_status
+continue bookmark_browser random_document stats_calendar frontlight
 ```
 
-Two things make this awkward to automate, and both are why `kindle-push` does
-**not** ship it:
+`kindle-layout` stops KOReader first, because SimpleUI holds its settings in
+memory and rewrites the file on exit, so an edit underneath a running KOReader is
+silently clobbered. It patches **only** the `*_items` blocks, leaving every other
+setting the device has accumulated alone, checks the result parses as Lua, and
+restores its backup if it does not.
 
-- SimpleUI holds its settings in memory and rewrites the file when KOReader
-  exits, so any edit made underneath a running KOReader is silently clobbered.
-  Writing it means stopping KOReader first.
-- The quick-action rows are *instances* with generated ids
-  (`quick_actions_row_248e20`), so the file is not portable between devices as-is
-  — the ids would have to be rewritten to whatever a fresh install generated.
+It discovers the row instance ids positionally rather than hard-coding them.
+SimpleUI names rows with generated hashes (`quick_actions_row_248e20`) that differ
+on every install, so the rows themselves must already exist — add them in
+SimpleUI's settings first, then `kindle-layout` fills them. That is the one manual
+step a fresh device still needs.
 
-Restoring by hand: stop KOReader, copy the file to
-`/mnt/us/koreader/settings/simpleui/sui_settings.lua`, start KOReader. Restoring
-through the UI is Settings → Home Screen (add the Quick Actions Rows) and then
-each row's Quick Actions entry to fill its slots.
+`simpleui/sui_settings.reference.lua` is a snapshot of the whole settings file
+from 2026-09-12, kept as a record of what the working configuration looked like
+rather than as something any script applies.
 
 ## Energy
 

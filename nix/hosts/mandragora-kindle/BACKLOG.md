@@ -29,6 +29,10 @@ window. Prefer the cheapest tier that works.
   portrait, status, sync, dash, mpd, weather. Verified through KOReader's own
   lunasvg rasteriser, not just a desktop renderer, because two of them use
   constructs the house set never does (a rotated `<ellipse>`, elliptical arcs).
+- **Home-screen layout** — declared in `simpleui/layout.conf` and applied by
+  `kindle-layout`, which patches only the `*_items` blocks with KOReader stopped
+  and rolls back if the result does not parse. Row ids are discovered
+  positionally, since SimpleUI regenerates its hashes per install.
 - **MPD** — now-playing and transport as a KOReader widget. Reaches the desktop
   over the **LAN** (`192.168.0.27:6600`), not the tailnet, for the reason in the
   README: userspace-networking gives ordinary sockets no tailnet route. Config in
@@ -36,11 +40,9 @@ window. Prefer the cheapest tier that works.
 
 ## In flight
 
-- **Make the SimpleUI layout reproducible.** Right now it is a hand-restorable
-  snapshot (`simpleui/sui_settings.reference.lua`), which breaks the "wipe the
-  device and `kindle-push`" claim. Doing it properly means stopping KOReader,
-  rewriting the generated `quick_actions_row_<hex>` instance ids to match
-  whatever the target device created, and starting it again.
+- **Status has the dashboard's old bug.** It still draws through
+  `runScriptlet()` → `fbink`, so KOReader repaints over it exactly as it did to
+  the dashboard. Wants the same treatment: a full-screen widget.
 
 ## Next up
 
