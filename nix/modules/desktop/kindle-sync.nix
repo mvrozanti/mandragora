@@ -5,25 +5,51 @@ let
 
   kindleSync = pkgs.writeShellApplication {
     name = "kindle-sync";
-    runtimeInputs = (with pkgs; [ openssh coreutils findutils gnutar diffutils gawk ]) ++ [ kindleArt ];
+    runtimeInputs =
+      (with pkgs; [
+        openssh
+        coreutils
+        findutils
+        gnutar
+        diffutils
+        gawk
+      ])
+      ++ [ kindleArt ];
     text = builtins.readFile ../../../.local/bin/kindle-sync.sh;
   };
 
   kindleArt = pkgs.writeShellApplication {
     name = "kindle-art";
-    runtimeInputs = with pkgs; [ bash openssh coreutils findutils gnutar imagemagick ];
-    excludeShellChecks = [ "SC2012" "SC2016" ];
+    runtimeInputs = with pkgs; [
+      bash
+      openssh
+      coreutils
+      findutils
+      gnutar
+      imagemagick
+    ];
+    excludeShellChecks = [
+      "SC2012"
+      "SC2016"
+    ];
     text = builtins.readFile ../../../.local/bin/kindle-art.sh;
   };
 
   kindleSyncWatch = pkgs.writeShellApplication {
     name = "kindle-sync-watch";
-    runtimeInputs = [ pkgs.inotify-tools kindleSync ];
+    runtimeInputs = [
+      pkgs.inotify-tools
+      kindleSync
+    ];
     text = builtins.readFile ../../../.local/bin/kindle-sync-watch.sh;
   };
 in
 {
-  environment.systemPackages = [ kindleArt kindleSync kindleSyncWatch ];
+  environment.systemPackages = [
+    kindleArt
+    kindleSync
+    kindleSyncWatch
+  ];
 
   systemd.user.services.kindle-sync-watch = {
     description = "Watch the library and wallpapers, push changes to the kindle";
