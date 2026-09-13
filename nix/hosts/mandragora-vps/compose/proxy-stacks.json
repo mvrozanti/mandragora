@@ -20,12 +20,41 @@
       "logging": true
     },
     {
+      "name": "fly",
+      "kind": "authelia-simple",
+      "host": "fly",
+      "comment": [
+        "Reverse-proxy-only stack. fly.mvr.ac is gated behind authelia and",
+        "forwarded over tailscale to the slither-io server on mandragora-desktop",
+        "({desktop}:8088), which hosts the MaleCNS fly brain panel at",
+        "/simulator.html#brain. The upstream drives the desktop GPU, so the",
+        "authelia gate is mandatory. serve.py enforces its own path allowlist",
+        "(PUBLIC_STATIC_FILES / PUBLIC_STATIC_PREFIXES) and 403s anything else,",
+        "so no caddy-side whitelist is duplicated here.",
+        "The brain daemon is started on demand (systemctl --user start",
+        "fly-brain); the panel renders a shaped offline state when it is down."
+      ],
+      "upstream_var": "FLY_UPSTREAM",
+      "upstream_host": "desktop",
+      "upstream_port": 8088,
+      "logging": false
+    },
+    {
       "name": "kl",
       "kind": "authelia-simple",
       "host": "kl",
       "upstream_var": "KL_UPSTREAM",
       "upstream_host": "desktop",
       "upstream_port": 6900,
+      "logging": true
+    },
+    {
+      "name": "meme",
+      "kind": "authelia-simple",
+      "host": "meme",
+      "upstream_var": "MEME_UPSTREAM",
+      "upstream_host": "desktop",
+      "upstream_port": 8093,
       "logging": true
     },
     {
@@ -38,7 +67,7 @@
         "({desktop}): the static frontend on :3001 and the FastAPI backend on",
         ":8000. /api/* is stripped and routed to the backend; everything else to",
         "the frontend. The backend runs LLM inference on the desktop GPU, so the",
-        "authelia gate (two_factor) is mandatory \u2014 never expose this unauthenticated."
+        "authelia gate (two_factor) is mandatory — never expose this unauthenticated."
       ],
       "api_upstream_var": "SEMANTIC_API_UPSTREAM",
       "api_upstream_host": "desktop",
@@ -57,15 +86,6 @@
       "upstream_port": 8091,
       "request_body_max_size": "200MB",
       "logging": false
-    },
-    {
-      "name": "meme",
-      "kind": "authelia-simple",
-      "host": "meme",
-      "upstream_var": "MEME_UPSTREAM",
-      "upstream_host": "desktop",
-      "upstream_port": 8093,
-      "logging": true
     }
   ]
 }
