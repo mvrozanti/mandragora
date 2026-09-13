@@ -274,6 +274,24 @@ device can reach it and open it where it cannot.
 This has already been filed as a bug once by someone pattern-matching against
 the other modules. It is not one.
 
+## Chess
+
+Playing a real game against the engine. The board, the rules and the touch
+handling live on the device; the engine does not — `stockfish` runs on the
+desktop as `mandragora-chess-engine` and answers over the LAN for the same
+reason MPD does.
+
+Piece art is twelve SVGs in `chess/pieces/`, drawn in the icon set's idiom
+and pushed to `/mnt/us/mandragora/chess/pieces/`. White pieces are outlined,
+black are filled; detail strokes *inside* a black body are white, but anything
+sitting outside the silhouette — the king's cross — stays black or it vanishes
+against the page.
+
+A move repaints only the squares it touched. The MPD visualiser uses A2 for its
+spectrum, and that is wrong here: A2 is two-level, so it would flatten the grey
+dark squares to white. A move is rare enough to afford a proper partial refresh
+of a small region.
+
 ## Getting out of things
 
 The device has three ways back to the home screen, and which one applies depends
