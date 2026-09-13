@@ -5,6 +5,7 @@ import os
 import select
 import socket
 import socketserver
+import sys
 import threading
 import time
 
@@ -28,6 +29,7 @@ LEVELS = 63
 DB_FLOOR = -74.0
 DB_SPAN_MIN = 30.0
 SILENCE_AFTER = 0.45
+REOPEN_AFTER = 5.0
 COVER_MAX = 1024
 GREYS = tuple(range(0, 256, 17))
 
@@ -110,15 +112,28 @@ class Analyser:
                 last_audio = time.monotonic()
                 self._set_state("L")
                 tail = self._consume(tail + chunk)
-            elif time.monotonic() - last_audio > SILENCE_AFTER:
-                self._set_state("S")
-                tail = b""
+            else:
+                idle = time.monotonic() - last_audio
+                if idle > SILENCE_AFTER:
+                    self._set_state("S")
+                    tail = b""
+                if idle > REOPEN_AFTER and self._stale(fd):
+                    os.close(fd)
+                    fd = None
 
     def _open(self):
         try:
             return os.open(FIFO, os.O_RDONLY | os.O_NONBLOCK)
         except OSError:
             return None
+
+    def _stale(self, fd):
+        try:
+            held = os.fstat(fd)
+            live = os.stat(FIFO)
+        except OSError:
+            return True
+        return (held.st_dev, held.st_ino) != (live.st_dev, live.st_ino)
 
     def _set_state(self, state):
         with self.lock:
@@ -285,10 +300,15 @@ class Covers:
                 self.mpd.close()
             time.sleep(2.0)
 
-    def png(self, size):
+    def png(self, size, uri=None):
         size = max(64, min(COVER_MAX, size))
         with self.lock:
-            uri = self.uri
+            if uri:
+                if uri != self.uri:
+                    self.uri = uri
+                    self.cache.clear()
+            else:
+                uri = self.uri
             if uri is None:
                 return None
             if size in self.cache:
@@ -343,7 +363,7 @@ class Handler(socketserver.StreamRequestHandler):
             self.connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         except OSError:
             pass
-        raw = self.rfile.readline(160)
+        raw = self.rfile.readline(4096)
         if not raw:
             return
         parts = raw.decode("ascii", "replace").split()
@@ -379,7 +399,8 @@ class Handler(socketserver.StreamRequestHandler):
             size = int(parts[1])
         except (IndexError, ValueError):
             size = 440
-        png = COVERS.png(size)
+        uri = " ".join(parts[2:]) if len(parts) > 2 else None
+        png = COVERS.png(size, uri)
         if not png:
             self.wfile.write(b"NOCOVER\n")
             return
@@ -391,6 +412,12 @@ class Handler(socketserver.StreamRequestHandler):
 class Server(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
     daemon_threads = True
+
+    def handle_error(self, request, client_address):
+        exc = sys.exc_info()[1]
+        if isinstance(exc, (BrokenPipeError, ConnectionResetError, TimeoutError, socket.timeout)):
+            return
+        super().handle_error(request, client_address)
 
 
 ANALYSER = Analyser()
