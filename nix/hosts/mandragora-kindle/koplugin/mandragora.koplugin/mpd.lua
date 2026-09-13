@@ -379,7 +379,7 @@ local function layout()
     L.hair = u(3)
     L.heavy = u(6)
 
-    L.head_y = u(54)
+    L.head_y = u(92)
     L.head_rule = u(184)
 
     L.cover = { x = L.x0, y = u(216), size = u(400) }
@@ -533,7 +533,7 @@ function MPDPlayer:poll()
     if file ~= self.cover_file then
         self.cover_file = file
         self:releaseCover()
-        if file then self:fetchCover() end
+        if file then self:fetchCover(file) end
     end
 
     if self:signature() ~= before then
@@ -666,7 +666,7 @@ function MPDPlayer:releaseCover()
     end
 end
 
-function MPDPlayer:fetchCover()
+function MPDPlayer:fetchCover(uri)
     if not socket_ok then return end
     local now = os.time()
     if now - (self.cover_retry or 0) < VIS_RETRY_SECONDS then return end
@@ -681,7 +681,7 @@ function MPDPlayer:fetchCover()
     end
     self.cover_retry = 0
     sock:settimeout(4)
-    sock:send("COVER " .. size .. "\n")
+    sock:send("COVER " .. size .. " " .. (uri or "") .. "\n")
     local header = sock:receive("*l")
     local length = header and tonumber(header:match("^COVER (%d+)$"))
     if not length then
@@ -752,13 +752,13 @@ end
 
 function MPDPlayer:paintHeader(bb, ox, oy)
     local L = self.L
-    local mark = face(MONO, 92)
+    local mark = face(MONO, 84)
     local mm = metrics(mark)
-    text(bb, ox + L.x0, oy + L.head_y + mm.cap, mark, "MPD", INK, true)
+    local baseline = oy + L.head_y + mm.cap
+    text(bb, ox + L.x0, baseline, mark, "MPD", INK, true)
 
     local sub = face(MONO, 21)
-    local sm = metrics(sub)
-    tracked(bb, ox + L.x0 + u(4), oy + L.head_y + mm.cap + u(34) + sm.cap, sub,
+    tracked(bb, ox + L.x0 + textW(mark, "MPD", true) + u(30), baseline, sub,
         "MANDRAGORA / NOW PLAYING", INK_DIM, u(5), false)
 
     local status = (self.data and self.data.status) or {}
@@ -772,7 +772,7 @@ function MPDPlayer:paintHeader(bb, ox, oy)
     elseif status.state == "pause" then
         label = "PAUSED"
     end
-    self:paintTag(bb, ox + L.x1, oy + L.head_y + u(6), label, filled, 30)
+    self:paintTag(bb, ox + L.x1, oy + L.head_y, label, filled, 28)
 
     local flags = {}
     local volume = tonumber(status.volume)
@@ -783,7 +783,7 @@ function MPDPlayer:paintHeader(bb, ox, oy)
 
     local ff = face(MONO, 21)
     local fm = metrics(ff)
-    local baseline = oy + L.head_y + u(104) + fm.cap
+    local flag_baseline = oy + L.head_y + u(56) + fm.cap
     local width = 0
     for i, flag in ipairs(flags) do
         width = width + trackedW(ff, flag[1], u(3), true)
@@ -792,9 +792,9 @@ function MPDPlayer:paintHeader(bb, ox, oy)
     local x = ox + L.x1 - width
     for i, flag in ipairs(flags) do
         local w = trackedW(ff, flag[1], u(3), true)
-        tracked(bb, x, baseline, ff, flag[1], flag[2] and INK or INK_FAINT, u(3), true)
+        tracked(bb, x, flag_baseline, ff, flag[1], flag[2] and INK or INK_FAINT, u(3), true)
         if flag[2] then
-            rect(bb, x, baseline + u(8), w, L.hair, INK)
+            rect(bb, x, flag_baseline + u(8), w, L.hair, INK)
         end
         x = x + w + u(22)
     end
