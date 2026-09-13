@@ -109,7 +109,7 @@ access_control:
                'spider.mvr.ac', 'lens.mvr.ac',
                'vuln.mvr.ac', 'food.mvr.ac',
                'files.mvr.ac', 'btc.mvr.ac', 'voice.mvr.ac',
-               'kindle.mvr.ac']
+               'kindle.mvr.ac', 'fly.mvr.ac']
       policy: 'two_factor'
 
 notifier:
