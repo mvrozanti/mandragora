@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
 KINDLE_HOST="${KINDLE_HOST:-100.80.53.92}"
