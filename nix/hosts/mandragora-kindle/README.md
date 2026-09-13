@@ -246,6 +246,20 @@ Packaging it surfaced a latent bug worth remembering: its parallel convert
 shells out to `bash`, which is **not on a systemd unit's PATH**, so conversion
 died with exit 127. It had only ever worked because interactive shells have bash.
 
+## Desktop commands, and where they are defined
+
+`kindle-art` and `kindle-sync` are `writeShellApplication`s in
+`nix/modules/desktop/kindle-sync.nix`, so their runtime dependencies
+(imagemagick, openssh, inotify-tools) are closed over rather than borrowed from
+whatever happens to be installed. `kindle-push`, `kindle-dash` and
+`kindle-layout` are still plain `writeShellScriptBin`s in `home.nix` and rely on
+the ambient environment.
+
+Define each one **once**. `kindle-art` was briefly declared in both files; the
+per-user profile shadows the system one, so the version actually on `PATH` was
+the unwrapped one, working only because imagemagick happened to be installed
+globally.
+
 ## Energy
 
 E-ink holds an image at zero power; only the refresh and the radio cost anything.
