@@ -60,7 +60,7 @@ Two traps cost real time and are worth stating:
   `--eval` segfaults on this build; printing and `--image` are fine. Never rely on
   fbink for screenshots.
 - **Screenshots come from `/dev/fb0`**: `virtual_size 1272,3392`, stride 1272, 8 bpp
-  — two pages of `1272×1696`, visible area `1236×1648`, 8-bit grayscale. Page 0 is
+  — two pages of `1272×1696`, **all of which is drawable**, 8-bit grayscale. Page 0 is
   live and page 1 reads as uniform; pick the non-uniform page rather than assuming.
   `dd if=/dev/fb0 bs=1272 count=3392 | gzip -1` is ~470 KB and under a second.
 - **Battery** is `/sys/class/power_supply/bd71827_bat/capacity`; AC is `bd71827_ac/online`.
@@ -78,8 +78,9 @@ Any `.sh` in `/mnt/us/documents` is indexed as a library item by the jailbreak's
 ```
 
 - `mandragora-status.sh` — FBInk overlay: firmware, wlan, tailnet, battery, daemons.
-- `mandragora-portrait.sh` — draws the next image from `art/` full-screen with
-  `--dither --waveform GC16`, remembering position in `state/portrait.last`.
+- `mandragora-portrait.sh` — legacy tier-1 draw of the next image from `art/`.
+  Superseded by the Portrait KOReader widget; kept for the stock-UI tile.
+- `mandragora-dash.sh` — draws `dash/latest.png` full-screen. See Dashboard below.
 
 ## KOReader plugin
 
@@ -88,6 +89,44 @@ SimpleUI's public `QA.register{ id, label, icon, execute }` API, so they appear 
 tiles in the home screen's action row rather than only as items in the book list.
 Plugin load order is not guaranteed, so it retries the lookup for ten seconds before
 giving up.
+
+## Dashboard
+
+`kindle-dash` renders a status dashboard **on the desktop** (no Python on the
+device — see Constraints) and pushes it to the device as a plain PNG; the device
+only draws it. Two pieces:
+
+- `nix/hosts/mandragora-kindle/dash/render.py` — Pillow layout engine. Takes a
+  JSON blob describing hosts/metrics/services on stdin (or `--data file`) and
+  writes a `1272×1696` 8-bit grayscale PNG: `MANDRAGORA` wordmark + a live clock,
+  one bordered panel per host (desktop / vps / kindle) with a status dot,
+  an `ONLINE`/`OFFLINE` tag, and stat tiles (label, big value, optional
+  sub-text and a thick progress bar), a tailnet-triangle glyph, and a footer.
+  Pure black-on-white with one flat mid-gray for secondary text — no gradients,
+  no anti-aliased hairlines (borders/bars are ≥3px, plain `ImageDraw` rectangles
+  so edges stay crisp on the panel's 8bpp buffer). Font is Iosevka Nerd Font
+  (already on the desktop), resolved at every run via `fc-match` rather than a
+  baked-in `/nix/store` path, so it survives GC.
+- `.local/bin/kindle-dash.sh` — queries VictoriaMetrics
+  (`http://localhost:8428`) for `node_load1`, `node_memory_{MemAvailable,MemTotal}_bytes`,
+  `node_filesystem_{avail,size}_bytes{mountpoint="/"}`, `nvidia_smi_utilization_gpu_ratio`,
+  `nvidia_smi_temperature_gpu` (desktop + vps via their `instance` label), and
+  `kindle_{battery_percent,charging,storage_used_percent,uptime_seconds,art_images,service_up}`
+  plus `up{instance=...}` for the online/offline dot, formats them (human byte
+  sizes, used-fraction bars, compact uptime), builds the JSON with `jq`, renders
+  via `nix shell --impure … python3.withPackages (ps: [ps.pillow])`, and ships
+  the PNG with `ssh root@kindle 'cat > /mnt/us/mandragora/dash/latest.png'`
+  (no `scp` on this dropbear — see Constraints).
+- `nix/hosts/mandragora-kindle/scriptlets/mandragora-dash.sh` — the on-device
+  half: `fbink --image` of `dash/latest.png`, `--dither --waveform GC16`, same
+  as `mandragora-portrait.sh`.
+
+Run `kindle-dash` whenever the numbers should refresh (a cron/systemd timer is
+the obvious next step, e.g. hourly — see the Energy note); the device tile just
+redraws whatever is already on disk.
+
+The `kindle_*` series come from the scrape job in `nix/modules/core/monitoring-metrics.nix`; see the panel README for how
+`/metrics` is gated to the tailnet and why polling has a pause switch.
 
 ## Energy
 
@@ -99,10 +138,11 @@ everything here to **wake rarely, draw once, sleep**.
 
 ```sh
 kindle-push          # rc, scriptlets, plugin, boot job, restart services
+kindle-dash          # render host status → device
 kindle-art 12        # 12 wallpapers from $WALLPAPER_DIR → e-ink → device
 ```
 
 `kindle-push` takes the public key from `~/.ssh/id_ed25519.pub` at push time rather
 than committing one. `kindle-art` shares the desktop's `$WALLPAPER_DIR`
-(`~/Pictures/wllpps`), cover-cropping to `1236×1648`, converting to grayscale, and
+(`~/Pictures/wllpps`), cover-cropping to `1272×1696`, converting to grayscale, and
 Floyd–Steinberg dithering to 16 levels — the panel's actual depth.
