@@ -28,6 +28,7 @@ local WHITE = Blitbuffer.COLOR_WHITE
 local GREY = Blitbuffer.COLOR_GRAY
 
 local M = 40
+local FRAMEWORK_CLOCK_H = 40
 local RULE = 3
 local PANEL_GAP = 18
 local PANEL_BORDER = 2
@@ -374,14 +375,15 @@ function Dash:paint(bb, ox, oy)
     local date_str = os.date("%d %b %Y"):upper()
     local time_str = os.date("%H:%M")
 
+    local top_y = M + FRAMEWORK_CLOCK_H
     local tsize = fitSize("MANDRAGORA", SZ_TITLE, W * 0.52, true)
-    local _, th = drawText(bb, M, M, "MANDRAGORA", tsize, true)
-    local _, sh = drawText(bb, M + 2, M + th + 4, "E-INK DASHBOARD", SZ_SUBTITLE, false, GREY)
+    local _, th = drawText(bb, M, top_y, "MANDRAGORA", tsize, true)
+    local _, sh = drawText(bb, M + 2, top_y + th + 4, "E-INK DASHBOARD", SZ_SUBTITLE, false, GREY)
 
-    local _, dh = drawRightText(bb, right, M, date_str, SZ_DATE, false)
-    local _, clh = drawRightText(bb, right, M + dh + 4, time_str, SZ_CLOCK, true)
+    local _, dh = drawRightText(bb, right, top_y, date_str, SZ_DATE, false)
+    local _, clh = drawRightText(bb, right, top_y + dh + 4, time_str, SZ_CLOCK, true)
 
-    local head_bottom = math.max(M + th + 4 + sh, M + dh + 4 + clh)
+    local head_bottom = math.max(top_y + th + 4 + sh, top_y + dh + 4 + clh)
     local rule_y = head_bottom + 18
     bb:paintRect(M, rule_y, W - M * 2, RULE, BLACK)
 
