@@ -12,7 +12,7 @@ from email.utils import formataddr
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 import device
@@ -253,3 +253,21 @@ async def device_push(files: list[UploadFile] = File(...)) -> dict:
         except device.DeviceError as exc:
             results.append({"filename": filename, "status": "error", "error": str(exc)})
     return {"results": results}
+
+
+@app.get("/metrics", response_class=PlainTextResponse)
+async def metrics() -> PlainTextResponse:
+    body = await asyncio.to_thread(device.metrics)
+    return PlainTextResponse(content=body, media_type="text/plain; version=0.0.4")
+
+
+@app.get("/api/monitor")
+async def monitor_get() -> dict:
+    return {"enabled": device.monitor_enabled(), "poll_seconds": device.MONITOR_TTL}
+
+
+@app.post("/api/monitor")
+async def monitor_set(payload: dict) -> dict:
+    enabled = bool(payload.get("enabled"))
+    await asyncio.to_thread(device.set_monitor, enabled)
+    return {"enabled": device.monitor_enabled()}

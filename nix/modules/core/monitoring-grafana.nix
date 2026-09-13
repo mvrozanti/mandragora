@@ -795,6 +795,183 @@ let
     withFsUsage = true;
   };
 
+  dashboardKindle =
+    let
+      inst = ''instance="mandragora-kindle"'';
+      ds = {
+        type = "prometheus";
+        uid = "prometheus";
+      };
+      target = expr: legend: [
+        {
+          datasource = ds;
+          inherit expr;
+          legendFormat = legend;
+          refId = "A";
+        }
+      ];
+    in
+    {
+      title = "Mandragora Kindle";
+      uid = "mandragora-kindle";
+      schemaVersion = 38;
+      version = 1;
+      refresh = "5m";
+      time = {
+        from = "now-7d";
+        to = "now";
+      };
+      panels = [
+        {
+          id = 1;
+          type = "row";
+          title = "Device";
+          collapsed = false;
+          gridPos = { x = 0; y = 0; w = 24; h = 1; };
+        }
+        {
+          id = 2;
+          type = "stat";
+          title = "Reachable";
+          gridPos = { x = 0; y = 1; w = 4; h = 4; };
+          targets = target "kindle_up{${inst}}" "up";
+          fieldConfig.defaults = {
+            unit = "short";
+            mappings = [
+              { type = "value"; options = { "0" = { text = "down"; color = "red"; }; "1" = { text = "up"; color = "green"; }; }; }
+            ];
+          };
+        }
+        {
+          id = 3;
+          type = "stat";
+          title = "Monitoring";
+          gridPos = { x = 4; y = 1; w = 4; h = 4; };
+          targets = target "kindle_monitor_enabled{${inst}}" "monitor";
+          fieldConfig.defaults = {
+            unit = "short";
+            mappings = [
+              { type = "value"; options = { "0" = { text = "paused"; color = "text"; }; "1" = { text = "on"; color = "green"; }; }; }
+            ];
+          };
+        }
+        {
+          id = 4;
+          type = "stat";
+          title = "Battery";
+          gridPos = { x = 8; y = 1; w = 4; h = 4; };
+          targets = target "kindle_battery_percent{${inst}}" "battery";
+          fieldConfig.defaults = {
+            unit = "percent";
+            min = 0;
+            max = 100;
+            thresholds = {
+              mode = "absolute";
+              steps = [
+                { color = "red"; value = null; }
+                { color = "orange"; value = 20; }
+                { color = "green"; value = 40; }
+              ];
+            };
+          };
+        }
+        {
+          id = 5;
+          type = "stat";
+          title = "Storage used";
+          gridPos = { x = 12; y = 1; w = 4; h = 4; };
+          targets = target "kindle_storage_used_percent{${inst}}" "used";
+          fieldConfig.defaults = { unit = "percent"; min = 0; max = 100; };
+        }
+        {
+          id = 6;
+          type = "stat";
+          title = "Artworks";
+          gridPos = { x = 16; y = 1; w = 4; h = 4; };
+          targets = target "kindle_art_images{${inst}}" "art";
+          fieldConfig.defaults.unit = "short";
+        }
+        {
+          id = 7;
+          type = "stat";
+          title = "Uptime";
+          gridPos = { x = 20; y = 1; w = 4; h = 4; };
+          targets = target "kindle_uptime_seconds{${inst}}" "uptime";
+          fieldConfig.defaults.unit = "s";
+        }
+        {
+          id = 8;
+          type = "row";
+          title = "History";
+          collapsed = false;
+          gridPos = { x = 0; y = 5; w = 24; h = 1; };
+        }
+        {
+          id = 9;
+          type = "timeseries";
+          title = "Battery";
+          gridPos = { x = 0; y = 6; w = 12; h = 9; };
+          targets = [
+            { datasource = ds; expr = "kindle_battery_percent{${inst}}"; legendFormat = "battery %"; refId = "A"; }
+            { datasource = ds; expr = "kindle_charging{${inst}} * 100"; legendFormat = "charging"; refId = "B"; }
+          ];
+          fieldConfig.defaults = {
+            unit = "percent";
+            min = 0;
+            max = 100;
+            custom = { fillOpacity = 15; gradientMode = "none"; };
+          };
+          options = {
+            legend = { displayMode = "list"; placement = "bottom"; };
+            tooltip = { mode = "multi"; sort = "desc"; };
+          };
+        }
+        {
+          id = 10;
+          type = "timeseries";
+          title = "Services";
+          gridPos = { x = 12; y = 6; w = 12; h = 9; };
+          targets = target "kindle_service_up{${inst}}" "{{service}}";
+          fieldConfig.defaults = {
+            unit = "short";
+            min = 0;
+            max = 1;
+            custom = { fillOpacity = 20; lineInterpolation = "stepAfter"; };
+          };
+          options = {
+            legend = { displayMode = "list"; placement = "bottom"; };
+            tooltip = { mode = "multi"; sort = "desc"; };
+          };
+        }
+        {
+          id = 11;
+          type = "timeseries";
+          title = "Storage used";
+          gridPos = { x = 0; y = 15; w = 12; h = 8; };
+          targets = target "kindle_storage_used_percent{${inst}}" "used %";
+          fieldConfig.defaults = {
+            unit = "percent";
+            min = 0;
+            max = 100;
+            custom = { fillOpacity = 15; };
+          };
+          options.legend = { displayMode = "list"; placement = "bottom"; };
+        }
+        {
+          id = 12;
+          type = "timeseries";
+          title = "Poll duration";
+          gridPos = { x = 12; y = 15; w = 12; h = 8; };
+          targets = target "kindle_scrape_duration_seconds{${inst}}" "ssh round trip";
+          fieldConfig.defaults = {
+            unit = "s";
+            custom = { fillOpacity = 10; };
+          };
+          options.legend = { displayMode = "list"; placement = "bottom"; };
+        }
+      ];
+    };
+
   dashboardDir = pkgs.linkFarm "mandragora-grafana-dashboards" [
     {
       name = "mandragora-desktop.json";
@@ -803,6 +980,10 @@ let
     {
       name = "mandragora-vps.json";
       path = pkgs.writeText "mandragora-vps.json" (builtins.toJSON dashboardVps);
+    }
+    {
+      name = "mandragora-kindle.json";
+      path = pkgs.writeText "mandragora-kindle.json" (builtins.toJSON dashboardKindle);
     }
   ];
 in

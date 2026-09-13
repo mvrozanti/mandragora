@@ -60,3 +60,5 @@
   border-radius: var(--mv-radius-pill); padding: var(--mv-space-2) var(--mv-space-4);
   font-family: var(--mv-font-mono); font-size: var(--mv-text-sm); z-index: 10;
 }
+
+.kx-monitor { display: flex; align-items: center; gap: var(--mv-space-2); flex-wrap: wrap; }
