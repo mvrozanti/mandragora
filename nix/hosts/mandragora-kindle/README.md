@@ -289,6 +289,28 @@ black are filled; detail strokes *inside* a black body are white, but anything
 sitting outside the silhouette — the king's cross — stays black or it vanishes
 against the page.
 
+### The rules
+
+`koplugin/mandragora.koplugin/chess/rules.lua` is a self-contained rules engine:
+no drawing, no sockets, no KOReader imports, Lua 5.1 only. Full legality —
+castling through and into attacked squares, en passant that would expose your
+own king, promotion, the fifty-move rule, insufficient material, threefold
+repetition.
+
+Correctness is not asserted, it is measured. `chess/perft.lua` walks the five
+standard perft positions and compares node counts against the published values;
+every one matches exactly, to depth 5 where those are published:
+
+```
+startpos  d5  4865609    kiwipete  d4  4085603    position 3  d5   674624
+position 4  d4   422333    position 5  d4  2103487
+```
+
+An off-by-one node count is a rules bug that reaches the player as an illegal
+move, so this is the gate: if perft does not match, the engine is wrong no
+matter how right it looks. Startpos depth 3 takes 2.8 ms on the desktop, which
+leaves plenty of headroom for the same work behind a tap on the device.
+
 A move repaints only the squares it touched. The MPD visualiser uses A2 for its
 spectrum, and that is wrong here: A2 is two-level, so it would flatten the grey
 dark squares to white. A move is rare enough to afford a proper partial refresh
