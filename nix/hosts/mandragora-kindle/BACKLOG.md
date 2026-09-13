@@ -23,20 +23,24 @@ window. Prefer the cheapest tier that works.
   scrape is an SSH round trip to a battery device.
 - **kindle.mvr.ac panel** — live e-ink mirror from `/dev/fb0`, direct push over
   the tailnet beside the Amazon email lane, print-to-screen, scriptlet runner.
+- **Dashboard** — `kindle-dash` renders host status from VictoriaMetrics into a
+  1272x1696 greyscale PNG on the desktop and pushes it; the device only draws.
+- **MPD** — now-playing and transport as a KOReader widget. Reaches the desktop
+  over the **LAN** (`192.168.0.27:6600`), not the tailnet, for the reason in the
+  README: userspace-networking gives ordinary sockets no tailnet route. Config in
+  `/mnt/us/mandragora/mpd.conf`.
 
 ## In flight
 
-- **Mandragora dashboard** — host status rendered server-side as a 1272x1696
-  greyscale PNG and pushed to the device. Reuses the whole `kindle-art` path; the
-  device only draws.
-- **MPD** — now-playing and transport as a KOReader widget talking to the
-  desktop's MPD over the tailnet, with a `mpd.conf` for host/port/refresh.
+- **Icons** — a six-icon set in SimpleUI's idiom, plus finding out why the tiles
+  still render the default glyph.
 
 ## Next up
 
 - **`mandragora-sync.sh`** — the Sync tile still points at a script that does not
-  exist. Should pull fresh art (and later, other payloads) from `kindle.mvr.ac`
-  on-device so the desktop is not required. Blocks the Sync tile being honest.
+  exist. Should pull fresh art on-device so the desktop is not required. **Must go
+  through the SOCKS/HTTP proxy** (`localhost:1055` / `:1056`) and target a tailnet
+  address, not `kindle.mvr.ac` — see the networking section of the README.
 - **Weather** — there is already an OpenWeatherMap key in sops
   (`weather/api_key`) and both `weather-menu.nix` and the waybar module consume
   it, so the data path exists. Render server-side like the dashboard: a day/week
@@ -53,10 +57,13 @@ window. Prefer the cheapest tier that works.
   can draw. A sketchpad is the most natural native app for this device. Almost
   certainly tier 3 (armhf binary): stroke latency matters, and e-ink partial refresh
   (`--waveform DU` / A2) is the whole trick. Output could sync back as PNGs.
-- **MPD interface** — `mpd.mvr.ac` already runs on the desktop. A now-playing screen
-  plus transport controls is a near-perfect e-ink app: it repaints only on track
-  change. Tier 2 (KOReader plugin talking to the MPD protocol over the tailnet) is
-  probably enough, with a scriptlet fallback for play/pause.
+- **MPD visualiser** — now that the client exists, album art or a rendered
+  spectrum as a full-screen panel. Server-rendered like the dashboard; the device
+  draws one frame per track change, which is exactly the right refresh rate for
+  e-ink.
+- **A stable address for the desktop** — MPD is pinned to a DHCP lease
+  (`192.168.0.27`). Either a reservation, or teach the widget to go through the
+  SOCKS proxy so it can use the tailnet name instead.
 - **Camera / video feed** — a still frame from a camera, refreshed on demand or on
   motion. Video is the one thing e-ink genuinely cannot do (a refresh is ~1 s), so the
   honest version is a *snapshot viewer*, not a stream. Pairs well with a webhook: push
