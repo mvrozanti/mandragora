@@ -1,8 +1,8 @@
 """
-claude.mvr.ac — add a tmux window running `claude` to the user's
-current session and return a ✓. Picks the most-recently-active
-attached session; falls back to any existing session; only spawns
-a new session if tmux is empty.
+claude.mvr.ac — fuzzy-pick a directory from the zoxide frecency
+database and add a tmux window running `claude` there. Picks the
+most-recently-active attached session; falls back to any existing
+session; only spawns a new session if tmux is empty.
 """
 import asyncio
 import os
@@ -110,21 +110,29 @@ async def api_list(req: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": str(exc)}, status=403)
 
 
+async def zoxide_bump(target: Path) -> None:
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "zoxide", "add", str(target),
+            stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL,
+        )
+        await proc.wait()
+    except OSError:
+        pass
+
+
 async def api_zoxide(req: web.Request) -> web.Response:
-    q = req.query.get("q", "").strip()
-    args = ["zoxide", "query", "-ls"]
-    if q:
-        args += q.split()
-    proc = await asyncio.create_subprocess_exec(
-        *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-    )
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "zoxide", "query", "-ls",
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        )
+    except OSError as exc:
+        return web.json_response({"ok": False, "error": str(exc)}, status=503)
     out, _ = await proc.communicate()
     entries = []
     for line in out.decode(errors="replace").splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        score_str, _, path_str = line.partition(" ")
+        score_str, _, path_str = line.strip().partition(" ")
         path_str = path_str.strip()
         if not path_str:
             continue
@@ -133,13 +141,12 @@ async def api_zoxide(req: web.Request) -> web.Response:
         except ValueError:
             continue
         try:
-            p = Path(path_str)
-            if not p.is_dir():
+            if not Path(path_str).is_dir():
                 continue
         except OSError:
             continue
-        entries.append({"score": score, "path": str(p)})
-    return web.json_response({"ok": True, "entries": entries[:30]})
+        entries.append({"score": score, "path": path_str})
+    return web.json_response({"ok": True, "home": str(HOME), "entries": entries})
 
 
 async def api_launch(req: web.Request) -> web.Response:
@@ -148,6 +155,8 @@ async def api_launch(req: web.Request) -> web.Response:
     if not target.is_dir():
         return web.json_response({"ok": False, "error": f"not a directory: {target}"}, status=400)
     ok, session, msg = await tmux_spawn(target)
+    if ok:
+        await zoxide_bump(target)
     status = 200 if ok else 500
     return web.json_response({"ok": ok, "session": session, "dir": str(target), "msg": msg}, status=status)
 
