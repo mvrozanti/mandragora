@@ -59,6 +59,22 @@ window. Prefer the cheapest tier that works.
   path+size manifest, with a 30-minute timer for whatever changed while the
   device was asleep. 247 books and 823 wallpapers on the device. The Sync tile is
   gone: there is nothing left to trigger by hand.
+- **Lock screen shows a wallpaper instead of "Sleeping"** — this and desk-frame
+  mode turned out to be the same feature arriving from two directions. Amazon's
+  own sleep screen (`blanket`'s `screensaver` module, painting from
+  `/usr/share/blanket/screensaver/`) never actually runs on this device: SimpleUI
+  is itself a KOReader distribution, so KOReader is always the foreground app and
+  owns suspend directly — `koreader.sh` runs its own
+  `lipc-wait-event … com.lab126.powerd goingToScreenSaver …` and KOReader's
+  `frontend/ui/screensaver.lua` paints the lock frame. Its shipped default is
+  `screensaver_type = "disable"` with `screensaver_show_message = true`, which is
+  the literal source of "Sleeping" (`Screensaver.default_screensaver_message`).
+  `kindle-lockscreen` patches `settings.reader.lua` to `screensaver_type =
+  "random_image"` pointed at `art/` with the message off, holding one of the 823
+  e-ink images at zero power instead — the true zero-power frame the desk-frame
+  idea wanted. KOReader caches settings in memory for its whole run, so applying
+  this always stops and restarts KOReader; that restart is never automatic and
+  is the one manual step after `kindle-push` (see README).
 
 ## In flight
 
@@ -71,13 +87,6 @@ window. Prefer the cheapest tier that works.
 
 ## Next up
 
-- **Lock into a wallpaper instead of "Sleeping".** Locking shows the Amazon
-  framework's own sleep screen. The device already has 823 e-ink-ready images
-  in `art/`; one of them should be what the screen holds. This is the
-  desk-frame item arriving from the other direction — a screensaver pointed at
-  `art/` is the true zero-power frame, since e-ink holds the image with the
-  radio and CPU off. Check whether the framework's screensaver can be pointed
-  at a directory, or whether KOReader's own screensaver has to own the lock.
 - **Re-check `random_document`.** It reported "File not found" while the
   device held 124 unopenable files; those are gone now, so this may already be
   fixed. If it still fails, the cause is the other one below.
@@ -96,10 +105,6 @@ window. Prefer the cheapest tier that works.
   it, so the data path exists. Render server-side like the dashboard: a day/week
   forecast as a big legible greyscale panel, pushed hourly. Same tier, same
   pipeline, near-zero battery. Reuse the existing key rather than adding another.
-- **Desk-frame mode** — art that survives without a tap: either a SimpleUI Custom
-  Screen with no modules and wallpaper at full opacity, or KOReader's screensaver
-  pointed at `art/`. The screensaver route is the true zero-power frame, since
-  e-ink holds the image while the device sleeps.
 
 ## Ideas
 
