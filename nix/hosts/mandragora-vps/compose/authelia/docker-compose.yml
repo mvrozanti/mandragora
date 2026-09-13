@@ -16,11 +16,29 @@ services:
       - ${AUTHELIA_DATA_VOLUME:-./data}:/data
     networks:
       - seafile-net
-    labels:
-      caddy: https://auth.${MVR_AC:-mvr.ac}
-      caddy.reverse_proxy: "{{upstreams 9091}}"
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--no-check-certificate", "--spider", "http://localhost:9091/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  skin:
+    image: ${AUTHELIA_SKIN_IMAGE:-nginx:1.27-alpine}
+    container_name: authelia-skin
+    restart: unless-stopped
+    depends_on:
+      - authelia
+    volumes:
+      - ${AUTHELIA_SKIN_CONFIG:-./skin/nginx.conf}:/etc/nginx/conf.d/default.conf:ro
+      - ${AUTHELIA_SKIN_STATIC:-./skin/static}:/srv/skin:ro
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://auth.${MVR_AC:-mvr.ac}
+      caddy.reverse_proxy: "{{upstreams 8080}}"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/health"]
       interval: 30s
       timeout: 5s
       retries: 3
