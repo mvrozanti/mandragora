@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
 KINDLE_HOST="${KINDLE_HOST:-100.80.53.92}"
@@ -24,7 +25,8 @@ mapfile -t picks < <(
 made=0
 for f in "${picks[@]}"; do
   [ "$made" -ge "$COUNT" ] && break
-  out="$CACHE/$(printf '%02d' "$made")-$(basename "${f%.*}").png"
+  safe=$(basename "${f%.*}" | tr -cs 'A-Za-z0-9._-' '-' | cut -c1-40)
+  out="$CACHE/$(printf '%02d' "$made")-$safe.png"
   # cover-crop to the panel, grayscale, gentle contrast, Floyd-Steinberg to 16 levels
   if magick "$f" \
       -auto-orient \
@@ -47,7 +49,7 @@ ssh -p "$KINDLE_PORT" -o BatchMode=yes -o StrictHostKeyChecking=accept-new \
   "root@$KINDLE_HOST" "mkdir -p $REMOTE && rm -f $REMOTE/*.png"
 for f in "$CACHE"/*.png; do
   ssh -p "$KINDLE_PORT" -o BatchMode=yes -o StrictHostKeyChecking=accept-new \
-    "root@$KINDLE_HOST" "cat > $REMOTE/$(basename "$f")" < "$f"
+    "root@$KINDLE_HOST" "cat > '$REMOTE/$(basename "$f")'" < "$f"
   printf '.'
 done
 echo
