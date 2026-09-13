@@ -311,6 +311,12 @@ in
     (pkgs.writeShellScriptBin "rofi-wallpaper-picker" (
       builtins.readFile ../../../.local/bin/rofi-wallpaper-picker.sh
     ))
+    (pkgs.writeShellScriptBin "kindle-push" (
+      builtins.readFile ../../../.local/bin/kindle-push.sh
+    ))
+    (pkgs.writeShellScriptBin "kindle-art" (
+      builtins.readFile ../../../.local/bin/kindle-art.sh
+    ))
     (pkgs.writeShellScriptBin "clipboard-menu" (
       builtins.readFile ../../../.local/bin/clipboard-menu.sh
     ))
