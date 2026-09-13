@@ -128,6 +128,91 @@ redraws whatever is already on disk.
 The `kindle_*` series come from the scrape job in `nix/modules/core/monitoring-metrics.nix`; see the panel README for how
 `/metrics` is gated to the tailnet and why polling has a pause switch.
 
+## Music — the MPD screen and its spectrum analyser
+
+`mpd.lua` is the one widget here that does not compose KOReader widgets. It
+subclasses `InputContainer` for gestures and lifecycle but implements
+`paintTo` itself, drawing straight into the screen `BlitBuffer` with
+`paintRect` / `hatchRect` / `RenderText`. That is deliberate: composing
+`VerticalGroup`s gets you a KOReader dialog, and this screen wants the
+dashboard's register — hairline rules, tracked small-caps labels, inverted
+tags, meter bars — which needs pixel control. Layout is declared once in
+`layout()` against the panel's real `1272×1696` grid and scaled from there,
+and font sizes are requested in true pixels by dividing out
+`Screen:scaleBySize`, so nothing depends on the emulator's DPI matching the
+device's.
+
+Type is `DroidSansMono` for every technical string (labels, numerals, chips,
+tags) and `NotoSans-Bold` for the track title — both already on the device,
+no font shipped. Ink is four values only: black, white, `0x60` for secondary
+text and `0xAA` for tertiary, which is the same palette `dash/render.py`
+uses and which survives the panel's 16 levels.
+
+### Where the audio comes from
+
+The Kindle is an MPD *client*, so it cannot read the server's fifo, and an
+FFT on this CPU at 5 Hz is not free. The work happens on the desktop:
+
+- `vis/server.py`, run as `mandragora-mpd-vis`
+  (`nix/modules/services/mpd-vis.nix`), opens `/tmp/mpd.fifo` — the
+  `audio_output { type "fifo" }` block already in `.config/mpd/mpd.conf` —
+  non-blocking, takes 2048-frame Hann-windowed FFTs, folds the bins into 48
+  log-spaced bands from 35 Hz to 16.5 kHz, applies a +5 dB/octave tilt so
+  music's pink slope does not leave the top half of the panel dead, and
+  normalises against a decaying AGC ceiling.
+- The wire format is one line per frame: `F`, a state character, 48 bytes of
+  bar height and 48 of peak height, each byte `value + 48`. 98 bytes at
+  10 Hz is under a kilobyte a second, and the client decodes it with
+  `line:byte(i) - 48` — no parsing.
+- The state character is the honesty valve. `L` means PCM is actually
+  flowing, `S` means the fifo is open but silent, `X` means it is not
+  readable at all. The widget never fakes motion from elapsed time or
+  bitrate: no feed means a flat meter, a boxed reason, and `NO FEED` in the
+  corner.
+- The same connection answers `COVER <size>`, which pulls the embedded
+  picture out of MPD with `readpicture`/`albumart`, greyscales it, applies
+  the same sigmoidal contrast and Floyd–Steinberg-to-16-levels treatment
+  `kindle-art` uses, and returns a PNG the device only has to blit.
+
+The helper listens on `6612` and the firewall opens it on `enp8s0` beside
+MPD's own `6600`, because both are reached over the LAN for the reason in
+the networking section below.
+
+### Ghosting
+
+A visualiser on e-ink lives or dies on this. Three rules:
+
+1. **Only the visualiser's bounding box ever repaints.** The header, cover,
+   metadata, queue and transport are painted once and left alone;
+   `paintTo` dispatches on a zone so a frame redraws roughly a third of the
+   screen's pixels, not all of them.
+2. **Everything inside that box is pure black or pure white** — the bars,
+   the peak caps, the dotted gridlines, the scrubber, the times. Nothing
+   grey crosses the line, because the box refreshes with `a2`, a 2-level
+   waveform that would dither anything in between into noise. The grey
+   section labels sit deliberately just outside the box.
+3. **Every `vis_gc16_frames` frames that box gets a `full` refresh
+   instead** — one localised GC16 flash, ten seconds apart at the defaults,
+   which clears the residue A2 leaves behind. Closing the widget or losing
+   the feed forces one immediately so no ghost outlives the screen.
+
+Bars are drawn as stacked segments rather than solid columns, which is both
+the right idiom for a meter and a way to put roughly half as much ink on the
+panel per frame.
+
+### Touch
+
+Whole-screen `paintTo` means whole-screen hit-testing: `paintAll` records
+rectangles into `self.hits` as it draws, and `onTap` walks them. Transport
+buttons invert on press with a `fast` refresh before the command goes out,
+tapping the scrubber seeks, tapping a queue row plays it, tapping the
+spectrum toggles the analyser off (and with it the polling and the radio),
+and double-tap or a vertical swipe leaves — the same exit as `portrait` and
+`dash`.
+
+Configuration is `/mnt/us/mandragora/mpd.conf`; see `mpd.conf.example` for
+every key and why each default is what it is.
+
 ## The device has no tailnet route for ordinary sockets
 
 `tailscaled` runs `--tun=userspace-networking`, which creates **no network

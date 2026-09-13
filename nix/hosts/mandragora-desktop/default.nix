@@ -56,6 +56,7 @@ in
     ../../modules/services/slither-io.nix
     ../../modules/services/lenia-bridge.nix
     ../../modules/services/mympd.nix
+    ../../modules/services/mpd-vis.nix
     ../../modules/services/filebrowser.nix
     ../../modules/services/rgb-control.nix
     ../../modules/services/im-gen-slice.nix

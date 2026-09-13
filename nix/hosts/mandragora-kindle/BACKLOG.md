@@ -33,10 +33,19 @@ window. Prefer the cheapest tier that works.
   `kindle-layout`, which patches only the `*_items` blocks with KOReader stopped
   and rolls back if the result does not parse. Row ids are discovered
   positionally, since SimpleUI regenerates its hashes per install.
-- **MPD** — now-playing and transport as a KOReader widget. Reaches the desktop
-  over the **LAN** (`192.168.0.27:6600`), not the tailnet, for the reason in the
-  README: userspace-networking gives ordinary sockets no tailnet route. Config in
+- **MPD** — now-playing, transport, queue, scrubber, dithered cover art and a
+  live spectrum analyser, as a KOReader widget that paints its own pixels
+  rather than composing stock widgets. Reaches the desktop over the **LAN**
+  (`192.168.0.27:6600`), not the tailnet, for the reason in the README:
+  userspace-networking gives ordinary sockets no tailnet route. Config in
   `/mnt/us/mandragora/mpd.conf`.
+- **MPD visualiser** — real audio, not faked motion. `mandragora-mpd-vis` on
+  the desktop reads MPD's PCM fifo, does the FFT there, and streams 48 band
+  magnitudes at 10 Hz over TCP 6612; the device redraws only the analyser's
+  bounding box with an A2 waveform and promotes every fiftieth frame to a
+  localised GC16 to clear the ghosting A2 leaves. The same connection serves
+  album art pre-dithered to 16 levels. When the feed is down the meter goes
+  flat and says so — it never animates from elapsed time.
 
 ## In flight
 
@@ -71,10 +80,6 @@ window. Prefer the cheapest tier that works.
   can draw. A sketchpad is the most natural native app for this device. Almost
   certainly tier 3 (armhf binary): stroke latency matters, and e-ink partial refresh
   (`--waveform DU` / A2) is the whole trick. Output could sync back as PNGs.
-- **MPD visualiser** — now that the client exists, album art or a rendered
-  spectrum as a full-screen panel. Server-rendered like the dashboard; the device
-  draws one frame per track change, which is exactly the right refresh rate for
-  e-ink.
 - **A stable address for the desktop** — MPD is pinned to a DHCP lease
   (`192.168.0.27`). Either a reservation, or teach the widget to go through the
   SOCKS proxy so it can use the tailnet name instead.

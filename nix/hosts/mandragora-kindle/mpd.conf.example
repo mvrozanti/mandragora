@@ -22,13 +22,39 @@ host=192.168.0.27
 # interfaces at the default port).
 port=6600
 
-# refresh_seconds: automatic redraw interval while the now-playing screen is
-# open, on top of the redraw that already happens after every transport
-# command and after an explicit tap on Refresh.
+# vis_host / vis_port: the mandragora-mpd-vis helper, which is what makes
+# the spectrum analyser and the album art possible.
 #
-# 0 (the default) disables the timer entirely: e-ink holds an image at zero
-# power, so the ideal behavior is to draw once and sleep, redrawing only
-# when something actually changes (a command) or the user asks (Refresh).
-# Any nonzero value is clamped to a minimum of 10 seconds — this screen must
-# never repaint on a per-second cadence.
-refresh_seconds=0
+# The Kindle is an MPD *client*, so it cannot read the server's PCM fifo and
+# has no CPU budget for an FFT anyway. mandragora-mpd-vis runs on the
+# desktop (nix/modules/services/mpd-vis.nix), reads /tmp/mpd.fifo, does the
+# FFT there, and streams 48 band magnitudes as one 98-byte line per frame.
+# The same connection serves cover art already dithered to the panel's 16
+# grey levels, so the device only ever draws.
+#
+# vis_host defaults to `host` — set it only if the helper runs elsewhere.
+vis_host=
+vis_port=6612
+
+# vis_fps: how often the device redraws the spectrum while playing. Each
+# redraw is an A2 (2-level) refresh of the visualiser's bounding box only,
+# which is why this is affordable at all; the rest of the screen is not
+# touched. The server always streams at 10 Hz and the client takes the
+# per-band maximum across whatever frames arrived since its last draw, so
+# lowering this loses no peaks, only smoothness.
+vis_fps=5
+
+# vis_gc16_frames: every Nth visualiser frame is promoted from A2 to a full
+# GC16 refresh of that same bounding box, which clears the ghosting A2
+# accumulates. At the default 5 fps, 50 frames is one localised flash every
+# ten seconds. Lower it if ghosting bothers you more than the flash does.
+vis_gc16_frames=50
+
+# poll_seconds: how often the widget asks MPD for status/currentsong while
+# the screen is open. Elapsed time is interpolated locally between polls, so
+# the scrubber still moves once a second without a round trip. Only a change
+# in track, transport state, volume or queue triggers a full repaint.
+#
+# `refresh_seconds` from the previous version of this file is still accepted
+# as an alias.
+poll_seconds=3
