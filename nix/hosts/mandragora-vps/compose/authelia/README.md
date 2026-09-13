@@ -92,6 +92,11 @@ fixed-width `content-box` boxes that overflowed the viewport below
 hard-coded `height: 200px` is released; and the stage's `90vh`
 becomes `100dvh` so mobile browser chrome doesn't force a scroll.
 
+The palette is not baked in: `theme.js` rewrites the `--mv-*` tokens
+from the live matugen palette on load (AGENTS.md Rule 20,
+[`docs/design-system.md`](../../../../docs/design-system.md)). The
+skin proxies `?colors=1` because the login page is unauthenticated.
+
 Iterate on it with the lab harness described in
 [`docs/authelia-skin.md`](../../../../docs/authelia-skin.md).
 

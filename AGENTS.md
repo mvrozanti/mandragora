@@ -216,6 +216,20 @@ rationale, recipes, or the incident that produced the rule.
     the build in a `MemoryMax`/`MemorySwapMax` scope so it cannot reach
     the oomd kill threshold. Applies to every agent running
     `mandragora-switch` or `nixos-rebuild`.
+20. **A served UI follows the wallpaper** — `setbg` regenerates the
+    matugen palette, and every UI on the hub must pick it up on the
+    next page load. Never hard-code a hex value in a served
+    stylesheet. Ship the canonical
+    `compose/hub/static/theme.css` (the `--mv-*` tokens, which are
+    only the *fallback*) plus `theme.js` byte-identical, reference
+    `theme.js` from the page, and point its `data-endpoint` at a
+    same-origin path that proxies `/api/theme` on the desktop
+    (`host.docker.internal:6684`, bridged by `socat-tailnet@6684`).
+    Unauthenticated surfaces must proxy `?colors=1`, which drops the
+    wallpaper path — it contains the username. Enforced by
+    `mandragora-audit` check `15-design-system-live`; exemptions live
+    in `.local/share/mandragora-audit/allowlists/design-system-live.txt`.
+    Detail: [`docs/design-system.md`](docs/design-system.md).
 
 ---
 
