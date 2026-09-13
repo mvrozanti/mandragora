@@ -161,6 +161,29 @@ Kernel TUN mode would remove the need for the proxies entirely and `/dev/net/tun
 does exist here, but userspace mode is what is known to work on this device and
 the proxies are additive and free.
 
+## Getting out of things
+
+The device has three ways back to the home screen, and which one applies depends
+on where you are:
+
+| where | way out |
+|---|---|
+| **open book** | long-press the **bottom-right corner** (the plugin's own zone), or tap the top → the **folder icon**, second from the right |
+| **file browser** | the bottom bar's **Home** — the house, third of five |
+| **portrait / mpd widget** | double-tap, or swipe up/down |
+
+The bottom bar's first tab is labelled *Library* but its internal id is `home`,
+and the one labelled *Home* is `homescreen` — SimpleUI's own naming, and the
+easiest thing to misread when reading `sui_settings.lua`.
+
+The corner gesture is registered by `mandragora.koplugin` itself rather than
+bound through KOReader's Gestures plugin, and it is **reader-only on purpose**.
+SimpleUI puts a full-width `hold` zone on both its top bar and its nav bar
+(`sui_topbar.lua`, `sui_bottombar.lua`) — a long-press anywhere on either opens
+SimpleUI's settings — so a corner-hold in the file browser would fight it. In the
+reader those bars do not exist, and the zone overrides `readerhighlight_hold` and
+`readerfooter_hold`, which is exactly what KOReader's own corner gestures do.
+
 ## SimpleUI layout
 
 `simpleui/sui_settings.reference.lua` is a **snapshot, not a source of truth** —
