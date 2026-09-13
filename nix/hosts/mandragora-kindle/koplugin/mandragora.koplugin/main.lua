@@ -1,10 +1,14 @@
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
 local InfoMessage = require("ui/widget/infomessage")
 local logger = require("logger")
 
 local ROOT = "/mnt/us/mandragora"
 local SCRIPTLETS = ROOT .. "/scriptlets"
+
+local HOME_CORNER = "DTAP_ZONE_BOTTOM_RIGHT"
+local HOME_HOLD_OVERRIDES = { "readerhighlight_hold", "readerfooter_hold" }
 
 local ACTIONS = {
     {
@@ -132,7 +136,32 @@ function Mandragora:registerActions()
     return true
 end
 
+function Mandragora:registerHomeGesture()
+    if not self.ui or not self.ui.registerTouchZones then return end
+    if not self.ui.document then return end
+    local corner = G_defaults and G_defaults:readSetting(HOME_CORNER)
+    if not corner then return end
+    self.ui:registerTouchZones{
+        {
+            id = "mandragora_home_corner",
+            ges = "hold",
+            screen_zone = {
+                ratio_x = corner.x,
+                ratio_y = corner.y,
+                ratio_w = corner.w,
+                ratio_h = corner.h,
+            },
+            overrides = HOME_HOLD_OVERRIDES,
+            handler = function()
+                return self.ui:handleEvent(Event:new("SimpleUIGoHomescreen")) and true or false
+            end,
+        },
+    }
+    logger.info("mandragora: home gesture on hold", HOME_CORNER)
+end
+
 function Mandragora:init()
+    self:registerHomeGesture()
     if self:registerActions() then return end
     local attempts = 0
     local function retry()
