@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -uo pipefail
 . "$AUDIT_HOME/lib/common.sh"
 
