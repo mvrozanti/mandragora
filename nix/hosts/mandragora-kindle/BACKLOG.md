@@ -36,7 +36,11 @@ window. Prefer the cheapest tier that works.
 
 ## In flight
 
-_nothing — next item is whatever gets picked from below._
+- **Make the SimpleUI layout reproducible.** Right now it is a hand-restorable
+  snapshot (`simpleui/sui_settings.reference.lua`), which breaks the "wipe the
+  device and `kindle-push`" claim. Doing it properly means stopping KOReader,
+  rewriting the generated `quick_actions_row_<hex>` instance ids to match
+  whatever the target device created, and starting it again.
 
 ## Next up
 
