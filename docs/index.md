@@ -62,3 +62,5 @@ in this repo.
 - [`../nix/hosts/mandragora-usb/`](../nix/hosts/mandragora-usb/) — bootable
   installer / rescue USB host (built via `nix build .#usbImage`,
   test-driven via `nix run .#refiner -- --auto`).
+- [`kindle.md`](kindle.md) — `mandragora-kindle`, a jailbroken Paperwhite 12 on
+  the tailnet: intent, layout, workflow, monitoring and the app tiers.
