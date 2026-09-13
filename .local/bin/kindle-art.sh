@@ -4,8 +4,8 @@ set -euo pipefail
 KINDLE_HOST="${KINDLE_HOST:-100.80.53.92}"
 KINDLE_PORT="${KINDLE_PORT:-22}"
 SRC="${WALLPAPER_DIR:-$HOME/Pictures/wllpps}"
-W=1236
-H=1648
+W=1272
+H=1696
 REMOTE=/mnt/us/mandragora/art
 CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/kindle-art"
 JOBS="${KINDLE_ART_JOBS:-$(nproc)}"
