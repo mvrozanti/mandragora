@@ -23,8 +23,12 @@ echo "kindle-push: $KINDLE_HOST"
 
 echo "rc:"
 for f in "$SRC"/rc/*; do put "$f" "$M/rc/$(basename "$f")"; done
-"${SSH[@]}" "cat > $M/rc/authorized_keys && chmod 600 $M/rc/authorized_keys" < "$PUBKEY"
-echo "  $M/rc/authorized_keys (from $PUBKEY)"
+keys=$(mktemp)
+cat "$PUBKEY" > "$keys"
+for k in "$SRC"/rc/authorized_keys.d/*.pub; do [ -f "$k" ] && cat "$k" >> "$keys"; done
+"${SSH[@]}" "cat > $M/rc/authorized_keys && chmod 600 $M/rc/authorized_keys" < "$keys"
+echo "  $M/rc/authorized_keys ($(wc -l < "$keys") keys: $PUBKEY + repo)"
+rm -f "$keys"
 
 echo "scriptlets:"
 for f in "$SRC"/scriptlets/*.sh; do

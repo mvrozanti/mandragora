@@ -12,8 +12,10 @@ from email.utils import formataddr
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
+
+import device
 
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -180,4 +182,74 @@ async def send_files(files: list[UploadFile] = File(...), title: str = Form(""))
         except Exception as exc:
             results.append({"filename": filename, "status": "error", "error": str(exc)})
 
+    return {"results": results}
+
+
+@app.get("/api/device")
+async def device_status() -> dict:
+    try:
+        info = await asyncio.to_thread(device.status)
+    except device.DeviceError as exc:
+        return {"online": False, "error": str(exc), "screen_age": device.screen_age()}
+    info["screen_age"] = device.screen_age()
+    return info
+
+
+@app.get("/api/screen.png")
+async def device_screen(force: bool = False) -> Response:
+    try:
+        png, at = await asyncio.to_thread(device.screen_png, force)
+    except device.DeviceError as exc:
+        raise HTTPException(503, str(exc))
+    return Response(
+        content=png,
+        media_type="image/png",
+        headers={"Cache-Control": "no-store", "X-Grabbed-At": str(int(at))},
+    )
+
+
+@app.post("/api/print")
+async def device_print(payload: dict) -> dict:
+    text = str(payload.get("text") or "")
+    try:
+        await asyncio.to_thread(device.print_line, text)
+    except device.DeviceError as exc:
+        raise HTTPException(502, str(exc))
+    return {"ok": True, "printed": text.strip()[:120]}
+
+
+@app.get("/api/scriptlets")
+async def device_scriptlets() -> list[dict]:
+    try:
+        return await asyncio.to_thread(device.scriptlets)
+    except device.DeviceError as exc:
+        raise HTTPException(503, str(exc))
+
+
+@app.post("/api/scriptlets/{name}/run")
+async def device_run(name: str) -> dict:
+    try:
+        out = await asyncio.to_thread(device.run_scriptlet, name)
+    except device.DeviceError as exc:
+        raise HTTPException(502, str(exc))
+    return {"ok": True, "output": out}
+
+
+@app.post("/api/push")
+async def device_push(files: list[UploadFile] = File(...)) -> dict:
+    results = []
+    for upload in files:
+        filename = os.path.basename(upload.filename or "")
+        data = await read_limited(upload, MAX_UPLOAD_MB * 1024 * 1024)
+        if data is None:
+            results.append({"filename": filename, "status": "error", "error": f"exceeds {MAX_UPLOAD_MB} MB"})
+            continue
+        if not data:
+            results.append({"filename": filename, "status": "error", "error": "empty file"})
+            continue
+        try:
+            target = await asyncio.to_thread(device.push_document, filename, data)
+            results.append({"filename": filename, "status": "pushed", "path": target})
+        except device.DeviceError as exc:
+            results.append({"filename": filename, "status": "error", "error": str(exc)})
     return {"results": results}
