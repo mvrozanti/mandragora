@@ -21,7 +21,7 @@ local ACTIONS = {
     {
         id = "mandragora_status",
         label = "Status",
-        script = "mandragora-status.sh",
+        widget = "status",
         icon = "status.svg",
         note = "device overlay",
     },
