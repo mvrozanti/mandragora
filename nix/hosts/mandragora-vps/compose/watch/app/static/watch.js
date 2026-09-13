@@ -256,15 +256,20 @@
           esc(tpl[k].label) + "</option>";
       }).join("");
       var cur = tpl[state.template] || {};
-      $("add").innerHTML = '<form class="wa-form" id="askform">' +
-        '<div class="wa-field wide"><label for="f-tpl">what do you want to know?</label>' +
-        '<select class="wa-select" id="f-tpl" data-act="pickt">' + opts + "</select></div>" +
-        '<div class="wa-field wide"><label for="f-args">' + esc((cur.fields || []).join(", ")) + "</label>" +
-        '<input class="wa-input" id="f-args" placeholder="' + esc((cur.example || "").split(" ").slice(1).join(" ")) + '"></div>' +
-        '<div class="wa-hint">no model involved. it checks every source against live data before saving.</div>' +
+      $("add").innerHTML = '<form class="wa-form" id="sayform">' +
+        '<div class="wa-field wide"><label for="f-say">what do you want to know?</label>' +
+        '<input class="wa-input" id="f-say" placeholder="tell me when there is a new kindle jailbreak">' +
+        '<div class="wa-hint">a sentence is enough. it picks the sources and starts watching.</div></div>' +
         '<div class="wa-acts wide"><button class="wa-btn primary" type="submit">' +
-        (state.composing ? "checking…" : "check it") + "</button>" +
-        '<button class="wa-btn" type="button" data-act="cancelask">cancel</button></div></form>';
+        (state.composing ? "working…" : "watch it") + "</button>" +
+        '<button class="wa-btn" type="button" data-act="byhand">by hand instead</button>' +
+        '<button class="wa-btn" type="button" data-act="cancelask">cancel</button></div></form>' +
+        (state.byhand ? '<form class="wa-form" id="askform">' +
+          '<div class="wa-field wide"><label for="f-tpl">template</label>' +
+          '<select class="wa-select" id="f-tpl">' + opts + "</select></div>" +
+          '<div class="wa-field wide"><label for="f-args">' + esc((cur.fields || []).join(", ")) + "</label>" +
+          '<input class="wa-input" id="f-args" placeholder="' + esc((cur.example || "").split(" ").slice(1).join(" ")) + '"></div>' +
+          '<div class="wa-acts wide"><button class="wa-btn" type="submit">check it</button></div></form>' : "");
       return true;
     }
     return false;
@@ -360,6 +365,7 @@
       render();
     },
     pickt: function () {},
+    byhand: function () { state.byhand = !state.byhand; render(); },
     cancelask: function () { state.asking = false; state.preview = null; state.composing = false; render(); },
     savewatch: function () {
       var p = state.preview;
@@ -427,6 +433,26 @@
   });
 
   document.addEventListener("submit", function (ev) {
+    if (ev.target.id === "sayform") {
+      ev.preventDefault();
+      var said = $("f-say").value.trim();
+      if (!said) { toast("say what you want to know", true); return; }
+      state.composing = true;
+      render();
+      api("POST", "/api/compose/quick", { text: said }).then(function (res) {
+        state.composing = false;
+        state.asking = false;
+        state.byhand = false;
+        var ids = (res.created || []).map(function (r) { return "w" + r.id; }).join(", ");
+        toast("watching " + ids);
+        return loadAll();
+      }).catch(function (e) {
+        state.composing = false;
+        render();
+        toast(String(e && e.message ? e.message : e), true);
+      });
+      return;
+    }
     if (ev.target.id === "askform") {
       ev.preventDefault();
       var tplSel = $("f-tpl");

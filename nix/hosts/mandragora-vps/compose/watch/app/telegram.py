@@ -138,8 +138,8 @@ async def push_event(watcher: Any, ev: dict[str, Any]) -> bool:
 
 HELP = (
     "<b>mandragora-watch</b>\n"
-    "/watch — list the watch templates\n"
-    "/watch &lt;template&gt; &lt;args&gt; — check it against live data, then confirm\n"
+    "/watch &lt;describe it in a sentence&gt; — works it out and starts watching\n"
+    "/watch — list the templates for adding one by hand\n"
     "/list — show watchers\n"
     "/add &lt;kind&gt; &lt;target&gt; [name] — add watcher\n"
     "/addack &lt;kind&gt; &lt;target&gt; [name] — add watcher that nags until acked\n"
@@ -380,6 +380,129 @@ async def _cmd_match(conn_factory, args: list[str]) -> str:
     if not cur.rowcount:
         return f"no watcher {wid}"
     return f"watcher {wid} rule set to <code>{_esc(rule)}</code>" if rule else f"watcher {wid} rule cleared"
+
+
+PENDING_PLANS: dict[str, dict] = {}
+
+
+def _insert_rows(rows: list[dict]) -> list[tuple[int, dict]]:
+    import main
+
+    created = []
+    c = main.conn()
+    try:
+        for row in rows:
+            try:
+                c.execute(
+                    "INSERT INTO watchers (kind, target, name, created_at, match_rule, push, "
+                    "stop_after, watch_group) VALUES (?, ?, ?, ?, ?, 1, ?, ?)",
+                    (row["kind"], row["target"], row["name"], main.now_iso(), row["match_rule"],
+                     row["stop_after"], row["watch_group"]),
+                )
+                wid = c.execute(
+                    "SELECT id FROM watchers WHERE kind = ? AND target = ?",
+                    (row["kind"], row["target"]),
+                ).fetchone()["id"]
+                created.append((wid, row))
+            except sqlite3.IntegrityError:
+                pass
+    finally:
+        c.close()
+    return created
+
+
+async def _cmd_watch(conn_factory, args: list[str]) -> str:
+    import compose
+
+    if not args:
+        return compose.template_help()
+    if args[0].strip().lower() in compose.TEMPLATES:
+        return await _watch_from_template(args[0], args[1:])
+    return await _watch_from_sentence(" ".join(args))
+
+
+async def _watch_from_template(template: str, args: list[str]) -> str:
+    import compose
+
+    try:
+        result = await compose.preview(template, args)
+    except ValueError as exc:
+        return _esc(str(exc)[:300])
+    except Exception as exc:
+        log.warning("compose failed: %s", exc)
+        return f"could not build a plan: {_esc(str(exc)[:200])}"
+    if not result["usable"]:
+        return "no source I can reach would answer that.\n" + _esc(compose.format_preview(result))
+    token = uuid.uuid4().hex[:8]
+    PENDING_PLANS[token] = result
+    for stale in list(PENDING_PLANS)[:-8]:
+        PENDING_PLANS.pop(stale, None)
+    await _post_with_confirm(compose.format_preview(result), token)
+    return ""
+
+
+async def _watch_from_sentence(text: str) -> str:
+    import compose
+
+    try:
+        result = await compose.quick_create(text)
+    except compose.llm.NoProviderAvailable as exc:
+        return (
+            f"{_esc(str(exc)[:220])}\n\n"
+            "you can still add one by hand — send <code>/watch</code> for the templates"
+        )
+    except ValueError as exc:
+        return _esc(str(exc)[:300])
+    except Exception as exc:
+        log.warning("quick watch failed: %s", exc)
+        return f"could not build a watch: {_esc(str(exc)[:200])}"
+
+    created = _insert_rows(result["rows"])
+    if not created:
+        return "already watching every source that fits that"
+    lines = [f"✓ <b>{_esc(result['plan']['name'])}</b>"]
+    for wid, row in created:
+        rule = row["match_rule"] or "everything it emits"
+        est = compose.format_estimate(result["estimates"].get(row["target"]))
+        tail = f" · {_esc(est)}" if est else ""
+        lines.append(f"<code>w{wid}</code> {_esc(row['kind'])} · {_esc(str(row['target'])[:44])}")
+        lines.append(f"    rule: <code>{_esc(rule)}</code>{tail}")
+    stop = result["plan"].get("stop_after") or 0
+    lines.append(f"stops after {stop}" if stop else "ongoing")
+    for w in result["warnings"][:2]:
+        lines.append(f"⚠ {_esc(w[:140])}")
+    lines.append(f"<i>change the rule:</i> <code>/match {created[0][0]} &lt;rule&gt;</code>")
+    return "\n".join(lines)
+
+
+async def _post_with_confirm(body: str, token: str) -> None:
+    for chat_id in ALLOWED_CHAT_IDS:
+        await _post("sendMessage", {
+            "chat_id": chat_id,
+            "text": body,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True,
+            "reply_markup": {"inline_keyboard": [[
+                {"text": "✓ watch this", "callback_data": f"mkwatch:{token}"},
+                {"text": "✗ discard", "callback_data": f"nowatch:{token}"},
+            ]]},
+        })
+
+
+async def _create_from_token(conn_factory, token: str) -> str:
+    import compose
+
+    result = PENDING_PLANS.pop(token, None)
+    if not result:
+        return "that plan expired — run /watch again"
+    rows = compose.plan_rows(result["plan"], result["sources"])
+    created = _insert_rows(rows)
+    if not created:
+        return "already watching every source in that plan"
+    stop = result["plan"].get("stop_after") or 0
+    tail = f" · stops after {stop}" if stop else " · ongoing"
+    ids = ", ".join(f"w{wid}" for wid, _ in created)
+    return f"✓ watching — {ids}{tail}"
 
 
 async def _cmd_verdicts(conn_factory, args: list[str]) -> str:

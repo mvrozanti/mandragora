@@ -304,7 +304,8 @@ async def healthz() -> dict:
         "degraded": degraded,
         "telegram_enabled": tg.enabled(),
         "tasks": states,
-        "model_calls_possible": False,
+        "runtime_model_calls": False,
+        "registration_providers": __import__("llm").available(),
         **snapshot,
     }
 
@@ -371,6 +372,50 @@ async def compose_watch(payload: dict) -> dict:
     except Exception as exc:
         log.warning("compose failed: %s", exc)
         raise HTTPException(502, f"could not build a plan: {exc}")
+
+
+@app.post("/api/compose/quick")
+async def quick_watch(payload: dict) -> dict:
+    import compose
+
+    text = (payload.get("text") or "").strip()
+    if not text:
+        raise HTTPException(400, "text is required")
+    if len(text) > 2000:
+        raise HTTPException(400, "text too long")
+    try:
+        result = await compose.quick_create(text)
+    except compose.llm.NoProviderAvailable as exc:
+        raise HTTPException(503, str(exc))
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+    except Exception as exc:
+        log.warning("quick watch failed: %s", exc)
+        raise HTTPException(502, f"could not build a watch: {exc}")
+    created = []
+    c = conn()
+    try:
+        for row in result["rows"]:
+            try:
+                c.execute(
+                    "INSERT INTO watchers (kind, target, name, created_at, match_rule, push, "
+                    "stop_after, watch_group) VALUES (?, ?, ?, ?, ?, 1, ?, ?)",
+                    (row["kind"], row["target"], row["name"], now_iso(), row["match_rule"],
+                     row["stop_after"], row["watch_group"]),
+                )
+                created.append({**row, "id": c.execute(
+                    "SELECT id FROM watchers WHERE kind = ? AND target = ?",
+                    (row["kind"], row["target"]),
+                ).fetchone()["id"]})
+            except sqlite3.IntegrityError:
+                log.info("quick watch: already watching %s:%s", row["kind"], row["target"])
+    finally:
+        c.close()
+    if not created:
+        raise HTTPException(409, "already watching every source that fits")
+    return {"ok": True, "created": created, "provider": result["provider"],
+            "estimates": result["estimates"], "warnings": result["warnings"],
+            "template": result["template"], "args": result["args"]}
 
 
 @app.post("/api/compose/create")

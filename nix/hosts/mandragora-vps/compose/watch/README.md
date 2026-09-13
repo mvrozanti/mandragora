@@ -222,7 +222,44 @@ event through rather than swallowing it.
 
 The old `must_mention` column migrates into `match_rule` automatically on startup.
 
-## Templates: registering a watch
+## Registering a watch by describing it
+
+`/watch tell me when there is a new kindle jailbreak` — one sentence, and the
+watch exists. A model turns the sentence into a template plus arguments, and
+nothing else about the system changes: **no model ever reads what is posted
+online.** Runtime matching stays keyword-only. The model runs once per watch you
+create, perhaps ten times in this system's lifetime.
+
+The model may only *fill in* one of the templates below. It cannot invent a
+source kind, a template, or a field, so its blast radius is an argument list.
+Everything after it is the same validation the template path already used:
+`sources.validate_target`, then `sources.target_exists` against the real API,
+then a live fetch. Sources that fail are dropped with a reason; if none survives,
+no watch is created rather than a watch that cannot fire. This is what caught the
+invented `electrum-maintainers/electrum` and a hallucinated NYT feed URL.
+
+Providers are tried in order and configured by key presence alone:
+
+```
+WATCH_LLM_DEEPSEEK_KEY=sk-...       # tried first
+WATCH_LLM_ANTHROPIC_KEY=sk-ant-...  # tried if deepseek is absent or fails
+```
+
+With neither set, a sentence returns "no model provider configured" and the
+template form below keeps working untouched. A **Claude Code subscription is not
+an API key** — the Anthropic leg stays inert until a real key exists.
+
+The reply carries the watcher ids, the rule, and an estimate measured from the
+items just fetched — `~3 msgs/month`, or *"nothing in the recent sample matches"*
+for a rule that would be born dead. It does not gate anything; a watch is created
+the moment you ask. Change any rule afterwards with `/match <id> <rule>`.
+
+What this deliberately does not do is catch a rule that is *bad but not dead*.
+`paperwhite AND jailbreak` matched a few things and missed every announcement, at
+20% recall; only replaying history against known-good items exposed that, and no
+preview screen would have. The estimate catches the zero case and nothing subtler.
+
+## Templates: registering a watch by hand
 
 The hard part of this system was never the polling — it was registering a watch.
 Choosing a source kind, a target, a spec strict enough to decide and loose enough
