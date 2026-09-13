@@ -10,9 +10,9 @@ local ACTIONS = {
     {
         id = "mandragora_portrait",
         label = "Portrait",
-        script = "mandragora-portrait.sh",
+        widget = "portrait",
         icon = "portrait.svg",
-        note = "next artwork",
+        note = "full-screen art, tap to shuffle",
     },
     {
         id = "mandragora_status",
@@ -64,6 +64,19 @@ local function iconPath(name)
     return nil
 end
 
+local function openWidget(name)
+    local ok, mod = pcall(require, name)
+    if not ok or type(mod) ~= "table" or not mod.open then
+        local here = debug.getinfo(1, "S").source:match("^@(.*/)") or ""
+        ok, mod = pcall(dofile, here .. name .. ".lua")
+        if not ok or type(mod) ~= "table" or not mod.open then
+            UIManager:show(InfoMessage:new{ text = "cannot load " .. name, timeout = 3 })
+            return
+        end
+    end
+    mod.open()
+end
+
 local function runScriptlet(entry)
     local path = scriptPath(entry.script)
     if not exists(path) then
@@ -87,7 +100,11 @@ function Mandragora:registerActions()
             icon = iconPath(entry.icon),
             is_in_place = true,
             execute = function()
-                runScriptlet(entry)
+                if entry.widget then
+                    openWidget(entry.widget)
+                else
+                    runScriptlet(entry)
+                end
             end,
         }
     end

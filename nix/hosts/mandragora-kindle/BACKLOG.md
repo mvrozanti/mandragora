@@ -13,18 +13,39 @@ window. Prefer the cheapest tier that works.
 
 ## Shipped
 
-- **Portrait** — cycles e-ink-converted art from `art/`, drawn with `--dither
-  --waveform GC16`. Fed by `kindle-art` from the desktop's `$WALLPAPER_DIR`.
+- **Portrait** — full-screen art, tap to shuffle, double-tap or swipe to exit.
+  Started as an FBInk scriptlet and moved to a KOReader Lua widget, because a
+  scriptlet draws once and exits: it cannot take a tap and KOReader repaints over
+  it. Fed by `kindle-art` from the desktop's `$WALLPAPER_DIR` (823 images).
 - **Status** — FBInk overlay: firmware, wlan, tailnet, battery, daemon state.
+- **Monitoring** — `/metrics` scraped by VictoriaMetrics every 5m, Grafana
+  dashboard `mandragora-kindle`, and a pause switch on the panel because every
+  scrape is an SSH round trip to a battery device.
+- **kindle.mvr.ac panel** — live e-ink mirror from `/dev/fb0`, direct push over
+  the tailnet beside the Amazon email lane, print-to-screen, scriptlet runner.
+
+## In flight
+
+- **Mandragora dashboard** — host status rendered server-side as a 1272x1696
+  greyscale PNG and pushed to the device. Reuses the whole `kindle-art` path; the
+  device only draws.
+- **MPD** — now-playing and transport as a KOReader widget talking to the
+  desktop's MPD over the tailnet, with a `mpd.conf` for host/port/refresh.
 
 ## Next up
 
-- **`mandragora-sync.sh`** — the Sync tile currently points at a script that does not
+- **`mandragora-sync.sh`** — the Sync tile still points at a script that does not
   exist. Should pull fresh art (and later, other payloads) from `kindle.mvr.ac`
   on-device so the desktop is not required. Blocks the Sync tile being honest.
-- **Desk-frame mode** — a SimpleUI Custom Screen with no modules and the wallpaper at
-  full opacity, so art survives instead of being repainted by KOReader. Plus a timer
-  that swaps the image hourly and sleeps.
+- **Weather** — there is already an OpenWeatherMap key in sops
+  (`weather/api_key`) and both `weather-menu.nix` and the waybar module consume
+  it, so the data path exists. Render server-side like the dashboard: a day/week
+  forecast as a big legible greyscale panel, pushed hourly. Same tier, same
+  pipeline, near-zero battery. Reuse the existing key rather than adding another.
+- **Desk-frame mode** — art that survives without a tap: either a SimpleUI Custom
+  Screen with no modules and wallpaper at full opacity, or KOReader's screensaver
+  pointed at `art/`. The screensaver route is the true zero-power frame, since
+  e-ink holds the image while the device sleeps.
 
 ## Ideas
 
