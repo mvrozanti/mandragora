@@ -3,6 +3,9 @@ import logging
 import os
 import uuid
 
+from datetime import datetime
+
+import llm
 import match as matcher
 import sources
 
@@ -52,6 +55,67 @@ def template_help() -> str:
         lines.append(f"<code>/watch {key}</code> — {t['label']}")
         lines.append(f"    e.g. <code>/watch {t['example']}</code>")
     return "\n".join(lines)
+
+
+INTERPRET_SYSTEM = (
+    "You turn one sentence into a watch registration for a feed-polling system.\n\n"
+    "You may ONLY fill in one of the templates listed. You may not invent a template, "
+    "a source kind, or a field. Choose the template whose shape answers the sentence, "
+    "and supply its arguments in order as a list of strings.\n\n"
+    "Argument rules:\n"
+    "- tv: [show name, season number]\n"
+    "- advisory / repo: [owner/repo] — a real repository that exists\n"
+    "- release: [owner/repo, optional words the release must mention]\n"
+    "- feeds: [words, then one or more http(s) feed urls] — real feed urls only\n"
+    "- sub: [subreddit name, then the words a post must mention]\n\n"
+    "The words you supply become a keyword rule matched against an item's text. "
+    "Whitespace means AND; uppercase AND, OR and NOT are operators; \"quoted phrases\" "
+    "match as a phrase. Terms match on word boundaries.\n\n"
+    "Keep rules SHORT and do not re-state what the source already scopes: a Kindle "
+    "forum is already about Kindles, so the rule there is `jailbreak`, not "
+    "`kindle AND jailbreak`. A rule that repeats the source's own topic costs recall "
+    "and buys nothing, because announcements name models and versions rather than "
+    "the generic word you would have guessed.\n\n"
+    "Return ONLY a JSON object: {\"template\": \"...\", \"args\": [\"...\"], \"why\": \"<=120 chars\"}"
+)
+
+
+def interpret_prompt(text: str) -> str:
+    lines = ["TEMPLATES:"]
+    for key, t in TEMPLATES.items():
+        lines.append(f"- {key}: {t['label']}")
+        lines.append(f"    fields: {', '.join(t['fields'])}")
+        lines.append(f"    example: /watch {t['example']}")
+    lines.append("")
+    lines.append("WHAT EACH SOURCE ACTUALLY EMITS:")
+    for kind, emits in sources.SOURCE_EMITS.items():
+        lines.append(f"- {kind}: {emits}")
+    lines.append("")
+    lines.append("SENTENCE:")
+    lines.append(text.strip())
+    return "\n".join(lines)
+
+
+async def interpret(text: str) -> tuple[str, list[str], str]:
+    if not (text or "").strip():
+        raise ValueError("say what you want to watch")
+    raw, provider = await llm.complete(INTERPRET_SYSTEM, interpret_prompt(text))
+    try:
+        doc = json.loads(raw)
+    except json.JSONDecodeError:
+        start, end = raw.find("{"), raw.rfind("}")
+        if start < 0 or end <= start:
+            raise ValueError(f"model did not return a plan: {raw[:120]}")
+        doc = json.loads(raw[start:end + 1])
+    template = str(doc.get("template") or "").strip().lower()
+    if template not in TEMPLATES:
+        raise ValueError(f"model chose an unknown template {template!r}")
+    args = doc.get("args") or []
+    if isinstance(args, str):
+        args = args.split()
+    if not isinstance(args, list) or not args:
+        raise ValueError(f"model gave no arguments for template {template!r}")
+    return template, [str(a) for a in args][:20], provider
 
 
 def build_plan(template: str, args: list[str]) -> dict:
@@ -190,7 +254,8 @@ async def probe_source(entry: dict) -> dict:
     result["ok"] = True
     result["samples"] = [
         {"title": (it.get("title") or "")[:160], "link": it.get("link") or "",
-         "summary": (it.get("summary") or "")[:2000]}
+         "summary": (it.get("summary") or "")[:2000],
+         "occurred_at": it.get("occurred_at") or ""}
         for it in items[:PROBE_ITEMS]
     ]
     result["available"] = len(items)
@@ -221,6 +286,40 @@ async def preview(template: str, args: list[str]) -> dict:
     return {"plan": plan, "sources": checked, "warnings": warnings, "usable": len(usable)}
 
 
+def estimate_volume(probe: dict, rule: str) -> dict | None:
+    samples = probe.get("samples") or []
+    if not samples:
+        return None
+    dates = sorted(d for d in (s.get("occurred_at") for s in samples) if d)
+    hits = sum(
+        1 for s in samples
+        if matcher.matches(rule or "", s.get("title") or "", s.get("summary") or "")
+    )
+    span_days = None
+    if len(dates) >= 2:
+        try:
+            a = datetime.fromisoformat(dates[0].replace("Z", "+00:00"))
+            b = datetime.fromisoformat(dates[-1].replace("Z", "+00:00"))
+            span_days = max((b - a).total_seconds() / 86400.0, 0.0)
+        except ValueError:
+            span_days = None
+    per_month = None
+    if span_days and span_days >= 0.5:
+        per_month = hits / span_days * 30.0
+    return {"sampled": len(samples), "matched": hits, "span_days": span_days,
+            "per_month": per_month}
+
+
+def format_estimate(est: dict | None) -> str:
+    if not est:
+        return ""
+    if est["matched"] == 0:
+        return "nothing in the recent sample matches — it is waiting for something new"
+    if est["per_month"] is None:
+        return f"{est['matched']} of the last {est['sampled']} items match"
+    return f"~{est['per_month']:.0f} msgs/month"
+
+
 def plan_rows(plan: dict, checked: list[dict]) -> list[dict]:
     group = uuid.uuid4().hex[:12]
     rows = []
@@ -236,6 +335,26 @@ def plan_rows(plan: dict, checked: list[dict]) -> list[dict]:
             "watch_group": group,
         })
     return rows
+
+
+async def quick_create(text: str) -> dict:
+    template, args, provider = await interpret(text)
+    result = await preview(template, args)
+    rows = plan_rows(result["plan"], result["sources"])
+    if not rows:
+        raise ValueError(
+            "nothing usable came out of that — "
+            + ("; ".join(result["warnings"][:2]) or "no source could be reached")
+        )
+    estimates = {}
+    for entry, probe in zip(result["plan"]["sources"], result["sources"]):
+        if probe.get("ok"):
+            estimates[probe.get("resolved_target") or entry["target"]] = estimate_volume(
+                probe, entry.get("match") or ""
+            )
+    return {"plan": result["plan"], "sources": result["sources"], "rows": rows,
+            "warnings": result["warnings"], "provider": provider, "estimates": estimates,
+            "template": template, "args": args}
 
 
 def format_preview(result: dict) -> str:
