@@ -13,7 +13,6 @@ local Screen = Device.screen
 
 local DashViewer = InputContainer:extend{
     image = "/mnt/us/mandragora/dash/latest.png",
-    refresh_script = "/mnt/us/mandragora/scriptlets/mandragora-dash-render.sh",
 }
 
 function DashViewer:age()
