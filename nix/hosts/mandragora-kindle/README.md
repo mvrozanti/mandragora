@@ -250,6 +250,25 @@ Kernel TUN mode would remove the need for the proxies entirely and `/dev/net/tun
 does exist here, but userspace mode is what is known to work on this device and
 the proxies are additive and free.
 
+### Why the MPD ports are opened on `enp8s0`, not `tailscale0`
+
+Everything else the desktop serves is firewalled to `tailscale0`. MPD is the
+deliberate exception, and it looks wrong on purpose:
+
+```nix
+networking.firewall.interfaces.enp8s0.allowedTCPPorts = [ 6600 ];
+```
+
+The Kindle talks to MPD with plain LuaSocket from inside KOReader, and by the
+section above a plain socket on this device has no route to the tailnet. Only
+the LAN address works, so the LAN interface is the one that has to be open.
+Teaching the widget to speak through the SOCKS proxy is the fix that would let
+this move to `tailscale0`; until then, moving it would close the port where the
+device can reach it and open it where it cannot.
+
+This has already been filed as a bug once by someone pattern-matching against
+the other modules. It is not one.
+
 ## Getting out of things
 
 The device has three ways back to the home screen, and which one applies depends
