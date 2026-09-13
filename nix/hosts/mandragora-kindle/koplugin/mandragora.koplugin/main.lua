@@ -33,6 +33,13 @@ local ACTIONS = {
         note = "now playing, transport",
     },
     {
+        id = "mandragora_chess",
+        label = "Chess",
+        widget = "chess",
+        icon = "chess.svg",
+        note = "play the engine",
+    },
+    {
         id = "mandragora_dash",
         label = "Dash",
         widget = "dash",
