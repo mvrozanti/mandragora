@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export LC_ALL=C
 
 KINDLE_HOST="${KINDLE_HOST:-100.80.53.92}"
 KINDLE_PORT="${KINDLE_PORT:-22}"
@@ -28,7 +29,7 @@ remote_manifest() {
   "${SSH[@]}" "cd '$1' 2>/dev/null || exit 0
     find . -type f 2>/dev/null | while IFS= read -r f; do
       printf '%s\t%s\n' \"\$(stat -c %s \"\$f\" 2>/dev/null)\" \"\${f#./}\"
-    done" 2>/dev/null | sort -t"$(printf '\t')" -k2
+    done" 2>/dev/null | sort
 }
 
 READABLE=( -iname '*.epub' -o -iname '*.mobi' -o -iname '*.azw3' -o -iname '*.azw'
@@ -37,7 +38,7 @@ READABLE=( -iname '*.epub' -o -iname '*.mobi' -o -iname '*.azw3' -o -iname '*.az
 local_manifest() {
   ( cd "$1" && find . -type f \( "${READABLE[@]}" \) 2>/dev/null | while IFS= read -r f; do
       printf '%s\t%s\n' "$(stat -c %s "$f")" "${f#./}"
-    done ) | sort -t"$(printf '\t')" -k2
+    done ) | sort
 }
 
 sync_books() {
@@ -71,6 +72,35 @@ sync_books() {
   log "books done"
 }
 
+prune_books() {
+  local have="$WORK/phave" stale="$WORK/stale"
+  remote_manifest "$REMOTE_BOOKS" | cut -f2- | sort > "$have"
+  grep -viE '\.(epub|mobi|azw3|azw|pdf|txt|cbz|fb2)$' "$have" > "$stale" || true
+
+  local n
+  n=$(wc -l < "$stale")
+  if [ "$n" -eq 0 ]; then
+    log "nothing unreadable under $REMOTE_BOOKS"
+    return 0
+  fi
+
+  log "$n file(s) under $REMOTE_BOOKS are not a format the device can open"
+  sed 's/^/    /' "$stale" | head -12
+  [ "$n" -gt 12 ] && log "    ... and $(( n - 12 )) more"
+
+  if [ "$PRUNE" != "yes" ]; then
+    log "dry run — pass --prune to delete them"
+    log "readable files are never pruned, even if absent from $LIBRARY"
+    return 0
+  fi
+
+  tr '\n' '\0' < "$stale" | "${SSH[@]}" "cd '$REMOTE_BOOKS' || exit 1
+    xargs -0 rm -f --
+    find . -type d -empty -delete 2>/dev/null
+    exit 0"
+  log "pruned $n unreadable file(s)"
+}
+
 sync_art() {
   [ -d "$WALLPAPERS" ] || { log "no wallpaper dir at $WALLPAPERS"; return 0; }
   if ! command -v kindle-art >/dev/null 2>&1; then
@@ -81,16 +111,27 @@ sync_art() {
   kindle-art all
 }
 
+PRUNE=no
+ACTION=all
+for a in "$@"; do
+  case "$a" in
+    --prune)     PRUNE=yes ;;
+    --prune-dry) PRUNE=no ;;
+    books|art|all|prune) ACTION="$a" ;;
+    *) echo "usage: kindle-sync [books|art|all|prune] [--prune]" >&2; exit 2 ;;
+  esac
+done
+
 main() {
   if ! reachable; then
     log "device unreachable, nothing to do"
     exit 0
   fi
-  case "${1:-all}" in
+  case "$ACTION" in
     books) sync_books ;;
     art)   sync_art ;;
+    prune) prune_books ;;
     all)   sync_books; sync_art ;;
-    *)     echo "usage: kindle-sync [books|art|all]" >&2; exit 2 ;;
   esac
 }
 
