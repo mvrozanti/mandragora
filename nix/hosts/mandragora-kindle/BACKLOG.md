@@ -106,6 +106,26 @@ window. Prefer the cheapest tier that works.
   forecast as a big legible greyscale panel, pushed hourly. Same tier, same
   pipeline, near-zero battery. Reuse the existing key rather than adding another.
 
+## Known, and deliberately not fixed
+
+- **Scanned PDFs are not converted to epub, by design.** `A Headache in the
+  Pelvis` read as gibberish in patches — `:H KDYH` for `We have`, a uniform +29
+  character shift, with `¿`/`À` standing in for the `fi`/`fl` ligatures. The
+  cause is not the converter: `pdffonts` reports `HiddenHorzOCR`, so the book is
+  a **scan** whose only text is an Acrobat OCR layer floating over page images,
+  and poppler extracts exactly the same garbage. Spaces are missing from those
+  runs too, so decoding the shift only half-repairs it.
+
+  Re-OCRing 582 pages would spend real CPU to produce a worse copy of something
+  that already works, because the PDF *renders* perfectly — rendering uses the
+  embedded glyphs and only extraction is broken. So the conversion script now
+  skips PDFs carrying an OCR text layer, and the two affected epubs are retired
+  to `~/Documents/library/.rejected/`. Read those two as PDFs.
+
+  Two of 114 PDFs are scans. `Domain-Driven Design` also shows ~2.4% shifted
+  paragraphs but is born-digital with subset fonts, so it is a different and
+  much smaller problem, left alone.
+
 ## Ideas
 
 - **Drawing app** — the panel has a touchscreen (`/dev/input/event1: pt_mt`) and FBInk
