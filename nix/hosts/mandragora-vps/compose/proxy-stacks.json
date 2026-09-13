@@ -25,18 +25,16 @@
       "host": "fly",
       "comment": [
         "Reverse-proxy-only stack. fly.mvr.ac is gated behind authelia and",
-        "forwarded over tailscale to the slither-io server on mandragora-desktop",
-        "({desktop}:8088), which hosts the MaleCNS fly brain panel at",
-        "/simulator.html#brain. The upstream drives the desktop GPU, so the",
-        "authelia gate is mandatory. serve.py enforces its own path allowlist",
-        "(PUBLIC_STATIC_FILES / PUBLIC_STATIC_PREFIXES) and 403s anything else,",
-        "so no caddy-side whitelist is duplicated here.",
-        "The brain daemon is started on demand (systemctl --user start",
+        "forwarded over tailscale to the flybrain panel on mandragora-desktop",
+        "({desktop}:8097) -- a dedicated app for the MaleCNS connectome, not a",
+        "page inside another project. The upstream drives the desktop GPU, so",
+        "the authelia gate is mandatory.",
+        "The connectome daemon is started on demand (systemctl --user start",
         "fly-brain); the panel renders a shaped offline state when it is down."
       ],
       "upstream_var": "FLY_UPSTREAM",
       "upstream_host": "desktop",
-      "upstream_port": 8088,
+      "upstream_port": 8097,
       "logging": false
     },
     {

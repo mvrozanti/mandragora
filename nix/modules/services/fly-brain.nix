@@ -1,8 +1,8 @@
 { lib, pkgs, ... }:
 
 let
-  repo = "/home/m/Projects/slither-io-simulator";
-  launcher = pkgs.writeShellScript "fly-brain-serve" ''
+  repo = "/home/m/Projects/fly-brain";
+  shell = cmd: pkgs.writeShellScript "fly-brain-${cmd.name}" ''
     export PATH=${
       lib.makeBinPath [
         pkgs.nix
@@ -13,28 +13,59 @@ let
     }:$PATH
     export HOME=/home/m
     cd ${repo}
-    exec nix develop --command python -m slither_gym.policies.connectome.brain_server \
-      --socket /tmp/fly-brain.sock --device cuda
+    exec nix develop --command ${cmd.run}
   '';
+  daemon = shell {
+    name = "daemon";
+    run = "python -m flybrain.brain_server --socket /tmp/fly-brain.sock --device cuda";
+  };
+  web = shell {
+    name = "web";
+    run = "python app.py";
+  };
 in
 {
   systemd.user.services.fly-brain = {
     description =
-      "Resident MaleCNS connectome daemon for the fly brain panel. "
-      + "Started on demand, NOT at boot: it holds ~2.1 GB of VRAM for as "
-      + "long as it runs, and training peaks at 14.5 GB on a 16 GB card, "
-      + "so an always-on daemon would break every training run. Start it "
-      + "with `systemctl --user start fly-brain` when using the panel and "
-      + "stop it afterwards. serve.py reaches it over the unix socket, so "
-      + "no TCP port is opened and it needs no hub-services entry.";
+      "flybrain resident MaleCNS connectome daemon. Started on demand, NOT "
+      + "at boot: it holds ~2.1 GB of VRAM for as long as it runs and "
+      + "training peaks at 14.5 GB on a 16 GB card, so autostarting it would "
+      + "break every GPU run. `systemctl --user start fly-brain` when using "
+      + "the panel. Speaks over a unix socket, so it opens no port.";
     unitConfig.ConditionUser = "m";
     serviceConfig = {
       WorkingDirectory = repo;
       Environment = [ "HOME=/home/m" ];
-      ExecStart = "${launcher}";
+      ExecStart = "${daemon}";
       Restart = "on-failure";
       RestartSec = "10s";
       TimeoutStartSec = "600s";
+    };
+  };
+
+  mandragora.hub.services.flybrain-web = {
+    port = 8097;
+    userService = true;
+    systemd = {
+      description =
+        "flybrain web panel (tailnet bind, public via Caddy at fly.mvr.ac). "
+        + "Stateless and cheap to restart; it proxies to the fly-brain "
+        + "daemon over a unix socket and renders a shaped offline state, "
+        + "naming the start command, whenever that daemon is down.";
+      after = [ "network.target" ];
+      wantedBy = [ "default.target" ];
+      serviceConfig = {
+        WorkingDirectory = repo;
+        Environment = [
+          "PORT=8097"
+          "BIND=0.0.0.0"
+          "HOME=/home/m"
+        ];
+        ExecStart = "${web}";
+        Restart = "on-failure";
+        RestartSec = "5s";
+        TimeoutStartSec = "300s";
+      };
     };
   };
 }
