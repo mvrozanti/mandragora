@@ -22,6 +22,12 @@ services:
       - FROM_ADDR=${FROM_ADDR:-}
       - FROM_NAME=${FROM_NAME:-}
       - MAX_UPLOAD_MB=${MAX_UPLOAD_MB:-25}
+      - KINDLE_HOST=${KINDLE_HOST:-100.80.53.92}
+      - KINDLE_PORT=${KINDLE_PORT:-22}
+      - KINDLE_SSH_KEY=/run/kindle_key
+      - KINDLE_SCREEN_TTL=${KINDLE_SCREEN_TTL:-10}
+    volumes:
+      - ./ssh/id_ed25519:/run/kindle_key:ro
     networks:
       - seafile-net
     labels:
