@@ -23,8 +23,10 @@ window. Prefer the cheapest tier that works.
   scrape is an SSH round trip to a battery device.
 - **kindle.mvr.ac panel** — live e-ink mirror from `/dev/fb0`, direct push over
   the tailnet beside the Amazon email lane, print-to-screen, scriptlet runner.
-- **Dashboard** — `kindle-dash` renders host status from VictoriaMetrics into a
-  1272x1696 greyscale PNG on the desktop and pushes it; the device only draws.
+- **Dashboard** — a KOReader widget that **pulls its own data**: one curl through
+  the HTTP proxy fetches 25 series from VictoriaMetrics (~3.5 KB), re-fetched
+  every 30 s, drawn as native widgets. No PNG, no push, no staleness. The older
+  server-side Pillow renderer (`dash/render.py`) survives for pushed stills.
 - **Icons** — six in SimpleUI's idiom (48x48, `fill:none`, stroke 2, round caps):
   portrait, status, sync, dash, mpd, weather. Verified through KOReader's own
   lunasvg rasteriser, not just a desktop renderer, because two of them use
@@ -38,23 +40,32 @@ window. Prefer the cheapest tier that works.
   README: userspace-networking gives ordinary sockets no tailnet route. Config in
   `/mnt/us/mandragora/mpd.conf`.
 
+- **SimpleUI layout is reproducible** — `simpleui/layout.conf` declares the rows;
+  `kindle-layout.sh` applies them, discovering the generated
+  `quick_actions_row_<hex>` instance ids off the device positionally so it
+  survives a reinstall, and patching only the `*_items` blocks so hand-toggled
+  settings are left alone.
+- **Library and wallpaper sync** — automatic and event-driven. inotify on
+  `~/Documents/library/books` and `~/Pictures/wllpps`, debounced, incremental by
+  path+size manifest, with a 30-minute timer for whatever changed while the
+  device was asleep. 247 books and 823 wallpapers on the device. The Sync tile is
+  gone: there is nothing left to trigger by hand.
+
 ## In flight
 
+- **MPD visualiser** — a server-side FFT reading MPD's PCM fifo and streaming
+  band magnitudes to the device, with the widget repainting a bounding box on a
+  fast waveform and a periodic GC16 to clear ghosting.
 - **Status has the dashboard's old bug.** It still draws through
   `runScriptlet()` → `fbink`, so KOReader repaints over it exactly as it did to
   the dashboard. Wants the same treatment: a full-screen widget.
 
 ## Next up
 
-- **Nothing refreshes the dashboard.** The Dash tile draws
-  `/mnt/us/mandragora/dash/latest.png` and prints *"no dashboard yet"* when it is
-  missing; only a manual `kindle-dash` from the desktop ever writes it. It wants
-  a timer on the desktop, or a pull from the device the way `mandragora-sync`
-  will work.
-- **`mandragora-sync.sh`** — the Sync tile still points at a script that does not
-  exist. Should pull fresh art on-device so the desktop is not required. **Must go
-  through the SOCKS/HTTP proxy** (`localhost:1055` / `:1056`) and target a tailnet
-  address, not `kindle.mvr.ac` — see the networking section of the README.
+- **The Kindle's own status bar overdraws full-screen widgets.** The Amazon
+  framework keeps a strip at the top (12-hour clock, battery) above whatever
+  KOReader draws. Visible on the dashboard capture; a separate layer from the
+  KOReader overpaint problem above.
 - **Weather** — there is already an OpenWeatherMap key in sops
   (`weather/api_key`) and both `weather-menu.nix` and the waybar module consume
   it, so the data path exists. Render server-side like the dashboard: a day/week
@@ -71,10 +82,6 @@ window. Prefer the cheapest tier that works.
   can draw. A sketchpad is the most natural native app for this device. Almost
   certainly tier 3 (armhf binary): stroke latency matters, and e-ink partial refresh
   (`--waveform DU` / A2) is the whole trick. Output could sync back as PNGs.
-- **MPD visualiser** — now that the client exists, album art or a rendered
-  spectrum as a full-screen panel. Server-rendered like the dashboard; the device
-  draws one frame per track change, which is exactly the right refresh rate for
-  e-ink.
 - **A stable address for the desktop** — MPD is pinned to a DHCP lease
   (`192.168.0.27`). Either a reservation, or teach the widget to go through the
   SOCKS proxy so it can use the tailnet name instead.
@@ -82,10 +89,10 @@ window. Prefer the cheapest tier that works.
   motion. Video is the one thing e-ink genuinely cannot do (a refresh is ~1 s), so the
   honest version is a *snapshot viewer*, not a stream. Pairs well with a webhook: push
   a frame to the device when something triggers.
-- **Mandragora dashboards** — grafana/watch/fin summaries rendered **server-side** as a
-  1236×1648 grayscale PNG and pushed to the device, rather than rendered on it. Reuses
-  the whole `kindle-art` pipeline; the device only draws. Refresh every N minutes.
-  Cheapest high-value app on this list.
+- **More dashboards** — grafana/watch/fin summaries. Now that `dash.lua` proves the
+  device can query VictoriaMetrics directly and draw native widgets, prefer that
+  over the server-rendered PNG path for anything whose data lives in a queryable
+  store.
 - **Browser** — the stock WebKit browser already exists and is what Véra exploited.
   A launcher tile pointed at `hub.mvr.ac` is trivial; anything better means fighting
   a very old engine. Low effort, low ceiling.
