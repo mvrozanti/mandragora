@@ -40,6 +40,13 @@ local ACTIONS = {
         note = "play the engine",
     },
     {
+        id = "mandragora_random",
+        label = "Random",
+        widget = "random",
+        icon = "random.svg",
+        note = "a random book, recursively",
+    },
+    {
         id = "mandragora_dash",
         label = "Dash",
         widget = "dash",
