@@ -87,6 +87,23 @@ window. Prefer the cheapest tier that works.
 
 ## Next up
 
+- **The framework's status bar creeps over full-screen widgets.** After a
+  minute or so, a clock and battery readout appear on top of Portrait's art.
+  It is Amazon's bar, not SimpleUI's, and the tell is the format: captures of
+  a full-screen widget show `2:24 PM` while SimpleUI's own clock shows `13:43`
+  — 12-hour is the framework, 24-hour is SimpleUI. It repaints on its own
+  minute tick over whatever KOReader last drew, which is also why the
+  dashboard needed its 40px header inset.
+
+  That inset is a workaround, not a fix, and it is the wrong shape for
+  Portrait: letterboxing the art to dodge the bar gives back the full-bleed
+  screen that was the point. The real fix is to suppress the bar while a
+  full-screen widget is up and restore it on close — on Kindle that is a lipc
+  call against `com.lab126.pillow`, whose exact incantation is firmware
+  specific. **Investigate on the device before writing any of it**: a wrong
+  call here can leave the bar hidden permanently or destabilise the framework,
+  and this is the daily reader.
+
 - **Re-check `random_document`.** It reported "File not found" while the
   device held 124 unopenable files; those are gone now, so this may already be
   fixed. If it still fails, the cause is the other one below.
