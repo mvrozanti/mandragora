@@ -44,6 +44,11 @@ window. Prefer the cheapest tier that works.
 
 ## Next up
 
+- **Nothing refreshes the dashboard.** The Dash tile draws
+  `/mnt/us/mandragora/dash/latest.png` and prints *"no dashboard yet"* when it is
+  missing; only a manual `kindle-dash` from the desktop ever writes it. It wants
+  a timer on the desktop, or a pull from the device the way `mandragora-sync`
+  will work.
 - **`mandragora-sync.sh`** — the Sync tile still points at a script that does not
   exist. Should pull fresh art on-device so the desktop is not required. **Must go
   through the SOCKS/HTTP proxy** (`localhost:1055` / `:1056`) and target a tailnet
