@@ -161,6 +161,32 @@ Kernel TUN mode would remove the need for the proxies entirely and `/dev/net/tun
 does exist here, but userspace mode is what is known to work on this device and
 the proxies are additive and free.
 
+## SimpleUI layout
+
+`simpleui/sui_settings.reference.lua` is a **snapshot, not a source of truth** —
+a copy of the working configuration so a wiped device can be put back by hand
+rather than rediscovered. The layout it captures:
+
+```
+row 1 — apps     portrait · mpd · dash · status · sync
+row 2 — system   continue · bookmarks · brightness · night · wifi · power
+```
+
+Two things make this awkward to automate, and both are why `kindle-push` does
+**not** ship it:
+
+- SimpleUI holds its settings in memory and rewrites the file when KOReader
+  exits, so any edit made underneath a running KOReader is silently clobbered.
+  Writing it means stopping KOReader first.
+- The quick-action rows are *instances* with generated ids
+  (`quick_actions_row_248e20`), so the file is not portable between devices as-is
+  — the ids would have to be rewritten to whatever a fresh install generated.
+
+Restoring by hand: stop KOReader, copy the file to
+`/mnt/us/koreader/settings/simpleui/sui_settings.lua`, start KOReader. Restoring
+through the UI is Settings → Home Screen (add the Quick Actions Rows) and then
+each row's Quick Actions entry to fill its slots.
+
 ## Energy
 
 E-ink holds an image at zero power; only the refresh and the radio cost anything.
