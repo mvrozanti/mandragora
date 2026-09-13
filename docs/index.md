@@ -23,6 +23,7 @@ Single LLM router. Every survivor doc is one hop from here.
 | Worktree isolation + mid-switch guard (Rule 10 detail) | [`worktrees.md`](worktrees.md) |
 | GPU coordination + `gpu-lock` rationale (Rule 15 detail) | [`gpu.md`](gpu.md) |
 | Python deps (Nix patterns + upstream-venv exemption, Rule 7 detail) | [`python.md`](python.md) |
+| `--mv-*` tokens + live matugen palette for served UIs (Rule 20 detail) | [`design-system.md`](design-system.md) |
 | Multi-agent file-rewrite hazard + recovery | [`multi-agent-safety.md`](multi-agent-safety.md) |
 | Local LLM migration checklist | [`model-migration.md`](model-migration.md) |
 | Repo-invariant test suite (mechanical rule enforcement) | [`audits.md`](audits.md) |

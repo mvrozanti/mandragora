@@ -34,6 +34,9 @@ services:
       - ${AUTHELIA_SKIN_STATIC:-./skin/static}:/srv/skin:ro
     networks:
       - seafile-net
+      - tailnet-fwd
+    extra_hosts:
+      - "host.docker.internal:172.18.0.1"
     labels:
       caddy: https://auth.${MVR_AC:-mvr.ac}
       caddy.reverse_proxy: "{{upstreams 8080}}"
@@ -56,4 +59,6 @@ services:
 
 networks:
   seafile-net:
+    external: true
+  tailnet-fwd:
     external: true

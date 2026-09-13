@@ -180,9 +180,13 @@ class _Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self) -> None:
-        path = self.path.split("?")[0].rstrip("/")
+        request = self.path.split("?", 1)
+        path = request[0].rstrip("/")
+        query = request[1] if len(request) > 1 else ""
         if path == "/api/theme":
             theme = read_theme()
+            if theme is not None and "colors=1" in query:
+                theme = {k: v for k, v in theme.items() if k != "wallpaper"}
             self._respond(
                 503 if theme is None else 200,
                 None if theme is None else json.dumps(theme).encode("utf-8"),
