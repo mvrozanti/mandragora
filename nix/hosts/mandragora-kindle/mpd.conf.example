@@ -1,0 +1,34 @@
+# mandragora.koplugin / mpd.lua configuration
+#
+# Copy this file to /mnt/us/mandragora/mpd.conf on the device. Simple
+# key=value lines; blank lines and unrecognized keys are ignored, and a
+# missing file is fine — the built-in defaults below apply.
+
+# host: the MPD server address.
+#
+# The tailnet address of the desktop (100.115.80.79) does NOT work here:
+# this Kindle's tailscaled runs with --tun=userspace-networking and no
+# local SOCKS5/HTTP proxy exposed, so it creates no system network
+# interface. Plain sockets opened by other processes on the device
+# (LuaSocket, busybox nc, ping) have no route to the tailnet's 100.64.0.0/10
+# range and time out — only `tailscale`'s own subcommands (nc/ssh/ping) can
+# reach it, via IPC to tailscaled itself, which a generic TCP client can't
+# use. The Kindle and the desktop happen to share the same Wi-Fi LAN, so the
+# desktop's plain LAN address works fine with a normal TCP connection. If
+# the desktop's LAN IP changes (DHCP), update it here.
+host=192.168.0.27
+
+# port: MPD's listen port (services.mpd on the desktop listens on all
+# interfaces at the default port).
+port=6600
+
+# refresh_seconds: automatic redraw interval while the now-playing screen is
+# open, on top of the redraw that already happens after every transport
+# command and after an explicit tap on Refresh.
+#
+# 0 (the default) disables the timer entirely: e-ink holds an image at zero
+# power, so the ideal behavior is to draw once and sleep, redrawing only
+# when something actually changes (a command) or the user asks (Refresh).
+# Any nonzero value is clamped to a minimum of 10 seconds — this screen must
+# never repaint on a per-second cadence.
+refresh_seconds=0
