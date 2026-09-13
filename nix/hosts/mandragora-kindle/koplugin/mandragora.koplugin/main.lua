@@ -34,7 +34,7 @@ local ACTIONS = {
     },
     {
         id = "mandragora_dash",
-        label = "Dashboard",
+        label = "Dash",
         script = "mandragora-dash.sh",
         icon = "dash.svg",
         note = "host status panel",
