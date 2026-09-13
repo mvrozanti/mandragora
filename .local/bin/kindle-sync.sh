@@ -3,7 +3,7 @@ set -euo pipefail
 
 KINDLE_HOST="${KINDLE_HOST:-100.80.53.92}"
 KINDLE_PORT="${KINDLE_PORT:-22}"
-LIBRARY="${KINDLE_LIBRARY:-$HOME/Documents/library/books}"
+LIBRARY="${KINDLE_LIBRARY:-$HOME/Documents/library/kindle}"
 WALLPAPERS="${WALLPAPER_DIR:-$HOME/Pictures/wllpps}"
 REMOTE_BOOKS=/mnt/us/documents/library/books
 MIN_FREE_MB="${KINDLE_MIN_FREE_MB:-500}"
@@ -31,8 +31,11 @@ remote_manifest() {
     done" 2>/dev/null | sort -t"$(printf '\t')" -k2
 }
 
+READABLE=( -iname '*.epub' -o -iname '*.mobi' -o -iname '*.azw3' -o -iname '*.azw'
+           -o -iname '*.pdf' -o -iname '*.txt' -o -iname '*.cbz' -o -iname '*.fb2' )
+
 local_manifest() {
-  ( cd "$1" && find . -type f 2>/dev/null | while IFS= read -r f; do
+  ( cd "$1" && find . -type f \( "${READABLE[@]}" \) 2>/dev/null | while IFS= read -r f; do
       printf '%s\t%s\n' "$(stat -c %s "$f")" "${f#./}"
     done ) | sort -t"$(printf '\t')" -k2
 }
