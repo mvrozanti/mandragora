@@ -25,6 +25,10 @@ window. Prefer the cheapest tier that works.
   the tailnet beside the Amazon email lane, print-to-screen, scriptlet runner.
 - **Dashboard** — `kindle-dash` renders host status from VictoriaMetrics into a
   1272x1696 greyscale PNG on the desktop and pushes it; the device only draws.
+- **Icons** — six in SimpleUI's idiom (48x48, `fill:none`, stroke 2, round caps):
+  portrait, status, sync, dash, mpd, weather. Verified through KOReader's own
+  lunasvg rasteriser, not just a desktop renderer, because two of them use
+  constructs the house set never does (a rotated `<ellipse>`, elliptical arcs).
 - **MPD** — now-playing and transport as a KOReader widget. Reaches the desktop
   over the **LAN** (`192.168.0.27:6600`), not the tailnet, for the reason in the
   README: userspace-networking gives ordinary sockets no tailnet route. Config in
@@ -32,8 +36,7 @@ window. Prefer the cheapest tier that works.
 
 ## In flight
 
-- **Icons** — a six-icon set in SimpleUI's idiom, plus finding out why the tiles
-  still render the default glyph.
+_nothing — next item is whatever gets picked from below._
 
 ## Next up
 

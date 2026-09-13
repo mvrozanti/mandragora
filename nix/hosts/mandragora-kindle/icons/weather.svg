@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="48" height="48" viewBox="0 0 48 48">
+  <circle
+     style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
+     cx="33" cy="16" r="6"/>
   <path
      style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
-     d="M9.95 17.45 A15.5 15.5 0 0 1 38.05 17.45"/>
-  <path style="fill:#000000;stroke:none" d="M41.01 23.79 L33.16 18.08 L41.68 14.10 Z"/>
+     d="M33 7.5 L33 4.5 M39.01 9.99 L41.13 7.87 M41.5 16 L44.5 16 M26.99 9.99 L24.87 7.87 M39.01 22.01 L41.13 24.13"/>
   <path
      style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
-     d="M38.05 30.55 A15.5 15.5 0 0 1 9.95 30.55"/>
-  <path style="fill:#000000;stroke:none" d="M6.99 24.21 L14.84 29.92 L6.32 33.90 Z"/>
+     d="M10 40 A7 7 0 0 1 13.5 27.5 A9 9 0 0 1 29 29 A5.8 5.8 0 0 1 28 40 Z"/>
 </svg>

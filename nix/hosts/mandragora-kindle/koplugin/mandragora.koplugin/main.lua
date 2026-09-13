@@ -72,10 +72,14 @@ local function exists(path)
     return true
 end
 
+local icon_cache = {}
+
 local function iconPath(name)
+    if icon_cache[name] then return icon_cache[name] end
     local candidate = ROOT .. "/icons/" .. name
-    if exists(candidate) then return candidate end
-    return nil
+    if not exists(candidate) then return nil end
+    icon_cache[name] = candidate
+    return candidate
 end
 
 local function openWidget(name)
@@ -112,6 +116,7 @@ function Mandragora:registerActions()
             id = entry.id,
             label = entry.label,
             icon = iconPath(entry.icon),
+            get_icon = function() return iconPath(entry.icon) end,
             is_in_place = true,
             execute = function()
                 if entry.widget then
