@@ -1,0 +1,24 @@
+# mandragora.koplugin / chess.lua configuration
+#
+# Copy to /mnt/us/mandragora/chess.conf on the device. key=value lines; blank
+# lines and unknown keys are ignored, and a missing file is fine.
+
+# host / port: mandragora-chess-engine on the desktop, which wraps stockfish.
+#
+# This is the desktop's LAN address, not its tailnet address, for the reason
+# in the README: this Kindle's tailscaled runs with --tun=userspace-networking
+# and creates no network interface, so a plain LuaSocket connection has no
+# route to 100.64.0.0/10. Same constraint as MPD.
+host=192.168.0.27
+port=6613
+
+# skill: stockfish skill level, 0 to 20. 20 is full strength and will beat you.
+# 8 is roughly club level and is the default.
+skill=8
+
+# movetime: milliseconds the engine may think per move. The widget blocks while
+# it waits, so this is also how long the screen sits on "thinking".
+movetime=1200
+
+# timeout: seconds before giving up on the engine entirely.
+timeout=12
