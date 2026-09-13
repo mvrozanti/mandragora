@@ -38,7 +38,7 @@ services:
       caddy: https://auth.${MVR_AC:-mvr.ac}
       caddy.reverse_proxy: "{{upstreams 8080}}"
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8080/api/health"]
       interval: 30s
       timeout: 5s
       retries: 3
