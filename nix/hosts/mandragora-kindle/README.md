@@ -258,16 +258,18 @@ deliberate exception, and it looks wrong on purpose:
 ```nix
 networking.firewall.interfaces.enp8s0.allowedTCPPorts = [ 6600 ];   # core/security.nix, MPD
 networking.firewall.interfaces.enp8s0.allowedTCPPorts = [ 6612 ];   # services/mpd-vis.nix
+networking.firewall.interfaces.enp8s0.allowedTCPPorts = [ 6613 ];   # services/chess-engine.nix
 ```
 
-Both ports, and for the same reason — `mandragora-mpd-vis` is reached by the
-same LuaSocket in the same widget, so its port has to sit on the same
-interface as MPD's. The two rules live in different modules and merge.
+All three, and for the same reason — `mandragora-mpd-vis` and
+`mandragora-chess-engine` are reached by the same LuaSocket in the same
+plugin, so their ports have to sit on the same interface as MPD's. The three
+rules live in different modules and merge.
 
 The Kindle talks to MPD with plain LuaSocket from inside KOReader, and by the
 section above a plain socket on this device has no route to the tailnet. Only
 the LAN address works, so the LAN interface is the one that has to be open.
-Teaching the widget to speak through the SOCKS proxy is the fix that would let
+Teaching the widgets to speak through the SOCKS proxy is the fix that would let
 this move to `tailscale0`; until then, moving it would close the port where the
 device can reach it and open it where it cannot.
 
@@ -291,6 +293,74 @@ A move repaints only the squares it touched. The MPD visualiser uses A2 for its
 spectrum, and that is wrong here: A2 is two-level, so it would flatten the grey
 dark squares to white. A move is rare enough to afford a proper partial refresh
 of a small region.
+
+### The engine service
+
+The device is never getting its own engine: Stockfish on this CPU is either
+unusably weak or unusably slow, and the binary would have to be carried across
+every firmware reset. So the device keeps the game and asks the desktop every
+question that needs search.
+
+`chess/server.py`, run as `mandragora-chess-engine`
+(`nix/modules/services/chess-engine.nix`), is what answers. It holds **one**
+Stockfish process for the lifetime of the unit — spawning one costs more than
+most of the searches it will be asked to run — behind a mutex, so concurrent
+clients queue rather than fork engines. If the engine dies, the next request
+respawns it and retries once; a second failure answers `ERR` rather than
+hanging.
+
+### Protocol
+
+Plain TCP on `6613`, ASCII, **one line in, one line out**, `\n`-terminated.
+The connection is a session: issue as many requests as you like on it, and
+close it with `QUIT` or just hang up. Idle connections are dropped after five
+minutes.
+
+```
+PING                                   →  PONG
+BESTMOVE <skill> <movetime_ms> <fen>   →  MOVE <uci>   |  MOVE none
+EVAL <movetime_ms> <fen>               →  CP <cp>      |  MATE <n>
+QUIT                                   →  (server closes)
+```
+
+Anything malformed comes back as a single `ERR <reason>` line, never a hang
+and never a dropped connection — the device can log it and carry on.
+
+**Framing: the FEN goes last, and it is the entire rest of the line.** A FEN
+contains spaces, so it cannot sit in the middle of a positional argument list
+without a quoting rule, and a quoting rule is one more thing for LuaSocket to
+get wrong. Putting it last removes the problem instead of solving it: the
+verb's fixed arguments are read off the front by count, and everything after
+them is the FEN verbatim — no quoting, no escaping, no delimiter. It also
+means a short FEN works: only the placement and side-to-move fields are
+required, so `… 8/8/… w` parses as happily as the full six-field form. This is
+why the argument order is *skill then movetime then FEN* rather than the
+FEN-first ordering a reader might expect.
+
+The rest of the rules:
+
+- `<skill>` is Stockfish's own `Skill Level`, `0`–`20`, and is **clamped**
+  into that range rather than rejected. `EVAL` always searches at 20 — an
+  evaluation deliberately weakened is worse than no evaluation.
+- `<movetime_ms>` is clamped to `10 … CHESS_ENGINE_MAX_MOVETIME` (5000 by
+  default). `0` means "server's default" (`CHESS_ENGINE_DEFAULT_MOVETIME`,
+  1000). Both clamps exist so a typo on the device cannot pin a core.
+- `MOVE none` is the honest answer for checkmate and stalemate — Stockfish's
+  `bestmove (none)`. The client must not treat it as an error.
+- `CP` is centipawns **from the side to move's point of view**, not White's;
+  `MATE <n>` is mate in `n` for the side to move, negative when the side to
+  move is the one being mated. `MATE 0` means the side to move is already
+  checkmated.
+- Searches finish early when the position is resolved, so a mate-in-one comes
+  back in milliseconds regardless of the movetime asked for.
+
+Every knob is an environment variable set by the module: `CHESS_ENGINE_BIN`
+(the Stockfish path, wired to `pkgs.stockfish` — never a hardcoded store
+path), `_BIND`, `_PORT`, `_DEFAULT_MOVETIME`, `_MAX_MOVETIME`, `_THREADS`,
+`_HASH`.
+
+The port sits on `enp8s0` for exactly the reason the MPD ports do; read the
+section above before deciding it belongs on `tailscale0`.
 
 ## Getting out of things
 
