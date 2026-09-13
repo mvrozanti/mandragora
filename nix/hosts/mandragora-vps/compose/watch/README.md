@@ -311,17 +311,45 @@ after jailbreak with Vera on Paperwhite 12th gen"* and the judge returned `NO` �
 happened to mention an older firmware. The spec was right about the firmware it
 cared about and wrong about the post, and a month of Véra coverage went by unread.
 
-The sources now, all keyword-gated:
+### A rule may not re-scope what the source already scoped
 
-```
-rss        https://blog.the-ebook-reader.com/feed/   jailbreak
-rss        mobileread forum 150 (Kindle Developer's Corner)   paperwhite AND jailbreak
-reddit_search / hn_search   kindle paperwhite jailbreak   paperwhite AND jailbreak
-```
+The first keyword rule here was `paperwhite AND jailbreak`, and it was measured
+the next day at **20% recall**: it misses four real signals in five, including
+*both* jailbreak announcements. Announcement headlines say "Kindles", or name the
+model as `PW6` — the literal string "paperwhite" is exactly what an announcement
+does not contain.
 
-The ebook-reader blog is the one that actually carried both announcements, and
-`jailbreak` matches roughly one item in fifteen there — low volume, high signal.
-Forum 150 on MobileRead remains where jailbreaks historically drop first.
+That rule missed the Véra announcement **which was already in the database**.
+Forum 150 carried `Tools [New Jailbreak] Vera - KT5/PW5/KT6/PW6/CS/KS/KS2 up to
+5.19.6` on 2026-08-24. The LLM judge had refused it — *"targets PW5/KT5 (not
+PW12), firmware 5.19.6 (user needs 5.18.x/5.19.x)"*, with `PW6` sitting in the
+title and 5.19.6 being a 5.19.x — and then the keyword rule that replaced the
+judge refused it again, three weeks later, for a different reason. The same event,
+on the right source, killed twice by two architectures.
+
+The lesson is narrow and reusable: **the source already scopes the topic.** Forum
+150 is the Kindle Developer's Corner, `r/kindlejailbreak` is what its name says,
+the ebook-reader blog covers e-readers. Re-asserting the topic inside the rule
+adds no precision and silently costs recall.
+
+The sources now, with volume and recall measured over 106 days of history:
+
+| source | rule | msgs/month |
+|---|---|---|
+| mobileread forum 150 | `jailbreak` | 3.1 |
+| the-ebook-reader.com feed | `jailbreak` | 0.3 |
+| hn_search | `jailbreak` | 0.3 |
+| reddit_search | `(jailbreak OR jailbroken) AND (new OR released OR release OR tools OR announcing OR "up to")` | 4.8 |
+
+Reddit is 80% of the raw volume and almost none of the announcements — it is
+help-request chatter — so it alone carries the announcement-shaped clause, which
+cuts it from 14.4/month to 4.8 without losing a single known announcement. The
+other three stay deliberately dumb: they are low-volume enough that a bare
+`jailbreak` costs nothing, and a rule that cannot be too clever cannot be wrong.
+
+Total **8.5 messages/month at 100% recall** on every announcement in the history
+(Véra, Sanctuary, SpiderCat, AdBreak), each reaching you through more than one
+watcher. The prior configuration was 3.4/month at 20%.
 
 ## Fan-out
 
