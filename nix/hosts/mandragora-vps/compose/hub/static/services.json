@@ -52,6 +52,7 @@
     { "name": "chess lens", "host": "chess.mvr.ac", "group": "lab", "desc": "chess.com → stockfish → clickhouse", "access": "priv", "where": "vps" },
     { "name": "rule 110", "host": "rule110.mvr.ac", "group": "lab", "desc": "bf → tm → cts → rule 110 viz", "access": "open", "where": "vps" },
     { "name": "lenia", "host": "lenia.mvr.ac", "group": "lab", "desc": "continuous cellular automaton · webgl2", "access": "open", "where": "vps" },
+    { "name": "fly brain", "host": "fly.mvr.ac", "url": "https://fly.mvr.ac/simulator.html#brain", "group": "lab", "desc": "MaleCNS connectome panel · needs fly-brain daemon", "access": "priv", "where": "desk" },
     { "name": "slither sim", "host": "slither.mvr.ac", "url": "https://slither.mvr.ac/simulator.html", "group": "lab", "desc": "browser sim + dashboard", "access": "priv", "where": "desk" },
     { "name": "manifold", "host": "manifold.mvr.ac", "group": "lab", "desc": "software maps · frozen layout · semantic zoom", "access": "open", "where": "vps" },
     { "name": "vault", "host": "demo.mvr.ac", "group": "lab", "desc": "fake-obsidian · notes graph", "access": "open", "where": "vps" },
