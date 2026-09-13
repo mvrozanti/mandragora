@@ -54,18 +54,27 @@ end
 
 function ChessBoard:layout()
     local w, h = Screen:getWidth(), Screen:getHeight()
-    local square = math.floor(w / 8)
+    local margin = math.floor(w * 0.019)
+    local square = math.floor((w - margin * 2) / 8)
     local board = square * 8
-    local head = math.floor((h - board) * 0.32)
+    local board_x = math.floor((w - board) / 2)
+    local button_h = math.floor(h * 0.066)
+    local button_y = h - button_h - margin
+    local head_h = math.floor((h - board - button_h - margin * 2) * 0.44)
+    local board_y = head_h
+    local foot_y = board_y + board
     return {
         w = w, h = h,
+        margin = margin,
         square = square,
         board = board,
-        board_x = math.floor((w - board) / 2),
-        board_y = head,
-        head_h = head,
-        foot_y = head + board,
-        foot_h = h - head - board,
+        board_x = board_x,
+        board_y = board_y,
+        head_h = head_h,
+        foot_y = foot_y,
+        foot_h = button_y - foot_y,
+        button_y = button_y,
+        button_h = button_h,
     }
 end
 
@@ -165,16 +174,17 @@ end
 function ChessBoard:buttons()
     local L = self.L
     local labels = { "new", "undo", "flip", "close" }
-    local width = math.floor(L.w / #labels)
-    local y = L.h - math.floor(L.foot_h * 0.42)
+    local gap = math.floor(L.margin * 0.6)
+    local span = L.w - L.margin * 2
+    local width = math.floor((span - gap * (#labels - 1)) / #labels)
     local out = {}
     for i, label in ipairs(labels) do
         out[i] = {
             label = label,
-            x = (i - 1) * width,
-            y = y,
+            x = L.margin + (i - 1) * (width + gap),
+            y = L.button_y,
             w = width,
-            h = L.h - y,
+            h = L.button_h,
         }
     end
     return out
