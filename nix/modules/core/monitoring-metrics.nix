@@ -47,6 +47,21 @@ in
           ];
         }
         {
+          job_name = "kindle";
+          scrape_interval = "5m";
+          scrape_timeout = "1m";
+          scheme = "https";
+          metrics_path = "/metrics";
+          static_configs = [
+            {
+              targets = [ "kindle.mvr.ac" ];
+              labels = {
+                instance = "mandragora-kindle";
+              };
+            }
+          ];
+        }
+        {
           job_name = "ebpf";
           scrape_interval = "15s";
           static_configs = [

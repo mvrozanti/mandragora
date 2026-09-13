@@ -1,5 +1,6 @@
 import gzip
 import io
+import re
 import os
 import shlex
 import subprocess
@@ -10,6 +11,9 @@ PORT = os.environ.get("KINDLE_PORT", "22").strip()
 KEY = os.environ.get("KINDLE_SSH_KEY", "/run/kindle_key").strip()
 TIMEOUT = float(os.environ.get("KINDLE_SSH_TIMEOUT", "25"))
 SCREEN_TTL = float(os.environ.get("KINDLE_SCREEN_TTL", "10"))
+STATE_DIR = os.environ.get("KINDLE_STATE_DIR", "/data").rstrip("/")
+MONITOR_TTL = float(os.environ.get("KINDLE_MONITOR_TTL", "240"))
+MONITOR_DEFAULT = os.environ.get("KINDLE_MONITOR_DEFAULT", "1").strip() not in {"0", "false", "no"}
 ART_DIR = "/mnt/us/mandragora/art"
 SCRIPTLET_DIR = "/mnt/us/mandragora/scriptlets"
 DOCUMENTS = "/mnt/us/documents"
@@ -177,3 +181,108 @@ def push_document(filename: str, data: bytes) -> str:
     target = f"{DOCUMENTS}/{safe}"
     put(target, data, mode="644")
     return target
+
+
+_monitor_cache: dict = {"at": 0.0, "status": None, "error": None, "duration": 0.0}
+
+
+def _monitor_flag_path() -> str:
+    return f"{STATE_DIR}/monitor"
+
+
+def monitor_enabled() -> bool:
+    try:
+        with open(_monitor_flag_path()) as fh:
+            return fh.read().strip() == "1"
+    except FileNotFoundError:
+        return MONITOR_DEFAULT
+    except OSError:
+        return MONITOR_DEFAULT
+
+
+def set_monitor(enabled: bool) -> bool:
+    os.makedirs(STATE_DIR, exist_ok=True)
+    with open(_monitor_flag_path(), "w") as fh:
+        fh.write("1" if enabled else "0")
+    if not enabled:
+        _monitor_cache.update({"at": 0.0, "status": None, "error": None, "duration": 0.0})
+    return enabled
+
+
+def _sample() -> dict:
+    now = time.time()
+    if _monitor_cache["at"] and now - _monitor_cache["at"] < MONITOR_TTL:
+        return _monitor_cache
+    started = time.time()
+    try:
+        _monitor_cache["status"] = status()
+        _monitor_cache["error"] = None
+    except DeviceError as exc:
+        _monitor_cache["status"] = None
+        _monitor_cache["error"] = str(exc)
+    _monitor_cache["duration"] = time.time() - started
+    _monitor_cache["at"] = now
+    return _monitor_cache
+
+
+def _line(name: str, value, labels: str = "", help_text: str = "", typ: str = "gauge") -> list[str]:
+    out = []
+    if help_text:
+        out.append(f"# HELP {name} {help_text}")
+        out.append(f"# TYPE {name} {typ}")
+    out.append(f"{name}{labels} {value}")
+    return out
+
+
+def metrics() -> str:
+    enabled = monitor_enabled()
+    lines: list[str] = []
+    lines += _line("kindle_monitor_enabled", 1 if enabled else 0, "",
+                   "Whether the panel is allowed to poll the device", "gauge")
+    if not enabled:
+        return "\n".join(lines) + "\n"
+
+    sample = _sample()
+    info = sample["status"]
+    lines += _line("kindle_up", 1 if info else 0, "", "Device answered over the tailnet", "gauge")
+    lines += _line("kindle_scrape_duration_seconds", round(sample["duration"], 3), "",
+                   "Time the last device poll took", "gauge")
+    if not info:
+        return "\n".join(lines) + "\n"
+
+    lines += _line("kindle_battery_percent", info.get("battery", 0), "", "Battery charge", "gauge")
+    lines += _line("kindle_charging", 1 if info.get("charging") else 0, "", "On external power", "gauge")
+    lines += _line("kindle_storage_used_percent", info.get("used_pct", 0), "",
+                   "Percent of /mnt/us used", "gauge")
+    lines += _line("kindle_art_images", info.get("art", 0), "", "Artworks staged on device", "gauge")
+    up_seconds = _uptime_seconds(info.get("uptime", ""))
+    if up_seconds is not None:
+        lines += _line("kindle_uptime_seconds", up_seconds, "", "Device uptime", "gauge")
+    lines.append("# HELP kindle_service_up Whether a mandragora service is running on the device")
+    lines.append("# TYPE kindle_service_up gauge")
+    for service in ("dropbear", "tailscaled", "koreader"):
+        value = 1 if info.get(service) == "up" else 0
+        lines.append(f'kindle_service_up{{service="{service}"}} {value}')
+    return "\n".join(lines) + "\n"
+
+
+def _uptime_seconds(text: str) -> int | None:
+    text = (text or "").strip()
+    if not text:
+        return None
+    total = 0
+    matched = False
+    days = re.search(r"(\d+)\s*day", text)
+    if days:
+        total += int(days.group(1)) * 86400
+        matched = True
+    hm = re.search(r"(\d+):(\d+)", text)
+    if hm:
+        total += int(hm.group(1)) * 3600 + int(hm.group(2)) * 60
+        matched = True
+    else:
+        mins = re.search(r"(\d+)\s*min", text)
+        if mins:
+            total += int(mins.group(1)) * 60
+            matched = True
+    return total if matched else None

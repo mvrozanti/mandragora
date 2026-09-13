@@ -1,6 +1,6 @@
 (function () {
   var $ = function (id) { return document.getElementById(id); };
-  var state = { device: null, scripts: [], busy: false, grabbed: 0 };
+  var state = { device: null, scripts: [], busy: false, grabbed: 0, monitor: null };
 
   var esc = function (s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -128,7 +128,27 @@
     }));
   };
 
+  var renderMonitor = function () {
+    var m = state.monitor;
+    var pill = $("monpill");
+    var btn = $("monbtn");
+    if (!m) { btn.textContent = "…"; return; }
+    pill.className = "mv-pill " + (m.enabled ? "is-ok" : "");
+    pill.textContent = m.enabled ? "monitoring on" : "monitoring paused";
+    btn.textContent = m.enabled ? "pause" : "resume";
+    $("monnote").textContent = m.enabled
+      ? "grafana polls every " + Math.round(m.poll_seconds / 60) + "m"
+      : "no polling — saves battery";
+  };
+
   var ACTS = {
+    monitor: function () {
+      var next = !(state.monitor && state.monitor.enabled);
+      withBusy(api("POST", "/api/monitor", { enabled: next }).then(function (m) {
+        state.monitor = { enabled: m.enabled, poll_seconds: (state.monitor || {}).poll_seconds || 240 };
+        renderMonitor();
+      }), next ? "monitoring on" : "monitoring paused");
+    },
     refresh: function () { withBusy(loadScreen(true), "refreshed"); },
     browse: function () { $("files").click(); },
     send: function () { sendFiles($("files").files); },
@@ -180,6 +200,7 @@
   var loadAll = function () {
     api("GET", "/api/device").then(function (d) { state.device = d; renderDevice(); }).catch(function () {});
     api("GET", "/api/scriptlets").then(function (s) { state.scripts = s; renderScripts(); }).catch(function () {});
+    api("GET", "/api/monitor").then(function (m) { state.monitor = m; renderMonitor(); }).catch(function () {});
   };
 
   loadAll();

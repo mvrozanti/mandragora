@@ -26,16 +26,26 @@ services:
       - KINDLE_PORT=${KINDLE_PORT:-22}
       - KINDLE_SSH_KEY=/run/kindle_key
       - KINDLE_SCREEN_TTL=${KINDLE_SCREEN_TTL:-10}
+      - KINDLE_STATE_DIR=/data
+      - KINDLE_MONITOR_TTL=${KINDLE_MONITOR_TTL:-240}
+      - KINDLE_MONITOR_DEFAULT=${KINDLE_MONITOR_DEFAULT:-1}
     volumes:
       - ./ssh/id_ed25519:/run/kindle_key:ro
+      - ${KINDLE_DATA_VOLUME:-./data}:/data
     networks:
       - seafile-net
     labels:
       caddy: https://kindle.${MVR_AC:-mvr.ac}
-      caddy.0_forward_auth: "authelia:9091"
-      caddy.0_forward_auth.uri: "/api/authz/forward-auth"
-      caddy.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy.1_reverse_proxy: "{{upstreams 8080}}"
+      caddy.0_@metrics: "path /metrics"
+      caddy.1_handle: "@metrics"
+      caddy.1_handle.0_@notTailnet: "not remote_ip 100.64.0.0/10"
+      caddy.1_handle.1_handle: "@notTailnet"
+      caddy.1_handle.1_handle.respond: "403"
+      caddy.1_handle.2_handle.reverse_proxy: "{{upstreams 8080}}"
+      caddy.2_handle.0_forward_auth: "authelia:9091"
+      caddy.2_handle.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy.2_handle.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.2_handle.1_reverse_proxy: "{{upstreams 8080}}"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=3).read()"]
       interval: 30s
