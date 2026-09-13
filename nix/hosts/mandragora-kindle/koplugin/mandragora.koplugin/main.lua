@@ -22,6 +22,13 @@ local ACTIONS = {
         note = "device overlay",
     },
     {
+        id = "mandragora_dash",
+        label = "Dashboard",
+        script = "mandragora-dash.sh",
+        icon = "dash.svg",
+        note = "host status panel",
+    },
+    {
         id = "mandragora_sync",
         label = "Sync",
         script = "mandragora-sync.sh",
