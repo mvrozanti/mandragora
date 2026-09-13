@@ -19,7 +19,7 @@ put() {
 }
 
 echo "kindle-push: $KINDLE_HOST"
-"${SSH[@]}" "mkdir -p $M/bin $M/rc $M/state $M/log $M/scriptlets $M/art $M/icons"
+"${SSH[@]}" "mkdir -p $M/bin $M/rc $M/state $M/log $M/scriptlets $M/art $M/icons $M/chess/pieces"
 
 echo "rc:"
 for f in "$SRC"/rc/*; do put "$f" "$M/rc/$(basename "$f")"; done
@@ -36,11 +36,18 @@ for f in "$SRC"/scriptlets/*.sh; do
   "${SSH[@]}" "cp $M/scriptlets/$(basename "$f") /mnt/us/documents/"
 done
 
+echo "icons:"
+for f in "$SRC"/icons/*.svg; do [ -f "$f" ] && put "$f" "$M/icons/$(basename "$f")" 644; done
+
+echo "chess pieces:"
+for f in "$SRC"/chess/pieces/*.svg; do [ -f "$f" ] && put "$f" "$M/chess/pieces/$(basename "$f")" 644; done
+
 echo "koreader plugin:"
-"${SSH[@]}" "mkdir -p /mnt/us/koreader/plugins/mandragora.koplugin"
-for f in "$SRC"/koplugin/mandragora.koplugin/*.lua; do
-  put "$f" "/mnt/us/koreader/plugins/mandragora.koplugin/$(basename "$f")" 644
-done
+PLUGIN=/mnt/us/koreader/plugins/mandragora.koplugin
+"${SSH[@]}" "mkdir -p $PLUGIN"
+while IFS= read -r f; do
+  put "$f" "$PLUGIN/${f#"$SRC/koplugin/mandragora.koplugin/"}" 644
+done < <(find "$SRC/koplugin/mandragora.koplugin" -type f -name '*.lua' | sort)
 
 echo "boot job + services:"
 "${SSH[@]}" "/bin/sh $M/rc/install.sh"
