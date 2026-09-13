@@ -43,4 +43,13 @@ if ! pgrep -f "$M/bin/tailscaled" >/dev/null 2>&1; then
   "$M/bin/tailscale" --socket="$S/tailscaled.sock" up --ssh --hostname=kindle --accept-dns=false >>"$L/tailscale-up.log" 2>&1 &
 fi
 
+if [ -x /usr/bin/lipc-set-prop ]; then
+  if /usr/bin/lipc-set-prop com.lab126.pillow disableEnablePillow \
+      '{"clientId":"mandragora","pillowId":"default_status_bar","hide":true}' 2>/dev/null; then
+    log "framework status bar hidden"
+  else
+    log "framework status bar: lipc call failed, leaving it alone"
+  fi
+fi
+
 log "boot: start.sh done"
