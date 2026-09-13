@@ -71,12 +71,6 @@ window. Prefer the cheapest tier that works.
 
 ## Next up
 
-- **Clean the junk already on the device.** The first sync pushed
-  `library/books` wholesale, so `/mnt/us/documents/library/books/` holds ~106
-  PNGs plus CSS and JS beside the PDFs. The sync only ever adds, so fixing its
-  source does not remove what is already there. Wants an opt-in `--prune` that
-  deletes remote files absent from the manifest — deleting off the device is
-  not something a timer should do unattended.
 - **Lock into a wallpaper instead of "Sleeping".** Locking shows the Amazon
   framework's own sleep screen. The device already has 823 e-ink-ready images
   in `art/`; one of them should be what the screen holds. This is the
@@ -84,6 +78,9 @@ window. Prefer the cheapest tier that works.
   `art/` is the true zero-power frame, since e-ink holds the image with the
   radio and CPU off. Check whether the framework's screensaver can be pointed
   at a directory, or whether KOReader's own screensaver has to own the lock.
+- **Re-check `random_document`.** It reported "File not found" while the
+  device held 124 unopenable files; those are gone now, so this may already be
+  fixed. If it still fails, the cause is the other one below.
 - **`random_document` opens nothing.** Reported as "File not found". Two
   candidate causes worth separating before fixing: the action may be picking
   from a stale history that still references moved files, or it may be picking
