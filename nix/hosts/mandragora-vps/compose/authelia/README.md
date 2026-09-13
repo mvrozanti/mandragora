@@ -5,12 +5,13 @@ Stack for `auth.mvr.ac`. Sits in front of every hub vhost except
 redirects), and selective Seafile sync paths
 (`/api2/*`, `/seafhttp/*`, `/seafdav/*`, `/notification/*`).
 
-Two containers on `seafile-net`:
+Three containers on `seafile-net`:
 
 | Container | Image | Purpose |
 |---|---|---|
 | `authelia` | `authelia/authelia:4.39` | portal + forward-auth API at `:9091` |
 | `authelia-redis` | `redis:7-alpine` | session storage at `:6379` |
+| `authelia-skin` | `nginx:1.27-alpine` | mvr design-system skin at `:8080` |
 
 ## Live location
 
@@ -40,6 +41,59 @@ cd /home/opc/authelia && sudo docker compose up -d
   default-deny doesn't block it. CalDAV stays on Radicale's
   native htpasswd.
 - WebAuthn / passkeys enabled but optional (every user has TOTP).
+
+## Skin (`skin/`)
+
+Authelia's frontend is compiled into the Go binary (`embed.FS`) and
+`server.asset_path` only accepts `favicon.ico`, `logo.png` and
+`locales/` — there is no supported CSS hook. So the mvr design system
+is applied by a one-file nginx sidecar that proxies the **public
+vhost only** and injects a stylesheet with `sub_filter`:
+
+```
+caddy ──► authelia-skin:8080 ──► authelia:9091     (auth.mvr.ac portal)
+caddy ──────────────────────► authelia:9091        (forward_auth, untouched)
+```
+
+Every `forward_auth` label across the other stacks points straight at
+`authelia:9091`, so the authorization path never passes through the
+skin. If the skin dies, only the portal's appearance is affected;
+swapping the `caddy:` labels back onto the `authelia` service restores
+stock Authelia with no other change.
+
+Injection happens on `index.html` only:
+
+| `sub_filter` | Effect |
+|---|---|
+| `</head>` | adds `<link rel="stylesheet" href="/mvr/skin.css">` |
+| `theme-color` | browser chrome follows `--mv-bg` instead of `#000` |
+| `viewport` | adds `viewport-fit=cover` for safe-area insets |
+
+Authelia's CSP is `style-src 'self' 'nonce-…'`, and nginx serves
+`/mvr/skin.css` from the same origin, so no CSP change is needed.
+`Host` is forwarded as `$http_host` (not `$host`, which drops the
+port and breaks the templated `<base href>`); `X-Forwarded-*` pass
+through untouched so Authelia still regulates on the real client IP.
+
+`skin/static/skin.css` carries a copy of the `--mv-*` tokens from
+`hub/static/theme.css` and overrides Authelia's MUI dark theme. It
+hangs off stable hooks only — `#otp-input`, `[id="2fa-container"]`,
+`[id$="-stage"]`, `#register-link`, `.Mui*` — never emotion's
+generated class names.
+
+> `2fa-container` starts with a digit, so `#2fa-container` is an
+> **invalid CSS selector** and is silently dropped. Use
+> `[id="2fa-container"]`.
+
+What it fixes on mobile, beyond the palette: the six OTP inputs were
+fixed-width `content-box` boxes that overflowed the viewport below
+~360px (and wrapped to a second row on newer builds) — they are now
+`flex: 1 1 0` with a 48px minimum tap target; `#2fa-container`'s
+hard-coded `height: 200px` is released; and the stage's `90vh`
+becomes `100dvh` so mobile browser chrome doesn't force a scroll.
+
+Iterate on it with the lab harness described in
+[`docs/authelia-skin.md`](../../../../docs/authelia-skin.md).
 
 ## Bootstrap
 
