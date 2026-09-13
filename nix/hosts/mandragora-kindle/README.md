@@ -442,6 +442,26 @@ step a fresh device still needs.
 from 2026-09-12, kept as a record of what the working configuration looked like
 rather than as something any script applies.
 
+## KOReader settings we own
+
+`kindle-settings` patches a handful of keys in `settings.reader.lua` and leaves
+everything else alone. It stops KOReader first, because SimpleUI and KOReader
+both rewrite that file on exit, then checks the result still parses as Lua and
+rolls back if it does not. It is idempotent — running it twice changes nothing.
+
+| key | value | why |
+|---|---|---|
+| `screensaver_type` | `random_image` | see below |
+| `screensaver_dir` | `/mnt/us/mandragora/art` | the 823 synced wallpapers |
+| `screensaver_show_message` | `false` | this is what printed "Sleeping" |
+| `home_dir` | `/mnt/us/documents/library/books` | where **Library** opens |
+| `lastdir` | same | where the browser starts on a cold boot |
+
+`home_dir` is the one SimpleUI reads to decide what the Library tab means
+(`sui_patches.lua` normalises it and resolves the active tab against it), so
+setting it is what makes Library land on the books rather than on `/mnt/us`.
+It was never set at all, which is why Library opened at the filesystem root.
+
 ## Lock screen
 
 Two candidate layers can paint what shows when the device locks: Amazon's own
@@ -463,7 +483,7 @@ today and nothing here creates it.
 
 "Sleeping" is KOReader's own `Screensaver.default_screensaver_message`, shown
 because the shipped defaults are `screensaver_type = "disable"` with
-`screensaver_show_message = true`. `kindle-lockscreen` patches
+`screensaver_show_message = true`. `kindle-settings` patches
 `settings.reader.lua` to `screensaver_type = "random_image"`,
 `screensaver_dir = "/mnt/us/mandragora/art"` and `screensaver_show_message =
 false`, so the lock screen holds one of the 823 e-ink images instead — with
@@ -471,12 +491,12 @@ the radio and CPU off, exactly as cheap as the portrait it borrows from.
 
 KOReader loads `settings.reader.lua` once into memory and holds it for its
 whole run, writing the in-memory copy back over any on-disk edit whenever it
-next flushes — so, like `kindle-layout`, `kindle-lockscreen` stops KOReader
+next flushes — so, like `kindle-layout`, `kindle-settings` stops KOReader
 first, backs up the file to
 `/mnt/us/mandragora/state/settings.reader.pre-lockscreen.lua`, patches only
 the `screensaver_*` keys, checks the result parses as Lua, and restarts
 KOReader itself. **That restart is real and immediate** — run
-`kindle-lockscreen` when the device isn't mid-page. It is the one manual step
+`kindle-settings` when the device isn't mid-page. It is the one manual step
 a fresh device still needs after `kindle-push`; nothing here restarts KOReader
 on its own.
 
@@ -529,12 +549,12 @@ everything here to **wake rarely, draw once, sleep**.
 kindle-push          # rc, scriptlets, plugin, boot job, restart services
 kindle-dash          # render host status → device
 kindle-art 12        # 12 wallpapers from $WALLPAPER_DIR → e-ink → device
-kindle-lockscreen    # point KOReader's screensaver at art/, restarts KOReader
+kindle-settings    # point KOReader's screensaver at art/, restarts KOReader
 ```
 
 `kindle-push` takes the public key from `~/.ssh/id_ed25519.pub` at push time rather
 than committing one. `kindle-art` shares the desktop's `$WALLPAPER_DIR`
 (`~/Pictures/wllpps`), cover-cropping to `1272×1696`, converting to grayscale, and
-Floyd–Steinberg dithering to 16 levels — the panel's actual depth. `kindle-lockscreen`
+Floyd–Steinberg dithering to 16 levels — the panel's actual depth. `kindle-settings`
 is a one-time (or re-run-after-wipe) step, not something `kindle-push` invokes on its
 own, because it restarts KOReader — see Lock screen above.
