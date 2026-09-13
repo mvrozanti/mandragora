@@ -128,6 +128,39 @@ redraws whatever is already on disk.
 The `kindle_*` series come from the scrape job in `nix/modules/core/monitoring-metrics.nix`; see the panel README for how
 `/metrics` is gated to the tailnet and why polling has a pause switch.
 
+## The device has no tailnet route for ordinary sockets
+
+`tailscaled` runs `--tun=userspace-networking`, which creates **no network
+interface**: `ip route` has nothing for `100.64.0.0/10`. Only the `tailscale` CLI
+can reach peers, through tailscaled's own IPC. Everything else — LuaSocket,
+busybox `nc`, `ping`, `wget` — fails identically. Proof, from the device:
+
+```
+nc -w3 100.115.80.79 6600     → Connection timed out
+ping 100.115.80.79            → 100% loss
+tailscale ping 100.115.80.79  → 9ms, direct
+tailscale nc  100.115.80.79 6600 → full MPD reply
+```
+
+This is why `start.sh` also passes `--socks5-server=localhost:1055` and
+`--outbound-http-proxy-listen=localhost:1056`. With those, ordinary clients reach
+the tailnet through a proxy:
+
+```sh
+http_proxy=http://localhost:1056 wget -O- http://100.84.78.83:9100/metrics   # works
+ALL_PROXY=socks5://localhost:1055 <client>                                    # works
+```
+
+**Anything on-device that wants to reach the VPS or the desktop must go through
+one of those two ports.** `mandragora-sync.sh` in the backlog is the obvious
+case — "pull art from `kindle.mvr.ac`" cannot work as a plain fetch. Note that
+`kindle.mvr.ac` resolves to the *public* IP from the device, which is not a
+tailnet destination, so the proxy returns 502 for it; use the tailnet address.
+
+Kernel TUN mode would remove the need for the proxies entirely and `/dev/net/tun`
+does exist here, but userspace mode is what is known to work on this device and
+the proxies are additive and free.
+
 ## Energy
 
 E-ink holds an image at zero power; only the refresh and the radio cost anything.

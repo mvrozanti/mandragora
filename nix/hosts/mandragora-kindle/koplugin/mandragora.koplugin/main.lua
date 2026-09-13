@@ -22,6 +22,13 @@ local ACTIONS = {
         note = "device overlay",
     },
     {
+        id = "mandragora_mpd",
+        label = "Music",
+        widget = "mpd",
+        icon = "mpd.svg",
+        note = "now playing, transport",
+    },
+    {
         id = "mandragora_dash",
         label = "Dashboard",
         script = "mandragora-dash.sh",

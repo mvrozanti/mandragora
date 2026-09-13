@@ -32,6 +32,8 @@ fi
 if ! pgrep -f "$M/bin/tailscaled" >/dev/null 2>&1; then
   nohup "$M/bin/tailscaled" \
     --tun=userspace-networking \
+    --socks5-server=localhost:1055 \
+    --outbound-http-proxy-listen=localhost:1056 \
     --state="$S/tailscaled.state" \
     --socket="$S/tailscaled.sock" \
     --statedir="$S" \
