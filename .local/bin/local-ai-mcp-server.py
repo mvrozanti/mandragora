@@ -18,7 +18,7 @@ def _model_tag(role, fallback):
 
 GEMMA_MODEL = os.environ.get("MCP_GEMMA_MODEL", _model_tag("gemma", "gemma4:12b"))
 AUX_MODEL = os.environ.get(
-    "MCP_AUX_MODEL", _model_tag("aux", "huihui_ai/qwen2.5-abliterate:14b")
+    "MCP_AUX_MODEL", _model_tag("aux", "igorls/gemma-4-12B-it-heretic-GGUF:Q4_K_M")
 )
 
 TOOLS = [
@@ -48,7 +48,7 @@ TOOLS = [
     {
         "name": "ask_aux",
         "description": (
-            "Ask the local auxiliary model (Qwen2.5 14B) running on Ollama. "
+            "Ask the local auxiliary model (Gemma 4 12B) running on Ollama. "
             "Use for: a second opinion from a different model."
         ),
         "inputSchema": {
