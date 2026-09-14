@@ -91,6 +91,8 @@
     { id: "done", label: "done" },
     { id: "all", label: "all" }
   ];
+  var label = function (w) { return w.condition || w.name || (w.kind + ":" + w.target); };
+
   var matching = function () {
     return state.watchers.filter(function (w) {
       return state.filter === "all" || w.state === state.filter;
@@ -121,7 +123,7 @@
     var broken = state.watchers.filter(function (w) { return w.last_error; });
     if (broken.length) {
       out.push('<div class="wa-alert"><b>' + broken.length + " watch" + (broken.length > 1 ? "es are" : " is") +
-        " failing</b> — " + esc(broken.map(function (w) { return w.name || w.target; }).slice(0, 3).join(", ")) +
+        " failing</b> — " + esc(broken.map(label).slice(0, 3).join(", ")) +
         (broken.length > 3 ? " and " + (broken.length - 3) + " more" : "") + "</div>");
     }
     $("alerts").innerHTML = out.join("");
@@ -207,7 +209,7 @@
         '<div class="wa-tile__head" role="button" tabindex="0" data-act="open" data-arg="' + w.id +
         '" aria-expanded="' + open + '">' +
         '<span class="mv-dot wa-tile__dot ' + stateDot(w) + '"></span>' +
-        '<span><span class="wa-tile__name">' + esc(w.name || w.target) + "</span>" +
+        '<span><span class="wa-tile__name">' + esc(label(w)) + "</span>" +
         '<span class="wa-tile__src">' + esc(w.kind) + " · " + esc(w.target) + "</span>" +
         '<span class="wa-tile__chips">' + chips(w) + "</span></span>" +
         '<span class="wa-tile__state ' + w.state + '">' + stateWord(w) + "</span>" +
@@ -251,23 +253,12 @@
     }
     if (state.asking) {
       $("add").innerHTML = '<form class="wa-form" id="sayform">' +
-        '<div class="wa-field wide"><label for="f-say">what do you want to know?</label>' +
-        '<input class="wa-input" id="f-say" placeholder="tell me when a battlefield game runs on linux">' +
-        '<div class="wa-hint">a sentence is enough. it picks the sources and the rule, checks them against live data, and starts watching.</div></div>' +
+        '<div class="wa-field wide"><label for="f-say">what are you waiting on?</label>' +
+        '<input class="wa-input" id="f-say" placeholder="a battlefield game becomes playable on linux">' +
+        '<div class="wa-hint">say the condition. where to look and what counts as a match is worked out for you.</div></div>' +
         '<div class="wa-acts wide"><button class="wa-btn primary" type="submit">' +
         (state.composing ? "working…" : "watch it") + "</button>" +
-        '<button class="wa-btn" type="button" data-act="byhand">place one by hand</button>' +
-        '<button class="wa-btn" type="button" data-act="cancelask">cancel</button></div></form>' +
-        (state.byhand ? '<form class="wa-form" id="handform">' +
-          '<div class="wa-field"><label for="h-kind">source</label><select class="wa-select" id="h-kind">' +
-          Object.keys(state.kinds).map(function (k) {
-            return '<option value="' + k + '">' + esc(state.kinds[k].label) + "</option>";
-          }).join("") + "</select></div>" +
-          '<div class="wa-field"><label for="h-target">target</label>' +
-          '<input class="wa-input" id="h-target" placeholder="owner/repo, @handle, search terms…"></div>' +
-          '<div class="wa-field wide"><label for="h-rule">keyword rule</label>' +
-          '<input class="wa-input" id="h-rule" placeholder="blank = everything it emits counts"></div>' +
-          '<div class="wa-acts wide"><button class="wa-btn" type="submit">add it</button></div></form>' : "");
+        '<button class="wa-btn" type="button" data-act="cancelask">cancel</button></div></form>';
       return true;
     }
     return false;
@@ -277,8 +268,7 @@
     if (renderAsk()) return;
     if (!state.addOpen) {
       $("add").innerHTML = '<div class="wa-acts" style="margin-bottom:var(--mv-space-3)">' +
-        '<button class="wa-btn primary" data-act="openask">watch something</button>' +
-        '<button class="wa-btn" data-act="openadd">add a source by hand</button></div>';
+        '<button class="wa-btn primary" data-act="openask">watch something</button></div>';
       return;
     }
     var opts = Object.keys(state.kinds).map(function (k) {
@@ -351,19 +341,7 @@
     },
     openadd: function () { state.addOpen = true; render(); },
     canceladd: function () { state.addOpen = false; render(); },
-    openask: function () {
-      state.asking = true; state.preview = null;
-      if (!state.templates) {
-        api("GET", "/api/templates").then(function (t) {
-          state.templates = t;
-          state.template = state.template || Object.keys(t)[0];
-          render();
-        }).catch(function () {});
-      }
-      render();
-    },
-    pickt: function () {},
-    byhand: function () { state.byhand = !state.byhand; render(); },
+    openask: function () { state.asking = true; render(); },
     cancelask: function () { state.asking = false; state.preview = null; state.composing = false; render(); },
     savewatch: function () {
       var p = state.preview;
@@ -401,7 +379,7 @@
     },
     del: function (arg) {
       var w = find(arg);
-      if (!window.confirm("delete " + (w.name || w.target) + " and everything it caught?")) return;
+      if (!window.confirm("stop watching \"" + label(w) + "\" and drop everything it caught?")) return;
       state.open = null;
       withBusy(api("DELETE", "/api/watchers/" + arg), "deleted");
     }
@@ -440,7 +418,6 @@
       api("POST", "/api/compose/quick", { text: said }).then(function (res) {
         state.composing = false;
         state.asking = false;
-        state.byhand = false;
         var ids = (res.created || []).map(function (r) { return "w" + r.id; }).join(", ");
         toast("watching " + ids);
         return loadAll();
@@ -449,18 +426,6 @@
         render();
         toast(String(e && e.message ? e.message : e), true);
       });
-      return;
-    }
-    if (ev.target.id === "handform") {
-      ev.preventDefault();
-      var payload = {
-        kind: $("h-kind").value,
-        target: $("h-target").value.trim(),
-        match_rule: $("h-rule").value.trim() || null
-      };
-      if (!payload.target) { toast("target is required", true); return; }
-      state.asking = false; state.byhand = false;
-      withBusy(api("POST", "/api/watchers", payload), "added");
       return;
     }
     if (ev.target.id === "askform") {

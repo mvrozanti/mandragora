@@ -235,6 +235,7 @@ def plan_rows(plan: dict, checked: list[dict]) -> list[dict]:
         if not probe.get("ok"):
             continue
         rows.append({
+            "condition": plan.get("condition"),
             "kind": entry["kind"],
             "target": probe["resolved_target"],
             "name": plan["name"],
