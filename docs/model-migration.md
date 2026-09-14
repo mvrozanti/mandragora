@@ -17,7 +17,7 @@ Deployed (and imported by consumers) at
   "agentic": "gpt-oss:20b",
   "meme": "qwen2.5vl:7b",
   "uncensored": "huihui_ai/qwen2.5-abliterate:14b",
-  "gemma": "gemma3:27b",
+  "gemma": "gemma4:12b",
   "secondary": "qwen3:14b",
   "embeddings": "nomic-embed-text"
 }
@@ -33,7 +33,8 @@ Roles, and who reads each:
 - `uncensored` — abliterated chat model. `mandragora.ai.uncensored.model`
   default in `nix/modules/core/ai-local.nix`; backs the MCP
   `ask_uncensored` tool via `.local/bin/local-ai-mcp-server.py`.
-- `gemma` — oterm/gemma chat and the MCP `ask_gemma` tool
+- `gemma` — chat.mvr.ac default (`DEFAULT_MODELS`), oterm/gemma chat
+  and the MCP `ask_gemma` tool
   (`.local/bin/gemma.py`, `.local/bin/local-ai-mcp-server.py`).
 - `secondary` — crush secondary + the watch judge (both manual, see
   below).
@@ -98,8 +99,14 @@ repos. Listed for completeness:
 
 ## Wrap-up
 
-- **open-webui** talks to the context proxy on `:11435`; no model
-  pinned, picks from whatever ollama has loaded — nothing to migrate.
+- **open-webui** talks to the context proxy on `:11435` and pins the
+  `gemma` role as its default via `DEFAULT_MODELS` in
+  `nix/modules/services/open-webui.nix`. That key is an open-webui
+  *PersistentConfig* variable, so the value in its database wins over
+  the environment once the instance has booted; the module therefore
+  also sets `ENABLE_PERSISTENT_CONFIG = "False"` so the Nix value is
+  authoritative on every start. Admin-panel edits will not survive a
+  restart — that is the intended trade for declarative supremacy.
 - **Documentation** — re-check `AGENTS.md` and `docs/local-llm.md`.
   `local-llm.md` uses generic identity strings to avoid stale model
   references; keep it that way.
