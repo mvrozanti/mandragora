@@ -1,8 +1,12 @@
 # mandragora.koplugin / mpd.lua configuration
 #
-# Copy this file to /mnt/us/mandragora/mpd.conf on the device. Simple
-# key=value lines; blank lines and unrecognized keys are ignored, and a
-# missing file is fine — the built-in defaults below apply.
+# kindle-push ships this file to /mnt/us/mandragora/mpd.conf.example and
+# seeds the live /mnt/us/mandragora/mpd.conf from it only when that file is
+# absent, so edits made on the device survive every subsequent push. To adopt
+# a new key added here, copy the line into the live file by hand.
+#
+# Simple key=value lines; blank lines and unrecognized keys are ignored, and a
+# missing live file is fine — the built-in defaults below apply.
 
 # host: the MPD server address.
 #
@@ -58,3 +62,17 @@ vis_gc16_frames=50
 # `refresh_seconds` from the previous version of this file is still accepted
 # as an alias.
 poll_seconds=3
+
+# volume_buttons: whether the widget owns MPD's volume at all.
+#
+# Off by default, because the Kindle is a remote for a stereo whose volume is
+# already set at the amplifier: a VOL +/- pair on the panel only invites a
+# mis-tap that shouts across the room. With this false the two transport
+# buttons and the `VOL nn%` flag in the header are both gone, the remaining
+# buttons share out the freed width, and a volume change made elsewhere no
+# longer costs a full-screen refresh here.
+#
+# Set it true and everything behaves as it used to: VOL - / VOL + step MPD's
+# volume by 5, and the header reports it. Accepts true/false, yes/no, on/off,
+# 1/0; anything else falls back to the default.
+volume_buttons=false

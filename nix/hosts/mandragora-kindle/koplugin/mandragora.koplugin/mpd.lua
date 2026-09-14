@@ -4,6 +4,7 @@ local Font = require("ui/font")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local InputContainer = require("ui/widget/container/inputcontainer")
+local InputDialog = require("ui/widget/inputdialog")
 local RenderImage = require("ui/renderimage")
 local RenderText = require("ui/rendertext")
 local UIManager = require("ui/uimanager")
@@ -16,7 +17,7 @@ local CONFIG_PATH = "/mnt/us/mandragora/mpd.conf"
 local COVER_PATH = "/tmp/mandragora-mpd-cover.png"
 local NC_BIN = "/usr/bin/nc"
 local TIMEOUT_SECONDS = 3
-local QUEUE_ROWS = 3
+local SEARCH_LIMIT = 40
 local VIS_CONNECT_TIMEOUT = 1
 local VIS_RETRY_SECONDS = 20
 local REF_W = 1272
@@ -29,6 +30,7 @@ local DEFAULTS = {
     vis_fps = 5,
     vis_gc16_frames = 50,
     poll_seconds = 3,
+    volume_buttons = false,
 }
 
 local INK = Blitbuffer.COLOR_BLACK
@@ -70,6 +72,18 @@ local function numberOr(values, key, fallback, low, high)
     return n
 end
 
+local TRUTHY = { ["1"] = true, ["true"] = true, ["yes"] = true, ["on"] = true }
+local FALSY = { ["0"] = true, ["false"] = true, ["no"] = true, ["off"] = true }
+
+local function boolOr(values, key, fallback)
+    local raw = values[key]
+    if type(raw) ~= "string" then return fallback end
+    raw = raw:lower()
+    if TRUTHY[raw] then return true end
+    if FALSY[raw] then return false end
+    return fallback
+end
+
 local function loadConfig()
     local values = parseConfigFile(CONFIG_PATH)
     local cfg = {}
@@ -81,6 +95,7 @@ local function loadConfig()
     cfg.vis_gc16_frames = numberOr(values, "vis_gc16_frames", DEFAULTS.vis_gc16_frames, 5, 600)
     cfg.poll_seconds = numberOr(values, "poll_seconds",
         numberOr(values, "refresh_seconds", DEFAULTS.poll_seconds, 1, 120), 1, 120)
+    cfg.volume_buttons = boolOr(values, "volume_buttons", DEFAULTS.volume_buttons)
     return cfg
 end
 
@@ -207,23 +222,7 @@ local function queryNowPlaying(cfg)
     if not lines then return nil, err end
     local blocks, berr = splitBlocks(lines, 2)
     if not blocks then return nil, berr end
-
-    local current = parseKV(blocks[1])
-    local status = parseKV(blocks[2])
-    local queue = {}
-
-    local song_pos = tonumber(status.song)
-    if song_pos then
-        local from = song_pos + 1
-        local qlines = exchange(cfg.host, cfg.port,
-            string.format("playlistinfo %d:%d\nclose\n", from, from + QUEUE_ROWS))
-        if qlines then
-            local qblocks = splitBlocks(qlines, 1)
-            if qblocks then queue = parseTracks(qblocks[1]) end
-        end
-    end
-
-    return { current = current, status = status, queue = queue }
+    return { current = parseKV(blocks[1]), status = parseKV(blocks[2]) }
 end
 
 local function sendCommand(cfg, command)
@@ -234,6 +233,39 @@ local function sendCommand(cfg, command)
     return true
 end
 
+local function mpdQuote(value)
+    local s = tostring(value or "")
+    s = s:gsub("[\r\n]", " ")
+    s = s:gsub("\\", "\\\\")
+    s = s:gsub('"', '\\"')
+    return '"' .. s .. '"'
+end
+
+local function searchTracks(cfg, query)
+    local payload = string.format("search any %s window 0:%d\nclose\n",
+        mpdQuote(query), SEARCH_LIMIT + 1)
+    local lines, err = exchange(cfg.host, cfg.port, payload)
+    if not lines then return nil, err end
+    local blocks, berr = splitBlocks(lines, 1)
+    if not blocks then return nil, berr end
+    local tracks = parseTracks(blocks[1])
+    local truncated = #tracks > SEARCH_LIMIT
+    while #tracks > SEARCH_LIMIT do table.remove(tracks) end
+    return tracks, truncated
+end
+
+local function addAndPlay(cfg, uri)
+    local lines, err = exchange(cfg.host, cfg.port, "addid " .. mpdQuote(uri) .. "\nclose\n")
+    if not lines then return nil, err end
+    local blocks, berr = splitBlocks(lines, 1)
+    if not blocks then return nil, berr end
+    local id = parseKV(blocks[1]).Id
+    if not id then return nil, "MPD returned no song id" end
+    local played, perr = sendCommand(cfg, "playid " .. id)
+    if not played then return nil, perr end
+    return id
+end
+
 local function formatTime(seconds)
     seconds = math.floor(tonumber(seconds) or 0)
     if seconds < 0 then seconds = 0 end
@@ -242,6 +274,25 @@ local function formatTime(seconds)
     local s = seconds % 60
     if h > 0 then return string.format("%d:%02d:%02d", h, m, s) end
     return string.format("%d:%02d", m, s)
+end
+
+local function trackTitle(track)
+    local title = track.Title
+    if title and title ~= "" then return title end
+    local path = track.file or ""
+    local base = path:match("([^/]+)$") or path
+    base = base:gsub("%.%w+$", "")
+    if base == "" then return "unknown" end
+    return base
+end
+
+local function trackByline(track)
+    local parts = {}
+    local artist = track.Artist or track.AlbumArtist
+    if artist and artist ~= "" then parts[#parts + 1] = artist end
+    if track.Album and track.Album ~= "" then parts[#parts + 1] = track.Album end
+    if #parts == 0 then return "" end
+    return table.concat(parts, "  ·  ")
 end
 
 local SCALE = Screen:getWidth() / REF_W
@@ -326,6 +377,50 @@ local function triangle(bb, x, y, w, h, dir, colour)
     end
 end
 
+local function triangleV(bb, x, y, w, h, dir, colour)
+    for col = 0, w - 1 do
+        local d = math.abs((col / (w - 1)) * 2 - 1)
+        local span = math.floor(h * (1 - d) + 0.5)
+        if span > 0 then
+            if dir == "up" then
+                rect(bb, x + col, y + h - span, 1, span, colour)
+            else
+                rect(bb, x + col, y, 1, span, colour)
+            end
+        end
+    end
+end
+
+local function stroke(bb, x0, y0, x1, y1, thickness, colour)
+    local steps = math.max(math.abs(x1 - x0), math.abs(y1 - y0))
+    if steps < 1 then
+        rect(bb, x0, y0, thickness, thickness, colour)
+        return
+    end
+    for i = 0, steps do
+        local px = x0 + math.floor((x1 - x0) * i / steps + 0.5)
+        local py = y0 + math.floor((y1 - y0) * i / steps + 0.5)
+        rect(bb, px, py, thickness, thickness, colour)
+    end
+end
+
+local function ring(bb, cx, cy, radius, thickness, colour)
+    local inner = radius - thickness
+    for dy = -radius, radius do
+        local outer_span = math.floor(math.sqrt(math.max(0, radius * radius - dy * dy)) + 0.5)
+        local inner_span = 0
+        if math.abs(dy) < inner then
+            inner_span = math.floor(math.sqrt(math.max(0, inner * inner - dy * dy)) + 0.5)
+        end
+        if inner_span > 0 then
+            rect(bb, cx - outer_span, cy + dy, outer_span - inner_span, 1, colour)
+            rect(bb, cx + inner_span, cy + dy, outer_span - inner_span, 1, colour)
+        else
+            rect(bb, cx - outer_span, cy + dy, outer_span * 2, 1, colour)
+        end
+    end
+end
+
 local function elide(f, s, width, bold)
     if not s or s == "" then return "" end
     if textW(f, s, bold) <= width then return s end
@@ -381,23 +476,23 @@ local function layout()
 
     L.head_y = u(92)
     L.head_rule = u(184)
+    L.flags = { y = u(138), w = u(36), h = u(28), gap = u(24) }
 
-    L.cover = { x = L.x0, y = u(216), size = u(400) }
-    L.meta = { x = L.x0 + u(440), w = L.x1 - (L.x0 + u(440)), y = u(216), bottom = u(616) }
+    L.cover = { x = L.x0, y = u(216), size = u(520) }
+    L.meta = { x = L.x0 + u(560), w = L.x1 - (L.x0 + u(560)), y = u(216), bottom = u(736) }
 
-    L.media_rule = u(634)
-    L.scrub_label = u(654)
-    L.tick = { y = u(672), h = u(538) }
-    L.times = u(676)
-    L.bar = { y = u(742), h = u(28) }
-    L.mid_rule = u(802)
-    L.spec_row = u(822)
-    L.bars = { y = u(871), h = u(335), baseline = u(1206) }
-    L.axis = u(1218)
-    L.queue_rule = u(1258)
-    L.queue = { label = u(1274), y = u(1312), pitch = u(42) }
-    L.foot_rule = u(1470)
-    L.transport = { y = u(1490), h = u(100), gap = u(16) }
+    L.media_rule = u(754)
+    L.scrub_label = u(794)
+    L.tick = { y = u(812), h = u(538) }
+    L.times = u(816)
+    L.bar = { y = u(882), h = u(28) }
+    L.mid_rule = u(942)
+    L.spec_row = u(962)
+    L.bars = { y = u(1011), h = u(335), baseline = u(1346) }
+    L.axis = u(1358)
+    L.search = { query = u(238), meta = u(330), rule = u(376), y = u(400), pitch = u(96), rows = 10 }
+    L.foot_rule = u(1430)
+    L.transport = { y = u(1450), h = u(140), gap = u(16) }
     L.tail_rule = u(1612)
     L.footer = u(1624)
 
@@ -426,6 +521,26 @@ function MPDPlayer:init()
     self.covers_fullscreen = true
     self.cfg = loadConfig()
     self.L = layout()
+
+    self.mode = "player"
+    self.player_buttons = {
+        { id = "prev", label = "PREV" },
+        { id = "play", label = "PLAY" },
+        { id = "next", label = "NEXT" },
+        { id = "search", label = "SEARCH" },
+    }
+    if self.cfg.volume_buttons then
+        self.player_buttons[#self.player_buttons + 1] = { id = "voldown", label = "VOL -" }
+        self.player_buttons[#self.player_buttons + 1] = { id = "volup", label = "VOL +" }
+    end
+    self.search_buttons = {
+        { id = "back", label = "BACK" },
+        { id = "search", label = "SEARCH" },
+        { id = "pageprev", label = "PREV" },
+        { id = "pagenext", label = "NEXT" },
+    }
+    self.search_results = {}
+    self.search_page = 1
 
     self.vis_enabled = true
     self.vis_bands = self.L.bands
@@ -478,6 +593,7 @@ function MPDPlayer:animating()
 end
 
 function MPDPlayer:interval()
+    if self.mode == "search" then return 4 end
     if self:animating() then return 1 / self.cfg.vis_fps end
     if self:playing() then return 1 end
     return 4
@@ -490,6 +606,10 @@ end
 
 function MPDPlayer:tick()
     if self._closed then return end
+    if self.mode == "search" or self.dialog_open then
+        self:schedule()
+        return
+    end
     local now = os.time()
 
     if now - self.last_poll >= self.cfg.poll_seconds then
@@ -556,9 +676,9 @@ function MPDPlayer:signature()
     local s = self.data.status or {}
     local c = self.data.current or {}
     return table.concat({
-        s.state or "", s.songid or "", s.volume or "", s.repeat_ or "",
+        s.state or "", s.songid or "",
+        self.cfg.volume_buttons and (s.volume or "") or "",
         s["repeat"] or "", s.random or "", s.single or "", c.file or "",
-        tostring(#(self.data.queue or {})),
     }, "|")
 end
 
@@ -735,22 +855,26 @@ function MPDPlayer:paintAll(bb, ox, oy)
     local L = self.L
     self.hits = {}
     rect(bb, ox, oy, Screen:getWidth(), Screen:getHeight(), PAPER)
-    self:paintHeader(bb, ox, oy)
-    if self.error then
-        self:paintOffline(bb, ox, oy)
+    if self.mode == "search" then
+        self:paintHeader(bb, ox, oy, "MANDRAGORA / SEARCH")
+        self:paintSearch(bb, ox, oy)
     else
-        self:paintMedia(bb, ox, oy)
-        self:paintScrubLabels(bb, ox, oy)
-        self:paintTick(bb, ox, oy)
-        self:paintAxis(bb, ox, oy)
-        self:paintQueue(bb, ox, oy)
+        self:paintHeader(bb, ox, oy, "MANDRAGORA / NOW PLAYING")
+        if self.error then
+            self:paintOffline(bb, ox, oy)
+        else
+            self:paintMedia(bb, ox, oy)
+            self:paintScrubLabels(bb, ox, oy)
+            self:paintTick(bb, ox, oy)
+            self:paintAxis(bb, ox, oy)
+        end
     end
     self:paintTransport(bb, ox, oy)
     self:paintFooter(bb, ox, oy)
     rect(bb, ox + L.x0, oy + L.head_rule, L.cw, L.heavy, INK)
 end
 
-function MPDPlayer:paintHeader(bb, ox, oy)
+function MPDPlayer:paintHeader(bb, ox, oy, subtitle)
     local L = self.L
     local mark = face(MONO, 84)
     local mm = metrics(mark)
@@ -759,7 +883,7 @@ function MPDPlayer:paintHeader(bb, ox, oy)
 
     local sub = face(MONO, 21)
     tracked(bb, ox + L.x0 + textW(mark, "MPD", true) + u(30), baseline, sub,
-        "MANDRAGORA / NOW PLAYING", INK_DIM, u(5), false)
+        subtitle, INK_DIM, u(5), false)
 
     local status = (self.data and self.data.status) or {}
     local label = "STOPPED"
@@ -773,30 +897,71 @@ function MPDPlayer:paintHeader(bb, ox, oy)
         label = "PAUSED"
     end
     self:paintTag(bb, ox + L.x1, oy + L.head_y, label, filled, 28)
+    self:paintFlags(bb, ox, oy, status)
+end
 
-    local flags = {}
-    local volume = tonumber(status.volume)
-    flags[#flags + 1] = { "VOL " .. (volume and (volume .. "%") or "--"), false }
-    flags[#flags + 1] = { "RPT", status["repeat"] == "1" }
-    flags[#flags + 1] = { "RND", status.random == "1" }
-    flags[#flags + 1] = { "SGL", status.single == "1" }
+function MPDPlayer:paintFlags(bb, ox, oy, status)
+    local L = self.L
+    local F = L.flags
+    local modes = {
+        { id = "repeat", on = status["repeat"] == "1" },
+        { id = "random", on = status.random == "1" },
+        { id = "single", on = status.single == "1" },
+    }
 
-    local ff = face(MONO, 21)
-    local fm = metrics(ff)
-    local flag_baseline = oy + L.head_y + u(56) + fm.cap
-    local width = 0
-    for i, flag in ipairs(flags) do
-        width = width + trackedW(ff, flag[1], u(3), true)
-        if i < #flags then width = width + u(22) end
+    local width = #modes * F.w + (#modes - 1) * F.gap
+    local vf, volume_label
+    if self.cfg.volume_buttons then
+        local volume = tonumber(status.volume)
+        volume_label = "VOL " .. (volume and (volume .. "%") or "--")
+        vf = face(MONO, 21)
+        width = width + trackedW(vf, volume_label, u(3), true) + F.gap
     end
+
     local x = ox + L.x1 - width
-    for i, flag in ipairs(flags) do
-        local w = trackedW(ff, flag[1], u(3), true)
-        tracked(bb, x, flag_baseline, ff, flag[1], flag[2] and INK or INK_FAINT, u(3), true)
-        if flag[2] then
-            rect(bb, x, flag_baseline + u(8), w, L.hair, INK)
+    if volume_label then
+        local vm = metrics(vf)
+        local vw = trackedW(vf, volume_label, u(3), true)
+        tracked(bb, x, oy + F.y + math.floor((F.h + vm.cap) / 2), vf, volume_label,
+            INK_FAINT, u(3), true)
+        x = x + vw + F.gap
+    end
+    for _, mode in ipairs(modes) do
+        local ink = mode.on and INK or INK_FAINT
+        self:paintModeIcon(bb, mode.id, x, oy + F.y, F.w, F.h, ink)
+        if mode.on then
+            rect(bb, x, oy + F.y + F.h + u(8), F.w, L.hair, INK)
         end
-        x = x + w + u(22)
+        x = x + F.w + F.gap
+    end
+end
+
+function MPDPlayer:paintModeIcon(bb, id, x, y, w, h, ink)
+    local t = u(3)
+    local head_w, head_h = u(11), u(13)
+    local top, bottom = y + u(5), y + h - u(5) - t
+    local function head(hx, line_y, dir)
+        triangle(bb, hx, line_y + math.floor(t / 2) - math.floor(head_h / 2),
+            head_w, head_h, dir, ink)
+    end
+    if id == "repeat" then
+        rect(bb, x + head_w, top, w - head_w, t, ink)
+        head(x, top, "left")
+        rect(bb, x, bottom, w - head_w, t, ink)
+        head(x + w - head_w, bottom, "right")
+    elseif id == "random" then
+        local far = x + w - head_w - t
+        stroke(bb, x, top, far, bottom, t, ink)
+        stroke(bb, x, bottom, far, top, t, ink)
+        head(x + w - head_w, top, "right")
+        head(x + w - head_w, bottom, "right")
+    elseif id == "single" then
+        local wall = u(4)
+        local mid = y + math.floor((h - t) / 2)
+        local tip = x + w - head_w - wall - t
+        rect(bb, x, mid, tip - x, t, ink)
+        head(tip, mid, "right")
+        rect(bb, x + w - t, y + wall, t, h - wall * 2, ink)
     end
 end
 
@@ -1077,59 +1242,101 @@ function MPDPlayer:paintAxis(bb, ox, oy)
     end
 end
 
-function MPDPlayer:paintQueue(bb, ox, oy)
+function MPDPlayer:searchPages()
+    local n = #(self.search_results or {})
+    if n == 0 then return 1 end
+    return math.ceil(n / self.L.search.rows)
+end
+
+function MPDPlayer:paintNotice(bb, ox, oy, top, height, message)
     local L = self.L
-    rect(bb, ox + L.x0, oy + L.queue_rule, L.cw, L.hair, INK)
+    local f = face(MONO, 23)
+    local m = metrics(f)
+    local tw = trackedW(f, message, u(5), true)
+    local pad = u(30)
+    local bw = math.min(L.cw, tw + pad * 2)
+    local bh = m.cap + u(28)
+    local bx = ox + L.x0 + math.floor((L.cw - bw) / 2)
+    local by = oy + top + math.floor((height - bh) / 2)
+    rect(bb, bx, by, bw, bh, PAPER)
+    outline(bb, bx, by, bw, bh, u(3), INK)
+    tracked(bb, bx + math.floor((bw - tw) / 2), by + math.floor((bh - m.cap) / 2) + m.cap,
+        f, message, INK, u(5), true)
+end
 
-    local lf = face(MONO, 20)
-    local lm = metrics(lf)
-    tracked(bb, ox + L.x0, oy + L.queue.label + lm.cap, lf, "UP NEXT", INK_DIM, u(5), true)
+function MPDPlayer:paintSearch(bb, ox, oy)
+    local L = self.L
+    local S = L.search
+    local results = self.search_results or {}
+    local pages = self:searchPages()
+    local page = math.max(1, math.min(self.search_page or 1, pages))
+    self.search_page = page
 
-    local queue = (self.data and self.data.queue) or {}
-    local nf = face(MONO, 23)
-    local tf = face(BODY, 29)
-    local df = face(MONO, 22)
-    local nm, tm = metrics(nf), metrics(tf)
-    local pos = tonumber((self.data and self.data.status or {}).song) or 0
+    local qf = face(DISPLAY, 54)
+    local qm = metrics(qf)
+    local query = self.search_query or ""
+    if query == "" then query = "no query yet" end
+    text(bb, ox + L.x0, oy + S.query + qm.cap, qf, elide(qf, query, L.cw, false), INK, false)
 
-    self.hits.queue = {}
-    if #queue == 0 then
-        local ef = face(BODY, 26)
-        local em = metrics(ef)
-        text(bb, ox + L.x0, oy + L.queue.y + em.cap, ef, "nothing queued after this track", INK_FAINT, false)
+    local mf = face(MONO, 21)
+    local mm = metrics(mf)
+    local summary
+    if self.search_error then
+        summary = string.upper(tostring(self.search_error))
+    else
+        summary = string.format("%d MATCH%s", #results, #results == 1 and "" or "ES")
+        if self.search_truncated then
+            summary = summary .. "  ·  CAPPED AT " .. SEARCH_LIMIT
+        end
+        if pages > 1 then
+            summary = summary .. string.format("  ·  PAGE %d / %d", page, pages)
+        end
+    end
+    tracked(bb, ox + L.x0, oy + S.meta + mm.cap, mf, elide(mf, summary, L.cw, true),
+        INK_DIM, u(5), true)
+    rect(bb, ox + L.x0, oy + S.rule, L.cw, L.hair, INK)
+
+    self.hits.results = {}
+    if #results == 0 then
+        self:paintNotice(bb, ox, oy, S.y, S.rows * S.pitch,
+            self.search_error and "SEARCH FAILED" or "NO MATCHES FOR THAT TERM")
         return
     end
 
-    for i = 1, math.min(QUEUE_ROWS, #queue) do
-        local track = queue[i]
-        local row_y = oy + L.queue.y + (i - 1) * L.queue.pitch
-        local baseline = row_y + tm.cap
+    local nf = face(MONO, 23)
+    local tf = face(BODY, 32)
+    local af = face(MONO, 24)
+    local df = face(MONO, 22)
+    local nm, tm, am, dm = metrics(nf), metrics(tf), metrics(af), metrics(df)
+    local first = (page - 1) * S.rows
 
-        tracked(bb, ox + L.x0, row_y + nm.cap, nf, string.format("%02d", pos + i + 1), INK_DIM, u(2), true)
+    for i = 1, S.rows do
+        local track = results[first + i]
+        if not track then break end
+        local row_y = oy + S.y + (i - 1) * S.pitch
+
+        tracked(bb, ox + L.x0, row_y + nm.cap, nf, string.format("%02d", first + i), INK_DIM, u(2), true)
 
         local duration = tonumber(track.duration) or tonumber(track.Time)
         local stamp = duration and formatTime(duration) or ""
         local sw = textW(df, stamp, false)
         if stamp ~= "" then
-            text(bb, ox + L.x1 - sw, row_y + metrics(df).cap, df, stamp, INK_DIM, false)
+            text(bb, ox + L.x1 - sw, row_y + dm.cap, df, stamp, INK_DIM, false)
         end
 
-        local tx = ox + L.x0 + u(62)
+        local tx = ox + L.x0 + u(66)
         local avail = (ox + L.x1 - sw - u(24)) - tx
-        local label = track.Title or track.file or "unknown"
-        if track.Artist then label = label .. "  —  " .. track.Artist end
-        label = elide(tf, label, avail, false)
-        text(bb, tx, baseline, tf, label, INK, false)
+        text(bb, tx, row_y + tm.cap, tf, elide(tf, trackTitle(track), avail, false), INK, false)
 
-        local dots_from = tx + textW(tf, label, false) + u(14)
-        local dots_to = ox + L.x1 - sw - u(14)
-        local dx = dots_from
-        while dx + u(3) < dots_to do
-            rect(bb, dx, baseline - u(6), u(3), u(3), INK_FAINT)
-            dx = dx + u(11)
+        local byline = trackByline(track)
+        if byline ~= "" then
+            text(bb, tx, row_y + tm.cap + u(30) + am.cap, af, elide(af, byline, avail, false),
+                INK_DIM, false)
         end
 
-        self.hits.queue[i] = { x = ox + L.x0, y = row_y - u(8), w = L.cw, h = L.queue.pitch, pos = pos + i }
+        rect(bb, ox + L.x0, row_y + u(84), L.cw, L.hair, INK_FAINT)
+        self.hits.results[#self.hits.results + 1] =
+            { x = ox + L.x0, y = row_y - u(10), w = L.cw, h = S.pitch, track = track }
     end
 end
 
@@ -1178,20 +1385,18 @@ function MPDPlayer:paintOffline(bb, ox, oy)
     self.hits.retry = { x = 0, y = oy + L.head_rule, w = Screen:getWidth(), h = L.foot_rule - L.head_rule }
 end
 
-local TRANSPORT = {
-    { id = "prev", label = "PREV" },
-    { id = "play", label = "PLAY" },
-    { id = "next", label = "NEXT" },
-    { id = "voldown", label = "VOL -" },
-    { id = "volup", label = "VOL +" },
-}
+function MPDPlayer:buttons()
+    if self.mode == "search" then return self.search_buttons end
+    return self.player_buttons
+end
 
 function MPDPlayer:paintTransport(bb, ox, oy)
     local L = self.L
     rect(bb, ox, oy + L.transport.y - u(20), Screen:getWidth(), L.transport.h + u(40), PAPER)
     rect(bb, ox + L.x0, oy + L.foot_rule, L.cw, L.heavy, INK)
 
-    local count = #TRANSPORT
+    local row = self:buttons()
+    local count = #row
     local w = math.floor((L.cw - L.transport.gap * (count - 1)) / count)
     local h = L.transport.h
     local y = oy + L.transport.y
@@ -1199,7 +1404,7 @@ function MPDPlayer:paintTransport(bb, ox, oy)
     local m = metrics(f)
 
     self.hits.transport = {}
-    for i, button in ipairs(TRANSPORT) do
+    for i, button in ipairs(row) do
         local x = ox + L.x0 + (i - 1) * (w + L.transport.gap)
         local pressed = self.pressed == button.id
         local ink = pressed and PAPER or INK
@@ -1212,40 +1417,51 @@ function MPDPlayer:paintTransport(bb, ox, oy)
         local label = button.label
         if button.id == "play" then label = self:playing() and "PAUSE" or "PLAY" end
         local tw = trackedW(f, label, u(4), true)
-        tracked(bb, x + math.floor((w - tw) / 2), y + h - u(16), f, label, pressed and PAPER or INK_DIM, u(4), true)
+        tracked(bb, x + math.floor((w - tw) / 2), y + h - u(20), f, label, pressed and PAPER or INK_DIM, u(4), true)
 
         local cx = x + math.floor(w / 2)
-        local cy = y + math.floor(h / 2) - u(10)
-        self:paintGlyph(bb, button.id, cx, cy, ink)
+        local cy = y + math.floor(h / 2) - u(12)
+        self:paintGlyph(bb, button.id, cx, cy, ink, u(46))
 
         self.hits.transport[i] = { x = x, y = y, w = w, h = h, id = button.id }
     end
 end
 
-function MPDPlayer:paintGlyph(bb, id, cx, cy, ink)
-    local size = u(34)
+function MPDPlayer:paintGlyph(bb, id, cx, cy, ink, size)
+    size = size or u(34)
+    local function g(v) return math.floor(v * size / 34 + 0.5) end
     local half = math.floor(size / 2)
-    if id == "prev" or id == "next" then
-        local bar = u(6)
-        local tw = u(24)
+    if id == "prev" or id == "next" or id == "back" then
+        local bar = g(6)
+        local tw = g(24)
         local top = cy - half
-        if id == "prev" then
-            rect(bb, cx - tw - u(4), top, bar, size, ink)
-            triangle(bb, cx - u(2), top, tw, size, "left", ink)
+        if id == "back" then
+            triangle(bb, cx - math.floor(tw / 2), top, tw, size, "left", ink)
+        elseif id == "prev" then
+            rect(bb, cx - tw - g(4), top, bar, size, ink)
+            triangle(bb, cx - g(2), top, tw, size, "left", ink)
         else
-            rect(bb, cx + tw - u(2), top, bar, size, ink)
-            triangle(bb, cx - tw + u(2), top, tw, size, "right", ink)
+            rect(bb, cx + tw - g(2), top, bar, size, ink)
+            triangle(bb, cx - tw + g(2), top, tw, size, "right", ink)
         end
     elseif id == "play" then
         if self:playing() then
-            rect(bb, cx - u(13), cy - half, u(10), size, ink)
-            rect(bb, cx + u(3), cy - half, u(10), size, ink)
+            rect(bb, cx - g(13), cy - half, g(10), size, ink)
+            rect(bb, cx + g(3), cy - half, g(10), size, ink)
         else
-            triangle(bb, cx - u(12), cy - half, u(26), size, "right", ink)
+            triangle(bb, cx - g(12), cy - half, g(26), size, "right", ink)
         end
+    elseif id == "search" then
+        local radius = g(13)
+        local thick = g(5)
+        ring(bb, cx - g(4), cy - g(4), radius, thick, ink)
+        stroke(bb, cx + g(5), cy + g(5), cx + g(14), cy + g(14), thick, ink)
+    elseif id == "pageprev" or id == "pagenext" then
+        triangleV(bb, cx - half, cy - g(12), size, g(24),
+            id == "pageprev" and "up" or "down", ink)
     elseif id == "voldown" or id == "volup" then
-        local arm = u(30)
-        local thick = u(7)
+        local arm = g(30)
+        local thick = g(7)
         rect(bb, cx - math.floor(arm / 2), cy - math.floor(thick / 2), arm, thick, ink)
         if id == "volup" then
             rect(bb, cx - math.floor(thick / 2), cy - math.floor(arm / 2), thick, arm, ink)
@@ -1285,6 +1501,97 @@ function MPDPlayer:command(cmd)
     self:poll()
 end
 
+function MPDPlayer:enterSearch()
+    self.mode = "search"
+    self:visClose(nil)
+    self:repaint("all", "full")
+end
+
+function MPDPlayer:leaveSearch()
+    self.mode = "player"
+    self.vis_retry = 0
+    self.last_poll = 0
+    self:poll()
+    self:repaint("all", "full")
+end
+
+function MPDPlayer:turnPage(delta)
+    local pages = self:searchPages()
+    local page = (self.search_page or 1) + delta
+    if page < 1 then page = pages end
+    if page > pages then page = 1 end
+    self.search_page = page
+    self:repaint("all", "full")
+end
+
+function MPDPlayer:runSearch(query)
+    query = tostring(query or ""):gsub("^%s+", "")
+    query = query:gsub("%s+$", "")
+    if query == "" then
+        self:repaint("all", "full")
+        return
+    end
+    self.search_query = query
+    self.search_page = 1
+    self.search_error = nil
+    self.search_truncated = false
+    local ok, results, extra = pcall(searchTracks, self.cfg, query)
+    if ok and results then
+        self.search_results = results
+        self.search_truncated = extra and true or false
+    else
+        self.search_results = {}
+        self.search_error = ok and tostring(extra) or tostring(results)
+        logger.warn("mandragora: mpd: search failed:", self.search_error)
+    end
+    self:enterSearch()
+end
+
+function MPDPlayer:openSearch()
+    local dialog
+    dialog = InputDialog:new{
+        title = "Search MPD",
+        input = self.search_query or "",
+        input_hint = "artist, title or album",
+        buttons = {{
+            {
+                text = "Cancel",
+                id = "close",
+                callback = function()
+                    UIManager:close(dialog)
+                    self.dialog_open = false
+                    self:repaint("all", "full")
+                end,
+            },
+            {
+                text = "Search",
+                is_enter_default = true,
+                callback = function()
+                    local query = dialog:getInputText()
+                    UIManager:close(dialog)
+                    self.dialog_open = false
+                    self:runSearch(query)
+                end,
+            },
+        }},
+    }
+    self.dialog_open = true
+    UIManager:show(dialog)
+    dialog:onShowKeyboard()
+end
+
+function MPDPlayer:playResult(track)
+    if not track or not track.file then return end
+    local ok, id, err = pcall(addAndPlay, self.cfg, track.file)
+    if ok and id then
+        self:leaveSearch()
+        return
+    end
+    self.search_error = ok and tostring(err) or tostring(id)
+    logger.warn("mandragora: mpd: play failed:", self.search_error)
+    self:repaint("all", "full")
+end
+
 function MPDPlayer:press(id)
     self.pressed = id
     self:repaint("transport", "fast")
@@ -1308,6 +1615,19 @@ function MPDPlayer:press(id)
             local step = id == "volup" and 5 or -5
             volume = math.max(0, math.min(100, volume + step))
             self:command("setvol " .. volume)
+        elseif id == "search" then
+            self.pressed = nil
+            self:repaint("transport", "ui")
+            self:openSearch()
+            return
+        elseif id == "back" then
+            self.pressed = nil
+            self:leaveSearch()
+            return
+        elseif id == "pageprev" or id == "pagenext" then
+            self.pressed = nil
+            self:turnPage(id == "pagenext" and 1 or -1)
+            return
         end
         self.pressed = nil
         if self.paint_zone ~= "all" then self:repaint("transport", "ui") end
@@ -1315,22 +1635,33 @@ function MPDPlayer:press(id)
 end
 
 function MPDPlayer:onTap(_, ges)
+    if self.dialog_open then return true end
     local pos = ges and ges.pos
     if not pos then return true end
     local x, y = pos.x, pos.y
-
-    if self.hits.retry and inside(self.hits.retry, x, y) then
-        self.last_poll = 0
-        self:poll()
-        self:repaint("all", "full")
-        return true
-    end
 
     for _, button in ipairs(self.hits.transport or {}) do
         if inside(button, x, y) then
             self:press(button.id)
             return true
         end
+    end
+
+    if self.mode == "search" then
+        for _, row in ipairs(self.hits.results or {}) do
+            if inside(row, x, y) then
+                self:playResult(row.track)
+                return true
+            end
+        end
+        return true
+    end
+
+    if self.hits.retry and inside(self.hits.retry, x, y) then
+        self.last_poll = 0
+        self:poll()
+        self:repaint("all", "full")
+        return true
     end
 
     if inside(self.hits.scrub, x, y) then
@@ -1355,23 +1686,25 @@ function MPDPlayer:onTap(_, ges)
         return true
     end
 
-    for _, row in ipairs(self.hits.queue or {}) do
-        if inside(row, x, y) then
-            self:command("play " .. row.pos)
-            self:repaint("all", "full")
-            return true
-        end
-    end
-
     return true
 end
 
 function MPDPlayer:onDoubleTap()
+    if self.dialog_open then return true end
+    if self.mode == "search" then
+        self:leaveSearch()
+        return true
+    end
     return self:onClose()
 end
 
 function MPDPlayer:onSwipe(_, ges)
+    if self.dialog_open then return true end
     if ges.direction == "south" or ges.direction == "north" then
+        if self.mode == "search" then
+            self:leaveSearch()
+            return true
+        end
         return self:onClose()
     end
     return true
