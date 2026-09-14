@@ -75,10 +75,9 @@ def test_every_name_an_entrypoint_calls_actually_exists(entry):
     assert not missing, f"{entry} references names that do not exist: {missing}"
 
 
-def test_watch_command_with_no_args_explains_itself(db):
+def test_watch_command_with_no_args_asks_for_a_condition(db):
     out = asyncio.run(tg._cmd_watch(db, []))
-    assert "what you want to know" in out
-    assert "/add" in out
+    assert "condition" in out.lower()
 
 
 def test_watch_command_with_a_sentence_reaches_the_composer(db, monkeypatch):
@@ -94,12 +93,50 @@ def test_watch_command_with_a_sentence_reaches_the_composer(db, monkeypatch):
     assert "/add" in out
 
 
-def test_every_source_kind_is_offered_in_the_no_args_help(db):
+def _leaked_kinds(text: str) -> list[str]:
     import sources
 
+    return [k for k in sources.SOURCE_KINDS if k in text]
+
+
+def test_the_help_never_names_a_source_kind(db):
+    assert _leaked_kinds(tg.HELP) == []
+
+
+def test_the_watch_prompt_never_names_a_source_kind(db):
     out = asyncio.run(tg._cmd_watch(db, []))
-    missing = [k for k in sources.SOURCE_KINDS if k not in out]
-    assert not missing, f"kinds a user cannot discover: {missing}"
+    assert _leaked_kinds(out) == []
+
+
+def test_the_created_reply_names_the_condition_not_the_plumbing(db, monkeypatch):
+    import compose
+
+    async def fake_quick(text):
+        return {
+            "plan": {"name": "bf on linux", "condition": text, "stop_after": 0, "sources": []},
+            "sources": [],
+            "rows": [{"condition": text, "kind": "anticheat_game", "target": "battlefield",
+                      "name": "bf on linux", "match_rule": '"now Supported"',
+                      "stop_after": 0, "watch_group": "g1"}],
+            "warnings": [], "provider": "stub", "estimates": {},
+        }
+
+    monkeypatch.setattr(compose, "quick_create", fake_quick)
+    out = asyncio.run(tg._cmd_watch(db, "a battlefield game runs on linux".split()))
+    assert "a battlefield game runs on linux" in out
+    assert _leaked_kinds(out) == []
+    assert "now Supported" not in out
+
+
+def test_the_list_shows_conditions_not_targets(db, make_watcher):
+    wid = make_watcher(kind="anticheat_game", target="battlefield", ai_spec=None)
+    c = db()
+    c.execute("UPDATE watchers SET condition = ? WHERE id = ?",
+              ("a battlefield game runs on linux", wid))
+    c.close()
+    out = asyncio.run(tg._cmd_list(db))
+    assert "a battlefield game runs on linux" in out
+    assert _leaked_kinds(out) == []
 
 
 def test_every_command_in_help_has_a_dispatch_branch():

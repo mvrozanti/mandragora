@@ -138,11 +138,9 @@ async def push_event(watcher: Any, ev: dict[str, Any]) -> bool:
 
 HELP = (
     "<b>mandragora-watch</b>\n"
-    "/watch &lt;describe it in a sentence&gt; — works it out and starts watching\n"
-    "/watch — list the templates for adding one by hand\n"
+    "/watch &lt;a condition you are waiting on&gt; — start watching it\n"
     "/list — show watchers\n"
-    "/add &lt;kind&gt; &lt;target&gt; [name] — add watcher\n"
-    "/addack &lt;kind&gt; &lt;target&gt; [name] — add watcher that nags until acked\n"
+
     "/del &lt;id&gt; — remove watcher\n"
     "/pause &lt;id&gt; — disable\n"
     "/resume &lt;id&gt; — enable\n"
@@ -153,7 +151,7 @@ HELP = (
     "/ackall &lt;watcher_id&gt; — ack every event from a watcher\n"
     "/ackrequire &lt;watcher_id&gt; on|off — toggle requires_ack on a watcher\n"
     "/remind &lt;watcher_id&gt; &lt;seconds&gt; — set reminder interval\n"
-    "/match &lt;watcher_id&gt; &lt;rule&gt; — set the keyword rule (empty clears)\n"
+
     "/verdicts &lt;watcher_id&gt; — recent verdict tallies\n"
     "/status — funnel counts, backlog, last poll and push, spec warnings\n"
 )
@@ -163,32 +161,31 @@ async def _cmd_list(conn_factory) -> str:
     c = conn_factory()
     rows = c.execute(
         """
-        SELECT w.id, w.kind, w.target, w.name, w.enabled, w.last_polled_at, w.last_error,
-               w.requires_ack, w.reminder_interval, w.ai_spec, w.spec_lint,
-               (SELECT COUNT(*) FROM events e WHERE e.watcher_id = w.id AND e.acked_at IS NULL) AS un
-        FROM watchers w ORDER BY w.id
+        SELECT w.condition, w.name, w.watch_group,
+               MIN(w.enabled) AS enabled,
+               COUNT(*) AS places,
+               GROUP_CONCAT(w.id) AS ids,
+               MAX(w.last_error IS NOT NULL) AS failing,
+               SUM((SELECT COUNT(*) FROM events e
+                    WHERE e.watcher_id = w.id AND e.acked_at IS NULL
+                      AND (w.match_rule IS NULL OR e.notified_at IS NOT NULL))) AS waiting
+        FROM watchers w
+        GROUP BY COALESCE(w.watch_group, 'w' || w.id)
+        ORDER BY MIN(w.id)
         """
     ).fetchall()
     c.close()
     if not rows:
-        return "no watchers"
+        return "nothing being watched"
     lines = []
     for r in rows:
-        flag = "" if r["enabled"] else " [paused]"
-        ack = f" 🔔ack@{r['reminder_interval']}s" if r["requires_ack"] else ""
-        ai = " 🤖ai" if r["ai_spec"] else ""
-        unacked = f" un={r['un']}" if r["un"] else ""
-        err = f"\n  err: {_esc(r['last_error'][:120])}" if r["last_error"] else ""
-        lint = ""
-        if r["spec_lint"]:
-            try:
-                verdict = json.loads(r["spec_lint"])
-            except ValueError:
-                verdict = {}
-            if verdict and not verdict.get("decidable"):
-                problems = "; ".join(verdict.get("problems") or []) or "spec not answerable from this source"
-                lint = f"\n  ⚠ {_esc(problems[:160])}"
-        lines.append(f"<code>{r['id']}</code> {_esc(r['kind'])}:{_esc(r['target'])}{flag}{ack}{ai}{unacked}{err}{lint}")
+        label = r["condition"] or r["name"] or "(unnamed)"
+        flag = "" if r["enabled"] else " · paused"
+        fail = " · ⚠ a source is failing" if r["failing"] else ""
+        waiting = f" · {r['waiting']} waiting" if r["waiting"] else ""
+        places = f"{r['places']} place{'s' if r['places'] != 1 else ''}"
+        lines.append(f"<b>{_esc(str(label)[:90])}</b>")
+        lines.append(f"    <code>{_esc(str(r['ids']))}</code> · {places}{flag}{fail}{waiting}")
     return "\n".join(lines)
 
 
@@ -392,9 +389,9 @@ def _insert_rows(rows: list[dict]) -> list[tuple[int, dict]]:
             try:
                 c.execute(
                     "INSERT INTO watchers (kind, target, name, created_at, match_rule, push, "
-                    "stop_after, watch_group) VALUES (?, ?, ?, ?, ?, 1, ?, ?)",
+                    "stop_after, watch_group, condition) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?)",
                     (row["kind"], row["target"], row["name"], main.now_iso(), row["match_rule"],
-                     row["stop_after"], row["watch_group"]),
+                     row["stop_after"], row["watch_group"], row.get("condition")),
                 )
                 wid = c.execute(
                     "SELECT id FROM watchers WHERE kind = ? AND target = ?",
@@ -409,16 +406,14 @@ def _insert_rows(rows: list[dict]) -> list[tuple[int, dict]]:
 
 
 async def _cmd_watch(conn_factory, args: list[str]) -> str:
-    import compose
-
     if not args:
-        kinds = ", ".join(f"<code>{k}</code>" for k in sources.SOURCE_KINDS)
         return (
-            "<b>/watch &lt;what you want to know&gt;</b>\n"
-            "just say it — e.g. <code>/watch tell me when a battlefield game runs on linux</code>\n\n"
-            "it picks the sources and the keyword rule, checks them against live data, "
-            "and starts watching.\n\n"
-            f"to place one by hand instead: <code>/add &lt;kind&gt; &lt;target&gt;</code>\n{kinds}"
+            "<b>/watch &lt;the condition you are waiting on&gt;</b>\n\n"
+            "say it however you like:\n"
+            "<code>/watch a battlefield game becomes playable on linux</code>\n"
+            "<code>/watch severance season 3 is released</code>\n"
+            "<code>/watch electrum has a security advisory</code>\n\n"
+            "where to look and what counts as a match is worked out when you register it."
         )
     return await _watch_from_sentence(" ".join(args))
 
@@ -441,19 +436,23 @@ async def _watch_from_sentence(text: str) -> str:
 
     created = _insert_rows(result["rows"])
     if not created:
-        return "already watching every source that fits that"
-    lines = [f"✓ <b>{_esc(result['plan']['name'])}</b>"]
-    for wid, row in created:
-        rule = row["match_rule"] or "everything it emits"
-        est = compose.format_estimate(result["estimates"].get(row["target"]))
-        tail = f" · {_esc(est)}" if est else ""
-        lines.append(f"<code>w{wid}</code> {_esc(row['kind'])} · {_esc(str(row['target'])[:44])}")
-        lines.append(f"    rule: <code>{_esc(rule)}</code>{tail}")
+        return "already watching that"
+    ids = " ".join(f"w{wid}" for wid, _ in created)
+    places = len(created)
+    lines = [
+        f"✓ watching — <b>{_esc(text.strip())}</b>",
+        f"<i>{places} place{'s' if places != 1 else ''} checked every few minutes</i>",
+    ]
+    ests = [compose.format_estimate(result["estimates"].get(row["target"])) for _, row in created]
+    live = [e for e in ests if e and "waiting for something new" not in e]
+    if live:
+        lines.append(f"<i>roughly {_esc(live[0])}</i>")
+    elif ests:
+        lines.append("<i>quiet right now — it fires when something changes</i>")
     stop = result["plan"].get("stop_after") or 0
-    lines.append(f"stops after {stop}" if stop else "ongoing")
-    for w in result["warnings"][:2]:
-        lines.append(f"⚠ {_esc(w[:140])}")
-    lines.append(f"<i>change the rule:</i> <code>/match {created[0][0]} &lt;rule&gt;</code>")
+    if stop:
+        lines.append(f"<i>stops itself after {stop}</i>")
+    lines.append(f"<code>{ids}</code>")
     return "\n".join(lines)
 
 
