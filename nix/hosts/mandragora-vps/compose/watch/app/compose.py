@@ -15,188 +15,97 @@ PROBE_ITEMS = int(os.environ.get("WATCH_COMPOSE_PROBE_ITEMS", "12"))
 COMPOSE_NUM_CTX = int(os.environ.get("WATCH_COMPOSE_NUM_CTX", "8192"))
 
 
-TEMPLATES = {
-    "tv": {
-        "label": "a TV season is released",
-        "fields": ["show", "season"],
-        "example": "tv severance 3",
-    },
-    "advisory": {
-        "label": "a project has a security advisory",
-        "fields": ["owner/repo"],
-        "example": "advisory spesmilo/electrum",
-    },
-    "release": {
-        "label": "a project ships a release matching some words",
-        "fields": ["owner/repo", "words (optional)"],
-        "example": "release neovim/neovim 0.12",
-    },
-    "feeds": {
-        "label": "any of these feeds mentions some words",
-        "fields": ["words", "one or more feed urls"],
-        "example": "feeds electrum https://www.bleepingcomputer.com/feed/",
-    },
-    "sub": {
-        "label": "a subreddit posts about some words",
-        "fields": ["subreddit", "words"],
-        "example": "sub kindle paperwhite AND jailbreak",
-    },
-    "repo": {
-        "label": "a repository has activity",
-        "fields": ["owner/repo"],
-        "example": "repo spesmilo/electrum",
-    },
-}
-
-
-def template_help() -> str:
-    lines = ["<b>watch templates</b>"]
-    for key, t in TEMPLATES.items():
-        lines.append(f"<code>/watch {key}</code> — {t['label']}")
-        lines.append(f"    e.g. <code>/watch {t['example']}</code>")
-    return "\n".join(lines)
-
-
-INTERPRET_SYSTEM = (
-    "You turn one sentence into a watch registration for a feed-polling system.\n\n"
-    "You may ONLY fill in one of the templates listed. You may not invent a template, "
-    "a source kind, or a field. Choose the template whose shape answers the sentence, "
-    "and supply its arguments in order as a list of strings.\n\n"
-    "Argument rules:\n"
-    "- tv: [show name, season number]\n"
-    "- advisory / repo: [owner/repo] — a real repository that exists\n"
-    "- release: [owner/repo, optional words the release must mention]\n"
-    "- feeds: [words, then one or more http(s) feed urls] — real feed urls only\n"
-    "- sub: [subreddit name, then the words a post must mention]\n\n"
-    "The words you supply become a keyword rule matched against an item's text. "
-    "Whitespace means AND; uppercase AND, OR and NOT are operators; \"quoted phrases\" "
-    "match as a phrase. Terms match on word boundaries.\n\n"
-    "Keep rules SHORT and do not re-state what the source already scopes: a Kindle "
-    "forum is already about Kindles, so the rule there is `jailbreak`, not "
-    "`kindle AND jailbreak`. A rule that repeats the source's own topic costs recall "
-    "and buys nothing, because announcements name models and versions rather than "
-    "the generic word you would have guessed.\n\n"
-    "Return ONLY a JSON object: {\"template\": \"...\", \"args\": [\"...\"], \"why\": \"<=120 chars\"}"
+SYSTEM_PROMPT = (
+    "You turn one sentence into a set of sources for a feed-polling system to watch.\n\n"
+    "Choose the FEWEST sources that can actually answer it. Prefer a source that states "
+    "the answer as a fact over one that carries people talking about it: a TV season's "
+    "release is tvmaze_season, a security advisory is github_advisory, whether a game runs "
+    "on Linux is anticheat_game, a software release is github_release. Reach for search "
+    "feeds or subreddits only when no fact source can answer, such as an exploit or a leak.\n\n"
+    "Targets must be real and exact, in the format shown for that kind. If you are not sure "
+    "an identifier exists, choose a search source instead of guessing one.\n\n"
+    "For each source give `match`: a keyword rule that an item's text must satisfy before "
+    "the user is told. Whitespace means AND; uppercase AND, OR and NOT are operators; "
+    "\"quoted phrases\" match as a phrase; terms match on word boundaries. Leave it as an "
+    "empty string when every item the source emits is worth sending.\n\n"
+    "Keep rules SHORT, and never restate what the source already scopes. A Kindle "
+    "jailbreak forum is already about Kindles, so the rule there is `jailbreak`, not "
+    "`kindle AND jailbreak`. This matters: a rule of `paperwhite AND jailbreak` on such a "
+    "forum was measured at 20% recall, because announcements name models as PW6 or KT5 and "
+    "never contain the generic word you would have guessed. Every extra term you add can "
+    "only lose signal.\n\n"
+    "stop_after: 1 when the thing can only happen once — a season releasing, a specific "
+    "version shipping, a device being jailbroken. 0 when it can recur.\n\n"
+    "Return ONLY JSON:\n"
+    '{"name":"<short label>","stop_after":0,'
+    '"sources":[{"kind":"...","target":"...","match":"...","why":"<=80 chars"}]}'
 )
 
 
-def interpret_prompt(text: str) -> str:
-    lines = ["TEMPLATES:"]
-    for key, t in TEMPLATES.items():
-        lines.append(f"- {key}: {t['label']}")
-        lines.append(f"    fields: {', '.join(t['fields'])}")
-        lines.append(f"    example: /watch {t['example']}")
-    lines.append("")
-    lines.append("WHAT EACH SOURCE ACTUALLY EMITS:")
-    for kind, emits in sources.SOURCE_EMITS.items():
-        lines.append(f"- {kind}: {emits}")
-    lines.append("")
-    lines.append("SENTENCE:")
-    lines.append(text.strip())
+def source_menu() -> str:
+    lines = []
+    for kind, meta in sources.SOURCE_KINDS.items():
+        emits = sources.SOURCE_EMITS.get(kind, "")
+        lines.append(f"- {kind} (target looks like: {meta.get('target_hint', '')})")
+        lines.append(f"    emits: {emits}")
     return "\n".join(lines)
 
 
-async def interpret(text: str) -> tuple[str, list[str], str]:
+def interpret_prompt(text: str) -> str:
+    return (
+        "SOURCE KINDS YOU MAY USE:\n"
+        f"{source_menu()}\n\n"
+        "SENTENCE:\n"
+        f"{text.strip()}\n"
+    )
+
+
+async def interpret(text: str) -> tuple[dict, str]:
     if not (text or "").strip():
         raise ValueError("say what you want to watch")
-    raw, provider = await llm.complete(INTERPRET_SYSTEM, interpret_prompt(text))
+    raw, provider = await llm.complete(SYSTEM_PROMPT, interpret_prompt(text))
     try:
         doc = json.loads(raw)
     except json.JSONDecodeError:
-        start, end = raw.find("{"), raw.rfind("}")
-        if start < 0 or end <= start:
+        a, b = raw.find("{"), raw.rfind("}")
+        if a < 0 or b <= a:
             raise ValueError(f"model did not return a plan: {raw[:120]}")
-        doc = json.loads(raw[start:end + 1])
-    template = str(doc.get("template") or "").strip().lower()
-    if template not in TEMPLATES:
-        raise ValueError(f"model chose an unknown template {template!r}")
-    args = doc.get("args") or []
-    if isinstance(args, str):
-        args = args.split()
-    if not isinstance(args, list) or not args:
-        raise ValueError(f"model gave no arguments for template {template!r}")
-    return template, [str(a) for a in args][:20], provider
+        doc = json.loads(raw[a:b + 1])
 
-
-def build_plan(template: str, args: list[str]) -> dict:
-    template = (template or "").strip().lower()
-    if template not in TEMPLATES:
-        raise ValueError(f"unknown template {template!r}; try one of: {', '.join(TEMPLATES)}")
-    args = [a for a in args if a.strip()]
-    if not args:
-        raise ValueError(f"{template} needs: {', '.join(TEMPLATES[template]['fields'])}")
-
-    if template == "tv":
-        if len(args) < 2 or not args[-1].isdigit():
-            raise ValueError("tv needs a show and a season number, e.g. tv severance 3")
-        show, season = " ".join(args[:-1]), int(args[-1])
-        return {
-            "name": f"{show} season {season}",
-            "condition": f"{show} season {season} is released",
-            "stop_after": 1,
-            "sources": [{"kind": "tvmaze_season", "target": f"{show}:{season}", "match": "",
-                         "why": "the premiere date is a field, not an opinion"}],
-        }
-
-    if template == "advisory":
-        repo = args[0]
-        name = repo.split("/")[-1]
-        return {
-            "name": f"{name} security advisories",
-            "condition": f"{repo} publishes a security advisory",
-            "stop_after": 0,
-            "sources": [
-                {"kind": "github_advisory", "target": repo, "match": "",
-                 "why": "advisories straight from the project"},
-                {"kind": "osv_package", "target": f"PyPI:{name}", "match": "",
-                 "why": "the same package in the OSV database"},
-            ],
-        }
-
-    if template == "release":
-        repo = args[0]
-        words = " ".join(args[1:])
-        return {
-            "name": f"{repo} releases" + (f" matching {words}" if words else ""),
-            "condition": f"{repo} ships a release" + (f" matching {words}" if words else ""),
-            "stop_after": 1 if words else 0,
-            "sources": [{"kind": "github_release", "target": repo, "match": words,
-                         "why": "release notes from the project"}],
-        }
-
-    if template == "feeds":
-        urls = [a for a in args if a.startswith("http")]
-        words = " ".join(a for a in args if not a.startswith("http"))
-        if not urls:
-            raise ValueError("feeds needs at least one http(s) feed url")
-        if not words:
-            raise ValueError("feeds needs words to look for")
-        return {
-            "name": f"feeds mentioning {words}",
-            "condition": f"one of {len(urls)} feeds mentions {words}",
-            "stop_after": 0,
-            "sources": [{"kind": "rss", "target": u, "match": words, "why": "feed"} for u in urls],
-        }
-
-    if template == "sub":
-        sub = args[0]
-        words = " ".join(args[1:])
-        if not words:
-            raise ValueError("sub needs words to look for")
-        return {
-            "name": f"r/{sub} mentioning {words}",
-            "condition": f"r/{sub} posts about {words}",
-            "stop_after": 0,
-            "sources": [{"kind": "reddit_sub", "target": sub, "match": words, "why": "subreddit"}],
-        }
-
-    repo = args[0]
-    return {
-        "name": f"{repo} activity",
-        "condition": f"{repo} has activity",
-        "stop_after": 0,
-        "sources": [{"kind": "github_repo", "target": repo, "match": "", "why": "repo events"}],
+    raw_sources = doc.get("sources") or []
+    if not isinstance(raw_sources, list) or not raw_sources:
+        raise ValueError("model proposed no sources")
+    cleaned = []
+    for item in raw_sources[:4]:
+        if not isinstance(item, dict):
+            continue
+        kind = str(item.get("kind") or "").strip()
+        target = str(item.get("target") or "").strip()
+        if kind not in sources.SOURCE_KINDS or not target:
+            continue
+        cleaned.append({
+            "kind": kind,
+            "target": target,
+            "match": str(item.get("match") or "").strip(),
+            "why": str(item.get("why") or "").strip()[:200],
+        })
+    if not cleaned:
+        offered = sorted({str(i.get("kind")) for i in raw_sources if isinstance(i, dict)})
+        raise ValueError(
+            "model proposed no source I recognise"
+            + (f" (it suggested: {', '.join(offered)})" if offered else "")
+        )
+    try:
+        stop_after = max(0, int(doc.get("stop_after") or 0))
+    except (TypeError, ValueError):
+        stop_after = 0
+    plan = {
+        "name": str(doc.get("name") or text.strip())[:120],
+        "condition": text.strip(),
+        "stop_after": stop_after,
+        "sources": cleaned,
     }
+    return plan, provider
 
 
 def validate_plan(plan: dict) -> list[str]:
@@ -262,8 +171,7 @@ async def probe_source(entry: dict) -> dict:
     return result
 
 
-async def preview(template: str, args: list[str]) -> dict:
-    plan = build_plan(template, args)
+async def preview(plan: dict) -> dict:
     warnings = validate_plan(plan)
     checked = []
     for entry in plan["sources"]:
@@ -338,8 +246,8 @@ def plan_rows(plan: dict, checked: list[dict]) -> list[dict]:
 
 
 async def quick_create(text: str) -> dict:
-    template, args, provider = await interpret(text)
-    result = await preview(template, args)
+    plan, provider = await interpret(text)
+    result = await preview(plan)
     rows = plan_rows(result["plan"], result["sources"])
     if not rows:
         raise ValueError(
@@ -353,8 +261,7 @@ async def quick_create(text: str) -> dict:
                 probe, entry.get("match") or ""
             )
     return {"plan": result["plan"], "sources": result["sources"], "rows": rows,
-            "warnings": result["warnings"], "provider": provider, "estimates": estimates,
-            "template": template, "args": args}
+            "warnings": result["warnings"], "provider": provider, "estimates": estimates}
 
 
 def format_preview(result: dict) -> str:

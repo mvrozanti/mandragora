@@ -75,9 +75,10 @@ def test_every_name_an_entrypoint_calls_actually_exists(entry):
     assert not missing, f"{entry} references names that do not exist: {missing}"
 
 
-def test_watch_command_is_reachable_and_lists_templates(db):
+def test_watch_command_with_no_args_explains_itself(db):
     out = asyncio.run(tg._cmd_watch(db, []))
-    assert "watch templates" in out
+    assert "what you want to know" in out
+    assert "/add" in out
 
 
 def test_watch_command_with_a_sentence_reaches_the_composer(db, monkeypatch):
@@ -90,23 +91,15 @@ def test_watch_command_with_a_sentence_reaches_the_composer(db, monkeypatch):
     monkeypatch.setattr(compose.llm, "complete", boom)
     out = asyncio.run(tg._cmd_watch(db, ["tell", "me", "about", "kindle", "jailbreaks"]))
     assert "no model provider configured" in out
-    assert "/watch" in out
+    assert "/add" in out
 
 
-def test_watch_command_with_a_template_name_takes_the_model_free_path(db, monkeypatch):
-    import compose
+def test_every_source_kind_is_offered_in_the_no_args_help(db):
+    import sources
 
-    seen = {}
-
-    async def fake_preview(template, args):
-        seen["template"] = template
-        seen["args"] = args
-        return {"plan": {"name": "n", "condition": "c", "stop_after": 0, "sources": []},
-                "sources": [], "warnings": [], "usable": 0}
-
-    monkeypatch.setattr(compose, "preview", fake_preview)
-    asyncio.run(tg._cmd_watch(db, ["advisory", "spesmilo/electrum"]))
-    assert seen == {"template": "advisory", "args": ["spesmilo/electrum"]}
+    out = asyncio.run(tg._cmd_watch(db, []))
+    missing = [k for k in sources.SOURCE_KINDS if k not in out]
+    assert not missing, f"kinds a user cannot discover: {missing}"
 
 
 def test_every_command_in_help_has_a_dispatch_branch():
