@@ -39,6 +39,15 @@ done
 echo "icons:"
 for f in "$SRC"/icons/*.svg; do [ -f "$f" ] && put "$f" "$M/icons/$(basename "$f")" 644; done
 
+echo "app config:"
+for f in "$SRC"/*.conf.example; do
+  [ -f "$f" ] || continue
+  base=$(basename "$f")
+  put "$f" "$M/$base" 644
+  live="$M/${base%.example}"
+  "${SSH[@]}" "[ -f '$live' ] || { cp '$M/$base' '$live' && echo '  seeded $live'; }"
+done
+
 echo "chess pieces:"
 for f in "$SRC"/chess/pieces/*.svg; do [ -f "$f" ] && put "$f" "$M/chess/pieces/$(basename "$f")" 644; done
 

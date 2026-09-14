@@ -206,9 +206,9 @@ function ChessBoard:paintTo(bb, x, y)
 
     local sub = TextWidget:new{
         text = Engine.describe(self.cfg),
-        face = Font:getFace("infofont", math.floor(L.head_h * 0.17)),
+        face = Font:getFace("infofont", math.floor(L.head_h * 0.15)),
     }
-    sub:paintTo(bb, x + L.board_x, head_top + head_size.h + math.floor(L.margin * 0.25))
+    sub:paintTo(bb, x + L.board_x, y + L.button_y - sub:getSize().h - math.floor(L.margin * 0.5))
     sub:free()
 
     for row = 0, 7 do
