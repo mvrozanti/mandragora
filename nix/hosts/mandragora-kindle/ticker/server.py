@@ -1,5 +1,6 @@
 import json
 import os
+import socket
 import socketserver
 import threading
 import time
@@ -156,7 +157,10 @@ class Handler(socketserver.StreamRequestHandler):
 
     def handle(self):
         while True:
-            raw = self.rfile.readline()
+            try:
+                raw = self.rfile.readline()
+            except (socket.timeout, OSError):
+                return
             if not raw:
                 return
             request = raw.decode("utf8", "replace").strip()
@@ -206,5 +210,13 @@ class Server(socketserver.ThreadingTCPServer):
     daemon_threads = True
 
 
+def prime():
+    try:
+        snapshot()
+    except Exception:
+        pass
+
+
 if __name__ == "__main__":
+    threading.Thread(target=prime, daemon=True).start()
     Server((BIND, PORT), Handler).serve_forever()
