@@ -61,7 +61,7 @@ function ChessBoard:layout()
     local square = math.floor((w - gutter - margin) / 8)
     local board = square * 8
     local board_x = gutter
-    local board_y = math.floor(h * 0.065)
+    local board_y = math.floor(h * 0.088)
     local button_h = math.floor(h * 0.065)
     local button_y = h - button_h - margin * 2
     return {
@@ -199,9 +199,9 @@ function ChessBoard:paintTo(bb, x, y)
 
     local head = TextWidget:new{
         text = self:statusLine(),
-        face = Font:getFace("tfont", 46),
+        face = Font:getFace("tfont", 42),
     }
-    head:paintTo(bb, x + L.board_x, y + math.floor(L.board_y * 0.30))
+    head:paintTo(bb, x + L.board_x, y + math.floor(L.margin * 0.9))
     head:free()
 
     for row = 0, 7 do
