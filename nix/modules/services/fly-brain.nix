@@ -2,22 +2,26 @@
 
 let
   repo = "/home/m/Projects/fly-brain";
-  shell = cmd: pkgs.writeShellScript "fly-brain-${cmd.name}" ''
-    export PATH=${
-      lib.makeBinPath [
-        pkgs.nix
-        pkgs.git
-        pkgs.coreutils
-        pkgs.bash
-      ]
-    }:$PATH
-    export HOME=/home/m
-    cd ${repo}
-    exec nix develop --command ${cmd.run}
-  '';
+  shell =
+    cmd:
+    pkgs.writeShellScript "fly-brain-${cmd.name}" ''
+      export PATH=${
+        lib.makeBinPath [
+          pkgs.nix
+          pkgs.git
+          pkgs.coreutils
+          pkgs.bash
+        ]
+      }:$PATH
+      export HOME=/home/m
+      cd ${repo}
+      exec nix develop --command ${cmd.run}
+    '';
   daemon = shell {
     name = "daemon";
-    run = "python -m flybrain.brain_server --socket /tmp/fly-brain.sock --device cuda";
+    run =
+      "python -m flybrain.brain_server --socket /tmp/fly-brain.sock "
+      + "--device cuda --idle-timeout 900";
   };
   web = shell {
     name = "web";
@@ -31,7 +35,10 @@ in
       + "at boot: it holds ~2.1 GB of VRAM for as long as it runs and "
       + "training peaks at 14.5 GB on a 16 GB card, so autostarting it would "
       + "break every GPU run. `systemctl --user start fly-brain` when using "
-      + "the panel. Speaks over a unix socket, so it opens no port.";
+      + "the panel. Speaks over a unix socket, so it opens no port. It also "
+      + "exits by itself after 15 minutes with no request, releasing the GPU; "
+      + "the web panel starts it again on the next request, so the unload is "
+      + "just a slower first call rather than something to notice.";
     unitConfig.ConditionUser = "m";
     serviceConfig = {
       WorkingDirectory = repo;
@@ -60,6 +67,7 @@ in
           "PORT=8097"
           "BIND=0.0.0.0"
           "HOME=/home/m"
+          "FLY_BRAIN_AUTOSTART=1"
         ];
         ExecStart = "${web}";
         Restart = "on-failure";
