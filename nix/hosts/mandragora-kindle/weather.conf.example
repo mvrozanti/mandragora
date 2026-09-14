@@ -1,0 +1,15 @@
+# mandragora.koplugin / weather.lua configuration
+#
+# Copy to /mnt/us/mandragora/weather.conf on the device. key=value lines;
+# blank lines and unknown keys are ignored, and a missing file is fine.
+
+# host / port: mandragora-weather on the desktop, which holds the API key and
+# does the fetching. The desktop's LAN address, not its tailnet address — this
+# Kindle's tailscaled runs with --tun=userspace-networking, so a plain
+# LuaSocket connection has no route to 100.64.0.0/10.
+host=192.168.0.27
+port=6615
+
+# timeout: seconds to wait. The server answers from a 15-minute cache, so this
+# only matters on a forced refresh that has to reach OpenWeatherMap.
+timeout=25

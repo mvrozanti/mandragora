@@ -54,6 +54,13 @@ local ACTIONS = {
         note = "prices, refreshed on tap",
     },
     {
+        id = "mandragora_weather",
+        label = "Weather",
+        widget = "weather",
+        icon = "weather.svg",
+        note = "now and five days",
+    },
+    {
         id = "mandragora_dash",
         label = "Dash",
         widget = "dash",

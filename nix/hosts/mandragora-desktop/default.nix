@@ -62,6 +62,7 @@ in
     ../../modules/services/mpd-vis.nix
     ../../modules/services/chess-engine.nix
     ../../modules/services/ticker.nix
+    ../../modules/services/weather.nix
     ../../modules/services/filebrowser.nix
     ../../modules/services/rgb-control.nix
     ../../modules/services/im-gen-slice.nix
