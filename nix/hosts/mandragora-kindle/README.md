@@ -278,29 +278,45 @@ the other modules. It is not one.
 
 ## Markets
 
-Sixteen instruments on one screen: BTC, ETH, SOL, XRP, HYPE, LINK, PENDLE, XMR,
-UNI, gold, VIX, Nasdaq, IVVB11, the dollar index, BRL and CNY — price and
-24-hour change, tap to refresh.
+Sixteen instruments as candlestick charts. The chart is the app: it opens on one
+instrument full screen, and the overview is a deliberate second step rather than
+the home view — the **chart deck**, chosen from a direction deck over four
+alternatives.
 
-The device fetches nothing from the internet. `mandragora-ticker` on the desktop
-does, caches for five minutes, and answers on the LAN, which matters for three
-reasons: the Kindle has no tailnet route for plain sockets, its radio is the
-expensive part of its battery, and the upstream APIs are free and rate-limited.
+```
+full screen        symbol · name · price · change
+                   candles · 1W / 1M / 3M / 6M
+                   O H L C for the latest bar
+                   marker rail · all sixteen
+grid               4x4 of the same charts, tap one to open it
+```
 
-Both sources are keyless, which was the binding constraint:
-
-| what | source |
+| gesture | does |
 |---|---|
-| the nine crypto | CoinGecko `simple/price`, one request for all of them |
-| gold, VIX, Nasdaq, IVVB11, DXY, BRL, CNY | Yahoo `v8/finance/chart`, one request each |
+| tap a marker | jump to that instrument |
+| swipe east / west | page to the previous or next |
+| tap a range | redraw from bars already cached on device |
+| tap **all sixteen** | zoom out to the grid; tap a chart to come back |
+| tap anywhere else | force a refresh |
+| double-tap, swipe north / south | close |
 
-Stooq was tried first for the indices and is gone — every symbol now returns an
-HTML "page does not exist". A failing source degrades rather than breaks: each
-quote is fetched independently, whatever arrives is served, and the rest come
-back as `-` with the reason on the footer.
+**Candles are greyscale, which is the point.** Hollow body up, filled body down —
+the Japanese convention, the one charting idiom designed for ink on paper, and
+the only one that survives a panel with no colour. A bar whose open and close are
+equal draws as a **doji tick**: a hollow body three pixels high is white on white
+and vanishes, which is exactly what happened on the first pass. It matters
+because `CNY=X` returns 99 flat bars out of 130.
 
-"Uniswap tokens" in the original ask is read as the **UNI** token. If it meant
-arbitrary ERC-20s traded on Uniswap, that is a different and much larger feature.
+**Candles cost nothing extra.** Yahoo's chart endpoint already returns OHLC in the
+response the quote is read from, and all nine crypto resolve there too
+(`HYPE32196-USD`, `UNI7083-USD`). So the server dropped CoinGecko and reads
+`indicators.quote` from a call it was already making — one source, one rate
+limit, sixteen instruments.
+
+Protocol: `PING`, `QUOTES`, `REFRESH`, and `CANDLES <key|ALL> <n>`. The device
+pulls 130 bars once per instrument and slices ranges locally, so changing 1W to
+6M is a repaint with no round trip. The grid pulls 30 bars for all sixteen in one
+request.
 
 ## Chess
 
