@@ -13,6 +13,22 @@ window. Prefer the cheapest tier that works.
 
 ## Shipped
 
+- **Weather** — now and five days, from the OpenWeatherMap key already in sops.
+  `mandragora-weather` holds the key and answers on the LAN; the device draws.
+
+- **Markets** — sixteen instruments as candlestick charts, chosen from a
+  direction deck. `mandragora-ticker` on the desktop caches quotes and OHLC from
+  one Yahoo endpoint and answers on the LAN; the device draws hollow-up,
+  filled-down candles with a 1W/1M/3M/6M range, an OHLC readout, a marker rail
+  and a zoom-out grid of all sixteen.
+- **Chess** — a full game against stockfish. Rules in pure Lua verified against
+  published perft counts to depth 5; `mandragora-chess-engine` wraps the engine
+  behind a line protocol; twelve hand-drawn piece SVGs.
+- **Status** — a real KOReader widget rather than an fbink overlay.
+- **Random** — recursive, because KOReader's own is not.
+- **The framework status bar** — hidden at boot through `com.lab126.pillow`, so
+  Amazon's clock stops landing on full-screen widgets.
+
 - **Portrait** — full-screen art, tap to shuffle, double-tap or swipe to exit.
   Started as an FBInk scriptlet and moved to a KOReader Lua widget, because a
   scriptlet draws once and exits: it cannot take a tap and KOReader repaints over
@@ -78,45 +94,9 @@ window. Prefer the cheapest tier that works.
 
 ## In flight
 
-- **MPD visualiser** — a server-side FFT reading MPD's PCM fifo and streaming
-  band magnitudes to the device, with the widget repainting a bounding box on a
-  fast waveform and a periodic GC16 to clear ghosting.
-- **Status has the dashboard's old bug.** It still draws through
-  `runScriptlet()` → `fbink`, so KOReader repaints over it exactly as it did to
-  the dashboard. Wants the same treatment: a full-screen widget.
 
 ## Next up
 
-- **The framework's status bar creeps over full-screen widgets.** After a
-  minute or so, a clock and battery readout appear on top of Portrait's art.
-  It is Amazon's bar, not SimpleUI's, and the tell is the format: captures of
-  a full-screen widget show `2:24 PM` while SimpleUI's own clock shows `13:43`
-  — 12-hour is the framework, 24-hour is SimpleUI. It repaints on its own
-  minute tick over whatever KOReader last drew, which is also why the
-  dashboard needed its 40px header inset.
-
-  That inset is a workaround, not a fix, and it is the wrong shape for
-  Portrait: letterboxing the art to dodge the bar gives back the full-bleed
-  screen that was the point. The real fix is to suppress the bar while a
-  full-screen widget is up and restore it on close — on Kindle that is a lipc
-  call against `com.lab126.pillow`, whose exact incantation is firmware
-  specific. **Investigate on the device before writing any of it**: a wrong
-  call here can leave the bar hidden permanently or destabilise the framework,
-  and this is the daily reader.
-
-- **Re-check `random_document`.** It reported "File not found" while the
-  device held 124 unopenable files; those are gone now, so this may already be
-  fixed. If it still fails, the cause is the other one below.
-- **`random_document` opens nothing.** Reported as "File not found". Two
-  candidate causes worth separating before fixing: the action may be picking
-  from a stale history that still references moved files, or it may be picking
-  any file in the tree — which, before the sync fix, meant a PNG or a
-  stylesheet.
-
-- **The Kindle's own status bar overdraws full-screen widgets.** The Amazon
-  framework keeps a strip at the top (12-hour clock, battery) above whatever
-  KOReader draws. Visible on the dashboard capture; a separate layer from the
-  KOReader overpaint problem above.
 - **Weather** — there is already an OpenWeatherMap key in sops
   (`weather/api_key`) and both `weather-menu.nix` and the waybar module consume
   it, so the data path exists. Render server-side like the dashboard: a day/week

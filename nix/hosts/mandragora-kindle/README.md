@@ -321,6 +321,23 @@ device can reach it and open it where it cannot.
 This has already been filed as a bug once by someone pattern-matching against
 the other modules. It is not one.
 
+## Weather
+
+Now and five days. `mandragora-weather` on the desktop holds the OpenWeatherMap
+key and answers on the LAN; the device never sees the key and never talks to the
+internet.
+
+The key is the one already in sops as `weather/api_key`, reused rather than
+added — the module passes `config.sops.secrets."weather/api_key".path` to the
+service as a file path, so the value is read by the service at runtime and never
+appears in the repo, the store, or a log.
+
+Cached for 15 minutes, which is far longer than the quote cache because weather
+does not move and the free tier is rate limited. Protocol: `PING`, `NOW`,
+`REFRESH`. The forecast endpoint returns three-hour steps, so the server buckets
+them by local day and takes each day's true min and max plus its most common
+description.
+
 ## Markets
 
 Sixteen instruments as candlestick charts. The chart is the app: it opens on one
