@@ -18,7 +18,7 @@ def _model_tag(role, fallback):
 
 GEMMA_MODEL = os.environ.get("MCP_GEMMA_MODEL", _model_tag("gemma", "gemma4:12b"))
 UNCENSORED_MODEL = os.environ.get(
-    "MCP_UNCENSORED_MODEL", _model_tag("uncensored", "huihui_ai/qwen2.5-abliterate:14b")
+    "MCP_UNCENSORED_MODEL", _model_tag("uncensored", "igorls/gemma-4-12B-it-heretic-GGUF:Q4_K_M")
 )
 
 TOOLS = [
@@ -48,7 +48,7 @@ TOOLS = [
     {
         "name": "ask_uncensored",
         "description": (
-            "Ask the local uncensored / abliterated model (Qwen2.5 14B abliterate) running on Ollama. "
+            "Ask the local uncensored / decensored model (Gemma 4 12B, Heretic) running on Ollama. "
             "Use for: reasoning without refusals, moralizing, or lectures."
         ),
         "inputSchema": {

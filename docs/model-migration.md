@@ -16,7 +16,7 @@ Deployed (and imported by consumers) at
 {
   "agentic": "gpt-oss:20b",
   "meme": "qwen2.5vl:7b",
-  "uncensored": "huihui_ai/qwen2.5-abliterate:14b",
+  "uncensored": "igorls/gemma-4-12B-it-heretic-GGUF:Q4_K_M",
   "gemma": "gemma4:12b",
   "secondary": "qwen3:14b",
   "embeddings": "nomic-embed-text"
@@ -30,7 +30,8 @@ Roles, and who reads each:
   (manual, see below).
 - `meme` — VLM. `mandragora.ai.meme.model` default in
   `nix/modules/core/ai-local.nix`.
-- `uncensored` — abliterated chat model. `mandragora.ai.uncensored.model`
+- `uncensored` — decensored chat model (Heretic, not manual
+  abliteration: same weights-quality as stock, refusals removed). `mandragora.ai.uncensored.model`
   default in `nix/modules/core/ai-local.nix`; backs the MCP
   `ask_uncensored` tool via `.local/bin/local-ai-mcp-server.py`.
 - `gemma` — chat.mvr.ac default (`DEFAULT_MODELS`), oterm/gemma chat
