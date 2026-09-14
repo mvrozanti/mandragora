@@ -2,19 +2,21 @@
 
 let
   repo = "/home/m/Projects/fly-brain";
-  shell = cmd: pkgs.writeShellScript "fly-brain-${cmd.name}" ''
-    export PATH=${
-      lib.makeBinPath [
-        pkgs.nix
-        pkgs.git
-        pkgs.coreutils
-        pkgs.bash
-      ]
-    }:$PATH
-    export HOME=/home/m
-    cd ${repo}
-    exec nix develop --command ${cmd.run}
-  '';
+  shell =
+    cmd:
+    pkgs.writeShellScript "fly-brain-${cmd.name}" ''
+      export PATH=${
+        lib.makeBinPath [
+          pkgs.nix
+          pkgs.git
+          pkgs.coreutils
+          pkgs.bash
+        ]
+      }:$PATH
+      export HOME=/home/m
+      cd ${repo}
+      exec nix develop --command ${cmd.run}
+    '';
   daemon = shell {
     name = "daemon";
     run = "python -m flybrain.brain_server --socket /tmp/fly-brain.sock --device cuda";
