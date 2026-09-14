@@ -187,7 +187,7 @@ the networking section below.
 A visualiser on e-ink lives or dies on this. Three rules:
 
 1. **Only the visualiser's bounding box ever repaints.** The header, cover,
-   metadata, queue and transport are painted once and left alone;
+   metadata and transport are painted once and left alone;
    `paintTo` dispatches on a zone so a frame redraws roughly a third of the
    screen's pixels, not all of them.
 2. **Everything inside that box is pure black or pure white** — the bars,
@@ -209,13 +209,58 @@ panel per frame.
 Whole-screen `paintTo` means whole-screen hit-testing: `paintAll` records
 rectangles into `self.hits` as it draws, and `onTap` walks them. Transport
 buttons invert on press with a `fast` refresh before the command goes out,
-tapping the scrubber seeks, tapping a queue row plays it, tapping the
-spectrum toggles the analyser off (and with it the polling and the radio),
-and double-tap or a vertical swipe leaves — the same exit as `portrait` and
-`dash`.
+tapping the scrubber seeks, tapping the spectrum toggles the analyser off
+(and with it the polling and the radio), and double-tap or a vertical swipe
+leaves — the same exit as `portrait` and `dash`.
 
-Configuration is `/mnt/us/mandragora/mpd.conf`; see `mpd.conf.example` for
-every key and why each default is what it is.
+### Search
+
+`SEARCH` in the transport row swaps the whole widget into a second mode
+rather than opening a sub-window: a KOReader `InputDialog` takes the query
+from the on-screen keyboard (there is no hardware one), and the answer to
+`search any "<term>" window 0:41` is drawn with the same hairlines and
+tracked labels as the player, ten results to a page. Tapping a row runs
+`addid` then `playid` on the returned id — appending and jumping straight to
+it, so nothing about the existing queue is disturbed — and drops back to the
+player. `BACK`, a double-tap or a vertical swipe also come back; only from
+the player do those close the widget.
+
+Two details are easy to get wrong. **MPD's quoting is its own**: inside a
+double-quoted argument only `"` and `\` are escaped, each with a backslash,
+and `mpdQuote` does exactly that — the library here holds paths with quotes
+in them, so a shell-style quoter silently returns nothing. And **the
+visualiser must be off the wire while the list is up**: entering search
+closes the vis socket and short-circuits `tick`, because an A2 repaint of
+the spectrum's bounding box would land in the middle of the results.
+
+Results are capped at 40. The window asks for 41 so an over-long match set
+is detectable, and the count line then says `CAPPED AT 40` instead of
+pretending the library agreed.
+
+### Mode flags and volume
+
+`RPT` / `RND` / `SGL` are drawn glyphs, not letters: two parallel arrows
+running opposite ways for repeat, the same two arrows crossed for random, and
+one arrow stopped by a wall for single — which is what `single` actually does
+when `repeat` is off. Each is still underlined with a hairline when MPD
+reports it on and drawn in `INK_FAINT` when off.
+
+They are blitbuffer primitives rather than SVGs for two reasons. The whole
+state affordance is that one colour swap, and an `ImageWidget` cannot recolour
+a file — SVGs would mean shipping two per mode. And the box is 36×28: the
+first attempt here drew the conventional loop-with-an-arrowhead and it read as
+a blob, because an arrowhead large enough to see is half the icon's height at
+that size. Anything with interior detail loses; only whole-silhouette
+differences survive, which is why the three glyphs differ in shape rather
+than in ornament.
+
+Volume is opt-in — `volume_buttons` in `mpd.conf`, default false. With it off
+the `VOL +`/`VOL -` buttons and the `VOL nn%` header flag are both gone and
+the remaining buttons widen to fill the row.
+
+Configuration is `/mnt/us/mandragora/mpd.conf`, seeded from the
+`mpd.conf.example` that `kindle-push` ships beside it and never overwritten
+after that; see that file for every key and why each default is what it is.
 
 ## The device has no tailnet route for ordinary sockets
 
