@@ -244,10 +244,21 @@ event through rather than swallowing it.
 
 The old `must_mention` column migrates into `match_rule` automatically on startup.
 
-## A watch is a condition
+## A watch watches a condition
 
-That is the whole user-facing model. You say the condition you are waiting on and
-nothing else:
+A **watch** is the thing you create. It *has* a condition, and it looks in one or
+more **places** to decide whether that condition has been met. The watch is what
+you name, list and delete; the places are plumbing.
+
+That distinction is load-bearing, and getting it wrong showed up as duplication:
+before `watches` existed, the condition was copied onto every source row — 18 rows
+holding 10 conditions — and "a new kindle jailbreak is released" was split across
+two different `watch_group` values, so nothing in the schema actually identified
+the watch. A `watches` table with `watchers.watch_id` pointing at it fixes the
+normalisation and makes the surface honest at the same time: `/list` and `/del`
+take a watch id, and a stop condition counts deliveries across the whole watch.
+
+You say the condition you are waiting on and nothing else:
 
 ```
 /watch a battlefield game becomes playable on linux
