@@ -221,18 +221,28 @@ def _passes_match(row: Any) -> bool:
 
 
 def group_delivery_count(conn_factory, watcher_id: int) -> tuple[int, int, str | None]:
+    watch_id = None
     c = conn_factory()
     try:
         row = c.execute(
-            "SELECT stop_after, watch_group FROM watchers WHERE id = ?", (watcher_id,)
+            "SELECT w.stop_after AS row_stop, w.watch_group, w.watch_id, s.stop_after AS watch_stop "
+            "FROM watchers w LEFT JOIN watches s ON s.id = w.watch_id WHERE w.id = ?",
+            (watcher_id,),
         ).fetchone()
         if row is None:
             return 0, 0, None
-        stop_after = int(row["stop_after"] or 0)
+        stop_after = int(row["watch_stop"] or row["row_stop"] or 0)
         group = row["watch_group"]
+        watch_id = row["watch_id"]
         if stop_after <= 0:
             return stop_after, 0, group
-        if group:
+        if watch_id:
+            delivered = c.execute(
+                "SELECT COUNT(*) AS n FROM events e JOIN watchers w ON w.id = e.watcher_id "
+                "WHERE w.watch_id = ? AND e.notified_at IS NOT NULL",
+                (watch_id,),
+            ).fetchone()["n"]
+        elif group:
             delivered = c.execute(
                 "SELECT COUNT(*) AS n FROM events e JOIN watchers w ON w.id = e.watcher_id "
                 "WHERE w.watch_group = ? AND e.notified_at IS NOT NULL",
@@ -254,7 +264,15 @@ async def _honour_stop_condition(conn_factory, watcher_id: int) -> bool:
         return False
     c = conn_factory()
     try:
-        if group:
+        wrow = c.execute("SELECT watch_id FROM watchers WHERE id = ?", (watcher_id,)).fetchone()
+        watch_id = wrow["watch_id"] if wrow else None
+        if watch_id:
+            rows = c.execute(
+                "SELECT id, name FROM watchers WHERE watch_id = ? AND enabled = 1", (watch_id,)
+            ).fetchall()
+            c.execute("UPDATE watchers SET enabled = 0 WHERE watch_id = ?", (watch_id,))
+            c.execute("UPDATE watches SET enabled = 0 WHERE id = ?", (watch_id,))
+        elif group:
             rows = c.execute(
                 "SELECT id, name FROM watchers WHERE watch_group = ? AND enabled = 1", (group,)
             ).fetchall()

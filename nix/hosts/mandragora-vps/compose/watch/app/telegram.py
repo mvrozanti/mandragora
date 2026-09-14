@@ -161,31 +161,33 @@ async def _cmd_list(conn_factory) -> str:
     c = conn_factory()
     rows = c.execute(
         """
-        SELECT w.condition, w.name, w.watch_group,
-               MIN(w.enabled) AS enabled,
-               COUNT(*) AS places,
-               GROUP_CONCAT(w.id) AS ids,
+        SELECT s.id, s.condition, s.enabled, s.stop_after,
+               COUNT(w.id) AS places,
                MAX(w.last_error IS NOT NULL) AS failing,
                SUM((SELECT COUNT(*) FROM events e
                     WHERE e.watcher_id = w.id AND e.acked_at IS NULL
-                      AND (w.match_rule IS NULL OR e.notified_at IS NOT NULL))) AS waiting
-        FROM watchers w
-        GROUP BY COALESCE(w.watch_group, w.condition, 'w' || w.id)
-        ORDER BY MIN(w.id)
+                      AND e.notified_at IS NOT NULL)) AS waiting
+        FROM watches s LEFT JOIN watchers w ON w.watch_id = s.id
+        GROUP BY s.id ORDER BY s.id
         """
     ).fetchall()
+    loose = c.execute(
+        "SELECT COUNT(*) AS n FROM watchers WHERE watch_id IS NULL AND enabled = 1 AND push = 1"
+    ).fetchone()["n"]
     c.close()
-    if not rows:
+    if not rows and not loose:
         return "nothing being watched"
     lines = []
     for r in rows:
-        label = r["condition"] or r["name"] or "(unnamed)"
         flag = "" if r["enabled"] else " · paused"
         fail = " · ⚠ a source is failing" if r["failing"] else ""
         waiting = f" · {r['waiting']} waiting" if r["waiting"] else ""
+        stop = f" · stops after {r['stop_after']}" if r["stop_after"] else ""
         places = f"{r['places']} place{'s' if r['places'] != 1 else ''}"
-        lines.append(f"<b>{_esc(str(label)[:90])}</b>")
-        lines.append(f"    <code>{_esc(str(r['ids']))}</code> · {places}{flag}{fail}{waiting}")
+        lines.append(f"<code>{r['id']}</code> <b>{_esc(str(r['condition'])[:88])}</b>")
+        lines.append(f"      {places}{flag}{fail}{waiting}{stop}")
+    if loose:
+        lines.append(f"<i>plus {loose} feed{'s' if loose != 1 else ''} not attached to a watch</i>")
     return "\n".join(lines)
 
 
@@ -218,13 +220,23 @@ async def _cmd_add(conn_factory, args: list[str], requires_ack: bool = False) ->
 
 
 async def _cmd_del(conn_factory, args: list[str]) -> str:
-    if not args or not args[0].isdigit():
-        return "usage: /del &lt;id&gt;"
-    wid = int(args[0])
+    if not args:
+        return "usage: /del &lt;watch id&gt;"
+    try:
+        wid = int(args[0])
+    except ValueError:
+        return "usage: /del &lt;watch id&gt;"
     c = conn_factory()
-    cur = c.execute("DELETE FROM watchers WHERE id = ?", (wid,))
+    watch = c.execute("SELECT condition FROM watches WHERE id = ?", (wid,)).fetchone()
+    if watch is None:
+        cur = c.execute("DELETE FROM watchers WHERE id = ?", (wid,))
+        c.close()
+        return f"removed feed {wid}" if cur.rowcount else f"no watch {wid}"
+    places = c.execute("SELECT COUNT(*) AS n FROM watchers WHERE watch_id = ?", (wid,)).fetchone()["n"]
+    c.execute("DELETE FROM watchers WHERE watch_id = ?", (wid,))
+    c.execute("DELETE FROM watches WHERE id = ?", (wid,))
     c.close()
-    return f"deleted {wid}" if cur.rowcount else "not found"
+    return f"stopped watching <b>{_esc(str(watch['condition'])[:80])}</b> ({places} place(s) removed)"
 
 
 async def _cmd_toggle(conn_factory, args: list[str], enable: bool) -> str:
@@ -379,19 +391,21 @@ async def _cmd_match(conn_factory, args: list[str]) -> str:
     return f"watcher {wid} rule set to <code>{_esc(rule)}</code>" if rule else f"watcher {wid} rule cleared"
 
 
-def _insert_rows(rows: list[dict]) -> list[tuple[int, dict]]:
+def _insert_rows(rows: list[dict], condition: str = "", stop_after: int = 0) -> list[tuple[int, dict]]:
     import main
 
     created = []
     c = main.conn()
     try:
+        watch_id = main.create_watch(c, condition, stop_after) if condition else None
         for row in rows:
             try:
                 c.execute(
                     "INSERT INTO watchers (kind, target, name, created_at, match_rule, push, "
-                    "stop_after, watch_group, condition) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?)",
+                    "stop_after, watch_group, condition, watch_id) "
+                    "VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?)",
                     (row["kind"], row["target"], row["name"], main.now_iso(), row["match_rule"],
-                     row["stop_after"], row["watch_group"], row.get("condition")),
+                     row["stop_after"], row["watch_group"], row.get("condition"), watch_id),
                 )
                 wid = c.execute(
                     "SELECT id FROM watchers WHERE kind = ? AND target = ?",
@@ -434,7 +448,11 @@ async def _watch_from_sentence(text: str) -> str:
         log.warning("quick watch failed: %s", exc)
         return f"could not build a watch: {_esc(str(exc)[:200])}"
 
-    created = _insert_rows(result["rows"])
+    created = _insert_rows(
+        result["rows"],
+        condition=text.strip(),
+        stop_after=result["plan"].get("stop_after") or 0,
+    )
     if not created:
         return "already watching that"
     ids = " ".join(f"w{wid}" for wid, _ in created)
