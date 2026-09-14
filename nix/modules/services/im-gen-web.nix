@@ -56,6 +56,14 @@ let
   '';
 in
 {
+  # Holds VRAM for as long as it runs, on a card shared with training, the
+  # connectome and games. Stop it once nobody has the page open.
+  mandragora.gpuIdle.im-gen-web = {
+    unit = "im-gen-web.service";
+    port = 6682;
+    minutes = 15;
+  };
+
   mandragora.hub.services.im-gen-web = {
     port = 6682;
     userService = true;
