@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
-exec mandragora-audit --staged --quiet --skip conventional-commits
+exec env MANDRAGORA_REPO="$(git rev-parse --show-toplevel)" \
+  mandragora-audit --staged --quiet --skip conventional-commits
