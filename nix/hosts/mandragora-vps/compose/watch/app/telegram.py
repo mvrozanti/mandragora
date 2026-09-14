@@ -170,7 +170,7 @@ async def _cmd_list(conn_factory) -> str:
                     WHERE e.watcher_id = w.id AND e.acked_at IS NULL
                       AND (w.match_rule IS NULL OR e.notified_at IS NOT NULL))) AS waiting
         FROM watchers w
-        GROUP BY COALESCE(w.watch_group, 'w' || w.id)
+        GROUP BY COALESCE(w.watch_group, w.condition, 'w' || w.id)
         ORDER BY MIN(w.id)
         """
     ).fetchall()
