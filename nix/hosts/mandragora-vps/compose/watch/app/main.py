@@ -89,6 +89,13 @@ def init_db() -> None:
           ON events(watcher_id, id DESC);
         CREATE INDEX IF NOT EXISTS events_received_desc
           ON events(received_at DESC);
+        CREATE TABLE IF NOT EXISTS watches (
+          id INTEGER PRIMARY KEY,
+          condition TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          enabled INTEGER NOT NULL DEFAULT 1,
+          stop_after INTEGER NOT NULL DEFAULT 0
+        );
         CREATE TABLE IF NOT EXISTS meta (
           key TEXT PRIMARY KEY,
           value TEXT
@@ -120,6 +127,7 @@ def init_db() -> None:
         "ALTER TABLE watchers ADD COLUMN watch_group TEXT",
         "ALTER TABLE watchers ADD COLUMN match_rule TEXT",
         "ALTER TABLE watchers ADD COLUMN condition TEXT",
+        "ALTER TABLE watchers ADD COLUMN watch_id INTEGER",
     ):
         try:
             c.execute(stmt)
@@ -136,6 +144,7 @@ def init_db() -> None:
     c.execute("CREATE INDEX IF NOT EXISTS events_ai_verdict ON events(ai_verdict, ai_judged_at)")
     c.execute("CREATE INDEX IF NOT EXISTS watchers_group ON watchers(watch_group)")
     _migrate_must_mention_to_match(c)
+    _migrate_conditions_to_watches(c)
     c.close()
 
 
@@ -152,6 +161,44 @@ def _migrate_must_mention_to_match(c: sqlite3.Connection) -> None:
             c.execute("UPDATE watchers SET match_rule = ? WHERE id = ?", (expr, row["id"]))
     if rows:
         log.info("migrated %d must_mention gates to match rules", len(rows))
+
+
+def _migrate_conditions_to_watches(c: sqlite3.Connection) -> None:
+    rows = c.execute(
+        "SELECT DISTINCT condition FROM watchers "
+        "WHERE watch_id IS NULL AND condition IS NOT NULL AND TRIM(condition) != ''"
+    ).fetchall()
+    for row in rows:
+        condition = row["condition"]
+        existing = c.execute(
+            "SELECT id FROM watches WHERE condition = ?", (condition,)
+        ).fetchone()
+        if existing:
+            watch_id = existing["id"]
+        else:
+            stop = c.execute(
+                "SELECT MAX(stop_after) AS s FROM watchers WHERE condition = ?", (condition,)
+            ).fetchone()["s"] or 0
+            c.execute(
+                "INSERT INTO watches (condition, created_at, enabled, stop_after) "
+                "VALUES (?, ?, 1, ?)",
+                (condition, now_iso(), int(stop)),
+            )
+            watch_id = c.execute("SELECT last_insert_rowid() AS id").fetchone()["id"]
+        c.execute(
+            "UPDATE watchers SET watch_id = ? WHERE condition = ? AND watch_id IS NULL",
+            (watch_id, condition),
+        )
+    if rows:
+        log.info("migrated %d conditions into watches", len(rows))
+
+
+def create_watch(c: sqlite3.Connection, condition: str, stop_after: int = 0) -> int:
+    c.execute(
+        "INSERT INTO watches (condition, created_at, enabled, stop_after) VALUES (?, ?, 1, ?)",
+        (condition, now_iso(), int(stop_after or 0)),
+    )
+    return int(c.execute("SELECT last_insert_rowid() AS id").fetchone()["id"])
 
 
 def bootstrap_release_sources() -> None:
@@ -255,6 +302,7 @@ def watcher_dict(
         "must_mention": row["must_mention"] if "must_mention" in row.keys() else None,
         "match_rule": row["match_rule"] if "match_rule" in row.keys() else None,
         "condition": row["condition"] if "condition" in row.keys() else None,
+        "watch_id": row["watch_id"] if "watch_id" in row.keys() else None,
         "stop_after": row["stop_after"] if "stop_after" in row.keys() else 0,
         "push": bool(row["push"]) if "push" in row.keys() else True,
         "spec_lint": _spec_lint_dict(row),

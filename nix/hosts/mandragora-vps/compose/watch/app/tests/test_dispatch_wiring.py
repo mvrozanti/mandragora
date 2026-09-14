@@ -129,10 +129,13 @@ def test_the_created_reply_names_the_condition_not_the_plumbing(db, monkeypatch)
 
 
 def test_the_list_shows_conditions_not_targets(db, make_watcher):
+    import main
+
     wid = make_watcher(kind="anticheat_game", target="battlefield", ai_spec=None)
     c = db()
     c.execute("UPDATE watchers SET condition = ? WHERE id = ?",
               ("a battlefield game runs on linux", wid))
+    main._migrate_conditions_to_watches(c)
     c.close()
     out = asyncio.run(tg._cmd_list(db))
     assert "a battlefield game runs on linux" in out
