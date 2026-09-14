@@ -244,6 +244,85 @@ event through rather than swallowing it.
 
 The old `must_mention` column migrates into `match_rule` automatically on startup.
 
+## A watch is a condition
+
+That is the whole user-facing model. You say the condition you are waiting on and
+nothing else:
+
+```
+/watch a battlefield game becomes playable on linux
+/watch severance season 3 is released
+/watch electrum has a security advisory
+```
+
+Where to look, and what counts as the condition being met given a pile of
+headlines and descriptions, is decided **once, at registration**, by the model.
+After that it is plumbing: `condition` is what the dashboard tile, `/list` and
+every notification say, and `kind`, `target` and `match_rule` are columns nobody
+should have to think about.
+
+There have been two failed attempts at a vocabulary here and both failed the same
+way. Templates (`tv`, `advisory`, `feeds`…) needed a new entry the day
+`anticheat_game` landed. Source kinds needed the user to know that a TV season and
+a security advisory are different sorts of thing. Both were a second list to keep
+in sync, and a second thing to get wrong, on top of the one list that already
+exists in the code. Neither is user-facing now, and a test asserts that no source
+kind name appears in `HELP`, in the `/watch` prompt, in `/list`, or in the message
+confirming a watch was created.
+
+**No model ever reads what is posted online.** That constraint is unchanged and is
+what makes registration-time interpretation affordable — the model runs once per
+watch you create, and the running system is keyword matching over fetched text.
+
+Internally a condition becomes one or more sources, each with a keyword rule, all
+sharing a `watch_group` so a stop condition counts across them. Everything the
+model proposes is checked before anything is saved: the kind must exist, the
+target must validate, `sources.target_exists` must find it on the real API, and a
+live fetch must return. Whatever fails is dropped; if nothing survives, no watch
+is created rather than one that cannot fire.
+
+Providers, tried in order and configured by key presence alone:
+
+```
+WATCH_LLM_DEEPSEEK_KEY=sk-...       # tried first
+WATCH_LLM_ANTHROPIC_KEY=sk-ant-...  # tried if deepseek is absent or fails
+```
+
+With neither, `/watch` says so. `/add <kind> <target>` and `/match <id> <rule>`
+still work as unadvertised repair tools — they are how you fix a watch whose rule
+the model got wrong, and the only way in if no provider is configured.
+
+The prompt carries one hard-won instruction: **never restate what the source
+already scopes.** `paperwhite AND jailbreak` on a Kindle jailbreak forum measured
+at 20% recall, because announcements name models as `PW6` and never contain the
+generic word. Every extra term can only lose signal.
+
+## Match rules
+
+`match_rule` on a watcher is a boolean expression evaluated over the event's
+title and summary (`app/match.py`, no network, no dependencies):
+
+```
+electrum
+paperwhite AND jailbreak
+electrum AND (vulnerability OR exploit OR phishing)
+"browser extension" OR "claude in chrome"
+paperwhite AND jailbreak AND NOT ipod
+```
+
+- Whitespace means `AND`. `AND`/`OR`/`NOT` are operators only in uppercase, so a
+  lowercase `and` is a literal word.
+- Terms match on **word boundaries**, so `electrum` no longer matches
+  *Electrostatic* or *Electron* — the two things that cost 31 model calls on HN.
+- `"quoted phrases"` match as a phrase, tolerating runs of whitespace.
+- An empty rule means everything the source emits reaches you.
+
+Set one with `/match <watcher_id> <rule>` or the web UI. An unparseable rule is
+rejected at the point you set it; a rule that somehow breaks at poll time lets the
+event through rather than swallowing it.
+
+The old `must_mention` column migrates into `match_rule` automatically on startup.
+
 ## Registering a watch by describing it
 
 `/watch tell me when a battlefield game runs on linux` — one sentence, and the

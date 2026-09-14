@@ -119,6 +119,7 @@ def init_db() -> None:
         "ALTER TABLE watchers ADD COLUMN stop_after INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE watchers ADD COLUMN watch_group TEXT",
         "ALTER TABLE watchers ADD COLUMN match_rule TEXT",
+        "ALTER TABLE watchers ADD COLUMN condition TEXT",
     ):
         try:
             c.execute(stmt)
@@ -253,6 +254,7 @@ def watcher_dict(
         "ai_spec": row["ai_spec"] if "ai_spec" in row.keys() else None,
         "must_mention": row["must_mention"] if "must_mention" in row.keys() else None,
         "match_rule": row["match_rule"] if "match_rule" in row.keys() else None,
+        "condition": row["condition"] if "condition" in row.keys() else None,
         "stop_after": row["stop_after"] if "stop_after" in row.keys() else 0,
         "push": bool(row["push"]) if "push" in row.keys() else True,
         "spec_lint": _spec_lint_dict(row),
@@ -374,9 +376,9 @@ async def quick_watch(payload: dict) -> dict:
             try:
                 c.execute(
                     "INSERT INTO watchers (kind, target, name, created_at, match_rule, push, "
-                    "stop_after, watch_group) VALUES (?, ?, ?, ?, ?, 1, ?, ?)",
+                    "stop_after, watch_group, condition) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?)",
                     (row["kind"], row["target"], row["name"], now_iso(), row["match_rule"],
-                     row["stop_after"], row["watch_group"]),
+                     row["stop_after"], row["watch_group"], row.get("condition")),
                 )
                 created.append({**row, "id": c.execute(
                     "SELECT id FROM watchers WHERE kind = ? AND target = ?",
