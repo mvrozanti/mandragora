@@ -382,9 +382,6 @@ async def _cmd_match(conn_factory, args: list[str]) -> str:
     return f"watcher {wid} rule set to <code>{_esc(rule)}</code>" if rule else f"watcher {wid} rule cleared"
 
 
-PENDING_PLANS: dict[str, dict] = {}
-
-
 def _insert_rows(rows: list[dict]) -> list[tuple[int, dict]]:
     import main
 
@@ -415,30 +412,15 @@ async def _cmd_watch(conn_factory, args: list[str]) -> str:
     import compose
 
     if not args:
-        return compose.template_help()
-    if args[0].strip().lower() in compose.TEMPLATES:
-        return await _watch_from_template(args[0], args[1:])
+        kinds = ", ".join(f"<code>{k}</code>" for k in sources.SOURCE_KINDS)
+        return (
+            "<b>/watch &lt;what you want to know&gt;</b>\n"
+            "just say it — e.g. <code>/watch tell me when a battlefield game runs on linux</code>\n\n"
+            "it picks the sources and the keyword rule, checks them against live data, "
+            "and starts watching.\n\n"
+            f"to place one by hand instead: <code>/add &lt;kind&gt; &lt;target&gt;</code>\n{kinds}"
+        )
     return await _watch_from_sentence(" ".join(args))
-
-
-async def _watch_from_template(template: str, args: list[str]) -> str:
-    import compose
-
-    try:
-        result = await compose.preview(template, args)
-    except ValueError as exc:
-        return _esc(str(exc)[:300])
-    except Exception as exc:
-        log.warning("compose failed: %s", exc)
-        return f"could not build a plan: {_esc(str(exc)[:200])}"
-    if not result["usable"]:
-        return "no source I can reach would answer that.\n" + _esc(compose.format_preview(result))
-    token = uuid.uuid4().hex[:8]
-    PENDING_PLANS[token] = result
-    for stale in list(PENDING_PLANS)[:-8]:
-        PENDING_PLANS.pop(stale, None)
-    await _post_with_confirm(compose.format_preview(result), token)
-    return ""
 
 
 async def _watch_from_sentence(text: str) -> str:
@@ -449,7 +431,7 @@ async def _watch_from_sentence(text: str) -> str:
     except compose.llm.NoProviderAvailable as exc:
         return (
             f"{_esc(str(exc)[:220])}\n\n"
-            "you can still add one by hand — send <code>/watch</code> for the templates"
+            "you can still place one by hand — <code>/add &lt;kind&gt; &lt;target&gt;</code>"
         )
     except ValueError as exc:
         return _esc(str(exc)[:300])
@@ -473,36 +455,6 @@ async def _watch_from_sentence(text: str) -> str:
         lines.append(f"⚠ {_esc(w[:140])}")
     lines.append(f"<i>change the rule:</i> <code>/match {created[0][0]} &lt;rule&gt;</code>")
     return "\n".join(lines)
-
-
-async def _post_with_confirm(body: str, token: str) -> None:
-    for chat_id in ALLOWED_CHAT_IDS:
-        await _post("sendMessage", {
-            "chat_id": chat_id,
-            "text": body,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": True,
-            "reply_markup": {"inline_keyboard": [[
-                {"text": "✓ watch this", "callback_data": f"mkwatch:{token}"},
-                {"text": "✗ discard", "callback_data": f"nowatch:{token}"},
-            ]]},
-        })
-
-
-async def _create_from_token(conn_factory, token: str) -> str:
-    import compose
-
-    result = PENDING_PLANS.pop(token, None)
-    if not result:
-        return "that plan expired — run /watch again"
-    rows = compose.plan_rows(result["plan"], result["sources"])
-    created = _insert_rows(rows)
-    if not created:
-        return "already watching every source in that plan"
-    stop = result["plan"].get("stop_after") or 0
-    tail = f" · stops after {stop}" if stop else " · ongoing"
-    ids = ", ".join(f"w{wid}" for wid, _ in created)
-    return f"✓ watching — {ids}{tail}"
 
 
 async def _cmd_verdicts(conn_factory, args: list[str]) -> str:
@@ -596,15 +548,6 @@ async def _handle_callback(conn_factory, cb: dict) -> None:
         return
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
-    if data.startswith("mkwatch:"):
-        text = await _create_from_token(conn_factory, data.split(":", 1)[1])
-        await _post("answerCallbackQuery", {"callback_query_id": cb_id, "text": text[:190]})
-        await broadcast(_esc(text))
-        return
-    if data.startswith("nowatch:"):
-        PENDING_PLANS.pop(data.split(":", 1)[1], None)
-        await _post("answerCallbackQuery", {"callback_query_id": cb_id, "text": "discarded"})
-        return
     if data.startswith("ack:"):
         try:
             eid = int(data.split(":", 1)[1])

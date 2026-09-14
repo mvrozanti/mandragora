@@ -60,7 +60,10 @@ def test_preview_warns_when_nothing_is_reachable(monkeypatch):
                 "samples": []}
 
     monkeypatch.setattr(compose, "probe_source", fake_probe)
-    result = asyncio.run(compose.preview("advisory", ["spesmilo/electrum"]))
+    result = asyncio.run(compose.preview({
+        "name": "n", "condition": "c", "stop_after": 0,
+        "sources": [{"kind": "github_advisory", "target": "spesmilo/electrum", "match": "", "why": ""}],
+    }))
     assert result["usable"] == 0
     assert any("nothing would ever fire" in w for w in result["warnings"])
 

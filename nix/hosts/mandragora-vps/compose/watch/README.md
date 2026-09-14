@@ -246,6 +246,74 @@ The old `must_mention` column migrates into `match_rule` automatically on startu
 
 ## Registering a watch by describing it
 
+`/watch tell me when a battlefield game runs on linux` — one sentence, and the
+watch exists. A model turns the sentence into sources; nothing else changes.
+**No model ever reads what is posted online.** Runtime matching stays keyword-only.
+The model runs once per watch you create.
+
+It picks from the **source kinds themselves** — the same list `/add` accepts and
+`SOURCE_EMITS` describes. There is deliberately no template or category layer in
+between: a taxonomy has to grow every time a source kind is added, and the one
+that briefly existed here already needed a seventh entry the day `anticheat_game`
+landed. The kinds are the vocabulary; anything else is a second thing to keep in
+sync and a second thing to get wrong.
+
+Its blast radius is a `{kind, target, match}` triple, and every part is checked
+before anything is saved: the kind must exist, `sources.validate_target` must
+accept the target, `sources.target_exists` must find it on the real API, and a
+live fetch must return. Sources that fail are dropped with a reason; if none
+survives, nothing is created rather than a watch that cannot fire. That is what
+caught an invented `electrum-maintainers/electrum` and a hallucinated NYT feed.
+
+Providers are tried in order, configured by key presence alone:
+
+```
+WATCH_LLM_DEEPSEEK_KEY=sk-...       # tried first
+WATCH_LLM_ANTHROPIC_KEY=sk-ant-...  # tried if deepseek is absent or fails
+```
+
+With neither set, a sentence says so and points at `/add <kind> <target>`, which
+needs no model. A **Claude Code subscription is not an API key** — the Anthropic
+leg stays inert until a real one exists.
+
+The reply carries the watcher ids, the rule, and a volume estimate measured from
+the items just fetched — `~3 msgs/month`, or *"nothing in the recent sample
+matches"* for a rule born dead. It gates nothing; the watch exists the moment you
+ask. `/match <id> <rule>` changes any rule afterwards.
+
+The prompt carries one hard-won instruction: **never restate what the source
+already scopes.** `paperwhite AND jailbreak` on a Kindle jailbreak forum measured
+at 20% recall, because announcements name models as `PW6` and never contain the
+generic word. Every extra term can only lose signal.
+
+## Match rules
+
+`match_rule` on a watcher is a boolean expression evaluated over the event's
+title and summary (`app/match.py`, no network, no dependencies):
+
+```
+electrum
+paperwhite AND jailbreak
+electrum AND (vulnerability OR exploit OR phishing)
+"browser extension" OR "claude in chrome"
+paperwhite AND jailbreak AND NOT ipod
+```
+
+- Whitespace means `AND`. `AND`/`OR`/`NOT` are operators only in uppercase, so a
+  lowercase `and` is a literal word.
+- Terms match on **word boundaries**, so `electrum` no longer matches
+  *Electrostatic* or *Electron* — the two things that cost 31 model calls on HN.
+- `"quoted phrases"` match as a phrase, tolerating runs of whitespace.
+- An empty rule means everything the source emits reaches you.
+
+Set one with `/match <watcher_id> <rule>` or the web UI. An unparseable rule is
+rejected at the point you set it; a rule that somehow breaks at poll time lets the
+event through rather than swallowing it.
+
+The old `must_mention` column migrates into `match_rule` automatically on startup.
+
+## Registering a watch by describing it
+
 `/watch tell me when there is a new kindle jailbreak` — one sentence, and the
 watch exists. A model turns the sentence into a template plus arguments, and
 nothing else about the system changes: **no model ever reads what is posted

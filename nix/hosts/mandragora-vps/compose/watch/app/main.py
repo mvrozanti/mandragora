@@ -349,33 +349,6 @@ async def list_watchers() -> list[dict]:
     return out
 
 
-@app.get("/api/templates")
-async def list_templates() -> dict:
-    import compose
-
-    return compose.TEMPLATES
-
-
-@app.post("/api/compose")
-async def compose_watch(payload: dict) -> dict:
-    import compose
-
-    template = (payload.get("template") or "").strip()
-    args = payload.get("args") or []
-    if isinstance(args, str):
-        args = args.split()
-    if not isinstance(args, list):
-        raise HTTPException(400, "args must be a list or a string")
-    args = [str(a) for a in args][:20]
-    try:
-        return await compose.preview(template, args)
-    except ValueError as exc:
-        raise HTTPException(400, str(exc))
-    except Exception as exc:
-        log.warning("compose failed: %s", exc)
-        raise HTTPException(502, f"could not build a plan: {exc}")
-
-
 @app.post("/api/compose/quick")
 async def quick_watch(payload: dict) -> dict:
     import compose
@@ -418,38 +391,6 @@ async def quick_watch(payload: dict) -> dict:
     return {"ok": True, "created": created, "provider": result["provider"],
             "estimates": result["estimates"], "warnings": result["warnings"],
             "template": result["template"], "args": result["args"]}
-
-
-@app.post("/api/compose/create")
-async def create_composed_watch(payload: dict) -> dict:
-    import compose
-
-    plan = payload.get("plan")
-    checked = payload.get("sources")
-    if not isinstance(plan, dict) or not isinstance(checked, list):
-        raise HTTPException(400, "plan and sources are required")
-    rows = compose.plan_rows(plan, checked)
-    if not rows:
-        raise HTTPException(400, "no usable source in the plan")
-    created = []
-    c = conn()
-    try:
-        for row in rows:
-            try:
-                c.execute(
-                    "INSERT INTO watchers (kind, target, name, created_at, match_rule, push, "
-                    "stop_after, watch_group) VALUES (?, ?, ?, ?, ?, 1, ?, ?)",
-                    (row["kind"], row["target"], row["name"], now_iso(), row["match_rule"],
-                     row["stop_after"], row["watch_group"]),
-                )
-                created.append(row)
-            except sqlite3.IntegrityError:
-                log.info("compose: watcher already exists %s:%s", row["kind"], row["target"])
-    finally:
-        c.close()
-    if not created:
-        raise HTTPException(409, "every source in the plan is already being watched")
-    return {"ok": True, "created": created, "group": created[0]["watch_group"]}
 
 
 @app.post("/api/watchers")

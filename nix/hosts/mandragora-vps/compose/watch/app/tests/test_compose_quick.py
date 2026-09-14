@@ -26,38 +26,64 @@ def _probe(monkeypatch, ok=True, samples=None, error="source unreachable"):
     monkeypatch.setattr(compose, "probe_source", fake)
 
 
-def test_interpret_maps_a_sentence_to_a_template(monkeypatch):
-    _model(monkeypatch, {"template": "tv", "args": ["severance", "3"], "why": "a tv season"})
-    template, args, provider = asyncio.run(compose.interpret("when does severance season 3 drop"))
-    assert template == "tv" and args == ["severance", "3"] and provider == "stub"
+def _plan(**kw):
+    base = {"name": "severance s3", "stop_after": 1,
+            "sources": [{"kind": "tvmaze_season", "target": "severance:3", "match": "", "why": "fact"}]}
+    base.update(kw)
+    return base
 
 
-def test_interpret_rejects_a_template_that_does_not_exist(monkeypatch):
-    _model(monkeypatch, {"template": "telepathy", "args": ["x"]})
-    with pytest.raises(ValueError, match="unknown template"):
+def test_interpret_maps_a_sentence_to_real_source_kinds(monkeypatch):
+    _model(monkeypatch, _plan())
+    plan, provider = asyncio.run(compose.interpret("when does severance season 3 drop"))
+    assert plan["sources"][0]["kind"] == "tvmaze_season"
+    assert plan["stop_after"] == 1 and provider == "stub"
+
+
+def test_interpret_drops_a_source_kind_that_does_not_exist(monkeypatch):
+    _model(monkeypatch, _plan(sources=[
+        {"kind": "telepathy", "target": "x", "match": "", "why": ""},
+        {"kind": "hn_search", "target": "electrum", "match": "", "why": ""},
+    ]))
+    plan, _ = asyncio.run(compose.interpret("anything"))
+    assert [s["kind"] for s in plan["sources"]] == ["hn_search"]
+
+
+def test_interpret_rejects_a_plan_with_no_recognisable_kind(monkeypatch):
+    _model(monkeypatch, _plan(sources=[{"kind": "telepathy", "target": "x", "match": "", "why": ""}]))
+    with pytest.raises(ValueError, match="no source I recognise"):
         asyncio.run(compose.interpret("anything"))
 
 
-def test_interpret_rejects_an_empty_argument_list(monkeypatch):
-    _model(monkeypatch, {"template": "tv", "args": []})
-    with pytest.raises(ValueError, match="no arguments"):
+def test_interpret_rejects_a_source_with_no_target(monkeypatch):
+    _model(monkeypatch, _plan(sources=[{"kind": "hn_search", "target": "", "match": "", "why": ""}]))
+    with pytest.raises(ValueError):
         asyncio.run(compose.interpret("anything"))
 
 
 def test_interpret_survives_a_model_that_wraps_json_in_prose(monkeypatch):
-    _model(monkeypatch, 'Sure! Here you go:\n{"template":"repo","args":["a/b"]}\nHope that helps.')
-    template, args, _ = asyncio.run(compose.interpret("watch a/b"))
-    assert template == "repo" and args == ["a/b"]
+    _model(monkeypatch,
+           'Sure!\n{"name":"n","stop_after":0,"sources":[{"kind":"github_repo","target":"a/b","match":""}]}\ndone')
+    plan, _ = asyncio.run(compose.interpret("watch a/b"))
+    assert plan["sources"][0]["target"] == "a/b"
+
+
+def test_interpret_can_reach_a_kind_that_has_no_template(monkeypatch):
+    _model(monkeypatch, _plan(sources=[
+        {"kind": "anticheat_game", "target": "battlefield", "match": '"now Supported"', "why": ""},
+    ]))
+    plan, _ = asyncio.run(compose.interpret("when can I play battlefield on linux"))
+    assert plan["sources"][0]["kind"] == "anticheat_game"
 
 
 def test_interpret_refuses_an_empty_sentence(monkeypatch):
-    _model(monkeypatch, {"template": "tv", "args": ["x", "1"]})
+    _model(monkeypatch, _plan())
     with pytest.raises(ValueError):
         asyncio.run(compose.interpret("   "))
 
 
 def test_quick_create_returns_rows_ready_to_insert(monkeypatch):
-    _model(monkeypatch, {"template": "tv", "args": ["severance", "3"]})
+    _model(monkeypatch, _plan())
     _probe(monkeypatch, samples=[{"title": "Severance season 3 listed", "summary": "",
                                   "link": "", "occurred_at": "2026-09-01T00:00:00Z"}])
     out = asyncio.run(compose.quick_create("severance season 3"))
@@ -68,7 +94,8 @@ def test_quick_create_returns_rows_ready_to_insert(monkeypatch):
 
 
 def test_quick_create_refuses_when_every_source_is_unreachable(monkeypatch):
-    _model(monkeypatch, {"template": "advisory", "args": ["nope/nope"]})
+    _model(monkeypatch, _plan(sources=[
+        {"kind": "github_advisory", "target": "nope/nope", "match": "", "why": ""}]))
     _probe(monkeypatch, ok=False, error="github has no repo called nope/nope")
     with pytest.raises(ValueError) as e:
         asyncio.run(compose.quick_create("watch nope/nope advisories"))

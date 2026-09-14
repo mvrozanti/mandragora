@@ -250,26 +250,24 @@
       return true;
     }
     if (state.asking) {
-      var tpl = state.templates || {};
-      var opts = Object.keys(tpl).map(function (k) {
-        return '<option value="' + k + '"' + (state.template === k ? " selected" : "") + ">" +
-          esc(tpl[k].label) + "</option>";
-      }).join("");
-      var cur = tpl[state.template] || {};
       $("add").innerHTML = '<form class="wa-form" id="sayform">' +
         '<div class="wa-field wide"><label for="f-say">what do you want to know?</label>' +
-        '<input class="wa-input" id="f-say" placeholder="tell me when there is a new kindle jailbreak">' +
-        '<div class="wa-hint">a sentence is enough. it picks the sources and starts watching.</div></div>' +
+        '<input class="wa-input" id="f-say" placeholder="tell me when a battlefield game runs on linux">' +
+        '<div class="wa-hint">a sentence is enough. it picks the sources and the rule, checks them against live data, and starts watching.</div></div>' +
         '<div class="wa-acts wide"><button class="wa-btn primary" type="submit">' +
         (state.composing ? "working…" : "watch it") + "</button>" +
-        '<button class="wa-btn" type="button" data-act="byhand">by hand instead</button>' +
+        '<button class="wa-btn" type="button" data-act="byhand">place one by hand</button>' +
         '<button class="wa-btn" type="button" data-act="cancelask">cancel</button></div></form>' +
-        (state.byhand ? '<form class="wa-form" id="askform">' +
-          '<div class="wa-field wide"><label for="f-tpl">template</label>' +
-          '<select class="wa-select" id="f-tpl">' + opts + "</select></div>" +
-          '<div class="wa-field wide"><label for="f-args">' + esc((cur.fields || []).join(", ")) + "</label>" +
-          '<input class="wa-input" id="f-args" placeholder="' + esc((cur.example || "").split(" ").slice(1).join(" ")) + '"></div>' +
-          '<div class="wa-acts wide"><button class="wa-btn" type="submit">check it</button></div></form>' : "");
+        (state.byhand ? '<form class="wa-form" id="handform">' +
+          '<div class="wa-field"><label for="h-kind">source</label><select class="wa-select" id="h-kind">' +
+          Object.keys(state.kinds).map(function (k) {
+            return '<option value="' + k + '">' + esc(state.kinds[k].label) + "</option>";
+          }).join("") + "</select></div>" +
+          '<div class="wa-field"><label for="h-target">target</label>' +
+          '<input class="wa-input" id="h-target" placeholder="owner/repo, @handle, search terms…"></div>' +
+          '<div class="wa-field wide"><label for="h-rule">keyword rule</label>' +
+          '<input class="wa-input" id="h-rule" placeholder="blank = everything it emits counts"></div>' +
+          '<div class="wa-acts wide"><button class="wa-btn" type="submit">add it</button></div></form>' : "");
       return true;
     }
     return false;
@@ -451,6 +449,18 @@
         render();
         toast(String(e && e.message ? e.message : e), true);
       });
+      return;
+    }
+    if (ev.target.id === "handform") {
+      ev.preventDefault();
+      var payload = {
+        kind: $("h-kind").value,
+        target: $("h-target").value.trim(),
+        match_rule: $("h-rule").value.trim() || null
+      };
+      if (!payload.target) { toast("target is required", true); return; }
+      state.asking = false; state.byhand = false;
+      withBusy(api("POST", "/api/watchers", payload), "added");
       return;
     }
     if (ev.target.id === "askform") {
