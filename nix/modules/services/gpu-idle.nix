@@ -12,7 +12,6 @@ let
     mapAttrs'
     nameValuePair
     filterAttrs
-    mapAttrsToList
     ;
   cfg = config.mandragora.gpuIdle;
   enabled = filterAttrs (_: c: c.enable) cfg;
@@ -69,30 +68,27 @@ in
       services that are cheap to restart or have a wake path of their own.
     '';
     type = types.attrsOf (
-      types.submodule (
-        { name, ... }:
-        {
-          options = {
-            enable = mkOption {
-              type = types.bool;
-              default = true;
-            };
-            unit = mkOption {
-              type = types.str;
-              description = "The user unit to stop, e.g. \"im-gen-web.service\".";
-            };
-            port = mkOption {
-              type = types.port;
-              description = "TCP port whose established connections mean 'in use'.";
-            };
-            minutes = mkOption {
-              type = types.int;
-              default = 15;
-              description = "Minutes with no connection before the unit is stopped.";
-            };
+      types.submodule (_: {
+        options = {
+          enable = mkOption {
+            type = types.bool;
+            default = true;
           };
-        }
-      )
+          unit = mkOption {
+            type = types.str;
+            description = "The user unit to stop, e.g. \"im-gen-web.service\".";
+          };
+          port = mkOption {
+            type = types.port;
+            description = "TCP port whose established connections mean 'in use'.";
+          };
+          minutes = mkOption {
+            type = types.int;
+            default = 15;
+            description = "Minutes with no connection before the unit is stopped.";
+          };
+        };
+      })
     );
   };
 
