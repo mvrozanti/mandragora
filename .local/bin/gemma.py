@@ -14,7 +14,7 @@ def _model_tag(role, fallback):
         return fallback
 
 
-gemma_model = _model_tag("gemma", "gemma3:27b")
+gemma_model = _model_tag("gemma", "gemma4:12b")
 
 data_dir = (
     Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "oterm-gemma"

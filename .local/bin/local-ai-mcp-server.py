@@ -16,7 +16,7 @@ def _model_tag(role, fallback):
         return fallback
 
 
-GEMMA_MODEL = os.environ.get("MCP_GEMMA_MODEL", _model_tag("gemma", "gemma3:27b"))
+GEMMA_MODEL = os.environ.get("MCP_GEMMA_MODEL", _model_tag("gemma", "gemma4:12b"))
 AUX_MODEL = os.environ.get(
     "MCP_AUX_MODEL", _model_tag("aux", "huihui_ai/qwen2.5-abliterate:14b")
 )
@@ -25,7 +25,7 @@ TOOLS = [
     {
         "name": "ask_gemma",
         "description": (
-            "Ask the local Gemma 3 27B model running on Ollama. "
+            "Ask the local Gemma 4 12B model running on Ollama. "
             "Use for: second opinions, local/private reasoning, creative tasks, "
             "tasks where a second model perspective helps, or when you want to "
             "offload work to a fast local model."
