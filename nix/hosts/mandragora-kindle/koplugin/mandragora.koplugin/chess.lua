@@ -20,6 +20,8 @@ local STATE_FILE = "/mnt/us/mandragora/state/chess.lua"
 local GREY = Blitbuffer.COLOR_LIGHT_GRAY
 local WHITE = Blitbuffer.COLOR_WHITE
 local BLACK = Blitbuffer.COLOR_BLACK
+local MID = Blitbuffer.COLOR_LIGHT_GRAY
+local SOFT = Blitbuffer.COLOR_GRAY
 
 local PIECE_FILE = {
     K = "wK", Q = "wQ", R = "wR", B = "wB", N = "wN", P = "wP",
@@ -55,24 +57,25 @@ end
 function ChessBoard:layout()
     local w, h = Screen:getWidth(), Screen:getHeight()
     local margin = math.floor(w * 0.019)
-    local square = math.floor((w - margin * 2) / 8)
+    local gutter = math.floor(w * 0.036)
+    local square = math.floor((w - gutter - margin) / 8)
     local board = square * 8
-    local board_x = math.floor((w - board) / 2)
-    local button_h = math.floor(h * 0.066)
-    local button_y = h - button_h - margin
-    local head_h = math.floor(h * 0.083)
-    local board_y = head_h
-    local foot_y = board_y + board
+    local board_x = gutter
+    local board_y = math.floor(h * 0.065)
+    local button_h = math.floor(h * 0.065)
+    local button_y = h - button_h - margin * 2
     return {
         w = w, h = h,
         margin = margin,
+        gutter = gutter,
         square = square,
         board = board,
         board_x = board_x,
         board_y = board_y,
-        head_h = head_h,
-        foot_y = foot_y,
-        foot_h = button_y - foot_y,
+        files_y = board_y + board + math.floor(margin * 0.3),
+        moves_y = board_y + board + math.floor(margin * 2.1),
+        engine_y = button_y - math.floor(margin * 2.4),
+        rule_y = button_y - math.floor(margin * 0.9),
         button_y = button_y,
         button_h = button_h,
     }
@@ -174,14 +177,13 @@ end
 function ChessBoard:buttons()
     local L = self.L
     local labels = { "new", "undo", "flip", "close" }
-    local gap = math.floor(L.margin * 0.6)
     local span = L.w - L.margin * 2
-    local width = math.floor((span - gap * (#labels - 1)) / #labels)
+    local width = math.floor(span / #labels)
     local out = {}
     for i, label in ipairs(labels) do
         out[i] = {
             label = label,
-            x = L.margin + (i - 1) * (width + gap),
+            x = L.margin + (i - 1) * width,
             y = L.button_y,
             w = width,
             h = L.button_h,
@@ -197,39 +199,45 @@ function ChessBoard:paintTo(bb, x, y)
 
     local head = TextWidget:new{
         text = self:statusLine(),
-        face = Font:getFace("tfont", math.floor(L.head_h * 0.32)),
+        face = Font:getFace("tfont", 46),
     }
-    local head_size = head:getSize()
-    local head_top = y + math.floor(L.margin * 0.5)
-    head:paintTo(bb, x + L.board_x, head_top)
+    head:paintTo(bb, x + L.board_x, y + math.floor(L.board_y * 0.30))
     head:free()
-
-    local sub = TextWidget:new{
-        text = Engine.describe(self.cfg),
-        face = Font:getFace("infofont", math.floor(L.head_h * 0.15)),
-    }
-    sub:paintTo(bb, x + L.board_x, y + L.button_y - sub:getSize().h - math.floor(L.margin * 0.5))
-    sub:free()
 
     for row = 0, 7 do
         for col = 0, 7 do
-            local sx = x + L.board_x + col * L.square
-            local sy = y + L.board_y + row * L.square
             if (row + col) % 2 == 1 then
-                bb:paintRect(sx, sy, L.square, L.square, GREY)
+                bb:paintRect(x + L.board_x + col * L.square, y + L.board_y + row * L.square,
+                    L.square, L.square, GREY)
             end
         end
+    end
+    bb:paintBorder(x + L.board_x, y + L.board_y, L.board, L.board, 2, BLACK)
+
+    local coord_face = Font:getFace("infofont", 24)
+    for i = 0, 7 do
+        local rank = tostring(self.flipped and i + 1 or 8 - i)
+        local rw = TextWidget:new{ text = rank, face = coord_face, fgcolor = SOFT }
+        local rs = rw:getSize()
+        rw:paintTo(bb, x + math.floor((L.gutter - rs.w) / 2),
+                       y + L.board_y + i * L.square + math.floor((L.square - rs.h) / 2))
+        rw:free()
+
+        local file = string.char(string.byte("a") + (self.flipped and 7 - i or i))
+        local fw = TextWidget:new{ text = file, face = coord_face, fgcolor = SOFT }
+        local fs = fw:getSize()
+        fw:paintTo(bb, x + L.board_x + i * L.square + math.floor((L.square - fs.w) / 2),
+                       y + L.files_y)
+        fw:free()
     end
 
     if self.selected then
         local sx, sy = self:squareRect(self.selected)
-        if sx then
-            bb:paintBorder(x + sx, y + sy, L.square, L.square, 5, BLACK)
-        end
+        if sx then bb:paintBorder(x + sx, y + sy, L.square, L.square, 6, BLACK) end
     end
 
     if self.targets then
-        local dot = math.floor(L.square * 0.16)
+        local dot = math.floor(L.square * 0.15)
         for _, move in ipairs(self.targets) do
             local sx, sy = self:squareRect(move.to)
             if sx then
@@ -239,21 +247,7 @@ function ChessBoard:paintTo(bb, x, y)
         end
     end
 
-    local coord_face = Font:getFace("infofont", math.floor(L.square * 0.17))
-    for i = 0, 7 do
-        local file_label = string.char(string.byte("a") + (self.flipped and 7 - i or i))
-        local rank_label = tostring(self.flipped and i + 1 or 8 - i)
-        local fw = TextWidget:new{ text = file_label, face = coord_face }
-        fw:paintTo(bb, x + L.board_x + i * L.square + math.floor(L.square * 0.06),
-                       y + L.board_y + L.board - math.floor(L.square * 0.26))
-        fw:free()
-        local rw = TextWidget:new{ text = rank_label, face = coord_face }
-        rw:paintTo(bb, x + L.board_x + L.board - math.floor(L.square * 0.19),
-                       y + L.board_y + i * L.square + math.floor(L.square * 0.05))
-        rw:free()
-    end
-
-    local inset = math.floor(L.square * 0.07)
+    local inset = math.floor(L.square * 0.06)
     local size = L.square - inset * 2
     for row = 0, 7 do
         for col = 0, 7 do
@@ -271,32 +265,55 @@ function ChessBoard:paintTo(bb, x, y)
         end
     end
 
-    local moves_face = Font:getFace("infofont", math.floor(L.foot_h * 0.13))
+    local moves_face = Font:getFace("infofont", 28)
     local shown = {}
-    local start = math.max(1, #self.san - 5)
-    for i = start, #self.san do
+    local start_at = math.max(1, #self.san - 7)
+    for i = start_at, #self.san do
         local n = math.floor((i + 1) / 2)
         if i % 2 == 1 then
             shown[#shown + 1] = n .. ". " .. self.san[i]
         else
-            shown[#shown] = (shown[#shown] or (n .. ".")) .. "  " .. self.san[i]
+            shown[#shown] = (shown[#shown] or (n .. ".")) .. " " .. self.san[i]
         end
     end
-    for i, line in ipairs(shown) do
-        local entry = TextWidget:new{ text = line, face = moves_face }
-        entry:paintTo(bb, x + 28, y + L.foot_y + 14 + (i - 1) * math.floor(L.foot_h * 0.15))
-        entry:free()
+    if #shown == 0 then
+        local empty = TextWidget:new{
+            text = "tap a piece to see where it can go",
+            face = moves_face, fgcolor = SOFT,
+        }
+        empty:paintTo(bb, x + L.board_x, y + L.moves_y)
+        empty:free()
+    else
+        local cursor = x + L.board_x
+        for i = 1, #shown do
+            local entry = TextWidget:new{ text = shown[i], face = moves_face, fgcolor = SOFT }
+            local es = entry:getSize()
+            if cursor + es.w > x + L.w - L.margin then break end
+            entry:paintTo(bb, cursor, y + L.moves_y)
+            cursor = cursor + es.w + 26
+            entry:free()
+        end
     end
 
-    for _, button in ipairs(self:buttons()) do
-        bb:paintBorder(x + button.x + 6, y + button.y, button.w - 12, button.h - 10, 3, BLACK)
-        local label = TextWidget:new{
-            text = button.label,
-            face = Font:getFace("cfont", math.floor(button.h * 0.30)),
-        }
-        label:paintTo(bb,
-            x + button.x + math.floor((button.w - label:getSize().w) / 2),
-            y + button.y + math.floor((button.h - 10 - label:getSize().h) / 2))
+    local sub = TextWidget:new{
+        text = Engine.describe(self.cfg),
+        face = Font:getFace("infofont", 22), fgcolor = SOFT,
+    }
+    sub:paintTo(bb, x + L.board_x, y + L.engine_y)
+    sub:free()
+
+    local buttons = self:buttons()
+    local first, last = buttons[1], buttons[#buttons]
+    local strip_w = last.x + last.w - first.x
+    bb:paintBorder(x + first.x, y + first.y, strip_w, first.h, 3, BLACK)
+    for i, button in ipairs(buttons) do
+        if i > 1 then
+            bb:paintRect(x + button.x, y + button.y, 2, button.h, BLACK)
+        end
+        local label = TextWidget:new{ text = button.label, face = Font:getFace("tfont", 38) }
+        local ls = label:getSize()
+        label:paintTo(bb, x + button.x + math.floor((button.w - ls.w) / 2),
+                          y + button.y + math.floor((button.h - ls.h) / 2))
         label:free()
     end
 end
