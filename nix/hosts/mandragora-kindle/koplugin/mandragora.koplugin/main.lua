@@ -47,6 +47,13 @@ local ACTIONS = {
         note = "a random book, recursively",
     },
     {
+        id = "mandragora_ticker",
+        label = "Markets",
+        widget = "ticker",
+        icon = "ticker.svg",
+        note = "prices, refreshed on tap",
+    },
+    {
         id = "mandragora_dash",
         label = "Dash",
         widget = "dash",

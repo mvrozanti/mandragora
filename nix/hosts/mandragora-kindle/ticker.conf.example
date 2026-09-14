@@ -1,0 +1,16 @@
+# mandragora.koplugin / ticker.lua configuration
+#
+# Copy to /mnt/us/mandragora/ticker.conf on the device. key=value lines;
+# blank lines and unknown keys are ignored, and a missing file is fine.
+
+# host / port: mandragora-ticker on the desktop, which does the fetching.
+#
+# The desktop's LAN address, not its tailnet address — this Kindle's
+# tailscaled runs with --tun=userspace-networking, so a plain LuaSocket
+# connection has no route to 100.64.0.0/10. Same constraint as MPD and chess.
+host=192.168.0.27
+port=6614
+
+# timeout: seconds to wait for the desktop. The server answers from cache, so
+# this only matters on a forced refresh that has to go out to the internet.
+timeout=25
