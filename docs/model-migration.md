@@ -31,7 +31,10 @@ Roles, and who reads each:
 - `meme` — VLM. `mandragora.ai.meme.model` default in
   `nix/modules/core/ai-local.nix`.
 - `uncensored` — decensored chat model (Heretic, not manual
-  abliteration: same weights-quality as stock, refusals removed). `mandragora.ai.uncensored.model`
+  abliteration: same weights-quality as stock, refusals removed).
+  Text-only: the GGUF ships without the multimodal projector, so it
+  has none of stock gemma4's vision/audio. Image work belongs on the
+  `gemma` or `meme` role. `mandragora.ai.uncensored.model`
   default in `nix/modules/core/ai-local.nix`; backs the MCP
   `ask_uncensored` tool via `.local/bin/local-ai-mcp-server.py`.
 - `gemma` — chat.mvr.ac default (`DEFAULT_MODELS`), oterm/gemma chat
