@@ -31,7 +31,9 @@ Roles, and who reads each:
 - `meme` — VLM. `mandragora.ai.meme.model` default in
   `nix/modules/core/ai-local.nix`.
 - `aux` — auxiliary chat model.
-  `mandragora.ai.aux.model`
+  Text-only: the GGUF ships without the multimodal projector, so it
+  has none of stock gemma4's vision/audio. Image work belongs on the
+  `gemma` or `meme` role. `mandragora.ai.aux.model`
   default in `nix/modules/core/ai-local.nix`; backs the MCP
   `ask_aux` tool via `.local/bin/local-ai-mcp-server.py`.
 - `gemma` — chat.mvr.ac default (`DEFAULT_MODELS`), oterm/gemma chat
