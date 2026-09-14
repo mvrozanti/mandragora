@@ -74,6 +74,33 @@ git -C /etc/nixos/mandragora worktree add -b agent/$ts "$wt" HEAD
 Edit inside `$wt`. Run syntax-check (Rule 11) there. The main tree
 is unaffected; another agent's `git add -A` cannot reach your files.
 
+> **The pre-commit audit does not follow you into the worktree.**
+> `mandragora-audit` resolves its target as
+> `MANDRAGORA_REPO="${MANDRAGORA_REPO:-/etc/nixos/mandragora}"` and
+> `cd`s there, and the pre-commit hook passes no override. Committing
+> from `$wt` therefore audits the **main tree**, not what you staged.
+>
+> It fails in both directions, and the second is the dangerous one:
+>
+> - **False failure** — you fix a violation in `$wt` while the main
+>   tree still has it, and the hook rejects your fix for the very
+>   problem you just solved.
+> - **False pass** — you *introduce* a violation in `$wt`, the main
+>   tree is clean, and the hook waves it through. A `14/14 PASS` on a
+>   worktree commit is a statement about the main tree. Verified: a
+>   file with an unused let binding committed clean from a worktree,
+>   and the same tree audited with `MANDRAGORA_REPO` pointed at it
+>   failed `09-deadnix` as it should have.
+>
+> So commit from a worktree like this:
+>
+> ```bash
+> MANDRAGORA_REPO="$wt" git commit -m "..."
+> ```
+>
+> Same trap as `mandragora-switch` below — an absolute path that
+> ignores `$PWD` — but quieter, because it reports success.
+
 ### 3. Merge back and clean up
 
 ```bash
