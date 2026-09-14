@@ -74,32 +74,30 @@ git -C /etc/nixos/mandragora worktree add -b agent/$ts "$wt" HEAD
 Edit inside `$wt`. Run syntax-check (Rule 11) there. The main tree
 is unaffected; another agent's `git add -A` cannot reach your files.
 
-> **The pre-commit audit does not follow you into the worktree.**
-> `mandragora-audit` resolves its target as
+> **The pre-commit audit follows you into the worktree — but only
+> since `fix(audit): scope the pre-commit hook to the tree being
+> committed`.** `mandragora-audit` resolves its target as
 > `MANDRAGORA_REPO="${MANDRAGORA_REPO:-/etc/nixos/mandragora}"` and
-> `cd`s there, and the pre-commit hook passes no override. Committing
-> from `$wt` therefore audits the **main tree**, not what you staged.
+> `cd`s there. The hook now passes
+> `MANDRAGORA_REPO="$(git rev-parse --show-toplevel)"`, so it audits
+> the tree you are committing in.
 >
-> It fails in both directions, and the second is the dangerous one:
+> Before that fix it audited the main tree instead, and failed in both
+> directions — rejecting a worktree fix for a violation the main tree
+> still had, and worse, waving through a violation the worktree
+> introduced while the main tree was clean. A `14/14 PASS` on a
+> worktree commit was a statement about the main tree. If you are
+> reading old session logs, treat worktree audit passes from before
+> that commit as unverified.
 >
-> - **False failure** — you fix a violation in `$wt` while the main
->   tree still has it, and the hook rejects your fix for the very
->   problem you just solved.
-> - **False pass** — you *introduce* a violation in `$wt`, the main
->   tree is clean, and the hook waves it through. A `14/14 PASS` on a
->   worktree commit is a statement about the main tree. Verified: a
->   file with an unused let binding committed clean from a worktree,
->   and the same tree audited with `MANDRAGORA_REPO` pointed at it
->   failed `09-deadnix` as it should have.
->
-> So commit from a worktree like this:
+> The override still exists for auditing a tree by hand:
 >
 > ```bash
-> MANDRAGORA_REPO="$wt" git commit -m "..."
+> MANDRAGORA_REPO="$wt" mandragora-audit --quiet
 > ```
 >
-> Same trap as `mandragora-switch` below — an absolute path that
-> ignores `$PWD` — but quieter, because it reports success.
+> `mandragora-switch` below has the same absolute-path shape and is
+> *not* fixed by this — it still targets the main repo by design.
 
 ### 3. Merge back and clean up
 
