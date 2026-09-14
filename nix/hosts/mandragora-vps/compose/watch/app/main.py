@@ -252,6 +252,8 @@ def watcher_dict(
         "reminder_interval": int(row["reminder_interval"]),
         "ai_spec": row["ai_spec"] if "ai_spec" in row.keys() else None,
         "must_mention": row["must_mention"] if "must_mention" in row.keys() else None,
+        "match_rule": row["match_rule"] if "match_rule" in row.keys() else None,
+        "stop_after": row["stop_after"] if "stop_after" in row.keys() else 0,
         "push": bool(row["push"]) if "push" in row.keys() else True,
         "spec_lint": _spec_lint_dict(row),
         "event_count": event_count,
@@ -470,13 +472,28 @@ async def create_watcher(payload: dict) -> dict:
     must_mention = payload.get("must_mention")
     if must_mention is not None:
         must_mention = str(must_mention)[:200] or None
+    match_rule = payload.get("match_rule")
+    if match_rule is not None:
+        match_rule = str(match_rule)[:500].strip() or None
+    if match_rule:
+        import match as matcher
+
+        ok, err = matcher.is_valid(match_rule)
+        if not ok:
+            raise HTTPException(400, f"match_rule will not parse: {err}")
+    try:
+        stop_after = max(0, int(payload.get("stop_after") or 0))
+    except (TypeError, ValueError):
+        stop_after = 0
     push = 0 if ("push" in payload and not payload["push"]) else 1
     c = conn()
     try:
         c.execute(
             "INSERT INTO watchers (kind, target, name, created_at, requires_ack, reminder_interval, "
-            "ai_spec, push, must_mention) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (kind, target, name, now_iso(), requires_ack, reminder_interval, ai_spec, push, must_mention),
+            "ai_spec, push, must_mention, match_rule, stop_after) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (kind, target, name, now_iso(), requires_ack, reminder_interval, ai_spec, push,
+             must_mention, match_rule, stop_after),
         )
     except sqlite3.IntegrityError:
         c.close()
@@ -515,6 +532,21 @@ async def patch_watcher(wid: int, payload: dict) -> dict:
         else:
             fields.append("must_mention = ?")
             params.append(str(must)[:200])
+    if "match_rule" in payload:
+        rule = payload["match_rule"]
+        if rule in (None, ""):
+            fields.append("match_rule = NULL")
+        else:
+            import match as matcher
+
+            ok, err = matcher.is_valid(str(rule))
+            if not ok:
+                raise HTTPException(400, f"match_rule will not parse: {err}")
+            fields.append("match_rule = ?")
+            params.append(str(rule)[:500])
+    if "stop_after" in payload:
+        fields.append("stop_after = ?")
+        params.append(max(0, int(payload["stop_after"] or 0)))
     if "ai_spec" in payload:
         spec = payload["ai_spec"]
         if spec in (None, ""):
