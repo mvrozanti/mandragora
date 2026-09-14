@@ -106,6 +106,10 @@ SOURCE_KINDS: dict[str, dict[str, str]] = {
         "label": "OSV vulnerability database",
         "target_hint": "PyPI:electrum",
     },
+    "anticheat_game": {
+        "label": "Linux anti-cheat status (areweanticheatyet)",
+        "target_hint": "battlefield",
+    },
 }
 
 
@@ -123,6 +127,7 @@ SOURCE_EMITS = {
     "tvmaze_season": "structured season status from TVmaze: whether the season is listed, its episode order, and its premiere date — a fact table, never prose",
     "github_advisory": "security advisories published by a GitHub project itself: identifier, severity, summary and description — a fact table, never prose",
     "osv_package": "vulnerability records for one package from the OSV database: identifier, aliases, summary and details — a fact table, never prose",
+    "anticheat_game": "whether games matching a name run on Linux, from areweanticheatyet: one status per title out of Supported, Running, Denied, Broken or Planned, and nothing else — a fact table, never prose",
 }
 
 
@@ -224,6 +229,11 @@ def validate_target(kind: str, target: str) -> str:
     elif kind == "github_advisory":
         if t.count("/") != 1 or " " in t:
             raise ValueError("github_advisory expects owner/repo")
+    elif kind == "anticheat_game":
+        t = target.strip().lower()
+        if not t or len(t) > 80:
+            raise ValueError("anticheat_game expects a game name or part of one, e.g. battlefield")
+        return t
     elif kind == "osv_package":
         eco, _, name = target.strip().partition(":")
         if not eco or not name or " " in target.strip():
@@ -283,6 +293,8 @@ async def fetch(kind: str, target: str, cursor: str | None) -> tuple[list[dict[s
         return await _fetch_github_advisories(target, cursor)
     if kind == "osv_package":
         return await _fetch_osv_package(target, cursor)
+    if kind == "anticheat_game":
+        return await _fetch_anticheat_game(target, cursor)
     raise ValueError(f"unknown kind: {kind}")
 
 
@@ -641,6 +653,85 @@ async def _fetch_twitch_stream(login: str, cursor: str | None) -> tuple[list[dic
         "raw": stream,
     }
     return [event], stream_id
+
+
+ANTICHEAT_URL = (
+    "https://raw.githubusercontent.com/AreWeAntiCheatYet/AreWeAntiCheatYet/master/games.json"
+)
+ANTICHEAT_SITE = "https://areweanticheatyet.com/game"
+PLAYABLE = ("supported", "running")
+
+
+def _anticheat_split_cursor(cursor: str | None) -> tuple[str, dict[str, str]]:
+    if not cursor:
+        return "", {}
+    etag, _, digest = cursor.partition("##")
+    states = {}
+    for pair in digest.split(";"):
+        slug, _, status = pair.partition("=")
+        if slug:
+            states[slug] = status
+    return etag, states
+
+
+def _anticheat_join_cursor(etag: str, states: dict[str, str]) -> str:
+    digest = ";".join(f"{slug}={status}" for slug, status in sorted(states.items()))
+    return f"{etag}##{digest}"
+
+
+def anticheat_headline(name: str, status: str, previous: str | None) -> str:
+    if previous is None:
+        return f"{name} is listed as {status} on Linux"
+    return f"{name} is now {status} on Linux (was {previous})"
+
+
+async def _fetch_anticheat_game(target: str, cursor: str | None) -> tuple[list[dict[str, Any]], str | None]:
+    etag, previous = _anticheat_split_cursor(cursor)
+    headers = {"User-Agent": USER_AGENT}
+    if etag:
+        headers["If-None-Match"] = etag
+    async with httpx.AsyncClient(timeout=30.0, headers=headers) as c:
+        r = await c.get(ANTICHEAT_URL)
+    if r.status_code == 304:
+        return [], cursor
+    _raise_for_throttle(r, "areweanticheatyet")
+    r.raise_for_status()
+    new_etag = r.headers.get("ETag", "")
+    needle = target.strip().lower()
+    games = [
+        g for g in (r.json() or [])
+        if needle in str(g.get("name") or "").lower()
+    ]
+    states = {}
+    by_slug = {}
+    for g in games:
+        slug = str(g.get("slug") or g.get("name") or "").strip()
+        if not slug:
+            continue
+        states[slug] = str(g.get("status") or "unknown")
+        by_slug[slug] = g
+    if not states:
+        raise ValueError(f"areweanticheatyet lists no game matching {target!r}")
+    new_cursor = _anticheat_join_cursor(new_etag, states)
+    events: list[dict[str, Any]] = []
+    for slug, status in sorted(states.items()):
+        was = previous.get(slug)
+        if was == status:
+            continue
+        g = by_slug[slug]
+        name = str(g.get("name") or slug)
+        anticheats = ", ".join(g.get("anticheats") or []) or "none listed"
+        notes = " ".join(str(n) for n in (g.get("notes") or []))[:2000]
+        events.append({
+            "external_id": f"{slug}:{status}",
+            "title": anticheat_headline(name, status, was)[:400],
+            "summary": " · ".join(x for x in (f"anti-cheat: {anticheats}", notes) if x)[:8000],
+            "link": f"{ANTICHEAT_SITE}/{slug}",
+            "occurred_at": str(g.get("dateChanged") or "")[:19] + "Z"
+            if g.get("dateChanged") else _utc_iso(time.time()),
+            "raw": {"slug": slug, "status": status, "was": was, "anticheats": g.get("anticheats")},
+        })
+    return events, new_cursor
 
 
 OSV_API = "https://api.osv.dev/v1/query"

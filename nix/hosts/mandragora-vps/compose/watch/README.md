@@ -72,6 +72,7 @@ skipped source looks exactly like a working one. See the vault note
 | `reddit_search`   | `https://www.reddit.com/search.rss?q=…&sort=new`         |
 | `rss`             | any RSS 2.0 / Atom feed URL                              |
 | `tvmaze_season`   | TVmaze `/shows/:id?embed=seasons`, one season's status   |
+| `anticheat_game`  | areweanticheatyet `games.json`, Linux status per title   |
 
 Twitter intentionally skipped — nitter is unreliable, RSSHub self-host
 is the planned route. Add a `twitter_*` kind in `sources.py` when
@@ -195,6 +196,27 @@ The general lesson: an over-precise rule enforced by a literal-minded reader
 fails *closed and silently*, and silence is the one failure mode this system
 cannot afford. A keyword rule fails open — you get some noise, you dismiss it,
 and you keep the signal.
+
+### `anticheat_game` — does it run on Linux yet
+
+"Can I play Battlefield on Linux" is a status field, not an opinion.
+[areweanticheatyet](https://areweanticheatyet.com) publishes `games.json` with one
+of `Supported`, `Running`, `Denied`, `Broken` or `Planned` per title, and the
+blocker for every modern Battlefield is EA anticheat.
+
+The target is a name fragment, so one watcher covers a franchise: `battlefield`
+matches fifteen titles. The cursor holds an ETag plus a `slug=status` digest, so a
+poll is a **conditional GET** — 457 KB once, then HTTP 304 and zero bytes until the
+file actually changes. Each status change emits one event per title:
+
+```
+Battlefield 6 is now Supported on Linux (was Denied)
+```
+
+Pair it with the rule `"now Supported" OR "now Running"` and it stays quiet for
+everything except a title becoming playable. The phrase form matters: it is
+direction-sensitive, so a regression — *"Battlefield 4 is now Broken on Linux (was
+Supported)"* — does not fire, even though the word `Supported` is present.
 
 ## Match rules
 
