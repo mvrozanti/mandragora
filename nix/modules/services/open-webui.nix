@@ -2,6 +2,7 @@ _:
 
 let
   port = 6683;
+  models = builtins.fromJSON (builtins.readFile ../../snippets/local-llm-models.json);
 in
 {
   services.open-webui = {
@@ -16,6 +17,8 @@ in
       WEBUI_AUTH = "False";
       ENABLE_SIGNUP = "False";
       WEBUI_URL = "https://chat.mvr.ac";
+      ENABLE_PERSISTENT_CONFIG = "False";
+      DEFAULT_MODELS = models.gemma;
     };
   };
 

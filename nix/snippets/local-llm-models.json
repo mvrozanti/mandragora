@@ -2,7 +2,7 @@
   "agentic": "gpt-oss:20b",
   "meme": "qwen2.5vl:7b",
   "uncensored": "huihui_ai/qwen2.5-abliterate:14b",
-  "gemma": "gemma3:27b",
+  "gemma": "gemma4:12b",
   "secondary": "qwen3:14b",
   "embeddings": "nomic-embed-text"
 }
