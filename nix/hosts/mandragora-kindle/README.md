@@ -276,6 +276,32 @@ device can reach it and open it where it cannot.
 This has already been filed as a bug once by someone pattern-matching against
 the other modules. It is not one.
 
+## Markets
+
+Sixteen instruments on one screen: BTC, ETH, SOL, XRP, HYPE, LINK, PENDLE, XMR,
+UNI, gold, VIX, Nasdaq, IVVB11, the dollar index, BRL and CNY — price and
+24-hour change, tap to refresh.
+
+The device fetches nothing from the internet. `mandragora-ticker` on the desktop
+does, caches for five minutes, and answers on the LAN, which matters for three
+reasons: the Kindle has no tailnet route for plain sockets, its radio is the
+expensive part of its battery, and the upstream APIs are free and rate-limited.
+
+Both sources are keyless, which was the binding constraint:
+
+| what | source |
+|---|---|
+| the nine crypto | CoinGecko `simple/price`, one request for all of them |
+| gold, VIX, Nasdaq, IVVB11, DXY, BRL, CNY | Yahoo `v8/finance/chart`, one request each |
+
+Stooq was tried first for the indices and is gone — every symbol now returns an
+HTML "page does not exist". A failing source degrades rather than breaks: each
+quote is fetched independently, whatever arrives is served, and the rest come
+back as `-` with the reason on the footer.
+
+"Uniswap tokens" in the original ask is read as the **UNI** token. If it meant
+arbitrary ERC-20s traded on Uniswap, that is a different and much larger feature.
+
 ## Chess
 
 Playing a real game against the engine. The board, the rules and the touch
