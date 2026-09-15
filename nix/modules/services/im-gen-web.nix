@@ -4,6 +4,11 @@ let
   repo = "/home/m/Projects/im-gen";
   webApp = "${repo}/webui/app.py";
   gpuLock = ../../../.local/share/gpu-lock;
+  upstreamPort = 16682;
+  supervisor = pkgs.writers.writePython3Bin "idle-socket-supervisor" {
+    libraries = [ ];
+    doCheck = false;
+  } (builtins.readFile ../../../.local/bin/idle-socket-supervisor.py);
 
   launcher = pkgs.writeShellScript "im-gen-web-launch" ''
     set -euo pipefail
@@ -56,12 +61,10 @@ let
   '';
 in
 {
-  # Holds VRAM for as long as it runs, on a card shared with training, the
-  # connectome and games. Stop it once nobody has the page open.
-  mandragora.gpuIdle.im-gen-web = {
-    unit = "im-gen-web.service";
-    port = 6682;
-    minutes = 15;
+  systemd.user.sockets.im-gen-web = {
+    description = "gen.mvr.ac socket — on-demand :6682";
+    wantedBy = [ "sockets.target" ];
+    listenStreams = [ "0.0.0.0:6682" ];
   };
 
   mandragora.hub.services.im-gen-web = {
@@ -69,12 +72,15 @@ in
     userService = true;
     systemd = {
       description = "gen.mvr.ac — Flux web UI with LoRA + history graph";
-      wantedBy = [ "default.target" ];
       after = [ "im-gen-cipher.service" ];
       requires = [ "im-gen-cipher.service" ];
       environment = {
-        GEN_HOST = "0.0.0.0";
-        GEN_PORT = "6682";
+        GEN_HOST = "127.0.0.1";
+        GEN_PORT = toString upstreamPort;
+        UPSTREAM_ADDR = "127.0.0.1";
+        UPSTREAM_PORT = toString upstreamPort;
+        IDLE_TIMEOUT = "900";
+        STARTUP_TIMEOUT = "300";
         IM_GEN_DIR = repo;
       };
       path = [
@@ -85,7 +91,7 @@ in
       serviceConfig = {
         Type = "simple";
         WorkingDirectory = repo;
-        ExecStart = "${launcher}";
+        ExecStart = "${supervisor}/bin/idle-socket-supervisor ${launcher}";
         Restart = "on-failure";
         RestartSec = "10s";
         TimeoutStartSec = "5min";
