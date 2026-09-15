@@ -55,6 +55,7 @@ in
     ./terminal.nix
     ./desktop-shell.nix
     ./file-links.nix
+    ./crush.nix
   ];
 
   home.packages = with pkgs; [
