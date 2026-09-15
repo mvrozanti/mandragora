@@ -615,6 +615,31 @@ step a fresh device still needs.
 from 2026-09-12, kept as a record of what the working configuration looked like
 rather than as something any script applies.
 
+## Editing a widget takes effect on the next open
+
+`openWidget` clears `package.loaded[name]` before requiring, so pushing a widget
+file and reopening its tile is enough — no KOReader restart.
+
+This was not obvious and cost real time: KOReader caches modules, so a widget
+you had already opened kept running the old code after `kindle-push`. The
+symptom is the worst kind — the file on the device is demonstrably correct, and
+the screen demonstrably is not. Weather's condition icons "did not work" for an
+entire round of debugging for exactly this reason, and the icons were fine.
+
+The exception is `main.lua` itself, which is the plugin KOReader loads at
+startup. Changing the action list, the tile set or `openWidget` still needs a
+restart.
+
+## Weather icons
+
+Eleven SVGs in `weather/icons/`, mapped from OpenWeatherMap's condition codes in
+`ICON_FOR`. Day and night differ only where it is visible — a sun or a crescent
+behind the cloud — so `03n` and `03d` share one drawing.
+
+A forecast row uses the **most common** code across that day's three-hour steps,
+with night codes folded into their day equivalents, so a row labelled Wed is
+never lit by whatever the 3am step happened to be.
+
 ## KOReader settings we own
 
 `kindle-settings` patches a handful of keys in `settings.reader.lua` and leaves
