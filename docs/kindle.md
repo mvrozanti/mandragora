@@ -40,6 +40,9 @@ nix/hosts/mandragora-kindle/                                          bin/  rc/ 
         │                                                          koreader/plugins/mandragora.koplugin/
         │                                                          /etc/upstart/mandragora.conf
         │
+ kindle-cam :6686 ◀──droidcam mjpeg over tailnet── phone
+        │                                                   ──▶  Camera widget (pull, 1272x1696)
+        │
  VictoriaMetrics ──scrape 5m──▶ kindle.mvr.ac/metrics ──ssh──▶  (battery, services, storage)
  Grafana "Mandragora Kindle"
                                 kindle.mvr.ac (panel) ──ssh──▶  /dev/fb0, fbink, documents
@@ -51,7 +54,7 @@ Three surfaces, three owners:
 |---|---|---|
 | **device** | boot job, daemons, scriptlets, KOReader plugin | `nix/hosts/mandragora-kindle/` |
 | **VPS** | `kindle.mvr.ac` — panel, screen mirror, metrics | `nix/hosts/mandragora-vps/compose/kindle/` |
-| **desktop** | `kindle-push`, `kindle-art`, scrape job, dashboard | `.local/bin/`, `nix/modules/core/monitoring-*.nix` |
+| **desktop** | `kindle-push`, `kindle-art`, `kindle-cam`, scrape job, dashboard | `.local/bin/`, `nix/modules/services/kindle-cam.nix`, `nix/modules/core/monitoring-*.nix` |
 
 ## Workflow
 

@@ -68,6 +68,13 @@ local ACTIONS = {
         note = "host status panel",
     },
     {
+        id = "mandragora_camera",
+        label = "Camera",
+        widget = "camera",
+        icon = "camera.svg",
+        note = "droidcam feed from the phone",
+    },
+    {
         id = "mandragora_sync",
         label = "Sync",
         script = "mandragora-sync.sh",
