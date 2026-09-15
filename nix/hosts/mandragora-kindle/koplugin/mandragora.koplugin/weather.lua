@@ -142,7 +142,7 @@ function Weather:layout()
         w = w, h = h,
         m = math.floor(w * 0.030),
         top = math.floor(h * 0.030),
-        gap = math.floor(h * 0.013),
+        gap = math.floor(h * 0.022),
     }
 end
 
@@ -218,27 +218,31 @@ function Weather:paintTo(bb, x, y)
     age:free()
     cursor = cursor + title_size.h + L.gap
 
-    local foot = TextWidget:new{
-        text = self.error and ("· " .. tostring(self.error))
-            or "tap to refresh · double-tap to close",
-        face = Font:getFace("infofont", 28), fgcolor = SOFT,
-    }
-    local foot_size = foot:getSize()
-    local foot_top = y + L.h - L.m - foot_size.h
-    foot:paintTo(bb, left, foot_top)
-    foot:free()
+    local foot_top = y + L.h - L.m
+    if self.error then
+        local foot = TextWidget:new{
+            text = "· " .. tostring(self.error),
+            face = Font:getFace("infofont", 28), fgcolor = SOFT,
+        }
+        local foot_size = foot:getSize()
+        foot_top = y + L.h - L.m - foot_size.h
+        foot:paintTo(bb, left, foot_top)
+        foot:free()
+    end
 
     if not self.now then
         cursor = cursor + math.floor(L.h * 0.28)
         cursor = cursor + block(bb, left, cursor, "no forecast", Font:getFace("tfont", 58), BLACK)
         cursor = cursor + L.gap
-        block(bb, left, cursor, self.cfg.host .. ":" .. self.cfg.port .. " did not answer",
-            Font:getFace("infofont", 30), SOFT)
+        cursor = cursor + block(bb, left, cursor,
+            self.cfg.host .. ":" .. self.cfg.port .. " did not answer",
+            Font:getFace("infofont", 30), SOFT) + L.gap
+        block(bb, left, cursor, "tap to try again", Font:getFace("infofont", 30), SOFT)
         return
     end
 
     cursor = cursor + block(bb, left, cursor, self.now.place or "",
-        Font:getFace("infofont", 30), SOFT) + math.floor(L.gap * 0.5)
+        Font:getFace("infofont", 30), SOFT) + math.floor(L.gap * 0.4)
     local temp_widget = TextWidget:new{
         text = (self.now.temp or "-") .. "°", face = Font:getFace("tfont", 150),
     }
@@ -253,7 +257,7 @@ function Weather:paintTo(bb, x, y)
     end
     cursor = cursor + temp_size.h
     cursor = cursor + block(bb, left, cursor, self.now.desc or "",
-        Font:getFace("tfont", 44), BLACK) + math.floor(L.gap * 0.4)
+        Font:getFace("tfont", 44), BLACK) + math.floor(L.gap * 0.5)
     cursor = cursor + block(bb, left, cursor,
         string.format("feels %s°   humidity %s%%   wind %s m/s",
             self.now.feels or "-", self.now.humidity or "-", self.now.wind or "-"),
