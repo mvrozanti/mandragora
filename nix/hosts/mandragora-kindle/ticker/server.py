@@ -1,3 +1,4 @@
+import concurrent.futures
 import json
 import os
 import socket
@@ -13,6 +14,8 @@ QUOTE_TTL = int(os.environ.get("TICKER_TTL", "300"))
 TIMEOUT = int(os.environ.get("TICKER_HTTP_TIMEOUT", "20"))
 UA = os.environ.get("TICKER_USER_AGENT", "Mozilla/5.0 (mandragora-ticker)")
 MAX_BARS = int(os.environ.get("TICKER_MAX_BARS", "130"))
+WORKERS = int(os.environ.get("TICKER_WORKERS", "8"))
+FORCE_FLOOR = int(os.environ.get("TICKER_FORCE_FLOOR", "15"))
 
 INSTRUMENTS = [
     ("BTC", "BTC-USD", "Bitcoin"),
@@ -38,6 +41,7 @@ SYMBOL = {key: sym for key, sym, _ in INSTRUMENTS}
 LABEL = {key: label for key, _, label in INSTRUMENTS}
 
 _lock = threading.Lock()
+_refresh_lock = threading.Lock()
 _cache = {"at": 0.0, "quotes": {}, "bars": {}, "errors": []}
 
 
@@ -84,30 +88,47 @@ def _fetch(symbol):
 
 
 def _refresh():
-    quotes, bars, errors = {}, {}, []
-    for key, symbol, _ in INSTRUMENTS:
-        try:
-            quote, series = _fetch(symbol)
-            quotes[key] = quote
-            bars[key] = series
-        except Exception as exc:
-            errors.append(key + ": " + str(exc)[:40])
+    quotes, bars, failures = {}, {}, {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as pool:
+        pending = {pool.submit(_fetch, symbol): key
+                   for key, symbol, _ in INSTRUMENTS}
+        for future in concurrent.futures.as_completed(pending):
+            key = pending[future]
+            try:
+                quotes[key], bars[key] = future.result()
+            except Exception as exc:
+                failures[key] = str(exc)[:40]
+    errors = [key + ": " + failures[key] for key in ORDER if key in failures]
     return quotes, bars, errors
 
 
-def snapshot(force=False):
+def _read():
     with _lock:
-        age = time.time() - _cache["at"]
-        fresh_enough = _cache["quotes"] and age < QUOTE_TTL
-        if not force and fresh_enough:
-            return _cache["quotes"], _cache["bars"], int(age), _cache["errors"]
+        return (_cache["quotes"], _cache["bars"],
+                int(time.time() - _cache["at"]), _cache["errors"])
+
+
+def _usable(quotes, age, force):
+    return bool(quotes) and age < (FORCE_FLOOR if force else QUOTE_TTL)
+
+
+def snapshot(force=False):
+    quotes, bars, age, errors = _read()
+    if _usable(quotes, age, force):
+        return quotes, bars, age, errors
+
+    with _refresh_lock:
+        quotes, bars, age, errors = _read()
+        if _usable(quotes, age, force):
+            return quotes, bars, age, errors
         quotes, bars, errors = _refresh()
-        if quotes:
-            _cache.update({"quotes": quotes, "bars": bars,
-                           "errors": errors, "at": time.time()})
-            return quotes, bars, 0, errors
-        _cache["errors"] = errors
-        return _cache["quotes"], _cache["bars"], int(age), errors
+        with _lock:
+            if quotes:
+                _cache.update({"quotes": quotes, "bars": bars,
+                               "errors": errors, "at": time.time()})
+            else:
+                _cache["errors"] = errors
+    return _read()
 
 
 def money(value):
@@ -166,6 +187,7 @@ class Handler(socketserver.StreamRequestHandler):
             request = raw.decode("utf8", "replace").strip()
             if not request:
                 self.reply("ERR empty request")
+                self.reply("END")
                 continue
             parts = request.split()
             verb = parts[0].upper()
@@ -174,6 +196,7 @@ class Handler(socketserver.StreamRequestHandler):
                 return
             if verb == "PING":
                 self.reply("PONG")
+                self.reply("END")
                 continue
             if verb in ("QUOTES", "REFRESH"):
                 quotes, _, age, errors = snapshot(force=(verb == "REFRESH"))
@@ -199,6 +222,7 @@ class Handler(socketserver.StreamRequestHandler):
                 continue
 
             self.reply("ERR unknown verb " + verb)
+            self.reply("END")
 
     def reply(self, line):
         self.wfile.write((line + "\n").encode("utf8"))
