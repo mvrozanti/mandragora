@@ -17,6 +17,8 @@ in
       TICKER_PORT = toString port;
       TICKER_TTL = "300";
       TICKER_HTTP_TIMEOUT = "20";
+      TICKER_WORKERS = "8";
+      TICKER_FORCE_FLOOR = "15";
     };
     serviceConfig = {
       Type = "simple";
