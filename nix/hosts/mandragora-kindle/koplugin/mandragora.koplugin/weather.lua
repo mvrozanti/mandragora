@@ -1,6 +1,7 @@
 local Blitbuffer = require("ffi/blitbuffer")
 local Device = require("device")
 local Font = require("ui/font")
+local ImageWidget = require("ui/widget/imagewidget")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local InputContainer = require("ui/widget/container/inputcontainer")
@@ -15,6 +16,39 @@ local BLACK = Blitbuffer.COLOR_BLACK
 local WHITE = Blitbuffer.COLOR_WHITE
 local MID = Blitbuffer.COLOR_LIGHT_GRAY
 local SOFT = Blitbuffer.COLOR_GRAY
+
+local ICON_DIR = "/mnt/us/mandragora/weather/icons"
+
+local ICON_FOR = {
+    ["01d"] = "clear-day",    ["01n"] = "clear-night",
+    ["02d"] = "partly-day",   ["02n"] = "partly-night",
+    ["03d"] = "cloudy",       ["03n"] = "cloudy",
+    ["04d"] = "overcast",     ["04n"] = "overcast",
+    ["09d"] = "showers",      ["09n"] = "showers",
+    ["10d"] = "rain",         ["10n"] = "rain",
+    ["11d"] = "thunder",      ["11n"] = "thunder",
+    ["13d"] = "snow",         ["13n"] = "snow",
+    ["50d"] = "mist",         ["50n"] = "mist",
+}
+
+local icon_cache = {}
+
+local function iconWidget(code, size)
+    local name = ICON_FOR[code or ""]
+    if not name then return nil end
+    local key = name .. "@" .. size
+    if icon_cache[key] ~= nil then return icon_cache[key] or nil end
+    local file = ICON_DIR .. "/" .. name .. ".svg"
+    local probe = io.open(file, "r")
+    if not probe then
+        icon_cache[key] = false
+        return nil
+    end
+    probe:close()
+    local widget = ImageWidget:new{ file = file, width = size, height = size, alpha = true }
+    icon_cache[key] = widget
+    return widget
+end
 
 local DEFAULTS = { host = "192.168.0.27", port = 6615, timeout = 25 }
 
@@ -71,19 +105,22 @@ function Weather:fetch(force)
         elseif err then
             failure = failure or err
         else
-            local temp, feels, desc = line:match("^CUR%s+(%S+)%s+(%S+)%s+(.*)$")
+            local temp, feels, icon, desc = line:match("^CUR%s+(%S+)%s+(%S+)%s+(%S+)%s+(.*)$")
             if temp then
                 now = now or {}
-                now.temp, now.feels, now.desc = temp, feels, desc
+                now.temp, now.feels, now.icon, now.desc = temp, feels, icon, desc
             else
                 local hum, wind, place = line:match("^EXTRA%s+(%S+)%s+(%S+)%s+(.*)$")
                 if hum then
                     now = now or {}
                     now.humidity, now.wind, now.place = hum, wind, place
                 else
-                    local label, lo, hi, dd = line:match("^D%s+(%S+)%s+(%S+)%s+(%S+)%s+(.*)$")
+                    local label, lo, hi, ic, dd =
+                        line:match("^D%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(.*)$")
                     if label then
-                        days[#days + 1] = { label = label, lo = lo, hi = hi, desc = dd }
+                        days[#days + 1] = {
+                            label = label, lo = lo, hi = hi, icon = ic, desc = dd,
+                        }
                     end
                 end
             end
@@ -202,8 +239,19 @@ function Weather:paintTo(bb, x, y)
 
     cursor = cursor + block(bb, left, cursor, self.now.place or "",
         Font:getFace("infofont", 30), SOFT) + math.floor(L.gap * 0.5)
-    cursor = cursor + block(bb, left, cursor, (self.now.temp or "-") .. "°",
-        Font:getFace("tfont", 150), BLACK)
+    local temp_widget = TextWidget:new{
+        text = (self.now.temp or "-") .. "°", face = Font:getFace("tfont", 150),
+    }
+    local temp_size = temp_widget:getSize()
+    temp_widget:paintTo(bb, left, cursor)
+    temp_widget:free()
+
+    local big = math.min(math.floor(temp_size.h * 1.15), math.floor(L.w * 0.30))
+    local sky = iconWidget(self.now.icon, big)
+    if sky then
+        sky:paintTo(bb, right - big, cursor + math.floor((temp_size.h - big) / 2))
+    end
+    cursor = cursor + temp_size.h
     cursor = cursor + block(bb, left, cursor, self.now.desc or "",
         Font:getFace("tfont", 44), BLACK) + math.floor(L.gap * 0.4)
     cursor = cursor + block(bb, left, cursor,
@@ -233,9 +281,15 @@ function Weather:paintTo(bb, x, y)
         dw:paintTo(bb, left, mid_y)
         dw:free()
 
+        local glyph = math.min(math.floor(row_h * 0.62), 72)
+        local small = iconWidget(day.icon, glyph)
+        if small then
+            small:paintTo(bb, desc_x, top + math.floor((row_h - glyph) / 2))
+        end
         local cw = TextWidget:new{ text = day.desc or "", face = desc_face, fgcolor = SOFT }
         local cs = cw:getSize()
-        cw:paintTo(bb, desc_x, top + math.floor((row_h - cs.h) / 2))
+        cw:paintTo(bb, desc_x + (small and glyph + 18 or 0),
+                       top + math.floor((row_h - cs.h) / 2))
         cw:free()
 
         local rw = TextWidget:new{
