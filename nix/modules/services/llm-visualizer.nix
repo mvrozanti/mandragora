@@ -5,10 +5,10 @@ let
   backendDir = "${projectDir}/backend";
   buildDir = "${projectDir}/frontend/build";
   ldLib = "/run/current-system/sw/share/nix-ld/lib";
-  supervisor = pkgs.writers.writePython3Bin "llm-visualizer-supervisor" {
+  supervisor = pkgs.writers.writePython3Bin "idle-socket-supervisor" {
     libraries = [ ];
     doCheck = false;
-  } (builtins.readFile ../../../.local/bin/llm-visualizer-supervisor.py);
+  } (builtins.readFile ../../../.local/bin/idle-socket-supervisor.py);
 in
 {
   systemd.user.sockets.llm-visualizer-backend = {
@@ -43,7 +43,7 @@ in
     serviceConfig = {
       Type = "simple";
       WorkingDirectory = backendDir;
-      ExecStart = "${supervisor}/bin/llm-visualizer-supervisor ${pkgs.uv}/bin/uv run --project ${projectDir} uvicorn main:app --host 127.0.0.1 --port 18000";
+      ExecStart = "${supervisor}/bin/idle-socket-supervisor ${pkgs.uv}/bin/uv run --project ${projectDir} uvicorn main:app --host 127.0.0.1 --port 18000";
     };
   };
 
@@ -63,7 +63,7 @@ in
     };
     serviceConfig = {
       Type = "simple";
-      ExecStart = "${supervisor}/bin/llm-visualizer-supervisor ${pkgs.python3}/bin/python -m http.server 18001 --bind 127.0.0.1 --directory ${buildDir}";
+      ExecStart = "${supervisor}/bin/idle-socket-supervisor ${pkgs.python3}/bin/python -m http.server 18001 --bind 127.0.0.1 --directory ${buildDir}";
     };
   };
 }
