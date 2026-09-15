@@ -55,6 +55,7 @@ def _refresh():
             "humidity": main.get("humidity"),
             "wind": wind.get("speed"),
             "desc": (weather.get("description") or "").strip(),
+            "icon": weather.get("icon") or "",
         }
     except Exception as exc:
         errors.append("current: " + str(exc)[:50])
@@ -72,7 +73,8 @@ def _refresh():
             main = entry.get("main") or {}
             weather = (entry.get("weather") or [{}])[0]
             if day not in buckets:
-                buckets[day] = {"lo": None, "hi": None, "desc": {}, "stamp": stamp + offset}
+                buckets[day] = {"lo": None, "hi": None, "desc": {}, "icon": {},
+                                "stamp": stamp + offset}
                 order.append(day)
             bucket = buckets[day]
             low, high = main.get("temp_min"), main.get("temp_max")
@@ -83,11 +85,16 @@ def _refresh():
             desc = (weather.get("description") or "").strip()
             if desc:
                 bucket["desc"][desc] = bucket["desc"].get(desc, 0) + 1
+            code = (weather.get("icon") or "").replace("n", "d")
+            if code:
+                bucket["icon"][code] = bucket["icon"].get(code, 0) + 1
         for day in order[:5]:
             bucket = buckets[day]
             label = time.strftime("%a", time.gmtime(bucket["stamp"]))
             desc = max(bucket["desc"].items(), key=lambda kv: kv[1])[0] if bucket["desc"] else ""
-            days.append({"label": label, "lo": bucket["lo"], "hi": bucket["hi"], "desc": desc})
+            icon = max(bucket["icon"].items(), key=lambda kv: kv[1])[0] if bucket["icon"] else ""
+            days.append({"label": label, "lo": bucket["lo"], "hi": bucket["hi"],
+                         "desc": desc, "icon": icon})
     except Exception as exc:
         errors.append("forecast: " + str(exc)[:50])
 
@@ -117,11 +124,13 @@ def lines_for(now, days, age, errors):
     if now:
         out.append("EXTRA %s %s %s" % (
             _round(now.get("humidity")), _round(now.get("wind")), now.get("place") or "-"))
-        out.append("CUR %s %s %s" % (
-            _round(now.get("temp")), _round(now.get("feels")), now.get("desc") or "-"))
+        out.append("CUR %s %s %s %s" % (
+            _round(now.get("temp")), _round(now.get("feels")),
+            now.get("icon") or "-", now.get("desc") or "-"))
     for day in days:
-        out.append("D %s %s %s %s" % (
-            day["label"], _round(day["lo"]), _round(day["hi"]), day["desc"] or "-"))
+        out.append("D %s %s %s %s %s" % (
+            day["label"], _round(day["lo"]), _round(day["hi"]),
+            day.get("icon") or "-", day["desc"] or "-"))
     for err in errors[:3]:
         out.append("ERR " + err)
     return out

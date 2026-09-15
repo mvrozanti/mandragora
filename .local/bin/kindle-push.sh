@@ -19,7 +19,7 @@ put() {
 }
 
 echo "kindle-push: $KINDLE_HOST"
-"${SSH[@]}" "mkdir -p $M/bin $M/rc $M/state $M/log $M/scriptlets $M/art $M/icons $M/chess/pieces"
+"${SSH[@]}" "mkdir -p $M/bin $M/rc $M/state $M/log $M/scriptlets $M/art $M/icons $M/chess/pieces $M/weather/icons"
 
 echo "rc:"
 for f in "$SRC"/rc/*; do put "$f" "$M/rc/$(basename "$f")"; done
@@ -50,6 +50,9 @@ done
 
 echo "chess pieces:"
 for f in "$SRC"/chess/pieces/*.svg; do [ -f "$f" ] && put "$f" "$M/chess/pieces/$(basename "$f")" 644; done
+
+echo "weather icons:"
+for f in "$SRC"/weather/icons/*.svg; do [ -f "$f" ] && put "$f" "$M/weather/icons/$(basename "$f")" 644; done
 
 echo "koreader plugin:"
 PLUGIN=/mnt/us/koreader/plugins/mandragora.koplugin
