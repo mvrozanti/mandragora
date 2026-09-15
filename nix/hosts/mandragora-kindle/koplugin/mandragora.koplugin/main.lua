@@ -122,6 +122,7 @@ local function iconPath(name)
 end
 
 local function openWidget(name)
+    package.loaded[name] = nil
     local ok, mod = pcall(require, name)
     if not ok or type(mod) ~= "table" or not mod.open then
         local here = debug.getinfo(1, "S").source:match("^@(.*/)") or ""
