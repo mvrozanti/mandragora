@@ -13,25 +13,30 @@ local Screen = Device.screen
 local CONFIG_PATH = "/mnt/us/mandragora/ticker.conf"
 local BLACK = Blitbuffer.COLOR_BLACK
 local WHITE = Blitbuffer.COLOR_WHITE
-local HAIR = Blitbuffer.COLOR_GRAY_E
-local MID = Blitbuffer.COLOR_LIGHT_GRAY
+local HAIR = Blitbuffer.COLOR_LIGHT_GRAY
+local MID = Blitbuffer.COLOR_GRAY
 local SOFT = Blitbuffer.COLOR_GRAY
 
 local RANGES = { { "1W", 7 }, { "1M", 22 }, { "3M", 66 }, { "6M", 130 } }
 local FULL_BARS = 130
 local GRID_BARS = 30
+local MIN_BODY = 5
+local MAX_BODY = 26
+local GHOST_EVERY = 8
 
 local DEFAULTS = { host = "192.168.0.27", port = 6614, timeout = 30 }
 
 local Ticker = InputContainer:extend{
     quotes = nil,
     bars = nil,
+    full = nil,
     sel = 1,
     tf = 2,
     mode = "chart",
     age = nil,
     error = nil,
     busy = false,
+    since_flash = 0,
 }
 
 local function readConfig()
@@ -56,12 +61,13 @@ local function talk(cfg, verb, consume)
     if not ok or not socket then return "no luasocket" end
     local sock = socket.tcp()
     if not sock then return "no socket" end
-    sock:settimeout(cfg.timeout)
+    sock:settimeout(math.min(5, cfg.timeout))
     local connected, cerr = sock:connect(cfg.host, cfg.port)
     if not connected then
         sock:close()
         return cerr or "connect failed"
     end
+    sock:settimeout(cfg.timeout)
     sock:send(verb .. "\n")
     local failure = nil
     while true do
@@ -119,8 +125,15 @@ function Ticker:loadCandles(target, count)
             bar[#bar + 1] = { tonumber(o), tonumber(h), tonumber(l), tonumber(c) }
         end
     end)
+    local full = count >= FULL_BARS
     for key, series in pairs(got) do
-        if #series > 0 then self.bars[key] = series end
+        if #series > 0 then
+            local have = self.bars[key]
+            if full or not have or #series >= #have then
+                self.bars[key] = series
+            end
+            if full then self.full[key] = true end
+        end
     end
     return failure
 end
@@ -148,6 +161,7 @@ function Ticker:init()
     self.L = self:layout()
     self.cfg = readConfig()
     self.bars = self.bars or {}
+    self.full = self.full or {}
     self.dimen = Geom:new{ x = 0, y = 0, w = self.L.w, h = self.L.h }
     self.covers_fullscreen = true
 
@@ -213,12 +227,30 @@ function Ticker:drawCandles(bb, x, y, w, h, series, opts)
 
     if opts and opts.grid then
         for i = 0, 3 do
-            bb:paintRect(x, y + math.floor(h / 3 * i), w, 2, HAIR)
+            local gy = y + math.floor(h / 3 * i)
+            bb:paintRect(x, gy, w, 2, HAIR)
+            if opts.axis then
+                local widget = TextWidget:new{
+                    text = money(top - span * (i / 3)),
+                    face = Font:getFace("infofont", 24),
+                    fgcolor = SOFT,
+                }
+                local size = widget:getSize()
+                bb:paintRect(x + w - size.w - 10, gy - size.h - 5, size.w + 10, size.h + 5, WHITE)
+                widget:paintTo(bb, x + w - size.w - 5, gy - size.h - 3)
+                widget:free()
+            end
         end
     end
 
     local slot = w / #series
-    local body = math.max(3, math.floor(slot * 0.62))
+    local body = math.floor(slot * 0.62)
+    if body < MIN_BODY then body = MIN_BODY end
+    if body > MAX_BODY then body = MAX_BODY end
+    local edge = math.floor(body * 0.22)
+    if edge < 1 then edge = 1 end
+    if edge > 3 then edge = 3 end
+    if body - edge * 2 < 2 then edge = 1 end
     local wick = math.max(2, math.floor(body * 0.18))
     local function ypos(v) return y + h - math.floor((v - bottom) / span * h) end
 
@@ -230,7 +262,6 @@ function Ticker:drawCandles(bb, x, y, w, h, series, opts)
         local oy, cy = ypos(o), ypos(c)
         local bt = math.min(oy, cy)
         local bh = math.abs(cy - oy)
-        local edge = math.max(2, math.floor(body * 0.16))
         if bh < edge * 2 + 2 then
             bb:paintRect(cx - math.floor(body / 2), bt, body, math.max(3, edge), BLACK)
         elseif c >= o then
@@ -330,7 +361,7 @@ function Ticker:paintChart(bb, x, y)
         Font:getFace("tfont", 44), neg and SOFT or BLACK)
 
     self:drawCandles(bb, x + L.chart_x, y + L.chart_y, L.chart_w, L.chart_h,
-        self:sliceFor(q.key), { grid = true, lastLine = true })
+        self:sliceFor(q.key), { grid = true, axis = true, lastLine = true })
 
     local series = self.bars[q.key]
     if series and #series > 0 then
@@ -421,7 +452,13 @@ function Ticker:paintTo(bb, x, y)
 end
 
 function Ticker:repaint(mode)
-    UIManager:setDirty(self, function() return mode or "ui", self.dimen end)
+    mode = mode or "ui"
+    if mode == "partial" then
+        self.since_flash = self.since_flash + 1
+        if self.since_flash >= GHOST_EVERY then mode = "full" end
+    end
+    if mode == "full" then self.since_flash = 0 end
+    UIManager:setDirty(self, function() return mode, self.dimen end)
 end
 
 function Ticker:withBusy(work)
@@ -435,15 +472,16 @@ function Ticker:withBusy(work)
             self.error = failure
             logger.warn("mandragora: ticker:", tostring(failure))
         end
-        self:repaint("full")
+        self:repaint("partial")
     end)
 end
 
 function Ticker:refresh(force)
     self:withBusy(function()
         local failure = self:loadQuotes(force)
+        if force and not failure then self.bars, self.full = {}, {} end
         local q = self:current()
-        if q and not self.bars[q.key] then
+        if q and not self.full[q.key] then
             failure = self:loadCandles(q.key, FULL_BARS) or failure
         end
         return failure
@@ -454,8 +492,8 @@ function Ticker:select(index)
     if not self.quotes or index < 1 or index > #self.quotes then return end
     self.sel = index
     local key = self.quotes[index].key
-    if self.bars[key] then
-        self:repaint("full")
+    if self.full[key] then
+        self:repaint("partial")
         return
     end
     self:withBusy(function() return self:loadCandles(key, FULL_BARS) end)
@@ -501,7 +539,7 @@ function Ticker:onTap(_, ges)
     for i, r in ipairs(self:tfRects()) do
         if inside(r, px, py) then
             self.tf = i
-            self:repaint("full")
+            self:repaint("partial")
             return true
         end
     end
@@ -512,7 +550,9 @@ function Ticker:onTap(_, ges)
         end
     end
 
-    self:refresh(true)
+    if inside({ x = L.chart_x, y = L.chart_y, w = L.chart_w, h = L.chart_h }, px, py) then
+        self:refresh(true)
+    end
     return true
 end
 

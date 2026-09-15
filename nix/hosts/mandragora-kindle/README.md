@@ -395,7 +395,7 @@ alternatives.
 
 ```
 full screen        symbol · name · price · change
-                   candles · 1W / 1M / 3M / 6M
+                   candles · 1W / 1M / 3M / 6M · price scale
                    O H L C for the latest bar
                    marker rail · all sixteen
 grid               4x4 of the same charts, tap one to open it
@@ -407,8 +407,13 @@ grid               4x4 of the same charts, tap one to open it
 | swipe east / west | page to the previous or next |
 | tap a range | redraw from bars already cached on device |
 | tap **all sixteen** | zoom out to the grid; tap a chart to come back |
-| tap anywhere else | force a refresh |
+| tap the chart | force a refresh |
 | double-tap, swipe north / south | close |
+
+The four gridlines carry a price on the right. They were drawn in `COLOR_GRAY_E`
+(0xEE) and unlabelled, which on this panel is chart furniture you cannot read a
+value off and can barely see; they are `COLOR_LIGHT_GRAY` now, and the inactive
+marker rail moved from 0xCC to `COLOR_GRAY` for the same reason.
 
 **Candles are greyscale, which is the point.** Hollow body up, filled body down —
 the Japanese convention, the one charting idiom designed for ink on paper, and
@@ -417,16 +422,35 @@ equal draws as a **doji tick**: a hollow body three pixels high is white on whit
 and vanishes, which is exactly what happened on the first pass. It matters
 because `CNY=X` returns 99 flat bars out of 130.
 
+**A candle body is clamped to 5-26 px.** Below five the hollow body loses its
+interior to the two border strokes and an up day is indistinguishable from a down
+day — which is what 6M (130 bars across 1204 px) and every cell of the grid looked
+like. Above twenty-six the 1W view draws seven 106 px slabs that read as a bar
+chart. The border stroke scales with the body and drops to 1 px rather than let
+the interior close up.
+
 **Candles cost nothing extra.** Yahoo's chart endpoint already returns OHLC in the
 response the quote is read from, and all nine crypto resolve there too
 (`HYPE32196-USD`, `UNI7083-USD`). So the server dropped CoinGecko and reads
 `indicators.quote` from a call it was already making — one source, one rate
 limit, sixteen instruments.
 
-Protocol: `PING`, `QUOTES`, `REFRESH`, and `CANDLES <key|ALL> <n>`. The device
-pulls 130 bars once per instrument and slices ranges locally, so changing 1W to
-6M is a repaint with no round trip. The grid pulls 30 bars for all sixteen in one
-request.
+Protocol: `PING`, `QUOTES`, `REFRESH`, and `CANDLES <key|ALL> <n>`. Every reply
+path ends in `END`, including `PONG` and every `ERR` — a client that reads until
+the terminator would otherwise hang for its whole timeout on any of them.
+
+The device pulls 130 bars once per instrument and slices ranges locally, so
+changing 1W to 6M is a repaint with no round trip. The grid pulls 30 bars for all
+sixteen in one request, and a 30-bar reply never evicts a 130-bar series — it did
+once, which silently reduced every chart to 30 bars after the first visit to the
+grid while the range button still read `6M`.
+
+`REFRESH` fans the sixteen symbols out across a thread pool rather than walking
+them in series: measured on this machine, 16.4 s became 2.3 s. The fetch no longer
+holds the cache lock, so a concurrent `CANDLES` is answered from cache instead of
+queueing behind the network, and a forced refresh inside `TICKER_FORCE_FLOOR`
+(15 s) of the last one is served from cache — a stray tap cannot walk the device
+into a multi-second stall.
 
 ## Chess
 
