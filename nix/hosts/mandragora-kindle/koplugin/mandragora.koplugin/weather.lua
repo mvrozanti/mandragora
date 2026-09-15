@@ -101,20 +101,11 @@ end
 
 function Weather:layout()
     local w, h = Screen:getWidth(), Screen:getHeight()
-    local m = math.floor(w * 0.027)
-    local rows = 5
-    local list_top = math.floor(h * 0.470)
     return {
-        w = w, h = h, m = m,
-        head_y = math.floor(m * 0.9),
-        place_y = math.floor(h * 0.082),
-        temp_y = math.floor(h * 0.120),
-        desc_y = math.floor(h * 0.298),
-        extra_y = math.floor(h * 0.362),
-        rule_y = math.floor(h * 0.432),
-        list_top = list_top,
-        row_h = math.floor((h - list_top - math.floor(h * 0.055)) / rows),
-        foot_y = h - math.floor(h * 0.036),
+        w = w, h = h,
+        m = math.floor(w * 0.030),
+        top = math.floor(h * 0.030),
+        gap = math.floor(h * 0.013),
     }
 end
 
@@ -160,55 +151,100 @@ function Weather:ageText()
     return string.format("%d min old", math.floor(self.age / 60))
 end
 
+local function block(bb, x, y, str, face, fg)
+    local widget = TextWidget:new{ text = str, face = face, fgcolor = fg }
+    local size = widget:getSize()
+    widget:paintTo(bb, x, y)
+    widget:free()
+    return size.h, size.w
+end
+
 function Weather:paintTo(bb, x, y)
     local L = self.L
     self.dimen.x, self.dimen.y = x, y
     bb:paintRect(x, y, L.w, L.h, WHITE)
 
-    text(bb, x + L.m, y + L.head_y, "weather", Font:getFace("tfont", 40), BLACK)
-    textRight(bb, x + L.w - L.m, y + L.head_y + 8, self:ageText(),
-        Font:getFace("infofont", 26), SOFT)
+    local left = x + L.m
+    local right = x + L.w - L.m
+    local cursor = y + L.top
+
+    local title = TextWidget:new{ text = "weather", face = Font:getFace("tfont", 40) }
+    local title_size = title:getSize()
+    title:paintTo(bb, left, cursor)
+    title:free()
+
+    local age = TextWidget:new{
+        text = self:ageText(), face = Font:getFace("infofont", 26), fgcolor = SOFT,
+    }
+    local age_size = age:getSize()
+    age:paintTo(bb, right - age_size.w, cursor + title_size.h - age_size.h - 4)
+    age:free()
+    cursor = cursor + title_size.h + L.gap
+
+    local foot = TextWidget:new{
+        text = self.error and ("· " .. tostring(self.error))
+            or "tap to refresh · double-tap to close",
+        face = Font:getFace("infofont", 28), fgcolor = SOFT,
+    }
+    local foot_size = foot:getSize()
+    local foot_top = y + L.h - L.m - foot_size.h
+    foot:paintTo(bb, left, foot_top)
+    foot:free()
 
     if not self.now then
-        text(bb, x + L.m, y + math.floor(L.h * 0.42), "no forecast",
-            Font:getFace("tfont", 58), BLACK)
-        text(bb, x + L.m, y + math.floor(L.h * 0.42) + 86,
-            self.cfg.host .. ":" .. self.cfg.port .. " did not answer",
+        cursor = cursor + math.floor(L.h * 0.28)
+        cursor = cursor + block(bb, left, cursor, "no forecast", Font:getFace("tfont", 58), BLACK)
+        cursor = cursor + L.gap
+        block(bb, left, cursor, self.cfg.host .. ":" .. self.cfg.port .. " did not answer",
             Font:getFace("infofont", 30), SOFT)
-        text(bb, x + L.m, y + L.foot_y, "tap to try again",
-            Font:getFace("infofont", 28), SOFT)
         return
     end
 
-    text(bb, x + L.m, y + L.place_y, self.now.place or "",
-        Font:getFace("infofont", 30), SOFT)
-    text(bb, x + L.m, y + L.temp_y, (self.now.temp or "-") .. "°",
-        Font:getFace("tfont", 190), BLACK)
-    text(bb, x + L.m, y + L.desc_y, self.now.desc or "", Font:getFace("tfont", 46), BLACK)
+    cursor = cursor + block(bb, left, cursor, self.now.place or "",
+        Font:getFace("infofont", 30), SOFT) + math.floor(L.gap * 0.5)
+    cursor = cursor + block(bb, left, cursor, (self.now.temp or "-") .. "°",
+        Font:getFace("tfont", 150), BLACK)
+    cursor = cursor + block(bb, left, cursor, self.now.desc or "",
+        Font:getFace("tfont", 44), BLACK) + math.floor(L.gap * 0.4)
+    cursor = cursor + block(bb, left, cursor,
+        string.format("feels %s°   humidity %s%%   wind %s m/s",
+            self.now.feels or "-", self.now.humidity or "-", self.now.wind or "-"),
+        Font:getFace("infofont", 30), SOFT) + L.gap
 
-    local extra = string.format("feels %s°   humidity %s%%   wind %s m/s",
-        self.now.feels or "-", self.now.humidity or "-", self.now.wind or "-")
-    text(bb, x + L.m, y + L.extra_y, extra, Font:getFace("infofont", 30), SOFT)
+    bb:paintRect(left, cursor, L.w - L.m * 2, 2, MID)
+    cursor = cursor + L.gap
 
-    bb:paintRect(x + L.m, y + L.rule_y, L.w - L.m * 2, 2, MID)
+    local count = #self.days
+    if count == 0 then return end
+    local room = foot_top - cursor - L.gap
+    local row_h = math.floor(room / count)
 
     local day_face = Font:getFace("tfont", 40)
-    local range_face = Font:getFace("tfont", 40)
     local desc_face = Font:getFace("infofont", 28)
+    local desc_x = left + math.floor(L.w * 0.16)
     for i, day in ipairs(self.days) do
-        local top = y + L.list_top + (i - 1) * L.row_h
+        local top = cursor + (i - 1) * row_h
         if i > 1 then
-            bb:paintRect(x + L.m, top - math.floor(L.row_h * 0.16), L.w - L.m * 2, 1, MID)
+            bb:paintRect(left, top - math.floor(L.gap * 0.5), L.w - L.m * 2, 1, MID)
         end
-        text(bb, x + L.m, top, day.label, day_face, BLACK)
-        text(bb, x + L.m + math.floor(L.w * 0.14), top + 8, day.desc or "", desc_face, SOFT)
-        textRight(bb, x + L.w - L.m, top,
-            (day.lo or "-") .. "° / " .. (day.hi or "-") .. "°", range_face, BLACK)
-    end
+        local dw = TextWidget:new{ text = day.label, face = day_face }
+        local ds = dw:getSize()
+        local mid_y = top + math.floor((row_h - ds.h) / 2)
+        dw:paintTo(bb, left, mid_y)
+        dw:free()
 
-    text(bb, x + L.m, y + L.foot_y,
-        self.error and ("· " .. tostring(self.error)) or "tap to refresh · double-tap to close",
-        Font:getFace("infofont", 28), SOFT)
+        local cw = TextWidget:new{ text = day.desc or "", face = desc_face, fgcolor = SOFT }
+        local cs = cw:getSize()
+        cw:paintTo(bb, desc_x, top + math.floor((row_h - cs.h) / 2))
+        cw:free()
+
+        local rw = TextWidget:new{
+            text = (day.lo or "-") .. "° / " .. (day.hi or "-") .. "°", face = day_face,
+        }
+        local rs = rw:getSize()
+        rw:paintTo(bb, right - rs.w, mid_y)
+        rw:free()
+    end
 end
 
 function Weather:repaint(mode)
