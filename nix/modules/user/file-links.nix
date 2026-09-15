@@ -90,7 +90,6 @@
       ${pkgs.notmuch}/bin/notmuch new || true
     fi
   '';
-  home.file.".config/crush/crush.json".source = ../../../.config/crush/crush.json;
   home.file.".config/satty/config.toml".source = ../../../.config/satty/config.toml;
   home.file.".config/waybar/scripts/mpd-status.sh" = {
     source = ../../snippets/waybar-mpd.sh;

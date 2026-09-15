@@ -60,6 +60,14 @@ Changing a role key in the JSON flows through automatically:
    `MCP_GEMMA_MODEL` / `MCP_UNCENSORED_MODEL`).
 3. **gemma (oterm)** — `.local/bin/gemma.py` reads the `gemma` key
    when seeding a fresh oterm store.
+4. **crush** — `nix/modules/user/crush.nix` generates
+   `.config/crush/crush.json` from the JSON, wiring every chat role as
+   a distinct provider model named `<role> · <tag>` and pointing
+   `models.large`/`models.small` at `agentic`. Per-role context and
+   token budgets live in that module, not the JSON. Note crush also
+   keeps a mutable `~/.local/share/crush/crush.json` holding
+   `recent_models`; after a role change it can still offer the old tag
+   until reselected.
 
 Both Python consumers open the deployed JSON path and fall back to the
 prior hardcoded tag if the file is unreadable.
@@ -69,14 +77,7 @@ prior hardcoded tag if the file is unreadable.
 Edit the JSON, then also edit these by hand — each is a static tracked
 file with no Nix generator, or runs where the JSON is not mounted:
 
-1. **crush** — `.config/crush/crush.json`: `providers.ollama.models`
-   list (`gpt-oss:20b` primary, `qwen3:14b` secondary) +
-   `models.large`/`models.small` mappings. Static tracked JSON
-   symlinked verbatim by home-manager; the crush schema has no
-   include mechanism and no module writes it, so it stays a hand-edit.
-   Keep it in sync with `agentic` (large/small/primary) and
-   `secondary` (secondary provider entry).
-2. **watch judge** — `WATCH_OLLAMA_MODEL` default (`qwen3:14b`,
+1. **watch judge** — `WATCH_OLLAMA_MODEL` default (`qwen3:14b`,
    the `secondary` role) in
    `nix/hosts/mandragora-vps/compose/watch/app/judge.py` and
    `nix/hosts/mandragora-vps/compose/watch/docker-compose.yml`. The
