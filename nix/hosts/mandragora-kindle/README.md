@@ -338,6 +338,54 @@ does not move and the free tier is rate limited. Protocol: `PING`, `NOW`,
 them by local day and takes each day's true min and max plus its most common
 description.
 
+## Camera
+
+The Camera tile shows the phone's DroidCam feed. The phone is a tailnet node, so
+nothing here touches the LAN or the public net.
+
+```
+phone (DroidCam MJPEG :4747) ──tailnet──▶ desktop kindle-cam :6686 ──tailnet──▶ Kindle
+```
+
+The device has no ffmpeg, no python and 956 MB of RAM, so **all** transcoding is
+on the desktop. `kindle-cam` keeps one persistent ffmpeg decoding the source and
+holds the newest complete JPEG in memory — already scaled, padded and greyscaled
+to exactly `1272x1696`. `GET /frame.jpg` is therefore one ready-to-blit image and
+`camera.lua` does no image work beyond handing the file to `ImageWidget`. Keeping
+the frame in memory rather than on disk is what stops a reader getting a torn
+half-written JPEG.
+
+It fetches over `http_proxy=localhost:1056`, per the section above — deliberately
+**not** LuaSocket, which is why this port sits on `tailscale0` and not on
+`enp8s0` the way MPD's has to. A frame round trip measures ~39 ms, so the
+limiting factor is e-ink refresh and JPEG decode, never the network.
+
+Two details are load-bearing and easy to regress:
+
+- **`file_do_cache = false`.** `ImageWidget` caches by filename, and the feed
+  reuses filenames forever. With caching left on, the first frame is the only
+  frame you ever see.
+- **Frames alternate between two paths** (`/tmp/mandragora-cam-a.jpg` and
+  `-b.jpg`) so a fetch never overwrites the file the widget is currently
+  displaying.
+
+Tap cycles `live` (0.6 s) → `2s` → `10s` → `hold`, and every eighth draw is a
+`full` refresh to clear ghosting. The cadence is a tap rather than a constant
+because a live feed is the exact opposite of the "wake rarely, draw once, sleep"
+rule the rest of the device follows — at `live` this is the most expensive thing
+the Kindle can do, and `hold` freezes the last frame at zero cost.
+
+`KINDLE_CAM_SOURCE` accepts a URL, a `/dev/video*` node or an lavfi pattern; the
+last is how the pipeline is testable with the phone switched off:
+
+```sh
+curl -s 100.115.80.79:6686/status                      # frames, age, live, error
+KINDLE_CAM_SOURCE="testsrc2=size=1280x720:rate=10"     # synthetic feed
+```
+
+The service is `tailscale0`-only and deliberately has **no hub tile**: it is a
+live camera in the house, and `hub.mvr.ac` is public.
+
 ## Markets
 
 Sixteen instruments as candlestick charts. The chart is the app: it opens on one
