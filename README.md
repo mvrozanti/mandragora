@@ -22,7 +22,7 @@ filesystem is **impermanent** (wiped every boot; only `/nix`,
 `/persistent`, and `/home/m` survive), the desktop is **Hyprland on
 proprietary NVIDIA / Wayland** with no X11 fallback, secrets are
 sops-nix + age, and the whole thing is a **multi-host flake** that also
-carries a WSL profile, a bootable rescue USB, and an Oracle VPS.
+carries a WSL profile, a bootable rescue USB, an Oracle VPS, and a jailbroken Kindle.
 
 ## Hosts
 
@@ -32,6 +32,7 @@ carries a WSL profile, a bootable rescue USB, and an Oracle VPS.
 | `mandragora-wsl` | Same profile under WSL2 — corporate-laptop fallback ([`docs/appendix/wsl/README.md`](docs/appendix/wsl/README.md)) |
 | `mandragora-usb` | Bootable installer / rescue image — `nix build .#usbImage`, test-driven via `nix run .#refiner -- --auto` |
 | `mandragora-vps` | Oracle Cloud aarch64 VPS — **not NixOS**; home-manager + Docker Compose stacks behind a Caddy proxy ([`nix/hosts/mandragora-vps/INVENTORY.md`](nix/hosts/mandragora-vps/INVENTORY.md)) |
+| `mandragora-kindle` | Jailbroken Kindle Paperwhite (armhf) — Tailnet node + KOReader dashboard, **not NixOS** ([`nix/hosts/mandragora-kindle/README.md`](nix/hosts/mandragora-kindle/README.md)) |
 
 ## Workflow
 
