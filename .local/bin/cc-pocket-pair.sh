@@ -3,6 +3,7 @@ set -euo pipefail
 
 RELAY_WS="${CC_POCKET_RELAY_WS:-ws://100.115.80.79:9090}"
 PAIR_PORT="${CC_POCKET_PAIR_PORT:-8799}"
+QR_PNG="${CC_POCKET_QR_PNG:-/tmp/cc-pocket-pair.png}"
 
 resp="$(curl -sS -m 8 -X POST "http://127.0.0.1:${PAIR_PORT}/pair")"
 ticket="$(printf '%s' "$resp" | jq -r .ticket 2>/dev/null)"
@@ -11,17 +12,15 @@ dpk="$(printf '%s' "$resp" | jq -r .daemonPub 2>/dev/null)"
 
 if [ -z "$ticket" ] || [ "$ticket" = null ] || [ -z "$acct" ] || [ "$acct" = null ] || [ -z "$dpk" ] || [ "$dpk" = null ]; then
   echo "cc-pocket-pair: daemon did not mint a ticket: ${resp:-<no response>}" >&2
-  echo "cc-pocket-pair: is cc-pocket-daemon running and attached to the relay?" >&2
   exit 1
 fi
 
 url="ccpocket://pair?relay=${RELAY_WS}&acct=${acct}&dpk=${dpk}&ticket=${ticket}"
 
+qrencode -s 8 -m 4 -o "$QR_PNG" "$url"
+
 echo
-echo "  Open CC Pairlet on your phone and scan this:"
-echo
-qrencode -t UTF8 -m 1 "$url"
-echo
-echo "  relay:  ${RELAY_WS}"
-echo "  link:   ${url}"
+echo "  QR written to:  ${QR_PNG}"
+echo "  relay:          ${RELAY_WS}"
+echo "  link (paste):   ${url}"
 echo
