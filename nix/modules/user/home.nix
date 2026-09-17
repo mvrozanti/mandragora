@@ -68,7 +68,6 @@ in
     fzf
     uv
     jq
-    qrencode
     bat
     eza
     htop
@@ -271,9 +270,6 @@ in
     (pkgs.writeShellScriptBin "safe-claude" (builtins.readFile ../../../.local/bin/safe-claude.sh))
     (pkgs.writeShellScriptBin "claude-deepseek" (
       builtins.readFile ../../../.local/bin/claude-deepseek.sh
-    ))
-    (pkgs.writeShellScriptBin "cc-pocket-pair" (
-      builtins.readFile ../../../.local/bin/cc-pocket-pair.sh
     ))
     (pkgs.writeShellScriptBin "mandragora-commit-push" (
       builtins.readFile ../../../.local/bin/mandragora-commit-push.sh
