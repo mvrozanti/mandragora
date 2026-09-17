@@ -4,6 +4,8 @@ _: {
       autoclaude = prev.callPackage ./autoclaude/default.nix { };
       axon = prev.callPackage ./axon/default.nix { };
       cc-lens = prev.callPackage ./cc-lens/default.nix { };
+      cc-pocket-daemon = prev.callPackage ./cc-pocket-daemon/default.nix { };
+      cc-pocket-relay = prev.callPackage ./cc-pocket-relay/default.nix { };
       claude-code = prev.callPackage ./claude-code/default.nix { };
       rtk = prev.callPackage ./rtk/default.nix { };
       du-exporter = prev.callPackage ./du-exporter/default.nix { };
