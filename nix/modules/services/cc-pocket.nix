@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 let
-  port = 8765;
+  port = 8877;
   bridgeRun = pkgs.writeShellScriptBin "cc-pocket-bridge-run" (
     builtins.readFile ../../../.local/bin/cc-pocket-bridge.sh
   );
@@ -15,7 +15,7 @@ in
       after = [ "default.target" ];
       wantedBy = [ "default.target" ];
       path = [
-        "${pkgs.cc-pocket-bridge}/bin"
+        "${pkgs.cc-pocket-bridge}"
         "/run/current-system/sw"
         "/etc/profiles/per-user/m"
         "/run/wrappers"
