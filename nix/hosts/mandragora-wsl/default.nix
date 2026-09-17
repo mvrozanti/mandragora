@@ -22,7 +22,7 @@
     wslConf = {
       automount.root = "/mnt";
       interop.enabled = true;
-      interop.appendWindowsPath = true;
+      interop.appendWindowsPath = false;
       network.generateResolvConf = true;
     };
   };
