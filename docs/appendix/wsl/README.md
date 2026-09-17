@@ -32,10 +32,11 @@ Your terminal environment, shells (Zsh), editors (Neovim), and development toolc
     # Allows interaction with Windows files directly.
     wslConf.automount.root = "/mnt";
     
-    # Allows starting Windows .exe files directly from the Linux shell
+    # Keep Windows .exe off $PATH — the full %PATH% scan over the 9P bridge
+    # is the single biggest shell slowdown. Call .exe by full path when needed.
     interop.enable = true;
     wslConf.interop.enabled = true;
-    wslConf.interop.appendWindowsPath = true;
+    wslConf.interop.appendWindowsPath = false;
     
     # Enable native systemd support (required for NixOS services)
     nativeSystemd = true;
