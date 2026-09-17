@@ -12,7 +12,6 @@ in
     systemd = {
       description = "Pairlet relay: zero-knowledge ciphertext broker for remote Claude Code control (tailscale-only)";
       wantedBy = [ "default.target" ];
-      after = [ "default.target" ];
       serviceConfig = {
         Type = "simple";
         WorkingDirectory = "/home/m";
