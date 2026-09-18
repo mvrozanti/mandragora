@@ -125,8 +125,6 @@
       {
         icon = "${pkgs.zapzap}/share/icons/hicolor/scalable/apps/com.rtosta.zapzap.svg";
       };
-  home.file.".claude/settings.json".source =
-    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/settings.json";
   home.file.".claude/settings.local.json".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/settings.local.json";
 
@@ -154,8 +152,6 @@
     $DRY_RUN_CMD mkdir -p "$HOME/.ai-shared/templates"
     $DRY_RUN_CMD rm -f "$HOME/.claude/CLAUDE.md" "$HOME/.qwen/QWEN.md" "$HOME/.claude/RTK.md"
   '';
-  home.file.".claude/hooks/rtk-rewrite.sh".source =
-    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/hooks/rtk-rewrite.sh";
   home.file.".gemini/hooks/rtk-hook-gemini.sh".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/hooks/rtk-hook-gemini.sh";
   home.file.".gemini/hooks/.rtk-hook.sha256".source =

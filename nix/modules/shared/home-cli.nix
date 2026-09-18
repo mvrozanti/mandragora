@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 # Shared CLI baseline imported by every mandragora host.
 # Add things here when they should be on BOTH desktop and WSL.
@@ -89,4 +89,8 @@
     source = ../../../.config/nvim;
     recursive = true;
   };
+  home.file.".claude/settings.json".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/settings.json";
+  home.file.".claude/hooks/rtk-rewrite.sh".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/hooks/rtk-rewrite.sh";
 }
