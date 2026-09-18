@@ -158,6 +158,7 @@ function Mandragora:registerActions()
             icon = iconPath(entry.icon),
             get_icon = function() return iconPath(entry.icon) end,
             is_in_place = true,
+            is_async_in_place = true,
             execute = function()
                 if entry.widget then
                     openWidget(entry.widget)
