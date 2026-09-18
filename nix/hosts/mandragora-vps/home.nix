@@ -15,6 +15,7 @@
     ripgrep
     fd
     fastfetch
+    hyperfine
     file
     unzip
     openssl

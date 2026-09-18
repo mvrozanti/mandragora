@@ -12,6 +12,7 @@
     btop
     tree
     fastfetch
+    hyperfine
     jq
     fx
     sops
