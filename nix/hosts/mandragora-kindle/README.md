@@ -711,6 +711,14 @@ because the shipped defaults are `screensaver_type = "disable"` with
 false`, so the lock screen holds one of the 823 e-ink images instead — with
 the radio and CPU off, exactly as cheap as the portrait it borrows from.
 
+While the **Portrait** widget is open it pins the lock screen to the image it is
+currently showing rather than drawing a random one: the widget writes
+`screensaver_type = "document_cover"` and points `screensaver_document_cover` at
+the current file, and restores the previous `screensaver_type` when it is
+dismissed. Because the lock frame reads those keys fresh on every suspend (see
+`intoScreenSaver` in `device/kindle/device.lua`), the pin is picked up on the
+very next lock with no restart, and it follows taps to shuffle.
+
 KOReader loads `settings.reader.lua` once into memory and holds it for its
 whole run, writing the in-memory copy back over any on-disk edit whenever it
 next flushes — so, like `kindle-layout`, `kindle-settings` stops KOReader
