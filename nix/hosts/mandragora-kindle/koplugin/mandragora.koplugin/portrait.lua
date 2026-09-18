@@ -21,6 +21,15 @@ local function isImage(name)
     return lower:match("%.png$") or lower:match("%.jpe?g$")
 end
 
+local function lockToImage(path)
+    G_reader_settings:saveSetting("screensaver_type", "document_cover")
+    G_reader_settings:saveSetting("screensaver_document_cover", path)
+end
+
+local function hideStatusBar()
+    os.execute("/usr/bin/lipc-set-prop com.lab126.pillow disableEnablePillow disable >/dev/null 2>&1 &")
+end
+
 function PortraitViewer:scan()
     local files = {}
     local ok, iter, dir_obj = pcall(lfs.dir, self.dir)
@@ -39,6 +48,19 @@ function PortraitViewer:remember(path)
     fh:close()
 end
 
+function PortraitViewer:restoreScreensaver()
+    if self.prev_screensaver_type then
+        G_reader_settings:saveSetting("screensaver_type", self.prev_screensaver_type)
+    else
+        G_reader_settings:delSetting("screensaver_type")
+    end
+    if self.prev_document_cover then
+        G_reader_settings:saveSetting("screensaver_document_cover", self.prev_document_cover)
+    else
+        G_reader_settings:delSetting("screensaver_document_cover")
+    end
+end
+
 function PortraitViewer:pickRandom()
     if not self.files or #self.files == 0 then return nil end
     if #self.files == 1 then return 1 end
@@ -54,6 +76,9 @@ function PortraitViewer:init()
     self.files = self:scan()
     math.randomseed(os.time())
     self.index = self:pickRandom() or 1
+
+    self.prev_screensaver_type = G_reader_settings:readSetting("screensaver_type")
+    self.prev_document_cover = G_reader_settings:readSetting("screensaver_document_cover")
 
     self.dimen = Geom:new{ x = 0, y = 0, w = Screen:getWidth(), h = Screen:getHeight() }
     self.covers_fullscreen = true
@@ -83,6 +108,7 @@ function PortraitViewer:build()
             alpha = false,
         }
         self:remember(path)
+        lockToImage(path)
     else
         local TextWidget = require("ui/widget/textwidget")
         local Font = require("ui/font")
@@ -122,10 +148,18 @@ function PortraitViewer:onClose()
 end
 
 function PortraitViewer:onCloseWidget()
+    UIManager:unschedule(self.rehideStatusBar, self)
+    self:restoreScreensaver()
     UIManager:setDirty(nil, "full")
 end
 
+function PortraitViewer:rehideStatusBar()
+    hideStatusBar()
+    UIManager:scheduleIn(60, self.rehideStatusBar, self)
+end
+
 function PortraitViewer:onShow()
+    self:rehideStatusBar()
     UIManager:setDirty(self, function() return "full", self.dimen end)
     return true
 end
@@ -135,6 +169,8 @@ function PortraitViewer.open()
     if not viewer.files or #viewer.files == 0 then
         logger.warn("mandragora: portrait: no images in " .. viewer.dir)
     end
+    Screen:clear()
+    Screen:refreshFull(0, 0, Screen:getWidth(), Screen:getHeight())
     UIManager:show(viewer)
     return viewer
 end
