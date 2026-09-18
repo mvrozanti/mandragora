@@ -91,6 +91,17 @@ window. Prefer the cheapest tier that works.
   idea wanted. KOReader caches settings in memory for its whole run, so applying
   this always stops and restarts KOReader; that restart is never automatic and
   is the one manual step after `kindle-push` (see README).
+- **Portrait pins the lock screen** — locking while the Portrait widget is open
+  sleeps on the image currently showing rather than a random wallpaper. The
+  widget writes `screensaver_type = "document_cover"` with
+  `screensaver_document_cover` pointing at the current file, and restores the
+  previous type when it is dismissed, so the pin lasts exactly as long as the
+  widget does and follows taps to shuffle.
+- **Portrait opens clean and suppresses the framework clock** — before painting,
+  the viewer blanks the e-ink to white with a full refresh so the home screen no
+  longer ghosts through the artwork, and every minute while it is open it
+  re-asserts `com.lab126.pillow disableEnablePillow disable` so Amazon's status
+  bar clock cannot land on top of the image.
 
 ## In flight
 
