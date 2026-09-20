@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import fcntl
 import hashlib
+import json
 import logging
 import mimetypes
 import os
@@ -35,6 +36,10 @@ PHOTO_ROOT = HOME / "Pictures" / "Photos"
 VIDEO_ROOT = HOME / "Videos" / "Phone"
 AUDIO_ROOT = HOME / "Documents" / "PhoneAudio"
 DOWNLOAD_ROOT = HOME / "Documents" / "PhoneDownloads"
+
+INDEX_PATH = HOME / ".cache" / "phone-archiver-hashes.json"
+DEST_ROOTS = [PHOTO_ROOT, VIDEO_ROOT, AUDIO_ROOT, DOWNLOAD_ROOT]
+REBUILD = os.environ.get("PHONE_ARCHIVER_REBUILD_INDEX", "") == "1"
 
 
 AUDIO_EXT = {".mp3", ".m4a", ".ogg", ".opus", ".aac", ".wav", ".flac", ".amr", ".mka"}
@@ -147,12 +152,64 @@ def unique_dest(dest_dir, name, short_hash):
     return dest_dir / f"{stem}-{short_hash[:8]}{suffix}"
 
 
-def archive_one(src, dest_root, log):
+def load_index():
+    if not INDEX_PATH.exists():
+        return {}
+    try:
+        with open(INDEX_PATH) as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            return data
+    except (OSError, ValueError):
+        pass
+    return {}
+
+
+def save_index(index):
+    INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp = INDEX_PATH.with_suffix(INDEX_PATH.suffix + ".tmp")
+    with open(tmp, "w") as f:
+        json.dump(index, f)
+    os.replace(tmp, INDEX_PATH)
+
+
+def build_index(roots, log):
+    index = {}
+    for root in roots:
+        if not root.is_dir():
+            continue
+        n = 0
+        for path in root.rglob("*"):
+            if not path.is_file():
+                continue
+            if path.name.endswith(SKIP_SUFFIXES):
+                continue
+            try:
+                index[sha256_of(path)] = str(path)
+                n += 1
+            except OSError:
+                continue
+        log.info("index: %s -> %d entries", root, n)
+    log.info("index built: %d total entries", len(index))
+    return index
+
+
+def archive_one(src, dest_root, index, log):
     date = file_date(src)
     dest_dir = dest_root / f"{date.year:04d}" / f"{date.month:02d}"
     dest_dir.mkdir(parents=True, exist_ok=True)
 
     src_hash = sha256_of(src)
+
+    known = index.get(src_hash)
+    if known:
+        known_path = Path(known)
+        if known_path != src and known_path.exists():
+            src.unlink()
+            log.info("dup-removed (content): %s -> %s", src, known_path)
+            return
+        if not known_path.exists():
+            del index[src_hash]
 
     existing = dest_dir / src.name
     if existing.exists():
@@ -172,10 +229,11 @@ def archive_one(src, dest_root, log):
 
     partial.rename(dest)
     src.unlink()
+    index[src_hash] = str(dest)
     log.info("archived: %s -> %s", src, dest)
 
 
-def walk_bucket(bucket_dir, router, log):
+def walk_bucket(bucket_dir, router, index, log):
     now = time.time()
     for path in bucket_dir.rglob("*"):
         if not path.is_file():
@@ -185,7 +243,7 @@ def walk_bucket(bucket_dir, router, log):
         if any(part in SKIP_NAMES for part in path.relative_to(bucket_dir).parts):
             continue
         try:
-            archive_one(path, router(path), log)
+            archive_one(path, router(path), index, log)
         except Exception as e:
             log.exception("failed: %s: %s", path, e)
 
@@ -210,11 +268,23 @@ def main():
             log.info("inbox root %s missing; nothing to do", INBOX_ROOT)
             return 0
 
+        if REBUILD or not INDEX_PATH.exists():
+            log.info("building content index")
+            index = build_index(DEST_ROOTS, log)
+            save_index(index)
+        else:
+            index = load_index()
+
+        baseline = dict(index)
+
         for name, router in BUCKETS:
             bucket_dir = INBOX_ROOT / name
             if not bucket_dir.is_dir():
                 continue
-            walk_bucket(bucket_dir, router, log)
+            walk_bucket(bucket_dir, router, index, log)
+
+        if index != baseline:
+            save_index(index)
 
     return 0
 
