@@ -709,12 +709,12 @@ let
     title = "Mandragora VPS";
     uid = "mandragora-vps";
     instance = "mandragora-vps";
-    nic = "enp0s6";
+    nic = "eth0";
     disk = "sda";
     refresh = "1m";
     withGpu = false;
     withEbpf = false;
-    withDirsize = true;
+    withDirsize = false;
     withFsUsage = true;
   };
 
