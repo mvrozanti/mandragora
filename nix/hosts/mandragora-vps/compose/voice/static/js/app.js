@@ -30,6 +30,15 @@
 
   function setStatus(text) { $(statusId).textContent = text; }
 
+  function micError(e) {
+    console.error("getUserMedia failed", e);
+    if (e && e.name === "NotAllowedError") return "mic blocked — check browser permission";
+    if (e && e.name === "SecurityError") return "mic blocked — insecure or policy";
+    if (e && e.name === "OverconstrainedError") return "mic constraints unsupported";
+    if (e && e.name === "NotFoundError") return "no microphone found";
+    return "mic error: " + (e && e.name ? e.name : "unknown");
+  }
+
   function makeSession() {
     const rnd = new Uint32Array(6);
     crypto.getRandomValues(rnd);
@@ -77,9 +86,7 @@
     if (!session) { setStatus("enter a session code"); return; }
     ensureCtx();
     await ctx.resume();
-    micStream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 }
-    });
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     micNode = ctx.createMediaStreamSource(micStream);
     micNode.connect(analyser);
     voice = Voice.connect(session, "source", function () {});
@@ -138,9 +145,7 @@
     await ctx.resume();
     const input = $("inputSource").value;
     if (input === "local") {
-      micStream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-      });
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       micNode = ctx.createMediaStreamSource(micStream);
       micNode.connect(dsp.input);
       micNode.connect(analyser);
@@ -218,7 +223,7 @@
       if (sessionFromUrl) $("sourceCode").value = sessionFromUrl;
       $("sourceStart").addEventListener("click", () => {
         if (running) { stopSource(); } else {
-          startSource().catch(() => setStatus("mic denied"));
+          startSource().catch((e) => setStatus(micError(e)));
         }
       });
       $("sourceMute").addEventListener("click", () => {
@@ -231,7 +236,7 @@
       $("sessionCode").textContent = sessionFromUrl || makeSession();
       $("sinkStart").addEventListener("click", () => {
         if (running) { stopSink(); } else {
-          startSink().catch(() => setStatus("mic denied"));
+          startSink().catch((e) => setStatus(micError(e)));
         }
       });
       $("mode").addEventListener("change", () => applyMode($("mode").value));
