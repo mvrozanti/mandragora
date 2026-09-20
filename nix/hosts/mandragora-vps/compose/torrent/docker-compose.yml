@@ -1,0 +1,52 @@
+services:
+
+  torrent:
+    image: ${TORRENT_IMAGE:-nginx:stable-alpine}
+    container_name: torrent
+    restart: unless-stopped
+    volumes:
+      - ${TORRENT_STATIC_VOLUME:-./static}:/usr/share/nginx/html:ro
+    networks:
+      - seafile-net
+    labels:
+      caddy_0: https://torrent.${MVR_AC:-mvr.ac}
+      caddy_0.header.Strict-Transport-Security: max-age=31536000;includeSubDomains
+      caddy_0.header.X-Content-Type-Options: nosniff
+      caddy_0.header.X-Frame-Options: SAMEORIGIN
+      caddy_0.header.Referrer-Policy: strict-origin-when-cross-origin
+      caddy_0.header.Permissions-Policy: geolocation=(),microphone=(),camera=()
+      caddy_0.header.-Server: ""
+      caddy_0.encode: zstd gzip
+      caddy_0.0_@rpc: "path /transmission/rpc /transmission/rpc/*"
+      caddy_0.0_@theme: "path /api/theme /api/theme/*"
+      caddy_0.1_handle: "@rpc"
+      caddy_0.1_handle.forward_auth: "authelia:9091"
+      caddy_0.1_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy_0.1_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy_0.1_handle.reverse_proxy: "host.docker.internal:6687"
+      caddy_0.1_handle.reverse_proxy.header_up: "Host 127.0.0.1:9091"
+      caddy_0.1_handle.reverse_proxy.transport: http
+      caddy_0.1_handle.reverse_proxy.transport.dial_timeout: "2s"
+      caddy_0.2_handle: "@theme"
+      caddy_0.2_handle.forward_auth: "authelia:9091"
+      caddy_0.2_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy_0.2_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy_0.2_handle.reverse_proxy: "host.docker.internal:6684"
+      caddy_0.2_handle.reverse_proxy.transport: http
+      caddy_0.2_handle.reverse_proxy.transport.dial_timeout: "2s"
+      caddy_0.3_handle.forward_auth: "authelia:9091"
+      caddy_0.3_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy_0.3_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy_0.3_handle.reverse_proxy: "{{upstreams 80}}"
+      caddy_0.4_handle_errors.respond: '503 "mandragora asleep — transmission unreachable"'
+      caddy_1: https://torrent.${SEAFILE_SERVER_HOSTNAME:-mvrozanti.duckdns.org}
+      caddy_1.redir: "https://torrent.${MVR_AC:-mvr.ac}{uri} 302"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true
