@@ -31,7 +31,7 @@ in
     serviceConfig = {
       Type = "oneshot";
       ExecStart = "${archiver}/bin/phone-archiver";
-      TimeoutStartSec = "20min";
+      TimeoutStartSec = "90min";
       Nice = 19;
       IOSchedulingClass = "idle";
       Environment = [
