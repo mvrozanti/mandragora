@@ -1,0 +1,25 @@
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--mv-bg);color:var(--mv-text);font-family:var(--mv-font-mono);min-height:100vh;}
+body{padding:2.5rem 2rem;position:relative;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 30% 20%,color-mix(in srgb,var(--mv-accent) 6%,transparent),transparent 50%);z-index:0;}
+.wrap{position:relative;z-index:1;max-width:880px;margin:0 auto;}
+header{padding-bottom:1.5rem;border-bottom:1px solid var(--mv-line);margin-bottom:2rem;}
+h1{font-size:var(--mv-text-lg);font-weight:normal;letter-spacing:0.02em;}
+h1::before{content:'$ ';color:var(--mv-accent);}
+.sub{color:var(--mv-text-dim);font-size:var(--mv-text-sm);margin-top:0.5rem;line-height:1.6;}
+.sub a{color:var(--mv-accent);text-decoration:none;}
+.sub a:hover{text-decoration:underline;}
+section{margin-bottom:2rem;}
+h2{font-size:var(--mv-text-xs);letter-spacing:var(--mv-tracking-label);text-transform:uppercase;color:var(--mv-accent);opacity:0.8;margin-bottom:0.75rem;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:0.75rem;}
+.card{background:var(--mv-bg-raised);border:1px solid var(--mv-line);padding:1.1rem;text-decoration:none;color:var(--mv-text);display:flex;flex-direction:column;gap:0.3rem;transition:border-color var(--mv-dur-fast) var(--mv-ease),background var(--mv-dur-fast) var(--mv-ease),transform var(--mv-dur-fast) var(--mv-ease);position:relative;overflow:hidden;border-radius:var(--mv-radius-1);}
+.card:hover{border-color:var(--mv-accent);background:var(--mv-bg-elevated);transform:translateY(-1px);}
+.card::after{content:'';position:absolute;top:0;left:0;width:0;height:1px;background:var(--mv-accent);box-shadow:0 0 10px var(--mv-accent);transition:width var(--mv-dur) ease-out;}
+.card:hover::after{width:100%;}
+.card .name{font-size:var(--mv-text-md);font-weight:500;}
+.card .desc{font-size:var(--mv-text-sm);color:var(--mv-text-dim);line-height:1.4;}
+.card .dl{font-size:var(--mv-text-xs);letter-spacing:0.14em;text-transform:uppercase;color:var(--mv-accent);opacity:0.7;margin-top:0.25rem;}
+footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--mv-line);display:flex;justify-content:space-between;color:var(--mv-text-ghost);font-size:var(--mv-text-xs);}
+footer a{color:var(--mv-accent);text-decoration:none;}
+footer a:hover{text-decoration:underline;}
+@media(max-width:600px){body{padding:1.25rem 1rem;}.grid{grid-template-columns:1fr;}}

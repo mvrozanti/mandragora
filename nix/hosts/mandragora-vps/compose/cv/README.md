@@ -5,8 +5,12 @@ Public static download page for Marcelo Vironda Rozanti's CV — six versions
 [github.com/mvrozanti/cv](https://github.com/mvrozanti/cv).
 
 - `docker-compose.yml` — `nginx:alpine` serving `./static` behind caddy at
-  `cv.mvr.ac` (public, `seafile-net`).
-- `static/index.html` — the download page (tracked).
+  `cv.mvr.ac` (public, `seafile-net` + `tailnet-fwd` for the palette bridge).
+- `nginx.conf` — serves the static root and proxies `GET /api/theme` to
+  `host.docker.internal:6684/api/theme?colors=1` (public surface: drops the
+  wallpaper path), degrading to `204` when the desktop palette is offline.
+- `static/index.html` + `static/cv.css` — the download page, consuming the
+  canonical `--mv-*` tokens via `static/theme.css` and `static/theme.js`.
 - PDFs are **not tracked** (`static/.gitignore`). `deploy.sh` builds them from
   the cv repo (`$CV_REPO`, default `~/Projects/cv`), renames them, stages them
   into `static/`, and rsyncs to the VPS.

@@ -30,6 +30,7 @@ done
 echo "→ rsyncing compose + static to $REMOTE:$REMOTE_DIR/"
 ssh "$REMOTE" "mkdir -p $REMOTE_DIR/static"
 rsync -av "$HERE/docker-compose.yml" "$REMOTE:$REMOTE_DIR/"
+rsync -av "$HERE/nginx.conf" "$REMOTE:$REMOTE_DIR/"
 rsync -av --delete "$HERE/static/" "$REMOTE:$REMOTE_DIR/static/"
 
 echo "→ bringing up the container"
