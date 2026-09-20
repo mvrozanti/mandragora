@@ -34,6 +34,10 @@ let
       n = "elicit-ui";
       s = ../../../agent-skills/elicit-ui;
     }
+    {
+      n = "approach-review";
+      s = ../../../agent-skills/approach-review;
+    }
   ];
 
   mkEntries =
