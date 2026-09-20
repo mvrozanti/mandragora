@@ -14,23 +14,17 @@ app = FastAPI(title="voice-alter-core")
 
 class Hub:
     def __init__(self) -> None:
-        self.sessions: dict[str, dict[str, set[WebSocket]]] = {}
+        self.source: set[WebSocket] = set()
+        self.sink: set[WebSocket] = set()
 
-    def join(self, session: str, role: str, ws: WebSocket) -> None:
-        room = self.sessions.setdefault(session, {"source": set(), "sink": set()})
-        room[role].add(ws)
+    def join(self, role: str, ws: WebSocket) -> None:
+        (self.source if role == "source" else self.sink).add(ws)
 
-    def leave(self, session: str, role: str, ws: WebSocket) -> None:
-        room = self.sessions.get(session)
-        if not room:
-            return
-        room[role].discard(ws)
-        if not room["source"] and not room["sink"]:
-            self.sessions.pop(session, None)
+    def leave(self, role: str, ws: WebSocket) -> None:
+        (self.source if role == "source" else self.sink).discard(ws)
 
-    def sinks(self, session: str) -> set[WebSocket]:
-        room = self.sessions.get(session)
-        return set(room["sink"]) if room else set()
+    def sinks(self) -> set[WebSocket]:
+        return set(self.sink)
 
 
 hub = Hub()
@@ -38,18 +32,22 @@ hub = Hub()
 
 @app.get("/healthz")
 async def healthz() -> dict:
-    return {"status": "ok", "service": "voice-alter-core", "sessions": len(hub.sessions)}
+    return {
+        "status": "ok",
+        "service": "voice-alter-core",
+        "sources": len(hub.source),
+        "sinks": len(hub.sink),
+    }
 
 
 @app.websocket("/ws")
 async def ws(websocket: WebSocket) -> None:
-    session = websocket.query_params.get("session", "")
     role = websocket.query_params.get("role", "")
     await websocket.accept()
-    if not session or role not in ("source", "sink"):
+    if role not in ("source", "sink"):
         await websocket.close(code=4004)
         return
-    hub.join(session, role, websocket)
+    hub.join(role, websocket)
     try:
         while True:
             message = await websocket.receive()
@@ -57,15 +55,15 @@ async def ws(websocket: WebSocket) -> None:
                 break
             if role == "source" and message.get("bytes") is not None:
                 payload = message["bytes"]
-                for sink in hub.sinks(session):
+                for sink in hub.sinks():
                     try:
                         await sink.send_bytes(payload)
                     except Exception:
-                        hub.leave(session, "sink", sink)
+                        hub.leave("sink", sink)
     except WebSocketDisconnect:
         pass
     finally:
-        hub.leave(session, role, websocket)
+        hub.leave(role, websocket)
 
 
 def main() -> int:
