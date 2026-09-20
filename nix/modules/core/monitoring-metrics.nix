@@ -35,6 +35,18 @@ in
           ];
         }
         {
+          job_name = "process";
+          scrape_interval = "15s";
+          static_configs = [
+            {
+              targets = [ "localhost:9256" ];
+              labels = {
+                instance = "mandragora-desktop";
+              };
+            }
+          ];
+        }
+        {
           job_name = "nvidia";
           scrape_interval = "1m";
           static_configs = [
