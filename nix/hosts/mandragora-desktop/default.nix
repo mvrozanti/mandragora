@@ -56,6 +56,7 @@ in
     ../../modules/services/claude-web.nix
     ../../modules/services/cc-pocket.nix
     ../../modules/services/slither-io.nix
+    ../../modules/services/transmission-rpc-bridge.nix
     ../../modules/services/fly-brain.nix
     ../../modules/services/gpu-idle.nix
     ../../modules/services/lenia-bridge.nix
