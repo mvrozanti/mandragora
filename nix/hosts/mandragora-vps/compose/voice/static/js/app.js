@@ -2,9 +2,10 @@
   "use strict";
 
   const $ = (id) => document.getElementById(id);
-  const params = new URLSearchParams(location.hash.slice(1));
-  const isSource = params.get("role") === "source";
-  const sessionFromUrl = (params.get("s") || "").toUpperCase();
+  const query = new URLSearchParams(location.search);
+  const hash = new URLSearchParams(location.hash.slice(1));
+  const isSource = (query.get("role") || hash.get("role")) === "source";
+  const sessionFromUrl = ((query.get("s") || hash.get("s")) || "").toUpperCase();
 
   const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   const PRESET = { deeper: -5, higher: 3, helium: 8, demon: -8 };
@@ -214,7 +215,7 @@
   }
 
   function inviteLink() {
-    return location.origin + location.pathname + "#role=source&s=" + $("sessionCode").textContent.trim();
+    return location.origin + location.pathname + "?role=source&s=" + $("sessionCode").textContent.trim();
   }
 
   function boot() {
