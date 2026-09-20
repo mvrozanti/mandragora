@@ -2,17 +2,9 @@
   "use strict";
 
   const $ = (id) => document.getElementById(id);
-  const query = new URLSearchParams(location.search);
-  const hash = new URLSearchParams(location.hash.slice(1));
-  const isSource = (query.get("role") || hash.get("role")) === "source";
-  const sessionFromUrl = ((query.get("s") || hash.get("s")) || "").toUpperCase();
 
-  const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   const PRESET = { deeper: -5, higher: 3, helium: 8, demon: -8 };
   const PITCH_MODES = new Set(["pitch", "deeper", "higher", "helium", "demon"]);
-
-  const statusId = isSource ? "sourceStatus" : "status";
-  const levelId = isSource ? "sourceLevel" : "level";
 
   let ctx = null;
   let micStream = null;
@@ -22,14 +14,16 @@
   let masterGain = null;
   let analyser = null;
   let capture = null;
-  let voice = null;
+  let micVoice = null;
+  let outVoice = null;
   let meterRaf = null;
   let muted = false;
-  let running = false;
+  let micRunning = false;
+  let outRunning = false;
   let lastSeq = -1;
   let drops = 0;
 
-  function setStatus(text) { $(statusId).textContent = text; }
+  function setStatus(text) { $("status").textContent = text; }
 
   function micError(e) {
     console.error("getUserMedia failed", e);
@@ -38,14 +32,6 @@
     if (e && e.name === "OverconstrainedError") return "mic constraints unsupported";
     if (e && e.name === "NotFoundError") return "no microphone found";
     return "mic error: " + (e && e.name ? e.name : "unknown");
-  }
-
-  function makeSession() {
-    const rnd = new Uint32Array(6);
-    crypto.getRandomValues(rnd);
-    let out = "";
-    for (let i = 0; i < 6; i++) out += ALPHABET[rnd[i] % ALPHABET.length];
-    return out;
   }
 
   function ensureCtx() {
@@ -69,7 +55,7 @@
     analyser.getFloatTimeDomainData(data);
     let peak = 0;
     for (let i = 0; i < data.length; i++) peak = Math.max(peak, Math.abs(data[i]));
-    $(levelId).value = peak;
+    $("level").value = peak;
     meterRaf = requestAnimationFrame(drawMeter);
   }
 
@@ -79,47 +65,45 @@
 
   function stopMeter() {
     if (meterRaf) { cancelAnimationFrame(meterRaf); meterRaf = null; }
+    if ($("level")) $("level").value = 0;
   }
 
-  async function startSource() {
-    if (running) return;
-    const session = ($("sourceCode").value.trim() || sessionFromUrl).toUpperCase();
-    if (!session) { setStatus("enter a session code"); return; }
+  async function startMic() {
+    if (micRunning) return;
     ensureCtx();
     await ctx.resume();
     micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     micNode = ctx.createMediaStreamSource(micStream);
     micNode.connect(analyser);
-    voice = Voice.connect(session, "source", function () {});
+    micVoice = Voice.connect("source", function () {});
     capture = ctx.createScriptProcessor(1024, 1, 1);
     capture.onaudioprocess = (ev) => {
-      if (!voice.ready() || muted) return;
-      voice.send(ev.inputBuffer.getChannelData(0).slice(), ctx.sampleRate);
+      if (!micVoice.ready() || muted) return;
+      micVoice.send(ev.inputBuffer.getChannelData(0).slice(), ctx.sampleRate);
     };
     const mute = ctx.createGain();
     mute.gain.value = 0;
     micNode.connect(capture);
     capture.connect(mute);
     mute.connect(ctx.destination);
-    running = true;
+    micRunning = true;
     muted = false;
     startMeter();
-    $("sourceStart").textContent = "stop";
-    $("sourceMute").disabled = false;
-    setStatus("streaming to desktop");
+    $("micStart").textContent = "stop mic";
+    $("micMute").disabled = false;
+    setStatus("mic live — start output on the other device");
   }
 
-  function stopSource() {
+  function stopMic() {
     if (micStream) micStream.getTracks().forEach((t) => t.stop());
-    if (voice) { voice.close(); voice = null; }
+    if (micVoice) { micVoice.close(); micVoice = null; }
     if (capture) { capture.disconnect(); capture.onaudioprocess = null; capture = null; }
     if (micNode) { micNode.disconnect(); micNode = null; }
     micStream = null;
-    running = false;
+    micRunning = false;
     stopMeter();
-    $(levelId).value = 0;
-    $("sourceStart").textContent = "start mic";
-    $("sourceMute").disabled = true;
+    $("micStart").textContent = "start mic";
+    $("micMute").disabled = true;
     setStatus("idle");
   }
 
@@ -136,46 +120,30 @@
     if (lastSeq >= 0 && frame.seq > lastSeq + 1) drops += frame.seq - lastSeq - 1;
     lastSeq = frame.seq;
     $("drops").textContent = drops ? drops + " dropped" : "";
-    if ($(statusId).textContent === "waiting for phone") setStatus("live · phone");
+    setStatus("live — transforming voice");
     playPcm(frame.pcm, frame.sampleRate);
   }
 
-  async function startSink() {
-    if (running) return;
+  async function startOutput() {
+    if (outRunning) return;
     ensureCtx();
     await ctx.resume();
-    const input = $("inputSource").value;
-    if (input === "local") {
-      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      micNode = ctx.createMediaStreamSource(micStream);
-      micNode.connect(dsp.input);
-      micNode.connect(analyser);
-      setStatus("live · local");
-    } else {
-      voice = Voice.connect($("sessionCode").textContent.trim(), "sink", onSinkFrame);
-      lastSeq = -1;
-      drops = 0;
-      $("drops").textContent = "";
-      setStatus("waiting for phone");
-    }
+    outVoice = Voice.connect("sink", onSinkFrame);
+    lastSeq = -1;
+    drops = 0;
+    $("drops").textContent = "";
     applyMode($("mode").value);
-    running = true;
+    outRunning = true;
     startMeter();
-    $("sinkStart").textContent = "stop";
-    $("inputSource").disabled = true;
+    $("outputStart").textContent = "stop output";
+    setStatus("waiting for mic");
   }
 
-  function stopSink() {
-    if (micStream) micStream.getTracks().forEach((t) => t.stop());
-    if (voice) { voice.close(); voice = null; }
-    if (micNode) { micNode.disconnect(); micNode = null; }
-    micStream = null;
-    running = false;
-    stopMeter();
-    $(levelId).value = 0;
+  function stopOutput() {
+    if (outVoice) { outVoice.close(); outVoice = null; }
+    outRunning = false;
     $("drops").textContent = "";
-    $("sinkStart").textContent = "start";
-    $("inputSource").disabled = false;
+    $("outputStart").textContent = "start output";
     setStatus("idle");
   }
 
@@ -214,57 +182,37 @@
     if (current) sel.value = current;
   }
 
-  function inviteLink() {
-    return location.origin + location.pathname + "?role=source&s=" + $("sessionCode").textContent.trim();
-  }
-
   function boot() {
-    if (isSource) {
-      $("sourcePanel").classList.remove("hidden");
-      if (sessionFromUrl) $("sourceCode").value = sessionFromUrl;
-      $("sourceStart").addEventListener("click", () => {
-        if (running) { stopSource(); } else {
-          startSource().catch((e) => setStatus(micError(e)));
-        }
-      });
-      $("sourceMute").addEventListener("click", () => {
-        muted = !muted;
-        $("sourceMute").textContent = muted ? "unmute" : "mute";
-        setStatus(muted ? "muted" : "streaming to desktop");
-      });
-    } else {
-      $("sinkPanel").classList.remove("hidden");
-      $("sessionCode").textContent = sessionFromUrl || makeSession();
-      $("sinkStart").addEventListener("click", () => {
-        if (running) { stopSink(); } else {
-          startSink().catch((e) => setStatus(micError(e)));
-        }
-      });
-      $("mode").addEventListener("change", () => applyMode($("mode").value));
-      $("pitch").addEventListener("input", () => {
-        $("pitchVal").textContent = $("pitch").value + " st";
-        if (dsp && $("mode").value === "pitch") dsp.setPitch(Number($("pitch").value));
-      });
-      $("delay").addEventListener("input", () => {
-        $("delayVal").textContent = $("delay").value + " ms";
-        if (latencyDelay) latencyDelay.delayTime.value = Number($("delay").value) / 1000;
-      });
-      $("output").addEventListener("change", () => setOutput($("output").value));
-      let outputsUnlocked = false;
-      $("output").addEventListener("focus", () => {
-        if (!outputsUnlocked) { outputsUnlocked = true; populateOutputs(true); }
-      });
-      $("copyLink").addEventListener("click", async () => {
-        try {
-          await navigator.clipboard.writeText(inviteLink());
-          $("copyLink").textContent = "copied";
-          setTimeout(() => { $("copyLink").textContent = "copy link"; }, 1500);
-        } catch (e) {
-          window.prompt("session link", inviteLink());
-        }
-      });
-      populateOutputs(false);
-    }
+    $("micStart").addEventListener("click", () => {
+      if (micRunning) { stopMic(); } else {
+        startMic().catch((e) => setStatus(micError(e)));
+      }
+    });
+    $("micMute").addEventListener("click", () => {
+      muted = !muted;
+      $("micMute").textContent = muted ? "unmute" : "mute";
+      setStatus(muted ? "mic muted" : "mic live");
+    });
+    $("outputStart").addEventListener("click", () => {
+      if (outRunning) { stopOutput(); } else {
+        startOutput().catch(() => setStatus("output failed"));
+      }
+    });
+    $("mode").addEventListener("change", () => applyMode($("mode").value));
+    $("pitch").addEventListener("input", () => {
+      $("pitchVal").textContent = $("pitch").value + " st";
+      if (dsp && $("mode").value === "pitch") dsp.setPitch(Number($("pitch").value));
+    });
+    $("delay").addEventListener("input", () => {
+      $("delayVal").textContent = $("delay").value + " ms";
+      if (latencyDelay) latencyDelay.delayTime.value = Number($("delay").value) / 1000;
+    });
+    $("output").addEventListener("change", () => setOutput($("output").value));
+    let outputsUnlocked = false;
+    $("output").addEventListener("focus", () => {
+      if (!outputsUnlocked) { outputsUnlocked = true; populateOutputs(true); }
+    });
+    populateOutputs(false);
   }
 
   boot();
