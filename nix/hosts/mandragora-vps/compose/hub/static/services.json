@@ -21,6 +21,7 @@
     { "name": "send", "host": "share.mvr.ac", "group": "files", "desc": "gokapi · file drop", "access": "priv", "where": "vps" },
     { "name": "clip", "host": "clip.mvr.ac", "group": "files", "desc": "microbin · short paste", "access": "priv", "where": "vps" },
     { "name": "kindle", "host": "kindle.mvr.ac", "group": "files", "desc": "send to kindle · pdf · epub", "access": "priv", "where": "vps" },
+    { "name": "torrent", "host": "torrent.mvr.ac", "group": "files", "desc": "transmission · one torrent at a time", "access": "priv", "where": "desk" },
 
     { "name": "mpd", "host": "mpd.mvr.ac", "group": "media", "desc": "myMPD · queue, library", "access": "priv", "where": "desk" },
     { "name": "ytdl", "host": "ytdl.mvr.ac", "group": "media", "desc": "yt-dlp → ~/Music · mp3", "access": "priv", "where": "desk" },

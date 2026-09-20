@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#13140d">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>torrent · mvr.ac</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="components.css">
+<link rel="stylesheet" href="torrent.css">
+<script src="theme.js" data-endpoint="/api/theme" data-poll="15"></script>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <header class="top">
+    <span class="brand"><b>torrent</b><span>mvr.ac</span></span>
+    <span class="grow"></span>
+    <label class="find">
+      <span class="mv-mono" aria-hidden="true">⌕</span>
+      <input id="find" type="search" placeholder="jump to a torrent" autocomplete="off" aria-label="Search torrents">
+      <kbd>/</kbd>
+    </label>
+    <button class="btn ico" id="turtle" aria-pressed="false" title="Throttle seeding">🐢</button>
+    <button class="btn pri" id="add">+ add</button>
+    <button class="btn ico" id="stats" title="Statistics">▤</button>
+    <button class="btn ico" id="transfer" title="Import and export">⇅</button>
+    <button class="btn ico" id="rules" title="Rules and notifications">⚙</button>
+  </header>
+
+  <div class="offline hide" id="offline">
+    <i class="dot err"></i>
+    <span id="offlineText">Reaching the daemon…</span>
+    <span class="grow"></span>
+    <button class="btn sm" id="retry">retry</button>
+  </div>
+
+  <div class="body">
+    <nav class="rail" id="rail" aria-label="Torrents">
+      <div class="rail-head" id="filters"></div>
+      <div id="items"></div>
+    </nav>
+    <main class="pane" id="pane"></main>
+  </div>
+
+  <footer class="foot" id="foot"></footer>
+</div>
+
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<div id="sheet"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
