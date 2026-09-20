@@ -24,6 +24,47 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    services.pipewire.extraConfig.pipewire."52-voice-morph-virtmic" = {
+      "context.objects" = [
+        {
+          factory = "adapter";
+          args = {
+            "factory.name" = "support.null-audio-sink";
+            "node.name" = "VoiceMorph";
+            "node.description" = "Voice Morph Sink";
+            "media.class" = "Audio/Sink";
+            "audio.position" = [
+              "FL"
+              "FR"
+            ];
+          };
+        }
+      ];
+
+      "context.modules" = [
+        {
+          name = "libpipewire-module-loopback";
+          args = {
+            "node.description" = "Voice Morph source";
+            "capture.props" = {
+              "node.name" = "capture.vm_to_src";
+              "target.object" = "VoiceMorph";
+              "stream.capture.sink" = true;
+            };
+            "playback.props" = {
+              "node.name" = "VoiceMorphSource";
+              "node.description" = "Voice Morph Source";
+              "media.class" = "Audio/Source";
+              "audio.position" = [
+                "FL"
+                "FR"
+              ];
+            };
+          };
+        }
+      ];
+    };
+
     mandragora.hub.services.voice-alter-core = {
       port = 8095;
       userService = true;

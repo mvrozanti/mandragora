@@ -2,21 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>voice · mvr.ac</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/theme.css">
   <link rel="stylesheet" href="/css/style.css">
+  <script src="/theme.js" data-endpoint="/api/theme"></script>
 </head>
 <body>
   <header>
     <h1>voice changer</h1>
-    <p class="sub">mic in → transform → monitor out</p>
+    <p class="sub">mic in → transform → desktop out</p>
   </header>
 
-  <main>
+  <main id="sinkPanel" class="panel hidden">
     <section class="row">
-      <button id="start" type="button">start mic</button>
+      <label for="inputSource">input</label>
+      <select id="inputSource">
+        <option value="phone">phone mic</option>
+        <option value="local">this device</option>
+      </select>
+      <button id="sinkStart" type="button">start</button>
       <span id="status" class="status">idle</span>
+    </section>
+
+    <section class="session">
+      <span class="label">session</span>
+      <span id="sessionCode" class="code">—</span>
+      <button id="copyLink" type="button">copy link</button>
+      <span id="drops" class="drops"></span>
     </section>
 
     <section class="field">
@@ -33,7 +47,6 @@
         <option value="telephone">telephone</option>
         <option value="echo">echo</option>
         <option value="reverb">reverb</option>
-        <option value="ai">ai (rvc)</option>
       </select>
     </section>
 
@@ -47,9 +60,30 @@
       <input id="delay" type="range" min="0" max="1000" value="150" step="10">
     </section>
 
+    <section class="field">
+      <label for="output">output</label>
+      <select id="output"><option value="default">default</option></select>
+    </section>
+
     <section class="meter">
       <meter id="level" min="0" max="1" value="0"></meter>
-      <span id="rtt" class="rtt"></span>
+    </section>
+  </main>
+
+  <main id="sourcePanel" class="panel hidden">
+    <section class="field">
+      <label for="sourceCode">session code</label>
+      <input id="sourceCode" type="text" maxlength="8" autocomplete="off" placeholder="e.g. X7K2M9">
+    </section>
+
+    <section class="row">
+      <button id="sourceStart" type="button">start mic</button>
+      <button id="sourceMute" type="button" disabled>mute</button>
+      <span id="sourceStatus" class="status">idle</span>
+    </section>
+
+    <section class="meter">
+      <meter id="sourceLevel" min="0" max="1" value="0"></meter>
     </section>
   </main>
 

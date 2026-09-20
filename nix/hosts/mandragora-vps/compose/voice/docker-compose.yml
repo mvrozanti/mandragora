@@ -15,6 +15,7 @@ services:
       caddy.header.Referrer-Policy: strict-origin-when-cross-origin
       caddy.encode: zstd gzip
       caddy.@ws.path: "/ws*"
+      caddy.@theme.path: "/api/theme /api/theme/*"
       caddy.0_handle: "@ws"
       caddy.0_handle.forward_auth: "authelia:9091"
       caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
@@ -22,10 +23,17 @@ services:
       caddy.0_handle.reverse_proxy: "${VOICE_UPSTREAM:-100.115.80.79:8095}"
       caddy.0_handle.reverse_proxy.flush_interval: "-1"
       caddy.0_handle.reverse_proxy.transport: "http"
+      caddy.1_handle: "@theme"
       caddy.1_handle.forward_auth: "authelia:9091"
       caddy.1_handle.forward_auth.uri: "/api/authz/forward-auth"
       caddy.1_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
-      caddy.1_handle.reverse_proxy: "{{upstreams 80}}"
+      caddy.1_handle.reverse_proxy: "host.docker.internal:6684"
+      caddy.1_handle.reverse_proxy.transport: "http"
+      caddy.1_handle.reverse_proxy.transport.dial_timeout: "2s"
+      caddy.2_handle.forward_auth: "authelia:9091"
+      caddy.2_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy.2_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.2_handle.reverse_proxy: "{{upstreams 80}}"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost/"]
       interval: 30s
