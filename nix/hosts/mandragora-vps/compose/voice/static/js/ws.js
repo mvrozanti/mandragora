@@ -8,8 +8,8 @@ window.Voice = (function () {
     return proto + "//" + location.host + "/ws";
   }
 
-  function connect(session, role, onFrame) {
-    const ws = new WebSocket(url() + "?session=" + encodeURIComponent(session) + "&role=" + role);
+  function connect(role, onFrame) {
+    const ws = new WebSocket(url() + "?role=" + role);
     ws.binaryType = "arraybuffer";
     let seq = 0;
 

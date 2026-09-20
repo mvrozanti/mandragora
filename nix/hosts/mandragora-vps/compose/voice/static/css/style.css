@@ -56,31 +56,6 @@ button:hover:not(:disabled) { filter: brightness(1.08); }
 
 .drops { color: var(--mv-warn); font-size: var(--mv-text-xs); }
 
-.session {
-  display: flex;
-  align-items: center;
-  gap: var(--mv-space-3);
-  flex-wrap: wrap;
-  background: var(--mv-bg-raised);
-  border: 1px dashed var(--mv-line-strong);
-  border-radius: var(--mv-radius-1);
-  padding: var(--mv-space-3);
-}
-
-.session .label {
-  color: var(--mv-text-ghost);
-  font-size: var(--mv-text-xs);
-  text-transform: uppercase;
-  letter-spacing: var(--mv-tracking-label);
-}
-
-.session .code {
-  font-family: var(--mv-font-mono);
-  font-size: var(--mv-text-lg);
-  letter-spacing: 0.3em;
-  color: var(--mv-accent);
-}
-
 .field { display: flex; flex-direction: column; gap: var(--mv-space-2); }
 
 .field label {
@@ -90,7 +65,7 @@ button:hover:not(:disabled) { filter: brightness(1.08); }
   color: var(--mv-text-dim);
 }
 
-select, input[type="text"] {
+select {
   background: var(--mv-bg);
   color: var(--mv-text);
   border: 1px solid var(--mv-line);
@@ -100,17 +75,8 @@ select, input[type="text"] {
   min-height: var(--mv-tap);
 }
 
-input[type="text"] {
-  width: 100%;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  font-family: var(--mv-font-mono);
-}
-
 input[type="range"] { width: 100%; accent-color: var(--mv-accent); }
 
 .meter { display: flex; align-items: center; gap: var(--mv-space-3); }
 
 meter { flex: 1; height: 10px; }
-
-#sourceStart { flex: 1; font-size: var(--mv-text-lg); }
