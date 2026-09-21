@@ -149,5 +149,7 @@ in
     extraFlags = [ "--server.http.listen-addr=127.0.0.1:12345" ];
   };
 
+  systemd.services.alloy.serviceConfig.MemoryMax = "2G";
+
   environment.etc."alloy/journal.alloy".text = builtins.readFile ../../../.config/alloy/journal.alloy;
 }
