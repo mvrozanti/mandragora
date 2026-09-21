@@ -18,5 +18,6 @@ export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro"
 export ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek-v4-pro"
 export ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek-v4-flash"
 export ANTHROPIC_SMALL_FAST_MODEL="deepseek-v4-flash"
+export CLAUDE_CODE_MAX_CONTEXT_TOKENS="1000000"
 
 exec claude "$@"
