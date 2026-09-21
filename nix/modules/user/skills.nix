@@ -38,6 +38,10 @@ let
       n = "approach-review";
       s = ../../../agent-skills/approach-review;
     }
+    {
+      n = "hallucinate";
+      s = ../../../agent-skills/hallucinate;
+    }
   ];
 
   mkEntries =
