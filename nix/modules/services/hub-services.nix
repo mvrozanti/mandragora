@@ -15,6 +15,12 @@ let
   enabled = filterAttrs (_: s: s.enable) cfg;
   systemSvcs = filterAttrs (_: s: !s.userService) enabled;
   userSvcs = filterAttrs (_: s: s.userService) enabled;
+  withMemoryMax =
+    svc:
+    if svc.memoryMax == null then
+      svc.systemd
+    else
+      recursiveUpdate { serviceConfig.MemoryMax = svc.memoryMax; } svc.systemd;
 in
 {
   options.mandragora.hub.services = mkOption {
@@ -56,6 +62,21 @@ in
                 regardless of this flag.
               '';
             };
+            memoryMax = mkOption {
+              type = types.nullOr types.str;
+              default = "2G";
+              description = ''
+                Default `serviceConfig.MemoryMax` for ${name}, bounding an
+                idle balloon rather than sizing the service. A `MemoryMax`
+                set inside `systemd` wins over this; `null` opts out
+                entirely, for units whose working set is genuinely large
+                (model servers, renderers).
+
+                2G clears the largest observed steady peak among these
+                services by better than 2x. A unit that trips it is leaking,
+                not busy.
+              '';
+            };
             systemd = mkOption {
               type = types.attrs;
               description = "Body merged into systemd.services.${name} (or systemd.user.services.${name} when userService = true).";
@@ -67,9 +88,10 @@ in
   };
 
   config = {
-    systemd.services = mapAttrs' (name: svc: nameValuePair name svc.systemd) systemSvcs;
+    systemd.services = mapAttrs' (name: svc: nameValuePair name (withMemoryMax svc)) systemSvcs;
     systemd.user.services = mapAttrs' (
-      name: svc: nameValuePair name (recursiveUpdate svc.systemd { unitConfig.ConditionUser = "m"; })
+      name: svc:
+      nameValuePair name (recursiveUpdate (withMemoryMax svc) { unitConfig.ConditionUser = "m"; })
     ) userSvcs;
     networking.firewall.interfaces.tailscale0.allowedTCPPorts = unique (
       mapAttrsToList (_: s: s.port) enabled
