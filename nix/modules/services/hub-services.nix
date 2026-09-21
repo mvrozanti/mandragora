@@ -15,12 +15,18 @@ let
   enabled = filterAttrs (_: s: s.enable) cfg;
   systemSvcs = filterAttrs (_: s: !s.userService) enabled;
   userSvcs = filterAttrs (_: s: s.userService) enabled;
-  withMemoryMax =
+  defaultsFor =
     svc:
-    if svc.memoryMax == null then
-      svc.systemd
-    else
-      recursiveUpdate { serviceConfig.MemoryMax = svc.memoryMax; } svc.systemd;
+    (if svc.memoryMax == null then { } else { serviceConfig.MemoryMax = svc.memoryMax; })
+    // (
+      if svc.maxRuntime == null then
+        { }
+      else
+        {
+          serviceConfig.RuntimeMaxSec = svc.maxRuntime;
+        }
+    );
+  withDefaults = svc: recursiveUpdate (defaultsFor svc) svc.systemd;
 in
 {
   options.mandragora.hub.services = mkOption {
@@ -62,6 +68,21 @@ in
                 regardless of this flag.
               '';
             };
+            maxRuntime = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = ''
+                When set, `serviceConfig.RuntimeMaxSec` — systemd stops the
+                unit after this long and `Restart=always` brings it back.
+
+                This is leak tolerance, not a health policy. Several of these
+                services grow while completely idle (flybrain-web measured
+                11MB fresh against 656MB after ~48 minutes serving zero
+                requests), and a periodic reset bounds that without needing
+                the leak found first. Restart costs ~1s of downtime, so set
+                it only where a brief blip is acceptable.
+              '';
+            };
             memoryMax = mkOption {
               type = types.nullOr types.str;
               default = "2G";
@@ -88,10 +109,10 @@ in
   };
 
   config = {
-    systemd.services = mapAttrs' (name: svc: nameValuePair name (withMemoryMax svc)) systemSvcs;
+    systemd.services = mapAttrs' (name: svc: nameValuePair name (withDefaults svc)) systemSvcs;
     systemd.user.services = mapAttrs' (
       name: svc:
-      nameValuePair name (recursiveUpdate (withMemoryMax svc) { unitConfig.ConditionUser = "m"; })
+      nameValuePair name (recursiveUpdate (withDefaults svc) { unitConfig.ConditionUser = "m"; })
     ) userSvcs;
     networking.firewall.interfaces.tailscale0.allowedTCPPorts = unique (
       mapAttrsToList (_: s: s.port) enabled
