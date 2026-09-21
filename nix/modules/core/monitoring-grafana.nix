@@ -285,8 +285,9 @@ let
       ePsiIo = "rate(node_pressure_io_waiting_seconds_total{${inst}}[5m]) * 100";
       ePsiMem = "rate(node_pressure_memory_waiting_seconds_total{${inst}}[5m]) * 100";
       ePsiCpu = "rate(node_pressure_cpu_waiting_seconds_total{${inst}}[5m]) * 100";
-      pTop = m: "topk(10, sum by (groupname) (${m}{${inst}}))";
-      pTopRate = m: "topk(10, sum by (groupname) (rate(${m}{${inst}}[5m])))";
+      pSel = extra: "{${inst}" + (if extra == "" then "" else ",${extra}") + "}";
+      pTop = m: extra: "topk(10, sum by (groupname) (${m}${pSel extra}))";
+      pTopRate = m: "topk(10, sum by (groupname) (rate(${m}${pSel ""}[5m])))";
 
       gaugesPressure = [
         (mkGauge {
@@ -460,7 +461,7 @@ let
           id = 42;
           title = "Memory by program";
           targets = [
-            (mkT 0 (pTop "namedprocess_namegroup_memory_bytes{memtype=\"resident\"}") "{{groupname}}")
+            (mkT 0 (pTop "namedprocess_namegroup_memory_bytes" "memtype=\"resident\"") "{{groupname}}")
           ];
           gridPos = pos 12 (yWho + 1) 12 8;
           unit = "bytes";
@@ -468,7 +469,7 @@ let
         (mkBar {
           id = 43;
           title = "Swapped out by program";
-          expr = pTop "namedprocess_namegroup_memory_bytes{memtype=\"swapped\"}";
+          expr = pTop "namedprocess_namegroup_memory_bytes" "memtype=\"swapped\"";
           legend = "{{groupname}}";
           gridPos = pos 0 (yWho + 9) 8 7;
           unit = "bytes";
