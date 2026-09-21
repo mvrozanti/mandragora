@@ -53,6 +53,7 @@ in
   mandragora.hub.services.flybrain-web = {
     port = 8097;
     userService = true;
+    maxRuntime = "6h";
     systemd = {
       description =
         "flybrain web panel (tailnet bind, public via Caddy at fly.mvr.ac). "
