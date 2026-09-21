@@ -51,8 +51,9 @@ Do NOT use when the user wants certainty rather than novelty.
 
 ```
 0. Read the ledger     bin/hallucinate-db --project <p> taboo
-                       Everything it prints is BANNED. Non-optional, every run,
-                       every mode. Skipping it is how the same idea comes back.
+                       Read every row, claim included. This is THE guard — the
+                       lexical check in step 6 cannot see a paraphrase, you can.
+                       Non-optional, every run, every mode.
 1. Question the goal   Spot an XY problem first. If the stated goal is a means
                        to an unstated end, reformulate and ideate against the
                        end. (See "The veil".)
@@ -63,8 +64,9 @@ Do NOT use when the user wants certainty rather than novelty.
                        field.
 5. First step          Every idea carries one concrete, falsifiable first step.
 6. Check each one      bin/hallucinate-db check "<the claim, one sentence>"
-                       A COLLISION means drop it and generate a replacement —
-                       not "mention it anyway".
+                       A COLLISION (exit 1) means drop it and generate a
+                       replacement. No collision means nothing: read the
+                       nearest rows it prints and judge them yourself.
 7. Switch roles        Become a ruthless skeptic. Score novelty 1–10 and
                        feasibility 1–10. Kill anything failing feasibility.
 8. Keep ≥7 on both     Report only survivors, each with a one-line
@@ -141,15 +143,31 @@ One append-only JSONL at `~/.ai-shared/hallucinations/ledger.jsonl`
 hallucinated is banned for Claude too.
 
 An idea is stored by its **kernel** — the normalized token set of its claim, not
-its title. Titles drift ("understudy rule" becomes "hold the runner-up"); kernels
-do not. Matching is set overlap (Jaccard ≥ 0.60), never string equality: a
-guard that compares strings clears a rename, which is exactly how a duplicate
-gets through.
+its title, with synonym families collapsed to one concept (leader/top/winner →
+`rank_top`) and suffixes stemmed. Titles drift ("understudy rule" becomes "hold
+the runner-up"); kernels do not.
+
+**What the lexical score can and cannot do.** Measured on a 15-row ledger
+(2026-09-20): paraphrases of stored ideas scored 0.54, 0.36, 0.27, 0.19, 0.14,
+0.12, 0.10 — while genuinely new ideas scored 0.11, 0.11, 0.07, 0.05, 0.04,
+0.03. **The distributions overlap**, so no threshold separates a reworded
+duplicate from a new idea, and any "clear" a score produced would be fabricated.
+
+The design follows from that measurement:
+
+- `check` exits 1 only at ≥ 0.60, which catches renames and near-copies.
+- Below that it reports **NO LEXICAL DUPLICATE**, never "clear", and prints the
+  five nearest rows with their claims so the reader makes the call.
+- `taboo`, read in full, is the actual guard. The matcher is retrieval.
+
+Do not raise the threshold to "catch more" — at 0.10 it would flag every
+unrelated idea in the ledger. The overlap is a property of lexical matching,
+not a tuning problem.
 
 | Verb | Use |
 |---|---|
-| `taboo [--limit N]` | The ban list. Run BEFORE generating. |
-| `check "<claim>"` | One candidate. Exit 1 on collision, prints the prior verdict. |
+| `taboo [--limit N]` | The ban list, claims included. Run BEFORE generating, read it all. |
+| `check "<claim>"` | One candidate. Exit 1 on a rename-level hit; otherwise prints the 5 nearest for you to judge. |
 | `append` | Read JSON/JSONL on stdin, append. Run AFTER reporting. |
 | `list [--verdict V]` | Rows, newest first. |
 | `stats` | Counts by verdict and project. |

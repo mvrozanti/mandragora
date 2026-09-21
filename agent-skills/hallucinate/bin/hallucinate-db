@@ -10,9 +10,13 @@ Every idea is recorded, survivors and kills alike. A kill is the more valuable
 row: it carries WHY, and re-proposing a known-dead idea is the exact waste this
 ledger exists to prevent.
 
+The real guard is `taboo` — the caller reads every prior idea and judges. The
+lexical score in `check` catches renames and nothing subtler; it is measured to
+be unable to separate a paraphrase from a new idea, so it never clears one.
+
 Verbs:
-  taboo   [--project P] [--limit N]   ban list to inject BEFORE generating
-  check   <text...>                   collisions for one candidate kernel
+  taboo   [--project P] [--limit N]   ban list to READ IN FULL before generating
+  check   <text...>                   nearest prior ideas to one candidate
   append  [--project P]               read JSON or JSONL on stdin, append
   list    [--project P] [--verdict V] rows, newest first
   stats   [--project P]               counts by verdict and by project
@@ -40,13 +44,72 @@ STOPWORDS = {
     "than", "then", "when", "which", "not", "no", "be", "are", "was", "were",
     "use", "using", "used", "via", "per", "each", "one", "two", "new", "own",
     "signal", "strategy", "idea", "approach", "method", "rule", "test",
+    "place", "thing", "way", "some", "any", "more", "most", "less", "very",
 }
-NEAR_DUPLICATE = 0.60
+
+# Raw Jaccard cannot see through a paraphrase: "hold the runner-up, never the
+# leader" and "never hold the top performer, take second place" share almost no
+# tokens and scored 0.00 before this map existed. Variants collapse to one
+# canonical concept so a reworded proposal lands on its original.
+SYNONYMS = {
+    "rank_top": ("leader", "leading", "lead", "top", "first", "winner",
+                 "winning", "best", "highest", "strongest", "champion"),
+    "rank_second": ("runnerup", "runner", "second", "understudy", "secondbest",
+                    "next", "deputy", "backup"),
+    "rank_low": ("last", "worst", "loser", "losing", "lowest", "weakest"),
+    "crowd": ("crowded", "crowding", "consensus", "popular", "positioning",
+              "consensual", "overowned", "packed"),
+    "hold": ("hold", "own", "buy", "allocate", "take", "long", "carry"),
+    "asset": ("asset", "instrument", "name", "leg", "ticker", "security",
+              "sleeve", "market"),
+    "perf": ("return", "performance", "performing", "perform", "gain",
+             "profit", "yield", "apy"),
+    "trail": ("trailing", "past", "historical", "lookback", "momentum",
+              "recent", "prior"),
+    "rank": ("rank", "ranked", "ranking", "sort", "sorted", "order",
+             "ordered", "score", "scored"),
+    "vol": ("volatility", "variance", "stdev", "sd", "dispersion",
+            "dispersed", "disperse"),
+    "drawdown": ("drawdown", "dd", "loss", "peak", "trough"),
+    "entry": ("entry", "enter", "entering", "arm", "trigger"),
+    "exit": ("exit", "exiting", "leave", "derisk", "cut", "stop", "flat"),
+    "cash": ("cash", "cdb", "cdi", "deposit", "riskfree"),
+    "funding": ("funding", "perp", "perpetual", "basis", "carry"),
+    "week": ("week", "weekly"),
+    "month": ("month", "monthly"),
+    "flow": ("flow", "flows", "inflow", "outflow", "rotation", "rotate"),
+    "sentiment": ("sentiment", "attention", "news", "tone", "mood"),
+}
+_CANON = {v: k for k, vs in SYNONYMS.items() for v in vs}
+
+# Measured 2026-09-20 on a 15-row ledger: paraphrases of stored ideas scored
+# 0.54 0.36 0.27 0.19 0.14 0.12 0.10 while genuinely new ideas scored 0.11 0.11
+# 0.07 0.05 0.04 0.03. The distributions OVERLAP — no threshold separates them,
+# so a score-based "no collision" verdict would be fabricated. HARD_DUPLICATE
+# therefore catches only renames and near-copies; everything else is the
+# reader's judgement, which is why `check` always prints the nearest rows and
+# never reports a candidate as clear.
+HARD_DUPLICATE = 0.60
+NEAREST_SHOWN = 5
+
+
+def _stem(t: str) -> str:
+    for suf in ("ings", "ing", "edly", "ed", "ies", "ly", "s"):
+        if len(t) > len(suf) + 3 and t.endswith(suf):
+            return t[: -len(suf)]
+    return t
 
 
 def kernel(text: str) -> frozenset[str]:
     toks = re.findall(r"[a-z0-9]+", str(text).lower())
-    return frozenset(t for t in toks if t not in STOPWORDS and len(t) > 2)
+    out = set()
+    for t in toks:
+        if t in STOPWORDS or len(t) <= 2:
+            continue
+        t = _CANON.get(t) or _CANON.get(_stem(t)) or _stem(t)
+        if t not in STOPWORDS:
+            out.add(t)
+    return frozenset(out)
 
 
 def jaccard(a: frozenset[str], b: frozenset[str]) -> float:
@@ -78,15 +141,21 @@ def idea_id(project: str, k: frozenset[str]) -> str:
     return h[:12]
 
 
-def collisions(text: str, project: str | None) -> list[tuple[float, dict]]:
+def scored(text: str, project: str | None) -> list[tuple[float, dict]]:
+    """Every prior row scored against this candidate, best first."""
     k = kernel(text)
-    hits = []
+    out = []
     for r in rows(project):
-        rk = frozenset(r.get("kernel") or kernel(r.get("claim") or r.get("title", "")))
-        s = jaccard(k, rk)
-        if s >= NEAR_DUPLICATE:
-            hits.append((s, r))
-    return sorted(hits, key=lambda x: -x[0])
+        # Re-derive rather than trust a stored kernel: a row written by an older
+        # version of this file was tokenized by an older map, and comparing two
+        # different tokenizations silently under-matches.
+        rk = kernel(f"{r.get('title','')} {r.get('claim','')}")
+        out.append((jaccard(k, rk), r))
+    return sorted(out, key=lambda x: -x[0])
+
+
+def collisions(text: str, project: str | None) -> list[tuple[float, dict]]:
+    return [(s, r) for s, r in scored(text, project) if s >= HARD_DUPLICATE]
 
 
 def cmd_taboo(a) -> int:
@@ -101,24 +170,37 @@ def cmd_taboo(a) -> int:
         verdict = r.get("verdict", "?")
         why = r.get("why", "")
         rev = r.get("revive_if")
-        line = f"- [{r.get('id','?')}] {r.get('title','?')} — {verdict}"
+        print(f"- [{r.get('id','?')}] {r.get('title','?')} — {verdict}")
+        # The claim, not the title, is what a later run would re-derive: titles
+        # drift and a title alone does not carry the mechanism.
+        if r.get("claim"):
+            print(f"    claim: {r['claim']}")
         if why:
-            line += f": {why}"
+            print(f"    why  : {why}")
         if rev:
-            line += f"  (revivable if: {rev})"
-        print(line)
+            print(f"    revivable if: {rev}")
     return 0
 
 
 def cmd_check(a) -> int:
     text = " ".join(a.text)
-    hits = collisions(text, a.project)
+    ranked = scored(text, a.project)
+    hits = [(s_, r) for s_, r in ranked if s_ >= HARD_DUPLICATE]
     k = kernel(text)
     print(f"kernel: {' '.join(sorted(k))}")
     print(f"id    : {idea_id(a.project or '', k)}")
     if not hits:
-        print(f"CLEAR: no prior idea above {NEAR_DUPLICATE:.2f} overlap "
-              f"({len(rows(a.project))} row(s) searched).")
+        print(f"NO LEXICAL DUPLICATE among {len(ranked)} row(s). This is NOT a "
+              f"verdict that the idea is new —")
+        print(f"a paraphrase scores as low as 0.10 while an unrelated idea "
+              f"scores 0.11. Read the nearest rows and decide:")
+        for s_, r in ranked[:NEAREST_SHOWN]:
+            print(f"  {s_:.2f}  [{r.get('id','?')}] {r.get('title','?')} "
+                  f"— {r.get('verdict','?')}")
+            if r.get("claim"):
+                print(f"        {r['claim'][:150]}")
+        if not ranked:
+            print("  (ledger empty)")
         return 0
     print(f"COLLISION: {len(hits)} prior idea(s) at or above {NEAR_DUPLICATE:.2f}:")
     for s, r in hits:
