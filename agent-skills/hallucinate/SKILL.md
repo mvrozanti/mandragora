@@ -1,6 +1,6 @@
 ---
 name: hallucinate
-description: Explicit-only (/hallucinate) divergent ideation and "behind the veil" meta-analysis. Generates many out-there-but-plausible ideas and filters them to the few that are both novel and feasible; scores and ranks a list of existing ideas; and inspects the goal itself — spotting XY problems, reformulating the goal into something easier or more feasible, unblocking projects, and surfacing recurring patterns or novel observations from the operator's work (memory, vault, git history, handoffs, the current conversation). Modes: refine (default), diverge, judge, veil.
+description: Explicit-only (/hallucinate) divergent ideation and "behind the veil" meta-analysis. Generates many out-there-but-plausible ideas and filters them to the few that are both novel and feasible; scores and ranks a list of existing ideas; and inspects the goal itself — spotting XY problems, reformulating the goal into something easier or more feasible, unblocking projects, and surfacing recurring patterns or novel observations from the operator's work (memory, vault, git history, handoffs, the current conversation). Modes: refine (default), diverge, judge, veil. Keeps an append-only ledger of every idea it has produced and never generates the same one twice.
 ---
 
 # hallucinate — See Behind the Veil
@@ -23,6 +23,12 @@ brought with them.
 **The one law:** divergence and selection are separate acts. Never judge while
 generating. Produce first, kill later.
 
+**The second law:** never hallucinate the same idea twice. Every idea this skill
+has ever produced is in the ledger (`bin/hallucinate-db`), survivors and kills
+alike. Read it before generating, write to it after. An idea the ledger already
+holds is not a candidate — regenerating it is the waste this skill exists to
+avoid, and a killed idea is worth more than a new one because it carries why.
+
 ## When to Use
 
 The user typed `/hallucinate` (explicit only — never fires on plain-language
@@ -44,18 +50,28 @@ Do NOT use when the user wants certainty rather than novelty.
 ## Core workflow (`refine`)
 
 ```
+0. Read the ledger     bin/hallucinate-db --project <p> taboo
+                       Everything it prints is BANNED. Non-optional, every run,
+                       every mode. Skipping it is how the same idea comes back.
 1. Question the goal   Spot an XY problem first. If the stated goal is a means
                        to an unstated end, reformulate and ideate against the
                        end. (See "The veil".)
 2. Diverge             Generate 10–20 distinct ideas. No ranking yet.
-3. Ban the obvious     If a predictable default answer exists, forbid it.
+3. Ban the obvious     Forbid the predictable default answer AND every kernel
+                       the ledger returned in step 0.
 4. Transplant          For at least 5 ideas, port a mechanism from an unrelated
                        field.
 5. First step          Every idea carries one concrete, falsifiable first step.
-6. Switch roles        Become a ruthless skeptic. Score novelty 1–10 and
+6. Check each one      bin/hallucinate-db check "<the claim, one sentence>"
+                       A COLLISION means drop it and generate a replacement —
+                       not "mention it anyway".
+7. Switch roles        Become a ruthless skeptic. Score novelty 1–10 and
                        feasibility 1–10. Kill anything failing feasibility.
-7. Keep ≥7 on both     Report only survivors, each with a one-line
+8. Keep ≥7 on both     Report only survivors, each with a one-line
                        "first thing to build/test tomorrow".
+9. Write the ledger    Append EVERY idea, survivors and kills alike, with its
+                       scores and its why. A run that reports without appending
+                       has not finished.
 ```
 
 ## Divergence techniques
@@ -118,6 +134,52 @@ never finished, a constraint the user keeps fighting, a recurring failure mode,
 or one novel observation that connects several otherwise-separate things.
 Report the pattern with its evidence.
 
+## The ledger (`bin/hallucinate-db`)
+
+One append-only JSONL at `~/.ai-shared/hallucinations/ledger.jsonl`
+(override with `$HALLUCINATE_DB`). Shared across agents, so an idea Gemini
+hallucinated is banned for Claude too.
+
+An idea is stored by its **kernel** — the normalized token set of its claim, not
+its title. Titles drift ("understudy rule" becomes "hold the runner-up"); kernels
+do not. Matching is set overlap (Jaccard ≥ 0.60), never string equality: a
+guard that compares strings clears a rename, which is exactly how a duplicate
+gets through.
+
+| Verb | Use |
+|---|---|
+| `taboo [--limit N]` | The ban list. Run BEFORE generating. |
+| `check "<claim>"` | One candidate. Exit 1 on collision, prints the prior verdict. |
+| `append` | Read JSON/JSONL on stdin, append. Run AFTER reporting. |
+| `list [--verdict V]` | Rows, newest first. |
+| `stats` | Counts by verdict and project. |
+
+`--project <name>` scopes everything; omit it to search across all projects.
+Set `$HALLUCINATE_PROJECT` to avoid repeating it.
+
+Row schema — `title` and `claim` are required, the rest is strongly encouraged:
+
+```json
+{"title": "Understudy rule",
+ "claim": "hold the runner-up ranked asset, never the leader, because the leader is the crowded leg",
+ "transplant": "theater — the understudy carries the show without the exposure",
+ "first_step": "rank {BOVA11,IVVB11,BTC,CDB120} on 13w return, grade rank-2 vs rank-1",
+ "novelty": 8, "feasibility": 9,
+ "verdict": "KILLED",
+ "why": "graded 2026-09-20: test-year APY 3.08% vs a 17.60% bar",
+ "revive_if": "a ranking substrate other than trailing return"}
+```
+
+`verdict` is free text but keep it to `SURVIVOR` / `KILLED` / `GENERATED`.
+`why` is the load-bearing field: a kill without a reason cannot be revived
+intelligently and cannot stop a future run from re-deriving it.
+
+**Reviving deliberately.** The ban is the default, not a wall. If a kill reason
+has expired (the data arrived, the constraint lifted), append a NEW row whose
+`supersedes` names the colliding id and whose `why` says what changed. Never
+silently re-propose — the supersedes chain is what distinguishes a revival from
+a forgotten duplicate.
+
 ## Output shape
 
 - `diverge` — a numbered list, deliberately unfiltered, labeled "unfiltered".
@@ -128,3 +190,8 @@ Report the pattern with its evidence.
 
 Never hedge the filter's verdicts. A survivor that fails feasibility is dead,
 not "interesting to revisit."
+
+Every mode ends the same way: append to the ledger. `diverge` appends its
+unfiltered list as `GENERATED`, `refine` appends survivors and kills with their
+scores, `judge` appends the scored rows it was handed, `veil` appends the
+reformulated goal as a row so the same XY problem is not re-diagnosed next month.
