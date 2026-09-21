@@ -129,6 +129,6 @@ in
   };
   mandragora.emotionWeb.enable = true;
   mandragora.voiceAlterCore.enable = true;
-  mandragora.voiceRvc.enable = true;
+  mandragora.voiceRvc.enable = false;
   mandragora.voiceConvertCore.enable = true;
 }
