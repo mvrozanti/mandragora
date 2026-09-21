@@ -1064,6 +1064,7 @@ in
         disable_signout_menu = true;
       };
       "auth.basic".enabled = false;
+      plugins.disable_plugins = "grafana-lokiexplore-app,grafana-metricsdrilldown-app,grafana-pyroscope-app,grafana-exploretraces-app";
       "auth.anonymous" = {
         enabled = true;
         org_role = "Admin";
