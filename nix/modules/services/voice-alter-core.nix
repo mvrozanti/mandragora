@@ -39,6 +39,19 @@ in
             ];
           };
         }
+        {
+          factory = "adapter";
+          args = {
+            "factory.name" = "support.null-audio-sink";
+            "node.name" = "RvcOut";
+            "node.description" = "RVC Output Sink";
+            "media.class" = "Audio/Sink";
+            "audio.position" = [
+              "FL"
+              "FR"
+            ];
+          };
+        }
       ];
 
       "context.modules" = [
@@ -48,7 +61,7 @@ in
             "node.description" = "Voice Morph source";
             "capture.props" = {
               "node.name" = "capture.vm_to_src";
-              "target.object" = "VoiceMorph";
+              "target.object" = "RvcOut";
               "stream.capture.sink" = true;
             };
             "playback.props" = {
