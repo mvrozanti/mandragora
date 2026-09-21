@@ -124,11 +124,7 @@ in
     allowedClasses = [ ];
     secretBlacklist = "keystats/words_basicauth";
   };
-  mandragora.memeWeb = {
-    enable = true;
-    targetDir = "/mnt/toshiba/hdd/gdrive/Levv/4chan";
-    listenHost = "100.115.80.79";
-  };
+  mandragora.memeWeb.enable = false;
   mandragora.emotionWeb.enable = true;
   mandragora.voiceAlterCore.enable = true;
   mandragora.voiceRvc.enable = true;
