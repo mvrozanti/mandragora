@@ -5,6 +5,7 @@ _:
     enable = true;
     listenAddress = "127.0.0.1";
     port = 9256;
+    extraFlags = [ "-threads=false" ];
     settings.process_names = [
       {
         name = "claude-deepseek";
