@@ -1,6 +1,6 @@
 ---
 name: hallucinate
-description: Explicit-only (/hallucinate) divergent ideation and "behind the veil" meta-analysis. Generates many out-there-but-plausible ideas and filters them to the few that are both novel and feasible; scores and ranks a list of existing ideas; and inspects the goal itself — spotting XY problems, reformulating the goal into something easier or more feasible, unblocking projects, and surfacing recurring patterns or novel observations from the operator's work (memory, vault, git history, handoffs, the current conversation). Modes: refine (default), diverge, judge, veil. Keeps an append-only ledger of every idea it has produced and never generates the same one twice.
+description: Explicit-only (/hallucinate) divergent ideation and "behind the veil" meta-analysis. Generates many out-there-but-plausible ideas and filters them to the few that are both novel and feasible; scores and ranks a list of existing ideas; and inspects the goal itself — spotting XY problems, reformulating the goal into something easier or more feasible, unblocking projects, and surfacing recurring patterns or novel observations from the operator's work (memory, vault, git history, handoffs, the current conversation). Keeps an append-only ledger of every idea it has produced and never generates the same one twice.
 ---
 
 # hallucinate — See Behind the Veil
@@ -24,7 +24,7 @@ brought with them.
 generating. Produce first, kill later.
 
 **The second law:** never hallucinate the same idea twice. Every idea this skill
-has ever produced is in the ledger (`bin/hallucinate-db`), survivors and kills
+has ever produced is in the ledger (`hallucinate-db`), survivors and kills
 alike. Read it before generating, write to it after. An idea the ledger already
 holds is not a candidate — regenerating it is the waste this skill exists to
 avoid, and a killed idea is worth more than a new one because it carries why.
@@ -32,28 +32,20 @@ avoid, and a killed idea is worth more than a new one because it carries why.
 ## When to Use
 
 The user typed `/hallucinate` (explicit only — never fires on plain-language
-"give me ideas"). Read the rest of the message or `args` to pick a mode;
-default to `refine` when unsure.
+"give me ideas"). There are no arguments or modes — the pipeline below always
+runs. Read the message to set the emphasis: a pasted list gets judged, a vague
+"unblock / improve / what's wrong" starts from the veil, a blank slate diverges.
 
 Do NOT use for a plain factual lookup — that is a search, not a hallucination.
 Do NOT use when the user wants certainty rather than novelty.
 
-## Modes
-
-| Mode | Invoke | What it does |
-|---|---|---|
-| `refine` (default) | `/hallucinate` | Full pipeline: diverge, then filter to top-N. |
-| `diverge` | `/hallucinate diverge` | Raw divergence only. Pure brainstorm, no filter. |
-| `judge` | `/hallucinate judge` | Score and rank a list of ideas the user provides. |
-| `veil` | `/hallucinate veil` | Ignore the ideas; inspect the goal itself. |
-
-## Core workflow (`refine`)
+## Core workflow
 
 ```
-0. Read the ledger     bin/hallucinate-db --project <p> taboo
+0. Read the ledger     hallucinate-db --project <p> taboo
                        Read every row, claim included. This is THE guard — the
                        lexical check in step 6 cannot see a paraphrase, you can.
-                       Non-optional, every run, every mode.
+                       Non-optional, every run.
 1. Question the goal   Spot an XY problem first. If the stated goal is a means
                        to an unstated end, reformulate and ideate against the
                        end. (See "The veil".)
@@ -63,7 +55,7 @@ Do NOT use when the user wants certainty rather than novelty.
 4. Transplant          For at least 5 ideas, port a mechanism from an unrelated
                        field.
 5. First step          Every idea carries one concrete, falsifiable first step.
-6. Check each one      bin/hallucinate-db check "<the claim, one sentence>"
+6. Check each one      hallucinate-db check "<the claim, one sentence>"
                        A COLLISION (exit 1) means drop it and generate a
                        replacement. No collision means nothing: read the
                        nearest rows it prints and judge them yourself.
@@ -92,7 +84,7 @@ Use several per run. These open the tail far more than sampling does.
 Sampling parameters (temperature ~0.8–1.3, wider top_p/top_k, repeat penalty)
 loosen the surface. They are secondary — use the techniques first.
 
-## The filter (`judge`)
+## The filter
 
 The filter is a separate actor, never the generator. Hand it the list and this
 rubric:
@@ -101,9 +93,9 @@ rubric:
 > fails feasibility, however novel. Keep only ≥7 on both. For each survivor:
 > one concrete first step, and one reason it could fail.
 
-Use the same rubric when the user hands you an existing list (`judge`).
+Use the same rubric when the user hands you an existing list.
 
-## The veil (`veil`)
+## The veil
 
 Before — and sometimes instead of — generating ideas, inspect the goal:
 
@@ -117,7 +109,7 @@ Before — and sometimes instead of — generating ideas, inspect the goal:
   Name the waste.
 
 When the request is broad ("make X better", "unblock me", "what am I doing
-wrong"), default to `veil` before generating anything.
+wrong"), lead with the veil before generating anything.
 
 ## Inspecting the operator
 
@@ -136,7 +128,7 @@ never finished, a constraint the user keeps fighting, a recurring failure mode,
 or one novel observation that connects several otherwise-separate things.
 Report the pattern with its evidence.
 
-## The ledger (`bin/hallucinate-db`)
+## The ledger (`hallucinate-db`)
 
 One append-only JSONL at `~/.ai-shared/hallucinations/ledger.jsonl`
 (override with `$HALLUCINATE_DB`). Shared across agents, so an idea Gemini
@@ -200,16 +192,18 @@ a forgotten duplicate.
 
 ## Output shape
 
-- `diverge` — a numbered list, deliberately unfiltered, labeled "unfiltered".
-- `refine` — survivors only, each with first-step + failure-mode; state how many
-  were killed.
-- `judge` — a scored table (idea / novelty / feasibility / verdict), top first.
-- `veil` — the reformulated goal first, then what changes because of it.
+- Open with the verdict on the goal — the reformulated goal if the veil changed
+  it — then the ideas.
+- Diverged ideas: survivors first, each with first-step + one reason it could
+  fail, plus the count killed. If the user wanted a raw brainstorm, label the
+  list "unfiltered" and skip scoring.
+- A list the user handed over: a scored table (idea / novelty / feasibility /
+  verdict), top first.
 
 Never hedge the filter's verdicts. A survivor that fails feasibility is dead,
 not "interesting to revisit."
 
-Every mode ends the same way: append to the ledger. `diverge` appends its
-unfiltered list as `GENERATED`, `refine` appends survivors and kills with their
-scores, `judge` appends the scored rows it was handed, `veil` appends the
-reformulated goal as a row so the same XY problem is not re-diagnosed next month.
+Every run ends the same way: append to the ledger. Generated ideas go in as
+`GENERATED`, survivors and kills with their scores, a handed-over list as its
+scored rows, and a reformulated goal as a row so the same XY problem is not
+re-diagnosed next month.

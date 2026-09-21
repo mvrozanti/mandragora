@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 
 let
   crossAgentSkills = [
@@ -58,4 +58,10 @@ in
 {
   home.file =
     mkEntries ".claude/skills" crossAgentSkills // mkEntries ".gemini/skills" crossAgentSkills;
+
+  home.packages = [
+    (pkgs.writeShellScriptBin "hallucinate-db" ''
+      exec ${pkgs.python3}/bin/python3 ${../../../agent-skills/hallucinate/bin/hallucinate-db} "$@"
+    '')
+  ];
 }
