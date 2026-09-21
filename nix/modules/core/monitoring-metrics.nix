@@ -2,6 +2,10 @@
 
 let
   tailnet = builtins.fromJSON (builtins.readFile ../../snippets/tailnet.json);
+  hubServices =
+    (builtins.fromJSON (builtins.readFile ../../hosts/mandragora-vps/compose/hub/static/services.json))
+    .services;
+  probeTargets = map (svc: "https://${svc.host}") hubServices;
 in
 {
   services.victoriametrics = {
@@ -74,6 +78,28 @@ in
           ];
         }
         {
+          job_name = "blackbox-subdomains";
+          scrape_interval = "60s";
+          scrape_timeout = "15s";
+          metrics_path = "/probe";
+          params.module = [ "http_reachable" ];
+          static_configs = [ { targets = probeTargets; } ];
+          relabel_configs = [
+            {
+              source_labels = [ "__address__" ];
+              target_label = "__param_target";
+            }
+            {
+              source_labels = [ "__param_target" ];
+              target_label = "instance";
+            }
+            {
+              target_label = "__address__";
+              replacement = "localhost:9115";
+            }
+          ];
+        }
+        {
           job_name = "ebpf";
           scrape_interval = "15s";
           static_configs = [
@@ -101,6 +127,13 @@ in
   services.prometheus.exporters.nvidia-gpu = {
     enable = true;
     listenAddress = "0.0.0.0";
+  };
+
+  services.prometheus.exporters.blackbox = {
+    enable = true;
+    listenAddress = "127.0.0.1";
+    port = 9115;
+    configFile = ../../../.config/blackbox/blackbox.yml;
   };
 
   services.prometheus.exporters.ebpf = {
