@@ -1,0 +1,218 @@
+#!/usr/bin/env python3
+"""hallucinate-db — the ledger that stops the same idea being hallucinated twice.
+
+An idea is stored by its KERNEL: the normalized token set of its claim, not its
+title. Titles drift ("understudy rule" / "hold the runner-up"); kernels do not.
+A near-duplicate is therefore caught by set overlap, not string equality — the
+failure mode of a glob-based guard is that it clears a rename.
+
+Every idea is recorded, survivors and kills alike. A kill is the more valuable
+row: it carries WHY, and re-proposing a known-dead idea is the exact waste this
+ledger exists to prevent.
+
+Verbs:
+  taboo   [--project P] [--limit N]   ban list to inject BEFORE generating
+  check   <text...>                   collisions for one candidate kernel
+  append  [--project P]               read JSON or JSONL on stdin, append
+  list    [--project P] [--verdict V] rows, newest first
+  stats   [--project P]               counts by verdict and by project
+
+Ledger: $HALLUCINATE_DB or ~/.ai-shared/hallucinations/ledger.jsonl
+"""
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import hashlib
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+LEDGER = Path(os.environ.get(
+    "HALLUCINATE_DB",
+    Path.home() / ".ai-shared" / "hallucinations" / "ledger.jsonl"))
+
+STOPWORDS = {
+    "a", "an", "the", "and", "or", "of", "to", "for", "on", "in", "at", "by",
+    "with", "as", "is", "it", "its", "that", "this", "from", "into", "over",
+    "than", "then", "when", "which", "not", "no", "be", "are", "was", "were",
+    "use", "using", "used", "via", "per", "each", "one", "two", "new", "own",
+    "signal", "strategy", "idea", "approach", "method", "rule", "test",
+}
+NEAR_DUPLICATE = 0.60
+
+
+def kernel(text: str) -> frozenset[str]:
+    toks = re.findall(r"[a-z0-9]+", str(text).lower())
+    return frozenset(t for t in toks if t not in STOPWORDS and len(t) > 2)
+
+
+def jaccard(a: frozenset[str], b: frozenset[str]) -> float:
+    if not a or not b:
+        return 0.0
+    return len(a & b) / len(a | b)
+
+
+def rows(project: str | None = None) -> list[dict]:
+    if not LEDGER.exists():
+        return []
+    out = []
+    for line in LEDGER.read_text(errors="replace").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            r = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if project and r.get("project") != project:
+            continue
+        out.append(r)
+    return out
+
+
+def idea_id(project: str, k: frozenset[str]) -> str:
+    h = hashlib.sha256((project + "|" + " ".join(sorted(k))).encode()).hexdigest()
+    return h[:12]
+
+
+def collisions(text: str, project: str | None) -> list[tuple[float, dict]]:
+    k = kernel(text)
+    hits = []
+    for r in rows(project):
+        rk = frozenset(r.get("kernel") or kernel(r.get("claim") or r.get("title", "")))
+        s = jaccard(k, rk)
+        if s >= NEAR_DUPLICATE:
+            hits.append((s, r))
+    return sorted(hits, key=lambda x: -x[0])
+
+
+def cmd_taboo(a) -> int:
+    rs = rows(a.project)
+    if not rs:
+        print("(ledger empty — nothing is banned yet)")
+        return 0
+    rs = rs[-a.limit:] if a.limit else rs
+    print(f"# {len(rs)} idea(s) already hallucinated"
+          f"{' for ' + a.project if a.project else ''} — DO NOT REGENERATE:")
+    for r in rs:
+        verdict = r.get("verdict", "?")
+        why = r.get("why", "")
+        rev = r.get("revive_if")
+        line = f"- [{r.get('id','?')}] {r.get('title','?')} — {verdict}"
+        if why:
+            line += f": {why}"
+        if rev:
+            line += f"  (revivable if: {rev})"
+        print(line)
+    return 0
+
+
+def cmd_check(a) -> int:
+    text = " ".join(a.text)
+    hits = collisions(text, a.project)
+    k = kernel(text)
+    print(f"kernel: {' '.join(sorted(k))}")
+    print(f"id    : {idea_id(a.project or '', k)}")
+    if not hits:
+        print(f"CLEAR: no prior idea above {NEAR_DUPLICATE:.2f} overlap "
+              f"({len(rows(a.project))} row(s) searched).")
+        return 0
+    print(f"COLLISION: {len(hits)} prior idea(s) at or above {NEAR_DUPLICATE:.2f}:")
+    for s, r in hits:
+        print(f"  {s:.2f}  [{r.get('id','?')}] {r.get('title','?')} "
+              f"— {r.get('verdict','?')}: {r.get('why','')}")
+        if r.get("revive_if"):
+            print(f"        revivable if: {r['revive_if']}")
+    print("\nDo not regenerate it. To revive deliberately, append a NEW row whose"
+          "\n`supersedes` names the colliding id and whose `why` says what changed.")
+    return 1
+
+
+def cmd_append(a) -> int:
+    raw = sys.stdin.read().strip()
+    if not raw:
+        print("hallucinate-db: nothing on stdin", file=sys.stderr)
+        return 2
+    try:
+        parsed = json.loads(raw)
+        items = parsed if isinstance(parsed, list) else [parsed]
+    except json.JSONDecodeError:
+        items = [json.loads(l) for l in raw.splitlines() if l.strip()]
+
+    LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    written, skipped = 0, 0
+    with LEDGER.open("a") as fh:
+        for it in items:
+            project = it.get("project") or a.project or ""
+            claim = it.get("claim") or it.get("title", "")
+            if not claim:
+                print("hallucinate-db: row without title/claim, skipped",
+                      file=sys.stderr)
+                skipped += 1
+                continue
+            k = kernel(claim)
+            it.setdefault("ts", now)
+            it["project"] = project
+            it["kernel"] = sorted(k)
+            it["id"] = it.get("id") or idea_id(project, k)
+            it.setdefault("verdict", "generated")
+            fh.write(json.dumps(it, ensure_ascii=False) + "\n")
+            written += 1
+    print(f"appended {written} row(s) to {LEDGER}"
+          + (f", skipped {skipped}" if skipped else ""))
+    return 0
+
+
+def cmd_list(a) -> int:
+    rs = rows(a.project)
+    if a.verdict:
+        rs = [r for r in rs if r.get("verdict") == a.verdict]
+    for r in reversed(rs[-(a.limit or len(rs)):]):
+        print(f"{r.get('ts','?')}  [{r.get('id','?')}]  {r.get('verdict','?'):>9}  "
+              f"{r.get('project','')}  {r.get('title','?')}")
+    return 0
+
+
+def cmd_stats(a) -> int:
+    rs = rows(a.project)
+    if not rs:
+        print(f"{LEDGER}: empty")
+        return 0
+    by_v: dict[str, int] = {}
+    by_p: dict[str, int] = {}
+    for r in rs:
+        by_v[r.get("verdict", "?")] = by_v.get(r.get("verdict", "?"), 0) + 1
+        by_p[r.get("project", "")] = by_p.get(r.get("project", ""), 0) + 1
+    print(f"{LEDGER}: {len(rs)} row(s)")
+    print("by verdict: " + ", ".join(f"{k}={v}" for k, v in sorted(by_v.items())))
+    print("by project: " + ", ".join(f"{k or '(none)'}={v}"
+                                     for k, v in sorted(by_p.items())))
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--project", default=os.environ.get("HALLUCINATE_PROJECT"),
+                    help="scope to one project (default $HALLUCINATE_PROJECT)")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    p = sub.add_parser("taboo"); p.add_argument("--limit", type=int, default=0)
+    p.set_defaults(fn=cmd_taboo)
+    p = sub.add_parser("check"); p.add_argument("text", nargs="+")
+    p.set_defaults(fn=cmd_check)
+    p = sub.add_parser("append"); p.set_defaults(fn=cmd_append)
+    p = sub.add_parser("list")
+    p.add_argument("--verdict"); p.add_argument("--limit", type=int, default=40)
+    p.set_defaults(fn=cmd_list)
+    p = sub.add_parser("stats"); p.set_defaults(fn=cmd_stats)
+
+    a = ap.parse_args()
+    return a.fn(a)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
