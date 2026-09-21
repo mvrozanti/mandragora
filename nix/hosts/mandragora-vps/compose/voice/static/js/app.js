@@ -75,7 +75,7 @@
     micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     micNode = ctx.createMediaStreamSource(micStream);
     micNode.connect(analyser);
-    micVoice = Voice.connect("source", function () {});
+    micVoice = Voice.connect("source", function () {}, wsPath());
     capture = ctx.createScriptProcessor(1024, 1, 1);
     capture.onaudioprocess = (ev) => {
       if (!micVoice.ready() || muted) return;
@@ -128,7 +128,7 @@
     if (outRunning) return;
     ensureCtx();
     await ctx.resume();
-    outVoice = Voice.connect("sink", onSinkFrame);
+    outVoice = Voice.connect("sink", onSinkFrame, wsPath());
     lastSeq = -1;
     drops = 0;
     $("drops").textContent = "";
@@ -147,10 +147,31 @@
     setStatus("idle");
   }
 
+  function wsPath() {
+    return $("mode").value === "mcbaldiee" ? "/rvc" : "/ws";
+  }
+
+  function reconnectSource() {
+    if (micVoice) micVoice.close();
+    micVoice = Voice.connect("source", function () {}, wsPath());
+  }
+
+  function reconnectSink() {
+    if (outVoice) outVoice.close();
+    lastSeq = -1;
+    outVoice = Voice.connect("sink", onSinkFrame, wsPath());
+  }
+
   function applyMode(mode) {
     $("pitch").disabled = !PITCH_MODES.has(mode);
     if (!dsp) return;
-    dsp.setMode(mode, PRESET[mode] || 0, Number($("pitch").value));
+    if (mode === "mcbaldiee") {
+      dsp.setMode("bypass", 0, Number($("pitch").value));
+    } else {
+      dsp.setMode(mode, PRESET[mode] || 0, Number($("pitch").value));
+    }
+    if (micRunning) reconnectSource();
+    if (outRunning) reconnectSink();
   }
 
   async function setOutput(deviceId) {

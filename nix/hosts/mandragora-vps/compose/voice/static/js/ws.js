@@ -5,11 +5,11 @@ window.Voice = (function () {
 
   function url() {
     const proto = location.protocol === "https:" ? "wss:" : "ws:";
-    return proto + "//" + location.host + "/ws";
+    return proto + "//" + location.host;
   }
 
-  function connect(role, onFrame) {
-    const ws = new WebSocket(url() + "?role=" + role);
+  function connect(role, onFrame, path) {
+    const ws = new WebSocket(url() + (path || "/ws") + "?role=" + role);
     ws.binaryType = "arraybuffer";
     let seq = 0;
 
