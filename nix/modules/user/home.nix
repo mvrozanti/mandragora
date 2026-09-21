@@ -40,6 +40,7 @@ in
     ./waybar.nix
     ./rss-menu.nix
     ./ea-reaper.nix
+    ./calibre-reaper.nix
     ./security-menu.nix
     ./weather-menu.nix
     ./monitor-menu.nix
