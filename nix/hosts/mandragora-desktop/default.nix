@@ -78,6 +78,7 @@ in
     ../../modules/services/emotion-web.nix
     ../../modules/services/voice-alter-core.nix
     ../../modules/services/voice-rvc.nix
+    ../../modules/services/voice-convert-core.nix
     ../../modules/services/llm-visualizer.nix
     ../../modules/user/home-manager.nix
     ../../modules/audits/default.nix
@@ -129,4 +130,5 @@ in
   mandragora.emotionWeb.enable = true;
   mandragora.voiceAlterCore.enable = true;
   mandragora.voiceRvc.enable = true;
+  mandragora.voiceConvertCore.enable = true;
 }
