@@ -57,7 +57,7 @@ in
           PrivateTmp = true;
           NoNewPrivileges = true;
           RestrictAddressFamilies = "AF_UNIX AF_INET AF_INET6";
-          MemoryMax = "8G";
+          MemoryMax = "1G";
           OOMScoreAdjust = 200;
         };
       };
