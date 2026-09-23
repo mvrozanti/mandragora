@@ -32,7 +32,7 @@ EOF
 
 write_shader() {
     local f
-    f=$(awk -v p="$1" "BEGIN { printf \"%.4f\", p/100 }")
+    f=$(awk -v p="$1" "BEGIN { printf \"%.4f\", (p/100)^1.3 }")
     local tmp_file="$SHADER_FILE.tmp"
     cat >"$tmp_file" <<EOF
 precision highp float;
