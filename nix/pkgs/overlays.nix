@@ -1,6 +1,6 @@
 _: {
   nixpkgs.overlays = [
-    (_final: prev: {
+    (final: prev: {
       autoclaude = prev.callPackage ./autoclaude/default.nix { };
       axon = prev.callPackage ./axon/default.nix { };
       cc-lens = prev.callPackage ./cc-lens/default.nix { };
@@ -10,6 +10,7 @@ _: {
       du-exporter = prev.callPackage ./du-exporter/default.nix { };
       ebpf-network-config = prev.callPackage ./ebpf-network-config/default.nix { };
       sddm-mandragora = prev.callPackage ./sddm-mandragora/default.nix { };
+      yt-cast-mpv = final.callPackage ./yt-cast-mpv/default.nix { };
       nerd-fonts = prev.nerd-fonts // {
         iosevka = prev.callPackage ./iosevka-nerd-font-nvidia/default.nix {
           iosevkaNerd = prev.nerd-fonts.iosevka;
