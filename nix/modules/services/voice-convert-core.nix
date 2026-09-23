@@ -10,7 +10,6 @@ let
   project = "/home/m/Projects/voice-convert-core";
   rvcDir = "${project}/rvc";
   venvPy = "${project}/.venv-train/bin/python";
-  gpuLock = pkgs.callPackage ../../pkgs/gpu-lock.nix { };
 
   launcher = pkgs.writeShellScript "voice-convert-core-launch" ''
     set -euo pipefail
@@ -48,6 +47,8 @@ let
     fi
     export RVC_INDEX
 
+    export PYTHONPATH="/etc/nixos/mandragora/.local/share/gpu-lock''${PYTHONPATH:+:$PYTHONPATH}"
+
     exec "$VENV_PY" ${project}/ws_convert.py
   '';
 in
@@ -73,6 +74,7 @@ in
           RVC_INDEX_RATE = "0.75";
           RVC_F0METHOD = "rmvpe";
           RVC_PITCH = "0";
+          RVC_IDLE_TIMEOUT = "120";
           VOICE_CONVERT_LISTEN_HOST = "0.0.0.0";
           VOICE_CONVERT_LISTEN_PORT = "8098";
         };
@@ -84,10 +86,10 @@ in
           pkgs.binutils
         ];
         serviceConfig = {
-          ExecStart = "${gpuLock}/bin/gpu-lock run --name voice-convert-core --expect 86400 -- ${launcher}";
+          ExecStart = "${launcher}";
           Restart = "on-failure";
           RestartSec = "15s";
-          TimeoutStartSec = "10min";
+          TimeoutStartSec = "60s";
           MemoryMax = "16G";
           OOMScoreAdjust = 300;
         };
