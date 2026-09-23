@@ -1,0 +1,21 @@
+--- a/dist/lib/app/YouTubeApp.js
++++ b/dist/lib/app/YouTubeApp.js
+@@ -19,6 +19,7 @@
+ import { AppError, SenderConnectionError, IncompleteAPIDataError } from '../utils/Errors.js';
+ import { AUTOPLAY_MODES, STATUSES, CONF_DEFAULTS, PLAYER_STATUSES, CLIENTS, MUTE_POLICIES, RESET_PLAYER_ON_DISCONNECT_POLICIES } from '../Constants.js';
+ import DefaultPlaylistRequestHandler from './DefaultPlaylistRequestHandler.js';
++const SENDER_COMMAND_MESSAGES = [ 'setPlaylist', 'updatePlaylist', 'next', 'previous', 'pause', 'stopVideo', 'seekTo', 'setVolume', 'play', 'setAutoplayMode' ];
+ /**
+  * @internal
+  *
+@@ -299,6 +300,10 @@
+         return;
+     }
+     const { AID, name, payload } = message;
++    if (!__classPrivateFieldGet(this, _YouTubeApp_activeSession, "f") && SENDER_COMMAND_MESSAGES.includes(name)) {
++        __classPrivateFieldSet(this, _YouTubeApp_activeSession, session, "f");
++        __classPrivateFieldGet(this, _YouTubeApp_logger, "f").debug(`[yt-cast-receiver] Adopted '${session.client.name}' session as active on '${name}' from an already-linked sender.`);
++    }
+     const isSessionActive = session === __classPrivateFieldGet(this, _YouTubeApp_activeSession, "f");
+     const client = session.client;
+     __classPrivateFieldGet(this, _YouTubeApp_logger, "f").debug('-----------------------------------');

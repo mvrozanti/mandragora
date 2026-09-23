@@ -1,0 +1,33 @@
+--- a/dist/lib/app/Playlist.js
++++ b/dist/lib/app/Playlist.js
+@@ -73,7 +73,7 @@
+             return;
+         }
+         const data = message.payload;
+-        if (!data.listId) {
++        if (!data.listId && !data.videoId) {
+             __classPrivateFieldSet(this, _Playlist_id, null, "f");
+             __classPrivateFieldSet(this, _Playlist_current, null, "f");
+             __classPrivateFieldSet(this, _Playlist_next, null, "f");
+@@ -82,14 +82,16 @@
+             this.emit('playlistCleared', { type: 'playlistCleared' });
+             return;
+         }
+-        __classPrivateFieldSet(this, _Playlist_id, data.listId, "f");
+-        __classPrivateFieldSet(this, _Playlist_videoIds, data.videoIds ? data.videoIds.split(',') : [], "f");
++        __classPrivateFieldSet(this, _Playlist_id, data.listId || null, "f");
++        __classPrivateFieldSet(this, _Playlist_videoIds, data.videoIds ? data.videoIds.split(',') : (data.videoId ? [ data.videoId ] : []), "f");
+         if (message.name === 'setPlaylist') {
+-            if (data.currentIndex && data.videoId) {
++            if (data.videoId) {
+                 const context = {
+-                    playlistId: data.listId,
+-                    index: parseInt(data.currentIndex, 10)
++                    index: data.currentIndex !== undefined ? parseInt(data.currentIndex, 10) : 0
+                 };
++                if (data.listId) {
++                    context.playlistId = data.listId;
++                }
+                 if (data.ctt) {
+                     context.ctt = data.ctt;
+                 }
