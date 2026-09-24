@@ -93,4 +93,9 @@
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/settings.json";
   home.file.".claude/hooks/rtk-rewrite.sh".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/hooks/rtk-rewrite.sh";
+  # Re-asserts chat mode on every prompt while the session's flag exists. A
+  # skill is read once; this is what makes the mode unforgettable twenty
+  # turns later. Silent and exit-0 when the flag is absent.
+  home.file.".claude/hooks/chat-mode.sh".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/hooks/chat-mode.sh";
 }
