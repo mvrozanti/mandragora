@@ -10,6 +10,13 @@ local logger = require("logger")
 
 local Screen = Device.screen
 
+local DP = Screen:scaleBySize(10000) / 10000
+local function face(name, size)
+    local px = math.floor(size / DP + 0.5)
+    if px < 1 then px = 1 end
+    return Font:getFace(name, px)
+end
+
 local CONFIG_PATH = "/mnt/us/mandragora/ticker.conf"
 local BLACK = Blitbuffer.COLOR_BLACK
 local WHITE = Blitbuffer.COLOR_WHITE
@@ -145,14 +152,24 @@ end
 function Ticker:layout()
     local w, h = Screen:getWidth(), Screen:getHeight()
     local m = math.floor(w * 0.027)
+    local head_h = math.floor(h * 0.10)
+    local side_w = math.floor(w * 0.30)
+    local gap = math.floor(w * 0.012)
+    local side_bottom = math.floor(h * 0.93)
+    local chart_x = m + side_w + gap
+    local chart_y = head_h + 12
+    local chart_h = side_bottom - chart_y
     return {
         w = w, h = h, m = m,
-        chart_x = m, chart_y = math.floor(h * 0.205),
-        chart_w = w - m * 2, chart_h = math.floor(h * 0.460),
-        ohlc_y = math.floor(h * 0.677),
-        tf_y = math.floor(h * 0.722), tf_w = 104, tf_h = 58,
-        rail_y = math.floor(h * 0.800), rail_h = 10,
-        btn_y = math.floor(h * 0.862), btn_h = 62,
+        head_key_y = 30, head_label_y = 116,
+        price_y = 30, change_y = 116,
+        side_x = m, side_w = side_w,
+        side_top = head_h, side_bottom = side_bottom,
+        chart_x = chart_x, chart_y = chart_y,
+        chart_w = w - chart_x - m, chart_h = chart_h,
+        tf_x = chart_x + 10, tf_y = chart_y + 10, tf_w = 88, tf_h = 50, tf_gap = 8,
+        all_w = 88, all_h = 50,
+        ohlc_y = chart_y + chart_h - 46,
         foot_y = h - math.floor(h * 0.032),
     }
 end
@@ -209,9 +226,16 @@ local function textRight(bb, right, y, str, face, fg)
     return size.w
 end
 
+local function measure(str, face)
+    local widget = TextWidget:new{ text = str, face = face }
+    local size = widget:getSize()
+    widget:free()
+    return size.w, size.h
+end
+
 function Ticker:drawCandles(bb, x, y, w, h, series, opts)
     if not series or #series < 2 then
-        text(bb, x, y + math.floor(h / 2), "no candles yet", Font:getFace("infofont", 30), SOFT)
+        text(bb, x, y + math.floor(h / 2), "no candles yet", face("infofont", 30), SOFT)
         return
     end
     local lo, hi = series[1][3], series[1][2]
@@ -232,7 +256,7 @@ function Ticker:drawCandles(bb, x, y, w, h, series, opts)
             if opts.axis then
                 local widget = TextWidget:new{
                     text = money(top - span * (i / 3)),
-                    face = Font:getFace("infofont", 24),
+                    face = face("infofont", 24),
                     fgcolor = SOFT,
                 }
                 local size = widget:getSize()
@@ -305,20 +329,24 @@ function Ticker:tfRects()
     local L = self.L
     local out = {}
     for i = 1, #RANGES do
-        out[i] = { x = L.m + (i - 1) * L.tf_w, y = L.tf_y, w = L.tf_w, h = L.tf_h }
+        out[i] = { x = L.tf_x + (i - 1) * (L.tf_w + L.tf_gap), y = L.tf_y, w = L.tf_w, h = L.tf_h }
     end
     return out
 end
 
-function Ticker:railRects()
+function Ticker:allRect()
+    local L = self.L
+    return { x = L.chart_x + L.chart_w - L.all_w - 10, y = L.tf_y, w = L.all_w, h = L.all_h }
+end
+
+function Ticker:sideRects()
     local L = self.L
     local n = self.quotes and #self.quotes or 0
     if n == 0 then return {} end
-    local gap = 8
-    local mw = math.floor((L.w - L.m * 2 - gap * (n - 1)) / n)
+    local rh = math.floor((L.side_bottom - L.side_top) / n)
     local out = {}
     for i = 1, n do
-        out[i] = { x = L.m + (i - 1) * (mw + gap), y = L.rail_y, w = mw, h = L.rail_h }
+        out[i] = { x = L.side_x, y = L.side_top + (i - 1) * rh, w = L.side_w, h = rh }
     end
     return out
 end
@@ -338,11 +366,11 @@ end
 
 function Ticker:paintEmpty(bb, x, y)
     local L = self.L
-    text(bb, x + L.m, y + math.floor(L.h * 0.42), "no quotes", Font:getFace("tfont", 62), BLACK)
+    text(bb, x + L.m, y + math.floor(L.h * 0.42), "no quotes", face("tfont", 62), BLACK)
     text(bb, x + L.m, y + math.floor(L.h * 0.42) + 92,
-        self.cfg.host .. ":" .. self.cfg.port .. " did not answer", Font:getFace("infofont", 32), SOFT)
+        self.cfg.host .. ":" .. self.cfg.port .. " did not answer", face("infofont", 32), SOFT)
     text(bb, x + L.m, y + math.floor(L.h * 0.42) + 146, "tap to try again",
-        Font:getFace("infofont", 32), SOFT)
+        face("infofont", 32), SOFT)
 end
 
 function Ticker:paintChart(bb, x, y)
@@ -350,39 +378,24 @@ function Ticker:paintChart(bb, x, y)
     local q = self:current()
     if not q then return self:paintEmpty(bb, x, y) end
 
-    text(bb, x + L.m, y + 28, q.key, Font:getFace("tfont", 76), BLACK)
-    textRight(bb, x + L.w - L.m, y + 52, self:ageText(), Font:getFace("infofont", 28), SOFT)
-    text(bb, x + L.m, y + 122, q.label, Font:getFace("infofont", 30), SOFT)
-
-    text(bb, x + L.m, y + 176, q.price, Font:getFace("tfont", 92), BLACK)
+    text(bb, x + L.m, y + L.head_key_y, q.key, face("tfont", 60), BLACK)
+    text(bb, x + L.m, y + L.head_label_y, q.label, face("infofont", 26), SOFT)
+    textRight(bb, x + L.w - L.m, y + L.price_y, q.price, face("tfont", 60), BLACK)
     local neg = q.change:sub(1, 1) == "-"
-    textRight(bb, x + L.w - L.m, y + 208,
+    textRight(bb, x + L.w - L.m, y + L.change_y,
         (q.change ~= "-" and q.change .. "%" or "—"),
-        Font:getFace("tfont", 44), neg and SOFT or BLACK)
+        face("tfont", 34), neg and SOFT or BLACK)
 
     self:drawCandles(bb, x + L.chart_x, y + L.chart_y, L.chart_w, L.chart_h,
         self:sliceFor(q.key), { grid = true, axis = true, lastLine = true })
 
-    local series = self.bars[q.key]
-    if series and #series > 0 then
-        local bar = series[#series]
-        local names = { "O", "H", "L", "C" }
-        local step = math.floor(L.chart_w / 4)
-        for i = 1, 4 do
-            local bx = x + L.m + (i - 1) * step
-            local lw = text(bb, bx, y + L.ohlc_y, names[i], Font:getFace("infofont", 26), SOFT)
-            text(bb, bx + lw + 12, y + L.ohlc_y - 2, money(bar[i]),
-                Font:getFace("tfont", 28), BLACK)
-        end
-    end
-
     for i, r in ipairs(self:tfRects()) do
         local on = (i == self.tf)
-        if on then bb:paintRect(x + r.x, y + r.y, r.w, r.h, BLACK) end
+        bb:paintRect(x + r.x, y + r.y, r.w, r.h, on and BLACK or WHITE)
         bb:paintBorder(x + r.x, y + r.y, r.w, r.h, 2, BLACK)
         local widget = TextWidget:new{
             text = RANGES[i][1],
-            face = Font:getFace("tfont", 28),
+            face = face("tfont", 24),
             fgcolor = on and WHITE or BLACK,
         }
         local size = widget:getSize()
@@ -391,44 +404,76 @@ function Ticker:paintChart(bb, x, y)
         widget:free()
     end
 
-    for i, r in ipairs(self:railRects()) do
-        bb:paintRect(x + r.x, y + r.y, r.w, r.h, i == self.sel and BLACK or MID)
+    local ar = self:allRect()
+    bb:paintRect(x + ar.x, y + ar.y, ar.w, ar.h, WHITE)
+    bb:paintBorder(x + ar.x, y + ar.y, ar.w, ar.h, 2, BLACK)
+    local aw = TextWidget:new{ text = "all", face = face("tfont", 24), fgcolor = BLACK }
+    local asz = aw:getSize()
+    aw:paintTo(bb, x + ar.x + math.floor((ar.w - asz.w) / 2), y + ar.y + math.floor((ar.h - asz.h) / 2))
+    aw:free()
+
+    local series = self.bars[q.key]
+    if series and #series > 0 then
+        local bar = series[#series]
+        local items = { { "O", bar[1] }, { "H", bar[2] }, { "L", bar[3] }, { "C", bar[4] } }
+        local total = 0
+        for i = 1, 4 do
+            total = total + measure(items[i][1], face("infofont", 22))
+                + 8 + measure(money(items[i][2]), face("tfont", 24)) + 22
+        end
+        local ox = x + L.chart_x + 8
+        local oy = y + L.ohlc_y - 6
+        bb:paintRect(ox - 6, oy, total + 12, 40, WHITE)
+        local cursor = 0
+        for i = 1, 4 do
+            local nw = measure(items[i][1], face("infofont", 22))
+            text(bb, ox + cursor, oy + 8, items[i][1], face("infofont", 22), SOFT)
+            cursor = cursor + nw + 8
+            text(bb, ox + cursor, oy + 6, money(items[i][2]), face("tfont", 24), BLACK)
+            cursor = cursor + measure(money(items[i][2]), face("tfont", 24)) + 22
+        end
     end
 
-    local label = "all sixteen"
-    local widget = TextWidget:new{ text = label, face = Font:getFace("tfont", 30) }
-    local size = widget:getSize()
-    local bw = size.w + 56
-    bb:paintBorder(x + L.w - L.m - bw, y + L.btn_y, bw, L.btn_h, 2, BLACK)
-    widget:paintTo(bb, x + L.w - L.m - bw + 28, y + L.btn_y + math.floor((L.btn_h - size.h) / 2))
-    widget:free()
+    for i, r in ipairs(self:sideRects()) do
+        local qq = self.quotes[i]
+        local on = (i == self.sel)
+        if on then bb:paintRect(x + r.x, y + r.y, r.w, r.h, BLACK) end
+        bb:paintBorder(x + r.x, y + r.y, r.w, r.h, 2, on and BLACK or MID)
+        local qneg = qq.change:sub(1, 1) == "-"
+        local chg = (qq.change ~= "-" and qq.change .. "%" or "—")
+        text(bb, x + r.x + 14, y + r.y + 30, qq.key, face("tfont", 26), on and WHITE or BLACK)
+        textRight(bb, x + r.x + r.w - 14, y + r.y + 32, chg,
+            face("infofont", 22), on and WHITE or (qneg and SOFT or BLACK))
+    end
 
     text(bb, x + L.m, y + L.foot_y,
-        self.error and ("· " .. tostring(self.error)) or "tap a marker · swipe to page · tap chart to refresh",
-        Font:getFace("infofont", 28), SOFT)
+        self.error and ("· " .. tostring(self.error))
+            or "tap a symbol · swipe to page · tap chart to refresh",
+        face("infofont", 24), SOFT)
+    textRight(bb, x + L.w - L.m, y + L.foot_y, self:ageText(), face("infofont", 24), SOFT)
 end
 
 function Ticker:paintGrid(bb, x, y)
     local L = self.L
     if not self.quotes then return self:paintEmpty(bb, x, y) end
 
-    text(bb, x + L.m, y + 28, "all sixteen", Font:getFace("tfont", 54), BLACK)
-    textRight(bb, x + L.w - L.m, y + 46, self:ageText(), Font:getFace("infofont", 28), SOFT)
+    text(bb, x + L.m, y + 28, "all sixteen", face("tfont", 54), BLACK)
+    textRight(bb, x + L.w - L.m, y + 46, self:ageText(), face("infofont", 28), SOFT)
 
     for i, r in ipairs(self:gridRects()) do
         local q = self.quotes[i]
         bb:paintBorder(x + r.x, y + r.y, r.w, r.h, 2, i == self.sel and BLACK or MID)
-        text(bb, x + r.x + 16, y + r.y + 12, q.key, Font:getFace("tfont", 32), BLACK)
+        text(bb, x + r.x + 16, y + r.y + 12, q.key, face("tfont", 32), BLACK)
         self:drawCandles(bb, x + r.x + 14, y + r.y + 70, r.w - 28, math.floor(r.h * 0.46),
             self.bars[q.key] and self:gridSlice(q.key) or nil, nil)
         local neg = q.change:sub(1, 1) == "-"
         text(bb, x + r.x + 16, y + r.y + r.h - 48,
             (q.change ~= "-" and q.change .. "%" or "—"),
-            Font:getFace("infofont", 26), neg and SOFT or BLACK)
+            face("infofont", 26), neg and SOFT or BLACK)
     end
 
     text(bb, x + L.m, y + L.foot_y, "tap a chart to open it · double-tap to close",
-        Font:getFace("infofont", 28), SOFT)
+        face("infofont", 28), SOFT)
 end
 
 function Ticker:gridSlice(key)
@@ -532,7 +577,8 @@ function Ticker:onTap(_, ges)
     end
 
     local L = self.L
-    if py >= L.btn_y and py <= L.btn_y + L.btn_h and px > L.w * 0.6 then
+    local ar = self:allRect()
+    if inside(ar, px, py) then
         self:openGrid()
         return true
     end
@@ -543,8 +589,8 @@ function Ticker:onTap(_, ges)
             return true
         end
     end
-    for i, r in ipairs(self:railRects()) do
-        if inside({ x = r.x, y = r.y - 22, w = r.w, h = r.h + 44 }, px, py) then
+    for i, r in ipairs(self:sideRects()) do
+        if inside(r, px, py) then
             self:select(i)
             return true
         end
