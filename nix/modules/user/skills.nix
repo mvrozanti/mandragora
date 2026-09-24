@@ -39,6 +39,10 @@ let
       s = ../../../agent-skills/approach-review;
     }
     {
+      n = "chat";
+      s = ../../../agent-skills/chat;
+    }
+    {
       n = "hallucinate";
       s = ../../../agent-skills/hallucinate;
     }
