@@ -4,6 +4,10 @@ let
   repo = "/home/m/Projects/im-gen";
   webApp = "${repo}/webui/app.py";
   gpuLock = ../../../.local/share/gpu-lock;
+  supervisor = pkgs.writers.writePython3Bin "idle-socket-supervisor" {
+    libraries = [ ];
+    doCheck = false;
+  } (builtins.readFile ../../../.local/bin/idle-socket-supervisor.py);
 
   launcher = pkgs.writeShellScript "im-gen-web-launch" ''
     set -euo pipefail
@@ -56,18 +60,27 @@ let
   '';
 in
 {
+  systemd.user.sockets.im-gen-web = {
+    description = "gen.mvr.ac socket — on-demand :6682";
+    wantedBy = [ "sockets.target" ];
+    listenStreams = [ "0.0.0.0:6682" ];
+  };
+
   mandragora.hub.services.im-gen-web = {
     port = 6682;
     userService = true;
     systemd = {
       description = "gen.mvr.ac — Flux web UI with LoRA + history graph";
-      wantedBy = [ "default.target" ];
       after = [ "im-gen-cipher.service" ];
       requires = [ "im-gen-cipher.service" ];
       environment = {
-        GEN_HOST = "0.0.0.0";
-        GEN_PORT = "6682";
+        GEN_HOST = "127.0.0.1";
+        GEN_PORT = "16682";
         IM_GEN_DIR = repo;
+        UPSTREAM_ADDR = "127.0.0.1";
+        UPSTREAM_PORT = "16682";
+        IDLE_TIMEOUT = "900";
+        STARTUP_TIMEOUT = "300";
       };
       path = [
         pkgs.coreutils
@@ -77,7 +90,7 @@ in
       serviceConfig = {
         Type = "simple";
         WorkingDirectory = repo;
-        ExecStart = "${launcher}";
+        ExecStart = "${supervisor}/bin/idle-socket-supervisor ${launcher}";
         Restart = "on-failure";
         RestartSec = "10s";
         TimeoutStartSec = "5min";
