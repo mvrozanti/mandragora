@@ -48,7 +48,20 @@
     "command": "bash -c 'cols=$(stty size </dev/tty 2>/dev/null | awk '\"'\"'{print $2}'\"'\"'); export COLUMNS=$(( ${cols:-120} > 4 ? ${cols:-120} - 4 : 1 )); plugin_dir=$(ls -d \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}\"/plugins/cache/*/claude-hud/*/ 2>/dev/null | sort -V | tail -1); exec \"/run/current-system/sw/bin/node\" \"${plugin_dir}dist/index.js\"'"
   },
   "enabledPlugins": {
-    "frontend-design@claude-plugins-official": true
+    "frontend-design@claude-plugins-official": true,
+    "hookify@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "chrome-devtools-mcp@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "crowdsec@claude-plugins-official": true,
+    "nvidia-skills@claude-plugins-official": true,
+    "huggingface-skills@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "mcp-server-dev@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "tellonce": {
