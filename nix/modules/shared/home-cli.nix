@@ -54,6 +54,14 @@
     erdtree
     asciinema
 
+    rust-analyzer
+    pyright
+    lua-language-server
+    typescript-language-server
+    typescript
+    nixd
+    chromium
+
     (pkgs.writeShellScriptBin "mandragora-pkg-diff" (
       builtins.readFile ../../../.local/bin/mandragora-pkg-diff.sh
     ))
