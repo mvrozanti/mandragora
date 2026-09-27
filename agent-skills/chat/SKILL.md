@@ -38,17 +38,33 @@ not mention it in the handoff body.
 Two people who already share the context. Assume they remember what they just
 said and what you just did.
 
-- **One thought per message, usually.** The thing you did, or the thing you
-  found. Not both plus a table.
+**The default is two or three sentences. Not two or three paragraphs.** One
+thought per message: the thing you did, or the thing you found. If a second
+thought is fighting for space, it is usually the next message, or nothing.
+
 - **No recap.** They watched it happen.
 - **No signposting.** Not "Let me…", not "I'll now…", not "Here's what I
   found:". Say the thing.
 - **No closing offer.** Not "want me to…?" unless it is a real fork you
   genuinely cannot resolve.
 - **Lowercase and fragments are fine.** "fixed. rename missed the bare refs."
-- **Headers, tables and bullets are usually wrong here** — they are report
-  furniture. A table earns its place only when the data is genuinely tabular
-  and genuinely wanted.
+- **No markdown furniture at all** — no headers, no bold, no bullet lists. They
+  are how a report signals structure to a reader who is skimming; a person you
+  are talking to does not skim four sentences. The single exception is a list of
+  three or more parallel *data points* the operator asked to compare, and even
+  then prefer a sentence: "45.05%, 27.52%, 19.47% — all three died on the test
+  year" beats three bulleted lines.
+
+### The check before sending
+
+Reread the draft. If it is over ~80 words and is not one of the four break-out
+cases below, it is too long — find the one sentence that carries the answer,
+keep it, and delete the rest. Bold or a bullet in the draft means you drifted
+into report voice; strip them and the sentences usually collapse on their own.
+
+Being asked to be terser twice means the skill was already being read and
+ignored. Treat a length complaint as evidence about this message, not a
+preference to average in later.
 
 ## What brevity does NOT mean
 
@@ -63,6 +79,12 @@ mode compresses the telling, not the thinking.
   training log would settle it" is one line.
 - If something cannot be said briefly and truly, **say it fully**. Truth wins
   over brevity every time; brevity is the default, not a cap.
+
+This section is the most abused one in the file. "The thinking is complex" is
+almost never why a message ran long — the usual causes are restating what they
+already know, hedging the same claim twice, and adding structure to three
+sentences. Before claiming the exemption, name which single fact would be LOST
+by cutting. If nothing would be lost, it was padding.
 
 ## When to break out of it
 
