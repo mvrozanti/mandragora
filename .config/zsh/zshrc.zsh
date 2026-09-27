@@ -139,6 +139,23 @@ bindkey '^[w' run_ncmpcpp
 
 c()   { wl-copy "$@" }
 co()  { wl-paste "$@" }
+cop() {
+  local p out= name
+  p=$(co "$@")
+  p=${p//$'\r'/}
+  p=${p#"${p%%[![:space:]]*}"}
+  p=${p%"${p##*[![:space:]]}"}
+  [[ $p == \"*\" || $p == \'*\' ]] && p=${p:1:-1}
+  [[ $p == file://* ]] && p=$(printf '%b' "${${p#file://}//\%/\\x}")
+  [[ $p == [A-Za-z]:[\\/]* ]] && (( $+commands[wslpath] )) && p=$(wslpath -u "$p")
+  [[ $p == '~' || $p == '~/'* ]] && p=$HOME${p#\~}
+  while [[ $p =~ '\$(\{[A-Za-z_][A-Za-z0-9_]*\}|[A-Za-z_][A-Za-z0-9_]*)' ]]; do
+    name=${${MATCH#\$}//[\{\}]/}
+    out+=${p[1,MBEGIN-1]}${(P)name-$MATCH}
+    p=${p[MEND+1,-1]}
+  done
+  print -r -- "$out$p"
+}
 
 pa()  { ps aux | grep -v grep | grep -i "${1:-.}" }
 eip() { curl -s ipinfo.io | jq -r '.ip' }
