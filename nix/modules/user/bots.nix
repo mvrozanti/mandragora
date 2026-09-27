@@ -21,6 +21,10 @@ let
   teacherRoot = "/home/m/Projects/teacher";
   teacherState = "/home/m/.local/share/teacher";
   memeState = "/home/m/.local/share/meme";
+  imGenBotWaker = pkgs.writers.writePython3Bin "im-gen-bot-waker" {
+    libraries = [ ];
+    doCheck = false;
+  } (builtins.readFile ../../../.local/bin/im-gen-bot-waker.py);
   axonRoot = ../../../.local/share/axon;
   axonState = "/home/m/.local/share/axon";
   axonRepo = "/home/m/Projects/axon";
@@ -68,6 +72,7 @@ in
       Environment = [
         "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
         "TORCHINDUCTOR_COMPILE_THREADS=4"
+        "IM_GEN_IDLE_STOP_S=900"
       ];
       Restart = "on-failure";
       RestartSec = 10;
@@ -80,6 +85,29 @@ in
       TasksMax = 4096;
       ManagedOOMSwap = "kill";
       ManagedOOMMemoryPressure = "kill";
+    };
+  };
+
+  systemd.user.services.im-gen-bot-waker = {
+    Unit = {
+      Description = "im-gen bot waker (peeks Telegram, starts the bot on the first pending update)";
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+      ];
+      Wants = [ "network-online.target" ];
+      ConditionPathExists = [ "/run/secrets/image_generator/telegram_bot_key" ];
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = "${imGenBotWaker}/bin/im-gen-bot-waker";
+      Environment = [
+        "PATH=/run/current-system/sw/bin:/etc/profiles/per-user/m/bin:/nix/var/nix/profiles/default/bin"
+      ];
+      Restart = "always";
+      RestartSec = 10;
+      MemoryMax = "128M";
+      MemorySwapMax = "0";
     };
     Install = {
       WantedBy = [ "default.target" ];
