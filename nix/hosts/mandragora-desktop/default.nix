@@ -51,6 +51,7 @@ in
     ../../modules/desktop/minecraft.nix
     ../../modules/desktop/cc-lens.nix
     ../../modules/desktop/yt-cast.nix
+    ../../modules/desktop/claude-code-update.nix
     ../../modules/services/hub-services.nix
     ../../modules/services/bitcoind.nix
     ../../modules/services/ttyd.nix
