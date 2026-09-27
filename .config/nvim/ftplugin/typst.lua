@@ -1,6 +1,10 @@
 vim.api.nvim_create_autocmd("BufWritePost", {
   buffer = 0,
-  callback = function()
+  callback = function(ev)
+    local ok, preview = pcall(require, 'config.preview')
+    if ok and preview.active(ev.buf) then
+      return
+    end
     local file = vim.fn.expand('%:p')
     local dir = vim.fn.expand('%:p:h')
     local fonts = dir .. '/fonts'

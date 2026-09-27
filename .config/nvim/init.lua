@@ -13,6 +13,8 @@ require('config.functions')
 -- 3. Custom user commands (replaces commands.vim; bugs fixed)
 require('config.commands')
 
+require('config.preview')
+
 -- 4. Autocommands (replaces autocommands.vim; async LaTeX, pymode removed)
 require('config.autocmds')
 
