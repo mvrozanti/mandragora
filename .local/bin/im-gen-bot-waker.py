@@ -19,6 +19,7 @@ log = logging.getLogger("im-gen-bot-waker")
 TOKEN_FILE = Path(
     os.environ.get("IM_GEN_TOKEN_FILE", "/run/secrets/image_generator/telegram_bot_key")
 )
+API_BASE = os.environ.get("IM_GEN_WAKER_API_BASE", "https://api.telegram.org")
 UNIT = os.environ.get("IM_GEN_BOT_UNIT", "im-gen-bot.service")
 POLL_TIMEOUT = int(os.environ.get("IM_GEN_WAKER_POLL_TIMEOUT", "50"))
 BACKOFF_S = float(os.environ.get("IM_GEN_WAKER_BACKOFF_S", "5"))
@@ -51,7 +52,7 @@ def start_unit() -> None:
 
 def pending_update(token: str) -> bool:
     query = urllib.parse.urlencode({"timeout": POLL_TIMEOUT, "limit": 1})
-    url = f"https://api.telegram.org/bot{token}/getUpdates?{query}"
+    url = f"{API_BASE}/bot{token}/getUpdates?{query}"
     request = urllib.request.Request(url, headers={"Accept": "application/json"})
     with urllib.request.urlopen(request, timeout=POLL_TIMEOUT + 15) as response:
         payload = json.load(response)
