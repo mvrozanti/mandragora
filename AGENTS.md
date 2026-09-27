@@ -230,6 +230,22 @@ rationale, recipes, or the incident that produced the rule.
     `mandragora-audit` check `15-design-system-live`; exemptions live
     in `.local/share/mandragora-audit/allowlists/design-system-live.txt`.
     Detail: [`docs/design-system.md`](docs/design-system.md).
+21. **Stage by path; never `git add -A`** — and treat a gitignored
+    directory as data git may delete. On 2026-09-27 this destroyed every
+    trained checkpoint in `~/Projects/slither-io-simulator`: a worktree
+    convenience symlink named `models` slipped past a `.gitignore` rule
+    written `models/` (**a trailing slash matches a DIRECTORY only**,
+    not a file or a symlink at that name), `git add -A` staged it
+    unread, and `git merge --ff-only` then removed the real directory to
+    put the symlink there — silently, because git treats IGNORED files
+    as expendable when a checkout needs the path. Untracked files it
+    refuses to clobber; ignored ones it does not. No force flag was
+    involved at any step. So: stage the paths you edited by name, write
+    ignore rules for valuable directories without the trailing slash,
+    and read what a merge prints — `create mode 120000 <dir>` is a
+    symlink replacing a directory and is the entire incident in one
+    line. Detail:
+    `~/Documents/mandragora-desktop-obsidian-vault/incidents/2026-09-27-gitignore-with-a-slash-deleted-every-checkpoint.md`.
 
 ---
 
