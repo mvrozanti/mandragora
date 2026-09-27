@@ -117,11 +117,11 @@ alias cosv='sudoedit "$(co)"'
 alias corm='command rm "$(co)"'
 alias cormr='co | xargs command rm -r'
 alias cocp='cp "$(co)"'
-cocp.() { cp "$(co)" . }
-comv.() { mv "$(co)" . }
+cocp.() { cp -- "$(cop)" . }
+comv.() { mv -- "$(cop)" . }
 alias cowv='co | xargs wget'
-alias corpc='co | xargs -I{} realpath "{}" | c -n'
-alias cofile='co | xargs file'
+alias corpc='realpath -- "$(cop)" | c -n'
+alias cofile='file -- "$(cop)"'
 alias cojq='co | jq'
 alias cojqv-='co | jq | v -'
 alias cocurl='co | xargs curl -s'
@@ -131,7 +131,7 @@ co2i() { wl-paste --type image/png > co2i-$(date +%s).png }
 co2ip() { f=/tmp/co2i-$(date +%s).png; wl-paste --type image/png > "$f" && echo -n "$f" }
 co2ipc() { co2ip | c -n }
 co2nsxiv() { wl-paste --type image/png > /tmp/img; nsxiv /tmp/img }
-alias cov='nvim "$(co)"'
+alias cov='nvim -- "$(cop)"'
 
 alias p='P | c -n'
 
