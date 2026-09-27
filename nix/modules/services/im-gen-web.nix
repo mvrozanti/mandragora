@@ -71,8 +71,14 @@ in
     userService = true;
     systemd = {
       description = "gen.mvr.ac — Flux web UI with LoRA + history graph";
-      after = [ "im-gen-cipher.service" ];
-      requires = [ "im-gen-cipher.service" ];
+      after = [
+        "im-gen-cipher.service"
+        "im-gen-web.socket"
+      ];
+      requires = [
+        "im-gen-cipher.service"
+        "im-gen-web.socket"
+      ];
       environment = {
         GEN_HOST = "127.0.0.1";
         GEN_PORT = "16682";
