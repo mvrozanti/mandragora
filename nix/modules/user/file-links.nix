@@ -125,8 +125,9 @@
       {
         icon = "${pkgs.zapzap}/share/icons/hicolor/scalable/apps/com.rtosta.zapzap.svg";
       };
-  home.file.".claude/settings.local.json".source =
-    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/settings.local.json";
+  systemd.user.tmpfiles.rules = [
+    "L+ %h/.claude/settings.local.json - - - - /etc/nixos/mandragora/.claude/settings.local.json"
+  ];
 
   home.file.".gemini/settings.json".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.gemini/settings.json";

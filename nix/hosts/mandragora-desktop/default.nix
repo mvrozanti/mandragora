@@ -35,7 +35,7 @@ in
     ../../modules/desktop/keyd.nix
     ../../modules/desktop/keyledsd.nix
     ../../modules/desktop/keystats.nix
-    ../../modules/desktop/chrome-shim.nix
+    ../../modules/core/chrome-shim.nix
     ../../modules/desktop/ydotool.nix
     ../../modules/desktop/espanso.nix
     ../../modules/desktop/openrgb.nix
