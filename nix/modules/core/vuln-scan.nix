@@ -44,10 +44,10 @@ in
   };
 
   systemd.user.timers.cve-scan = {
-    description = "Mandragora CVE scan weekly timer";
+    description = "Mandragora CVE scan daily timer";
     wantedBy = [ "timers.target" ];
     timerConfig = {
-      OnCalendar = "weekly";
+      OnCalendar = "daily";
       RandomizedDelaySec = "1h";
       Persistent = true;
     };
