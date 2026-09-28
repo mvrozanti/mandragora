@@ -9,6 +9,7 @@
   imports = [
     ../../pkgs/overlays.nix
     ../../modules/core/vuln-scan.nix
+    ../../modules/core/chrome-shim.nix
   ]
   ++ lib.optional (builtins.pathExists ./local.nix) ./local.nix;
 
