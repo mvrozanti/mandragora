@@ -6,24 +6,27 @@ LATEST="${STATE_DIR}/latest.json"
 HOST="$(hostname)"
 REMOTE="${VULN_REMOTE:-opc@100.84.78.83}"
 REMOTE_DIR="${VULN_REMOTE_DIR:-/home/opc/vuln/static}"
+SCAN_ERROR="${VULN_SCAN_ERROR:-}"
 
 if [[ ! -s "$LATEST" ]]; then
   echo "no scan report at $LATEST — run: systemctl --user start cve-scan.service" >&2
   exit 1
 fi
 
-GENERATED="$(readlink "$LATEST" 2>/dev/null | sed -E 's/\.json$//')"
-: "${GENERATED:=unknown}"
+GENERATED="$(date -u -r "$LATEST" +%Y-%m-%dT%H:%M:%SZ)"
 
 SLIM="$(mktemp)"
 trap 'rm -f "$SLIM"' EXIT
 
-jq --arg gen "$GENERATED" --arg host "$HOST" '{
+jq --arg gen "$GENERATED" --arg host "$HOST" --arg err "$SCAN_ERROR" '{
+  schema: 2,
+  scanner: "vulnix",
   generated: $gen,
   host: $host,
   entries: [ .[] | {
     pname: .pname,
     version: .version,
+    ecosystem: "nixpkgs",
     max: ([ (.cvssv3_basescore // {}) | to_entries[].value ] | max // 0),
     cves: [ .affected_by[] as $c | {
       id: $c,
@@ -31,17 +34,12 @@ jq --arg gen "$GENERATED" --arg host "$HOST" '{
       desc: ((.description // {})[$c] // "")
     } ]
   } ]
-}' "$LATEST" > "$SLIM"
+} + (if $err == "" then {} else {error: $err} end)' "$LATEST" > "$SLIM"
 
 REPORT="report-${HOST}.json"
 echo "→ publishing $(jq '.entries|length' "$SLIM") entries as ${HOST} (generated ${GENERATED}) to ${REMOTE}:${REMOTE_DIR}/${REPORT}"
 rsync -a "$SLIM" "${REMOTE}:${REMOTE_DIR}/${REPORT}"
 
-# Regenerate the host manifest from the directory listing on the VPS so the
-# dashboard can enumerate every host that has ever published. Each publish
-# self-heals the manifest, so a race between hosts just recomputes the union.
-# The remote body is a quoted heredoc (no client-side expansion); REMOTE_DIR
-# is passed as the positional arg.
 ssh "$REMOTE" bash -s "$REMOTE_DIR" <<'EOSSH'
 set -euo pipefail
 cd "$1"
