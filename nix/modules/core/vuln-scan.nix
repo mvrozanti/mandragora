@@ -5,6 +5,7 @@ let
     name = "cve-scan";
     runtimeInputs = [
       pkgs.vulnix
+      vulnPublish
       pkgs.libnotify
       pkgs.jq
       pkgs.gawk
