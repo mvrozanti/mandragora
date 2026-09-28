@@ -65,11 +65,8 @@
     if (!w.enabled) out.push('<span class="mv-pill">paused</span>');
     if (w.push) out.push('<span class="mv-pill">notifies</span>');
     if (w.requires_ack) out.push('<span class="mv-pill is-warn">nags hourly</span>');
-    if (!w.ai_spec) out.push('<span class="mv-pill">everything passes</span>');
-    if (w.spec_lint && w.spec_lint.decidable === false) {
-      var why = (w.spec_lint.problems || []).join(" · ") || "open the watcher for detail";
-      out.push('<span class="mv-pill is-warn" title="' + esc(why) + '">spec unanswerable</span>');
-    }
+    if (w.ai_spec) out.push('<span class="mv-pill is-down" title="set by the retired ai judge; nothing from this watcher is sent until you save it again">muted by old spec</span>');
+    else if (!w.match_rule) out.push('<span class="mv-pill">everything passes</span>');
     return out.join("");
   };
 
@@ -151,7 +148,6 @@
 
   var panelHTML = function (w) {
     var kind = state.kinds[w.kind] || {};
-    var lint = w.spec_lint || {};
     var loaded = state.triggers[w.id];
     var trig = !w.trigger_count
       ? '<p class="mv-empty" style="padding:var(--mv-space-4) 0">nothing has fired yet</p>'
@@ -159,36 +155,18 @@
         ? loaded.map(triggerHTML).join("")
         : '<p class="mv-empty" style="padding:var(--mv-space-4) 0">loading</p>';
 
-    var lintBlock = "";
-    if (w.ai_spec && lint.decidable === false) {
-      lintBlock = '<div class="wa-lint"><p class="wa-lint__head">this question cannot be answered from what the source gives us</p>' +
-        ((lint.problems || []).length ? '<ul class="wa-lint__probs">' +
-          lint.problems.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : "") +
-        (lint.suggestion ? '<p class="wa-panel__label">an answerable rewrite</p><p class="wa-lint__sugg">' +
-          esc(lint.suggestion) + "</p>" +
-          '<div class="wa-acts"><button class="wa-btn primary" data-act="uselint" data-arg="' + w.id +
-          '">use this rewrite</button></div>' : "") + "</div>";
-    } else if (w.ai_spec && lint.decidable) {
-      lintBlock = '<p class="wa-lint__ok">this question is answerable from what the source gives us</p>';
-    }
-
     return '<div class="wa-panel">' +
       (w.last_error ? '<p class="wa-err">' + esc(w.last_error) +
         (backingOff(w) ? " · backing off, retrying " + until(w.retry_after) : "") + "</p>" : "") +
       '<div><p class="wa-panel__label">what fired it</p>' + trig + "</div>" +
       (kind.emits ? '<p class="wa-emits"><b>this source gives us</b> ' + esc(kind.emits) + "</p>" : "") +
-      lintBlock +
-      '<div class="wa-field"><label for="must-' + w.id + '">must mention</label>' +
-      '<input class="wa-input" id="must-' + w.id + '" value="' + esc(w.must_mention || "") +
-      '" placeholder="e.g. electrum — a trigger is refused unless the text names this">' +
-      '<p class="wa-emits">Checked literally against the title, summary and fetched article. ' +
-      'This is what stops the judge asserting a subject the source never named.</p></div>' +
-      '<div class="wa-field"><label for="spec-' + w.id + '">what counts as a trigger</label>' +
-      '<textarea class="wa-area" id="spec-' + w.id + '" placeholder="leave blank and everything this source emits counts">' +
-      esc(w.ai_spec || "") + "</textarea></div>" +
+      '<div class="wa-field"><label for="rule-' + w.id + '">match rule</label>' +
+      '<input class="wa-input" id="rule-' + w.id + '" value="' + esc(w.match_rule || "") +
+      '" placeholder="blank and everything this source emits is sent">' +
+      '<p class="wa-emits">Checked against the title and summary. Words must all appear; AND, OR, NOT and ' +
+      '(parentheses) combine them; "quoted phrases" match as a phrase.</p></div>' +
       '<div class="wa-acts">' +
       '<button class="wa-btn primary" data-act="savespec" data-arg="' + w.id + '">save</button>' +
-      (w.ai_spec ? '<button class="wa-btn" data-act="relint" data-arg="' + w.id + '">re-check</button>' : "") +
       '<button class="wa-btn" data-act="poll" data-arg="' + w.id + '">check now</button>' +
       '<button class="wa-btn" data-act="toggle" data-arg="' + w.id + '">' + (w.enabled ? "pause" : "resume") + "</button>" +
       '<button class="wa-btn" data-act="push" data-arg="' + w.id + '">' + (w.push ? "stop notifying" : "notify me") + "</button>" +
@@ -278,10 +256,8 @@
       '<div class="wa-field"><label for="f-kind">source</label><select class="wa-select" id="f-kind">' + opts + "</select></div>" +
       '<div class="wa-field"><label for="f-target">target</label><input class="wa-input" id="f-target" placeholder="owner/repo, @handle, search terms…"></div>' +
       '<div class="wa-field wide"><label for="f-name">what are you waiting for</label><input class="wa-input" id="f-name" placeholder="e.g. severance s3 gets a date"></div>' +
-      '<div class="wa-field wide"><label for="f-must">must mention</label>' +
-      '<input class="wa-input" id="f-must" placeholder="a literal the text must contain — blank to skip"></div>' +
-      '<div class="wa-field wide"><label for="f-spec">what counts as a trigger</label>' +
-      '<textarea class="wa-area" id="f-spec" placeholder="leave blank and everything this source emits counts"></textarea></div>' +
+      '<div class="wa-field wide"><label for="f-rule">match rule</label>' +
+      '<input class="wa-input" id="f-rule" placeholder="e.g. jailbreak OR &quot;root exploit&quot; — blank and everything is sent"></div>' +
       '<div class="wa-checks wide"><label><input type="checkbox" id="f-push" checked> notify me on telegram when it fires</label>' +
       '<label><input type="checkbox" id="f-ack"> keep nagging hourly until I accept it <span class="wa-hint">— urgent security only</span></label></div>' +
       '<div class="wa-acts wide"><button class="wa-btn primary" type="submit">add</button>' +
@@ -352,7 +328,6 @@
     accept: function (arg) { withBusy(api("POST", "/api/events/" + arg + "/ack"), "accepted"); },
     acceptall: function (arg) { withBusy(api("POST", "/api/watchers/" + arg + "/ack-all"), "all accepted"); },
     poll: function (arg) { withBusy(api("POST", "/api/watchers/" + arg + "/poll"), "checked"); },
-    relint: function (arg) { withBusy(api("POST", "/api/watchers/" + arg + "/lint"), "re-checked"); },
     toggle: function (arg) { withBusy(api("POST", "/api/watchers/" + arg + "/toggle")); },
     push: function (arg) { withBusy(api("PATCH", "/api/watchers/" + arg, { push: !find(arg).push })); },
     reqack: function (arg) {
@@ -362,19 +337,10 @@
         reminder_interval: 3600
       }));
     },
-    uselint: function (arg) {
-      var w = find(arg);
-      var box = $("spec-" + arg);
-      if (box && w && w.spec_lint && w.spec_lint.suggestion) {
-        box.value = w.spec_lint.suggestion;
-        box.focus();
-        toast("rewrite loaded — read it, then save");
-      }
-    },
     savespec: function (arg) {
       withBusy(api("PATCH", "/api/watchers/" + arg, {
-        ai_spec: $("spec-" + arg).value.trim(),
-        must_mention: $("must-" + arg).value.trim()
+        match_rule: $("rule-" + arg).value.trim(),
+        ai_spec: null
       }), "saved");
     },
     del: function (arg) {
@@ -453,8 +419,7 @@
       kind: $("f-kind").value,
       target: $("f-target").value.trim(),
       name: $("f-name").value.trim(),
-      ai_spec: $("f-spec").value.trim() || null,
-      must_mention: $("f-must").value.trim() || null,
+      match_rule: $("f-rule").value.trim() || null,
       requires_ack: $("f-ack").checked,
       push: $("f-push").checked
     };
