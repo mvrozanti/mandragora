@@ -78,10 +78,12 @@
       }
     }
   },
-  "effortLevel": "xhigh",
   "outputStyle": "Concise",
+  "effortLevel": "xhigh",
   "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
   "theme": "dark",
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true
 }
