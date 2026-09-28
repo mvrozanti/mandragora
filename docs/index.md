@@ -20,7 +20,7 @@ Single LLM router. Every survivor doc is one hop from here.
 | What survives reboot (impermanence + user-data ranking) | [`persistence.md`](persistence.md) |
 | Secrets contract (sops-nix, age, agent rules) | [`secrets.md`](secrets.md) |
 | Keystats threat model (keylog DB: collection, encryption, key readers, retention) | [`keystats.md`](keystats.md) |
-| Worktree isolation + mid-switch guard (Rule 10 detail) | [`worktrees.md`](worktrees.md) |
+| Worktree isolation + mid-switch guard (Rule 10, mandragora detail; system-wide: `.ai-shared/rules/worktrees.md`) | [`worktrees.md`](worktrees.md) |
 | GPU coordination + `gpu-lock` rationale (Rule 15 detail) | [`gpu.md`](gpu.md) |
 | Python deps (Nix patterns + upstream-venv exemption, Rule 7 detail) | [`python.md`](python.md) |
 | `--mv-*` tokens + live matugen palette for served UIs (Rule 20 detail) | [`design-system.md`](design-system.md) |
