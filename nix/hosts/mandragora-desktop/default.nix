@@ -21,6 +21,7 @@ in
     ../../modules/core/ai-local.nix
     ../../modules/core/monitoring.nix
     ../../modules/core/backup.nix
+    ../../modules/core/unit-health.nix
     ../../modules/core/vuln-scan.nix
     ../../modules/core/oom-forensics.nix
     ../../modules/core/oom-protection.nix
