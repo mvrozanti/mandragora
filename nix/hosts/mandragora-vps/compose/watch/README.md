@@ -265,6 +265,35 @@ ack-required) uses:
 (vuln:kev OR vuln:stale OR (vuln:critical AND vuln:fixable) OR vuln:exposed) AND NOT vuln:bulk OR vuln:burst
 ```
 
+### `unit_health` — a scheduled job on one of my hosts went quiet
+
+The dead-man half of the desktop's unit-health layer
+(`nix/modules/core/unit-health.nix`). The desktop pages its own failures:
+a global systemd drop-in gives every oneshot, timer- or path-triggered unit
+an `OnFailure=` pager that fires once when the unit starts failing and once
+when it recovers. What a host cannot report is its own silence, so that
+lives here.
+
+Every 15 minutes the desktop's `unit-health-publish` user timer rsyncs
+`health-<host>.json` into `/home/opc/watch/health/`, mounted read-only at
+`/health`. Each entry is one timer-driven service with `status`
+(`ok|stale|failing|inactive`), its schedule `period`, `last_ok` and `due_by`.
+A unit is `stale` when it has not succeeded within twice its period plus an
+hour; `failing` units were already paged by the host and stay quiet here.
+
+- **`health:stale`** pages once per episode: the external id carries
+  `last_ok`, so the next success closes it and a later lapse is a new event.
+- **`health:silent`** pages once per host per day when the report is over
+  2h old (`WATCH_HEALTH_SILENT_HOURS`) or unreadable. A silent host hides its
+  stale units, since their state is unknown.
+- A missing `/health` directory or a vanished host is an error, never
+  silence, so the watcher backs off loudly instead of reporting nothing.
+- The source is stateless: `UNIQUE (watcher_id, external_id)` dedupes, so
+  the first poll pages whatever is already stale.
+
+The seeded watcher (`bootstrap_health_watch`, ack-required) uses
+`health:stale OR health:silent`.
+
 ## Match rules
 
 `match_rule` on a watcher is a boolean expression evaluated over the event's
@@ -644,7 +673,8 @@ no second pipeline.
 ├── docker-compose.yml         ← repo copy
 ├── app/                       ← repo copy (Dockerfile, *.py, static/)
 ├── .env                       ← root-owned, NOT in repo
-└── data/                      ← SQLite (watch.db)
+├── data/                      ← SQLite (watch.db)
+└── health/                    ← health-<host>.json, rsynced by each host (opc-owned)
 ```
 
 ## `.env`

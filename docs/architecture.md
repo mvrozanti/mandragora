@@ -238,7 +238,7 @@ OS-level system concerns. Boot and storage (`boot.nix`, `storage.nix`,
 runtime (`graphics.nix`, `ai-local.nix`, `vm.nix`, `gdrive.nix`), and
 observability/maintenance (`monitoring.nix` — Prometheus + Grafana,
 `nix-auto-update.nix`, `vuln-scan.nix`, `oom-protection.nix`,
-`oom-forensics.nix`). `impermanence.nix` holds the reboot-survival whitelist;
+`oom-forensics.nix`, `unit-health.nix`). `impermanence.nix` holds the reboot-survival whitelist;
 `secrets.nix` wires sops-nix and the age key path.
 
 ### Desktop (`nix/modules/desktop/`)
@@ -368,6 +368,15 @@ locally:
   `test_install`, `test_lib`, `test_render_config`) cover the install scripts.
 - **Runtime audits (`nix/modules/audits/`)** — shell audits run periodically
   on the host to detect state drift, stray files, and imperative state.
+- **Unit health (`nix/modules/core/unit-health.nix`)** — a global systemd
+  drop-in, for system and user managers alike, gives every oneshot and
+  timer- or path-triggered unit an `OnFailure=` Telegram page (once when it
+  starts failing, once when it recovers) and a success stamp under
+  `/persistent/unit-health` or `~/.local/state/unit-health`. A 15-minute user
+  timer publishes each timer's freshness to the VPS, where watch's
+  `unit_health` source pages a job that has not succeeded within twice its
+  schedule, or a host that stopped publishing. It exists because background
+  jobs here failed silently for weeks to months at a time.
 - **`nixos-rebuild test` / `dry-run` / `dry-activate`** — apply or validate a
   configuration without making it the boot default; useful for risky changes.
 - **Empirical verification** — for anything the above can't gate, the user

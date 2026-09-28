@@ -12,8 +12,10 @@ services:
     environment:
       - WATCH_DATA_DIR=/data
       - WATCH_JUDGE_ENABLED=0
+      - WATCH_HEALTH_DIR=/health
     volumes:
       - ${WATCH_DATA_VOLUME:-./data}:/data
+      - ./health:/health:ro
     networks:
       - seafile-net
     labels:
