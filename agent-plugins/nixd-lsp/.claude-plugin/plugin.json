@@ -1,0 +1,41 @@
+{
+  "name": "nixd-lsp",
+  "description": "Nix language server (nixd) wired to the mandragora flake's nixpkgs, NixOS and home-manager options",
+  "version": "1.0.0",
+  "lspServers": {
+    "nixd": {
+      "command": "nixd",
+      "extensionToLanguage": {
+        ".nix": "nix"
+      },
+      "initializationOptions": {
+        "nixpkgs": {
+          "expr": "import (builtins.getFlake (if builtins.pathExists /persistent/mandragora/flake.nix then \"/persistent/mandragora\" else \"/etc/nixos/mandragora\")).inputs.nixpkgs { }"
+        },
+        "options": {
+          "nixos": {
+            "expr": "(builtins.getFlake (if builtins.pathExists /persistent/mandragora/flake.nix then \"/persistent/mandragora\" else \"/etc/nixos/mandragora\")).nixosConfigurations.mandragora-desktop.options"
+          },
+          "home-manager": {
+            "expr": "(builtins.getFlake (if builtins.pathExists /persistent/mandragora/flake.nix then \"/persistent/mandragora\" else \"/etc/nixos/mandragora\")).nixosConfigurations.mandragora-desktop.options.home-manager.users.type.getSubOptions [ ]"
+          }
+        }
+      },
+      "settings": {
+        "nixd": {
+          "nixpkgs": {
+            "expr": "import (builtins.getFlake (if builtins.pathExists /persistent/mandragora/flake.nix then \"/persistent/mandragora\" else \"/etc/nixos/mandragora\")).inputs.nixpkgs { }"
+          },
+          "options": {
+            "nixos": {
+              "expr": "(builtins.getFlake (if builtins.pathExists /persistent/mandragora/flake.nix then \"/persistent/mandragora\" else \"/etc/nixos/mandragora\")).nixosConfigurations.mandragora-desktop.options"
+            },
+            "home-manager": {
+              "expr": "(builtins.getFlake (if builtins.pathExists /persistent/mandragora/flake.nix then \"/persistent/mandragora\" else \"/etc/nixos/mandragora\")).nixosConfigurations.mandragora-desktop.options.home-manager.users.type.getSubOptions [ ]"
+            }
+          }
+        }
+      }
+    }
+  }
+}
