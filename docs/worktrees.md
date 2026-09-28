@@ -1,23 +1,22 @@
 # Worktree by Default + Mid-Switch Guard
 
-This is the full body of AGENTS.md Rule 10. Load it before any edit
-under `/etc/nixos/mandragora/`, after a `pgrep` hit, or when something
-seems off with `git worktree list`.
+Mandragora-specific detail for AGENTS.md Rule 10. The system-wide
+protocol (every git repo, coordination via `git worktree list`) is
+`.ai-shared/rules/worktrees.md`; this file adds the mid-switch guard
+and `mandragora-switch` worktree mode. Load it before any edit under
+`/etc/nixos/mandragora/`, after a `pgrep` hit, or when something seems
+off with `git worktree list`.
 
 ## The default is a worktree
 
 Create a worktree first. Edit there. Merge back when done. Treat the
 main tree as a publish target, not a scratchpad.
 
-The narrow carve-out for direct-tree edits: a **single-file change you
-can stage and commit in under ~30 seconds**, where you control the
-entire edit→stage→commit window. Anything multi-file, anything that
-introduces an untracked file, anything you might leave half-finished
-while you go read another file — worktree.
-
-When in doubt, worktree. The cost is two git commands and a directory.
-The cost of getting it wrong is rewriting history (or, worse, not
-noticing).
+There is no carve-out for small edits: the main tree is publish-only
+(see below), and the risk is another agent acting mid-edit, which the
+size of your change does not affect. The cost is two git commands and
+a directory. The cost of getting it wrong is rewriting history (or,
+worse, not noticing).
 
 ## Why `pgrep` alone is not enough
 

@@ -137,11 +137,17 @@ rationale, recipes, or the incident that produced the rule.
    zero manual setup, plugin-manager bootstraps, or first-run wizards.
 9. **No full-disk encryption** — main drive is intentionally
    unencrypted. Don't propose enabling FDE.
-10. **Worktree by default + mid-switch guard** — default to
-    \`git worktree\` for any edit under \`/etc/nixos/mandragora/\`. A clean
-    \`pgrep\` is necessary but **not sufficient** — it doesn't catch a
-    parallel agent mid-\`git add -A\` (the staging leak this rule
-    prevents). Full protocol:
+10. **Worktree by default, in every git repo** — any edit to a file
+    tracked by *any* git repository on this machine happens in a
+    \`git worktree\`, never in the shared main checkout; no size
+    carve-out. Several agents run at once, and a shared checkout means
+    one agent's \`git add\`/\`stash\`/\`checkout\` reaches another's WIP.
+    Coordinate through \`git worktree list\`: check it before starting,
+    name the worktree after the task, never touch another agent's
+    worktree, land with \`merge --ff-only\` and remove your own when
+    done. Protocol: \`~/.ai-shared/rules/worktrees.md\`. In
+    \`/etc/nixos/mandragora/\` the mid-switch guard applies on top — a
+    clean \`pgrep\` is necessary but **not sufficient**:
     [\`docs/worktrees.md\`](docs/worktrees.md).
 11. **Post-edit Hyprland syntax check** — \`mandragora-audit\` check
     \`04-hyprland-config\` runs \`hyprctl configerrors\` automatically
