@@ -2,6 +2,7 @@
 import argparse
 import html
 import json
+import os
 import re
 import subprocess
 import sys
@@ -11,57 +12,23 @@ from pathlib import Path
 STATE_DIR = Path.home() / ".local/state/cve-scan"
 LATEST = STATE_DIR / "latest.json"
 
-NOISE_VERSION_SUFFIXES = (
-    "-tex", "-texdoc", "-man", "-texman",
-    "-source", "-source-unsecvars", "-binlore", "-env",
-    "-builder", "-unwrapped", "-wrapped",
-    "-vendor", "-vendor-staging",
-    "-go-modules", "-bootstrap",
-    "-r2.cabal",
-)
-NOISE_VERSION_REGEX = re.compile(r"\.(jar|pom|pam)$")
-NOISE_VERSION_CONTAINS = ("-bootstrap-",)
+NOISE_FILE = Path(os.environ.get("VULN_NOISE", ""))
 
-NOISE_PNAME_VERSION = {
-    ("ShellCheck", "0.11.0"), ("shellcheck", "0.11.0"),
-    ("Diff", "1.0.2"),
-    ("async", "2.2.6"), ("bytes", "1.11.0"),
-    ("h3", "0.0.8"), ("http-client", "0.7.19"),
-    ("hyper", "1.9.0"), ("instant", "0.1.13"),
-    ("kitty", "0.46.2"), ("memcached", "1.6.41"),
-    ("mujs", "1.3.6"), ("network", "3.2.8.0"),
-    ("stringbuilder", "0.5.1"), ("system-configuration", "0.6.1"),
-    ("tap", "1.0.1"), ("tokio", "1.52.1"),
-    ("uuid", "1.18.1"), ("uuid", "1.20.0"),
-    ("vault", "0.3.1.6"), ("warp", "3.4.9"),
-    ("wire", "0.7.0"), ("yaml", "0.11.11.2"),
-    ("yoke", "0.8.1"), ("yoke", "0.8.2"),
-    ("web", "4.5"), ("markdown", "3.13.0-0-gdd212d58"),
-    ("gnulib", "0a01f67"), ("impala", "0.7.4"),
-    ("lapack", "3"), ("curl", "0.4.49"),
-    ("rhino", "1.8.0"), ("gutenberg", "0-unstable-2024-07-29"),
-    ("bash", "2.05b"),
-    ("gcc", "4.6.4"),
-    ("openssl", "0.10.78"),
-    ("zlib", "0.7.1.1"),
-    ("orc", "0.4.41"),
-    ("python", "2.7.18.12"),
-    ("openssl", "3.0.19"),
-    ("gzip", "1.2.4"),
-    ("rubygems", "3.7.2"),
-    ("sassc", "3.6.2"),
-    ("zlib", "1.3.1"),
-    ("subversion", "1.14.5"),
-}
 
-NOISE_EXACT = {
-    ("ShellCheck", "CVE-2021-28794"),
-    ("kitty", "CVE-2016-2563"),
-    ("hyper", "CVE-2024-23741"),
-    ("snappy", "CVE-2023-28115"),
-    ("snappy", "CVE-2023-41330"),
-    ("memcached", "CVE-2022-26635"),
-}
+def load_noise() -> dict:
+    try:
+        return json.loads(NOISE_FILE.read_text())
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+NOISE = load_noise()
+NOISE_PNAME_SUFFIXES = tuple(NOISE.get("pname_suffixes", ()))
+NOISE_VERSION_SUFFIXES = tuple(NOISE.get("version_suffixes", ()))
+NOISE_VERSION_REGEX = re.compile(NOISE["version_regex"]) if NOISE.get("version_regex") else None
+NOISE_VERSION_CONTAINS = tuple(NOISE.get("version_contains", ()))
+NOISE_PNAME_VERSION = {tuple(p) for p in NOISE.get("pname_version", ())}
+NOISE_EXACT = {tuple(p) for p in NOISE.get("pname_cve", ())}
 
 SEVERITIES = [
     ("CRITICAL", 9.0, float("inf"), "", "color1"),
@@ -80,9 +47,11 @@ def max_score(entry: dict) -> float:
 def is_noise(entry: dict) -> bool:
     pname = entry.get("pname", "") or ""
     version = entry.get("version", "") or ""
+    if any(pname.endswith(s) for s in NOISE_PNAME_SUFFIXES):
+        return True
     if any(version.endswith(s) for s in NOISE_VERSION_SUFFIXES):
         return True
-    if NOISE_VERSION_REGEX.search(version):
+    if NOISE_VERSION_REGEX and NOISE_VERSION_REGEX.search(version):
         return True
     if any(tok in version for tok in NOISE_VERSION_CONTAINS):
         return True

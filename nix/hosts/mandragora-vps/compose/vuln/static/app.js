@@ -1,21 +1,29 @@
 "use strict";
 
-// Noise filter — ported from ~/.ai-shared/rules/cve-scan.md triage.
-// Packages flagged by vulnix but known false positives (name collisions).
-const NOISE_SUFFIX = ["-tex"];
-const NOISE_EXACT = new Set([
-  "ShellCheck|CVE-2021-28794", // VS Code extension, not the binary
-  "kitty|CVE-2016-2563",       // PuTTY/KiTTY SSH client, not the terminal
-  "hyper|CVE-2024-23741",      // Hyper terminal macOS, not Rust HTTP lib
-  "snappy|CVE-2023-28115",     // PHP knp-snappy, not C snappy
-  "snappy|CVE-2023-41330",
-  "memcached|CVE-2022-26635",  // PHP-Memcached, not the daemon
-]);
+let NOISE = { pname_suffixes: [], version_suffixes: [], version_contains: [], version_regex: "", pname_version: [], pname_cve: [] };
+let NOISE_RE = null;
+let NOISE_PV = new Set();
+let NOISE_PC = new Set();
+
+async function loadNoise() {
+  try {
+    const r = await fetch("noise.json", { cache: "no-store" });
+    if (r.ok) NOISE = { ...NOISE, ...(await r.json()) };
+  } catch (_) {}
+  NOISE_RE = NOISE.version_regex ? new RegExp(NOISE.version_regex) : null;
+  NOISE_PV = new Set(NOISE.pname_version.map(([p, v]) => `${p}|${v}`));
+  NOISE_PC = new Set(NOISE.pname_cve.map(([p, c]) => `${p}|${c}`));
+}
 
 function isNoise(e) {
-  if (NOISE_SUFFIX.some((s) => e.pname.endsWith(s))) return true;
+  const v = e.version || "";
+  if (NOISE.pname_suffixes.some((s) => e.pname.endsWith(s))) return true;
+  if (NOISE.version_suffixes.some((s) => v.endsWith(s))) return true;
+  if (NOISE.version_contains.some((s) => v.includes(s))) return true;
+  if (NOISE_RE && NOISE_RE.test(v)) return true;
+  if (NOISE_PV.has(`${e.pname}|${v}`)) return true;
   if (!e.cves.length) return false;
-  return e.cves.every((c) => NOISE_EXACT.has(`${e.pname}|${c.id}`));
+  return e.cves.every((c) => NOISE_PC.has(`${e.pname}|${c.id}`));
 }
 
 function sevOf(score) {
@@ -26,13 +34,10 @@ function sevOf(score) {
   return "unk";
 }
 
-// host -> { generated, entries: [{pname, version, max, cves, noise}] }
 let STATE = { reports: {}, hosts: [], view: "all", showNoise: false, fixableOnly: false, filter: "" };
 
 function nvdUrl(id) { return `https://nvd.nist.gov/vuln/detail/${id}`; }
 
-// For the "all" view: merge the same package across hosts into one row,
-// unioning CVEs and tracking which hosts are affected.
 function mergedEntries() {
   const byKey = new Map();
   for (const host of STATE.hosts) {
@@ -65,9 +70,6 @@ function currentEntries() {
   return rep.entries.map((e) => ({ ...e, hosts: [STATE.view] }));
 }
 
-// An entry is fixable if any of its CVEs has a fix available. Trivy sets
-// cve.fixed explicitly; vulnix reports omit it (undefined) — those are always
-// fixable via `nix flake update`, so treat missing as fixable.
 function entryFixable(e) {
   if (!e.cves.length) return false;
   return e.cves.some((c) => c.fixed !== false);
@@ -173,7 +175,7 @@ async function fetchHostList() {
       const arr = await res.json();
       if (Array.isArray(arr) && arr.length) return arr;
     }
-  } catch (_) { /* fall through */ }
+  } catch (_) { }
   return null;
 }
 
@@ -181,14 +183,14 @@ async function fetchReport(host) {
   const res = await fetch(`report-${host}.json`, { cache: "no-store" });
   if (!res.ok) throw new Error(`report-${host}.json ${res.status}`);
   const data = await res.json();
-  return { generated: data.generated || "?", entries: (data.entries || []).map((e) => ({ ...e, noise: isNoise(e) })) };
+  return { generated: data.generated || "?", error: data.error || "", entries: (data.entries || []).map((e) => ({ ...e, noise: isNoise(e) })) };
 }
 
 async function load() {
   const meta = document.getElementById("meta");
+  await loadNoise();
   const hosts = await fetchHostList();
 
-  // Back-compat: pre-multihost publishers wrote a single report.json.
   if (!hosts) {
     try {
       const res = await fetch("report.json", { cache: "no-store" });
@@ -202,7 +204,7 @@ async function load() {
         render();
         return;
       }
-    } catch (_) { /* fall through */ }
+    } catch (_) { }
     meta.textContent = "no reports yet — run cve-scan + vuln-publish on a host";
     document.getElementById("list").innerHTML =
       `<div class="empty">no host reports found.<br>on any mandragora host: ` +
@@ -221,7 +223,10 @@ async function load() {
     document.getElementById("list").innerHTML = `<div class="empty">hosts.json listed ${escapeHtml(hosts.join(", "))} but none loaded.</div>`;
     return;
   }
-  const stamps = STATE.hosts.map((h) => `${h} ${STATE.reports[h].generated}`).join(" · ");
+  const stamps = STATE.hosts.map((h) => {
+    const r = STATE.reports[h];
+    return `${h} ${r.generated}${r.error ? ` ⚠ ${r.error}` : ""}`;
+  }).join(" · ");
   meta.textContent = `${STATE.hosts.length} host(s) · ${stamps}`;
   render();
 }
