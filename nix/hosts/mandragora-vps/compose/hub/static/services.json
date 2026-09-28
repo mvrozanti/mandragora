@@ -47,7 +47,7 @@
 
     { "name": "grafana", "host": "grafana.mvr.ac", "url": "https://grafana.mvr.ac/d/mandragora-system/mandragora-system?orgId=1&from=now-24h&to=now&timezone=browser&refresh=5m", "group": "obs", "desc": "cpu · gpu · disk · ebpf", "access": "priv", "where": "desk" },
     { "name": "log", "host": "log.mvr.ac", "group": "obs", "desc": "loki · journald · docker", "access": "priv", "where": "vps" },
-    { "name": "vuln", "host": "vuln.mvr.ac", "group": "obs", "desc": "vulnix · CVE scan of the closure", "access": "priv", "where": "vps" },
+    { "name": "vuln", "host": "vuln.mvr.ac", "group": "obs", "desc": "vulnix + trivy · daily CVE scan", "access": "priv", "where": "vps" },
     { "name": "kl", "host": "kl.mvr.ac", "group": "obs", "desc": "keystroke heatmap · WPM", "access": "priv", "where": "vps" },
 
     { "name": "chess lens", "host": "chess.mvr.ac", "group": "lab", "desc": "chess.com → stockfish → clickhouse", "access": "priv", "where": "vps" },

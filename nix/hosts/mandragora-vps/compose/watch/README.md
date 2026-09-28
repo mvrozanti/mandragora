@@ -73,6 +73,7 @@ skipped source looks exactly like a working one. See the vault note
 | `rss`             | any RSS 2.0 / Atom feed URL                              |
 | `tvmaze_season`   | TVmaze `/shows/:id?embed=seasons`, one season's status   |
 | `anticheat_game`  | areweanticheatyet `games.json`, Linux status per title   |
+| `vuln_inventory`  | `http://vuln/` host scan reports + CISA KEV catalog      |
 
 Twitter intentionally skipped — nitter is unreliable, RSSHub self-host
 is the planned route. Add a `twitter_*` kind in `sources.py` when
@@ -217,6 +218,52 @@ Pair it with the rule `"now Supported" OR "now Running"` and it stays quiet for
 everything except a title becoming playable. The phrase form matters: it is
 direction-sensitive, so a regression — *"Battlefield 4 is now Broken on Linux (was
 Supported)"* — does not fire, even though the word `Supported` is present.
+
+### `vuln_inventory` — a vulnerability affects one of my hosts
+
+The one kind that watches the user's own machines instead of the world. It reads
+what vuln.mvr.ac already serves, over `seafile-net` (`http://vuln/hosts.json`,
+`report-<host>.json`, `exposure-<host>.json`, `noise.json`), plus the CISA
+known-exploited catalog. The responsibility split is the point:
+
+| layer | owns |
+|---|---|
+| host scanners (vulnix, trivy) | whether an installed version is affected — the only place versions are matched |
+| exposure probes | whether the affected thing listens: `open`/`lan`/`public`, `tailnet`/`authed` |
+| vuln stack | current state, the dashboard, the one `noise.json` |
+| this source | what is **news**: a new (package, CVE) pair, a known pair newly on KEV, a scanner gone stale |
+| match rule + telegram | what pages, delivery, ack |
+
+Resolutions are state, not news, so the source never reports them; the
+dashboard shows a CVE disappearing. Nothing here runs exploit code.
+
+Behaviour worth knowing before touching it:
+
+- **Key is `pname|cve`, not version.** A nixpkgs bump that leaves a CVE unfixed
+  does not page again.
+- **Baselines are silent**: the first poll, and the first sight of a new host,
+  record state and emit nothing. A pair shared with an already-known host still
+  pages.
+- **Seen pairs are forgotten only after 30 days absent**, so a scan that drops an
+  image for a day cannot re-page its whole CVE list.
+- **More than 20 new pairs at once** become one `vuln:burst` event; the individual
+  events are stored with `vuln:bulk` and the stock rule skips them.
+- **Stale scanners page**: a report whose `generated` is over 72h old, or which
+  carries an `error`, emits one `vuln:stale` event per host per day. This exists
+  because the desktop silently stopped publishing for three months in 2026
+  (a user unit's PATH hid `vuln-publish`).
+- The cursor is the whole diff state (~190 KB of digests), so the API elides it.
+
+Titles lead with tag tokens so a match rule decides what pages with no
+vuln-specific code in the push path: `vuln:critical|high|medium|low|unknown`,
+`vuln:kev`, `vuln:fixable|nofix`, `vuln:exposed|reachable`, `vuln:<host>` (dashes
+become underscores, so `vuln:mandragora` never matches `vuln:mandragora_vps`),
+`vuln:stale`, `vuln:burst`, `vuln:bulk`. The seeded watcher (`bootstrap_vuln_watch`,
+ack-required) uses:
+
+```
+(vuln:kev OR vuln:stale OR (vuln:critical AND vuln:fixable) OR vuln:exposed) AND NOT vuln:bulk OR vuln:burst
+```
 
 ## Match rules
 
