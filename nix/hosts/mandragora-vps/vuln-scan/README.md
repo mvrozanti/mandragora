@@ -20,6 +20,9 @@ in the same schema the `vuln.mvr.ac` dashboard consumes.
   fails on every image the previous entries are kept and the report
   gains an `error` field, so the watch `vuln_inventory` source can
   raise a stale-scanner alert instead of the report silently freezing.
+- The same run writes `exposure-mandragora-vps.json`: every container
+  with a host-published port (`public`) or caddy labels (`public`, or
+  `authed` when a `forward_auth` label is present), keyed by image.
 - `vuln-scan-vps.{service,timer}` → `/etc/systemd/system/`. Daily
   oneshot as `User=opc` (opc is in the docker group).
 - `install.sh` → pushes the script + units, enables the timer, runs
