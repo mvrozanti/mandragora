@@ -46,6 +46,22 @@ add
   })
 '
 
+EXPOSURE='
+map(
+  . as $c
+  | ( [ ($c.ports // {}) | to_entries[] | select(.value != null) | .value[]
+        | select(.HostIp == "0.0.0.0" or .HostIp == "::" or .HostIp == "")
+        | {port: (.HostPort | tonumber), scope: "public"} ] )
+    + ( [ $c.labels | to_entries[] | select(.key | test("^caddy(_[0-9]+)?$")) | .value ]
+        | if length == 0 then []
+          else [ {port: 443, vhost: join(" "),
+                  scope: (if ($c.labels | keys | any(test("forward_auth"))) then "authed" else "public" end)} ]
+          end )
+  | map(. + {proto: "tcp", process: $c.name, image: $c.image})
+)
+| add // [] | unique
+'
+
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -92,6 +108,15 @@ fi
 
 COUNT="$(jq '.entries | length' "$REPORT")"
 echo "→ wrote ${COUNT} package entries to ${REPORT}"
+
+docker ps --format '{{.Names}}' | while read -r name; do
+  docker inspect "$name" | jq -c --arg name "$name" \
+    '.[0] | {name: $name, image: .Config.Image, labels: (.Config.Labels // {}), ports: .NetworkSettings.Ports}'
+done | jq -s "$EXPOSURE" \
+  | jq --arg gen "$GENERATED" --arg host "$HOST" '{schema: 1, host: $host, generated: $gen, listeners: .}' \
+  > "${TMP}/exposure.json"
+cp "${TMP}/exposure.json" "${STATIC_DIR}/exposure-${HOST}.json"
+echo "→ exposure: $(jq '.listeners | length' "${STATIC_DIR}/exposure-${HOST}.json") listener(s)"
 
 cd "$STATIC_DIR"
 printf '[%s]\n' "$(find . -maxdepth 1 -name 'report-*.json' -printf '%f\n' | sort | sed -E 's/^report-(.*)\.json$/"\1"/' | paste -sd, -)" > hosts.json
