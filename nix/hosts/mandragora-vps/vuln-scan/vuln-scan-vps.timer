@@ -1,8 +1,8 @@
 [Unit]
-Description=Weekly trivy CVE scan of mandragora-vps container images
+Description=Daily trivy CVE scan of mandragora-vps container images
 
 [Timer]
-OnCalendar=weekly
+OnCalendar=daily
 RandomizedDelaySec=1h
 Persistent=true
 

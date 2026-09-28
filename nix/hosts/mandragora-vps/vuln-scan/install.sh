@@ -1,14 +1,9 @@
 #!/usr/bin/env bash
-# Install the trivy VPS scanner on mandragora-vps: push the script, drop the
-# systemd system service+timer, enable the weekly timer, and run one scan now.
-# Idempotent — safe to re-run after editing scan.sh or the units.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REMOTE="${REMOTE:-opc@100.84.78.83}"
 
-# The scanner lives in /usr/local/bin (bin_t), not /home — SELinux on Oracle
-# Linux denies systemd (systemd_t) exec of files under /home (user_home_t).
 echo "→ pushing scan.sh to /usr/local/bin"
 rsync -a "$HERE/scan.sh" "$REMOTE:/tmp/vuln-scan-vps.sh"
 ssh "$REMOTE" 'sudo mv /tmp/vuln-scan-vps.sh /usr/local/bin/vuln-scan-vps.sh \
