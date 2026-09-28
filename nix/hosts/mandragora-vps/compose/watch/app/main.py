@@ -228,6 +228,28 @@ def bootstrap_release_sources() -> None:
         log.info("release-sources: registered %d release watchers", added)
 
 
+VULN_WATCH_CONDITION = "a vulnerability affects one of my mandragora hosts"
+
+
+def bootstrap_vuln_watch() -> None:
+    import inventory
+
+    c = conn()
+    try:
+        if c.execute("SELECT 1 FROM watchers WHERE kind = 'vuln_inventory' AND target = '*'").fetchone():
+            return
+        watch_id = create_watch(c, VULN_WATCH_CONDITION)
+        c.execute(
+            "INSERT INTO watchers (kind, target, name, created_at, push, requires_ack, match_rule, "
+            "condition, watch_id) VALUES (?, ?, ?, ?, 1, 1, ?, ?, ?)",
+            ("vuln_inventory", "*", "cves on mandragora hosts", now_iso(), inventory.DEFAULT_RULE,
+             VULN_WATCH_CONDITION, watch_id),
+        )
+        log.info("vuln-watch: registered the vuln_inventory watcher")
+    finally:
+        c.close()
+
+
 TASKS: dict[str, asyncio.Task] = {}
 
 
@@ -235,6 +257,7 @@ TASKS: dict[str, asyncio.Task] = {}
 async def lifespan(app: FastAPI):
     init_db()
     bootstrap_release_sources()
+    bootstrap_vuln_watch()
     if not tg.enabled():
         log.error("telegram unconfigured: TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID missing from .env")
     TASKS.update(
@@ -289,7 +312,7 @@ def watcher_dict(
         "kind": row["kind"],
         "target": row["target"],
         "name": row["name"],
-        "cursor": row["cursor"],
+        "cursor": row["cursor"] if not row["cursor"] or len(row["cursor"]) <= 256 else f"<{len(row['cursor'])} bytes of state>",
         "enabled": bool(row["enabled"]),
         "created_at": row["created_at"],
         "last_polled_at": row["last_polled_at"],
