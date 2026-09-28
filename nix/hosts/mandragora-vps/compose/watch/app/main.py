@@ -250,6 +250,28 @@ def bootstrap_vuln_watch() -> None:
         c.close()
 
 
+HEALTH_WATCH_CONDITION = "a scheduled job on one of my mandragora hosts went quiet"
+
+
+def bootstrap_health_watch() -> None:
+    import health
+
+    c = conn()
+    try:
+        if c.execute("SELECT 1 FROM watchers WHERE kind = 'unit_health' AND target = '*'").fetchone():
+            return
+        watch_id = create_watch(c, HEALTH_WATCH_CONDITION)
+        c.execute(
+            "INSERT INTO watchers (kind, target, name, created_at, push, requires_ack, match_rule, "
+            "condition, watch_id) VALUES (?, ?, ?, ?, 1, 1, ?, ?, ?)",
+            ("unit_health", "*", "quiet jobs on mandragora hosts", now_iso(), health.DEFAULT_RULE,
+             HEALTH_WATCH_CONDITION, watch_id),
+        )
+        log.info("health-watch: registered the unit_health watcher")
+    finally:
+        c.close()
+
+
 TASKS: dict[str, asyncio.Task] = {}
 
 
@@ -258,6 +280,7 @@ async def lifespan(app: FastAPI):
     init_db()
     bootstrap_release_sources()
     bootstrap_vuln_watch()
+    bootstrap_health_watch()
     if not tg.enabled():
         log.error("telegram unconfigured: TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID missing from .env")
     TASKS.update(

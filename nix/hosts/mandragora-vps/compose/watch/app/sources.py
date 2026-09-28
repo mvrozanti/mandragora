@@ -114,6 +114,10 @@ SOURCE_KINDS: dict[str, dict[str, str]] = {
         "label": "CVEs affecting Mandragora hosts (vuln.mvr.ac scans)",
         "target_hint": "* or mandragora-vps",
     },
+    "unit_health": {
+        "label": "Timer-driven jobs on Mandragora hosts that went quiet",
+        "target_hint": "* or mandragora",
+    },
 }
 
 
@@ -133,6 +137,7 @@ SOURCE_EMITS = {
     "osv_package": "vulnerability records for one package from the OSV database: identifier, aliases, summary and details — a fact table, never prose",
     "anticheat_game": "whether games matching a name run on Linux, from areweanticheatyet: one status per title out of Supported, Running, Denied, Broken or Planned, and nothing else — a fact table, never prose",
     "vuln_inventory": "CVEs newly affecting packages installed on the user's own Mandragora hosts, as decided by each host's scanner (vulnix, trivy): package, installed version, CVE id, CVSS score, fixed version, affected hosts, whether it is on the CISA exploited-in-the-wild list, plus alerts when a host's scanner stops reporting. Titles carry tags vuln:critical/high/medium/low, vuln:kev, vuln:fixable/nofix, vuln:exposed, vuln:stale — a fact table, never prose",
+    "unit_health": "freshness of every timer-driven systemd job on the user's own Mandragora hosts, as published by each host every 15 minutes: alerts when a job has not succeeded within twice its schedule (the timer stopped firing or the job hangs) and when a host stops publishing altogether. Failures that exit loudly are paged by the host itself, not here. Titles carry tags health:stale, health:silent and health:<host> — a fact table, never prose",
 }
 
 
@@ -248,6 +253,10 @@ def validate_target(kind: str, target: str) -> str:
         import inventory
 
         return inventory.validate(target)
+    elif kind == "unit_health":
+        import health
+
+        return health.validate(target)
     else:
         raise ValueError(f"unknown kind: {kind}")
     return t
@@ -308,6 +317,10 @@ async def fetch(kind: str, target: str, cursor: str | None) -> tuple[list[dict[s
         import inventory
 
         return await inventory.fetch(target, cursor)
+    if kind == "unit_health":
+        import health
+
+        return await health.fetch(target, cursor)
     raise ValueError(f"unknown kind: {kind}")
 
 
