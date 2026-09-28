@@ -7,6 +7,7 @@ HOST="$(hostname)"
 REMOTE="${VULN_REMOTE:-opc@100.84.78.83}"
 REMOTE_DIR="${VULN_REMOTE_DIR:-/home/opc/vuln/static}"
 SCAN_ERROR="${VULN_SCAN_ERROR:-}"
+SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 
 if [[ ! -s "$LATEST" ]]; then
   echo "no scan report at $LATEST — run: systemctl --user start cve-scan.service" >&2
@@ -38,9 +39,9 @@ jq --arg gen "$GENERATED" --arg host "$HOST" --arg err "$SCAN_ERROR" '{
 
 REPORT="report-${HOST}.json"
 echo "→ publishing $(jq '.entries|length' "$SLIM") entries as ${HOST} (generated ${GENERATED}) to ${REMOTE}:${REMOTE_DIR}/${REPORT}"
-rsync -a "$SLIM" "${REMOTE}:${REMOTE_DIR}/${REPORT}"
+rsync -a -e "ssh ${SSH_OPTS[*]}" "$SLIM" "${REMOTE}:${REMOTE_DIR}/${REPORT}"
 
-ssh "$REMOTE" bash -s "$REMOTE_DIR" <<'EOSSH'
+ssh "${SSH_OPTS[@]}" "$REMOTE" bash -s "$REMOTE_DIR" <<'EOSSH'
 set -euo pipefail
 cd "$1"
 printf '[%s]\n' "$(ls report-*.json 2>/dev/null | sed -E 's/^report-(.*)\.json$/"\1"/' | paste -sd, -)" > hosts.json
