@@ -110,6 +110,10 @@ SOURCE_KINDS: dict[str, dict[str, str]] = {
         "label": "Linux anti-cheat status (areweanticheatyet)",
         "target_hint": "battlefield",
     },
+    "vuln_inventory": {
+        "label": "CVEs affecting Mandragora hosts (vuln.mvr.ac scans)",
+        "target_hint": "* or mandragora-vps",
+    },
 }
 
 
@@ -128,6 +132,7 @@ SOURCE_EMITS = {
     "github_advisory": "security advisories published by a GitHub project itself: identifier, severity, summary and description — a fact table, never prose",
     "osv_package": "vulnerability records for one package from the OSV database: identifier, aliases, summary and details — a fact table, never prose",
     "anticheat_game": "whether games matching a name run on Linux, from areweanticheatyet: one status per title out of Supported, Running, Denied, Broken or Planned, and nothing else — a fact table, never prose",
+    "vuln_inventory": "CVEs newly affecting packages installed on the user's own Mandragora hosts, as decided by each host's scanner (vulnix, trivy): package, installed version, CVE id, CVSS score, fixed version, affected hosts, whether it is on the CISA exploited-in-the-wild list, plus alerts when a host's scanner stops reporting. Titles carry tags vuln:critical/high/medium/low, vuln:kev, vuln:fixable/nofix, vuln:exposed, vuln:stale — a fact table, never prose",
 }
 
 
@@ -239,6 +244,10 @@ def validate_target(kind: str, target: str) -> str:
         if not eco or not name or " " in target.strip():
             raise ValueError("osv_package expects <ecosystem>:<name>, e.g. PyPI:electrum")
         return f"{eco.strip()}:{name.strip()}"
+    elif kind == "vuln_inventory":
+        import inventory
+
+        return inventory.validate(target)
     else:
         raise ValueError(f"unknown kind: {kind}")
     return t
@@ -295,6 +304,10 @@ async def fetch(kind: str, target: str, cursor: str | None) -> tuple[list[dict[s
         return await _fetch_osv_package(target, cursor)
     if kind == "anticheat_game":
         return await _fetch_anticheat_game(target, cursor)
+    if kind == "vuln_inventory":
+        import inventory
+
+        return await inventory.fetch(target, cursor)
     raise ValueError(f"unknown kind: {kind}")
 
 
