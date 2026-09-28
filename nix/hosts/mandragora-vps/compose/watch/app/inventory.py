@@ -393,6 +393,9 @@ async def _get_json(c: httpx.AsyncClient, url: str, missing_ok: bool = False) ->
     if missing_ok and r.status_code == 404:
         _http_cache.pop(url, None)
         return None
+    if r.status_code == 403:
+        name = url.rsplit("/", 1)[-1]
+        raise RuntimeError(f"vuln serves {name} as 403: the file is unreadable to nginx, check its mode on the VPS")
     _raise_for_throttle(r, "vuln")
     r.raise_for_status()
     data = r.json()

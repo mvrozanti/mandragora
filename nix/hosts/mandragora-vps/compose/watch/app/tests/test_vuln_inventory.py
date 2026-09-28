@@ -351,6 +351,22 @@ def test_fetch_end_to_end_baselines_then_reports(monkeypatch):
     assert [e["external_id"] for e in events] == ["new|curl|CVE-2026-0003"]
 
 
+def test_an_unreadable_report_names_the_file_instead_of_backing_off_as_throttled(monkeypatch):
+    import httpx
+
+    async def get(self, url, headers=None, params=None):
+        if url.endswith("hosts.json"):
+            return _Resp(200, ["mandragora"])
+        if url.endswith("report-mandragora.json"):
+            return _Resp(403)
+        return _Resp(404)
+
+    monkeypatch.setattr(httpx.AsyncClient, "get", get)
+    monkeypatch.setattr(inventory, "_http_cache", {})
+    with pytest.raises(RuntimeError, match="report-mandragora.json"):
+        asyncio.run(sources.fetch("vuln_inventory", "*", None))
+
+
 def test_fetch_for_a_vanished_host_is_an_error_not_silence(monkeypatch):
     _serve(monkeypatch, _files(BASE))
     with pytest.raises(RuntimeError, match="no longer publishes"):

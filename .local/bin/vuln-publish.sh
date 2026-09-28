@@ -36,6 +36,7 @@ jq --arg gen "$GENERATED" --arg host "$HOST" --arg err "$SCAN_ERROR" '{
     } ]
   } ]
 } + (if $err == "" then {} else {error: $err} end)' "$LATEST" > "$SLIM"
+chmod 0644 "$SLIM"
 
 REPORT="report-${HOST}.json"
 echo "→ publishing $(jq '.entries|length' "$SLIM") entries as ${HOST} (generated ${GENERATED}) to ${REMOTE}:${REMOTE_DIR}/${REPORT}"
