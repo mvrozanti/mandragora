@@ -26,6 +26,32 @@ function isNoise(e) {
   return e.cves.every((c) => NOISE_PC.has(`${e.pname}|${c.id}`));
 }
 
+const EXPOSED_SCOPES = ["open", "public", "lan"];
+const SCOPE_RANK = { open: 0, public: 1, lan: 2, authed: 3, tailnet: 4 };
+
+function exposureIndex(exp) {
+  const pkgs = new Map();
+  const images = new Map();
+  const widest = (a, b) => (a === undefined || SCOPE_RANK[b] < SCOPE_RANK[a] ? b : a);
+  for (const l of (exp && exp.listeners) || []) {
+    if (!(l.scope in SCOPE_RANK)) continue;
+    for (const p of l.packages || []) {
+      const k = `${p.pname}|${p.version}`;
+      pkgs.set(k, widest(pkgs.get(k), l.scope));
+    }
+    if (l.image) images.set(l.image, widest(images.get(l.image), l.scope));
+  }
+  return { pkgs, images };
+}
+
+function exposureOf(e, idx) {
+  const scopes = new Set();
+  const s = idx.pkgs.get(`${e.pname}|${e.version}`);
+  if (s) scopes.add(s);
+  for (const img of e.images || []) if (idx.images.has(img)) scopes.add(idx.images.get(img));
+  return [...scopes].sort((a, b) => SCOPE_RANK[a] - SCOPE_RANK[b]);
+}
+
 function sevOf(score) {
   if (score >= 9.0) return "crit";
   if (score >= 7.0) return "high";
@@ -46,9 +72,10 @@ function mergedEntries() {
     for (const e of rep.entries) {
       const key = `${e.pname} ${e.version}`;
       let m = byKey.get(key);
-      if (!m) { m = { pname: e.pname, version: e.version, max: 0, cveMap: new Map(), hosts: new Set() }; byKey.set(key, m); }
+      if (!m) { m = { pname: e.pname, version: e.version, max: 0, cveMap: new Map(), hosts: new Set(), exposure: new Set() }; byKey.set(key, m); }
       m.max = Math.max(m.max, e.max);
       m.hosts.add(host);
+      for (const sc of e.exposure || []) m.exposure.add(sc);
       for (const c of e.cves) {
         const prev = m.cveMap.get(c.id);
         if (!prev || c.score > prev.score) m.cveMap.set(c.id, c);
@@ -57,7 +84,8 @@ function mergedEntries() {
   }
   return [...byKey.values()].map((m) => {
     const cves = [...m.cveMap.values()];
-    const entry = { pname: m.pname, version: m.version, max: m.max, cves, hosts: [...m.hosts].sort() };
+    const exposure = [...m.exposure].sort((a, b) => SCOPE_RANK[a] - SCOPE_RANK[b]);
+    const entry = { pname: m.pname, version: m.version, max: m.max, cves, hosts: [...m.hosts].sort(), exposure };
     entry.noise = isNoise(entry);
     return entry;
   });
@@ -156,6 +184,7 @@ function render() {
         <span class="ver">${escapeHtml(e.version || "")}</span>
         ${hostBadges}
         ${noFix ? '<span class="badge nofix">no upstream fix</span>' : ""}
+        ${(e.exposure || []).length ? `<span class="badge ${EXPOSED_SCOPES.includes(e.exposure[0]) ? "exposed" : "reachable"}">listening · ${escapeHtml(e.exposure.join(", "))}</span>` : ""}
         ${e.noise ? '<span class="badge">suppressed</span>' : ""}
       </div>
       <ul class="cves">${cves}</ul>
@@ -183,7 +212,17 @@ async function fetchReport(host) {
   const res = await fetch(`report-${host}.json`, { cache: "no-store" });
   if (!res.ok) throw new Error(`report-${host}.json ${res.status}`);
   const data = await res.json();
-  return { generated: data.generated || "?", error: data.error || "", entries: (data.entries || []).map((e) => ({ ...e, noise: isNoise(e) })) };
+  let exp = null;
+  try {
+    const er = await fetch(`exposure-${host}.json`, { cache: "no-store" });
+    if (er.ok) exp = await er.json();
+  } catch (_) {}
+  const idx = exposureIndex(exp);
+  return {
+    generated: data.generated || "?",
+    error: data.error || "",
+    entries: (data.entries || []).map((e) => ({ ...e, noise: isNoise(e), exposure: exposureOf(e, idx) })),
+  };
 }
 
 async function load() {

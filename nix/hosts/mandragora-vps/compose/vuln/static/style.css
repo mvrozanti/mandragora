@@ -76,6 +76,8 @@ header {
 .card.fix .n { color: var(--ok); }
 .card .k .sub { color: var(--dim); font-size: .68rem; margin-left: .3rem; }
 .badge.nofix { color: var(--unk); border-color: var(--unk); }
+.badge.exposed { color: var(--crit); border-color: var(--crit); }
+.badge.reachable { color: var(--med); border-color: var(--med); }
 .pkg .nofix-dot {
   font-size: .6rem;
   color: var(--unk);

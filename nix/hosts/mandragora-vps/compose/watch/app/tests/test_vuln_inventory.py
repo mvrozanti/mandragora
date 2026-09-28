@@ -225,10 +225,41 @@ def test_default_rule_pages_anything_on_kev():
 
 def test_default_rule_pages_an_exposed_package():
     reports = with_entry("mandragora", entry("less", "600", cve("CVE-2026-0006", 5.0)))
-    exposures = {"mandragora": {"listeners": [{"port": 22, "scope": "public", "pnames": ["less"]}]}}
+    exposures = {"mandragora": {"listeners": [
+        {"port": 1716, "scope": "open", "packages": [{"pname": "less", "version": "600"}]},
+    ]}}
     ev = _title(reports, exposures=exposures)
-    assert "vuln:exposed" in ev["title"] and "mandragora:public" in ev["summary"]
+    assert "vuln:exposed" in ev["title"] and "mandragora:open" in ev["summary"]
     assert _pages(ev)
+
+
+def test_a_listener_linking_a_different_version_is_not_exposure():
+    reports = with_entry("mandragora", entry("less", "600", cve("CVE-2026-0006", 5.0)))
+    exposures = {"mandragora": {"listeners": [
+        {"port": 1716, "scope": "open", "packages": [{"pname": "less", "version": "700"}]},
+    ]}}
+    ev = _title(reports, exposures=exposures)
+    assert "vuln:exposed" not in ev["title"] and "vuln:reachable" not in ev["title"]
+
+
+def test_tailnet_only_is_reachable_not_exposed():
+    reports = with_entry("mandragora", entry("less", "600", cve("CVE-2026-0006", 5.0)))
+    exposures = {"mandragora": {"listeners": [
+        {"port": 8080, "scope": "tailnet", "packages": [{"pname": "less", "version": "600"}]},
+        {"port": 8081, "scope": "tailnet", "packages": [{"pname": "less", "version": "600"}]},
+    ]}}
+    ev = _title(reports, exposures=exposures)
+    assert "vuln:reachable" in ev["title"] and "vuln:exposed" not in ev["title"]
+    assert not _pages(ev)
+
+
+def test_the_widest_scope_wins():
+    packages, _ = inventory.exposure_index({"listeners": [
+        {"scope": "tailnet", "packages": [{"pname": "a", "version": "1"}]},
+        {"scope": "open", "packages": [{"pname": "a", "version": "1"}]},
+        {"scope": "bogus", "packages": [{"pname": "b", "version": "1"}]},
+    ]})
+    assert packages == {("a", "1"): "open"}
 
 
 def test_exposure_matches_vps_packages_by_image():

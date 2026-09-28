@@ -41,6 +41,12 @@ REPORT="report-${HOST}.json"
 echo "→ publishing $(jq '.entries|length' "$SLIM") entries as ${HOST} (generated ${GENERATED}) to ${REMOTE}:${REMOTE_DIR}/${REPORT}"
 rsync -a -e "ssh ${SSH_OPTS[*]}" "$SLIM" "${REMOTE}:${REMOTE_DIR}/${REPORT}"
 
+EXPOSURE="${VULN_EXPOSURE:-/run/vuln-exposure/exposure.json}"
+if [[ -s "$EXPOSURE" ]]; then
+  echo "→ publishing $(jq '.listeners|length' "$EXPOSURE") exposed listener(s) as exposure-${HOST}.json"
+  rsync -a -e "ssh ${SSH_OPTS[*]}" "$EXPOSURE" "${REMOTE}:${REMOTE_DIR}/exposure-${HOST}.json"
+fi
+
 ssh "${SSH_OPTS[@]}" "$REMOTE" bash -s "$REMOTE_DIR" <<'EOSSH'
 set -euo pipefail
 cd "$1"

@@ -21,6 +21,8 @@ FORGET_AFTER_DAYS = int(os.environ.get("WATCH_VULN_FORGET_DAYS", "30"))
 BURST = int(os.environ.get("WATCH_VULN_BURST", "20"))
 USER_AGENT = os.environ.get("WATCH_USER_AGENT", "mandragora-watch/0.1 (+https://watch.mvr.ac)")
 
+EXPOSED_SCOPES = ("open", "public", "lan")
+SCOPE_RANK = {"open": 0, "public": 1, "lan": 2, "authed": 3, "tailnet": 4}
 HOST_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
 DEFAULT_RULE = (
     "(vuln:kev OR vuln:stale OR (vuln:critical AND vuln:fixable) OR vuln:exposed) "
@@ -111,16 +113,28 @@ def parse_generated(value: str) -> datetime | None:
         return None
 
 
-def exposure_index(exposure: dict[str, Any] | None) -> tuple[dict[str, str], dict[str, str]]:
-    pnames: dict[str, str] = {}
+def _widest(current: str | None, scope: str) -> str:
+    if current is None:
+        return scope
+    return min(current, scope, key=lambda s: SCOPE_RANK.get(s, 99))
+
+
+def exposure_index(
+    exposure: dict[str, Any] | None,
+) -> tuple[dict[tuple[str, str], str], dict[str, str]]:
+    packages: dict[tuple[str, str], str] = {}
     images: dict[str, str] = {}
     for item in (exposure or {}).get("listeners") or []:
-        scope = str(item.get("scope") or "listening")
-        for p in item.get("pnames") or ([item["pname"]] if item.get("pname") else []):
-            pnames[str(p)] = scope
+        scope = str(item.get("scope") or "")
+        if scope not in SCOPE_RANK:
+            continue
+        for pkg in item.get("packages") or []:
+            key = (str(pkg.get("pname") or ""), str(pkg.get("version") or ""))
+            packages[key] = _widest(packages.get(key), scope)
         if item.get("image"):
-            images[str(item["image"])] = scope
-    return pnames, images
+            img = str(item["image"])
+            images[img] = _widest(images.get(img), scope)
+    return packages, images
 
 
 def collect(
@@ -131,7 +145,7 @@ def collect(
     exposures = exposures or {}
     recs: dict[str, Record] = {}
     for host, report in reports.items():
-        exp_pnames, exp_images = exposure_index(exposures.get(host))
+        exp_packages, exp_images = exposure_index(exposures.get(host))
         for e in report.get("entries") or []:
             pname = str(e.get("pname") or "")
             version = str(e.get("version") or "")
@@ -139,8 +153,8 @@ def collect(
                 continue
             images = {str(i) for i in e.get("images") or []}
             scopes = set()
-            if pname in exp_pnames:
-                scopes.add(f"{host}:{exp_pnames[pname]}")
+            if (pname, version) in exp_packages:
+                scopes.add(f"{host}:{exp_packages[(pname, version)]}")
             for img in images & set(exp_images):
                 scopes.add(f"{host}:{exp_images[img]}")
             for c in e.get("cves") or []:
@@ -177,8 +191,10 @@ def tags(rec: Record, kev: bool, bulk: bool = False) -> list[str]:
     if kev:
         out.append("vuln:kev")
     out.append("vuln:fixable" if rec.fixable else "vuln:nofix")
-    if rec.exposed:
+    if any(s.rsplit(":", 1)[-1] in EXPOSED_SCOPES for s in rec.exposed):
         out.append("vuln:exposed")
+    elif rec.exposed:
+        out.append("vuln:reachable")
     out.extend(host_tag(h) for h in sorted(rec.hosts))
     if bulk:
         out.append("vuln:bulk")
@@ -198,7 +214,7 @@ def record_event(rec: Record, kind: str, kev: bool, bulk: bool = False) -> dict[
     fix = ", ".join(sorted(rec.fixed_versions)) or ("none upstream" if not rec.fixable else "update available")
     parts = [f"fix: {fix}", f"hosts: {', '.join(sorted(rec.hosts))}"]
     if rec.exposed:
-        parts.append(f"exposed: {', '.join(sorted(rec.exposed))}")
+        parts.append(f"listening: {', '.join(sorted(rec.exposed))}")
     if rec.images:
         imgs = sorted(rec.images)
         parts.append(f"images: {', '.join(imgs[:4])}" + (f" +{len(imgs) - 4}" if len(imgs) > 4 else ""))
