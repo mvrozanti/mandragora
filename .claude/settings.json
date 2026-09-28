@@ -61,13 +61,20 @@
     "nvidia-skills@claude-plugins-official": true,
     "huggingface-skills@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
-    "mcp-server-dev@claude-plugins-official": true
+    "mcp-server-dev@claude-plugins-official": true,
+    "nixd-lsp@mandragora": true
   },
   "extraKnownMarketplaces": {
     "tellonce": {
       "source": {
         "source": "github",
         "repo": "YujunZhou/tellonce"
+      }
+    },
+    "mandragora": {
+      "source": {
+        "source": "directory",
+        "path": "/etc/nixos/mandragora/agent-plugins"
       }
     }
   },

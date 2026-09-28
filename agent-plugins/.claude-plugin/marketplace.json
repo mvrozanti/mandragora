@@ -1,0 +1,15 @@
+{
+  "name": "mandragora",
+  "owner": {
+    "name": "mvrozanti"
+  },
+  "plugins": [
+    {
+      "name": "nixd-lsp",
+      "description": "Nix language server (nixd) wired to the mandragora flake's nixpkgs, NixOS and home-manager options",
+      "version": "1.0.0",
+      "source": "./nixd-lsp",
+      "category": "development"
+    }
+  ]
+}
