@@ -38,8 +38,13 @@ echo "→ ensuring remote slot $REMOTE:$REMOTE_DIR exists"
 ssh "$REMOTE" "mkdir -p $REMOTE_DIR/src"
 
 echo "→ rsyncing webui/ to $REMOTE:$REMOTE_DIR/src/webui/"
+# Local build trees never ship: webui/.pip-prefix is the 7.5 GB nix-shell pytorch
+# tree and 5.4 GB of it reached the VPS on 2026-09-29 before the transfer was
+# killed. The container installs its own deps from webui/Dockerfile.
 rsync -av --delete \
   --exclude='__pycache__/' --exclude='*.pyc' \
+  --exclude='.pip-prefix/' --exclude='.venv/' \
+  --exclude='.pytest_cache/' --exclude='.mypy_cache/' --exclude='.ruff_cache/' \
   "$LOCAL_REPO/webui/" "$REMOTE:$REMOTE_DIR/src/webui/"
 
 echo "→ rsyncing all repo *.md files to $REMOTE:$REMOTE_DIR/src/ for /graph"
