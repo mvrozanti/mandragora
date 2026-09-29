@@ -47,10 +47,15 @@ rsync -av --delete \
   --exclude='.pytest_cache/' --exclude='.mypy_cache/' --exclude='.ruff_cache/' \
   "$LOCAL_REPO/webui/" "$REMOTE:$REMOTE_DIR/src/webui/"
 
-echo "→ rsyncing all repo *.md files to $REMOTE:$REMOTE_DIR/src/ for /graph"
+echo "→ rsyncing repo *.md + data/reference/ to $REMOTE:$REMOTE_DIR/src/"
+# *.md feeds /graph. data/reference/ carries the DERIVED constants the served
+# surface is forbidden to hard-code — hurdle.json is the after-tax CDB bar,
+# produced from cdi.parquet by scripts/derive_hurdle.py because the container
+# ships no pandas. Without it webui/hurdle.live() correctly refuses to state a
+# bar, and then every "beats the bar" verdict on the page is unreadable.
 rsync -av \
   --prune-empty-dirs \
-  --include='*/' --include='*.md' --exclude='*' \
+  --include='*/' --include='*.md' --include='data/reference/*.json' --exclude='*' \
   --exclude='.venv/' --exclude='.pip-prefix/' \
   --exclude='__pycache__/' --exclude='archived_paper_ledgers/' \
   --exclude='.claude/' --exclude='.pytest_cache/' \
