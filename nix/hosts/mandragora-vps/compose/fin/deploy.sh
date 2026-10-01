@@ -47,15 +47,41 @@ rsync -av --delete \
   --exclude='.pytest_cache/' --exclude='.mypy_cache/' --exclude='.ruff_cache/' \
   "$LOCAL_REPO/webui/" "$REMOTE:$REMOTE_DIR/src/webui/"
 
-echo "→ rsyncing repo *.md + data/reference/ to $REMOTE:$REMOTE_DIR/src/"
-# *.md feeds /graph. data/reference/ carries the DERIVED constants the served
-# surface is forbidden to hard-code — hurdle.json is the after-tax CDB bar,
-# produced from cdi.parquet by scripts/derive_hurdle.py because the container
-# ships no pandas. Without it webui/hurdle.live() correctly refuses to state a
-# bar, and then every "beats the bar" verdict on the page is unreadable.
+echo "→ rsyncing repo *.md + the inputs the six questions read"
+# PARITY IS THE INVARIANT (operator, 2026-09-30): "whatever appears on the
+# desktop should appear on the mobile." fin.mvr.ac is how the fund is read away
+# from the machine, so a question that answers on the desktop and not here is a
+# defect, not a degradation.
+#
+# Each include below is one question's input. Dropping one does not break the
+# page — webui/questions.py returns _unanswerable() and says so honestly — it
+# just makes the phone a worse mirror than the desk:
+#   data/reference/*.json              the derived after-tax CDB bar (Q1). The
+#                                      container ships no pandas, so it cannot
+#                                      compute this from cdi.parquet itself.
+#   data/signal_bank/                  the banked forecast streams (Q2, Q3)
+#   data/raw/b3_intraday/coverage_*    B3 capture coverage (Q4)
+#   data/decisions.jsonl               gate throughput and surprise rate (Q5)
+#   algorithms/strategy_lab/results/   the candidate space (Q5)
+#   algorithms/*/live/*.json|jsonl     lane-tagged iteration rows (Q5)
+# ~30 MB total, all small and derived. Local BUILD trees are still excluded
+# below; data artifacts are what the questions are made of.
+#
+# This list drifts the same way a nav bar does, so deploy.sh ends by running
+# scripts/panes_parity.py, which compares the deployed question tree against
+# this machine's and names any question that lost an answer in transit.
 rsync -av \
   --prune-empty-dirs \
-  --include='*/' --include='*.md' --include='data/reference/*.json' --exclude='*' \
+  --include='*/' --include='*.md' \
+  --include='data/reference/*.json' \
+  --include='data/signal_bank/**' \
+  --include='data/raw/b3_intraday/coverage_summary.json' \
+  --include='data/raw/b3_intraday/coverage.jsonl' \
+  --include='data/decisions.jsonl' \
+  --include='algorithms/strategy_lab/results/lab_decisions.jsonl' \
+  --include='algorithms/*/live/*.json' \
+  --include='algorithms/*/live/*.jsonl' \
+  --exclude='*' \
   --exclude='.venv/' --exclude='.pip-prefix/' \
   --exclude='__pycache__/' --exclude='archived_paper_ledgers/' \
   --exclude='.claude/' --exclude='.pytest_cache/' \
@@ -107,6 +133,14 @@ ssh "$REMOTE" "cd $REMOTE_DIR && docker compose up -d"
 echo "→ waiting for healthz"
 sleep 4
 ssh "$REMOTE" "docker exec fin wget -qO- http://localhost:8080/healthz || echo '(healthz check failed)'"
+
+echo "→ parity: does the phone see what the desk sees?"
+if [[ -x "$LOCAL_REPO/scripts/panes_parity.py" ]]; then
+  "$LOCAL_REPO/scripts/panes_parity.py" --remote "$REMOTE" || \
+    echo "  (parity check reported a difference — see above)"
+else
+  echo "  (scripts/panes_parity.py absent, skipping)"
+fi
 
 echo "→ done. visit https://fin.mvr.ac (authelia-gated)."
 echo "   logs:   ssh $REMOTE 'docker logs -f fin'"
