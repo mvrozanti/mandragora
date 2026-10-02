@@ -21,7 +21,7 @@ let
         pkgs.statix
         pkgs.deadnix
         pkgs.shellcheck
-        pkgs.nixfmt-rfc-style
+        pkgs.nixfmt
       ]
     }:$PATH
     exec ${pkgs.bash}/bin/bash "$AUDIT_HOME/audit.sh" "$@"
