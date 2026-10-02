@@ -6,6 +6,7 @@ _: {
       cc-lens = prev.callPackage ./cc-lens/default.nix { };
       cc-pocket-bridge = prev.callPackage ./cc-pocket-bridge/default.nix { };
       claude-code = prev.callPackage ./claude-code/default.nix { };
+      materia-theme-transparent = prev.callPackage ./materia-theme-transparent/default.nix { };
       rtk = prev.callPackage ./rtk/default.nix { };
       du-exporter = prev.callPackage ./du-exporter/default.nix { };
       ebpf-network-config = prev.callPackage ./ebpf-network-config/default.nix { };

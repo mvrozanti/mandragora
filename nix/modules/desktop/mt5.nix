@@ -4,7 +4,7 @@ let
   bootstrap = pkgs.writeShellApplication {
     name = "mt5-bootstrap";
     runtimeInputs = [
-      pkgs.wineWowPackages.staging
+      pkgs.wineWow64Packages.staging
       pkgs.winetricks
       pkgs.uv
       pkgs.curl
@@ -14,7 +14,7 @@ let
   server = pkgs.writeShellApplication {
     name = "mt5-server";
     runtimeInputs = [
-      pkgs.wineWowPackages.staging
+      pkgs.wineWow64Packages.staging
       pkgs.uv
     ];
     text = builtins.readFile ../../../.local/bin/mt5-server.sh;
@@ -22,7 +22,7 @@ let
   headless = pkgs.writeShellApplication {
     name = "mt5-headless";
     runtimeInputs = [
-      pkgs.wineWowPackages.staging
+      pkgs.wineWow64Packages.staging
       pkgs.xvfb
       pkgs.coreutils
     ];

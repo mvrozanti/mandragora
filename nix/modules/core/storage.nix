@@ -21,7 +21,7 @@
 
   environment.systemPackages = with pkgs; [
     android-file-transfer
-    jmtpfs
+    go-mtpfs
     libmtp
   ];
 

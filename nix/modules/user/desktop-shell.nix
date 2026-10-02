@@ -10,6 +10,7 @@ _:
 
   wayland.windowManager.hyprland = {
     enable = true;
+    configType = "hyprlang";
     settings = {
       exec-once = [
         "restore-theme"
