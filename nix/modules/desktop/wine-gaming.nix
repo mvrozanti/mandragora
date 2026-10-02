@@ -2,7 +2,7 @@
 
 {
   environment.systemPackages = with pkgs; [
-    wineWowPackages.staging
+    wineWow64Packages.staging
     winetricks
     dxvk
     vkd3d-proton

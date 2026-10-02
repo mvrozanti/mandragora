@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 let
   pyDictEnv = pkgs.python3.withPackages (
@@ -187,7 +187,7 @@ in
     rmlint
     newsboat
     irssi
-    silver-searcher
+    silver-searcher-ng
 
     gptfdisk
     gparted
@@ -443,12 +443,15 @@ in
 
   programs.go = {
     enable = true;
-    goPath = ".local/share/go";
-    goBin = ".local/share/go/bin";
+    env = {
+      GOPATH = "${config.home.homeDirectory}/.local/share/go";
+      GOBIN = "${config.home.homeDirectory}/.local/share/go/bin";
+    };
   };
 
   programs.firefox = {
     enable = true;
+    configPath = ".mozilla/firefox";
     nativeMessagingHosts = [ pkgs.tridactyl-native ];
     profiles.default = {
       isDefault = true;

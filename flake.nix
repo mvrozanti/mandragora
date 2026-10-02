@@ -60,16 +60,13 @@
         ./nix/modules/shared/common-packages.nix
         ./nix/modules/shared/zsh.nix
         ./nix/modules/shared/nvim.nix
-        ./nix/modules/shared/overlays.nix
         (
           let
             rev = self.rev or self.dirtyRev or "dirty";
           in
           {
             system.configurationRevision = rev;
-            system.systemBuilderCommands = ''
-              echo -n "${rev}" > $out/git-revision
-            '';
+            system.systemBuilderCommands = "echo -n '${rev}' > $out/git-revision";
           }
         )
       ];
@@ -158,7 +155,7 @@
         }/bin/refiner";
       };
 
-      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-rfc-style;
+      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt;
 
       checks.${system} =
         let
