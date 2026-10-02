@@ -159,6 +159,17 @@ def test_a_burst_collapses_into_one_page():
     assert len(paged) == 1 and paged[0]["external_id"].startswith("burst|")
 
 
+def test_a_burst_without_a_critical_or_high_stays_quiet():
+    state = baseline()
+    reports = json.loads(json.dumps(BASE))
+    for i in range(inventory.BURST + 1):
+        reports["mandragora"]["entries"].append(entry(f"pkg{i}", "1", cve(f"CVE-2026-1{i:03d}", 5.0)))
+    events, _ = run(reports, state)
+    paged = [e for e in events if match.matches(inventory.DEFAULT_RULE, e["title"], e["summary"])]
+    assert any(e["external_id"].startswith("burst|") for e in events)
+    assert paged == []
+
+
 def test_forgotten_pairs_page_again_after_the_forget_window():
     state = baseline()
     gone = {h: report(h, []) for h in BASE}
@@ -217,20 +228,37 @@ def test_default_rule_ignores_a_medium():
     assert not _pages(ev)
 
 
-def test_default_rule_pages_anything_on_kev():
-    ev = _title(with_entry("mandragora", entry("less", "600", cve("CVE-2026-0006", 5.0))),
+def test_default_rule_pages_a_high_on_kev():
+    ev = _title(with_entry("mandragora", entry("less", "600", cve("CVE-2026-0006", 7.5))),
                 kev=frozenset({"CVE-2026-0006"}))
     assert _pages(ev)
 
 
-def test_default_rule_pages_an_exposed_package():
-    reports = with_entry("mandragora", entry("less", "600", cve("CVE-2026-0006", 5.0)))
+def test_default_rule_ignores_a_medium_on_kev():
+    ev = _title(with_entry("mandragora", entry("less", "600", cve("CVE-2026-0006", 5.0))),
+                kev=frozenset({"CVE-2026-0006"}))
+    assert "vuln:kev" in ev["title"]
+    assert not _pages(ev)
+
+
+def test_default_rule_pages_an_exposed_high():
+    reports = with_entry("mandragora", entry("less", "600", cve("CVE-2026-0006", 8.1)))
     exposures = {"mandragora": {"listeners": [
         {"port": 1716, "scope": "open", "packages": [{"pname": "less", "version": "600"}]},
     ]}}
     ev = _title(reports, exposures=exposures)
     assert "vuln:exposed" in ev["title"] and "mandragora:open" in ev["summary"]
     assert _pages(ev)
+
+
+def test_default_rule_ignores_an_exposed_medium():
+    reports = with_entry("mandragora", entry("less", "600", cve("CVE-2026-0006", 5.0)))
+    exposures = {"mandragora": {"listeners": [
+        {"port": 1716, "scope": "open", "packages": [{"pname": "less", "version": "600"}]},
+    ]}}
+    ev = _title(reports, exposures=exposures)
+    assert "vuln:exposed" in ev["title"]
+    assert not _pages(ev)
 
 
 def test_a_listener_linking_a_different_version_is_not_exposure():

@@ -25,8 +25,8 @@ EXPOSED_SCOPES = ("open", "public", "lan")
 SCOPE_RANK = {"open": 0, "public": 1, "lan": 2, "authed": 3, "tailnet": 4}
 HOST_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
 DEFAULT_RULE = (
-    "(vuln:kev OR vuln:stale OR (vuln:critical AND vuln:fixable) OR vuln:exposed) "
-    "AND NOT vuln:bulk OR vuln:burst"
+    "vuln:stale OR ((vuln:critical OR vuln:high) AND (vuln:burst OR "
+    "((vuln:kev OR (vuln:critical AND vuln:fixable) OR vuln:exposed) AND NOT vuln:bulk)))"
 )
 
 _http_cache: dict[str, tuple[str, Any]] = {}
