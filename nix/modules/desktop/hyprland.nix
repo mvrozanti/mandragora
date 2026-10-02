@@ -16,9 +16,22 @@ let
     ];
     text = builtins.readFile ../../../.local/bin/awww-restore.sh;
   };
+  clipboardGifRecover = pkgs.writeShellApplication {
+    name = "clipboard-gif-recover";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.curl
+      pkgs.file
+      pkgs.findutils
+      pkgs.python3
+      pkgs.wl-clipboard
+    ];
+    text = builtins.readFile ../../../.local/bin/clipboard-gif-recover.sh;
+  };
   sessionAutostarts = {
     awww-daemon = "${pkgs.awww}/bin/awww-daemon";
     cliphist-store = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
+    clipboard-gif-recover = "${pkgs.wl-clipboard}/bin/wl-paste --type text/html --watch ${clipboardGifRecover}/bin/clipboard-gif-recover";
     polkit-gnome-agent = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
     kdeconnect-indicator = "${pkgs.kdePackages.kdeconnect-kde}/bin/kdeconnect-indicator";
     blueman-applet = "${pkgs.blueman}/bin/blueman-applet";
