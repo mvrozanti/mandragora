@@ -262,8 +262,13 @@ become underscores, so `vuln:mandragora` never matches `vuln:mandragora_vps`),
 ack-required) uses:
 
 ```
-(vuln:kev OR vuln:stale OR (vuln:critical AND vuln:fixable) OR vuln:exposed) AND NOT vuln:bulk OR vuln:burst
+vuln:stale OR ((vuln:critical OR vuln:high) AND (vuln:burst OR ((vuln:kev OR (vuln:critical AND vuln:fixable) OR vuln:exposed) AND NOT vuln:bulk)))
 ```
+
+Nothing below high pages, whatever else it is tagged: a medium on KEV or
+listening on an open port is on the dashboard, not the phone. A burst pages
+only when it carries at least one critical or high pair. `vuln:stale` is
+scanner health rather than a finding, so it pages regardless of severity.
 
 ### `unit_health` — a scheduled job on one of my hosts went quiet
 
