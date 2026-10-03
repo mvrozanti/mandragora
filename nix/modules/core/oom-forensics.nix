@@ -29,6 +29,8 @@ in
 
   environment.systemPackages = [ pkgs.atop ];
 
+  systemd.services.atop.serviceConfig.TimeoutStartSec = "30min";
+
   systemd.tmpfiles.rules = [
     "d /var/log/oom-tripwire 0700 root root 30d"
   ];
