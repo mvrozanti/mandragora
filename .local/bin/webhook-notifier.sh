@@ -6,6 +6,7 @@ UI_BASE="${WEBHOOK_NOTIFIER_UI:-https://webhook.mvr.ac}"
 APP="webhook.mvr.ac"
 ICON="${WEBHOOK_NOTIFIER_ICON:-network-receive}"
 TAILNET_HOST="${WEBHOOK_NOTIFIER_TAILNET_HOST:-mandragora-vps}"
+SKIP_HOOKS="${WEBHOOK_NOTIFIER_SKIP_HOOKS:-watch-fanout}"
 resolve_tailnet_ip() {
   if [ -z "$TAILNET_HOST" ]; then return; fi
   tailscale ip -4 "$TAILNET_HOST" 2>/dev/null | head -1
@@ -15,6 +16,9 @@ emit() {
   local json="$1"
   local hook_name method content_type size ip body action
   hook_name=$(jq -r '.hook_name // "?"' <<<"$json")
+  if [[ ",${SKIP_HOOKS}," == *",${hook_name},"* ]]; then
+    return 0
+  fi
   method=$(jq -r '.method // "?"' <<<"$json")
   content_type=$(jq -r '.content_type // "—"' <<<"$json")
   size=$(jq -r '.body_size // 0' <<<"$json")
