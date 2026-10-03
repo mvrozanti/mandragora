@@ -15,6 +15,7 @@ mkdir -p "$PREFIX"
 if [ ! -f "$MARK_WINE" ]; then
   echo ">> initializing wine prefix at $WINEPREFIX"
   wineboot --init
+  wine reg add "HKLM\\System\\CurrentControlSet\\Services\\winebus" /v DisableHidraw /t REG_DWORD /d 1 /f
   touch "$MARK_WINE"
 fi
 
