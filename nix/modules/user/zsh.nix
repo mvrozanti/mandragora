@@ -79,6 +79,7 @@ in
       "cd.." = "cd ..";
 
       s = "sudo ";
+      se = "sudo -e";
       smv = "sudo mv";
       srm = "sudo rm";
       schmod = "sudo chmod";
