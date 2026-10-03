@@ -339,7 +339,7 @@ in
             use = [ "office" ];
           }
           {
-            name = "*";
+            url = "*";
             use = [ "open" ];
           }
         ];
