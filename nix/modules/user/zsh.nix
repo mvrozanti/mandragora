@@ -123,6 +123,7 @@ in
       MANPAGER = "nvim +Man!";
       PYTHONSTARTUP = "$HOME/.pythonrc";
       SSH_KEY_PATH = "$HOME/.ssh/rsa_id";
+      TMUX_JUMP_SH = "${pkgs.tmuxPlugins.jump}/share/tmux-plugins/jump/scripts/tmux-jump.sh";
     };
 
     initContent =
