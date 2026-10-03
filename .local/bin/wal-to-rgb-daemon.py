@@ -90,7 +90,7 @@ def animated_colors(stops, led_count, phase):
 def connect():
     while True:
         try:
-            return OpenRGBClient(name="wal-to-rgb-daemon")
+            return OpenRGBClient(name="wal-to-rgb-daemon", protocol_version=3)
         except Exception as e:
             log(f"connect failed: {e}; retry in {CONNECT_BACKOFF_SECONDS}s")
             time.sleep(CONNECT_BACKOFF_SECONDS)
