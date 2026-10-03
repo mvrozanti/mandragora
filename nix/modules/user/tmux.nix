@@ -19,6 +19,10 @@
         plugin = open;
         extraConfig = builtins.readFile ../../../.config/tmux/open-plugin.conf;
       }
+      {
+        plugin = jump;
+        extraConfig = builtins.readFile ../../../.config/tmux/jump-plugin.conf;
+      }
     ];
 
     extraConfig = builtins.readFile ../../../.config/tmux/tmux.conf;
