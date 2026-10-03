@@ -47,6 +47,14 @@ cd_fzf() { echo; cd "$(ls | fzf)"; zle reset-prompt }
 run_clock() { echo; peaclock; zle reset-prompt }
 run_gemini() { echo; gemini </dev/tty; zle reset-prompt }
 
+jump_tmux() {
+  if [[ -n "$TMUX" ]]; then
+    tmux run-shell -b "$TMUX_JUMP_SH"
+  else
+    zle forward-word
+  fi
+}
+
 zoxide_cd_interactive() {
   local dir
   dir=$(zoxide query -i 2>/dev/tty)
@@ -74,6 +82,7 @@ zle -N cd_downloads
 zle -N cd_fzf
 zle -N run_clock
 zle -N run_gemini
+zle -N jump_tmux
 zle -N zoxide_cd_interactive
 zle -N zoxide_insert_path
 
@@ -85,6 +94,7 @@ bindkey '^[D' cd_downloads
 bindkey '^f' cd_fzf
 bindkey '^[C' run_clock
 bindkey '^[g' run_gemini
+bindkey '^[f' jump_tmux
 bindkey '\ek' up-history
 bindkey '\ej' down-history
 bindkey '^[;' zoxide_cd_interactive
