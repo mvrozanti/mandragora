@@ -69,7 +69,7 @@ def blackout_openrgb():
     from openrgb import OpenRGBClient
     from openrgb.utils import RGBColor
     try:
-        client = OpenRGBClient()
+        client = OpenRGBClient(protocol_version=3)
     except Exception:
         return
     black = RGBColor(0, 0, 0)

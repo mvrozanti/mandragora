@@ -77,7 +77,7 @@ if RGB_ON:
         sys.exit(1)
 
 try:
-    client = OpenRGBClient()
+    client = OpenRGBClient(protocol_version=3)
 except Exception:
     sys.exit(1)
 
