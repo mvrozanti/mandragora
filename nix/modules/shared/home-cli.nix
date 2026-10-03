@@ -14,6 +14,7 @@
 
   home.packages = with pkgs; [
     ripgrep
+    ruby
     silver-searcher-ng
     fd
     fzf
