@@ -21,7 +21,9 @@
       }
       {
         plugin = jump;
-        extraConfig = builtins.readFile ../../../.config/tmux/jump-plugin.conf;
+        extraConfig =
+          builtins.readFile ../../../.config/tmux/jump-plugin.conf
+          + "\nbind-key -T root M-f if-shell -F '#{==:#{pane_current_command},nvim}' 'send-keys M-f' 'run-shell -b ${pkgs.tmuxPlugins.jump}/share/tmux-plugins/jump/scripts/tmux-jump.sh'";
       }
     ];
 
