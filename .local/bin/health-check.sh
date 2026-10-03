@@ -63,9 +63,12 @@ log "INFO ${port_count} TCP listening sockets active"
 # --- Thermal sensors ---
 if command -v sensors &>/dev/null; then
   while IFS= read -r line; do
-    temp=$(echo "$line" | grep -oE '[0-9]+\.[0-9]+.C' | grep -oE '[0-9]+\.[0-9]+' | head -1)
+    case "$line" in *:*) ;; *) continue ;; esac
+    temp=$(echo "$line" | grep -oE '[0-9]+\.[0-9]+.C' | grep -oE '[0-9]+\.[0-9]+' | head -1 || true)
     label=$(echo "$line" | awk -F: '{print $1}' | xargs)
     [ -z "$temp" ] && continue
+    high=$(echo "$line" | grep -oE 'high[[:space:]]*=[[:space:]]*\+?[0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+' | head -1 || true)
+    [ -n "$high" ] && [ "${high%.*}" -gt 200 ] && continue
     temp_int=${temp%.*}
     if [ "$temp_int" -ge 90 ]; then
       log "WARN thermal ${label} at ${temp}°C"
