@@ -69,7 +69,3 @@ output_path = "~/.cache/matugen/sequences"
 [templates.telegram]
 input_path = "templates/telegram.tdesktop-palette"
 output_path = "~/.cache/matugen/telegram.tdesktop-palette"
-
-[templates.firefox_accent]
-input_path = "templates/firefox-accent.css"
-output_path = "~/.cache/matugen/firefox-accent.css"
