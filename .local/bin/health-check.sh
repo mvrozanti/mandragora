@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # health-check.sh — Mandragora system health audit.
 # Outputs tagged lines (OK/INFO/WARN). Exits 1 if any WARN is found.
-# Substituted at build time: @diskWarnThreshold@ @logFile@
+# Substituted at build time: @diskWarnThreshold@ @diskWarnOverrides@ @logFile@
 
 set -euo pipefail
 
 DISK_WARN_THRESHOLD=@diskWarnThreshold@
+DISK_WARN_OVERRIDES=@diskWarnOverrides@
 LOG_FILE=@logFile@
 
 WARN=0
@@ -18,8 +19,12 @@ while IFS= read -r line; do
   usage=$(echo "$line" | awk '{print $1}' | tr -d '%')
   mount=$(echo "$line" | awk '{print $2}')
   [ -z "$usage" ] && continue
-  if [ "$usage" -ge "$DISK_WARN_THRESHOLD" ]; then
-    log "WARN disk ${mount} at ${usage}% (threshold ${DISK_WARN_THRESHOLD}%)"
+  thresh="$DISK_WARN_THRESHOLD"
+  for entry in ${DISK_WARN_OVERRIDES}; do
+    [ "${entry%%=*}" = "$mount" ] && thresh="${entry#*=}"
+  done
+  if [ "$usage" -ge "$thresh" ]; then
+    log "WARN disk ${mount} at ${usage}% (threshold ${thresh}%)"
     WARN=1
   else
     log "OK   disk ${mount} at ${usage}%"
