@@ -1,4 +1,14 @@
-@import url("file:///home/m/.cache/matugen/firefox-accent.css");
+:root {
+  --focus-outline-color: #8f8f8f !important;
+  --toolbar-field-border-color-focus: #8f8f8f !important;
+  --urlbar-background-outline-focused: #8f8f8f !important;
+  --smartbar-outline-color: #8f8f8f !important;
+  --color-accent-primary: #8f8f8f !important;
+  --color-accent-primary-hover: #a3a3a3 !important;
+  --color-accent-primary-active: #7a7a7a !important;
+  --tab-border-color-selected-leading: #8f8f8f !important;
+  --tab-border-color-selected-trailing: #8f8f8f !important;
+}
 
 menupopup,
 panel,
