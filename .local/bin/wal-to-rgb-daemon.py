@@ -19,6 +19,7 @@ RAM_PALETTE_INDICES = [2, 6, 5, 1]
 RAM_LEDS_PER_STOP = 2
 CONNECT_BACKOFF_SECONDS = 3
 RECONNECT_AFTER_SECONDS = 10.0
+STALE_FRAME_SECONDS = 1.0
 
 
 def log(msg):
@@ -134,9 +135,25 @@ def is_paused():
 
 
 def write_device(d, palette, phase):
+    sent = []
     for zone in d.zones:
-        zone.set_colors(animated_colors(palette, len(zone.leds), phase))
-    d.show()
+        colors = animated_colors(palette, len(zone.leds), phase)
+        zone.set_colors(colors, fast=True)
+        sent.append(colors)
+    return sent
+
+
+def frame_applied(d, sent):
+    d.update()
+    return [zone.colors for zone in d.zones] == sent
+
+
+def device_busy(d, in_flight, now):
+    pending = in_flight.get(d.id)
+    if pending is None:
+        return False
+    sent, sent_at = pending
+    return now - sent_at < STALE_FRAME_SECONDS and not frame_applied(d, sent)
 
 
 def main():
@@ -150,6 +167,7 @@ def main():
     phase_step = STOPS_PER_SECOND / FPS
     last_success = time.monotonic()
     device_failures = 0
+    in_flight = {}
 
     while True:
         frame_start = time.monotonic()
@@ -172,7 +190,8 @@ def main():
                 with write_lock(timeout=0.4):
                     for d in ram_devices:
                         try:
-                            write_device(d, palette, phase)
+                            if not device_busy(d, in_flight, frame_start):
+                                in_flight[d.id] = (write_device(d, palette, phase), frame_start)
                             had_any_success = True
                         except Exception as e:
                             device_failures += 1
@@ -193,6 +212,7 @@ def main():
                     pass
                 client = connect()
                 ram_devices = find_ram_devices(client)
+                in_flight = {}
                 last_success = time.monotonic()
 
         phase = (phase + phase_step) % len(palette) if palette else 0.0
