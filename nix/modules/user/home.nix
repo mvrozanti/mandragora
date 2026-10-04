@@ -452,6 +452,7 @@ in
     enable = true;
     configPath = ".mozilla/firefox";
     nativeMessagingHosts = [ pkgs.tridactyl-native ];
+    policies.Permissions.Autoplay.Allow = [ "https://voice.mvr.ac" ];
     profiles.default = {
       isDefault = true;
       id = 0;
