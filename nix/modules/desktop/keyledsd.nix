@@ -59,7 +59,10 @@ in
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
-    environment.KEYLEDS_EXTRA_INPUT_NAMES = "keyd virtual keyboard";
+    environment = {
+      KEYLEDS_EXTRA_INPUT_NAMES = "keyd virtual keyboard";
+      XDG_DATA_HOME = "${keyleds-ticpu}/share";
+    };
     serviceConfig = {
       ExecStartPre = "${pkgs.python3}/bin/python3 ${../../snippets/keyleds-host-mode.py}";
       ExecStart = "${keyleds-ticpu}/bin/keyledsd -c %h/.config/keyledsd.conf -m ${keyleds-ticpu}/lib/keyledsd -m ${keyleds-ticpu}/share/keyledsd/effects";
