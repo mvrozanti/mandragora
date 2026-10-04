@@ -241,7 +241,7 @@ def bootstrap_vuln_watch() -> None:
         watch_id = create_watch(c, VULN_WATCH_CONDITION)
         c.execute(
             "INSERT INTO watchers (kind, target, name, created_at, push, requires_ack, match_rule, "
-            "condition, watch_id) VALUES (?, ?, ?, ?, 1, 1, ?, ?, ?)",
+            "condition, watch_id) VALUES (?, ?, ?, ?, 1, 0, ?, ?, ?)",
             ("vuln_inventory", "*", "cves on mandragora hosts", now_iso(), inventory.DEFAULT_RULE,
              VULN_WATCH_CONDITION, watch_id),
         )
