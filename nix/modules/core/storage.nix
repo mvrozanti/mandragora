@@ -7,6 +7,12 @@
   ];
 
   services.udisks2.enable = true;
+
+  services.btrfs.autoScrub = {
+    enable = true;
+    interval = "monthly";
+    fileSystems = [ "/" ];
+  };
   # Create /media as a symlink to /mnt so that udisks2 shared mounts (UDISKS_FILESYSTEM_SHARED=1)
   # appear under /mnt as requested.
   systemd.tmpfiles.rules = [
