@@ -100,6 +100,9 @@ startSpeed = tonumber(keyleds.config.startSpeed) or 10
 endSpeed = tonumber(keyleds.config.endSpeed) or 0.01
 saturation = tonumber(keyleds.config.saturation) or 1
 gamma = tonumber(keyleds.config.gamma) or 2.2
+value = tonumber(keyleds.config.value)
+hueSpan = tonumber(keyleds.config.hueSpan)
+hueJitter = tonumber(keyleds.config.hueJitter) or 0
 
 if type(keys) ~= "table" then
     local tempKeys = {}
@@ -117,7 +120,8 @@ end
 function onKeyEvent(key, isPress)
     if not isPress then return end
     if graph[key.name] then
-        thread(lightUpKeys, key.name, 0, numJumps, {})
+        local hueOffset = (math.random() - 0.5) * hueJitter / 360
+        thread(lightUpKeys, key.name, 0, numJumps, {}, hueOffset)
     end
 end
 
@@ -138,14 +142,14 @@ function isVisited(visited, keyName)
     return false
 end
 
-function lightUpKeys(keyName, level, maxLevel, visited)
+function lightUpKeys(keyName, level, maxLevel, visited, hueOffset)
     if level >= maxLevel then return end
     local neighbors = graph[keyName]
     if neighbors == nil then
         print(keyName, '!!!')
     end
     if #neighbors == 0 then return end
-    lightUpKey(keyName, level, maxLevel)
+    lightUpKey(keyName, level, maxLevel, hueOffset)
     table.insert(visited, keyName)
     tries = 0
     repeat
@@ -159,7 +163,7 @@ function lightUpKeys(keyName, level, maxLevel, visited)
     for i = 1, numSplits do
         local speed = interpolateSpeed(startSpeed, endSpeed, level / maxLevel)
         wait(delay / speed)
-        lightUpKeys(nextKey, level + 1, maxLevel, visited)
+        lightUpKeys(nextKey, level + 1, maxLevel, visited, hueOffset)
     end
 end
 
@@ -200,16 +204,25 @@ end
 function vivid(color)
     local hsv = toHsv(color)
     hsv.sat = hsv.sat + (1 - hsv.sat) * saturation
+    if value then hsv.val = value end
     return hsv
 end
 
 startHsv = vivid(startColor)
 endHsv = vivid(endColor)
 
-function interpolate(from, to, percentage)
-    local hueDelta = (to.hue - from.hue + 0.5) % 1 - 0.5
+function hueTravel(from, to)
+    local shortest = (to.hue - from.hue + 0.5) % 1 - 0.5
+    if not hueSpan then return shortest end
+    local direction = shortest < 0 and -1 or 1
+    return direction * hueSpan / 360
+end
+
+travel = hueTravel(startHsv, endHsv)
+
+function interpolate(from, to, percentage, hueOffset)
     return toLedColor({
-        hue = from.hue + hueDelta * percentage,
+        hue = from.hue + hueOffset + travel * percentage,
         sat = from.sat + (to.sat - from.sat) * percentage,
         val = from.val + (to.val - from.val) * percentage
     })
@@ -219,9 +232,9 @@ function interpolateSpeed(startSpeed, endSpeed, percentage)
     return startSpeed * (1 - percentage) + endSpeed * percentage
 end
 
-function lightUpKey(keyName, level, maxLevel)
+function lightUpKey(keyName, level, maxLevel, hueOffset)
     local percentage = level / maxLevel
-    local color = interpolate(startHsv, endHsv, percentage)
+    local color = interpolate(startHsv, endHsv, percentage, hueOffset)
     local key = getKeyFromName(keyName)
     if key then
         if level == 0 then
