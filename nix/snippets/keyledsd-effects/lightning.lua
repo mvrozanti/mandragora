@@ -98,9 +98,20 @@ endColor = tocolor(keyleds.config.endColor) or tocolor(0, 1, 1)
 fadeTime = tonumber(keyleds.config.fadeTime) or 1
 startSpeed = tonumber(keyleds.config.startSpeed) or 10
 endSpeed = tonumber(keyleds.config.endSpeed) or 0.01
-value = tonumber(keyleds.config.value)
-hueSpan = tonumber(keyleds.config.hueSpan)
-hueJitter = tonumber(keyleds.config.hueJitter) or 0
+
+function readColors(list)
+    if type(list) ~= "table" then return nil end
+    local result = {}
+    local index = 0
+    while list[index] ~= nil do
+        table.insert(result, tocolor(list[index]))
+        index = index + 1
+    end
+    if #result == 0 then return nil end
+    return result
+end
+
+palette = readColors(keyleds.config.colors) or {startColor, endColor}
 
 if type(keys) ~= "table" then
     local tempKeys = {}
@@ -118,8 +129,7 @@ end
 function onKeyEvent(key, isPress)
     if not isPress then return end
     if graph[key.name] then
-        local hueOffset = (math.random() - 0.5) * hueJitter / 360
-        thread(lightUpKeys, key.name, 0, numJumps, {}, hueOffset)
+        thread(lightUpKeys, key.name, 0, numJumps, {}, math.random(0, #palette - 1))
     end
 end
 
@@ -140,14 +150,14 @@ function isVisited(visited, keyName)
     return false
 end
 
-function lightUpKeys(keyName, level, maxLevel, visited, hueOffset)
+function lightUpKeys(keyName, level, maxLevel, visited, offset)
     if level >= maxLevel then return end
     local neighbors = graph[keyName]
     if neighbors == nil then
         print(keyName, '!!!')
     end
     if #neighbors == 0 then return end
-    lightUpKey(keyName, level, maxLevel, hueOffset)
+    lightUpKey(keyName, level, maxLevel, offset)
     table.insert(visited, keyName)
     tries = 0
     repeat
@@ -161,77 +171,30 @@ function lightUpKeys(keyName, level, maxLevel, visited, hueOffset)
     for i = 1, numSplits do
         local speed = interpolateSpeed(startSpeed, endSpeed, level / maxLevel)
         wait(delay / speed)
-        lightUpKeys(nextKey, level + 1, maxLevel, visited, hueOffset)
+        lightUpKeys(nextKey, level + 1, maxLevel, visited, offset)
     end
 end
 
-function toHsv(color)
-    local r, g, b = color.red, color.green, color.blue
-    local max, min = math.max(r, g, b), math.min(r, g, b)
-    local delta = max - min
-    local hue = 0
-    if delta > 0 then
-        if max == r then
-            hue = ((g - b) / delta) % 6
-        elseif max == g then
-            hue = (b - r) / delta + 2
-        else
-            hue = (r - g) / delta + 4
-        end
-    end
-    local sat = 0
-    if max > 0 then sat = delta / max end
-    return {hue = hue / 6, sat = sat, val = max}
-end
-
-function fromHsv(hsv)
-    local h = (hsv.hue % 1) * 6
-    local c = hsv.val * hsv.sat
-    local x = c * (1 - math.abs(h % 2 - 1))
-    local m = hsv.val - c
-    local r, g, b
-    if h < 1 then r, g, b = c, x, 0
-    elseif h < 2 then r, g, b = x, c, 0
-    elseif h < 3 then r, g, b = 0, c, x
-    elseif h < 4 then r, g, b = 0, x, c
-    elseif h < 5 then r, g, b = x, 0, c
-    else r, g, b = c, 0, x end
-    return tocolor(r + m, g + m, b + m)
-end
-
-function withValue(color)
-    local hsv = toHsv(color)
-    if value then hsv.val = value end
-    return hsv
-end
-
-startHsv = withValue(startColor)
-endHsv = withValue(endColor)
-
-function hueTravel(from, to)
-    local shortest = (to.hue - from.hue + 0.5) % 1 - 0.5
-    if not hueSpan then return shortest end
-    local direction = shortest < 0 and -1 or 1
-    return direction * hueSpan / 360
-end
-
-travel = hueTravel(startHsv, endHsv)
-
-function interpolate(from, to, percentage, hueOffset)
-    return fromHsv({
-        hue = from.hue + hueOffset + travel * percentage,
-        sat = from.sat + (to.sat - from.sat) * percentage,
-        val = from.val + (to.val - from.val) * percentage
-    })
+function paletteColor(position)
+    local count = #palette
+    local base = math.floor(position)
+    local frac = position - base
+    local from = palette[base % count + 1]
+    local to = palette[(base + 1) % count + 1]
+    return tocolor(
+        from.red + (to.red - from.red) * frac,
+        from.green + (to.green - from.green) * frac,
+        from.blue + (to.blue - from.blue) * frac
+    )
 end
 
 function interpolateSpeed(startSpeed, endSpeed, percentage)
     return startSpeed * (1 - percentage) + endSpeed * percentage
 end
 
-function lightUpKey(keyName, level, maxLevel, hueOffset)
+function lightUpKey(keyName, level, maxLevel, offset)
     local percentage = level / maxLevel
-    local color = interpolate(startHsv, endHsv, percentage, hueOffset)
+    local color = paletteColor(offset + percentage * (#palette - 1))
     local key = getKeyFromName(keyName)
     if key then
         if level == 0 then
