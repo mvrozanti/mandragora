@@ -76,6 +76,12 @@ let
         "system"
         "user"
       ]
+    ++ [
+      {
+        name = "lib/systemd/user/mbsync-hotmail.service.d/90-unit-health-self.conf";
+        path = self;
+      }
+    ]
   );
 
   handler = mode: {

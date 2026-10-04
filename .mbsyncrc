@@ -6,7 +6,7 @@ AuthMechs XOAUTH2
 PassCmd "python3 /home/m/.config/mutt/mutt_oauth2.py --encryption-pipe '' --decryption-pipe '' --provider microsoft --client-id 9e5f94bc-e8a4-4e73-b8be-63364c29d753 --client-secret '' --format token /home/m/.cache/mutt/mvrozanti@hotmail.com.tokens"
 TLSType IMAPS
 CertificateFile /etc/ssl/certs/ca-certificates.crt
-PipelineDepth 50
+PipelineDepth 20
 Timeout 120
 
 IMAPStore mvrozanti@hotmail.com-remote

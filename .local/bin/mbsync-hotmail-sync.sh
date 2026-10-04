@@ -4,6 +4,9 @@ set -u
 state_file="${XDG_RUNTIME_DIR:-/tmp}/mbsync-hotmail-fail-state"
 debounce_seconds=21600
 maildir_root="$HOME/.local/share/mail/mvrozanti@hotmail.com"
+backoff_file="${XDG_RUNTIME_DIR:-/tmp}/mbsync-hotmail-backoff"
+base_delay=300
+max_delay=3600
 
 auto_prune_vanished() {
     local input="$1"
@@ -45,12 +48,26 @@ auto_prune_vanished() {
     printf '%s' "$still"
 }
 
+consecutive=0
+next_attempt=0
+if [ -f "$backoff_file" ]; then
+    consecutive=$(sed -n 1p "$backoff_file" 2>/dev/null || echo 0)
+    next_attempt=$(sed -n 2p "$backoff_file" 2>/dev/null || echo 0)
+fi
+now=$(date +%s)
+if [ "$now" -lt "$next_attempt" ]; then
+    echo "mbsync result=backoff consecutive=$consecutive delay_seconds=$((next_attempt - now))"
+    exit 0
+fi
+
 mbsync_status=0
 sync_output=$(mbsync mvrozanti@hotmail.com 2>&1) || mbsync_status=$?
 echo "$sync_output"
 
 if [ "$mbsync_status" -eq 0 ]; then
     rm -f "$state_file"
+    rm -f "$backoff_file"
+    echo "mbsync result=success consecutive=0"
     slave_count=$(grep 'Inbox' -A6 <<< "$sync_output" | grep -E '^slave' | cut -d',' -f1 | tr -cd '[:digit:]' || echo 0)
     master_count=$(grep 'Inbox' -A6 <<< "$sync_output" | grep -E '^master' | cut -d',' -f1 | tr -cd '[:digit:]' || echo 0)
     new_mail_count=$(( ${master_count:-0} - ${slave_count:-0} ))
@@ -65,6 +82,13 @@ else
     fi
     fingerprint=$(printf '%s' "$vanished" | sha256sum | cut -d' ' -f1)
     now=$(date +%s)
+    consecutive=$((consecutive + 1))
+    delay=$((base_delay * 2 ** (consecutive - 1)))
+    if [ "$delay" -gt "$max_delay" ]; then
+        delay=$max_delay
+    fi
+    printf '%s\n%s\n' "$consecutive" "$((now + delay))" > "$backoff_file"
+    echo "mbsync result=failure consecutive=$consecutive delay_seconds=$delay"
     should_notify=1
     if [ -z "$vanished" ]; then
         rm -f "$state_file"
