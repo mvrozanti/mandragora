@@ -24,6 +24,11 @@ set_workspace() {
         setContextValue ss workspace "$value" >/dev/null 2>&1 || true
 }
 
+for _ in $(seq 50); do
+    busctl --user status "$DBUS_DEST" >/dev/null 2>&1 && break
+    sleep 0.2
+done
+
 initial=$(hyprctl activeworkspace -j | jq -r '.id')
 set_workspace "$initial"
 
