@@ -98,8 +98,6 @@ endColor = tocolor(keyleds.config.endColor) or tocolor(0, 1, 1)
 fadeTime = tonumber(keyleds.config.fadeTime) or 1
 startSpeed = tonumber(keyleds.config.startSpeed) or 10
 endSpeed = tonumber(keyleds.config.endSpeed) or 0.01
-saturation = tonumber(keyleds.config.saturation) or 1
-gamma = tonumber(keyleds.config.gamma) or 2.2
 value = tonumber(keyleds.config.value)
 hueSpan = tonumber(keyleds.config.hueSpan)
 hueJitter = tonumber(keyleds.config.hueJitter) or 0
@@ -186,7 +184,7 @@ function toHsv(color)
     return {hue = hue / 6, sat = sat, val = max}
 end
 
-function toLedColor(hsv)
+function fromHsv(hsv)
     local h = (hsv.hue % 1) * 6
     local c = hsv.val * hsv.sat
     local x = c * (1 - math.abs(h % 2 - 1))
@@ -198,18 +196,17 @@ function toLedColor(hsv)
     elseif h < 4 then r, g, b = 0, x, c
     elseif h < 5 then r, g, b = x, 0, c
     else r, g, b = c, 0, x end
-    return tocolor((r + m) ^ gamma, (g + m) ^ gamma, (b + m) ^ gamma)
+    return tocolor(r + m, g + m, b + m)
 end
 
-function vivid(color)
+function withValue(color)
     local hsv = toHsv(color)
-    hsv.sat = hsv.sat + (1 - hsv.sat) * saturation
     if value then hsv.val = value end
     return hsv
 end
 
-startHsv = vivid(startColor)
-endHsv = vivid(endColor)
+startHsv = withValue(startColor)
+endHsv = withValue(endColor)
 
 function hueTravel(from, to)
     local shortest = (to.hue - from.hue + 0.5) % 1 - 0.5
@@ -221,7 +218,7 @@ end
 travel = hueTravel(startHsv, endHsv)
 
 function interpolate(from, to, percentage, hueOffset)
-    return toLedColor({
+    return fromHsv({
         hue = from.hue + hueOffset + travel * percentage,
         sat = from.sat + (to.sat - from.sat) * percentage,
         val = from.val + (to.val - from.val) * percentage
