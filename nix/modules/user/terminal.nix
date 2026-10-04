@@ -32,7 +32,7 @@ _:
       visual_bell_duration = "0.0";
       window_alert_on_bell = "yes";
       bell_on_tab = "yes";
-      remember_window_size = "yes";
+      remember_window_size = "no";
       initial_window_width = 640;
       initial_window_height = 400;
       enabled_layouts = "*";
