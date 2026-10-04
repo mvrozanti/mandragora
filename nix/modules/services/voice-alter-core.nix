@@ -14,7 +14,7 @@ in
     enable = lib.mkOption {
       type = lib.types.bool;
       default = false;
-      description = "Enable the voice.mvr.ac real-time voice-changer AI backend (port 8095, user service).";
+      description = "Enable the voice.mvr.ac room relay: mic claim, synced settings, RVC bridge (port 8095, user service).";
     };
     listenHost = lib.mkOption {
       type = lib.types.str;
@@ -88,9 +88,12 @@ in
         environment = {
           VOICE_ALTER_LISTEN_HOST = cfg.listenHost;
           VOICE_ALTER_LISTEN_PORT = "8095";
+          VOICE_ALTER_RVC_WS = "ws://127.0.0.1:8098/ws";
+          VOICE_ALTER_RVC_HEALTH = "http://127.0.0.1:8098/healthz";
         };
         serviceConfig = {
           ExecStart = "${voiceAlterPkg}/bin/voice-alter-core";
+          StateDirectory = "voice-alter-core";
           Restart = "on-failure";
           RestartSec = "5s";
           ProtectHome = false;

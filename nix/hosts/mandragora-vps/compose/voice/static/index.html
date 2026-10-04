@@ -6,67 +6,85 @@
   <title>voice · mvr.ac</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/theme.css">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/style.css?v=2">
   <script src="/theme.js" data-endpoint="/api/theme"></script>
 </head>
 <body>
   <header>
     <h1>voice changer</h1>
-    <p class="sub">mic in → transform → desktop out</p>
+    <p class="sub">one device is the mic · every other open tab is the speaker</p>
   </header>
 
   <main class="panel">
-    <section class="row">
-      <button id="micStart" type="button">start mic</button>
-      <button id="outputStart" type="button">start output</button>
-      <span id="status" class="status">idle</span>
+    <section id="roleCard" class="role" data-role="offline">
+      <div class="role-head">
+        <span id="roleTag" class="role-tag">offline</span>
+        <span id="peers" class="peers"></span>
+      </div>
+      <span id="roleDetail" class="role-detail">connecting…</span>
     </section>
 
+    <button id="unlock" class="unlock" type="button" hidden>click to turn on sound here</button>
+
     <section class="row">
-      <button id="micMute" type="button" disabled>mute</button>
-      <span id="drops" class="drops"></span>
+      <button id="micToggle" type="button" disabled>start mic</button>
+      <button id="micMute" class="ghost" type="button" hidden>mute</button>
     </section>
+
+    <p id="notice" class="note" data-level="warn" hidden></p>
 
     <section class="field">
-      <label for="mode">mode</label>
+      <label for="mode">voice</label>
       <select id="mode">
-        <option value="bypass">bypass</option>
-        <option value="pitch">pitch</option>
-        <option value="deeper">deeper</option>
-        <option value="higher">higher</option>
-        <option value="helium">helium</option>
-        <option value="demon">demon</option>
-        <option value="robot">robot</option>
-        <option value="radio">radio</option>
-        <option value="telephone">telephone</option>
-        <option value="echo">echo</option>
-        <option value="reverb">reverb</option>
-        <option value="mcbaldiee">mcbaldiee</option>
+        <optgroup label="effects">
+          <option value="bypass">bypass</option>
+          <option value="pitch">pitch</option>
+          <option value="deeper">deeper</option>
+          <option value="higher">higher</option>
+          <option value="helium">helium</option>
+          <option value="demon">demon</option>
+          <option value="robot">robot</option>
+          <option value="radio">radio</option>
+          <option value="telephone">telephone</option>
+          <option value="echo">echo</option>
+          <option value="reverb">reverb</option>
+        </optgroup>
+        <optgroup label="AI voices">
+          <option value="mcbaldiee">mcbaldiee</option>
+        </optgroup>
       </select>
     </section>
 
-    <section class="field">
+    <p id="rvcStatus" class="note" hidden></p>
+
+    <section id="pitchField" class="field">
       <label for="pitch">pitch <span id="pitchVal">0 st</span></label>
       <input id="pitch" type="range" min="-12" max="12" value="0" step="1">
     </section>
 
     <section class="field">
-      <label for="delay">delay <span id="delayVal">150 ms</span></label>
-      <input id="delay" type="range" min="0" max="1000" value="150" step="10">
+      <label for="gain">volume <span id="gainVal">100%</span></label>
+      <input id="gain" type="range" min="0" max="300" value="100" step="5">
     </section>
 
     <section class="field">
-      <label for="output">output</label>
-      <select id="output"><option value="default">default</option></select>
+      <label for="buffer">buffer <span id="bufferVal">80 ms</span></label>
+      <input id="buffer" type="range" min="20" max="500" value="80" step="10">
+    </section>
+
+    <section id="outputField" class="field">
+      <label for="output">output on this device</label>
+      <select id="output"><option value="default">system default</option></select>
     </section>
 
     <section class="meter">
       <meter id="level" min="0" max="1" value="0"></meter>
+      <span id="stats" class="stats"></span>
     </section>
   </main>
 
-  <script src="/js/dsp.js"></script>
-  <script src="/js/ws.js"></script>
-  <script src="/js/app.js"></script>
+  <script src="/js/dsp.js?v=2"></script>
+  <script src="/js/ws.js?v=2"></script>
+  <script src="/js/app.js?v=2"></script>
 </body>
 </html>
