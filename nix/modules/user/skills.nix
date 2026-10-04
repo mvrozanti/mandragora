@@ -46,6 +46,10 @@ let
       n = "hallucinate";
       s = ../../../agent-skills/hallucinate;
     }
+    {
+      n = "devil";
+      s = ../../../agent-skills/devil;
+    }
   ];
 
   mkEntries =
