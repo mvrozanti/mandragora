@@ -95,8 +95,8 @@ is unaffected; another agent's `git add -A` cannot reach your files.
 > MANDRAGORA_REPO="$wt" mandragora-audit --quiet
 > ```
 >
-> `mandragora-switch` below has the same absolute-path shape and is
-> *not* fixed by this — it still targets the main repo by design.
+> `mandragora-switch` follows you too: run from a worktree it builds and
+> commits only that worktree (see step 3).
 
 ### 3. Merge back and clean up
 
@@ -106,18 +106,20 @@ git -C /etc/nixos/mandragora worktree remove "$wt"
 git -C /etc/nixos/mandragora branch -d agent/<branch>
 ```
 
-Then run `mandragora-switch` from the main tree. Any parallel
-agent will be merging from their own worktree on the same schedule;
-the flock serializes the switches.
+Or skip the manual merge: **run `mandragora-switch` from inside the
+worktree.** It detects a linked worktree of `/etc/nixos/mandragora` and
+switches to worktree mode, "building + committing only $SRC ... Other
+agents' work in the main tree is untouched", then promotes the result to
+master. Parallel agents doing the same are serialized by the switch's flock.
 
-> **Never invoke `mandragora-switch` from inside a worktree.** The
-> script's `git add` / `git commit` ops target the main repo by
-> absolute path (`/etc/nixos/mandragora`), not `$PWD`. Running it
-> from `$wt` does **not** redirect git ops to the worktree — it
-> stages whatever is dirty/untracked in the main tree under
-> *your* commit message. This reproduces the exact staging-leak
-> the worktree was supposed to prevent. Always: merge worktree →
-> main, then `cd /etc/nixos/mandragora && mandragora-switch`.
+> **The main tree is publish-only.** Run from `/etc/nixos/mandragora`
+> itself, `mandragora-switch` builds and pushes master but refuses to
+> commit working-tree state: with anything dirty there it aborts and
+> prints the dirty paths, because committing them would sweep another
+> agent's WIP under your message. `--all` overrides that, interactively
+> only. This replaces the old rule ("never invoke it from inside a
+> worktree"), which held while the script's git ops targeted the main
+> repo by absolute path; the worktree mode removed that hazard.
 
 ### 3a. Post-commit audit (always)
 
