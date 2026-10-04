@@ -78,8 +78,14 @@ in
 
   systemd.user.services.keyleds-workspace-watcher = {
     description = "Forward Hyprland workspace events to keyledsd context";
-    wantedBy = [ "graphical-session.target" ];
-    partOf = [ "graphical-session.target" ];
+    wantedBy = [
+      "graphical-session.target"
+      "keyledsd.service"
+    ];
+    partOf = [
+      "graphical-session.target"
+      "keyledsd.service"
+    ];
     after = [
       "graphical-session.target"
       "keyledsd.service"
