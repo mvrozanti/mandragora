@@ -22,7 +22,10 @@ let
       rev = "7c429154dc377fc61a5a8a76a061911eb59f635f";
       sha256 = "1ih1cc12j79ch4h4akwk2f6jg1hdyzf44h3wb970nysrkqv8wq0q";
     };
-    patches = [ ../../snippets/keyleds-extra-input.patch ];
+    patches = [
+      ../../snippets/keyleds-extra-input.patch
+      ../../snippets/keyleds-gamma.patch
+    ];
     postPatch = "";
     buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.libevdev ];
     postInstall = (old.postInstall or "") + ''
@@ -62,6 +65,7 @@ in
     environment = {
       KEYLEDS_EXTRA_INPUT_NAMES = "keyd virtual keyboard";
       XDG_DATA_HOME = "${keyleds-ticpu}/share";
+      KEYLEDS_GAMMA = "2.2";
     };
     serviceConfig = {
       ExecStartPre = "${pkgs.python3}/bin/python3 ${../../snippets/keyleds-host-mode.py}";

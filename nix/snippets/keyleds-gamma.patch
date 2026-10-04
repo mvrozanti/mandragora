@@ -1,0 +1,56 @@
+diff --git a/keyledsd/src/service/RenderLoop.cxx b/keyledsd/src/service/RenderLoop.cxx
+index 51310c5..9e032f0 100644
+--- a/keyledsd/src/service/RenderLoop.cxx
++++ b/keyledsd/src/service/RenderLoop.cxx
+@@ -19,9 +19,12 @@
+ #include "keyledsd/device/Device.h"
+ #include "keyledsd/logging.h"
+ #include <algorithm>
++#include <array>
+ #include <cassert>
+ #include <cerrno>
+ #include <chrono>
++#include <cmath>
++#include <cstdlib>
+ #include <exception>
+ #include <numeric>
+ #include <thread>
+@@ -32,6 +35,20 @@ using keyleds::service::RenderLoop;
+ using namespace std::literals::chrono_literals;
+ 
+ static constexpr auto errorGracePeriod = 60s;
++
++static std::array<unsigned char, 256> buildGammaTable()
++{
++    std::array<unsigned char, 256> table;
++    const char * value = std::getenv("KEYLEDS_GAMMA");
++    double gamma = value != nullptr ? std::atof(value) : 1.0;
++    if (!(gamma > 0.0)) { gamma = 1.0; }
++    for (std::size_t i = 0; i < table.size(); ++i) {
++        table[i] = static_cast<unsigned char>(std::lround(std::pow(double(i) / 255.0, gamma) * 255.0));
++    }
++    return table;
++}
++
++static const std::array<unsigned char, 256> gammaTable = buildGammaTable();
+ struct commitDelay {    // Delay between sending color data and commit command.
+     static constexpr std::chrono::microseconds initial = 0ms;
+     static constexpr std::chrono::microseconds increment = 1000us;
+@@ -102,7 +119,8 @@ bool RenderLoop::render(milliseconds elapsed)
+             for (size_t kIdx = 0; kIdx < numBlockKeys; ++kIdx) {
+                 if (forceRefresh || *oldKeyIt != *newKeyIt) {
+                     m_directives.push_back({
+-                        block.keys()[kIdx], newKeyIt->red, newKeyIt->green, newKeyIt->blue
++                        block.keys()[kIdx],
++                        gammaTable[newKeyIt->red], gammaTable[newKeyIt->green], gammaTable[newKeyIt->blue]
+                     });
+                 }
+                 ++oldKeyIt;
+@@ -142,6 +160,7 @@ void RenderLoop::run()
+         return;
+     }
+     std::copy(m_state.cbegin(), m_state.cend(), m_buffer.begin());
++    forceRefresh();
+ 
+     try {
+         for (;;) {
