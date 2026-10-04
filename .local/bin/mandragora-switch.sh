@@ -338,6 +338,11 @@ phase "nixos-rebuild switch (rc=$RC)"
 ACTIVATED=0
 if grep -q "^Done\. The new configuration is " /tmp/nixos-rebuild.log; then
   ACTIVATED=1
+else
+  NEW_TOPLEVEL=$(grep -oE "^switching to system configuration /nix/store/[^ ]+" /tmp/nixos-rebuild.log | tail -1 | awk '{print $NF}')
+  if [ -n "$NEW_TOPLEVEL" ] && [ "$(readlink -f /run/current-system)" = "$(readlink -f "$NEW_TOPLEVEL")" ]; then
+    ACTIVATED=1
+  fi
 fi
 
 if [ "$RC" -eq 0 ]; then
