@@ -10,7 +10,7 @@ from openrgb import OpenRGBClient
 from openrgb.utils import RGBColor
 
 FPS = 40
-STOPS_PER_SECOND = 4.0
+STOPS_PER_SECOND = 1.0
 COLORS_PATH = Path.home() / ".cache/matugen/colors.json"
 STATE_PATH = Path.home() / ".cache/hid-config/state"
 PAUSE_SENTINEL = Path(os.environ.get("XDG_RUNTIME_DIR", "/run/user/1000")) / "rgb-control-paused"
