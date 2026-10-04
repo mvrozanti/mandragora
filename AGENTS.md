@@ -299,6 +299,7 @@ Specialized procedures defined in \`agent-skills/\` (exposed to agents via \`act
 - **handoff / pickup** — Pass task context between agents.
 - **confused** — Resolve an ambiguous request via multiple-choice questions: stems are objectives, options are consequences. Also pulled when a rebuild+switch aborts on a judgement call.
 - **devil** — For one reply, the technical devil's advocate: hard, specific critique where every charge carries a better way that keeps behaviour absolutely identical. Critique only; triggered via `/devil [target]`.
+- **minify** — When a small change keeps turning into a sprawling plan: find where one idea lives in several disagreeing places, give it one home with a check that keeps it there, then make the change. Behaviour stays identical.
 
 ---
 

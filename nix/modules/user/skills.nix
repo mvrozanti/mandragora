@@ -50,6 +50,10 @@ let
       n = "devil";
       s = ../../../agent-skills/devil;
     }
+    {
+      n = "minify";
+      s = ../../../agent-skills/minify;
+    }
   ];
 
   mkEntries =
