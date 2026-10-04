@@ -1,4 +1,3 @@
--- lightning.lua
 graph = {
     ["ESC"] = {"F1", "GRAVE", "1"},
     ["F1"] = {"ESC", "F2", "1", "2", "3"},
@@ -99,6 +98,8 @@ endColor = tocolor(keyleds.config.endColor) or tocolor(0, 1, 1)
 fadeTime = tonumber(keyleds.config.fadeTime) or 1
 startSpeed = tonumber(keyleds.config.startSpeed) or 10
 endSpeed = tonumber(keyleds.config.endSpeed) or 0.01
+saturation = tonumber(keyleds.config.saturation) or 1
+gamma = tonumber(keyleds.config.gamma) or 2.2
 
 if type(keys) ~= "table" then
     local tempKeys = {}
@@ -162,11 +163,56 @@ function lightUpKeys(keyName, level, maxLevel, visited)
     end
 end
 
-function interpolate(color1, color2, percentage)
-    local red = color1.red * (1 - percentage) + color2.red * percentage
-    local green = color1.green * (1 - percentage) + color2.green * percentage
-    local blue = color1.blue * (1 - percentage) + color2.blue * percentage
-    return tocolor(red, green, blue)
+function toHsv(color)
+    local r, g, b = color.red, color.green, color.blue
+    local max, min = math.max(r, g, b), math.min(r, g, b)
+    local delta = max - min
+    local hue = 0
+    if delta > 0 then
+        if max == r then
+            hue = ((g - b) / delta) % 6
+        elseif max == g then
+            hue = (b - r) / delta + 2
+        else
+            hue = (r - g) / delta + 4
+        end
+    end
+    local sat = 0
+    if max > 0 then sat = delta / max end
+    return {hue = hue / 6, sat = sat, val = max}
+end
+
+function toLedColor(hsv)
+    local h = (hsv.hue % 1) * 6
+    local c = hsv.val * hsv.sat
+    local x = c * (1 - math.abs(h % 2 - 1))
+    local m = hsv.val - c
+    local r, g, b
+    if h < 1 then r, g, b = c, x, 0
+    elseif h < 2 then r, g, b = x, c, 0
+    elseif h < 3 then r, g, b = 0, c, x
+    elseif h < 4 then r, g, b = 0, x, c
+    elseif h < 5 then r, g, b = x, 0, c
+    else r, g, b = c, 0, x end
+    return tocolor((r + m) ^ gamma, (g + m) ^ gamma, (b + m) ^ gamma)
+end
+
+function vivid(color)
+    local hsv = toHsv(color)
+    hsv.sat = hsv.sat + (1 - hsv.sat) * saturation
+    return hsv
+end
+
+startHsv = vivid(startColor)
+endHsv = vivid(endColor)
+
+function interpolate(from, to, percentage)
+    local hueDelta = (to.hue - from.hue + 0.5) % 1 - 0.5
+    return toLedColor({
+        hue = from.hue + hueDelta * percentage,
+        sat = from.sat + (to.sat - from.sat) * percentage,
+        val = from.val + (to.val - from.val) * percentage
+    })
 end
 
 function interpolateSpeed(startSpeed, endSpeed, percentage)
@@ -175,7 +221,7 @@ end
 
 function lightUpKey(keyName, level, maxLevel)
     local percentage = level / maxLevel
-    local color = interpolate(startColor, endColor, percentage)
+    local color = interpolate(startHsv, endHsv, percentage)
     local key = getKeyFromName(keyName)
     if key then
         if level == 0 then
