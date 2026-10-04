@@ -34,6 +34,7 @@
       "/var/lib/nixos"
       "/var/lib/bluetooth"
       "/var/lib/iwd"
+      "/var/lib/btrfs"
       "/var/lib/systemd"
       "/var/lib/OpenRGB"
       "/etc/NetworkManager/system-connections"
