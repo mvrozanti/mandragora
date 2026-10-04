@@ -298,6 +298,7 @@ Specialized procedures defined in \`agent-skills/\` (exposed to agents via \`act
 - **hotkeys** — Audit and update system-wide keybindings.
 - **handoff / pickup** — Pass task context between agents.
 - **confused** — Resolve an ambiguous request via multiple-choice questions: stems are objectives, options are consequences. Also pulled when a rebuild+switch aborts on a judgement call.
+- **devil** — For one reply, the technical devil's advocate: hard, specific critique where every charge carries a better way that keeps behaviour absolutely identical. Critique only; triggered via `/devil [target]`.
 
 ---
 
