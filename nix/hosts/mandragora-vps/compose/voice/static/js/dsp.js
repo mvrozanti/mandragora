@@ -1,24 +1,15 @@
 window.DSP = (function () {
   "use strict";
 
-  const WORKLET = "/js/pitch-worklet.js";
-
-  async function ensureWorklet(ctx) {
-    if (!ctx.__voiceWorklet) {
-      await ctx.audioWorklet.addModule(WORKLET);
-      ctx.__voiceWorklet = true;
-    }
-  }
-
   function semitoneRatio(st) {
     return Math.pow(2, st / 12);
   }
 
-  function softClipCurve() {
-    const curve = new Float32Array(256);
-    for (let i = 0; i < 256; i++) {
-      const x = (i / 128) - 1;
-      curve[i] = Math.tanh(x * 2);
+  function softClipCurve(drive) {
+    const curve = new Float32Array(1024);
+    for (let i = 0; i < curve.length; i++) {
+      const x = (i / (curve.length / 2)) - 1;
+      curve[i] = Math.tanh(x * drive) / Math.tanh(drive);
     }
     return curve;
   }
@@ -40,128 +31,149 @@ window.DSP = (function () {
     const input = ctx.createGain();
     const output = ctx.createGain();
     const dry = ctx.createGain();
-    dry.gain.value = 1;
     input.connect(dry);
     dry.connect(output);
 
-    const DRY_LEVEL = { echo: 0.6, reverb: 0.4 };
+    const DRY_LEVEL = { bypass: 1, echo: 0.7, reverb: 0.6 };
 
-    let wet = null;
+    let nodes = [];
+    let oscillators = [];
     let pitchNode = null;
 
+    function chain(list) {
+      for (let i = 0; i < list.length - 1; i++) list[i].connect(list[i + 1]);
+      nodes = nodes.concat(list.filter((n) => n !== input && n !== output));
+    }
+
     function clearWet() {
-      if (wet) {
-        if (wet.__osc) { try { wet.__osc.stop(); } catch (e) {} }
-        try { wet.disconnect(); } catch (e) {}
-        wet = null;
-      }
+      for (const osc of oscillators) { try { osc.stop(); } catch (e) {} }
+      for (const node of nodes) { try { node.disconnect(); } catch (e) {} }
+      try { input.disconnect(); } catch (e) {}
+      input.connect(dry);
+      nodes = [];
+      oscillators = [];
       pitchNode = null;
     }
 
-    function pitchMode(st) {
-      clearWet();
-      pitchNode = new AudioWorkletNode(ctx, "pitch-shift", {
+    function shifter(st) {
+      const node = new AudioWorkletNode(ctx, "pitch-shift", {
         numberOfInputs: 1,
         numberOfOutputs: 1,
         channelCount: 1,
-        outputChannelCount: 1,
+        channelCountMode: "explicit",
+        outputChannelCount: [1],
       });
-      pitchNode.parameters.get("ratio").value = semitoneRatio(st);
-      input.connect(pitchNode);
-      pitchNode.connect(output);
-      wet = pitchNode;
+      node.parameters.get("ratio").value = semitoneRatio(st);
+      return node;
+    }
+
+    function pitchMode(st) {
+      pitchNode = shifter(st);
+      chain([input, pitchNode, output]);
+    }
+
+    function demonMode(st) {
+      pitchNode = shifter(st);
+      const low = ctx.createBiquadFilter();
+      low.type = "lowshelf";
+      low.frequency.value = 220;
+      low.gain.value = 8;
+      const grit = ctx.createWaveShaper();
+      grit.curve = softClipCurve(2.5);
+      grit.oversample = "2x";
+      const trim = ctx.createGain();
+      trim.gain.value = 0.7;
+      chain([input, pitchNode, low, grit, trim, output]);
     }
 
     function robotMode() {
-      clearWet();
-      const osc = ctx.createOscillator();
-      osc.type = "square";
-      osc.frequency.value = 45;
-      const depth = ctx.createGain();
-      depth.gain.value = 0.5;
-      osc.connect(depth);
       const ring = ctx.createGain();
-      ring.gain.value = 0.5;
-      depth.connect(ring.gain);
-      const lowpass = ctx.createBiquadFilter();
-      lowpass.type = "lowpass";
-      lowpass.frequency.value = 1800;
-      input.connect(ring);
-      ring.connect(lowpass);
-      lowpass.connect(output);
+      ring.gain.value = 0;
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = 55;
+      osc.connect(ring.gain);
       osc.start();
-      lowpass.__osc = osc;
-      wet = lowpass;
+      oscillators.push(osc);
+      const comb = ctx.createDelay(0.05);
+      comb.delayTime.value = 0.008;
+      const feedback = ctx.createGain();
+      feedback.gain.value = 0.45;
+      comb.connect(feedback);
+      feedback.connect(comb);
+      const band = ctx.createBiquadFilter();
+      band.type = "highpass";
+      band.frequency.value = 180;
+      chain([input, ring, band, output]);
+      chain([band, comb, output]);
+      nodes.push(osc, feedback);
     }
 
     function radioMode() {
-      clearWet();
-      const band = ctx.createBiquadFilter();
-      band.type = "bandpass";
-      band.frequency.value = 2000;
-      band.Q.value = 0.7;
+      const hp = ctx.createBiquadFilter();
+      hp.type = "highpass";
+      hp.frequency.value = 500;
+      const lp = ctx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 3500;
       const shaper = ctx.createWaveShaper();
-      shaper.curve = softClipCurve();
-      input.connect(band);
-      band.connect(shaper);
-      shaper.connect(output);
-      wet = shaper;
+      shaper.curve = softClipCurve(4);
+      const trim = ctx.createGain();
+      trim.gain.value = 0.8;
+      chain([input, hp, lp, shaper, trim, output]);
     }
 
     function telephoneMode() {
-      clearWet();
-      const band = ctx.createBiquadFilter();
-      band.type = "bandpass";
-      band.frequency.value = 1000;
-      band.Q.value = 1.5;
-      input.connect(band);
-      band.connect(output);
-      wet = band;
+      const hp = ctx.createBiquadFilter();
+      hp.type = "highpass";
+      hp.frequency.value = 400;
+      hp.Q.value = 0.9;
+      const lp = ctx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 3000;
+      lp.Q.value = 0.9;
+      const shaper = ctx.createWaveShaper();
+      shaper.curve = softClipCurve(1.5);
+      chain([input, hp, lp, shaper, output]);
     }
 
     function echoMode() {
-      clearWet();
       const delay = ctx.createDelay(1.0);
-      delay.delayTime.value = 0.25;
+      delay.delayTime.value = 0.28;
       const feedback = ctx.createGain();
-      feedback.gain.value = 0.4;
+      feedback.gain.value = 0.45;
+      const damp = ctx.createBiquadFilter();
+      damp.type = "lowpass";
+      damp.frequency.value = 4000;
       const mix = ctx.createGain();
-      mix.gain.value = 0.7;
-      input.connect(delay);
-      delay.connect(feedback);
-      feedback.connect(delay);
-      delay.connect(mix);
-      mix.connect(output);
-      wet = mix;
+      mix.gain.value = 0.6;
+      chain([input, delay, damp, feedback, delay]);
+      chain([damp, mix, output]);
     }
 
     function reverbMode() {
-      clearWet();
       const conv = ctx.createConvolver();
-      conv.buffer = reverbImpulse(ctx, 1.5, 3);
+      conv.buffer = reverbImpulse(ctx, 2.2, 3);
       const wetGain = ctx.createGain();
-      wetGain.gain.value = 0.8;
-      input.connect(conv);
-      conv.connect(wetGain);
-      wetGain.connect(output);
-      wet = wetGain;
+      wetGain.gain.value = 0.7;
+      chain([input, conv, wetGain, output]);
     }
 
-    function setMode(mode, presetSt, sliderSt) {
-      dry.gain.value = mode === "bypass" ? 1 : (DRY_LEVEL[mode] || 0);
+    function setMode(mode, st) {
+      clearWet();
+      dry.gain.value = DRY_LEVEL[mode] !== undefined ? DRY_LEVEL[mode] : 0;
       switch (mode) {
-        case "bypass": clearWet(); break;
-        case "pitch": pitchMode(sliderSt); break;
+        case "pitch":
         case "deeper":
         case "higher":
-        case "helium":
-        case "demon": pitchMode(presetSt); break;
+        case "helium": pitchMode(st); break;
+        case "demon": demonMode(st); break;
         case "robot": robotMode(); break;
         case "radio": radioMode(); break;
         case "telephone": telephoneMode(); break;
         case "echo": echoMode(); break;
         case "reverb": reverbMode(); break;
-        default: clearWet(); break;
+        default: dry.gain.value = 1; break;
       }
     }
 
@@ -169,15 +181,8 @@ window.DSP = (function () {
       if (pitchNode) pitchNode.parameters.get("ratio").value = semitoneRatio(st);
     }
 
-    function dispose() {
-      clearWet();
-      try { input.disconnect(); } catch (e) {}
-      try { dry.disconnect(); } catch (e) {}
-      try { output.disconnect(); } catch (e) {}
-    }
-
-    return { input, output, setMode, setPitch, dispose };
+    return { input, output, setMode, setPitch };
   }
 
-  return { ensureWorklet, semitoneRatio, create };
+  return { create };
 })();
