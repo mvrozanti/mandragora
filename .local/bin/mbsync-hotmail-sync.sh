@@ -7,6 +7,7 @@ maildir_root="$HOME/.local/share/mail/mvrozanti@hotmail.com"
 backoff_file="${XDG_RUNTIME_DIR:-/tmp}/mbsync-hotmail-backoff"
 base_delay=300
 max_delay=3600
+page_threshold=3
 
 auto_prune_vanished() {
     local input="$1"
@@ -57,7 +58,10 @@ fi
 now=$(date +%s)
 if [ "$now" -lt "$next_attempt" ]; then
     echo "mbsync result=backoff consecutive=$consecutive delay_seconds=$((next_attempt - now))"
-    exit 0
+    if [ "$consecutive" -lt "$page_threshold" ]; then
+        exit 0
+    fi
+    exit 1
 fi
 
 mbsync_status=0
@@ -114,4 +118,7 @@ fi
 
 notmuch new --quiet || true
 
+if [ "$mbsync_status" -ne 0 ] && [ "$consecutive" -lt "$page_threshold" ]; then
+    exit 0
+fi
 exit "$mbsync_status"
