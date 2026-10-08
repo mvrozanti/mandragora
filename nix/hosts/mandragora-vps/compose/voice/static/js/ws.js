@@ -3,21 +3,39 @@ window.Room = (function () {
 
   const HEADER_BYTES = 8;
   const MAX_BUFFERED = 65536;
+  const PING_MS = 4000;
 
   function connect(handlers) {
     let ws = null;
     let backoff = 500;
     let seq = 0;
+    let failures = 0;
+    let retry = null;
+    let lastHeard = 0;
+    let pingSent = 0;
+
+    function probeAuth() {
+      fetch("/", { cache: "no-store", redirect: "manual", credentials: "same-origin" })
+        .then(function (r) { if (r.type === "opaqueredirect") handlers.authExpired(); })
+        .catch(function () {});
+    }
 
     function open() {
+      if (retry) { clearTimeout(retry); retry = null; }
       const proto = location.protocol === "https:" ? "wss:" : "ws:";
       ws = new WebSocket(proto + "//" + location.host + "/ws");
       ws.binaryType = "arraybuffer";
+      let opened = false;
       ws.onopen = function () {
+        opened = true;
+        pingSent = 0;
+        lastHeard = Date.now();
+        failures = 0;
         backoff = 500;
         handlers.open();
       };
       ws.onmessage = function (ev) {
+        lastHeard = Date.now();
         if (typeof ev.data === "string") {
           let msg;
           try { msg = JSON.parse(ev.data); } catch (e) { return; }
@@ -32,13 +50,37 @@ window.Room = (function () {
         });
       };
       ws.onclose = function () {
+        if (!opened && ++failures >= 2) probeAuth();
         handlers.close();
-        setTimeout(open, backoff);
-        backoff = Math.min(backoff * 2, 8000);
+        retry = setTimeout(open, backoff);
+        backoff = Math.min(backoff * 2, 4000);
       };
     }
 
+    function replace() {
+      const dead = ws;
+      dead.onopen = dead.onmessage = dead.onclose = null;
+      try { dead.close(); } catch (e) {}
+      handlers.close();
+      open();
+    }
+
+    setInterval(function () {
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      if (pingSent && lastHeard < pingSent) { replace(); return; }
+      pingSent = Date.now();
+      ws.send('{"t":"ping"}');
+    }, PING_MS);
+
     open();
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState !== "visible" || !ws) return;
+      if (retry) {
+        backoff = 500;
+        open();
+      }
+    });
 
     return {
       ready: function () { return ws && ws.readyState === WebSocket.OPEN; },
