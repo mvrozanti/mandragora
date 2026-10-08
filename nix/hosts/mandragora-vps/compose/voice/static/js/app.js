@@ -3,6 +3,7 @@
 
   const $ = (id) => document.getElementById(id);
 
+  const PROTOCOL = 2;
   const PRESET = { deeper: -5, higher: 3, helium: 8, demon: -8 };
   const PITCH_MODES = new Set(["pitch", "deeper", "higher", "helium", "demon"]);
   const RVC_MODES = new Set(["mcbaldiee"]);
@@ -17,15 +18,21 @@
     buffer: (v) => v + " ms",
     gain: (v) => v + "%",
   };
+  const LOST = {
+    taken: "the mic moved to another device",
+    dropped: "the other device stopped the mic",
+  };
   const OUTPUT_KEY = "voice.output";
+  const RELOAD_KEY = "voice.reloaded";
   const CHOOSE_OUTPUT = "__choose__";
 
   const state = {
     id: null,
     mic: null,
     peers: 0,
+    blocked: 0,
     rvc: "off",
-    settings: { mode: "bypass", pitch: 0, buffer: 80, gain: 100 },
+    settings: { mode: "bypass", pitch: 0, buffer: 80, gain: 100, muted: false },
   };
 
   let room = null;
@@ -35,20 +42,36 @@
   let mic = null;
   let micWanted = false;
   let notice = "";
-  let muted = false;
+  let noticeAt = 0;
   let wakeLock = null;
   let speaker = null;
   let speakerPending = null;
   let outputRestored = false;
+  let reportedBlocked = null;
   let applied = { mode: null, pitch: null };
   let stats = { buffered: 0, underruns: 0 };
+  let lastFrameAt = 0;
   let editing = { key: null, until: 0 };
   let pending = {};
   let sendTimer = null;
+  let lastSent = 0;
 
   function role() {
     if (!state.mic || !state.id) return "idle";
     return state.mic === state.id ? "mic" : "speaker";
+  }
+
+  function reloadOnce() {
+    let last = 0;
+    try { last = Number(sessionStorage.getItem(RELOAD_KEY)) || 0; } catch (e) {}
+    if (Date.now() - last < 30000) {
+      notice = "this page is out of date — reload it";
+      noticeAt = performance.now();
+      render();
+      return;
+    }
+    try { sessionStorage.setItem(RELOAD_KEY, String(Date.now())); } catch (e) {}
+    location.reload();
   }
 
   function micError(e) {
@@ -65,11 +88,23 @@
       modules = ctx.audioWorklet.addModule("/js/worklets.js?v=3");
       ctx.onstatechange = function () {
         if (ctx.state === "running") restoreOutput();
+        reportBlocked();
         render();
       };
     }
     if (ctx.state !== "running") ctx.resume().catch(function () {});
     return modules;
+  }
+
+  function wakeCtx() {
+    if (ctx && ctx.state !== "running") ctx.resume().catch(function () {});
+  }
+
+  function reportBlocked() {
+    const blocked = role() === "speaker" && !!ctx && ctx.state !== "running";
+    if (blocked === reportedBlocked || !room) return;
+    reportedBlocked = blocked;
+    room.send({ t: "status", blocked: blocked });
   }
 
   async function holdWakeLock() {
@@ -85,7 +120,7 @@
     wakeLock = null;
   }
 
-  async function startMic() {
+  async function capture() {
     const ready = ensureCtx();
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     await ready;
@@ -107,12 +142,17 @@
     tap.connect(silent);
     silent.connect(ctx.destination);
     tap.port.onmessage = function (e) {
-      if (!muted && role() === "mic") room.sendPcm(e.data, ctx.sampleRate);
+      if (!state.settings.muted && role() === "mic") room.sendPcm(e.data, ctx.sampleRate);
     };
+    const track = stream.getAudioTracks()[0];
+    if (track) track.addEventListener("ended", onTrackEnded);
     mic = { stream: stream, source: source, tap: tap, silent: silent, analyser: analyser };
-    micWanted = true;
-    muted = false;
+  }
+
+  async function startMic() {
     notice = "";
+    await capture();
+    micWanted = true;
     room.send({ t: "claim" });
     holdWakeLock();
     render();
@@ -120,7 +160,10 @@
 
   function stopCapture() {
     if (!mic) return;
-    mic.stream.getTracks().forEach(function (t) { t.stop(); });
+    mic.stream.getTracks().forEach(function (t) {
+      t.removeEventListener("ended", onTrackEnded);
+      t.stop();
+    });
     mic.tap.port.onmessage = null;
     for (const node of [mic.source, mic.tap, mic.silent]) {
       try { node.disconnect(); } catch (e) {}
@@ -134,6 +177,22 @@
     stopCapture();
     room.send({ t: "release" });
     render();
+  }
+
+  function onTrackEnded() {
+    if (!micWanted) return;
+    stopCapture();
+    capture().then(function () {
+      room.send({ t: "claim" });
+      holdWakeLock();
+      render();
+    }).catch(function () {
+      micWanted = false;
+      room.send({ t: "release" });
+      notice = "the mic was interrupted — press start mic again";
+      noticeAt = performance.now();
+      render();
+    });
   }
 
   function ensureSpeaker() {
@@ -158,10 +217,12 @@
       applied = { mode: null, pitch: null };
       applySettings();
       if (ctx.state === "running") restoreOutput();
+      reportBlocked();
       render();
     }).catch(function (e) {
       console.error("speaker setup failed", e);
       notice = "audio engine failed: " + (e && e.message ? e.message : e);
+      noticeAt = performance.now();
       render();
     }).finally(function () { speakerPending = null; });
     return speakerPending;
@@ -169,6 +230,7 @@
 
   function onFrame(frame) {
     if (!speaker || role() !== "speaker") return;
+    lastFrameAt = performance.now();
     speaker.player.port.postMessage({ pcm: frame.pcm, rate: frame.sampleRate }, [frame.pcm.buffer]);
   }
 
@@ -230,10 +292,12 @@
         await routeThroughElement(id);
       } else {
         notice = "this browser cannot switch outputs";
+        noticeAt = performance.now();
       }
     } catch (e) {
       console.error("output switch failed", e);
       notice = "output unavailable: " + (e && e.name ? e.name : e);
+      noticeAt = performance.now();
     }
     render();
   }
@@ -294,40 +358,48 @@
     Object.assign(pending, patch);
     applySettings();
     render();
-    if (!sendTimer) sendTimer = setTimeout(flushSettings, 60);
+    const wait = 40 - (performance.now() - lastSent);
+    if (wait <= 0) flushSettings();
+    else if (!sendTimer) sendTimer = setTimeout(flushSettings, wait);
   }
 
   function flushSettings() {
-    sendTimer = null;
+    if (sendTimer) { clearTimeout(sendTimer); sendTimer = null; }
+    lastSent = performance.now();
     room.send({ t: "set", settings: pending });
     pending = {};
   }
 
   function onMessage(msg) {
     if (msg.t === "hello") {
+      if (msg.v !== PROTOCOL) { reloadOnce(); return; }
       state.id = msg.id;
+      reportedBlocked = null;
+      return;
+    }
+    if (msg.t === "lost") {
+      micWanted = false;
+      stopCapture();
+      notice = LOST[msg.why] || "";
+      noticeAt = performance.now();
+      render();
       return;
     }
     if (msg.t !== "state") return;
+    const before = role();
     const incoming = Object.assign({}, msg.settings);
     for (const key of Object.keys(pending)) incoming[key] = state.settings[key];
     if (editing.key && performance.now() < editing.until) incoming[editing.key] = state.settings[editing.key];
     state.mic = msg.mic;
     state.peers = msg.peers;
+    state.blocked = msg.blocked || 0;
     state.rvc = msg.rvc;
     state.settings = Object.assign(state.settings, incoming);
     const r = role();
-    if (mic && r !== "mic") {
-      if (state.mic) {
-        stopCapture();
-        micWanted = false;
-        notice = "the mic moved to another device";
-      } else if (micWanted) {
-        room.send({ t: "claim" });
-      }
-    }
     if (!mic && r === "mic") room.send({ t: "release" });
     if (r === "speaker") ensureSpeaker();
+    if (r === "speaker" && before !== "speaker") lastFrameAt = performance.now();
+    reportBlocked();
     applySettings();
     render();
   }
@@ -335,12 +407,21 @@
   function detailFor(r) {
     if (!online) return "reconnecting…";
     const others = Math.max(0, state.peers - 1);
+    const muted = state.settings.muted;
     if (r === "mic") {
       if (muted) return "muted — nothing is being sent";
-      if (!others) return "talk away — but no speaker is open; load this page on the output device";
+      if (!others) return "no speaker yet — open this page on the output device and it plays automatically";
+      if (state.blocked) return "the speaker tab is blocked from playing sound — click anywhere on it once";
       return "talk — " + (others === 1 ? "the other device plays" : others + " devices play") + " you";
     }
-    if (r === "speaker") return "playing the voice from the mic device";
+    if (r === "speaker") {
+      if (muted) return "the mic is muted";
+      if (ctx && ctx.state !== "running") return "sound is blocked here — click anywhere";
+      if (performance.now() - lastFrameAt > 2500 && !(RVC_MODES.has(state.settings.mode) && state.rvc !== "ready")) {
+        return "the mic is on but no audio is arriving";
+      }
+      return "playing the voice from the mic device";
+    }
     return "press start mic on the device you talk into — every other open tab plays it";
   }
 
@@ -352,18 +433,19 @@
     $("roleDetail").textContent = detailFor(r);
     $("peers").textContent = online ? state.peers + (state.peers === 1 ? " device" : " devices") + " connected" : "";
 
+    const s = state.settings;
     const toggle = $("micToggle");
     toggle.textContent = r === "mic" ? "stop mic" : (r === "speaker" ? "take the mic" : "start mic");
     toggle.disabled = !online;
     toggle.classList.toggle("ghost", r === "speaker");
     const mute = $("micMute");
-    mute.hidden = r !== "mic";
-    mute.textContent = muted ? "unmute" : "mute";
+    mute.hidden = r === "idle" || !online;
+    mute.textContent = s.muted ? "unmute" : "mute";
+    $("micDrop").hidden = r !== "speaker" || !online;
 
     $("unlock").hidden = !(r === "speaker" && ctx && ctx.state !== "running");
     $("outputField").hidden = r === "mic";
 
-    const s = state.settings;
     if ($("mode").value !== s.mode) $("mode").value = s.mode;
     for (const key of Object.keys(FORMAT)) {
       const el = $(key);
@@ -374,6 +456,7 @@
     $("pitch").disabled = !pitchOn;
     $("pitchField").classList.toggle("off", !pitchOn);
 
+    if (notice && performance.now() - noticeAt > 8000) notice = "";
     $("notice").hidden = !notice;
     $("notice").textContent = notice;
 
@@ -401,9 +484,11 @@
       text = Math.round(stats.buffered * 1000) + " ms buf";
       if (stats.underruns) text += " · " + stats.underruns + " gaps";
     } else if (r === "mic" && ctx) {
-      text = muted ? "muted" : (ctx.sampleRate / 1000).toFixed(1) + " kHz out";
+      text = state.settings.muted ? "muted" : (ctx.sampleRate / 1000).toFixed(1) + " kHz out";
     }
     $("stats").textContent = text;
+    $("roleDetail").textContent = detailFor(r);
+    if (notice && performance.now() - noticeAt > 8000) render();
     requestAnimationFrame(drawMeter);
   }
 
@@ -419,29 +504,32 @@
         state.id = null;
         render();
       },
+      authExpired: function () { location.reload(); },
       message: onMessage,
       frame: onFrame,
     });
 
     ["pointerdown", "keydown", "touchend"].forEach(function (ev) {
-      document.addEventListener(ev, function () { ensureCtx(); }, { capture: true });
+      document.addEventListener(ev, wakeCtx, { capture: true });
     });
 
     $("micToggle").addEventListener("click", function () {
       if (role() === "mic") { stopMic(); return; }
-      notice = "";
       startMic().catch(function (e) {
         micWanted = false;
         stopCapture();
         notice = micError(e);
+        noticeAt = performance.now();
         render();
       });
     });
     $("micMute").addEventListener("click", function () {
-      muted = !muted;
-      render();
+      pushSetting({ muted: !state.settings.muted });
     });
-    $("unlock").addEventListener("click", function () { ensureCtx(); });
+    $("micDrop").addEventListener("click", function () {
+      room.send({ t: "drop" });
+    });
+    $("unlock").addEventListener("click", wakeCtx);
 
     $("mode").addEventListener("change", function () {
       const mode = $("mode").value;
@@ -471,10 +559,14 @@
     populateOutputs(false);
 
     document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState === "visible") holdWakeLock();
+      if (document.visibilityState !== "visible") return;
+      wakeCtx();
+      holdWakeLock();
+      if (micWanted && mic && mic.stream.getAudioTracks().every(function (t) { return t.readyState === "ended"; })) {
+        onTrackEnded();
+      }
     });
 
-    ensureSpeaker();
     render();
     requestAnimationFrame(drawMeter);
   }
