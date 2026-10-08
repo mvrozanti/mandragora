@@ -21,13 +21,14 @@ RVC_LOAD_TIMEOUT_S = float(os.environ.get("VOICE_ALTER_RVC_LOAD_TIMEOUT", "45"))
 RVC_RETRY_S = 10.0
 STATE_DIR = os.environ.get("STATE_DIRECTORY", "")
 SETTINGS_FILE = Path(STATE_DIR) / "settings.json" if STATE_DIR else None
+PROTOCOL = 2
 
 MODES = {
     "bypass", "pitch", "deeper", "higher", "helium", "demon",
     "robot", "radio", "telephone", "echo", "reverb", "mcbaldiee",
 }
 RVC_MODES = {"mcbaldiee"}
-DEFAULTS = {"mode": "bypass", "pitch": 0, "buffer": 80, "gain": 100}
+DEFAULTS = {"mode": "bypass", "pitch": 0, "buffer": 80, "gain": 100, "muted": False}
 RANGES = {"pitch": (-12, 12), "buffer": (20, 500), "gain": (0, 300)}
 AUDIO_BACKLOG = 50
 
@@ -45,6 +46,8 @@ def merge_settings(current: dict, incoming: object) -> dict:
     mode = incoming.get("mode")
     if mode in MODES:
         merged["mode"] = mode
+    if isinstance(incoming.get("muted"), bool):
+        merged["muted"] = incoming["muted"]
     for key, (lo, hi) in RANGES.items():
         value = incoming.get(key)
         if isinstance(value, (int, float)) and not isinstance(value, bool):
@@ -68,6 +71,7 @@ class Peer:
         self.control: deque[str] = deque()
         self.audio: deque[bytes] = deque(maxlen=AUDIO_BACKLOG)
         self.wake = asyncio.Event()
+        self.blocked = False
 
     def send_control(self, text: str) -> None:
         self.control.append(text)
@@ -195,6 +199,7 @@ class Room:
             "t": "state",
             "mic": self.mic,
             "peers": len(self.peers),
+            "blocked": sum(1 for pid, p in self.peers.items() if p.blocked and pid != self.mic),
             "settings": self.settings,
             "rvc": self.rvc.status,
         }
@@ -210,6 +215,8 @@ class Room:
                 peer.send_audio(payload)
 
     def from_mic(self, payload: bytes) -> None:
+        if self.settings["muted"]:
+            return
         if self.settings["mode"] in RVC_MODES:
             self.rvc.send(payload)
         else:
@@ -221,7 +228,7 @@ class Room:
 
     def join(self, peer: Peer) -> None:
         self.peers[peer.id] = peer
-        peer.send_control(json.dumps({"t": "hello", "id": peer.id}))
+        peer.send_control(json.dumps({"t": "hello", "id": peer.id, "v": PROTOCOL}))
         self.sync()
 
     def leave(self, peer: Peer) -> None:
@@ -238,17 +245,34 @@ class Room:
         if not isinstance(message, dict):
             return
         kind = message.get("t")
+        if kind == "ping":
+            peer.send_control('{"t":"pong"}')
+            return
         if kind == "claim":
+            if self.mic != peer.id:
+                self.settings = merge_settings(self.settings, {"muted": False})
+                self.notify_lost("taken")
             self.mic = peer.id
         elif kind == "release":
             if self.mic == peer.id:
                 self.mic = None
+        elif kind == "drop":
+            if self.mic != peer.id:
+                self.notify_lost("dropped")
+            self.mic = None
+        elif kind == "status":
+            peer.blocked = bool(message.get("blocked"))
         elif kind == "set":
             self.settings = merge_settings(self.settings, message.get("settings"))
             self.schedule_save()
         else:
             return
         self.sync()
+
+    def notify_lost(self, why: str) -> None:
+        holder = self.peers.get(self.mic) if self.mic else None
+        if holder is not None:
+            holder.send_control(json.dumps({"t": "lost", "why": why}))
 
     def schedule_save(self) -> None:
         if SETTINGS_FILE is None:
@@ -281,6 +305,9 @@ async def healthz() -> dict:
 @app.websocket("/ws")
 async def ws(websocket: WebSocket) -> None:
     await websocket.accept()
+    if "role" in websocket.query_params:
+        await websocket.close(code=4426)
+        return
     peer = Peer(websocket)
     pump = asyncio.create_task(peer.pump())
     room.join(peer)

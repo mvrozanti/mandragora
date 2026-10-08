@@ -14,6 +14,7 @@ services:
       caddy.header.X-Content-Type-Options: nosniff
       caddy.header.Referrer-Policy: strict-origin-when-cross-origin
       caddy.header.Permissions-Policy: geolocation=(),microphone=(self),camera=()
+      caddy.header.Cache-Control: no-cache
       caddy.encode: zstd gzip
       caddy.@ws.path: "/ws*"
       caddy.@rvc.path: "/rvc*"
