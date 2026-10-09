@@ -115,7 +115,7 @@ in
   nix.settings.auto-optimise-store = true;
   services.dbus.implementation = "broker";
   services.irqbalance.enable = true;
-  powerManagement.cpuFreqGovernor = "performance";
+  powerManagement.cpuFreqGovernor = "powersave";
   nix.gc = {
     automatic = true;
     dates = "weekly";
