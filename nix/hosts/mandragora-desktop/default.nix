@@ -116,6 +116,9 @@ in
   services.dbus.implementation = "broker";
   services.irqbalance.enable = true;
   powerManagement.cpuFreqGovernor = "powersave";
+  systemd.tmpfiles.rules = [
+    "w /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference - - - - balance_power"
+  ];
   nix.gc = {
     automatic = true;
     dates = "weekly";
