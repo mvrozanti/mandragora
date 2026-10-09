@@ -8,7 +8,7 @@
 let
   cfg = config.services.mandragora-seafile;
 
-  serverUrl = "https://seafile.mvrozanti.duckdns.org";
+  serverUrl = "https://seafile.mvr.ac";
   serverEmail = "mvrozanti@hotmail.com";
   seafDataParent = "/home/m/.seaf";
 
@@ -29,6 +29,12 @@ let
       seaf-cli sync -l "${id}" -s "${serverUrl}" -u "${serverEmail}" -T "$SF_TOKEN" -d "$HOME/${name}"
     '') syncMap
   );
+
+  repoint = pkgs.writeShellScript "seaf-repoint" ''
+    db="${seafDataParent}/seafile-data/repo.db"
+    [ -f "$db" ] || exit 0
+    ${pkgs.sqlite}/bin/sqlite3 "$db" "UPDATE RepoProperty SET value = '${serverUrl}' WHERE key = 'server-url' AND value <> '${serverUrl}';"
+  '';
 
   onboard = pkgs.writeShellScriptBin "seaf-onboard" ''
     set -euo pipefail
@@ -90,6 +96,7 @@ in
       unitConfig.ConditionPathIsDirectory = "%h/.seaf/seafile-data";
       serviceConfig = {
         Type = "simple";
+        ExecStartPre = "${repoint}";
         ExecStart = "${pkgs.seafile-shared}/bin/seaf-daemon -c %h/.ccnet -d %h/.seaf/seafile-data -w %h/.seaf/seafile";
         Restart = "on-failure";
         RestartSec = "30s";
