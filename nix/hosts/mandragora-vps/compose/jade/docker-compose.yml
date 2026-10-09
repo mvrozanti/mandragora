@@ -1,0 +1,37 @@
+services:
+
+  jade:
+    image: ${JADE_IMAGE:-nginx:stable-alpine}
+    container_name: jade
+    restart: unless-stopped
+    volumes:
+      - ${JADE_STATIC_VOLUME:-./static}:/usr/share/nginx/html:ro
+    networks:
+      - seafile-net
+    labels:
+      caddy_0: https://jade.${MVR_AC:-mvr.ac}
+      caddy_0.header.Strict-Transport-Security: max-age=31536000;includeSubDomains
+      caddy_0.header.X-Content-Type-Options: nosniff
+      caddy_0.header.X-Frame-Options: SAMEORIGIN
+      caddy_0.header.Referrer-Policy: strict-origin-when-cross-origin
+      caddy_0.header.Permissions-Policy: camera=(self),geolocation=(),microphone=()
+      caddy_0.header.-Server: ""
+      caddy_0.encode: zstd gzip
+      caddy_0.0_@theme: "path /api/theme /api/theme/*"
+      caddy_0.1_handle: "@theme"
+      caddy_0.1_handle.reverse_proxy: "host.docker.internal:6684"
+      caddy_0.1_handle.reverse_proxy.transport: http
+      caddy_0.1_handle.reverse_proxy.transport.dial_timeout: "2s"
+      caddy_0.2_handle_path: "/api/pin/*"
+      caddy_0.2_handle_path.reverse_proxy: "pinserver:8096"
+      caddy_0.2_handle_path.reverse_proxy.transport: http
+      caddy_0.3_handle.reverse_proxy: "{{upstreams 80}}"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true

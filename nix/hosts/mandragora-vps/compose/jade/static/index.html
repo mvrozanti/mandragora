@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#13140d">
+  <title>jade oracle</title>
+  <link rel="stylesheet" href="theme.css">
+  <script src="theme.js" data-endpoint="/api/theme?colors=1" data-poll="15"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: var(--mv-bg);
+      color: var(--mv-text);
+      font-family: var(--mv-font-sans);
+      font-size: var(--mv-text-base);
+      line-height: var(--mv-leading);
+      max-width: 640px;
+      margin: 0 auto;
+      padding: var(--mv-space-4);
+    }
+    h1 { font-size: var(--mv-text-lg); letter-spacing: var(--mv-tracking-label); text-transform: uppercase; margin: 0 0 var(--mv-space-2); }
+    h2 { font-size: var(--mv-text-md); margin: var(--mv-space-5) 0 var(--mv-space-2); }
+    .mono { font-family: var(--mv-font-mono); font-size: var(--mv-text-sm); }
+    .muted { color: var(--mv-text-dim); }
+    .err { color: var(--mv-down); }
+    .ok { color: var(--mv-ok); }
+    button {
+      background: var(--mv-accent); color: var(--mv-on-accent);
+      border: 0; border-radius: var(--mv-radius-1);
+      padding: var(--mv-space-2) var(--mv-space-4);
+      font-family: inherit; font-size: inherit; font-weight: 600;
+      min-height: var(--mv-tap); cursor: pointer;
+    }
+    button:disabled { opacity: 0.5; cursor: default; }
+    button.ghost { background: transparent; color: var(--mv-text); border: 1px solid var(--mv-line); }
+    video { width: 100%; max-height: 44vh; background: #000; border-radius: var(--mv-radius-2); }
+    .row { display: flex; gap: var(--mv-space-3); align-items: center; margin: var(--mv-space-3) 0; flex-wrap: wrap; }
+    .bar { height: 8px; background: var(--mv-bg-high); border-radius: var(--mv-radius-pill); overflow: hidden; margin: var(--mv-space-2) 0; }
+    .bar > div { height: 100%; background: var(--mv-accent); width: 0; transition: width var(--mv-dur) var(--mv-ease); }
+    .card {
+      background: var(--mv-bg-raised); border: 1px solid var(--mv-line);
+      border-radius: var(--mv-radius-2); padding: var(--mv-space-3); margin: var(--mv-space-3) 0;
+    }
+    #respqr { text-align: center; }
+    #respqr canvas { width: min(100%, 480px) !important; height: auto !important; aspect-ratio: 1 / 1; image-rendering: pixelated; display: block; margin: 0 auto; }
+    .step { color: var(--mv-tone-3); font-size: var(--mv-text-sm); letter-spacing: var(--mv-tracking-label); text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <h1>jade oracle</h1>
+  <p class="muted">self-hosted PIN oracle — replaces <span class="mono">blkstrm.com/pn</span>.</p>
+
+  <section>
+    <h2>step 1 · scan jade</h2>
+    <video id="video" playsinline></video>
+    <div class="row">
+      <button id="start">open camera</button>
+      <button id="stop" disabled class="ghost">stop</button>
+      <span class="muted" id="cstatus">idle</span>
+    </div>
+    <div class="bar"><div id="prog"></div></div>
+    <div class="muted mono" id="status">waiting for ur:jade-pin…</div>
+  </section>
+
+  <section id="relay" hidden>
+    <h2>step 2 · relay</h2>
+    <div class="card mono" id="relayinfo"></div>
+  </section>
+
+  <section id="resp" hidden>
+    <h2>step 3 · scan response</h2>
+    <p class="muted">point the jade at this code.</p>
+    <div class="card" id="respqr"></div>
+  </section>
+
+  <section>
+    <h2>audit</h2>
+    <div class="card mono" id="audit" hidden></div>
+  </section>
+
+  <script src="qr-scanner.umd.min.js"></script>
+  <script type="module">
+    import { UrStream, encodeUr, encodePinReply } from "./bcur.js";
+    import { decode as cborDecode } from "https://cdn.jsdelivr.net/npm/cbor-x@1.6.6/+esm";
+    import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/+esm";
+
+    const video = document.getElementById("video");
+    const startBtn = document.getElementById("start");
+    const stopBtn = document.getElementById("stop");
+    const cstatus = document.getElementById("cstatus");
+    const status = document.getElementById("status");
+    const prog = document.getElementById("prog");
+    const relaySec = document.getElementById("relay");
+    const relayInfo = document.getElementById("relayinfo");
+    const respSec = document.getElementById("resp");
+    const respQr = document.getElementById("respqr");
+    const auditSec = document.getElementById("audit");
+
+    const stream = new UrStream();
+    const seen = new Set();
+    let scanner = null;
+    let done = false;
+
+    function setStatus(txt, cls) { status.textContent = txt; status.className = cls + " mono"; }
+
+    function extractHttpRequest(obj) {
+      let req = obj && obj.http_request;
+      if (!req && obj && obj.result && obj.result.http_request) req = obj.result.http_request;
+      return req;
+    }
+
+    async function handleRequest(cborBytes) {
+      let obj;
+      try { obj = cborDecode(cborBytes); } catch (e) { setStatus("decode failed: " + e.message, "err"); return; }
+      const req = extractHttpRequest(obj);
+      if (!req || !req.params) { setStatus("no http_request in payload", "err"); return; }
+
+      const params = req.params;
+      const dataObj = params.data;
+      const data = (typeof dataObj === "string") ? dataObj : (dataObj && dataObj.data);
+      const urls = params.urls || [];
+
+      relaySec.hidden = false;
+      relayInfo.textContent = "POST " + (urls[0] || "?") + "\n" + JSON.stringify(dataObj, null, 2);
+
+      if (!data) { setStatus("no data field", "err"); return; }
+
+      let resp;
+      try {
+        resp = await fetch(urls[0], {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dataObj)
+        });
+      } catch (e) {
+        setStatus("relay failed: " + e.message, "err");
+        return;
+      }
+
+      let respJson;
+      try { respJson = await resp.json(); } catch (e) { setStatus("bad response", "err"); return; }
+
+      if (!resp.ok || !respJson || typeof respJson.data !== "string") {
+        setStatus("pinserver error: " + (respJson && respJson.error || resp.status), "err");
+        return;
+      }
+
+      const parts = encodeUr("jade-pin", encodePinReply("qrpin", respJson.data), 50, 8);
+
+      respSec.hidden = false;
+      renderResponseParts(parts);
+      setStatus("relayed · " + parts.length + " part(s)", "ok");
+      stop();
+    }
+
+    function renderResponseParts(parts) {
+      respQr.innerHTML = "";
+      const qrCanvas = document.createElement("canvas");
+      respQr.appendChild(qrCanvas);
+      let i = 0;
+      const draw = () => {
+        if (i >= parts.length) i = 0;
+        const text = parts[i++];
+        QRCode.toCanvas(qrCanvas, text, { margin: 4, width: 480, errorCorrectionLevel: "M" }, (err) => {});
+        setTimeout(draw, 600);
+      };
+      draw();
+    }
+
+    function onComplete(payload) {
+      if (done) return;
+      done = true;
+      setStatus("decoded · type " + stream.type + " · " + payload.length + " B", "ok");
+      auditSec.hidden = false;
+      try {
+        const obj = cborDecode(payload);
+        auditSec.textContent = JSON.stringify(obj, null, 2);
+      } catch (e) {
+        auditSec.textContent = "raw:\n" + Array.from(payload).map(b => b.toString(16).padStart(2, "0")).join(" ");
+      }
+      handleRequest(payload);
+    }
+
+    function onPart(text) {
+      if (done || !text) return;
+      const t = text.toLowerCase();
+      if (!t.startsWith("ur:")) {
+        setStatus("non-ur: " + text.slice(0, 60), "err");
+        return;
+      }
+      if (seen.has(t)) return;
+      seen.add(t);
+      try { stream.receive(t); } catch (e) { setStatus("part rejected: " + e.message, "err"); return; }
+      const pct = Math.round(stream.progress * 100);
+      prog.style.width = pct + "%";
+      setStatus("fragments: " + stream.received + "/" + stream.expected + " · " + pct + "%", "muted");
+      if (stream.complete) onComplete(stream.message);
+    }
+
+    async function start() {
+      try {
+        QrScanner._disableBarcodeDetector = true;
+        scanner = new QrScanner(video, result => onPart(result.data), {
+          returnDetailedScanResult: true,
+          highlightScanRegion: true,
+          highlightCodeOutline: true,
+          onDecodeError: error => {
+            if (error === "No QR code found") return;
+            setStatus("scan err: " + error, "err");
+          }
+        });
+        await scanner.start();
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        cstatus.textContent = "point at the jade";
+        cstatus.className = "ok";
+      } catch (e) {
+        cstatus.textContent = "camera denied: " + e.message;
+        cstatus.className = "err";
+      }
+    }
+
+    function stop() {
+      if (scanner) { scanner.stop(); scanner.destroy(); scanner = null; }
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      if (cstatus.textContent !== "idle") cstatus.textContent = "stopped";
+    }
+
+    startBtn.addEventListener("click", start);
+    stopBtn.addEventListener("click", stop);
+  </script>
+</body>
+</html>

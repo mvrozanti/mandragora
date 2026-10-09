@@ -1,0 +1,20 @@
+services:
+
+  pinserver:
+    build: .
+    container_name: pinserver
+    restart: unless-stopped
+    volumes:
+      - ./server_private_key.key:/server_private_key.key:ro
+      - ./pins:/pins
+    networks:
+      - seafile-net
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8096/healthz', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true
