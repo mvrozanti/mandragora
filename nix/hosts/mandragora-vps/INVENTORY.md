@@ -50,7 +50,7 @@ table below) have no `compose/` dir, so `--all` never touches them.
 
 ## Part 1 — Compose stacks
 
-31 stacks are declared under [`compose/`](compose/) (32 directories; `crypto-fetcher/` is a retired tombstone, no compose — see [`compose/README.md`](compose/README.md#retired-stacks)). All 31 are live on the VPS. Public hostnames are `*.mvr.ac` unless noted; the `mvrozanti.duckdns.org` counterparts 302-redirect to `mvr.ac` via the `hub` stack. Most vhosts sit behind Authelia (`auth.mvr.ac`); the "Gate" column marks the exceptions.
+33 stacks are declared under [`compose/`](compose/) (34 directories; `crypto-fetcher/` is a retired tombstone, no compose — see [`compose/README.md`](compose/README.md#retired-stacks)). All 33 are live on the VPS. Public hostnames are `*.mvr.ac` unless noted; the `mvrozanti.duckdns.org` counterparts 302-redirect to `mvr.ac` via the `hub` stack. Most vhosts sit behind Authelia (`auth.mvr.ac`); the "Gate" column marks the exceptions.
 
 Several stacks are thin **reverse-proxy shims**: an `alpine` container that only carries the Caddy labels and forwards TLS-terminated traffic to a service running on the *desktop* over the tailnet (`100.115.80.79`). Those rows list the desktop upstream in "Tailnet / upstream"; the actual app is not on the VPS.
 
@@ -63,6 +63,7 @@ Several stacks are thin **reverse-proxy shims**: an `alpine` container that only
 | `demo` | `demo.mvr.ac` | Public vault knowledge-graph viewer + gource render UI | none | uses `gource` |
 | `cv` | `cv.mvr.ac` | Public static CV download page | none | local (static) |
 | `rule110` | `rule110.mvr.ac` | Rule-110 compiler visualization (static) | none | local (static) |
+| `jade` | `jade.mvr.ac` | Self-hosted Jade QR PIN oracle frontend (replaces `blkstrm.com/pn`); `/api/pin/*` → `pinserver` | none | uses `pinserver` |
 | `gpg` | `gpg.mvr.ac` | PGP public key (content-negotiated) + encrypted mail drop | partial (gated inbox) | local |
 | `mvr-api` | `api.mvr.ac` | GitHub-contributions API backing the `mvr.ac` landing page | none | local |
 | `radicale` | `cal.mvr.ac` | CalDAV / CardDAV server | htpasswd | local |
@@ -104,6 +105,7 @@ Several stacks are thin **reverse-proxy shims**: an `alpine` container that only
 | `loki` | Log aggregator + `loki-promtail` + `loki-size-guard` (2 GB / 3-day retention) | tailnet `:3100` |
 | `logs` | Vanilla-JS Loki log viewer at `log.mvr.ac` (Authelia-gated) | via Loki |
 | `node-exporter` | Prometheus host-metrics exporter | tailnet `:9100` |
+| `pinserver` | Blockstream `blind_pin_server` holding the Jade's oracle key + PIN records (remote-only, see its README); reachable only via `jade.mvr.ac/api/pin/*` | internal `:8096` |
 | `gource` | On-demand git-history MP4 renderer; **no vhost of its own** — `gource-api` is consumed by `demo`, `gource-fin` by `fin` | desktop `:9991` (renderer) |
 | `btc-tob-capture` | BTC top-of-book tick collector (`btc-tob-capture` + `palpitador` containers) — **live-only, not in repo**; the successor to the retired `crypto-fetcher` | local |
 
