@@ -185,7 +185,8 @@ gr()  { git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
 
 ,() {
   [[ $# -gt 0 ]] || return 1
-  claude-deepseek -p --tools "" --append-system-prompt 'You are a shell command translator. Reply with exactly one shell command and nothing else: no markdown fences, no explanation, no prose.' "$*" 2>/dev/null
+  claude-deepseek -p --tools "" --append-system-prompt 'You are a shell command translator. Reply with exactly one shell command and nothing else: no markdown fences, no explanation, no prose.' "$*" 2>/dev/null \
+    | sed -E -e '/^[[:space:]]*```/d' -e 's/^[[:space:]]*`+//' -e 's/`+[[:space:]]*$//' -e 's/^[[:space:]]+//' -e 's/[[:space:]]+$//'
 }
 
 [ -f "$HOME/.local/bin/resty" ] && source "$HOME/.local/bin/resty" >/dev/null 2>&1
