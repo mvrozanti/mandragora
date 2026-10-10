@@ -1,0 +1,3 @@
+# GPU-conditioned services (ConditionPathExists=/dev/nvidia0) allowed to run
+# without MemoryMax on the unit or its slice. One unit name per line.
+# Adding a line is a decision to state out loud, not a way to quiet the check.
