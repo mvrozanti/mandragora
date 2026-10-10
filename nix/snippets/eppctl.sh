@@ -4,7 +4,7 @@ set -eu
 EPP=/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference
 WAYBAR_SIGNAL=14
 
-VALUES=(performance balance_performance balance_power power)
+VALUES=(performance power)
 
 current() {
   printf '%s' "$(<"$EPP")"
@@ -12,11 +12,9 @@ current() {
 
 icon_for() {
   case "$1" in
-    performance)         printf '%s' $'' ;;
-    balance_performance) printf '%s' $'' ;;
-    balance_power)       printf '%s' $'' ;;
-    power)               printf '%s' $'' ;;
-    *)                   printf '%s' $'' ;;
+    performance) printf '%s' $'' ;;
+    power)       printf '%s' $'❄' ;;
+    *)           printf '%s' $'' ;;
   esac
 }
 
