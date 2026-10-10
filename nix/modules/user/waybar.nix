@@ -231,8 +231,6 @@
           format = "{}";
           tooltip = true;
           on-click = "sudo /run/current-system/sw/bin/eppctl next";
-          on-click-right = "sudo /run/current-system/sw/bin/eppctl set performance";
-          on-click-middle = "sudo /run/current-system/sw/bin/eppctl set power";
         };
 
         "custom/network" = {
