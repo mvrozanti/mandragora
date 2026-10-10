@@ -10,13 +10,13 @@ current() {
   printf '%s' "$(<"$EPP")"
 }
 
-label_for() {
+icon_for() {
   case "$1" in
-    performance)         printf 'perf' ;;
-    balance_performance) printf 'bal-perf' ;;
-    balance_power)       printf 'bal-pwr' ;;
-    power)               printf 'pwr' ;;
-    *)                   printf '%s' "$1" ;;
+    performance)         printf '%s' $'' ;;
+    balance_performance) printf '%s' $'' ;;
+    balance_power)       printf '%s' $'' ;;
+    power)               printf '%s' $'' ;;
+    *)                   printf '%s' $'' ;;
   esac
 }
 
@@ -45,7 +45,7 @@ refresh() {
 case "${1:-status}" in
   status)
     cur=$(current)
-    printf '{"text": " %s", "tooltip": "CPU EPP: %s", "class": "%s"}\n' "$(label_for "$cur")" "$cur" "$cur"
+    printf '{"text": "%s", "tooltip": "CPU EPP: %s", "class": "%s"}\n' "$(icon_for "$cur")" "$cur" "$cur"
     ;;
   next)
     cur=$(current)
