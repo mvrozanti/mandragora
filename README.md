@@ -61,6 +61,14 @@ AI agents (Claude Code, Gemini, local LLMs) read [`AGENTS.md`](AGENTS.md)
 first — it holds the non-negotiables, file-safety rules, and per-agent
 policy variances.
 
+## History
+
+<div align="center">
+
+<img src="docs/assets/readme/gource.png" width="600" alt="gource visualization of mandragora's git history" />
+
+</div>
+
 ---
 
 <div align="center">
