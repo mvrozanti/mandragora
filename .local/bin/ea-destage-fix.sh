@@ -55,7 +55,7 @@ fix_base() {
   local base="$1"
   [ -d "$base" ] || return 0
 
-  local prefix_root d
+  local prefix_root d s
   prefix_root="${base%%/drive_c/*}"
 
   local -a staged=()
@@ -67,12 +67,23 @@ fix_base() {
 
   [ "${#staged[@]}" -gt 0 ] || return 0
 
+  if [ -f "$prefix_root/ea-destage.pin" ]; then
+    say "pin active ($(tr -d '\r' < "$prefix_root/ea-destage.pin")) — holding live, archiving ${#staged[@]} staged dir(s)"
+    mkdir -p "$prefix_root/_destage_backup"
+    for s in "${staged[@]}"; do
+      [ -e "$base/$s" ]         && mv "$base/$s" "$prefix_root/_destage_backup/"         2>/dev/null || true
+      [ -e "$base/$s.zip" ]     && mv "$base/$s.zip" "$prefix_root/_destage_backup/"     2>/dev/null || true
+      [ -e "$base/$s.zip.sig" ] && mv "$base/$s.zip.sig" "$prefix_root/_destage_backup/" 2>/dev/null || true
+    done
+    return 0
+  fi
+
   if ! reap_prefix "$prefix_root"; then
     say "EA processes survived termination in $prefix_root — aborting swap to stay safe"
     return 1
   fi
 
-  local newest live_ver new_ver archive bak s
+  local newest live_ver new_ver archive bak
   newest="${staged[-1]}"
   live_ver="$(cat "$base/EA Desktop/version.properties" 2>/dev/null || echo unknown)"
   new_ver="$(cat "$base/$newest/EA Desktop/version.properties" 2>/dev/null || echo unknown)"
