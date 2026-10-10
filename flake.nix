@@ -25,6 +25,8 @@
       url = "github:nix-community/NixOS-WSL";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    pi.url = "github:earendil-works/pi/stable";
   };
 
   outputs =
