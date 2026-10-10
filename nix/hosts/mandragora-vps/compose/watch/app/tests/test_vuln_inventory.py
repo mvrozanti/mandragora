@@ -13,6 +13,15 @@ NOW = datetime(2026, 9, 27, 12, 0, tzinfo=timezone.utc)
 FRESH = "2026-09-27T06:00:00Z"
 
 
+def _freeze_now(monkeypatch):
+    class FrozenDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return NOW
+
+    monkeypatch.setattr(inventory, "datetime", FrozenDatetime)
+
+
 def report(host, entries, generated=FRESH, **extra):
     return {"schema": 2, "host": host, "generated": generated, "entries": entries, **extra}
 
@@ -370,6 +379,7 @@ def _files(reports):
 
 
 def test_fetch_end_to_end_baselines_then_reports(monkeypatch):
+    _freeze_now(monkeypatch)
     _serve(monkeypatch, _files(BASE))
     events, cursor = asyncio.run(sources.fetch("vuln_inventory", "*", None))
     assert events == [] and cursor
@@ -402,6 +412,7 @@ def test_fetch_for_a_vanished_host_is_an_error_not_silence(monkeypatch):
 
 
 def test_the_watcher_pages_through_the_real_poller(db, make_watcher, captured_sends, monkeypatch):
+    _freeze_now(monkeypatch)
     make_watcher(kind="vuln_inventory", target="*", ai_spec=None, match_rule=inventory.DEFAULT_RULE)
     _serve(monkeypatch, _files(BASE))
     asyncio.run(poller.poll_once(db))
