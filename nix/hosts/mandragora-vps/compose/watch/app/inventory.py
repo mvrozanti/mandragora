@@ -242,18 +242,31 @@ def record_event(rec: Record, kind: str, kev: bool, bulk: bool = False) -> dict[
     }
 
 
+_SEVERITY_RANK = {"critical": 0, "high": 1, "medium": 2, "low": 3, "unknown": 4}
+
+
+def burst_tags(ranked: list[tuple[Record, bool]]) -> list[str]:
+    worst = min(
+        (severity_band(r.score, r.severity) for r, _ in ranked),
+        key=lambda b: _SEVERITY_RANK.get(b, 99),
+    )
+    out = [f"vuln:{worst}"]
+    if any(kev for _, kev in ranked):
+        out.append("vuln:kev")
+    if any(r.fixable for r, _ in ranked):
+        out.append("vuln:fixable")
+    if any(s.rsplit(":", 1)[-1] in EXPOSED_SCOPES for r, _ in ranked for s in r.exposed):
+        out.append("vuln:exposed")
+    return out
+
+
 def burst_event(items: list[tuple[Record, bool]], today: str) -> dict[str, Any]:
     ranked = sorted(items, key=lambda t: (not t[1], -t[0].score, t[0].key))
-    union: list[str] = []
-    for rec, kev in ranked:
-        for t in tags(rec, kev):
-            if t not in union:
-                union.append(t)
-    top = "; ".join(f"{r.pname} {r.cve} ({r.score:.1f})" for r, _ in ranked[:10])
+    top = "\n".join(f"{r.pname} {r.cve} ({r.score:.1f})" for r, _ in ranked[:5])
     return {
         "external_id": f"burst|{today}|{digest('|'.join(r.key for r, _ in ranked))}",
-        "title": " ".join(["vuln:burst"] + union) + f" {len(items)} new CVE-affected packages in one scan",
-        "summary": f"top: {top} · full list at {VULN_SITE}",
+        "title": " ".join(["vuln:burst"] + burst_tags(ranked)) + f" — {len(items)} new CVE-affected packages in one scan",
+        "summary": f"top {min(len(items), 5)}:\n{top}",
         "link": VULN_SITE,
         "occurred_at": None,
         "raw": {"kind": "burst", "count": len(items), "keys": [r.key for r, _ in ranked][:200]},
