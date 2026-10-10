@@ -118,6 +118,10 @@ SOURCE_KINDS: dict[str, dict[str, str]] = {
         "label": "Timer-driven jobs on Mandragora hosts that went quiet",
         "target_hint": "* or mandragora",
     },
+    "steam_price": {
+        "label": "Steam price / sale",
+        "target_hint": "2483190 or a store.steampowered.com/app/<id> URL",
+    },
 }
 
 
@@ -138,6 +142,7 @@ SOURCE_EMITS = {
     "anticheat_game": "whether games matching a name run on Linux, from areweanticheatyet: one status per title out of Supported, Running, Denied, Broken or Planned, and nothing else — a fact table, never prose",
     "vuln_inventory": "CVEs newly affecting packages installed on the user's own Mandragora hosts, as decided by each host's scanner (vulnix, trivy): package, installed version, CVE id, CVSS score, fixed version, affected hosts, whether it is on the CISA exploited-in-the-wild list, plus alerts when a host's scanner stops reporting. Titles carry tags vuln:critical/high/medium/low, vuln:kev, vuln:fixable/nofix, vuln:exposed, vuln:stale — a fact table, never prose",
     "unit_health": "freshness of every timer-driven systemd job on the user's own Mandragora hosts, as published by each host every 15 minutes: alerts when a job has not succeeded within twice its schedule (the timer stopped firing or the job hangs) and when a host stops publishing altogether. Failures that exit loudly are paged by the host itself, not here. Titles carry tags health:stale, health:silent and health:<host> — a fact table, never prose",
+    "steam_price": "the price of one Steam app from the Steam store: discount percent, final and regular price, and currency — a fact table, never prose",
 }
 
 
@@ -257,6 +262,8 @@ def validate_target(kind: str, target: str) -> str:
         import health
 
         return health.validate(target)
+    elif kind == "steam_price":
+        return _steam_appid(target)
     else:
         raise ValueError(f"unknown kind: {kind}")
     return t
@@ -267,6 +274,14 @@ async def target_exists(kind: str, target: str) -> tuple[bool, str]:
         url = f"https://api.github.com/repos/{target}"
     elif kind == "github_user":
         url = f"https://api.github.com/users/{target}"
+    elif kind == "steam_price":
+        try:
+            await _steam_price_overview(target)
+        except ValueError as exc:
+            return False, str(exc)
+        except Exception as exc:
+            return True, f"could not verify Steam app {target}: {str(exc)[:80]}"
+        return True, ""
     else:
         return True, ""
     async with httpx.AsyncClient(timeout=15.0, headers=_github_headers()) as c:
@@ -321,6 +336,8 @@ async def fetch(kind: str, target: str, cursor: str | None) -> tuple[list[dict[s
         import health
 
         return await health.fetch(target, cursor)
+    if kind == "steam_price":
+        return await _fetch_steam_price(target, cursor)
     raise ValueError(f"unknown kind: {kind}")
 
 
@@ -758,6 +775,134 @@ async def _fetch_anticheat_game(target: str, cursor: str | None) -> tuple[list[d
             "raw": {"slug": slug, "status": status, "was": was, "anticheats": g.get("anticheats")},
         })
     return events, new_cursor
+
+
+STEAM_STORE_API = "https://store.steampowered.com/api/appdetails"
+STEAM_APP_SITE = "https://store.steampowered.com/app"
+STEAM_CC = os.environ.get("WATCH_STEAM_CC", "us").strip().lower() or "us"
+STEAM_FILTERS = "price_overview,basic"
+_STEAM_APPID_RE = re.compile(r"(?:/app/|appids?\s*[=/])(\d{1,10})", re.I)
+STEAM_CURRENCY_SYMBOLS = {
+    "USD": "$", "EUR": "€", "GBP": "£", "BRL": "R$", "JPY": "¥", "CAD": "C$",
+    "AUD": "A$", "NZD": "NZ$", "PLN": "zł", "TRY": "₺", "INR": "₹", "KRW": "₩",
+    "RUB": "₽", "CHF": "CHF ", "SEK": "SEK ", "NOK": "NOK ", "DKK": "DKK ",
+}
+
+
+def _steam_appid(target: str) -> str:
+    match = _STEAM_APPID_RE.search(target)
+    if match:
+        return match.group(1)
+    digits = target.strip()
+    if digits.isdigit() and len(digits) <= 10:
+        return digits
+    raise ValueError(
+        "steam_price expects a Steam appid (e.g. 2483190) or a store.steampowered.com/app/<id> URL"
+    )
+
+
+def _steam_money(cents: Any, currency: str) -> str:
+    try:
+        whole, frac = divmod(int(cents), 100)
+    except (TypeError, ValueError):
+        return str(cents)
+    symbol = STEAM_CURRENCY_SYMBOLS.get(str(currency).upper())
+    if symbol is None:
+        symbol = f"{currency} " if currency else ""
+    return f"{symbol}{whole}.{frac:02d}"
+
+
+def _steam_state(price_overview: dict[str, Any]) -> dict[str, str]:
+    return {
+        "d": str(price_overview.get("discount_percent") or 0),
+        "f": str(price_overview.get("final") or 0),
+        "i": str(price_overview.get("initial") or 0),
+        "c": str(price_overview.get("currency") or ""),
+    }
+
+
+def _steam_join_cursor(state: dict[str, str]) -> str:
+    return "|".join(f"{k}={v}" for k, v in sorted(state.items()))
+
+
+def _steam_split_cursor(cursor: str | None) -> dict[str, str] | None:
+    if not cursor:
+        return None
+    out: dict[str, str] = {}
+    for pair in cursor.split("|"):
+        key, _, value = pair.partition("=")
+        if key:
+            out[key] = value
+    return out
+
+
+def steam_price_headline(
+    name: str, discount: int, price: str, previous: dict[str, str] | None
+) -> str:
+    if previous is None:
+        if discount:
+            return f"{name} is {discount}% off on Steam — {price}"
+        return f"{name} is not discounted on Steam ({price})"
+    previous_discount = int(previous["d"])
+    if discount > previous_discount:
+        if previous_discount:
+            return f"{name} is now {discount}% off on Steam — {price} (was {previous_discount}% off)"
+        return f"{name} is now {discount}% off on Steam — {price}"
+    if discount < previous_discount:
+        if discount:
+            return f"{name} discount dropped to {discount}% on Steam — {price}"
+        return f"{name} is back to full price on Steam ({price})"
+    return f"{name} price changed on Steam ({price})"
+
+
+async def _steam_price_overview(appid: str) -> tuple[str, dict[str, Any]]:
+    async with httpx.AsyncClient(timeout=20.0, headers={"User-Agent": USER_AGENT}) as c:
+        r = await c.get(
+            STEAM_STORE_API,
+            params={"appids": appid, "cc": STEAM_CC, "filters": STEAM_FILTERS},
+        )
+    _raise_for_throttle(r, "steam")
+    r.raise_for_status()
+    entry = ((r.json() or {}).get(appid) or {})
+    if not entry.get("success"):
+        raise ValueError(f"steam has no app {appid}")
+    data = entry.get("data") or {}
+    return str(data.get("name") or f"app {appid}"), data.get("price_overview") or {}
+
+
+async def _fetch_steam_price(
+    appid: str, cursor: str | None
+) -> tuple[list[dict[str, Any]], str | None]:
+    previous = _steam_split_cursor(cursor)
+    name, price_overview = await _steam_price_overview(appid)
+    if not price_overview:
+        raise ValueError(f"steam app {appid} has no price (unreleased or free)")
+    state = _steam_state(price_overview)
+    new_cursor = _steam_join_cursor(state)
+    if previous is None or previous == state:
+        return [], new_cursor
+    discount = int(state["d"])
+    price = _steam_money(state["f"], state["c"])
+    summary = f"{name} · appid {appid} · {price}"
+    if discount:
+        summary += f" · {discount}% off"
+    summary += f" · {STEAM_APP_SITE}/{appid}"
+    event = {
+        "external_id": f"{new_cursor}@{int(time.time())}",
+        "title": steam_price_headline(name, discount, price, previous)[:400],
+        "summary": summary,
+        "link": f"{STEAM_APP_SITE}/{appid}",
+        "occurred_at": _utc_iso(time.time()),
+        "raw": {
+            "appid": appid,
+            "name": name,
+            "discount_percent": discount,
+            "final": price_overview.get("final"),
+            "initial": price_overview.get("initial"),
+            "currency": price_overview.get("currency"),
+        },
+    }
+    return [event], new_cursor
 
 
 OSV_API = "https://api.osv.dev/v1/query"
