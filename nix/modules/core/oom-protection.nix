@@ -22,5 +22,15 @@ in
     MemoryMax = "24G";
   };
 
+  systemd.user.units."tmux-spawn-.scope" = {
+    overrideStrategy = "asDropin";
+    text = builtins.readFile ../../../.config/systemd/user/interactive-scope.conf;
+  };
+
+  systemd.user.units."kitty-.scope" = {
+    overrideStrategy = "asDropin";
+    text = builtins.readFile ../../../.config/systemd/user/interactive-scope.conf;
+  };
+
   environment.systemPackages = [ cage ];
 }

@@ -221,7 +221,12 @@ rationale, recipes, or the incident that produced the rule.
     the switch is download-only. Only if it genuinely cannot wait, cage
     the build in a `MemoryMax`/`MemorySwapMax` scope so it cannot reach
     the oomd kill threshold. Applies to every agent running
-    `mandragora-switch` or `nixos-rebuild`.
+    `mandragora-switch` or `nixos-rebuild`. Every tmux pane and kitty
+    window is already a capped scope (10 G RAM + 6 G swap, from
+    `.config/systemd/user/interactive-scope.conf`): a runaway command
+    dies alone in its pane instead of eating 45 G of swap, as `rtk rg`
+    did on 2026-10-09. Anything expected to exceed that goes through
+    `cage` (heavy.slice, 16 G/20 G).
 20. **A served UI follows the wallpaper** — `setbg` regenerates the
     matugen palette, and every UI on the hub must pick it up on the
     next page load. Never hard-code a hex value in a served
