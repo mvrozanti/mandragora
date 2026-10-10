@@ -120,7 +120,8 @@
 
   boot.kernel.sysctl = {
     "vm.swappiness" = 180;
-    "vm.vfs_cache_pressure" = 50;
+    "vm.vfs_cache_pressure" = 100;
+    "vm.watermark_scale_factor" = 125;
     "kernel.dmesg_restrict" = 1;
     "kernel.kptr_restrict" = 2;
     "net.core.bpf_jit_harden" = 2;
