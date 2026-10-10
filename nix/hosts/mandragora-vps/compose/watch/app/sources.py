@@ -122,6 +122,10 @@ SOURCE_KINDS: dict[str, dict[str, str]] = {
         "label": "Steam price / sale",
         "target_hint": "2483190 or a store.steampowered.com/app/<id> URL",
     },
+    "ea_app_version": {
+        "label": "EA App version (autopatch recommended)",
+        "target_hint": "*",
+    },
 }
 
 
@@ -143,6 +147,7 @@ SOURCE_EMITS = {
     "vuln_inventory": "CVEs newly affecting packages installed on the user's own Mandragora hosts, as decided by each host's scanner (vulnix, trivy): package, installed version, CVE id, CVSS score, fixed version, affected hosts, whether it is on the CISA exploited-in-the-wild list, plus alerts when a host's scanner stops reporting. Titles carry tags vuln:critical/high/medium/low, vuln:kev, vuln:fixable/nofix, vuln:exposed, vuln:stale — a fact table, never prose",
     "unit_health": "freshness of every timer-driven systemd job on the user's own Mandragora hosts, as published by each host every 15 minutes: alerts when a job has not succeeded within twice its schedule (the timer stopped firing or the job hangs) and when a host stops publishing altogether. Failures that exit loudly are paged by the host itself, not here. Titles carry tags health:stale, health:silent and health:<host> — a fact table, never prose",
     "steam_price": "the price of one Steam app from the Steam store: discount percent, final and regular price, and currency — a fact table, never prose",
+    "ea_app_version": "the EA App's recommended version from EA's autopatch endpoint: alerts once when the recommended version string changes — a fact, never prose",
 }
 
 
@@ -264,6 +269,8 @@ def validate_target(kind: str, target: str) -> str:
         return health.validate(target)
     elif kind == "steam_price":
         return _steam_appid(target)
+    elif kind == "ea_app_version":
+        return "*"
     else:
         raise ValueError(f"unknown kind: {kind}")
     return t
@@ -338,6 +345,8 @@ async def fetch(kind: str, target: str, cursor: str | None) -> tuple[list[dict[s
         return await health.fetch(target, cursor)
     if kind == "steam_price":
         return await _fetch_steam_price(target, cursor)
+    if kind == "ea_app_version":
+        return await _fetch_ea_app_version(target, cursor)
     raise ValueError(f"unknown kind: {kind}")
 
 
@@ -900,6 +909,38 @@ async def _fetch_steam_price(
             "final": price_overview.get("final"),
             "initial": price_overview.get("initial"),
             "currency": price_overview.get("currency"),
+        },
+    }
+    return [event], new_cursor
+
+
+EA_AUTOPATCH_API = "https://autopatch.juno.ea.com/autopatch/upgrade/buckets/100"
+
+
+async def _fetch_ea_app_version(
+    _target: str, cursor: str | None
+) -> tuple[list[dict[str, Any]], str | None]:
+    async with httpx.AsyncClient(timeout=20.0, headers={"User-Agent": USER_AGENT}) as c:
+        r = await c.get(EA_AUTOPATCH_API)
+    _raise_for_throttle(r, "ea-autopatch")
+    r.raise_for_status()
+    data = r.json() or {}
+    recommended = str((data.get("recommended") or {}).get("version") or "").strip()
+    if not recommended:
+        raise ValueError("ea autopatch returned no recommended version")
+    new_cursor = recommended
+    if cursor is None or cursor == recommended:
+        return [], new_cursor
+    event = {
+        "external_id": f"{recommended}@{int(time.time())}",
+        "title": f"EA App {recommended} released",
+        "summary": f"EA App recommended version is now {recommended} (was {cursor})",
+        "link": "https://www.ea.com/ea-app",
+        "occurred_at": _utc_iso(time.time()),
+        "raw": {
+            "recommended": recommended,
+            "previous": cursor,
+            "minimum": (data.get("minimum") or {}).get("version"),
         },
     }
     return [event], new_cursor

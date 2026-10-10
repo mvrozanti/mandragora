@@ -272,6 +272,20 @@ def bootstrap_health_watch() -> None:
         c.close()
 
 
+def bootstrap_ea_app_watch() -> None:
+    c = conn()
+    try:
+        if c.execute("SELECT 1 FROM watchers WHERE kind = 'ea_app_version' AND target = '*'").fetchone():
+            return
+        c.execute(
+            "INSERT INTO watchers (kind, target, name, created_at, push) VALUES (?, ?, ?, ?, 1)",
+            ("ea_app_version", "*", "ea app version", now_iso()),
+        )
+        log.info("ea-app-watch: registered the ea_app_version watcher")
+    finally:
+        c.close()
+
+
 TASKS: dict[str, asyncio.Task] = {}
 
 
@@ -281,6 +295,7 @@ async def lifespan(app: FastAPI):
     bootstrap_release_sources()
     bootstrap_vuln_watch()
     bootstrap_health_watch()
+    bootstrap_ea_app_watch()
     if not tg.enabled():
         log.error("telegram unconfigured: TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID missing from .env")
     TASKS.update(
