@@ -183,6 +183,11 @@ k() {
 P()   { curl -sF "file=@-" https://0x0.st }
 gr()  { git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
 
+,() {
+  [[ $# -gt 0 ]] || return 1
+  claude-deepseek -p --tools "" --append-system-prompt 'You are a shell command translator. Reply with exactly one shell command and nothing else: no markdown fences, no explanation, no prose.' "$*" 2>/dev/null
+}
+
 [ -f "$HOME/.local/bin/resty" ] && source "$HOME/.local/bin/resty" >/dev/null 2>&1
 
 eval "$(zoxide init zsh)"
