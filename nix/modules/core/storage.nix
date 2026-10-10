@@ -128,18 +128,14 @@
     ];
   };
 
-  swapDevices = [
-    {
-      device = "/dev/disk/by-partlabel/SWAP";
-      priority = 1;
-    }
-  ];
+  swapDevices = [ ];
 
   zramSwap = {
     enable = true;
     algorithm = "zstd";
-    memoryPercent = 50;
+    memoryPercent = 150;
     priority = 100;
+    writebackDevice = "/dev/disk/by-partlabel/SWAP";
   };
 
   boot.initrd.systemd.storePaths = [

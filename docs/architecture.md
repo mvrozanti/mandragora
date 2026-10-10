@@ -112,7 +112,7 @@ The system runs on a single 2 TB NVMe with a Btrfs-heavy partition scheme.
 | Partition / Subvolume      | Mount                | Purpose                                           | Size       |
 | -------------------------- | -------------------- | ------------------------------------------------- | ---------- |
 | ESP                        | `/boot`              | systemd-boot, ~30 boot generations                | 4 GB FAT32 |
-| Swap                       | (swap)               | Hibernation                                       | 32 GB      |
+| Swap                       | (zram backing)       | zram writeback store for swap idle ≥ 30 min       | 32 GB      |
 | Btrfs `root-blank`         | _(never mounted)_    | Clean seed for impermanence wipe                  | shared     |
 | Btrfs `root-active`        | `/`                  | Ephemeral root, wiped on every boot               | shared     |
 | Btrfs `nix`                | `/nix`               | Nix store, generations                            | shared     |
