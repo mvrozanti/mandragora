@@ -51,6 +51,7 @@
             "memory"
             "temperature"
             "cpu"
+            "custom/epp"
             "custom/gpu"
           ];
         };
@@ -221,6 +222,17 @@
           interval = 2;
           tooltip = true;
           on-click = "gpu-menu pick";
+        };
+
+        "custom/epp" = {
+          exec = "eppctl status";
+          return-type = "json";
+          signal = 14;
+          format = "{}";
+          tooltip = true;
+          on-click = "sudo /run/current-system/sw/bin/eppctl next";
+          on-click-right = "sudo /run/current-system/sw/bin/eppctl set performance";
+          on-click-middle = "sudo /run/current-system/sw/bin/eppctl set power";
         };
 
         "custom/network" = {

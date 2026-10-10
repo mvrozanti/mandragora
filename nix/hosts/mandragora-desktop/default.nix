@@ -47,6 +47,7 @@ in
     ../../modules/desktop/phone-archiver.nix
     ../../modules/desktop/steam.nix
     ../../modules/desktop/wine-gaming.nix
+    ../../modules/desktop/eppctl.nix
     ../../modules/desktop/bf4.nix
     ../../modules/desktop/soundboard.nix
     ../../modules/desktop/mt5.nix
@@ -117,7 +118,7 @@ in
   services.irqbalance.enable = true;
   powerManagement.cpuFreqGovernor = "powersave";
   systemd.tmpfiles.rules = [
-    "w /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference - - - - balance_power"
+    "w /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference - - - - performance"
   ];
   nix.gc = {
     automatic = true;
