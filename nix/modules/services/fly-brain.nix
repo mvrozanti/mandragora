@@ -47,6 +47,7 @@ in
       Restart = "on-failure";
       RestartSec = "10s";
       TimeoutStartSec = "600s";
+      MemoryMax = "12G";
     };
   };
 

@@ -140,6 +140,7 @@ in
       Restart = "on-failure";
       RestartSec = 10;
       TimeoutStartSec = "10min";
+      MemoryMax = "6G";
     };
     Install = {
       WantedBy = [ "default.target" ];
@@ -173,6 +174,7 @@ in
       Restart = "on-failure";
       RestartSec = 10;
       TimeoutStartSec = "10min";
+      MemoryMax = "6G";
     };
     Install = {
       WantedBy = [ "default.target" ];
@@ -204,6 +206,7 @@ in
       Restart = "on-failure";
       RestartSec = 10;
       TimeoutStartSec = "2min";
+      MemoryMax = "1G";
     };
     Install = {
       WantedBy = [ "default.target" ];
@@ -240,6 +243,7 @@ in
       Restart = "on-failure";
       RestartSec = 10;
       TimeoutStartSec = "2min";
+      MemoryMax = "1G";
     };
     Install = {
       WantedBy = [ "default.target" ];
@@ -273,6 +277,7 @@ in
       Restart = "on-failure";
       RestartSec = 10;
       TimeoutStartSec = "15min";
+      MemoryMax = "6G";
     };
     Install = {
       WantedBy = [ "default.target" ];
@@ -311,6 +316,7 @@ in
       Restart = "on-failure";
       RestartSec = 10;
       TimeoutStartSec = "2min";
+      MemoryMax = "1G";
     };
     Install = {
       WantedBy = [ "default.target" ];
@@ -340,6 +346,7 @@ in
       ];
       Restart = "on-failure";
       RestartSec = 10;
+      MemoryMax = "2G";
     };
     Install = {
       WantedBy = [ "default.target" ];

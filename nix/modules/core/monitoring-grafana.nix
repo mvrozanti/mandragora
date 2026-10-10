@@ -1048,6 +1048,8 @@ let
 in
 
 {
+  systemd.services.grafana.serviceConfig.MemoryMax = "1G";
+
   services.grafana = {
     enable = true;
     settings = {

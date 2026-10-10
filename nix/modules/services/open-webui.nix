@@ -32,6 +32,7 @@ in
       "ollama.service"
       "ollama-context-proxy.service"
     ];
+    serviceConfig.MemoryMax = "2G";
   };
 
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ port ];

@@ -12,6 +12,7 @@ in
     enable = true;
     listenAddress = "0.0.0.0:8428";
     retentionPeriod = "90d";
+    extraOptions = [ "-memory.allowedBytes=1GiB" ];
     prometheusConfig = {
       scrape_configs = [
         {
@@ -183,6 +184,7 @@ in
   };
 
   systemd.services.alloy.serviceConfig.MemoryMax = "2G";
+  systemd.services.victoriametrics.serviceConfig.MemoryMax = "3G";
 
   environment.etc."alloy/journal.alloy".text = builtins.readFile ../../../.config/alloy/journal.alloy;
 }
