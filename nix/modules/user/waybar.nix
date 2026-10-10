@@ -51,8 +51,8 @@
             "memory"
             "temperature"
             "cpu"
-            "custom/epp"
             "custom/gpu"
+            "custom/epp"
           ];
         };
 
