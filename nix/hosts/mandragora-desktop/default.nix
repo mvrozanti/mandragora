@@ -25,6 +25,7 @@ in
     ../../modules/core/vuln-scan.nix
     ../../modules/core/oom-forensics.nix
     ../../modules/core/oom-protection.nix
+    ../../modules/core/zram-writeback.nix
     ../../modules/core/nix-auto-update.nix
     ../../modules/core/tailscale.nix
     ../../modules/core/docker.nix
