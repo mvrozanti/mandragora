@@ -89,7 +89,9 @@ An agent-run `mandragora-switch` ends with `mandragora-vault publish`:
    other people's personal data, SSIDs, addresses, employer
    specifics, the home connection, financial identifiers.
 4. Clean: the committed tree (never the working tree, never the
-   ledger) is deployed with `~/Projects/demo/deploy.sh`, and
+   ledger) is deployed with `compose/demo/publish-vault.sh`, which
+   writes only `vault/` and `graph.json` (the page belongs to
+   `compose/demo/deploy.sh`), and
    `published` moves forward.
 5. Doubtful: nothing is deployed, `mandragora-vault status` lists
    the items with the sensitive part masked, and a desktop notification
