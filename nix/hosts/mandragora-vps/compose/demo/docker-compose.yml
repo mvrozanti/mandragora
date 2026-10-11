@@ -17,9 +17,15 @@ services:
       caddy_0.header.Permissions-Policy: geolocation=(),microphone=(),camera=()
       caddy_0.header.-Server: ""
       caddy_0.encode: zstd gzip
-      caddy_0.0_handle_path: "/api/gource/*"
-      caddy_0.0_handle_path.reverse_proxy: "gource-api:8080"
-      caddy_0.1_handle.reverse_proxy: "{{upstreams 80}}"
+      caddy_0.0_@theme: "path /api/theme /api/theme/*"
+      caddy_0.1_handle: "@theme"
+      caddy_0.1_handle.rewrite: "* /api/theme?colors=1"
+      caddy_0.1_handle.reverse_proxy: "host.docker.internal:6684"
+      caddy_0.1_handle.reverse_proxy.transport: http
+      caddy_0.1_handle.reverse_proxy.transport.dial_timeout: "2s"
+      caddy_0.2_handle_path: "/api/gource/*"
+      caddy_0.2_handle_path.reverse_proxy: "gource-api:8080"
+      caddy_0.3_handle.reverse_proxy: "{{upstreams 80}}"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost/"]
       interval: 30s

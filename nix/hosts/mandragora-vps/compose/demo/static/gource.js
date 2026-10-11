@@ -136,10 +136,9 @@
 
   function paint(s) {
     const pct = typeof s.progress === "number" ? Math.max(0, Math.min(100, Math.round(s.progress * 100))) : null;
-    const stateClass = s.state === "failed" ? "failed" : s.state === "done" ? "done" : "";
-    let html = `<span class="state ${stateClass}">${s.state}</span>`;
-    if (s.message) html += ` — ${s.message}`;
-    if (pct !== null && s.state !== "done") html += `<progress max="100" value="${pct}"></progress>`;
+    const tone = s.state === "failed" ? " is-down" : s.state === "done" ? " is-ok" : "";
+    let html = `<div class="g-line"><span class="mv-pill${tone}">${s.state}</span>${s.message ? `<span>${s.message}</span>` : ""}</div>`;
+    if (pct !== null && s.state !== "done") html += `<div class="mv-meter"><span class="mv-meter__label">job</span><span class="mv-meter__track"><span class="mv-meter__fill" style="width:${pct}%"></span></span><span class="mv-meter__value">${pct}%</span></div>`;
     if (s.queue_position && s.state === "queued") html += `<span class="meta">queue position: ${s.queue_position}</span>`;
     if (s.backend) html += `<span class="meta">${fmtBackend(s.backend)}</span>`;
     if (s.error) html += `<span class="meta">error: ${s.error}</span>`;
@@ -183,7 +182,7 @@
     stopPolling();
     hideVideo();
     setSubmitting(true);
-    showStatus(`<span class="state">submitting…</span>`);
+    showStatus(`<div class="g-line"><span class="mv-pill">submitting…</span></div>`);
     let params;
     try {
       params = readForm();
@@ -238,7 +237,7 @@
       const hint = reduceMotion
         ? "params pre-filled — press play, or adjust and render a new one"
         : "params pre-filled — adjust and hit render for a new one";
-      showStatus(`<span class="state done">last render</span><span class="meta">${hint}</span>`);
+      showStatus(`<div class="g-line"><span class="mv-pill is-ok">last render</span></div><span class="meta">${hint}</span>`);
     } catch (_) { /* no-op; form stays empty */ }
   }
 
