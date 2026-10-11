@@ -207,10 +207,9 @@ def link_index():
     for p in walk_vault():
         low = p.lower()
         names.add(os.path.basename(low))
-        names.add(low)
-        if low.endswith(".md"):
-            names.add(os.path.basename(low)[:-3])
-            names.add(low[:-3])
+        parts = (low[:-3] if low.endswith(".md") else low).split("/")
+        for i in range(len(parts)):
+            names.add("/".join(parts[i:]))
     return names
 
 
