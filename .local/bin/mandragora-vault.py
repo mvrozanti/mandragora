@@ -12,6 +12,8 @@ import sys
 import tarfile
 import tempfile
 import time
+import urllib.error
+import urllib.request
 
 VAULT = os.path.realpath(os.path.expanduser(os.environ.get("MANDRAGORA_VAULT", "~/Documents/mandragora-desktop-obsidian-vault")))
 FLAKE = os.environ.get("MANDRAGORA_FLAKE", "/etc/nixos/mandragora")
@@ -19,6 +21,7 @@ SECRET_PATTERNS = os.environ.get("MANDRAGORA_SECRET_PATTERNS", "@secretPatterns@
 DEPLOY = os.path.expanduser(os.environ.get("MANDRAGORA_VAULT_DEPLOY", "~/Projects/demo/deploy.sh"))
 STATE = os.path.join(os.path.expanduser(os.environ.get("XDG_STATE_HOME") or "~/.local/state"), "mandragora-vault")
 REVIEW_MODEL = os.environ.get("MANDRAGORA_VAULT_REVIEW_MODEL", "claude-haiku-4-5")
+SITE_PROBE = os.environ.get("MANDRAGORA_VAULT_PROBE", "https://demo.mvr.ac/vault/_Home.md")
 PUBLISHED = "refs/heads/published"
 LEDGER = ".sync-ledger"
 BASELINE = ".sync-state"
@@ -122,8 +125,19 @@ class Problems:
                 print(f"    fix: {fix}", file=sys.stderr)
 
 
+GIT_LOCATION_VARS = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_OBJECT_DIRECTORY",
+                     "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_PREFIX", "GIT_NAMESPACE")
+INHERIT_GIT_LOCATION = False
+
+
+def git_env():
+    if INHERIT_GIT_LOCATION:
+        return None
+    return {k: v for k, v in os.environ.items() if k not in GIT_LOCATION_VARS}
+
+
 def git_run(args, repo):
-    return subprocess.run(["git", "-C", repo, "-c", "core.quotePath=false", *args], capture_output=True, text=True)
+    return subprocess.run(["git", "-C", repo, "-c", "core.quotePath=false", *args], capture_output=True, text=True, env=git_env())
 
 
 def git(*args, repo=VAULT):
@@ -689,10 +703,21 @@ def model_review(base, head):
     return holds
 
 
+def served_status():
+    try:
+        with urllib.request.urlopen(SITE_PROBE, timeout=20) as r:
+            return r.status
+    except urllib.error.HTTPError as e:
+        return e.code
+    except OSError as e:
+        return str(e)
+
+
 def deploy(rev):
     tmp = tempfile.mkdtemp(prefix="mandragora-vault-publish-")
+    os.chmod(tmp, 0o755)
     try:
-        archive = subprocess.run(["git", "-C", VAULT, "archive", "--format=tar", rev], capture_output=True, check=True).stdout
+        archive = subprocess.run(["git", "-C", VAULT, "archive", "--format=tar", rev], capture_output=True, check=True, env=git_env()).stdout
         with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
             tar.extractall(tmp, filter="data")
         for name in (LEDGER, BASELINE, ".gitignore"):
@@ -748,7 +773,9 @@ def cmd_new(a):
 
 
 def cmd_check(a):
+    global INHERIT_GIT_LOCATION
     if a.staged:
+        INHERIT_GIT_LOCATION = True
         changes = parse_name_status(git("diff", "--cached", "--name-status", "-z", "-M"))
         problems = run_checks(changes, staged_content, "agent" if is_agent() else "human")
     else:
@@ -961,6 +988,11 @@ def publish(a):
         return 5
     git("update-ref", PUBLISHED, head, pub)
     clear_held()
+    status = served_status()
+    if status != 200:
+        notify("demo.mvr.ac broken after publish", f"{SITE_PROBE} answers {status}")
+        print(f"deployed, but {SITE_PROBE} answers {status}; the site is not serving the vault", file=sys.stderr)
+        return 6
     print(f"published vault {head[:8]} to demo.mvr.ac ({count} commit(s))")
     return 0
 
