@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#13140d">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Live status of mandragora and mandragora-vps: machine load, host probes, and the last 24 hours.">
+<title>status · mvr.ac</title>
+<link rel="stylesheet" href="/theme.css">
+<link rel="stylesheet" href="/components.css">
+<link rel="stylesheet" href="/status.css">
+<script src="/theme.js" data-endpoint="/data/theme.json" data-poll="60"></script>
+</head>
+<body>
+<div class="st">
+
+  <header class="mv-topbar">
+    <span class="mv-topbar__name">status</span>
+    <span class="mv-topbar__count">mvr.ac · public · read-only</span>
+  </header>
+
+  <main id="main" aria-live="polite">
+    <p class="mv-empty">reading status</p>
+  </main>
+
+  <noscript><p class="mv-empty">this page needs javascript to draw the charts; the raw snapshot is at <a href="/data/status.json">/data/status.json</a></p></noscript>
+
+  <footer class="mv-footer">
+    <span>mvr.ac · status</span>
+    <span>refreshes every minute · times in your time zone</span>
+    <span><a href="https://mvr.ac">root</a></span>
+  </footer>
+
+</div>
+<script src="/status-core.js"></script>
+<script src="/status.js"></script>
+</body>
+</html>

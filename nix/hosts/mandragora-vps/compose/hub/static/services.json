@@ -1,4 +1,5 @@
 {
+  "probe": { "gate_codes": [401, 403], "slow_ms": 5000 },
   "machines": [
     { "id": "desk", "label": "mandragora", "meta": "desktop · hyprland · rtx 5070 ti" },
     { "id": "vps", "label": "mandragora-vps", "meta": "oracle cloud · docker · caddy" },
@@ -45,7 +46,8 @@
     { "name": "webhook", "host": "webhook.mvr.ac", "group": "dev", "desc": "public ingress · desktop notifies", "access": "priv", "where": "vps" },
     { "name": "term", "host": "term.mvr.ac", "group": "dev", "desc": "ttyd · tailnet only", "access": "priv", "where": "desk" },
 
-    { "name": "grafana", "host": "grafana.mvr.ac", "url": "https://grafana.mvr.ac/d/mandragora-system/mandragora-system?orgId=1&from=now-24h&to=now&timezone=browser&refresh=5m", "group": "obs", "desc": "cpu · gpu · disk · ebpf", "access": "priv", "where": "desk" },
+    { "name": "grafana", "host": "grafana.mvr.ac", "url": "https://grafana.mvr.ac/d/mandragora-desktop/mandragora-desktop?orgId=1&from=now-24h&to=now&timezone=browser&refresh=5m", "group": "obs", "desc": "cpu · gpu · disk · ebpf", "access": "priv", "where": "desk" },
+    { "name": "status", "host": "status.mvr.ac", "group": "obs", "desc": "public · cpu · gpu · hosts · 24 h", "access": "open", "where": "vps" },
     { "name": "log", "host": "log.mvr.ac", "group": "obs", "desc": "loki · journald · docker", "access": "priv", "where": "vps" },
     { "name": "vuln", "host": "vuln.mvr.ac", "group": "obs", "desc": "vulnix + trivy · daily CVE scan", "access": "priv", "where": "vps" },
     { "name": "kl", "host": "kl.mvr.ac", "group": "obs", "desc": "keystroke heatmap · WPM", "access": "priv", "where": "vps" },
