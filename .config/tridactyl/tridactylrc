@@ -54,6 +54,7 @@ bind P clipboard tabopen
 
 " ── Misc ─────────────────────────────────────────────────────────────────────
 bind <C-V> viewsource
+bind <C-;> mode ignore
 bind i js (() => { const key = "__tri_grayscale"; const current = document.documentElement.getAttribute(key) === "1"; const val = current ? "0" : "1"; document.documentElement.setAttribute(key, val); let style = document.getElementById("tri-grayscale-toggle"); if (!style) { style = document.createElement("style"); style.id = "tri-grayscale-toggle"; document.head.appendChild(style); } style.textContent = val === "1" ? "html { filter: grayscale(100%) invert(100%); }" : ""; })()
 
 " ── GitHub ───────────────────────────────────────────────────────────────────
