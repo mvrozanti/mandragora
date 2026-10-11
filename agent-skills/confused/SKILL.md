@@ -66,8 +66,9 @@ wrong question.
                 (Stopping rule, below.) Usually kills half the list.
 4. Rank         Order survivors by how much of the rest they invalidate.
                 Widest fork first.
-5. Ask          One AskUserQuestion round, <=4 questions, 2-4 options each.
-                Only independent questions share a round.
+5. Ask          One round: every survivor, 2-4 options each. Only
+                independent questions share a round. AskUserQuestion takes
+                four per call; a longer round is consecutive calls.
 6. Contract     Restate the resolved spec in <=5 lines. Name assumptions
                 for anything still unasked.
 7. Build        Act on the contract. Do not re-ask.
@@ -132,7 +133,8 @@ More rules:
 produce visibly different work. If every answer leads to the same diff, you
 already know enough — proceed and state the assumption.
 
-- Round 1: the independent, widest forks (up to 4).
+- Round 1: every independent fork that survived the stopping rule, widest
+  first.
 - Round 2: only questions that round 1 made relevant. Answers often delete
   half of them.
 - Hard cap: 3 rounds. Past that you are interrogating, not eliciting. Take
@@ -216,7 +218,7 @@ Every option names an end state. None names a git command.
 | "Which approach do you prefer?" | Ask what outcome they need; you pick the approach. |
 | Options are tool names | Apply the consequence test. Strip the nouns. |
 | Every option sounds good | You omitted the costs. Each needs its downside. |
-| 6 questions in one round | Prune by the stopping rule, then rank; ask <=4. |
+| Questions whose answers don't change the work | Prune by the stopping rule; state those as assumptions. |
 | Asking what the repo already says | Read the repo. |
 | Asking permission to do the obvious thing | Do it, report it. |
 | Re-asking after "Other" | Take it literally and proceed. |
