@@ -200,10 +200,21 @@ In worktree mode the script:
   worktree, so the commit can only ever contain your own work. This is
   the durable fix for the multi-agent staging leak — no flag to
   remember, no pathspec to get right;
+- **rebases onto the latest master before building** (onto
+  `origin/master` instead when it is strictly ahead), under the lock,
+  so the generation it activates contains every commit already
+  landed. Building first and rebasing at promote time used to activate
+  a generation missing whatever landed after the worktree was cut —
+  on 2026-10-11 a concurrent switch silently dropped a just-landed
+  skill from the live system while master still had it. A rebase
+  conflict now aborts before the build; a worktree with uncommitted
+  changes (`!`) builds as-is and lists the master commits it lacks;
 - promotes the commit to `master` **ancestor-guarded**: fast-forward
   only when the commit sits directly on top of the current master,
   otherwise rebase onto current master first so no concurrent master
-  commit is lost;
+  commit is lost — and since that can only happen when something moved
+  master outside the lock, it warns with the commits the live
+  generation lacks;
 - after promoting, syncs the main tree's working copy of the promoted
   files (only those that still matched the old master) so they don't
   show as spuriously reverted and a later main-tree switch can't
