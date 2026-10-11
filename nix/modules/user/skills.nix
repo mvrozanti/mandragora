@@ -35,6 +35,10 @@ let
       s = ../../../agent-skills/elicit-ui;
     }
     {
+      n = "elicit";
+      s = ../../../agent-skills/elicit;
+    }
+    {
       n = "approach-review";
       s = ../../../agent-skills/approach-review;
     }

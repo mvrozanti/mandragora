@@ -308,6 +308,7 @@ Specialized procedures defined in `agent-skills/` (exposed to agents via `activa
 - **approach-review** — Pause and critically evaluate the current approach before continuing: when a task is consequential or ambiguous, keeps failing, or new information may invalidate the plan.
 - **chat** — Toggle chat mode (`/chat on|off`): replies become two people talking, not a report. Commits, code and docs are unaffected.
 - **elicit-ui** — For decisions made by looking (UI, layout, visual identity): ship several working directions as one published interactive artifact on real data, then build the chosen one. Triggered via `/elicit-ui`.
+- **elicit** — The structural sibling of elicit-ui, for decisions about how something works (architecture, data model, contracts, failure semantics, build vs buy): several designs drawn on one grid, the same scenarios traced through each, criteria weighted live, then build the chosen one. Triggered via `/elicit`.
 - **hallucinate** — Explicit-only (`/hallucinate`): divergent ideation and meta-analysis of the goal itself; generates, filters and ranks ideas, and keeps an append-only ledger so no idea repeats.
 - **nb-vault-sync** — Refresh Open Notebook (nb.mvr.ac) from the knowledge vault with the `nb-vault-sync` CLI. Manual trigger only.
 

@@ -51,6 +51,10 @@ wrong question.
   of these should it look like" — a text list of design options is the wrong
   instrument. Use `elicit-ui`: ship working directions as an artifact and let the
   user pick by looking.
+- **The decision is structural and the user owns it.** Architecture, data
+  model, contracts, failure semantics — when the consequences are only legible
+  by following a scenario through each design, use `elicit`: draw the designs
+  and trace the same scenarios through each.
 
 ## Workflow
 
@@ -202,6 +206,8 @@ Every option names an end state. None names a git command.
    not touch, what you assumed. Then build without further questions.
 8. **Hand visual decisions to `elicit-ui`.** If the options differ in how they look
    or behave rather than in what becomes true, they must be shown, not listed.
+   If they differ in how the system works and the user owns that choice, they
+   must be traced: `elicit`.
 
 ## Common Mistakes
 

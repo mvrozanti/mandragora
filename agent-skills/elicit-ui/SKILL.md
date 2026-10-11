@@ -26,6 +26,7 @@ and pick from.
 | "How should dream and the graph relate?" | **`elicit-ui`** |
 | "Who else needs to reuse this?" | `confused` |
 | "Make it look better" | **`elicit-ui`** |
+| "Where does the truth live, and who coordinates it?" | `elicit` — artifact, traced designs |
 
 When a task has both kinds, run `elicit-ui` first — the visual choice usually deletes
 half the text questions.
@@ -53,6 +54,8 @@ system, and the `watch.mvr.ac` migration. Match it.
   you chose.
 - The decision is about behaviour, cost, scope, or risk with no visual
   component — that is `confused`.
+- The options differ in how the system *works* — architecture, data model,
+  contracts, failure semantics. Those are traced, not shown: `elicit`.
 - It is a bug fix wearing a UI costume.
 
 ## Workflow
