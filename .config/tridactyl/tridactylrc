@@ -68,7 +68,7 @@ autocmd DocStart www.youtube.com js window.__t = window.__t || (function(){const
 
 bindurl https://www.youtube.com gl js window.__t.click('button[aria-label*="like" i], ytd-toggle-button-renderer #button-shape button')
 bindurl https://www.youtube.com gd js window.__t.click('button[aria-label*="dislike" i]')
-bindurl https://www.youtube.com gc js window.__t.click('ytd-comment-simplebox-renderer #placeholder-area, #contenteditable-root')
+bindurl https://www.youtube.com gc js location.pathname.startsWith("/shorts/") ? window.__t.ready(()=>{const b=[...document.querySelectorAll("reel-action-bar-view-model button, #comments-button button")].filter(e=>window.__t.v(e)&&(r=>r.bottom>0&&r.top<innerHeight)(e.getBoundingClientRect()));return b.find(e=>/comment|coment/i.test(e.getAttribute("aria-label")||""))||b.find(e=>e.closest("reel-action-bar-view-model > button-view-model:first-of-type"))}, el=>el.click()) : window.__t.click('ytd-comment-simplebox-renderer #placeholder-area, #contenteditable-root')
 bindurl https://www.youtube.com gf js window.__t.click('.ytp-fullscreen-button')
 bindurl https://www.youtube.com gs js window.__t.click('button[aria-label^="Subscribe"], ytd-subscribe-button-renderer button')
 bindurl https://www.youtube.com gm js window.__t.ready(()=>[...document.querySelectorAll("tp-yt-paper-button#expand, tp-yt-paper-button#collapse")].find(window.__t.v)||[...document.querySelectorAll("tp-yt-paper-button, tp-yt-paper-button button")].find(e=>/more|show less|expand|collapse|mais|mostrar|ver mais/i.test((e.textContent||"").trim())&&window.__t.v(e)), el=>el.click())
