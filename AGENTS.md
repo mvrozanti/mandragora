@@ -294,8 +294,9 @@ non-trivial enough that future-you will benefit from a written trace.
   single concern across commits. When a commit relates to a vault
   note, name the note in the body so the link survives.
 - **Visualize.** The vault is served as a graph at
-  [demo.mvr.ac](https://demo.mvr.ac) (source:
-  `~/Projects/fake-obsidian`). If you've added or restructured notes,
+  [demo.mvr.ac](https://demo.mvr.ac) (page:
+  `nix/hosts/mandragora-vps/compose/demo/`, graph library:
+  `~/Projects/vault-graph`). If you've added or restructured notes,
   glance at the graph to confirm the new connections render.
 
 ---
