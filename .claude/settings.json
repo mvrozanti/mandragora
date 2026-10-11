@@ -59,7 +59,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/tmux-state.sh run"
+            "command": "~/.claude/hooks/tmux-state.sh idle"
           }
         ]
       }
