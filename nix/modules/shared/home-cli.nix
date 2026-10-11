@@ -39,6 +39,10 @@
     ))
     trash-cli
     gnupg
+    (pkgs.writeShellScriptBin "claude-spin" (builtins.readFile ../../../.local/bin/claude-spin.sh))
+    (pkgs.writeShellScriptBin "claude-spin-daemon" (
+      builtins.readFile ../../../.local/bin/claude-spin-daemon.sh
+    ))
 
     cargo
     rustc
