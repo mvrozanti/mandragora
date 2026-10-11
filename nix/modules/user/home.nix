@@ -49,6 +49,7 @@ in
     ./minecraft.nix
     ./axon.nix
     ./nb-vault-sync.nix
+    ./mandragora-vault.nix
     ./path-filter.nix
     ./autoclaude.nix
     ./session.nix

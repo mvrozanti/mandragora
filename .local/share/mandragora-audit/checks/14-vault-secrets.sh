@@ -12,21 +12,10 @@ fi
 
 ALLOWLIST=$(audit_load_allowlist "$AUDIT_HOME/allowlists/vault-secrets.txt")
 
-PATTERNS=(
-  "anthropic-key:sk-ant-[A-Za-z0-9_-]{20,}"
-  "openai-key:\\bsk-[A-Za-z0-9]{32,}"
-  "github-token:\\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}"
-  "github-pat:github_pat_[A-Za-z0-9_]{50,}"
-  "aws-access-key:\\b(AKIA|ASIA)[0-9A-Z]{16}\\b"
-  "google-api-key:\\bAIza[0-9A-Za-z_-]{35}\\b"
-  "slack-token:\\bxox[baprs]-[0-9A-Za-z-]{10,}"
-  "tailscale-authkey:\\btskey-[A-Za-z0-9-]{10,}"
-  "telegram-bot-token:\\b[0-9]{8,10}:AA[A-Za-z0-9_-]{30,}"
-  "age-secret-key:AGE-SECRET-KEY-1[A-Z0-9]{50,}"
-  "private-key-block:-----BEGIN [A-Z ]*PRIVATE KEY-----"
-  "jwt:\\beyJ[A-Za-z0-9_-]{10,}[.]eyJ[A-Za-z0-9_-]{10,}[.]"
-  "url-credentials:[a-z][a-z0-9+.-]*://[^/[:space:]:@]+:[^/[:space:]:@]+@"
-)
+PATTERNS=()
+while IFS= read -r line; do
+  [ -n "$line" ] && PATTERNS+=("$line")
+done < <(grep -vE '^\s*(#|$)' "$AUDIT_HOME/lib/secret-patterns.txt")
 
 violations=0
 
