@@ -20,6 +20,7 @@ cd "$SRC"
 
 FORCE=0
 SWEEP_ALL=0
+VAULT_VERDICT=""
 LOCK_WAIT=${MANDRAGORA_SWITCH_LOCK_WAIT_SECONDS:-1800}
 PASSTHRU_ARGS=()
 for arg in "$@"; do
@@ -27,6 +28,7 @@ for arg in "$@"; do
     -f|--force) FORCE=1 ;;
     --all) SWEEP_ALL=1 ;;
     --no-wait) LOCK_WAIT=0 ;;
+    --vault=*) VAULT_VERDICT="${arg#--vault=}" ;;
     *) PASSTHRU_ARGS+=("$arg") ;;
   esac
 done
@@ -100,6 +102,9 @@ done
 
 INTERACTIVE=1
 if [ ! -t 0 ] || [ ! -t 1 ] || [ -n "$GEMINI_CLI" ]; then INTERACTIVE=0; fi
+if [ "$INTERACTIVE" -eq 0 ] && [ -z "$MANDRAGORA_AGENT" ]; then export MANDRAGORA_AGENT=noninteractive-switch; fi
+VAULT_TRAILER=()
+[ -n "$VAULT_VERDICT" ] && VAULT_TRAILER=(--trailer "Vault: $VAULT_VERDICT")
 
 STABILITY_WAIT=${MANDRAGORA_SWITCH_STABILITY_SECONDS:-2}
 if [ "$FORCE" -eq 0 ] && [ "$STABILITY_WAIT" -gt 0 ]; then
@@ -284,7 +289,7 @@ elif [ "$SKIP_EDIT" -eq 1 ]; then
     git restore --staged .
     exit 1
   fi
-  git commit -m "$MSG"
+  git commit -m "$MSG" "${VAULT_TRAILER[@]}"
 else
   [ -n "$MSG" ] || MSG="switch"
   TMPFILE=$(mktemp /tmp/mandragora-commit-XXXXXX)
@@ -314,7 +319,7 @@ else
     git restore --staged .
     exit 0
   fi
-  git commit -m "$MSG"
+  git commit -m "$MSG" "${VAULT_TRAILER[@]}"
 fi
 
 warn_unbuilt() {
@@ -359,6 +364,13 @@ if [ "$COMMIT_SKIPPED" -eq 1 ]; then
 fi
 
 phase "commit prepared"
+
+if [ "$MODE" = worktree ] && [ "$INTERACTIVE" -eq 0 ] && [ "$COMMIT_SKIPPED" -eq 0 ] && command -v mandragora-vault >/dev/null 2>&1; then
+  if ! mandragora-vault gate --repo "$WT" "${BUILD_BASE:-$MASTER_HEAD}..HEAD"; then
+    echo "==> ABORTED before building: every agent commit carries a Vault: verdict (AGENTS.md rule 22)." >&2
+    exit 1
+  fi
+fi
 
 echo ""
 echo "==> Pre-flight: evaluating other hosts..."
@@ -466,6 +478,12 @@ if [ "$COMMIT_SKIPPED" -eq 0 ]; then
     fi
     echo "==> Push rejected — re-fetching and retrying..." >&2
   done
+fi
+
+if [ "$INTERACTIVE" -eq 0 ] && command -v mandragora-vault >/dev/null 2>&1; then
+  echo "==> Vault: reviewing unpublished notes for demo.mvr.ac..."
+  mandragora-vault publish || echo "==> WARNING: vault publish did not complete (above); the system switch itself is fine." >&2
+  phase "vault publish"
 fi
 
 if [ "$RC" -eq 0 ] || [ "$ACTIVATED" -eq 1 ]; then

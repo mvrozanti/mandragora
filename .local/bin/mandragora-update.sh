@@ -223,7 +223,7 @@ if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$(git status --por
   git add -A
   MSG="chore(flake): update nixpkgs to ${NIXPKGS_REV:0:12} (cache-warm, -${CHOSEN_DAYS}d)"
   phase "Committing: $MSG"
-  git commit -q -m "$MSG"
+  git commit -q -m "$MSG" -m "Vault: none (automated nixpkgs input bump)"
 else
   phase "No changes to commit (lock already current); nothing to do."
   exit 0
