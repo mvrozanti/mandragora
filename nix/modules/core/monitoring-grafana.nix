@@ -24,6 +24,7 @@ let
     }:
     let
       inst = ''instance="${instance}"'';
+      x = import ./monitoring-exprs.nix { inherit instance disk nic; };
       ds = {
         type = "prometheus";
         uid = "prometheus";
@@ -272,19 +273,19 @@ let
           };
         };
 
-      eCpuBusy = "100 - (avg(rate(node_cpu_seconds_total{${inst},mode=\"idle\"}[5m])) * 100)";
-      eIowait = "avg(rate(node_cpu_seconds_total{${inst},mode=\"iowait\"}[5m])) * 100";
-      eLoadPc = "node_load1{${inst}} / count(node_cpu_seconds_total{${inst},mode=\"idle\"}) * 100";
-      eDiskUtil = "rate(node_disk_io_time_seconds_total{${inst},device=\"${disk}\"}[5m]) * 100";
-      eMemUsed = "(1 - (node_memory_MemAvailable_bytes{${inst}} / node_memory_MemTotal_bytes{${inst}})) * 100";
-      eMemAvail = "node_memory_MemAvailable_bytes{${inst}} / 1024^3";
-      eSwapUsed = "(node_memory_SwapTotal_bytes{${inst}} - node_memory_SwapFree_bytes{${inst}}) / 1024^3";
-      eSwapOut = "rate(node_vmstat_pswpout{${inst}}[5m])";
-      eSwapIn = "rate(node_vmstat_pswpin{${inst}}[5m])";
-      eMajflt = "rate(node_vmstat_pgmajfault{${inst}}[5m])";
-      ePsiIo = "rate(node_pressure_io_waiting_seconds_total{${inst}}[5m]) * 100";
-      ePsiMem = "rate(node_pressure_memory_waiting_seconds_total{${inst}}[5m]) * 100";
-      ePsiCpu = "rate(node_pressure_cpu_waiting_seconds_total{${inst}}[5m]) * 100";
+      eCpuBusy = x.cpuBusy;
+      eIowait = x.iowait;
+      eLoadPc = x.loadPc;
+      eDiskUtil = x.diskUtil;
+      eMemUsed = x.memUsed;
+      eMemAvail = x.memAvail;
+      eSwapUsed = x.swapUsed;
+      eSwapOut = x.swapOut;
+      eSwapIn = x.swapIn;
+      eMajflt = x.majflt;
+      ePsiIo = x.psiIo;
+      ePsiMem = x.psiMem;
+      ePsiCpu = x.psiCpu;
       pSel = extra: "{${inst}" + (if extra == "" then "" else ",${extra}") + "}";
       pTop = m: extra: "topk(10, sum by (groupname) (${m}${pSel extra}))";
       pTopRate = m: "topk(10, sum by (groupname) (rate(${m}${pSel ""}[5m])))";
@@ -399,7 +400,7 @@ let
         (mkStat {
           id = 30;
           title = "Blocked (D)";
-          expr = "node_procs_blocked{${inst}}";
+          expr = x.procsBlocked;
           gridPos = pos 0 14 4 5;
           unit = "short";
           decimals = 0;
@@ -408,7 +409,7 @@ let
         (mkStat {
           id = 31;
           title = "Runnable";
-          expr = "node_procs_running{${inst}}";
+          expr = x.procsRunning;
           gridPos = pos 4 14 4 5;
           unit = "short";
           decimals = 0;
@@ -431,14 +432,14 @@ let
         (mkStat {
           id = 34;
           title = "Load 1m";
-          expr = "node_load1{${inst}}";
+          expr = x.load1;
           gridPos = pos 16 14 4 5;
           unit = "short";
         })
         (mkStat {
           id = 35;
           title = "Uptime";
-          expr = "time() - node_boot_time_seconds{${inst}}";
+          expr = x.uptime;
           gridPos = pos 20 14 4 5;
           unit = "s";
           decimals = 0;
@@ -530,8 +531,8 @@ let
           id = 54;
           title = "Network traffic (${nic})";
           targets = [
-            (mkT 0 "rate(node_network_receive_bytes_total{${inst},device=\"${nic}\"}[5m])" "rx")
-            (mkT 1 "rate(node_network_transmit_bytes_total{${inst},device=\"${nic}\"}[5m])" "tx")
+            (mkT 0 x.rx "rx")
+            (mkT 1 x.tx "tx")
           ];
           gridPos = pos 12 (ySys + 9) 12 8;
           unit = "Bps";
@@ -550,14 +551,14 @@ let
         (mkStat {
           id = 56;
           title = "RX today";
-          expr = "sum(increase(node_network_receive_bytes_total{${inst},device=\"${nic}\"}[24h]))";
+          expr = x.rxToday;
           gridPos = pos 12 (ySys + 17) 6 7;
           unit = "bytes";
         })
         (mkStat {
           id = 57;
           title = "TX today";
-          expr = "sum(increase(node_network_transmit_bytes_total{${inst},device=\"${nic}\"}[24h]))";
+          expr = x.txToday;
           gridPos = pos 18 (ySys + 17) 6 7;
           unit = "bytes";
         })
@@ -595,15 +596,15 @@ let
           id = 71;
           title = "GPU utilisation";
           targets = [
-            (mkT 0 "nvidia_smi_utilization_gpu_ratio{${inst}} * 100" "gpu")
-            (mkT 1 "nvidia_smi_utilization_memory_ratio{${inst}} * 100" "vram")
+            (mkT 0 x.gpuUtil "gpu")
+            (mkT 1 x.gpuMem "vram")
           ];
           gridPos = pos 0 (yGpu + 1) 18 8;
         })
         (mkStat {
           id = 72;
           title = "GPU temp";
-          expr = "nvidia_smi_temperature_gpu{${inst}}";
+          expr = x.gpuTemp;
           gridPos = pos 18 (yGpu + 1) 6 8;
           unit = "celsius";
           decimals = 0;
@@ -634,7 +635,7 @@ let
         (mkStat {
           id = 82;
           title = "Root FS free";
-          expr = "node_filesystem_avail_bytes{${inst},mountpoint=\"/\"}";
+          expr = x.rootFree;
           gridPos = pos 18 (yFs + 1) 6 8;
           unit = "bytes";
         })
