@@ -310,7 +310,8 @@
         };
 
         "custom/notif-menu" = {
-          format = "";
+          exec = "~/.config/waybar/scripts/notif-status.sh";
+          return-type = "json";
           tooltip = true;
           tooltip-format = "Notification history — left-click to browse, right-click to toggle DND";
           on-click = "swaync-client -t -sw";
