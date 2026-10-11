@@ -64,7 +64,8 @@ the audit's `/nix/store` derivation.
 | 11 | `proxy-stacks` | — | Hand-edited docker-proxy compose files under `nix/hosts/mandragora-vps/compose/` that no longer match `generate-proxy-stacks.py --check` against `proxy-stacks.json`; skips when the generator, manifest, or python3 is absent. |
 | 12 | `nixfmt` | — | Changed `.nix` files not formatted by `nixfmt-rfc-style`; skips when nixfmt absent. No allowlist — the whole tree is formatted, so there are no grandfather cases. |
 | 13 | `sops-encrypted` | R4 | Tracked `secrets/*.{yaml,yml,json}` that is not sops ciphertext, or raw private-key material in any tracked file; skips when `secrets/` or `sops` is absent. |
-| 14 | `vault-secrets` | R4 | Credential-shaped strings (provider API keys, GitHub/Slack/Tailscale tokens, telegram bot tokens, age secret keys, private-key blocks, JWTs, URL credentials) in the publicly-served Obsidian vault. Cites `file:line` without echoing the value. Path via `MANDRAGORA_VAULT`; skips when the vault is absent. Allowlist: `allowlists/vault-secrets.txt` (`path` or `path:line`). |
+| 14 | `vault-secrets` | R4 | Credential-shaped strings (provider API keys, GitHub/Slack/Tailscale tokens, telegram bot tokens, age secret keys, private-key blocks, JWTs, URL credentials) in the publicly-served Obsidian vault. Cites `file:line` without echoing the value. Path via `MANDRAGORA_VAULT`; skips when the vault is absent. Patterns live in `lib/secret-patterns.txt`, shared with `mandragora-vault`. Allowlist: `allowlists/vault-secrets.txt` (`path` or `path:line`). |
+| 17 | `vault-verdict` | R22 | commit-msg only: an agent commit (`MANDRAGORA_AGENT`, `AI_AGENT`, `CLAUDECODE` or `GEMINI_CLI` set) whose message has no valid `Vault:` line — a committed, recently changed vault note, or `none (<reason>)`. Delegates to `mandragora-vault trailer-check`; skips human commits and when the tool is not installed yet. See [`vault.md`](vault.md). |
 
 ## Adding a check
 
