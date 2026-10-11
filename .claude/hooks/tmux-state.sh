@@ -10,3 +10,6 @@ if [ "$state" = "off" ]; then
 else
   tmux set -w -t "$TMUX_PANE" @claude_state "$state" 2>/dev/null
 fi
+if [ "$state" != "run" ] && ! tmux list-windows -a -F '#{@claude_state}' 2>/dev/null | grep -qx run; then
+  [ -f /tmp/claude-spin-daemon.pid ] && kill "$(cat /tmp/claude-spin-daemon.pid)" 2>/dev/null
+fi
