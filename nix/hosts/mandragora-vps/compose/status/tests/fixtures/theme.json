@@ -1,0 +1,15 @@
+{
+ "surface": "#0e1416",
+ "surface_container_low": "#171d1e",
+ "surface_container": "#1b2122",
+ "surface_container_high": "#252b2c",
+ "on_surface": "#dee3e5",
+ "on_surface_variant": "#bfc8ca",
+ "outline": "#899295",
+ "outline_variant": "#3f484a",
+ "primary": "#83d2e3",
+ "on_primary": "#00363e",
+ "primary_container": "#004e5a",
+ "secondary": "#b1cbd1",
+ "tertiary": "#bcc5eb"
+}
