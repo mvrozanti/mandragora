@@ -27,6 +27,7 @@ let
       bash
     ];
     TMUX_CMDPICK_BIN = "${bin}/bin/tmux-cmdpick";
+    TMUX_CMDPICK_CONF = ../../../.config/tmux/cmdpick.conf;
     TERMINFO_DIRS = "${ncurses}/share/terminfo";
   } "python3 $src/test_tmux_cmdpick.py && touch $out";
 in

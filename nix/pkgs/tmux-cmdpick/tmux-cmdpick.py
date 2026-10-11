@@ -648,7 +648,7 @@ def chosen_command(line):
 
 
 def tmux(*args, data=None):
-    return subprocess.run(["tmux", *args], input=data, stdout=subprocess.PIPE, text=True).stdout
+    return subprocess.run(["tmux", *args], input=data, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True).stdout
 
 
 def capture(pane, lines):
@@ -680,7 +680,7 @@ def pick(cands, pane):
 
 def main():
     ap = argparse.ArgumentParser(prog="tmux-cmdpick")
-    ap.add_argument("pane", nargs="?", default=os.environ.get("TMUX_PANE", ""))
+    ap.add_argument("pane", nargs="?", default="")
     ap.add_argument("--lines", type=int, default=2000)
     ap.add_argument("--print", action="store_true", dest="print_only")
     ap.add_argument("--stdin", action="store_true")
@@ -691,12 +691,13 @@ def main():
     if args.stdin:
         text = sys.stdin.read()
     else:
-        if not args.pane:
-            sys.exit("tmux-cmdpick: no pane given and not inside tmux")
-        info = tmux("display-message", "-p", "-t", args.pane, "#{pane_width}\t#{pane_current_path}").rstrip("\n").split("\t", 1)
-        if len(info) == 2:
-            width = width or int(info[0])
-            cwd = info[1] or cwd
+        target = ["-t", args.pane] if args.pane else []
+        info = tmux("display-message", "-p", *target, "#{pane_id}\t#{pane_width}\t#{pane_current_path}").rstrip("\n").split("\t")
+        if len(info) != 3 or not info[0]:
+            sys.exit("tmux-cmdpick: no tmux pane %s" % (args.pane or "to read (not inside tmux?)"))
+        args.pane = info[0]
+        width = width or int(info[1])
+        cwd = info[2] or cwd
         text = capture(args.pane, args.lines)
     cands = extract(text, cwd, width=width)
     if args.print_only:

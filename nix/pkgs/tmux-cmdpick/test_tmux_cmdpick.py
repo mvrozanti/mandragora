@@ -474,6 +474,9 @@ def slurp(path):
         return ""
 
 
+BINDING_CONF = os.environ.get("TMUX_CMDPICK_CONF") or str(HERE.parents[2] / ".config" / "tmux" / "cmdpick.conf")
+
+
 def tool_command():
     built = os.environ.get("TMUX_CMDPICK_BIN")
     return [built] if built else [sys.executable, str(HERE / "tmux-cmdpick.py")]
@@ -506,6 +509,10 @@ class InsideTmux(unittest.TestCase):
         os.mkdir(bindir)
         for tool in ("tmux", "fzf", "zsh", "python3", "sh", "cat", "stty"):
             os.symlink(shutil.which(tool), os.path.join(bindir, tool))
+        wrapper = os.path.join(bindir, "tmux-cmdpick")
+        with open(wrapper, "w") as f:
+            f.write("#!%s\nexec %s \"$@\"\n" % (shutil.which("sh"), shlex.join(tool_command())))
+        os.chmod(wrapper, 0o755)
         cls.env = {
             "PATH": bindir,
             "HOME": os.path.join(root, "home"),
@@ -552,6 +559,27 @@ class InsideTmux(unittest.TestCase):
         picker = self.tmux("split-window", "-P", "-F", "#{pane_id}", "-t", target, "-h", "-l", "120", cmd).strip()
         self.wait_for(lambda: "cmd>" in self.tmux("capture-pane", "-p", "-t", picker), "fzf prompt")
         return picker
+
+    def test_deployed_key_binding_end_to_end(self):
+        inner = ["-L", "inner"]
+        typed = os.path.join(self.tmp.name, "binding.typed")
+        inner_cmd = "cat %s; stty -icanon -echo; exec cat > %s" % (shlex.quote(self.fixture), shlex.quote(typed))
+        self.tmux(*inner, "-f", BINDING_CONF, "new-session", "-d", "-s", "work", "-x", "150", "-y", "40", "sh -c " + shlex.quote(inner_cmd))
+        self.addCleanup(subprocess.run, ["tmux", *inner, "kill-server"], env=self.env, stderr=subprocess.DEVNULL)
+        self.wait_for(lambda: "list-sessions" in self.tmux(*inner, "capture-pane", "-p", "-t", "work"), "fixture in the inner pane")
+        self.tmux(*inner, "set-buffer", "sentinel")
+        self.tmux("new-session", "-d", "-s", "client", "-x", "160", "-y", "45", "tmux -L inner attach -t work")
+        self.wait_for(lambda: "list-sessions" in self.tmux("capture-pane", "-p", "-t", "client"), "inner client on screen")
+        self.tmux("send-keys", "-t", "client", "C-b", "e")
+        self.wait_for(lambda: "cmd>" in self.tmux("capture-pane", "-p", "-t", "client"), "picker popup over the pane")
+        self.tmux("send-keys", "-t", "client", "Enter")
+        got = self.wait_for(lambda: (lambda b: b if b != "sentinel" else "")(self.tmux(*inner, "show-buffer")), "buffer update")
+        self.assertEqual(got, self.EXPECTED[0])
+
+    def test_unknown_pane_fails_loudly(self):
+        r = subprocess.run(tool_command() + ["--print", "%999"], env=self.env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("no tmux pane %999", r.stderr)
 
     def test_print_mode_reads_the_pane(self):
         pane, _ = self.start_target("printmode")

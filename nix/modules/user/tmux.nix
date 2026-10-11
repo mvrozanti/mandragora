@@ -32,6 +32,9 @@ in
       }
     ];
 
-    extraConfig = builtins.readFile ../../../.config/tmux/tmux.conf;
+    extraConfig = builtins.concatStringsSep "\n" [
+      (builtins.readFile ../../../.config/tmux/tmux.conf)
+      (builtins.readFile ../../../.config/tmux/cmdpick.conf)
+    ];
   };
 }
