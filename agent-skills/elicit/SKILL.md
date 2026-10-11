@@ -108,8 +108,7 @@ before designing anything.
 - Investigate first: the repo, metrics, logs, configs, and **primary sources**
   for the domain — the regulation itself, the vendor's own docs. Link them in
   the deck; mark anything unconfirmed as *unverified*.
-- Then one `confused` round, ≤4 questions, for what investigation cannot
-  settle.
+- Then one `confused` round for what investigation cannot settle.
 - Record each answer as a **fixed consequence**, not as an answer:
   *"volume < 500k/day → stream processing is not a main direction"*. The deck
   shows them in a strip under the axis. Never re-ask them.
