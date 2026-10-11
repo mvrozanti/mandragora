@@ -155,6 +155,6 @@ _:
       "ctrl+9" = "send_text all \\x1b[57;5u";
       "alt+space" = "send_text all \\r";
     };
-    extraConfig = "include ~/.cache/matugen/colors-kitty.conf";
+    extraConfig = "include ~/.cache/matugen/colors-kitty.conf\nsymbol_map U+F000-U+F2FF Terminess Nerd Font Mono";
   };
 }
