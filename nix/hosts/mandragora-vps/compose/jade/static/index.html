@@ -12,7 +12,7 @@
   <style>
     html, body { height: 100%; height: 100dvh; margin: 0; overflow: hidden; overscroll-behavior: none; }
     body { background: var(--mv-bg); }
-    .lens { position: fixed; top: 0; left: 0; right: 0; height: 100dvh; background: black; color: var(--mv-text); }
+    .lens { position: fixed; inset: 0; height: 100dvh; background: black; color: var(--mv-text); }
     .cam { position: absolute; inset: 0; overflow: hidden; transition: opacity var(--mv-dur) var(--mv-ease); }
     .cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .cam .scan-region-highlight-svg { stroke: white !important; opacity: .85; }
