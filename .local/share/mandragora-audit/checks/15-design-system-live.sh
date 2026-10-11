@@ -7,6 +7,7 @@ CHECK="${AUDIT_NAME:-design-system-live}"
 COMPOSE="$MANDRAGORA_REPO/nix/hosts/mandragora-vps/compose"
 CANON_CSS="$COMPOSE/hub/static/theme.css"
 CANON_JS="$COMPOSE/hub/static/theme.js"
+CANON_COMPONENTS="$COMPOSE/hub/static/components.css"
 ALLOWLIST="$MANDRAGORA_REPO/.local/share/mandragora-audit/allowlists/design-system-live.txt"
 
 if [ ! -f "$CANON_CSS" ] || [ ! -f "$CANON_JS" ]; then
@@ -57,10 +58,22 @@ while IFS= read -r css; do
   fi
 done < <(find "$COMPOSE" -name theme.css -type f 2>/dev/null | sort)
 
+if [ -f "$CANON_COMPONENTS" ]; then
+  canon_components_sum=$(md5sum <"$CANON_COMPONENTS" | cut -d' ' -f1)
+  while IFS= read -r comp; do
+    stack=$(printf '%s\n' "${comp#"$COMPOSE"/}" | cut -d/ -f1)
+    allowed "$stack" && continue
+    if [ "$(md5sum <"$comp" | cut -d' ' -f1)" != "$canon_components_sum" ]; then
+      printf '    %s drifted from hub/static/components.css\n' "${comp#"$MANDRAGORA_REPO"/}" >&2
+      failures=$((failures + 1))
+    fi
+  done < <(find "$COMPOSE" -name components.css -type f 2>/dev/null | sort)
+fi
+
 if [ "$failures" -gt 0 ]; then
   audit_fail "$CHECK" "a served UI does not track the live matugen palette (AGENTS.md Rule 20)"
   exit 1
 fi
 
-audit_pass "$CHECK" "every served UI ships the canonical theme.css/theme.js and wires the palette endpoint"
+audit_pass "$CHECK" "every served UI ships the canonical theme.css/theme.js/components.css and wires the palette endpoint"
 exit 0
