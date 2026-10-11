@@ -8,6 +8,15 @@ let
     ];
     text = builtins.readFile ../../../.local/bin/xdph-reload-guard.sh;
   };
+  fullscreenGuard = pkgs.writeShellApplication {
+    name = "fullscreen-guard";
+    runtimeInputs = [
+      pkgs.socat
+      pkgs.jq
+      pkgs.hyprland
+    ];
+    text = builtins.readFile ../../../.local/bin/fullscreen-guard.sh;
+  };
   awwwRestore = pkgs.writeShellApplication {
     name = "awww-restore";
     runtimeInputs = [
@@ -175,6 +184,18 @@ in
         serviceConfig = {
           ExecStart = "${xdphReloadGuard}/bin/xdph-reload-guard";
           Restart = "on-failure";
+          RestartSec = "3s";
+        };
+      };
+
+      fullscreen-guard = {
+        description = "Keep newly opened floating windows beneath a fullscreen window";
+        wantedBy = [ "graphical-session.target" ];
+        partOf = [ "graphical-session.target" ];
+        after = [ "graphical-session.target" ];
+        serviceConfig = {
+          ExecStart = "${fullscreenGuard}/bin/fullscreen-guard";
+          Restart = "always";
           RestartSec = "3s";
         };
       };
