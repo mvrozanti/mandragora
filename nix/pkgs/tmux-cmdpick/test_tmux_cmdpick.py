@@ -576,6 +576,31 @@ class InsideTmux(unittest.TestCase):
         got = self.wait_for(lambda: (lambda b: b if b != "sentinel" else "")(self.tmux(*inner, "show-buffer")), "buffer update")
         self.assertEqual(got, self.EXPECTED[0])
 
+    def test_empty_pane_opens_no_popup(self):
+        slow = os.path.join(self.tmp.name, "slow")
+        os.mkdir(slow)
+        wrapper = os.path.join(slow, "tmux-cmdpick")
+        with open(wrapper, "w") as f:
+            f.write("#!%s\nsleep 1\nexec %s \"$@\"\n" % (shutil.which("sh"), shlex.join(tool_command())))
+        os.chmod(wrapper, 0o755)
+        env = dict(self.env, PATH=slow + ":" + self.env["PATH"])
+        os.symlink(shutil.which("sleep"), os.path.join(slow, "sleep"))
+        inner = ["tmux", "-L", "quiet"]
+        subprocess.run(inner + ["-f", BINDING_CONF, "new-session", "-d", "-s", "work", "-x", "150", "-y", "40", "sh -c 'echo nothing to see here; exec cat'"], env=env, check=True)
+        self.addCleanup(subprocess.run, inner + ["kill-server"], env=env, stderr=subprocess.DEVNULL)
+        self.tmux("new-session", "-d", "-s", "quiet-client", "-x", "160", "-y", "45", "tmux -L quiet attach -t work")
+        self.wait_for(lambda: "nothing to see" in self.tmux("capture-pane", "-p", "-t", "quiet-client"), "inner client on screen")
+        self.tmux("send-keys", "-t", "quiet-client", "C-b", "e")
+        frames = []
+
+        def notice():
+            screen = self.tmux("capture-pane", "-p", "-t", "quiet-client")
+            frames.append("\u250c" in screen)
+            return "no shell commands" in screen
+
+        self.wait_for(notice, "status-line notice")
+        self.assertFalse(any(frames), "a popup opened for an empty pane")
+
     def test_unknown_pane_fails_loudly(self):
         r = subprocess.run(tool_command() + ["--print", "%999"], env=self.env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         self.assertNotEqual(r.returncode, 0)
