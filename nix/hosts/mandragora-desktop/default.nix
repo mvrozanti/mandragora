@@ -80,6 +80,7 @@ in
     ../../modules/services/open-webui.nix
     ../../modules/services/ollama-context-proxy.nix
     ../../modules/services/gpu-status.nix
+    ../../modules/services/status-snapshot.nix
     ../../modules/services/kindle-cam.nix
     ../../modules/services/gource-renderer.nix
     ../../modules/services/gource-renderer-prewarm.nix

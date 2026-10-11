@@ -34,6 +34,7 @@ CPU_SAMPLE_SECONDS = float(os.environ.get("CPU_SAMPLE_SECONDS", "0.1"))
 THEME_FILE = os.path.expanduser(
     os.environ.get("HUB_THEME_FILE", "~/.cache/matugen/hub-theme.json")
 )
+STATUS_SNAPSHOT_FILE = os.environ.get("STATUS_SNAPSHOT_FILE", "/run/status-snapshot/status.json")
 ALLOWED_ORIGIN = re.compile(r"^https://([a-z0-9-]+\.)*mvr\.ac$")
 QUERY_FIELDS = [
     "utilization.gpu",
@@ -191,6 +192,15 @@ class _Handler(BaseHTTPRequestHandler):
                 503 if theme is None else 200,
                 None if theme is None else json.dumps(theme).encode("utf-8"),
             )
+            return
+        if path == "/api/status-snapshot":
+            try:
+                with open(STATUS_SNAPSHOT_FILE, "rb") as fh:
+                    body = fh.read()
+            except OSError:
+                self._respond(503, None)
+                return
+            self._respond(200, body)
             return
         if path not in ("", "/status", "/api/gpu"):
             self._respond(404, None)
