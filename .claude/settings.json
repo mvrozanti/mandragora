@@ -74,16 +74,6 @@
         ]
       }
     ],
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/tmux-state.sh input"
-          }
-        ]
-      }
-    ],
     "SessionEnd": [
       {
         "hooks": [

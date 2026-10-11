@@ -272,6 +272,7 @@ in
     (pkgs.writeShellScriptBin "tmux-scratchpad" (
       builtins.readFile ../../../.local/bin/tmux-scratchpad.sh
     ))
+    (pkgs.writeShellScriptBin "claude-spin" (builtins.readFile ../../../.local/bin/claude-spin.sh))
     (pkgs.writeShellScriptBin "safe-claude" (builtins.readFile ../../../.local/bin/safe-claude.sh))
     (pkgs.writeShellScriptBin "claude-deepseek" (
       builtins.readFile ../../../.local/bin/claude-deepseek.sh
