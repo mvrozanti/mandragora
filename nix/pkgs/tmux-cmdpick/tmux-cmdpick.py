@@ -3,10 +3,12 @@ import collections
 import os
 import re
 import shlex
+import json
 import shutil
 import subprocess
 import sys
 import time
+import unicodedata
 
 NON_SGR = re.compile(r"\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b\[[0-?]*[ -/]*[@-ln-~]|\x1b[@-Z\\-_]")
 SGR = re.compile(r"\x1b\[([0-9;:]*)m")
@@ -19,18 +21,27 @@ GUTTER = re.compile(r"^\s*\d+\s+[+-]?\s?")
 PROMPT = re.compile(r"^.{0,60}?(?:\$|%|#|❯|➜|λ|»|›)\s+(?=\S)")
 PUA = re.compile(r"^.*[-\U000f0000-\U000fffff]\s*")
 LABEL = re.compile(r"^.*?:\s+(?=\S)")
-BOX = re.compile(r"[─-▟⎿⏺●]")
+BOX = re.compile(r"[─-▟⎿⏺●…]")
 HEREDOC = re.compile(r"<<-?\s*['\"]?\w")
 SENTENCE_END = re.compile(r"[\w)\"'`][.:?!,]$")
 TRAILING_PUNCT = re.compile(r"(.*[\w/~*\]}-])([.,;:!?\"'”’)]+)")
 LEADING_PUNCT = "\"'“‘("
 USER_NAME = re.compile(r"[A-Za-z@][\w.+@-]*")
+DIFF_HEAD = re.compile(r"^(\s*\d+ )([ +-])")
+DIFF_MARGIN = 16
+HIGHLIGHTED_STYLES = 3
+SUBCOMMAND = re.compile(r"[a-z][\w-]*")
+INDENTED = re.compile(r"^ {2,4}\[?([a-z][\w-]*)\]?[:*]?(?=\s|$)")
+TMUX_COMMAND = re.compile(r"^([a-z][\w-]*)(?: \(([\w-]+)\))?")
+NIX_COMMAND = re.compile(r"^\s*\u00b7\s*nix ([a-z][\w-]*)")
 
 CODE = "code"
 LINE = "line"
 PROMPTED = "prompted"
 CUED = "cued"
 EMBEDDED = "embedded"
+DETERMINERS = {"a", "an", "the", "this", "that", "these", "those", "my", "your", "our", "their", "its", "his", "her", "each", "every", "no"}
+SPACED_ASSIGNMENT = {"=", "==", "+=", "-=", ":=", "!="}
 CUES = {"run", "rerun", "try", "type", "execute", "exec", "invoke", "enter", "paste", "$"}
 
 OPERATORS = {"|", "||", "&&", ";", "&", "|&", ";;", "(", ")", "{", "}", "!", "&!", "&|"}
@@ -78,6 +89,14 @@ BOUNDARY = STOPWORDS | {
     "manually", "yourself", "once", "if", "until", "while", "since", "because", "where",
     "whose", "e.g.", "i.e.", "see", "inside", "outside", "without",
 }
+VERBS = {
+    "works", "worked", "fails", "failed", "runs", "ran", "hangs", "hung", "shows", "showed",
+    "prints", "printed", "returns", "returned", "exits", "exited", "succeeds", "succeeded",
+    "breaks", "broke", "crashes", "crashed", "helps", "helped", "does", "did", "finishes",
+    "finished", "completes", "completed", "outputs", "says", "said", "reports", "reported",
+    "gives", "gave", "lists", "listed", "needs", "needed", "requires", "required", "handles",
+    "handled", "tells", "told", "fixes", "fixed", "solves", "solved",
+}
 ENGLISH_COLLIDERS = {
     "a", "test", "time", "which", "file", "find", "sort", "look", "watch", "yes", "man",
     "more", "less", "last", "top", "kill", "join", "split", "paste", "cut", "touch", "sleep",
@@ -95,7 +114,36 @@ ENGLISH_COLLIDERS = {
     "montage", "composite", "sum", "diff", "nl", "od", "tr", "as", "at", "ln", "ex", "ed",
 }
 
-Names = collections.namedtuple("Names", "commands starters")
+SUBCOMMAND_SOURCES = {
+    "git": (("git", "--list-cmds=main,others,alias,nohelpers"), "lines"),
+    "systemctl": (("systemctl", "--help"), "indented"),
+    "loginctl": (("loginctl", "--help"), "indented"),
+    "hostnamectl": (("hostnamectl", "--help"), "indented"),
+    "timedatectl": (("timedatectl", "--help"), "indented"),
+    "resolvectl": (("resolvectl", "--help"), "indented"),
+    "networkctl": (("networkctl", "--help"), "indented"),
+    "busctl": (("busctl", "--help"), "indented"),
+    "coredumpctl": (("coredumpctl", "--help"), "indented"),
+    "machinectl": (("machinectl", "--help"), "indented"),
+    "bootctl": (("bootctl", "--help"), "indented"),
+    "docker": (("docker", "--help"), "indented"),
+    "podman": (("podman", "--help"), "indented"),
+    "hyprctl": (("hyprctl", "--help"), "indented"),
+    "cargo": (("cargo", "--list"), "indented"),
+    "gh": (("gh", "--help"), "indented"),
+    "kubectl": (("kubectl", "--help"), "indented"),
+    "tmux": (("tmux", "list-commands"), "tmux"),
+    "nix": (("nix", "--help"), "nix"),
+}
+STATIC_SUBCOMMANDS = {
+    "nixos-rebuild": {
+        "switch", "boot", "test", "build", "dry-build", "dry-run", "dry-activate", "edit",
+        "repl", "build-vm", "build-vm-with-bootloader", "build-image", "list-generations",
+    },
+}
+HELP_ENV = {"PAGER": "cat", "MANPAGER": "cat", "SYSTEMD_PAGER": "cat", "GIT_PAGER": "cat", "NO_COLOR": "1", "SYSTEMD_COLORS": "0"}
+
+Names = collections.namedtuple("Names", "commands starters subs", defaults=(None,))
 
 
 def cache_path():
@@ -153,9 +201,77 @@ def path_names():
     return names
 
 
+def parse_subcommands(kind, text):
+    found = set()
+    for line in text.splitlines():
+        if kind == "lines":
+            if SUBCOMMAND.fullmatch(line.strip()):
+                found.add(line.strip())
+            continue
+        rx = {"indented": INDENTED, "tmux": TMUX_COMMAND, "nix": NIX_COMMAND}[kind]
+        m = rx.match(line)
+        if m:
+            found.update(g for g in m.groups() if g)
+    return found
+
+
+def probe_subcommands(executables):
+    env = dict(os.environ, **HELP_ENV)
+    running = {}
+    for tool, (argv, kind) in SUBCOMMAND_SOURCES.items():
+        if tool not in executables:
+            continue
+        try:
+            running[tool] = (subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env), kind)
+        except OSError:
+            continue
+    table = {t: set(v) for t, v in STATIC_SUBCOMMANDS.items() if t in executables}
+    for tool, (proc, kind) in running.items():
+        try:
+            out, _ = proc.communicate(timeout=3)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.communicate()
+            continue
+        names = parse_subcommands(kind, out)
+        if names:
+            table[tool] = names
+    return table
+
+
+def subcommand_table(executables):
+    path = os.path.join(os.path.dirname(cache_path()), "subcommands-v1.json")
+    try:
+        if time.time() - os.path.getmtime(path) < 86400:
+            with open(path) as f:
+                return {t: frozenset(v) for t, v in json.load(f).items()}
+    except (OSError, ValueError):
+        pass
+    table = probe_subcommands(executables)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump({t: sorted(v) for t, v in table.items()}, f)
+    os.replace(tmp, path)
+    return {t: frozenset(v) for t, v in table.items()}
+
+
 def load_names():
     executables = path_names()
-    return Names(executables | zsh_names(False) | user_shell_names(), executables)
+    return Names(executables | zsh_names(False) | user_shell_names(), executables, subcommand_table(executables))
+
+
+def display_width(text):
+    return sum(0 if unicodedata.combining(c) else 2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in text)
+
+
+def wraps(line, following, width):
+    line = line.rstrip()
+    words = following.split()
+    if not line.strip() or not words:
+        return False
+    used = display_width(line)
+    return used <= width < used + 1 + display_width(words[0])
 
 
 def clean(line):
@@ -163,6 +279,9 @@ def clean(line):
 
 
 def styled_spans(line):
+    styles = {p for p in SGR.findall(line) if p not in DEFAULT_SGR and not QUIET_SGR & set(re.split("[;:]", p))}
+    if len(styles) >= HIGHLIGHTED_STYLES:
+        return []
     spans = []
     state = ""
     buf = []
@@ -228,18 +347,28 @@ def embedded_commands(text, starters):
             continue
         if sum(x.count('"') + x.count("`") for x in words[:i]) % 2:
             continue
+        prev = words[i - 1].strip(LEADING_PUNCT + ":,").lower() if i else ""
+        if prev in DETERMINERS:
+            continue
+        cued = prev in CUES
+        at_start = not DECORATION.sub("", " ".join(words[:i])).strip()
         parts = []
+        alternative = None
         for j in range(i, len(words)):
             tok = lead if j == i else words[j]
             m = TRAILING_PUNCT.fullmatch(tok)
             bare = m.group(1) if m else tok
             if j > i and bare.lower() in BOUNDARY:
                 break
+            if j > i and bare.lower() in VERBS:
+                alternative = parts + [bare]
+                break
             parts.append(bare)
             if m:
                 break
-        prev = words[i - 1].strip(LEADING_PUNCT + ":,").lower() if i else ""
-        out.append((" ".join(parts), prev in CUES))
+        out.append((" ".join(parts), cued, at_start, True))
+        if alternative:
+            out.append((" ".join(alternative), cued, at_start, False))
     return out
 
 
@@ -291,8 +420,15 @@ def command_word(seg):
             wrapper = t
             i += 1
             continue
-        return t, wrapper
-    return None, wrapper
+        return t, wrapper, i
+    return None, wrapper, len(seg)
+
+
+def subcommand_verdict(seg, index, word, subs):
+    table = subs.get(word)
+    if not table or index + 1 >= len(seg) or not SUBCOMMAND.fullmatch(seg[index + 1]):
+        return None
+    return seg[index + 1] in table
 
 
 def resolves(word, commands, cwd):
@@ -345,25 +481,27 @@ def is_prose(tokens):
     return ratio >= 0.25 or (len(tokens) >= 8 and ratio >= 0.12) or (commas and len(tokens) >= 6)
 
 
-def judge(cmd, names, cwd, kind):
+def judge(cmd, names, cwd, kind, tail_verb=False):
     if len(cmd) < 2 or len(cmd) > 600 or BOX.search(cmd) or HEREDOC.search(cmd):
         return False
     try:
         tokens = tokenize(cmd)
     except ValueError:
         return False
-    if not tokens or tokens[0] in DANGLING_KEYWORDS:
+    if not tokens or tokens[0] in DANGLING_KEYWORDS or tokens[0] in REDIRECTS or tokens[0].startswith("`"):
+        return False
+    if len(tokens) > 1 and tokens[1] in SPACED_ASSIGNMENT:
         return False
     if tokens[0].lower() in STOPWORDS and tokens[0] not in COMPOUND_START:
         return False
     if len(tokens) == 1 and (kind != PROMPTED or len(tokens[0]) <= 2 or tokens[0][0] in "$`" or tokens[0] in COMPOUND_START or tokens[0] in ENGLISH_COLLIDERS):
         return False
-    if kind == EMBEDDED and not strong_signal(cmd, tokens):
-        return False
     first = None
     resolved = 0
+    verified = False
+    subs = names.subs or {}
     for seg in segments(tokens):
-        word, wrapper = command_word(seg)
+        word, wrapper, index = command_word(seg)
         if word is None:
             if wrapper is None:
                 continue
@@ -376,8 +514,14 @@ def judge(cmd, names, cwd, kind):
             continue
         if not resolves(word, names.commands, cwd):
             return False
+        verdict = subcommand_verdict(seg, index, word, subs)
+        if verdict is False:
+            return False
+        verified = verified or bool(verdict)
         resolved += 1
     if first is None or not resolved:
+        return False
+    if kind == EMBEDDED and not (verified or strong_signal(cmd, tokens)):
         return False
     collider = first in ENGLISH_COLLIDERS
     signal = has_signal(cmd, tokens, cwd, collider)
@@ -389,7 +533,8 @@ def judge(cmd, names, cwd, kind):
         return True
     if SENTENCE_END.search(cmd):
         return False
-    if not structural(cmd, tokens) and any(t.lower() in BOUNDARY for t in tokens[1:]):
+    tail = tokens[1:-1] if tail_verb else tokens[1:]
+    if not structural(cmd, tokens) and any(t.lower() in BOUNDARY or t.lower() in VERBS for t in tail):
         return False
     return signal or (len(tokens) <= 6 and not collider)
 
@@ -409,36 +554,97 @@ def parses(cands):
     return [ch == "1" for ch in out]
 
 
+def inline(span, text):
+    rest = GUTTER.sub("", DECORATION.sub("", text.replace(span, " ", 1)))
+    return len(re.findall(r"[A-Za-z]", rest)) >= 3
+
+
 def line_candidates(raw, text, names, cwd):
     pool = [(v, PROMPTED if prompted else LINE) for v, prompted in line_variants(text)]
     pool += [(span.strip(), CODE) for span in BACKTICK.findall(text)]
     for span in styled_spans(raw):
-        pool.append((span, CODE))
-        pool += [(v, CODE) for v, _ in line_variants(span)]
-    accepted = []
+        kind = CODE if inline(span, text) else LINE
+        pool.append((span, kind))
+        pool += [(v, kind) for v, _ in line_variants(span)]
+    accepted = {}
     for cand, kind in pool:
         cand = re.sub(r"\s+", " ", cand).strip()
         if cand and cand not in accepted and judge(cand, names, cwd, kind):
-            accepted.append(cand)
+            accepted[cand] = True
     if accepted:
-        return accepted
-    for cand, cued in embedded_commands(text, names.starters):
-        if cand not in accepted and judge(cand, names, cwd, CUED if cued else EMBEDDED):
-            accepted.append(cand)
-    return accepted
+        return list(accepted.items())
+    for cand, cued, at_start, reading in embedded_commands(text, names.starters):
+        if accepted.get(cand) or not judge(cand, names, cwd, CUED if cued else EMBEDDED, not reading):
+            continue
+        accepted[cand] = reading and (cued or at_start or strong_signal(cand, tokenize(cand)))
+    return list(accepted.items())
 
 
-def extract(raw_text, cwd, names=None):
+def continuation(head, previous, line, width):
+    if head:
+        col = len(head.group(1))
+        body = line[col + 1:]
+        if display_width(previous.rstrip()) >= width - DIFF_MARGIN and not line[:col].strip() and line[col:col + 1] == head.group(2) and body.strip():
+            return body.rstrip(), ""
+        return None
+    if wraps(previous, line, width):
+        return line.strip(), " "
+    return None
+
+
+def units_of(lines, width):
+    units = [([i], raw, text) for i, (raw, text) in enumerate(lines)]
+    if not width:
+        return units
+    i = 0
+    while i < len(lines):
+        head = DIFF_HEAD.match(lines[i][1])
+        members, raw, text = [i], lines[i][0], lines[i][1].rstrip()
+        j = i + 1
+        while j < len(lines):
+            step = continuation(head, lines[j - 1][1], lines[j][1], width)
+            if step is None:
+                break
+            body, sep = step
+            members.append(j)
+            raw += sep + (body if head else lines[j][0])
+            text += sep + body
+            j += 1
+        if len(members) > 1:
+            units.append((members, raw, text))
+        i = j
+    return units
+
+
+def extract(raw_text, cwd, names=None, width=None):
     names = names or load_names()
-    raw_text = NON_SGR.sub("", raw_text)
+    lines = logical_lines(NON_SGR.sub("", raw_text).split("\n"))
+    per_unit = [(members, line_candidates(raw, text, names, cwd)) for members, raw, text in units_of(lines, width)]
+    joined = collections.defaultdict(list)
+    for members, cands in per_unit:
+        if len(members) > 1:
+            for k in members:
+                joined[k] += [c for c, _ in cands]
     found = {}
-    order = 0
-    for raw, text in logical_lines(raw_text.split("\n")):
-        for cand in line_candidates(raw, text, names, cwd):
-            order += 1
-            found[cand] = order
+    seq = 0
+    for members, cands in per_unit:
+        pos = members[-1] + (0.5 if len(members) > 1 else 0)
+        for cand, sure in cands:
+            if len(members) == 1 and any(cand != m and cand in m for m in joined[members[0]]):
+                continue
+            seq += 1
+            if cand not in found or (sure, pos, seq) > found[cand]:
+                found[cand] = (sure, pos, seq)
     ranked = sorted(found, key=lambda c: found[c], reverse=True)
-    return [c for c, ok in zip(ranked, parses(ranked)) if ok]
+    return [(c, found[c][0]) for c, ok in zip(ranked, parses(ranked)) if ok]
+
+
+def fzf_line(cand, sure):
+    return cand if sure else cand + "\t?"
+
+
+def chosen_command(line):
+    return line.split("\t", 1)[0]
 
 
 def tmux(*args, data=None):
@@ -450,17 +656,17 @@ def capture(pane, lines):
 
 
 def pick(cands, pane):
-    header = "enter copy · alt-enter insert into pane · tab multi"
+    header = "enter copy · alt-enter insert into pane · tab multi · ? ambiguous reading"
     fzf = subprocess.run(
-        ["fzf", "--multi", "--no-sort", "--layout=reverse", "--prompt=cmd> ", "--header=" + header, "--expect=alt-enter"],
-        input="\n".join(cands),
+        ["fzf", "--multi", "--no-sort", "--layout=reverse", "--prompt=cmd> ", "--header=" + header, "--expect=alt-enter", "--delimiter=\t", "--nth=1"],
+        input="\n".join(fzf_line(c, sure) for c, sure in cands),
         stdout=subprocess.PIPE,
         text=True,
     )
     lines = fzf.stdout.rstrip("\n").split("\n")
     if fzf.returncode != 0 or len(lines) < 2:
         return
-    key, chosen = lines[0], lines[1:]
+    key, chosen = lines[0], [chosen_command(line) for line in lines[1:]]
     text = "\n".join(chosen)
     if key == "alt-enter":
         tmux("send-keys", "-t", pane, "-l", "--", text)
@@ -478,18 +684,23 @@ def main():
     ap.add_argument("--lines", type=int, default=2000)
     ap.add_argument("--print", action="store_true", dest="print_only")
     ap.add_argument("--stdin", action="store_true")
+    ap.add_argument("--width", type=int)
     args = ap.parse_args()
     cwd = os.getcwd()
+    width = args.width
     if args.stdin:
         text = sys.stdin.read()
     else:
         if not args.pane:
             sys.exit("tmux-cmdpick: no pane given and not inside tmux")
-        cwd = tmux("display-message", "-p", "-t", args.pane, "#{pane_current_path}").strip() or cwd
+        info = tmux("display-message", "-p", "-t", args.pane, "#{pane_width}\t#{pane_current_path}").rstrip("\n").split("\t", 1)
+        if len(info) == 2:
+            width = width or int(info[0])
+            cwd = info[1] or cwd
         text = capture(args.pane, args.lines)
-    cands = extract(text, cwd)
+    cands = extract(text, cwd, width=width)
     if args.print_only:
-        print("\n".join(cands))
+        print("\n".join(fzf_line(c, sure) for c, sure in cands))
         return
     if not cands:
         tmux("display-message", "-d", "1500", "tmux-cmdpick: no shell commands in pane")
