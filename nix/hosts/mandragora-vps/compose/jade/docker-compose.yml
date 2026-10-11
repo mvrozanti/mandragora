@@ -19,6 +19,7 @@ services:
       caddy_0.encode: zstd gzip
       caddy_0.0_@theme: "path /api/theme /api/theme/*"
       caddy_0.1_handle: "@theme"
+      caddy_0.1_handle.rewrite: "* /api/theme?colors=1"
       caddy_0.1_handle.reverse_proxy: "host.docker.internal:6684"
       caddy_0.1_handle.reverse_proxy.transport: http
       caddy_0.1_handle.reverse_proxy.transport.dial_timeout: "2s"
