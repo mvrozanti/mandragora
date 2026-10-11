@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VAULT="${VAULT:-/home/m/Documents/mandragora-desktop-obsidian-vault}"
+VAULT_GRAPH="${VAULT_GRAPH:-/home/m/Projects/vault-graph}"
+REMOTE="${REMOTE:-opc@mandragora-vps}"
+REMOTE_DIR="${REMOTE_DIR:-/home/opc/demo/static}"
+
+graph="$(mktemp --suffix=.json)"
+trap 'rm -f "$graph"' EXIT
+
+python3 "$VAULT_GRAPH/examples/static-vault/build_graph.py" "$VAULT" "$graph"
+
+rsync -a --delete \
+  --exclude='.obsidian' \
+  --exclude='.trash' \
+  --exclude='.git' \
+  "$VAULT/" "$REMOTE:$REMOTE_DIR/vault/"
+rsync -a --chmod=F644 "$graph" "$REMOTE:$REMOTE_DIR/graph.json"
+
+echo "published vault/ + graph.json → https://demo.mvr.ac/"
