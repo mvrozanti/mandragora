@@ -119,20 +119,39 @@
     window.addEventListener("resize", resize);
 
     const groups = Array.from(new Set(data.nodes.map(n => n.group))).sort();
-    const theme = opts.theme || {};
-    const saturation = theme.saturation ?? 48;
-    const lightness = theme.lightness ?? 62;
-    const hueOffset = theme.hueOffset ?? 140;
-    const unresolvedColor = theme.unresolvedColor ?? "#4a4f5a";
     const colored = groups.filter(g => g !== "_unresolved");
-    const huePalette = n => Array.from({ length: n }, (_, i) =>
-      `hsl(${((hueOffset + (i * 360) / n) % 360).toFixed(1)} ${saturation}% ${lightness}%)`);
-    const palette = (Array.isArray(opts.palette) && opts.palette.length)
-      ? opts.palette
-      : huePalette(colored.length || 1);
+    const cssVar = (name) => getComputedStyle(mount).getPropertyValue(name).trim();
+    let theme = { ...(opts.theme || {}) };
     const groupColor = {};
-    colored.forEach((g, i) => groupColor[g] = palette[i % palette.length]);
-    groupColor["_unresolved"] = unresolvedColor;
+    function computePalette() {
+      const saturation = theme.saturation ?? 48;
+      const lightness = theme.lightness ?? 62;
+      const hueOffset = theme.hueOffset ?? 140;
+      const huePalette = n => Array.from({ length: n }, (_, i) =>
+        `hsl(${((hueOffset + (i * 360) / n) % 360).toFixed(1)} ${saturation}% ${lightness}%)`);
+      const palette = (Array.isArray(opts.palette) && opts.palette.length)
+        ? opts.palette
+        : huePalette(colored.length || 1);
+      colored.forEach((g, i) => groupColor[g] = palette[i % palette.length]);
+      groupColor["_unresolved"] = theme.unresolvedColor ?? (cssVar("--vg-unresolved") || "#4a4f5a");
+    }
+    computePalette();
+
+    const COLOR_VARS = {
+      edge: ["--vg-edge", "rgb(124,176,140)"],
+      hot: ["--vg-hot", "rgb(0,255,102)"],
+      ring: ["--vg-ring", "rgba(255,255,255,0.9)"],
+      label: ["--vg-label", "#fff"],
+      labelDim: ["--vg-label-dim", "rgba(230,230,230,0.92)"],
+      labelShadow: ["--vg-label-shadow", "#000"],
+    };
+    const colors = {};
+    function readColors() {
+      for (const [key, [name, fallback]] of Object.entries(COLOR_VARS)) {
+        colors[key] = cssVar(name) || fallback;
+      }
+    }
+    readColors();
 
     mount.querySelector("#counts").textContent =
       `${data.nodes.length} notes · ${data.links.length} links`;
@@ -493,7 +512,8 @@
         const coldAlpha = (0.18 + 0.45 * densityBoost) * (1 - focusFactor * 0.7);
         const stride = COARSE && transform.k < 1 ? 2 : 1;
         ctx.lineWidth = (0.6 + 0.5 * densityBoost) * invK;
-        ctx.strokeStyle = `rgba(124,176,140,${coldAlpha})`;
+        ctx.globalAlpha = coldAlpha;
+        ctx.strokeStyle = colors.edge;
         ctx.beginPath();
         for (let i = 0; i < data.links.length; i += stride) {
           const l = data.links[i];
@@ -504,6 +524,7 @@
           ctx.lineTo(tx, ty);
         }
         ctx.stroke();
+        ctx.globalAlpha = 1;
       }
 
       for (let b = 0; b < HOT_BUCKETS; b++) hotPaths[b] = null;
@@ -525,10 +546,11 @@
         for (let b = 0; b < HOT_BUCKETS; b++) {
           const p = hotPaths[b];
           if (!p) continue;
-          const a = 0.85 * ((b + 0.5) / HOT_BUCKETS);
-          ctx.strokeStyle = `rgba(0,255,102,${a})`;
+          ctx.globalAlpha = 0.85 * ((b + 0.5) / HOT_BUCKETS);
+          ctx.strokeStyle = colors.hot;
           ctx.stroke(p);
         }
+        ctx.globalAlpha = 1;
       }
 
       const nodePad = 4;
@@ -545,7 +567,7 @@
         if (lit > 0.02) {
           ctx.globalAlpha = lit;
           ctx.lineWidth = 1.4 * invK;
-          ctx.strokeStyle = "rgba(255,255,255,0.9)";
+          ctx.strokeStyle = colors.ring;
           ctx.stroke();
         }
       }
@@ -567,10 +589,10 @@
           if (labelAlpha < 0.04) continue;
           const y = n.y + n.r + 2 * invK;
           ctx.globalAlpha = labelAlpha * 0.55;
-          ctx.fillStyle = "#000";
+          ctx.fillStyle = colors.labelShadow;
           ctx.fillText(n.label, n.x + 0.6 * invK, y + 0.6 * invK);
           ctx.globalAlpha = labelAlpha;
-          ctx.fillStyle = lit > 0.5 ? "#fff" : "rgba(230,230,230,0.92)";
+          ctx.fillStyle = lit > 0.5 ? colors.label : colors.labelDim;
           ctx.fillText(n.label, n.x, y);
         }
         ctx.globalAlpha = 1;
@@ -774,6 +796,13 @@
         return fresh;
       },
       getActivePanel: () => activePanel,
+      setTheme: (patch) => {
+        if (patch) theme = { ...theme, ...patch };
+        readColors();
+        computePalette();
+        for (const [g, row] of groupRows) row.firstChild.style.background = groupColor[g];
+        markDirty();
+      },
       getCurrentUserCount: () => data.nodes.length,
       destroy: () => {
         mount.querySelectorAll("#c, #hud, #site-footer, #tooltip, #reader").forEach(el => el.remove());

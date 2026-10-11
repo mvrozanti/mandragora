@@ -15,15 +15,20 @@ Two views live here:
   container in the [gource](../gource/) stack. See that stack's
   README for the render pipeline (desktop-first, VPS fallback).
 
-The shared 40 px top tab strip (`static/tabs.css`) is the only
-cross-page UI; each view is otherwise self-contained.
+Both pages are on the `--mv-*` design system: `theme.css`,
+`theme.js` and `components.css` are byte-identical copies of
+`compose/hub/static/`, and `demo.css` holds the page layout, using
+tokens only. The shared top bar is the `.mv-tabs` primitive. The graph
+canvas takes its colours from the `--vg-*` properties that `demo.css`
+maps onto the tokens, and re-tints on the `mv-theme` event.
 
 ## Static layout (`./static/`)
 
 | path                                                    | owned by                  |
 |---------------------------------------------------------|---------------------------|
 | `index.html`, `gource.html`                             | this repo (deploy.sh)     |
-| `tabs.css`, `gource.js`                                 | this repo (deploy.sh)     |
+| `demo.css`, `gource.js`                                 | this repo (deploy.sh)     |
+| `theme.css`, `theme.js`, `components.css`               | copies of `hub/static/`   |
 | `favicon.svg`, `robots.txt`, `sitemap.xml`, `.well-known/` | this repo               |
 | `vendor/vault-graph/`                                   | this repo (vendored)      |
 | `vault/`, `graph.json`                                  | `publish-vault.sh`        |
@@ -73,10 +78,11 @@ if you need a different target.
 
 Path-routed inside the single `https://demo.mvr.ac` vhost:
 
-| match                | upstream                                |
-|----------------------|------------------------------------------|
-| `/api/gource/*`      | `gource-api:8080` (compose `gource`)     |
-| everything else      | `demo:80` (nginx, this stack)            |
+| match                | upstream                                                     |
+|----------------------|--------------------------------------------------------------|
+| `/api/theme`         | desktop palette, rewritten to `?colors=1` (design system)    |
+| `/api/gource/*`      | `gource-api:8080` (compose `gource`)                         |
+| everything else      | `demo:80` (nginx, this stack)                                |
 
 `gource-api` must be on `seafile-net` and have its `container_name`
 set so caddy can resolve it by name.

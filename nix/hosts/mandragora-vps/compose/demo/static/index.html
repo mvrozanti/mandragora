@@ -6,7 +6,8 @@
 <title>fake-obsidian — interactive graph of the mandragora knowledge vault</title>
 <meta name="description" content="A force-directed graph viewer for an Obsidian-style markdown vault. Browse the mandragora NixOS workstation's knowledge vault — programs, modules, services, decisions, principles, and operational history. Click any node to read its markdown content in a side panel.">
 <meta name="author" content="mvrozanti">
-<meta name="theme-color" content="#050805">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#13140d">
 <meta property="og:title" content="fake-obsidian — vault graph">
 <meta property="og:description" content="Interactive force-directed graph of the mandragora knowledge vault, with wikilink connections between programs, services, decisions, and incidents.">
 <meta property="og:type" content="website">
@@ -15,16 +16,21 @@
 <meta name="twitter:card" content="summary">
 <link rel="canonical" href="https://demo.mvr.ac/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="vendor/vault-graph/vault-graph.css?v=c732071a">
-<link rel="stylesheet" href="tabs.css?v=1">
+<link rel="stylesheet" href="vendor/vault-graph/vault-graph.css?v=2d937339">
+<link rel="stylesheet" href="theme.css?v=3cb0f19c">
+<link rel="stylesheet" href="components.css?v=6b30523d">
+<link rel="stylesheet" href="demo.css?v=f2eb7602">
+<script src="theme.js?v=a672fa84" data-endpoint="/api/theme?colors=1" data-poll="0"></script>
 </head>
-<body class="with-tabs">
-<nav class="tabs" aria-label="demo views">
-  <a href="/" aria-current="page">graph</a>
-  <a href="/gource.html">gource</a>
-  <span class="spacer"></span>
-  <span class="brand">demo.mvr.ac</span>
-</nav>
+<body>
+<header class="demo-bar">
+  <a class="demo-bar__name" href="/">demo</a>
+  <nav class="mv-tabs" aria-label="demo views">
+    <a class="mv-tabs__tab" href="/" aria-current="page">graph</a>
+    <a class="mv-tabs__tab" href="/gource.html">gource</a>
+  </nav>
+  <span class="demo-bar__end"><a href="https://mvr.ac" rel="noopener">mvr.ac</a></span>
+</header>
 <details id="about">
   <summary>About this project</summary>
   <div class="content">
@@ -119,8 +125,8 @@
 }
 </script>
 <noscript>
-  <section style="position:fixed; inset:0; padding:40px; background:#050805; color:#b8ffc4; font-family:monospace; overflow:auto;">
-    <h1 style="color:#00ff66">fake-obsidian</h1>
+  <section class="demo-noscript">
+    <h1>fake-obsidian</h1>
     <p>This page is an interactive force-directed graph viewer for an Obsidian-style markdown knowledge vault. The visualization requires JavaScript to render.</p>
     <p>The underlying notes document the <strong>mandragora</strong> NixOS workstation — its programs, modules, services, decisions, principles, incidents, and the eras of its evolution. Each node in the graph represents one markdown note; each edge represents a <code>[[wikilink]]</code> reference between two notes.</p>
     <h2>How it works (when JS is on)</h2>
@@ -129,13 +135,21 @@
       <li>Click any node to open its markdown content in a side panel — rendered live with proper headings, lists, code blocks, and clickable wikilinks.</li>
       <li>Pan, zoom, and search across all note titles. Tap a category in the legend to pin it.</li>
     </ul>
-    <p>Source and details: <a href="https://mvr.ac" style="color:#00ff66">mvr.ac</a>. Static demo deployed at demo.mvr.ac via Caddy + nginx on an Oracle VPS.</p>
+    <p>Source and details: <a href="https://mvr.ac">mvr.ac</a>. Static demo deployed at demo.mvr.ac via Caddy + nginx on an Oracle VPS.</p>
   </section>
 </noscript>
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
-<script src="vendor/vault-graph/vault-graph.js?v=c732071a"></script>
+<script src="vendor/vault-graph/vault-graph.js?v=dc8a1e6c"></script>
 <script>
+const accentTheme = () => {
+  const m = /^#?([0-9a-f]{6})$/i.exec(getComputedStyle(document.documentElement).getPropertyValue("--mv-accent").trim());
+  if (!m) return {};
+  const n = parseInt(m[1], 16), r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min, l = (max + min) / 2;
+  const h = !d ? 0 : (max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4) * 60;
+  return { hueOffset: h, saturation: 34, lightness: Math.min(72, Math.max(62, l * 100)) };
+};
 VaultGraph.create({
   brand: {
     title: "fake-obsidian",
@@ -149,12 +163,13 @@ VaultGraph.create({
     footerHTML: 'fake-obsidian · <a href="https://mvr.ac" rel="noopener">mvr.ac</a>',
   },
   layoutCacheKey: "fake-obsidian-layout-v1",
+  theme: accentTheme(),
   fetchGraph: () => fetch("graph.json").then(r => r.json()),
   fetchNote:  (path) => fetch("vault/" + path.split("/").map(encodeURIComponent).join("/")).then(r => {
     if (!r.ok) throw new Error("HTTP " + r.status);
     return r.text();
   }),
-});
+}).then((vg) => window.addEventListener("mv-theme", () => vg.setTheme(accentTheme())));
 </script>
 </body>
 </html>
