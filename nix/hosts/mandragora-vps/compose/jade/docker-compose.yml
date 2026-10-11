@@ -15,6 +15,7 @@ services:
       caddy_0.header.X-Frame-Options: SAMEORIGIN
       caddy_0.header.Referrer-Policy: strict-origin-when-cross-origin
       caddy_0.header.Permissions-Policy: camera=(self),geolocation=(),microphone=()
+      caddy_0.header.Cache-Control: no-store
       caddy_0.header.-Server: ""
       caddy_0.encode: zstd gzip
       caddy_0.0_@theme: "path /api/theme /api/theme/*"
