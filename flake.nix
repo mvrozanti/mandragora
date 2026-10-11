@@ -171,6 +171,7 @@
           usb-sops-key = guards.sopsKeyGuard;
           hyprland-config = guards.hyprlandConfigGuard;
           usb-install-bats = guards.usbInstallBatsGuard;
+          tmux-cmdpick = (nixpkgs.legacyPackages.${system}.callPackage ./nix/pkgs/tmux-cmdpick { }).tests;
         };
 
       homeConfigurations."m@mandragora-vps" = home-manager.lib.homeManagerConfiguration {

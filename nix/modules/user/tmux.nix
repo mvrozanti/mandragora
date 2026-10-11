@@ -1,9 +1,7 @@
 { pkgs, ... }:
 
 let
-  tmuxCmdpick = pkgs.writers.writePython3Bin "tmux-cmdpick" {
-    flakeIgnore = [ "E501" ];
-  } (builtins.readFile ../../snippets/tmux-cmdpick.py);
+  tmuxCmdpick = pkgs.callPackage ../../pkgs/tmux-cmdpick { };
 in
 {
   home.packages = [ tmuxCmdpick ];
