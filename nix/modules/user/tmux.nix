@@ -1,6 +1,13 @@
 { pkgs, ... }:
 
+let
+  tmuxCmdpick = pkgs.writers.writePython3Bin "tmux-cmdpick" {
+    flakeIgnore = [ "E501" ];
+  } (builtins.readFile ../../snippets/tmux-cmdpick.py);
+in
 {
+  home.packages = [ tmuxCmdpick ];
+
   programs.tmux = {
     enable = true;
     shortcut = "a";
