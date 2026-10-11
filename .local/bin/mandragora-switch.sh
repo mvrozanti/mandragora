@@ -441,7 +441,11 @@ if [ "$COMMIT_SKIPPED" -eq 0 ]; then
     while IFS= read -r f; do
       [ -z "$f" ] && continue
       if git -C "$FLAKE" diff --quiet "$MASTER_HEAD" -- "$f" 2>/dev/null; then
-        git -C "$FLAKE" checkout HEAD -- "$f" 2>/dev/null || true
+        if git -C "$FLAKE" cat-file -e "HEAD:$f" 2>/dev/null; then
+          git -C "$FLAKE" checkout HEAD -- "$f" 2>/dev/null || true
+        else
+          git -C "$FLAKE" rm -q -f -- "$f" 2>/dev/null || true
+        fi
       else
         echo "==> NOTE: $f also changed in the main tree; left as-is there (resolve manually)." >&2
       fi
