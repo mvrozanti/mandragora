@@ -115,6 +115,10 @@
     source = ../../snippets/waybar-brightness.sh;
     executable = true;
   };
+  home.file.".config/waybar/scripts/notif-status.sh" = {
+    source = ../../snippets/waybar-notif.sh;
+    executable = true;
+  };
   home.file.".local/share/applications/chess-com.desktop".source =
     pkgs.replaceVars ../../../.local/share/applications/chess-com.desktop
       {
