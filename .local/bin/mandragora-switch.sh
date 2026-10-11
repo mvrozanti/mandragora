@@ -317,6 +317,35 @@ else
   git commit -m "$MSG"
 fi
 
+warn_unbuilt() {
+  local unbuilt
+  unbuilt=$(git -C "$FLAKE" log --oneline "$1..$2" 2>/dev/null)
+  [ -n "$unbuilt" ] || return 0
+  echo "==> WARNING: these master commits are NOT in the generation this switch builds:" >&2
+  printf '%s\n' "$unbuilt" | sed 's/^/    /' >&2
+  echo "==> Re-run mandragora-switch afterwards (no changes needed) to activate them." >&2
+}
+
+if [ "$MODE" = worktree ]; then
+  MASTER_HEAD=$(git -C "$FLAKE" rev-parse refs/heads/master)
+  BUILD_BASE="$MASTER_HEAD"
+  if git -C "$FLAKE" merge-base --is-ancestor "$MASTER_HEAD" refs/remotes/origin/master 2>/dev/null; then
+    BUILD_BASE=$(git -C "$FLAKE" rev-parse refs/remotes/origin/master)
+  fi
+  if ! git -C "$WT" merge-base --is-ancestor "$BUILD_BASE" HEAD; then
+    if [ -n "$(git -C "$WT" status --porcelain --untracked-files=no)" ]; then
+      warn_unbuilt "$(git -C "$WT" merge-base "$BUILD_BASE" HEAD)" "$BUILD_BASE"
+    else
+      echo "==> Worktree is behind master; rebasing onto $(git -C "$FLAKE" rev-parse --short "$BUILD_BASE") so the build includes everything already landed..."
+      if ! git -C "$WT" rebase "$BUILD_BASE"; then
+        git -C "$WT" rebase --abort 2>/dev/null || true
+        echo "==> ABORTED before building: your commit conflicts with master. Rebase $WT onto master by hand, then re-run." >&2
+        exit 1
+      fi
+    fi
+  fi
+fi
+
 if [ "$COMMIT_SKIPPED" -eq 1 ]; then
   if [ "$MODE" = worktree ]; then
     if ! git -C "$WT" merge-base --is-ancestor "$(git -C "$WT" rev-parse HEAD)" "$MASTER_HEAD" 2>/dev/null; then
@@ -393,6 +422,7 @@ if [ "$COMMIT_SKIPPED" -eq 0 ]; then
     fi
     NEW_COMMIT=$(git -C "$WT" rev-parse HEAD)
     git -C "$FLAKE" update-ref refs/heads/master "$NEW_COMMIT"
+    warn_unbuilt "$MASTER_HEAD" "$(git -C "$WT" rev-parse FETCH_HEAD)"
   fi
 
   if [ "$MODE" = worktree ]; then
@@ -417,6 +447,7 @@ if [ "$COMMIT_SKIPPED" -eq 0 ]; then
       AHEAD_REMOTE=$(git rev-list --count HEAD..origin/master 2>/dev/null || echo 0)
       if [ "$AHEAD_REMOTE" -gt 0 ]; then
         echo "==> Origin moved by $AHEAD_REMOTE commit(s) during build; rebasing local commit on top..."
+        warn_unbuilt HEAD origin/master
         if ! git pull --rebase --autostash origin master; then
           echo "==> FAILED: rebase conflict between local commit and origin updates. Resolve manually then push." >&2
           exit 1
