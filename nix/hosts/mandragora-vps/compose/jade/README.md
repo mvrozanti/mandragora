@@ -12,7 +12,39 @@ stack. It runs the QR PIN round-trip in the visitor's phone browser:
 3. wrap the oracle's reply as a `pin` RPC message, encode it as
    `UR:JADE-PIN` and animate it for the Jade to scan ("Scan Web QR 2/2").
 
-The decoded request is shown in the **audit** card.
+## UI — "The lens"
+
+Chosen in an `/elicit-ui` round of ten directions (artifact
+`claude.ai/artifact/UugqBDX4dXPmHttTaTwX24`). The screen is one
+rectangle used both ways: a full-bleed viewfinder while scanning, with a
+segmented ring around the reticle (one arc per fragment), and then the
+same rectangle turns white and becomes the reply QR, as large as the
+screen allows, where the Jade is already pointing. That is what the
+hardware needs: the Jade draws a 41-module QR at about 123 px and reads
+with a QVGA camera.
+
+It is a single-page state machine (`idle → scanning → relaying →
+showing → done`, plus `error`), so a second unlock never needs a
+reload. Details:
+
+- The scan region passed to qr-scanner (`calculateScanRegion`) is the
+  reticle's on-screen square mapped through `object-fit: cover` into
+  video pixels, so qr-scanner's corner highlight sits inside the ring.
+- In the reply state the frame indicator runs around the outside of the
+  white box instead of the circle. The circle would cross the QR's
+  corner finder patterns, which the Jade's reader needs unobstructed.
+  This is the one deliberate deviation from the deck.
+- Tap the QR to pause on a frame. The screen wake lock is held while the
+  reply shows; a rejection is ignored.
+- The flow chip reads `jade.mvr.ac` until the request decodes, then
+  `Unlock` (`get_pin`) or `PIN setup` (`set_pin`). The URL suffix is only
+  known after reassembly.
+- The info button opens the details sheet (bottom on phones, docked
+  right at ≥ 900 px): the raw status line with all twelve status strings,
+  the relay (path, bytes, HTTP status, round-trip ms) and the decoded
+  envelope.
+- Page CSS consumes `--mv-*` tokens only. The literal `white` and `black`
+  are functional: the QR's quiet zone and the scrim over the camera.
 
 ## Why a custom BC-UR module (`static/bcur.js`)
 
@@ -53,7 +85,7 @@ lower-cases before parsing.
 |---|---|
 | `index.html`, `bcur.js` | this repo |
 | `qr-scanner.umd.min.js`, `qr-scanner-worker.min.js` | vendored `qr-scanner@1.4.1` |
-| `theme.css`, `theme.js` | canonical hub copy |
+| `theme.css`, `theme.js`, `components.css` | canonical hub copy |
 
 `cbor-x@1.6.6` (request decoding) and `qrcode@1.5.3` (reply rendering)
 load from jsDelivr, pinned by version.
@@ -62,7 +94,7 @@ load from jsDelivr, pinned by version.
 
 | match | upstream |
 |---|---|
-| `/api/theme*` | desktop theme bridge `host.docker.internal:6684` (`?colors=1`, no wallpaper path) |
+| `/api/theme*` | desktop theme bridge `host.docker.internal:6684`, rewritten to `/api/theme?colors=1` whatever the visitor asks, so the wallpaper path never leaves; `theme.js` falls back to its cache when the desktop sleeps |
 | `/api/pin/*` | `pinserver:8096` (prefix stripped) |
 | everything else | `jade:80` (nginx, this stack) |
 
