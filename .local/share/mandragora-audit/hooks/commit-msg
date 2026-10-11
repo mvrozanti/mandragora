@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-COMMIT_MSG_FILE="$1" exec mandragora-audit --check conventional-commits --quiet
+export COMMIT_MSG_FILE="$1"
+mandragora-audit --check conventional-commits --quiet
+exec mandragora-audit --check vault-verdict --quiet
