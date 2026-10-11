@@ -97,5 +97,6 @@
     dnsmasq
     texliveFull
     sqlite
+    postgresql
   ];
 }
