@@ -18,10 +18,16 @@ EXECUTABLES = frozenset({
     "git", "ls", "docker", "nix", "systemctl", "journalctl", "tail", "grep", "find", "cat",
     "watch", "sudo", "convert", "htop", "mandragora-switch", "make", "nvidia-smi", "python3",
     "curl", "ssh", "rsync", "tmux", "zsh", "xargs", "env", "import", "touch", "rm",
-    "tmux-cmdpick", "after", "seq", "pgrep", "sleep", "dnsmasq",
+    "tmux-cmdpick", "after", "seq", "pgrep", "sleep", "dnsmasq", "chmod",
 })
-SHELL_NAMES = frozenset({"to", "ll", "g", "jobs", "disable", "cd", "echo", "print"})
-NAMES = cp.Names(EXECUTABLES | SHELL_NAMES | cp.zsh_names(False), EXECUTABLES)
+SHELL_NAMES = frozenset({"to", "ll", "g", "f", "jobs", "disable", "cd", "echo", "print"})
+SUBS = {
+    "git": frozenset({"status", "stash", "push", "pull", "add", "commit", "log", "checkout", "rm", "mv", "clone"}),
+    "systemctl": frozenset({"restart", "status", "start", "stop"}),
+    "docker": frozenset({"ps", "compose", "run", "logs"}),
+    "nix": frozenset({"build", "flake", "run", "develop"}),
+}
+NAMES = cp.Names(EXECUTABLES | SHELL_NAMES | cp.zsh_names(False), EXECUTABLES, SUBS)
 
 ESC = "\x1b["
 CODE = ESC + "38;5;153m"
@@ -30,8 +36,16 @@ OFF = ESC + "39m"
 POWERLINE = "    ~/Projects/foo   master  "
 
 
-def run(text, cwd=None, names=NAMES):
-    return cp.extract(text, cwd or tempfile.gettempdir(), names)
+def run_all(text, cwd=None, names=NAMES, width=None):
+    return cp.extract(text, cwd or tempfile.gettempdir(), names, width)
+
+
+def run(text, cwd=None, names=NAMES, width=None):
+    return [c for c, sure in run_all(text, cwd, names, width) if sure]
+
+
+def maybes(text, width=None):
+    return [c for c, sure in run_all(text, width=width) if not sure]
 
 
 class Recognises(unittest.TestCase):
@@ -101,6 +115,144 @@ class FindsCodeInProse(unittest.TestCase):
                 self.assertEqual(run(text), want)
 
 
+class SubcommandsDecide(unittest.TestCase):
+    def test_line_start_command_with_english_tail(self):
+        self.assertEqual(run("systemctl restart waybar if it hangs"), ["systemctl restart waybar"])
+
+    def test_mid_sentence_without_cue_or_flag_is_ambiguous(self):
+        self.assertEqual(run("the trick is git stash then pop"), [])
+        self.assertEqual(maybes("the trick is git stash then pop"), ["git stash"])
+
+    def test_after_an_article_it_is_a_noun(self):
+        self.assertEqual(run_all("Next I'll write the docs and a git log generator."), [])
+
+    def test_wrong_subcommand_is_rejected_even_as_code(self):
+        for text in ["git psuh origin master", "`docker restarts`", "docker restarts containers"]:
+            with self.subTest(text=text):
+                self.assertEqual(run_all(text), [])
+
+    def test_long_flags_before_the_subcommand(self):
+        self.assertEqual(run("git --no-pager log -5"), ["git --no-pager log -5"])
+
+    def test_unknown_after_long_flag_is_not_proof_of_error(self):
+        self.assertEqual(run("git --git-dir .git status"), ["git --git-dir .git status"])
+
+    def test_tools_without_a_table_are_unaffected(self):
+        self.assertEqual(run("journalctl -fu waybar"), ["journalctl -fu waybar"])
+
+
+class AmbiguousReadings(unittest.TestCase):
+    def test_trailing_verb_offers_both(self):
+        text = "Pass the flag: journalctl -b --no-pager works."
+        self.assertEqual(run(text), ["journalctl -b --no-pager"])
+        self.assertEqual(maybes(text), ["journalctl -b --no-pager works"])
+
+    def test_verb_that_might_be_an_argument(self):
+        text = "Run git checkout fixes and rebuild."
+        self.assertEqual(run(text), ["git checkout"])
+        self.assertEqual(maybes(text), ["git checkout fixes"])
+
+    def test_sure_readings_come_before_ambiguous_ones(self):
+        text = "journalctl -b --no-pager works for me.\ngit status"
+        self.assertEqual(run_all(text), [("git status", True), ("journalctl -b --no-pager", True), ("journalctl -b --no-pager works", False)])
+
+    def test_unambiguous_lines_have_no_alternatives(self):
+        self.assertEqual(maybes("git status\nls -la /tmp"), [])
+
+    def test_fzf_marks_and_strips_the_tag(self):
+        self.assertEqual(cp.fzf_line("git status", True), "git status")
+        self.assertEqual(cp.chosen_command(cp.fzf_line("git checkout fails", False)), "git checkout fails")
+
+
+class HardWraps(unittest.TestCase):
+    TEXT = "  docker compose -f stack.yml up -d --remove-orphans\n  --force-recreate"
+    JOINED = "docker compose -f stack.yml up -d --remove-orphans --force-recreate"
+
+    def test_rejoined_when_the_next_word_could_not_fit(self):
+        self.assertEqual(run(self.TEXT, width=60), [self.JOINED])
+
+    def test_left_apart_when_the_next_word_would_have_fit(self):
+        self.assertEqual(run(self.TEXT, width=80), ["docker compose -f stack.yml up -d --remove-orphans"])
+
+    def test_left_apart_without_a_known_width(self):
+        self.assertEqual(run(self.TEXT), ["docker compose -f stack.yml up -d --remove-orphans"])
+
+    def test_three_line_wrap(self):
+        text = "  rsync -a --delete --exclude .git\n  --exclude result ./site/\n  host:/srv/site/"
+        self.assertEqual(run(text, width=36), ["rsync -a --delete --exclude .git --exclude result ./site/ host:/srv/site/"])
+
+    def test_wrapped_prose_still_finds_the_command(self):
+        text = "  If the bar freezes you can run systemctl --user restart\n  waybar to bring it back."
+        self.assertEqual(run(text, width=58), ["systemctl --user restart waybar"])
+
+    DIFF = "      7 -    rsync -a --delete ./site/ host:/srv/s\n        -ite/"
+
+    def test_diff_view_breaks_mid_word(self):
+        width = len(self.DIFF.split("\n")[0]) + 7
+        self.assertEqual(run_all(self.DIFF, width=width), [("rsync -a --delete ./site/ host:/srv/site/", True)])
+
+    def test_diff_context_line_breaks_mid_word(self):
+        text = self.DIFF.replace("7 -", "7  ").replace("        -", "         ")
+        width = len(text.split("\n")[0]) + 7
+        self.assertEqual(run_all(text, width=width), [("rsync -a --delete ./site/ host:/srv/site/", True)])
+
+    def test_only_the_same_marker_continues_a_diff_line(self):
+        text = "      7 +    git push origin master\n        Xyz"
+        width = len(text.split("\n")[0]) + 7
+        self.assertEqual(run(text, width=width), ["git push origin master"])
+
+    def test_numbered_line_starts_a_new_diff_line(self):
+        text = self.DIFF.split("\n")[0] + "\n      8 +git push origin master"
+        width = len(text.split("\n")[0]) + 7
+        self.assertEqual(run(text, width=width), ["git push origin master", "rsync -a --delete ./site/ host:/srv/s"])
+
+    def test_word_ending_on_the_last_column_fits(self):
+        self.assertFalse(cp.wraps("a" * 10, "bcd", 14))
+        self.assertTrue(cp.wraps("a" * 10, "bcde", 14))
+
+    def test_wide_characters_count_double(self):
+        self.assertEqual(cp.display_width("\u754c\u754cab"), 6)
+        self.assertTrue(cp.wraps("\u754c" * 5, "abc", 12))
+        self.assertFalse(cp.wraps("abcde", "abc", 12))
+
+    def test_truncated_display_is_never_offered(self):
+        self.assertEqual(run_all("rsync -a src/ host:/srv/very/long/pa\u2026"), [])
+
+
+class SubcommandTables(unittest.TestCase):
+    def test_lines(self):
+        self.assertEqual(cp.parse_subcommands("lines", "add\nstatus\nlg\n"), {"add", "status", "lg"})
+
+    def test_indented_help(self):
+        text = "\n".join([
+            "Unit Commands:",
+            "  [list-units                  List units currently in memory",
+            "    [PATTERN\u2026]]",
+            "  restart UNIT\u2026              Start or restart one or more units",
+            "                               path",
+            "  compose*    Docker Compose",
+            "  auth:          Authenticate gh",
+            "    activewindow        \u2192 Gets the active window",
+            "  -h --help    Show this help",
+        ])
+        self.assertEqual(cp.parse_subcommands("indented", text), {"list-units", "restart", "compose", "auth", "activewindow"})
+
+    def test_tmux(self):
+        text = "attach-session (attach) [-dErx]\nclock-mode [-t target-pane]\n"
+        self.assertEqual(cp.parse_subcommands("tmux", text), {"attach-session", "attach", "clock-mode"})
+
+    def test_nix(self):
+        text = "Help commands:\n  \u00b7 nix help - show help\n  \u00b7 nix flake archive - copy\n"
+        self.assertEqual(cp.parse_subcommands("nix", text), {"help", "flake"})
+
+    def test_probes_are_fixed_argv_lists(self):
+        for tool, (argv, kind) in cp.SUBCOMMAND_SOURCES.items():
+            with self.subTest(tool=tool):
+                self.assertEqual(argv[0], tool)
+                self.assertIsInstance(argv, tuple)
+                self.assertIn(kind, {"lines", "indented", "tmux", "nix"})
+
+
 class IgnoresProse(unittest.TestCase):
     CASES = [
         "Make sure the tests pass before you commit, and then run the build.",
@@ -131,8 +283,14 @@ class IgnoresProse(unittest.TestCase):
         CODE + "$EDITOR" + OFF,
         ESC + "1mgit is the culprit here" + ESC + "22m",
         'docker said "no space left on device" when I tried it',
+        ESC + "1mjournalctl is the culprit here" + ESC + "22m",
+        'curl said "no route to host" when I tried it',
+        "the curl binary is missing here",
+        "the htop window shows it",
+        "the rsync job finished overnight",
+        "f = sys.stdin.buffer",
+        "g == other",
         "docker restarts containers automatically.",
-        "systemctl restart waybar if it hangs",
         "    htop",
         DIM + "(timeout 10m)" + ESC + "22m",
         "(timeout 10m)",
@@ -142,7 +300,7 @@ class IgnoresProse(unittest.TestCase):
     def test_cases(self):
         for text in self.CASES:
             with self.subTest(text=text):
-                self.assertEqual(run(text), [])
+                self.assertEqual(run_all(text), [])
 
 
 class SingleWords(unittest.TestCase):
@@ -152,7 +310,7 @@ class SingleWords(unittest.TestCase):
     def test_rejected_elsewhere(self):
         for text in ["    htop", "dnsmasq", "Open `htop` and sort by memory.", CODE + "htop" + OFF]:
             with self.subTest(text=text):
-                self.assertEqual(run(text), [])
+                self.assertEqual(run_all(text), [])
 
 
 class ClaudeCodeScreens(unittest.TestCase):
@@ -162,6 +320,20 @@ class ClaudeCodeScreens(unittest.TestCase):
         "     " + ESC + "38;5;77m" + ESC + "48;5;22m 70 +" + ESC + "38;5;231m        (" + ESC + '38;5;186m"$ htop"' + ESC + "38;5;231m, [" + ESC + '38;5;186m"htop"' + ESC + "38;5;231m]),",
     ]
     TOOL_CALL = ESC + "38;5;246m  \u23bf  $ for i in $(seq 1 30); do pgrep -f gource >/dev/null || { echo \"exited after ~${i}x2s\"; break; }; sleep 2; done (23"
+
+    VIEWED_FILE = "     " + ESC + "2m" + ESC + "38;5;231m 55 " + ESC + "0m" + ESC + "38;5;231m   kill rule `STAGE0_KILL_RULE.md`. Day 10: NAV 0.994 at 1x vs CDB 1.003. Liveness = newest sqlite row, nothing else." + ESC + "39m"
+    VIEWED_COMMAND = "     " + ESC + "38;5;231m 12 " + ESC + "0m" + ESC + "38;5;231m   git push origin master" + ESC + "39m"
+
+    def test_whole_line_colour_is_not_inline_code(self):
+        self.assertEqual(run_all(self.VIEWED_FILE), [])
+
+    def test_command_in_a_viewed_file(self):
+        self.assertEqual(run(self.VIEWED_COMMAND), ["git push origin master"])
+
+    HIGHLIGHTED = ESC + "38;5;81mecho" + ESC + "38;5;231m " + ESC + '38;5;186m"exited ' + ESC + "38;5;141mafter ~${i}x2s; break" + ESC + "38;5;231m"
+
+    def test_syntax_highlighted_tokens_are_not_inline_code(self):
+        self.assertEqual(run_all(self.HIGHLIGHTED), [])
 
     def test_status_line(self):
         self.assertEqual(run(self.STATUS), [])
@@ -188,7 +360,10 @@ class RejectsBrokenShell(unittest.TestCase):
     def test_cases(self):
         for text in self.CASES:
             with self.subTest(text=text):
-                self.assertEqual(run(text), [])
+                self.assertEqual(run_all(text), [])
+
+    def test_fragment_led_by_a_redirect_offers_only_the_clean_part(self):
+        self.assertEqual(run_all("> ~/.config/x.env && chmod 600 ~/.config/x.env"), [("chmod 600 ~/.config/x.env", True)])
 
     def test_psql_counts_once_installed(self):
         names = cp.Names(NAMES.commands | {"psql"}, NAMES.starters | {"psql"})
@@ -237,25 +412,6 @@ class Layout(unittest.TestCase):
     def test_osc8_hyperlinks_are_transparent(self):
         link = "\x1b]8;id=1;https://example.com\x1b\\"
         self.assertEqual(run(link + "git log --oneline" + "\x1b]8;;\x1b\\"), ["git log --oneline"])
-
-
-class KnownLimitations(unittest.TestCase):
-    @unittest.expectedFailure
-    def test_trailing_english_verb_is_kept(self):
-        self.assertEqual(run("Pass the flag: journalctl -b --no-pager works."), ["journalctl -b --no-pager"])
-
-    @unittest.expectedFailure
-    def test_hard_wrapped_command_is_not_rejoined(self):
-        text = "  docker compose -f stack.yml up -d --remove-orphans\n  --force-recreate"
-        self.assertEqual(run(text), ["docker compose -f stack.yml up -d --remove-orphans --force-recreate"])
-
-    @unittest.expectedFailure
-    def test_line_start_command_with_english_tail(self):
-        self.assertEqual(run("systemctl restart waybar if it hangs"), ["systemctl restart waybar"])
-
-    @unittest.expectedFailure
-    def test_unformatted_command_without_cue_or_flag(self):
-        self.assertEqual(run("the trick is git stash then pop"), ["git stash"])
 
 
 class NeverExecutes(unittest.TestCase):
@@ -307,7 +463,7 @@ class Helpers(unittest.TestCase):
         self.assertEqual(cp.parses(cands), [True, False, False, True, False])
 
     def test_embedded_stops_at_boundary(self):
-        self.assertEqual(cp.embedded_commands("now run git status to see it", {"git"}), [("git status", True)])
+        self.assertEqual(cp.embedded_commands("now run git status to see it", {"git"}), [("git status", True, False, True)])
 
 
 def slurp(path):
@@ -326,6 +482,8 @@ def tool_command():
 @unittest.skipUnless(shutil.which("tmux") and shutil.which("fzf"), "tmux and fzf required")
 class InsideTmux(unittest.TestCase):
     FIXTURE = "\n".join([
+        "  python3 -m http.server 8000 --bind 127.0.0.1 --directory",
+        "  /tmp/served",
         "⏺ Run " + CODE + "tmux kill-server" + OFF + " when you are done.",
         "You should run python3 -m http.server 8000 to serve it.",
         "This line is prose and holds nothing.",
@@ -337,6 +495,7 @@ class InsideTmux(unittest.TestCase):
         "zsh -fc 'print -l one two three four five six seven eight nine ten eleven twelve'",
         "python3 -m http.server 8000",
         "tmux kill-server",
+        "python3 -m http.server 8000 --bind 127.0.0.1 --directory /tmp/served",
     ]
 
     @classmethod
