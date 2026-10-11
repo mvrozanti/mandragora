@@ -346,7 +346,7 @@ def check_agent(c, old, new, stems, names, problems):
                 gone = sorted(set(old_fm) - set(new_fm))
                 if gone:
                     problems.add(c.path, f"frontmatter keys removed: {', '.join(gone)}", "put them back")
-                if old_fm.get("type") != new_fm.get("type"):
+                if "type" in old_fm and old_fm.get("type") != new_fm.get("type"):
                     problems.add(c.path, f"frontmatter type changed from '{old_fm.get('type')}' to '{new_fm.get('type')}'", "put it back")
         removed, added, total = line_delta(old, new)
         if removed > max(SHRINK_FLOOR, SHRINK_RATIO * total):
