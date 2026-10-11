@@ -123,6 +123,25 @@ a { color: var(--mv-accent); }
 .mv-footer a:hover { text-decoration: underline; }
 
 
+.mv-tabs { display: flex; align-items: stretch; gap: var(--mv-space-1); }
+.mv-tabs__tab { display: inline-flex; align-items: center; min-height: var(--mv-tap); padding: 0 var(--mv-space-3); font-family: var(--mv-font-mono); font-size: var(--mv-text-base); color: var(--mv-text-ghost); text-decoration: none; border-bottom: 2px solid transparent; transition: color var(--mv-dur-fast), border-color var(--mv-dur-fast); }
+.mv-tabs__tab:hover { color: var(--mv-text); }
+.mv-tabs__tab[aria-current="page"] { color: var(--mv-text); border-bottom-color: var(--mv-accent); }
+
+.mv-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--mv-space-2); min-height: var(--mv-tap); padding: 0 var(--mv-space-4); border: 1px solid var(--mv-line-strong); border-radius: var(--mv-radius-2); background: none; color: var(--mv-text); font-family: var(--mv-font-mono); font-size: var(--mv-text-base); letter-spacing: 0.04em; text-decoration: none; cursor: pointer; transition: background-color var(--mv-dur-fast), border-color var(--mv-dur-fast), color var(--mv-dur-fast); }
+.mv-btn:hover { background: var(--mv-bg-high); }
+.mv-btn.is-primary { background: var(--mv-accent); border-color: var(--mv-accent); color: var(--mv-on-accent); font-weight: 600; }
+.mv-btn.is-primary:hover { background: color-mix(in srgb, var(--mv-accent) 86%, var(--mv-text)); }
+.mv-btn:disabled { opacity: 0.55; cursor: progress; }
+
+.mv-field { display: grid; gap: var(--mv-space-1); min-width: 0; }
+.mv-field__hint { font-family: var(--mv-font-mono); font-size: var(--mv-text-xs); color: var(--mv-text-ghost); }
+.mv-input { width: 100%; min-height: var(--mv-tap); background: var(--mv-bg-raised); border: 1px solid var(--mv-line); border-radius: var(--mv-radius-2); color: var(--mv-text); font-family: var(--mv-font-mono); font-size: 16px; padding: 0 var(--mv-space-3); }
+.mv-input::placeholder { color: var(--mv-text-ghost); }
+.mv-input:focus { outline: none; border-color: var(--mv-accent); }
+
+.mv-media { display: block; width: 100%; background: var(--mv-bg-raised); border: 1px solid var(--mv-line); border-radius: var(--mv-radius-2); }
+
 @media (min-width: 780px) {
   .mv-list { grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); column-gap: var(--mv-space-5); }
 }
