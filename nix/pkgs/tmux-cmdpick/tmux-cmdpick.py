@@ -7,6 +7,7 @@ import json
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import unicodedata
 
@@ -655,6 +656,22 @@ def capture(pane, lines):
     return tmux("capture-pane", "-p", "-J", "-e", "-t", pane, "-S", "-%d" % lines)
 
 
+def notify(client, text):
+    target = ["-c", client] if client else []
+    tmux("display-message", *target, "-d", "1500", text)
+
+
+def open_popup(cands, pane, client):
+    fd, path = tempfile.mkstemp(prefix="tmux-cmdpick-", suffix=".json", dir=os.environ.get("XDG_RUNTIME_DIR") or None)
+    with os.fdopen(fd, "w") as f:
+        json.dump(cands, f)
+    picker = shlex.join([sys.executable, os.path.abspath(sys.argv[0]), "--pick-file", path, pane])
+    target = ["-c", client] if client else []
+    opened = subprocess.run(["tmux", "display-popup", *target, "-E", "-w", "90%", "-h", "50%", picker], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if opened.returncode != 0 and os.path.exists(path):
+        os.unlink(path)
+
+
 def pick(cands, pane):
     header = "enter copy · alt-enter insert into pane · tab multi · ? ambiguous reading"
     fzf = subprocess.run(
@@ -685,7 +702,16 @@ def main():
     ap.add_argument("--print", action="store_true", dest="print_only")
     ap.add_argument("--stdin", action="store_true")
     ap.add_argument("--width", type=int)
+    ap.add_argument("--popup", action="store_true")
+    ap.add_argument("--client", default="")
+    ap.add_argument("--pick-file")
     args = ap.parse_args()
+    if args.pick_file:
+        with open(args.pick_file) as f:
+            cands = [(c, sure) for c, sure in json.load(f)]
+        os.unlink(args.pick_file)
+        pick(cands, args.pane)
+        return
     cwd = os.getcwd()
     width = args.width
     if args.stdin:
@@ -694,7 +720,10 @@ def main():
         target = ["-t", args.pane] if args.pane else []
         info = tmux("display-message", "-p", *target, "#{pane_id}\t#{pane_width}\t#{pane_current_path}").rstrip("\n").split("\t")
         if len(info) != 3 or not info[0]:
-            sys.exit("tmux-cmdpick: no tmux pane %s" % (args.pane or "to read (not inside tmux?)"))
+            message = "tmux-cmdpick: no tmux pane %s" % (args.pane or "to read (not inside tmux?)")
+            if args.popup:
+                notify(args.client, message)
+            sys.exit(message)
         args.pane = info[0]
         width = width or int(info[1])
         cwd = info[2] or cwd
@@ -704,7 +733,10 @@ def main():
         print("\n".join(fzf_line(c, sure) for c, sure in cands))
         return
     if not cands:
-        tmux("display-message", "-d", "1500", "tmux-cmdpick: no shell commands in pane")
+        notify(args.client, "tmux-cmdpick: no shell commands in pane")
+        return
+    if args.popup:
+        open_popup(cands, args.pane, args.client)
         return
     pick(cands, args.pane)
 
