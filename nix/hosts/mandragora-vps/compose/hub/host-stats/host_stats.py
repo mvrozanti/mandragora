@@ -22,13 +22,28 @@ SERVICES_FILE = os.environ.get("SERVICES_FILE", "/app/services.json")
 PROBE_INTERVAL = float(os.environ.get("PROBE_INTERVAL", "60"))
 PROBE_TIMEOUT = float(os.environ.get("PROBE_TIMEOUT", "8"))
 PROBE_WORKERS = int(os.environ.get("PROBE_WORKERS", "6"))
-PROBE_SLOW_MS = float(os.environ.get("PROBE_SLOW_MS", "5000"))
-GATE_CODES = (401, 403)
 PROBE_AGENT = "mandragora-hub-probe"
 CLICKS_FILE = os.environ.get("CLICKS_FILE", "/state/clicks.json")
 CLICK_HOST_RE = re.compile(r"^(?:[a-z0-9-]+\.)*mvr\.ac$")
 CPU_SAMPLE_SECONDS = float(os.environ.get("CPU_SAMPLE_SECONDS", "0.1"))
 PROC_STAT = os.environ.get("PROC_STAT", "/proc/stat")
+RING_FILE = os.environ.get("RING_FILE", "/state/probe-ring.json")
+RING_STEP = 300
+RING_SIZE = 288
+STATE_CHAR = {"ok": "o", "warn": "w", "down": "d"}
+CHAR_RANK = {".": 0, "o": 1, "w": 2, "d": 3}
+
+
+def _probe_rules() -> tuple[float, tuple[int, ...]]:
+    try:
+        with open(SERVICES_FILE) as f:
+            rules = json.load(f).get("probe", {})
+    except (FileNotFoundError, PermissionError, ValueError, OSError, AttributeError):
+        rules = {}
+    return float(rules.get("slow_ms", 5000)), tuple(rules.get("gate_codes", (401, 403)))
+
+
+PROBE_SLOW_MS, GATE_CODES = _probe_rules()
 
 
 def _read_proc_stat() -> list[int] | None:
@@ -86,6 +101,64 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 _opener = urllib.request.build_opener(_NoRedirect)
 _health: dict = {"ts": 0.0, "services": {}}
 _health_lock = threading.Lock()
+
+
+_ring: dict = {"end": 0, "hosts": {}}
+_ring_lock = threading.Lock()
+
+
+def _bucket_end(ts: float) -> int:
+    return -(-int(ts) // RING_STEP) * RING_STEP
+
+
+def load_ring() -> None:
+    try:
+        with open(RING_FILE) as f:
+            stored = json.load(f)
+        end = int(stored["end"])
+        hosts = {
+            str(h): str(s)[-RING_SIZE:].rjust(RING_SIZE, ".")
+            for h, s in stored["hosts"].items()
+        }
+    except (FileNotFoundError, PermissionError, ValueError, OSError, KeyError, TypeError, AttributeError):
+        return
+    with _ring_lock:
+        _ring["end"] = end
+        _ring["hosts"] = hosts
+
+
+def save_ring(snapshot: dict) -> None:
+    tmp = RING_FILE + ".tmp"
+    try:
+        os.makedirs(os.path.dirname(RING_FILE), exist_ok=True)
+        with open(tmp, "w") as f:
+            json.dump(snapshot, f)
+        os.replace(tmp, RING_FILE)
+    except OSError:
+        pass
+
+
+def _ring_advance(end: int) -> None:
+    gap = (end - _ring["end"]) // RING_STEP if _ring["end"] else RING_SIZE
+    if gap <= 0:
+        return
+    pad = "." * min(gap, RING_SIZE)
+    _ring["hosts"] = {h: (s + pad)[-RING_SIZE:] for h, s in _ring["hosts"].items()}
+    _ring["end"] = end
+
+
+def ring_record(results: dict, ts: float) -> None:
+    with _ring_lock:
+        _ring_advance(_bucket_end(ts))
+        hosts = _ring["hosts"]
+        for host, result in results.items():
+            states = hosts.get(host, "." * RING_SIZE)
+            new = STATE_CHAR.get(result.get("state"), ".")
+            if CHAR_RANK[new] > CHAR_RANK[states[-1]]:
+                states = states[:-1] + new
+            hosts[host] = states
+        snapshot = {"end": _ring["end"], "hosts": dict(hosts)}
+    save_ring(snapshot)
 
 
 _clicks: dict[str, int] = {}
@@ -186,6 +259,7 @@ def probe_round() -> None:
     with _health_lock:
         _health["ts"] = time.time()
         _health["services"] = results
+    ring_record(results, time.time())
 
 
 def probe_loop() -> None:
@@ -200,6 +274,42 @@ def probe_loop() -> None:
 def health() -> dict:
     with _health_lock:
         return {"ts": _health["ts"], "services": dict(_health["services"])}
+
+
+def read_roster() -> dict:
+    try:
+        with open(SERVICES_FILE) as f:
+            doc = json.load(f)
+    except (FileNotFoundError, PermissionError, ValueError, OSError):
+        return {}
+    roster = {}
+    for svc in doc.get("services", []):
+        host = svc.get("host")
+        if host:
+            roster[host] = {k: svc.get(k) for k in ("name", "group", "where", "access")}
+    return roster
+
+
+def status_probes() -> dict:
+    now = time.time()
+    roster = read_roster()
+    with _ring_lock:
+        _ring_advance(_bucket_end(now))
+        end = _ring["end"]
+        rings = dict(_ring["hosts"])
+    with _health_lock:
+        live = dict(_health["services"])
+    hosts = {
+        host: dict(meta, states=rings.get(host, "." * RING_SIZE), now=live.get(host))
+        for host, meta in roster.items()
+    }
+    return {
+        "ts": now,
+        "step": RING_STEP,
+        "start": end - (RING_SIZE - 1) * RING_STEP,
+        "end": end,
+        "hosts": hosts,
+    }
 
 
 def snapshot() -> dict:
@@ -242,6 +352,8 @@ class _Handler(BaseHTTPRequestHandler):
             return
         if path == "/api/health":
             body = health()
+        elif path == "/api/status-probes":
+            body = status_probes()
         elif path in ("", "/status", "/api/vps"):
             body = snapshot()
         else:
@@ -257,6 +369,7 @@ def main() -> None:
     host = os.environ.get("HOST_STATS_HOST", "0.0.0.0")
     port = int(os.environ.get("HOST_STATS_PORT", "8081"))
     load_clicks()
+    load_ring()
     threading.Thread(target=probe_loop, daemon=True).start()
     server = ThreadingHTTPServer((host, port), _Handler)
     try:
