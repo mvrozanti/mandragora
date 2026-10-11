@@ -5,7 +5,7 @@ let
   hubServices =
     (builtins.fromJSON (builtins.readFile ../../hosts/mandragora-vps/compose/hub/static/services.json))
     .services;
-  probeTargets = map (svc: "https://${svc.host}") hubServices;
+  probeTargets = map (svc: "https://${svc.host}${svc.probe or ""}") hubServices;
 in
 {
   services.victoriametrics = {

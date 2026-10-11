@@ -20,6 +20,7 @@ in
         GPU_STATUS_PORT = "6684";
         GPU_LOCK_DIR = "/dev/shm/gpu-lock";
         HUB_THEME_FILE = "/home/m/.cache/matugen/hub-theme.json";
+        STATUS_SNAPSHOT_FILE = "/run/status-snapshot/status.json";
         PYTHONPATH = "${gpuLock}";
         NVIDIA_SMI = "/run/current-system/sw/bin/nvidia-smi";
       };
