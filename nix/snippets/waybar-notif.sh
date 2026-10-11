@@ -10,10 +10,10 @@ emit() {
   fi
 }
 
-emit
-stdbuf -oL swaync-client -swb -sw | while IFS= read -r line; do
-  case "$line" in
-    *dnd-notification*) printf '{"text": "%s", "class": "dnd"}\n' "$bell_slash" ;;
-    *)                 printf '{"text": "%s", "class": "active"}\n' "$bell" ;;
-  esac
+while true; do
+  emit
+  stdbuf -oL swaync-client -swb -sw | while IFS= read -r _; do
+    emit
+  done
+  sleep 2
 done
