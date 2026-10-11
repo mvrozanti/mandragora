@@ -108,4 +108,6 @@
   # turns later. Silent and exit-0 when the flag is absent.
   home.file.".claude/hooks/chat-mode.sh".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/hooks/chat-mode.sh";
+  home.file.".claude/hooks/tmux-state.sh".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/hooks/tmux-state.sh";
 }

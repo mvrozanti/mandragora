@@ -30,6 +30,14 @@
             "command": "~/.claude/hooks/rtk-rewrite.sh"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-state.sh run"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -38,6 +46,50 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/chat-mode.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-state.sh run"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-state.sh run"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-state.sh idle"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-state.sh input"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-state.sh off"
           }
         ]
       }
