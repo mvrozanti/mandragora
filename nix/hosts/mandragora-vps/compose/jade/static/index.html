@@ -10,9 +10,9 @@
   <link rel="stylesheet" href="components.css">
   <script src="theme.js" data-endpoint="/api/theme?colors=1" data-poll="15"></script>
   <style>
-    html, body { height: 100%; height: 100dvh; overscroll-behavior: none; }
-    body { overflow: hidden; background: var(--mv-bg); }
-    .lens { position: fixed; inset: 0; background: black; color: var(--mv-text); }
+    html, body { height: 100%; height: 100dvh; margin: 0; overflow: hidden; overscroll-behavior: none; }
+    body { background: var(--mv-bg); }
+    .lens { position: fixed; top: 0; left: 0; right: 0; height: 100dvh; background: black; color: var(--mv-text); }
     .cam { position: absolute; inset: 0; overflow: hidden; transition: opacity var(--mv-dur) var(--mv-ease); }
     .cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .cam .scan-region-highlight-svg { stroke: white !important; opacity: .85; }
