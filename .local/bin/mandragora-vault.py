@@ -18,7 +18,7 @@ import urllib.request
 VAULT = os.path.realpath(os.path.expanduser(os.environ.get("MANDRAGORA_VAULT", "~/Documents/mandragora-desktop-obsidian-vault")))
 FLAKE = os.environ.get("MANDRAGORA_FLAKE", "/etc/nixos/mandragora")
 SECRET_PATTERNS = os.environ.get("MANDRAGORA_SECRET_PATTERNS", "@secretPatterns@")
-DEPLOY = os.path.expanduser(os.environ.get("MANDRAGORA_VAULT_DEPLOY", "~/Projects/demo/deploy.sh"))
+DEPLOY = os.path.expanduser(os.environ.get("MANDRAGORA_VAULT_DEPLOY", os.path.join(FLAKE, "nix/hosts/mandragora-vps/compose/demo/publish-vault.sh")))
 STATE = os.path.join(os.path.expanduser(os.environ.get("XDG_STATE_HOME") or "~/.local/state"), "mandragora-vault")
 REVIEW_MODEL = os.environ.get("MANDRAGORA_VAULT_REVIEW_MODEL", "claude-haiku-4-5")
 SITE_PROBE = os.environ.get("MANDRAGORA_VAULT_PROBE", "https://demo.mvr.ac/vault/_Home.md")

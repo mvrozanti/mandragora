@@ -26,11 +26,16 @@ cross-page UI; each view is otherwise self-contained.
 | `tabs.css`, `gource.js`                                 | this repo (deploy.sh)     |
 | `favicon.svg`, `robots.txt`, `sitemap.xml`, `.well-known/` | this repo               |
 | `vendor/vault-graph/`                                   | this repo (vendored)      |
-| `vault/`, `graph.json`                                  | external (NOT deployed)   |
+| `vault/`, `graph.json`                                  | `publish-vault.sh`        |
 
-`vault/` and `graph.json` are written by separate tooling that walks
-the obsidian vault and emits the d3 graph — they live only on the
-VPS and are excluded from this stack's rsync.
+Two scripts write `/home/opc/demo/static/`, on disjoint paths.
+`deploy.sh` owns every page file; `publish-vault.sh` owns only `vault/`
+and `graph.json`, and is what `mandragora-vault publish` runs after an
+agent switch. Until 2026-10-11 the publish step ran
+`~/Projects/demo/deploy.sh`, which also pushed its own untabbed
+`index.html`, so every vault publish silently unlinked `/gource.html`.
+Audit check `18-demo-deployed` diffs the served page files against
+`static/` to keep a second writer from coming back.
 
 ## First-time bring-up on the VPS
 
