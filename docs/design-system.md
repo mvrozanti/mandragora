@@ -21,6 +21,12 @@ enforces equality against the hub copy.
 Per-page CSS (`hub.css`, `watch.css`, `kindle.css`, `skin.css`) layers
 on top and may only consume tokens, never redefine them.
 
+App pages use the same primitives as the hub: `.mv-tabs` for
+navigation, `.mv-btn` (`.is-primary`) for actions, `.mv-field` with
+`.mv-input` for forms, `.mv-media` for video and images. Reach for these
+before writing page CSS; a page-local button reads as a different
+product. `demo.css` is the worked example of an app over a canvas.
+
 ## The hex values in `theme.css` are a fallback
 
 This is the part that is easy to get wrong, because the file *looks*
