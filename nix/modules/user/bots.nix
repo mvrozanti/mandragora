@@ -274,6 +274,7 @@ in
         "PYTHONPATH=${gpuLockRoot}:${llmViaTelegramRoot}"
         "LLM_VIA_TELEGRAM_DATA_DIR=${llmViaTelegramState}/data"
         "LLM_VIA_TELEGRAM_LOG_DIR=${llmViaTelegramState}/logs"
+        "MANDRAGORA_AGENT=llm-via-telegram"
       ];
       Restart = "on-failure";
       RestartSec = 10;
