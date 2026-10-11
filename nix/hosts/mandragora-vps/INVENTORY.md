@@ -62,6 +62,7 @@ Several stacks are thin **reverse-proxy shims**: an `alpine` container that only
 | `seafile` | `seafile.mvr.ac` | Seafile file sync/share + SeaDoc + per-stack Caddy (`seafile`, `seafile-mysql`, `seafile-redis`, `seadoc`, `seafile-caddy`); sync/WebDAV paths bypass Authelia | Authelia (UI only) | local |
 | `demo` | `demo.mvr.ac` | Public vault knowledge-graph viewer + gource render UI | none | uses `gource` |
 | `cv` | `cv.mvr.ac` | Public static CV download page | none | local (static) |
+| `status` | `status.mvr.ac` | Public read-only status page: the desktop writes `status.json` every 60 s, `status-puller` fetches it and the palette over the tailnet into `data/`, `/api/status-probes` + `/api/vps` go to `host-stats` | none | desktop `:6684` (pulled, never proxied) |
 | `rule110` | `rule110.mvr.ac` | Rule-110 compiler visualization (static) | none | local (static) |
 | `jade` | `jade.mvr.ac` | Self-hosted Jade QR PIN oracle frontend (replaces `blkstrm.com/pn`); `/api/pin/*` → `pinserver` | none | uses `pinserver` |
 | `gpg` | `gpg.mvr.ac` | PGP public key (content-negotiated) + encrypted mail drop | partial (gated inbox) | local |
