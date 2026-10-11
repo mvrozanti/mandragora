@@ -2,84 +2,97 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="dark light">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#13140d">
   <title>jade oracle</title>
   <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="components.css">
   <script src="theme.js" data-endpoint="/api/theme?colors=1" data-poll="15"></script>
   <style>
-    * { box-sizing: border-box; }
-    html, body { margin: 0; }
-    body {
-      background: var(--mv-bg);
-      color: var(--mv-text);
-      font-family: var(--mv-font-sans);
-      font-size: var(--mv-text-base);
-      line-height: var(--mv-leading);
-      max-width: 640px;
-      margin: 0 auto;
-      padding: var(--mv-space-4);
+    html, body { height: 100%; height: 100dvh; overscroll-behavior: none; }
+    body { overflow: hidden; background: var(--mv-bg); }
+    .lens { position: fixed; inset: 0; background: black; color: var(--mv-text); }
+    .cam { position: absolute; inset: 0; overflow: hidden; transition: opacity var(--mv-dur) var(--mv-ease); }
+    .cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .cam .scan-region-highlight-svg { stroke: white !important; opacity: .85; }
+    .scrim { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, color-mix(in srgb, black 55%, transparent), transparent 22%, transparent 66%, color-mix(in srgb, black 70%, transparent)); }
+    .topb { position: absolute; left: 0; right: 0; top: 0; padding: calc(var(--mv-space-4) + env(safe-area-inset-top, 0px)) var(--mv-space-4) var(--mv-space-4); display: flex; align-items: center; gap: var(--mv-space-2); }
+    .topb .sp { flex: 1; }
+    .chip { display: inline-flex; align-items: center; gap: var(--mv-space-2); min-height: 36px; padding: 0 var(--mv-space-3); border-radius: var(--mv-radius-pill); background: color-mix(in srgb, var(--mv-bg) 72%, transparent); border: 1px solid color-mix(in srgb, var(--mv-line) 80%, transparent); color: var(--mv-text); font: var(--mv-text-sm)/1 var(--mv-font-mono); white-space: nowrap; backdrop-filter: blur(10px); }
+    .chip svg { width: 16px; height: 16px; flex: 0 0 auto; }
+    .chip select { all: unset; cursor: pointer; max-width: 9.5rem; overflow: hidden; text-overflow: ellipsis; }
+    .ibtn { width: var(--mv-tap); height: var(--mv-tap); border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--mv-line); background: color-mix(in srgb, var(--mv-bg) 70%, transparent); color: var(--mv-text); cursor: pointer; backdrop-filter: blur(8px); padding: 0; }
+    .ibtn svg { width: 20px; height: 20px; }
+    .reticle { position: absolute; left: 50%; top: 44%; width: min(78vw, 520px); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; }
+    .ring { position: absolute; inset: -14px; width: calc(100% + 28px); height: calc(100% + 28px); overflow: visible; }
+    .qrbox { position: absolute; inset: 0; display: grid; place-items: center; background: white; border-radius: 18px; padding: 5%; opacity: 0; transform: scale(.92); transition: opacity var(--mv-dur) var(--mv-ease), transform var(--mv-dur) var(--mv-ease); pointer-events: auto; cursor: pointer; }
+    .qrbox canvas { width: 100% !important; height: 100% !important; image-rendering: pixelated; display: block; }
+    .bottom { position: absolute; left: 0; right: 0; bottom: 0; padding: var(--mv-space-4) var(--mv-space-4) calc(var(--mv-space-5) + env(safe-area-inset-bottom, 0px)); display: grid; gap: var(--mv-space-3); justify-items: center; text-align: center; }
+    .head { margin: 0; font-size: var(--mv-text-xl); font-weight: 650; letter-spacing: -.01em; color: white; text-shadow: 0 1px 12px color-mix(in srgb, black 50%, transparent); }
+    .sub { margin: 0; max-width: 34rem; font: var(--mv-text-sm)/1.4 var(--mv-font-mono); color: color-mix(in srgb, white 78%, transparent); overflow-wrap: anywhere; }
+    .sub.err { color: var(--mv-down); }
+    .shut { width: 72px; height: 72px; border-radius: 50%; border: 3px solid white; background: transparent; display: grid; place-items: center; cursor: pointer; padding: 0; }
+    .shut i { display: block; width: 56px; height: 56px; border-radius: 50%; background: var(--mv-accent); transition: all var(--mv-dur) var(--mv-ease); }
+    .shut.live i { width: 26px; height: 26px; border-radius: 6px; background: var(--mv-down); }
+    .shut:disabled { opacity: .45; cursor: default; }
+    .acts { display: flex; gap: var(--mv-space-2); width: 100%; max-width: 420px; }
+    .acts .btn { flex: 1; white-space: nowrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--mv-space-2); min-height: var(--mv-tap); padding: 0 var(--mv-space-4); border-radius: var(--mv-radius-2); border: 1px solid transparent; background: var(--mv-accent); color: var(--mv-on-accent); font: 600 var(--mv-text-md)/1 var(--mv-font-sans); cursor: pointer; transition: background var(--mv-dur-fast), transform var(--mv-dur-fast); }
+    .btn:active { transform: scale(.98); }
+    .btn.ghost { background: transparent; color: var(--mv-text); border-color: var(--mv-line); }
+    .lens.showing { background: var(--mv-bg); }
+    .lens.showing .cam { opacity: 0; }
+    .lens.showing .qrbox { opacity: 1; transform: none; }
+    .lens.showing .head { color: var(--mv-text); text-shadow: none; }
+    .lens.showing .sub { color: var(--mv-text-dim); }
+    .lens.showing .scrim { display: none; }
+    .sheet { position: absolute; inset: auto 0 0 0; max-height: 78%; overflow: auto; background: var(--mv-bg-raised); border-top: 1px solid var(--mv-line); border-radius: 18px 18px 0 0; padding: var(--mv-space-4) var(--mv-space-4) calc(var(--mv-space-4) + env(safe-area-inset-bottom, 0px)); display: grid; gap: var(--mv-space-3); align-content: start; transform: translateY(105%); transition: transform var(--mv-dur) var(--mv-ease), visibility 0s linear var(--mv-dur); visibility: hidden; }
+    .sheet.open { transform: none; visibility: visible; transition: transform var(--mv-dur) var(--mv-ease); }
+    .sheet header { display: flex; align-items: center; }
+    .sheet header .ibtn { margin-left: auto; }
+    .raw { font: var(--mv-text-sm)/1.45 var(--mv-font-mono); color: var(--mv-text-dim); overflow-wrap: anywhere; }
+    .raw.err { color: var(--mv-down); }
+    .raw.ok { color: var(--mv-ok); }
+    pre.json { margin: 0; font: var(--mv-text-xs)/1.5 var(--mv-font-mono); color: var(--mv-text-dim); white-space: pre-wrap; word-break: break-all; }
+    @media (min-width: 900px) {
+      .reticle { width: min(46vw, 520px); top: 46%; }
+      .sheet { left: auto; width: 420px; top: 0; max-height: none; border-radius: 0; border-top: 0; border-left: 1px solid var(--mv-line); padding-top: calc(var(--mv-space-4) + env(safe-area-inset-top, 0px)); transform: translateX(105%); }
+      .sheet.open { transform: none; }
     }
-    h1 { font-size: var(--mv-text-lg); letter-spacing: var(--mv-tracking-label); text-transform: uppercase; margin: 0 0 var(--mv-space-2); }
-    h2 { font-size: var(--mv-text-md); margin: var(--mv-space-5) 0 var(--mv-space-2); }
-    .mono { font-family: var(--mv-font-mono); font-size: var(--mv-text-sm); }
-    .muted { color: var(--mv-text-dim); }
-    .err { color: var(--mv-down); }
-    .ok { color: var(--mv-ok); }
-    button {
-      background: var(--mv-accent); color: var(--mv-on-accent);
-      border: 0; border-radius: var(--mv-radius-1);
-      padding: var(--mv-space-2) var(--mv-space-4);
-      font-family: inherit; font-size: inherit; font-weight: 600;
-      min-height: var(--mv-tap); cursor: pointer;
-    }
-    button:disabled { opacity: 0.5; cursor: default; }
-    button.ghost { background: transparent; color: var(--mv-text); border: 1px solid var(--mv-line); }
-    video { width: 100%; max-height: 44vh; background: #000; border-radius: var(--mv-radius-2); }
-    .row { display: flex; gap: var(--mv-space-3); align-items: center; margin: var(--mv-space-3) 0; flex-wrap: wrap; }
-    .bar { height: 8px; background: var(--mv-bg-high); border-radius: var(--mv-radius-pill); overflow: hidden; margin: var(--mv-space-2) 0; }
-    .bar > div { height: 100%; background: var(--mv-accent); width: 0; transition: width var(--mv-dur) var(--mv-ease); }
-    .card {
-      background: var(--mv-bg-raised); border: 1px solid var(--mv-line);
-      border-radius: var(--mv-radius-2); padding: var(--mv-space-3); margin: var(--mv-space-3) 0;
-    }
-    #respqr { text-align: center; }
-    #respqr canvas { width: min(100%, 480px) !important; height: auto !important; aspect-ratio: 1 / 1; image-rendering: pixelated; display: block; margin: 0 auto; }
-    .step { color: var(--mv-tone-3); font-size: var(--mv-text-sm); letter-spacing: var(--mv-tracking-label); text-transform: uppercase; }
   </style>
 </head>
 <body>
-  <h1>jade oracle</h1>
-  <p class="muted">self-hosted PIN oracle — replaces <span class="mono">blkstrm.com/pn</span>.</p>
-
-  <section>
-    <h2>step 1 · scan jade</h2>
-    <video id="video" playsinline></video>
-    <div class="row">
-      <button id="start">open camera</button>
-      <button id="stop" disabled class="ghost">stop</button>
-      <span class="muted" id="cstatus">idle</span>
+  <main class="lens" id="app">
+    <div class="cam" id="cam"><video id="video" playsinline muted></video></div>
+    <div class="scrim"></div>
+    <header class="topb">
+      <span class="chip" id="flow">jade.mvr.ac</span>
+      <span class="sp"></span>
+      <label class="chip" id="camchip" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8h3.2l1.8-2.2h7l1.8 2.2h3.2v11h-17z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="13.3" r="3.6" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+        <select id="camsel" aria-label="Camera"></select>
+      </label>
+      <button class="ibtn" id="info" type="button" aria-label="Details" aria-controls="sheet" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 11v5.5M12 7.6v.1" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+    <div class="reticle" id="reticle">
+      <div class="qrbox" id="qrbox" title="Tap to pause on this frame"><canvas id="qr"></canvas></div>
+      <svg class="ring" id="ring" viewBox="-110 -110 220 220" aria-hidden="true"></svg>
     </div>
-    <div class="bar"><div id="prog"></div></div>
-    <div class="muted mono" id="status">waiting for ur:jade-pin…</div>
-  </section>
-
-  <section id="relay" hidden>
-    <h2>step 2 · relay</h2>
-    <div class="card mono" id="relayinfo"></div>
-  </section>
-
-  <section id="resp" hidden>
-    <h2>step 3 · scan response</h2>
-    <p class="muted">point the jade at this code.</p>
-    <div class="card" id="respqr"></div>
-  </section>
-
-  <section>
-    <h2>audit</h2>
-    <div class="card mono" id="audit" hidden></div>
-  </section>
+    <section class="bottom" aria-live="polite">
+      <h1 class="head" id="head"></h1>
+      <p class="sub" id="sub"></p>
+      <div id="ctrl"></div>
+    </section>
+    <aside class="sheet" id="sheet" aria-label="Details">
+      <header><span class="mv-label">details</span><button class="ibtn" id="close" type="button" aria-label="Close details"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></header>
+      <div class="raw" id="status"></div>
+      <div class="mv-glance" id="relay"></div>
+      <details class="mv-status"><summary class="mv-status__summary"><span class="mv-label">decoded envelope</span></summary><div class="mv-status__body"><pre class="json" id="json"></pre></div></details>
+    </aside>
+  </main>
 
   <script src="qr-scanner.umd.min.js"></script>
   <script type="module">
@@ -87,151 +100,266 @@
     import { decode as cborDecode } from "https://cdn.jsdelivr.net/npm/cbor-x@1.6.6/+esm";
     import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/+esm";
 
-    const video = document.getElementById("video");
-    const startBtn = document.getElementById("start");
-    const stopBtn = document.getElementById("stop");
-    const cstatus = document.getElementById("cstatus");
-    const status = document.getElementById("status");
-    const prog = document.getElementById("prog");
-    const relaySec = document.getElementById("relay");
-    const relayInfo = document.getElementById("relayinfo");
-    const respSec = document.getElementById("resp");
-    const respQr = document.getElementById("respqr");
-    const auditSec = document.getElementById("audit");
+    const $ = id => document.getElementById(id);
+    const app = $("app"), video = $("video"), reticle = $("reticle"), ring = $("ring");
+    const qrCanvas = $("qr"), qrbox = $("qrbox"), ctrl = $("ctrl"), sheet = $("sheet");
+    const REPLY_MS = 600;
+    const FLOWS = { get_pin: "Unlock", set_pin: "PIN setup" };
 
-    const stream = new UrStream();
-    const seen = new Set();
-    let scanner = null;
-    let done = false;
+    const st = {
+      phase: "idle", camera: "idle", stream: new UrStream(), seen: new Set(), captured: new Set(),
+      status: { text: "waiting for ur:jade-pin…", cls: "muted" }, envelope: null, relay: null,
+      replyParts: [], replyIdx: 0, paused: false, err: null, flow: null,
+    };
+    let scanner = null, replyTimer = null, wakeLock = null, lastCtrl = "";
 
-    function setStatus(txt, cls) { status.textContent = txt; status.className = cls + " mono"; }
+    function setStatus(text, cls) { st.status = { text, cls }; }
 
-    function extractHttpRequest(obj) {
-      let req = obj && obj.http_request;
-      if (!req && obj && obj.result && obj.result.http_request) req = obj.result.http_request;
-      return req;
+    function fail(title, detail, statusText) {
+      st.phase = "error"; st.err = { title, detail };
+      if (statusText) setStatus(statusText, "err");
+      render();
     }
 
-    async function handleRequest(cborBytes) {
-      let obj;
-      try { obj = cborDecode(cborBytes); } catch (e) { setStatus("decode failed: " + e.message, "err"); return; }
-      const req = extractHttpRequest(obj);
-      if (!req || !req.params) { setStatus("no http_request in payload", "err"); return; }
+    function scanRegion(v) {
+      const vw = v.videoWidth, vh = v.videoHeight;
+      const box = video.getBoundingClientRect(), r = reticle.getBoundingClientRect();
+      const fallback = Math.round(Math.min(vw, vh) * 2 / 3);
+      const def = { x: Math.round((vw - fallback) / 2), y: Math.round((vh - fallback) / 2), width: fallback, height: fallback, downScaledWidth: 400, downScaledHeight: 400 };
+      if (!vw || !vh || !box.width || !box.height || !r.width) return def;
+      const scale = Math.max(box.width / vw, box.height / vh);
+      const offX = (box.width - vw * scale) / 2, offY = (box.height - vh * scale) / 2;
+      let size = Math.min(r.width / scale, vw, vh);
+      if (size < 200) return def;
+      let x = (r.left - box.left - offX) / scale, y = (r.top - box.top - offY) / scale;
+      x = Math.max(0, Math.min(x, vw - size)); y = Math.max(0, Math.min(y, vh - size));
+      size = Math.round(size);
+      return { x: Math.round(x), y: Math.round(y), width: size, height: size, downScaledWidth: 400, downScaledHeight: 400 };
+    }
 
-      const params = req.params;
-      const dataObj = params.data;
-      const data = (typeof dataObj === "string") ? dataObj : (dataObj && dataObj.data);
-      const urls = params.urls || [];
-
-      relaySec.hidden = false;
-      relayInfo.textContent = "POST " + (urls[0] || "?") + "\n" + JSON.stringify(dataObj, null, 2);
-
-      if (!data) { setStatus("no data field", "err"); return; }
-
-      let resp;
+    async function fillCameras() {
       try {
-        resp = await fetch(urls[0], {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(dataObj)
-        });
-      } catch (e) {
-        setStatus("relay failed: " + e.message, "err");
-        return;
-      }
-
-      let respJson;
-      try { respJson = await resp.json(); } catch (e) { setStatus("bad response", "err"); return; }
-
-      if (!resp.ok || !respJson || typeof respJson.data !== "string") {
-        setStatus("pinserver error: " + (respJson && respJson.error || resp.status), "err");
-        return;
-      }
-
-      const parts = encodeUr("jade-pin", encodePinReply("qrpin", respJson.data), 50, 8);
-
-      respSec.hidden = false;
-      renderResponseParts(parts);
-      setStatus("relayed · " + parts.length + " part(s)", "ok");
-      stop();
+        const cams = await QrScanner.listCameras(true);
+        const sel = $("camsel");
+        sel.innerHTML = "";
+        cams.forEach(c => { const o = document.createElement("option"); o.value = c.id; o.textContent = c.label || "Camera"; sel.appendChild(o); });
+        $("camchip").hidden = cams.length < 2;
+      } catch (e) {}
     }
 
-    function renderResponseParts(parts) {
-      respQr.innerHTML = "";
-      const qrCanvas = document.createElement("canvas");
-      respQr.appendChild(qrCanvas);
-      let i = 0;
-      const draw = () => {
-        if (i >= parts.length) i = 0;
-        const text = parts[i++];
-        QRCode.toCanvas(qrCanvas, text, { margin: 4, width: 480, errorCorrectionLevel: "M" }, (err) => {});
-        setTimeout(draw, 600);
-      };
-      draw();
-    }
-
-    function onComplete(payload) {
-      if (done) return;
-      done = true;
-      setStatus("decoded · type " + stream.type + " · " + payload.length + " B", "ok");
-      auditSec.hidden = false;
+    async function openCamera() {
+      if (st.phase === "relaying" || st.phase === "showing") return;
       try {
-        const obj = cborDecode(payload);
-        auditSec.textContent = JSON.stringify(obj, null, 2);
+        if (!scanner) {
+          QrScanner._disableBarcodeDetector = true;
+          scanner = new QrScanner(video, result => onPart(result.data), {
+            returnDetailedScanResult: true,
+            highlightScanRegion: true,
+            highlightCodeOutline: true,
+            calculateScanRegion: scanRegion,
+            onDecodeError: error => {
+              if (error === "No QR code found" || error === QrScanner.NO_QR_CODE_FOUND) return;
+              setStatus("scan err: " + error, "err");
+              render();
+            },
+          });
+        }
+        await scanner.start();
+        st.phase = "scanning"; st.camera = "live"; st.err = null;
+        render();
+        fillCameras();
       } catch (e) {
-        auditSec.textContent = "raw:\n" + Array.from(payload).map(b => b.toString(16).padStart(2, "0")).join(" ");
+        st.camera = "denied";
+        fail("Camera blocked", "Allow camera access for jade.mvr.ac in the browser's site settings, then try again.", "camera denied: " + (e && e.message ? e.message : e));
       }
-      handleRequest(payload);
+    }
+
+    function stopCamera() {
+      if (scanner) scanner.stop();
+      if (st.camera === "live") st.camera = "stopped";
+      render();
     }
 
     function onPart(text) {
-      if (done || !text) return;
+      if (st.phase !== "scanning" || !text) return;
       const t = text.toLowerCase();
-      if (!t.startsWith("ur:")) {
-        setStatus("non-ur: " + text.slice(0, 60), "err");
-        return;
-      }
-      if (seen.has(t)) return;
-      seen.add(t);
-      try { stream.receive(t); } catch (e) { setStatus("part rejected: " + e.message, "err"); return; }
-      const pct = Math.round(stream.progress * 100);
-      prog.style.width = pct + "%";
-      setStatus("fragments: " + stream.received + "/" + stream.expected + " · " + pct + "%", "muted");
-      if (stream.complete) onComplete(stream.message);
+      if (!t.startsWith("ur:")) { setStatus("non-ur: " + text.slice(0, 60), "err"); render(); return; }
+      if (st.seen.has(t)) return;
+      st.seen.add(t);
+      const seq = parseInt(t.split("/")[1], 10);
+      try { st.stream.receive(t); } catch (e) { setStatus("part rejected: " + e.message, "err"); render(); return; }
+      if (seq > 0) st.captured.add(seq);
+      const pct = Math.round(st.stream.progress * 100);
+      setStatus("fragments: " + st.stream.received + "/" + st.stream.expected + " · " + pct + "%", "muted");
+      if (navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
+      render();
+      if (st.stream.complete) complete(st.stream.message);
     }
 
-    async function start() {
+    function complete(payload) {
+      stopCamera();
+      setStatus("decoded · type " + st.stream.type + " · " + payload.length + " B", "ok");
+      let obj;
+      try { obj = cborDecode(payload); } catch (e) { return fail("Not a PIN request", "The QR decoded but is not valid CBOR.", "decode failed: " + e.message); }
+      st.envelope = obj;
+      const req = (obj && obj.http_request) || (obj && obj.result && obj.result.http_request);
+      if (!req || !req.params) return fail("Not a PIN request", "This QR is not a Jade PIN request.", "no http_request in payload");
+      const dataObj = req.params.data;
+      const data = typeof dataObj === "string" ? dataObj : dataObj && dataObj.data;
+      const url = (req.params.urls || [])[0];
+      if (!data || !url) return fail("Not a PIN request", "The request carries no data for the oracle.", "no data field");
+      const doc = url.split("/").pop();
+      st.flow = FLOWS[doc] || doc;
+      const pad = (data.match(/=*$/) || [""])[0].length;
+      st.relay = { url, path: new URL(url, location.href).pathname, bytes: data.length * 3 / 4 - pad, code: null, ms: null };
+      st.phase = "relaying";
+      render();
+      relay(url, dataObj);
+    }
+
+    async function relay(url, dataObj) {
+      const t0 = performance.now();
+      let resp;
       try {
-        QrScanner._disableBarcodeDetector = true;
-        scanner = new QrScanner(video, result => onPart(result.data), {
-          returnDetailedScanResult: true,
-          highlightScanRegion: true,
-          highlightCodeOutline: true,
-          onDecodeError: error => {
-            if (error === "No QR code found") return;
-            setStatus("scan err: " + error, "err");
-          }
-        });
-        await scanner.start();
-        startBtn.disabled = true;
-        stopBtn.disabled = false;
-        cstatus.textContent = "point at the jade";
-        cstatus.className = "ok";
+        resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dataObj) });
       } catch (e) {
-        cstatus.textContent = "camera denied: " + e.message;
-        cstatus.className = "err";
+        return fail("Oracle unreachable", "jade.mvr.ac/api/pin did not answer. Check the pinserver on the VPS, then scan again.", "relay failed: " + e.message);
       }
+      st.relay.code = resp.status;
+      st.relay.ms = Math.round(performance.now() - t0);
+      let json;
+      try { json = await resp.json(); } catch (e) { return fail("Oracle sent a bad reply", "The answer was not JSON. Check the pinserver logs, then scan again.", "bad response"); }
+      if (!resp.ok || !json || typeof json.data !== "string") {
+        return fail("Oracle refused the request", "It answered " + resp.status + ". Check the pinserver logs, then scan again.", "pinserver error: " + ((json && json.error) || resp.status));
+      }
+      st.replyParts = encodeUr("jade-pin", encodePinReply("qrpin", json.data), 50, 8);
+      st.replyIdx = 0; st.paused = false;
+      setStatus("relayed · " + st.replyParts.length + " part(s)", "ok");
+      st.phase = "showing";
+      render();
+      drawReply();
+      replyTimer = setInterval(() => { if (st.paused) return; st.replyIdx = (st.replyIdx + 1) % st.replyParts.length; drawReply(); render(); }, REPLY_MS);
+      holdScreen();
     }
 
-    function stop() {
-      if (scanner) { scanner.stop(); scanner.destroy(); scanner = null; }
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-      if (cstatus.textContent !== "idle") cstatus.textContent = "stopped";
+    function drawReply() {
+      if (!st.replyParts.length) return;
+      const size = Math.max(256, Math.round(qrbox.clientWidth * (window.devicePixelRatio || 1)));
+      QRCode.toCanvas(qrCanvas, st.replyParts[st.replyIdx], { margin: 1, width: size, errorCorrectionLevel: "M" }, () => {});
     }
 
-    startBtn.addEventListener("click", start);
-    stopBtn.addEventListener("click", stop);
+    async function holdScreen() {
+      try { if (navigator.wakeLock && !wakeLock) wakeLock = await navigator.wakeLock.request("screen"); } catch (e) {}
+    }
+    function releaseScreen() { if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; } }
+
+    function restart() {
+      clearInterval(replyTimer); replyTimer = null;
+      releaseScreen();
+      if (scanner) scanner.stop();
+      Object.assign(st, {
+        phase: "idle", camera: "idle", stream: new UrStream(), seen: new Set(), captured: new Set(),
+        status: { text: "waiting for ur:jade-pin…", cls: "muted" }, envelope: null, relay: null,
+        replyParts: [], replyIdx: 0, paused: false, err: null, flow: null,
+      });
+      const ctx = qrCanvas.getContext("2d"); ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+      render();
+      openCamera();
+    }
+
+    function headline() {
+      const n = st.stream.expected;
+      if (st.phase === "idle") return { title: "Unlock your Jade", sub: "On the Jade: QR Mode → QR PIN Unlock." };
+      if (st.phase === "scanning" && st.camera !== "live") return { title: "Camera paused", sub: st.stream.received + (n ? " of " + n : "") + " fragments kept" };
+      if (st.phase === "scanning") return { title: "Scanning the Jade", sub: st.status.text, err: st.status.cls === "err" };
+      if (st.phase === "relaying") return { title: "Asking your oracle", sub: "POST " + st.relay.path };
+      if (st.phase === "showing") return { title: "Show this to the Jade", sub: "On the Jade: Scan Web QR 2/2 · frame " + (st.replyIdx + 1) + "/" + st.replyParts.length + (st.paused ? " · paused" : "") };
+      return { title: st.err ? st.err.title : "Something failed", sub: st.err ? st.err.detail : st.status.text, err: true };
+    }
+
+    function seg(d, on, idle) {
+      const stroke = on ? "var(--mv-accent)" : idle;
+      return '<path d="' + d + '" style="fill:none;stroke:' + stroke + ";stroke-width:" + (on ? 6 : 4) + ';stroke-linecap:round;stroke-linejoin:round"/>';
+    }
+
+    function squarePoint(t, h) {
+      const side = 2 * h, p = ((t % 1) + 1) % 1 * side * 4;
+      if (p < h) return [p, -h];
+      if (p < h + side) return [h, -h + (p - h)];
+      if (p < h + 2 * side) return [h - (p - h - side), h];
+      if (p < h + 3 * side) return [-h, h - (p - h - 2 * side)];
+      return [-h + (p - h - 3 * side), -h];
+    }
+
+    function ringMarkup() {
+      const showing = st.phase === "showing";
+      const n = showing ? st.replyParts.length : st.stream.expected;
+      const faint = "color-mix(in srgb, white 28%, transparent)";
+      if (st.phase === "idle") return "";
+      if (!n) return '<circle r="104" style="fill:none;stroke:' + faint + ';stroke-width:4"/>';
+      let out = "";
+      if (showing) {
+        const h = 107, gap = 0.012;
+        for (let i = 0; i < n; i++) {
+          const pts = [];
+          for (let k = 0; k <= 96; k++) pts.push(squarePoint(i / n + gap + (1 / n - 2 * gap) * k / 96, h));
+          out += seg("M" + pts.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L"), i === st.replyIdx, "var(--mv-line)");
+        }
+        return out;
+      }
+      const gapDeg = 4, per = 360 / n;
+      for (let i = 0; i < n; i++) {
+        const a0 = (i * per + gapDeg / 2 - 90) * Math.PI / 180, a1 = ((i + 1) * per - gapDeg / 2 - 90) * Math.PI / 180;
+        const x0 = Math.cos(a0) * 104, y0 = Math.sin(a0) * 104, x1 = Math.cos(a1) * 104, y1 = Math.sin(a1) * 104;
+        out += seg("M" + x0.toFixed(1) + " " + y0.toFixed(1) + " A104 104 0 0 1 " + x1.toFixed(1) + " " + y1.toFixed(1), st.captured.has(i + 1), faint);
+      }
+      return out;
+    }
+
+    function render() {
+      const showing = st.phase === "showing";
+      app.classList.toggle("showing", showing);
+      $("flow").textContent = st.flow || "jade.mvr.ac";
+      ring.innerHTML = ringMarkup();
+      const h = headline();
+      $("head").textContent = h.title;
+      const sub = $("sub"); sub.textContent = h.sub; sub.className = "sub" + (h.err ? " err" : "");
+      const mode = st.phase + "|" + st.camera;
+      if (mode !== lastCtrl) {
+        lastCtrl = mode;
+        if (showing) ctrl.innerHTML = '<div class="acts"><button class="btn ghost" data-a="restart" type="button">Start over</button></div>';
+        else if (st.phase === "error") ctrl.innerHTML = '<div class="acts"><button class="btn" data-a="retry" type="button">Try again</button></div>';
+        else {
+          const live = st.camera === "live", busy = st.phase === "relaying";
+          const label = busy ? "Asking your oracle" : live ? "Stop camera" : st.phase === "scanning" ? "Resume camera" : "Open camera";
+          ctrl.innerHTML = '<button class="shut' + (live ? " live" : "") + '" data-a="shutter" type="button" aria-label="' + label + '"' + (busy ? " disabled" : "") + "><i></i></button>";
+        }
+      }
+      const s = $("status"); s.textContent = st.status.text; s.className = "raw " + st.status.cls;
+      $("relay").innerHTML = st.relay
+        ? "<span>POST <b>" + st.relay.path + "</b></span><span><b>" + st.relay.bytes + "</b> B</span><span>" + (st.relay.code ? "<b>" + st.relay.code + "</b> · " + st.relay.ms + " ms" : "…") + "</span>"
+        : "<span>nothing relayed yet</span>";
+      $("json").textContent = st.envelope ? JSON.stringify(st.envelope, null, 2) : "nothing decoded yet";
+    }
+
+    ctrl.addEventListener("click", e => {
+      const b = e.target.closest("button"); if (!b) return;
+      const a = b.dataset.a;
+      if (a === "shutter") { if (st.camera === "live") stopCamera(); else openCamera(); }
+      if (a === "restart") restart();
+      if (a === "retry") restart();
+    });
+    qrbox.addEventListener("click", () => { if (st.phase !== "showing") return; st.paused = !st.paused; render(); });
+    $("camsel").addEventListener("change", e => { if (scanner) scanner.setCamera(e.target.value).catch(() => {}); });
+    const toggleSheet = open => { sheet.classList.toggle("open", open); $("info").setAttribute("aria-expanded", String(open)); };
+    $("info").addEventListener("click", () => toggleSheet(!sheet.classList.contains("open")));
+    $("close").addEventListener("click", () => toggleSheet(false));
+    document.addEventListener("keydown", e => { if (e.key === "Escape") toggleSheet(false); });
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && st.phase === "showing") holdScreen(); });
+    window.addEventListener("resize", () => { if (st.phase === "showing") drawReply(); });
+
+    render();
+    openCamera();
   </script>
 </body>
 </html>

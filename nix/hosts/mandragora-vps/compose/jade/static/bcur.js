@@ -84,6 +84,47 @@ function head(major, value) {
   return [m | 26, value >>> 24, (value >>> 16) & 0xff, (value >>> 8) & 0xff, value & 0xff];
 }
 
+export function decodeCbor(bytes) {
+  const textDecoder = new TextDecoder("utf-8", { fatal: true });
+  let pos = 0;
+  function item(depth) {
+    if (depth > 16) throw new Error("cbor: nesting too deep");
+    const h = readHead(bytes, pos);
+    pos = h.pos;
+    const v = h.value;
+    switch (h.major) {
+      case 0: return v;
+      case 1: return -1 - v;
+      case 2: {
+        if (pos + v > bytes.length) throw new Error("cbor: truncated bytes");
+        const b = bytes.slice(pos, pos + v); pos += v; return b;
+      }
+      case 3: {
+        if (pos + v > bytes.length) throw new Error("cbor: truncated text");
+        const s = textDecoder.decode(bytes.subarray(pos, pos + v)); pos += v; return s;
+      }
+      case 4: { const a = []; for (let i = 0; i < v; i++) a.push(item(depth + 1)); return a; }
+      case 5: {
+        const o = Object.create(null);
+        for (let i = 0; i < v; i++) {
+          const k = item(depth + 1);
+          if (typeof k !== "string") throw new Error("cbor: non-text map key");
+          o[k] = item(depth + 1);
+        }
+        return o;
+      }
+      case 7:
+        if (v === 20) return false;
+        if (v === 21) return true;
+        if (v === 22) return null;
+    }
+    throw new Error("cbor: unsupported item (major " + h.major + ")");
+  }
+  const out = item(0);
+  if (pos !== bytes.length) throw new Error("cbor: trailing bytes");
+  return out;
+}
+
 const utf8 = new TextEncoder();
 
 function text(s) {
