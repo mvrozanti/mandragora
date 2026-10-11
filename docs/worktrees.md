@@ -20,7 +20,7 @@ worse, not noticing).
 
 ## Why `pgrep` alone is not enough
 
-`pgrep -a -f "nixos-rebuild switch"` and `pgrep -a -f "mandragora-switch"`
+`pgrep -af '[.]nixos-rebuild-wrapped'` and `pgrep -af '[m]andragora-switch'`
 detect a rebuild that is **already running**. They do not detect:
 
 - another agent that is currently editing files,
@@ -55,12 +55,17 @@ mechanism that closes this gap from the agent side.
 ### 1. Pre-edit check (always)
 
 ```bash
-pgrep -a -f "nixos-rebuild switch" 2>/dev/null
-pgrep -a -f "mandragora-switch"   2>/dev/null
+pgrep -af '[.]nixos-rebuild-wrapped' 2>/dev/null
+pgrep -af '[m]andragora-switch'     2>/dev/null
 ```
 
-If either returns a PID (other than your own shell), stop and surface
-to the user before proceeding.
+If either returns a PID, stop and surface to the user before
+proceeding. The brackets matter: the agent's Bash tool runs each command
+inside a shell whose own command line contains the pattern, so an
+unbracketed `pgrep -f` always finds that shell. The rebuild is matched
+as `.nixos-rebuild-wrapped` because nixos-rebuild-ng runs as Python
+with process name `.nixos-rebuild-`; `pgrep -x nixos-rebuild` never
+matches it.
 
 ### 2. Create the worktree
 
@@ -150,8 +155,19 @@ surface to the user before reusing or deleting.
 
 1. **flock on `$XDG_RUNTIME_DIR/mandragora-switch.lock`** — held
    across the entire `add → commit → push` cycle. A second invocation
-   aborts immediately with the holder's PID. Prevents two switches
-   from racing into `git add -A`.
+   **queues**: it prints the holder's PID and source tree, waits up to
+   `MANDRAGORA_SWITCH_LOCK_WAIT_SECONDS` (default 1800), then runs.
+   It also waits out a `nixos-rebuild` started outside the switch.
+   `--no-wait` restores the old abort-immediately behaviour for
+   callers that retry on their own (the claude-code update timer).
+   Prevents two switches from racing into `git add -A`.
+
+   **Never wrap `mandragora-switch` in your own wait loop** — just
+   call it. Hand-rolled `until ! pgrep -f …` waiters match their own
+   shell and spin until timeout. This happened on 2026-05-12,
+   2026-08-12 and 2026-10-11, the last time with the other switch long
+   finished. Queuing moved into the script so that no agent has to
+   write a waiter again.
 
 2. **Working-tree stability window** — before staging, snapshots
    `git status --porcelain` and the mtimes of every dirty/untracked
