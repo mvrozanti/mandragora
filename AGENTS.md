@@ -304,6 +304,7 @@ Specialized procedures defined in `agent-skills/` (exposed to agents via `activa
 - **handoff / pickup** — Pass task context between agents.
 - **confused** — Resolve an ambiguous request via multiple-choice questions: stems are objectives, options are consequences. Also pulled when a rebuild+switch aborts on a judgement call.
 - **devil** — For one reply, the technical devil's advocate: hard, specific critique where every charge carries a better way that keeps behaviour absolutely identical. Critique only; triggered via `/devil [target]`.
+- **convince** — Explicit-only (`/convince [claim] [for audience]`): the shortest self-contained argument that justifies a claim — short complete sentences, plain words, every one literally true, built on the one reason that carries it. Argues the true version when the claim is overstated.
 - **minify** — When a small change keeps turning into a sprawling plan: find where one idea lives in several disagreeing places, give it one home with a check that keeps it there, then make the change. Behaviour stays identical.
 - **approach-review** — Pause and critically evaluate the current approach before continuing: when a task is consequential or ambiguous, keeps failing, or new information may invalidate the plan.
 - **chat** — Toggle chat mode (`/chat on|off`): replies become two people talking, not a report. Commits, code and docs are unaffected.

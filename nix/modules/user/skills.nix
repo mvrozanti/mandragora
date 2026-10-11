@@ -58,6 +58,10 @@ let
       n = "minify";
       s = ../../../agent-skills/minify;
     }
+    {
+      n = "convince";
+      s = ../../../agent-skills/convince;
+    }
   ];
 
   mkEntries =
