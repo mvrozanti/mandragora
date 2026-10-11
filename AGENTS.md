@@ -257,6 +257,20 @@ rationale, recipes, or the incident that produced the rule.
     symlink replacing a directory and is the entire incident in one
     line. Detail:
     `~/Documents/mandragora-desktop-obsidian-vault/incidents/2026-09-27-gitignore-with-a-slash-deleted-every-checkpoint.md`.
+22. **Every agent commit carries a vault verdict** — an agent's commit
+    to this repo ends with `Vault: <note path>` (the note it wrote or
+    patched for this change, committed first) or `Vault: none (<why
+    there is nothing non-obvious to record>)`. The author writes the
+    note while it still holds the context; nobody distils diffs later.
+    Touch the vault only through `mandragora-vault` (`find` → `new` or
+    edit → `commit`), never with raw edits plus `git commit`: it
+    refuses rewrites, deletions, renames, broken links, damaged
+    frontmatter and secrets, and the vault's own hook refuses the same.
+    The commit-msg hook refuses an agent commit without a valid verdict,
+    an agent-run `mandragora-switch` refuses to build one, and after an
+    agent's switch a Haiku privacy pass gates what reaches
+    `demo.mvr.ac`. Human commits are exempt. Detail:
+    [`docs/vault.md`](docs/vault.md).
 
 ---
 
@@ -273,7 +287,8 @@ non-trivial enough that future-you will benefit from a written trace.
   knowledge vault at
   `/home/m/Documents/mandragora-desktop-obsidian-vault/` — or update
   the existing note it touches. Code is the *what*; the vault is the
-  *why*.
+  *why*. For commits to this repo it is no longer a judgement call:
+  rule 22.
 - **Commit cadence.** One Conventional Commit per coherent unit of
   meaningful change. Don't bundle unrelated fixes; don't split a
   single concern across commits. When a commit relates to a vault
