@@ -185,7 +185,29 @@ gr()  { git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
 
 ,() {
   [[ $# -gt 0 ]] || return 1
-  claude-deepseek -p --tools "" --append-system-prompt 'You are a shell command translator. Reply with exactly one shell command and nothing else: no markdown fences, no explanation, no prose.' "$*" 2>/dev/null \
+  local phrase key cache_dir cache_file hit out
+  phrase="$*"
+  key=$(printf '%s' "$phrase" | tr '[:upper:]' '[:lower:]' | tr -s '[:space:]' ' ' | sed -e 's/^ //; s/ $//')
+  cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/comma"
+  cache_file="$cache_dir/cache.tsv"
+  hit=$(awk -F'\t' -v k="$key" '$1 == k { print; exit }' "$cache_file" 2>/dev/null)
+  if [[ -n "$hit" ]]; then
+    print -r -- "${hit#*$'\t'}"
+    return 0
+  fi
+  out=$(_comma_translate claude-deepseek "$phrase")
+  [[ -n "$out" ]] || out=$(_comma_translate claude "$phrase")
+  [[ -n "$out" ]] || return 1
+  mkdir -p "$cache_dir"
+  printf '%s\t%s\n' "$key" "$out" >> "$cache_file"
+  print -r -- "$out"
+}
+
+_comma_translate() {
+  local bin=$1
+  shift
+  command -v "$bin" >/dev/null 2>&1 || return 1
+  "$bin" -p --tools "" --append-system-prompt 'You are a shell command translator. Reply with exactly one shell command and nothing else: no markdown fences, no explanation, no prose.' "$*" 2>/dev/null \
     | sed -E -e '/^[[:space:]]*```/d' -e 's/^[[:space:]]*`+//' -e 's/`+[[:space:]]*$//' -e 's/^[[:space:]]+//' -e 's/[[:space:]]+$//'
 }
 
