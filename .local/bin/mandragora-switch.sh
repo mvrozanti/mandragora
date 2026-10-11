@@ -18,15 +18,38 @@ fi
 
 cd "$SRC"
 
+FORCE=0
+SWEEP_ALL=0
+LOCK_WAIT=${MANDRAGORA_SWITCH_LOCK_WAIT_SECONDS:-1800}
+PASSTHRU_ARGS=()
+for arg in "$@"; do
+  case "$arg" in
+    -f|--force) FORCE=1 ;;
+    --all) SWEEP_ALL=1 ;;
+    --no-wait) LOCK_WAIT=0 ;;
+    *) PASSTHRU_ARGS+=("$arg") ;;
+  esac
+done
+set -- "${PASSTHRU_ARGS[@]}"
+[ -n "$MANDRAGORA_SWITCH_FORCE" ] && FORCE=1
+WAIT_DEADLINE=$(( $(date +%s) + LOCK_WAIT ))
+
 LOCKDIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 mkdir -p "$LOCKDIR"
 LOCKFILE="$LOCKDIR/mandragora-switch.lock"
 exec 9>"$LOCKFILE"
 if ! flock -n 9; then
   HOLDER=$(cat "${LOCKFILE}.pid" 2>/dev/null || echo "?")
-  echo "==> ABORTED: another mandragora-switch is in progress (pid $HOLDER)." >&2
-  echo "==> If that is stale, remove $LOCKFILE and ${LOCKFILE}.pid." >&2
-  exit 1
+  if [ "$LOCK_WAIT" -le 0 ]; then
+    echo "==> ABORTED: another mandragora-switch is in progress (pid $HOLDER)." >&2
+    exit 1
+  fi
+  echo "==> Waiting up to ${LOCK_WAIT}s for mandragora-switch pid $HOLDER ($(readlink "/proc/$HOLDER/cwd" 2>/dev/null || echo "?")) to finish..."
+  if ! flock -w "$LOCK_WAIT" 9; then
+    echo "==> ABORTED: another mandragora-switch is in progress (pid $(cat "${LOCKFILE}.pid" 2>/dev/null || echo "?")); gave up after ${LOCK_WAIT}s." >&2
+    exit 1
+  fi
+  echo "==> Lock acquired."
 fi
 echo "$$" > "${LOCKFILE}.pid"
 
@@ -64,23 +87,16 @@ phase() {
   PHASE_START=$now
 }
 
-if pgrep -x nixos-rebuild > /dev/null 2>&1; then
-  echo "==> ABORTED: nixos-rebuild is already running." >&2
-  exit 1
-fi
-
-FORCE=0
-SWEEP_ALL=0
-PASSTHRU_ARGS=()
-for arg in "$@"; do
-  case "$arg" in
-    -f|--force) FORCE=1 ;;
-    --all) SWEEP_ALL=1 ;;
-    *) PASSTHRU_ARGS+=("$arg") ;;
-  esac
+REBUILD_WAIT_SHOWN=0
+while pgrep -f '[.]nixos-rebuild-wrapped' > /dev/null 2>&1; do
+  if [ "$(date +%s)" -ge "$WAIT_DEADLINE" ]; then
+    echo "==> ABORTED: nixos-rebuild is already running." >&2
+    exit 1
+  fi
+  [ "$REBUILD_WAIT_SHOWN" -eq 1 ] || echo "==> Waiting for a nixos-rebuild started outside mandragora-switch to finish..."
+  REBUILD_WAIT_SHOWN=1
+  sleep 5
 done
-set -- "${PASSTHRU_ARGS[@]}"
-[ -n "$MANDRAGORA_SWITCH_FORCE" ] && FORCE=1
 
 INTERACTIVE=1
 if [ ! -t 0 ] || [ ! -t 1 ] || [ -n "$GEMINI_CLI" ]; then INTERACTIVE=0; fi
