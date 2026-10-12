@@ -22,7 +22,10 @@
     QT_QPA_PLATFORM = "wayland;xcb";
     QT_QPA_PLATFORMTHEME = lib.mkForce "gnome";
     WALLPAPER_DIR = "${config.home.homeDirectory}/Pictures/wllpps";
+    PLAYWRIGHT_MCP_HEADLESS = "true";
   };
+
+  systemd.user.sessionVariables.PLAYWRIGHT_MCP_HEADLESS = "true";
 
   home.sessionPath = [
     "${config.home.homeDirectory}/.local/share/go/bin"
