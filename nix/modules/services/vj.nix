@@ -20,19 +20,17 @@ in
   mandragora.hub.services.vj-web = {
     port = 8100;
     userService = true;
-    memoryMax = "6G";
+    memoryMax = "3G";
     systemd = {
       description =
         "vj rater core (tailnet bind, public via Caddy at vj.mvr.ac). "
-        + "Serves the Deck, the sample API and the clips, and runs the "
-        + "render worker that keeps six unrated clips ready: it plans "
-        + "candidates from grammar G_v1, renders them through "
-        + "generative-art-playground under gpu-lock, and muxes the audio "
-        + "window. When the GPU is held by someone else it waits a minute "
-        + "and retries; the page shows why nothing is ready.";
+        + "Serves trials (an analysed 8-bar window, one of ten media, a "
+        + "weight mix over ten rhythm readings) that the browser draws live, "
+        + "cuts each audio excerpt on demand, stores the three-axis "
+        + "judgements, retrains the per-axis critic every ten, and serves "
+        + "/insight. No GPU work: the engine clip worker is off by default.";
       after = [ "network.target" ];
       wantedBy = [ "default.target" ];
-      unitConfig.ConditionPathExists = "/dev/nvidia0";
       serviceConfig = {
         WorkingDirectory = repo;
         Environment = [
