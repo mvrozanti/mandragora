@@ -55,7 +55,7 @@ FULL_LINK = re.compile(r"\[\[(.+?)\]\](?!\])")
 VAULT_LINE = re.compile(r"^[ \t]*vault:[ \t]*(.+?)[ \t]*$", re.I | re.M)
 EMAIL = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b")
 EMAIL_ALLOWED = re.compile(r"^(git@|noreply@|.*@users\.noreply\.github\.com$|.*@example\.(com|org|net)$)", re.I)
-IPV4 = re.compile(r"(?<![\d.])(\d{1,3}(?:\.\d{1,3}){3})(?!\d|\.\d|/\d)")
+IPV4 = re.compile(r"(?<![\d.])(\d{1,3}(?:\.\d{1,3}){3}(?:/\d{1,2})?)(?!\d|\.\d)")
 TAILNET = ipaddress.ip_network("100.64.0.0/10")
 LAN_RANGES = [ipaddress.ip_network(n) for n in ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16")]
 GENERIC_LAST_OCTETS = {"0", "1", "255"}
@@ -326,16 +326,19 @@ def check_addresses(path, lines, problems, old=None):
     known = set(IPV4.findall(old or ""))
     for addr in sorted({m for line in lines for m in IPV4.findall(line)} - known):
         try:
-            ip = ipaddress.ip_address(addr)
+            iface = ipaddress.ip_interface(addr)
         except ValueError:
+            continue
+        ip = iface.ip
+        if "/" in addr and ip == iface.network.network_address:
             continue
         if ip in TAILNET:
             kind = "tailnet"
-        elif any(ip in n for n in LAN_RANGES) and addr.rsplit(".", 1)[1] not in GENERIC_LAST_OCTETS:
+        elif any(ip in n for n in LAN_RANGES) and str(ip).rsplit(".", 1)[1] not in GENERIC_LAST_OCTETS:
             kind = "LAN"
         else:
             continue
-        problems.add(path, f"names a specific {kind} address ({addr.rsplit('.', 2)[0]}.*.*); public notes describe machines, not their addresses",
+        problems.add(path, f"names a specific {kind} address ({str(ip).rsplit('.', 2)[0]}.*.*); public notes describe machines, not their addresses",
                      "write \"the VPS's tailnet address\" or \"the desktop's LAN address\" instead")
 
 
