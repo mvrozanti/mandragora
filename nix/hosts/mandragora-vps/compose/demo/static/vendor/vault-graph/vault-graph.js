@@ -170,11 +170,26 @@
     let stuckGroup = null;
     let hoverGroup = null;
     let spotlight = null;
+    let linkHover = null;
 
     function renderGroup() {
       const effective = hoverGroup || stuckGroup;
       for (const [k, row] of groupRows) {
         row.classList.toggle("hot", k === effective);
+      }
+      if (linkHover) {
+        highlight = new Set([linkHover.id]);
+        highlightLinks = new Set();
+        if (readerNode) {
+          highlight.add(readerNode.id);
+          for (const l of data.links) {
+            const s = l.source.id || l.source;
+            const t = l.target.id || l.target;
+            if ((s === readerNode.id && t === linkHover.id) || (t === readerNode.id && s === linkHover.id)) highlightLinks.add(l);
+          }
+        }
+        markDirty();
+        return;
       }
       if (hover) return;  // node hover keeps its own highlight set
       if (spotlight) {
@@ -465,7 +480,7 @@
 
     function tickFocus() {
       const focused = hover != null || searchTerm.length > 0
-                   || hoverGroup != null || stuckGroup != null || spotlight != null;
+                   || hoverGroup != null || stuckGroup != null || spotlight != null || linkHover != null;
       const targetFocus = focused ? 1 : 0;
       let animating = Math.abs(targetFocus - focusFactor) > EPS;
       focusFactor += (targetFocus - focusFactor) * EASE;
@@ -705,7 +720,25 @@
       e.preventDefault();
       if (a.classList.contains("unresolved")) return;
       const node = nodeById.get(a.dataset.id);
+      linkHover = null;
       if (node) openNote(node);
+    });
+
+    readerBody.addEventListener("mouseover", (e) => {
+      const a = e.target.closest("a.wikilink");
+      const node = a && !a.classList.contains("unresolved") ? nodeById.get(a.dataset.id) || null : null;
+      if (node === linkHover) return;
+      linkHover = node;
+      if (node) renderGroup();
+      else if (hover) setHover(hover);
+      else renderGroup();
+    });
+
+    readerBody.addEventListener("mouseleave", () => {
+      if (!linkHover) return;
+      linkHover = null;
+      if (hover) setHover(hover);
+      else renderGroup();
     });
 
     const noteCache = new Map();
