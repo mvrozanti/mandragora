@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 set -uo pipefail
 . "$AUDIT_HOME/lib/common.sh"
 
@@ -47,6 +48,16 @@ subs_tiled_in_repo() {
   } | sort -u
 }
 
+subs_tiled_on_master() {
+  local master rel="nix/hosts/mandragora-vps/compose/hub/static"
+  master=$(git -C "$MANDRAGORA_REPO" rev-parse --verify -q refs/heads/master) || return 0
+  {
+    git -C "$MANDRAGORA_REPO" show "$master:$rel/services.json" 2>/dev/null | subs_from_services_json
+    git -C "$MANDRAGORA_REPO" show "$master:$rel/index.html" 2>/dev/null \
+      | grep -Eo 'https://[a-z0-9-]+\.mvr\.ac' | sed -E 's#https://([a-z0-9-]+)\.mvr\.ac#\1#'
+  } | sort -u
+}
+
 subs_from_live_caddy() {
   timeout 20 ssh -o BatchMode=yes -o ConnectTimeout=8 "$VPS" \
     'docker exec seafile-caddy curl -s --max-time 8 http://localhost:2019/config/' 2>/dev/null \
@@ -91,11 +102,10 @@ else
       | sed -E 's#https://([a-z0-9-]+)\.mvr\.ac#\1#' | sort -u)
   fi
   if [ -n "$live_hub" ]; then
-    drift=$(comm -23 <(printf '%s\n' "$tiled") <(printf '%s\n' "$live_tiled"))
+    drift=$(comm -23 <(subs_tiled_on_master) <(printf '%s\n' "$live_tiled"))
     if [ -n "$drift" ]; then
-      audit_fail "$CHECK" "hub.mvr.ac is stale — tiles in the repo but not deployed: $(printf '%s' "$drift" | tr '\n' ' ')"
-      echo "    Deploy it: rsync -a $HUB_STATIC/ $VPS:/home/opc/hub/static/" >&2
-      violations=$((violations + 1))
+      audit_yellow "    hub.mvr.ac is behind master, the next mandragora-switch deploys it: $(printf '%s' "$drift" | tr '\n' ' ')" >&2
+      echo >&2
     fi
   fi
 fi
@@ -105,6 +115,6 @@ if [ "$violations" -eq 0 ]; then
   exit 0
 fi
 
-echo "    Rule 16: add the service to $HUB_SERVICES, then deploy the hub." >&2
+echo "    Rule 16: add the service to $HUB_SERVICES and land it with mandragora-switch, which deploys the hub." >&2
 echo "    To intentionally skip a subdomain, add it to allowlists/hub-tile.txt." >&2
 exit 1

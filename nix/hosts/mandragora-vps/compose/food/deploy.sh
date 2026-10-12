@@ -1,20 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-STACK="$(cd "$(dirname "$0")" && pwd)"
-REMOTE="${REMOTE:-opc@100.84.78.83}"
-REMOTE_DIR="${REMOTE_DIR:-/home/opc/food}"
-
-echo "→ provisioning $REMOTE:$REMOTE_DIR"
-ssh "$REMOTE" "mkdir -p $REMOTE_DIR/data"
-
-echo "→ rsyncing stack to $REMOTE:$REMOTE_DIR/"
-rsync -av --delete \
-  --exclude='/data/' \
-  --exclude='.env' \
-  "$STACK/" "$REMOTE:$REMOTE_DIR/"
-
-echo "→ building + starting"
-ssh "$REMOTE" "cd $REMOTE_DIR && docker compose up -d --build"
-
-echo "→ done. https://food.mvr.ac (behind authelia)"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=/dev/null
+. "$HERE/../../deploy-guard.sh"
+deploy_begin food "$HERE"
+deploy_mkdir data
+deploy_rsync --delete --exclude=/data/ --exclude=.env --exclude=.no-deploy --exclude=/deploy.sh --exclude=/README.md --exclude=__pycache__/ "$HERE/" :
+deploy_up --build
+deploy_end

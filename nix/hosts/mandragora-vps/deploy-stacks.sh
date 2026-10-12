@@ -3,55 +3,54 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_DIR="$HERE/compose"
-REMOTE="${REMOTE:-opc@mandragora-vps}"
-REMOTE_ROOT="${REMOTE_ROOT:-/home/opc}"
+GUARD="$HERE/deploy-guard.sh"
 MARKER=".no-deploy"
+REL_COMPOSE="nix/hosts/mandragora-vps/compose"
 
-DRY_RUN=0
-DIFF=0
+MODE=deploy
 NO_UP=0
 ALL=0
+SYNC=0
 STACKS=()
 
 usage() {
   cat >&2 <<EOF
-Usage: deploy-stacks.sh [--dry-run] [--diff] [--no-up] <stack>... | --all
+Usage: deploy-stacks.sh [--check | --adopt | --sync] [--force] [--no-up] <stack>... | --all
 
-Unified deploy driver for the mandragora-vps compose stacks.
+The only writer of served content on mandragora-vps. Every deploy:
+  * comes from master: refused from a worktree, a stale checkout, or a dirty stack dir;
+  * moves forward: refused if live was deployed from a commit this checkout lacks;
+  * stamps live with the commit it came from: /home/opc/<stack>/.deployed;
+  * holds the mandragora-switch lock, so it never races a switch.
 
-Per stack it rsyncs compose/<stack>/ to $REMOTE:$REMOTE_ROOT/<stack>/ with
---delete, then runs 'docker compose up -d' in that remote slot.
+A stack with its own deploy.sh (that sources deploy-guard.sh) is deployed by
+that script; any other stack is rsynced whole (.env- and .gitignore-safe) and
+brought up with 'docker compose up -d'. Stacks marked $MARKER or RETIRED.md are
+never deployed by this driver.
 
-Safety:
-  * Remote .env / *.env files are never sent and never deleted.
-  * Each stack's own .gitignore is honoured (--exclude-from), so remote-only
-    runtime state (data/, *_data/, generated reports, backups) is protected
-    from --delete.
-  * A stack directory carrying a '$MARKER' marker file is refused; --all skips
-    it. Mark any stack whose remote state is live-only or has drifted from the
-    repo so a blanket sync cannot clobber it.
-
+Modes:
+  (default)  deploy the named stacks
+  --check    list what a deploy would change on live; changes nothing
+  --adopt    enroll stacks whose live content already equals master: stamp them,
+             transfer nothing; refused if anything differs
+  --sync     deploy every enrolled stack master has changed since its stamp, plus
+             new stacks that have no slot on the VPS yet. mandragora-switch runs this
+             after every landed commit; nobody needs to deploy by hand.
 Options:
-  --dry-run   Show the rsync itemized plan; do not transfer, do not up.
-  --diff      Alias for a compact rsync -ni change list per stack; implies no up.
-  --no-up     Transfer files but skip 'docker compose up -d'.
-  --all       Every compose/*/ dir with a docker-compose.yml (minus $MARKER'd).
-  -h, --help  This help.
-
-Environment:
-  REMOTE        ssh target        default opc@mandragora-vps
-  REMOTE_ROOT   remote slot root  default /home/opc
+  --force    override the master, clean-tree and forward-only gates (says what it overwrites)
+  --no-up    sync files, skip 'docker compose up -d'
+  --all      every stack (with --check or --adopt)
 EOF
 }
 
-log() { printf '→ %s\n' "$*"; }
-warn() { printf 'WARN: %s\n' "$*" >&2; }
 die() { printf 'ERR: %s\n' "$*" >&2; exit 1; }
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --dry-run) DRY_RUN=1; shift ;;
-    --diff) DIFF=1; NO_UP=1; shift ;;
+    --check|--dry-run|--diff) MODE=check; shift ;;
+    --adopt) MODE=adopt; shift ;;
+    --sync) SYNC=1; shift ;;
+    --force) export DEPLOY_FORCE=1; shift ;;
     --no-up) NO_UP=1; shift ;;
     --all) ALL=1; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -62,26 +61,69 @@ while [ $# -gt 0 ]; do
 done
 
 [ -d "$COMPOSE_DIR" ] || die "compose dir not found: $COMPOSE_DIR"
+[ -f "$GUARD" ] || die "deploy guard not found: $GUARD"
+export DEPLOY_MODE="$MODE"
+
+deployable() {
+  local dir="$COMPOSE_DIR/$1"
+  [ -d "$dir" ] && [ ! -f "$dir/$MARKER" ] && [ ! -f "$dir/RETIRED.md" ] \
+    && { [ -f "$dir/docker-compose.yml" ] || [ -f "$dir/deploy.sh" ]; }
+}
+
+guarded_script() {
+  [ -f "$COMPOSE_DIR/$1/deploy.sh" ] && grep -q 'deploy-guard.sh' "$COMPOSE_DIR/$1/deploy.sh"
+}
 
 collect_all() {
   local d name
   for d in "$COMPOSE_DIR"/*/; do
     name="$(basename "$d")"
-    [ -f "$d/docker-compose.yml" ] || continue
-    STACKS+=("$name")
+    deployable "$name" && STACKS+=("$name")
   done
+  return 0
 }
 
-if [ "$ALL" -eq 1 ]; then
-  [ "${#STACKS[@]}" -eq 0 ] || die "--all takes no explicit stack names"
+collect_sync() {
+  [ "$MODE" = deploy ] || die "--sync deploys; it does not combine with --check or --adopt"
+  local repo slots d name stamp
+  repo="$(git -C "$HERE" rev-parse --show-toplevel)"
+  slots="$(ssh -o BatchMode=yes -o ConnectTimeout=10 "${DEPLOY_REMOTE:-${REMOTE:-opc@mandragora-vps}}" \
+    'for d in /home/opc/*/; do n=$(basename "$d"); printf "%s %s\n" "$n" "$(sed -n "s/^commit=//p" "$d.deployed" 2>/dev/null)"; done')" \
+    || die "cannot reach the VPS to read deploy stamps"
+  for d in "$COMPOSE_DIR"/*/; do
+    name="$(basename "$d")"
+    deployable "$name" || continue
+    if ! printf '%s\n' "$slots" | grep -q "^$name "; then
+      STACKS+=("$name")
+      continue
+    fi
+    stamp="$(printf '%s\n' "$slots" | sed -n "s/^$name //p")"
+    [ -n "$stamp" ] || continue
+    if git -C "$repo" cat-file -e "$stamp^{commit}" 2>/dev/null \
+      && git -C "$repo" merge-base --is-ancestor "$stamp" HEAD \
+      && git -C "$repo" diff --quiet "$stamp" HEAD -- "$REL_COMPOSE/$name"; then
+      continue
+    fi
+    STACKS+=("$name")
+  done
+  return 0
+}
+
+if [ "$SYNC" -eq 1 ]; then
+  [ "${#STACKS[@]}" -eq 0 ] && [ "$ALL" -eq 0 ] || die "--sync takes no stack names"
+  collect_sync
+  [ "${#STACKS[@]}" -gt 0 ] || { printf '→ served content: every enrolled stack matches master\n'; exit 0; }
+elif [ "$ALL" -eq 1 ]; then
+  [ "${#STACKS[@]}" -eq 0 ] || die "--all takes no stack names"
+  [ "$MODE" != deploy ] || die "--all deploys nothing on its own; use --sync (what changed) or name the stacks"
   collect_all
 fi
 
-[ "${#STACKS[@]}" -gt 0 ] || { usage; die "no stacks given (pass names or --all)"; }
+[ "${#STACKS[@]}" -gt 0 ] || { usage; die "no stacks given"; }
 
-rsync_filters() {
-  local dir="$1"
-  RSYNC_FILTERS=(
+deploy_generic() {
+  local name="$1" dir="$COMPOSE_DIR/$1"
+  local filters=(
     --filter='P .env'
     --filter='P *.env'
     --exclude='.env'
@@ -89,65 +131,45 @@ rsync_filters() {
     --exclude="$MARKER"
     --exclude='.gitignore'
     --exclude='README.md'
-    --exclude='deploy.sh'
     --exclude='RETIRED.md'
     --exclude='__pycache__/'
     --exclude='*.pyc'
   )
-  [ -f "$dir/.gitignore" ] && RSYNC_FILTERS+=(--exclude-from="$dir/.gitignore")
+  [ -f "$dir/.gitignore" ] && filters+=(--exclude-from="$dir/.gitignore")
+  # shellcheck source=/dev/null
+  . "$GUARD"
+  deploy_begin "$name" "$dir"
+  deploy_mkdir
+  deploy_rsync --delete "${filters[@]}" "$dir/" ":"
+  deploy_up
+  deploy_end
 }
 
-deploy_one() {
+run_one() {
   local name="$1"
-  local dir="$COMPOSE_DIR/$name"
-  local dest="$REMOTE:$REMOTE_ROOT/$name/"
-
-  if [ ! -d "$dir" ]; then
-    warn "skip '$name': no such stack dir under compose/"
+  if ! deployable "$name"; then
+    printf 'skip %s: no deployable stack (missing, %s, RETIRED.md, or no docker-compose.yml)\n' "$name" "$MARKER" >&2
     return 1
   fi
-  if [ ! -f "$dir/docker-compose.yml" ]; then
-    warn "skip '$name': no docker-compose.yml (use its own deploy procedure)"
-    return 1
+  if [ -f "$COMPOSE_DIR/$name/deploy.sh" ]; then
+    guarded_script "$name" || { printf 'skip %s: its deploy.sh does not use deploy-guard.sh\n' "$name" >&2; return 1; }
+    NO_UP="$NO_UP" bash "$COMPOSE_DIR/$name/deploy.sh"
+  else
+    ( deploy_generic "$name" )
   fi
-  if [ -f "$dir/$MARKER" ]; then
-    warn "skip '$name': $MARKER marker present (live-only/divergent; deploy manually)"
-    return 1
-  fi
-
-  rsync_filters "$dir"
-
-  if [ "$DIFF" -eq 1 ]; then
-    log "diff $name  ($dir/ vs $dest)"
-    rsync -ni -a --delete "${RSYNC_FILTERS[@]}" "$dir/" "$dest" \
-      | grep -vE '^[[:space:]]*[0-9]' || true
-    return 0
-  fi
-
-  if [ "$DRY_RUN" -eq 1 ]; then
-    log "dry-run rsync $name  ($dir/ → $dest)"
-    rsync -ni -a --delete "${RSYNC_FILTERS[@]}" "$dir/" "$dest"
-    log "dry-run: would 'docker compose up -d' in $REMOTE_ROOT/$name"
-    return 0
-  fi
-
-  log "rsync $name → $dest"
-  ssh "$REMOTE" "mkdir -p $REMOTE_ROOT/$name"
-  rsync -a --delete "${RSYNC_FILTERS[@]}" "$dir/" "$dest"
-
-  if [ "$NO_UP" -eq 1 ]; then
-    log "$name: files synced (--no-up, stack not restarted)"
-    return 0
-  fi
-
-  log "docker compose up -d in $REMOTE_ROOT/$name"
-  ssh "$REMOTE" "cd $REMOTE_ROOT/$name && docker compose up -d"
-  log "$name: up"
 }
 
 RC=0
 for name in "${STACKS[@]}"; do
-  deploy_one "$name" || RC=1
+  set +e
+  run_one "$name"
+  rc=$?
+  set -e
+  if [ "$rc" -eq 10 ]; then
+    RC=10
+  elif [ "$rc" -ne 0 ]; then
+    RC=1
+  fi
 done
 
 exit "$RC"
