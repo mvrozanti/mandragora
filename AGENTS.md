@@ -278,6 +278,18 @@ rationale, recipes, or the incident that produced the rule.
     agent's switch a Haiku privacy pass gates what reaches
     `demo.mvr.ac`. Human commits are exempt. Detail:
     [`docs/vault.md`](docs/vault.md).
+23. **Browsers run headless; a visible window needs the operator's yes** —
+    every browser an agent starts (the Playwright and Chrome DevTools MCP
+    tools, Playwright/Puppeteer/Selenium scripts, test suites) runs
+    headless. Windows popping up mid-work steal focus at the worst moment.
+    If a task truly needs a visible browser, ask first, every time, and
+    only then launch with `MANDRAGORA_BROWSER_HEADED=1` for that one run.
+    Enforced: `/opt/google/chrome/chrome`, which both MCP servers launch,
+    is a wrapper that adds `--headless=new` unless that variable is set,
+    and `PLAYWRIGHT_MCP_HEADLESS=true` is set for the whole session
+    (`nix/modules/core/chrome-shim.nix`, `nix/modules/user/session.nix`).
+    Project code that hard-codes `headless=False` or `--headed` is not
+    covered by the wrapper: never run it without asking.
 
 ---
 
