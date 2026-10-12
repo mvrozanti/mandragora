@@ -26,6 +26,7 @@ RESET = "\x1b[0m"
 DIM = "\x1b[2m"
 TONE = {"parsed": "\x1b[32m", "estimate": "\x1b[36m", "over": "\x1b[33m", "unknown": "\x1b[35m"}
 
+DEFAULT_ROWS = 3
 TAIL_BYTES = 8192
 TAIL_LINES = 8
 MIN_ELAPSED = 1.5
@@ -43,14 +44,6 @@ def state_dir(env, fallback):
     path = os.path.join(os.environ.get(env) or fallback, "progress-hud")
     os.makedirs(path, exist_ok=True)
     return path
-
-
-def runtime_dir():
-    return state_dir("XDG_RUNTIME_DIR", f"/tmp/progress-hud-{os.getuid()}")
-
-
-def history_file():
-    return os.path.join(state_dir("XDG_STATE_HOME", os.path.expanduser("~/.local/state")), "history.jsonl")
 
 
 def write_atomic(path, payload):
@@ -180,9 +173,7 @@ def parse_progress(lines):
     return None
 
 
-def candidates(owner):
-    if owner is None:
-        return [name for name in os.listdir("/proc") if name.isdigit()]
+def children_of(owner):
     pids = []
     for tid in os.listdir(f"/proc/{owner}/task"):
         try:
@@ -193,26 +184,30 @@ def candidates(owner):
     return pids
 
 
+def all_processes():
+    return [name for name in os.listdir("/proc") if name.isdigit()]
+
+
 def running_tasks(session):
     owner = claude_ancestor()
+    pids = all_processes() if owner is None else children_of(owner)
     ticks = os.sysconf("SC_CLK_TCK")
     btime = boot_time()
     found = {}
-    for name in candidates(owner):
+    for name in pids:
         try:
             target = os.readlink(f"/proc/{name}/fd/1")
         except OSError:
             continue
         if not TASK_OUTPUT.search(target):
             continue
-        if owner is None and f"/{session}/" not in target:
-            continue
         try:
             _, ppid, start = proc_stat(name)
             argv = proc_argv(name)
         except OSError:
             continue
-        if owner is not None and ppid != owner:
+        mine = ppid == owner if owner is not None else f"/{session}/" in target
+        if not mine:
             continue
         path = target.removesuffix(" (deleted)")
         began = btime + start / ticks
@@ -223,10 +218,10 @@ def running_tasks(session):
     return list(found.values())
 
 
-def load_history():
+def load_history(path):
     exact, families = {}, {}
     try:
-        with open(history_file()) as f:
+        with open(path) as f:
             for line in f:
                 try:
                     entry = json.loads(line)
@@ -241,22 +236,22 @@ def load_history():
 
 
 def median(samples):
-    ordered = sorted(samples[-HISTORY_SAMPLES:])
+    ordered = sorted(samples)
     mid = len(ordered) // 2
     return ordered[mid] if len(ordered) % 2 else (ordered[mid - 1] + ordered[mid]) / 2
 
 
 def estimate(task, exact, families):
-    if exact.get(task["key"]):
-        return median(exact[task["key"]])
-    samples = families.get(task["family"], [])[-HISTORY_SAMPLES:]
-    if len(samples) >= 2 and max(samples) <= FAMILY_SPREAD * min(samples):
-        return median(samples)
+    own = exact.get(task["key"])
+    if own:
+        return median(own[-HISTORY_SAMPLES:])
+    kin = families.get(task["family"], [])[-HISTORY_SAMPLES:]
+    if len(kin) >= 2 and max(kin) <= FAMILY_SPREAD * min(kin):
+        return median(kin)
     return None
 
 
-def append_history(entries):
-    path = history_file()
+def append_history(path, entries):
     with open(path, "a") as f:
         f.write("".join(json.dumps(e) + "\n" for e in entries))
     if os.path.getsize(path) > HISTORY_MAX_BYTES:
@@ -265,9 +260,8 @@ def append_history(entries):
         write_atomic(path, "".join(kept))
 
 
-def track(session, tasks, now):
-    path = os.path.join(runtime_dir(), f"state-{hashlib.sha1(session.encode()).hexdigest()[:16]}.json")
-    previous = read_json(path)
+def track(state_path, history_path, tasks, now):
+    previous = read_json(state_path)
     alive = {t["pid"]: t for t in tasks}
     finished = []
     for pid, seen in previous.items():
@@ -283,10 +277,10 @@ def track(session, tasks, now):
         if duration >= MIN_RECORDED:
             finished.append({"k": seen["k"], "f": seen["f"], "d": round(duration, 1), "t": int(now)})
     if finished:
-        append_history(finished)
+        append_history(history_path, finished)
     state = {t["pid"]: {"s": t["start"], "l": now, "o": t["out"], "k": t["key"], "f": t["family"]} for t in tasks}
     if state or previous:
-        write_atomic(path, json.dumps(state))
+        write_atomic(state_path, json.dumps(state))
 
 
 def clock(seconds):
@@ -321,6 +315,23 @@ def bounce(width, now, tone):
     return f"{DIM}{'░' * pos}{RESET}{tone}{'█' * size}{RESET}{DIM}{'░' * (width - pos - size)}{RESET}"
 
 
+def file_mtime(path, fallback):
+    try:
+        return os.stat(path).st_mtime
+    except OSError:
+        return fallback
+
+
+def enrich(task, lines, mtime, exact, families):
+    return {
+        **task,
+        "mtime": max(mtime, task["start"]),
+        "last": lines[-1] if lines else "",
+        "progress": parse_progress(lines),
+        "estimate": estimate(task, exact, families),
+    }
+
+
 def render(task, now, cols):
     elapsed = now - task["start"]
     expected = task["estimate"]
@@ -338,42 +349,42 @@ def render(task, now, cols):
     gauge = bounce(width, now, tone) if fraction is None else bar(fraction, width, tone)
     label = clip(task["key"], max(12, min(48, cols // 4)))
     stats = " ".join(s for s in (percent, timing) if s)
-    used = 2 + len(label) + 1 + width + 1 + len(stats)
+    spin = SPINNER[int(now) % len(SPINNER)]
+    row = " ".join((f"{tone}{spin}{RESET}", label, gauge, stats))
+    used = len(ANSI.sub("", row))
     quiet = now - task["mtime"]
     if quiet >= QUIET_AFTER:
         note = f"\x1b[33mquiet {clock(quiet)}{RESET}"
-        note_len = len(f"quiet {clock(quiet)}")
     else:
-        text = clip(task["last"], cols - used - 2)
-        note, note_len = f"{DIM}{text}{RESET}", len(text)
-    tail = f"  {note}" if note_len and used + 2 + note_len <= cols else ""
-    spin = SPINNER[int(now) % len(SPINNER)]
-    return f"{tone}{spin}{RESET} {label} {gauge} {stats}{tail}"
+        note = f"{DIM}{clip(task['last'], cols - used - 2)}{RESET}"
+    note_len = len(ANSI.sub("", note))
+    return f"{row}  {note}" if note_len and used + 2 + note_len <= cols else row
 
 
-def progress_rows(session, cols, max_rows):
+def visible_tasks(tasks, now):
+    return sorted((t for t in tasks if now - t["start"] >= MIN_ELAPSED), key=lambda t: t["start"])
+
+
+def rows(tasks, now, cols, hidden):
+    out = [render(t, now, cols) for t in tasks]
+    if hidden > 0:
+        out.append(f"{DIM}  +{hidden} more running{RESET}")
+    return out
+
+
+def progress_rows(session, state_path, history_path, cols, max_rows):
     now = time.time()
     tasks = running_tasks(session)
-    track(session, tasks, now)
-    visible = sorted((t for t in tasks if now - t["start"] >= MIN_ELAPSED), key=lambda t: -t["start"])
+    track(state_path, history_path, tasks, now)
+    visible = visible_tasks(tasks, now)
     if not visible:
         return []
-    exact, families = load_history()
-    rows = []
-    for task in visible[:max_rows]:
-        lines = output_lines(task["out"])
-        try:
-            task["mtime"] = os.stat(task["out"]).st_mtime
-        except OSError:
-            task["mtime"] = task["start"]
-        task["mtime"] = max(task["mtime"], task["start"])
-        task["last"] = lines[-1] if lines else ""
-        task["progress"] = parse_progress(lines)
-        task["estimate"] = estimate(task, exact, families)
-        rows.append(render(task, now, cols))
-    if len(visible) > max_rows:
-        rows.append(f"{DIM}  +{len(visible) - max_rows} more running{RESET}")
-    return rows
+    exact, families = load_history(history_path)
+    shown = [
+        enrich(t, output_lines(t["out"]), file_mtime(t["out"], t["start"]), exact, families)
+        for t in visible[:max_rows]
+    ]
+    return rows(shown, now, cols, len(visible) - max_rows)
 
 
 def columns():
@@ -401,7 +412,7 @@ def hud_command(wrap):
     return [node, entries[-1]] if entries and node else None
 
 
-def hud_output(command, raw, data, cols, session):
+def hud_output(command, raw, data, cols, cache_path):
     try:
         st = os.stat(data.get("transcript_path") or "")
         stamp = f"{st.st_mtime_ns}:{st.st_size}"
@@ -409,8 +420,7 @@ def hud_output(command, raw, data, cols, session):
         stamp = ""
     stable = json.dumps({k: v for k, v in data.items() if k != "cost"}, sort_keys=True)
     key = hashlib.sha1(f"{stable}|{stamp}|{cols}|{command}".encode()).hexdigest()
-    cache = os.path.join(runtime_dir(), f"hud-{hashlib.sha1(session.encode()).hexdigest()[:16]}.json")
-    cached = read_json(cache)
+    cached = read_json(cache_path)
     if cached.get("key") == key and time.time() - cached.get("t", 0) < HUD_MAX_AGE:
         return cached.get("out", "")
     import subprocess
@@ -427,12 +437,12 @@ def hud_output(command, raw, data, cols, session):
         out = result.stdout.rstrip("\n")
     except (OSError, subprocess.TimeoutExpired):
         return cached.get("out", "")
-    write_atomic(cache, json.dumps({"key": key, "t": time.time(), "out": out}))
+    write_atomic(cache_path, json.dumps({"key": key, "t": time.time(), "out": out}))
     return out
 
 
 def options(argv):
-    wrap, max_rows = None, 3
+    wrap, max_rows = None, DEFAULT_ROWS
     pairs = []
     for arg in argv:
         if pairs and pairs[-1][1] is None:
@@ -444,10 +454,10 @@ def options(argv):
     for flag, value in pairs:
         if flag == "--wrap":
             wrap = value or ""
-        elif flag == "--max-rows" and value and value.isdigit():
+        elif flag == "--max-rows" and value and value.isdigit() and int(value) > 0:
             max_rows = int(value)
         else:
-            sys.exit("usage: statusline.py [--wrap CMD] [--max-rows N]")
+            sys.exit(f"usage: statusline.py [--wrap CMD] [--max-rows N]  (N >= 1, default {DEFAULT_ROWS})")
     return wrap, max_rows
 
 
@@ -459,17 +469,21 @@ def main():
     except ValueError:
         data = {}
     session = str(data.get("session_id") or "default")
+    slug = hashlib.sha1(session.encode()).hexdigest()[:16]
+    runtime = state_dir("XDG_RUNTIME_DIR", f"/tmp/progress-hud-{os.getuid()}")
     cols = columns()
     lines = []
     command = hud_command(wrap)
     if command:
-        hud = hud_output(command, raw, data, cols, session)
+        hud = hud_output(command, raw, data, cols, os.path.join(runtime, f"hud-{slug}.json"))
         if hud:
             lines.append(hud)
     try:
-        lines.extend(progress_rows(session, cols, max_rows))
+        history = os.path.join(state_dir("XDG_STATE_HOME", os.path.expanduser("~/.local/state")), "history.jsonl")
+        lines.extend(progress_rows(session, os.path.join(runtime, f"state-{slug}.json"), history, cols, max_rows))
     except Exception:
-        pass
+        import traceback
+        traceback.print_exc()
     sys.stdout.write("\n".join(lines))
 
 
