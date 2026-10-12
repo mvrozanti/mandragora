@@ -3,7 +3,7 @@ import json
 import os
 import sys
 
-SCRIPT = "progress-hud/scripts/statusline.py"
+SCRIPT = "claude-progressbar/scripts/statusline.py"
 
 
 def problems(path):
@@ -38,7 +38,7 @@ def main():
         failures.extend(found)
     if failures:
         sys.exit("\n".join(failures))
-    print(f"{checked} progress-hud statusLine declaration(s) keep their refreshInterval")
+    print(f"{checked} claude-progressbar statusLine declaration(s) keep their refreshInterval")
 
 
 if __name__ == "__main__":
