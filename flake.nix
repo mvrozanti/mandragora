@@ -28,8 +28,8 @@
 
     pi.url = "github:earendil-works/pi/stable";
 
-    progress-hud = {
-      url = "github:mvrozanti/progress-hud";
+    claude-progressbar = {
+      url = "github:mvrozanti/claude-progressbar";
       flake = false;
     };
   };

@@ -21,5 +21,5 @@ if out=$(python3 -S "$AUDIT_HOME/lib/statusline-refresh.py" "${files[@]}" 2>&1);
 fi
 
 printf '%s\n' "$out" | sed 's/^/    /' >&2
-audit_fail "$CHECK" "a progress-hud statusLine without refreshInterval freezes every bar (vault: features/Progress bars for running commands in the Claude Code statusline)"
+audit_fail "$CHECK" "a claude-progressbar statusLine without refreshInterval freezes every bar (vault: features/Progress bars for running commands in the Claude Code statusline)"
 exit 1

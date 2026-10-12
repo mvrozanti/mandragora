@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "claude-progressbar": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791848950,
+        "narHash": "sha256-VJXXwEhvlPe7sdXpT0P0kakZg1kNG1CuHgGF1pyIP1s=",
+        "owner": "mvrozanti",
+        "repo": "claude-progressbar",
+        "rev": "86e1fba0e4d3086e5f17d65dbb9bb236e45a68eb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mvrozanti",
+        "repo": "claude-progressbar",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -217,31 +233,15 @@
         "type": "github"
       }
     },
-    "progress-hud": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1791843736,
-        "narHash": "sha256-hIr9VYYO3qF/GP1EvIJMjKPu73kGgMXclRb0fROl7iQ=",
-        "owner": "mvrozanti",
-        "repo": "progress-hud",
-        "rev": "e93161540c6b6fabe29e87acd80385688e81a8d5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "mvrozanti",
-        "repo": "progress-hud",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
+        "claude-progressbar": "claude-progressbar",
         "home-manager": "home-manager",
         "impermanence": "impermanence",
         "nixos-generators": "nixos-generators",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs_2",
         "pi": "pi",
-        "progress-hud": "progress-hud",
         "sops-nix": "sops-nix"
       }
     },

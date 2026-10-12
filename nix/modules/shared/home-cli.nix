@@ -119,5 +119,5 @@
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/hooks/chat-mode.sh";
   home.file.".claude/hooks/tmux-state.sh".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/hooks/tmux-state.sh";
-  home.file.".local/share/progress-hud".source = inputs.progress-hud;
+  home.file.".local/share/claude-progressbar".source = inputs.claude-progressbar;
 }
