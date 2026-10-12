@@ -18,7 +18,7 @@ master=$(git -C "$MANDRAGORA_REPO" rev-parse --verify -q refs/heads/master) || {
 }
 
 stamps=$(timeout 25 ssh -o BatchMode=yes -o ConnectTimeout=8 "$VPS" \
-  'for f in /home/opc/*/.deployed; do [ -f "$f" ] && printf "%s %s\n" "$(basename "$(dirname "$f")")" "$(sed -n "s/^commit=//p" "$f")"; done; echo end' 2>/dev/null)
+  'for f in /home/opc/.deployed/*; do [ -f "$f" ] && printf "%s %s\n" "$(basename "$f")" "$(sed -n "s/^commit=//p" "$f")"; done; echo end' 2>/dev/null)
 if ! printf '%s\n' "$stamps" | grep -qx end; then
   audit_yellow "    VPS unreachable ($VPS); deployed stacks not compared with master" >&2
   echo >&2

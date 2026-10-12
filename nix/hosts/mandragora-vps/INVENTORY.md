@@ -21,8 +21,9 @@ Every deploy, whether by the driver or a stack's own `deploy.sh`, goes through
 - **Master only.** Refused from a worktree, a checkout that is not master's
   tip, or a stack dir with uncommitted changes. This is what makes "deploy
   from my worktree so the drift check passes" impossible.
-- **Forward only.** Each deploy stamps `/home/opc/<stack>/.deployed` with the
-  commit it came from. A deploy whose checkout does not contain the live stamp
+- **Forward only.** Each deploy stamps `/home/opc/.deployed/<stack>` with the
+  commit it came from (one opc-owned directory, so root-owned slots can
+  still be stamped). A deploy whose checkout does not contain the live stamp
   is refused, so older content can never overwrite newer.
 - **Serialized.** It takes the `mandragora-switch` lock, so it never races a
   switch (the switch passes its lock down).
@@ -49,11 +50,13 @@ by running their guarded `deploy.sh`; `loki`, `rule110`, `manifold`, `seafile`
 hold live-only state; `music` publishes renders, not repository files.
 
 Enrolled 2026-10-12 (live verified equal to master): axon, demo, filebrowser,
-fly, food, gokapi, gource, kl, lenia, logs, meme, microbin, mvr-api, nb,
-node-exporter, pinserver, radicale, semantic, spider, stt, tts, vj, webhook.
+fly, food, gokapi, gource, hub, kl, lenia, logs, meme, mvr-api, nb,
+node-exporter, pinserver, semantic, spider, stt, tts, vj, webhook.
 Not enrolled because live differs from master (decide which side is right,
-then land it or `--force` master): authelia, btc, chess, gpg, hub, jade,
-kindle, status, torrent, voice, vuln, watch.
+then land it or `--force` master): authelia, btc, chess, gpg, jade,
+kindle, status, torrent, voice, vuln, watch. Also not enrolled: microbin and
+radicale, whose slots are owned by root, so opc cannot write their files;
+they need `sudo chown -R opc:opc /home/opc/<stack>` before any deploy.
 
 The six live-only slots with no repo compose at all (`git`, `chess`,
 `voice`, `btc-tob-capture`, `palpitador`, `basilica` — see the Drift

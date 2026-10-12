@@ -2,7 +2,7 @@
 DEPLOY_REMOTE="${DEPLOY_REMOTE:-${REMOTE:-opc@mandragora-vps}}"
 DEPLOY_ROOT="${DEPLOY_ROOT:-/home/opc}"
 DEPLOY_MODE="${DEPLOY_MODE:-deploy}"
-DEPLOY_STAMP=".deployed"
+DEPLOY_STAMPS=".deployed"
 DEPLOY_SSH=(ssh -o BatchMode=yes -o ConnectTimeout=10)
 DEPLOY_CHANGES=0
 
@@ -31,7 +31,7 @@ deploy_begin() {
     exec 8>"${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/mandragora-switch.lock"
     flock -w 1800 8 || deploy_refuse "mandragora-switch held its lock for 30 minutes; gave up"
   fi
-  slot="$("${DEPLOY_SSH[@]}" "$DEPLOY_REMOTE" "if [ -d $DEPLOY_ROOT/$DEPLOY_STACK ]; then echo present; sed -n 's/^commit=//p' $DEPLOY_ROOT/$DEPLOY_STACK/$DEPLOY_STAMP 2>/dev/null || true; else echo absent; fi")" || deploy_refuse "cannot reach $DEPLOY_REMOTE"
+  slot="$("${DEPLOY_SSH[@]}" "$DEPLOY_REMOTE" "if [ -d $DEPLOY_ROOT/$DEPLOY_STACK ]; then echo present; sed -n 's/^commit=//p' $DEPLOY_ROOT/$DEPLOY_STAMPS/$DEPLOY_STACK 2>/dev/null || true; else echo absent; fi")" || deploy_refuse "cannot reach $DEPLOY_REMOTE"
   DEPLOY_SLOT="$(printf '%s\n' "$slot" | sed -n 1p)"
   DEPLOY_LIVE="$(printf '%s\n' "$slot" | sed -n 2p)"
   [ "$DEPLOY_MODE" = deploy ] || return 0
@@ -52,11 +52,11 @@ deploy_rsync() {
   last="${args[-1]}"
   [ "${last:0:1}" = ":" ] && args[-1]="$DEPLOY_REMOTE:$DEPLOY_ROOT/$DEPLOY_STACK/${last:1}"
   if [ "$DEPLOY_MODE" = deploy ]; then
-    rsync -a --filter="P $DEPLOY_STAMP" "${args[@]}"
+    rsync -a "${args[@]}"
     return
   fi
   local out
-  out="$(rsync -nci -a --filter="P $DEPLOY_STAMP" "${args[@]}")" || return 1
+  out="$(rsync -nci -a "${args[@]}")" || return 1
   out="$(printf '%s\n' "$out" | grep -E '^(<|\*deleting|c[^d])' || true)"
   [ -n "$out" ] || return 0
   printf '%s\n' "$out" | sed "s/^/  $DEPLOY_STACK: /"
@@ -83,7 +83,7 @@ deploy_up() {
 deploy_stamp() {
   local body
   body="$(printf 'commit=%s\nat=%s\nfrom=%s\nhow=%s\n' "$DEPLOY_COMMIT" "$(date -u +%FT%TZ)" "$(hostname)" "$DEPLOY_MODE")"
-  printf '%s\n' "$body" | "${DEPLOY_SSH[@]}" "$DEPLOY_REMOTE" "mkdir -p $DEPLOY_ROOT/$DEPLOY_STACK && cat > $DEPLOY_ROOT/$DEPLOY_STACK/$DEPLOY_STAMP"
+  printf '%s\n' "$body" | "${DEPLOY_SSH[@]}" "$DEPLOY_REMOTE" "mkdir -p $DEPLOY_ROOT/$DEPLOY_STAMPS && cat > $DEPLOY_ROOT/$DEPLOY_STAMPS/$DEPLOY_STACK"
 }
 
 deploy_end() {

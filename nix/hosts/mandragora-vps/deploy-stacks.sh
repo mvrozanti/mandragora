@@ -20,7 +20,7 @@ Usage: deploy-stacks.sh [--check | --adopt | --sync] [--force] [--no-up] <stack>
 The only writer of served content on mandragora-vps. Every deploy:
   * comes from master: refused from a worktree, a stale checkout, or a dirty stack dir;
   * moves forward: refused if live was deployed from a commit this checkout lacks;
-  * stamps live with the commit it came from: /home/opc/<stack>/.deployed;
+  * stamps live with the commit it came from: /home/opc/.deployed/<stack>;
   * holds the mandragora-switch lock, so it never races a switch.
 
 A stack with its own deploy.sh (that sources deploy-guard.sh) is deployed by
@@ -88,7 +88,7 @@ collect_sync() {
   local repo slots d name stamp
   repo="$(git -C "$HERE" rev-parse --show-toplevel)"
   slots="$(ssh -o BatchMode=yes -o ConnectTimeout=10 "${DEPLOY_REMOTE:-${REMOTE:-opc@mandragora-vps}}" \
-    'for d in /home/opc/*/; do n=$(basename "$d"); printf "%s %s\n" "$n" "$(sed -n "s/^commit=//p" "$d.deployed" 2>/dev/null)"; done')" \
+    'for d in /home/opc/*/; do n=$(basename "$d"); printf "%s %s\n" "$n" "$(sed -n "s/^commit=//p" "/home/opc/.deployed/$n" 2>/dev/null)"; done')" \
     || die "cannot reach the VPS to read deploy stamps"
   for d in "$COMPOSE_DIR"/*/; do
     name="$(basename "$d")"
@@ -155,7 +155,7 @@ run_one() {
     guarded_script "$name" || { printf 'skip %s: its deploy.sh does not use deploy-guard.sh\n' "$name" >&2; return 1; }
     NO_UP="$NO_UP" bash "$COMPOSE_DIR/$name/deploy.sh"
   else
-    ( deploy_generic "$name" )
+    ( set -euo pipefail; deploy_generic "$name" )
   fi
 }
 
