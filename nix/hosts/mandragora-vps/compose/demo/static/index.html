@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="vendor/vault-graph/vault-graph.css?v=2d937339">
 <link rel="stylesheet" href="theme.css?v=3cb0f19c">
 <link rel="stylesheet" href="components.css?v=6b30523d">
-<link rel="stylesheet" href="demo.css?v=f2eb7602">
+<link rel="stylesheet" href="demo.css?v=879cf4b2">
 <script src="theme.js?v=a672fa84" data-endpoint="/api/theme?colors=1" data-poll="0"></script>
 </head>
 <body>
@@ -140,16 +140,90 @@
 </noscript>
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
-<script src="vendor/vault-graph/vault-graph.js?v=dc8a1e6c"></script>
+<script src="vendor/vault-graph/vault-graph.js?v=9b45df8f"></script>
 <script>
+const SATURATION = 78;
+const RAINBOW_SPAN = 280;
+const MODE_KEY = "demo-graph-color-mode";
 const accentTheme = () => {
   const m = /^#?([0-9a-f]{6})$/i.exec(getComputedStyle(document.documentElement).getPropertyValue("--mv-accent").trim());
-  if (!m) return {};
+  if (!m) return { saturation: SATURATION, lightness: 60 };
   const n = parseInt(m[1], 16), r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
   const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min, l = (max + min) / 2;
   const h = !d ? 0 : (max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4) * 60;
-  return { hueOffset: h, saturation: 34, lightness: Math.min(72, Math.max(62, l * 100)) };
+  return { hueOffset: h, saturation: SATURATION, lightness: Math.min(64, Math.max(56, l * 100)) };
 };
+const rainbow = (t, lightness) => `hsl(${(t * RAINBOW_SPAN).toFixed(1)} ${SATURATION}% ${lightness}%)`;
+const readMode = () => { try { return localStorage.getItem(MODE_KEY) === "creation" ? "creation" : "category"; } catch { return "category"; } };
+const saveMode = (mode) => { try { localStorage.setItem(MODE_KEY, mode); } catch {} };
+let graphData = null;
+let colorPanel = null;
+let timeline = null;
+
+const buildColorPanel = (hud) => {
+  colorPanel = document.createElement("div");
+  colorPanel.className = "demo-color";
+  colorPanel.setAttribute("role", "group");
+  colorPanel.setAttribute("aria-label", "Color nodes by");
+  colorPanel.innerHTML =
+    '<span class="demo-color__label">color by</span>' +
+    '<div class="mv-chips">' +
+    '<button class="mv-chip" type="button" data-mode="category" aria-pressed="true">category</button>' +
+    '<button class="mv-chip" type="button" data-mode="creation" aria-pressed="false">creation</button>' +
+    '</div>';
+  hud.insertBefore(colorPanel, hud.querySelector("#hud-categories"));
+  timeline = document.createElement("div");
+  timeline.className = "demo-timeline";
+  timeline.hidden = true;
+  timeline.innerHTML =
+    '<div class="demo-timeline__bar"></div><div class="demo-timeline__ticks"></div>' +
+    '<p class="demo-timeline__note">oldest subject to newest, one hue per note. Grey: no date found.</p>';
+  hud.appendChild(timeline);
+};
+
+const renderTimeline = (lightness) => {
+  const stops = Array.from({ length: 8 }, (_, i) => rainbow(i / 7, lightness)).join(", ");
+  timeline.querySelector(".demo-timeline__bar").style.background = `linear-gradient(to right, ${stops})`;
+  const dated = graphData.nodes.filter(n => typeof n.order === "number").sort((a, b) => a.order - b.order);
+  if (!dated.length) return;
+  const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+  const finalYear = dated[dated.length - 1].since.slice(0, 4);
+  const years = [];
+  const quarters = [];
+  let month = null;
+  for (const n of dated) {
+    const year = n.since.slice(0, 4);
+    if (!years.length || years[years.length - 1].label !== year) years.push({ label: year, at: n.order });
+    if (year !== finalYear) continue;
+    const mm = parseInt(n.since.slice(5, 7), 10) - 1;
+    if (mm !== month && mm % 3 === 0) quarters.push({ label: months[mm], at: n.order });
+    month = mm;
+  }
+  const finalStart = years[years.length - 1];
+  const ranked = [years[0], finalStart, ...quarters, ...years.slice(1, -1)];
+  const shown = [];
+  for (const m of ranked) {
+    if (m && !shown.includes(m) && shown.every(s => Math.abs(s.at - m.at) >= 0.16)) shown.push(m);
+  }
+  shown.sort((a, b) => a.at - b.at);
+  const ticks = timeline.querySelector(".demo-timeline__ticks");
+  ticks.replaceChildren(...shown.map(m => {
+    const s = document.createElement("span");
+    s.textContent = m.label;
+    s.style.left = `${(m.at * 100).toFixed(1)}%`;
+    if (m.at > 0.9) s.style.transform = "translateX(-100%)";
+    else if (m.at < 0.05) s.style.transform = "none";
+    return s;
+  }));
+};
+
+const creationColors = (lightness) => {
+  const grey = getComputedStyle(document.documentElement).getPropertyValue("--mv-text-ghost").trim();
+  const byId = new Map();
+  for (const n of graphData.nodes) byId.set(n.id, typeof n.order === "number" ? rainbow(n.order, lightness) : grey);
+  return (n) => byId.get(n.id);
+};
+
 VaultGraph.create({
   brand: {
     title: "fake-obsidian",
@@ -164,12 +238,38 @@ VaultGraph.create({
   },
   layoutCacheKey: "fake-obsidian-layout-v1",
   theme: accentTheme(),
-  fetchGraph: () => fetch("graph.json").then(r => r.json()),
+  hudExtras: buildColorPanel,
+  fetchGraph: () => fetch("graph.json").then(r => r.json()).then(g => (graphData = g)),
   fetchNote:  (path) => fetch("vault/" + path.split("/").map(encodeURIComponent).join("/")).then(r => {
     if (!r.ok) throw new Error("HTTP " + r.status);
     return r.text();
   }),
-}).then((vg) => window.addEventListener("mv-theme", () => vg.setTheme(accentTheme())));
+}).then((vg) => {
+  const hasDates = graphData.nodes.some(n => typeof n.order === "number");
+  const chips = [...colorPanel.querySelectorAll(".mv-chip")];
+  let mode = hasDates ? readMode() : "category";
+  if (!hasDates) {
+    const creation = colorPanel.querySelector('[data-mode="creation"]');
+    creation.disabled = true;
+    creation.title = "this graph was built without subject dates";
+  }
+  const apply = () => {
+    const lightness = accentTheme().lightness;
+    for (const c of chips) c.setAttribute("aria-pressed", String(c.dataset.mode === mode));
+    document.body.classList.toggle("by-creation", mode === "creation");
+    timeline.hidden = mode !== "creation";
+    if (mode === "creation") renderTimeline(lightness);
+    vg.setNodeColor(mode === "creation" ? creationColors(lightness) : null);
+  };
+  for (const c of chips) c.addEventListener("click", () => {
+    if (c.disabled || c.dataset.mode === mode) return;
+    mode = c.dataset.mode;
+    saveMode(mode);
+    apply();
+  });
+  apply();
+  window.addEventListener("mv-theme", () => { vg.setTheme(accentTheme()); apply(); });
+});
 </script>
 </body>
 </html>

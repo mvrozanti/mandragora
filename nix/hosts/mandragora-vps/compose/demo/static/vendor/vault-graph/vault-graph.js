@@ -122,6 +122,7 @@
     const colored = groups.filter(g => g !== "_unresolved");
     const cssVar = (name) => getComputedStyle(mount).getPropertyValue(name).trim();
     let theme = { ...(opts.theme || {}) };
+    let nodeColor = typeof opts.nodeColor === "function" ? opts.nodeColor : null;
     const groupColor = {};
     function computePalette() {
       const saturation = theme.saturation ?? 48;
@@ -562,7 +563,7 @@
         ctx.globalAlpha = alpha;
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-        ctx.fillStyle = groupColor[n.group] || "#888";
+        ctx.fillStyle = (nodeColor && nodeColor(n)) || groupColor[n.group] || "#888";
         ctx.fill();
         if (lit > 0.02) {
           ctx.globalAlpha = lit;
@@ -801,6 +802,10 @@
         readColors();
         computePalette();
         for (const [g, row] of groupRows) row.firstChild.style.background = groupColor[g];
+        markDirty();
+      },
+      setNodeColor: (fn) => {
+        nodeColor = typeof fn === "function" ? fn : null;
         markDirty();
       },
       getCurrentUserCount: () => data.nodes.length,
