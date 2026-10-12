@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  inputs,
+  ...
+}:
 
 # Shared CLI baseline imported by every mandragora host.
 # Add things here when they should be on BOTH desktop and WSL.
@@ -114,4 +119,5 @@
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/hooks/chat-mode.sh";
   home.file.".claude/hooks/tmux-state.sh".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/hooks/tmux-state.sh";
+  home.file.".local/share/progress-hud".source = inputs.progress-hud;
 }

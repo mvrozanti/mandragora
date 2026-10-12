@@ -19,7 +19,8 @@ def problems(path):
     if isinstance(interval, bool) or not isinstance(interval, (int, float)) or interval < 1:
         found.append(f"{path}: statusLine.refreshInterval must be >= 1; nothing else re-runs the statusline during a tool call")
     for word in command.split():
-        if word.endswith(SCRIPT) and word.startswith("/") and not os.path.exists(word):
+        target = os.path.expanduser(word.replace("$HOME", "~", 1))
+        if word.endswith(SCRIPT) and target.startswith("/") and not os.path.exists(target):
             found.append(f"{path}: statusLine.command points at {word}, which does not exist")
     return found
 
