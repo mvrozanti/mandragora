@@ -126,7 +126,8 @@
     "huggingface-skills@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
     "mcp-server-dev@claude-plugins-official": true,
-    "nixd-lsp@mandragora": true
+    "nixd-lsp@mandragora": true,
+    "progress-hud@mandragora": true
   },
   "extraKnownMarketplaces": {
     "tellonce": {
