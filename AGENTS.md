@@ -68,8 +68,12 @@ operations that do not require asking first:
 - `sudo mkdir`, `sudo chown opc:opc`, `sudo chmod` to provision
   new service slots at `/home/opc/<slot>/` that the agent is
   bringing up in the current session.
-- `rsync` static assets, compose files, or build outputs into the
-  agent-managed `/home/opc/<slot>/` from the desktop.
+- Deploying served content happens by landing it: `mandragora-switch`
+  deploys what it lands, from master, through
+  `nix/hosts/mandragora-vps/deploy-stacks.sh`. Never `rsync` into
+  `/home/opc/` by hand: the deploy guard refuses anything that is not
+  master's tip and anything older than what is live, and a by-hand copy
+  is how a stale worktree once reverted the demo page twice in an hour.
 - `docker compose up/down/restart/logs` on slots the agent is
   bringing up or just brought up this session.
 
@@ -77,8 +81,10 @@ The pattern for adding a new public subdomain is fully captured by the
 `demo` and `rule110` stacks in
 `nix/hosts/mandragora-vps/compose/`: mirror the compose YAML (caddy
 labels handle TLS via the docker-proxy, `seafile-net` is the shared
-network), `rsync` it to the VPS, `docker compose up -d`. No nixos
-rebuild is required for compose-only changes.
+network), commit it with its hub tile, and land it with
+`mandragora-switch`: a stack with no slot on the VPS yet is deployed and
+brought up by the switch. No nixos rebuild is required for compose-only
+changes.
 
 **Still requires explicit user authorization, every time:**
 
@@ -180,9 +186,8 @@ rationale, recipes, or the incident that produced the rule.
     API for every host actually being served, so hosts declared outside
     `compose/` (forgejo, hand-added stacks) are caught too, and it
     diffs the deployed `hub.mvr.ac` against the repo copy so a stale
-    hub is itself a failure. Deploy with `rsync -a
-    nix/hosts/mandragora-vps/compose/hub/static/index.html
-    opc@mandragora-vps:/home/opc/hub/static/index.html`. When the VPS
+    hub is reported. The tile is deployed by landing it: `mandragora-switch`
+    deploys the hub with everything else it lands. When the VPS
     is unreachable the check degrades to repo-only and says so loudly.
     Intentional exemptions live in
     `.local/share/mandragora-audit/allowlists/hub-tile.txt`; adding one

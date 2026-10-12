@@ -490,6 +490,13 @@ if [ "$INTERACTIVE" -eq 0 ] && command -v mandragora-vault >/dev/null 2>&1; then
   phase "vault publish"
 fi
 
+DEPLOY_DRIVER="$FLAKE/nix/hosts/mandragora-vps/deploy-stacks.sh"
+if [ -f "$DEPLOY_DRIVER" ]; then
+  echo "==> Served content: deploying what master changed since it was last deployed..."
+  MANDRAGORA_SWITCH_LOCKED=1 bash "$DEPLOY_DRIVER" --sync || echo "==> WARNING: some served content did not deploy (above); the system switch itself is fine and the next switch retries." >&2
+  phase "deploy served content"
+fi
+
 if [ "$RC" -eq 0 ] || [ "$ACTIVATED" -eq 1 ]; then
   WINDOW_SECONDS=${MANDRAGORA_GEN_WINDOW_SECONDS:-7200}
   if [ "$WINDOW_SECONDS" -gt 0 ]; then

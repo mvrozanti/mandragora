@@ -8,39 +8,52 @@ Stacks section verified against the live host on 2026-07-12 (`docker ps` + `ls /
 
 ## Deploying
 
-One driver deploys the ordinary stacks: [`deploy-stacks.sh`](deploy-stacks.sh).
+Served content has exactly one writer: [`deploy-stacks.sh`](deploy-stacks.sh),
+and nobody runs it by hand in the normal case. **`mandragora-switch` deploys
+what it lands**: after the push it runs `deploy-stacks.sh --sync` from the main
+checkout, which deploys every enrolled stack master has changed since its last
+deploy, plus any new stack that has no slot on the VPS yet. A deploy that
+fails is retried by the next switch.
+
+Every deploy, whether by the driver or a stack's own `deploy.sh`, goes through
+[`deploy-guard.sh`](deploy-guard.sh):
+
+- **Master only.** Refused from a worktree, a checkout that is not master's
+  tip, or a stack dir with uncommitted changes. This is what makes "deploy
+  from my worktree so the drift check passes" impossible.
+- **Forward only.** Each deploy stamps `/home/opc/<stack>/.deployed` with the
+  commit it came from. A deploy whose checkout does not contain the live stamp
+  is refused, so older content can never overwrite newer.
+- **Serialized.** It takes the `mandragora-switch` lock, so it never races a
+  switch (the switch passes its lock down).
+- **Enrolled.** A stack whose slot exists but carries no stamp is never deployed
+  without `--force`: nothing proves what it holds. `--adopt` enrolls it by
+  stamping, and only when live already equals master byte for byte.
 
 ```
-deploy-stacks.sh [--dry-run] [--diff] [--no-up] <stack>... | --all
+deploy-stacks.sh [--check | --adopt | --sync] [--force] [--no-up] <stack>... | --all
 ```
 
-Per stack it `rsync -a --delete`s `compose/<stack>/` to
-`opc@mandragora-vps:/home/opc/<stack>/`, then `docker compose up -d` in
-that slot. `--all` iterates every `compose/*/` dir that carries a
-`docker-compose.yml`. `--dry-run` shows the itemized rsync plan and skips
-the up; `--diff` prints a compact change list (implies no up); `--no-up`
-syncs without restarting.
+`--check` lists what a deploy would change and touches nothing (works from any
+checkout). `--force` overrides the master, clean-tree and forward-only gates and
+says what it overwrites; use it only to put master back over content that never
+landed. A stack with its own `deploy.sh` (sourcing `deploy-guard.sh`) is
+deployed by that script with its own sync rules; any other stack is rsynced
+whole and brought up with `docker compose up -d`.
 
-Safety, by construction:
+The generic sync keeps the original safety: remote `.env`/`*.env` are never
+sent or deleted, each stack's `.gitignore` protects remote-only runtime state
+from `--delete`. A `.no-deploy` marker or `RETIRED.md` keeps a stack out of the
+driver entirely: `cv`, `fin`, `ofin` build from external repos and are deployed
+by running their guarded `deploy.sh`; `loki`, `rule110`, `manifold`, `seafile`
+hold live-only state; `music` publishes renders, not repository files.
 
-- **Remote `.env`/`*.env` are never sent and never deleted** (protect
-  filter + exclude). The colocated secret files stay put.
-- **Each stack's own `.gitignore` is honoured** (`--exclude-from`), so
-  remote-only runtime state (`data/`, `*_data/`, generated reports,
-  `*.bak.*`) survives `--delete`.
-- **A `.no-deploy` marker file refuses the stack** and makes `--all` skip
-  it. It exists for stacks whose remote state is live-only or has drifted
-  from the repo, so a blanket sync cannot clobber them. Currently marked:
-  `cv`, `demo`, `fin`, `food`, `gpg`, `hub`, `loki`, `ofin`, `rule110`
-  (plus `seafile`, which has no `docker-compose.yml` and is skipped by
-  `--all` regardless). These keep their own procedure — several have a
-  bespoke `compose/<stack>/deploy.sh` that builds from an external project
-  repo or preserves live data the compose dir does not hold (`fin`/`ofin`
-  pull from `~/Projects/*`; `demo` preserves `static/vault/`; `hub` holds
-  live `config/*.yaml`; `loki` holds the log WAL; `rule110`/`cv` build or
-  carry static assets that are not in the repo dir). The `cv` frontend is
-  still built + pushed by its own `deploy.sh`; the driver only syncs the
-  compose dir and brings the container up.
+Enrolled 2026-10-12 (live verified equal to master): axon, demo, filebrowser,
+fly, food, gokapi, gource, kl, lenia, logs, meme, microbin, mvr-api, nb,
+node-exporter, pinserver, radicale, semantic, spider, stt, tts, vj, webhook.
+Not enrolled because live differs from master (decide which side is right,
+then land it or `--force` master): authelia, btc, chess, gpg, hub, jade,
+kindle, status, torrent, voice, vuln, watch.
 
 The six live-only slots with no repo compose at all (`git`, `chess`,
 `voice`, `btc-tob-capture`, `palpitador`, `basilica` — see the Drift

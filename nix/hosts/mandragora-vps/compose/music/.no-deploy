@@ -1,0 +1,1 @@
+music's content is rendered audio and visuals from ~/Music/.viz, not repository files, so the deploy driver never syncs it. Publish renders with this stack's deploy.sh.
