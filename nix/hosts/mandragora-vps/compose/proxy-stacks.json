@@ -65,7 +65,7 @@
         "({desktop}): the static frontend on :3001 and the FastAPI backend on",
         ":8000. /api/* is stripped and routed to the backend; everything else to",
         "the frontend. The backend runs LLM inference on the desktop GPU, so the",
-        "authelia gate (two_factor) is mandatory — never expose this unauthenticated."
+        "authelia gate (two_factor) is mandatory \u2014 never expose this unauthenticated."
       ],
       "api_upstream_var": "SEMANTIC_API_UPSTREAM",
       "api_upstream_host": "desktop",
@@ -83,6 +83,22 @@
       "upstream_host": "desktop",
       "upstream_port": 8091,
       "request_body_max_size": "200MB",
+      "logging": false
+    },
+    {
+      "name": "vj",
+      "kind": "authelia-simple",
+      "host": "vj",
+      "comment": [
+        "Reverse-proxy-only stack. vj.mvr.ac is gated behind authelia and",
+        "forwarded over tailscale to the vj rater on mandragora-desktop",
+        "({desktop}:8100): the Deck page, the sample API and the rendered",
+        "clips. The upstream renders on the desktop GPU under gpu-lock, so the",
+        "authelia gate is mandatory."
+      ],
+      "upstream_var": "VJ_UPSTREAM",
+      "upstream_host": "desktop",
+      "upstream_port": 8100,
       "logging": false
     }
   ]
