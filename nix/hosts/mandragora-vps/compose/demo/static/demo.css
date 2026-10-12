@@ -55,6 +55,7 @@
 #counts { font-family: var(--mv-font-mono); font-size: var(--mv-text-xs); color: var(--mv-text-ghost); font-variant-numeric: tabular-nums; }
 #hud .blurb { margin: var(--mv-space-2) 0 0; max-width: none; font-size: var(--mv-text-sm); line-height: var(--mv-leading); color: var(--mv-text-dim); }
 #hud .blurb a { color: var(--mv-accent); }
+#hud .blurb:empty { display: none; }
 #hud input {
   margin-top: var(--mv-space-3); min-height: 40px; padding: 0 var(--mv-space-3);
   background: var(--mv-bg); color: var(--mv-text);
