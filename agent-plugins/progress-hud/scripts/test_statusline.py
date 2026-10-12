@@ -8,10 +8,15 @@ import unittest
 
 sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPEC = importlib.util.spec_from_file_location("statusline", os.path.join(HERE, "statusline.py"))
+SPEC = importlib.util.spec_from_file_location("progress_hud", os.path.join(HERE, "progress_hud.py"))
 assert SPEC is not None and SPEC.loader is not None
 sl = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(sl)
+
+def slurp(path):
+    with open(path) as f:
+        return f.read()
+
 
 G, M, C, Y, D, R = sl.TONE["parsed"], sl.TONE["unknown"], sl.TONE["estimate"], sl.TONE["over"], sl.DIM, sl.RESET
 
@@ -70,6 +75,9 @@ class CommandKeys(unittest.TestCase):
             "timeout 5 tail -f /dev/null": "tail -f /dev/null",
             "rtk": "rtk",
             "x" * 300: "x" * 200,
+            "rtk cd $W && python3 - <<x": "python3 - <<x",
+            "X=1 && git status": "git status",
+            "cd /a && FOO=1 rtk cd /b; timeout 9 make": "make",
         }
         for command, key in cases.items():
             self.assertEqual(sl.normalize(command), key, command)
@@ -150,13 +158,16 @@ class History(unittest.TestCase):
             sl.track(state, history, [task], 1001.0)
             sl.track(state, history, [task], 1004.5)
             self.assertFalse(os.path.exists(history))
-            sl.track(state, history, [], 1010.0)
-            entry = json.loads(open(history).read().strip())
+            finished = sl.track(state, history, [], 1010.0)
+            entry = json.loads(slurp(history).strip())
             self.assertEqual((entry["k"], entry["f"], entry["d"]), ("sleep 5", "sleep", 4.5))
-            self.assertEqual(json.load(open(state)), {})
+            saved = json.loads(slurp(state))
+            self.assertEqual(saved["tasks"], {})
+            self.assertEqual([(d["key"], d["duration"]) for d in finished], [("sleep 5", 4.5)])
+            self.assertEqual(sl.track(state, history, [], 1010.0 + sl.LINGER + 1), [])
             sl.track(state, history, [{**task, "start": 1002.0}], 1003.0)
             sl.track(state, history, [], 1004.0)
-            self.assertEqual(len(open(history).read().splitlines()), 1)
+            self.assertEqual(len(slurp(history).splitlines()), 1)
 
 
 class Rendering(unittest.TestCase):
@@ -202,8 +213,10 @@ class Rendering(unittest.TestCase):
                 self.assertLessEqual(len(sl.ANSI.sub("", row)), cols, (task["key"][:12], cols))
 
     def test_overflow_line(self):
-        self.assertEqual(sl.rows([], NOW, 80, 0), [])
-        self.assertEqual(sl.rows([], NOW, 80, 2), [f"{D}  +2 more running{R}"])
+        hidden = [{"key": "a", "start": 0}, {"key": "b", "start": 0}]
+        self.assertEqual(sl.rows([], NOW, 80, [], "today"), [])
+        self.assertEqual(sl.rows([], NOW, 80, hidden, "today"), [f"{D}  +2 more running{R}"])
+        self.assertEqual(sl.rows([], NOW, 80, hidden, "rise"), [f"{D}  +2 more · a, b{R}"])
 
     def test_oldest_task_comes_first_and_young_ones_wait(self):
         tasks = [{"start": 1040.0}, {"start": 1000.0}, {"start": 1044.0}, {"start": 1020.0}]
@@ -215,14 +228,93 @@ class Rendering(unittest.TestCase):
         self.assertEqual((got["mtime"], got["last"], got["progress"], got["estimate"]), (1000.0, "50%", 0.5, 30))
 
 
+MODES = {
+    "parsed %": {"progress": 0.38, "src": "38%", "ratio": None, "estimate": None, "samples": [], "last": "    412,048,117  38%   24.71MB/s"},
+    "parsed n/m": {"progress": 124 / 312, "src": "124/312", "ratio": (124, 312), "estimate": None, "samples": [], "last": "Building [====>  ] 124/312: tokio"},
+    "estimate": {"progress": None, "estimate": 272.8, "samples": [236.6, 309.0], "last": "building '/nix/store/x-system-units.drv'..."},
+    "over": {"progress": None, "estimate": 30.0, "samples": [30.0], "last": "==> mixing trailer"},
+    "unknown": {"progress": None, "estimate": None, "samples": [], "last": ""},
+}
+
+
+def task_in(mode, **extra):
+    return {"key": "mandragora-switch 2>&1 | tail -40", "family": "mandragora-switch", "start": 1000.0, "mtime": 1040.0, **MODES[mode], **extra}
+
+
+class Styles(unittest.TestCase):
+    def test_default_is_rising_dots(self):
+        self.assertEqual(sl.DEFAULT_STYLE, "rise")
+        self.assertEqual(sl.options([])[2], "rise")
+
+    def test_every_style_draws_every_mode_inside_the_terminal(self):
+        for style in sl.STYLES:
+            for mode in MODES:
+                for cols in (40, 61, 80, 120, 200):
+                    lines = sl.rows([task_in(mode)], NOW, cols, [], style)
+                    self.assertTrue(lines, (style, mode, cols))
+                    for line in lines:
+                        self.assertLessEqual(len(sl.ANSI.sub("", line)), cols, (style, mode, cols))
+
+    def test_facts_name_the_mode(self):
+        expected = {"parsed %": "parsed", "parsed n/m": "parsed", "estimate": "estimate", "over": "over", "unknown": "unknown"}
+        for mode, name in expected.items():
+            self.assertEqual(sl.facts(task_in(mode), NOW)["mode"], name)
+        done = sl.facts({"key": "x", "start": 900.0, "duration": 61.0, "done": True}, NOW)
+        self.assertEqual((done["mode"], done["elapsed"]), ("done", 61.0))
+
+    def test_rising_dots_fill_bottom_up(self):
+        full = sl.facts(task_in("parsed %", progress=1.0, src="100%"), NOW)
+        gauge = "".join(text for text, _ in sl.rise_gauge(full, NOW, 10))
+        self.assertEqual(gauge, "⣿" * 10)
+        half = "".join(text for text, _ in sl.rise_gauge(sl.facts(task_in("parsed %", progress=0.5, src="50%"), NOW), NOW, 10))
+        self.assertEqual(half, "⣿" * 5 + "⣀" * 5)
+        first = "".join(text for text, _ in sl.rise_gauge(sl.facts(task_in("parsed %", progress=1 / 80, src="1%"), NOW), NOW, 10))
+        self.assertEqual(first[0], "⡀")
+        estimate = "".join(text for text, _ in sl.rise_gauge(sl.facts(task_in("estimate"), NOW), NOW, 10))
+        self.assertTrue(set(estimate) <= {"⣤", "⣀", "⡀", "⡄", "⣄", "⣠", "⢀", "⣤"}, estimate)
+
+    def test_field_lingers_as_done_and_reads_a_kitty_palette(self):
+        lines = sl.rows([{"key": "make", "start": 900.0, "duration": 61.0, "done": True}], NOW, 120, [], "field")
+        self.assertEqual(len(lines), 2)
+        self.assertIn("✓ 1m01s", sl.ANSI.sub("", lines[0]))
+        with tempfile.NamedTemporaryFile("w", delete=False) as f:
+            f.write("foreground #dee3e5\nbackground #000000\ncolor12 #83d2e3\ncolor1 nonsense\n")
+            path = f.name
+        try:
+            palette = sl.load_palette(path)
+        finally:
+            os.unlink(path)
+        self.assertEqual((palette["run"], palette["back"]), ([0x83, 0xD2, 0xE3], [0, 0, 0]))
+        self.assertEqual(sl.load_palette("/nonexistent"), sl.DEFAULT_PALETTE)
+
+    def test_parse_match_keeps_what_it_read(self):
+        self.assertEqual(sl.parse_match(["downloading 38 %"]), (0.38, "38%", None))
+        self.assertEqual(sl.parse_match(["[3/40 built]"]), (0.075, "3/40", (3, 40)))
+        self.assertIsNone(sl.parse_match(["nothing here"]))
+
+    def test_graph_draws_output_activity(self):
+        t = sl.facts(task_in("estimate", sizes=[[1000.0, 0], [1020.0, 0], [1030.0, 5000], [1045.0, 5000]]), NOW)
+        cells = "".join(text for text, _ in sl.graph_gauge(t, NOW, 20))
+        self.assertEqual(cells[1], "⣸")
+        self.assertTrue(set(cells[4:]) <= {"⣀"}, cells)
+
+
 class Options(unittest.TestCase):
     def test_flags(self):
-        cases = [([], (None, 3)), (["--wrap", ""], ("", 3)), (["--wrap=x y"], ("x y", 3)), (["--max-rows", "5"], (None, 5)), (["--max-rows=2", "--wrap", "z"], ("z", 2))]
+        cases = [
+            ([], (None, 3, "rise", None)),
+            (["--wrap", ""], ("", 3, "rise", None)),
+            (["--wrap=x y"], ("x y", 3, "rise", None)),
+            (["--max-rows", "5"], (None, 5, "rise", None)),
+            (["--max-rows=2", "--wrap", "z"], ("z", 2, "rise", None)),
+            (["--style", "field", "--palette", "~/c.conf"], (None, 3, "field", "~/c.conf")),
+            (["--style=today"], (None, 3, "today", None)),
+        ]
         for argv, expected in cases:
             self.assertEqual(sl.options(argv), expected, argv)
 
     def test_rejects_bad_flags(self):
-        for argv in (["--max-rows", "0"], ["--max-rows", "x"], ["--bogus"], ["--max-rows"]):
+        for argv in (["--max-rows", "0"], ["--max-rows", "x"], ["--bogus"], ["--max-rows"], ["--style", "nope"], ["--palette"]):
             with self.assertRaises(SystemExit):
                 sl.options(argv)
 
