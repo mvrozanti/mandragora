@@ -220,11 +220,11 @@
     "progress-hud": {
       "flake": false,
       "locked": {
-        "lastModified": 1791827857,
-        "narHash": "sha256-pNowYRt3fKOXgU0ZKTcXA7DaZlKP8L03n6oIWFqgrqs=",
+        "lastModified": 1791843736,
+        "narHash": "sha256-hIr9VYYO3qF/GP1EvIJMjKPu73kGgMXclRb0fROl7iQ=",
         "owner": "mvrozanti",
         "repo": "progress-hud",
-        "rev": "20fe02798c266e3ee334d1d3b429c7865b98e9c5",
+        "rev": "e93161540c6b6fabe29e87acd80385688e81a8d5",
         "type": "github"
       },
       "original": {
