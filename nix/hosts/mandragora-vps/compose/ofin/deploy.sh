@@ -10,6 +10,12 @@
 
 set -euo pipefail
 
+GUARD_HERE="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=/dev/null
+. "$GUARD_HERE/../../deploy-guard.sh"
+[ "${DEPLOY_MODE:-deploy}" = deploy ] || { echo "ofin builds from ~/Projects; it supports only a real deploy" >&2; exit 2; }
+deploy_begin ofin "$GUARD_HERE"
+
 REMOTE="${REMOTE:-opc@mandragora-vps}"
 REMOTE_DIR="${REMOTE_DIR:-/home/opc/ofin}"
 LOCAL_REPO="${LOCAL_REPO:-$HOME/Projects/ofin}"
@@ -88,6 +94,8 @@ if [[ "$SEED_DB" == "1" ]]; then
 fi
 
 ssh "$REMOTE" "docker exec ofin wget -qO- http://localhost:8080/healthz || echo '(healthz check failed)'"
+
+deploy_end
 
 echo "→ done. visit https://ofin.mvr.ac (public read-only, no host writes)."
 echo "   logs:    ssh $REMOTE 'docker logs -f ofin'"

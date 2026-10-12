@@ -3,14 +3,12 @@
 Snapshot of the docker-compose stacks running on `mandragora-vps`
 (Oracle Linux 8.10 aarch64), captured 2026-05-08. The repo holds the
 canonical text; the VPS-side files under `/home/opc/` are the live
-copies. The ordinary stacks push repo → VPS through the unified
-[`../deploy-stacks.sh`](../deploy-stacks.sh) driver (`.env`-safe,
-`.gitignore`-aware, `.no-deploy`-gated — see
-[`../INVENTORY.md`](../INVENTORY.md#deploying)); a handful with live-only
-or divergent remote state carry a `.no-deploy` marker and keep their own
-procedure. Future phases of the hub project will switch to a
-pull-from-git workflow; until then, edits to either side must be
-mirrored.
+copies, and master is the only source they are written from:
+`mandragora-switch` deploys what it lands through
+[`../deploy-stacks.sh`](../deploy-stacks.sh), which refuses anything that is
+not master and never moves a stack backwards (see
+[`../INVENTORY.md`](../INVENTORY.md#deploying)). Never `rsync` into
+`/home/opc/` by hand.
 
 ## Stacks tracked
 

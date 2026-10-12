@@ -55,7 +55,7 @@ the audit's `/nix/store` derivation.
 | 02 | `doc-links`      | —  | Broken relative ``links`` links in tracked Markdown. |
 | 03 | `conventional-commits` | R14 | Commit subjects not matching `<type>[(scope)][!]: <lowercase>`. |
 | 04 | `hyprland-config` | R11 | Non-empty `hyprctl configerrors` when staged `.config/hypr/*.conf` changes; skips when hyprctl absent or no reachable instance. |
-| 05 | `hub-tile` | R16 | A `https://<sub>.mvr.ac` caddy host under `nix/hosts/mandragora-vps/compose/` with no matching tile in `hub/static/index.html`. Allowlist: `allowlists/hub-tile.txt` (bare subdomains). |
+| 05 | `hub-tile` | R16 | A `https://<sub>.mvr.ac` host served by caddy or declared under `compose/` with no hub tile. When live `hub.mvr.ac` lacks tiles master has, it only notes it: the next `mandragora-switch` deploys the hub. Allowlist: `allowlists/hub-tile.txt` (bare subdomains). |
 | 06 | `no-projects-in-local-share` | R17 | Project markers (`.git`, `pyproject.toml`, `Cargo.toml`, `package.json`, `flake.nix`) under `.local/share/`. Allowlist: `allowlists/local-share-projects.txt` (top-level dir names). |
 | 07 | `language-purity` | R2 | New inline `''…''` non-Nix heredocs (and `extraConfig = "…"`) in `.nix` files, excluding build phases, `writeShellScript*` wrappers, and prose-metadata attrs. Allowlist: `allowlists/language-purity.txt` (`path` or `path:line`). |
 | 08 | `statix` | — | statix antipatterns in changed `.nix` files; skips unparseable files. Config in `statix.toml`. |
@@ -66,6 +66,7 @@ the audit's `/nix/store` derivation.
 | 13 | `sops-encrypted` | R4 | Tracked `secrets/*.{yaml,yml,json}` that is not sops ciphertext, or raw private-key material in any tracked file; skips when `secrets/` or `sops` is absent. |
 | 14 | `vault-secrets` | R4 | Credential-shaped strings (provider API keys, GitHub/Slack/Tailscale tokens, telegram bot tokens, age secret keys, private-key blocks, JWTs, URL credentials) in the publicly-served Obsidian vault. Cites `file:line` without echoing the value. Path via `MANDRAGORA_VAULT`; skips when the vault is absent. Patterns live in `lib/secret-patterns.txt`, shared with `mandragora-vault`. Allowlist: `allowlists/vault-secrets.txt` (`path` or `path:line`). |
 | 17 | `vault-verdict` | R22 | commit-msg only: an agent commit (`MANDRAGORA_AGENT`, `AI_AGENT`, `CLAUDECODE` or `GEMINI_CLI` set) whose message has no valid `Vault:` line — a committed, recently changed vault note, or `none (<reason>)`. Delegates to `mandragora-vault trailer-check`; skips human commits and when the tool is not installed yet. See [`vault.md`](vault.md). |
+| 18 | `stacks-deployed` | — | Reads every `/home/opc/<stack>/.deployed` stamp on the VPS and fails when a stack is serving a commit master does not contain (unlanded work deployed by hand). Stacks behind master and stacks not yet enrolled are noted, not failed: the next switch deploys them, and enrollment needs a human decision. Also verifies the demo page byte for byte against master. Compares against `refs/heads/master`, never the worktree being audited, so a stale worktree is never blocked by drift it did not cause. |
 
 ## Adding a check
 

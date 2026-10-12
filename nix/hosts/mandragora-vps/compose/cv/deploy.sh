@@ -6,10 +6,15 @@
 # PDFs are not tracked (static/.gitignore); the cv repo is the source.
 set -euo pipefail
 
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")" && pwd)/../../deploy-guard.sh"
+
 HERE="$(cd "$(dirname "$0")" && pwd)"
 CV_REPO="${CV_REPO:-$HOME/Projects/cv}"
 REMOTE="${REMOTE:-opc@100.84.78.83}"
 REMOTE_DIR="${REMOTE_DIR:-/home/opc/cv}"
+
+deploy_begin cv "$HERE"
 
 echo "→ building CVs in $CV_REPO"
 make -C "$CV_REPO" all
@@ -27,13 +32,11 @@ for id in "${!MAP[@]}"; do
   cp "$CV_REPO/build/$id.pdf" "$HERE/static/${MAP[$id]}"
 done
 
-echo "→ rsyncing compose + static to $REMOTE:$REMOTE_DIR/"
-ssh "$REMOTE" "mkdir -p $REMOTE_DIR/static"
-rsync -av "$HERE/docker-compose.yml" "$REMOTE:$REMOTE_DIR/"
-rsync -av "$HERE/nginx.conf" "$REMOTE:$REMOTE_DIR/"
-rsync -av --delete "$HERE/static/" "$REMOTE:$REMOTE_DIR/static/"
-
-echo "→ bringing up the container"
-ssh "$REMOTE" "cd $REMOTE_DIR && docker compose up -d"
+deploy_mkdir static
+deploy_rsync "$HERE/docker-compose.yml" :
+deploy_rsync "$HERE/nginx.conf" :
+deploy_rsync --delete "$HERE/static/" :static/
+deploy_up
+deploy_end
 
 echo "→ done. https://cv.mvr.ac"

@@ -19,6 +19,12 @@
 
 set -euo pipefail
 
+GUARD_HERE="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=/dev/null
+. "$GUARD_HERE/../../deploy-guard.sh"
+[ "${DEPLOY_MODE:-deploy}" = deploy ] || { echo "fin builds from ~/Projects; it supports only a real deploy" >&2; exit 2; }
+deploy_begin fin "$GUARD_HERE"
+
 REMOTE="${REMOTE:-opc@100.84.78.83}"
 REMOTE_DIR="${REMOTE_DIR:-/home/opc/fin}"
 LOCAL_REPO="${LOCAL_REPO:-$HOME/Projects/algotrading}"
@@ -141,6 +147,8 @@ if [[ -x "$LOCAL_REPO/scripts/panes_parity.py" ]]; then
 else
   echo "  (scripts/panes_parity.py absent, skipping)"
 fi
+
+deploy_end
 
 echo "→ done. visit https://fin.mvr.ac (authelia-gated)."
 echo "   logs:   ssh $REMOTE 'docker logs -f fin'"
