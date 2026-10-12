@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="vendor/vault-graph/vault-graph.css?v=2d937339">
 <link rel="stylesheet" href="theme.css?v=3cb0f19c">
 <link rel="stylesheet" href="components.css?v=6b30523d">
-<link rel="stylesheet" href="demo.css?v=879cf4b2">
+<link rel="stylesheet" href="demo.css?v=267f3082">
 <script src="theme.js?v=a672fa84" data-endpoint="/api/theme?colors=1" data-poll="0"></script>
 </head>
 <body>
@@ -140,11 +140,13 @@
 </noscript>
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
-<script src="vendor/vault-graph/vault-graph.js?v=9b45df8f"></script>
+<script src="vendor/vault-graph/vault-graph.js?v=d37a0f3e"></script>
 <script>
 const SATURATION = 78;
 const RAINBOW_SPAN = 280;
 const MODE_KEY = "demo-graph-color-mode";
+const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+const TIMELINE_NOTE = "oldest subject to newest, one hue per note. Grey: no date found. Hover the bar to find a color.";
 const accentTheme = () => {
   const m = /^#?([0-9a-f]{6})$/i.exec(getComputedStyle(document.documentElement).getPropertyValue("--mv-accent").trim());
   if (!m) return { saturation: SATURATION, lightness: 60 };
@@ -159,6 +161,7 @@ const saveMode = (mode) => { try { localStorage.setItem(MODE_KEY, mode); } catch
 let graphData = null;
 let colorPanel = null;
 let timeline = null;
+let spectrum = [];
 
 const buildColorPanel = (hud) => {
   colorPanel = document.createElement("div");
@@ -176,8 +179,9 @@ const buildColorPanel = (hud) => {
   timeline.className = "demo-timeline";
   timeline.hidden = true;
   timeline.innerHTML =
-    '<div class="demo-timeline__bar"></div><div class="demo-timeline__ticks"></div>' +
-    '<p class="demo-timeline__note">oldest subject to newest, one hue per note. Grey: no date found.</p>';
+    '<div class="demo-timeline__bar"><div class="demo-timeline__cursor" hidden></div></div>' +
+    '<div class="demo-timeline__ticks"></div><p class="demo-timeline__note" aria-live="polite"></p>';
+  timeline.querySelector(".demo-timeline__note").textContent = TIMELINE_NOTE;
   hud.appendChild(timeline);
 };
 
@@ -185,8 +189,8 @@ const renderTimeline = (lightness) => {
   const stops = Array.from({ length: 8 }, (_, i) => rainbow(i / 7, lightness)).join(", ");
   timeline.querySelector(".demo-timeline__bar").style.background = `linear-gradient(to right, ${stops})`;
   const dated = graphData.nodes.filter(n => typeof n.order === "number").sort((a, b) => a.order - b.order);
+  spectrum = dated.map(n => ({ at: n.order, id: n.id, since: n.since }));
   if (!dated.length) return;
-  const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
   const finalYear = dated[dated.length - 1].since.slice(0, 4);
   const years = [];
   const quarters = [];
@@ -196,7 +200,7 @@ const renderTimeline = (lightness) => {
     if (!years.length || years[years.length - 1].label !== year) years.push({ label: year, at: n.order });
     if (year !== finalYear) continue;
     const mm = parseInt(n.since.slice(5, 7), 10) - 1;
-    if (mm !== month && mm % 3 === 0) quarters.push({ label: months[mm], at: n.order });
+    if (mm !== month && mm % 3 === 0) quarters.push({ label: MONTHS[mm], at: n.order });
     month = mm;
   }
   const finalStart = years[years.length - 1];
@@ -253,8 +257,45 @@ VaultGraph.create({
     creation.disabled = true;
     creation.title = "this graph was built without subject dates";
   }
+  const bar = timeline.querySelector(".demo-timeline__bar");
+  const cursor = timeline.querySelector(".demo-timeline__cursor");
+  const note = timeline.querySelector(".demo-timeline__note");
+  const monthOf = (d) => `${MONTHS[parseInt(d.slice(5, 7), 10) - 1]} ${d.slice(0, 4)}`;
+  const firstAtOrAfter = (x) => {
+    let lo = 0, hi = spectrum.length;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (spectrum[mid].at < x) lo = mid + 1; else hi = mid; }
+    return lo;
+  };
+  const scrub = (e) => {
+    if (mode !== "creation" || !spectrum.length) return;
+    const r = bar.getBoundingClientRect();
+    const f = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    const band = 6 / r.width;
+    const hits = [];
+    for (let i = firstAtOrAfter(f - band); i < spectrum.length && spectrum[i].at <= f + band; i++) hits.push(spectrum[i]);
+    cursor.hidden = false;
+    cursor.style.left = `${(f * 100).toFixed(2)}%`;
+    if (!hits.length) {
+      note.textContent = "no notes at this color";
+    } else {
+      const from = monthOf(hits[0].since), to = monthOf(hits[hits.length - 1].since);
+      note.textContent = `${from === to ? from : `${from} – ${to}`} · ${hits.length} note${hits.length === 1 ? "" : "s"}`;
+    }
+    vg.setSpotlight(hits.map(h => h.id));
+  };
+  const endScrub = () => {
+    cursor.hidden = true;
+    note.textContent = TIMELINE_NOTE;
+    vg.setSpotlight(null);
+  };
+  bar.addEventListener("pointermove", scrub);
+  bar.addEventListener("pointerdown", (e) => { bar.setPointerCapture(e.pointerId); scrub(e); });
+  bar.addEventListener("pointerup", (e) => { if (e.pointerType !== "mouse") endScrub(); });
+  bar.addEventListener("pointerleave", endScrub);
+  bar.addEventListener("pointercancel", endScrub);
   const apply = () => {
     const lightness = accentTheme().lightness;
+    endScrub();
     for (const c of chips) c.setAttribute("aria-pressed", String(c.dataset.mode === mode));
     document.body.classList.toggle("by-creation", mode === "creation");
     timeline.hidden = mode !== "creation";

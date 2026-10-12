@@ -82,7 +82,11 @@
 .demo-color .mv-chip:disabled { opacity: 0.4; cursor: not-allowed; }
 body.by-creation #hud-categories, body.by-creation #legend { display: none; }
 .demo-timeline { margin-top: var(--mv-space-3); }
-.demo-timeline__bar { height: 10px; border-radius: var(--mv-radius-pill); }
+.demo-timeline__bar { position: relative; height: 14px; border-radius: var(--mv-radius-pill); cursor: crosshair; touch-action: none; }
+.demo-timeline__cursor {
+  position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px;
+  background: var(--mv-text); border-radius: 1px; pointer-events: none;
+}
 .demo-timeline__ticks {
   position: relative; height: 16px; margin-top: var(--mv-space-1);
   font-family: var(--mv-font-mono); font-size: var(--mv-text-xs); color: var(--mv-text-ghost);
