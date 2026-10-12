@@ -10,6 +10,13 @@
       "version": "1.0.0",
       "source": "./nixd-lsp",
       "category": "development"
+    },
+    {
+      "name": "progress-hud",
+      "description": "Statusline progress bars for running Bash commands, stacked under claude-hud",
+      "version": "1.0.0",
+      "source": "./progress-hud",
+      "category": "productivity"
     }
   ]
 }
