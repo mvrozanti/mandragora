@@ -169,6 +169,7 @@
     // Rendering reads both and reconciles every transition through renderGroup.
     let stuckGroup = null;
     let hoverGroup = null;
+    let spotlight = null;
 
     function renderGroup() {
       const effective = hoverGroup || stuckGroup;
@@ -176,7 +177,15 @@
         row.classList.toggle("hot", k === effective);
       }
       if (hover) return;  // node hover keeps its own highlight set
-      if (!effective) {
+      if (spotlight) {
+        highlight = new Set(spotlight);
+        highlightLinks = new Set();
+        for (const l of data.links) {
+          const s = l.source.id || l.source;
+          const t = l.target.id || l.target;
+          if (spotlight.has(s) && spotlight.has(t)) highlightLinks.add(l);
+        }
+      } else if (!effective) {
         highlight = new Set();
         highlightLinks = new Set();
       } else {
@@ -456,7 +465,7 @@
 
     function tickFocus() {
       const focused = hover != null || searchTerm.length > 0
-                   || hoverGroup != null || stuckGroup != null;
+                   || hoverGroup != null || stuckGroup != null || spotlight != null;
       const targetFocus = focused ? 1 : 0;
       let animating = Math.abs(targetFocus - focusFactor) > EPS;
       focusFactor += (targetFocus - focusFactor) * EASE;
@@ -803,6 +812,10 @@
         computePalette();
         for (const [g, row] of groupRows) row.firstChild.style.background = groupColor[g];
         markDirty();
+      },
+      setSpotlight: (ids) => {
+        spotlight = ids ? new Set(ids) : null;
+        renderGroup();
       },
       setNodeColor: (fn) => {
         nodeColor = typeof fn === "function" ? fn : null;
