@@ -217,6 +217,22 @@
         "type": "github"
       }
     },
+    "progress-hud": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791827857,
+        "narHash": "sha256-pNowYRt3fKOXgU0ZKTcXA7DaZlKP8L03n6oIWFqgrqs=",
+        "owner": "mvrozanti",
+        "repo": "progress-hud",
+        "rev": "20fe02798c266e3ee334d1d3b429c7865b98e9c5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mvrozanti",
+        "repo": "progress-hud",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "home-manager": "home-manager",
@@ -225,6 +241,7 @@
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs_2",
         "pi": "pi",
+        "progress-hud": "progress-hud",
         "sops-nix": "sops-nix"
       }
     },

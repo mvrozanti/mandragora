@@ -5,6 +5,11 @@ set -uo pipefail
 CHECK="${AUDIT_NAME:-progress-hud-tests}"
 TESTS="$MANDRAGORA_REPO/agent-plugins/progress-hud/scripts/test_statusline.py"
 
+if [ ! -f "$TESTS" ]; then
+  audit_pass "$CHECK" "skipped (progress-hud moved to github.com/mvrozanti/progress-hud, which runs its own tests)"
+  exit 0
+fi
+
 if ! command -v python3 >/dev/null 2>&1; then
   audit_pass "$CHECK" "skipped (python3 not on PATH)"
   exit 0

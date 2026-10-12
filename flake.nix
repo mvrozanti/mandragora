@@ -27,6 +27,11 @@
     };
 
     pi.url = "github:earendil-works/pi/stable";
+
+    progress-hud = {
+      url = "github:mvrozanti/progress-hud";
+      flake = false;
+    };
   };
 
   outputs =
