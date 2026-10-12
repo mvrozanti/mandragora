@@ -3,6 +3,7 @@ import datetime
 import difflib
 import fcntl
 import io
+import ipaddress
 import json
 import os
 import re
@@ -49,9 +50,15 @@ BAD_NAME = re.compile(r'[#^\[\]|\\/:*?"<>]')
 WIKILINK = re.compile(r"\[\[([^\]|#^]+)")
 FENCE = re.compile(r"```.*?```", re.S)
 INLINE_CODE = re.compile(r"`[^`\n]*`")
+CODE = re.compile(r"(```.*?```|`[^`\n]*`)", re.S)
+FULL_LINK = re.compile(r"\[\[(.+?)\]\](?!\])")
 VAULT_LINE = re.compile(r"^[ \t]*vault:[ \t]*(.+?)[ \t]*$", re.I | re.M)
 EMAIL = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b")
 EMAIL_ALLOWED = re.compile(r"^(git@|noreply@|.*@users\.noreply\.github\.com$|.*@example\.(com|org|net)$)", re.I)
+IPV4 = re.compile(r"(?<![\d.])(\d{1,3}(?:\.\d{1,3}){3})(?!\d|\.\d|/\d)")
+TAILNET = ipaddress.ip_network("100.64.0.0/10")
+LAN_RANGES = [ipaddress.ip_network(n) for n in ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16")]
+GENERIC_LAST_OCTETS = {"0", "1", "255"}
 CONVENTIONAL = re.compile(r"^(docs|chore|fix|refactor)(\([a-z0-9_./ -]+\))?!?: \S")
 LEDGER_LINE = re.compile(r"^[0-9a-f]{40}\t(note|none)\t\S.*$")
 SKIP_SUBJECTS = ("Merge ", 'Revert "', "fixup!", "squash!", "amend!")
@@ -74,9 +81,10 @@ Hold any added text that contains:
 - personal data about anyone: a real person's name other than the owner, an email address, a phone number, a street address, a precise location, a Wi-Fi network name (SSID), a device serial number, a MAC address
 - specifics of the owner's employer, clients or day job: company names, internal system names, colleagues, contract or business details
 - the owner's home network: the public IP address of the home connection, router or ISP account details
+- identifiers of the owner's devices and network: phone, laptop or other device model numbers, hostnames of personal devices (any hostname that contains a person's name or names a phone, tablet or laptop), and the address of any specific machine on the tailnet (100.64.0.0/10) or the LAN (10.x, 172.16-31.x, 192.168.x) - say "the VPS's tailnet address" or "the phone" instead
 - financial identifiers: bank or card details, seed phrases, exchange account ids, wallet addresses tied to the owner
 
-Do not hold: mechanisms, architecture, configuration shapes, incident timelines, file paths, hostnames of the owner's machines and services, private or tailnet addresses, commit hashes, package and product names.
+Do not hold: mechanisms, architecture, configuration shapes, incident timelines, file paths, the project's own machine names (mandragora-desktop, mandragora-vps, mandragora-kindle, mandragora-wsl), public service domains under mvr.ac, network ranges written as CIDR, well-known addresses (public DNS resolvers, link-local, cloud metadata, a Docker bridge gateway), commit hashes, package and product names.
 
 Reply with exactly one JSON object and nothing else:
 {"hold": [{"file": "<path>", "excerpt": "<at most 80 chars around the problem, with the sensitive part replaced by ***>", "reason": "<which rule>"}]}
@@ -300,18 +308,75 @@ def check_ledger(old, new, problems):
 def check_new_name(c, stems, problems):
     parts = c.path.split("/")
     stem = os.path.basename(c.path)[:-3]
-    if len(parts) < 2 or parts[0] not in NEW_NOTE_CATEGORIES:
-        problems.add(c.path, "new notes go inside a category folder",
+    if len(parts) != 2 or parts[0] not in NEW_NOTE_CATEGORIES:
+        problems.add(c.path, "a note lives directly inside one category folder (a '/' in a title makes nested folders)",
                      "create it with: mandragora-vault new <category> \"<Title>\"  (categories: " + ", ".join(NEW_NOTE_CATEGORIES) + ")")
     if any(part.startswith(".") for part in parts):
         problems.add(c.path, "hidden paths are not notes")
-    if BAD_NAME.search(stem) or not stem.strip() or len(stem) > 120:
-        problems.add(c.path, "the title has characters Obsidian links cannot carry (# ^ [ ] | \\ / : * ? \" < >) or is empty or too long",
+    if BAD_NAME.search(stem) or stem != stem.strip() or not stem.strip() or len(stem) > 120:
+        problems.add(c.path, "the title has characters Obsidian links cannot carry (# ^ [ ] | \\ / : * ? \" < >), leading or trailing spaces, or is empty or too long",
                      "pick a plain title")
     others = [p for p in stems.get(stem.lower(), []) if p != c.path]
     if others:
         problems.add(c.path, f"a note with this title already exists: {others[0]}",
                      f"patch {others[0]} instead (and delete the duplicate file if one was created)")
+
+
+def check_addresses(path, lines, problems):
+    for addr in sorted({m for line in lines for m in IPV4.findall(line)}):
+        try:
+            ip = ipaddress.ip_address(addr)
+        except ValueError:
+            continue
+        if ip in TAILNET:
+            kind = "tailnet"
+        elif any(ip in n for n in LAN_RANGES) and addr.rsplit(".", 1)[1] not in GENERIC_LAST_OCTETS:
+            kind = "LAN"
+        else:
+            continue
+        problems.add(path, f"names a specific {kind} address ({addr.rsplit('.', 2)[0]}.*.*); public notes describe machines, not their addresses",
+                     "write \"the VPS's tailnet address\" or \"the desktop's LAN address\" instead")
+
+
+def link_forms(path):
+    low = path.lower()[:-3] if path.lower().endswith(".md") else path.lower()
+    parts = low.split("/")
+    return {"/".join(parts[i:]) for i in range(len(parts))}
+
+
+def rewrite_links(text, forms, title):
+    def sub(m):
+        inner = m.group(1)
+        name, rest = re.match(r"^(.*?)([#|].*)?$", inner, re.S).groups()
+        key = name.strip().lower()
+        key = key[:-3] if key.endswith(".md") else key
+        if key not in forms:
+            return m.group(0)
+        return f"[[{title}{rest or ''}]]"
+    parts = CODE.split(text)
+    return "".join(FULL_LINK.sub(sub, s) if i % 2 == 0 else s for i, s in enumerate(parts))
+
+
+def notes_linking(path):
+    forms = link_forms(path) - link_index()
+    if not forms:
+        return []
+    hits = []
+    for p in walk_vault():
+        if p.lower().endswith(".md"):
+            with open(os.path.join(VAULT, p), encoding="utf-8", errors="replace") as f:
+                text = f.read()
+            if rewrite_links(text, forms, "x") != text:
+                hits.append(p)
+    return hits
+
+
+def check_rename(c, stems, problems):
+    check_new_name(c, stems, problems)
+    left = notes_linking(c.old)
+    if left:
+        problems.add(c.path, f"renamed from {c.old}, but {len(left)} note(s) still link the old name ({', '.join(left[:3])})",
+                     f"move it back (git -C {quoted(VAULT)} mv -- {quoted(c.path)} {quoted(c.old)}) and run: mandragora-vault rename {quoted(c.old)} \"<new title>\"")
 
 
 def check_agent(c, old, new, stems, names, problems):
@@ -357,6 +422,7 @@ def check_agent(c, old, new, stems, names, problems):
     for email in sorted({m for line in added for m in EMAIL.findall(line)}):
         if not EMAIL_ALLOWED.match(email):
             problems.add(c.path, f"contains an email address ({email.split('@')[0][:2]}***@{email.split('@')[1]})", "remove it")
+    check_addresses(c.path, added, problems)
     for target in sorted(links(new) - links(old)):
         t = target.lower()
         if t not in names and (t[:-3] if t.endswith(".md") else t) not in names:
@@ -385,9 +451,7 @@ def run_checks(changes, content, profile):
                 problems.add(c.path, "deleted since the last publish", "a human approves with: mandragora-vault publish --approve")
             continue
         if c.status == "R" and profile == "agent":
-            problems.add(c.path, f"renamed from {c.old}; renames are human-only because Obsidian rewrites the links",
-                         f"move it back to {c.old}")
-            continue
+            check_rename(c, stems, problems)
         if not c.path.lower().endswith(".md"):
             if profile == "agent":
                 problems.add(c.path, "agents commit notes (.md) only", "leave other files alone")
@@ -397,11 +461,14 @@ def run_checks(changes, content, profile):
         check_secrets(c.path, new, problems)
         if profile == "agent":
             check_agent(c, old, new, stems, names, problems)
-        elif profile == "publish" and old is not None:
-            removed, _, total = line_delta(old, new)
-            if removed > max(SHRINK_FLOOR, SHRINK_RATIO * total):
-                problems.add(c.path, f"lost {removed} of {total} lines since the last publish",
-                             "a human approves with: mandragora-vault publish --approve")
+        elif profile == "publish":
+            added = substantive(new)
+            if old is not None:
+                removed, added, total = line_delta(old, new)
+                if removed > max(SHRINK_FLOOR, SHRINK_RATIO * total):
+                    problems.add(c.path, f"lost {removed} of {total} lines since the last publish",
+                                 "a human approves with: mandragora-vault publish --approve")
+            check_addresses(c.path, added, problems)
     return problems
 
 
@@ -473,8 +540,9 @@ def worktree_changes(paths):
 
 
 def commit_paths(paths, subject):
+    present = [p for p in paths if os.path.exists(os.path.join(VAULT, p))]
     for _ in range(20):
-        add = git_run(["add", "--", *paths], VAULT)
+        add = git_run(["add", "--", *present], VAULT)
         if add.returncode == 0:
             r = git_run(["commit", "--only", "-q", "-m", subject, "--", *paths], VAULT)
             if r.returncode == 0:
@@ -750,12 +818,69 @@ def cmd_find(a):
     return 0
 
 
-def cmd_new(a):
-    cat = a.category.lower().strip("/")
+def category_dir(name):
+    cat = name.lower().strip("/")
     if cat not in CATEGORIES:
         cat = next((d for d, t in CATEGORIES.items() if t == cat), cat)
     if cat not in NEW_NOTE_CATEGORIES:
-        raise Fail(f"category '{a.category}' is not one of: {', '.join(NEW_NOTE_CATEGORIES)}")
+        raise Fail(f"category '{name}' is not one of: {', '.join(NEW_NOTE_CATEGORIES)}")
+    return cat
+
+
+def cmd_rename(a):
+    old, err = resolve_note(a.old)
+    if err:
+        raise Fail(err)
+    if git("status", "--porcelain", "--", old).strip():
+        raise Fail(f"{old} has uncommitted edits; commit them first: mandragora-vault commit -m \"<what changed>\" {quoted(old)}")
+    title = " ".join(a.title.split())
+    if title.lower().endswith(".md"):
+        title = title[:-3].rstrip()
+    if "/" in title:
+        raise Fail("give the new title only; move it to another category with --to <category>")
+    folder = category_dir(a.to) if a.to else old.split("/")[0]
+    path = f"{folder}/{title}.md"
+    if path == old:
+        raise Fail("that is already its name")
+    problems = Problems()
+    check_new_name(Change("A", path), {k: [p for p in v if p != old] for k, v in stem_index().items()}, problems)
+    if problems:
+        problems.report()
+        return 1
+    forms = link_forms(old)
+    old_title = os.path.basename(old)[:-3]
+    git("mv", "--", old, path)
+    touched = [path]
+    for p in walk_vault():
+        if not p.lower().endswith(".md"):
+            continue
+        full = os.path.join(VAULT, p)
+        with open(full, encoding="utf-8", errors="replace") as f:
+            text = f.read()
+        fixed = rewrite_links(text, forms, title)
+        if p == path:
+            fixed = re.sub(r"^# " + re.escape(old_title) + r"[ \t]*$", "# " + title, fixed, count=1, flags=re.M)
+        if fixed != text:
+            with open(full, "w", encoding="utf-8") as f:
+                f.write(fixed)
+            touched.append(p)
+    subject = f"refactor(vault): rename {old_title} to {title}"
+    if len(subject) > 100:
+        subject = f"refactor(vault): rename a note to {title}"[:100].rstrip()
+    try:
+        sha = commit_paths(sorted(set([old] + touched)), subject)
+    except Fail:
+        git_run(["reset", "-q", "--", old, path], VAULT)
+        git_run(["mv", "--", path, old], VAULT)
+        git_run(["checkout", "-q", "HEAD", "--", *sorted(set([old] + touched) - {path})], VAULT)
+        raise
+    others = sorted(set(touched) - {path})
+    print(f"renamed {old} -> {path} and rewrote links in {len(others)} note(s): {sha[:8]}")
+    return 0
+
+
+def cmd_new(a):
+    cat = category_dir(a.category)
     title = " ".join(a.title.split())
     path = f"{cat}/{title}.md"
     problems = Problems()
@@ -929,6 +1054,18 @@ def cmd_status(a):
     else:
         n = git("rev-list", "--count", f"{pub}..{head}").strip()
         print(f"demo.mvr.ac: {n} vault commit(s) not published yet")
+    unlinkable = [p for p in walk_vault() if p.lower().endswith(".md") and (BAD_NAME.search(os.path.basename(p)[:-3]) or os.path.basename(p)[:-3] != os.path.basename(p)[:-3].strip())]
+    if unlinkable:
+        print(f"names Obsidian cannot link: {len(unlinkable)}  (fix: mandragora-vault rename '<path>' \"<plain title>\")")
+        for p in unlinkable:
+            print(f"  {p}")
+    waiting = [c.path for c in worktree_changes([]) if c.path.lower().endswith(".md") and c.status in ("A", "M")]
+    if waiting:
+        print(f"notes waiting for their author (uncommitted, not published): {len(waiting)}")
+        for p in waiting:
+            full = os.path.join(VAULT, p)
+            age = (time.time() - os.path.getmtime(full)) / 3600 if os.path.exists(full) else 0
+            print(f"  {p}  (untouched {age:.0f}h)")
     held = load_held()
     if held:
         print(f"held since {held['at']} at vault {held['head'][:8]}:")
@@ -1007,6 +1144,11 @@ def main():
     p.add_argument("category")
     p.add_argument("title")
     p.set_defaults(fn=cmd_new)
+    p = sub.add_parser("rename", help="rename a note and rewrite every link to it")
+    p.add_argument("old")
+    p.add_argument("title")
+    p.add_argument("--to")
+    p.set_defaults(fn=cmd_rename)
     p = sub.add_parser("check", help="validate changed notes")
     p.add_argument("paths", nargs="*")
     p.add_argument("--staged", action="store_true")

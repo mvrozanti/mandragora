@@ -263,9 +263,11 @@ rationale, recipes, or the incident that produced the rule.
     there is nothing non-obvious to record>)`. The author writes the
     note while it still holds the context; nobody distils diffs later.
     Touch the vault only through `mandragora-vault` (`find` → `new` or
-    edit → `commit`), never with raw edits plus `git commit`: it
-    refuses rewrites, deletions, renames, broken links, damaged
-    frontmatter and secrets, and the vault's own hook refuses the same.
+    edit → `commit`, `rename`), never with raw edits plus `git commit`:
+    it refuses rewrites, deletions, renames that leave links behind,
+    unlinkable titles, broken links, damaged frontmatter, secrets and
+    device or network identifiers, and the vault's own hook refuses the
+    same.
     The commit-msg hook refuses an agent commit without a valid verdict,
     an agent-run `mandragora-switch` refuses to build one, and after an
     agent's switch a Haiku privacy pass gates what reaches

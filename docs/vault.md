@@ -31,7 +31,9 @@ switch makes the commit for you).
    Categories: `agents concepts decisions features hosts incidents
    modules principles programs services`. Write the body under the
    heading: what was decided or learned, why, what it rules out.
-   Link other notes with `[[Their Title]]`.
+   Link other notes with `[[Their Title]]`. Describe machines and
+   devices, never identify them: "the phone", "the VPS's tailnet
+   address", not a model number, a personal hostname or an address.
 5. Commit the note (only the paths you name are committed):
 
    ```
@@ -56,9 +58,12 @@ switch makes the commit for you).
 | a note with this title already exists | patch that note instead |
 | N of its M lines are gone; a rewrite | `git -C <vault> checkout HEAD -- '<path>'`, then change only what is wrong |
 | frontmatter damaged, keys or type changed | put the `---` block back exactly |
-| agents do not delete / renames are human-only | restore the file; leave deletions and renames to the human in Obsidian |
+| agents do not delete notes | restore the file; deletions are the human's, in Obsidian |
+| renamed, but N notes still link the old name | move it back, then `mandragora-vault rename '<path>' "<new title>"`, which rewrites every link in the same commit |
+| title has characters Obsidian cannot link, or a `/` | pick a plain title; a `/` makes nested folders |
 | `[[X]]` matches no note | link an existing title (`mandragora-vault find X`) or drop the brackets |
 | email address / looks like a token | remove it; describe the mechanism, never the value; rotate if it was real |
+| names a specific tailnet or LAN address | describe the machine instead ("the VPS's tailnet address") |
 | note was last changed N days ago | cite the note you changed for this commit, or `Vault: none (already documented in <title>)` |
 
 Never get around a refusal with `--no-verify`, raw `git` in the vault,
@@ -76,7 +81,9 @@ own pre-commit hook that applies the same checks to a raw `git commit`.
   `commit<TAB>note|none<TAB>path or reason`).
 - **Coverage:** `mandragora-vault status` counts commits since the
   baseline in `.sync-state` by where their verdict lives;
-  `--missing` lists the ones without.
+  `--missing` lists the ones without. It also lists note names Obsidian
+  cannot link, and notes left uncommitted. Those wait for the session
+  that wrote them: nobody else commits another author's note.
 
 ## Publishing
 
@@ -87,7 +94,8 @@ An agent-run `mandragora-switch` ends with `mandragora-vault publish`:
    quarter of their lines since the last publish.
 3. Haiku reads every added line for private material: credentials,
    other people's personal data, SSIDs, addresses, employer
-   specifics, the home connection, financial identifiers.
+   specifics, the home connection, device models, personal hostnames,
+   tailnet and LAN host addresses, financial identifiers.
 4. Clean: the committed tree (never the working tree, never the
    ledger) is deployed with `compose/demo/publish-vault.sh`, which
    writes only `vault/` and `graph.json` (the page belongs to
