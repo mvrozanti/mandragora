@@ -108,7 +108,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "python3 -S /etc/nixos/mandragora/agent-plugins/progress-hud/scripts/statusline.py",
+    "command": "python3 -S ~/.local/share/progress-hud/scripts/statusline.py --wrap claude-hud",
     "refreshInterval": 1
   },
   "enabledPlugins": {
@@ -127,7 +127,7 @@
     "context7@claude-plugins-official": true,
     "mcp-server-dev@claude-plugins-official": true,
     "nixd-lsp@mandragora": true,
-    "progress-hud@mandragora": true
+    "progress-hud@progress-hud": true
   },
   "extraKnownMarketplaces": {
     "tellonce": {
@@ -140,6 +140,12 @@
       "source": {
         "source": "directory",
         "path": "/etc/nixos/mandragora/agent-plugins"
+      }
+    },
+    "progress-hud": {
+      "source": {
+        "source": "github",
+        "repo": "mvrozanti/progress-hud"
       }
     }
   },
