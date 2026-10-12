@@ -15,9 +15,9 @@ deploy-stacks.sh vj
 
 ## What is behind it
 
-The Deck: one square clip at a time, an 8-bar window of a track from
-`~/Music` rendered by generative-art-playground with a candidate
-gesture mapping, rated by swipe in four directions. Ratings land in
-SQLite on the desktop; a worker inside `vj-web` keeps six clips ready,
-rendering under `gpu-lock`. When the desktop sleeps the vhost is down,
-and when the GPU is held the page says who holds it.
+The rater for the auto-VJ: each trial is an 8-bar window of a track from
+`~/Music` drawn live in the browser by one of ten media, driven by a
+weighted mix of ten rhythm readings taken from the `.viz` analyzer, and
+judged beautiful, in sync and reflexive. Judgements land in SQLite on the
+desktop; `/insight` shows what they say. When the desktop sleeps the
+vhost is down.
