@@ -322,8 +322,9 @@ def check_new_name(c, stems, problems):
                      f"patch {others[0]} instead (and delete the duplicate file if one was created)")
 
 
-def check_addresses(path, lines, problems):
-    for addr in sorted({m for line in lines for m in IPV4.findall(line)}):
+def check_addresses(path, lines, problems, old=None):
+    known = set(IPV4.findall(old or ""))
+    for addr in sorted({m for line in lines for m in IPV4.findall(line)} - known):
         try:
             ip = ipaddress.ip_address(addr)
         except ValueError:
@@ -422,7 +423,7 @@ def check_agent(c, old, new, stems, names, problems):
     for email in sorted({m for line in added for m in EMAIL.findall(line)}):
         if not EMAIL_ALLOWED.match(email):
             problems.add(c.path, f"contains an email address ({email.split('@')[0][:2]}***@{email.split('@')[1]})", "remove it")
-    check_addresses(c.path, added, problems)
+    check_addresses(c.path, added, problems, old)
     for target in sorted(links(new) - links(old)):
         t = target.lower()
         if t not in names and (t[:-3] if t.endswith(".md") else t) not in names:
@@ -468,7 +469,7 @@ def run_checks(changes, content, profile):
                 if removed > max(SHRINK_FLOOR, SHRINK_RATIO * total):
                     problems.add(c.path, f"lost {removed} of {total} lines since the last publish",
                                  "a human approves with: mandragora-vault publish --approve")
-            check_addresses(c.path, added, problems)
+            check_addresses(c.path, added, problems, old)
     return problems
 
 
@@ -871,7 +872,8 @@ def cmd_rename(a):
         sha = commit_paths(sorted(set([old] + touched)), subject)
     except Fail:
         git_run(["reset", "-q", "--", old, path], VAULT)
-        git_run(["mv", "--", path, old], VAULT)
+        if os.path.exists(os.path.join(VAULT, path)):
+            os.remove(os.path.join(VAULT, path))
         git_run(["checkout", "-q", "HEAD", "--", *sorted(set([old] + touched) - {path})], VAULT)
         raise
     others = sorted(set(touched) - {path})
