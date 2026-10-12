@@ -1,0 +1,9 @@
+{
+  "name": "progress-hud",
+  "description": "Statusline progress bars for running Bash commands: parsed from their output, estimated from past runs of the same command, or animated when neither is known. Stacks under claude-hud.",
+  "version": "1.0.0",
+  "author": {
+    "name": "mvrozanti"
+  },
+  "keywords": ["statusline", "progress", "bash", "hud"]
+}
