@@ -17,4 +17,6 @@ Wire progress-hud into the user's statusline. It needs Linux (`/proc`) and `pyth
 
    `refreshInterval` is what keeps the bars moving while a command runs, because no other statusline trigger fires during a long tool call.
 3. When the previous `statusLine.command` was not claude-hud, keep its output by adding `--wrap '<previous command>'` after `statusline.py\"`. claude-hud needs no flag: progress-hud runs it when it is installed. `--wrap ''` shows the bars alone.
-4. Verify: `echo '{"session_id":"t"}' | <the command>` exits 0.
+4. The HUD shows at most three bars and folds the rest into `+N more running`. Add `--max-rows N` after `statusline.py\"` only when the user asks for a different budget.
+5. Verify: `echo '{"session_id":"t"}' | <the command>` exits 0.
+6. Make sure the plugin is enabled (`claude plugin install progress-hud@<marketplace>`): its `progress-hud` skill is what tells Claude to keep long commands' progress lines flowing.
