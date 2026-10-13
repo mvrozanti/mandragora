@@ -90,7 +90,7 @@ def test_a_kev_listing_escalates_a_known_pair_once():
     state = baseline()
     events, state = run(BASE, state, kev=frozenset({"CVE-2026-0001"}))
     assert [e["external_id"] for e in events] == ["kev|openssl|CVE-2026-0001"]
-    assert "vuln:kev" in events[0]["title"]
+    assert "vuln:kev" in events[0]["tags"]
     again, _ = run(BASE, state, kev=frozenset({"CVE-2026-0001"}))
     assert again == []
 
@@ -138,7 +138,7 @@ def test_a_stale_report_raises_one_alert_per_day():
     reports["mandragora"]["generated"] = old
     events, state = run(reports, state)
     assert [e["external_id"] for e in events] == ["stale|mandragora|2026-09-27"]
-    assert "vuln:stale" in events[0]["title"]
+    assert "vuln:stale" in events[0]["tags"]
     again, state = run(reports, state, now=NOW + timedelta(hours=3))
     assert again == []
     tomorrow, _ = run(reports, state, now=NOW + timedelta(days=1))
@@ -163,7 +163,7 @@ def test_a_burst_collapses_into_one_page():
     for i in range(inventory.BURST + 1):
         reports["mandragora"]["entries"].append(entry(f"pkg{i}", "1", cve(f"CVE-2026-1{i:03d}", 9.8)))
     events, _ = run(reports, state)
-    paged = [e for e in events if match.matches(inventory.DEFAULT_RULE, e["title"], e["summary"])]
+    paged = [e for e in events if match.matches(inventory.DEFAULT_RULE, e["title"], e["summary"], e["tags"])]
     assert len(events) == inventory.BURST + 2
     assert len(paged) == 1 and paged[0]["external_id"].startswith("burst|")
 
@@ -174,7 +174,7 @@ def test_a_burst_without_a_critical_or_high_stays_quiet():
     for i in range(inventory.BURST + 1):
         reports["mandragora"]["entries"].append(entry(f"pkg{i}", "1", cve(f"CVE-2026-1{i:03d}", 5.0)))
     events, _ = run(reports, state)
-    paged = [e for e in events if match.matches(inventory.DEFAULT_RULE, e["title"], e["summary"])]
+    paged = [e for e in events if match.matches(inventory.DEFAULT_RULE, e["title"], e["summary"], e["tags"])]
     assert any(e["external_id"].startswith("burst|") for e in events)
     assert paged == []
 
@@ -215,25 +215,25 @@ def _title(reports, kev=frozenset(), exposures=None):
 
 
 def _pages(ev):
-    return match.matches(inventory.DEFAULT_RULE, ev["title"], ev["summary"])
+    return match.matches(inventory.DEFAULT_RULE, ev["title"], ev["summary"], ev["tags"])
 
 
 def test_default_rule_pages_a_fixable_critical():
     ev = _title(with_entry("mandragora-vps", entry("curl", "8.0", cve("CVE-2026-0003", 9.1, True, "8.1"))))
-    assert "vuln:critical" in ev["title"] and "vuln:fixable" in ev["title"]
+    assert "vuln:critical" in ev["tags"] and "vuln:fixable" in ev["tags"]
     assert "fix: 8.1" in ev["summary"]
     assert _pages(ev)
 
 
 def test_default_rule_ignores_a_critical_without_a_fix():
     ev = _title(with_entry("mandragora-vps", entry("curl", "8.0", cve("CVE-2026-0003", 9.1, False))))
-    assert "vuln:nofix" in ev["title"]
+    assert "vuln:nofix" in ev["tags"]
     assert not _pages(ev)
 
 
 def test_default_rule_ignores_a_medium():
     ev = _title(with_entry("mandragora", entry("less", "600", cve("CVE-2026-0006", 5.0))))
-    assert "vuln:medium" in ev["title"]
+    assert "vuln:medium" in ev["tags"]
     assert not _pages(ev)
 
 
@@ -246,7 +246,7 @@ def test_default_rule_pages_a_high_on_kev():
 def test_default_rule_ignores_a_medium_on_kev():
     ev = _title(with_entry("mandragora", entry("less", "600", cve("CVE-2026-0006", 5.0))),
                 kev=frozenset({"CVE-2026-0006"}))
-    assert "vuln:kev" in ev["title"]
+    assert "vuln:kev" in ev["tags"]
     assert not _pages(ev)
 
 
@@ -256,7 +256,7 @@ def test_default_rule_pages_an_exposed_high():
         {"port": 1716, "scope": "open", "packages": [{"pname": "less", "version": "600"}]},
     ]}}
     ev = _title(reports, exposures=exposures)
-    assert "vuln:exposed" in ev["title"] and "mandragora:open" in ev["summary"]
+    assert "vuln:exposed" in ev["tags"] and "listening: open" in ev["summary"]
     assert _pages(ev)
 
 
@@ -266,7 +266,7 @@ def test_default_rule_ignores_an_exposed_medium():
         {"port": 1716, "scope": "open", "packages": [{"pname": "less", "version": "600"}]},
     ]}}
     ev = _title(reports, exposures=exposures)
-    assert "vuln:exposed" in ev["title"]
+    assert "vuln:exposed" in ev["tags"]
     assert not _pages(ev)
 
 
@@ -276,7 +276,7 @@ def test_a_listener_linking_a_different_version_is_not_exposure():
         {"port": 1716, "scope": "open", "packages": [{"pname": "less", "version": "700"}]},
     ]}}
     ev = _title(reports, exposures=exposures)
-    assert "vuln:exposed" not in ev["title"] and "vuln:reachable" not in ev["title"]
+    assert "vuln:exposed" not in ev["tags"] and "vuln:reachable" not in ev["tags"]
 
 
 def test_tailnet_only_is_reachable_not_exposed():
@@ -286,7 +286,7 @@ def test_tailnet_only_is_reachable_not_exposed():
         {"port": 8081, "scope": "tailnet", "packages": [{"pname": "less", "version": "600"}]},
     ]}}
     ev = _title(reports, exposures=exposures)
-    assert "vuln:reachable" in ev["title"] and "vuln:exposed" not in ev["title"]
+    assert "vuln:reachable" in ev["tags"] and "vuln:exposed" not in ev["tags"]
     assert not _pages(ev)
 
 
@@ -303,13 +303,13 @@ def test_exposure_matches_vps_packages_by_image():
     reports = with_entry("mandragora-vps", entry("curl", "8.0", cve("CVE-2026-0003", 5.0, False), images=["caddy:2"]))
     exposures = {"mandragora-vps": {"listeners": [{"port": 443, "scope": "public", "image": "caddy:2"}]}}
     ev = _title(reports, exposures=exposures)
-    assert "vuln:exposed" in ev["title"]
+    assert "vuln:exposed" in ev["tags"]
 
 
 def test_host_tags_do_not_collide_on_a_shared_prefix():
     ev = _title(with_entry("mandragora-vps", entry("curl", "8.0", cve("CVE-2026-0003", 9.1, True, "8.1"))))
-    assert match.matches("vuln:mandragora_vps", ev["title"])
-    assert not match.matches("vuln:mandragora", ev["title"])
+    assert match.matches("vuln:mandragora_vps", ev["tags"])
+    assert not match.matches("vuln:mandragora", ev["tags"])
 
 
 def test_severity_falls_back_to_the_vendor_label_when_unscored():
