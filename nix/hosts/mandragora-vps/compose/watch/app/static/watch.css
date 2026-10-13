@@ -40,6 +40,7 @@
 .wa-trig:last-of-type { border-bottom: 0; }
 .wa-trig__title { font-size: var(--mv-text-md); line-height: var(--mv-leading-tight); color: var(--mv-text); text-decoration: none; user-select: text; }
 .wa-trig__title:hover { color: var(--mv-accent); }
+.wa-trig__tags { display: flex; flex-wrap: wrap; gap: var(--mv-space-1); margin-top: var(--mv-space-1); }
 .wa-trig__meta { font-family: var(--mv-font-mono); font-size: var(--mv-text-xs); color: var(--mv-text-ghost); display: flex; flex-wrap: wrap; gap: var(--mv-space-1) var(--mv-space-3); }
 .wa-trig__reason { font-size: var(--mv-text-base); color: var(--mv-text-dim); line-height: 1.45; border-left: 2px solid var(--mv-line); padding-left: var(--mv-space-3); user-select: text; }
 .wa-trig.is-accepted { opacity: .5; }
