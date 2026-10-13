@@ -10,8 +10,15 @@ body {
   overscroll-behavior-y: none;
 }
 
+#root > div:has(> [id$="-stage"]) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
 [id$="-stage"] {
-  min-height: calc(100dvh - 4rem) !important;
+  flex: 1 0 auto;
+  min-height: 0 !important;
   padding-bottom: env(safe-area-inset-bottom) !important;
 }
 
@@ -367,6 +374,36 @@ body {
 @media (min-width: 600px) {
   #otp-input > div {
     gap: var(--mv-space-2);
+  }
+}
+
+@media (max-height: 760px) {
+  #root header > div {
+    min-height: 0 !important;
+    padding-top: var(--mv-space-1) !important;
+    padding-bottom: var(--mv-space-1) !important;
+  }
+
+  [id$="-stage"] #UserSvg {
+    width: 2.75rem !important;
+    height: 2.75rem !important;
+    margin: var(--mv-space-1) auto !important;
+  }
+
+  [id$="-stage"] div:has(> [id$="-method"]) {
+    margin-top: var(--mv-space-2) !important;
+    margin-bottom: var(--mv-space-2) !important;
+    padding: var(--mv-space-4) var(--mv-space-3) !important;
+  }
+
+  [id="2fa-container"] svg {
+    max-height: 3rem;
+  }
+}
+
+@media (max-height: 600px) {
+  [id$="-stage"] #UserSvg {
+    display: none !important;
   }
 }
 
