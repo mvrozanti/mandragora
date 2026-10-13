@@ -27,7 +27,8 @@ in
         + "Serves trials (an analysed 8-bar window, one of ten media, a "
         + "weight mix over ten rhythm readings) that the browser draws live, "
         + "cuts each audio excerpt on demand, stores the three-axis "
-        + "judgements, retrains the per-axis critic every ten, and serves "
+        + "judgements, retrains the per-axis critic every five from twenty, "
+        + "steers the next mixes, media knobs and medium choice, and serves "
         + "/insight. No GPU work: the engine clip worker is off by default.";
       after = [ "network.target" ];
       wantedBy = [ "default.target" ];
