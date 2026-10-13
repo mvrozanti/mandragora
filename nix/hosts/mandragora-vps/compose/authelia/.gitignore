@@ -3,3 +3,4 @@ data/
 redis-data/
 config/users_database.yml
 *.bak.*
+*.bak-*
