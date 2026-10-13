@@ -214,7 +214,7 @@ def _passes_match(row: Any) -> bool:
     if not (rule or "").strip():
         return True
     try:
-        return matcher.matches(rule, row["title"] or "", row["summary"] or "")
+        return matcher.matches(rule, row["title"] or "", row["summary"] or "", row["tags"] if "tags" in row.keys() else "")
     except matcher.MatchError as exc:
         log.warning("bad match rule on watcher %s (%s): letting event through", row["w_id"], exc)
         return True
@@ -300,8 +300,8 @@ def _insert_event(c: sqlite3.Connection, watcher_id: int, ev: dict[str, Any], ma
     try:
         c.execute(
             """
-            INSERT INTO events (watcher_id, external_id, title, summary, link, occurred_at, received_at, raw, last_reminder_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO events (watcher_id, external_id, title, summary, link, occurred_at, received_at, raw, last_reminder_at, tags)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 watcher_id,
@@ -313,6 +313,7 @@ def _insert_event(c: sqlite3.Connection, watcher_id: int, ev: dict[str, Any], ma
                 now_iso(),
                 json.dumps(ev.get("raw") or {})[:32768],
                 now_iso() if mark_seen else None,
+                (ev.get("tags") or "")[:1000],
             ),
         )
     except sqlite3.IntegrityError:

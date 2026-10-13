@@ -206,6 +206,13 @@ def _versions(rec: Record) -> str:
     return ", ".join(vs[:3]) + (f" +{len(vs) - 3}" if len(vs) > 3 else "")
 
 
+def _listening(rec: Record) -> str:
+    entries = sorted(rec.exposed)
+    if len(rec.hosts) == 1:
+        return ", ".join(sorted({e.rsplit(":", 1)[-1] for e in entries}))
+    return ", ".join(entries)
+
+
 def record_event(rec: Record, kind: str, kev: bool, bulk: bool = False) -> dict[str, Any]:
     score = f"{rec.score:.1f}" if rec.score else rec.severity or "unscored"
     headline = f"{rec.pname} {_versions(rec)} · {rec.cve} ({score})"
@@ -214,7 +221,7 @@ def record_event(rec: Record, kind: str, kev: bool, bulk: bool = False) -> dict[
     fix = ", ".join(sorted(rec.fixed_versions)) or ("none upstream" if not rec.fixable else "update available")
     parts = [f"fix: {fix}", f"hosts: {', '.join(sorted(rec.hosts))}"]
     if rec.exposed:
-        parts.append(f"listening: {', '.join(sorted(rec.exposed))}")
+        parts.append(f"listening: {_listening(rec)}")
     if rec.images:
         imgs = sorted(rec.images)
         parts.append(f"images: {', '.join(imgs[:4])}" + (f" +{len(imgs) - 4}" if len(imgs) > 4 else ""))
@@ -222,8 +229,9 @@ def record_event(rec: Record, kind: str, kev: bool, bulk: bool = False) -> dict[
         parts.append(rec.desc)
     return {
         "external_id": f"{kind}|{rec.key}",
-        "title": " ".join(tags(rec, kev, bulk)) + " " + headline,
-        "summary": " · ".join(parts),
+        "title": headline,
+        "summary": "\n".join(parts),
+        "tags": " ".join(tags(rec, kev, bulk)),
         "link": f"https://osv.dev/vulnerability/{rec.cve}",
         "occurred_at": rec.generated or None,
         "raw": {
@@ -265,8 +273,9 @@ def burst_event(items: list[tuple[Record, bool]], today: str) -> dict[str, Any]:
     top = "\n".join(f"{r.pname} {r.cve} ({r.score:.1f})" for r, _ in ranked[:5])
     return {
         "external_id": f"burst|{today}|{digest('|'.join(r.key for r, _ in ranked))}",
-        "title": " ".join(["vuln:burst"] + burst_tags(ranked)) + f" — {len(items)} new CVE-affected packages in one scan",
+        "title": f"{len(items)} new CVE-affected packages in one scan",
         "summary": f"top {min(len(items), 5)}:\n{top}",
+        "tags": " ".join(["vuln:burst"] + burst_tags(ranked)),
         "link": VULN_SITE,
         "occurred_at": None,
         "raw": {"kind": "burst", "count": len(items), "keys": [r.key for r, _ in ranked][:200]},
@@ -276,8 +285,9 @@ def burst_event(items: list[tuple[Record, bool]], today: str) -> dict[str, Any]:
 def stale_event(host: str, reason: str, today: str) -> dict[str, Any]:
     return {
         "external_id": f"stale|{host}|{today}",
-        "title": f"vuln:stale {host_tag(host)} {host} scanner is not reporting: {reason}",
+        "title": f"{host} scanner is not reporting: {reason}",
         "summary": f"vuln.mvr.ac is showing {host}'s last good scan; new CVEs on it go unnoticed until this clears",
+        "tags": f"vuln:stale {host_tag(host)}",
         "link": VULN_SITE,
         "occurred_at": None,
         "raw": {"kind": "stale", "host": host, "reason": reason},

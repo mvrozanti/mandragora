@@ -271,8 +271,8 @@ async def _cmd_poll(conn_factory, args: list[str]) -> str:
     for ev in events:
         try:
             c.execute(
-                "INSERT INTO events (watcher_id, external_id, title, summary, link, occurred_at, received_at, raw) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (wid, ev.get("external_id", ""), (ev.get("title") or "")[:500], (ev.get("summary") or "")[:2000], ev.get("link") or "", ev.get("occurred_at") or now, now, ""),
+                "INSERT INTO events (watcher_id, external_id, title, summary, link, occurred_at, received_at, raw, tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (wid, ev.get("external_id", ""), (ev.get("title") or "")[:500], (ev.get("summary") or "")[:2000], ev.get("link") or "", ev.get("occurred_at") or now, now, "", (ev.get("tags") or "")[:1000]),
             )
             inserted += 1
         except sqlite3.IntegrityError:

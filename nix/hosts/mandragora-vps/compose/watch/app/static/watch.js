@@ -138,6 +138,9 @@
   var triggerHTML = function (t) {
     return '<div class="wa-trig' + (t.acked_at ? " is-accepted" : "") + '">' +
       '<a class="wa-trig__title" href="' + esc(t.link || "#") + '" target="_blank" rel="noopener">' + esc(t.title) + "</a>" +
+      (t.tags ? '<div class="wa-trig__tags">' + t.tags.split(/\s+/).filter(Boolean).map(function (tag) {
+        return '<span class="mv-pill">' + esc(tag.replace(/^vuln:/, "").replace(/_/g, "-")) + "</span>";
+      }).join("") + "</div>" : "") +
       '<div class="wa-trig__meta"><span>' + ago(t.received_at) + "</span>" +
       (t.escalated_at && t.ai_verdict !== "GO" ? "<span>\u26aa unjudged</span>" : "") +
       (t.acked_at ? "<span>accepted</span>" : "") + "</div>" +
@@ -163,7 +166,7 @@
       '<div class="wa-field"><label for="rule-' + w.id + '">match rule</label>' +
       '<input class="wa-input" id="rule-' + w.id + '" value="' + esc(w.match_rule || "") +
       '" placeholder="blank and everything this source emits is sent">' +
-      '<p class="wa-emits">Checked against the title and summary. Words must all appear; AND, OR, NOT and ' +
+      '<p class="wa-emits">Checked against the title, summary and tags. Words must all appear; AND, OR, NOT and ' +
       '(parentheses) combine them; "quoted phrases" match as a phrase.</p></div>' +
       '<div class="wa-acts">' +
       '<button class="wa-btn primary" data-act="savespec" data-arg="' + w.id + '">save</button>' +

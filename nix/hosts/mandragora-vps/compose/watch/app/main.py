@@ -77,6 +77,7 @@ def init_db() -> None:
           external_id TEXT NOT NULL,
           title TEXT NOT NULL,
           summary TEXT,
+          tags TEXT,
           link TEXT,
           occurred_at TEXT,
           received_at TEXT NOT NULL,
@@ -114,6 +115,7 @@ def init_db() -> None:
         "ALTER TABLE watchers ADD COLUMN must_mention TEXT",
         "ALTER TABLE events ADD COLUMN acked_at TEXT",
         "ALTER TABLE events ADD COLUMN last_reminder_at TEXT",
+        "ALTER TABLE events ADD COLUMN tags TEXT",
         "ALTER TABLE events ADD COLUMN ai_verdict TEXT",
         "ALTER TABLE events ADD COLUMN ai_reason TEXT",
         "ALTER TABLE events ADD COLUMN ai_judged_at TEXT",
@@ -385,6 +387,7 @@ def event_dict(row: sqlite3.Row, watcher: sqlite3.Row | None = None) -> dict:
         "external_id": row["external_id"],
         "title": row["title"],
         "summary": row["summary"],
+        "tags": row["tags"] if "tags" in row.keys() else "",
         "link": row["link"],
         "occurred_at": row["occurred_at"],
         "received_at": row["received_at"],
@@ -674,8 +677,8 @@ async def poll_now(wid: int) -> dict:
         try:
             c.execute(
                 """
-                INSERT INTO events (watcher_id, external_id, title, summary, link, occurred_at, received_at, raw, last_reminder_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO events (watcher_id, external_id, title, summary, link, occurred_at, received_at, raw, last_reminder_at, tags)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     wid,
@@ -687,6 +690,7 @@ async def poll_now(wid: int) -> dict:
                     now_iso(),
                     json.dumps(ev.get("raw") or {})[:32768],
                     now_iso() if suppress else None,
+                    (ev.get("tags") or "")[:1000],
                 ),
             )
             inserted += 1
@@ -752,6 +756,7 @@ async def list_events(
             "external_id": r["external_id"],
             "title": r["title"],
             "summary": r["summary"],
+            "tags": r["tags"] if "tags" in r.keys() else "",
             "link": r["link"],
             "occurred_at": r["occurred_at"],
             "received_at": r["received_at"],
@@ -787,6 +792,7 @@ async def watcher_triggers(wid: int, limit: int = Query(50, ge=1, le=200)) -> li
             "watcher_id": r["watcher_id"],
             "title": r["title"],
             "summary": r["summary"],
+            "tags": r["tags"] if "tags" in r.keys() else "",
             "link": r["link"],
             "occurred_at": r["occurred_at"],
             "received_at": r["received_at"],
