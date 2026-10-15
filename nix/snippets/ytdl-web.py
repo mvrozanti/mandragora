@@ -11,11 +11,12 @@ import uuid
 from collections import deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse, quote
 
 HOST = os.environ.get("YTDL_HOST", "0.0.0.0")
 PORT = int(os.environ.get("YTDL_PORT", "6685"))
 MUSIC_DIR = Path(os.environ.get("YTDL_MUSIC_DIR", os.path.expanduser("~/Music")))
+TMP_DIR = os.environ.get("YTDL_TMP_DIR", "/tmp/ytdl-web")
 YT_DLP = os.environ.get("YTDL_YT_DLP", shutil.which("yt-dlp") or "yt-dlp")
 FFMPEG_LOCATION = os.environ.get("YTDL_FFMPEG_LOCATION", "")
 CLAUDE_BIN = os.environ.get("YTDL_CLAUDE", shutil.which("claude") or "claude")
@@ -41,11 +42,12 @@ def now():
     return time.time()
 
 
-def make_job(url):
+def make_job(url, to_client=False):
     jid = uuid.uuid4().hex[:12]
     job = {
         "id": jid,
         "url": url,
+        "to_client": to_client,
         "status": "queued",
         "started": now(),
         "finished": None,
@@ -64,12 +66,30 @@ def make_job(url):
     return job
 
 
+def _cleanup_job(job):
+    if not job or not job.get("to_client"):
+        return
+    fp = job.get("filepath")
+    if fp:
+        try:
+            Path(fp).unlink()
+        except OSError:
+            pass
+    d = job.get("dir")
+    if d and d != str(MUSIC_DIR):
+        try:
+            Path(d).rmdir()
+        except OSError:
+            pass
+
+
 def gc_jobs():
     cutoff = now() - JOB_TTL
     with jobs_lock:
         stale = [jid for jid, j in jobs.items() if j["finished"] and j["finished"] < cutoff]
         for jid in stale:
-            jobs.pop(jid, None)
+            job = jobs.pop(jid, None)
+            _cleanup_job(job)
             try:
                 job_order.remove(jid)
             except ValueError:
@@ -80,7 +100,7 @@ def tag_mp3(job):
     fn = job.get("filename")
     if not fn:
         return
-    path = MUSIC_DIR / fn
+    path = Path(job.get("dir") or str(MUSIC_DIR)) / fn
     if not path.is_file():
         return
     raw = path.stem
@@ -133,7 +153,9 @@ def tag_mp3(job):
 
 def run_yt_dlp(job):
     job["status"] = "running"
-    MUSIC_DIR.mkdir(parents=True, exist_ok=True)
+    outdir = Path(TMP_DIR) / job["id"] if job.get("to_client") else MUSIC_DIR
+    outdir.mkdir(parents=True, exist_ok=True)
+    job["dir"] = str(outdir)
     cmd = [
         YT_DLP,
         "-4",
@@ -143,7 +165,7 @@ def run_yt_dlp(job):
         "--progress",
         "--extract-audio",
         "--audio-format", "mp3",
-        "-o", str(MUSIC_DIR / "%(title)s.%(ext)s"),
+        "-o", str(outdir / "%(title)s.%(ext)s"),
     ]
     if FFMPEG_LOCATION:
         cmd += ["--ffmpeg-location", FFMPEG_LOCATION]
@@ -175,6 +197,10 @@ def run_yt_dlp(job):
             except Exception as exc:
                 job["log"].append(f"tag: unexpected error: {exc!r}")
             job["status"] = "done"
+            if job.get("to_client") and job.get("filename"):
+                p = Path(job["dir"]) / job["filename"]
+                if p.is_file():
+                    job["filepath"] = str(p)
         else:
             job["status"] = "failed"
     except Exception as exc:
@@ -186,15 +212,16 @@ def run_yt_dlp(job):
         gc_jobs()
 
 
-def start_job(url):
-    job = make_job(url)
+def start_job(url, to_client=False):
+    job = make_job(url, to_client)
     t = threading.Thread(target=run_yt_dlp, args=(job,), daemon=True)
     t.start()
     return job
 
 
 def job_snapshot(job, include_log=False):
-    out = {k: v for k, v in job.items() if k != "log"}
+    out = {k: v for k, v in job.items() if k not in ("log", "dir", "filepath")}
+    out["has_file"] = bool(job.get("filepath") and Path(job["filepath"]).is_file())
     if include_log:
         out["log"] = list(job["log"])
     else:
@@ -220,6 +247,9 @@ input[type=url]:focus { border-color:var(--accent); }
 button { background:var(--panel); border:1px solid var(--accent); color:var(--accent); padding:0.7rem 1.2rem; font:inherit; cursor:pointer; letter-spacing:0.08em; text-transform:uppercase; font-size:0.78rem; }
 button:hover { background:var(--hover); }
 .hint { font-size:0.72rem; color:var(--dim); margin-bottom:1.4rem; }
+.toc { display:flex; gap:0.5rem; align-items:center; font-size:0.78rem; color:var(--fg); margin-bottom:0.6rem; cursor:pointer; }
+.toc input { accent-color:var(--accent); }
+.job .dl { color:var(--accent); text-decoration:underline; }
 ul.jobs { list-style:none; display:flex; flex-direction:column; gap:0.5rem; }
 li.job { background:var(--panel); border:1px solid var(--line); padding:0.7rem 0.9rem; display:flex; flex-direction:column; gap:0.35rem; }
 .job .head { display:flex; gap:0.6rem; align-items:baseline; flex-wrap:wrap; }
@@ -242,7 +272,8 @@ footer a { color:var(--accent); text-decoration:none; }
 <input id="u" type="url" name="url" placeholder="https://..." required autofocus>
 <button type="submit">grab</button>
 </form>
-<div class="hint">yt-dlp → mp3 → <code>~/Music/%(title)s.mp3</code></div>
+<label class="toc"><input id="toc" type="checkbox"> download to this browser</label>
+<div class="hint">yt-dlp → mp3 → <code>~/Music/%(title)s.mp3</code> · checked = send the file to you instead</div>
 <ul id="jobs" class="jobs"></ul>
 <footer><a href="https://hub.mvr.ac">← hub</a><span>ytdl.mvr.ac</span></footer>
 </div>
@@ -250,13 +281,14 @@ footer a { color:var(--accent); text-decoration:none; }
 const $jobs = document.getElementById('jobs');
 const $f = document.getElementById('f');
 const $u = document.getElementById('u');
+const $toc = document.getElementById('toc');
 $f.addEventListener('submit', async (e) => {
   e.preventDefault();
   const url = $u.value.trim();
   if (!url) return;
   $u.disabled = true;
   try {
-    const r = await fetch('/api/download', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({url})});
+    const r = await fetch('/api/download', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({url, to_client: $toc.checked})});
     if (!r.ok) throw new Error(await r.text());
     $u.value = '';
     await refresh();
@@ -278,7 +310,7 @@ async function refresh(){
           <span class="url">${esc(j.url)}</span>
           <span style="color:var(--dim);font-size:0.7rem">${fmtTime(j.started)}</span>
         </div>
-        ${j.filename ? `<div class="file">${esc(j.filename)}</div>` : ''}
+        ${j.has_file ? `<div class="file"><a class="dl" href="/api/jobs/${j.id}/file" download>↓ ${esc(j.filename)}</a></div>` : (j.filename ? `<div class="file">${esc(j.filename)}</div>` : '')}
         ${j.artist && j.title ? `<div class="meta">♪ ${esc(j.artist)} — ${esc(j.title)}</div>` : ''}
         ${j.log_tail && j.log_tail.length ? `<div class="tail">${esc(j.log_tail.join('\\n'))}</div>` : ''}
       </li>
@@ -314,6 +346,24 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def _send_file(self, path):
+        path = Path(path)
+        name = path.name
+        ascii_name = name.encode("ascii", "ignore").decode("ascii").replace('"', "") or "download.mp3"
+        utf8_name = quote(name, safe="")
+        self.send_response(200)
+        self.send_header("Content-Type", "audio/mpeg")
+        self.send_header("Content-Length", str(path.stat().st_size))
+        self.send_header("Content-Disposition",
+                         f'attachment; filename="{ascii_name}"; filename*=UTF-8\'\'{utf8_name}')
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        try:
+            with open(path, "rb") as f:
+                shutil.copyfileobj(f, self.wfile)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
     def do_GET(self):
         p = urlparse(self.path)
         if p.path in ("/", "/index.html"):
@@ -323,6 +373,19 @@ class Handler(BaseHTTPRequestHandler):
             with jobs_lock:
                 ordered = list(reversed([jobs[j] for j in job_order if j in jobs]))
             self._send_json(200, [job_snapshot(j) for j in ordered])
+            return
+        if p.path.startswith("/api/jobs/") and p.path.endswith("/file"):
+            jid = p.path[len("/api/jobs/"):-len("/file")]
+            with jobs_lock:
+                job = jobs.get(jid)
+            if not job or not job.get("filepath"):
+                self._send_json(404, {"error": "not found"})
+                return
+            path = Path(job["filepath"])
+            if not path.is_file():
+                self._send_json(410, {"error": "gone"})
+                return
+            self._send_file(path)
             return
         if p.path.startswith("/api/jobs/"):
             jid = p.path[len("/api/jobs/"):]
@@ -345,17 +408,22 @@ class Handler(BaseHTTPRequestHandler):
             raw = self.rfile.read(length) if length else b""
             ctype = self.headers.get("Content-Type", "")
             url = None
+            to_client = False
             try:
                 if ctype.startswith("application/json"):
-                    url = json.loads(raw.decode("utf-8")).get("url")
+                    data = json.loads(raw.decode("utf-8"))
+                    url = data.get("url")
+                    to_client = bool(data.get("to_client"))
                 else:
-                    url = parse_qs(raw.decode("utf-8")).get("url", [None])[0]
+                    qs = parse_qs(raw.decode("utf-8"))
+                    url = qs.get("url", [None])[0]
+                    to_client = qs.get("to_client", ["0"])[0] in ("1", "true", "on")
             except Exception:
                 pass
             if not url or not URL_RE.match(url):
                 self._send_json(400, {"error": "invalid url"})
                 return
-            job = start_job(url)
+            job = start_job(url, to_client)
             self._send_json(202, job_snapshot(job))
             return
         self.send_error(404)
