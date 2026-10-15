@@ -25,6 +25,6 @@ case "${1:-}" in
     pane="${2:?pane id required}"
     target=()
     [ -n "$client" ] && target=(-c "$client")
-    tmux display-popup "${target[@]}" -E -w 60% -h 40% "$0 --pick $pane"
+    tmux display-popup "${target[@]}" -E -w 60% -h 40% "$TMUX_EMOJI_SELF --pick $pane"
     ;;
 esac
