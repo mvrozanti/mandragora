@@ -250,6 +250,9 @@ button:hover { background:var(--hover); }
 .toc { display:flex; gap:0.5rem; align-items:center; font-size:0.78rem; color:var(--fg); margin-bottom:0.6rem; cursor:pointer; }
 .toc input { accent-color:var(--accent); }
 .job .dl { color:var(--accent); text-decoration:underline; }
+.job .frow { display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; }
+.job .fname { font-size:0.78rem; color:var(--dim); word-break:break-all; }
+.job audio { width:100%; height:2.4rem; margin-top:0.2rem; }
 ul.jobs { list-style:none; display:flex; flex-direction:column; gap:0.5rem; }
 li.job { background:var(--panel); border:1px solid var(--line); padding:0.7rem 0.9rem; display:flex; flex-direction:column; gap:0.35rem; }
 .job .head { display:flex; gap:0.6rem; align-items:baseline; flex-wrap:wrap; }
@@ -272,8 +275,8 @@ footer a { color:var(--accent); text-decoration:none; }
 <input id="u" type="url" name="url" placeholder="https://..." required autofocus>
 <button type="submit">grab</button>
 </form>
-<label class="toc"><input id="toc" type="checkbox"> download to this browser</label>
-<div class="hint">yt-dlp → mp3 → <code>~/Music/%(title)s.mp3</code> · checked = send the file to you instead</div>
+<label class="toc"><input id="toc" type="checkbox"> to this device (play / save)</label>
+<div class="hint">yt-dlp → mp3 → <code>~/Music/%(title)s.mp3</code> · checked = stream + save on this device, nothing lands in ~/Music</div>
 <ul id="jobs" class="jobs"></ul>
 <footer><a href="https://hub.mvr.ac">← hub</a><span>ytdl.mvr.ac</span></footer>
 </div>
@@ -297,6 +300,17 @@ $f.addEventListener('submit', async (e) => {
 });
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtTime(t){ if(!t) return ''; const d=new Date(t*1000); return d.toLocaleTimeString(); }
+document.addEventListener('play', (e) => {
+  const a = e.target;
+  if (!a || a.tagName !== 'AUDIO' || !('mediaSession' in navigator)) return;
+  const title = a.dataset.title || a.dataset.artist || 'ytdl';
+  const artist = a.dataset.artist || '';
+  navigator.mediaSession.metadata = new MediaMetadata({ title, artist, album: 'ytdl.mvr.ac' });
+  navigator.mediaSession.setActionHandler('play', () => a.play());
+  navigator.mediaSession.setActionHandler('pause', () => a.pause());
+  navigator.mediaSession.setActionHandler('seekbackward', (d) => { a.currentTime = Math.max(0, a.currentTime - (d.seekOffset || 10)); });
+  navigator.mediaSession.setActionHandler('seekforward', (d) => { a.currentTime += (d.seekOffset || 10); });
+}, true);
 async function refresh(){
   try {
     const r = await fetch('/api/jobs', {cache:'no-store'});
@@ -310,7 +324,7 @@ async function refresh(){
           <span class="url">${esc(j.url)}</span>
           <span style="color:var(--dim);font-size:0.7rem">${fmtTime(j.started)}</span>
         </div>
-        ${j.has_file ? `<div class="file"><a class="dl" href="/api/jobs/${j.id}/file" download>↓ ${esc(j.filename)}</a></div>` : (j.filename ? `<div class="file">${esc(j.filename)}</div>` : '')}
+        ${j.has_file ? `<div class="file"><div class="frow"><a class="dl" href="/api/jobs/${j.id}/file" download>↓ save</a><span class="fname">${esc(j.filename)}</span></div>${j.to_client ? `<audio controls preload="none" playsinline data-title="${esc(j.title||'')}" data-artist="${esc(j.artist||'')}" src="/api/jobs/${j.id}/stream"></audio>` : ''}</div>` : (j.filename ? `<div class="file">${esc(j.filename)}</div>` : '')}
         ${j.artist && j.title ? `<div class="meta">♪ ${esc(j.artist)} — ${esc(j.title)}</div>` : ''}
         ${j.log_tail && j.log_tail.length ? `<div class="tail">${esc(j.log_tail.join('\\n'))}</div>` : ''}
       </li>
@@ -346,21 +360,55 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
-    def _send_file(self, path):
+    def _send_file(self, path, attachment=True):
         path = Path(path)
         name = path.name
+        size = path.stat().st_size
         ascii_name = name.encode("ascii", "ignore").decode("ascii").replace('"', "") or "download.mp3"
         utf8_name = quote(name, safe="")
-        self.send_response(200)
+
+        start, end = 0, size - 1
+        status = 200
+        range_header = self.headers.get("Range")
+        if range_header and size:
+            m = re.match(r"bytes=(\d*)-(\d*)", range_header)
+            if m:
+                a, b = m.group(1), m.group(2)
+                if a:
+                    start = int(a)
+                    if b:
+                        end = min(int(b), size - 1)
+                elif b:
+                    start = max(0, size - int(b))
+                if start > end or start >= size:
+                    self.send_response(416)
+                    self.send_header("Content-Range", f"bytes */{size}")
+                    self.end_headers()
+                    return
+                status = 206
+        length = end - start + 1
+
+        self.send_response(status)
         self.send_header("Content-Type", "audio/mpeg")
-        self.send_header("Content-Length", str(path.stat().st_size))
-        self.send_header("Content-Disposition",
-                         f'attachment; filename="{ascii_name}"; filename*=UTF-8\'\'{utf8_name}')
+        self.send_header("Accept-Ranges", "bytes")
+        if status == 206:
+            self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        self.send_header("Content-Length", str(length))
+        if attachment:
+            self.send_header("Content-Disposition",
+                             f'attachment; filename="{ascii_name}"; filename*=UTF-8\'\'{utf8_name}')
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         try:
             with open(path, "rb") as f:
-                shutil.copyfileobj(f, self.wfile)
+                f.seek(start)
+                remaining = length
+                while remaining > 0:
+                    chunk = f.read(min(65536, remaining))
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+                    remaining -= len(chunk)
         except (BrokenPipeError, ConnectionResetError):
             pass
 
@@ -386,6 +434,19 @@ class Handler(BaseHTTPRequestHandler):
                 self._send_json(410, {"error": "gone"})
                 return
             self._send_file(path)
+            return
+        if p.path.startswith("/api/jobs/") and p.path.endswith("/stream"):
+            jid = p.path[len("/api/jobs/"):-len("/stream")]
+            with jobs_lock:
+                job = jobs.get(jid)
+            if not job or not job.get("filepath"):
+                self._send_json(404, {"error": "not found"})
+                return
+            path = Path(job["filepath"])
+            if not path.is_file():
+                self._send_json(410, {"error": "gone"})
+                return
+            self._send_file(path, attachment=False)
             return
         if p.path.startswith("/api/jobs/"):
             jid = p.path[len("/api/jobs/"):]
