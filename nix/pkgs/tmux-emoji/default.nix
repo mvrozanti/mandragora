@@ -22,6 +22,7 @@ runCommand "tmux-emoji"
     patchShebangs $out/bin/tmux-emoji
     wrapProgram $out/bin/tmux-emoji \
       --set TMUX_EMOJI_DATA $out/share/tmux-emoji/emoji.json \
+      --set TMUX_EMOJI_SELF $out/bin/tmux-emoji \
       --prefix PATH : ${
         lib.makeBinPath [
           jq
