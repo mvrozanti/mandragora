@@ -611,6 +611,14 @@ class InsideTmux(unittest.TestCase):
         got = self.wait_for(lambda: (lambda b: b if b != "sentinel" else "")(self.tmux("show-buffer")), "buffer update")
         self.assertEqual(got, self.EXPECTED[0])
 
+    def test_alt_enter_copies_newest(self):
+        pane, _ = self.start_target("copy-alt", 220)
+        self.tmux("set-buffer", "sentinel")
+        picker = self.open_picker(pane)
+        self.tmux("send-keys", "-t", picker, "Down", "M-Enter")
+        got = self.wait_for(lambda: (lambda b: b if b != "sentinel" else "")(self.tmux("show-buffer")), "buffer update")
+        self.assertEqual(got, self.EXPECTED[1])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

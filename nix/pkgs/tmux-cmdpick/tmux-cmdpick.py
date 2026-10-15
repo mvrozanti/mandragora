@@ -675,15 +675,15 @@ def open_popup(cands, pane, client):
 def pick(cands):
     header = "enter copy · tab multi · ? ambiguous reading"
     fzf = subprocess.run(
-        ["fzf", "--multi", "--no-sort", "--layout=reverse", "--prompt=cmd> ", "--header=" + header, "--delimiter=\t", "--nth=1"],
+        ["fzf", "--multi", "--no-sort", "--layout=reverse", "--prompt=cmd> ", "--header=" + header, "--expect=alt-enter", "--delimiter=\t", "--nth=1"],
         input="\n".join(fzf_line(c, sure) for c, sure in cands),
         stdout=subprocess.PIPE,
         text=True,
     )
     lines = fzf.stdout.rstrip("\n").split("\n")
-    if fzf.returncode != 0 or not lines:
+    if fzf.returncode != 0 or len(lines) < 2:
         return
-    chosen = [chosen_command(line) for line in lines]
+    chosen = [chosen_command(line) for line in lines[1:]]
     text = "\n".join(chosen)
     tmux("load-buffer", "-", data=text)
     if shutil.which("wl-copy"):
