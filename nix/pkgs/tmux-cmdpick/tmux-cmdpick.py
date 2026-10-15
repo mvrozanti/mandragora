@@ -672,22 +672,19 @@ def open_popup(cands, pane, client):
         os.unlink(path)
 
 
-def pick(cands, pane):
-    header = "enter copy · alt-enter insert into pane · tab multi · ? ambiguous reading"
+def pick(cands):
+    header = "enter copy · tab multi · ? ambiguous reading"
     fzf = subprocess.run(
-        ["fzf", "--multi", "--no-sort", "--layout=reverse", "--prompt=cmd> ", "--header=" + header, "--expect=alt-enter", "--delimiter=\t", "--nth=1"],
+        ["fzf", "--multi", "--no-sort", "--layout=reverse", "--prompt=cmd> ", "--header=" + header, "--delimiter=\t", "--nth=1"],
         input="\n".join(fzf_line(c, sure) for c, sure in cands),
         stdout=subprocess.PIPE,
         text=True,
     )
     lines = fzf.stdout.rstrip("\n").split("\n")
-    if fzf.returncode != 0 or len(lines) < 2:
+    if fzf.returncode != 0 or not lines:
         return
-    key, chosen = lines[0], [chosen_command(line) for line in lines[1:]]
+    chosen = [chosen_command(line) for line in lines]
     text = "\n".join(chosen)
-    if key == "alt-enter":
-        tmux("send-keys", "-t", pane, "-l", "--", text)
-        return
     tmux("load-buffer", "-", data=text)
     if shutil.which("wl-copy"):
         subprocess.run(["wl-copy", "--", text])
@@ -710,7 +707,7 @@ def main():
         with open(args.pick_file) as f:
             cands = [(c, sure) for c, sure in json.load(f)]
         os.unlink(args.pick_file)
-        pick(cands, args.pane)
+        pick(cands)
         return
     cwd = os.getcwd()
     width = args.width
@@ -738,7 +735,7 @@ def main():
     if args.popup:
         open_popup(cands, args.pane, args.client)
         return
-    pick(cands, args.pane)
+    pick(cands)
 
 
 if __name__ == "__main__":

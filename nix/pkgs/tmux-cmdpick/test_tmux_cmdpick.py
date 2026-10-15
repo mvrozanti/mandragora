@@ -466,14 +466,6 @@ class Helpers(unittest.TestCase):
         self.assertEqual(cp.embedded_commands("now run git status to see it", {"git"}), [("git status", True, False, True)])
 
 
-def slurp(path):
-    try:
-        with open(path, encoding="utf-8") as f:
-            return f.read()
-    except FileNotFoundError:
-        return ""
-
-
 BINDING_CONF = os.environ.get("TMUX_CMDPICK_CONF") or str(HERE.parents[2] / ".config" / "tmux" / "cmdpick.conf")
 
 
@@ -618,15 +610,6 @@ class InsideTmux(unittest.TestCase):
         self.tmux("send-keys", "-t", picker, "Enter")
         got = self.wait_for(lambda: (lambda b: b if b != "sentinel" else "")(self.tmux("show-buffer")), "buffer update")
         self.assertEqual(got, self.EXPECTED[0])
-
-    def test_alt_enter_types_without_running(self):
-        pane, typed = self.start_target("insert", 220)
-        picker = self.open_picker(pane)
-        self.tmux("send-keys", "-t", picker, "Down", "M-Enter")
-        want = self.EXPECTED[1]
-        self.wait_for(lambda: len(slurp(typed)) >= len(want), "typed text")
-        got = slurp(typed)
-        self.assertEqual(got, self.EXPECTED[1])
 
 
 if __name__ == "__main__":
