@@ -9,7 +9,7 @@ list() {
 
 pick() {
   local pane="$1" line char
-  if ! line="$(list | fzf --delimiter=$'\t' --nth=2 --with-nth=1,2 --layout=reverse --prompt='emoji> ')"; then
+  if ! line="$(list | fzf --delimiter=$'\t' --nth=2 --with-nth=1,2 --layout=reverse --prompt='emoji> ' --bind 'alt-enter:accept')"; then
     return 0
   fi
   char="${line%%$'\t'*}"
