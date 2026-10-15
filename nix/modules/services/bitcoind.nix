@@ -14,14 +14,14 @@ let
 in
 {
   services.bitcoind.main = {
-    enable = false;
+    enable = true;
     dataDir = "/persistent/bitcoin";
     prune = 550;
     dbCache = 4000;
     rpc.users.${rpcUser}.passwordHMAC = rpcPasswordHMAC;
     extraCmdlineOptions = [
       "-server"
-      "-par=8"
+      "-par=1"
     ];
   };
 
