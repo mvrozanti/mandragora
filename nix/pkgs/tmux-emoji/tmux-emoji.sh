@@ -9,10 +9,11 @@ list() {
 
 pick() {
   local pane="$1" line char
-  line="$(list | fzf --delimiter=$'\t' --nth=2 --with-nth=1,2 --layout=reverse --prompt='emoji> ')"
-  [ -n "$line" ] || return 0
+  if ! line="$(list | fzf --delimiter=$'\t' --nth=2 --with-nth=1,2 --layout=reverse --prompt='emoji> ')"; then
+    return 0
+  fi
   char="${line%%$'\t'*}"
-  tmux send-keys -l -t "$pane" -- "$char"
+  [ -n "$char" ] && tmux send-keys -l -t "$pane" -- "$char"
 }
 
 case "${1:-}" in
