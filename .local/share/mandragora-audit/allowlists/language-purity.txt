@@ -3,6 +3,5 @@
 # Migrate to .config/<app>/ + builtins.readFile, then drop the line.
 nix/modules/core/secrets.nix:117
 nix/modules/core/secrets.nix:110
-nix/modules/user/terminal.nix:158
 nix/pkgs/refiner/default.nix:26
 nix/modules/core/security.nix:111

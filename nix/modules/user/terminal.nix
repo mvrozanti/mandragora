@@ -115,6 +115,7 @@ _:
       "ctrl+shift+left" = "previous_tab";
       "ctrl+shift+t" = "new_tab";
       "ctrl+shift+q" = "no_op";
+      "ctrl+shift+u" = "no_op";
       "ctrl+shift+." = "move_tab_forward";
       "ctrl+shift+," = "move_tab_backward";
       "ctrl+shift+alt+t" = "set_tab_title";
@@ -155,6 +156,6 @@ _:
       "ctrl+9" = "send_text all \\x1b[57;5u";
       "alt+space" = "send_text all \\r";
     };
-    extraConfig = "include ~/.cache/matugen/colors-kitty.conf\nsymbol_map U+F000-U+F2FF Terminess Nerd Font Mono";
+    extraConfig = builtins.readFile ../../../.config/kitty/extra.conf;
   };
 }

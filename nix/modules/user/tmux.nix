@@ -2,9 +2,13 @@
 
 let
   tmuxCmdpick = pkgs.callPackage ../../pkgs/tmux-cmdpick { };
+  tmuxEmoji = pkgs.callPackage ../../pkgs/tmux-emoji { };
 in
 {
-  home.packages = [ tmuxCmdpick ];
+  home.packages = [
+    tmuxCmdpick
+    tmuxEmoji
+  ];
 
   programs.tmux = {
     enable = true;
