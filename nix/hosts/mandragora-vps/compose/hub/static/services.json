@@ -59,7 +59,7 @@
     { "name": "slither sim", "host": "slither.mvr.ac", "url": "https://slither.mvr.ac/simulator.html", "group": "lab", "desc": "browser sim + dashboard", "access": "priv", "where": "desk" },
     { "name": "manifold", "host": "manifold.mvr.ac", "group": "lab", "desc": "software maps · frozen layout · semantic zoom", "access": "open", "where": "vps" },
     { "name": "vault", "host": "demo.mvr.ac", "group": "lab", "desc": "notes graph · repo gource", "access": "open", "where": "vps" },
-    { "name": "brain wallet", "host": "btc.mvr.ac", "group": "lab", "desc": "bitcoin brain-wallet scanner", "access": "priv", "where": "vps" },
+    { "name": "btc flow", "host": "btc.mvr.ac", "group": "money", "desc": "bitcoin wealth flow · brackets over time", "access": "priv", "where": "desk" },
 
     { "name": "fin", "host": "fin.mvr.ac", "group": "money", "desc": "algotrading paper-trade live", "access": "open", "where": "vps" },
     { "name": "ofin", "host": "ofin.mvr.ac", "group": "money", "desc": "pluggy · contas · cartões · investimentos", "access": "priv", "where": "vps" },
