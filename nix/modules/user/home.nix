@@ -489,4 +489,9 @@ in
       userChrome = builtins.readFile ../../snippets/firefox-userchrome-kiosk.css;
     };
   };
+
+  xdg.mimeApps.defaultApplications = {
+    "text/html" = "firefox.desktop";
+    "application/xhtml+xml" = "firefox.desktop";
+  };
 }
