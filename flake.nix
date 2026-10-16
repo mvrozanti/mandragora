@@ -177,6 +177,7 @@
           hyprland-config = guards.hyprlandConfigGuard;
           usb-install-bats = guards.usbInstallBatsGuard;
           tmux-cmdpick = (nixpkgs.legacyPackages.${system}.callPackage ./nix/pkgs/tmux-cmdpick { }).tests;
+          tmux-dirpick = (nixpkgs.legacyPackages.${system}.callPackage ./nix/pkgs/tmux-dirpick { }).tests;
         };
 
       homeConfigurations."m@mandragora-vps" = home-manager.lib.homeManagerConfiguration {

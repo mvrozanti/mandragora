@@ -3,11 +3,13 @@
 let
   tmuxCmdpick = pkgs.callPackage ../../pkgs/tmux-cmdpick { };
   tmuxEmoji = pkgs.callPackage ../../pkgs/tmux-emoji { };
+  tmuxDirpick = pkgs.callPackage ../../pkgs/tmux-dirpick { };
 in
 {
   home.packages = [
     tmuxCmdpick
     tmuxEmoji
+    tmuxDirpick
   ];
 
   programs.tmux = {
@@ -39,6 +41,7 @@ in
     extraConfig = builtins.concatStringsSep "\n" [
       (builtins.readFile ../../../.config/tmux/tmux.conf)
       (builtins.readFile ../../../.config/tmux/cmdpick.conf)
+      (builtins.readFile ../../../.config/tmux/dirsick.conf)
     ];
   };
 }
