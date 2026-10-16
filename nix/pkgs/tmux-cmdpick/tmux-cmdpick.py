@@ -687,7 +687,7 @@ def pick(cands):
     text = "\n".join(chosen)
     tmux("load-buffer", "-", data=text)
     if shutil.which("wl-copy"):
-        subprocess.run(["wl-copy", "--", text])
+        subprocess.run(["wl-copy", "--", text], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     more = " (+%d)" % (len(chosen) - 1) if len(chosen) > 1 else ""
     tmux("display-message", "-d", "1500", "copied: " + chosen[0][:80] + more)
 
