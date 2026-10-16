@@ -490,8 +490,11 @@ in
     };
   };
 
-  xdg.mimeApps.defaultApplications = {
-    "text/html" = "firefox.desktop";
-    "application/xhtml+xml" = "firefox.desktop";
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "text/html" = "firefox.desktop";
+      "application/xhtml+xml" = "firefox.desktop";
+    };
   };
 }
