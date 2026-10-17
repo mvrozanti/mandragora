@@ -149,6 +149,22 @@ tooltip {
     border-bottom: 2px solid @color8;
 }
 
+#custom-btc {
+    padding: 0 8px;
+}
+
+#custom-btc.fresh {
+    color: @color3;
+}
+
+#custom-btc.stale {
+    color: @color1;
+}
+
+#custom-btc.error {
+    color: @color8;
+}
+
 
 #memory {
     padding: 0 8px;
