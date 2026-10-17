@@ -24,6 +24,13 @@ XPUB_LABELS_ENV = "BTC_XPUB_LABELS"
 
 GAP_LIMIT = 20
 STALE_AFTER = 20 * 60
+
+
+def multisig_threshold():
+    try:
+        return int(os.environ.get("BTC_MULTISIG_M", "2"))
+    except ValueError:
+        return 2
 ESPLORA = "https://blockstream.info/api"
 COINGECKO = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,brl"
 MEMPOOL_PRICES = "https://mempool.space/api/v1/prices"
@@ -82,9 +89,9 @@ def ser_pubkey(point):
     return (b"\x03" if y & 1 else b"\x02") + x.to_bytes(32, "big")
 
 
-def parse_zpub(zpub):
-    raw = base58_decode(zpub)
-    if len(raw) != 82 or raw[0:4] != b"\x04\xb2\x47\x46":
+def parse_xpub(key):
+    raw = base58_decode(key)
+    if len(raw) != 82 or raw[0:4] not in (b"\x04\xb2\x47\x46", b"\x02\xaa\x7e\xd3"):
         return None
     checksum = hashlib.sha256(hashlib.sha256(raw[:-4]).digest()).digest()[:4]
     if checksum != raw[-4:]:
@@ -139,13 +146,26 @@ def convert_bits(data, from_bits, to_bits, pad=True):
     return out
 
 
-def address_for_point(point):
-    digest = hashlib.new("ripemd160", hashlib.sha256(ser_pubkey(point)).digest()).digest()
-    data = [0] + convert_bits(digest, 8, 5)
+def segwit_address(version, program):
+    data = [version] + convert_bits(program, 8, 5)
     values = bech32_hrp_expand("bc") + data + [0] * 6
     polymod = bech32_polymod(values) ^ 1
     checksum = [(polymod >> 5 * (5 - i)) & 31 for i in range(6)]
     return "bc1" + "".join(BECH32[d] for d in data + checksum)
+
+
+def address_for_point(point):
+    digest = hashlib.new("ripemd160", hashlib.sha256(ser_pubkey(point)).digest()).digest()
+    return segwit_address(0, digest)
+
+
+def multisig_address(child_pubkeys, threshold):
+    op_n = 0x50
+    script = bytes([op_n + threshold])
+    for pubkey in sorted(child_pubkeys):
+        script += bytes([len(pubkey)]) + pubkey
+    script += bytes([op_n + len(child_pubkeys), 0xAE])
+    return segwit_address(0, hashlib.sha256(script).digest())
 
 
 def derive_branch(chaincode, account_point, branch, limit):
@@ -212,19 +232,11 @@ def read_xpubs():
     return xpubs
 
 
-def fetch_account(zpub):
-    parsed = parse_zpub(zpub)
-    if parsed is None:
-        return {"balance": None, "error": "invalid zpub"}
-    chaincode, account_point = parsed
-    external = derive_branch(chaincode, account_point, 0, GAP_LIMIT)
-    internal = derive_branch(chaincode, account_point, 1, GAP_LIMIT)
-    addresses = external + internal
+def sum_addresses(addresses):
     with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
         results = list(pool.map(address_stats, addresses))
-    failed = sum(1 for stats in results if not stats.get("ok"))
-    if failed:
-        return {"balance": None, "error": f"{failed} address lookups failed"}
+    if sum(1 for stats in results if not stats.get("ok")):
+        return None
     balance = 0
     for branch in (results[:GAP_LIMIT], results[GAP_LIMIT:]):
         empty_run = 0
@@ -236,6 +248,35 @@ def fetch_account(zpub):
                 empty_run += 1
             if empty_run >= GAP_LIMIT:
                 break
+    return balance
+
+
+def fetch_account(xpub):
+    parsed = parse_xpub(xpub)
+    if parsed is None:
+        return {"balance": None, "error": "invalid xpub"}
+    chaincode, account_point = parsed
+    external = derive_branch(chaincode, account_point, 0, GAP_LIMIT)
+    internal = derive_branch(chaincode, account_point, 1, GAP_LIMIT)
+    balance = sum_addresses(external + internal)
+    if balance is None:
+        return {"balance": None, "error": "address lookups failed"}
+    return {"balance": balance, "error": None}
+
+
+def fetch_multisig(cosigners, threshold):
+    addresses = []
+    for branch in (0, 1):
+        for index in range(GAP_LIMIT):
+            child_pubkeys = []
+            for chaincode, point in cosigners:
+                branch_chaincode, branch_point = ckd_pub(chaincode, point, branch)
+                _, child_point = ckd_pub(branch_chaincode, branch_point, index)
+                child_pubkeys.append(ser_pubkey(child_point))
+            addresses.append(multisig_address(child_pubkeys, threshold))
+    balance = sum_addresses(addresses)
+    if balance is None:
+        return {"balance": None, "error": "address lookups failed"}
     return {"balance": balance, "error": None}
 
 
@@ -255,17 +296,30 @@ def fetch_prices():
 
 
 def fetch_all():
+    xpubs = read_xpubs()
+    singles = [(label, xpub) for label, xpub in xpubs if classify_key(xpub) == "zpub"]
+    multisig = [(label, xpub) for label, xpub in xpubs if classify_key(xpub) == "multisig"]
+    unrecognized = [(label, xpub) for label, xpub in xpubs if classify_key(xpub) not in ("zpub", "multisig")]
+
     balances = []
-    for label, xpub in read_xpubs():
-        kind = classify_key(xpub)
-        if kind == "zpub":
-            entry = fetch_account(xpub)
-        elif kind == "multisig":
-            entry = {"balance": None, "error": None, "note": "multisig — needs cosigners"}
-        else:
-            entry = {"balance": None, "error": "unrecognized key", "note": None}
+    for label, xpub in singles:
+        entry = fetch_account(xpub)
         entry["label"] = label
         balances.append(entry)
+
+    cosigners = [parse_xpub(xpub) for _, xpub in multisig]
+    cosigners = [cosigner for cosigner in cosigners if cosigner is not None]
+    if len(multisig) >= 2 and len(cosigners) >= 2:
+        entry = fetch_multisig(cosigners, multisig_threshold())
+        entry["label"] = "multisig"
+        balances.append(entry)
+    else:
+        for label, _ in multisig:
+            balances.append({"label": label, "balance": None, "error": None, "note": "multisig — needs cosigners"})
+
+    for label, _ in unrecognized:
+        balances.append({"label": label, "balance": None, "error": "unrecognized key", "note": None})
+
     prices = fetch_prices()
     total = 0
     any_valid = False

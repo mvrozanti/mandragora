@@ -21,6 +21,10 @@ in
     owner = "m";
     mode = "0400";
   };
+  sops.secrets."bitcoin/electrum_xpub3" = {
+    owner = "m";
+    mode = "0400";
+  };
 
   services.bitcoind.main = {
     enable = true;
