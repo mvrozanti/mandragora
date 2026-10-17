@@ -10,8 +10,8 @@ let
     text = ''
       export BTC_XPUB_FILES="${osConfig.sops.secrets."bitcoin/electrum_xpub1".path}:${
         osConfig.sops.secrets."bitcoin/electrum_xpub2".path
-      }"
-      export BTC_XPUB_LABELS="electrum1:electrum2"
+      }:${osConfig.sops.secrets."bitcoin/electrum_xpub3".path}"
+      export BTC_XPUB_LABELS="electrum1:electrum2:electrum3"
       exec ${pkgs.python3}/bin/python3 ${../../snippets/btc-menu.py} "$@"
     '';
   };
