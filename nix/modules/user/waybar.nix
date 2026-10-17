@@ -80,6 +80,7 @@
         "group/info" = {
           orientation = "horizontal";
           modules = [
+            "custom/btc"
             "custom/weather"
             "clock"
             "custom/brightness"
@@ -294,6 +295,16 @@
           interval = 600;
           on-click = "weather-menu pick";
           on-click-right = "weather-menu pick --refresh";
+        };
+
+        "custom/btc" = {
+          exec = "btc-menu waybar";
+          return-type = "json";
+          interval = 60;
+          signal = 15;
+          tooltip = true;
+          on-click = "btc-menu pick";
+          on-click-right = "btc-menu cycle-unit";
         };
 
         tray = {

@@ -38,6 +38,7 @@ in
     ./services.nix
     ./bots.nix
     ./waybar.nix
+    ./btc-menu.nix
     ./rss-menu.nix
     ./ea-reaper.nix
     ./calibre-reaper.nix
