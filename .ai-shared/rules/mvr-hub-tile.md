@@ -48,6 +48,10 @@ without a matching tile fails the audit before it can be committed.
 Intentional exemptions (e.g. `hub` itself, `auth` for the Authelia
 SSO landing) live in
 `.local/share/mandragora-audit/allowlists/hub-tile.txt`.
+A host that must never be named in the repo is exempted on the VPS
+instead, by the 2FA private-host list described in
+`nix/hosts/mandragora-vps/compose/authelia/README.md`; the audit
+reports only how many it skipped.
 
 ## Done-criterion
 

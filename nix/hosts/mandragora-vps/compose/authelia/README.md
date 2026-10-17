@@ -42,6 +42,29 @@ cd /home/opc/authelia && sudo docker compose up -d
   native htpasswd.
 - WebAuthn / passkeys enabled but optional (every user has TOTP).
 
+## Private hosts
+
+A host that is served behind this gate but must never be named in the
+repo (or on the public vault) is listed on the VPS only: one file per
+host under `config/private-hosts/`, each holding the bare hostname.
+
+```
+echo <sub>.mvr.ac > /home/opc/authelia/config/private-hosts/<slug>
+sudo docker restart authelia
+```
+
+`configuration.yml` is rendered with `X_AUTHELIA_CONFIG_FILTERS=template`
+and turns every file there into a `two_factor` rule; with none, the
+template adds nothing and default-deny stands. The directory is
+gitignored, so deploys neither ship nor delete it.
+
+The same list is the hub-tile exemption: `mandragora-audit` check
+`05-hub-tile` skips exactly these hosts and prints only their count.
+Coupling the two means the audit can only look away from a host that
+is behind the 2FA gate. The cost is that these hosts are not
+reproducible from the repo: rebuilding the VPS from scratch drops them
+until the files are recreated.
+
 ## Skin (`skin/`)
 
 Authelia's frontend is compiled into the Go binary (`embed.FS`) and
