@@ -13,6 +13,10 @@ let
   '';
 in
 {
+  sops.secrets."bitcoin/jade_xpub" = {
+    owner = "m";
+    mode = "0400";
+  };
   sops.secrets."bitcoin/electrum_xpub1" = {
     owner = "m";
     mode = "0400";
