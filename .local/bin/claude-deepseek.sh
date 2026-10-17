@@ -20,4 +20,8 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek-v4-flash"
 export ANTHROPIC_SMALL_FAST_MODEL="deepseek-v4-flash"
 export CLAUDE_CODE_MAX_CONTEXT_TOKENS="1000000"
 
+if [ -n "${TMUX:-}" ]; then
+    tmux set-option -w @claude_backend deepseek 2>/dev/null || true
+fi
+
 exec claude "$@"
