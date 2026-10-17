@@ -2,14 +2,13 @@
 set -euo pipefail
 
 VAULT="${VAULT:-/home/m/Documents/mandragora-desktop-obsidian-vault}"
-VAULT_GRAPH="${VAULT_GRAPH:-/home/m/Projects/vault-graph}"
 REMOTE="${REMOTE:-opc@mandragora-vps}"
 REMOTE_DIR="${REMOTE_DIR:-/home/opc/demo/static}"
 
 graph="$(mktemp --suffix=.json)"
 trap 'rm -f "$graph"' EXIT
 
-python3 "$VAULT_GRAPH/examples/static-vault/build_graph.py" "$VAULT" "$graph"
+python3 "$(dirname "$(readlink -f "$0")")/build_graph.py" "$VAULT" "$graph"
 python3 "$(dirname "$(readlink -f "$0")")/subject-dates.py" "$VAULT" "$graph"
 
 rsync -a --delete \
