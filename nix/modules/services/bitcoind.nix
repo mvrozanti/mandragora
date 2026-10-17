@@ -13,6 +13,15 @@ let
   '';
 in
 {
+  sops.secrets."bitcoin/electrum_xpub" = {
+    owner = "m";
+    mode = "0400";
+  };
+  sops.secrets."bitcoin/jade_xpub" = {
+    owner = "m";
+    mode = "0400";
+  };
+
   services.bitcoind.main = {
     enable = true;
     dataDir = "/persistent/bitcoin";
