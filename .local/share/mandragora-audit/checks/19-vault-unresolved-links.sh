@@ -6,8 +6,7 @@ set -uo pipefail
 CHECK="${AUDIT_NAME:-vault-unresolved-links}"
 
 VAULT="${MANDRAGORA_VAULT:-$HOME/Documents/mandragora-desktop-obsidian-vault}"
-VAULT_GRAPH="${VAULT_GRAPH:-$HOME/Projects/vault-graph}"
-BUILD_GRAPH="$VAULT_GRAPH/examples/static-vault/build_graph.py"
+BUILD_GRAPH="$MANDRAGORA_REPO/nix/hosts/mandragora-vps/compose/demo/build_graph.py"
 
 if [ ! -d "$VAULT" ]; then
   audit_pass "$CHECK" "vault not present; skipped"
