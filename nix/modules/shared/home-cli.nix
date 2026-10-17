@@ -107,9 +107,6 @@
     source = ../../../.config/nvim;
     recursive = true;
   };
-  systemd.user.tmpfiles.rules = [
-    "L+ %h/.claude/settings.json - - - - /etc/nixos/mandragora/.claude/settings.json"
-  ];
   home.file.".claude/hooks/rtk-rewrite.sh".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/mandragora/.claude/hooks/rtk-rewrite.sh";
   # Re-asserts chat mode on every prompt while the session's flag exists. A
