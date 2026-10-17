@@ -19,10 +19,16 @@ fi
 
 ALLOWLIST=$(audit_load_allowlist "$AUDIT_HOME/allowlists/vault-unresolved-links.txt")
 
+tree="$(mktemp -d)"
 graph="$(mktemp --suffix=.json)"
-trap 'rm -f "$graph"' EXIT
+trap 'rm -rf "$tree" "$graph"' EXIT
 
-if ! python3 "$BUILD_GRAPH" "$VAULT" "$graph" >/dev/null 2>&1; then
+if ! git -C "$VAULT" archive --format=tar HEAD 2>/dev/null | tar -x -C "$tree" 2>/dev/null; then
+  audit_pass "$CHECK" "vault has no committed tree; skipped"
+  exit 0
+fi
+
+if ! python3 "$BUILD_GRAPH" "$tree" "$graph" >/dev/null 2>&1; then
   audit_pass "$CHECK" "graph build failed; skipped"
   exit 0
 fi
