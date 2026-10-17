@@ -65,6 +65,12 @@ subs_from_live_caddy() {
     | sed -E 's#([a-z0-9-]+)\.mvr\.ac#\1#' | sort -u
 }
 
+subs_private_on_vps() {
+  timeout 20 ssh -o BatchMode=yes -o ConnectTimeout=8 "$VPS" \
+    'cat /home/opc/authelia/config/private-hosts/* 2>/dev/null' 2>/dev/null \
+    | sed -nE 's#^([a-z0-9-]+)\.mvr\.ac$#\1#p' | sort -u
+}
+
 violations=0
 
 report_missing() {
@@ -88,6 +94,12 @@ if [ -z "$live_hosts" ]; then
   audit_yellow "    live caddy unreachable ($VPS); repo-only check performed" >&2
   echo >&2
 else
+  private_hosts=$(subs_private_on_vps)
+  if [ -n "$private_hosts" ]; then
+    live_hosts=$(comm -23 <(printf '%s\n' "$live_hosts") <(printf '%s\n' "$private_hosts"))
+    audit_yellow "    $(printf '%s\n' "$private_hosts" | wc -l) private host(s) skipped: 2FA-gated by the VPS-only authelia/config/private-hosts list" >&2
+    echo >&2
+  fi
   report_missing "live caddy" "$live_hosts"
 
   live_services=$(timeout 20 ssh -o BatchMode=yes -o ConnectTimeout=8 "$VPS" \

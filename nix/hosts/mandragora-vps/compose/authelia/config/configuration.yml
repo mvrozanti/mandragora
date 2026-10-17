@@ -112,6 +112,10 @@ access_control:
                'kindle.mvr.ac', 'fly.mvr.ac', 'torrent.mvr.ac',
               'vj.mvr.ac']
       policy: 'two_factor'
+{{- range glob "/config/private-hosts/*" }}
+    - domain: {{ secret . | squote }}
+      policy: 'two_factor'
+{{- end }}
 
 notifier:
   filesystem:
