@@ -13,11 +13,11 @@ let
   '';
 in
 {
-  sops.secrets."bitcoin/electrum_xpub" = {
+  sops.secrets."bitcoin/electrum_xpub1" = {
     owner = "m";
     mode = "0400";
   };
-  sops.secrets."bitcoin/jade_xpub" = {
+  sops.secrets."bitcoin/electrum_xpub2" = {
     owner = "m";
     mode = "0400";
   };
