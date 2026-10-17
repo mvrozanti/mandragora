@@ -81,3 +81,20 @@ agent can pick it up rather than redo it.
 
 Merging and removing your own worktree are part of finishing the task.
 Pushing still follows each repo's normal commit/push authorization.
+
+### The shared checkout is always on the default branch
+
+After you land, run this as a check — a deterministic step, not a "if you
+notice" one — against the shared main checkout of every repo you touched:
+
+```bash
+git -C "$repo" symbolic-ref --short HEAD   # must print main or master
+git -C "$repo" status --short              # must be empty
+```
+
+A non-default branch or a dirty tree there means a session stopped before
+finishing. If the leftover work is dead (superseded, abandoned), reset it:
+`git restore . && git clean -fd`, then `git checkout <default>`. If it is
+live work someone is still doing, leave it and name the owner in your
+handoff. Either way, never leave a stale checkout for the next agent to
+trip over.
