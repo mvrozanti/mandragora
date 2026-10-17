@@ -8,10 +8,10 @@ let
       procps
     ];
     text = ''
-      export BTC_XPUB_FILES="${osConfig.sops.secrets."bitcoin/electrum_xpub".path}:${
-        osConfig.sops.secrets."bitcoin/jade_xpub".path
+      export BTC_XPUB_FILES="${osConfig.sops.secrets."bitcoin/electrum_xpub1".path}:${
+        osConfig.sops.secrets."bitcoin/electrum_xpub2".path
       }"
-      export BTC_XPUB_LABELS="electrum:jade"
+      export BTC_XPUB_LABELS="electrum1:electrum2"
       exec ${pkgs.python3}/bin/python3 ${../../snippets/btc-menu.py} "$@"
     '';
   };
