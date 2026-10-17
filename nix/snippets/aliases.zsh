@@ -387,7 +387,7 @@ alias tls='task list'
 td() { [[ -n "$@" ]] && task "$@" delete }
 rpc() { realpath "$@" | c -n }
 
-sa() { awk -v name="$*" 'BEGIN{re="^(alias )?"name"(=|\\()"} $0~re{p=1;print;if($0~"^alias "||$0~"}.*;? *$")p=0;next} p{print;if($0~"^} *;? *$")p=0}' "${BASH_SOURCE[0]:-${(%):-%x}}" }
+sa() { awk -v name="$*" 'BEGIN{gsub(/[][\\.^$*+?(){}|]/,"\\\\&",name);re="^(alias (-- )?)?"name"(=|\\()"} $0~re{p=1;print;if($0~"^alias "||$0~"}.*;? *$")p=0;next} p{print;if($0~"^} *;? *$")p=0}' "${BASH_SOURCE[0]:-${(%):-%x}}" }
 
 alias claude='claude'
 alias gemini='/run/current-system/sw/bin/gemini -y'
