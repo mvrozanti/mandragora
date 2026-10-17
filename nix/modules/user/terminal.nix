@@ -115,6 +115,7 @@ _:
       "ctrl+shift+left" = "previous_tab";
       "ctrl+shift+t" = "new_tab";
       "ctrl+shift+q" = "no_op";
+      "ctrl+shift+r" = "no_op";
       "ctrl+shift+u" = "no_op";
       "ctrl+shift+." = "move_tab_forward";
       "ctrl+shift+," = "move_tab_backward";
