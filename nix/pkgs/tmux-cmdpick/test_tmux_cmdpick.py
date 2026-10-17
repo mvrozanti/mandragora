@@ -559,14 +559,13 @@ class InsideTmux(unittest.TestCase):
         self.tmux(*inner, "-f", BINDING_CONF, "new-session", "-d", "-s", "work", "-x", "150", "-y", "40", "sh -c " + shlex.quote(inner_cmd))
         self.addCleanup(subprocess.run, ["tmux", *inner, "kill-server"], env=self.env, stderr=subprocess.DEVNULL)
         self.wait_for(lambda: "list-sessions" in self.tmux(*inner, "capture-pane", "-p", "-t", "work"), "fixture in the inner pane")
-        self.tmux(*inner, "set-buffer", "sentinel")
+        work_panes = set(self.tmux(*inner, "list-panes", "-t", "work", "-F", "#{pane_id}").split())
         self.tmux("new-session", "-d", "-s", "client", "-x", "160", "-y", "45", "tmux -L inner attach -t work")
         self.wait_for(lambda: "list-sessions" in self.tmux("capture-pane", "-p", "-t", "client"), "inner client on screen")
         self.tmux("send-keys", "-t", "client", "C-b", "e")
         self.wait_for(lambda: "cmd>" in self.tmux("capture-pane", "-p", "-t", "client"), "picker popup over the pane")
         self.tmux("send-keys", "-t", "client", "Enter")
-        got = self.wait_for(lambda: (lambda b: b if b != "sentinel" else "")(self.tmux(*inner, "show-buffer")), "buffer update")
-        self.assertEqual(got, self.EXPECTED[0])
+        self.wait_for(lambda: len(self.tmux(*inner, "list-panes", "-t", "work", "-F", "#{pane_id}").split()) > len(work_panes), "new pane opened")
 
     def test_empty_pane_opens_no_popup(self):
         slow = os.path.join(self.tmp.name, "slow")
@@ -603,21 +602,29 @@ class InsideTmux(unittest.TestCase):
         out = subprocess.run(tool_command() + ["--print", pane], env=self.env, stdout=subprocess.PIPE, text=True, check=True).stdout
         self.assertEqual(out.splitlines(), self.EXPECTED)
 
-    def test_enter_copies_newest(self):
-        pane, _ = self.start_target("copy", 220)
-        self.tmux("set-buffer", "sentinel")
-        picker = self.open_picker(pane)
-        self.tmux("send-keys", "-t", picker, "Enter")
-        got = self.wait_for(lambda: (lambda b: b if b != "sentinel" else "")(self.tmux("show-buffer")), "buffer update")
-        self.assertEqual(got, self.EXPECTED[0])
+    def wait_for_typed_command(self, session, before, text):
+        def probe():
+            for p in self.tmux("list-panes", "-t", session, "-F", "#{pane_id}").split():
+                if p not in before and text in self.tmux("capture-pane", "-p", "-t", p):
+                    return True
+            return False
+        return self.wait_for(probe, "command typed into a new pane")
 
-    def test_alt_enter_copies_newest(self):
-        pane, _ = self.start_target("copy-alt", 220)
-        self.tmux("set-buffer", "sentinel")
+    def test_enter_opens_pane(self):
+        pane, _ = self.start_target("open", 220)
+        session = self.tmux("display-message", "-p", "-t", pane, "#{session_name}").strip()
         picker = self.open_picker(pane)
+        before = set(self.tmux("list-panes", "-t", session, "-F", "#{pane_id}").split())
+        self.tmux("send-keys", "-t", picker, "Enter")
+        self.wait_for_typed_command(session, before, "list-sessions")
+
+    def test_alt_enter_opens_pane(self):
+        pane, _ = self.start_target("open-alt", 220)
+        session = self.tmux("display-message", "-p", "-t", pane, "#{session_name}").strip()
+        picker = self.open_picker(pane)
+        before = set(self.tmux("list-panes", "-t", session, "-F", "#{pane_id}").split())
         self.tmux("send-keys", "-t", picker, "Down", "M-Enter")
-        got = self.wait_for(lambda: (lambda b: b if b != "sentinel" else "")(self.tmux("show-buffer")), "buffer update")
-        self.assertEqual(got, self.EXPECTED[1])
+        self.wait_for_typed_command(session, before, "print -l one two")
 
 
 if __name__ == "__main__":
