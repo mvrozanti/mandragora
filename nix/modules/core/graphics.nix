@@ -1,6 +1,11 @@
 { config, ... }:
 
 {
+  services.xserver.videoDrivers = [
+    "nvidia"
+    "amdgpu"
+  ];
+
   hardware.nvidia = {
     open = true;
     modesetting.enable = true;
