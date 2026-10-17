@@ -12,6 +12,11 @@ in
     tmuxDirpick
   ];
 
+  home.file.".config/tmux/claude-resurrect.sh" = {
+    source = ../../../.config/tmux/claude-resurrect.sh;
+    executable = true;
+  };
+
   programs.tmux = {
     enable = true;
     shortcut = "a";
@@ -35,6 +40,14 @@ in
         extraConfig =
           builtins.readFile ../../../.config/tmux/jump-plugin.conf
           + "\nbind-key -T root M-f if-shell -F '#{==:#{pane_current_command},nvim}' 'send-keys M-f' 'run-shell -b ${pkgs.tmuxPlugins.jump}/share/tmux-plugins/jump/scripts/tmux-jump.sh'";
+      }
+      {
+        plugin = resurrect;
+        extraConfig = builtins.readFile ../../../.config/tmux/resurrect.conf;
+      }
+      {
+        plugin = continuum;
+        extraConfig = builtins.readFile ../../../.config/tmux/continuum.conf;
       }
     ];
 
