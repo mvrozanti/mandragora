@@ -64,6 +64,7 @@ in
     ../../modules/desktop/pi.nix
     ../../modules/services/hub-services.nix
     ../../modules/services/bitcoind.nix
+    ../../modules/services/btc-wealth-flow.nix
     ../../modules/services/ttyd.nix
     ../../modules/services/claude-web.nix
     ../../modules/services/cc-pocket.nix
