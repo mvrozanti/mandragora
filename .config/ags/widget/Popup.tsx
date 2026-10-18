@@ -40,7 +40,7 @@ export default function Popup(props: Props) {
       class="popup-window"
       application={app}
       layer={Astal.Layer.TOP}
-      exclusivity={Astal.Exclusivity.NORMAL}
+      exclusivity={Astal.Exclusivity.IGNORE}
       keymode={Astal.Keymode.EXCLUSIVE}
       anchor={TOP | BOTTOM | LEFT | RIGHT}
       $={(win) => {
@@ -90,7 +90,7 @@ export default function Popup(props: Props) {
             orientation={Gtk.Orientation.VERTICAL}
             widthRequest={props.width}
             valign={Gtk.Align.END}
-            marginBottom={10}
+            marginBottom={50}
             marginTop={12}
           >
             <box class="header" spacing={12}>
