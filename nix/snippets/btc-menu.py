@@ -360,7 +360,6 @@ def fetch_all():
 
     prices = fetch_prices()
     total = 0
-    any_valid = False
     errors = []
     accounts = []
     for entry in balances:
@@ -368,11 +367,11 @@ def fetch_all():
             errors.append(entry["error"])
         if entry["balance"] is not None:
             total += entry["balance"]
-            any_valid = True
         accounts.append({"label": entry["label"], "sats": entry["balance"], "note": entry.get("note")})
     accounts.append({"label": "lended", "sats": LENT_SATS, "note": None})
+    total += LENT_SATS
     return {
-        "sats": total if any_valid else None,
+        "sats": total,
         "usd": prices["usd"],
         "brl": prices["brl"],
         "accounts": accounts,
