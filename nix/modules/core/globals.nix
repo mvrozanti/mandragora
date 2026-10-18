@@ -39,6 +39,8 @@
     };
   };
 
+  users.mutableUsers = false;
+
   users.users.m = {
     isNormalUser = true;
     description = "Mandragora Primary User";
