@@ -20,6 +20,8 @@ in
   mandragora.hub.services.slither-io = {
     port = 8088;
     userService = true;
+    memoryMax = "1G";
+    maxRuntime = "6h";
     systemd = {
       description = "slither-io-simulator HTTP server (tailnet bind, public via Caddy)";
       after = [ "network.target" ];
@@ -34,6 +36,7 @@ in
         Restart = "on-failure";
         RestartSec = "5s";
         TimeoutStartSec = "300s";
+        MemorySwapMax = "0";
       };
     };
   };
