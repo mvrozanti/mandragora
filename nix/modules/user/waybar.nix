@@ -220,7 +220,7 @@
           format = "{}";
           exec = "gpu-menu waybar";
           return-type = "json";
-          interval = 2;
+          interval = 10;
           tooltip = true;
           on-click = "shell-popup gpu -- gpu-menu pick";
         };
@@ -285,7 +285,7 @@
         "custom/screencap" = {
           exec = "screencap status";
           return-type = "json";
-          interval = 1;
+          interval = 5;
           signal = 11;
           on-click = "capture toggle";
           on-click-right = "capture stop";
