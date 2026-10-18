@@ -48,6 +48,7 @@
           orientation = "horizontal";
           modules = [
             "disk"
+            "custom/disk-io"
             "memory"
             "temperature"
             "cpu"
@@ -196,6 +197,14 @@
           format = "  {percentage_free}%";
           path = "/";
           interval = 30;
+        };
+
+        "custom/disk-io" = {
+          exec = "~/.config/waybar/scripts/disk-io.sh";
+          return-type = "json";
+          interval = 2;
+          format = "{}";
+          tooltip = true;
         };
 
         memory = {
