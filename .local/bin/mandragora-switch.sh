@@ -552,8 +552,16 @@ if [ "$RC" -eq 0 ] || [ "$ACTIVATED" -eq 1 ]; then
     echo "==> Pruning system generations older than ${GC_DAYS}d..."
     sudo /run/current-system/sw/bin/nix-env -p /nix/var/nix/profiles/system --delete-generations "${GC_DAYS}d" >/dev/null 2>&1 || \
       echo "==> WARNING: generation prune (${GC_DAYS}d) failed." >&2
-    echo "==> nix-store --gc..."
-    nix-store --gc >/dev/null 2>&1 || echo "==> WARNING: nix-store --gc failed." >&2
+    flock -u 9
+    if systemd-run --user --quiet --collect --unit=mandragora-switch-gc \
+      "$(command -v nix-store)" --gc >/dev/null 2>&1; then
+      echo "==> nix-store --gc started in the background (unit mandragora-switch-gc), outside the switch lock."
+    elif systemctl --user is-active --quiet mandragora-switch-gc 2>/dev/null; then
+      echo "==> nix-store --gc already running in the background; not starting another."
+    else
+      echo "==> nix-store --gc (switch lock already released)..."
+      nix-store --gc >/dev/null 2>&1 || echo "==> WARNING: nix-store --gc failed." >&2
+    fi
     phase "gc ${GC_DAYS}d"
   fi
 fi
