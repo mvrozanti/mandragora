@@ -54,7 +54,10 @@ via `nix/modules/user/home.nix`) does, in order:
    with the desktop already on the new commit.
 9. Promote to master, `git push` (fetch and rebase only if rejected),
    join the vault publish and print its report, deploy changed served
-   stacks, coalesce and prune generations, background GC.
+   stacks, coalesce and prune generations. The store itself is not
+   collected here: a `nix-store --gc` stalls every Nix client on the
+   machine for a minute or two, so collection is left to the weekly
+   `nix.gc` timer and to the daemon's `min-free` threshold.
 
 Aliases (in `nix/modules/user/zsh.nix`):
 
