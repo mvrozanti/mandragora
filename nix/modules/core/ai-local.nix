@@ -48,14 +48,20 @@ let
     ];
     requires = [ "ollama.service" ];
     wants = [ "network-online.target" ];
-    wantedBy = [ "multi-user.target" ];
     path = [ pkgs.curl ];
     script = builtins.readFile ../../../.local/lib/mandragora/ollama-pull-model.sh;
     serviceConfig = {
       Type = "oneshot";
-      RemainAfterExit = true;
       TimeoutStartSec = "2h";
       Environment = "MODEL=${model}";
+    };
+  };
+  pullModelTimer = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "5min";
+      OnUnitActiveSec = "1d";
+      RandomizedDelaySec = "10min";
     };
   };
   sanitizeTag = lib.replaceStrings [ ":" "/" "." "_" ] [ "-" "-" "-" "-" ];
@@ -171,6 +177,9 @@ in
       systemd.services = lib.listToAttrs (
         map (m: lib.nameValuePair "ollama-pull-${sanitizeTag m}" (pullModelService m)) cfg.extraModels
       );
+      systemd.timers = lib.listToAttrs (
+        map (m: lib.nameValuePair "ollama-pull-${sanitizeTag m}" pullModelTimer) cfg.extraModels
+      );
     })
 
     (lib.mkIf cfg.agentic.enable {
@@ -186,24 +195,10 @@ in
 
       environment.systemPackages = [ ];
 
-      systemd.services.ollama-pull-agentic = {
+      systemd.services.ollama-pull-agentic = pullModelService cfg.agentic.model // {
         description = "Pre-pull primary local model";
-        after = [
-          "ollama.service"
-          "network-online.target"
-        ];
-        requires = [ "ollama.service" ];
-        wants = [ "network-online.target" ];
-        wantedBy = [ "multi-user.target" ];
-        path = [ pkgs.curl ];
-        script = builtins.readFile ../../../.local/lib/mandragora/ollama-pull-model.sh;
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          TimeoutStartSec = "2h";
-          Environment = "MODEL=${cfg.agentic.model}";
-        };
       };
+      systemd.timers.ollama-pull-agentic = pullModelTimer;
     })
 
     (lib.mkIf cfg.meme.enable {
@@ -223,45 +218,17 @@ in
         pkgs.exiftool
       ];
 
-      systemd.services.ollama-pull-meme = {
+      systemd.services.ollama-pull-meme = pullModelService cfg.meme.model // {
         description = "Pre-pull meme VLM";
-        after = [
-          "ollama.service"
-          "network-online.target"
-        ];
-        requires = [ "ollama.service" ];
-        wants = [ "network-online.target" ];
-        wantedBy = [ "multi-user.target" ];
-        path = [ pkgs.curl ];
-        script = builtins.readFile ../../../.local/lib/mandragora/ollama-pull-model.sh;
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          TimeoutStartSec = "2h";
-          Environment = "MODEL=${cfg.meme.model}";
-        };
       };
+      systemd.timers.ollama-pull-meme = pullModelTimer;
     })
 
     (lib.mkIf cfg.uncensored.enable {
-      systemd.services.ollama-pull-uncensored = {
+      systemd.services.ollama-pull-uncensored = pullModelService cfg.uncensored.model // {
         description = "Pre-pull uncensored / abliterated model";
-        after = [
-          "ollama.service"
-          "network-online.target"
-        ];
-        requires = [ "ollama.service" ];
-        wants = [ "network-online.target" ];
-        wantedBy = [ "multi-user.target" ];
-        path = [ pkgs.curl ];
-        script = builtins.readFile ../../../.local/lib/mandragora/ollama-pull-model.sh;
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          TimeoutStartSec = "2h";
-          Environment = "MODEL=${cfg.uncensored.model}";
-        };
       };
+      systemd.timers.ollama-pull-uncensored = pullModelTimer;
     })
   ];
 }
