@@ -73,7 +73,7 @@ fi
 field() { jq -r --arg n "$1" '.entries[] | select(.name==$n) | .'"$2"'  // empty' "$MANIFEST"; }
 
 decrypt_entry() {
-  sudo -n mandragora-sops-decrypt yaml "$1" "$2"
+  sudo mandragora-sops-decrypt yaml "$1" "$2"
 }
 
 digest_pairs() {

@@ -531,7 +531,7 @@ if [ "$RC" -eq 0 ] || [ "$ACTIVATED" -eq 1 ]; then
       done <<< "$SORTED"
       if [ "${#COALESCE[@]}" -gt 0 ]; then
         echo "==> Coalescing ${#COALESCE[@]} generation(s) closer than ${WINDOW_SECONDS}s to a kept neighbor: ${COALESCE[*]}"
-        PRUNED_LOG=$(sudo nix-env -p /nix/var/nix/profiles/system --delete-generations "${COALESCE[@]}" 2>&1)
+        PRUNED_LOG=$(sudo mandragora-gen-prune "${COALESCE[@]}" 2>&1)
         if [ $? -eq 0 ]; then
           if echo "$PRUNED_LOG" | grep -qEi "removing (generation|profile version)"; then
             sudo /run/current-system/bin/switch-to-configuration boot >/dev/null 2>&1 || \
@@ -550,7 +550,7 @@ if [ "$RC" -eq 0 ] || [ "$ACTIVATED" -eq 1 ]; then
   GC_DAYS=${MANDRAGORA_GC_DAYS:-7}
   if [ "$GC_DAYS" -gt 0 ]; then
     echo "==> Pruning system generations older than ${GC_DAYS}d..."
-    sudo /run/current-system/sw/bin/nix-env -p /nix/var/nix/profiles/system --delete-generations "${GC_DAYS}d" >/dev/null 2>&1 || \
+    sudo mandragora-gen-prune "${GC_DAYS}d" >/dev/null 2>&1 || \
       echo "==> WARNING: generation prune (${GC_DAYS}d) failed." >&2
     flock -u 9
     if systemd-run --user --quiet --collect --unit=mandragora-switch-gc \
