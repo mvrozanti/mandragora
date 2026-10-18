@@ -8,7 +8,7 @@ set +a
 CLERK_SECRET_KEY="$(cat /run/secrets/clerk/secret)"
 export CLERK_SECRET_KEY
 export CLERK_AUTHORIZED_PARTIES="https://chess.mvr.ac,http://localhost:5173"
-export PATH="$HOME/.local/state/chess-lens/stockfish/bin:$PATH"
+export PATH="$HOME/.local/state/chess-lens/stockfish/bin:$PATH:/etc/profiles/per-user/m/bin:/run/current-system/sw/bin"
 JAR=""
 for candidate in "$PROJ"/backend/build/libs/*-SNAPSHOT.jar; do
   case "$candidate" in *plain*) continue ;; esac
