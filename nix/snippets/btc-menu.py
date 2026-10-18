@@ -47,6 +47,7 @@ MEMPOOL_PRICES = "https://mempool.space/api/v1/prices"
 CACHE_DIR = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state"))) / "btc-menu"
 CACHE_FILE = CACHE_DIR / "cache.json"
 UNIT_FILE = CACHE_DIR / "unit"
+LAST_FILE = CACHE_DIR / "last.json"
 ICON = "₿"
 UNITS = ["btc", "usd", "brl"]
 WAYBAR_SIGNAL = "SIGRTMIN+15"
@@ -446,6 +447,30 @@ def format_unit_value(sats, unit, prices):
     return f"{ICON} {format_btc(sats)}"
 
 
+def display_value(sats, unit, cache):
+    if sats is None:
+        return None
+    if unit == "usd":
+        price = cache.get("usd")
+        return round(sats / 1e8 * price, 2) if price is not None else None
+    if unit == "brl":
+        price = cache.get("brl")
+        return round(sats / 1e8 * price, 2) if price is not None else None
+    return round(sats / 1e8, 8)
+
+
+def read_last():
+    try:
+        return json.loads(LAST_FILE.read_text())
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return None
+
+
+def write_last(value):
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    LAST_FILE.write_text(json.dumps(value))
+
+
 def cmd_waybar(_args):
     cache = read_cache()
     if cache is None:
@@ -471,6 +496,13 @@ def cmd_waybar(_args):
         cls = "stale"
         tooltip.append("")
         tooltip.append("<i>stale — click to refresh</i>")
+    if cls == "fresh":
+        value = display_value(sats, unit, cache)
+        if value is not None:
+            last = read_last()
+            if last is not None and last != value:
+                cls = "up" if value > last else "down"
+            write_last(value)
     print(json.dumps({"text": text, "tooltip": "\n".join(tooltip), "class": cls}))
     return 0
 
