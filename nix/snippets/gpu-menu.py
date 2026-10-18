@@ -229,6 +229,17 @@ def build_rows():
     return rows
 
 
+def cmd_json(_args):
+    holder = holder_derived(read_holder())
+    if holder:
+        holder["cmd"] = proc_cmdline(holder.get("pid", ""))
+    procs = nvidia_procs()
+    for p in procs:
+        p["cmd"] = proc_cmdline(p["pid"])
+    print(json.dumps({"holder": holder, "gpu": nvidia_gpu(), "procs": procs}), flush=True)
+    return 0
+
+
 def cmd_pick(_args):
     theme = Path.home() / ".config/rofi/themes/menu.rasi"
     while True:
@@ -267,6 +278,8 @@ def main():
     sub = parser.add_subparsers(dest="cmd", required=True)
     p_waybar = sub.add_parser("waybar", help="emit waybar JSON")
     p_waybar.set_defaults(func=cmd_waybar)
+    p_json = sub.add_parser("json", help="emit popup data as JSON")
+    p_json.set_defaults(func=cmd_json)
     p_pick = sub.add_parser("pick", help="open rofi gpu status popup")
     p_pick.set_defaults(func=cmd_pick)
     args = parser.parse_args()

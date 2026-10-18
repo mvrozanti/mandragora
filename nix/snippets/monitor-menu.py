@@ -323,10 +323,91 @@ def power_toggle():
     return 0
 
 
+def emit_json():
+    out = []
+    for m in monitors():
+        lw, lh = logical_size(m)
+        modes = []
+        for mode in m.get("availableModes", []):
+            if mode not in modes:
+                modes.append(mode)
+        out.append({
+            "name": m["name"],
+            "description": m.get("description", ""),
+            "width": m["width"],
+            "height": m["height"],
+            "refresh": round(m.get("refreshRate", 0), 2),
+            "mode": current_mode(m),
+            "scale": m.get("scale", 1.0),
+            "x": m["x"],
+            "y": m["y"],
+            "logical": [lw, lh],
+            "disabled": bool(m.get("disabled")),
+            "focused": bool(m.get("focused")),
+            "modes": modes,
+        })
+    print(json.dumps({"monitors": out, "scales": SCALES}))
+    return 0
+
+
+def place(m, mons, relation, other_name):
+    o = next((x for x in connected(mons) if x["name"] == other_name), None)
+    if o is None:
+        notify(f"{other_name} is not active")
+        return 1
+    olw, olh = logical_size(o)
+    mlw, mlh = logical_size(m)
+    x, y = {
+        "right": (o["x"] + olw, o["y"]),
+        "left": (o["x"] - mlw, o["y"]),
+        "above": (o["x"], o["y"] - mlh),
+        "below": (o["x"], o["y"] + olh),
+    }[relation]
+    reapply(m, pos=f"{x}x{y}")
+    notify(f"{m['name']} moved {relation} of {other_name}")
+    return 0
+
+
+def act(args):
+    mons = monitors()
+    verb = args[0] if args else ""
+    if verb == "extend":
+        extend_all(mons)
+        return 0
+    if verb == "mirror-all":
+        mirror_all(mons)
+        return 0
+    m = next((x for x in mons if len(args) > 1 and x["name"] == args[1]), None)
+    if m is None:
+        return 1
+    if verb == "mode" and len(args) > 2:
+        reapply(m, mode=args[2])
+        notify(f"{m['name']} → {args[2]}")
+    elif verb == "scale" and len(args) > 2:
+        reapply(m, scale=args[2])
+        notify(f"{m['name']} scale → {args[2]}")
+    elif verb == "place" and len(args) > 3:
+        return place(m, mons, args[2], args[3])
+    elif verb == "primary":
+        action_primary(m, mons)
+    elif verb == "mirror" and len(args) > 2:
+        apply(m["name"], "highres", "auto", str(m.get("scale", 1.0)), extra=f",mirror,{args[2]}")
+        notify(f"{m['name']} mirrors {args[2]}")
+    elif verb == "toggle":
+        action_toggle(m, mons)
+    else:
+        return 1
+    return 0
+
+
 def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else "pick"
     if cmd == "waybar":
         return waybar()
+    if cmd == "json":
+        return emit_json()
+    if cmd == "act":
+        return act(sys.argv[2:])
     if cmd == "toggle":
         return power_toggle()
     return pick()

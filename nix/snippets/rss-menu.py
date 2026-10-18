@@ -289,6 +289,46 @@ def cmd_pick(args) -> int:
     return 0
 
 
+def cmd_json(args) -> int:
+    conn = db()
+    where = "" if args.all else "WHERE read=0"
+    rows = conn.execute(
+        f"""SELECT id, feed_name, title, summary, urgency, entry_url, read,
+                   COALESCE(published_ts, fetched_ts) AS ts
+            FROM items {where}
+            ORDER BY urgency DESC, ts DESC
+            LIMIT 200"""
+    ).fetchall()
+    unread = conn.execute("SELECT COUNT(*) FROM items WHERE read=0").fetchone()[0]
+    feeds = [f["name"] for f in load_config().get("feeds", [])]
+    print(json.dumps({
+        "unread": unread,
+        "feeds": feeds,
+        "items": [
+            {"id": r[0], "feed": r[1], "title": r[2], "summary": (r[3] or "")[:240],
+             "urgency": r[4], "url": r[5], "read": bool(r[6]), "ts": r[7]}
+            for r in rows
+        ],
+    }))
+    return 0
+
+
+def cmd_open(args) -> int:
+    conn = db()
+    row = conn.execute("SELECT entry_url FROM items WHERE id=?", (args.id,)).fetchone()
+    if row and row[0]:
+        subprocess.Popen(
+            ["xdg-open", row[0]],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    conn.execute("UPDATE items SET read=1 WHERE id=?", (args.id,))
+    conn.commit()
+    refresh_waybar()
+    return 0
+
+
 def cmd_mark_all_read(args) -> int:
     conn = db()
     conn.execute("UPDATE items SET read=1 WHERE read=0")
@@ -311,6 +351,12 @@ def main() -> int:
     pick = sub.add_parser("pick")
     pick.add_argument("--all", action="store_true", help="include already-read items")
     pick.set_defaults(func=cmd_pick)
+    pj = sub.add_parser("json")
+    pj.add_argument("--all", action="store_true")
+    pj.set_defaults(func=cmd_json)
+    po = sub.add_parser("open")
+    po.add_argument("id")
+    po.set_defaults(func=cmd_open)
     sub.add_parser("mark-all-read").set_defaults(func=cmd_mark_all_read)
     sub.add_parser("edit-config").set_defaults(func=cmd_edit_config)
     args = p.parse_args()

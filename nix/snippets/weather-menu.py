@@ -308,16 +308,89 @@ def cmd_pick(force: bool) -> int:
     return 0
 
 
+def to_model(cur: dict, forecast: dict) -> dict:
+    main = cur.get("main", {})
+    weather = (cur.get("weather") or [{}])[0]
+    wind = cur.get("wind", {})
+    sys_ = cur.get("sys", {})
+    tz_offset = forecast.get("city", {}).get("timezone", 0)
+
+    def local(ts: int) -> datetime:
+        return datetime.fromtimestamp(ts, tz=timezone.utc) + timedelta(seconds=tz_offset)
+
+    by_day: dict[str, list[dict]] = {}
+    for slot in forecast.get("list", []):
+        by_day.setdefault(local(slot["dt"]).strftime("%Y-%m-%d"), []).append(slot)
+    days = []
+    for index, slots in enumerate(by_day.values()):
+        tmin, tmax, dom_icon, pop = daily_summary(slots)
+        first = local(slots[0]["dt"])
+        days.append({
+            "label": "Today" if index == 0 else first.strftime("%a"),
+            "date": first.strftime("%d %b"),
+            "min": round(tmin),
+            "max": round(tmax),
+            "icon": dom_icon,
+            "pop": round(pop, 2),
+            "slots": [
+                {
+                    "time": local(sl["dt"]).strftime("%H:%M"),
+                    "temp": round(sl.get("main", {}).get("temp", 0)),
+                    "icon": (sl.get("weather") or [{}])[0].get("icon", ""),
+                    "desc": (sl.get("weather") or [{}])[0].get("description", "").capitalize(),
+                    "pop": round(sl.get("pop", 0) or 0, 2),
+                    "wind": round(sl.get("wind", {}).get("speed", 0), 1),
+                }
+                for sl in slots
+            ],
+        })
+    sunrise, sunset = sys_.get("sunrise"), sys_.get("sunset")
+    return {
+        "city": cur.get("name", ""),
+        "country": sys_.get("country", ""),
+        "desc": weather.get("description", "").capitalize(),
+        "icon": weather.get("icon", ""),
+        "temp": round(main.get("temp", 0)),
+        "feels": round(main.get("feels_like", 0)),
+        "humidity": main.get("humidity", 0),
+        "pressure": main.get("pressure", 0),
+        "wind": round(wind.get("speed", 0), 1),
+        "wind_dir": wind_dir(wind.get("deg", 0)),
+        "sunrise": local(sunrise).strftime("%H:%M") if sunrise else None,
+        "sunset": local(sunset).strftime("%H:%M") if sunset else None,
+        "updated": local(cur.get("dt", 0)).strftime("%H:%M") if cur.get("dt") else None,
+        "days": days,
+    }
+
+
+def cmd_json(force: bool) -> int:
+    key = read_key()
+    if not key:
+        print(json.dumps({"error": "API key missing"}))
+        return 0
+    cur = fetch_current(key, force)
+    fc = fetch_forecast(key, force)
+    if not cur or not fc:
+        print(json.dumps({"error": "fetch failed"}))
+        return 0
+    print(json.dumps(to_model(cur, fc)))
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd")
     p = sub.add_parser("pick", help="open weather forecast popup")
     p.add_argument("--refresh", action="store_true", help="bypass cache")
     sub.add_parser("refresh", help="prime cache")
+    pj = sub.add_parser("json", help="emit popup data as JSON")
+    pj.add_argument("--refresh", action="store_true", help="bypass cache")
     args = ap.parse_args()
 
     if args.cmd in (None, "pick"):
         return cmd_pick(force=bool(getattr(args, "refresh", False)))
+    if args.cmd == "json":
+        return cmd_json(force=args.refresh)
     if args.cmd == "refresh":
         key = read_key()
         if not key:

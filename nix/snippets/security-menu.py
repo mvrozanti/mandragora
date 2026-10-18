@@ -315,6 +315,42 @@ def cmd_pick(args) -> int:
         return 0
 
 
+def cmd_json(args) -> int:
+    data, mtime = load_report()
+    running = subprocess.run(
+        ["systemctl", "--user", "is-active", "--quiet", "cve-scan.service"],
+        check=False,
+    ).returncode == 0
+    if data is None:
+        print(json.dumps({"report": False, "running": running}))
+        return 0
+    buckets, suppressed = bucketize(data, include_noise=bool(args.show_suppressed))
+    counts = {}
+    for label in buckets:
+        counts[label.lower()] = len({(e.get("pname"), e.get("version")) for e, *_ in buckets[label]})
+    items = []
+    for label, *_ in SEVERITIES:
+        for entry, cve, score, desc in buckets[label]:
+            items.append({
+                "severity": label.lower(),
+                "score": round(score, 1) if score else None,
+                "pname": entry.get("pname", "?"),
+                "version": entry.get("version", ""),
+                "cve": cve,
+                "desc": ((desc or "").strip().splitlines() or [""])[0][:220],
+                "url": f"https://nvd.nist.gov/vuln/detail/{cve}" if cve else None,
+            })
+    print(json.dumps({
+        "report": True,
+        "running": running,
+        "scanned": datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M") if mtime else None,
+        "counts": counts,
+        "suppressed": suppressed,
+        "items": items,
+    }))
+    return 0
+
+
 def cmd_rescan(_args) -> int:
     trigger_rescan()
     return 0
@@ -332,6 +368,9 @@ def main() -> int:
         help="include name-collision false positives",
     )
     p_pick.set_defaults(func=cmd_pick)
+    p_json = sub.add_parser("json", help="emit popup data as JSON")
+    p_json.add_argument("--show-suppressed", action="store_true")
+    p_json.set_defaults(func=cmd_json)
     p_rescan = sub.add_parser("rescan", help="trigger cve-scan.service")
     p_rescan.set_defaults(func=cmd_rescan)
     args = parser.parse_args()
