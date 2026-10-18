@@ -194,20 +194,27 @@ wins, and nobody is told.
 
 So the `nixos-rebuild` on PATH, which is also the one sudo allows
 without a password, is a guard (`.local/bin/nixos-rebuild-guard.sh`,
-`nix/modules/core/rebuild-guard.nix`). For `switch`, `boot` and `test`
-it refuses unless:
+`nix/modules/core/rebuild-guard.nix`). It is an **allowlist**: the only
+commands it runs are `switch`, `boot`, `test`, `build` and `dry-build`
+of one local checkout of this repo, named by a single `--flake
+<checkout>#<host>`, with no other arguments. It also requires:
 
 - the flake is the root of a checkout of this repo, with no uncommitted
   tracked changes (a WIP commit is fine);
-- the running generation and the boot profile were each built from a
-  clean commit (their `git-revision` has no `-dirty`);
-- every commit in each of them is in the new build, by ancestry or by
-  patch identity (`git cherry`), so a rebase of the live commit passes.
+- for the activating three (`switch`/`boot`/`test`): the running
+  generation and the boot profile were each built from a clean commit
+  (their `git-revision` has no `-dirty`), and every commit in each of
+  them is in the new build, by ancestry or by patch identity (`git
+  cherry`), so a rebase of the live commit passes.
 
 It then builds that exact commit (`git+file://<tree>?rev=<sha>`), so an
-edit made during the build cannot slip in. `--rollback`, non-flake
-builds and remote flake refs are refused. Everything else passes through
-untouched.
+edit made during the build cannot slip in. Everything outside that set
+is refused: `repl`, `edit`, `dry-activate`, `--rollback`, a second
+`--flake` (including the `-F` alias), `--store-path`, `--impure`,
+`--option`, `--override-input`, `-I`, non-flake builds and remote flake
+refs. A blocklist had let several of those become a root shell; an
+allowlist is the only shape that fails safe against a flag it has never
+seen. A bare `--help`/`--version` passes through.
 
 The gate lives in the **running** system, not in the tree being built,
 so a stale worktree that predates the guard is still checked by it.

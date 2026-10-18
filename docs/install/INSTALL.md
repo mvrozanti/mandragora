@@ -89,7 +89,7 @@ Two pieces of state are not in the repo and **cannot be regenerated**:
 
 | Failure mode                              | Recovery                                                                           |
 | ----------------------------------------- | ---------------------------------------------------------------------------------- |
-| Bad config switched in, system still boots | `sudo nixos-rebuild switch --rollback` or boot menu → previous generation         |
+| Bad config switched in, system still boots | boot menu → previous generation (the passwordless `nixos-rebuild` guard refuses `--rollback`; `sudo /run/current-system/sw/bin/switch-to-configuration boot` after selecting a generation, or the real `nixos-rebuild` binary with the operator password) |
 | Bad config, boot fails                    | Hold **Space** at boot to open the systemd-boot menu; select a previous generation (up to 10 retained). Default boots instantly (`timeout 0`). |
 | Disk failure                              | Replace disk, reinstall via the steps above, restore age key from backup          |
 | Lost age key                              | Secrets are unrecoverable; rotate every secret manually, regenerate, re-encrypt   |
