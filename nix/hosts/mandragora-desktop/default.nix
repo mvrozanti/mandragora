@@ -17,6 +17,7 @@ in
     ../../modules/core/secrets.nix
     ../../modules/core/binance.nix
     ../../modules/core/sops-decrypt.nix
+    ../../modules/core/gen-prune.nix
     ../../modules/core/security.nix
     ../../modules/core/wifi.nix
     ../../modules/core/net-failover.nix
