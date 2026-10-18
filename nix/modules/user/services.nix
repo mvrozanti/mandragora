@@ -120,7 +120,7 @@
       Type = "oneshot";
       ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
       ExecStart = "${config.home.profileDirectory}/bin/wal-to-rgb";
-      RemainAfterExit = false;
+      RemainAfterExit = true;
     };
     Install = {
       WantedBy = [ "graphical-session.target" ];

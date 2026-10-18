@@ -73,10 +73,15 @@ FETCH_LOG=""
 MSG_PID=""
 MSG_FILE=""
 AUDIT_STAMP=""
+WSL_PID=""
+WSL_LOG=""
+PUBLISH_PID=""
+PUBLISH_LOG=""
 cleanup() {
   rm -f "${LOCKFILE}.pid"
   [ -n "$TMPFILE" ] && rm -f "$TMPFILE" "$SAVED_FLAG"
-  rm -f ${FETCH_LOG:+"$FETCH_LOG"} ${MSG_FILE:+"$MSG_FILE"} ${AUDIT_STAMP:+"$AUDIT_STAMP"}
+  [ -n "$WSL_PID" ] && kill "$WSL_PID" 2>/dev/null
+  rm -f ${FETCH_LOG:+"$FETCH_LOG"} ${MSG_FILE:+"$MSG_FILE"} ${AUDIT_STAMP:+"$AUDIT_STAMP"} ${WSL_LOG:+"$WSL_LOG"} ${PUBLISH_LOG:+"$PUBLISH_LOG"}
   if [ "$MODE" = main ] && [ -d "$WT" ]; then
     git -C "$FLAKE" worktree remove --force "$WT" 2>/dev/null || rm -rf "$WT"
     git -C "$FLAKE" worktree prune 2>/dev/null || true
@@ -423,26 +428,24 @@ if [ "$MODE" = worktree ] && [ "$INTERACTIVE" -eq 0 ] && [ "$COMMIT_SKIPPED" -eq
 fi
 
 echo ""
-EVAL_HOSTS=(mandragora-desktop mandragora-wsl)
 EVAL_REF="$WT"
 if [ -z "$(git -C "$WT" status --porcelain --untracked-files=no)" ]; then
   EVAL_REF="git+file://$WT?rev=$(git -C "$WT" rev-parse HEAD)"
 fi
-EVAL_ATTRS=()
-for host in "${EVAL_HOSTS[@]}"; do
-  EVAL_ATTRS+=("$EVAL_REF#nixosConfigurations.$host.config.system.build.toplevel")
-done
-echo "==> Pre-flight: evaluating ${EVAL_HOSTS[*]} in one pass (warms the eval cache the build reuses)..."
-if ! nix build --dry-run "${EVAL_ATTRS[@]}" 2>/tmp/nix-eval-preflight.log; then
-  echo "==> ABORTED: evaluation failed. Fix before pushing:" >&2
-  cat /tmp/nix-eval-preflight.log >&2
-  exit 1
+WSL_LOG=$(mktemp "$LOCKDIR/mandragora-switch-wsl.XXXXXX")
+nix build --dry-run "$EVAL_REF#nixosConfigurations.mandragora-wsl.config.system.build.toplevel" >"$WSL_LOG" 2>&1 &
+WSL_PID=$!
+echo "==> Pre-flight: mandragora-wsl evaluates in the background; a failure still blocks the push."
+
+if [ "$INTERACTIVE" -eq 0 ] && command -v mandragora-vault >/dev/null 2>&1; then
+  PUBLISH_LOG=$(mktemp "$LOCKDIR/mandragora-switch-publish.XXXXXX")
+  mandragora-vault publish >"$PUBLISH_LOG" 2>&1 &
+  PUBLISH_PID=$!
+  echo "==> Vault: reviewing unpublished notes for demo.mvr.ac in the background..."
 fi
-echo "==> [ok] ${EVAL_HOSTS[*]}"
-phase "pre-flight eval"
 
 echo ""
-echo "==> Building (capped in heavy.slice — a runaway build dies alone, not the session)..."
+echo "==> Building (the guard evaluates the desktop once, as $(id -un), then root activates; capped in heavy.slice)..."
 set +e
 if command -v cage >/dev/null 2>&1; then CAP=(cage); else CAP=(); fi
 "${CAP[@]}" sudo nixos-rebuild switch --flake "$WT#mandragora-desktop" 2>&1 | tee /tmp/nixos-rebuild.log | grep --line-buffered -E "^(error:|building|activating|warning:|Failed|systemctl|Done\.|nixos-rebuild guard)"
@@ -473,6 +476,15 @@ else
   echo "==> FAILED before activation completed (rc=$RC). Full log: /tmp/nixos-rebuild.log" >&2
   exit "$RC"
 fi
+
+if wait "$WSL_PID"; then
+  echo "==> [ok] mandragora-wsl evaluates"
+else
+  echo "==> ABORTED before promoting: mandragora-wsl failed to evaluate. The desktop already runs this commit; fix the WSL eval and re-run mandragora-switch, which folds the running commit in:" >&2
+  cat "$WSL_LOG" >&2
+  exit 1
+fi
+WSL_PID=""
 
 if [ "$COMMIT_SKIPPED" -eq 0 ]; then
   NEW_COMMIT=$(git -C "$WT" rev-parse HEAD)
@@ -542,9 +554,10 @@ if [ "$COMMIT_SKIPPED" -eq 0 ]; then
   done
 fi
 
-if [ "$INTERACTIVE" -eq 0 ] && command -v mandragora-vault >/dev/null 2>&1; then
-  echo "==> Vault: reviewing unpublished notes for demo.mvr.ac..."
-  mandragora-vault publish || echo "==> WARNING: vault publish did not complete (above); the system switch itself is fine." >&2
+if [ -n "$PUBLISH_PID" ]; then
+  echo "==> Vault publish (ran during the build):"
+  wait "$PUBLISH_PID" || echo "==> WARNING: vault publish did not complete (below); the system switch itself is fine." >&2
+  sed 's/^/    /' "$PUBLISH_LOG"
   phase "vault publish"
 fi
 
