@@ -35,7 +35,12 @@ def multisig_threshold():
         return int(os.environ.get("BTC_MULTISIG_M", "2"))
     except ValueError:
         return 2
-ESPLORA = "https://blockstream.info/api"
+ESPLORA_ENDPOINTS = [
+    "https://blockstream.info/api",
+    "https://mempool.space/api",
+]
+LOOKUP_TIMEOUT = 10
+RETRIES = 2
 COINGECKO = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,brl"
 BINANCE = "https://api.binance.com"
 MEMPOOL_PRICES = "https://mempool.space/api/v1/prices"
@@ -189,22 +194,26 @@ def http_json(url, timeout=25):
 
 
 def address_stats(address):
-    try:
-        data = http_json(f"{ESPLORA}/address/{address}")
-    except urllib.error.HTTPError as error:
-        if error.code == 404:
-            return {"confirmed": 0, "unconfirmed": 0, "used": False, "ok": True}
-        return {"ok": False}
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError):
-        return {"ok": False}
-    chain = data.get("chain_stats", {})
-    mempool = data.get("mempool_stats", {})
-    return {
-        "confirmed": chain.get("funded_txo_sum", 0) - chain.get("spent_txo_sum", 0),
-        "unconfirmed": mempool.get("funded_txo_sum", 0) - mempool.get("spent_txo_sum", 0),
-        "used": chain.get("tx_count", 0) > 0 or chain.get("funded_txo_count", 0) > 0,
-        "ok": True,
-    }
+    for attempt in range(RETRIES):
+        for base in ESPLORA_ENDPOINTS:
+            try:
+                data = http_json(f"{base}/address/{address}", timeout=LOOKUP_TIMEOUT)
+            except urllib.error.HTTPError as error:
+                if error.code == 404:
+                    return {"confirmed": 0, "unconfirmed": 0, "used": False, "ok": True}
+                continue
+            except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError):
+                continue
+            chain = data.get("chain_stats", {})
+            mempool = data.get("mempool_stats", {})
+            return {
+                "confirmed": chain.get("funded_txo_sum", 0) - chain.get("spent_txo_sum", 0),
+                "unconfirmed": mempool.get("funded_txo_sum", 0) - mempool.get("spent_txo_sum", 0),
+                "used": chain.get("tx_count", 0) > 0 or chain.get("funded_txo_count", 0) > 0,
+                "ok": True,
+            }
+        time.sleep(2 ** attempt)
+    return {"ok": False}
 
 
 def classify_key(xpub):
@@ -381,7 +390,7 @@ def fetch_all():
             any_valid = True
         accounts.append({"label": entry["label"], "sats": entry["balance"], "note": entry.get("note")})
     return {
-        "sats": total if any_valid else None,
+        "sats": total if (any_valid and not errors) else None,
         "usd": prices["usd"],
         "brl": prices["brl"],
         "accounts": accounts,
