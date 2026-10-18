@@ -65,7 +65,7 @@
     { "name": "ofin", "host": "ofin.mvr.ac", "group": "money", "desc": "pluggy · contas · cartões · investimentos", "access": "priv", "where": "vps" },
     { "name": "jade", "host": "jade.mvr.ac", "group": "money", "desc": "self-hosted jade pin oracle · replaces blkstrm.com/pn", "access": "open", "where": "vps" },
 
-    { "name": "cv", "host": "cv.mvr.ac", "group": "me", "desc": "marcelo rozanti · 6 versions · en/pt · pdf", "access": "open", "where": "vps" },
+    { "name": "cv", "host": "cv.mvr.ac", "group": "me", "desc": "marcelo rozanti · 4 versions · en/pt · pdf", "access": "open", "where": "vps" },
     { "name": "gpg", "host": "gpg.mvr.ac", "group": "me", "desc": "public pgp key · text/plain", "access": "open", "where": "vps" },
     { "name": "calendar", "host": "cal.mvr.ac", "group": "me", "desc": "caldav · davx⁵", "access": "priv", "where": "vps" },
     { "name": "shopping", "host": "food.mvr.ac", "group": "me", "desc": "cooking vault · mobile list", "access": "priv", "where": "vps" },
