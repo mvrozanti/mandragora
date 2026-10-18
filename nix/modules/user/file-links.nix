@@ -7,6 +7,7 @@
 
 {
   home.file.".XCompose".source = ../../../.XCompose;
+  home.file.".gradle/gradle.properties".source = ../../../.gradle/gradle.properties;
   home.file.".config/nvim" = {
     source = ../../../.config/nvim;
     recursive = true;
