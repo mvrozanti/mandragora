@@ -2,17 +2,15 @@ import Notifd from "gi://AstalNotifd"
 import GLib from "gi://GLib"
 import { createState } from "ags"
 
-export const notifd = Notifd.get_default()
-notifd.ignoreTimeout = true
+export let notifd: Notifd.Notifd
 
 const newestFirst = () => [...notifd.get_notifications()].sort((a, b) => b.time - a.time)
 
-const [list, setList] = createState<Notifd.Notification[]>(newestFirst())
-const [dnd, setDnd] = createState(notifd.dontDisturb)
+const [list, setList] = createState<Notifd.Notification[]>([])
+const [dnd, setDnd] = createState(false)
 export { list as notifications, dnd }
 
 const stateDir = `${GLib.get_user_runtime_dir()}/mandragora-shell`
-GLib.mkdir_with_parents(stateDir, 0o700)
 
 let pending = 0
 function publish() {
@@ -30,15 +28,22 @@ function publish() {
   })
 }
 
-notifd.connect("notify::notifications", () => {
+export function initNotifications() {
+  notifd = Notifd.get_default()
+  notifd.ignoreTimeout = true
+  GLib.mkdir_with_parents(stateDir, 0o700)
   setList(newestFirst())
-  publish()
-})
-notifd.connect("notify::dont-disturb", () => {
   setDnd(notifd.dontDisturb)
+  notifd.connect("notify::notifications", () => {
+    setList(newestFirst())
+    publish()
+  })
+  notifd.connect("notify::dont-disturb", () => {
+    setDnd(notifd.dontDisturb)
+    publish()
+  })
   publish()
-})
-publish()
+}
 
 export function clearAll() {
   for (const n of notifd.get_notifications()) n.dismiss()

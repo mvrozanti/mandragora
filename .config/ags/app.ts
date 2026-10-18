@@ -3,7 +3,7 @@ import style from "./style/main.css"
 import popupStyle from "./style/popups.css"
 import { applyTheme } from "./lib/theme"
 import { close, closeCurrent, names, open, toggle } from "./lib/popups"
-import { request as notificationRequest } from "./lib/notifications"
+import { initNotifications, request as notificationRequest } from "./lib/notifications"
 import Toasts from "./widget/Toasts"
 import BtcPopup from "./popup/Btc"
 import CalendarPopup from "./popup/Calendar"
@@ -37,6 +37,7 @@ app.start({
   instanceName: "mandragora-shell",
   main() {
     applyTheme(style + popupStyle)
+    initNotifications()
     for (const make of popups) make()
     Toasts()
   },
