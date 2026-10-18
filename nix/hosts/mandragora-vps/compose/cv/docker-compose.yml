@@ -23,7 +23,7 @@ services:
       caddy_0.encode: zstd gzip
       caddy_0.reverse_proxy: "{{upstreams 80}}"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
       interval: 30s
       timeout: 5s
       retries: 3
