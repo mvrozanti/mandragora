@@ -24,6 +24,7 @@ let
     "-assumevalid=0"
     "-server"
     "-dbcache=1000"
+    "-blocksonly=1"
     "-disablewallet"
   ];
   processorArgs = [
