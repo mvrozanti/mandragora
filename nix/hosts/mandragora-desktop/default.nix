@@ -77,6 +77,7 @@ in
     ../../modules/services/mympd.nix
     ../../modules/services/mpd-vis.nix
     ../../modules/services/chess-engine.nix
+    ../../modules/services/chess-lens.nix
     ../../modules/services/ticker.nix
     ../../modules/services/weather.nix
     ../../modules/services/filebrowser.nix
