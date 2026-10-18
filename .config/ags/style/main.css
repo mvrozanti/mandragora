@@ -1,0 +1,502 @@
+* {
+  all: unset;
+  font-family: "Rubik", "Noto Sans", sans-serif;
+  font-size: 13px;
+  color: @on_surface;
+  font-feature-settings: "tnum";
+}
+
+window.popup-window {
+  background: transparent;
+}
+
+.card {
+  background: alpha(@surface_container, 0.95);
+  border: 1px solid alpha(@outline_variant, 0.55);
+  border-radius: 28px;
+  padding: 16px;
+  box-shadow: 0 12px 36px alpha(@shadow, 0.5), 0 1px 0 alpha(@on_surface, 0.04) inset;
+}
+
+.icon {
+  font-family: "Material Symbols Rounded";
+  font-size: 20px;
+  font-weight: 400;
+  font-feature-settings: "liga";
+  font-variation-settings: "FILL" 0, "wght" 400, "opsz" 24;
+}
+
+.icon.filled {
+  font-variation-settings: "FILL" 1, "wght" 500, "opsz" 24;
+}
+
+.header {
+  margin-bottom: 14px;
+}
+
+.header-icon {
+  background: @primary_container;
+  border-radius: 14px;
+  min-width: 42px;
+  min-height: 42px;
+}
+
+.header-icon .icon {
+  color: @on_primary_container;
+  font-size: 22px;
+  font-variation-settings: "FILL" 1, "wght" 500, "opsz" 24;
+}
+
+.header-icon > label {
+  margin: 0 10px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: @on_surface_variant;
+  margin-top: 1px;
+}
+
+.icon-button {
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 999px;
+  transition: background 150ms ease, border-radius 200ms ease;
+}
+
+.icon-button .icon {
+  color: @on_surface_variant;
+  font-size: 20px;
+}
+
+.icon-button:hover {
+  background: alpha(@on_surface, 0.08);
+}
+
+.icon-button:hover .icon {
+  color: @on_surface;
+}
+
+.icon-button:active {
+  background: alpha(@on_surface, 0.14);
+}
+
+.icon-button.on {
+  background: @secondary_container;
+}
+
+.icon-button.on .icon {
+  color: @on_secondary_container;
+  font-variation-settings: "FILL" 1, "wght" 500, "opsz" 24;
+}
+
+.icon-button:disabled .icon {
+  color: alpha(@on_surface, 0.3);
+}
+
+.spinning .icon {
+  color: @primary;
+}
+
+.chip {
+  background: @surface_container_highest;
+  border-radius: 999px;
+  padding: 3px 10px;
+  min-height: 20px;
+}
+
+.chip label {
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.chip .icon {
+  font-size: 15px;
+  margin-left: -3px;
+}
+
+.chip.primary {
+  background: @primary;
+}
+
+.chip.primary label {
+  color: @on_primary;
+}
+
+.chip.tonal {
+  background: @secondary_container;
+}
+
+.chip.tonal label {
+  color: @on_secondary_container;
+}
+
+.chip.tertiary {
+  background: @tertiary_container;
+}
+
+.chip.tertiary label {
+  color: @on_tertiary_container;
+}
+
+.chip.error {
+  background: @error_container;
+}
+
+.chip.error label {
+  color: @on_error_container;
+}
+
+.chip.quiet {
+  background: transparent;
+  border: 1px solid @outline_variant;
+}
+
+.chip.quiet label {
+  color: @on_surface_variant;
+}
+
+.tile {
+  background: @surface_container_high;
+  border-radius: 20px;
+  padding: 14px 16px;
+}
+
+.tile.tight {
+  padding: 10px 12px;
+  border-radius: 16px;
+}
+
+.tile .figure {
+  font-size: 28px;
+  font-weight: 600;
+  color: @on_surface;
+}
+
+.tile .unit {
+  font-size: 13px;
+  font-weight: 500;
+  color: @on_surface_variant;
+  margin-left: 3px;
+  margin-bottom: 4px;
+}
+
+.caption {
+  font-size: 11.5px;
+  color: @on_surface_variant;
+}
+
+.caption.strong {
+  color: @on_surface;
+  font-weight: 500;
+}
+
+.muted {
+  color: @on_surface_variant;
+}
+
+.mono {
+  font-family: "Iosevka Nerd Font Mono", monospace;
+  font-size: 12px;
+}
+
+levelbar.meter,
+levelbar.meter block {
+  min-height: 8px;
+}
+
+levelbar.meter.thin,
+levelbar.meter.thin block {
+  min-height: 4px;
+}
+
+levelbar.meter trough {
+  background: @surface_container_highest;
+  border-radius: 999px;
+  min-height: 8px;
+}
+
+levelbar.meter block.filled {
+  background: @primary;
+  border-radius: 999px;
+}
+
+levelbar.meter block.empty {
+  background: transparent;
+}
+
+levelbar.meter.tertiary block.filled {
+  background: @tertiary;
+}
+
+levelbar.meter.secondary block.filled {
+  background: @secondary;
+}
+
+levelbar.meter.warn block.filled {
+  background: @error;
+}
+
+levelbar.meter.thin trough {
+  min-height: 4px;
+}
+
+.segmented {
+  background: @surface_container_high;
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.segment {
+  border-radius: 999px;
+  padding: 7px 12px;
+  transition: background 160ms ease;
+}
+
+.segment label {
+  font-weight: 500;
+  color: @on_surface_variant;
+}
+
+.segment .icon {
+  font-size: 18px;
+  color: @on_surface_variant;
+}
+
+.segment:hover {
+  background: alpha(@on_surface, 0.06);
+}
+
+.segment.active {
+  background: @secondary_container;
+}
+
+.segment.active label {
+  color: @on_secondary_container;
+}
+
+.segment.active .icon {
+  color: @on_secondary_container;
+  font-variation-settings: "FILL" 1, "wght" 500, "opsz" 24;
+}
+
+.section-label {
+  margin: 14px 6px 6px 6px;
+}
+
+.section-label > label {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  color: @on_surface_variant;
+}
+
+.row {
+  border-radius: 16px;
+  padding: 9px 12px;
+  min-height: 24px;
+  transition: background 120ms ease;
+}
+
+.row:hover,
+.row:focus-visible {
+  background: alpha(@on_surface, 0.07);
+}
+
+.row:active {
+  background: alpha(@on_surface, 0.12);
+}
+
+.row.current {
+  background: @secondary_container;
+}
+
+.row.current label {
+  color: @on_secondary_container;
+}
+
+.row.current .icon {
+  color: @on_secondary_container;
+}
+
+.row .icon {
+  color: @on_surface_variant;
+}
+
+.row .chip.primary label {
+  color: @on_primary;
+}
+
+.row .row-title {
+  font-weight: 500;
+}
+
+.row .row-detail {
+  font-size: 11.5px;
+  color: @on_surface_variant;
+}
+
+.row .trail {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.row:hover .trail,
+.row:focus-visible .trail {
+  opacity: 1;
+}
+
+.scroll {
+  margin: 0 -6px;
+}
+
+.scroll > viewport > * {
+  margin: 0 6px;
+}
+
+scrollbar {
+  background: transparent;
+  margin: 2px;
+}
+
+scrollbar slider {
+  background: alpha(@on_surface, 0.18);
+  border-radius: 999px;
+  min-width: 4px;
+}
+
+.button {
+  background: @surface_container_highest;
+  border-radius: 999px;
+  padding: 9px 16px;
+  transition: background 150ms ease;
+}
+
+.button label {
+  font-weight: 500;
+}
+
+.button .icon {
+  font-size: 18px;
+}
+
+.button:hover {
+  background: @surface_container_highest;
+}
+
+.button.filled {
+  background: @primary;
+}
+
+.button.filled label,
+.button.filled .icon {
+  color: @on_primary;
+}
+
+.button.filled:hover {
+  background: mix(@primary, @on_primary, 0.1);
+}
+
+.button.tonal {
+  background: @secondary_container;
+}
+
+.button.tonal label,
+.button.tonal .icon {
+  color: @on_secondary_container;
+}
+
+.empty-state {
+  padding: 28px 12px;
+}
+
+.empty-icon {
+  font-size: 40px;
+  color: @outline;
+}
+
+.empty-label {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.empty-detail {
+  color: @on_surface_variant;
+  font-size: 12px;
+}
+
+entry.search {
+  background: @surface_container_highest;
+  border-radius: 999px;
+  padding: 8px 14px;
+  min-height: 22px;
+  margin-bottom: 8px;
+}
+
+entry.search > text {
+  caret-color: @primary;
+}
+
+entry.search > text > placeholder {
+  color: @on_surface_variant;
+}
+
+entry.search > text > selection {
+  background: alpha(@primary, 0.35);
+}
+
+entry.search image {
+  color: @on_surface_variant;
+  margin-right: 8px;
+  -gtk-icon-size: 16px;
+}
+
+dropdown > button {
+  background: @surface_container_highest;
+  border-radius: 12px;
+  padding: 6px 10px;
+}
+
+dropdown > button:hover {
+  background: @surface_container_highest;
+}
+
+popover.menu > contents,
+dropdown popover > contents {
+  background: @surface_container_highest;
+  border-radius: 16px;
+  padding: 6px;
+  box-shadow: 0 8px 24px alpha(@shadow, 0.45);
+}
+
+dropdown popover listview row {
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+dropdown popover listview row:hover,
+dropdown popover listview row:selected {
+  background: alpha(@on_surface, 0.08);
+}
+
+tooltip {
+  background: @inverse_surface;
+  border-radius: 8px;
+  padding: 5px 9px;
+}
+
+tooltip label {
+  color: @inverse_on_surface;
+  font-size: 12px;
+}
+
+separator {
+  background: alpha(@outline_variant, 0.6);
+  min-height: 1px;
+  margin: 8px 4px;
+}

@@ -28,6 +28,11 @@
 
     pi.url = "github:earendil-works/pi/stable";
 
+    ags = {
+      url = "github:aylur/ags";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     claude-progressbar = {
       url = "github:mvrozanti/claude-progressbar";
       flake = false;
