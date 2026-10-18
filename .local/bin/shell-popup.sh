@@ -6,7 +6,7 @@ shift
 [[ "${1:-}" == "--" ]] && shift
 
 if systemctl --user is-active --quiet mandragora-shell.service \
-  && [[ "$(mandragora-shell toggle "$name" 2>/dev/null)" == ok ]]; then
+  && [[ "$(busctl --user call io.Astal.mandragora-shell /io/Astal/Application io.Astal.Application Request as 2 toggle "$name" 2>/dev/null)" == *'"ok"'* ]]; then
   exit 0
 fi
 
