@@ -63,19 +63,8 @@
             options = [ "NOPASSWD" ];
           }
           {
-            command = "/run/current-system/sw/bin/nix-env -p /nix/var/nix/profiles/system --delete-generations *";
-            options = [ "NOPASSWD" ];
-          }
-          {
             command = "/run/current-system/bin/switch-to-configuration boot";
             options = [ "NOPASSWD" ];
-          }
-          {
-            command = "/run/current-system/sw/bin/mandragora-sops-decrypt";
-            options = [
-              "NOPASSWD"
-              "NOSETENV"
-            ];
           }
         ];
       }

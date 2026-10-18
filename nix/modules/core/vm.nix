@@ -77,16 +77,4 @@ in
     virt-viewer
     vmUsbPrep
   ];
-
-  security.sudo.extraRules = [
-    {
-      users = [ "m" ];
-      commands = [
-        {
-          command = "/run/current-system/sw/bin/vm-usb-prep";
-          options = [ "NOPASSWD" ];
-        }
-      ];
-    }
-  ];
 }
