@@ -29,6 +29,11 @@ in
     owner = "m";
     mode = "0400";
   };
+  sops.secrets."bitcoin/lended_sats" = {
+    sopsFile = ../../../secrets/btc-lended.yaml;
+    owner = "m";
+    mode = "0400";
+  };
 
   services.bitcoind.main = {
     enable = true;
