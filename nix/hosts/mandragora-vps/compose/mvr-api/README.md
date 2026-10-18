@@ -7,6 +7,13 @@ Tiny FastAPI service that exposes the dynamic endpoints the static
 ## Endpoints
 
 - `GET /healthz` — liveness.
+- `GET /theme` — the desktop's matugen palette, proxied from
+  `host.docker.internal:6684/api/theme?colors=1` over the `tailnet-fwd`
+  bridge (`?colors=1` drops the wallpaper path). 5 s in-process cache;
+  `503` when the desktop is offline, which `theme.js` treats as "keep
+  the fallback tokens". This is how the GitHub-Pages apex `mvr.ac`
+  follows the wallpaper: it has no same-origin proxy, so its
+  `theme.js` points here cross-origin (CORS already allows the apex).
 - `GET /contributions` — GitHub contribution calendar for
   `$GITHUB_USER` (defaults to `mvrozanti`), returned as the
   `weeks[]` shape the front-end expects. In-process cache, TTL
@@ -21,9 +28,17 @@ Tiny FastAPI service that exposes the dynamic endpoints the static
 | `CACHE_TTL_SECONDS` | no | `3600` |
 | `ALLOWED_ORIGINS` | no | `https://mvr.ac,https://www.mvr.ac,https://mvrozanti.github.io` |
 | `MVR_AC` | no | `mvr.ac` (only used for the caddy vhost label) |
+| `THEME_UPSTREAM` | no | `http://host.docker.internal:6684/api/theme` |
+| `THEME_TTL_SECONDS` | no | `5` |
 
 `.env.example` is committed; the real `.env` lives at
 `/home/opc/mvr-api/.env` on the VPS, gitignored.
+
+## Deploy
+
+`deploy.sh` (deploy-guard) rsyncs the stack and runs
+`docker compose up -d --build`: the image is built from `app/`, so a
+plain `up -d` would keep serving the old code.
 
 ## Routing
 
