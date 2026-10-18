@@ -84,7 +84,6 @@ in
     ../../modules/services/im-gen-slice.nix
     ../../modules/services/im-gen-cipher.nix
     ../../modules/services/im-gen-web.nix
-    ../../modules/services/open-webui.nix
     ../../modules/services/ollama-context-proxy.nix
     ../../modules/services/gpu-status.nix
     ../../modules/services/status-snapshot.nix

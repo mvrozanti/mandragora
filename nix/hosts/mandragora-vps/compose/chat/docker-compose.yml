@@ -1,0 +1,43 @@
+services:
+
+  chat:
+    image: ${CHAT_IMAGE:-ghcr.io/open-webui/open-webui:v0.11.4}
+    container_name: chat
+    restart: unless-stopped
+    environment:
+      - OLLAMA_BASE_URL=${CHAT_OLLAMA_URL:-http://100.115.80.79:11435}
+      - WEBUI_URL=https://chat.${MVR_AC:-mvr.ac}
+      - WEBUI_AUTH=False
+      - ENABLE_SIGNUP=False
+      - ENABLE_PERSISTENT_CONFIG=False
+      - DEFAULT_MODELS=${CHAT_DEFAULT_MODEL:-gemma4:12b}
+      - SCARF_NO_ANALYTICS=True
+      - DO_NOT_TRACK=True
+      - ANONYMIZED_TELEMETRY=False
+    volumes:
+      - ${CHAT_DATA_VOLUME:-./data}:/app/backend/data
+    mem_limit: 2g
+    networks:
+      - seafile-net
+    labels:
+      caddy: https://chat.${MVR_AC:-mvr.ac}
+      caddy.0_forward_auth: "authelia:9091"
+      caddy.0_forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.1_reverse_proxy: "{{upstreams 8080}}"
+      caddy.1_reverse_proxy.flush_interval: "-1"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  seafile-net:
+    external: true

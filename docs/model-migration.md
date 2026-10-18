@@ -37,7 +37,8 @@ Roles, and who reads each:
   `gemma` or `meme` role. `mandragora.ai.uncensored.model`
   default in `nix/modules/core/ai-local.nix`; backs the MCP
   `ask_uncensored` tool via `.local/bin/local-ai-mcp-server.py`.
-- `gemma` — chat.mvr.ac default (`DEFAULT_MODELS`), oterm/gemma chat
+- `gemma` — chat.mvr.ac default (`CHAT_DEFAULT_MODEL` in
+  `nix/hosts/mandragora-vps/compose/chat/docker-compose.yml`), oterm/gemma chat
   and the MCP `ask_gemma` tool
   (`.local/bin/gemma.py`, `.local/bin/local-ai-mcp-server.py`).
 - `secondary` — crush secondary + the watch judge (both manual, see
@@ -104,12 +105,14 @@ repos. Listed for completeness:
 
 ## Wrap-up
 
-- **open-webui** talks to the context proxy on `:11435` and pins the
-  `gemma` role as its default via `DEFAULT_MODELS` in
-  `nix/modules/services/open-webui.nix`. That key is an open-webui
-  *PersistentConfig* variable, so the value in its database wins over
-  the environment once the instance has booted; the module therefore
-  also sets `ENABLE_PERSISTENT_CONFIG = "False"` so the Nix value is
+- **open-webui** runs on the VPS (`compose/chat/`) and talks to the
+  desktop's context proxy on `:11435` over the tailnet. It pins the
+  `gemma` role as its default via `DEFAULT_MODELS` in that compose
+  file, so a model migration edits the JSON snippet and the compose
+  default together. That key is an open-webui *PersistentConfig*
+  variable, so the value in its database wins over the environment
+  once the instance has booted; the compose therefore also sets
+  `ENABLE_PERSISTENT_CONFIG=False` so the committed value is
   authoritative on every start. Admin-panel edits will not survive a
   restart — that is the intended trade for declarative supremacy.
 - **Documentation** — re-check `AGENTS.md` and `docs/local-llm.md`.

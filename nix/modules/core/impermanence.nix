@@ -14,10 +14,6 @@
   ++ lib.optionals config.services.ollama.enable [
     "d /persistent/var/lib/private 0700 root root - -"
     "d /persistent/var/lib/private/ollama 0700 - - - -"
-  ]
-  ++ lib.optionals config.services.open-webui.enable [
-    "d /persistent/var/lib/private 0700 root root - -"
-    "d /persistent/var/lib/private/open-webui 0700 - - - -"
   ];
 
   environment.etc."machine-id".source = "/persistent/etc/machine-id";
@@ -50,7 +46,6 @@
         (
           config.services.ollama.enable
           || config.services.victoriametrics.enable
-          || config.services.open-webui.enable
           || config.services.alloy.enable
         )
         [
@@ -63,7 +58,6 @@
         ]
     ++ lib.optional config.services.ollama.enable "/var/lib/private/ollama"
     ++ lib.optional config.services.victoriametrics.enable "/var/lib/private/victoriametrics"
-    ++ lib.optional config.services.open-webui.enable "/var/lib/private/open-webui"
     ++ lib.optional config.services.alloy.enable "/var/lib/private/alloy"
     ++ lib.optional config.services.tailscale.enable {
       directory = "/var/lib/tailscale";
