@@ -14,16 +14,4 @@ let
 in
 {
   environment.systemPackages = [ sopsDecrypt ];
-
-  security.sudo.extraRules = [
-    {
-      users = [ "m" ];
-      commands = [
-        {
-          command = "/run/current-system/sw/bin/mandragora-sops-decrypt";
-          options = [ "NOPASSWD" ];
-        }
-      ];
-    }
-  ];
 }
