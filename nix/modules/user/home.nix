@@ -105,7 +105,7 @@ in
       postPatch = (oldAttrs.postPatch or "") + "cp ${../../pkgs/nsxiv/config.h} config.def.h";
     }))
     zathura
-    calibre
+    (calibre.override { speechSupport = false; })
     imagemagick
     ffmpeg
     ffmpegthumbnailer
