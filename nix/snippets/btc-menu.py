@@ -24,6 +24,7 @@ XPUB_FILES_ENV = "BTC_XPUB_FILES"
 XPUB_LABELS_ENV = "BTC_XPUB_LABELS"
 BINANCE_KEY_ENV = "BTC_BINANCE_KEY_FILE"
 BINANCE_SECRET_ENV = "BTC_BINANCE_SECRET_FILE"
+LENDED_ENV = "BTC_LENDED_FILE"
 
 GAP_LIMIT = 20
 STALE_AFTER = 20 * 60
@@ -299,6 +300,15 @@ def fetch_prices():
         return {"usd": None, "brl": None, "source": "none"}
 
 
+def read_lended():
+    path = os.environ.get(LENDED_ENV, "")
+    try:
+        sats = int(Path(path).read_text().strip()) if path else None
+    except (FileNotFoundError, OSError, ValueError):
+        sats = None
+    return {"label": "lended", "balance": sats, "error": None, "note": None if sats is not None else "unset"}
+
+
 def fetch_binance_balance():
     key_path = os.environ.get(BINANCE_KEY_ENV, "")
     secret_path = os.environ.get(BINANCE_SECRET_ENV, "")
@@ -356,6 +366,7 @@ def fetch_all():
         balances.append({"label": label, "balance": None, "error": "unrecognized key", "note": None})
 
     balances.append(fetch_binance_balance())
+    balances.append(read_lended())
 
     prices = fetch_prices()
     total = 0
@@ -439,6 +450,9 @@ def cmd_waybar(_args):
         f"<b>USD</b>  {format_fiat(sats, cache.get('usd'), '$')}",
         f"<b>BRL</b>  {format_fiat(sats, cache.get('brl'), 'R$')}",
     ]
+    lended = next((a["sats"] for a in cache.get("accounts", []) if a["label"] == "lended"), None)
+    if lended is not None:
+        tooltip.append(f"<b>Lended</b>  {format_btc(lended)}")
     cls = "fresh"
     if cache.get("error"):
         cls = "error"
