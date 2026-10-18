@@ -184,6 +184,42 @@ worktree default — the staging-leak failure mode above happens
 inside the single switch that wins the flock, where neither guard
 fires. Use a worktree.
 
+## Activation only moves forward
+
+A generation built from an unlanded tree is live but exists nowhere
+else. On 2026-10-17 two agents each activated their own worktree within
+minutes, and the second silently removed the first one's changes from
+the running desktop. Nothing in either tree was wrong. Last activation
+wins, and nobody is told.
+
+So the `nixos-rebuild` on PATH, which is also the one sudo allows
+without a password, is a guard (`.local/bin/nixos-rebuild-guard.sh`,
+`nix/modules/core/rebuild-guard.nix`). For `switch`, `boot` and `test`
+it refuses unless:
+
+- the flake is the root of a checkout of this repo, with no uncommitted
+  tracked changes (a WIP commit is fine);
+- the running generation and the boot profile were each built from a
+  clean commit (their `git-revision` has no `-dirty`);
+- every commit in each of them is in the new build, by ancestry or by
+  patch identity (`git cherry`), so a rebase of the live commit passes.
+
+It then builds that exact commit (`git+file://<tree>?rev=<sha>`), so an
+edit made during the build cannot slip in. `--rollback`, non-flake
+builds and remote flake refs are refused. Everything else passes through
+untouched.
+
+The gate lives in the **running** system, not in the tree being built,
+so a stale worktree that predates the guard is still checked by it.
+Overriding means calling the real binary, which the refusal names; sudo
+asks the operator's password for it, so an agent cannot override.
+
+When the guard refuses with "runs commits that … does not contain", the
+running system holds someone's unlanded work, and the refusal names the
+branch. That work must land, or you must rebase onto it, before anyone
+else can activate. That block is intended: it is the only alternative
+to losing the work silently.
+
 ## Worktree-honoring mode
 
 `mandragora-switch` detects whether the current directory is inside a
