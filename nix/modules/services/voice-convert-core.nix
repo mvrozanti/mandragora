@@ -64,6 +64,7 @@ in
 
   config = lib.mkIf cfg.enable {
     mandragora.hub.services.voice-convert-core = {
+      maxRuntime = "12h";
       port = 8098;
       userService = true;
       systemd = {
