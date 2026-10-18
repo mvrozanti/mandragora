@@ -7,7 +7,6 @@ MANIFEST="$HERE/env-manifest.json"
 SOPS_CONFIG="$REPO_ROOT/.sops.yaml"
 SECRETS_SUBDIR="secrets/vps"
 SECRETS_DIR="$REPO_ROOT/$SECRETS_SUBDIR"
-AGE_KEY="${AGE_KEY:-/persistent/secrets/keys.txt}"
 REMOTE="${REMOTE:-opc@mandragora-vps}"
 REMOTE_ROOT="${REMOTE_ROOT:-/home/opc}"
 
@@ -40,7 +39,6 @@ Options:
 Environment:
   REMOTE        ssh target          default opc@mandragora-vps
   REMOTE_ROOT   remote slot root    default /home/opc
-  AGE_KEY       sops age identity   default /persistent/secrets/keys.txt
 EOF
 }
 
@@ -75,8 +73,7 @@ fi
 field() { jq -r --arg n "$1" '.entries[] | select(.name==$n) | .'"$2"'  // empty' "$MANIFEST"; }
 
 decrypt_entry() {
-  sudo -n SOPS_AGE_KEY_FILE="$AGE_KEY" sops --config "$SOPS_CONFIG" decrypt \
-    --input-type yaml --output-type "$1" "$2"
+  sudo -n mandragora-sops-decrypt yaml "$1" "$2"
 }
 
 digest_pairs() {
