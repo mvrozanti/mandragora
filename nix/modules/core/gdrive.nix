@@ -75,15 +75,19 @@ in
 
       serviceConfig = {
         Type = "notify";
+        RuntimeDirectory = "rclone-gdrive";
         ExecStartPre = [
           "-${pkgs.fuse3}/bin/fusermount3 -uz ${cfg.mountPoint}"
           "${pkgs.coreutils}/bin/mkdir -p ${cfg.mountPoint}"
+          "${pkgs.coreutils}/bin/install -m 0600 ${
+            config.sops.secrets."gdrive/rclone_conf".path
+          } /run/rclone-gdrive/rclone.conf"
         ];
         ExecStart = lib.concatStringsSep " " (
           [
             "${pkgs.rclone}/bin/rclone mount"
             "${cfg.remote}: ${cfg.mountPoint}"
-            "--config=${config.sops.secrets."gdrive/rclone_conf".path}"
+            "--config=/run/rclone-gdrive/rclone.conf"
             "--allow-other"
             "--uid=${toString cfg.uid}"
             "--gid=${toString cfg.gid}"
