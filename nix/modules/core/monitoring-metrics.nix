@@ -159,6 +159,7 @@ in
       CPUSchedulingPolicy = "idle";
       IOSchedulingClass = "idle";
       Type = "oneshot";
+      MemoryMax = "1G";
       User = "root";
       UMask = "0022";
       ExecStart = "${pkgs.du-exporter}/bin/du-exporter";
@@ -168,8 +169,8 @@ in
   systemd.timers.du-exporter = {
     wantedBy = [ "timers.target" ];
     timerConfig = {
-      OnUnitActiveSec = "2min";
-      OnBootSec = "2min";
+      OnUnitActiveSec = "1h";
+      OnBootSec = "10min";
       Persistent = true;
     };
   };
