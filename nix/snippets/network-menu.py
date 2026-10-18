@@ -287,10 +287,53 @@ def pick():
         return 0
 
 
+def emit_json():
+    nets = wifi_networks()
+    state = read_run("state")
+    is_online = online()
+    print(json.dumps({
+        "mode": read_run("mode", "auto"),
+        "state": state,
+        "online": is_online,
+        "iface": default_iface(),
+        "networks": [
+            {k: n[k] for k in ("ssid", "security", "connected", "bars")}
+            for n in nets
+        ],
+    }))
+    return 0
+
+
+def connect_ssid(ssid):
+    for n in wifi_networks():
+        if n["ssid"] == ssid:
+            do_connect(n)
+            return 0
+    notify(f"{ssid} is no longer in range")
+    return 1
+
+
 def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else "pick"
+    arg = sys.argv[2] if len(sys.argv) > 2 else None
     if cmd == "waybar":
         return waybar()
+    if cmd == "json":
+        return emit_json()
+    if cmd == "prefer" and arg in ("lan", "wifi", "auto"):
+        prefer(arg)
+        return 0
+    if cmd == "connect" and arg:
+        return connect_ssid(arg)
+    if cmd == "rescan":
+        station_call("Scan")
+        return 0
+    if cmd == "disconnect":
+        station_call("Disconnect")
+        return 0
+    if cmd == "manager":
+        open_manager()
+        return 0
     return pick()
 
 
