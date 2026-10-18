@@ -9,7 +9,7 @@ in
   mandragora.hub.services.chess-lens-backend = {
     port = 8080;
     userService = true;
-    memoryMax = "3G";
+    memoryMax = "4G";
     maxRuntime = "6h";
     systemd = {
       description = "Chess Lens backend for chess.mvr.ac: JVM API behind the VPS proxy, heap capped so an idle server shrinks instead of growing to a quarter of RAM";
