@@ -116,10 +116,11 @@ owner_home=$(getent passwd "$owner" | cut -d: -f6)
 gcroot=$(as_owner mktemp -d -t nixos-rebuild-guard.XXXXXX)
 trap 'rm -rf "$gcroot"' EXIT
 
+build_started=$(date +%s)
 toplevel=$(as_owner env -u XDG_CACHE_HOME -u XDG_CONFIG_HOME -u XDG_DATA_HOME -u XDG_STATE_HOME HOME="$owner_home" \
   nix build --out-link "$gcroot/result" --print-out-paths \
   "$pinned#nixosConfigurations.\"$config\".config.system.build.toplevel")
-printf 'nixos-rebuild guard: built %s as %s; activating it as root\n' "$toplevel" "$owner" >&2
+printf 'nixos-rebuild guard: built %s as %s in %ss; activating it as root\n' "$toplevel" "$owner" "$(( $(date +%s) - build_started ))" >&2
 
 rc=0
 "$real" "$action" --no-reexec --store-path "$toplevel" || rc=$?
