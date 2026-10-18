@@ -134,6 +134,8 @@ in
     dates = "weekly";
     options = "--delete-older-than 7d";
   };
+  nix.settings.min-free = 50 * 1024 * 1024 * 1024;
+  nix.settings.max-free = 100 * 1024 * 1024 * 1024;
   boot.loader.systemd-boot.configurationLimit = 10;
 
   system.stateVersion = "24.05";
