@@ -3,10 +3,14 @@ os = require("os")
 
 buffer = RenderTarget:new()
 
+count_file = (os.getenv("XDG_RUNTIME_DIR") or "/run/user/1000") .. "/mandragora-shell/notification-count"
+
 function get_notification()
-    cmd = "swaync-client -c"
-    handle = assert(io.popen(cmd, 'r'))
-    notification = handle:read("*line")
+    handle = io.open(count_file, 'r')
+    if handle == nil then
+        return ""
+    end
+    notification = handle:read("*line") or ""
     handle:close()
     return notification
 end

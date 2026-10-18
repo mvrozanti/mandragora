@@ -325,10 +325,11 @@
         "custom/notif-menu" = {
           exec = "~/.config/waybar/scripts/notif-status.sh";
           return-type = "json";
+          interval = 30;
+          signal = 16;
           tooltip = true;
-          tooltip-format = "Notification history — left-click to browse, right-click to toggle DND";
-          on-click = "swaync-client -t -sw";
-          on-click-right = "swaync-client -d -sw";
+          on-click = "shell-popup notifications";
+          on-click-right = "shell-notif dnd toggle";
         };
 
         "custom/monitor" = {

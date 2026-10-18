@@ -1,19 +1,23 @@
 #!/usr/bin/env bash
+state="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/mandragora-shell/notifications.json"
 bell=$''
 bell_slash=$''
 
-emit() {
-  if swaync-client -D -sw 2>/dev/null | grep -q true; then
-    printf '{"text": "%s", "class": "dnd"}\n' "$bell_slash"
-  else
-    printf '{"text": "%s", "class": "active"}\n' "$bell"
-  fi
-}
+count=0
+dnd=false
+if [[ -r "$state" ]]; then
+  count=$(jq -r '.count // 0' "$state" 2>/dev/null || echo 0)
+  dnd=$(jq -r '.dnd // false' "$state" 2>/dev/null || echo false)
+fi
 
-while true; do
-  emit
-  stdbuf -oL swaync-client -swb -sw | while IFS= read -r _; do
-    emit
-  done
-  sleep 2
-done
+case $count in
+  0) summary="No notifications" ;;
+  1) summary="1 notification" ;;
+  *) summary="$count notifications" ;;
+esac
+
+if [[ "$dnd" == true ]]; then
+  printf '{"text": "%s", "class": "dnd", "tooltip": "%s · Do not disturb is on\\nclick to open · right-click to turn it off"}\n' "$bell_slash" "$summary"
+else
+  printf '{"text": "%s", "class": "active", "tooltip": "%s\\nclick to open · right-click for Do not disturb"}\n' "$bell" "$summary"
+fi

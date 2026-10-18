@@ -130,7 +130,7 @@ itself occupies at least `GPU_LOCK_FOREIGN_VRAM_MIB` (default `1000`) of VRAM
 synthetic `{"name": "<proc> (unmanaged)", ...}` holder, and the job defers
 exactly as if a cooperative holder were present.
 
-The always-on desktop stack (Hyprland, Firefox, kitty, swaync, Xwayland, idle
+The always-on desktop stack (Hyprland, Firefox, kitty, the AGS shell, Xwayland, idle
 bots) sits well under 1 GiB, so only a real foreground app — a game, a manual
 CUDA session — trips it. Set `GPU_LOCK_FOREIGN_VRAM_MIB=0` to disable the check,
 or raise it if a legitimate background process is misclassified. This is

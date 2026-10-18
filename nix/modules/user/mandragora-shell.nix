@@ -17,6 +17,7 @@ let
     buildInputs = [
       astal.io
       astal.astal4
+      astal.notifd
       pkgs.gjs
       pkgs.glib
       pkgs.gdk-pixbuf
@@ -27,6 +28,8 @@ let
       runHook preInstall
       mkdir -p $out/bin
       ags bundle app.ts $out/bin/mandragora-shell
+      install -Dm644 ${../../snippets/mandragora-shell-notifications.service} \
+        $out/share/dbus-1/services/org.freedesktop.Notifications.service
       runHook postInstall
     '';
   };
@@ -34,11 +37,16 @@ let
   shell-popup = pkgs.writeShellScriptBin "shell-popup" (
     builtins.readFile ../../../.local/bin/shell-popup.sh
   );
+
+  shell-notif = pkgs.writeShellScriptBin "shell-notif" (
+    builtins.readFile ../../../.local/bin/shell-notif.sh
+  );
 in
 {
   home.packages = [
     mandragora-shell
     shell-popup
+    shell-notif
   ];
 
   systemd.user.services.mandragora-shell = {
@@ -49,7 +57,7 @@ in
     };
     Service = {
       ExecStart = "${mandragora-shell}/bin/mandragora-shell";
-      Restart = "on-failure";
+      Restart = "always";
       RestartSec = "2";
     };
     Install.WantedBy = [ "graphical-session.target" ];
