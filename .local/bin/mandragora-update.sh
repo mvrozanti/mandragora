@@ -54,6 +54,7 @@ if [ "$(id -u)" -eq 0 ]; then
   SUDO=""
   export GIT_AUTHOR_NAME="mvrozanti" GIT_AUTHOR_EMAIL="mvrozanti@gmail.com"
   export GIT_COMMITTER_NAME="mvrozanti" GIT_COMMITTER_EMAIL="mvrozanti@gmail.com"
+  export GIT_CONFIG_PARAMETERS="'core.hooksPath=/var/empty' 'core.fsmonitor=false' 'core.pager=cat' 'core.sshCommand=ssh' 'protocol.ext.allow=never' 'uploadpack.packObjectsHook='"
   git config --global --get-all safe.directory 2>/dev/null | grep -qxF "$FLAKE" || \
     git config --global --add safe.directory "$FLAKE"
 else
