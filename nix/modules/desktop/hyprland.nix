@@ -109,6 +109,8 @@ in
     nerd-fonts.droid-sans-mono
     weather-icons
     material-icons
+    material-symbols
+    rubik
     nerd-fonts.iosevka
     font-awesome
     noto-fonts

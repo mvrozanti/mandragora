@@ -8,10 +8,11 @@ case "${1:-toggle}" in
     if is_recording; then
       exec screencap stop
     fi
-    exec rofi-capture-menu
+    exec shell-popup capture -- rofi-capture-menu
     ;;
   close)
     pkill -x rofi 2>/dev/null || true
+    mandragora-shell close 2>/dev/null || true
     ;;
   shot-region|shot-full|shot-window|vid-none-region|vid-none-full|vid-none-window|vid-mic-region|vid-mic-full|vid-mic-window|vid-sys-region|vid-sys-full|vid-sys-window)
     exec screencap "$1"

@@ -46,6 +46,7 @@ in
     ./weather-menu.nix
     ./monitor-menu.nix
     ./network-menu.nix
+    ./mandragora-shell.nix
     ./monitor-audio.nix
     ./minecraft.nix
     ./axon.nix
