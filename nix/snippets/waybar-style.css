@@ -189,6 +189,7 @@ tooltip {
 
 #custom-disk-io {
     padding: 0 8px;
+    min-width: 100px;
     border-bottom: 2px solid @color6;
 }
 
