@@ -10,22 +10,17 @@ let
     mapAttrsToList
     unique
     recursiveUpdate
+    optionalAttrs
     ;
   cfg = config.mandragora.hub.services;
   enabled = filterAttrs (_: s: s.enable) cfg;
   systemSvcs = filterAttrs (_: s: !s.userService) enabled;
   userSvcs = filterAttrs (_: s: s.userService) enabled;
-  defaultsFor =
-    svc:
-    (if svc.memoryMax == null then { } else { serviceConfig.MemoryMax = svc.memoryMax; })
-    // (
-      if svc.maxRuntime == null then
-        { }
-      else
-        {
-          serviceConfig.RuntimeMaxSec = svc.maxRuntime;
-        }
-    );
+  defaultsFor = svc: {
+    serviceConfig =
+      optionalAttrs (svc.memoryMax != null) { MemoryMax = svc.memoryMax; }
+      // optionalAttrs (svc.maxRuntime != null) { RuntimeMaxSec = svc.maxRuntime; };
+  };
   withDefaults = svc: recursiveUpdate (defaultsFor svc) svc.systemd;
 in
 {
