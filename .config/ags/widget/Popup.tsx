@@ -44,7 +44,7 @@ export default function Popup(props: Props) {
       keymode={Astal.Keymode.EXCLUSIVE}
       anchor={TOP | BOTTOM | LEFT | RIGHT}
       $={(win) => {
-        const keys = new Gtk.EventControllerKey()
+        const keys = new Gtk.EventControllerKey({ propagationPhase: Gtk.PropagationPhase.CAPTURE })
         keys.connect("key-pressed", (_c, keyval) => {
           if (keyval === Gdk.KEY_Escape) {
             close(props.name)
@@ -68,7 +68,7 @@ export default function Popup(props: Props) {
       <box
         $={(self) => {
           root = self
-          const click = new Gtk.GestureClick()
+          const click = new Gtk.GestureClick({ button: 0 })
           click.connect("pressed", (_g, _n, x, y) => {
             if (outside(x, y)) close(props.name)
           })
