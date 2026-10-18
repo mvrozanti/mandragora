@@ -27,6 +27,7 @@ claude_running_tool() {
 }
 
 declare -A ticks
+idle_rounds=0
 
 while :; do
   tmux set -g @spin_glyph "$(claude-spin)" 2>/dev/null
@@ -35,21 +36,24 @@ while :; do
   active=0
   while IFS=' ' read -r wid pane state; do
     [ "$state" = run ] || continue
+    active=1
     cpid=$(pane_claude_pid "$pane")
     if [ -n "$cpid" ] && claude_running_tool "$cpid"; then
       ticks[$wid]=0
-      active=1
       continue
     fi
     ticks[$wid]=$(( ${ticks[$wid]:-0} + 1 ))
     if [ "${ticks[$wid]}" -ge 5 ]; then
       tmux set-option -w -t "$wid" @claude_state idle 2>/dev/null
       unset "ticks[$wid]"
-    else
-      active=1
     fi
   done < <(tmux list-windows -a -F '#{window_id} #{pane_pid} #{@claude_state}' 2>/dev/null)
 
-  [ "$active" -eq 0 ] && exit 0
+  if [ "$active" -eq 0 ]; then
+    idle_rounds=$((idle_rounds + 1))
+    [ "$idle_rounds" -ge 5 ] && exit 0
+  else
+    idle_rounds=0
+  fi
   sleep 0.1
 done
