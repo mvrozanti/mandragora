@@ -34,6 +34,15 @@ function primary(d: Data): [string, string] {
   return [`₿ ${btc(d.sats)}`, "bitcoin"]
 }
 
+const amount = (sats: number | null, unit: Unit, d: Data) =>
+  sats == null
+    ? "—"
+    : unit === "usd"
+      ? money(sats, d.usd, "$")
+      : unit === "brl"
+        ? money(sats, d.brl, "R$")
+        : `${btc(sats)} BTC`
+
 export default function BtcPopup() {
   const [data, setData] = createState<Data>({
     sats: null,
@@ -47,11 +56,15 @@ export default function BtcPopup() {
   const [hidden, setHidden] = createState(false)
 
   const load = () => json<Data>(["btc-menu", "json"]).then(setData).catch(console.error)
+  let refreshing = false
   const refresh = async () => {
+    if (refreshing) return
+    refreshing = true
     setBusy(true)
     await quiet(["btc-menu", "refresh"])
     await load()
     setBusy(false)
+    refreshing = false
   }
   const setUnit = async (unit: Unit) => {
     setData({ ...data.peek(), unit })
@@ -90,7 +103,10 @@ export default function BtcPopup() {
           onClicked={refresh}
         />,
       ]}
-      onOpen={load}
+      onOpen={() => {
+        load()
+        refresh()
+      }}
     >
       <box class="btc-hero" orientation={Gtk.Orientation.VERTICAL} spacing={2}>
         <label class="caption" xalign={0} label={data((d) => `Total in ${primary(d)[1]}`)} />
@@ -129,7 +145,7 @@ export default function BtcPopup() {
                   <label class="row-title" xalign={0} hexpand label={a.label} />
                   <label
                     class="row-title mono"
-                    label={data((d) => mask(a.sats == null ? a.note ?? "—" : `${btc(a.sats)} BTC`))}
+                    label={data((d) => mask(a.sats == null ? a.note ?? "—" : amount(a.sats, d.unit, d)))}
                   />
                 </box>
                 <Meter
