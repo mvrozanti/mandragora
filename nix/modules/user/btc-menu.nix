@@ -14,6 +14,8 @@ let
         osConfig.sops.secrets."bitcoin/electrum_xpub3".path
       }"
       export BTC_XPUB_LABELS="jade:electrum1:electrum2:electrum3"
+      export BTC_BINANCE_KEY_FILE="${osConfig.sops.secrets."binance/api_key".path}"
+      export BTC_BINANCE_SECRET_FILE="${osConfig.sops.secrets."binance/secret_key".path}"
       exec ${pkgs.python3}/bin/python3 ${../../snippets/btc-menu.py} "$@"
     '';
   };

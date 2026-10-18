@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import concurrent.futures
+from decimal import Decimal
 import hashlib
 import hmac
 import html
@@ -21,6 +22,8 @@ BECH32 = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 
 XPUB_FILES_ENV = "BTC_XPUB_FILES"
 XPUB_LABELS_ENV = "BTC_XPUB_LABELS"
+BINANCE_KEY_ENV = "BTC_BINANCE_KEY_FILE"
+BINANCE_SECRET_ENV = "BTC_BINANCE_SECRET_FILE"
 
 GAP_LIMIT = 20
 STALE_AFTER = 20 * 60
@@ -33,6 +36,7 @@ def multisig_threshold():
         return 2
 ESPLORA = "https://blockstream.info/api"
 COINGECKO = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,brl"
+BINANCE = "https://api.binance.com"
 MEMPOOL_PRICES = "https://mempool.space/api/v1/prices"
 CACHE_DIR = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state"))) / "btc-menu"
 CACHE_FILE = CACHE_DIR / "cache.json"
@@ -295,6 +299,37 @@ def fetch_prices():
         return {"usd": None, "brl": None, "source": "none"}
 
 
+def fetch_binance_balance():
+    key_path = os.environ.get(BINANCE_KEY_ENV, "")
+    secret_path = os.environ.get(BINANCE_SECRET_ENV, "")
+    if not key_path or not secret_path:
+        return {"label": "binance", "balance": None, "error": None, "note": "no API key"}
+    try:
+        key = Path(key_path).read_text().strip()
+        secret = Path(secret_path).read_text().strip()
+    except (FileNotFoundError, OSError):
+        return {"label": "binance", "balance": None, "error": None, "note": "no API key"}
+    if not key or not secret:
+        return {"label": "binance", "balance": None, "error": None, "note": "no API key"}
+    query = f"recvWindow=5000&timestamp={int(time.time() * 1000)}"
+    signature = hmac.new(secret.encode(), query.encode(), hashlib.sha256).hexdigest()
+    request = urllib.request.Request(
+        f"{BINANCE}/api/v3/account?{query}&signature={signature}",
+        headers={"User-Agent": "mandragora-btc-menu", "X-MBX-APIKEY": key},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError) as error:
+        return {"label": "binance", "balance": None, "error": f"binance: {error}"}
+    sats = 0
+    for row in data.get("balances", []):
+        if row.get("asset") == "BTC":
+            amount = Decimal(str(row.get("free", "0"))) + Decimal(str(row.get("locked", "0")))
+            sats += int(amount * Decimal("100000000"))
+    return {"label": "binance", "balance": sats, "error": None}
+
+
 def fetch_all():
     xpubs = read_xpubs()
     singles = [(label, xpub) for label, xpub in xpubs if classify_key(xpub) == "zpub"]
@@ -319,6 +354,8 @@ def fetch_all():
 
     for label, _ in unrecognized:
         balances.append({"label": label, "balance": None, "error": "unrecognized key", "note": None})
+
+    balances.append(fetch_binance_balance())
 
     prices = fetch_prices()
     total = 0
