@@ -278,6 +278,9 @@ in
     (pkgs.writeShellScriptBin "claude-deepseek" (
       builtins.readFile ../../../.local/bin/claude-deepseek.sh
     ))
+    (pkgs.writeShellScriptBin "claude-backend-sync" (
+      builtins.readFile ../../../.local/bin/claude-backend-sync.sh
+    ))
     (pkgs.writeShellScriptBin "mandragora-commit-push" (
       builtins.readFile ../../../.local/bin/mandragora-commit-push.sh
     ))
