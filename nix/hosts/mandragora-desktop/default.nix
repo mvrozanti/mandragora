@@ -38,6 +38,7 @@ in
     ../../modules/desktop/keyledsd.nix
     ../../modules/desktop/keystats.nix
     ../../modules/core/chrome-shim.nix
+    ../../modules/core/rebuild-guard.nix
     ../../modules/desktop/ydotool.nix
     ../../modules/desktop/espanso.nix
     ../../modules/desktop/openrgb.nix

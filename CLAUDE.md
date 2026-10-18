@@ -6,7 +6,7 @@
 
 ## Claude-Specific Workflow
 
-Claude Code runs `sudo nixos-rebuild switch --flake /etc/nixos/mandragora#mandragora-desktop` directly via Bash when iterating without committing. Use `mandragora-switch` for the full commit+build+push cycle. Claude does not need the approval of the user to run switch.
+Claude Code may run `sudo nixos-rebuild switch --flake <worktree>#mandragora-desktop` directly to iterate before landing, but only from a clean commit (a WIP commit in the worktree is fine) that descends from what is running: the `nixos-rebuild` on PATH is a guard that refuses anything else (see `docs/worktrees.md`, "Activation only moves forward"). Use `mandragora-switch` for the full commit+build+push cycle. Claude does not need the approval of the user to run switch.
 
 ---
 
