@@ -45,15 +45,16 @@ via `nix/modules/user/home.nix`) does, in order:
 4. Commit, then rebase the worktree onto master (or origin/master) so
    the build includes everything already landed.
 5. Vault verdict gate (agent commits).
-6. Pre-flight: evaluate `mandragora-desktop` and `mandragora-wsl` in
-   one `nix` process from the pinned commit. Either failing aborts
-   before anything is built or pushed; a pass leaves the eval cache
-   warm for the build.
-7. `sudo nixos-rebuild switch` through the guard, which builds as the
-   owner from that warm cache and activates the built path as root.
-8. Promote to master, `git push` (fetch and rebase only if rejected).
-9. Vault publish (agent runs), deploy changed served stacks, coalesce
-   and prune generations, background GC.
+6. Start two background jobs: the `mandragora-wsl` evaluation from
+   the pinned commit, and (agent runs) the vault publish.
+7. `sudo nixos-rebuild switch` through the guard, which evaluates and
+   builds the desktop once as the owner and activates the built path as
+   root. An evaluation error fails here, before anything is activated.
+8. Join the WSL evaluation: a failure aborts before promote and push,
+   with the desktop already on the new commit.
+9. Promote to master, `git push` (fetch and rebase only if rejected),
+   join the vault publish and print its report, deploy changed served
+   stacks, coalesce and prune generations, background GC.
 
 Aliases (in `nix/modules/user/zsh.nix`):
 
