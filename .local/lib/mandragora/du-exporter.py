@@ -1,7 +1,6 @@
 import os
 import sys
 import tempfile
-from collections import defaultdict
 
 ROOT = "/home/m"
 OUTDIR = "/var/lib/prometheus-node-exporter-textfiles"
@@ -39,8 +38,10 @@ def scan(path, depth, sizes, inodes, seen):
         total_bytes += b
         total_inodes += n
     if depth <= MAX_DEPTH:
-        sizes[path] = total_bytes
-        inodes[path] = total_inodes
+        if total_bytes >= SIZE_THRESHOLD:
+            sizes[path] = total_bytes
+        if total_inodes >= INODE_THRESHOLD:
+            inodes[path] = total_inodes
     return total_bytes, total_inodes
 
 
@@ -50,28 +51,25 @@ def label(path):
     return "~" + path[len(ROOT):]
 
 
-def emit(out, name, help_text, values, threshold):
+def emit(out, name, help_text, values):
     out.write(f"# HELP {name} {help_text}\n")
     out.write(f"# TYPE {name} gauge\n")
     for path, value in values.items():
-        if value >= threshold:
-            out.write(f'{name}{{path="{label(path)}"}} {value}\n')
+        out.write(f'{name}{{path="{label(path)}"}} {value}\n')
 
 
 def main():
     sys.setrecursionlimit(20000)
-    sizes = defaultdict(int)
-    inodes = defaultdict(int)
+    sizes = {}
+    inodes = {}
     scan(ROOT, 0, sizes, inodes, set())
     fd, tmp = tempfile.mkstemp(prefix=".dirsize.prom.", dir=OUTDIR)
     try:
         with os.fdopen(fd, "w") as out:
             emit(out, "dirsize_bytes",
-                 "Disk usage of directory in bytes", sizes,
-                 SIZE_THRESHOLD)
+                 "Disk usage of directory in bytes", sizes)
             emit(out, "dir_inode_count",
-                 "Number of inodes (files/dirs) in directory", inodes,
-                 INODE_THRESHOLD)
+                 "Number of inodes (files/dirs) in directory", inodes)
         os.chmod(tmp, 0o644)
         os.replace(tmp, os.path.join(OUTDIR, "dirsize.prom"))
     except BaseException:
