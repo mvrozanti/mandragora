@@ -69,10 +69,11 @@ in
     script = builtins.readFile ../../../.local/lib/mandragora/libvirt-default-net.sh;
   };
 
+  environment.etc."virtio-win".source = pkgs.virtio-win;
+
   environment.systemPackages = with pkgs; [
     quickemu
     quickgui
-    virtio-win
     spice-gtk
     virt-viewer
     vmUsbPrep
