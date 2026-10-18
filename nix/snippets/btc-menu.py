@@ -27,6 +27,7 @@ BINANCE_SECRET_ENV = "BTC_BINANCE_SECRET_FILE"
 
 GAP_LIMIT = 20
 STALE_AFTER = 20 * 60
+LENT_SATS = 3_000_000
 
 
 def multisig_threshold():
@@ -369,6 +370,7 @@ def fetch_all():
             total += entry["balance"]
             any_valid = True
         accounts.append({"label": entry["label"], "sats": entry["balance"], "note": entry.get("note")})
+    accounts.append({"label": "lended", "sats": LENT_SATS, "note": None})
     return {
         "sats": total if any_valid else None,
         "usd": prices["usd"],
@@ -438,6 +440,7 @@ def cmd_waybar(_args):
         f"<b>BTC</b>  {format_btc(sats)}",
         f"<b>USD</b>  {format_fiat(sats, cache.get('usd'), '$')}",
         f"<b>BRL</b>  {format_fiat(sats, cache.get('brl'), 'R$')}",
+        f"<b>Lended</b>  {format_btc(LENT_SATS)}",
     ]
     cls = "fresh"
     if cache.get("error"):
