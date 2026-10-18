@@ -42,7 +42,9 @@ Exit code: 0 = clean, 1 = at least one failure, 2 = bad invocation.
 ## Integration points
 
 - **pre-commit hook** — runs all repo-tier checks on staged files,
-  skips `conventional-commits` (commit message doesn't exist yet).
+  skips `conventional-commits` (commit message doesn't exist yet). It
+  does nothing when `mandragora-switch` has just audited the exact tree
+  being committed (see below).
 - **commit-msg hook** — runs `conventional-commits` against the
   candidate message file.
 - **mandragora-switch** — stages with `git add -A`, then runs the full
