@@ -71,10 +71,10 @@
             options = [ "NOPASSWD" ];
           }
           {
-            command = "/run/current-system/sw/bin/sops";
+            command = "/run/current-system/sw/bin/mandragora-sops-decrypt";
             options = [
               "NOPASSWD"
-              "SETENV"
+              "NOSETENV"
             ];
           }
         ];
