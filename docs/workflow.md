@@ -35,9 +35,25 @@ Remote: `https://github.com/mvrozanti/mandragora.git`.
 ```
 
 `mandragora-switch` (defined in `.local/bin/mandragora-switch.sh`, exposed
-via `nix/modules/user/home.nix`) does, in order: `git fetch` → rebase if
-behind → `git add -A` → open staged-diff editor for commit message (skip
-with `!`) → `sudo nixos-rebuild switch` → `git push`.
+via `nix/modules/user/home.nix`) does, in order:
+
+1. Take the switch lock and wait out any other `nixos-rebuild`.
+2. Stability window; in worktree mode `git fetch` runs alongside it.
+3. `git add -A`, then the full repo audit on the staged snapshot. When
+   no message is given off-TTY, the AI commit message is generated
+   while the audit runs.
+4. Commit, then rebase the worktree onto master (or origin/master) so
+   the build includes everything already landed.
+5. Vault verdict gate (agent commits).
+6. Pre-flight: evaluate `mandragora-desktop` and `mandragora-wsl` in
+   one `nix` process from the pinned commit. Either failing aborts
+   before anything is built or pushed; a pass leaves the eval cache
+   warm for the build.
+7. `sudo nixos-rebuild switch` through the guard, which builds as the
+   owner from that warm cache and activates the built path as root.
+8. Promote to master, `git push` (fetch and rebase only if rejected).
+9. Vault publish (agent runs), deploy changed served stacks, coalesce
+   and prune generations, background GC.
 
 Aliases (in `nix/modules/user/zsh.nix`):
 

@@ -68,9 +68,15 @@ fi
 WT="$LOCKDIR/mandragora-switch-wt"
 TMPFILE=""
 SAVED_FLAG=""
+FETCH_PID=""
+FETCH_LOG=""
+MSG_PID=""
+MSG_FILE=""
+AUDIT_STAMP=""
 cleanup() {
   rm -f "${LOCKFILE}.pid"
   [ -n "$TMPFILE" ] && rm -f "$TMPFILE" "$SAVED_FLAG"
+  rm -f ${FETCH_LOG:+"$FETCH_LOG"} ${MSG_FILE:+"$MSG_FILE"} ${AUDIT_STAMP:+"$AUDIT_STAMP"}
   if [ "$MODE" = main ] && [ -d "$WT" ]; then
     git -C "$FLAKE" worktree remove --force "$WT" 2>/dev/null || rm -rf "$WT"
     git -C "$FLAKE" worktree prune 2>/dev/null || true
@@ -99,6 +105,12 @@ while pgrep -f '[.]nixos-rebuild-wrapped' > /dev/null 2>&1; do
   REBUILD_WAIT_SHOWN=1
   sleep 5
 done
+
+if [ "$MODE" = worktree ]; then
+  FETCH_LOG=$(mktemp "$LOCKDIR/mandragora-switch-fetch.XXXXXX")
+  git -C "$FLAKE" fetch origin >"$FETCH_LOG" 2>&1 &
+  FETCH_PID=$!
+fi
 
 INTERACTIVE=1
 if [ ! -t 0 ] || [ ! -t 1 ] || [ -n "$GEMINI_CLI" ]; then INTERACTIVE=0; fi
@@ -146,8 +158,16 @@ if [ "$FORCE" -eq 0 ] && [ "$STABILITY_WAIT" -gt 0 ]; then
   fi
 fi
 
-echo "==> Fetching origin..."
-if ! git -C "$FLAKE" fetch origin; then
+FETCH_OK=1
+if [ -n "$FETCH_PID" ]; then
+  echo "==> Fetching origin (started in the background)..."
+  wait "$FETCH_PID" || FETCH_OK=0
+  cat "$FETCH_LOG"
+else
+  echo "==> Fetching origin..."
+  git -C "$FLAKE" fetch origin || FETCH_OK=0
+fi
+if [ "$FETCH_OK" -eq 0 ]; then
   echo "==> WARNING: git fetch failed. Proceeding without sync check." >&2
 elif [ "$(git -C "$FLAKE" rev-list --count refs/heads/master..origin/master)" -gt 0 ]; then
   AHEAD_ORIGIN=$(git -C "$FLAKE" rev-list --count refs/heads/master..origin/master)
@@ -216,21 +236,6 @@ fi
 cd "$WT"
 export MANDRAGORA_REPO="$WT"
 
-if command -v mandragora-audit >/dev/null 2>&1; then
-  echo "==> Repo audit (pre-stage, worktree snapshot)..."
-  if ! mandragora-audit --quiet --skip conventional-commits; then
-    echo "==> ABORTED: repo audit failed. Fix the violations above and re-run." >&2
-    exit 1
-  fi
-fi
-
-git add -A
-
-if ! git diff --cached --quiet; then
-  echo "==> Staged for this switch (from frozen snapshot):"
-  git diff --cached --stat | sed 's/^/    /'
-fi
-
 SKIP_EDIT=0
 SKIP_COMMIT=0
 ARGS=()
@@ -252,37 +257,73 @@ if [ "$SKIP_EDIT" -eq 0 ]; then
   fi
 fi
 
+generate_commit_message() {
+  local recent diff payload generated prompt
+  recent=$(git log --oneline -20)
+  diff=$(git diff --cached)
+  if [ -n "$GEMINI_CLI" ]; then
+    echo "==> Generating commit message with gemini..." >&2
+    prompt="You write a single git commit subject for a personal NixOS+Hyprland dotfiles repo. The user message contains the recent commit log (for style) followed by the staged diff. Mirror the log style exactly: if the log uses Conventional Commits prefixes, use one; if it doesn t, don t invent one. Output exactly ONE line, <=72 chars, imperative mood, no trailing period, no quotes, no preamble, no body. Nothing else."
+    payload=$(printf "## RECENT LOG (style reference)\n%s\n\n## STAGED DIFF\n%s\n" "$recent" "$diff")
+    if generated=$(echo "$payload" | timeout 60 gemini --prompt "$prompt" 2>/dev/null); then
+      generated=$(echo "$generated" | sed -n "1p" | tr -d "\r")
+      [ -n "$generated" ] && { printf '%s\n' "$generated"; return 0; }
+    fi
+  fi
+  command -v claude >/dev/null 2>&1 || return 0
+  echo "==> Generating commit message with claude (haiku)..." >&2
+  prompt='You write a single git commit subject for a personal NixOS+Hyprland dotfiles repo. The user message contains the recent commit log (for style) followed by the staged diff. Mirror the log'\''s style exactly: if the log uses Conventional Commits prefixes, use one; if it doesn'\''t, don'\''t invent one. Output exactly ONE line, <=72 chars, imperative mood, no trailing period, no quotes, no preamble, no body. Nothing else.'
+  payload=$(printf '## RECENT LOG (style reference)\n%s\n\n## STAGED DIFF\n%s\n' "$recent" "$diff")
+  if generated=$(printf '%s' "$payload" | timeout 60 claude -p --model claude-haiku-4-5 --no-session-persistence --system-prompt "$prompt" "Write the commit subject for the staged diff." 2>/dev/null); then
+    printf '%s' "$generated" | sed -n '1p' | tr -d '\r'
+  fi
+}
+
+PRE_STAGE_INDEX=$(git write-tree 2>/dev/null || true)
+git add -A
+AUDITED_TREE=$(git write-tree)
+
 if git diff --cached --quiet; then
   echo "==> No staged changes; skipping commit."
   SKIP_COMMIT=1
 fi
 
 MSG="${ARGS[*]}"
+if [ "$SKIP_COMMIT" -eq 0 ] && [ "$SKIP_EDIT" -eq 1 ] && [ -z "$MSG" ]; then
+  MSG_FILE=$(mktemp "$LOCKDIR/mandragora-switch-msg.XXXXXX")
+  generate_commit_message >"$MSG_FILE" &
+  MSG_PID=$!
+fi
+
+if command -v mandragora-audit >/dev/null 2>&1; then
+  echo "==> Repo audit (staged snapshot)..."
+  if ! mandragora-audit --quiet --skip conventional-commits; then
+    if [ -n "$MSG_PID" ]; then
+      pkill -TERM -P "$MSG_PID" 2>/dev/null || true
+      kill "$MSG_PID" 2>/dev/null || true
+    fi
+    [ -n "$PRE_STAGE_INDEX" ] && git read-tree "$PRE_STAGE_INDEX"
+    echo "==> ABORTED: repo audit failed. Fix the violations above and re-run." >&2
+    exit 1
+  fi
+  AUDIT_STAMP=$(git rev-parse --path-format=absolute --git-path mandragora-audited-tree)
+  printf '%s\n' "$AUDITED_TREE" >"$AUDIT_STAMP"
+fi
+
+if ! git diff --cached --quiet; then
+  echo "==> Staged for this switch (from frozen snapshot):"
+  git diff --cached --stat | sed 's/^/    /'
+fi
+
 COMMIT_SKIPPED=0
 
 if [ "$SKIP_COMMIT" -eq 1 ]; then
   COMMIT_SKIPPED=1
   git restore --staged . 2>/dev/null || true
 elif [ "$SKIP_EDIT" -eq 1 ]; then
-  if [ -z "$MSG" ] && [ -n "$GEMINI_CLI" ]; then
-    echo "==> Generating commit message with gemini..."
-    RECENT=$(git log --oneline -20)
-    DIFF=$(git diff --cached)
-    PROMPT_SYSTEM="You write a single git commit subject for a personal NixOS+Hyprland dotfiles repo. The user message contains the recent commit log (for style) followed by the staged diff. Mirror the log style exactly: if the log uses Conventional Commits prefixes, use one; if it doesn t, don t invent one. Output exactly ONE line, <=72 chars, imperative mood, no trailing period, no quotes, no preamble, no body. Nothing else."
-    PAYLOAD=$(printf "## RECENT LOG (style reference)\n%s\n\n## STAGED DIFF\n%s\n" "$RECENT" "$DIFF")
-    if GENERATED=$(echo "$PAYLOAD" | timeout 60 gemini --prompt "$PROMPT_SYSTEM" 2>/dev/null); then
-       MSG=$(echo "$GENERATED" | sed -n "1p" | tr -d "\r")
-    fi
-  fi
-  if [ -z "$MSG" ] && command -v claude >/dev/null 2>&1; then
-    echo "==> Generating commit message with claude (haiku)..."
-    RECENT=$(git log --oneline -20)
-    DIFF=$(git diff --cached)
-    PROMPT_SYSTEM='You write a single git commit subject for a personal NixOS+Hyprland dotfiles repo. The user message contains the recent commit log (for style) followed by the staged diff. Mirror the log'\''s style exactly: if the log uses Conventional Commits prefixes, use one; if it doesn'\''t, don'\''t invent one. Output exactly ONE line, <=72 chars, imperative mood, no trailing period, no quotes, no preamble, no body. Nothing else.'
-    PAYLOAD=$(printf '## RECENT LOG (style reference)\n%s\n\n## STAGED DIFF\n%s\n' "$RECENT" "$DIFF")
-    if GENERATED=$(printf '%s' "$PAYLOAD" | timeout 60 claude -p --model claude-haiku-4-5 --no-session-persistence --system-prompt "$PROMPT_SYSTEM" "Write the commit subject for the staged diff." 2>/dev/null); then
-      MSG=$(printf '%s' "$GENERATED" | sed -n '1p' | tr -d '\r')
-    fi
+  if [ -z "$MSG" ] && [ -n "$MSG_PID" ]; then
+    wait "$MSG_PID" || true
+    MSG=$(sed -n '1p' "$MSG_FILE" | tr -d '\r')
   fi
   if [ -z "$MSG" ]; then
     echo "==> FAILED: no commit message and no AI generation available." >&2
@@ -382,21 +423,29 @@ if [ "$MODE" = worktree ] && [ "$INTERACTIVE" -eq 0 ] && [ "$COMMIT_SKIPPED" -eq
 fi
 
 echo ""
-echo "==> Pre-flight: evaluating other hosts..."
-for host in mandragora-wsl; do
-  if ! nix build "$WT#nixosConfigurations.$host.config.system.build.toplevel" --dry-run 2>/tmp/nix-eval-$host.log; then
-    echo "==> ABORTED: $host eval failed. Fix before pushing:" >&2
-    cat /tmp/nix-eval-$host.log >&2
-    exit 1
-  fi
-  echo "==> [ok] $host"
+EVAL_HOSTS=(mandragora-desktop mandragora-wsl)
+EVAL_REF="$WT"
+if [ -z "$(git -C "$WT" status --porcelain --untracked-files=no)" ]; then
+  EVAL_REF="git+file://$WT?rev=$(git -C "$WT" rev-parse HEAD)"
+fi
+EVAL_ATTRS=()
+for host in "${EVAL_HOSTS[@]}"; do
+  EVAL_ATTRS+=("$EVAL_REF#nixosConfigurations.$host.config.system.build.toplevel")
 done
+echo "==> Pre-flight: evaluating ${EVAL_HOSTS[*]} in one pass (warms the eval cache the build reuses)..."
+if ! nix build --dry-run "${EVAL_ATTRS[@]}" 2>/tmp/nix-eval-preflight.log; then
+  echo "==> ABORTED: evaluation failed. Fix before pushing:" >&2
+  cat /tmp/nix-eval-preflight.log >&2
+  exit 1
+fi
+echo "==> [ok] ${EVAL_HOSTS[*]}"
+phase "pre-flight eval"
 
 echo ""
 echo "==> Building (capped in heavy.slice — a runaway build dies alone, not the session)..."
 set +e
 if command -v cage >/dev/null 2>&1; then CAP=(cage); else CAP=(); fi
-"${CAP[@]}" sudo nixos-rebuild switch --flake "$WT#mandragora-desktop" 2>&1 | tee /tmp/nixos-rebuild.log | grep --line-buffered -E "^(error:|building|activating|warning:|Failed|systemctl|Done\.)"
+"${CAP[@]}" sudo nixos-rebuild switch --flake "$WT#mandragora-desktop" 2>&1 | tee /tmp/nixos-rebuild.log | grep --line-buffered -E "^(error:|building|activating|warning:|Failed|systemctl|Done\.|nixos-rebuild guard)"
 RC=${PIPESTATUS[0]}
 set -e
 phase "nixos-rebuild switch (rc=$RC)"
@@ -468,7 +517,7 @@ if [ "$COMMIT_SKIPPED" -eq 0 ]; then
   attempt=0
   while true; do
     attempt=$((attempt + 1))
-    if git fetch origin 2>/dev/null; then
+    if [ "$attempt" -gt 1 ] && git fetch origin 2>/dev/null; then
       AHEAD_REMOTE=$(git rev-list --count HEAD..origin/master 2>/dev/null || echo 0)
       if [ "$AHEAD_REMOTE" -gt 0 ]; then
         echo "==> Origin moved by $AHEAD_REMOTE commit(s) during build; rebasing local commit on top..."

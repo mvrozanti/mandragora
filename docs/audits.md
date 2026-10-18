@@ -32,6 +32,11 @@ nix/modules/audits/repo.nix  packages mandragora-audit + sets core.hooksPath
   (`git diff --cached --name-only`); used by the pre-commit hook.
 - `mandragora-audit --list` — discovered checks.
 
+Checks run concurrently, one job per CPU, and their output is printed in
+check order once all have finished, each check's stdout and stderr
+merged. A check must not depend on another or share a fixed temp path;
+use `mktemp`.
+
 Exit code: 0 = clean, 1 = at least one failure, 2 = bad invocation.
 
 ## Integration points
@@ -40,8 +45,15 @@ Exit code: 0 = clean, 1 = at least one failure, 2 = bad invocation.
   skips `conventional-commits` (commit message doesn't exist yet).
 - **commit-msg hook** — runs `conventional-commits` against the
   candidate message file.
-- **mandragora-switch** — runs the full audit before `git add -A`.
-  A failure aborts the switch with no staging side-effects.
+- **mandragora-switch** — stages with `git add -A`, then runs the full
+  audit on that snapshot, so brand-new files are in scope. A failure
+  aborts the switch and restores the index to what it was before
+  staging. A pass records the audited tree hash in the worktree's git
+  dir (`mandragora-audited-tree`); the pre-commit hook consumes that
+  record once and skips its own run when the tree it is about to commit
+  is the same one, because the full-tree run already covered the staged
+  scope. Any other commit, including a partial `git commit <paths>`,
+  gets the normal hook run.
 
 `core.hooksPath` is set declaratively by `system.activationScripts`
 (see `nix/modules/audits/repo.nix`), pointing at the hooks dir inside

@@ -104,8 +104,23 @@ if [ "$activating" -eq 1 ]; then
   done
 fi
 
-pinned="git+file://$top?rev=$new$attr"
-out=("$action" "--flake" "$pinned")
+pinned="git+file://$top?rev=$new"
 
 printf 'nixos-rebuild guard: %s %s (%s)\n' "$action" "${new:0:12}" "$(as_owner git -C "$dir" log -1 --format=%s "$new")" >&2
-exec "$real" "${out[@]}"
+
+[ "$activating" -eq 1 ] || exec "$real" "$action" --flake "$pinned$attr"
+
+config="${attr#\#}"
+[ -n "$config" ] || config=$(uname -n)
+owner_home=$(getent passwd "$owner" | cut -d: -f6)
+gcroot=$(as_owner mktemp -d -t nixos-rebuild-guard.XXXXXX)
+trap 'rm -rf "$gcroot"' EXIT
+
+toplevel=$(as_owner env -u XDG_CACHE_HOME -u XDG_CONFIG_HOME -u XDG_DATA_HOME -u XDG_STATE_HOME HOME="$owner_home" \
+  nix build --out-link "$gcroot/result" --print-out-paths \
+  "$pinned#nixosConfigurations.\"$config\".config.system.build.toplevel")
+printf 'nixos-rebuild guard: built %s as %s; activating it as root\n' "$toplevel" "$owner" >&2
+
+rc=0
+"$real" "$action" --no-reexec --store-path "$toplevel" || rc=$?
+exit "$rc"

@@ -8,6 +8,8 @@ let
       pkgs.coreutils
       pkgs.gnused
       pkgs.util-linux
+      pkgs.getent
+      config.nix.package
     ];
     runtimeEnv = {
       REAL_NIXOS_REBUILD = "${config.system.build.nixos-rebuild}/bin/nixos-rebuild";

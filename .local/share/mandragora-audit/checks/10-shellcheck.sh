@@ -40,12 +40,21 @@ if ! command -v shellcheck >/dev/null 2>&1; then
   exit 0
 fi
 
-violations=0
+TARGETS=()
 for f in "${FILES[@]}"; do
-  if audit_in_allowlist "$f" "$ALLOWLIST"; then continue; fi
-  out=$(shellcheck -S warning "$f" 2>/dev/null)
+  audit_in_allowlist "$f" "$ALLOWLIST" || TARGETS+=("$f")
+done
+
+REPORTS=$(mktemp -d)
+trap 'rm -rf "$REPORTS"' EXIT
+for i in "${!TARGETS[@]}"; do printf '%s\0%s\0' "$i" "${TARGETS[$i]}"; done \
+  | xargs -0 -r -n2 -P"$(nproc)" bash -c 'shellcheck -S warning "$2" >"$0/$1" 2>/dev/null; exit 0' "$REPORTS"
+
+violations=0
+for i in "${!TARGETS[@]}"; do
+  out=$(cat "$REPORTS/$i" 2>/dev/null)
   [ -z "$out" ] && continue
-  audit_fail "$CHECK" "$f"
+  audit_fail "$CHECK" "${TARGETS[$i]}"
   printf '%s\n' "$out" | sed 's/^/    /' >&2
   violations=$((violations + 1))
 done

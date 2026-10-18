@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
+stamp=$(git rev-parse --path-format=absolute --git-path mandragora-audited-tree)
+if [ -f "$stamp" ]; then
+  audited=$(cat "$stamp")
+  rm -f "$stamp"
+  if [ "$audited" = "$(git write-tree)" ]; then
+    echo "pre-commit: mandragora-switch already audited tree ${audited:0:12}; not repeating it"
+    exit 0
+  fi
+fi
 exec env MANDRAGORA_REPO="$(git rev-parse --show-toplevel)" \
   mandragora-audit --staged --quiet --skip conventional-commits

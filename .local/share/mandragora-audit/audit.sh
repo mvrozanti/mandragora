@@ -92,14 +92,26 @@ if [ "${#SKIPS[@]}" -gt 0 ]; then
   CHECKS=("${filtered[@]}")
 fi
 
+RESULTS=$(mktemp -d)
+trap 'rm -rf "$RESULTS"' EXIT
+MAX_JOBS=$(nproc 2>/dev/null || echo 4)
+
+for i in "${!CHECKS[@]}"; do
+  while [ "$(jobs -rp | wc -l)" -ge "$MAX_JOBS" ]; do wait -n; done
+  name=$(basename "${CHECKS[$i]}" .sh)
+  (
+    AUDIT_NAME="$name" bash "${CHECKS[$i]}" >"$RESULTS/$i.out" 2>&1
+    echo "$?" >"$RESULTS/$i.rc"
+  ) &
+done
+wait
+
 FAILED=0
 RAN=0
-for check in "${CHECKS[@]}"; do
+for i in "${!CHECKS[@]}"; do
   RAN=$((RAN + 1))
-  name=$(basename "$check" .sh)
-  if ! AUDIT_NAME="$name" bash "$check"; then
-    FAILED=$((FAILED + 1))
-  fi
+  cat "$RESULTS/$i.out"
+  [ "$(cat "$RESULTS/$i.rc" 2>/dev/null)" = 0 ] || FAILED=$((FAILED + 1))
 done
 
 echo
