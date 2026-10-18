@@ -37,8 +37,24 @@ case "${1:-pick}" in
   clear)
     cliphist wipe
     ;;
+  list)
+    cliphist -preview-width 300 list | awk -v n="${2:-200}" 'NR <= n'
+    ;;
+  copy)
+    cliphist list | awk -F '\t' -v id="$2" '$1 == id { print; exit }' | cliphist decode | wl-copy
+    ;;
+  delete)
+    cliphist list | awk -F '\t' -v id="$2" '$1 == id { print; exit }' | cliphist delete
+    ;;
+  thumb)
+    dir="${XDG_CACHE_HOME:-$HOME/.cache}/clipboard-menu/thumbs"
+    mkdir -p "$dir"
+    out="$dir/$2.png"
+    [ -s "$out" ] || printf '%s\t\n' "$2" | cliphist decode > "$out"
+    printf '%s\n' "$out"
+    ;;
   *)
-    echo "usage: $(basename "$0") {pick|clear}" >&2
+    echo "usage: $(basename "$0") {pick|clear|list|copy ID|delete ID|thumb ID}" >&2
     exit 2
     ;;
 esac

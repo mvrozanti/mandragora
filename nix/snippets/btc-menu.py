@@ -415,6 +415,17 @@ def cmd_waybar(_args):
     return 0
 
 
+def cmd_json(_args):
+    cache = read_cache()
+    if cache is None:
+        print(json.dumps({"sats": None, "accounts": [], "unit": read_unit(), "error": "no cached balance yet"}))
+        return 0
+    cache["unit"] = read_unit()
+    cache["stale"] = time.time() - cache.get("fetched_at", 0) > STALE_AFTER
+    print(json.dumps(cache))
+    return 0
+
+
 def cmd_refresh(_args):
     data = fetch_all()
     write_cache(data)
@@ -504,6 +515,8 @@ def main():
     subparsers = parser.add_subparsers(dest="command", required=True)
     waybar_parser = subparsers.add_parser("waybar", help="emit waybar JSON from cache")
     waybar_parser.set_defaults(func=cmd_waybar)
+    json_parser = subparsers.add_parser("json", help="emit cached popup data as JSON")
+    json_parser.set_defaults(func=cmd_json)
     refresh_parser = subparsers.add_parser("refresh", help="fetch balances and update cache")
     refresh_parser.set_defaults(func=cmd_refresh)
     cycle_parser = subparsers.add_parser("cycle-unit", help="cycle the displayed unit")
