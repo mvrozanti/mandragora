@@ -16,4 +16,4 @@ for candidate in "$PROJ"/backend/build/libs/*-SNAPSHOT.jar; do
     JAR="$candidate"
   fi
 done
-exec java -Xmx1536m -XX:G1PeriodicGCInterval=60000 -jar "$JAR"
+exec java -Xmx3g -XX:G1PeriodicGCInterval=60000 -jar "$JAR"
