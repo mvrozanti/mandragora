@@ -1,0 +1,558 @@
+.lock-banner {
+  background: @surface_container_high;
+  border-radius: 20px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+
+.lock-banner .icon {
+  color: @on_surface_variant;
+  font-size: 22px;
+}
+
+.lock-banner .lock-title {
+  font-weight: 600;
+}
+
+.lock-banner.held {
+  background: @tertiary_container;
+}
+
+.lock-banner.held label,
+.lock-banner.held .icon {
+  color: @on_tertiary_container;
+}
+
+.stat-row {
+  margin-bottom: 10px;
+}
+
+.tile-glyph {
+  font-size: 18px;
+  color: @primary;
+}
+
+.power-grid {
+  margin-top: 2px;
+}
+
+.power-tile {
+  background: @surface_container_high;
+  border-radius: 22px;
+  min-height: 96px;
+  transition: background 180ms ease, border-radius 220ms ease;
+}
+
+.power-tile .tile-icon {
+  font-size: 28px;
+  color: @on_surface;
+}
+
+.power-tile .tile-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: @on_surface_variant;
+}
+
+.power-tile:hover {
+  background: @secondary_container;
+  border-radius: 30px;
+}
+
+.power-tile:hover .tile-icon,
+.power-tile:hover .tile-label {
+  color: @on_secondary_container;
+}
+
+.power-tile:hover .tile-icon {
+  font-variation-settings: "FILL" 1, "wght" 500, "opsz" 24;
+}
+
+.power-tile.danger:hover {
+  background: @error_container;
+}
+
+.power-tile.danger:hover .tile-icon,
+.power-tile.danger:hover .tile-label {
+  color: @on_error_container;
+}
+
+.power-tile.armed {
+  background: @error;
+  border-radius: 30px;
+}
+
+.power-tile.armed .tile-icon,
+.power-tile.armed .tile-label {
+  color: @on_error;
+}
+
+.footer {
+  margin-top: 10px;
+}
+
+.trail-lock {
+  font-size: 16px;
+  color: @on_surface_variant;
+}
+
+.row.current .trail-lock {
+  color: @on_secondary_container;
+}
+
+.weather-hero {
+  background: linear-gradient(135deg, @primary_container, alpha(@tertiary_container, 0.85));
+  border-radius: 24px;
+  padding: 18px 18px 18px 20px;
+  margin-bottom: 8px;
+}
+
+.weather-hero label,
+.weather-hero .icon {
+  color: @on_primary_container;
+}
+
+.weather-hero .chip {
+  border-color: alpha(@on_primary_container, 0.35);
+}
+
+.weather-hero .chip label,
+.weather-hero .chip .icon {
+  color: @on_primary_container;
+}
+
+.hero-glyph {
+  font-size: 64px;
+}
+
+.hero-temp {
+  font-size: 46px;
+  font-weight: 600;
+}
+
+.hero-desc {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.sun-row {
+  margin-bottom: 2px;
+}
+
+.hourly {
+  background: @surface_container_high;
+  border-radius: 20px;
+  padding: 12px 6px;
+}
+
+.hour .hour-glyph {
+  font-size: 22px;
+  color: @primary;
+  font-variation-settings: "FILL" 1, "wght" 400, "opsz" 24;
+}
+
+.hour-temp {
+  font-weight: 600;
+}
+
+.hour-pop,
+.day-pop {
+  font-size: 11px;
+  color: @tertiary;
+}
+
+.hour-pop.dim,
+.day-pop.dim {
+  color: alpha(@on_surface_variant, 0.5);
+}
+
+.row.day {
+  padding: 6px 12px;
+}
+
+.row.day .icon {
+  color: @primary;
+}
+
+.day-min {
+  color: @on_surface_variant;
+}
+
+.day-max {
+  font-weight: 600;
+}
+
+.range-track {
+  background: @surface_container_highest;
+  border-radius: 999px;
+  min-height: 6px;
+}
+
+.range-fill {
+  background: linear-gradient(90deg, @tertiary, @primary);
+  border-radius: 999px;
+  min-height: 6px;
+}
+
+.btc-hero {
+  background: linear-gradient(135deg, @tertiary_container, @primary_container);
+  border-radius: 24px;
+  padding: 18px 20px;
+  margin-bottom: 10px;
+}
+
+.btc-hero label {
+  color: @on_tertiary_container;
+}
+
+.btc-amount {
+  font-size: 32px;
+  font-weight: 600;
+  margin: 2px 0 4px 0;
+}
+
+.btc-others label {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.btc-others label:not(:last-child) {
+  margin-right: 10px;
+}
+
+.price-row {
+  margin-top: 10px;
+}
+
+.error-note {
+  background: @error_container;
+  border-radius: 16px;
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+
+.error-note label,
+.error-note .icon {
+  color: @on_error_container;
+}
+
+.severity-grid {
+  margin-bottom: 10px;
+}
+
+.sev-tile {
+  background: @surface_container_high;
+  border-radius: 18px;
+  padding: 10px 12px;
+  transition: background 150ms ease;
+}
+
+.sev-tile:hover {
+  background: @surface_container_highest;
+}
+
+.sev-count {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.sev-label {
+  font-size: 11.5px;
+  color: @on_surface_variant;
+}
+
+.sev-tile.critical .sev-count {
+  color: @error;
+}
+
+.sev-tile.high .sev-count {
+  color: @tertiary;
+}
+
+.sev-tile.medium .sev-count {
+  color: @secondary;
+}
+
+.sev-tile.low .sev-count {
+  color: @on_surface_variant;
+}
+
+.sev-tile.active {
+  background: @secondary_container;
+}
+
+.sev-tile.active.critical {
+  background: @error_container;
+}
+
+.sev-tile.active label {
+  color: @on_secondary_container;
+}
+
+.sev-tile.active.critical label {
+  color: @on_error_container;
+}
+
+.score {
+  font-weight: 700;
+  font-size: 12px;
+  border-radius: 10px;
+  padding: 4px 0;
+  min-width: 38px;
+  margin-top: 2px;
+  background: @surface_container_highest;
+}
+
+.score.critical {
+  background: @error;
+  color: @on_error;
+}
+
+.score.high {
+  background: @tertiary;
+  color: @on_tertiary;
+}
+
+.score.medium {
+  background: @secondary_container;
+  color: @on_secondary_container;
+}
+
+.row .desc {
+  margin-top: 2px;
+}
+
+.more {
+  margin: 10px 0 4px 0;
+}
+
+.feed-chips {
+  margin: 10px 0 8px 0;
+}
+
+.filter-chip {
+  border: 1px solid @outline_variant;
+  border-radius: 10px;
+  padding: 5px 10px;
+  transition: background 150ms ease;
+}
+
+.filter-chip label {
+  font-size: 12px;
+  font-weight: 500;
+  color: @on_surface_variant;
+}
+
+.filter-chip:hover {
+  background: alpha(@on_surface, 0.06);
+}
+
+.filter-chip.active {
+  background: @secondary_container;
+  border-color: @secondary_container;
+}
+
+.filter-chip.active label {
+  color: @on_secondary_container;
+}
+
+.urgency {
+  background: @surface_container_highest;
+  border-radius: 12px;
+  min-width: 34px;
+  min-height: 34px;
+}
+
+.urgency .icon {
+  margin: 0 7px;
+  font-size: 19px;
+}
+
+.urgency.u3 {
+  background: @error_container;
+}
+
+.urgency.u3 .icon {
+  color: @on_error_container;
+}
+
+.urgency.u2 {
+  background: @tertiary_container;
+}
+
+.urgency.u2 .icon {
+  color: @on_tertiary_container;
+}
+
+.row.article.read .row-title {
+  color: @on_surface_variant;
+  font-weight: 400;
+}
+
+.clip-list {
+  background: transparent;
+}
+
+.row.clip {
+  outline: none;
+  padding: 6px 6px 6px 12px;
+}
+
+.row.clip .icon-button {
+  min-width: 28px;
+  min-height: 28px;
+}
+
+.row.clip .icon-button .icon {
+  font-size: 17px;
+}
+
+.clip-text {
+  font-size: 12.5px;
+}
+
+.thumb {
+  border-radius: 12px;
+  background: @surface_container_highest;
+}
+
+.hint {
+  margin-top: 10px;
+  color: alpha(@on_surface_variant, 0.7);
+}
+
+.capture-grid {
+  margin-top: 2px;
+}
+
+.capture-tile {
+  background: @surface_container_high;
+  border-radius: 22px;
+  min-height: 112px;
+  transition: background 180ms ease, border-radius 220ms ease;
+}
+
+.capture-tile .tile-icon {
+  font-size: 32px;
+  color: @primary;
+}
+
+.capture-tile .tile-label {
+  font-weight: 600;
+}
+
+.capture-tile .tile-hint {
+  font-size: 11px;
+  color: @on_surface_variant;
+}
+
+.capture-tile:hover {
+  background: @primary_container;
+  border-radius: 30px;
+}
+
+.capture-tile:hover label,
+.capture-tile:hover .tile-icon {
+  color: @on_primary_container;
+}
+
+.capture-tile:hover .tile-icon {
+  font-variation-settings: "FILL" 1, "wght" 500, "opsz" 24;
+}
+
+.layout {
+  background: @surface_container_high;
+  border-radius: 20px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.layout-mon {
+  background: @surface_container_highest;
+  border-radius: 8px;
+  border: 1px solid @outline_variant;
+}
+
+.layout-mon label {
+  font-size: 11px;
+  font-weight: 600;
+  color: @on_surface_variant;
+}
+
+.layout-mon.focused {
+  background: @primary_container;
+  border-color: @primary;
+}
+
+.layout-mon.focused label {
+  color: @on_primary_container;
+}
+
+.monitor-actions {
+  margin-bottom: 10px;
+}
+
+.monitor-card {
+  background: @surface_container_high;
+  border-radius: 20px;
+  padding: 14px;
+  margin-bottom: 8px;
+}
+
+.month-bar {
+  margin-bottom: 6px;
+}
+
+.month-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-left: 6px;
+}
+
+.today-chip {
+  background: @secondary_container;
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin-right: 4px;
+}
+
+.today-chip label {
+  font-size: 12px;
+  font-weight: 500;
+  color: @on_secondary_container;
+}
+
+.month {
+  background: @surface_container_high;
+  border-radius: 22px;
+  padding: 10px;
+}
+
+.month-grid .weekday {
+  font-size: 11px;
+  font-weight: 600;
+  color: @on_surface_variant;
+  padding: 4px 0 6px 0;
+}
+
+.month-grid .day {
+  min-height: 36px;
+  min-width: 36px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.month-grid .day.weekend {
+  color: @tertiary;
+}
+
+.month-grid .day.outside {
+  color: alpha(@on_surface_variant, 0.4);
+}
+
+.month-grid .day.today {
+  background: @primary;
+  color: @on_primary;
+  font-weight: 700;
+}

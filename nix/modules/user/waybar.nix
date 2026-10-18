@@ -222,7 +222,7 @@
           return-type = "json";
           interval = 2;
           tooltip = true;
-          on-click = "gpu-menu pick";
+          on-click = "shell-popup gpu -- gpu-menu pick";
         };
 
         "custom/epp" = {
@@ -269,7 +269,7 @@
           exec = "network-menu waybar";
           return-type = "json";
           interval = 5;
-          on-click = "network-menu pick";
+          on-click = "shell-popup network -- network-menu pick";
           on-click-right = "kitty --class impala -o close_on_child_death=yes -e impala";
         };
 
@@ -278,6 +278,7 @@
           format-alt = "  {:%Y-%m-%d %H:%M}";
           interval = 1;
           tooltip-format = "<tt>{calendar}</tt>";
+          on-click-right = "shell-popup calendar";
         };
 
         "custom/screencap" = {
@@ -293,8 +294,8 @@
           exec = "~/.config/waybar/scripts/weather.sh";
           return-type = "json";
           interval = 600;
-          on-click = "weather-menu pick";
-          on-click-right = "weather-menu pick --refresh";
+          on-click = "shell-popup weather -- weather-menu pick";
+          on-click-right = "weather-menu refresh";
         };
 
         "custom/btc" = {
@@ -303,7 +304,7 @@
           interval = 60;
           signal = 15;
           tooltip = true;
-          on-click = "btc-menu pick";
+          on-click = "shell-popup btc -- btc-menu pick";
           on-click-right = "btc-menu cycle-unit";
         };
 
@@ -316,7 +317,7 @@
           format = "";
           tooltip = true;
           tooltip-format = "Clipboard history — left-click to pick, right-click to clear";
-          on-click = "clipboard-menu";
+          on-click = "shell-popup clipboard -- clipboard-menu";
           on-click-right = "clipboard-menu clear";
         };
 
@@ -337,7 +338,7 @@
           tooltip = true;
           on-click = "nwg-displays";
           on-click-right = "monitor-menu toggle";
-          on-click-middle = "monitor-menu pick";
+          on-click-middle = "shell-popup monitor -- monitor-menu pick";
         };
 
         "custom/security" = {
@@ -347,7 +348,7 @@
           signal = 13;
           format = "{}";
           tooltip = true;
-          on-click = "security-menu pick";
+          on-click = "shell-popup security -- security-menu pick";
           on-click-right = "security-menu rescan";
         };
 
@@ -358,7 +359,7 @@
           signal = 10;
           format = "{}";
           tooltip = true;
-          on-click = "rss-menu pick";
+          on-click = "shell-popup rss -- rss-menu pick";
           on-click-right = "rss-menu mark-all-read";
           on-click-middle = "systemctl --user start rss-menu-poll.service";
         };
@@ -366,7 +367,7 @@
         "custom/powermenu" = {
           format = "";
           tooltip = false;
-          on-click = "rofi-power-menu";
+          on-click = "shell-popup power -- rofi-power-menu";
         };
       };
     };
