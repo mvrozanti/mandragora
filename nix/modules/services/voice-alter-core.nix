@@ -79,6 +79,7 @@ in
     };
 
     mandragora.hub.services.voice-alter-core = {
+      maxRuntime = "12h";
       port = 8095;
       userService = true;
       systemd = {

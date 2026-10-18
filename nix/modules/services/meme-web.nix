@@ -36,6 +36,7 @@ in
 
   config = lib.mkIf cfg.enable {
     mandragora.hub.services.meme-web = {
+      maxRuntime = "12h";
       port = 8093;
       userService = true;
       systemd = {

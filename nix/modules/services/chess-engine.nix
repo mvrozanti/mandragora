@@ -28,6 +28,7 @@ in
       Restart = "always";
       RestartSec = "5s";
       MemoryMax = "512M";
+      RuntimeMaxSec = "12h";
       Nice = 5;
     };
   };
