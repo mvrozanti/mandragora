@@ -278,6 +278,7 @@ in
       RestartSec = 10;
       TimeoutStartSec = "15min";
       MemoryMax = "6G";
+      RuntimeMaxSec = "12h";
     };
     Install = {
       WantedBy = [ "default.target" ];
