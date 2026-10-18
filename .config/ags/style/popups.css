@@ -556,3 +556,107 @@
   color: @on_primary;
   font-weight: 700;
 }
+
+.toast-window {
+  background: transparent;
+}
+
+.notification {
+  background: alpha(@surface_container_high, 0.6);
+  border-radius: 20px;
+  padding: 12px 12px 12px 14px;
+  transition: background 150ms ease;
+}
+
+.notification:hover {
+  background: @surface_container_highest;
+}
+
+.notification.toast {
+  background: alpha(@surface_container, 0.96);
+  border: 1px solid alpha(@outline_variant, 0.55);
+  border-radius: 24px;
+  padding: 14px 14px 14px 16px;
+  margin: 0 4px;
+}
+
+.notification.toast:hover {
+  background: @surface_container_high;
+}
+
+.notification.critical {
+  border: 1px solid @error;
+}
+
+.notification .app-icon {
+  border-radius: 12px;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.notification .app-icon.glyph {
+  background: @primary_container;
+}
+
+.notification .app-icon.glyph .icon {
+  color: @on_primary_container;
+  margin: 0 9px;
+  font-size: 22px;
+}
+
+.notification.critical .app-icon.glyph {
+  background: @error_container;
+}
+
+.notification.critical .app-icon.glyph .icon {
+  color: @on_error_container;
+}
+
+.n-app {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: @on_surface_variant;
+}
+
+.n-time {
+  font-size: 11.5px;
+  color: alpha(@on_surface_variant, 0.75);
+}
+
+.n-summary {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.n-body {
+  font-size: 12.5px;
+  color: @on_surface_variant;
+}
+
+.n-close {
+  min-width: 26px;
+  min-height: 26px;
+  margin: -4px -4px 0 0;
+  opacity: 0.55;
+}
+
+.n-close .icon {
+  font-size: 16px;
+}
+
+.notification:hover .n-close {
+  opacity: 1;
+}
+
+.n-image {
+  border-radius: 14px;
+  margin-top: 8px;
+}
+
+.n-actions {
+  margin-top: 8px;
+}
+
+.n-actions .button {
+  padding: 7px 12px;
+}
