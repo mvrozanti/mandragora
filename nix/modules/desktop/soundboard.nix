@@ -70,10 +70,12 @@ in
         args = {
           "node.description" = "Mic to VirtualMic";
           "capture.props" = {
+            "node.passive" = true;
             "node.name" = "capture.mic_to_virtmic";
             "target.object" = "alsa_input.pci-0000_10_00.6.analog-stereo";
           };
           "playback.props" = {
+            "node.passive" = true;
             "node.name" = "playback.mic_to_virtmic";
             "media.class" = "Stream/Output/Audio";
             "target.object" = "VirtualMicBus";
@@ -86,11 +88,13 @@ in
         args = {
           "node.description" = "Soundboard to VirtualMic";
           "capture.props" = {
+            "node.passive" = true;
             "node.name" = "capture.sb_to_virtmic";
             "target.object" = "Soundboard";
             "stream.capture.sink" = true;
           };
           "playback.props" = {
+            "node.passive" = true;
             "node.name" = "playback.sb_to_virtmic";
             "media.class" = "Stream/Output/Audio";
             "target.object" = "VirtualMicBus";
@@ -102,11 +106,13 @@ in
         args = {
           "node.description" = "VirtualMic source";
           "capture.props" = {
+            "node.passive" = true;
             "node.name" = "capture.bus_to_virtmic";
             "target.object" = "VirtualMicBus";
             "stream.capture.sink" = true;
           };
           "playback.props" = {
+            "node.passive" = true;
             "node.name" = "VirtualMic";
             "node.description" = "VirtualMic";
             "media.class" = "Audio/Source";
@@ -122,11 +128,13 @@ in
         args = {
           "node.description" = "Soundboard to Speakers";
           "capture.props" = {
+            "node.passive" = true;
             "node.name" = "capture.sb_to_speakers";
             "target.object" = "Soundboard";
             "stream.capture.sink" = true;
           };
           "playback.props" = {
+            "node.passive" = true;
             "node.name" = "playback.sb_to_speakers";
             "media.class" = "Stream/Output/Audio";
           };
