@@ -337,6 +337,15 @@ if [ "$MODE" = worktree ]; then
   if git -C "$FLAKE" merge-base --is-ancestor "$MASTER_HEAD" refs/remotes/origin/master 2>/dev/null; then
     BUILD_BASE=$(git -C "$FLAKE" rev-parse refs/remotes/origin/master)
   fi
+  RUNNING_REV=$(cat /run/current-system/git-revision 2>/dev/null || true)
+  case "$RUNNING_REV" in "" | dirty | *-dirty) RUNNING_REV="" ;; esac
+  if [ -n "$RUNNING_REV" ] && git -C "$WT" cat-file -e "$RUNNING_REV^{commit}" 2>/dev/null \
+     && [ -n "$(git -C "$WT" cherry "$BUILD_BASE" "$RUNNING_REV" 2>/dev/null | grep '^+')" ]; then
+    echo "==> Running generation has commit(s) not yet on master; folding them in so they land instead of being dropped:"
+    git -C "$WT" cherry "$BUILD_BASE" "$RUNNING_REV" 2>/dev/null | sed -n 's/^+ //p' \
+      | while IFS= read -r c; do git -C "$WT" log --oneline -1 "$c" 2>/dev/null | sed 's/^/      /'; done
+    BUILD_BASE="$RUNNING_REV"
+  fi
   if ! git -C "$WT" merge-base --is-ancestor "$BUILD_BASE" HEAD; then
     if [ -n "$(git -C "$WT" status --porcelain --untracked-files=no)" ]; then
       warn_unbuilt "$(git -C "$WT" merge-base "$BUILD_BASE" HEAD)" "$BUILD_BASE"
