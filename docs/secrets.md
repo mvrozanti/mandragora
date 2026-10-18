@@ -23,7 +23,18 @@ encrypted to that one identity, with no per-file configuration.
 | Private identity | `/persistent/secrets/keys.txt` (root, `0600`, desktop only) |
 | Nix wiring | `nix/modules/core/secrets.nix` (`sops.age.keyFile`) |
 | Reference syntax | `config.sops.secrets."<path>".path` |
-| Edit wrapper | `.local/bin/sss.sh` (wraps `sudo sops`) |
+| Edit wrapper | `.local/bin/sss.sh` (wraps `sudo sops`; asks the operator password) |
+| Automation decrypt | `mandragora-sops-decrypt <in> <out> <file>` (the only passwordless sops path) |
+
+`sops` itself is **not** passwordless under sudo. Root `sops` can run
+commands (`exec-env`, `exec-file`, the editor behind `sops edit`), so a
+passwordless rule for it was root for any process running as `m`.
+Automation that needs plaintext, such as `sync-env.sh`, calls
+`sudo -n mandragora-sops-decrypt`, which can only decrypt. Its key is
+fixed, its environment is cleared, its types come from an allowlist, and
+the input is read as the calling user, so it cannot read a root-only
+file. Interactive editing is the operator's job and asks for the
+password.
 
 Secrets are slash-namespaced (`user/password`, `github/personal_access_token`,
 `perception/twitch_client_secret`, …). Run `sops filestatus` to confirm a
