@@ -81,7 +81,6 @@ in
     ../../modules/services/weather.nix
     ../../modules/services/filebrowser.nix
     ../../modules/services/rgb-control.nix
-    ../../modules/services/open-webui.nix
     ../../modules/services/ollama-context-proxy.nix
     ../../modules/services/gpu-status.nix
     ../../modules/services/status-snapshot.nix

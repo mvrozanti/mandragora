@@ -256,7 +256,7 @@ peripherals file).
 ### Services (`nix/modules/services/`)
 
 Self-hosted web and GPU-backed services that run on the desktop host —
-LLM/web frontends (`open-webui.nix`, `ollama-context-proxy.nix`,
+LLM/web frontends (`ollama-context-proxy.nix`,
 `llm-visualizer.nix`, `ttyd.nix`, `claude-web.nix`), media and misc web apps
 (`mympd.nix`, `ytdl-web.nix`, `meme-web.nix`, `emotion-web.nix`,
 `slither-io.nix`, `gource-renderer.nix`), and the

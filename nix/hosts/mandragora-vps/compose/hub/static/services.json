@@ -30,7 +30,7 @@
     { "name": "voice", "host": "voice.mvr.ac", "group": "media", "desc": "live voice morph · dsp + rvc", "access": "priv", "where": "vps" },
     { "name": "meme", "host": "meme.mvr.ac", "group": "media", "desc": "image tag runner · progress / restart", "access": "priv", "where": "vps" },
 
-    { "name": "chat", "host": "chat.mvr.ac", "group": "ai", "desc": "open-webui · local ollama", "access": "priv", "where": "desk" },
+    { "name": "chat", "host": "chat.mvr.ac", "group": "ai", "desc": "open-webui · local ollama", "access": "priv", "where": "vps" },
     { "name": "image gen", "host": "gen.mvr.ac", "group": "ai", "desc": "flux · prompt → image", "access": "priv", "where": "desk" },
     { "name": "claude", "host": "claude.mvr.ac", "group": "ai", "desc": "spawn tmux+claude · attach from app", "access": "priv", "where": "desk" },
     { "name": "lens", "host": "lens.mvr.ac", "group": "ai", "desc": "cc-lens · claude code usage", "access": "priv", "where": "desk" },
