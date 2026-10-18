@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta, timezone
 
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -12,6 +12,8 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 GITHUB_USER = os.environ.get("GITHUB_USER", "mvrozanti")
 CACHE_TTL = int(os.environ.get("CACHE_TTL_SECONDS", "3600"))
+THEME_UPSTREAM = os.environ.get("THEME_UPSTREAM", "http://host.docker.internal:6684/api/theme")
+THEME_TTL = int(os.environ.get("THEME_TTL_SECONDS", "5"))
 ALLOWED_ORIGINS = os.environ.get(
     "ALLOWED_ORIGINS",
     "https://mvr.ac,https://www.mvr.ac,https://mvrozanti.github.io",
@@ -26,11 +28,29 @@ app.add_middleware(
 )
 
 _cache: dict[str, tuple[float, list]] = {}
+_theme: tuple[float, bytes] | None = None
 
 
 @app.get("/healthz")
 def healthz():
     return {"ok": True}
+
+
+@app.get("/theme")
+async def theme():
+    global _theme
+    now = datetime.now(timezone.utc).timestamp()
+    if _theme and now - _theme[0] < THEME_TTL:
+        return Response(content=_theme[1], media_type="application/json", headers={"Cache-Control": "no-store"})
+    try:
+        async with httpx.AsyncClient(timeout=3) as client:
+            r = await client.get(THEME_UPSTREAM, params={"colors": "1"})
+    except httpx.HTTPError:
+        raise HTTPException(status_code=503, detail="desktop palette offline")
+    if r.status_code != 200:
+        raise HTTPException(status_code=502, detail=f"palette upstream {r.status_code}")
+    _theme = (now, r.content)
+    return Response(content=r.content, media_type="application/json", headers={"Cache-Control": "no-store"})
 
 
 @app.get("/contributions")

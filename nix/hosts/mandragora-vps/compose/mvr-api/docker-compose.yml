@@ -14,6 +14,9 @@ services:
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://mvr.ac,https://www.mvr.ac,https://mvrozanti.github.io}
     networks:
       - seafile-net
+      - tailnet-fwd
+    extra_hosts:
+      - "host.docker.internal:172.18.0.1"
     labels:
       caddy: https://api.${MVR_AC:-mvr.ac}
       caddy.header.Strict-Transport-Security: max-age=31536000;includeSubDomains
@@ -39,4 +42,6 @@ services:
 
 networks:
   seafile-net:
+    external: true
+  tailnet-fwd:
     external: true
