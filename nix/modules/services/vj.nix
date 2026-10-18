@@ -24,12 +24,15 @@ in
     systemd = {
       description =
         "vj rater core (tailnet bind, public via Caddy at vj.mvr.ac). "
-        + "Serves trials (an analysed 8-bar window, one of ten media, a "
-        + "weight mix over ten rhythm readings) that the browser draws live, "
-        + "cuts each audio excerpt on demand, stores the three-axis "
-        + "judgements, retrains the per-axis critic every five from twenty, "
-        + "steers the next mixes, media knobs and medium choice, and serves "
-        + "/insight. No GPU work: the engine clip worker is off by default.";
+        + "Serves duels at / (two versions of the creature's code on the "
+        + "same analysed 8-bar window, mix and knobs; one answer ranks the "
+        + "lineage), the single-picture rater at /rate (one of ten media, a "
+        + "weight mix over ten rhythm readings, three-axis judgements that "
+        + "retrain the per-axis critic every five from twenty and steer the "
+        + "next mixes, knobs and medium), the motion gate at /motion that "
+        + "refuses a child genome which only changes shading, and /insight. "
+        + "Cuts each audio excerpt on demand. No GPU work: the engine clip "
+        + "worker is off by default.";
       after = [ "network.target" ];
       wantedBy = [ "default.target" ];
       serviceConfig = {
