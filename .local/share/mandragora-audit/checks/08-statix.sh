@@ -3,22 +3,18 @@ set -uo pipefail
 
 CHECK="${AUDIT_NAME:-statix}"
 
-# statix: AST-based Nix antipattern lint (oppiliappan/statix). Scoped to
-# changed .nix files so pre-existing findings in untouched files never block.
-# Lint config (disabled rules) lives in statix.toml at the repo root.
-# Most findings auto-fix with: statix fix <file>
-#
-# Unparseable files (substituteAll templates with @PLACEHOLDER@ markers) are
-# skipped: statix reports them as severity E code 0, and syntax is already
-# enforced by the build, not by this lint.
-
 mapfile -t FILES < <(audit_changed_files | grep -E '\.nix$' || true)
 [ "${#FILES[@]}" -eq 0 ] && { audit_pass "$CHECK" "no .nix changes"; exit 0; }
 
+REPORTS=$(mktemp -d)
+trap 'rm -rf "$REPORTS"' EXIT
+for i in "${!FILES[@]}"; do
+  [ -f "${FILES[$i]}" ] && printf '%s\0%s\0' "$i" "${FILES[$i]}"
+done | xargs -0 -r -n2 -P"$(nproc)" bash -c 'statix check -o errfmt "$2" >"$0/$1" 2>/dev/null; exit 0' "$REPORTS"
+
 violations=0
-for f in "${FILES[@]}"; do
-  [ -f "$f" ] || continue
-  out=$(statix check -o errfmt "$f" 2>/dev/null || true)
+for i in "${!FILES[@]}"; do
+  out=$(cat "$REPORTS/$i" 2>/dev/null)
   [ -n "$out" ] || continue
   printf '%s\n' "$out" | grep -q ':E:0:' && continue
   while IFS= read -r line; do

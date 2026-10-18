@@ -208,7 +208,15 @@ of one local checkout of this repo, named by a single `--flake
   cherry`), so a rebase of the live commit passes.
 
 It then builds that exact commit (`git+file://<tree>?rev=<sha>`), so an
-edit made during the build cannot slip in. Everything outside that set
+edit made during the build cannot slip in. For the activating three it
+builds **as the checkout's owner**, not as root, and hands root only
+the result: `nixos-rebuild <action> --no-reexec --store-path <built
+path>`, with the path held by a temporary GC root until activation
+ends. Root's evaluation cache is separate from the owner's and so was
+cold on every switch, about 40 s of evaluation and git fetching that
+`mandragora-switch`'s pre-flight had already done as the owner. The
+`--store-path` the guard passes itself is not a loophole: a
+caller-supplied one is still refused below. Everything outside that set
 is refused: `repl`, `edit`, `dry-activate`, `--rollback`, a second
 `--flake` (including the `-F` alias), `--store-path`, `--impure`,
 `--option`, `--override-input`, `-I`, non-flake builds and remote flake
