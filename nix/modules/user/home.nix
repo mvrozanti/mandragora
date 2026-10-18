@@ -41,6 +41,7 @@ in
     ./btc-menu.nix
     ./rss-menu.nix
     ./ea-reaper.nix
+    ./gl-fallback-watch.nix
     ./calibre-reaper.nix
     ./security-menu.nix
     ./weather-menu.nix
