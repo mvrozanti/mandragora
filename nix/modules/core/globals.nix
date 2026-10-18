@@ -97,7 +97,29 @@
     dmidecode
     iotop
     dnsmasq
-    texliveFull
+    (texlive.withPackages (
+      ps: with ps; [
+        scheme-small
+        latexmk
+        biber
+        biblatex
+        changepage
+        dashrule
+        enumitem
+        environ
+        fontawesome
+        ifmtarg
+        logreq
+        multirow
+        tcolorbox
+        tikzfill
+        titlesec
+        trimspaces
+        academicons
+        babel-portuges
+        lato
+      ]
+    ))
     sqlite
     postgresql
   ];
