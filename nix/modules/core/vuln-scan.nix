@@ -89,6 +89,7 @@ in
     description = "Mandragora CVE scan against current system closure";
     serviceConfig = {
       Type = "oneshot";
+      ExecStartPre = "${pkgs.coreutils}/bin/sleep 300";
       ExecStart = "${cveScan}/bin/cve-scan";
       TimeoutStartSec = "30min";
       Nice = 19;
