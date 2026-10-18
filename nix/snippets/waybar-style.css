@@ -119,7 +119,7 @@ tooltip {
 
 #custom-network {
     padding: 0 8px;
-    min-width: 180px;
+    min-width: 140px;
 }
 
 #custom-network.disconnected {
