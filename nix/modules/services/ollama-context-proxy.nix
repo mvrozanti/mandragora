@@ -14,7 +14,7 @@ in
     wantedBy = [ "multi-user.target" ];
     environment = {
       OLLAMA_UPSTREAM = "http://127.0.0.1:11434";
-      LISTEN_HOST = "127.0.0.1";
+      LISTEN_HOST = "0.0.0.0";
       LISTEN_PORT = toString port;
       MVR_SYSTEM_PROMPT_FILE = "${systemPromptFile}";
     };
@@ -30,4 +30,6 @@ in
       NoNewPrivileges = true;
     };
   };
+
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ port ];
 }
