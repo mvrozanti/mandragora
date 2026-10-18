@@ -278,7 +278,8 @@
           format-alt = "  {:%Y-%m-%d %H:%M}";
           interval = 1;
           tooltip-format = "<tt>{calendar}</tt>";
-          on-click-right = "shell-popup calendar";
+          format-alt-click = "click-right";
+          on-click = "shell-popup calendar";
         };
 
         "custom/screencap" = {
