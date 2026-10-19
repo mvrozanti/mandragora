@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#13140d">
+<meta name="color-scheme" content="dark">
+<title>ytdl · mvr.ac</title>
+<link rel="stylesheet" href="/static/theme.css">
+<link rel="stylesheet" href="/static/components.css">
+<link rel="stylesheet" href="/static/ytdl.css">
+<script src="/static/theme.js" data-endpoint="/api/theme" data-poll="0"></script>
+</head>
+<body>
+<div class="yt">
+
+  <header class="mv-topbar">
+    <span class="mv-topbar__name">ytdl</span>
+    <span class="mv-topbar__count" id="count">audio or video from a link</span>
+    <span class="mv-topbar__user"><a href="https://hub.mvr.ac">hub</a></span>
+  </header>
+
+  <form id="grab" class="yt-grab" autocomplete="off" novalidate>
+    <div class="yt-url">
+      <input id="url" class="mv-input" type="text" inputmode="url" name="url" placeholder="paste a link" enterkeyhint="go" autocapitalize="off" spellcheck="false" aria-label="link to grab">
+      <button id="paste" class="mv-btn" type="button" hidden>paste</button>
+    </div>
+    <div class="yt-opts" role="group" aria-label="what to grab">
+      <button type="button" class="mv-chip" data-mode="audio" aria-pressed="true">audio</button>
+      <button type="button" class="mv-chip" data-mode="video" aria-pressed="false">video</button>
+      <span class="yt-opts__sep" aria-hidden="true"></span>
+      <button type="button" class="mv-chip" id="device" aria-pressed="false">to this device</button>
+    </div>
+    <p class="mv-field__hint yt-hint" id="hint" aria-live="polite"></p>
+    <button class="mv-btn is-primary yt-go" id="go" type="submit">grab</button>
+  </form>
+
+  <section id="active" class="mv-group" hidden>
+    <div class="mv-group__head">
+      <h2 class="mv-label">active</h2>
+      <span class="mv-group__rule"></span>
+      <span class="mv-group__count" id="active-count"></span>
+    </div>
+    <ul class="yt-list" id="active-list"></ul>
+  </section>
+
+  <section class="mv-group">
+    <div class="mv-group__head">
+      <h2 class="mv-label">history</h2>
+      <span class="mv-group__rule"></span>
+      <span class="mv-group__count" id="history-count"></span>
+    </div>
+    <div id="history"><p class="mv-empty">loading</p></div>
+  </section>
+
+  <footer class="mv-footer">
+    <span>ytdl.mvr.ac</span>
+    <span>audio → ~/Music · video → ~/Videos</span>
+    <span><a href="https://hub.mvr.ac">hub</a></span>
+  </footer>
+
+</div>
+
+<aside id="dock" class="yt-dock" hidden aria-label="player">
+  <div class="yt-dock__inner">
+    <div class="yt-dock__head">
+      <div class="yt-dock__title"><b id="dock-title"></b><span id="dock-sub"></span></div>
+      <button class="mv-btn yt-icon" id="dock-close" type="button" aria-label="close player">×</button>
+    </div>
+    <audio id="dock-audio" controls preload="metadata"></audio>
+    <video id="dock-video" class="mv-media" controls playsinline preload="metadata" hidden></video>
+  </div>
+</aside>
+
+<script src="/static/ytdl.js"></script>
+</body>
+</html>
