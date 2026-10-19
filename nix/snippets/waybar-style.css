@@ -149,39 +149,39 @@ tooltip {
     border-bottom: 2px solid @color8;
 }
 
-#custom-btc {
+#custom-money {
     padding: 0 8px;
 }
 
-#custom-btc.fresh {
+#custom-money.fresh {
     color: @color3;
 }
 
-#custom-btc.up {
+#custom-money.up {
     color: @color3;
-    animation: btc-flash-up 2.5s ease-out;
+    animation: money-flash-up 2.5s ease-out;
 }
 
-#custom-btc.down {
+#custom-money.down {
     color: @color3;
-    animation: btc-flash-down 2.5s ease-out;
+    animation: money-flash-down 2.5s ease-out;
 }
 
-@keyframes btc-flash-up {
+@keyframes money-flash-up {
     from { color: #22c55e; }
     to   { color: @color3; }
 }
 
-@keyframes btc-flash-down {
+@keyframes money-flash-down {
     from { color: #ef4444; }
     to   { color: @color3; }
 }
 
-#custom-btc.stale {
+#custom-money.stale {
     color: @color1;
 }
 
-#custom-btc.error {
+#custom-money.error {
     color: @color8;
 }
 

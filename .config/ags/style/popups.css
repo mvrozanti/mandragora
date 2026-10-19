@@ -195,29 +195,29 @@
   min-height: 6px;
 }
 
-.btc-hero {
+.money-hero {
   background: linear-gradient(135deg, @tertiary_container, @primary_container);
   border-radius: 24px;
   padding: 18px 20px;
   margin-bottom: 10px;
 }
 
-.btc-hero label {
+.money-hero label {
   color: @on_tertiary_container;
 }
 
-.btc-amount {
+.money-amount {
   font-size: 32px;
   font-weight: 600;
   margin: 2px 0 4px 0;
 }
 
-.btc-others label {
+.money-others label {
   font-size: 12px;
   opacity: 0.85;
 }
 
-.btc-others label:not(:last-child) {
+.money-others label:not(:last-child) {
   margin-right: 10px;
 }
 

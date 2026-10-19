@@ -16,6 +16,7 @@ in
     ../../modules/core/graphics.nix
     ../../modules/core/secrets.nix
     ../../modules/core/binance.nix
+    ../../modules/core/evm-wallet.nix
     ../../modules/core/sops-decrypt.nix
     ../../modules/core/gen-prune.nix
     ../../modules/core/user-password-guard.nix
