@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import mimetypes
 import os
 import re
 import shutil
@@ -16,6 +17,7 @@ from urllib.parse import parse_qs, urlparse, quote
 HOST = os.environ.get("YTDL_HOST", "0.0.0.0")
 PORT = int(os.environ.get("YTDL_PORT", "6685"))
 MUSIC_DIR = Path(os.environ.get("YTDL_MUSIC_DIR", os.path.expanduser("~/Music")))
+VIDEO_DIR = Path(os.environ.get("YTDL_VIDEO_DIR", os.path.expanduser("~/Videos")))
 TMP_DIR = os.environ.get("YTDL_TMP_DIR", "/tmp/ytdl-web")
 YT_DLP = os.environ.get("YTDL_YT_DLP", shutil.which("yt-dlp") or "yt-dlp")
 FFMPEG_LOCATION = os.environ.get("YTDL_FFMPEG_LOCATION", "")
@@ -23,6 +25,13 @@ CLAUDE_BIN = os.environ.get("YTDL_CLAUDE", shutil.which("claude") or "claude")
 TAG_MODEL = os.environ.get("YTDL_TAG_MODEL", "haiku")
 JOB_TTL = int(os.environ.get("YTDL_JOB_TTL", "86400"))
 MAX_JOBS = 200
+MODES = ("audio", "video")
+MODE_ARGS = {
+    "audio": ["--extract-audio", "--audio-format", "mp3"],
+    "video": ["-t", "mp4"],
+}
+MODE_DIRS = {"audio": MUSIC_DIR, "video": VIDEO_DIR}
+FILEPATH_MARK = "ytdl-web:filepath="
 
 TAG_SCHEMA = '{"type":"object","properties":{"title":{"type":"string"},"artist":{"type":"string"}},"required":["title","artist"]}'
 TAG_PROMPT = (
@@ -42,12 +51,13 @@ def now():
     return time.time()
 
 
-def make_job(url, to_client=False):
+def make_job(url, to_client=False, mode="audio"):
     jid = uuid.uuid4().hex[:12]
     job = {
         "id": jid,
         "url": url,
         "to_client": to_client,
+        "mode": mode,
         "status": "queued",
         "started": now(),
         "finished": None,
@@ -76,7 +86,7 @@ def _cleanup_job(job):
         except OSError:
             pass
     d = job.get("dir")
-    if d and d != str(MUSIC_DIR):
+    if d and d not in {str(x) for x in MODE_DIRS.values()}:
         try:
             Path(d).rmdir()
         except OSError:
@@ -153,7 +163,7 @@ def tag_mp3(job):
 
 def run_yt_dlp(job):
     job["status"] = "running"
-    outdir = Path(TMP_DIR) / job["id"] if job.get("to_client") else MUSIC_DIR
+    outdir = Path(TMP_DIR) / job["id"] if job.get("to_client") else MODE_DIRS[job["mode"]]
     outdir.mkdir(parents=True, exist_ok=True)
     job["dir"] = str(outdir)
     cmd = [
@@ -163,8 +173,9 @@ def run_yt_dlp(job):
         "--no-color",
         "--newline",
         "--progress",
-        "--extract-audio",
-        "--audio-format", "mp3",
+        "--no-quiet",
+        "-O", f"after_move:{FILEPATH_MARK}%(filepath)s",
+        *MODE_ARGS[job["mode"]],
         "-o", str(outdir / "%(title)s.%(ext)s"),
     ]
     if FFMPEG_LOCATION:
@@ -181,21 +192,19 @@ def run_yt_dlp(job):
         )
         for line in proc.stdout:
             line = line.rstrip()
+            if line.startswith(FILEPATH_MARK):
+                job["filename"] = os.path.basename(line[len(FILEPATH_MARK):])
+                continue
             job["log"].append(line)
-            m = re.search(r"\[ExtractAudio\] Destination: (.+)$", line)
-            if m:
-                job["filename"] = os.path.basename(m.group(1))
-            m = re.search(r"\[download\] Destination: (.+)$", line)
-            if m and not job["filename"]:
-                job["filename"] = os.path.basename(m.group(1))
         rc = proc.wait()
         job["exit_code"] = rc
         if rc == 0:
-            job["status"] = "tagging"
-            try:
-                tag_mp3(job)
-            except Exception as exc:
-                job["log"].append(f"tag: unexpected error: {exc!r}")
+            if job["mode"] == "audio":
+                job["status"] = "tagging"
+                try:
+                    tag_mp3(job)
+                except Exception as exc:
+                    job["log"].append(f"tag: unexpected error: {exc!r}")
             job["status"] = "done"
             if job.get("to_client") and job.get("filename"):
                 p = Path(job["dir"]) / job["filename"]
@@ -212,8 +221,8 @@ def run_yt_dlp(job):
         gc_jobs()
 
 
-def start_job(url, to_client=False):
-    job = make_job(url, to_client)
+def start_job(url, to_client=False, mode="audio"):
+    job = make_job(url, to_client, mode)
     t = threading.Thread(target=run_yt_dlp, args=(job,), daemon=True)
     t.start()
     return job
@@ -247,12 +256,15 @@ input[type=url]:focus { border-color:var(--accent); }
 button { background:var(--panel); border:1px solid var(--accent); color:var(--accent); padding:0.7rem 1.2rem; font:inherit; cursor:pointer; letter-spacing:0.08em; text-transform:uppercase; font-size:0.78rem; }
 button:hover { background:var(--hover); }
 .hint { font-size:0.72rem; color:var(--dim); margin-bottom:1.4rem; }
-.toc { display:flex; gap:0.5rem; align-items:center; font-size:0.78rem; color:var(--fg); margin-bottom:0.6rem; cursor:pointer; }
-.toc input { accent-color:var(--accent); }
+.opts { display:flex; gap:1.2rem; flex-wrap:wrap; align-items:center; margin-bottom:0.6rem; }
+.opts label { display:flex; gap:0.45rem; align-items:center; font-size:0.78rem; color:var(--fg); cursor:pointer; }
+.opts input { accent-color:var(--accent); }
 .job .dl { color:var(--accent); text-decoration:underline; }
 .job .frow { display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; }
 .job .fname { font-size:0.78rem; color:var(--dim); word-break:break-all; }
 .job audio { width:100%; height:2.4rem; margin-top:0.2rem; }
+.job video { width:100%; max-height:70vh; margin-top:0.2rem; background:#000; }
+.job .time { color:var(--dim); font-size:0.7rem; }
 ul.jobs { list-style:none; display:flex; flex-direction:column; gap:0.5rem; }
 li.job { background:var(--panel); border:1px solid var(--line); padding:0.7rem 0.9rem; display:flex; flex-direction:column; gap:0.35rem; }
 .job .head { display:flex; gap:0.6rem; align-items:baseline; flex-wrap:wrap; }
@@ -270,39 +282,56 @@ li.job { background:var(--panel); border:1px solid var(--line); padding:0.7rem 0
 footer { margin-top:2rem; padding-top:1rem; border-top:1px solid var(--line); color:var(--dim); font-size:0.7rem; display:flex; justify-content:space-between; }
 footer a { color:var(--accent); text-decoration:none; }
 </style></head><body><div class="wrap">
-<h1>ytdl · download to ~/Music</h1>
+<h1>ytdl · download</h1>
 <form id="f">
 <input id="u" type="url" name="url" placeholder="https://..." required autofocus>
 <button type="submit">grab</button>
 </form>
-<label class="toc"><input id="toc" type="checkbox"> to this device (play / save)</label>
-<div class="hint">yt-dlp → mp3 → <code>~/Music/%(title)s.mp3</code> · checked = stream + save on this device, nothing lands in ~/Music</div>
+<div class="opts">
+<label><input type="radio" name="mode" value="audio" checked> audio</label>
+<label><input type="radio" name="mode" value="video"> video + audio</label>
+<label><input id="toc" type="checkbox"> to this device (play / save)</label>
+</div>
+<div class="hint">audio → <code>~/Music/%(title)s.mp3</code> · video → <code>~/Videos/%(title)s.mp4</code> · to this device = play + save here, nothing kept on the desktop · lock-screen listening: pick audio</div>
+<div id="empty" class="empty" hidden>no jobs yet</div>
 <ul id="jobs" class="jobs"></ul>
 <footer><a href="https://hub.mvr.ac">← hub</a><span>ytdl.mvr.ac</span></footer>
 </div>
 <script>
 const $jobs = document.getElementById('jobs');
+const $empty = document.getElementById('empty');
 const $f = document.getElementById('f');
 const $u = document.getElementById('u');
 const $toc = document.getElementById('toc');
+const $modes = [...document.querySelectorAll('input[name=mode]')];
+const PREFS = 'ytdl-web:prefs';
+try {
+  const saved = JSON.parse(localStorage.getItem(PREFS) || '{}');
+  if (typeof saved.to_client === 'boolean') $toc.checked = saved.to_client;
+  const m = $modes.find(x => x.value === saved.mode);
+  if (m) m.checked = true;
+} catch (e) {}
+const mode = () => ($modes.find(x => x.checked) || $modes[0]).value;
+const savePrefs = () => { try { localStorage.setItem(PREFS, JSON.stringify({mode: mode(), to_client: $toc.checked})); } catch (e) {} };
+$toc.addEventListener('change', savePrefs);
+$modes.forEach(x => x.addEventListener('change', savePrefs));
 $f.addEventListener('submit', async (e) => {
   e.preventDefault();
   const url = $u.value.trim();
   if (!url) return;
   $u.disabled = true;
   try {
-    const r = await fetch('/api/download', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({url, to_client: $toc.checked})});
+    const r = await fetch('/api/download', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({url, mode: mode(), to_client: $toc.checked})});
     if (!r.ok) throw new Error(await r.text());
     $u.value = '';
     await refresh();
   } catch (err) { alert(err.message || err); }
   finally { $u.disabled = false; $u.focus(); }
 });
-function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtTime(t){ if(!t) return ''; const d=new Date(t*1000); return d.toLocaleTimeString(); }
 document.addEventListener('play', (e) => {
   const a = e.target;
-  if (!a || a.tagName !== 'AUDIO' || !('mediaSession' in navigator)) return;
+  if (!a || !(a instanceof HTMLMediaElement) || !('mediaSession' in navigator)) return;
   const title = a.dataset.title || a.dataset.artist || 'ytdl';
   const artist = a.dataset.artist || '';
   navigator.mediaSession.metadata = new MediaMetadata({ title, artist, album: 'ytdl.mvr.ac' });
@@ -310,25 +339,72 @@ document.addEventListener('play', (e) => {
   navigator.mediaSession.setActionHandler('pause', () => a.pause());
   navigator.mediaSession.setActionHandler('seekbackward', (d) => { a.currentTime = Math.max(0, a.currentTime - (d.seekOffset || 10)); });
   navigator.mediaSession.setActionHandler('seekforward', (d) => { a.currentTime += (d.seekOffset || 10); });
+  navigator.mediaSession.setActionHandler('seekto', (d) => { a.currentTime = d.seekTime; });
 }, true);
+function el(tag, cls, text){
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+function setText(e, text){
+  if (e.textContent !== text) e.textContent = text;
+  e.hidden = !text;
+}
+function build(j){
+  const li = el('li', 'job');
+  const head = el('div', 'head');
+  li.$tag = el('span', 'tag');
+  head.append(li.$tag, el('span', 'url', j.url), el('span', 'time', fmtTime(j.started)));
+  li.$file = el('div', 'file');
+  li.$meta = el('div', 'meta');
+  li.$tail = el('div', 'tail');
+  li.append(head, li.$file, li.$meta, li.$tail);
+  return li;
+}
+function attachFile(li, j){
+  const row = el('div', 'frow');
+  const save = el('a', 'dl', '↓ save');
+  save.href = `/api/jobs/${j.id}/file`;
+  save.download = '';
+  row.append(save, el('span', 'fname', j.filename));
+  li.$file.replaceChildren(row);
+  if (j.to_client) {
+    const m = el(j.mode === 'video' ? 'video' : 'audio');
+    m.controls = true;
+    m.preload = 'metadata';
+    m.playsInline = true;
+    m.dataset.title = j.title || j.filename || '';
+    m.dataset.artist = j.artist || '';
+    m.src = `/api/jobs/${j.id}/stream`;
+    li.$file.append(m);
+  }
+  li.$file.hidden = false;
+  li.attached = true;
+}
+function patch(li, j){
+  li.$tag.className = `tag ${j.status}`;
+  setText(li.$tag, j.status);
+  if (j.has_file && !li.attached) attachFile(li, j);
+  else if (!li.attached) setText(li.$file, j.filename || '');
+  setText(li.$meta, j.artist && j.title ? `♪ ${j.artist} — ${j.title}` : '');
+  setText(li.$tail, (j.log_tail || []).join('\\n'));
+}
+const nodes = new Map();
 async function refresh(){
   try {
     const r = await fetch('/api/jobs', {cache:'no-store'});
     if (!r.ok) return;
     const data = await r.json();
-    if (!data.length){ $jobs.innerHTML = '<div class="empty">no jobs yet</div>'; return; }
-    $jobs.innerHTML = data.map(j => `
-      <li class="job">
-        <div class="head">
-          <span class="tag ${j.status}">${j.status}</span>
-          <span class="url">${esc(j.url)}</span>
-          <span style="color:var(--dim);font-size:0.7rem">${fmtTime(j.started)}</span>
-        </div>
-        ${j.has_file ? `<div class="file"><div class="frow"><a class="dl" href="/api/jobs/${j.id}/file" download>↓ save</a><span class="fname">${esc(j.filename)}</span></div>${j.to_client ? `<audio controls preload="none" playsinline data-title="${esc(j.title||'')}" data-artist="${esc(j.artist||'')}" src="/api/jobs/${j.id}/stream"></audio>` : ''}</div>` : (j.filename ? `<div class="file">${esc(j.filename)}</div>` : '')}
-        ${j.artist && j.title ? `<div class="meta">♪ ${esc(j.artist)} — ${esc(j.title)}</div>` : ''}
-        ${j.log_tail && j.log_tail.length ? `<div class="tail">${esc(j.log_tail.join('\\n'))}</div>` : ''}
-      </li>
-    `).join('');
+    $empty.hidden = data.length > 0;
+    const live = new Set(data.map(j => j.id));
+    for (const [id, li] of nodes) if (!live.has(id)) { li.remove(); nodes.delete(id); }
+    data.forEach((j, i) => {
+      let li = nodes.get(j.id);
+      if (!li) { li = build(j); nodes.set(j.id, li); }
+      patch(li, j);
+      if ($jobs.children[i] !== li) $jobs.insertBefore(li, $jobs.children[i] || null);
+    });
   } catch (e) {}
 }
 refresh();
@@ -365,7 +441,8 @@ class Handler(BaseHTTPRequestHandler):
         path = Path(path)
         name = path.name
         size = path.stat().st_size
-        ascii_name = name.encode("ascii", "ignore").decode("ascii").replace('"', "") or "download.mp3"
+        ascii_name = name.encode("ascii", "ignore").decode("ascii").replace('"', "") or f"download{path.suffix}"
+        ctype = mimetypes.guess_type(name)[0] or "application/octet-stream"
         utf8_name = quote(name, safe="")
 
         start, end = 0, size - 1
@@ -390,7 +467,7 @@ class Handler(BaseHTTPRequestHandler):
         length = end - start + 1
 
         self.send_response(status)
-        self.send_header("Content-Type", "audio/mpeg")
+        self.send_header("Content-Type", ctype)
         self.send_header("Accept-Ranges", "bytes")
         if status == 206:
             self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
@@ -471,33 +548,40 @@ class Handler(BaseHTTPRequestHandler):
             ctype = self.headers.get("Content-Type", "")
             url = None
             to_client = False
+            mode = "audio"
             try:
                 if ctype.startswith("application/json"):
                     data = json.loads(raw.decode("utf-8"))
                     url = data.get("url")
                     to_client = bool(data.get("to_client"))
+                    mode = data.get("mode") or mode
                 else:
                     qs = parse_qs(raw.decode("utf-8"))
                     url = qs.get("url", [None])[0]
                     to_client = qs.get("to_client", ["0"])[0] in ("1", "true", "on")
+                    mode = qs.get("mode", [mode])[0]
             except Exception:
                 pass
             if not url or not URL_RE.match(url):
                 self._send_json(400, {"error": "invalid url"})
                 return
-            job = start_job(url, to_client)
+            if mode not in MODES:
+                self._send_json(400, {"error": f"mode must be one of {', '.join(MODES)}"})
+                return
+            job = start_job(url, to_client, mode)
             self._send_json(202, job_snapshot(job))
             return
         self.send_error(404)
 
 
 def main():
-    MUSIC_DIR.mkdir(parents=True, exist_ok=True)
+    for d in MODE_DIRS.values():
+        d.mkdir(parents=True, exist_ok=True)
     if not shutil.which(YT_DLP) and not os.path.isfile(YT_DLP):
         print(f"ytdl-web: yt-dlp not found at {YT_DLP}", file=sys.stderr)
         sys.exit(1)
     srv = ThreadingHTTPServer((HOST, PORT), Handler)
-    print(f"ytdl-web: listening on {HOST}:{PORT}, music -> {MUSIC_DIR}", flush=True)
+    print(f"ytdl-web: listening on {HOST}:{PORT}, audio -> {MUSIC_DIR}, video -> {VIDEO_DIR}", flush=True)
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
