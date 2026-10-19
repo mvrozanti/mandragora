@@ -5,7 +5,7 @@ import { applyTheme } from "./lib/theme"
 import { close, closeCurrent, names, open, toggle } from "./lib/popups"
 import { initNotifications, request as notificationRequest } from "./lib/notifications"
 import Toasts from "./widget/Toasts"
-import BtcPopup from "./popup/Btc"
+import MoneyPopup from "./popup/Money"
 import CalendarPopup from "./popup/Calendar"
 import CapturePopup from "./popup/Capture"
 import ClipboardPopup from "./popup/Clipboard"
@@ -22,7 +22,7 @@ const popups = [
   GpuPopup,
   NetworkPopup,
   WeatherPopup,
-  BtcPopup,
+  MoneyPopup,
   MonitorPopup,
   SecurityPopup,
   RssPopup,

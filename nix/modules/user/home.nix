@@ -38,7 +38,7 @@ in
     ./services.nix
     ./bots.nix
     ./waybar.nix
-    ./btc-menu.nix
+    ./money-menu.nix
     ./rss-menu.nix
     ./ea-reaper.nix
     ./gl-fallback-watch.nix
