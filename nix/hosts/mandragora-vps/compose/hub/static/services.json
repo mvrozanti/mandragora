@@ -25,7 +25,7 @@
     { "name": "torrent", "host": "torrent.mvr.ac", "group": "files", "desc": "transmission · one torrent at a time", "access": "priv", "where": "desk" },
 
     { "name": "mpd", "host": "mpd.mvr.ac", "group": "media", "desc": "myMPD · queue, library", "access": "priv", "where": "desk" },
-    { "name": "ytdl", "host": "ytdl.mvr.ac", "group": "media", "desc": "yt-dlp → ~/Music · mp3", "access": "priv", "where": "desk" },
+    { "name": "ytdl", "host": "ytdl.mvr.ac", "group": "media", "desc": "yt-dlp · mp3 or mp4 · desktop or phone", "access": "priv", "where": "desk" },
     { "name": "analyzer", "host": "music.mvr.ac", "group": "media", "desc": "one song, every modelable transmission", "access": "open", "where": "vps" },
     { "name": "voice", "host": "voice.mvr.ac", "group": "media", "desc": "live voice morph · dsp + rvc", "access": "priv", "where": "vps" },
     { "name": "meme", "host": "meme.mvr.ac", "group": "media", "desc": "image tag runner · progress / restart", "access": "priv", "where": "vps" },

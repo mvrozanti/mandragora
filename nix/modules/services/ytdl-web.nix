@@ -17,13 +17,14 @@ in
     port = 6685;
     userService = true;
     systemd = {
-      description = "ytdl.mvr.ac — yt-dlp web frontend, drops mp3s into ~/Music";
+      description = "ytdl.mvr.ac — yt-dlp web frontend, mp3s into ~/Music, mp4s into ~/Videos, or straight to the device";
       wantedBy = [ "default.target" ];
       after = [ "default.target" ];
       environment = {
         YTDL_HOST = "0.0.0.0";
         YTDL_PORT = "6685";
         YTDL_MUSIC_DIR = "/home/m/Music";
+        YTDL_VIDEO_DIR = "/home/m/Videos";
         YTDL_YT_DLP = "${pkgs.yt-dlp}/bin/yt-dlp";
         YTDL_FFMPEG_LOCATION = "${pkgs.ffmpeg}/bin";
         YTDL_CLAUDE = "${pkgs.claude-code}/bin/claude";
