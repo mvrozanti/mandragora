@@ -192,7 +192,9 @@ export default function MoneyPopup() {
             {(v: Venue) => (
               <box orientation={Gtk.Orientation.VERTICAL} spacing={2}>
                 <SectionLabel label={v.label.toUpperCase()}>
-                  {venueState(v) !== "" && <Chip label={venueState(v)} class={v.missing ? "error" : "quiet"} />}
+                  <box visible={venueState(v) !== ""}>
+                    <Chip label={venueState(v)} class={v.missing ? "error" : "quiet"} />
+                  </box>
                   <label
                     class="caption strong mono"
                     visible={!v.missing && v.holdings.length > 0}
