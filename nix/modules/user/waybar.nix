@@ -81,7 +81,7 @@
         "group/info" = {
           orientation = "horizontal";
           modules = [
-            "custom/btc"
+            "custom/money"
             "custom/weather"
             "clock"
             "custom/brightness"
@@ -308,14 +308,14 @@
           on-click-right = "weather-menu refresh";
         };
 
-        "custom/btc" = {
-          exec = "btc-menu waybar";
+        "custom/money" = {
+          exec = "money-menu waybar";
           return-type = "json";
           interval = 60;
           signal = 15;
           tooltip = true;
-          on-click = "shell-popup btc -- btc-menu pick";
-          on-click-right = "btc-menu cycle-unit";
+          on-click = "shell-popup money -- money-menu pick";
+          on-click-right = "money-menu cycle-unit";
         };
 
         tray = {
