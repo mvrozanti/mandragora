@@ -38,6 +38,8 @@ let
     rpcUser
     "--rpc-pass-file"
     config.sops.secrets."bitcoin/rpc_password".path
+    "--sqlite-cache-mb"
+    "12000"
   ];
 in
 {
@@ -56,7 +58,7 @@ in
   mandragora.hub.services.btc-flow-processor = {
     port = 8420;
     userService = true;
-    memoryMax = "8G";
+    memoryMax = "16G";
     systemd = {
       description = "btc-wealth-flow ingest and server for btc.mvr.ac: turns scan-node blocks into aggregates, prunes the scan node behind its commits, serves :8420";
       after = [ "btc-flow-scan.service" ];
