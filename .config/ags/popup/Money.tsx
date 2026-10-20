@@ -61,7 +61,7 @@ const qty = (n: number) =>
 const holdingIcon = (h: Holding) =>
   h.asset === "dust"
     ? "grain"
-    : /earn|lended|staked|vaults/.test(h.label)
+    : /earn|lended|staked|vaults|cdb/.test(h.label)
       ? "savings"
       : h.asset === "BTC"
         ? "currency_bitcoin"
