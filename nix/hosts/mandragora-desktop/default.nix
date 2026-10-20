@@ -23,6 +23,7 @@ in
     ../../modules/core/security.nix
     ../../modules/core/wifi.nix
     ../../modules/core/net-failover.nix
+    ../../modules/core/nic-eee.nix
     ../../modules/core/ai-local.nix
     ../../modules/core/monitoring.nix
     ../../modules/core/backup.nix
