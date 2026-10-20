@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import concurrent.futures
+import datetime
 from decimal import Decimal
 import hashlib
 import hmac
@@ -28,6 +29,7 @@ BINANCE_KEY_ENV = "MONEY_BINANCE_KEY_FILE"
 BINANCE_SECRET_ENV = "MONEY_BINANCE_SECRET_FILE"
 LENDED_ENV = "MONEY_LENDED_FILE"
 EVM_ADDRESS_ENV = "MONEY_EVM_ADDRESS_FILE"
+LENDED_CDB_ENV = "MONEY_LENDED_CDB_FILE"
 
 GAP_LIMIT = 20
 STALE_AFTER = 20 * 60
@@ -55,6 +57,7 @@ MEMPOOL_PRICES = "https://mempool.space/api/v1/prices"
 BLOCKSCOUT = "https://eth.blockscout.com/api/v2"
 BLOCKSCOUT_MAX_PAGES = 5
 HL_INFO = "https://api.hyperliquid.xyz/info"
+BCB_CDI = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados?formato=json"
 HYPEREVM_RPC = "https://rpc.hyperliquid.xyz/evm"
 BALANCE_OF = "0x70a08231"
 HYPEREVM_TOKENS = [
@@ -631,15 +634,53 @@ def fetch_hyperliquid(prices, address):
     return venue("hyperliquid", "Hyperliquid", holdings)
 
 
-def fetch_lended(prices):
-    path = os.environ.get(LENDED_ENV, "")
-    if not path:
-        return None
+def read_lended_btc(prices, path):
     try:
         sats = int(Path(path).read_text().strip())
     except (OSError, ValueError):
-        return venue("lended", "Lended", [holding("lended", "BTC", None, note="unset")])
-    return venue("lended", "Lended", [priced(prices, "lended", "BTC", sats / 1e8)])
+        return holding("lended", "BTC", None, note="unset")
+    return priced(prices, "lended", "BTC", sats / 1e8)
+
+
+def cdi_factor(since, percent):
+    today = datetime.date.today()
+    url = f"{BCB_CDI}&dataInicial={since:%d/%m/%Y}&dataFinal={today:%d/%m/%Y}"
+    for attempt in range(RETRIES):
+        try:
+            rows = http_json(url, timeout=20)
+            break
+        except FETCH_ERRORS:
+            if attempt == RETRIES - 1:
+                raise
+            time.sleep(2)
+    factor = Decimal(1)
+    for row in rows:
+        day = datetime.datetime.strptime(row["data"], "%d/%m/%Y").date()
+        if since <= day < today:
+            factor *= 1 + Decimal(row["valor"]) / 100 * Decimal(str(percent)) / 100
+    return factor
+
+
+def fetch_cdb(prices, terms):
+    since = datetime.date.fromisoformat(terms["since"])
+    percent = terms.get("cdi_percent", 100)
+    amount = float(Decimal(str(terms["principal_brl"])) * cdi_factor(since, percent))
+    label = f"cdb · {percent:g}% CDI since {since:%b %-d}"
+    return priced(prices, label, "BRL", amount)
+
+
+def fetch_lended(prices):
+    holdings = []
+    path = os.environ.get(LENDED_ENV, "")
+    if path:
+        holdings.append(read_lended_btc(prices, path))
+    cdb = read_secret(LENDED_CDB_ENV)
+    if cdb:
+        try:
+            holdings.append(fetch_cdb(prices, json.loads(cdb)))
+        except FETCH_ERRORS as error:
+            return venue("lended", "Lended", error=f"cdb: {error}")
+    return venue("lended", "Lended", holdings) if holdings else None
 
 
 def is_dust(entry):
@@ -661,7 +702,7 @@ def held_prices(venues, prices):
     for item in venues:
         for entry in item["holdings"]:
             asset = PRICE_ALIASES.get(entry["asset"].upper(), entry["asset"])
-            if entry["amount"] and entry["usd"] and asset != "dust" and asset.upper() not in STABLECOINS:
+            if entry["amount"] and entry["usd"] and asset not in ("dust", "BRL") and asset.upper() not in STABLECOINS:
                 price, value = held.get(asset, (entry["usd"] / entry["amount"], 0))
                 held[asset] = (price, value + entry["usd"])
     ranked = sorted(held.items(), key=lambda pair: (pair[0] != "BTC", -pair[1][1]))

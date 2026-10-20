@@ -18,6 +18,7 @@ let
       export MONEY_BINANCE_SECRET_FILE="${osConfig.sops.secrets."binance/secret_key".path}"
       export MONEY_LENDED_FILE="${osConfig.sops.secrets."bitcoin/lended_sats".path}"
       export MONEY_EVM_ADDRESS_FILE="${osConfig.sops.secrets."evm/address".path}"
+      export MONEY_LENDED_CDB_FILE="${osConfig.sops.secrets."lended/cdb".path}"
       exec ${pkgs.python3}/bin/python3 ${../../snippets/money-menu.py} "$@"
     '';
   };
