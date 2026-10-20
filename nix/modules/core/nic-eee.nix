@@ -9,7 +9,7 @@
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStart = "${pkgs.ethtool}/bin/ethtool --eee off enp8s0";
+      ExecStart = "${pkgs.ethtool}/bin/ethtool --set-eee enp8s0 eee off";
     };
   };
 }
