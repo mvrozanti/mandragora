@@ -7,7 +7,6 @@ _: {
         capslock = "esc";
         esc = "capslock";
       };
-      settings.altgr.a = "G-w";
     };
   };
 }
