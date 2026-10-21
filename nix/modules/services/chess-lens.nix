@@ -25,6 +25,7 @@ in
         ExecStart = "${launcher}";
         EnvironmentFile = "-%h/.config/chess-lens/admin.env";
         MemorySwapMax = "0";
+        CPUWeight = 20;
         Restart = "on-failure";
         RestartSec = "5s";
       };
