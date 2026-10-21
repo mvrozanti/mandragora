@@ -197,15 +197,12 @@
     Service = {
       Type = "simple";
       ExecStart = pkgs.writeShellScript "usb-watch-hyprland" ''
+        export HYPRLAND_INSTANCE_SIGNATURE="$(ls "$XDG_RUNTIME_DIR/hypr" 2>/dev/null | head -1)"
         ${pkgs.systemd}/bin/udevadm monitor --udev --subsystem-match=usb --property |
         while read -r line; do
             if [[ "$line" == *"add"* ]]; then
-                # Re-apply Hyprland keyboard settings
-                # Note: These should ideally match your hyprland.conf input block
                 ${pkgs.hyprland}/bin/hyprctl keyword input:repeat_rate 50
                 ${pkgs.hyprland}/bin/hyprctl keyword input:repeat_delay 300
-                ${pkgs.hyprland}/bin/hyprctl keyword input:kb_layout us
-                ${pkgs.hyprland}/bin/hyprctl keyword input:kb_variant intl
             fi
         done
       '';
