@@ -305,6 +305,8 @@ in
       builtins.readFile ../../../.local/bin/rofi-tool-picker.sh
     ))
     (pkgs.writeShellScriptBin "rofi-run" (builtins.readFile ../../../.local/bin/rofi-run.sh))
+    (pkgs.writeShellScriptBin "rofi-run-list" (builtins.readFile ../../../.local/bin/rofi-run-list.sh))
+    (pkgs.writeShellScriptBin "rofi-run-exec" (builtins.readFile ../../../.local/bin/rofi-run-exec.sh))
     (pkgs.writeShellScriptBin "rofi-db-picker" (
       builtins.readFile ../../../.local/bin/rofi-db-picker.sh
     ))

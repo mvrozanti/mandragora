@@ -1,8 +1,6 @@
 # ── Extra Zsh Configuration ──────────────────────────────────────
 
-# Apply matugen terminal palette (skip inside tmux: OSC 11 forces an opaque
-# pane background and breaks the terminal's transparency).
-if [[ -z "$TMUX" ]]; then
+if [[ -z "$TMUX" && -t 1 ]]; then
   (cat ~/.cache/matugen/sequences 2>/dev/null &)
 fi
 
@@ -212,8 +210,6 @@ _comma_translate() {
 }
 
 [ -f "$HOME/.local/bin/resty" ] && source "$HOME/.local/bin/resty" >/dev/null 2>&1
-
-eval "$(zoxide init zsh)"
 
 # Alt+Enter inserts a literal newline (compose multi-line commands without \).
 _mdg_alt_enter_newline() {
