@@ -37,8 +37,6 @@ let
     rpcUser
     "--rpc-pass-file"
     config.sops.secrets."bitcoin/rpc_password".path
-    "--sqlite-cache-mb"
-    "12000"
   ];
 in
 {
@@ -51,13 +49,17 @@ in
       Restart = "on-failure";
       RestartSec = "10s";
       TimeoutStopSec = "10min";
+      MemoryHigh = "2500M";
+      MemoryMax = "3G";
+      MemorySwapMax = "0";
+      CPUWeight = 20;
     };
   };
 
   mandragora.hub.services.btc-flow-processor = {
     port = 8420;
     userService = true;
-    memoryMax = "16G";
+    memoryMax = "9G";
     systemd = {
       description = "btc-wealth-flow ingest and server for btc.mvr.ac: turns scan-node blocks into aggregates, prunes the scan node behind its commits, serves :8420";
       after = [ "btc-flow-scan.service" ];
@@ -67,6 +69,9 @@ in
         ExecStart = execLine ([ "${repo}/result/bin/btc-wealth-flow" ] ++ processorArgs);
         Restart = "on-failure";
         RestartSec = "5s";
+        MemoryHigh = "7G";
+        MemorySwapMax = "0";
+        CPUWeight = 20;
       };
     };
   };
