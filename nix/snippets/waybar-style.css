@@ -456,6 +456,10 @@ tooltip {
     border-radius: 4px;
 }
 
+#bluetooth {
+    padding: 0 8px;
+}
+
 #custom-volume {
     padding: 0 8px;
     min-width: 80px;
