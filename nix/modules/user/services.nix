@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   services.mpd = {
@@ -29,7 +34,16 @@
     };
     Service = {
       Environment = "RUST_LOG=mpd_discord_rpc=info,discord_presence=off";
+      LogRateLimitIntervalSec = "1h";
+      LogRateLimitBurst = 20;
     };
+    Install.WantedBy = lib.mkForce [ ];
+  };
+
+  systemd.user.paths.mpd-discord-rpc = {
+    Unit.Description = "Start mpd-discord-rpc once a Discord client opens its IPC socket";
+    Path.PathExists = "%t/discord-ipc-0";
+    Install.WantedBy = [ "default.target" ];
   };
 
   # Transmission Daemon Service
