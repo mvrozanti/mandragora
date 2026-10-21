@@ -371,8 +371,10 @@ locally:
 - **Unit health (`nix/modules/core/unit-health.nix`)** — a global systemd
   drop-in, for system and user managers alike, gives every oneshot and
   timer- or path-triggered unit an `OnFailure=` Telegram page (once when it
-  starts failing, once when it recovers) and a success stamp under
-  `/persistent/unit-health` or `~/.local/state/unit-health`. A 15-minute user
+  starts failing, once when it recovers), pages a restarting daemon once it
+  has failed five times in ten minutes and hourly while it keeps looping, and
+  leaves a success stamp under `/persistent/unit-health` or
+  `~/.local/state/unit-health`. A 15-minute user
   timer publishes each timer's freshness to the VPS, where watch's
   `unit_health` source pages a job that has not succeeded within twice its
   schedule, or a host that stopped publishing. It exists because background

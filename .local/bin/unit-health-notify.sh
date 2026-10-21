@@ -28,6 +28,51 @@ human() {
   fi
 }
 
+loop_window=600
+loop_threshold=5
+loop_repeat=3600
+
+journal_tail() {
+  [ -n "${p[InvocationID]:-}" ] || return 0
+  journalctl "${scope[@]}" -u "$unit" --invocation="${p[InvocationID]}" \
+    -o cat --no-pager 2>/dev/null \
+    | grep -v -e "^$unit: " -e '^Failed to start ' -e '^Starting ' \
+    | tail -n 10 | cut -c1-300
+}
+
+status_hint() {
+  local where=""
+  [ "${scope[0]}" = --user ] && where=" --user"
+  printf 'systemctl%s status %s' "$where" "$unit"
+}
+
+looping() {
+  local f="$dir/$unit.looping" since="" count="" last="" paged=""
+  read -r since count last paged < "$f" 2>/dev/null || true
+  if [ -z "$last" ] || [ $((now - last)) -gt "$loop_window" ]; then
+    since=$now
+    count=0
+    paged=0
+  fi
+  count=$((${count:-0} + 1))
+  paged=${paged:-0}
+  local page=""
+  if [ "$count" -eq "$loop_threshold" ]; then
+    page="CRASH LOOP on $host: $unit failed $count times in $(human $((now - since))) (${p[Result]:-unknown}, exit ${p[ExecMainStatus]:-?})"
+  elif [ "$count" -gt "$loop_threshold" ] && [ $((now - paged)) -ge "$loop_repeat" ]; then
+    page="STILL LOOPING on $host: $unit, $count failures over $(human $((now - since)))"
+  fi
+  if [ -n "$page" ]; then
+    local tail
+    tail="$(journal_tail)"
+    [ -n "$tail" ] && page+=$'\n\n'"$tail"
+    page+=$'\n\n'"Pages again hourly while it keeps looping; nothing is sent when it settles. $(status_hint)"
+    telegram-notify "$page"
+    paged=$now
+  fi
+  printf '%s %s %s %s\n' "$since" "$count" "$now" "$paged" > "$f"
+}
+
 failed() {
   declare -A p=()
   local k v
@@ -38,6 +83,7 @@ failed() {
 
   local trig="${p[TriggeredBy]:-}"
   if [ "${p[Type]:-}" != oneshot ] && [[ $trig != *.timer* && $trig != *.path* ]]; then
+    looping
     exit 0
   fi
 
@@ -49,20 +95,12 @@ failed() {
   fi
   printf '%s 1 %s\n' "$now" "$now" > "$f"
 
-  local tail=""
-  if [ -n "${p[InvocationID]:-}" ]; then
-    tail="$(journalctl "${scope[@]}" -u "$unit" --invocation="${p[InvocationID]}" \
-      -o cat --no-pager 2>/dev/null \
-      | grep -v -e "^$unit: " -e '^Failed to start ' -e '^Starting ' \
-      | tail -n 10 | cut -c1-300)"
-  fi
-
-  local where=""
-  [ "${scope[0]}" = --user ] && where=" --user"
+  local tail
+  tail="$(journal_tail)"
   local msg
   msg="FAILED on $host: $unit (${p[Result]:-unknown}, exit ${p[ExecMainStatus]:-?})"
   [ -n "$tail" ] && msg+=$'\n\n'"$tail"
-  msg+=$'\n\n'"Quiet until it succeeds again. systemctl$where status $unit"
+  msg+=$'\n\n'"Quiet until it succeeds again. $(status_hint)"
   telegram-notify "$msg"
 }
 
