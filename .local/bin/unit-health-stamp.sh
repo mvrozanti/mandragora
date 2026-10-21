@@ -15,6 +15,7 @@ fi
 
 mkdir -p "$dir" 2>/dev/null || exit 0
 : > "$dir/$unit.ok" 2>/dev/null || exit 0
+rm -f "$dir/$unit.looping" 2>/dev/null
 
 if [ -e "$dir/$unit.failing" ]; then
   mv -f "$dir/$unit.failing" "$dir/$unit.recovered" 2>/dev/null || exit 0
