@@ -83,6 +83,7 @@ CACHE_DIR = STATE_HOME / "money-menu"
 LEGACY_DIR = STATE_HOME / "btc-menu"
 CACHE_FILE = CACHE_DIR / "cache.json"
 UNIT_FILE = CACHE_DIR / "unit"
+HIDDEN_FILE = CACHE_DIR / "hidden"
 LAST_FILE = CACHE_DIR / "last.json"
 CACHE_VERSION = 2
 ICON = "₿"
@@ -827,6 +828,21 @@ def write_unit(unit):
     UNIT_FILE.write_text(unit)
 
 
+def read_hidden():
+    try:
+        return HIDDEN_FILE.read_text().strip() == "1"
+    except (FileNotFoundError, OSError):
+        return False
+
+
+def write_hidden(hidden):
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    if hidden:
+        HIDDEN_FILE.write_text("1")
+    else:
+        HIDDEN_FILE.unlink(missing_ok=True)
+
+
 def read_last():
     try:
         return json.loads(LAST_FILE.read_text())
@@ -864,6 +880,9 @@ def holding_line(entry, unit, fx):
 
 
 def cmd_waybar(_args):
+    if read_hidden():
+        print(json.dumps({"text": "", "class": "hidden", "tooltip": ""}))
+        return 0
     cache = read_cache()
     if cache is None:
         print(json.dumps({"text": f"{ICON} --", "tooltip": "no cached balance yet", "class": "error"}))
@@ -896,9 +915,10 @@ def cmd_waybar(_args):
 def cmd_json(_args):
     cache = read_cache()
     if cache is None:
-        print(json.dumps({"total_usd": None, "venues": [], "fx": {}, "prices": {}, "unit": read_unit(), "error": "no cached balance yet"}))
+        print(json.dumps({"total_usd": None, "venues": [], "fx": {}, "prices": {}, "unit": read_unit(), "hidden": read_hidden(), "error": "no cached balance yet"}))
         return 0
     cache["unit"] = read_unit()
+    cache["hidden"] = read_hidden()
     cache["stale"] = time.time() - cache.get("fetched_at", 0) > STALE_AFTER
     print(json.dumps(cache))
     return 0
@@ -912,6 +932,12 @@ def cmd_refresh(_args):
 def cmd_cycle_unit(_args):
     unit = read_unit()
     write_unit(UNITS[(UNITS.index(unit) + 1) % len(UNITS)])
+    subprocess.run(["pkill", "--signal", WAYBAR_SIGNAL, "waybar"], check=False)
+    return 0
+
+
+def cmd_toggle_hidden(_args):
+    write_hidden(not read_hidden())
     subprocess.run(["pkill", "--signal", WAYBAR_SIGNAL, "waybar"], check=False)
     return 0
 
@@ -993,6 +1019,8 @@ def main():
     refresh_parser.set_defaults(func=cmd_refresh)
     cycle_parser = subparsers.add_parser("cycle-unit", help="cycle the displayed unit")
     cycle_parser.set_defaults(func=cmd_cycle_unit)
+    hidden_parser = subparsers.add_parser("toggle-hidden", help="hide or reveal the waybar money module")
+    hidden_parser.set_defaults(func=cmd_toggle_hidden)
     pick_parser = subparsers.add_parser("pick", help="open rofi balance popup")
     pick_parser.set_defaults(func=cmd_pick)
     args = parser.parse_args()
