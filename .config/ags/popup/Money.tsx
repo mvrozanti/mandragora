@@ -26,6 +26,7 @@ type Data = {
   fetched_at?: number
   unit: Unit
   stale?: boolean
+  hidden?: boolean
 }
 
 const UNITS: Unit[] = ["btc", "usd", "brl"]
@@ -81,7 +82,13 @@ export default function MoneyPopup() {
   const [busy, setBusy] = createState(false)
   const [hidden, setHidden] = createState(false)
 
-  const load = () => json<Data>(["money-menu", "json"]).then(setData).catch(console.error)
+  const load = () =>
+    json<Data>(["money-menu", "json"])
+      .then((d) => {
+        setData(d)
+        setHidden(d.hidden ?? false)
+      })
+      .catch(console.error)
   let refreshing = false
   const refresh = async () => {
     if (refreshing) return
@@ -147,6 +154,7 @@ export default function MoneyPopup() {
           onClicked={() => {
             setHidden(!hidden.peek())
             setData({ ...data.peek() })
+            quiet(["money-menu", "toggle-hidden"])
           }}
         />,
         <IconButton
