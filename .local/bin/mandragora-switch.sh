@@ -18,6 +18,24 @@ fi
 
 cd "$SRC"
 
+usage() {
+  cat <<'USAGE'
+usage: mandragora-switch [flags] [commit message]
+
+Commits what is staged in this tree (a worktree) or publishes master (the main
+tree), rebuilds and activates the desktop, pushes, deploys the served content
+and publishes the vault.
+
+  -h, --help           print this and exit
+  -f, --force          skip the stability window that aborts while another editor is active
+      --all            main tree, interactive only: sweep every dirty path into the commit
+      --no-wait        abort at once if another switch holds the lock, instead of waiting
+      --vault=VERDICT  the Vault: trailer of an agent commit: a note path, or none (<why>)
+  -y, --no-edit        skip the commit-message editor
+  !                    build and switch without committing
+USAGE
+}
+
 FORCE=0
 SWEEP_ALL=0
 VAULT_VERDICT=""
@@ -25,10 +43,13 @@ LOCK_WAIT=${MANDRAGORA_SWITCH_LOCK_WAIT_SECONDS:-1800}
 PASSTHRU_ARGS=()
 for arg in "$@"; do
   case "$arg" in
+    -h|--help) usage; exit 0 ;;
     -f|--force) FORCE=1 ;;
     --all) SWEEP_ALL=1 ;;
     --no-wait) LOCK_WAIT=0 ;;
     --vault=*) VAULT_VERDICT="${arg#--vault=}" ;;
+    -y|--no-edit|!) PASSTHRU_ARGS+=("$arg") ;;
+    -*) echo "==> ABORTED: unknown flag $arg (mandragora-switch --help lists them)." >&2; exit 2 ;;
     *) PASSTHRU_ARGS+=("$arg") ;;
   esac
 done
