@@ -880,9 +880,6 @@ def holding_line(entry, unit, fx):
 
 
 def cmd_waybar(_args):
-    if read_hidden():
-        print(json.dumps({"text": "", "class": "hidden", "tooltip": ""}))
-        return 0
     cache = read_cache()
     if cache is None:
         print(json.dumps({"text": f"{ICON} --", "tooltip": "no cached balance yet", "class": "error"}))
@@ -890,6 +887,7 @@ def cmd_waybar(_args):
     fx = cache["fx"]
     total = cache.get("total_usd")
     unit = read_unit()
+    hidden = read_hidden()
     tooltip = totals_lines(total, fx) + [""] + [venue_line(item, total, unit, fx) for item in cache["venues"]]
     stale = [item["label"] for item in cache["venues"] if item.get("stale_since")]
     cls = "fresh"
@@ -908,7 +906,12 @@ def cmd_waybar(_args):
         if isinstance(last, dict) and last.get("unit") == unit and last.get("value") != value:
             cls = "up" if value > last["value"] else "down"
         write_last({"unit": unit, "value": value})
-    print(json.dumps({"text": format_unit(total, unit, fx), "tooltip": "\n".join(tooltip), "class": cls}))
+    text = format_unit(total, unit, fx)
+    if hidden:
+        text = re.sub(r"\d", "•", text)
+        tooltip = ["<i>amounts hidden — click to reveal</i>"]
+        cls = "hidden"
+    print(json.dumps({"text": text, "tooltip": "\n".join(tooltip), "class": cls}))
     return 0
 
 

@@ -185,12 +185,6 @@ tooltip {
     color: @color8;
 }
 
-#custom-money.hidden {
-    padding: 0;
-    margin: 0;
-    min-width: 0;
-}
-
 
 #memory {
     padding: 0 8px;
