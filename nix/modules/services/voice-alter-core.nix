@@ -60,11 +60,13 @@ in
           args = {
             "node.description" = "Voice Morph source";
             "capture.props" = {
+              "node.passive" = true;
               "node.name" = "capture.vm_to_src";
               "target.object" = "RvcOut";
               "stream.capture.sink" = true;
             };
             "playback.props" = {
+              "node.passive" = true;
               "node.name" = "VoiceMorphSource";
               "node.description" = "Voice Morph Source";
               "media.class" = "Audio/Source";
