@@ -14,15 +14,10 @@ WL='EABackgroundService\.exe|EALocalHostSvc\.exe|EACefSubProcess\.exe|EAConnect_
 
 reap_prefix() {
   local pfx="$1"
-  local stamp pdir pid cmd exe server foreground pids
+  local stamp pid cmd exe server foreground pids
   stamp="$state/$(printf '%s' "$pfx" | tr '/ ' '__').armed"
 
-  pids=()
-  for pdir in /proc/[0-9]*; do
-    if grep -qzsF "WINEPREFIX=$pfx" "$pdir/environ" 2>/dev/null; then
-      pids+=("${pdir#/proc/}")
-    fi
-  done
+  mapfile -t pids < <(grep -lzsF "WINEPREFIX=$pfx" /proc/[0-9]*/environ 2>/dev/null | cut -d/ -f3)
   if [ "${#pids[@]}" -eq 0 ]; then rm -f "$stamp"; return; fi
 
   foreground=0
