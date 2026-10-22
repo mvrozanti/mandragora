@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-ICON_IDLE="󰋊"
-ICON_PRESSURED="󰋌"
+ICON="󰆼"
 THRESHOLD=50
 STATE=/tmp/disk-io-state
 
@@ -39,10 +38,9 @@ press=$(sed -n 's/^some avg10=\([0-9.]*\).*/\1/p' /proc/pressure/io 2>/dev/null)
 press=${press:-0}
 pressured=$(awk -v p="$press" -v t="$THRESHOLD" 'BEGIN { print (p >= t) ? 1 : 0 }')
 
-icon="$ICON_IDLE"
+icon="$ICON"
 cls=""
 if [ "$pressured" = 1 ]; then
-  icon="$ICON_PRESSURED"
   cls="pressured"
 fi
 
