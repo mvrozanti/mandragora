@@ -42,6 +42,7 @@ in
     ./rss-menu.nix
     ./ea-reaper.nix
     ./gl-fallback-watch.nix
+    ./link-speed-watch.nix
     ./calibre-reaper.nix
     ./security-menu.nix
     ./weather-menu.nix
