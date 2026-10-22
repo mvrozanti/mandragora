@@ -16,4 +16,6 @@ for candidate in "$PROJ"/backend/build/libs/*-SNAPSHOT.jar; do
     JAR="$candidate"
   fi
 done
-exec java -Xmx3g -XX:G1PeriodicGCInterval=60000 -jar "$JAR"
+exec java -Xmx3g -XX:G1PeriodicGCInterval=60000 \
+  -Dlogging.level.io.mvrozanti.chesslens.application.controller.SqlController=WARN \
+  -jar "$JAR"
