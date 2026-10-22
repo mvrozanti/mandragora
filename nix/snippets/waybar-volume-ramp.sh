@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Event-driven volume module for waybar (pipewire-native).
-# Streams one JSON line on startup, then one per pw-mon event.
-# No polling, no pkill refresh.
 
 emit() {
   local vol muted pct icon class
@@ -29,14 +26,7 @@ emit() {
 
 emit
 
-# pw-mon streams pipewire events. We debounce to avoid bursts: coalesce any
-# events arriving within 80ms into a single re-emit.
-pw-mon 2>/dev/null | while IFS= read -r line; do
-  case "$line" in
-    *changed:*|*added:*|*removed:*) ;;
-    *) continue ;;
-  esac
-  # drain anything queued in the next 80ms
+pactl subscribe 2>/dev/null | grep --line-buffered -E "^Event '(change|new|remove)' on (sink|server) " | while IFS= read -r _; do
   while IFS= read -r -t 0.08 _; do :; done
   emit
 done
