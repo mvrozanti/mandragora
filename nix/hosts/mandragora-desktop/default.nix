@@ -80,6 +80,7 @@ in
     ../../modules/services/mpd-vis.nix
     ../../modules/services/chess-engine.nix
     ../../modules/services/chess-lens.nix
+    ../../modules/services/chess-lens-backup.nix
     ../../modules/services/ticker.nix
     ../../modules/services/weather.nix
     ../../modules/services/filebrowser.nix
