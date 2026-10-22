@@ -70,6 +70,7 @@
           modules = [
             "custom/monitor"
             "custom/security"
+            "custom/mail"
             "custom/rss"
             "custom/notif-menu"
             "custom/screencap"
@@ -361,6 +362,18 @@
           tooltip = true;
           on-click = "shell-popup security -- security-menu pick";
           on-click-right = "security-menu rescan";
+        };
+
+        "custom/mail" = {
+          exec = "mail-menu waybar";
+          return-type = "json";
+          interval = 60;
+          signal = 17;
+          format = "{}";
+          tooltip = true;
+          on-click = "mail-menu click";
+          on-click-right = "mail-menu open";
+          on-click-middle = "mail-menu sync";
         };
 
         "custom/rss" = {

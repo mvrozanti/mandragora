@@ -9,6 +9,8 @@ _: {
       materia-theme-transparent = prev.callPackage ./materia-theme-transparent/default.nix { };
       rtk = prev.callPackage ./rtk/default.nix { };
       du-exporter = prev.callPackage ./du-exporter/default.nix { };
+      mutt-oauth2 = prev.callPackage ./mutt-oauth2/default.nix { };
+      mail-menu = final.callPackage ./mail-menu/default.nix { };
       ebpf-network-config = prev.callPackage ./ebpf-network-config/default.nix { };
       sddm-mandragora = prev.callPackage ./sddm-mandragora/default.nix { };
       yt-cast-mpv = final.callPackage ./yt-cast-mpv/default.nix { };

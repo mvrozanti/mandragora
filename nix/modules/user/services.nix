@@ -85,6 +85,8 @@
             gnused
             coreutils
             notmuch
+            mutt-oauth2
+            mail-menu
           ];
           text = builtins.readFile ../../../.local/bin/mbsync-hotmail-sync.sh;
         }
