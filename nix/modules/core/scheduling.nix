@@ -4,7 +4,7 @@ _: {
     scheduler = "scx_bpfland";
   };
 
-  services.udev.extraRules = builtins.readFile ../../snippets/nvme-bfq.rules;
+  systemd.tmpfiles.rules = [ "w /sys/block/nvme*n*/queue/scheduler - - - - bfq" ];
 
   systemd.services."user@".serviceConfig.Delegate = "cpu io memory pids";
 
