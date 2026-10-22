@@ -54,7 +54,6 @@ in
       MemoryMax = "5G";
       MemorySwapMax = "0";
       CPUWeight = 20;
-      IOWeight = 10;
     };
   };
 
@@ -74,7 +73,6 @@ in
         MemoryHigh = "6G";
         MemorySwapMax = "0";
         CPUWeight = 20;
-        IOWeight = 10;
       };
     };
   };
