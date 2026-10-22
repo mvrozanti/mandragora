@@ -11,6 +11,7 @@ import os
 import re
 import subprocess
 import sys
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -86,6 +87,9 @@ UNIT_FILE = CACHE_DIR / "unit"
 HIDDEN_FILE = CACHE_DIR / "hidden"
 LAST_FILE = CACHE_DIR / "last.json"
 CACHE_VERSION = 2
+DERIVED_DIR = Path(os.environ.get("XDG_RUNTIME_DIR", "/tmp")) / "money-menu"
+DERIVED_FILE = DERIVED_DIR / "derived.json"
+DERIVED_LOCK = threading.Lock()
 ICON = "₿"
 UNITS = ["btc", "usd", "brl"]
 WAYBAR_SIGNAL = "SIGRTMIN+15"
@@ -226,6 +230,34 @@ def derive_branch(chaincode, account_point, branch, limit):
     return addresses
 
 
+def derivation_key(*parts):
+    return hashlib.sha256(repr((GAP_LIMIT,) + parts).encode("utf-8")).hexdigest()
+
+
+def load_derived():
+    try:
+        return json.loads(DERIVED_FILE.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def remember_addresses(key, compute):
+    with DERIVED_LOCK:
+        known = load_derived()
+        if key in known:
+            return known[key]
+    addresses = compute()
+    with DERIVED_LOCK:
+        known = load_derived()
+        known[key] = addresses
+        DERIVED_DIR.mkdir(parents=True, exist_ok=True, mode=0o700)
+        staging = DERIVED_FILE.with_suffix(".tmp")
+        staging.write_text(json.dumps(known))
+        os.chmod(staging, 0o600)
+        staging.replace(DERIVED_FILE)
+    return addresses
+
+
 def http_json(url, timeout=25, body=None, headers=None):
     data = None if body is None else json.dumps(body).encode("utf-8")
     request = urllib.request.Request(
@@ -314,24 +346,35 @@ def fetch_account(xpub):
     if parsed is None:
         return {"balance": None, "error": "invalid xpub"}
     chaincode, account_point = parsed
-    external = derive_branch(chaincode, account_point, 0, GAP_LIMIT)
-    internal = derive_branch(chaincode, account_point, 1, GAP_LIMIT)
-    balance = sum_addresses(external + internal)
+    addresses = remember_addresses(
+        derivation_key("single", xpub),
+        lambda: derive_branch(chaincode, account_point, 0, GAP_LIMIT)
+        + derive_branch(chaincode, account_point, 1, GAP_LIMIT),
+    )
+    balance = sum_addresses(addresses)
     if balance is None:
         return {"balance": None, "error": "address lookups failed"}
     return {"balance": balance, "error": None}
 
 
-def fetch_multisig(cosigners, threshold):
+def derive_multisig(cosigners, threshold):
     addresses = []
     for branch in (0, 1):
+        branches = [ckd_pub(chaincode, point, branch) for chaincode, point in cosigners]
         for index in range(GAP_LIMIT):
-            child_pubkeys = []
-            for chaincode, point in cosigners:
-                branch_chaincode, branch_point = ckd_pub(chaincode, point, branch)
-                _, child_point = ckd_pub(branch_chaincode, branch_point, index)
-                child_pubkeys.append(ser_pubkey(child_point))
+            child_pubkeys = [
+                ser_pubkey(ckd_pub(branch_chaincode, branch_point, index)[1])
+                for branch_chaincode, branch_point in branches
+            ]
             addresses.append(multisig_address(child_pubkeys, threshold))
+    return addresses
+
+
+def fetch_multisig(cosigners, threshold):
+    addresses = remember_addresses(
+        derivation_key("multisig", threshold, cosigners),
+        lambda: derive_multisig(cosigners, threshold),
+    )
     balance = sum_addresses(addresses)
     if balance is None:
         return {"balance": None, "error": "address lookups failed"}
