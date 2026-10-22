@@ -22,7 +22,7 @@ let
     "-prune=250000"
     "-par=6"
     "-server"
-    "-dbcache=1000"
+    "-dbcache=2000"
     "-blocksonly=1"
     "-disablewallet"
   ];
@@ -49,8 +49,8 @@ in
       Restart = "on-failure";
       RestartSec = "10s";
       TimeoutStopSec = "10min";
-      MemoryHigh = "2500M";
-      MemoryMax = "3G";
+      MemoryHigh = "4G";
+      MemoryMax = "5G";
       MemorySwapMax = "0";
       CPUWeight = 20;
     };
@@ -59,7 +59,7 @@ in
   mandragora.hub.services.btc-flow-processor = {
     port = 8420;
     userService = true;
-    memoryMax = "9G";
+    memoryMax = "8G";
     systemd = {
       description = "btc-wealth-flow ingest and server for btc.mvr.ac: turns scan-node blocks into aggregates, prunes the scan node behind its commits, serves :8420";
       after = [ "btc-flow-scan.service" ];
@@ -69,7 +69,7 @@ in
         ExecStart = execLine ([ "${repo}/result/bin/btc-wealth-flow" ] ++ processorArgs);
         Restart = "on-failure";
         RestartSec = "5s";
-        MemoryHigh = "7G";
+        MemoryHigh = "6G";
         MemorySwapMax = "0";
         CPUWeight = 20;
       };
