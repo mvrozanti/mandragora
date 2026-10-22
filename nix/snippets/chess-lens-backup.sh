@@ -26,15 +26,21 @@ docker exec backend-postgres-1 sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_
 docker exec backend-redis-1 redis-cli --rdb /tmp/backup.rdb > /dev/null || fail "the redis snapshot failed"
 docker cp backend-redis-1:/tmp/backup.rdb "$stage/redis.rdb" || fail "could not copy the redis snapshot"
 
+docker start clickhouse > /dev/null || fail "could not start clickhouse"
+for _ in $(seq 1 60); do
+  docker exec clickhouse wget -qO- http://127.0.0.1:8123/ping > /dev/null 2>&1 && break
+  sleep 2
+done
+docker exec clickhouse wget -qO- http://127.0.0.1:8123/ping > /dev/null 2>&1 || fail "clickhouse did not answer within two minutes"
 docker exec clickhouse clickhouse-client -q "BACKUP DATABASE chesslens TO File('/backups/$name')" > /dev/null \
   || fail "the clickhouse backup failed"
 docker exec clickhouse chmod -R a+rX "/backups/$name" || fail "could not open the clickhouse backup for reading"
 [ -f "$local_dir/$name/.backup" ] || fail "no clickhouse backup manifest at $local_dir/$name"
+docker exec clickhouse sh -c "find /backups -mindepth 1 -maxdepth 1 -name 'chesslens-*' ! -name '$name' -exec rm -rf {} +"
 
 restic cat config > /dev/null 2>&1 || restic init
 restic backup --tag chess-lens --group-by tags "$stage" "$local_dir/$name"
 restic forget --tag chess-lens --group-by tags --keep-daily 14 --keep-weekly 8 --keep-monthly 6 --prune
 restic check --read-data-subset=2%
 
-docker exec clickhouse sh -c "find /backups -mindepth 1 -maxdepth 1 -name 'chesslens-*' ! -name '$name' -exec rm -rf {} +"
 echo "chess-lens-backup: $name stored in $RESTIC_REPOSITORY"
