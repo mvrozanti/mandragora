@@ -471,6 +471,10 @@ in
       settings = {
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "widget.gtk.native-context-menus" = false;
+        "media.ffmpeg.vaapi.enabled" = true;
+        "media.hardware-video-decoding.force-enabled" = true;
+        "media.rdd-ffmpeg.enabled" = true;
+        "widget.dmabuf.force-enabled" = true;
       };
       userChrome = builtins.readFile ../../snippets/firefox-userchrome-default.css;
     };
