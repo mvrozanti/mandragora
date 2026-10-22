@@ -386,6 +386,36 @@ tooltip {
     border-bottom: 2px solid @color5;
 }
 
+#custom-mail {
+    padding: 0 10px;
+    color: @foreground;
+    border-bottom: 2px solid transparent;
+    transition: color 120ms ease, border-bottom-color 120ms ease;
+}
+
+#custom-mail.unread {
+    color: @color4;
+}
+
+#custom-mail.empty {
+    color: alpha(@foreground, 0.55);
+}
+
+#custom-mail.stale {
+    color: alpha(@foreground, 0.55);
+    border-bottom: 2px dashed alpha(@foreground, 0.35);
+}
+
+#custom-mail.auth {
+    color: @color1;
+    border-bottom: 2px solid @color1;
+}
+
+#custom-mail:hover {
+    color: @color4;
+    border-bottom: 2px solid @color4;
+}
+
 #custom-rss {
     padding: 0 10px;
     color: @foreground;
