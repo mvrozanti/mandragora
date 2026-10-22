@@ -49,6 +49,11 @@ auto_prune_vanished() {
     printf '%s' "$still"
 }
 
+if mail-menu needs-auth; then
+    echo "mbsync result=needs-auth"
+    exit 0
+fi
+
 consecutive=0
 next_attempt=0
 if [ -f "$backoff_file" ]; then
@@ -72,12 +77,18 @@ if [ "$mbsync_status" -eq 0 ]; then
     rm -f "$state_file"
     rm -f "$backoff_file"
     echo "mbsync result=success consecutive=0"
+    mail-menu mark-synced || true
     slave_count=$(grep 'Inbox' -A6 <<< "$sync_output" | grep -E '^slave' | cut -d',' -f1 | tr -cd '[:digit:]' || echo 0)
     master_count=$(grep 'Inbox' -A6 <<< "$sync_output" | grep -E '^master' | cut -d',' -f1 | tr -cd '[:digit:]' || echo 0)
     new_mail_count=$(( ${master_count:-0} - ${slave_count:-0} ))
     if [ "$new_mail_count" -gt 0 ]; then
         notify-send "Mail" "You have $new_mail_count new email(s)." || true
     fi
+elif grep -q 'PassCmd exited' <<< "$sync_output"; then
+    rm -f "$backoff_file"
+    echo "mbsync result=needs-auth"
+    mail-menu mark-needs-auth || true
+    exit 0
 else
     vanished=$(sed -n 's/^Error: channel [^:]*: far side box \(.*\) cannot be opened anymore\.$/\1/p' <<< "$sync_output" | sort -u)
     if [ -n "$vanished" ]; then
@@ -87,7 +98,9 @@ else
     fingerprint=$(printf '%s' "$vanished" | sha256sum | cut -d' ' -f1)
     now=$(date +%s)
     consecutive=$((consecutive + 1))
-    delay=$((base_delay * 2 ** (consecutive - 1)))
+    exponent=$((consecutive - 1))
+    [ "$exponent" -gt 8 ] && exponent=8
+    delay=$((base_delay * 2 ** exponent))
     if [ "$delay" -gt "$max_delay" ]; then
         delay=$max_delay
     fi
