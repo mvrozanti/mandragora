@@ -197,7 +197,19 @@ function Mandragora:registerHomeGesture()
     logger.info("mandragora: home gesture on hold", HOME_CORNER)
 end
 
+local function patchScreensaverGhost()
+    local ok, Screensaver = pcall(require, "ui/screensaver")
+    if not ok or not Screensaver or not Screensaver.modeIsImage then return end
+    if Screensaver._mandragora_ghost_patched then return end
+    local orig = Screensaver.modeIsImage
+    Screensaver.modeIsImage = function(self)
+        return orig(self) or self.screensaver_type == "document_cover"
+    end
+    Screensaver._mandragora_ghost_patched = true
+end
+
 function Mandragora:init()
+    patchScreensaverGhost()
     self:registerHomeGesture()
     if self:registerActions() then return end
     local attempts = 0
