@@ -16,6 +16,7 @@ cat > "$want" <<WANT
 screensaver_type	"random_image"
 screensaver_show_message	false
 screensaver_dir	"$ART_DIR"
+screensaver_extra_flash_count	1
 home_dir	"$LIBRARY_DIR"
 lastdir	"$LIBRARY_DIR"
 WANT
