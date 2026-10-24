@@ -1,4 +1,5 @@
 local Device = require("device")
+local Blitbuffer = require("ffi/blitbuffer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local ImageWidget = require("ui/widget/imagewidget")
@@ -172,6 +173,13 @@ function PortraitViewer.open()
     Screen:clear()
     Screen:refreshFull(0, 0, Screen:getWidth(), Screen:getHeight())
     UIManager:show(viewer)
+    UIManager:scheduleIn(0.5, function()
+        Screen.bb:fill(Blitbuffer.COLOR_BLACK)
+        Screen:refreshFull(0, 0, Screen:getWidth(), Screen:getHeight())
+        UIManager:scheduleIn(0.5, function()
+            UIManager:setDirty(viewer, function() return "full", viewer.dimen end)
+        end)
+    end)
     return viewer
 end
 
