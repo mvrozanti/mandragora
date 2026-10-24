@@ -39,6 +39,7 @@ SMTP_AUTH = os.environ.get(
 FROM_ADDR = (os.environ.get("FROM_ADDR") or SMTP_USER).strip()
 FROM_NAME = os.environ.get("FROM_NAME", "").strip()
 MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "25"))
+KINDLE_SYNC_URL = os.environ.get("KINDLE_SYNC_URL", "http://100.115.80.79:6690").strip().rstrip("/")
 
 _oauth_lock = threading.Lock()
 _oauth_cache = {"access_token": None, "expires_at": 0.0}
@@ -253,6 +254,19 @@ async def device_push(files: list[UploadFile] = File(...)) -> dict:
         except device.DeviceError as exc:
             results.append({"filename": filename, "status": "error", "error": str(exc)})
     return {"results": results}
+
+
+@app.post("/api/sync")
+async def sync_library() -> dict:
+    def forward() -> dict:
+        request = urllib.request.Request(f"{KINDLE_SYNC_URL}/sync", method="POST")
+        with urllib.request.urlopen(request, timeout=1800) as response:
+            return json.loads(response.read())
+
+    try:
+        return await asyncio.to_thread(forward)
+    except Exception as exc:
+        raise HTTPException(502, f"sync trigger unreachable: {exc}")
 
 
 @app.get("/metrics", response_class=PlainTextResponse)

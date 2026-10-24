@@ -93,6 +93,7 @@ in
     ../../modules/services/gpu-status.nix
     ../../modules/services/status-snapshot.nix
     ../../modules/services/kindle-cam.nix
+    ../../modules/services/kindle-sync-trigger.nix
     ../../modules/services/gource-renderer.nix
     ../../modules/services/gource-renderer-prewarm.nix
     ../../modules/services/ytdl-web.nix

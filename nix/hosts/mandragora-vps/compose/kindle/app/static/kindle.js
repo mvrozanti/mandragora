@@ -152,6 +152,11 @@
     refresh: function () { withBusy(loadScreen(true), "refreshed"); },
     browse: function () { $("files").click(); },
     send: function () { sendFiles($("files").files); },
+    sync: function () {
+      withBusy(api("POST", "/api/sync").then(function (res) {
+        toast(res.ok ? "library synced" : "sync failed: " + String(res.output || "unknown").slice(-140), !res.ok);
+      }));
+    },
     print: function () {
       var text = $("text").value.trim();
       if (!text) { toast("type something first", true); return; }
