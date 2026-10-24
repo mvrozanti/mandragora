@@ -61,10 +61,20 @@ Beyond the send-to-kindle relay, this stack is the control surface for
 | `GET /api/screen.png` | Authelia | a PNG of the e-ink display right now |
 | `POST /api/print` | Authelia | one line of text onto the panel via FBInk |
 | `POST /api/push` | Authelia | file straight into `/mnt/us/documents` over the tailnet |
+| `POST /api/sync` | Authelia | trigger the desktop `kindle-sync` reconcile |
 | `POST /api/send` | Authelia | the original Amazon email relay, unchanged |
 | `GET /api/scriptlets`, `POST /api/scriptlets/{name}/run` | Authelia | list and run device scriptlets |
 | `GET`/`POST /api/monitor` | Authelia | read or flip the monitoring switch |
 | `GET /metrics` | **tailnet only** | Prometheus metrics for VictoriaMetrics |
+
+### Library sync
+
+The `↻ sync` button in the topbar runs `POST /api/sync`, which forwards to
+`mandragora-desktop`'s `kindle-sync-trigger` service
+(`nix/modules/services/kindle-sync-trigger.nix`, tailnet `:6690`). That runs
+`systemctl --user start kindle-sync` — the desktop's own reconcile (`nix/modules/
+desktop/kindle-sync.nix`) — and returns the tail of its journal. The button does
+not reimplement the sync; it just triggers it on demand.
 
 ### The screen mirror
 
