@@ -6,6 +6,15 @@ _: {
       cc-lens = prev.callPackage ./cc-lens/default.nix { };
       cc-pocket-bridge = prev.callPackage ./cc-pocket-bridge/default.nix { };
       claude-code = prev.callPackage ./claude-code/default.nix { };
+      electrum = prev.electrum.overrideAttrs (old: rec {
+        version = "4.8.3";
+        src = prev.fetchurl {
+          url = "https://download.electrum.org/${version}/Electrum-${version}.tar.gz";
+          hash = "sha256-30H6guV59yCjhZv/neCd2Yu5MHmwH6KXO3P9vb/ecog=";
+        };
+        postPatch = "";
+        pythonRelaxDeps = old.pythonRelaxDeps ++ [ "certifi" ];
+      });
       materia-theme-transparent = prev.callPackage ./materia-theme-transparent/default.nix { };
       rtk = prev.callPackage ./rtk/default.nix { };
       du-exporter = prev.callPackage ./du-exporter/default.nix { };
