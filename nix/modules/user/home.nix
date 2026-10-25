@@ -54,6 +54,7 @@ in
     ./minecraft.nix
     ./axon.nix
     ./nb-vault-sync.nix
+    ./claude-find.nix
     ./mandragora-vault.nix
     ./path-filter.nix
     ./autoclaude.nix
