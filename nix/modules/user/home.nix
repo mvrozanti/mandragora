@@ -382,6 +382,9 @@ in
     yad
     nwg-displays
     (pkgs.writeShellScriptBin "ragnarok" (builtins.readFile ../../../.local/bin/ragnarok.sh))
+    (pkgs.writeShellScriptBin "forza-horizon-6" (
+      builtins.readFile ../../../.local/bin/forza-horizon-6.sh
+    ))
     (pkgs.writeShellScriptBin "screenshot-window" (
       builtins.readFile ../../../.local/bin/screenshot-window.sh
     ))
