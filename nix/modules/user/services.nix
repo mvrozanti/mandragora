@@ -111,7 +111,7 @@
 
   systemd.user.services.wal-to-rgb-daemon = {
     Unit = {
-      Description = "Animate RAM RGB colors from pywal palette";
+      Description = "Animate RAM RGB from the pywal palette, and RAM + AIO as a Forza Horizon speed gauge";
       After = [ "graphical-session.target" ];
     };
     Service = {
