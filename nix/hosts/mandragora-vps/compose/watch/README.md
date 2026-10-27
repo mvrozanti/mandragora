@@ -241,13 +241,17 @@ Behaviour worth knowing before touching it:
 
 - **Key is `pname|cve`, not version.** A nixpkgs bump that leaves a CVE unfixed
   does not page again.
-- **Baselines are silent**: the first poll, and the first sight of a new host,
-  record state and emit nothing. A pair shared with an already-known host still
-  pages.
+- **Baselines are silent**: the first poll, the first sight of a new host, and
+  pairs that arrive only on an image never seen before (a new or retagged stack)
+  record state and emit nothing. A pair shared with an already-known host or
+  image still pages. Images are remembered for 30 days, like pairs, so an image
+  missing from one scan is not new when it returns.
 - **Seen pairs are forgotten only after 30 days absent**, so a scan that drops an
   image for a day cannot re-page its whole CVE list.
-- **More than 20 new pairs at once** become one `vuln:burst` event; the individual
-  events are stored with `vuln:bulk` and the stock rule skips them.
+- **More than 20 new pageable pairs at once** (exposed, and fixable or on KEV)
+  become one `vuln:burst` event listing only those; they are stored with
+  `vuln:bulk` and the stock rule skips them. New pairs on idle or login-gated
+  packages are stored as plain events and never form a burst.
 - **Stale scanners page**: a report whose `generated` is over 72h old, or which
   carries an `error`, emits one `vuln:stale` event per host per day. This exists
   because the desktop silently stopped publishing for three months in 2026
@@ -262,13 +266,19 @@ become underscores, so `vuln:mandragora` never matches `vuln:mandragora_vps`),
 ack-required) uses:
 
 ```
-vuln:stale OR ((vuln:critical OR vuln:high) AND (vuln:burst OR ((vuln:kev OR (vuln:critical AND vuln:fixable) OR vuln:exposed) AND NOT vuln:bulk)))
+vuln:stale OR (vuln:burst AND (vuln:critical OR vuln:high)) OR ((vuln:critical OR vuln:high) AND vuln:exposed AND (vuln:fixable OR vuln:kev) AND NOT vuln:bulk)
 ```
 
-Nothing below high pages, whatever else it is tagged: a medium on KEV or
-listening on an open port is on the dashboard, not the phone. A burst pages
-only when it carries at least one critical or high pair. `vuln:stale` is
-scanner health rather than a finding, so it pages regardless of severity.
+A page means there is something to do: a critical or high, on something
+listening `open`, `public` or `lan`, with a fix or on KEV. Installed-but-idle
+packages, things only reachable through Authelia or the tailnet, and findings
+with no fix and no exploitation are on the dashboard, not the phone. Replayed
+over 2026-10-19..27 this rule sends 11 pages where the previous one sent 17,
+and the 11 are four scanner outages and seven public-facing fixable findings
+instead of four bursts of hundreds. `bootstrap_vuln_watch` moves a watcher
+still on a previous stock rule (`PREVIOUS_RULES`) to the current one and leaves
+a hand-edited rule alone. `vuln:stale` is scanner health rather than a
+finding, so it pages regardless of severity.
 
 ### `unit_health` — a scheduled job on one of my hosts went quiet
 
