@@ -219,7 +219,6 @@ in
     cava
     calcurse
     clisp
-    php
     tldr
     gucharmap
     baobab
