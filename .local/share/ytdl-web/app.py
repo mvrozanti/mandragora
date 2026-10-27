@@ -54,12 +54,15 @@ PERSISTED = (
     "name", "filename", "filepath", "title", "artist", "exit_code",
 )
 
-TAG_SCHEMA = '{"type":"object","properties":{"title":{"type":"string"},"artist":{"type":"string"}},"required":["title","artist"]}'
+TAG_SCHEMA = '{"type":"object","properties":{"is_music":{"type":"boolean"},"title":{"type":"string"},"artist":{"type":"string"}},"required":["is_music","title","artist"]}'
 TAG_PROMPT = (
     "Extract the song title and performing artist from this YouTube video title. "
     "Strip junk like '(Official Video)', '[HD]', 'Lyrics', channel names. "
-    "If artist is unclear, use best guess from the title. Title: "
+    "If the artist is unclear but this is a song, give your best guess from the title. "
+    "If it is not a song (lecture, talk, podcast, video essay, news), set is_music to false "
+    "and artist to an empty string; never answer with a placeholder such as 'Unknown'. Title: "
 )
+PLACEHOLDER_ARTIST_RE = re.compile(r"^\W*(unknown( artist)?|n/?a|none|null|various( artists)?|not a (song|music)\b.*)\W*(\(.*\))?\W*$", re.I)
 
 URL_RE = re.compile(r"^https?://[^\s]+$")
 
@@ -124,6 +127,7 @@ def load_state():
                 continue
             job = new_job(rec.get("url") or "", bool(rec.get("to_client")), rec["mode"])
             job.update({k: rec.get(k) for k in PERSISTED})
+            job["artist"] = real_artist(job["artist"])
             job["log"].extend(rec.get("log") or [])
             if job["status"] in ACTIVE:
                 job["status"] = "interrupted"
@@ -160,6 +164,11 @@ def set_status(job, status):
     save_state()
 
 
+def real_artist(artist):
+    artist = (artist or "").strip()
+    return artist if artist and not PLACEHOLDER_ARTIST_RE.match(artist) else None
+
+
 def tag_mp3(job):
     path = Path(job.get("filepath") or "")
     if not path.is_file():
@@ -181,12 +190,16 @@ def tag_mp3(job):
         data = json.loads(proc.stdout)
         so = data.get("structured_output") or {}
         title = so.get("title")
-        artist = so.get("artist")
+        artist = real_artist(so.get("artist"))
+        is_music = so.get("is_music", True)
     except Exception as exc:
         job["log"].append(f"tag: parse failed: {exc!r}")
         return
-    if not title or not artist:
-        job["log"].append(f"tag: empty title/artist: {proc.stdout.strip()[:200]}")
+    if not is_music or not artist:
+        job["log"].append(f"tag: skipped, not a song: {proc.stdout.strip()[:200]}")
+        return
+    if not title:
+        job["log"].append(f"tag: empty title: {proc.stdout.strip()[:200]}")
         return
     ffmpeg = os.path.join(FFMPEG_LOCATION, "ffmpeg") if FFMPEG_LOCATION else "ffmpeg"
     tmp = path.with_suffix(".tagged.mp3")

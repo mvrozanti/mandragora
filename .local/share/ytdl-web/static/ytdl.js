@@ -20,6 +20,10 @@
   const $dockSub = $("dock-sub");
   const $dockAudio = $("dock-audio");
   const $dockVideo = $("dock-video");
+  const $dockToggle = $("dock-toggle");
+  const $dockMore = $("dock-more");
+  const $dockBody = $("dock-body");
+  const $dockTime = $("dock-time");
 
   const PREFS = "ytdl-web:prefs";
   const ACTIVE = new Set(["queued", "running", "tagging"]);
@@ -34,11 +38,13 @@
 
   const opts = { mode: "audio", toClient: false };
   let jobsById = new Map();
-  let historySig = "";
   let playing = null;
+  let expanded = false;
   let timer = null;
   let hintTimer = null;
   const activeNodes = new Map();
+  const rows = new Map();
+  const openRows = new Set();
 
   try {
     const saved = JSON.parse(localStorage.getItem(PREFS) || "{}");
@@ -68,6 +74,8 @@
 
   $modes.forEach((c) => c.addEventListener("click", () => { opts.mode = c.dataset.mode; syncOpts(); }));
   $device.addEventListener("click", () => { opts.toClient = !opts.toClient; syncOpts(); });
+  $url.addEventListener("focus", () => document.body.classList.add("is-typing"));
+  $url.addEventListener("blur", () => document.body.classList.remove("is-typing"));
   syncOpts();
 
   const linkIn = (text) => { const m = String(text || "").match(/https?:\/\/\S+/); return m ? m[0] : null; };
@@ -140,6 +148,15 @@
     return bits.join(" · ");
   }
 
+  function rate(detail) {
+    const d = String(detail || "");
+    const size = /of\s+~?\s*([\d.]+\s*[KMGT]?i?B)\b/.exec(d);
+    const speed = /at\s+([\d.]+\s*[KMGT]?i?B\/s)/.exec(d);
+    const eta = /ETA\s+([\d:]+)/.exec(d);
+    const bits = [size && size[1], speed && speed[1], eta && `${eta[1].replace(/^0(?=\d)/, "")} left`].filter(Boolean);
+    return bits.length ? bits.join(" · ") : d;
+  }
+
   function buildActive(j) {
     const li = document.createElement("li");
     li.className = "mv-card yt-job";
@@ -160,11 +177,13 @@
     setText(pill, j.cancelling ? "cancelling" : j.status);
     setText(q(".mv-card__meta"), meta(j));
     const known = typeof j.progress === "number";
-    q(".mv-meter").classList.toggle("is-busy", !known);
+    const queued = j.status === "queued";
+    q(".mv-meter").classList.toggle("is-queued", queued);
+    q(".mv-meter").classList.toggle("is-busy", !known && !queued);
     q(".mv-meter__fill").style.width = `${known ? j.progress : 0}%`;
     setText(q(".mv-meter__label"), j.status === "tagging" ? "tag" : STAGE[j.stage] || (j.status === "queued" ? "wait" : "get"));
     setText(q(".mv-meter__value"), known ? `${Math.floor(j.progress)}%` : "…");
-    setText(q(".yt-job__detail"), j.detail || (j.log_tail && j.log_tail.length ? j.log_tail[j.log_tail.length - 1] : ""));
+    setText(q(".yt-job__detail"), rate(j.detail) || (j.log_tail && j.log_tail.length ? j.log_tail[j.log_tail.length - 1] : ""));
     const btn = q("[data-act=cancel]");
     btn.disabled = j.cancelling || j.status === "tagging";
     setText(btn, j.cancelling ? "cancelling…" : j.status === "tagging" ? "tagging…" : "cancel");
@@ -189,7 +208,7 @@
     return `<button type="button" class="mv-btn yt-icon ${extra || ""}" data-act="${act}" data-id="${id}" aria-label="${label}" title="${label}">${glyph}</button>`;
   }
 
-  function card(j) {
+  function rowHTML(j) {
     const id = esc(j.id);
     const acts = j.has_file
       ? [
@@ -197,15 +216,43 @@
           `<a class="mv-btn yt-icon" href="/api/jobs/${id}/file" download aria-label="save to this device" title="save to this device">↓</a>`,
         ]
       : [iconBtn("retry", id, "↻", "grab again")];
-    acts.push(iconBtn("remove", id, "×", "remove from history"));
     const pill = j.status === "done" ? "" : `<span class="mv-pill ${TONE[j.status] || ""}">${esc(j.status)}</span> `;
-    const log = j.status !== "done" && j.log_tail && j.log_tail.length
-      ? `<details class="yt-log"><summary>log</summary><pre>${esc(j.log_tail.join("\n"))}</pre></details>`
+    const src = /^https?:\/\//.test(j.url || "")
+      ? `<a class="yt-row__src" href="${esc(j.url)}" target="_blank" rel="noopener noreferrer">${esc(j.url)}</a>`
       : "";
-    return `<li class="mv-card yt-job yt-row" data-id="${id}">` +
-      `<div class="yt-row__text"><span class="yt-job__name">${esc(displayName(j))}</span>` +
-      `<div class="mv-card__meta">${pill}${esc(meta(j))}</div></div>` +
-      `<div class="yt-row__acts">${acts.join("")}</div>${log}</li>`;
+    const log = j.status !== "done" && j.log_tail && j.log_tail.length ? `<pre>${esc(j.log_tail.join("\n"))}</pre>` : "";
+    return `<button type="button" class="yt-row__text" data-act="toggle" data-id="${id}" aria-expanded="false">` +
+      `<span class="yt-job__name">${esc(displayName(j))}</span>` +
+      `<span class="mv-card__meta">${pill}${esc(meta(j))}<span class="yt-row__chev" aria-hidden="true">▾</span></span></button>` +
+      `<div class="yt-row__acts">${acts.join("")}</div>` +
+      `<div class="yt-row__more" hidden>${src}${log}<button type="button" class="mv-btn" data-act="remove" data-id="${id}">remove from history</button></div>`;
+  }
+
+  const rowSig = (j) => JSON.stringify([j.status, j.has_file, j.gone, j.name, j.title, j.artist, j.filename, j.mode, j.to_client, (j.log_tail || []).join("|")]);
+
+  function applyOpen(li, id) {
+    const open = openRows.has(id);
+    li.classList.toggle("is-open", open);
+    li.querySelector(".yt-row__text").setAttribute("aria-expanded", String(open));
+    li.querySelector(".yt-row__more").hidden = !open;
+  }
+
+  function rowFor(j) {
+    const sig = rowSig(j);
+    let r = rows.get(j.id);
+    if (!r) {
+      const li = document.createElement("li");
+      li.className = "mv-card yt-job yt-row";
+      li.dataset.id = j.id;
+      r = { li, sig: null };
+      rows.set(j.id, r);
+    }
+    if (r.sig !== sig) {
+      r.li.innerHTML = rowHTML(j);
+      r.sig = sig;
+    }
+    applyOpen(r.li, j.id);
+    return r.li;
   }
 
   function markPlaying() {
@@ -214,24 +261,57 @@
 
   function renderHistory(list) {
     setText($historyCount, String(list.length));
-    const sig = JSON.stringify(list.map((j) => [j.id, j.status, j.has_file, j.gone, j.name, j.title, j.artist, j.filename, (j.log_tail || []).join("|")]));
-    if (sig !== historySig) {
-      historySig = sig;
-      if (!list.length) {
-        $history.innerHTML = '<p class="mv-empty">nothing yet · grabbed links land here</p>';
-      } else {
-        const days = [];
-        for (const j of list) {
-          const label = dayLabel(j.started);
-          if (!days.length || days[days.length - 1].label !== label) days.push({ label, items: [] });
-          days[days.length - 1].items.push(j);
-        }
-        $history.innerHTML = days.map((d) =>
-          `<div class="yt-day"><h3 class="mv-label">${esc(d.label)}</h3><ul class="yt-list">${d.items.map(card).join("")}</ul></div>`
-        ).join("");
-      }
+    const live = new Set(list.map((j) => j.id));
+    for (const [id, r] of rows) {
+      if (!live.has(id)) { r.li.remove(); rows.delete(id); openRows.delete(id); }
     }
+    if (!list.length) {
+      $history.innerHTML = '<p class="mv-empty">nothing yet · grabbed links land here</p>';
+      markPlaying();
+      return;
+    }
+    $history.querySelectorAll(":scope > .mv-empty").forEach((el) => el.remove());
+    const days = [];
+    for (const j of list) {
+      const label = dayLabel(j.started);
+      if (!days.length || days[days.length - 1].label !== label) days.push({ label, items: [] });
+      days[days.length - 1].items.push(j);
+    }
+    const spare = new Map([...$history.querySelectorAll(":scope > .yt-day")].map((el) => [el.dataset.day, el]));
+    days.forEach((d, i) => {
+      let el = spare.get(d.label);
+      spare.delete(d.label);
+      if (!el) {
+        el = document.createElement("div");
+        el.className = "yt-day";
+        el.dataset.day = d.label;
+        el.innerHTML = '<h3 class="mv-label"></h3><ul class="yt-list"></ul>';
+        el.firstChild.textContent = d.label;
+      }
+      if ($history.children[i] !== el) $history.insertBefore(el, $history.children[i] || null);
+      const ul = el.lastChild;
+      d.items.forEach((j, k) => {
+        const li = rowFor(j);
+        if (ul.children[k] !== li) ul.insertBefore(li, ul.children[k] || null);
+      });
+      while (ul.children.length > d.items.length) ul.lastElementChild.remove();
+    });
+    spare.forEach((el) => el.remove());
     markPlaying();
+  }
+
+  function pinView() {
+    if (window.scrollY < 1) return null;
+    return [...document.querySelectorAll(".yt .yt-job")]
+      .map((el) => ({ el, top: el.getBoundingClientRect().top }))
+      .filter((a) => a.top + a.el.offsetHeight > 0 && a.top < window.innerHeight);
+  }
+
+  function restoreView(pins) {
+    const pin = pins && pins.find((a) => a.el.isConnected);
+    if (!pin) return;
+    const delta = pin.el.getBoundingClientRect().top - pin.top;
+    if (Math.abs(delta) > 0.5) window.scrollBy(0, delta);
   }
 
   async function refresh() {
@@ -245,8 +325,10 @@
         const active = data.filter((j) => ACTIVE.has(j.status));
         const done = data.filter((j) => !ACTIVE.has(j.status));
         busy = active.length > 0;
+        const pins = pinView();
         renderActive(active);
         renderHistory(done);
+        restoreView(pins);
         setText($count, busy ? `${active.length} running · ${done.length} in history` : `${done.length} in history`);
       }
     } catch (e) {}
@@ -269,6 +351,38 @@
   }
   if ("ResizeObserver" in window) new ResizeObserver(sizeDock).observe($dock);
 
+  const media = () => (playing ? (playing.video ? $dockVideo : $dockAudio) : null);
+
+  function setExpanded(v) {
+    expanded = v;
+    $dockBody.hidden = !v;
+    $dockMore.setAttribute("aria-expanded", String(v));
+    $dockMore.setAttribute("aria-label", v ? "hide player" : "show player");
+    $dockMore.textContent = v ? "▾" : "▴";
+    sizeDock();
+  }
+  $dockMore.addEventListener("click", () => setExpanded(!expanded));
+
+  function syncToggle() {
+    const el = media();
+    const paused = !el || el.paused;
+    $dockToggle.textContent = paused ? "▶" : "❚❚";
+    $dockToggle.setAttribute("aria-label", paused ? "play" : "pause");
+  }
+  $dockToggle.addEventListener("click", () => {
+    const el = media();
+    if (!el) return;
+    if (el.paused) el.play().catch(() => {});
+    else el.pause();
+  });
+
+  [$dockAudio, $dockVideo].forEach((el) => {
+    ["play", "pause", "ended", "emptied"].forEach((t) => el.addEventListener(t, syncToggle));
+    el.addEventListener("timeupdate", () => {
+      if (el === media()) $dockTime.style.width = el.duration ? `${(100 * el.currentTime) / el.duration}%` : "0";
+    });
+  });
+
   function play(j) {
     const video = j.mode === "video";
     const el = video ? $dockVideo : $dockAudio;
@@ -276,13 +390,19 @@
     if (other.getAttribute("src")) stopMedia(other);
     other.hidden = true;
     el.hidden = false;
-    if (!playing || playing.id !== j.id) el.src = `/api/jobs/${j.id}/stream`;
-    playing = { id: j.id, title: j.title || displayName(j), artist: j.artist || "" };
+    const fresh = !playing || playing.id !== j.id;
+    if (fresh) {
+      el.src = `/api/jobs/${j.id}/stream`;
+      $dockTime.style.width = "0";
+    }
+    playing = { id: j.id, title: j.title || displayName(j), artist: j.artist || "", video };
     $dockTitle.textContent = playing.title;
     $dockSub.textContent = [j.artist, j.mode, j.to_client ? "device" : "desktop"].filter(Boolean).join(" · ");
     $dock.hidden = false;
-    sizeDock();
+    if (fresh && video) setExpanded(true);
+    else sizeDock();
     el.play().catch(() => {});
+    syncToggle();
     markPlaying();
   }
 
@@ -290,7 +410,7 @@
     [$dockAudio, $dockVideo].forEach((el) => { if (el.getAttribute("src")) stopMedia(el); });
     playing = null;
     $dock.hidden = true;
-    sizeDock();
+    setExpanded(false);
     if ("mediaSession" in navigator) navigator.mediaSession.metadata = null;
     markPlaying();
   }
@@ -324,6 +444,7 @@
   async function remove(j) {
     if (j.to_client && j.has_file && !confirm("Remove from history? The file only lives here, so it goes too. Save it first to keep it.")) return;
     if (playing && playing.id === j.id) closeDock();
+    openRows.delete(j.id);
     const r = await fetch(`/api/jobs/${j.id}`, { method: "DELETE" }).catch(() => null);
     if (!r || !r.ok) flash("could not remove it");
     refresh();
@@ -340,7 +461,13 @@
     refresh();
   }
 
-  const ACTIONS = { play, cancel, remove, retry };
+  function toggle(j, btn) {
+    if (openRows.has(j.id)) openRows.delete(j.id);
+    else openRows.add(j.id);
+    applyOpen(btn.closest(".yt-row"), j.id);
+  }
+
+  const ACTIONS = { play, cancel, remove, retry, toggle };
   document.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-act]");
     if (!btn) return;
