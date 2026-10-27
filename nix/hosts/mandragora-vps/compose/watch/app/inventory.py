@@ -17,6 +17,7 @@ KEV_URL = os.environ.get(
 )
 KEV_TTL = float(os.environ.get("WATCH_KEV_TTL", "86400"))
 STALE_AFTER = timedelta(hours=float(os.environ.get("WATCH_VULN_STALE_HOURS", "72")))
+REFRESH_STALE_AFTER = timedelta(hours=float(os.environ.get("WATCH_REFRESH_STALE_HOURS", "50")))
 FORGET_AFTER_DAYS = int(os.environ.get("WATCH_VULN_FORGET_DAYS", "30"))
 BURST = int(os.environ.get("WATCH_VULN_BURST", "20"))
 USER_AGENT = os.environ.get("WATCH_USER_AGENT", "mandragora-watch/0.1 (+https://watch.mvr.ac)")
@@ -25,10 +26,12 @@ EXPOSED_SCOPES = ("open", "public", "lan")
 SCOPE_RANK = {"open": 0, "public": 1, "lan": 2, "authed": 3, "tailnet": 4}
 HOST_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
 DEFAULT_RULE = (
-    "vuln:stale OR (vuln:burst AND (vuln:critical OR vuln:high)) OR "
+    "vuln:stale OR vuln:refresh OR (vuln:burst AND (vuln:critical OR vuln:high)) OR "
     "((vuln:critical OR vuln:high) AND vuln:exposed AND (vuln:fixable OR vuln:kev) AND NOT vuln:bulk)"
 )
 PREVIOUS_RULES = (
+    "vuln:stale OR (vuln:burst AND (vuln:critical OR vuln:high)) OR "
+    "((vuln:critical OR vuln:high) AND vuln:exposed AND (vuln:fixable OR vuln:kev) AND NOT vuln:bulk)",
     "vuln:stale OR ((vuln:critical OR vuln:high) AND (vuln:burst OR "
     "((vuln:kev OR (vuln:critical AND vuln:fixable) OR vuln:exposed) AND NOT vuln:bulk)))",
 )
@@ -306,6 +309,43 @@ def stale_event(host: str, reason: str, today: str) -> dict[str, Any]:
     }
 
 
+def refresh_failed_event(host: str, f: dict[str, Any]) -> dict[str, Any]:
+    where = f"{f.get('stack')}/{f.get('service')}"
+    return {
+        "external_id": f"refresh|{host}|{where}|{str(f.get('to') or '')[:19]}",
+        "title": f"{host}: {where} did not come up on its patched image and was rolled back",
+        "summary": f"image: {f.get('image')}\nreason: {f.get('reason')}\n"
+        "it stays on the previous image, and this one is held until a newer image appears",
+        "tags": f"vuln:refresh {host_tag(host)}",
+        "link": VULN_SITE,
+        "occurred_at": None,
+        "raw": {"kind": "refresh", "host": host, **f},
+    }
+
+
+def refresh_stale_event(host: str, reason: str, today: str) -> dict[str, Any]:
+    return {
+        "external_id": f"stale|refresh-{host}|{today}",
+        "title": f"{host} image refresh is not running: {reason}",
+        "summary": "patched images are no longer pulled before the nightly scan; "
+        f"systemctl status stack-refresh.timer stack-refresh.service on {host}",
+        "tags": f"vuln:stale {host_tag(host)}",
+        "link": VULN_SITE,
+        "occurred_at": None,
+        "raw": {"kind": "refresh-stale", "host": host, "reason": reason},
+    }
+
+
+def refresh_stale_reason(report: dict[str, Any], now: datetime) -> str:
+    gen = parse_generated(str(report.get("generated") or ""))
+    if gen is None:
+        return "report has no generated timestamp"
+    age = now - gen
+    if age > REFRESH_STALE_AFTER:
+        return f"last run {age.days}d {age.seconds // 3600}h ago"
+    return ""
+
+
 def stale_reason(report: dict[str, Any], now: datetime) -> str:
     if report.get("error"):
         return str(report["error"])[:200]
@@ -375,6 +415,7 @@ def diff(
     kev_ids: frozenset[str] | None,
     now: datetime,
     images: set[str] | None = None,
+    refreshes: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[list[dict[str, Any]], State]:
     today = now.date().isoformat()
     day = (now.date() - date(1970, 1, 1)).days
@@ -414,7 +455,8 @@ def diff(
     if kev_known:
         kev_state |= {digest(k) for k, r in recs.items() if r.cve in kev_ids}
 
-    stale = {h: v for h, v in state.stale.items() if h in reports}
+    refreshes = refreshes or {}
+    stale = {h: v for h, v in state.stale.items() if h in reports or h.removeprefix("refresh:") in refreshes}
     for host, report in sorted(reports.items()):
         reason = stale_reason(report, now)
         if not reason:
@@ -424,6 +466,20 @@ def diff(
             continue
         events.append(stale_event(host, reason, today))
         stale[host] = today
+
+    for host, report in sorted(refreshes.items()):
+        if not first:
+            for f in report.get("failed") or []:
+                events.append(refresh_failed_event(host, f))
+        reason = refresh_stale_reason(report, now)
+        key = f"refresh:{host}"
+        if not reason:
+            stale.pop(key, None)
+            continue
+        if first or stale.get(key) == today:
+            continue
+        events.append(refresh_stale_event(host, reason, today))
+        stale[key] = today
 
     remembered = {i: last for i, last in (state.images or {}).items() if day - last <= FORGET_AFTER_DAYS}
     remembered.update({i: day for i in images})
@@ -504,10 +560,11 @@ async def fetch(target: str, cursor: str | None) -> tuple[list[dict[str, Any]], 
         noise = Noise(await _get_json(c, f"{VULN_BASE}/noise.json", missing_ok=True))
         reports = {h: await _get_json(c, f"{VULN_BASE}/report-{h}.json") for h in scope}
         exposures = {h: await _get_json(c, f"{VULN_BASE}/exposure-{h}.json", missing_ok=True) for h in scope}
+        refreshes = {h: await _get_json(c, f"{VULN_BASE}/refresh-{h}.json", missing_ok=True) for h in scope}
     kev_ids = await kev_catalog()
     recs = collect(reports, noise, exposures)
     events, state = diff(
         load_cursor(cursor), cursor is None, reports, recs, kev_ids, datetime.now(timezone.utc),
-        present_images(reports, exposures),
+        present_images(reports, exposures), {h: r for h, r in refreshes.items() if isinstance(r, dict)},
     )
     return events, dump_cursor(state)

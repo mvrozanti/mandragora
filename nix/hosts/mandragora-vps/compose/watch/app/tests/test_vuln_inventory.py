@@ -46,9 +46,9 @@ BASE = {
 }
 
 
-def run(reports, state=None, first=False, kev=frozenset(), noise=None, exposures=None, now=NOW):
+def run(reports, state=None, first=False, kev=frozenset(), noise=None, exposures=None, now=NOW, refreshes=None):
     recs = inventory.collect(reports, inventory.Noise(noise), exposures)
-    return inventory.diff(state or inventory.State(), first, reports, recs, kev, now)
+    return inventory.diff(state or inventory.State(), first, reports, recs, kev, now, refreshes=refreshes)
 
 
 def baseline(reports=BASE, kev=frozenset()):
@@ -251,6 +251,42 @@ def test_a_briefly_missing_pair_does_not_page_again():
     _, state = run(gone, state, now=NOW + timedelta(days=1))
     back, _ = run(BASE, state, now=NOW + timedelta(days=2))
     assert back == []
+
+
+def _refresh(generated=FRESH, failed=()):
+    return {"mandragora-vps": {"schema": 1, "host": "mandragora-vps", "generated": generated,
+                               "updated": [], "failed": list(failed), "skipped": []}}
+
+
+ROLLED_BACK = {"stack": "hub", "service": "hub", "image": "nginx:stable-alpine", "from": "sha256:aaa",
+               "to": "sha256:bbbbbbbbbbbbbbbbbbbbbbbb", "reason": "healthcheck reports unhealthy", "rolled_back": True}
+
+
+def test_a_rolled_back_refresh_pages_once_per_failing_image():
+    state = baseline()
+    events, state = run(BASE, state, refreshes=_refresh(failed=[ROLLED_BACK]))
+    assert [e["external_id"] for e in events] == ["refresh|mandragora-vps|hub/hub|sha256:bbbbbbbbbbbb"]
+    assert _paged(events) == events
+    again, _ = run(BASE, state, refreshes=_refresh(failed=[ROLLED_BACK]))
+    assert [e["external_id"] for e in again] == [e["external_id"] for e in events]
+
+
+def test_a_clean_refresh_is_silent():
+    state = baseline()
+    events, _ = run(BASE, state, refreshes=_refresh())
+    assert events == []
+
+
+def test_a_refresh_that_stopped_running_pages_once_a_day():
+    state = baseline()
+    old = (NOW - timedelta(hours=60)).isoformat().replace("+00:00", "Z")
+    events, state = run(BASE, state, refreshes=_refresh(generated=old))
+    assert [e["external_id"] for e in events] == ["stale|refresh-mandragora-vps|2026-09-27"]
+    assert _paged(events) == events
+    again, state = run(BASE, state, refreshes=_refresh(generated=old), now=NOW + timedelta(hours=2))
+    assert again == []
+    fresh, state = run(BASE, state, refreshes=_refresh(), now=NOW + timedelta(hours=3))
+    assert fresh == [] and "refresh:mandragora-vps" not in state.stale
 
 
 def test_cursor_round_trips():
