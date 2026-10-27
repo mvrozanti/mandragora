@@ -4,8 +4,8 @@ let
   upstreamSrc = pkgs.fetchFromGitHub {
     owner = "mvrozanti";
     repo = "vtag";
-    rev = "23baf208e9b6721c9c9548f0a61aa4d970f434fd";
-    sha256 = "sha256-PxAZNeevS+hqm1vbJ9qKxlXSGaWfBaGOpz2p9T856Wo=";
+    rev = "2217761d080268341dc5d54e48abbdcb3c7ce4a8";
+    sha256 = "sha256-z/Mx4toaGx2bqkxRW5YgEkgBQtwN8BoUK/9vswQkZrc=";
   };
 
   memeSrc = pkgs.runCommand "meme-src" { } ''
