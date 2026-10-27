@@ -269,7 +269,7 @@ def bootstrap_health_watch() -> None:
         watch_id = create_watch(c, HEALTH_WATCH_CONDITION)
         c.execute(
             "INSERT INTO watchers (kind, target, name, created_at, push, requires_ack, match_rule, "
-            "condition, watch_id) VALUES (?, ?, ?, ?, 1, 1, ?, ?, ?)",
+            "condition, watch_id) VALUES (?, ?, ?, ?, 1, 0, ?, ?, ?)",
             ("unit_health", "*", "quiet jobs on mandragora hosts", now_iso(), health.DEFAULT_RULE,
              HEALTH_WATCH_CONDITION, watch_id),
         )
