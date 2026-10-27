@@ -1,0 +1,15 @@
+[Unit]
+Description=Pull patched registry images for deployed stacks and roll back any that fail health (mandragora-vps)
+After=docker.service
+Requires=docker.service
+Before=vuln-scan-vps.service
+
+[Service]
+Type=oneshot
+User=opc
+Group=opc
+Nice=10
+IOSchedulingClass=best-effort
+Environment=REFRESH_HOLD=nb
+ExecStart=/usr/local/bin/stack-refresh.sh
+TimeoutStartSec=2h
