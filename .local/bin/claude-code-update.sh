@@ -116,7 +116,7 @@ fi
 
 cd "$WT" || exit 1
 SWITCHLOG="$RUNBASE/claude-code-update-switch.log"
-mandragora-switch --no-wait "chore(claude-code): bump to $latest" > "$SWITCHLOG" 2>&1
+mandragora-switch --no-wait --vault="none (routine pin bump of claude-code to the npm release; the version is the whole change)" "chore(claude-code): bump to $latest" > "$SWITCHLOG" 2>&1
 rc=$?
 tail -5 "$SWITCHLOG"
 
