@@ -25,8 +25,12 @@ EXPOSED_SCOPES = ("open", "public", "lan")
 SCOPE_RANK = {"open": 0, "public": 1, "lan": 2, "authed": 3, "tailnet": 4}
 HOST_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
 DEFAULT_RULE = (
+    "vuln:stale OR (vuln:burst AND (vuln:critical OR vuln:high)) OR "
+    "((vuln:critical OR vuln:high) AND vuln:exposed AND (vuln:fixable OR vuln:kev) AND NOT vuln:bulk)"
+)
+PREVIOUS_RULES = (
     "vuln:stale OR ((vuln:critical OR vuln:high) AND (vuln:burst OR "
-    "((vuln:kev OR (vuln:critical AND vuln:fixable) OR vuln:exposed) AND NOT vuln:bulk)))"
+    "((vuln:kev OR (vuln:critical AND vuln:fixable) OR vuln:exposed) AND NOT vuln:bulk)))",
 )
 
 _http_cache: dict[str, tuple[str, Any]] = {}
@@ -186,12 +190,16 @@ def collect(
     return recs
 
 
+def is_exposed(rec: Record) -> bool:
+    return any(s.rsplit(":", 1)[-1] in EXPOSED_SCOPES for s in rec.exposed)
+
+
 def tags(rec: Record, kev: bool, bulk: bool = False) -> list[str]:
     out = [f"vuln:{severity_band(rec.score, rec.severity)}"]
     if kev:
         out.append("vuln:kev")
     out.append("vuln:fixable" if rec.fixable else "vuln:nofix")
-    if any(s.rsplit(":", 1)[-1] in EXPOSED_SCOPES for s in rec.exposed):
+    if is_exposed(rec):
         out.append("vuln:exposed")
     elif rec.exposed:
         out.append("vuln:reachable")
@@ -253,6 +261,10 @@ def record_event(rec: Record, kind: str, kev: bool, bulk: bool = False) -> dict[
 _SEVERITY_RANK = {"critical": 0, "high": 1, "medium": 2, "low": 3, "unknown": 4}
 
 
+def actionable(rec: Record, kev: bool) -> bool:
+    return is_exposed(rec) and (rec.fixable or kev)
+
+
 def burst_tags(ranked: list[tuple[Record, bool]]) -> list[str]:
     worst = min(
         (severity_band(r.score, r.severity) for r, _ in ranked),
@@ -263,7 +275,7 @@ def burst_tags(ranked: list[tuple[Record, bool]]) -> list[str]:
         out.append("vuln:kev")
     if any(r.fixable for r, _ in ranked):
         out.append("vuln:fixable")
-    if any(s.rsplit(":", 1)[-1] in EXPOSED_SCOPES for r, _ in ranked for s in r.exposed):
+    if any(is_exposed(r) for r, _ in ranked):
         out.append("vuln:exposed")
     return out
 
@@ -273,7 +285,7 @@ def burst_event(items: list[tuple[Record, bool]], today: str) -> dict[str, Any]:
     top = "\n".join(f"{r.pname} {r.cve} ({r.score:.1f})" for r, _ in ranked[:5])
     return {
         "external_id": f"burst|{today}|{digest('|'.join(r.key for r, _ in ranked))}",
-        "title": f"{len(items)} new CVE-affected packages in one scan",
+        "title": f"{len(items)} new CVEs on exposed packages with a fix or on CISA KEV, in one scan",
         "summary": f"top {min(len(items), 5)}:\n{top}",
         "tags": " ".join(["vuln:burst"] + burst_tags(ranked)),
         "link": VULN_SITE,
@@ -312,6 +324,7 @@ class State:
     seen: dict[str, int] = field(default_factory=dict)
     kev: set[str] = field(default_factory=set)
     stale: dict[str, str] = field(default_factory=dict)
+    images: dict[str, int] | None = None
 
 
 def load_cursor(cursor: str | None) -> State:
@@ -326,6 +339,7 @@ def load_cursor(cursor: str | None) -> State:
         seen={str(k): int(v) for k, v in (d.get("seen") or {}).items()},
         kev=set(d.get("kev") or []),
         stale=dict(d.get("stale") or {}),
+        images={str(k): int(v) for k, v in d["images"].items()} if isinstance(d.get("images"), dict) else None,
     )
 
 
@@ -337,9 +351,20 @@ def dump_cursor(state: State) -> str:
             "seen": dict(sorted(state.seen.items())),
             "kev": sorted(state.kev),
             "stale": state.stale,
+            "images": dict(sorted((state.images or {}).items())),
         },
         separators=(",", ":"),
     )
+
+
+def present_images(
+    reports: dict[str, dict[str, Any]],
+    exposures: dict[str, dict[str, Any]] | None = None,
+) -> set[str]:
+    out = {str(i) for r in reports.values() for e in r.get("entries") or [] for i in e.get("images") or []}
+    for exp in (exposures or {}).values():
+        out |= {str(item["image"]) for item in (exp or {}).get("listeners") or [] if item.get("image")}
+    return out
 
 
 def diff(
@@ -349,12 +374,15 @@ def diff(
     recs: dict[str, Record],
     kev_ids: frozenset[str] | None,
     now: datetime,
+    images: set[str] | None = None,
 ) -> tuple[list[dict[str, Any]], State]:
     today = now.date().isoformat()
     day = (now.date() - date(1970, 1, 1)).days
     fresh_hosts = {h for h in reports if h not in state.hosts}
     kev_known = kev_ids is not None
     kev_ids = kev_ids or frozenset()
+    images = present_images(reports) if images is None else images
+    known_images = images if state.images is None else set(state.images)
 
     fresh: list[tuple[Record, bool]] = []
     escalated: list[Record] = []
@@ -363,17 +391,19 @@ def diff(
         d = digest(key)
         on_kev = rec.cve in kev_ids
         if d not in state.seen:
-            if not first and not rec.hosts <= fresh_hosts:
+            on_new_image_only = bool(rec.images) and rec.images.isdisjoint(known_images)
+            if not first and not rec.hosts <= fresh_hosts and not on_new_image_only:
                 fresh.append((rec, on_kev))
         elif on_kev and d not in state.kev:
             escalated.append(rec)
 
     events: list[dict[str, Any]] = []
-    bulk = len(fresh) > BURST
+    candidates = [(rec, on_kev) for rec, on_kev in fresh if actionable(rec, on_kev)]
+    bulk = len(candidates) > BURST
     for rec, on_kev in fresh:
-        events.append(record_event(rec, "new", on_kev, bulk))
+        events.append(record_event(rec, "new", on_kev, bulk and actionable(rec, on_kev)))
     if bulk:
-        events.append(burst_event(fresh, today))
+        events.append(burst_event(candidates, today))
     for rec in escalated:
         events.append(record_event(rec, "kev", True))
 
@@ -395,10 +425,12 @@ def diff(
         events.append(stale_event(host, reason, today))
         stale[host] = today
 
+    remembered = {i: last for i, last in (state.images or {}).items() if day - last <= FORGET_AFTER_DAYS}
+    remembered.update({i: day for i in images})
     hosts = {h: str(r.get("generated") or "") for h, r in reports.items()}
     if first:
         stale = {}
-    return events, State(hosts=hosts, seen=seen, kev=kev_state, stale=stale)
+    return events, State(hosts=hosts, seen=seen, kev=kev_state, stale=stale, images=remembered)
 
 
 def _raise_for_throttle(response: httpx.Response, source: str) -> None:
@@ -474,5 +506,8 @@ async def fetch(target: str, cursor: str | None) -> tuple[list[dict[str, Any]], 
         exposures = {h: await _get_json(c, f"{VULN_BASE}/exposure-{h}.json", missing_ok=True) for h in scope}
     kev_ids = await kev_catalog()
     recs = collect(reports, noise, exposures)
-    events, state = diff(load_cursor(cursor), cursor is None, reports, recs, kev_ids, datetime.now(timezone.utc))
+    events, state = diff(
+        load_cursor(cursor), cursor is None, reports, recs, kev_ids, datetime.now(timezone.utc),
+        present_images(reports, exposures),
+    )
     return events, dump_cursor(state)

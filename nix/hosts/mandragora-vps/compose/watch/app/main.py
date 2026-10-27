@@ -238,7 +238,11 @@ def bootstrap_vuln_watch() -> None:
 
     c = conn()
     try:
-        if c.execute("SELECT 1 FROM watchers WHERE kind = 'vuln_inventory' AND target = '*'").fetchone():
+        row = c.execute("SELECT id, match_rule FROM watchers WHERE kind = 'vuln_inventory' AND target = '*'").fetchone()
+        if row:
+            if row["match_rule"] in inventory.PREVIOUS_RULES:
+                c.execute("UPDATE watchers SET match_rule = ? WHERE id = ?", (inventory.DEFAULT_RULE, row["id"]))
+                log.info("vuln-watch: moved the stock match rule to the current default")
             return
         watch_id = create_watch(c, VULN_WATCH_CONDITION)
         c.execute(

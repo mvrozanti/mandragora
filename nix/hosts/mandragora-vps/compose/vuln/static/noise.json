@@ -1,6 +1,15 @@
 {
   "pname_suffixes": [
-    "-tex"
+    "-tex",
+    "linux-libc-dev",
+    "binutils",
+    "binutils-common",
+    "binutils-aarch64-linux-gnu",
+    "binutils-x86-64-linux-gnu",
+    "libctf0",
+    "libctf-nobfd0",
+    "libgprofng0",
+    "libsframe1"
   ],
   "version_suffixes": [
     "-tex",

@@ -157,13 +157,24 @@ def test_a_legacy_date_only_stamp_is_understood():
     assert inventory.parse_generated("2026-09-20") == datetime(2026, 9, 20, tzinfo=timezone.utc)
 
 
-def test_a_burst_collapses_into_one_page():
+def _listening(host, pnames, scope="open"):
+    return {host: {"listeners": [
+        {"port": 9000 + i, "scope": scope, "packages": [{"pname": p, "version": "1"}]} for i, p in enumerate(pnames)
+    ]}}
+
+
+def _paged(events):
+    return [e for e in events if match.matches(inventory.DEFAULT_RULE, e["title"], e["summary"], e["tags"])]
+
+
+def test_a_burst_of_listening_fixable_pairs_collapses_into_one_page():
     state = baseline()
     reports = json.loads(json.dumps(BASE))
-    for i in range(inventory.BURST + 1):
-        reports["mandragora"]["entries"].append(entry(f"pkg{i}", "1", cve(f"CVE-2026-1{i:03d}", 9.8)))
-    events, _ = run(reports, state)
-    paged = [e for e in events if match.matches(inventory.DEFAULT_RULE, e["title"], e["summary"], e["tags"])]
+    names = [f"pkg{i}" for i in range(inventory.BURST + 1)]
+    for i, n in enumerate(names):
+        reports["mandragora"]["entries"].append(entry(n, "1", cve(f"CVE-2026-1{i:03d}", 9.8)))
+    events, _ = run(reports, state, exposures=_listening("mandragora", names))
+    paged = _paged(events)
     assert len(events) == inventory.BURST + 2
     assert len(paged) == 1 and paged[0]["external_id"].startswith("burst|")
 
@@ -171,12 +182,48 @@ def test_a_burst_collapses_into_one_page():
 def test_a_burst_without_a_critical_or_high_stays_quiet():
     state = baseline()
     reports = json.loads(json.dumps(BASE))
-    for i in range(inventory.BURST + 1):
-        reports["mandragora"]["entries"].append(entry(f"pkg{i}", "1", cve(f"CVE-2026-1{i:03d}", 5.0)))
-    events, _ = run(reports, state)
-    paged = [e for e in events if match.matches(inventory.DEFAULT_RULE, e["title"], e["summary"], e["tags"])]
+    names = [f"pkg{i}" for i in range(inventory.BURST + 1)]
+    for i, n in enumerate(names):
+        reports["mandragora"]["entries"].append(entry(n, "1", cve(f"CVE-2026-1{i:03d}", 5.0)))
+    events, _ = run(reports, state, exposures=_listening("mandragora", names))
     assert any(e["external_id"].startswith("burst|") for e in events)
-    assert paged == []
+    assert _paged(events) == []
+
+
+def test_many_new_pairs_on_idle_packages_neither_burst_nor_page():
+    state = baseline()
+    reports = json.loads(json.dumps(BASE))
+    for i in range(inventory.BURST * 5):
+        reports["mandragora-vps"]["entries"].append(
+            entry(f"lib{i}", "1", cve(f"CVE-2026-2{i:03d}", 9.8, True, "2"), images=["seafile:12"]))
+    events, _ = run(reports, state)
+    assert len(events) == inventory.BURST * 5
+    assert not any(e["external_id"].startswith("burst|") for e in events)
+    assert _paged(events) == []
+
+
+def test_pairs_arriving_with_a_new_image_are_baselined_not_paged():
+    state = baseline()
+    reports = with_entry("mandragora-vps", entry("linux-libc-dev", "6.1", cve("CVE-2026-3000", 9.8, True, "6.2"),
+                                                 images=["brand-new:1"]))
+    events, state = run(reports, state)
+    assert events == []
+    assert "brand-new:1" in state.images
+    later = json.loads(json.dumps(reports))
+    later["mandragora-vps"]["entries"].append(entry("curl", "8.0", cve("CVE-2026-3001", 5.0, True, "8.1"),
+                                                    images=["brand-new:1"]))
+    events, _ = run(later, state)
+    assert [e["external_id"] for e in events] == ["new|curl|CVE-2026-3001"]
+
+
+def test_a_cursor_from_before_image_tracking_does_not_swallow_new_pairs():
+    state = baseline()
+    state.images = None
+    reports = with_entry("mandragora-vps", entry("curl", "8.0", cve("CVE-2026-0003", 9.1, True, "8.1"),
+                                                 images=["seafile:12"]))
+    events, after = run(reports, state)
+    assert [e["external_id"] for e in events] == ["new|curl|CVE-2026-0003"]
+    assert set(after.images) == {"seafile:12"}
 
 
 def test_forgotten_pairs_page_again_after_the_forget_window():
@@ -185,7 +232,17 @@ def test_forgotten_pairs_page_again_after_the_forget_window():
     later = NOW + timedelta(days=inventory.FORGET_AFTER_DAYS + 2)
     _, state = run(gone, state, now=later)
     back, _ = run(BASE, state, now=later)
-    assert {e["external_id"] for e in back} == {"new|openssl|CVE-2026-0001", "new|libc6|CVE-2026-0002"}
+    assert {e["external_id"] for e in back} == {"new|openssl|CVE-2026-0001"}
+
+
+def test_an_image_missing_from_one_scan_is_not_new_when_it_returns():
+    state = baseline()
+    gone = {h: report(h, []) for h in BASE}
+    _, state = run(gone, state, now=NOW + timedelta(days=1))
+    reports = with_entry("mandragora-vps", entry("curl", "8.0", cve("CVE-2026-0003", 9.1, True, "8.1"),
+                                                 images=["seafile:12"]))
+    back, _ = run(reports, state, now=NOW + timedelta(days=2))
+    assert [e["external_id"] for e in back] == ["new|curl|CVE-2026-0003"]
 
 
 def test_a_briefly_missing_pair_does_not_page_again():
@@ -218,11 +275,29 @@ def _pages(ev):
     return match.matches(inventory.DEFAULT_RULE, ev["title"], ev["summary"], ev["tags"])
 
 
-def test_default_rule_pages_a_fixable_critical():
+def test_default_rule_ignores_a_fixable_critical_nothing_listens_on():
     ev = _title(with_entry("mandragora-vps", entry("curl", "8.0", cve("CVE-2026-0003", 9.1, True, "8.1"))))
     assert "vuln:critical" in ev["tags"] and "vuln:fixable" in ev["tags"]
     assert "fix: 8.1" in ev["summary"]
+    assert not _pages(ev)
+
+
+def test_default_rule_pages_a_fixable_critical_in_a_public_image():
+    reports = with_entry("mandragora-vps", entry("curl", "8.0", cve("CVE-2026-0003", 9.1, True, "8.1"),
+                                                 images=["seafile:12"]))
+    exposures = {"mandragora-vps": {"listeners": [{"port": 443, "scope": "public", "image": "seafile:12"}]}}
+    ev = _title(reports, exposures=exposures)
+    assert "vuln:exposed" in ev["tags"]
     assert _pages(ev)
+
+
+def test_default_rule_ignores_a_fixable_critical_behind_the_login():
+    reports = with_entry("mandragora-vps", entry("curl", "8.0", cve("CVE-2026-0003", 9.1, True, "8.1"),
+                                                 images=["seafile:12"]))
+    exposures = {"mandragora-vps": {"listeners": [{"port": 443, "scope": "authed", "image": "seafile:12"}]}}
+    ev = _title(reports, exposures=exposures)
+    assert "vuln:reachable" in ev["tags"]
+    assert not _pages(ev)
 
 
 def test_default_rule_ignores_a_critical_without_a_fix():
@@ -237,10 +312,26 @@ def test_default_rule_ignores_a_medium():
     assert not _pages(ev)
 
 
-def test_default_rule_pages_a_high_on_kev():
-    ev = _title(with_entry("mandragora", entry("less", "600", cve("CVE-2026-0006", 7.5))),
+def test_default_rule_ignores_a_kev_critical_that_is_installed_but_idle():
+    ev = _title(with_entry("mandragora", entry("php", "8.4.26", cve("CVE-2026-0006", 9.8))),
                 kev=frozenset({"CVE-2026-0006"}))
+    assert "vuln:kev" in ev["tags"]
+    assert not _pages(ev)
+
+
+def test_default_rule_pages_a_listening_high_on_kev_even_without_a_fix():
+    reports = with_entry("mandragora-vps", entry("less", "600", cve("CVE-2026-0006", 7.5, False), images=["seafile:12"]))
+    exposures = {"mandragora-vps": {"listeners": [{"port": 443, "scope": "public", "image": "seafile:12"}]}}
+    ev = _title(reports, kev=frozenset({"CVE-2026-0006"}), exposures=exposures)
+    assert "vuln:nofix" in ev["tags"]
     assert _pages(ev)
+
+
+def test_default_rule_ignores_a_listening_high_without_a_fix_or_kev():
+    reports = with_entry("mandragora-vps", entry("less", "600", cve("CVE-2026-0006", 7.5, False), images=["seafile:12"]))
+    exposures = {"mandragora-vps": {"listeners": [{"port": 443, "scope": "public", "image": "seafile:12"}]}}
+    ev = _title(reports, exposures=exposures)
+    assert not _pages(ev)
 
 
 def test_default_rule_ignores_a_medium_on_kev():
@@ -300,8 +391,8 @@ def test_the_widest_scope_wins():
 
 
 def test_exposure_matches_vps_packages_by_image():
-    reports = with_entry("mandragora-vps", entry("curl", "8.0", cve("CVE-2026-0003", 5.0, False), images=["caddy:2"]))
-    exposures = {"mandragora-vps": {"listeners": [{"port": 443, "scope": "public", "image": "caddy:2"}]}}
+    reports = with_entry("mandragora-vps", entry("curl", "8.0", cve("CVE-2026-0003", 5.0, False), images=["seafile:12"]))
+    exposures = {"mandragora-vps": {"listeners": [{"port": 443, "scope": "public", "image": "seafile:12"}]}}
     ev = _title(reports, exposures=exposures)
     assert "vuln:exposed" in ev["tags"]
 
@@ -372,9 +463,10 @@ def _serve(monkeypatch, files, kev=()):
     return calls
 
 
-def _files(reports):
+def _files(reports, exposures=None):
     files = {"hosts.json": list(reports), "noise.json": {}}
     files.update({f"report-{h}.json": r for h, r in reports.items()})
+    files.update({f"exposure-{h}.json": e for h, e in (exposures or {}).items()})
     return files
 
 
@@ -417,9 +509,15 @@ def test_the_watcher_pages_through_the_real_poller(db, make_watcher, captured_se
     _serve(monkeypatch, _files(BASE))
     asyncio.run(poller.poll_once(db))
     assert captured_sends == []
-    reports = with_entry("mandragora-vps", entry("curl", "8.0", cve("CVE-2026-0003", 9.1, True, "8.1")))
+    reports = with_entry("mandragora-vps", entry("curl", "8.0", cve("CVE-2026-0003", 9.1, True, "8.1"),
+                                                 images=["seafile:12"]))
     reports["mandragora"]["entries"].append(entry("less", "600", cve("CVE-2026-0006", 5.0)))
-    _serve(monkeypatch, _files(reports))
+    reports["mandragora-vps"]["entries"].append(entry("perl", "5.36", cve("CVE-2026-0007", 9.8, True, "5.38"),
+                                                      images=["seafile:12"]))
+    exposures = {"mandragora-vps": {"listeners": [
+        {"port": 8443, "scope": "lan", "packages": [{"pname": "curl", "version": "8.0"}]},
+    ]}}
+    _serve(monkeypatch, _files(reports, exposures))
     asyncio.run(poller.poll_once(db))
     assert len(captured_sends) == 1
 
@@ -436,6 +534,24 @@ def test_bootstrap_registers_one_attached_watcher(db):
     row = rows[0]
     assert row["target"] == "*" and row["ai_spec"] is None and row["push"] == 1
     assert row["watch_id"] is not None and row["match_rule"] == inventory.DEFAULT_RULE
+
+
+def test_bootstrap_moves_a_stock_rule_forward_but_keeps_a_hand_edit(db):
+    import main
+
+    main.bootstrap_vuln_watch()
+    c = db()
+    c.execute("UPDATE watchers SET match_rule = ? WHERE kind = 'vuln_inventory'", (inventory.PREVIOUS_RULES[0],))
+    c.close()
+    main.bootstrap_vuln_watch()
+    c = db()
+    assert c.execute("SELECT match_rule FROM watchers WHERE kind = 'vuln_inventory'").fetchone()[0] == inventory.DEFAULT_RULE
+    c.execute("UPDATE watchers SET match_rule = 'vuln:critical' WHERE kind = 'vuln_inventory'")
+    c.close()
+    main.bootstrap_vuln_watch()
+    c = db()
+    assert c.execute("SELECT match_rule FROM watchers WHERE kind = 'vuln_inventory'").fetchone()[0] == "vuln:critical"
+    c.close()
 
 
 def test_kind_is_registered_everywhere():
