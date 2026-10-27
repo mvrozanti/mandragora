@@ -62,13 +62,18 @@
 </div>
 
 <aside id="dock" class="yt-dock" hidden aria-label="player">
+  <span class="yt-dock__time" aria-hidden="true"><span id="dock-time"></span></span>
   <div class="yt-dock__inner">
     <div class="yt-dock__head">
+      <button class="mv-btn yt-icon is-primary" id="dock-toggle" type="button" aria-label="pause">❚❚</button>
       <div class="yt-dock__title"><b id="dock-title"></b><span id="dock-sub"></span></div>
-      <button class="mv-btn yt-icon" id="dock-close" type="button" aria-label="close player">×</button>
+      <button class="mv-btn yt-icon" id="dock-more" type="button" aria-expanded="false" aria-controls="dock-body" aria-label="show player">▴</button>
+      <button class="mv-btn yt-icon" id="dock-close" type="button" aria-label="close player">✕</button>
     </div>
-    <audio id="dock-audio" controls preload="metadata"></audio>
-    <video id="dock-video" class="mv-media" controls playsinline preload="metadata" hidden></video>
+    <div class="yt-dock__body" id="dock-body" hidden>
+      <audio id="dock-audio" controls preload="metadata"></audio>
+      <video id="dock-video" class="mv-media" controls playsinline preload="metadata" hidden></video>
+    </div>
   </div>
 </aside>
 
