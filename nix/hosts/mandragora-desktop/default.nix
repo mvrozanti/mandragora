@@ -55,6 +55,7 @@ in
     ../../modules/desktop/syncthing.nix
     ../../modules/desktop/phone-archiver.nix
     ../../modules/desktop/steam.nix
+    ../../modules/desktop/gamepad.nix
     ../../modules/desktop/wine-gaming.nix
     ../../modules/desktop/eppctl.nix
     ../../modules/desktop/bf4.nix
