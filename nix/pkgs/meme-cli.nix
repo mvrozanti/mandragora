@@ -4,13 +4,21 @@ let
   upstreamSrc = pkgs.fetchFromGitHub {
     owner = "mvrozanti";
     repo = "vtag";
-    rev = "2217761d080268341dc5d54e48abbdcb3c7ce4a8";
-    sha256 = "sha256-z/Mx4toaGx2bqkxRW5YgEkgBQtwN8BoUK/9vswQkZrc=";
+    rev = "88d5d2ecb53fcf585b4ee6310f910ef10a9ae6b1";
+    sha256 = "sha256-S3DH+ElmMvP+EpOyoPVAWdGtSbPvd1Gdi9E5bmMMUW4=";
   };
+
+  hubStatic = ../hosts/mandragora-vps/compose/hub/static;
+  designSystem = map (name: hubStatic + "/${name}") [
+    "theme.css"
+    "theme.js"
+    "components.css"
+  ];
 
   memeSrc = pkgs.runCommand "meme-src" { } ''
     cp -r ${upstreamSrc} $out
     chmod -R u+w $out
+    cp ${builtins.concatStringsSep " " designSystem} $out/webui/static/
     substituteInPlace $out/webui/static/index.html \
       --replace-fail '<title>vtag · mvr.ac</title>' '<title>meme · mvr.ac</title>' \
       --replace-fail '<span class="brand">vtag</span>' '<span class="brand">meme</span>'
