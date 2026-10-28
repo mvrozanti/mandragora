@@ -27,7 +27,8 @@ AIO_ZONE_PREFIX = "D_LED1"
 AIO_RING_LEDS = 8
 AIO_RESTORE_TIMEOUT_SECONDS = 15
 TELEMETRY_ADDRESS = ("127.0.0.1", 5300)
-TELEMETRY_TIMEOUT_SECONDS = 1.0
+TELEMETRY_TIMEOUT_SECONDS = 1.5
+CROSSFADE_SECONDS = 1.0
 HORIZON_PACKET_BYTES = 324
 HORIZON_SPEED_OFFSET = 256
 GAUGE_FULL_SCALE_MPS = 400 / 3.6
@@ -215,21 +216,40 @@ def is_paused():
     return PAUSE_SENTINEL.exists()
 
 
-def frame_targets(ram_devices, aio, palette, phase, speed, racing):
-    if not racing:
-        return [(d, d.zones, lambda n: animated_colors(palette, n, phase)) for d in ram_devices]
+def blend_frames(a, b, mix):
+    return [[lerp_color(x, y, mix) for x, y in zip(za, zb)] for za, zb in zip(a, b)]
+
+
+def frame_targets(ram_devices, aio, aio_rest, palette, phase, speed, mix):
     level = min(max(speed / GAUGE_FULL_SCALE_MPS, 0.0), 1.0)
-    targets = [(d, d.zones, lambda n: gauge_colors(palette, n, level)) for d in ram_devices]
-    if aio:
+    targets = []
+    for d in ram_devices:
+        rest = [animated_colors(palette, len(z.leds), phase) for z in d.zones]
+        if mix == 0.0:
+            targets.append((d, d.zones, rest))
+            continue
+        gauge = [gauge_colors(palette, len(z.leds), level) for z in d.zones]
+        targets.append((d, d.zones, blend_frames(rest, gauge, mix)))
+    if aio and aio_rest and mix > 0.0:
         ring = gauge_colors(palette, AIO_RING_LEDS, level)
-        targets.append((aio[0], aio[1], lambda n: [ring[i % AIO_RING_LEDS] for i in range(n)]))
+        gauge = [[ring[i % AIO_RING_LEDS] for i in range(len(z.leds))] for z in aio[1]]
+        targets.append((aio[0], aio[1], blend_frames(aio_rest, gauge, mix)))
     return targets
 
 
-def write_target(d, zones, colors_for, in_flight, now):
+def snapshot_aio(aio):
+    aio[0].update()
+    return [list(z.colors) for z in aio[1]]
+
+
+def step_mix(mix, racing):
+    step = 1.0 / (CROSSFADE_SECONDS * FPS)
+    return min(mix + step, 1.0) if racing else max(mix - step, 0.0)
+
+
+def write_target(d, zones, frame, in_flight, now):
     if device_busy(d, zones, in_flight, now):
         return
-    frame = [colors_for(len(zone.leds)) for zone in zones]
     pending = in_flight.get(d.id)
     if pending is not None and pending[0] == frame:
         return
@@ -275,7 +295,9 @@ def main():
     speed = 0.0
     speed_at = float("-inf")
     racing = False
-    aio_painted = False
+    mix = 0.0
+    aio_rest = None
+    race_palette_mtime = 0
 
     while True:
         frame_start = time.monotonic()
@@ -287,11 +309,18 @@ def main():
         if racing != was_racing:
             log("telemetry: race on" if racing else "telemetry: race off")
 
-        if aio_painted and not racing:
-            if not is_paused():
+        if racing and aio and aio_rest is None:
+            try:
+                aio_rest = snapshot_aio(aio)
+            except Exception as e:
+                log(f"aio snapshot failed: {e}")
+            race_palette_mtime = last_mtime
+        mix = step_mix(mix, racing)
+        if aio_rest is not None and not racing and mix == 0.0:
+            if race_palette_mtime != last_mtime and not is_paused():
                 restore_aio()
-            in_flight.clear()
-            aio_painted = False
+            in_flight.pop(aio[0].id, None)
+            aio_rest = None
 
         if not is_rgb_on() or is_paused():
             time.sleep(0.5)
@@ -309,10 +338,9 @@ def main():
             had_any_success = False
             try:
                 with write_lock(timeout=0.4):
-                    for d, zones, colors_for in frame_targets(ram_devices, aio, palette, phase, speed, racing):
+                    for d, zones, frame in frame_targets(ram_devices, aio, aio_rest, palette, phase, speed, mix):
                         try:
-                            write_target(d, zones, colors_for, in_flight, frame_start)
-                            aio_painted = aio_painted or (aio is not None and d is aio[0])
+                            write_target(d, zones, frame, in_flight, frame_start)
                             had_any_success = True
                         except Exception as e:
                             device_failures += 1
