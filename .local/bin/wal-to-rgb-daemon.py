@@ -162,18 +162,24 @@ def connect():
             time.sleep(CONNECT_BACKOFF_SECONDS)
 
 
+def ensure_direct(d):
+    if d.modes[d.active_mode].name.lower() == "direct":
+        return
+    for mode in ("Direct", "direct"):
+        try:
+            d.set_mode(mode)
+            return
+        except Exception:
+            continue
+
+
 def find_ram_devices(client):
     out = []
     for d in client.devices:
         name = (d.name or "").lower()
         if not any(x in name for x in ["dram", "ene", "xpg"]):
             continue
-        for mode in ("Direct", "direct"):
-            try:
-                d.set_mode(mode)
-                break
-            except Exception:
-                continue
+        ensure_direct(d)
         out.append(d)
     log(f"found {len(out)} RAM device(s): {[d.name for d in out]}")
     return out
@@ -227,9 +233,16 @@ def write_target(d, zones, colors_for, in_flight, now):
     pending = in_flight.get(d.id)
     if pending is not None and pending[0] == frame:
         return
+    send_frame(d, zones, frame)
+    in_flight[d.id] = (frame, now)
+
+
+def send_frame(d, zones, frame):
+    if len(zones) == 1 and len(zones[0].leds) == len(d.leds):
+        d.set_colors(frame[0], fast=True)
+        return
     for zone, colors in zip(zones, frame):
         zone.set_colors(colors, fast=True)
-    in_flight[d.id] = (frame, now)
 
 
 def frame_applied(d, zones, sent):
