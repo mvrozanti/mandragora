@@ -1,10 +1,28 @@
+import contextlib
 import fcntl
 import json
+import os
+import re
 import signal
 import sys
 import subprocess
 import time
 from pathlib import Path
+
+OPENRGB_WRITE_LOCK = "/tmp/openrgb-write.lock"
+PERIPHERAL_NAMES = ("keyboard", "logitech", "mouse", "steelseries", "rival")
+DRAM_NAMES = ("dram", "ene", "xpg")
+ENE_DIRECT_COLORS_REG = 0x8100
+ENE_LOCATION = re.compile(r"\((/dev/i2c-\d+)\), address (0x[0-9a-fA-F]+)")
+BLACKOUT_ATTEMPTS = 5
+WRITE_SETTLE_SECONDS = 0.1
+BLACKOUT_TIMEOUT_SECONDS = 12
+AIO_CHAIN_LENGTH = 60
+
+
+def log(msg):
+    sys.stderr.write(f"hid-wrapper: {msg}\n")
+    sys.stderr.flush()
 
 turn_on = sys.argv[1] == '--on' if len(sys.argv) > 1 else False
 turn_off = sys.argv[1] == '--off' if len(sys.argv) > 1 else False
@@ -65,45 +83,125 @@ def set_colors(mouse, pywal_colors):
     mouse.set_z3_color(pywal_colors[2])
     mouse.set_logo_color(pywal_colors[3])
 
+@contextlib.contextmanager
+def openrgb_write_lock(timeout=1.0):
+    fd = os.open(OPENRGB_WRITE_LOCK, os.O_CREAT | os.O_WRONLY, 0o666)
+    deadline = time.monotonic() + timeout
+    try:
+        while True:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if time.monotonic() >= deadline:
+                    log("openrgb write lock still busy; blacking out anyway")
+                    break
+                time.sleep(0.01)
+        yield
+    finally:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+        finally:
+            os.close(fd)
+
+
+def has_name(device, names):
+    name = (device.name or "").lower()
+    return any(x in name for x in names)
+
+
+def ensure_direct(device):
+    if device.modes[device.active_mode].name.lower() == "direct":
+        return
+    for mode_name in ("Direct", "Static"):
+        try:
+            device.set_mode(mode_name)
+            return
+        except Exception:
+            continue
+
+
+def blackout_device(device, black):
+    if has_name(device, ("aorus", "gigabyte")):
+        d_led_zones = [z for z in device.zones if "D_LED" in z.name]
+        for z in d_led_zones:
+            z.resize(AIO_CHAIN_LENGTH)
+        for z in device.zones:
+            if z.leds:
+                z.set_colors([black] * len(z.leds), fast=True)
+        return
+    device.set_colors([black] * len(device.leds), fast=True)
+
+
+def ene_hardware_colors(device):
+    from smbus2 import SMBus
+    match = ENE_LOCATION.search(device.metadata.location or "")
+    if not match:
+        return None
+    bus_path, address = match.group(1), int(match.group(2), 16)
+    out = []
+    with SMBus(bus_path) as bus:
+        for i in range(3 * len(device.leds)):
+            reg = ENE_DIRECT_COLORS_REG + i
+            bus.write_word_data(address, 0x00, ((reg << 8) & 0xFF00) | ((reg >> 8) & 0xFF))
+            out.append(bus.read_byte_data(address, 0x81))
+    return out
+
+
+def server_applied_black(device, timeout=1.0):
+    deadline = time.monotonic() + timeout
+    while True:
+        device.update()
+        if all((c.red, c.green, c.blue) == (0, 0, 0) for c in device.colors):
+            return True
+        if time.monotonic() >= deadline:
+            return False
+        time.sleep(0.02)
+
+
+def converge_ene_black(device, black):
+    label = f"{device.name} #{device.id}"
+    for attempt in range(1, BLACKOUT_ATTEMPTS + 1):
+        if not server_applied_black(device):
+            log(f"{label}: openrgb has not applied black after 1s (attempt {attempt})")
+        time.sleep(WRITE_SETTLE_SECONDS)
+        try:
+            hardware = ene_hardware_colors(device)
+        except OSError as e:
+            log(f"{label}: hardware readback failed: {e}")
+            return
+        if hardware is None or not any(hardware):
+            return
+        lit = sum(1 for i in range(0, len(hardware), 3) if any(hardware[i:i + 3]))
+        log(f"{label}: {lit} led(s) still lit after attempt {attempt}; resending black")
+        device.set_colors([black] * len(device.leds), fast=True)
+    log(f"{label}: still lit after {BLACKOUT_ATTEMPTS} attempts")
+
+
 def blackout_openrgb():
     from openrgb import OpenRGBClient
     from openrgb.utils import RGBColor
     try:
-        client = OpenRGBClient(protocol_version=3)
-    except Exception:
+        client = OpenRGBClient(name="hid-wrapper", protocol_version=3)
+    except Exception as e:
+        log(f"openrgb unreachable: {e}")
         return
     black = RGBColor(0, 0, 0)
-    for d in client.devices:
-        name = (d.name or "").lower()
-        if any(x in name for x in ["keyboard", "logitech", "mouse", "steelseries", "rival"]):
-            continue
-        for mode_name in ("Direct", "Static"):
+    with openrgb_write_lock():
+        targets = [d for d in client.devices if not has_name(d, PERIPHERAL_NAMES)]
+        for d in targets:
             try:
-                d.set_mode(mode_name)
-                break
-            except Exception:
-                continue
-        if "aorus" in name or "gigabyte" in name:
-            d_led_zones = [z for z in d.zones if "D_LED" in z.name]
-            for z in d_led_zones:
-                try: z.resize(60)
-                except Exception: pass
-            for z in d_led_zones:
-                try: z.set_colors([black] * len(z.leds))
-                except Exception: pass
-            for z in d.zones:
-                if z not in d_led_zones and z.leds:
-                    try: z.set_colors([black] * len(z.leds))
-                    except Exception: pass
-        else:
-            for z in d.zones:
-                if z.leds:
-                    try: z.set_colors([black] * len(z.leds))
-                    except Exception: pass
-        try: d.show()
-        except Exception: pass
-    try: client.disconnect()
-    except Exception: pass
+                ensure_direct(d)
+                blackout_device(d, black)
+            except Exception as e:
+                log(f"{d.name} #{d.id}: blackout failed: {e}")
+        for d in targets:
+            if has_name(d, DRAM_NAMES):
+                converge_ene_black(d, black)
+    try:
+        client.disconnect()
+    except Exception:
+        pass
 
 def restore_openrgb():
     subprocess.run(["wal-to-rgb"], capture_output=True)
@@ -118,8 +216,12 @@ elif turn_off:
     state_file.write_text('False')
     time.sleep(0.1)
     turn_mouse_off(mouse)
+    signal.alarm(BLACKOUT_TIMEOUT_SECONDS)
+    try:
+        blackout_openrgb()
+    except TimeoutError:
+        log(f"blackout did not finish within {BLACKOUT_TIMEOUT_SECONDS}s")
     signal.alarm(0)
-    blackout_openrgb()
     is_on = False
 else:
     state_file.write_text(str(is_on))

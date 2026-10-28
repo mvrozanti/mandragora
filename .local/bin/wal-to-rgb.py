@@ -94,17 +94,22 @@ def ram_colors(led_count):
         out.append(ram_stops[(i // RAM_LEDS_PER_STOP) % len(ram_stops)])
     return out
 
+def ensure_direct(device):
+    if device.modes[device.active_mode].name.lower() == "direct":
+        return
+    for mode in ("Direct", "direct", "Static", "static"):
+        try:
+            device.set_mode(mode)
+            return
+        except Exception:
+            continue
+
 for device in client.devices:
     name = (device.name or "").lower()
     if any(x in name for x in ["keyboard", "logitech", "mouse", "steelseries", "rival"]):
         continue
 
-    for mode in ("Direct", "direct", "Static", "static"):
-        try:
-            device.set_mode(mode)
-            break
-        except Exception:
-            continue
+    ensure_direct(device)
 
     if "aorus" in name or "gigabyte" in name:
         d_led_zones = [z for z in device.zones if "D_LED" in z.name]
@@ -114,13 +119,7 @@ for device in client.devices:
         for zone in d_led_zones:
             zone.set_colors(chain)
     elif any(x in name for x in ["dram", "ene", "xpg"]):
-        for zone in device.zones:
-            count = len(zone.leds)
-            zone.set_colors(ram_colors(count) if RGB_ON else [BLACK] * count)
+        count = len(device.leds)
+        device.set_colors(ram_colors(count) if RGB_ON else [BLACK] * count, fast=True)
     else:
         device.set_color(fan_stops[0] if RGB_ON else BLACK)
-
-    try:
-        device.show()
-    except Exception:
-        pass
