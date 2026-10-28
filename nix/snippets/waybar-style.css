@@ -490,6 +490,15 @@ tooltip {
     padding: 0 8px;
 }
 
+#custom-gamepad {
+    padding: 0 8px;
+}
+
+#custom-gamepad.low {
+    color: @color1;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
 #custom-volume {
     padding: 0 8px;
     min-width: 80px;
