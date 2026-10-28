@@ -14,7 +14,8 @@
     entries: [],
     filter: "",
     active: 0,
-    busy: false
+    busy: false,
+    launches: 0
   };
 
   var api = function (path, opts) {
@@ -304,8 +305,11 @@
     })
       .then(function (j) {
         status("✓", "", "claude is running", j.dir,
-          '<p class="cw-status__hint">' + esc(j.msg || "") + " — attach from your tmux client</p>" +
+          '<div class="cw-app" id="app"><p class="cw-status__hint">waiting for its remote-control link</p></div>' +
+          '<p class="cw-status__hint">' + esc(j.msg || "") + " " + esc(j.session || "") + "</p>" +
           '<button class="cw-btn cw-again">open another</button>');
+        if (j.pane) awaitBridge(j.pane, ++state.launches, 0);
+        else bridgeMissing();
       })
       .catch(function (err) {
         status("!", "bad", "could not start it", tilde(dir),
@@ -317,6 +321,34 @@
         var again = document.querySelector(".cw-again");
         if (again) again.addEventListener("click", toJump);
       });
+  };
+
+  var BRIDGE_TRIES = 75;
+  var BRIDGE_EVERY_MS = 400;
+  var onPhone = window.matchMedia("(pointer: coarse)").matches;
+
+  var bridgeReady = function (url) {
+    var el = $("app");
+    if (!el) return;
+    el.innerHTML = '<a class="cw-launch" href="' + esc(url) + '">open it in the claude app</a>';
+    if (onPhone) window.location.href = url;
+  };
+
+  var bridgeMissing = function () {
+    var el = $("app");
+    if (el) el.innerHTML = '<p class="cw-status__hint">no remote-control link yet — the window may be waiting on a prompt in tmux</p>';
+  };
+
+  var awaitBridge = function (pane, gen, tries) {
+    if (gen !== state.launches || !$("app")) return;
+    if (tries >= BRIDGE_TRIES) return bridgeMissing();
+    api("/api/bridge?pane=" + encodeURIComponent(pane))
+      .then(function (j) {
+        if (gen !== state.launches) return;
+        if (j.url) bridgeReady(j.url);
+        else setTimeout(function () { awaitBridge(pane, gen, tries + 1); }, BRIDGE_EVERY_MS);
+      })
+      .catch(function () { if (gen === state.launches) bridgeMissing(); });
   };
 
   var load = function (path) {

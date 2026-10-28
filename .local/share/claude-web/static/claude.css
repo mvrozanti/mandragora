@@ -59,6 +59,8 @@
 .cw-status__dir { font-family: var(--mv-font-mono); font-size: var(--mv-text-base); color: var(--mv-text-dim); overflow-wrap: anywhere; user-select: text; }
 .cw-status__hint { font-size: var(--mv-text-base); color: var(--mv-text-dim); max-width: 44ch; }
 .cw-status__err { font-family: var(--mv-font-mono); font-size: var(--mv-text-base); color: var(--mv-down); overflow-wrap: anywhere; user-select: text; }
+.cw-app { width: 100%; max-width: 44ch; display: grid; justify-items: center; }
+a.cw-launch { text-decoration: none; }
 
 @media (prefers-reduced-motion: reduce) { .cw-status__mark.pending { animation: none; } }
 @media (min-width: 640px) {
