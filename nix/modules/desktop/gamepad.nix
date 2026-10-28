@@ -9,7 +9,7 @@
       {
         matches = [ { "node.name" = "~alsa_(input|output).usb-Sony_.*Wireless_Controller.*"; } ];
         actions.update-props = {
-          "priority.session" = 100;
+          "priority.session" = -1;
           "priority.driver" = 100;
         };
       }

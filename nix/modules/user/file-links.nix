@@ -120,6 +120,10 @@
     source = ../../snippets/waybar-notif.sh;
     executable = true;
   };
+  home.file.".config/waybar/scripts/gamepad.sh" = {
+    source = ../../snippets/waybar-gamepad.sh;
+    executable = true;
+  };
   home.file.".config/waybar/scripts/disk-io.sh" = {
     source = ../../snippets/waybar-disk-io.sh;
     executable = true;

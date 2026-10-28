@@ -41,6 +41,7 @@
             "custom/mpd-random"
             "custom/volume"
             "bluetooth"
+            "custom/gamepad"
           ];
         };
 
@@ -233,6 +234,14 @@
           interval = 10;
           tooltip = true;
           on-click = "shell-popup gpu -- gpu-menu pick";
+        };
+
+        "custom/gamepad" = {
+          exec = "~/.config/waybar/scripts/gamepad.sh";
+          return-type = "json";
+          interval = 5;
+          format = "{}";
+          tooltip = true;
         };
 
         "custom/epp" = {
