@@ -381,7 +381,8 @@ def _sdk_apply_one(cls: str, device_idx: int, mode: str, color: str | None,
                 return 404, f"device index {device_idx} out of range (have {len(c.devices)})"
             dev = c.devices[device_idx]
             try:
-                dev.set_mode(mode)
+                if dev.modes[dev.active_mode].name.lower() != str(mode).lower():
+                    dev.set_mode(mode)
             except Exception as e:
                 return 500, f"set_mode({mode!r}) failed: {e}"
             if color is not None:
@@ -396,8 +397,10 @@ def _sdk_apply_one(cls: str, device_idx: int, mode: str, color: str | None,
                     if z_idx < 0 or z_idx >= len(dev.zones):
                         return 404, f"zone index {z_idx} out of range"
                     z = dev.zones[z_idx]
-                    z.set_colors([rgb] * len(z.leds))
-                    dev.show()
+                    if len(dev.zones) == 1:
+                        dev.set_colors([rgb] * len(dev.leds), fast=True)
+                    else:
+                        z.set_colors([rgb] * len(z.leds), fast=True)
         touch_pause()
         return 200, f"ok: device {device_idx} ({dev.name}) → mode={mode} color={color or '-'}"
     except TimeoutError as e:

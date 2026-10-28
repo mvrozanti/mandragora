@@ -19,6 +19,7 @@ let
   hidWrapperEnv = pkgs.python3.withPackages (ps: [
     ps.colour
     ps.openrgb-python
+    ps.smbus2
     (pkgs.python3.pkgs.toPythonModule pkgs.rivalcfg)
   ]);
   lightEnv = pkgs.python3.withPackages (
