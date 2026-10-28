@@ -5,7 +5,9 @@ most-recently-active attached session; falls back to any existing
 session; only spawns a new session if tmux is empty.
 """
 import asyncio
+import json
 import os
+import re
 from pathlib import Path
 
 from aiohttp import ClientSession, ClientTimeout, web
@@ -18,6 +20,10 @@ FALLBACK_SESSION = os.environ.get("CLAUDE_WEB_FALLBACK_SESSION", "claude")
 EXCLUDE = {".git", "node_modules", "__pycache__", ".venv", ".direnv", ".cache", ".tmp"}
 THEME_URL = os.environ.get("CLAUDE_WEB_THEME_URL", "http://127.0.0.1:6684/api/theme?colors=1")
 HTTP = web.AppKey("http", ClientSession)
+SESSIONS_DIR = HOME / ".claude" / "sessions"
+BRIDGE_URL = "https://claude.ai/code/{}"
+PANE_RE = re.compile(r"%\d+")
+CLAUDE_CMD = ("claude", "--remote-control")
 
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -61,7 +67,7 @@ async def pick_session(env: dict) -> str | None:
     return None
 
 
-async def tmux_spawn(target: Path) -> tuple[bool, str, str]:
+async def tmux_spawn(target: Path) -> tuple[bool, str, str, str | None]:
     env = {**os.environ, "XDG_RUNTIME_DIR": XDG_RUNTIME_DIR, "HOME": str(HOME)}
     session = await pick_session(env)
     name = target.name or target.anchor.strip("/") or "claude"
@@ -69,25 +75,49 @@ async def tmux_spawn(target: Path) -> tuple[bool, str, str]:
     if session is not None:
         rc, out, err = await tmux(
             "new-window", "-t", f"{session}:", "-c", str(target),
-            "-n", name, "-P", "-F", "#{window_index}", "claude", env=env,
+            "-n", name, "-P", "-F", "#{window_index} #{pane_id}", *CLAUDE_CMD, env=env,
         )
         action = "added window"
     else:
         session = FALLBACK_SESSION
         rc, out, err = await tmux(
             "new-session", "-d", "-s", session, "-c", str(target),
-            "-n", name, "-P", "-F", "#{window_index}", "claude", env=env,
+            "-n", name, "-P", "-F", "#{window_index} #{pane_id}", *CLAUDE_CMD, env=env,
         )
         action = "spawned session"
 
     if rc != 0:
-        return False, session, err.strip()[:500] or "tmux failed"
-    window = out.strip().splitlines()[-1] if out.strip() else "?"
+        return False, session, err.strip()[:500] or "tmux failed", None
+    window, _, pane = (out.strip().splitlines() or ["?"])[-1].partition(" ")
     await tmux(
         "set-option", "-w", "-t", f"{session}:{window}",
         "@claude_dir", str(target), env=env,
     )
-    return True, f"{session}:{window}", action
+    return True, f"{session}:{window}", action, pane or None
+
+
+def pid_alive(pid) -> bool:
+    try:
+        os.kill(int(pid), 0)
+    except (TypeError, ValueError, ProcessLookupError):
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def find_bridge(pane: str) -> str | None:
+    for f in SESSIONS_DIR.glob("*.json"):
+        try:
+            s = json.loads(f.read_text())
+        except (OSError, ValueError):
+            continue
+        if not str(s.get("tmux", "")).endswith("." + pane):
+            continue
+        bridge = s.get("bridgeSessionId")
+        if bridge and pid_alive(s.get("pid")):
+            return bridge
+    return None
 
 
 def list_dirs(p: Path) -> list[dict]:
@@ -162,16 +192,24 @@ async def api_theme(req: web.Request) -> web.Response:
                         headers={"Cache-Control": "no-store"})
 
 
+async def api_bridge(req: web.Request) -> web.Response:
+    pane = req.query.get("pane", "")
+    if not PANE_RE.fullmatch(pane):
+        return web.json_response({"ok": False, "error": "bad pane id"}, status=400)
+    bridge = await asyncio.to_thread(find_bridge, pane)
+    return web.json_response({"ok": True, "url": BRIDGE_URL.format(bridge) if bridge else None})
+
+
 async def api_launch(req: web.Request) -> web.Response:
     body = await req.json()
     target = resolve_dir(body.get("dir"))
     if not await asyncio.to_thread(target.is_dir):
         return web.json_response({"ok": False, "error": f"not a directory: {target}"}, status=400)
-    ok, session, msg = await tmux_spawn(target)
+    ok, session, msg, pane = await tmux_spawn(target)
     if ok:
         await zoxide_bump(target)
     status = 200 if ok else 500
-    return web.json_response({"ok": ok, "session": session, "dir": str(target), "msg": msg}, status=status)
+    return web.json_response({"ok": ok, "session": session, "pane": pane, "dir": str(target), "msg": msg}, status=status)
 
 
 async def index(req: web.Request) -> web.Response:
@@ -192,6 +230,7 @@ def main() -> None:
     app.router.add_get("/api/list", api_list)
     app.router.add_get("/api/zoxide", api_zoxide)
     app.router.add_get("/api/theme", api_theme)
+    app.router.add_get("/api/bridge", api_bridge)
     app.router.add_post("/api/launch", api_launch)
     web.run_app(app, host=LISTEN_HOST, port=LISTEN_PORT, access_log=None, print=lambda *_: None)
 
