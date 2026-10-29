@@ -15,6 +15,22 @@ _: {
         postPatch = "";
         pythonRelaxDeps = old.pythonRelaxDeps ++ [ "certifi" ];
       });
+      hypr-live-instance = final.writeShellApplication {
+        name = "hypr-live-instance";
+        runtimeInputs = [
+          final.coreutils
+          final.hyprland
+        ];
+        text = builtins.readFile ../../.local/bin/hypr-live-instance.sh;
+      };
+      hyprland = prev.hyprland.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [
+          (prev.fetchurl {
+            url = "https://github.com/hyprwm/Hyprland/commit/d8504461f0e9f95a5df9a0cdc0723d0ca6332888.patch";
+            hash = "sha256-cZ8LzzU7fUzV7C2VOqFUOs4IOuqDHFtBQmGGgbTRjhw=";
+          })
+        ];
+      });
       materia-theme-transparent = prev.callPackage ./materia-theme-transparent/default.nix { };
       rtk = prev.callPackage ./rtk/default.nix { };
       du-exporter = prev.callPackage ./du-exporter/default.nix { };

@@ -76,6 +76,23 @@ in
     };
   };
 
+  systemd.user.paths.keyleds-recover = {
+    description = "Re-grab the keyboard once rgb-control has released it";
+    wantedBy = [ "default.target" ];
+    pathConfig = {
+      PathChanged = "%t/rgb-control.stopped";
+      Unit = "keyleds-recover.service";
+    };
+  };
+
+  systemd.user.services.keyleds-recover = {
+    description = "Restart keyledsd after rgb-control stops";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.systemd}/bin/systemctl --user restart keyledsd.service keyleds-workspace-watcher.service";
+    };
+  };
+
   systemd.user.services.keyleds-workspace-watcher = {
     description = "Forward Hyprland workspace events to keyledsd context";
     wantedBy = [

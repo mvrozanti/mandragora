@@ -37,13 +37,22 @@ let
     ];
     text = builtins.readFile ../../../.local/bin/clipboard-gif-recover.sh;
   };
+  ipcWatch = pkgs.writeShellApplication {
+    name = "hyprland-ipc-watch";
+    runtimeInputs = [
+      pkgs.socat
+      pkgs.systemd
+      pkgs.coreutils
+      pkgs.hypr-live-instance
+    ];
+    text = builtins.readFile ../../../.local/bin/hyprland-ipc-watch.sh;
+  };
   sessionAutostarts = {
     awww-daemon = "${pkgs.awww}/bin/awww-daemon";
     cliphist-store = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
     clipboard-gif-recover = "${pkgs.wl-clipboard}/bin/wl-paste --type text/html --watch ${clipboardGifRecover}/bin/clipboard-gif-recover";
     polkit-gnome-agent = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
     kdeconnect-indicator = "${pkgs.kdePackages.kdeconnect-kde}/bin/kdeconnect-indicator";
-    blueman-applet = "${pkgs.blueman}/bin/blueman-applet";
   };
 in
 {
@@ -152,13 +161,24 @@ in
       };
     }) sessionAutostarts
     // {
+      hyprland-ipc-watch = {
+        description = "Page when the Hyprland IPC socket closes while the session is up";
+        wantedBy = [ "graphical-session.target" ];
+        partOf = [ "graphical-session.target" ];
+        after = [ "graphical-session.target" ];
+        serviceConfig = {
+          ExecStart = "${ipcWatch}/bin/hyprland-ipc-watch";
+          Restart = "no";
+        };
+      };
+
       wayland-socket-restart-deps = {
         description = "Restart user services holding stale wayland refs after compositor restart";
         serviceConfig = {
           Type = "oneshot";
           ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
           ExecStart = [
-            "${pkgs.systemd}/bin/systemctl --user try-restart kdeconnectd.service xdg-desktop-portal.service xdg-desktop-portal-hyprland.service monitor-audio-follow.service"
+            "${pkgs.systemd}/bin/systemctl --user try-restart kdeconnectd.service xdg-desktop-portal.service xdg-desktop-portal-hyprland.service monitor-audio-follow.service hyprland-ipc-watch.service usb-watch.service"
             "${pkgs.systemd}/bin/systemctl --user restart ${
               lib.concatStringsSep " " (map (n: "${n}.service") (builtins.attrNames sessionAutostarts))
             }"

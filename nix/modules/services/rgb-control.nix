@@ -6,13 +6,6 @@ let
     ps.aiohttp
     ps.openrgb-python
   ]);
-  recoverScript = pkgs.writeShellScript "rgb-control-recover-keyleds" ''
-    set +e
-    export XDG_RUNTIME_DIR=/run/user/1000
-    ${pkgs.systemd}/bin/systemctl --user restart keyledsd.service
-    ${pkgs.systemd}/bin/systemctl --user restart keyleds-workspace-watcher.service
-    exit 0
-  '';
 in
 {
   mandragora.hub.services.rgb-control = {
@@ -42,7 +35,7 @@ in
         User = "m";
         Group = "users";
         ExecStart = "${pyEnv}/bin/python ${src}";
-        ExecStopPost = "${recoverScript}";
+        ExecStopPost = "-${pkgs.coreutils}/bin/touch /run/user/1000/rgb-control.stopped";
         Restart = "on-failure";
         RestartSec = "5s";
       };

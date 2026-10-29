@@ -28,6 +28,7 @@ in
         CPUWeight = 20;
         Restart = "on-failure";
         RestartSec = "5s";
+        TimeoutStopSec = "20s";
       };
     };
   };

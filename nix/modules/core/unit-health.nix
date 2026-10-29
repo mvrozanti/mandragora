@@ -44,6 +44,15 @@ let
     text = withSystemDir ../../../.local/bin/unit-health-notify.sh;
   };
 
+  userManagerProbe = pkgs.writeShellApplication {
+    name = "user-manager-probe";
+    runtimeInputs = [
+      pkgs.systemd
+      pkgs.coreutils
+    ];
+    text = builtins.readFile ../../../.local/bin/user-manager-probe.sh;
+  };
+
   report = pkgs.writers.writePython3Bin "unit-health-report" {
     flakeIgnore = [ "E501" ];
   } (builtins.readFile ../../../.local/bin/unit-health-report.py);
@@ -105,6 +114,26 @@ in
   systemd.services."unit-health-recovered@" = handler "recovered";
   systemd.user.services."unit-health-failed@" = userHandler "failed";
   systemd.user.services."unit-health-recovered@" = userHandler "recovered";
+
+  systemd.services.user-manager-probe = {
+    description = "Page when the primary user's systemd manager stops answering";
+    serviceConfig = {
+      Type = "oneshot";
+      User = "m";
+      Environment = "XDG_RUNTIME_DIR=/run/user/1000";
+      ExecStart = "${userManagerProbe}/bin/user-manager-probe";
+      TimeoutStartSec = "1min";
+    };
+  };
+
+  systemd.timers.user-manager-probe = {
+    description = "Probe the primary user's systemd manager every 5 minutes";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "5min";
+      OnUnitActiveSec = "5min";
+    };
+  };
 
   systemd.user.services.unit-health-publish = {
     description = "Publish timer freshness for the watch.mvr.ac dead-man check";
