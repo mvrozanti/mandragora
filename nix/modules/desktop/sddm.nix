@@ -6,6 +6,7 @@
       wayland.enable = true;
       package = pkgs.kdePackages.sddm;
       theme = "sddm-mandragora";
+      autoLogin.relogin = true;
       extraPackages = with pkgs.kdePackages; [
         qtsvg
         qtmultimedia

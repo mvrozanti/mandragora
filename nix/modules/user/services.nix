@@ -5,6 +5,17 @@
   ...
 }:
 
+let
+  usbWatch = pkgs.writeShellApplication {
+    name = "usb-watch-hyprland";
+    runtimeInputs = [
+      pkgs.systemd
+      pkgs.hyprland
+      pkgs.hypr-live-instance
+    ];
+    text = builtins.readFile ../../../.local/bin/usb-watch-hyprland.sh;
+  };
+in
 {
   services.mpd = {
     enable = true;
@@ -191,30 +202,20 @@
     };
   };
 
-  # USB Watch Service (Hyprland version)
   systemd.user.services.usb-watch = {
     Unit = {
       Description = "Reapply keyboard settings on USB add (Hyprland)";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
     };
     Service = {
       Type = "simple";
-      ExecStart = pkgs.writeShellScript "usb-watch-hyprland" ''
-        ${pkgs.systemd}/bin/udevadm monitor --udev --subsystem-match=usb --property |
-        while read -r line; do
-            if [[ "$line" == *"add"* ]]; then
-                # Re-apply Hyprland keyboard settings
-                # Note: These should ideally match your hyprland.conf input block
-                ${pkgs.hyprland}/bin/hyprctl keyword input:repeat_rate 50
-                ${pkgs.hyprland}/bin/hyprctl keyword input:repeat_delay 300
-                ${pkgs.hyprland}/bin/hyprctl keyword input:kb_layout us
-                ${pkgs.hyprland}/bin/hyprctl keyword input:kb_variant intl
-            fi
-        done
-      '';
+      ExecStart = "${usbWatch}/bin/usb-watch-hyprland";
       Restart = "on-failure";
+      RestartSec = "3s";
     };
     Install = {
-      WantedBy = [ "default.target" ];
+      WantedBy = [ "graphical-session.target" ];
     };
   };
 }
