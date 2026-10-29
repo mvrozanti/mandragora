@@ -35,6 +35,7 @@ fi
 wal-to-rgb &>/dev/null &
 systemctl --user start wal-to-rgb-daemon 2>/dev/null || true
 hid-wrapper &>/dev/null &
+systemctl --user kill -s SIGUSR1 ds4-lightbar 2>/dev/null || true
 keyledsd-reload &>/dev/null &
 pkill -SIGUSR2 waybar 2>/dev/null || true
 pkill -SIGUSR1 kitty 2>/dev/null || true

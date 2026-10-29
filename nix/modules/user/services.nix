@@ -154,6 +154,22 @@ in
     };
   };
 
+  systemd.user.services.ds4-lightbar = {
+    Unit = {
+      Description = "Paint the DualShock lightbar with the matugen accent, dimmed to its battery level";
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = "${config.home.profileDirectory}/bin/ds4-lightbar";
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
   systemd.user.services.rgb-restore = {
     Unit = {
       Description = "Re-apply pywal RGB (mouse, RAM, AIO/mobo) after an openrgb restart";
