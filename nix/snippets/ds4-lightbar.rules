@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEM=="leds", DRIVERS=="playstation", RUN+="@COREUTILS@/bin/chgrp input %S%p/brightness", RUN+="@COREUTILS@/bin/chmod 0664 %S%p/brightness"

@@ -1,6 +1,10 @@
 { pkgs, ... }:
 {
-  services.udev.extraRules = builtins.readFile ../../snippets/gamepad-touchpad.rules;
+  services.udev.extraRules =
+    builtins.readFile ../../snippets/gamepad-touchpad.rules
+    + builtins.replaceStrings [ "@COREUTILS@" ] [ "${pkgs.coreutils}" ] (
+      builtins.readFile ../../snippets/ds4-lightbar.rules
+    );
 
   hardware.bluetooth.settings.General.FastConnectable = true;
 
