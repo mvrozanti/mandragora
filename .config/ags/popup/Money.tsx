@@ -17,10 +17,12 @@ type Venue = {
   missing?: boolean
   stale_since?: number
 }
+type Basis = { btc: number; usd: number; brl: number; avg_usd: number; avg_brl: number; buys: number; first: number; last: number }
 type Data = {
   total_usd: number | null
   fx: Fx
   prices: Record<string, number>
+  basis?: Basis | null
   venues: Venue[]
   error: string | null
   fetched_at?: number
@@ -51,6 +53,9 @@ function money(usd: number | null | undefined, unit: Unit, fx: Fx): string {
   if (unit === "brl") return fiat(value, "R$")
   return `₿ ${btc(value)}`
 }
+
+const gain = (now: number | null | undefined, avg: number | undefined) =>
+  now && avg ? `${now >= avg ? "+" : ""}${((now / avg - 1) * 100).toFixed(1)}% now` : ""
 
 const qty = (n: number) =>
   n >= 1000
@@ -229,6 +234,27 @@ export default function MoneyPopup() {
             </box>
           )}
         </For>
+      </box>
+      <box class="price-row" spacing={8} homogeneous visible={data((d) => !!d.basis)}>
+        <box class="tile tight" orientation={Gtk.Orientation.VERTICAL}>
+          <label class="caption" xalign={0} label="avg buy in USD" />
+          <label class="caption strong" xalign={0} label={data((d) => (d.basis ? fiat(d.basis.avg_usd, "$") : "—"))} />
+          <label class="caption" xalign={0} label={data((d) => gain(d.fx.btc_usd, d.basis?.avg_usd))} />
+        </box>
+        <box class="tile tight" orientation={Gtk.Orientation.VERTICAL}>
+          <label class="caption" xalign={0} label="avg buy in BRL" />
+          <label class="caption strong" xalign={0} label={data((d) => (d.basis ? fiat(d.basis.avg_brl, "R$") : "—"))} />
+          <label
+            class="caption"
+            xalign={0}
+            label={data((d) => gain(d.fx.btc_usd && d.fx.usd_brl ? d.fx.btc_usd * d.fx.usd_brl : null, d.basis?.avg_brl))}
+          />
+        </box>
+        <box class="tile tight" orientation={Gtk.Orientation.VERTICAL}>
+          <label class="caption" xalign={0} label="bought on Binance" />
+          <label class="caption strong" xalign={0} label={data((d) => mask(d.basis ? `₿ ${btc(d.basis.btc)}` : "—"))} />
+          <label class="caption" xalign={0} label={data((d) => (d.basis ? `${d.basis.buys} buys` : ""))} />
+        </box>
       </box>
       <box visible={data((d) => !!d.error)} class="error-note" spacing={8}>
         <Icon name="error" />
