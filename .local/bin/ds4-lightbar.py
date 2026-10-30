@@ -7,7 +7,6 @@ from pathlib import Path
 HOME = Path.home()
 THEME_PATH = HOME / ".cache/matugen/hub-theme.json"
 PALETTE_PATH = HOME / ".cache/matugen/colors.json"
-RGB_STATE_PATH = HOME / ".cache/hid-config/state"
 POWER_SUPPLY = Path("/sys/class/power_supply")
 CHANNELS = ("red", "green", "blue")
 TICK_SECONDS = 5
@@ -34,13 +33,6 @@ def saturated_rgb(hex_color):
     r, g, b = (int(hex_color[i:i + 2], 16) / 255 for i in (0, 2, 4))
     hue = colorsys.rgb_to_hsv(r, g, b)[0]
     return colorsys.hsv_to_rgb(hue, 1.0, 1.0)
-
-
-def rgb_enabled():
-    try:
-        return RGB_STATE_PATH.read_text().strip() != "False"
-    except OSError:
-        return True
 
 
 def controllers():
@@ -77,12 +69,11 @@ def apply():
     if accent is None:
         return
     rgb = saturated_rgb(accent)
-    enabled = rgb_enabled()
     for supply, leds in controllers():
-        factor = battery_factor(supply) if enabled else 0.0
+        factor = battery_factor(supply)
         for name, channel in zip(CHANNELS, rgb):
             write_brightness(leds[name], round(channel * 255 * factor))
-        write_brightness(leds["global"], 1 if enabled else 0)
+        write_brightness(leds["global"], 1)
 
 
 def main():
