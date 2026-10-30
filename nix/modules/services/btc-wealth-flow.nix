@@ -43,7 +43,6 @@ in
 {
   systemd.user.services.btc-flow-scan = {
     description = "btc-wealth-flow scan node: pruned bitcoind the ingest reads blocks from and prunes behind its commits";
-    wantedBy = [ "default.target" ];
     unitConfig.ConditionUser = "m";
     serviceConfig = {
       ExecStart = execLine ([ "${pkgs.bitcoind}/bin/bitcoind" ] ++ scanArgs);
@@ -65,7 +64,6 @@ in
       description = "btc-wealth-flow ingest and server for btc.mvr.ac: turns scan-node blocks into aggregates, prunes the scan node behind its commits, serves :8420";
       after = [ "btc-flow-scan.service" ];
       wants = [ "btc-flow-scan.service" ];
-      wantedBy = [ "default.target" ];
       serviceConfig = {
         ExecStart = execLine ([ "${repo}/result/bin/btc-wealth-flow" ] ++ processorArgs);
         Restart = "on-failure";
@@ -84,7 +82,6 @@ in
       "btc-flow-processor.service"
     ];
     wants = [ "btc-flow-scan.service" ];
-    wantedBy = [ "default.target" ];
     unitConfig.ConditionUser = "m";
     path = [
       pkgs.curl
