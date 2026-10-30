@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   rpcUser = "m";
@@ -34,6 +39,8 @@ in
     owner = "m";
     mode = "0400";
   };
+
+  systemd.services.bitcoind-main.wantedBy = lib.mkForce [ ];
 
   services.bitcoind.main = {
     enable = true;
