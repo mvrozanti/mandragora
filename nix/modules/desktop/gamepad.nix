@@ -6,8 +6,6 @@
       builtins.readFile ../../snippets/ds4-lightbar.rules
     );
 
-  hardware.bluetooth.settings.General.FastConnectable = true;
-
   services.pipewire.wireplumber.extraConfig."13-gamepad-audio-last" = {
     "monitor.alsa.rules" = [
       {
