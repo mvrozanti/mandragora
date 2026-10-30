@@ -86,6 +86,11 @@ CACHE_FILE = CACHE_DIR / "cache.json"
 UNIT_FILE = CACHE_DIR / "unit"
 HIDDEN_FILE = CACHE_DIR / "hidden"
 LAST_FILE = CACHE_DIR / "last.json"
+TRADES_FILE = CACHE_DIR / "trades.json"
+TRADES_VERSION = 1
+BASIS_SYMBOLS = ["BTCBRL", "BTCUSDT", "BTCUSDC", "BTCFDUSD"]
+BASIS_RATES = ["USDTBRL", "BNBUSDT"]
+TRADE_FIELDS = ("id", "time", "isBuyer", "qty", "quoteQty", "commission", "commissionAsset")
 CACHE_VERSION = 2
 DERIVED_DIR = Path(os.environ.get("XDG_RUNTIME_DIR", "/tmp")) / "money-menu"
 DERIVED_FILE = DERIVED_DIR / "derived.json"
@@ -565,6 +570,123 @@ def fetch_binance(prices):
     return venue("binance", "Binance", holdings, note="; ".join(notes) or None)
 
 
+def read_trades():
+    try:
+        data = json.loads(TRADES_FILE.read_text())
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        data = {}
+    if data.get("version") != TRADES_VERSION:
+        data = {"version": TRADES_VERSION, "trades": {}, "closes": {}}
+    return data
+
+
+def write_trades(data):
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    staging = TRADES_FILE.with_suffix(".tmp")
+    staging.write_text(json.dumps(data))
+    os.chmod(staging, 0o600)
+    staging.replace(TRADES_FILE)
+
+
+def utc_day(ms):
+    return datetime.datetime.fromtimestamp(ms / 1000, datetime.timezone.utc).date().isoformat()
+
+
+def day_ms(day):
+    return int(datetime.datetime.fromisoformat(day).replace(tzinfo=datetime.timezone.utc).timestamp() * 1000)
+
+
+def sync_trades(key, secret, ledger):
+    for symbol in BASIS_SYMBOLS:
+        rows = ledger["trades"].setdefault(symbol, [])
+        from_id = rows[-1]["id"] + 1 if rows else 0
+        while True:
+            page = binance_signed(key, secret, "/api/v3/myTrades", params=f"symbol={symbol}&fromId={from_id}&limit=1000")
+            rows += [{field: row[field] for field in TRADE_FIELDS} for row in page]
+            if len(page) < 1000:
+                break
+            from_id = page[-1]["id"] + 1
+
+
+def sync_closes(ledger):
+    today = utc_day(time.time() * 1000)
+    days = sorted({utc_day(row["time"]) for rows in ledger["trades"].values() for row in rows})
+    for symbol in BASIS_RATES:
+        closes = ledger["closes"].setdefault(symbol, {})
+        missing = [day for day in days if day not in closes or day >= today]
+        while missing:
+            url = f"{BINANCE}/api/v3/klines?symbol={symbol}&interval=1d&startTime={day_ms(missing[0])}&limit=1000"
+            candles = http_json(url, timeout=20)
+            if not candles:
+                break
+            for candle in candles:
+                closes[utc_day(candle[0])] = float(candle[4])
+            missing = [day for day in missing if day > utc_day(candles[-1][0])]
+
+
+def trade_cost(symbol, row, closes):
+    day = utc_day(row["time"])
+    quote = symbol[len("BTC"):]
+    usd_brl = Decimal(str(closes["USDTBRL"][day]))
+    btc = Decimal(row["qty"])
+    cost = Decimal(row["quoteQty"])
+    fee = Decimal(row["commission"])
+    fee_usd = Decimal(0)
+    if row["commissionAsset"] == "BTC":
+        btc -= fee
+    elif row["commissionAsset"] == quote:
+        cost += fee
+    elif row["commissionAsset"] == "BNB":
+        fee_usd = fee * Decimal(str(closes["BNBUSDT"][day]))
+    if quote == "BRL":
+        return btc, cost / usd_brl + fee_usd, cost + fee_usd * usd_brl
+    return btc, cost + fee_usd, (cost + fee_usd) * usd_brl
+
+
+def cost_basis(ledger):
+    btc = usd = brl = Decimal(0)
+    bought_at = []
+    for symbol, rows in ledger["trades"].items():
+        for row in rows:
+            if not row["isBuyer"]:
+                continue
+            qty, cost_usd, cost_brl = trade_cost(symbol, row, ledger["closes"])
+            btc += qty
+            usd += cost_usd
+            brl += cost_brl
+            bought_at.append(row["time"])
+    if not btc:
+        return None
+    return {
+        "btc": float(btc),
+        "usd": float(usd),
+        "brl": float(brl),
+        "avg_usd": float(usd / btc),
+        "avg_brl": float(brl / btc),
+        "buys": len(bought_at),
+        "first": min(bought_at) / 1000,
+        "last": max(bought_at) / 1000,
+    }
+
+
+def fetch_basis():
+    key, secret = read_secret(BINANCE_KEY_ENV), read_secret(BINANCE_SECRET_ENV)
+    if not key or not secret:
+        return None, None
+    ledger = read_trades()
+    error = None
+    try:
+        sync_trades(key, secret, ledger)
+        sync_closes(ledger)
+        write_trades(ledger)
+    except FETCH_ERRORS as problem:
+        error = str(problem)
+    try:
+        return cost_basis(ledger), error
+    except FETCH_ERRORS as problem:
+        return None, error or f"rates missing: {problem}"
+
+
 def blockscout_tokens(address):
     items = []
     params = {"type": "ERC-20"}
@@ -756,7 +878,7 @@ def held_prices(venues, prices):
     return result
 
 
-def settle(venues, prices, previous):
+def settle(venues, prices, previous, basis=None, basis_error=None):
     now = time.time()
     earlier = {item["id"]: item for item in (previous or {}).get("venues", [])}
     complete = True
@@ -775,10 +897,13 @@ def settle(venues, prices, previous):
             item["fetched_at"] = now
         item["usd"] = sum(entry["usd"] for entry in item["holdings"] if entry["usd"] is not None)
     errors = [f"{item['label']}: {item['error']}" for item in venues if item["error"]]
+    if basis_error:
+        errors.append(f"Binance buys: {basis_error}")
     return {
         "version": CACHE_VERSION,
         "fx": {"btc_usd": prices["btc_usd"], "usd_brl": prices["usd_brl"]},
         "prices": held_prices(venues, prices),
+        "basis": basis,
         "venues": venues,
         "total_usd": sum(item["usd"] for item in venues) if complete and prices["btc_usd"] else None,
         "error": "; ".join(errors) or None,
@@ -795,9 +920,11 @@ def fetch_all(previous=None):
         lambda: fetch_hyperliquid(prices, address) if address else None,
         lambda: fetch_lended(prices),
     ]
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(fetchers)) as pool:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(fetchers) + 1) as pool:
+        basis = pool.submit(fetch_basis)
         venues = [item for item in pool.map(lambda fetch: fetch(), fetchers) if item is not None]
-    return settle(venues, prices, previous)
+        basis, basis_error = basis.result()
+    return settle(venues, prices, previous, basis, basis_error)
 
 
 def migrate_state():
@@ -902,6 +1029,30 @@ def totals_lines(total, fx):
     return [f"<b>{name}</b>  {format_unit(total, unit, fx)}" for unit, name in zip(UNITS, ("BTC", "USD", "BRL"))]
 
 
+def gain(now, avg):
+    return f"{now / avg - 1:+.1%}" if now and avg else "--"
+
+
+def basis_lines(basis, fx):
+    if not basis:
+        return []
+    now_usd = fx.get("btc_usd")
+    now_brl = now_usd * fx["usd_brl"] if now_usd and fx.get("usd_brl") else None
+    since = datetime.datetime.fromtimestamp(basis["first"]).strftime("%b %Y")
+    return [
+        f"<b>avg buy</b>  $ {basis['avg_usd']:,.2f}  <i>{gain(now_usd, basis['avg_usd'])}</i>",
+        f"<b>avg buy</b>  R$ {basis['avg_brl']:,.2f}  <i>{gain(now_brl, basis['avg_brl'])}</i>",
+        f"<b>bought</b>  {ICON} {format_btc(basis['btc'])}  <i>{basis['buys']} buys since {since}</i>",
+    ]
+
+
+def summary_lines(cache):
+    fx = cache["fx"]
+    lines = totals_lines(cache.get("total_usd"), fx)
+    basis = basis_lines(cache.get("basis"), fx)
+    return lines + ([""] + basis if basis else [])
+
+
 def venue_line(item, total, unit, fx):
     label = html.escape(item["label"])
     if item.get("missing"):
@@ -931,7 +1082,7 @@ def cmd_waybar(_args):
     total = cache.get("total_usd")
     unit = read_unit()
     hidden = read_hidden()
-    tooltip = totals_lines(total, fx) + [""] + [venue_line(item, total, unit, fx) for item in cache["venues"]]
+    tooltip = summary_lines(cache) + [""] + [venue_line(item, total, unit, fx) for item in cache["venues"]]
     stale = [item["label"] for item in cache["venues"] if item.get("stale_since")]
     cls = "fresh"
     if total is None:
@@ -1016,7 +1167,7 @@ def cmd_pick(_args):
         fx = data["fx"]
         total = data.get("total_usd")
         unit = read_unit()
-        rows = [f"  {line}" for line in totals_lines(total, fx)]
+        rows = [f"  {line}" for line in summary_lines(data)]
         for item in data["venues"]:
             rows.append(f"  {venue_line(item, total, unit, fx)}")
             rows += [f"     {holding_line(entry, unit, fx)}" for entry in item["holdings"]]
