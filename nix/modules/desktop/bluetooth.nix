@@ -2,6 +2,14 @@
 {
   boot.extraModprobeConfig = builtins.readFile ../../snippets/bluetooth-modprobe.conf;
 
+  nixpkgs.overlays = [
+    (_final: prev: {
+      linux-firmware = prev.linux-firmware.overrideAttrs (old: {
+        postInstall = (old.postInstall or "") + "rm -f $out/lib/firmware/rtl_bt/rtl8852cu_fw_v2.bin";
+      });
+    })
+  ];
+
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
