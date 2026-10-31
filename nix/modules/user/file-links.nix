@@ -128,6 +128,10 @@
     source = ../../snippets/waybar-disk-io.sh;
     executable = true;
   };
+  home.file.".config/waybar/scripts/network.sh" = {
+    source = ../../snippets/waybar-network.sh;
+    executable = true;
+  };
   home.file.".local/share/applications/chess-com.desktop".source =
     pkgs.replaceVars ../../../.local/share/applications/chess-com.desktop
       {
