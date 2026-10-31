@@ -164,6 +164,7 @@ in
     Unit = {
       Description = "Paint the DualShock lightbar with the matugen accent, dimmed to its battery level";
       After = [ "graphical-session.target" ];
+      X-Restart-Triggers = [ (builtins.hashFile "sha256" ../../../.local/bin/ds4-lightbar.py) ];
     };
     Service = {
       Type = "simple";
