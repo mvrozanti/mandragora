@@ -31,6 +31,27 @@ while IFS= read -r line; do
   fi
 done < <(df --output=pcent,target | tail -n +2 | grep -v "^[[:space:]]*$")
 
+dead_mounts=0
+checked_mounts=0
+while IFS=' ' read -r target options source; do
+  case "$source" in *\[*) continue ;; esac
+  checked_mounts=$((checked_mounts + 1))
+  case ",${options}," in
+    *,shutdown,*)
+      log "WARN mount ${target} is shut down (backing device vanished)"
+      WARN=1
+      dead_mounts=$((dead_mounts + 1))
+      continue
+      ;;
+  esac
+  if ! timeout 5 ls -A "$target" >/dev/null 2>&1; then
+    log "WARN mount ${target} unreadable"
+    WARN=1
+    dead_mounts=$((dead_mounts + 1))
+  fi
+done < <(findmnt -rn -o TARGET,OPTIONS,SOURCE -t ext4,btrfs,xfs,vfat,exfat,ntfs3,fuse.rclone)
+[ "$dead_mounts" -eq 0 ] && log "OK   all ${checked_mounts} mounts readable"
+
 # --- SMART health ---
 for dev in /dev/nvme* /dev/sd* /dev/vd*; do
   [ -e "$dev" ] || continue
