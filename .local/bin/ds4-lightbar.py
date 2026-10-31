@@ -8,6 +8,8 @@ HOME = Path.home()
 THEME_PATH = HOME / ".cache/matugen/hub-theme.json"
 PALETTE_PATH = HOME / ".cache/matugen/colors.json"
 POWER_SUPPLY = Path("/sys/class/power_supply")
+PROC = Path("/proc")
+DARK_WHILE_RUNNING = ("steam",)
 CHANNELS = ("red", "green", "blue")
 TICK_SECONDS = 5
 MIN_BRIGHTNESS_FACTOR = 0.04
@@ -35,6 +37,18 @@ def saturated_rgb(hex_color):
     return colorsys.hsv_to_rgb(hue, 1.0, 1.0)
 
 
+def dark_process_running():
+    for entry in PROC.iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            if (entry / "comm").read_text().strip() in DARK_WHILE_RUNNING:
+                return True
+        except OSError:
+            continue
+    return False
+
+
 def controllers():
     for supply in sorted(POWER_SUPPLY.glob("ps-controller-battery-*")):
         leds = supply / "device/leds"
@@ -54,10 +68,10 @@ def battery_factor(supply):
     return max(MIN_BRIGHTNESS_FACTOR, min(capacity, 100) / 100)
 
 
-def write_brightness(led, value):
+def write_brightness(led, value, force=False):
     path = led / "brightness"
     try:
-        if path.read_text().strip() == str(value):
+        if not force and path.read_text().strip() == str(value):
             return
         path.write_text(str(value))
     except OSError as e:
@@ -69,7 +83,13 @@ def apply():
     if accent is None:
         return
     rgb = saturated_rgb(accent)
+    dark = dark_process_running()
     for supply, leds in controllers():
+        if dark:
+            for name in CHANNELS:
+                write_brightness(leds[name], 0, force=True)
+            write_brightness(leds["global"], 0, force=True)
+            continue
         factor = battery_factor(supply)
         for name, channel in zip(CHANNELS, rgb):
             write_brightness(leds[name], round(channel * 255 * factor))
