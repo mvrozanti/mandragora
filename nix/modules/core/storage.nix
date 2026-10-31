@@ -1,5 +1,11 @@
 { pkgs, ... }:
 
+let
+  externalMountLazyUnmount = {
+    overrideStrategy = "asDropin";
+    text = builtins.readFile ../../snippets/external-mount-lazy-unmount.conf;
+  };
+in
 {
   boot.supportedFilesystems = [
     "ntfs"
@@ -13,14 +19,13 @@
     interval = "monthly";
     fileSystems = [ "/" ];
   };
-  # Create /media as a symlink to /mnt so that udisks2 shared mounts (UDISKS_FILESYSTEM_SHARED=1)
-  # appear under /mnt as requested.
   systemd.tmpfiles.rules = [
     "L+ /media - - - - /mnt"
   ];
 
   services.udev.extraRules =
     builtins.readFile ../../snippets/udisks-shared-mounts.rules
+    + builtins.readFile ../../snippets/fstab-managed-udisks-ignore.rules
     + builtins.readFile ../../snippets/mtp-uaccess.rules;
 
   services.udev.packages = [ pkgs.libmtp.out ];
@@ -100,6 +105,7 @@
       "noauto"
       "nofail"
       "x-systemd.automount"
+      "x-systemd.device-bound=true"
       "x-systemd.device-timeout=5"
       "x-systemd.idle-timeout=300"
     ];
@@ -112,6 +118,7 @@
       "noauto"
       "nofail"
       "x-systemd.automount"
+      "x-systemd.device-bound=true"
       "x-systemd.device-timeout=5"
       "x-systemd.idle-timeout=300"
     ];
@@ -123,9 +130,16 @@
       "noauto"
       "nofail"
       "x-systemd.automount"
+      "x-systemd.device-bound=true"
       "x-systemd.device-timeout=5"
       "x-systemd.idle-timeout=300"
     ];
+  };
+
+  systemd.units = {
+    "mnt-toshiba.mount" = externalMountLazyUnmount;
+    "mnt-sandisk.mount" = externalMountLazyUnmount;
+    "mnt-adata.mount" = externalMountLazyUnmount;
   };
 
   swapDevices = [ ];
