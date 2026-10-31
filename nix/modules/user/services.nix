@@ -24,6 +24,12 @@ in
     extraConfig = builtins.readFile ../../../.config/mpd/mpd.conf;
   };
 
+  systemd.user.services.mpd.Service = {
+    WatchdogSec = "30s";
+    Restart = "on-failure";
+    RestartSec = 2;
+  };
+
   services.mpd-discord-rpc = {
     enable = true;
     settings = {
