@@ -126,6 +126,12 @@ tooltip {
     color: @color8;
 }
 
+#custom-network.degraded {
+    color: @color1;
+    border-bottom: 2px solid @color1;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
 #cpu {
     padding: 0 8px;
     border-bottom: 2px solid @color2;
