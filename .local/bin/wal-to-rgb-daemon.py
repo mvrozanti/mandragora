@@ -14,6 +14,7 @@ from openrgb.utils import RGBColor
 
 FPS = 40
 STOPS_PER_SECOND = 1.0
+CAR_PALETTE_PATH = Path.home() / ".cache/forza-car/palette.json"
 COLORS_PATH = Path.home() / ".cache/matugen/colors.json"
 STATE_PATH = Path.home() / ".cache/hid-config/state"
 PAUSE_SENTINEL = Path(os.environ.get("XDG_RUNTIME_DIR", "/run/user/1000")) / "rgb-control-paused"
@@ -76,7 +77,17 @@ def hue_of(h):
     return colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)[0]
 
 
+def car_palette():
+    try:
+        return json.loads(CAR_PALETTE_PATH.read_text())
+    except Exception:
+        return None
+
+
 def load_aio_accent():
+    car = car_palette()
+    if car:
+        return from_hex(car["accent"])
     try:
         data = json.loads(COLORS_PATH.read_text())
         palette = [data["colors"][f"color{i}"].lstrip("#") for i in range(16)]
@@ -86,6 +97,9 @@ def load_aio_accent():
 
 
 def load_palette():
+    car = car_palette()
+    if car:
+        return [from_hex(stop) for stop in car["stops"]]
     if not COLORS_PATH.exists():
         return None
     try:
@@ -221,10 +235,13 @@ def find_aio(client):
 
 
 def mtime_or_zero():
-    try:
-        return COLORS_PATH.stat().st_mtime
-    except Exception:
-        return 0
+    stamp = []
+    for path in (CAR_PALETTE_PATH, COLORS_PATH):
+        try:
+            stamp.append(path.stat().st_mtime)
+        except Exception:
+            stamp.append(0)
+    return tuple(stamp)
 
 
 def is_rgb_on():
