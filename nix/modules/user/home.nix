@@ -410,6 +410,18 @@ in
     (pkgs.writeShellScriptBin "wal-to-rgb" ''exec ${walToRgbEnv}/bin/python3 ${../../../.local/bin/wal-to-rgb.py} "$@"'')
     (pkgs.writeShellScriptBin "wal-to-rgb-daemon" ''exec ${walToRgbEnv}/bin/python3 ${../../../.local/bin/wal-to-rgb-daemon.py} "$@"'')
     (pkgs.writeShellScriptBin "ds4-lightbar" ''exec ${pkgs.python3}/bin/python3 ${../../../.local/bin/ds4-lightbar.py} "$@"'')
+    (pkgs.writeShellApplication {
+      name = "forza-car-palette";
+      runtimeInputs = with pkgs; [
+        python3
+        grim
+        imagemagick
+        matugen
+        hyprland
+        procps
+      ];
+      text = "exec python3 ${../../../.local/bin/forza-car-palette.py}";
+    })
     (pkgs.writeShellScriptBin "fh6-tuner-collect" ''FH6_TUNER_SHARE=${pkgs.fh6-tuner}/share/fh6-tuner exec ${pkgs.fh6-tuner.python}/bin/python3 ${../../../.local/bin/fh6-tuner-collect.py} "$@"'')
     (pkgs.writeShellScriptBin "strays" (
       builtins.replaceStrings [ "@VAULT@" "@USER_HOME@" ] [ "/persistent" "/home/m" ] (

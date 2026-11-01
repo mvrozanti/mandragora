@@ -161,6 +161,23 @@ in
     };
   };
 
+  systemd.user.services.forza-car-palette = {
+    Unit = {
+      Description = "Sample the car on screen while Forza Horizon 6 is focused and hand its matugen palette to the RGB daemon";
+      After = [ "graphical-session.target" ];
+      X-Restart-Triggers = [ (builtins.hashFile "sha256" ../../../.local/bin/forza-car-palette.py) ];
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = "${config.home.profileDirectory}/bin/forza-car-palette";
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
   systemd.user.services.fh6-tuner-collect = {
     Unit = {
       Description = "Record every Forza Horizon 6 race from the telemetry fan-out into a per-day fh6-tuner session";
