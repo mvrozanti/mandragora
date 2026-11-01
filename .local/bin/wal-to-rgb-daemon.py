@@ -27,6 +27,7 @@ STALE_FRAME_SECONDS = 1.0
 AIO_ZONE_PREFIX = "D_LED1"
 AIO_RESTORE_TIMEOUT_SECONDS = 15
 AIO_MIN_WRITE_INTERVAL_SECONDS = 0.25
+AIO_RESNAPSHOT_DELAY_SECONDS = 5.0
 TELEMETRY_ADDRESS = ("127.0.0.1", 5300)
 TELEMETRY_FORWARD_ADDRESS = ("127.0.0.1", 5301)
 TELEMETRY_TIMEOUT_SECONDS = 1.5
@@ -247,6 +248,17 @@ def snapshot_aio(aio):
     return [list(z.colors) for z in aio[1]]
 
 
+def prime_aio_rest(aio):
+    if aio is None or is_paused() or not is_rgb_on():
+        return None
+    restore_aio()
+    try:
+        return snapshot_aio(aio)
+    except Exception as e:
+        log(f"aio snapshot failed: {e}")
+        return None
+
+
 def step_mix(mix, racing):
     step = 1.0 / (CROSSFADE_SECONDS * FPS)
     return min(mix + step, 1.0) if racing else max(mix - step, 0.0)
@@ -291,6 +303,8 @@ def main():
     telemetry = open_telemetry_socket()
     palette = load_palette()
     last_mtime = mtime_or_zero()
+    aio_rest = prime_aio_rest(aio)
+    aio_resnapshot_at = None
     phase = 0.0
     frame_dt = 1.0 / FPS
     phase_step = STOPS_PER_SECOND / FPS
@@ -302,7 +316,6 @@ def main():
     speed_at = float("-inf")
     racing = False
     mix = 0.0
-    aio_rest = None
     aio_next_write_at = 0.0
     race_palette_mtime = 0
 
@@ -317,17 +330,18 @@ def main():
             log("telemetry: race on" if racing else "telemetry: race off")
 
         if racing and aio and aio_rest is None:
-            try:
-                aio_rest = snapshot_aio(aio)
-            except Exception as e:
-                log(f"aio snapshot failed: {e}")
+            aio_rest = prime_aio_rest(aio)
+        if racing and not was_racing:
             race_palette_mtime = last_mtime
         mix = step_mix(mix, racing)
-        if aio_rest is not None and not racing and mix == 0.0:
-            if race_palette_mtime != last_mtime and not is_paused():
-                restore_aio()
-            in_flight.pop(aio[0].id, None)
-            aio_rest = None
+        if was_racing and not racing:
+            in_flight.pop(aio[0].id, None) if aio else None
+        if aio and not racing and mix == 0.0 and race_palette_mtime != last_mtime:
+            aio_rest = prime_aio_rest(aio)
+            race_palette_mtime = last_mtime
+        if aio and aio_resnapshot_at is not None and frame_start >= aio_resnapshot_at and not racing:
+            aio_rest = prime_aio_rest(aio)
+            aio_resnapshot_at = None
 
         if not is_rgb_on() or is_paused():
             time.sleep(0.5)
@@ -340,6 +354,8 @@ def main():
             if new_palette:
                 palette = new_palette
                 last_mtime = new_mtime
+                if not racing:
+                    aio_resnapshot_at = frame_start + AIO_RESNAPSHOT_DELAY_SECONDS
 
         if palette and ram_devices:
             had_any_success = False
