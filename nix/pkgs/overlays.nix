@@ -4,6 +4,7 @@ _: {
       autoclaude = prev.callPackage ./autoclaude/default.nix { };
       axon = prev.callPackage ./axon/default.nix { };
       cc-lens = prev.callPackage ./cc-lens/default.nix { };
+      fh6-tuner = prev.callPackage ./fh6-tuner/default.nix { };
       cc-pocket-bridge = prev.callPackage ./cc-pocket-bridge/default.nix { };
       claude-code = prev.callPackage ./claude-code/default.nix { };
       electrum = prev.electrum.overrideAttrs (old: rec {

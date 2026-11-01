@@ -68,6 +68,7 @@ in
   ];
 
   home.packages = with pkgs; [
+    fh6-tuner
     xdg-desktop-portal-gtk
     (callPackage ../../pkgs/hypr-kdeconnect-portal { })
     bubblewrap
