@@ -17,7 +17,6 @@ ENE_LOCATION = re.compile(r"\((/dev/i2c-\d+)\), address (0x[0-9a-fA-F]+)")
 BLACKOUT_ATTEMPTS = 5
 WRITE_SETTLE_SECONDS = 0.1
 BLACKOUT_TIMEOUT_SECONDS = 12
-AIO_CHAIN_LENGTH = 8
 
 
 def log(msg):
@@ -123,12 +122,9 @@ def ensure_direct(device):
 
 def blackout_device(device, black):
     if has_name(device, ("aorus", "gigabyte")):
-        d_led_zones = [z for z in device.zones if "D_LED" in z.name]
-        for z in d_led_zones:
-            z.resize(AIO_CHAIN_LENGTH)
-        for z in device.zones:
-            if z.leds:
-                z.set_colors([black] * len(z.leds), fast=True)
+        static = next(m for m in device.modes if m.name.lower() == "static")
+        static.colors = [black]
+        device.set_mode(static)
         return
     device.set_colors([black] * len(device.leds), fast=True)
 

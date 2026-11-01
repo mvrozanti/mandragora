@@ -5,9 +5,7 @@ from pathlib import Path
 from openrgb import OpenRGBClient
 from openrgb.utils import RGBColor
 
-FAN_LEDS = 8
 STOPS_PER_FAN = 4
-CHAIN_LENGTH = 8
 RAM_LEDS_PER_STOP = 2
 RAM_PALETTE_INDICES = [2, 6, 5, 1]
 STATE_PATH = Path.home() / ".cache/hid-config/state"
@@ -43,23 +41,6 @@ def pick_distinct_stops(palette_hex, n):
     chosen = [candidates[int(k * step)][1] for k in range(n)]
     return [from_hex(palette_hex[i]) for i in chosen]
 
-def fan_band_indices():
-    base = FAN_LEDS // STOPS_PER_FAN
-    sizes = [base] * STOPS_PER_FAN
-    remainder = FAN_LEDS - base * STOPS_PER_FAN
-    left, right = 0, STOPS_PER_FAN - 1
-    while remainder > 0:
-        sizes[left] += 1
-        remainder -= 1
-        left += 1
-        if remainder > 0:
-            sizes[right] += 1
-            remainder -= 1
-            right -= 1
-    indices = []
-    for stop_idx, size in enumerate(sizes):
-        indices.extend([stop_idx] * size)
-    return indices
 
 fan_stops = []
 ram_stops = []
@@ -81,12 +62,6 @@ try:
 except Exception:
     sys.exit(1)
 
-def fan_chain_colors():
-    band = fan_band_indices()
-    out = []
-    for i in range(CHAIN_LENGTH):
-        out.append(fan_stops[band[i % FAN_LEDS]])
-    return out
 
 def ram_colors(led_count):
     out = []
@@ -104,21 +79,23 @@ def ensure_direct(device):
         except Exception:
             continue
 
+def set_static(device, color):
+    static = next(m for m in device.modes if m.name.lower() == "static")
+    static.colors = [color]
+    device.set_mode(static)
+
 for device in client.devices:
     name = (device.name or "").lower()
     if any(x in name for x in ["keyboard", "logitech", "mouse", "steelseries", "rival"]):
         continue
 
+    if "aorus" in name or "gigabyte" in name:
+        set_static(device, fan_stops[0] if RGB_ON else BLACK)
+        continue
+
     ensure_direct(device)
 
-    if "aorus" in name or "gigabyte" in name:
-        d_led_zones = [z for z in device.zones if "D_LED" in z.name]
-        for zone in d_led_zones:
-            zone.resize(CHAIN_LENGTH)
-        chain = fan_chain_colors() if RGB_ON else [BLACK] * CHAIN_LENGTH
-        for zone in d_led_zones:
-            zone.set_colors(chain)
-    elif any(x in name for x in ["dram", "ene", "xpg"]):
+    if any(x in name for x in ["dram", "ene", "xpg"]):
         count = len(device.leds)
         device.set_colors(ram_colors(count) if RGB_ON else [BLACK] * count, fast=True)
     else:

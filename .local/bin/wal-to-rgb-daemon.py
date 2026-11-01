@@ -6,7 +6,6 @@ import json
 import os
 import socket
 import struct
-import subprocess
 import sys
 import time
 from pathlib import Path
@@ -24,11 +23,8 @@ RAM_LEDS_PER_STOP = 2
 CONNECT_BACKOFF_SECONDS = 3
 RECONNECT_AFTER_SECONDS = 10.0
 STALE_FRAME_SECONDS = 1.0
-AIO_ZONE_PREFIX = "D_LED1"
-GAUGE_DRIVES_AIO = False
-AIO_RESTORE_TIMEOUT_SECONDS = 15
+AIO_DEVICE_NAMES = ("aorus", "gigabyte")
 AIO_MIN_WRITE_INTERVAL_SECONDS = 0.25
-AIO_RESNAPSHOT_DELAY_SECONDS = 5.0
 TELEMETRY_ADDRESS = ("127.0.0.1", 5300)
 TELEMETRY_FORWARD_ADDRESS = ("127.0.0.1", 5301)
 TELEMETRY_TIMEOUT_SECONDS = 1.5
@@ -73,6 +69,20 @@ def from_hex(h):
     v_val = 1.0
     r, g, b = colorsys.hsv_to_rgb(h_val, s_val, v_val)
     return RGBColor(int(r * 255), int(g * 255), int(b * 255))
+
+
+def hue_of(h):
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)[0]
+
+
+def load_aio_accent():
+    try:
+        data = json.loads(COLORS_PATH.read_text())
+        palette = [data["colors"][f"color{i}"].lstrip("#") for i in range(16)]
+    except Exception:
+        return None
+    return from_hex(min(palette[1:9], key=hue_of))
 
 
 def load_palette():
@@ -156,11 +166,6 @@ def drain_race_speed(sock):
     return speed
 
 
-def restore_aio():
-    try:
-        subprocess.run(["wal-to-rgb"], timeout=AIO_RESTORE_TIMEOUT_SECONDS, check=False)
-    except (OSError, subprocess.TimeoutExpired) as e:
-        log(f"aio restore failed: {e}")
 
 
 def connect():
@@ -197,11 +202,13 @@ def find_ram_devices(client):
 
 def find_aio(client):
     for d in client.devices:
-        zones = [z for z in d.zones if (z.name or "").startswith(AIO_ZONE_PREFIX)]
-        if zones:
-            log(f"found AIO chain on {d.name!r}: {[z.name for z in zones]}")
-            return d, zones
-    log("no AIO chain found")
+        if not any(x in (d.name or "").lower() for x in AIO_DEVICE_NAMES):
+            continue
+        static = next((m for m in d.modes if (m.name or "").lower() == "static"), None)
+        if static is not None:
+            log(f"found AIO controller {d.name!r}: its static mode drives the pump and fans")
+            return (d, static)
+    log("no AIO controller found")
     return None
 
 
@@ -229,7 +236,7 @@ def blend_frames(a, b, mix):
     return [[lerp_color(x, y, mix) for x, y in zip(za, zb)] for za, zb in zip(a, b)]
 
 
-def frame_targets(ram_devices, aio, aio_rest, palette, phase, level, mix):
+def frame_targets(ram_devices, palette, phase, level, mix):
     targets = []
     for d in ram_devices:
         rest = [animated_colors(palette, len(z.leds), phase) for z in d.zones]
@@ -238,26 +245,25 @@ def frame_targets(ram_devices, aio, aio_rest, palette, phase, level, mix):
             continue
         gauge = [scale_frame(frame, level) for frame in rest]
         targets.append((d, d.zones, blend_frames(rest, gauge, mix)))
-    if aio and aio_rest and mix > 0.0:
-        gauge = [scale_frame(frame, level) for frame in aio_rest]
-        targets.append((aio[0], aio[1], blend_frames(aio_rest, gauge, mix)))
     return targets
 
 
-def snapshot_aio(aio):
-    aio[0].update()
-    return [list(z.colors) for z in aio[1]]
+def aio_colour(accent, level, mix):
+    return lerp_color(accent, scale_color(accent, level), mix)
 
 
-def prime_aio_rest(aio):
-    if aio is None or is_paused() or not is_rgb_on():
-        return None
-    restore_aio()
-    try:
-        return snapshot_aio(aio)
-    except Exception as e:
-        log(f"aio snapshot failed: {e}")
-        return None
+def rgb_tuple(c):
+    return (c.red, c.green, c.blue)
+
+
+def set_aio(aio, color):
+    device, static = aio
+    static.colors = [color]
+    device.set_mode(static)
+
+
+
+
 
 
 def step_mix(mix, racing):
@@ -300,12 +306,12 @@ def main():
     log("starting up")
     client = connect()
     ram_devices = find_ram_devices(client)
-    aio = find_aio(client) if GAUGE_DRIVES_AIO else None
+    aio = find_aio(client)
     telemetry = open_telemetry_socket()
     palette = load_palette()
+    aio_accent = load_aio_accent()
     last_mtime = mtime_or_zero()
-    aio_rest = prime_aio_rest(aio)
-    aio_resnapshot_at = None
+    aio_last = None
     phase = 0.0
     frame_dt = 1.0 / FPS
     phase_step = STOPS_PER_SECOND / FPS
@@ -318,7 +324,6 @@ def main():
     racing = False
     mix = 0.0
     aio_next_write_at = 0.0
-    race_palette_mtime = 0
 
     while True:
         frame_start = time.monotonic()
@@ -330,19 +335,7 @@ def main():
         if racing != was_racing:
             log("telemetry: race on" if racing else "telemetry: race off")
 
-        if racing and aio and aio_rest is None:
-            aio_rest = prime_aio_rest(aio)
-        if racing and not was_racing:
-            race_palette_mtime = last_mtime
         mix = step_mix(mix, racing)
-        if was_racing and not racing:
-            in_flight.pop(aio[0].id, None) if aio else None
-        if aio and not racing and mix == 0.0 and race_palette_mtime != last_mtime:
-            aio_rest = prime_aio_rest(aio)
-            race_palette_mtime = last_mtime
-        if aio and aio_resnapshot_at is not None and frame_start >= aio_resnapshot_at and not racing:
-            aio_rest = prime_aio_rest(aio)
-            aio_resnapshot_at = None
 
         if not is_rgb_on() or is_paused():
             time.sleep(0.5)
@@ -355,18 +348,13 @@ def main():
             if new_palette:
                 palette = new_palette
                 last_mtime = new_mtime
-                if not racing:
-                    aio_resnapshot_at = frame_start + AIO_RESNAPSHOT_DELAY_SECONDS
+                aio_accent = load_aio_accent()
 
         if palette and ram_devices:
             had_any_success = False
             try:
                 with write_lock(timeout=0.4):
-                    for d, zones, frame in frame_targets(ram_devices, aio, aio_rest, palette, phase, level, mix):
-                        if aio and d is aio[0]:
-                            if frame_start < aio_next_write_at:
-                                continue
-                            aio_next_write_at = frame_start + AIO_MIN_WRITE_INTERVAL_SECONDS
+                    for d, zones, frame in frame_targets(ram_devices, palette, phase, level, mix):
                         try:
                             write_target(d, zones, frame, in_flight, frame_start)
                             had_any_success = True
@@ -374,6 +362,18 @@ def main():
                             device_failures += 1
                             if device_failures % 200 == 1:
                                 log(f"device write failed for {d.name!r}: {e} (count={device_failures})")
+                    if aio and aio_accent and frame_start >= aio_next_write_at:
+                        wanted = aio_colour(aio_accent, level, mix)
+                        if aio_last is None or rgb_tuple(wanted) != rgb_tuple(aio_last):
+                            try:
+                                set_aio(aio, wanted)
+                                aio_last = wanted
+                                had_any_success = True
+                            except Exception as e:
+                                device_failures += 1
+                                if device_failures % 200 == 1:
+                                    log(f"aio write failed: {e} (count={device_failures})")
+                            aio_next_write_at = frame_start + AIO_MIN_WRITE_INTERVAL_SECONDS
             except TimeoutError:
                 pass
             except Exception as e:
@@ -389,7 +389,8 @@ def main():
                     pass
                 client = connect()
                 ram_devices = find_ram_devices(client)
-                aio = find_aio(client) if GAUGE_DRIVES_AIO else None
+                aio = find_aio(client)
+                aio_last = None
                 in_flight = {}
                 last_success = time.monotonic()
 
