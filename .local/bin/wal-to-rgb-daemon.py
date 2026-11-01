@@ -26,6 +26,7 @@ RECONNECT_AFTER_SECONDS = 10.0
 STALE_FRAME_SECONDS = 1.0
 AIO_ZONE_PREFIX = "D_LED1"
 AIO_RESTORE_TIMEOUT_SECONDS = 15
+AIO_MIN_WRITE_INTERVAL_SECONDS = 0.25
 TELEMETRY_ADDRESS = ("127.0.0.1", 5300)
 TELEMETRY_FORWARD_ADDRESS = ("127.0.0.1", 5301)
 TELEMETRY_TIMEOUT_SECONDS = 1.5
@@ -302,6 +303,7 @@ def main():
     racing = False
     mix = 0.0
     aio_rest = None
+    aio_next_write_at = 0.0
     race_palette_mtime = 0
 
     while True:
@@ -344,6 +346,10 @@ def main():
             try:
                 with write_lock(timeout=0.4):
                     for d, zones, frame in frame_targets(ram_devices, aio, aio_rest, palette, phase, level, mix):
+                        if aio and d is aio[0]:
+                            if frame_start < aio_next_write_at:
+                                continue
+                            aio_next_write_at = frame_start + AIO_MIN_WRITE_INTERVAL_SECONDS
                         try:
                             write_target(d, zones, frame, in_flight, frame_start)
                             had_any_success = True
