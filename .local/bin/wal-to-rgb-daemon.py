@@ -14,7 +14,6 @@ from openrgb.utils import RGBColor
 
 FPS = 40
 STOPS_PER_SECOND = 1.0
-CAR_PALETTE_PATH = Path.home() / ".cache/forza-car/palette.json"
 COLORS_PATH = Path.home() / ".cache/matugen/colors.json"
 STATE_PATH = Path.home() / ".cache/hid-config/state"
 PAUSE_SENTINEL = Path(os.environ.get("XDG_RUNTIME_DIR", "/run/user/1000")) / "rgb-control-paused"
@@ -24,8 +23,6 @@ RAM_LEDS_PER_STOP = 2
 CONNECT_BACKOFF_SECONDS = 3
 RECONNECT_AFTER_SECONDS = 10.0
 STALE_FRAME_SECONDS = 1.0
-AIO_DEVICE_NAMES = ("aorus", "gigabyte")
-AIO_MIN_WRITE_INTERVAL_SECONDS = 0.1
 TELEMETRY_ADDRESS = ("127.0.0.1", 5300)
 TELEMETRY_FORWARD_ADDRESS = ("127.0.0.1", 5301)
 TELEMETRY_TIMEOUT_SECONDS = 1.5
@@ -72,34 +69,11 @@ def from_hex(h):
     return RGBColor(int(r * 255), int(g * 255), int(b * 255))
 
 
-def hue_of(h):
-    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
-    return colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)[0]
 
 
-def car_palette():
-    try:
-        return json.loads(CAR_PALETTE_PATH.read_text())
-    except Exception:
-        return None
-
-
-def load_aio_accent():
-    car = car_palette()
-    if car:
-        return from_hex(car["accent"])
-    try:
-        data = json.loads(COLORS_PATH.read_text())
-        palette = [data["colors"][f"color{i}"].lstrip("#") for i in range(16)]
-    except Exception:
-        return None
-    return from_hex(min(palette[1:9], key=hue_of))
 
 
 def load_palette():
-    car = car_palette()
-    if car:
-        return [from_hex(stop) for stop in car["stops"]]
     if not COLORS_PATH.exists():
         return None
     try:
@@ -222,26 +196,13 @@ def find_ram_devices(client):
     return out
 
 
-def find_aio(client):
-    for d in client.devices:
-        if not any(x in (d.name or "").lower() for x in AIO_DEVICE_NAMES):
-            continue
-        static = next((m for m in d.modes if (m.name or "").lower() == "static"), None)
-        if static is not None:
-            log(f"found AIO controller {d.name!r}: its static mode drives the pump and fans")
-            return (d, static)
-    log("no AIO controller found")
-    return None
 
 
 def mtime_or_zero():
-    stamp = []
-    for path in (CAR_PALETTE_PATH, COLORS_PATH):
-        try:
-            stamp.append(path.stat().st_mtime)
-        except Exception:
-            stamp.append(0)
-    return tuple(stamp)
+    try:
+        return COLORS_PATH.stat().st_mtime
+    except Exception:
+        return 0
 
 
 def is_rgb_on():
@@ -271,20 +232,6 @@ def frame_targets(ram_devices, palette, phase, level, mix):
         gauge = [scale_frame(frame, level) for frame in rest]
         targets.append((d, d.zones, blend_frames(rest, gauge, mix)))
     return targets
-
-
-def aio_colour(accent, level, mix):
-    return lerp_color(accent, scale_color(accent, level), mix)
-
-
-def rgb_tuple(c):
-    return (c.red, c.green, c.blue)
-
-
-def set_aio(aio, color):
-    device, static = aio
-    static.colors = [color]
-    device.set_mode(static)
 
 
 
@@ -331,12 +278,9 @@ def main():
     log("starting up")
     client = connect()
     ram_devices = find_ram_devices(client)
-    aio = find_aio(client)
     telemetry = open_telemetry_socket()
     palette = load_palette()
-    aio_accent = load_aio_accent()
     last_mtime = mtime_or_zero()
-    aio_last = None
     phase = 0.0
     frame_dt = 1.0 / FPS
     phase_step = STOPS_PER_SECOND / FPS
@@ -348,7 +292,6 @@ def main():
     speed_at = float("-inf")
     racing = False
     mix = 0.0
-    aio_next_write_at = 0.0
 
     while True:
         frame_start = time.monotonic()
@@ -373,7 +316,6 @@ def main():
             if new_palette:
                 palette = new_palette
                 last_mtime = new_mtime
-                aio_accent = load_aio_accent()
 
         if palette and ram_devices:
             had_any_success = False
@@ -387,18 +329,6 @@ def main():
                             device_failures += 1
                             if device_failures % 200 == 1:
                                 log(f"device write failed for {d.name!r}: {e} (count={device_failures})")
-                    if aio and aio_accent and frame_start >= aio_next_write_at:
-                        wanted = aio_colour(aio_accent, level, mix)
-                        if aio_last is None or rgb_tuple(wanted) != rgb_tuple(aio_last):
-                            try:
-                                set_aio(aio, wanted)
-                                aio_last = wanted
-                                had_any_success = True
-                            except Exception as e:
-                                device_failures += 1
-                                if device_failures % 200 == 1:
-                                    log(f"aio write failed: {e} (count={device_failures})")
-                            aio_next_write_at = frame_start + AIO_MIN_WRITE_INTERVAL_SECONDS
             except TimeoutError:
                 pass
             except Exception as e:
@@ -414,8 +344,6 @@ def main():
                     pass
                 client = connect()
                 ram_devices = find_ram_devices(client)
-                aio = find_aio(client)
-                aio_last = None
                 in_flight = {}
                 last_success = time.monotonic()
 

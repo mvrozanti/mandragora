@@ -90,7 +90,7 @@ for device in client.devices:
         continue
 
     if "aorus" in name or "gigabyte" in name:
-        set_static(device, fan_stops[0] if RGB_ON else BLACK)
+        set_static(device, BLACK)
         continue
 
     ensure_direct(device)
