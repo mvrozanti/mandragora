@@ -17,7 +17,7 @@ ENE_LOCATION = re.compile(r"\((/dev/i2c-\d+)\), address (0x[0-9a-fA-F]+)")
 BLACKOUT_ATTEMPTS = 5
 WRITE_SETTLE_SECONDS = 0.1
 BLACKOUT_TIMEOUT_SECONDS = 12
-AIO_CHAIN_LENGTH = 60
+AIO_CHAIN_LENGTH = 8
 
 
 def log(msg):
