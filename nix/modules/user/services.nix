@@ -161,6 +161,23 @@ in
     };
   };
 
+  systemd.user.services.fh6-tuner-collect = {
+    Unit = {
+      Description = "Record every Forza Horizon 6 race from the telemetry fan-out into a per-day fh6-tuner session";
+      After = [ "graphical-session.target" ];
+      X-Restart-Triggers = [ (builtins.hashFile "sha256" ../../../.local/bin/fh6-tuner-collect.py) ];
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = "${config.home.profileDirectory}/bin/fh6-tuner-collect";
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
   systemd.user.services.ds4-lightbar = {
     Unit = {
       Description = "Paint the DualShock lightbar with the matugen accent, dimmed to its battery level";

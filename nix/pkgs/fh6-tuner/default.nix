@@ -24,6 +24,9 @@ stdenvNoCC.mkDerivation {
     hash = "sha256-qHQtKJuXD0Ky0vfrhaSMz0eADTn7+nSVtXTfH8e+n28=";
   };
   nativeBuildInputs = [ makeWrapper ];
+  passthru = {
+    inherit python;
+  };
   postPatch = ''
     substituteInPlace mcp_server.py --replace-fail 'Path(__file__).parent / "sessions"' 'Path.cwd() / "sessions"'
     sed -i 's/default=5300/default=5301/g; s/default: 5300/default: 5301/g' main.py
