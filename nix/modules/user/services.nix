@@ -130,6 +130,7 @@ in
     Unit = {
       Description = "Animate RAM RGB from the pywal palette, and RAM + AIO as a Forza Horizon speed gauge";
       After = [ "graphical-session.target" ];
+      X-Restart-Triggers = [ (builtins.hashFile "sha256" ../../../.local/bin/wal-to-rgb-daemon.py) ];
     };
     Service = {
       Type = "simple";

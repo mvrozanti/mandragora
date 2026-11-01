@@ -26,6 +26,7 @@ stdenvNoCC.mkDerivation {
   nativeBuildInputs = [ makeWrapper ];
   postPatch = ''
     substituteInPlace mcp_server.py --replace-fail 'Path(__file__).parent / "sessions"' 'Path.cwd() / "sessions"'
+    sed -i 's/default=5300/default=5301/g; s/default: 5300/default: 5301/g' main.py
   '';
   installPhase = ''
     mkdir -p $out/share/fh6-tuner $out/bin
