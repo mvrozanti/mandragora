@@ -66,6 +66,14 @@ let
   '';
 in
 {
+  nixpkgs.overlays = [
+    (_final: prev: {
+      openrgb = prev.openrgb.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [ ../../pkgs/openrgb/direct-strip-apply.patch ];
+      });
+    })
+  ];
+
   services.hardware.openrgb = {
     enable = true;
     package = pkgs.openrgb-with-all-plugins;
