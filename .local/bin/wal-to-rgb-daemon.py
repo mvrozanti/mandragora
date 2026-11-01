@@ -27,6 +27,7 @@ AIO_ZONE_PREFIX = "D_LED1"
 AIO_RING_LEDS = 8
 AIO_RESTORE_TIMEOUT_SECONDS = 15
 TELEMETRY_ADDRESS = ("127.0.0.1", 5300)
+TELEMETRY_FORWARD_ADDRESS = ("127.0.0.1", 5301)
 TELEMETRY_TIMEOUT_SECONDS = 1.5
 CROSSFADE_SECONDS = 1.0
 HORIZON_PACKET_BYTES = 324
@@ -139,6 +140,12 @@ def drain_race_speed(sock):
             packet = sock.recv(1024)
         except BlockingIOError:
             break
+        except OSError:
+            break
+        try:
+            sock.sendto(packet, TELEMETRY_FORWARD_ADDRESS)
+        except OSError:
+            pass
         if len(packet) != HORIZON_PACKET_BYTES:
             continue
         is_race_on, = struct.unpack_from("<i", packet, 0)
