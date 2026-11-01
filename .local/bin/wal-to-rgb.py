@@ -7,7 +7,7 @@ from openrgb.utils import RGBColor
 
 FAN_LEDS = 8
 STOPS_PER_FAN = 4
-CHAIN_LENGTH = 60
+CHAIN_LENGTH = 8
 RAM_LEDS_PER_STOP = 2
 RAM_PALETTE_INDICES = [2, 6, 5, 1]
 STATE_PATH = Path.home() / ".cache/hid-config/state"
