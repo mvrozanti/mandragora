@@ -25,6 +25,7 @@ CONNECT_BACKOFF_SECONDS = 3
 RECONNECT_AFTER_SECONDS = 10.0
 STALE_FRAME_SECONDS = 1.0
 AIO_ZONE_PREFIX = "D_LED1"
+GAUGE_DRIVES_AIO = False
 AIO_RESTORE_TIMEOUT_SECONDS = 15
 AIO_MIN_WRITE_INTERVAL_SECONDS = 0.25
 AIO_RESNAPSHOT_DELAY_SECONDS = 5.0
@@ -299,7 +300,7 @@ def main():
     log("starting up")
     client = connect()
     ram_devices = find_ram_devices(client)
-    aio = find_aio(client)
+    aio = find_aio(client) if GAUGE_DRIVES_AIO else None
     telemetry = open_telemetry_socket()
     palette = load_palette()
     last_mtime = mtime_or_zero()
@@ -388,7 +389,7 @@ def main():
                     pass
                 client = connect()
                 ram_devices = find_ram_devices(client)
-                aio = find_aio(client)
+                aio = find_aio(client) if GAUGE_DRIVES_AIO else None
                 in_flight = {}
                 last_success = time.monotonic()
 
