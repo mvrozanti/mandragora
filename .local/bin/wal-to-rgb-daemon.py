@@ -128,8 +128,16 @@ def gauge_level(speed, history, now):
     history.append((now, speed))
     while history and now - history[0][0] > GAUGE_WINDOW_SECONDS:
         history.popleft()
-    full_scale = max(max(s for _, s in history), GAUGE_FLOOR_MPS)
-    level = min(max(speed / full_scale, 0.0), 1.0)
+    speeds = [s for _, s in history]
+    peak = max(max(speeds), GAUGE_FLOOR_MPS)
+    average = min(sum(speeds) / len(speeds), peak)
+    if speed <= average:
+        level = 0.5 * speed / average if average > 0 else 0.0
+    elif peak > average:
+        level = 0.5 + 0.5 * (speed - average) / (peak - average)
+    else:
+        level = 1.0
+    level = min(max(level, 0.0), 1.0)
     return round(level * GAUGE_LEVELS) / GAUGE_LEVELS
 
 
