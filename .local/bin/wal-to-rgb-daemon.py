@@ -1,3 +1,4 @@
+import collections
 import colorsys
 import contextlib
 import fcntl
@@ -24,7 +25,6 @@ CONNECT_BACKOFF_SECONDS = 3
 RECONNECT_AFTER_SECONDS = 10.0
 STALE_FRAME_SECONDS = 1.0
 AIO_ZONE_PREFIX = "D_LED1"
-AIO_RING_LEDS = 8
 AIO_RESTORE_TIMEOUT_SECONDS = 15
 TELEMETRY_ADDRESS = ("127.0.0.1", 5300)
 TELEMETRY_FORWARD_ADDRESS = ("127.0.0.1", 5301)
@@ -32,8 +32,9 @@ TELEMETRY_TIMEOUT_SECONDS = 1.5
 CROSSFADE_SECONDS = 1.0
 HORIZON_PACKET_BYTES = 324
 HORIZON_SPEED_OFFSET = 256
-GAUGE_FULL_SCALE_MPS = 400 / 3.6
-GAUGE_TRACK_BRIGHTNESS = 0.08
+GAUGE_WINDOW_SECONDS = 60.0
+GAUGE_FLOOR_MPS = 50 / 3.6
+GAUGE_LEVELS = 64
 
 
 def log(msg):
@@ -106,19 +107,17 @@ def scale_color(c, k):
     return RGBColor(int(c.red * k), int(c.green * k), int(c.blue * k))
 
 
-def gradient_at(stops, t):
-    pos = t * (len(stops) - 1)
-    idx = min(int(pos), len(stops) - 2)
-    return lerp_color(stops[idx], stops[idx + 1], pos - idx)
+def scale_frame(frame, k):
+    return [scale_color(c, k) for c in frame]
 
 
-def gauge_colors(stops, led_count, level):
-    lit = level * led_count
-    out = []
-    for i in range(led_count):
-        brightness = min(max(lit - i, GAUGE_TRACK_BRIGHTNESS), 1.0)
-        out.append(scale_color(gradient_at(stops, i / max(led_count - 1, 1)), brightness))
-    return out
+def gauge_level(speed, history, now):
+    history.append((now, speed))
+    while history and now - history[0][0] > GAUGE_WINDOW_SECONDS:
+        history.popleft()
+    full_scale = max(max(s for _, s in history), GAUGE_FLOOR_MPS)
+    level = min(max(speed / full_scale, 0.0), 1.0)
+    return round(level * GAUGE_LEVELS) / GAUGE_LEVELS
 
 
 def open_telemetry_socket():
@@ -227,19 +226,17 @@ def blend_frames(a, b, mix):
     return [[lerp_color(x, y, mix) for x, y in zip(za, zb)] for za, zb in zip(a, b)]
 
 
-def frame_targets(ram_devices, aio, aio_rest, palette, phase, speed, mix):
-    level = min(max(speed / GAUGE_FULL_SCALE_MPS, 0.0), 1.0)
+def frame_targets(ram_devices, aio, aio_rest, palette, phase, level, mix):
     targets = []
     for d in ram_devices:
         rest = [animated_colors(palette, len(z.leds), phase) for z in d.zones]
         if mix == 0.0:
             targets.append((d, d.zones, rest))
             continue
-        gauge = [gauge_colors(palette, len(z.leds), level) for z in d.zones]
+        gauge = [scale_frame(frame, level) for frame in rest]
         targets.append((d, d.zones, blend_frames(rest, gauge, mix)))
     if aio and aio_rest and mix > 0.0:
-        ring = gauge_colors(palette, AIO_RING_LEDS, level)
-        gauge = [[ring[i % AIO_RING_LEDS] for i in range(len(z.leds))] for z in aio[1]]
+        gauge = [scale_frame(frame, level) for frame in aio_rest]
         targets.append((aio[0], aio[1], blend_frames(aio_rest, gauge, mix)))
     return targets
 
@@ -299,7 +296,8 @@ def main():
     last_success = time.monotonic()
     device_failures = 0
     in_flight = {}
-    speed = 0.0
+    speed_history = collections.deque()
+    level = 0.0
     speed_at = float("-inf")
     racing = False
     mix = 0.0
@@ -311,7 +309,7 @@ def main():
 
         latest_speed = drain_race_speed(telemetry)
         if latest_speed is not None:
-            speed, speed_at = latest_speed, frame_start
+            level, speed_at = gauge_level(latest_speed, speed_history, frame_start), frame_start
         was_racing, racing = racing, frame_start - speed_at < TELEMETRY_TIMEOUT_SECONDS
         if racing != was_racing:
             log("telemetry: race on" if racing else "telemetry: race off")
@@ -345,7 +343,7 @@ def main():
             had_any_success = False
             try:
                 with write_lock(timeout=0.4):
-                    for d, zones, frame in frame_targets(ram_devices, aio, aio_rest, palette, phase, speed, mix):
+                    for d, zones, frame in frame_targets(ram_devices, aio, aio_rest, palette, phase, level, mix):
                         try:
                             write_target(d, zones, frame, in_flight, frame_start)
                             had_any_success = True
