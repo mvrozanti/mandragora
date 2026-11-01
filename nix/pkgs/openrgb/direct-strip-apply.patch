@@ -1,0 +1,18 @@
+--- a/Controllers/GigabyteRGBFusion2USBController/RGBController_GigabyteRGBFusion2USB.cpp
++++ b/Controllers/GigabyteRGBFusion2USBController/RGBController_GigabyteRGBFusion2USB.cpp
+@@ -1384,6 +1384,7 @@
+                 {
+                     controller->SetStripBuiltinEffectState(hdr, false);
+                     controller->SetStripColors(hdr, zones[zone_idx].colors, zones[zone_idx].leds_count);
++                    controller->ApplyEffect(true);
+                 }
+ 
+                 /*---------------------------------------------------------*\
+@@ -1496,6 +1497,7 @@
+             {
+                 controller->SetStripBuiltinEffectState(hdr, false);
+                 controller->SetStripColors(hdr, zones[zone].colors, zones[zone].leds_count);
++                controller->ApplyEffect(true);
+             }
+ 
+             /*---------------------------------------------------------*\
