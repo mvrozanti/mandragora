@@ -37,6 +37,11 @@
       url = "github:mvrozanti/claude-progressbar";
       flake = false;
     };
+
+    android-nixpkgs = {
+      url = "github:tadfisher/android-nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -144,17 +149,45 @@
         ];
       };
 
-      devShells.${system}.watch = nixpkgs.legacyPackages.${system}.mkShell {
-        packages = [
-          (nixpkgs.legacyPackages.${system}.python312.withPackages (
-            ps: with ps; [
-              fastapi
-              httpx
-              uvicorn
-              pytest
-            ]
-          ))
-        ];
+      devShells.${system} = {
+        watch = nixpkgs.legacyPackages.${system}.mkShell {
+          packages = [
+            (nixpkgs.legacyPackages.${system}.python312.withPackages (
+              ps: with ps; [
+                fastapi
+                httpx
+                uvicorn
+                pytest
+              ]
+            ))
+          ];
+        };
+
+        phone =
+          let
+            pkgs = nixpkgs.legacyPackages.${system};
+            androidSdk = inputs.android-nixpkgs.sdk.${system} (
+              sdkPkgs: with sdkPkgs; [
+                cmdline-tools-latest
+                build-tools-35-0-0
+                platform-tools
+                platforms-android-35
+              ]
+            );
+            sdkRoot = "${androidSdk}/share/android-sdk";
+          in
+          pkgs.mkShell {
+            packages = [
+              androidSdk
+              pkgs.jdk21
+            ];
+            ANDROID_HOME = sdkRoot;
+            ANDROID_SDK_ROOT = sdkRoot;
+            JAVA_HOME = "${pkgs.jdk21}";
+            GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${sdkRoot}/build-tools/35.0.0/aapt2";
+            MANDRAGORA_DESKTOP_IP =
+              (builtins.fromJSON (builtins.readFile ./nix/snippets/tailnet.json)).desktop.ip;
+          };
       };
 
       apps.${system}.refiner = {

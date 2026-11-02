@@ -20,3 +20,8 @@ nix/hosts/mandragora-wsl/local.nix
 .config/transmission/dht.dat
 .config/transmission/stats.json
 .config/transmission/queue.json
+nix/hosts/mandragora-phone/app/.gradle/
+nix/hosts/mandragora-phone/app/.kotlin/
+nix/hosts/mandragora-phone/app/.idea/
+nix/hosts/mandragora-phone/app/local.properties
+nix/hosts/mandragora-phone/app/**/build/
