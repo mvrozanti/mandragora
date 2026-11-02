@@ -11,4 +11,5 @@ deploy_rsync --delete --exclude='__pycache__/' --exclude='*.pyc' "$HERE/host-sta
 deploy_rsync --delete "$HERE/served-hosts/" :served-hosts/
 deploy_rsync --delete --exclude='*.bak' --exclude='*.bak.*' "$HERE/static/" :static/
 deploy_up
+deploy_up --force-recreate host-stats served-hosts
 deploy_end
