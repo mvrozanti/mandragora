@@ -20,7 +20,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 DISK_PATH = os.environ.get("DISK_PATH", "/host/rootfs")
 SERVICES_FILE = os.environ.get("SERVICES_FILE", "/app/services.json")
 SERVED_HOSTS_URL = os.environ.get("SERVED_HOSTS_URL", "")
-SERVED_TTL = float(os.environ.get("SERVED_TTL", "600"))
+SERVED_TTL = float(os.environ.get("SERVED_TTL", "50"))
+SELF_HOST = os.environ.get("SELF_HOST", "hub.mvr.ac")
 PROBE_INTERVAL = float(os.environ.get("PROBE_INTERVAL", "60"))
 PROBE_TIMEOUT = float(os.environ.get("PROBE_TIMEOUT", "8"))
 PROBE_WORKERS = int(os.environ.get("PROBE_WORKERS", "6"))
@@ -249,20 +250,20 @@ def services() -> dict:
     undeclared = []
     for entry in served or []:
         host = entry.get("host")
-        if not host or host in seen or not CLICK_HOST_RE.match(host):
+        if not host or host in seen or host == SELF_HOST or not CLICK_HOST_RE.match(host):
             continue
         undeclared.append({
             "name": host[: -len(".mvr.ac")],
             "host": host,
-            "group": "private",
-            "desc": "served, not in the repo",
+            "group": "untiled",
+            "desc": "served by caddy, no tile",
             "access": "priv" if entry.get("gated") else "open",
             "where": "vps",
-            "private": True,
+            "untiled": True,
         })
     groups = list(doc.get("groups", []))
-    if undeclared and not any(g.get("id") == "private" for g in groups):
-        groups.append({"id": "private", "label": "not in the repo"})
+    if undeclared and not any(g.get("id") == "untiled" for g in groups):
+        groups.append({"id": "untiled", "label": "served, no tile"})
     return {
         "probe": doc.get("probe", {}),
         "machines": doc.get("machines", []),
@@ -336,7 +337,7 @@ def health() -> dict:
 def read_roster() -> dict:
     roster = {}
     for svc in services()["services"]:
-        roster[svc["host"]] = {k: svc.get(k) for k in ("name", "group", "where", "access", "private")}
+        roster[svc["host"]] = {k: svc.get(k) for k in ("name", "group", "where", "access", "untiled")}
     return roster
 
 

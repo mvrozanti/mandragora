@@ -61,13 +61,13 @@
     var state = stateOf(s);
     var label = s.host + " — " + s.desc + " — on " + machine(s.where).label +
       (open ? " — reachable without signing in" : " — behind authelia") +
-      (s.private ? " — served but not declared in the repo" : "") + " — " + STATE_WORD[state];
+      (s.untiled ? " — served by caddy, no tile" : "") + " — " + STATE_WORD[state];
     return '<a class="mv-row' + (state === "down" ? " is-down" : "") + '" href="' + esc(linkOf(s)) +
       '" target="_blank" rel="noopener" data-host="' + esc(s.host) + '" aria-label="' + esc(label) + '">' +
       '<span class="mv-dot mv-row__state is-' + state + '" aria-hidden="true"></span>' +
       '<span class="mv-badge ' + (open ? "is-open" : "is-gated") + '" aria-hidden="true">' + lockSvg(open) + "</span>" +
       '<span class="mv-row__host">' + esc(s.host) + "</span>" +
-      (s.private ? '<span class="hub__private" title="served by caddy, declared nowhere in the repo">private</span>' : "") + "</a>";
+      (s.untiled ? '<span class="hub__untiled" title="served by caddy; no tile in services.json">no tile</span>' : "") + "</a>";
   };
 
   var renderList = function () {
