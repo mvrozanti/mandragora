@@ -28,7 +28,7 @@ mandragora-desktop                                        phone
 ──────────────────                                        ─────
 nix/hosts/mandragora-phone/identity.json ─▶ syncthing.nix
 nix/snippets/tailnet.json                ─▶ networking.hosts "phone"
-phone-bridge :6687 ◀── config · volume · lease · lyrics ── app
+phone-bridge :6688 ◀── config · volume · lease · lyrics ── app
 mpd :6600          ◀── mpd protocol over the tailnet ───── app
 ytdl-web :6685     ◀── POST /api/download, GET /api/jobs ─ app (share target)
 gpu-status :6684   ◀── /api/theme?colors=1 ─────────────── app (palette)
