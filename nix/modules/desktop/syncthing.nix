@@ -4,8 +4,10 @@ let
   musicStignore = ../../../.config/syncthing/music.stignore;
   phoneInboxStignore = ../../../.config/syncthing/phone-inbox.stignore;
 
-  phoneDeviceId = "TXQSG4I-CFJX3BY-2CUKJOT-DZ4ATH4-HP7HQOK-23VM6PF-VDEM63Z-XGZR2Q5";
-  phoneTailnetAddress = "tcp://100.114.176.5:22000";
+  tailnet = builtins.fromJSON (builtins.readFile ../../snippets/tailnet.json);
+  identity = builtins.fromJSON (builtins.readFile ../../hosts/mandragora-phone/identity.json);
+  phoneDeviceId = identity.syncthing.deviceId;
+  phoneTailnetAddress = "tcp://${tailnet.phone.ip}:${toString identity.syncthing.port}";
 
   phoneShared = lib.optionals (phoneDeviceId != null) [ "phone" ];
 

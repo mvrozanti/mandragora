@@ -72,6 +72,7 @@ in
     ../../modules/services/ttyd.nix
     ../../modules/services/claude-web.nix
     ../../modules/services/cc-pocket.nix
+    ../../modules/services/phone-bridge.nix
     ../../modules/services/slither-io.nix
     ../../modules/services/transmission-rpc-bridge.nix
     ../../modules/services/fly-brain.nix
