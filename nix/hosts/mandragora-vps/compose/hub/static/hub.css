@@ -11,3 +11,15 @@
   .hub { padding-left: var(--mv-space-6); padding-right: var(--mv-space-6); padding-top: var(--mv-space-6); }
   .hub__status-grid { grid-template-columns: repeat(3, 1fr); align-items: start; }
 }
+
+.hub__private {
+  margin-left: auto;
+  font-family: var(--mv-font-mono);
+  font-size: var(--mv-text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mv-text-ghost);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-radius-1);
+  padding: 0 var(--mv-space-1);
+}

@@ -132,12 +132,32 @@ services:
       HOST_STATS_PORT: "8081"
       DISK_PATH: /host/rootfs
       SERVICES_FILE: /app/services.json
+      SERVED_HOSTS_URL: http://seafile-caddy:2020/hosts
       PROBE_INTERVAL: "60"
     networks:
       - seafile-net
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8081/status', timeout=2).read()"]
       interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "1m"
+        max-file: "3"
+
+  served-hosts:
+    image: python:3.13-alpine
+    container_name: served-hosts
+    restart: unless-stopped
+    network_mode: "container:seafile-caddy"
+    command: ["python", "-u", "/app/served_hosts.py"]
+    volumes:
+      - ./served-hosts/served_hosts.py:/app/served_hosts.py:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:2020/hosts', timeout=3).read()"]
+      interval: 60s
       timeout: 5s
       retries: 3
     logging:
