@@ -74,7 +74,30 @@ last known second". It never falls back to a public host.
    screen. `~/Projects/android-music-sync/setup_adb.sh` has the walkthrough.
 5. **The app**: `PHONE_ADB_ADDR=<ip:port> phone-push`. First install asks the
    phone to allow the install; later installs are silent. Open it once so the
-   share target registers.
+   share target registers, grant notifications and music access, and paste
+   Sync-Fork's API key into the sync sheet.
+
+## Building the app
+
+`app/` is a plain Gradle project (AGP 8.7, Kotlin 2.1, Compose, Media3). The
+SDK comes from the `phone` dev shell (`android-nixpkgs`: platform 35,
+build-tools 35, platform-tools), so nothing is installed under `~/Android`.
+
+```
+cd nix/hosts/mandragora-phone/app
+nix develop /etc/nixos/mandragora#phone -c ./gradlew assembleDebug
+```
+
+- The SDK lives in the nix store and is read-only, so `buildToolsVersion` is
+  pinned to the one the shell provides; AGP's default would try to download
+  another and fail.
+- The aapt2 Gradle pulls from Maven is a generic Linux binary that cannot run
+  on NixOS; the shell points `android.aapt2FromMavenOverride` at the SDK's.
+- The desktop's tailnet ip is compiled in from `nix/snippets/tailnet.json`
+  (`MANDRAGORA_DESKTOP_IP`); everything else comes from the bridge at runtime.
+- Signing: `phone-push` builds **debug** unless `PHONE_KEYSTORE` is set. The
+  debug key is `~/.android/debug.keystore`. Moving to a release key later
+  changes the signature, which Android only accepts after an uninstall.
 
 Everything after step 1 is reachable only over the tailnet, so step 1 is the
 whole security model: no tailnet, no phone.

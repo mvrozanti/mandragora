@@ -14,13 +14,20 @@ bottom are the ones that decide which.
 - mpd reachable over the tailnet.
 - `phone-push`: build the app in the `phone` dev shell and install it over
   wireless debugging.
+- The app v0.1: Verbs home, The Stage player, get / volume / lyrics / sync /
+  hub / queue sheets, a Media3 session whose remote player maps to mpd and
+  routes the volume keys to the desktop sink, share target, wallpaper palette.
+  Built debug-signed; not yet installed (the phone was off the tailnet).
 
 ## In flight
 
-- The app, phase 2: Verbs home, The Stage player, sheets, lock-screen session.
+- First install and the on-device checks from the phone README.
 
 ## Next up
 
+- Release keystore in sops (`phone/keystore`, `phone/keystore-password`),
+  exported to the dev shell as `PHONE_KEYSTORE`/`PHONE_KEYSTORE_PASS`; then a
+  minified release build (the debug APK is about 68 MB).
 - Verbs home: the operator said features are missing from the screen after
   seeing the deck. List them after the first install and add verbs.
 - Round two of the deck: The Stage's hub sheet borrowing the live tiles from
