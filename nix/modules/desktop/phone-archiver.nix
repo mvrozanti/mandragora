@@ -19,11 +19,20 @@ let
     ];
     text = builtins.readFile ../../../.local/bin/phone-syncthing-bootstrap.sh;
   };
+  push = pkgs.writeShellApplication {
+    name = "phone-push";
+    runtimeInputs = [
+      pkgs.android-tools
+      pkgs.findutils
+    ];
+    text = builtins.readFile ../../../.local/bin/phone-push.sh;
+  };
 in
 {
   environment.systemPackages = [
     archiver
     bootstrap
+    push
   ];
 
   systemd.user.services.phone-archiver = {

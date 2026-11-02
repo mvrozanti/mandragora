@@ -24,5 +24,6 @@ desktop.ini
 (?i)!*.opus
 (?i)!*.aac
 (?i)!*.wma
+(?i)!*.lrc
 
 *

@@ -21,5 +21,9 @@ in
     "kindle"
   ];
 
+  networking.hosts.${tailnet.phone.ip} = [
+    "phone"
+  ];
+
   environment.systemPackages = [ pkgs.tailscale ];
 }
