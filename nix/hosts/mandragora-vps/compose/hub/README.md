@@ -21,10 +21,10 @@ links. `nginx:alpine` serving a single static HTML file is
 
 ## Live location on VPS
 
-`/home/opc/hub/` — bring up with:
-```
-cd /home/opc/hub && sudo docker compose up -d
-```
+`/home/opc/hub/` — landed by `mandragora-switch` through `deploy.sh`, which
+syncs the compose file, `host-stats/`, `served-hosts/` and `static/` and runs
+`docker compose up -d`. Hand edits to the live compose are overwritten on the
+next deploy; put them in the repo.
 
 Joins the existing `seafile-net` (declared `external: true`) so caddy
 sees the labels.
