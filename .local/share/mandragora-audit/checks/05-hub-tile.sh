@@ -65,10 +65,10 @@ subs_from_live_caddy() {
     | sed -E 's#([a-z0-9-]+)\.mvr\.ac#\1#' | sort -u
 }
 
-subs_private_on_vps() {
+subs_listed_by_live_hub() {
   timeout 20 ssh -o BatchMode=yes -o ConnectTimeout=8 "$VPS" \
-    'cat /home/opc/authelia/config/private-hosts/* 2>/dev/null' 2>/dev/null \
-    | sed -nE 's#^([a-z0-9-]+)\.mvr\.ac$#\1#p' | sort -u
+    'docker exec host-stats python -c "import urllib.request,sys; sys.stdout.write(urllib.request.urlopen(\"http://localhost:8081/api/services\", timeout=8).read().decode())"' 2>/dev/null \
+    | subs_from_services_json | sort -u
 }
 
 violations=0
@@ -94,11 +94,22 @@ if [ -z "$live_hosts" ]; then
   audit_yellow "    live caddy unreachable ($VPS); repo-only check performed" >&2
   echo >&2
 else
-  private_hosts=$(subs_private_on_vps)
-  if [ -n "$private_hosts" ]; then
-    live_hosts=$(comm -23 <(printf '%s\n' "$live_hosts") <(printf '%s\n' "$private_hosts"))
-    audit_yellow "    $(printf '%s\n' "$private_hosts" | wc -l) private host(s) skipped: 2FA-gated by the VPS-only authelia/config/private-hosts list" >&2
-    echo >&2
+  declared=$( { subs_from_compose; subs_tiled_in_repo; } | sort -u)
+  undeclared=$(comm -23 <(printf '%s\n' "$live_hosts") <(printf '%s\n' "$declared"))
+  live_hosts=$(comm -12 <(printf '%s\n' "$live_hosts") <(printf '%s\n' "$declared"))
+  listed=$(subs_listed_by_live_hub)
+  if [ -z "$listed" ]; then
+    audit_fail "$CHECK" "hub.mvr.ac does not answer /api/services: served hosts are not being discovered"
+    violations=$((violations + 1))
+  else
+    unlisted=$(comm -23 <(printf '%s\n' "$undeclared") <(printf '%s\n' "$listed"))
+    if [ -n "$unlisted" ]; then
+      audit_fail "$CHECK" "live caddy serves $(printf '%s\n' "$unlisted" | wc -l) host(s) the hub does not list; is served-hosts up next to caddy?"
+      violations=$((violations + 1))
+    elif [ -n "$undeclared" ]; then
+      audit_yellow "    $(printf '%s\n' "$undeclared" | wc -l) served host(s) not declared in the repo are listed on the hub as private" >&2
+      echo >&2
+    fi
   fi
   report_missing "live caddy" "$live_hosts"
 
@@ -123,7 +134,7 @@ else
 fi
 
 if [ "$violations" -eq 0 ]; then
-  audit_pass "$CHECK" "every served *.mvr.ac host has a hub tile, and hub.mvr.ac is current"
+  audit_pass "$CHECK" "every declared *.mvr.ac host has a hub tile, every served one is listed, and hub.mvr.ac is current"
   exit 0
 fi
 

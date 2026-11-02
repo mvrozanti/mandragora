@@ -41,8 +41,8 @@ needed for content changes.
 | `components.css` | the `.mv-*` component vocabulary | **yes** |
 | `theme.js` | reads `/api/theme`, applies + caches the matugen palette | **yes** |
 | `hub.css` | page frame for this page only | no |
-| `hub.js` | renders the hub from `services.json` | no |
-| `services.json` | the inventory — one source of truth | no |
+| `hub.js` | renders the hub from `/api/services`, falling back to `services.json` | no |
+| `services.json` | the declared inventory: names, groups, machines for the hosts the repo knows | no |
 | `index.html` | markup skeleton, ~50 lines | no |
 
 The page is the **V1 "field"** direction: one flat list — no section
@@ -60,6 +60,25 @@ A row is three marks and nothing else: a health dot, a lock badge, and
 the hostname. Public services carry a filled accent badge; gated ones a
 dim outlined box, so the badge column reads as a strip. Names and
 descriptions are gone — the hostname is the name.
+
+### Served means listed
+
+`served-hosts/` is a sidecar that joins the caddy container's network
+namespace, reads caddy's admin API on `localhost:2019`, and publishes
+every `*.mvr.ac` host caddy currently routes, with whether the route
+carries a `forward_auth`, as `GET /hosts` on port 2020. `host-stats`
+merges that into `services.json` and serves the result as
+`/api/services`: a host caddy serves that the repo never declared is
+listed under the group `not in the repo` with a `private` tag and
+`access` taken from the route. Nothing has to be written anywhere for a
+served host to appear; the hub is the inventory of what is actually
+exposed, and the repo is only the inventory of what it declares.
+
+The sidecar holds a reference to caddy's network namespace, so after
+`seafile-caddy` is recreated run `docker compose up -d served-hosts` in
+`/home/opc/hub`. While it is unreachable `host-stats` keeps its last
+answer for `SERVED_TTL` and the hub shows only declared hosts; the audit
+notices the gap.
 
 ### Health probes, and what green actually means
 

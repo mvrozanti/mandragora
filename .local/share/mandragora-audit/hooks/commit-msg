@@ -2,4 +2,5 @@
 set -euo pipefail
 export COMMIT_MSG_FILE="$1"
 mandragora-audit --check conventional-commits --quiet
+mandragora-audit --check private-names --quiet
 exec mandragora-audit --check vault-verdict --quiet

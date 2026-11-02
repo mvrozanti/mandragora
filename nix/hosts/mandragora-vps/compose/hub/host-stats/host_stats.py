@@ -19,6 +19,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 DISK_PATH = os.environ.get("DISK_PATH", "/host/rootfs")
 SERVICES_FILE = os.environ.get("SERVICES_FILE", "/app/services.json")
+SERVED_HOSTS_URL = os.environ.get("SERVED_HOSTS_URL", "")
+SERVED_TTL = float(os.environ.get("SERVED_TTL", "600"))
 PROBE_INTERVAL = float(os.environ.get("PROBE_INTERVAL", "60"))
 PROBE_TIMEOUT = float(os.environ.get("PROBE_TIMEOUT", "8"))
 PROBE_WORKERS = int(os.environ.get("PROBE_WORKERS", "6"))
@@ -205,18 +207,73 @@ def clicks() -> dict:
         return {"clicks": dict(_clicks)}
 
 
-def read_targets() -> list[tuple[str, str]]:
+_served_lock = threading.Lock()
+_served: dict = {"ts": 0.0, "hosts": None}
+
+
+def read_served() -> list[dict] | None:
+    if not SERVED_HOSTS_URL:
+        return None
+    with _served_lock:
+        if _served["hosts"] is not None and time.time() - _served["ts"] < SERVED_TTL:
+            return _served["hosts"]
+    try:
+        with urllib.request.urlopen(SERVED_HOSTS_URL, timeout=5) as resp:
+            hosts = json.load(resp).get("hosts")
+    except Exception:
+        hosts = None
+    if isinstance(hosts, list):
+        with _served_lock:
+            _served["hosts"] = hosts
+            _served["ts"] = time.time()
+        return hosts
+    with _served_lock:
+        return _served["hosts"]
+
+
+def read_doc() -> dict:
     try:
         with open(SERVICES_FILE) as f:
             doc = json.load(f)
     except (FileNotFoundError, PermissionError, ValueError, OSError):
-        return []
-    targets = []
-    for svc in doc.get("services", []):
-        host = svc.get("host")
-        if host:
-            targets.append((host, svc.get("probe", "/")))
-    return targets
+        doc = {}
+    return doc if isinstance(doc, dict) else {}
+
+
+def services() -> dict:
+    """The declared inventory plus every host caddy serves that nobody declared."""
+    doc = read_doc()
+    declared = [dict(s) for s in doc.get("services", []) if s.get("host")]
+    seen = {s["host"] for s in declared}
+    served = read_served()
+    undeclared = []
+    for entry in served or []:
+        host = entry.get("host")
+        if not host or host in seen or not CLICK_HOST_RE.match(host):
+            continue
+        undeclared.append({
+            "name": host[: -len(".mvr.ac")],
+            "host": host,
+            "group": "private",
+            "desc": "served, not in the repo",
+            "access": "priv" if entry.get("gated") else "open",
+            "where": "vps",
+            "private": True,
+        })
+    groups = list(doc.get("groups", []))
+    if undeclared and not any(g.get("id") == "private" for g in groups):
+        groups.append({"id": "private", "label": "not in the repo"})
+    return {
+        "probe": doc.get("probe", {}),
+        "machines": doc.get("machines", []),
+        "groups": groups,
+        "services": declared + undeclared,
+        "served_known": served is not None,
+    }
+
+
+def read_targets() -> list[tuple[str, str]]:
+    return [(svc["host"], svc.get("probe") or "/") for svc in services()["services"]]
 
 
 def probe_once(url: str) -> tuple[int, float]:
@@ -277,16 +334,9 @@ def health() -> dict:
 
 
 def read_roster() -> dict:
-    try:
-        with open(SERVICES_FILE) as f:
-            doc = json.load(f)
-    except (FileNotFoundError, PermissionError, ValueError, OSError):
-        return {}
     roster = {}
-    for svc in doc.get("services", []):
-        host = svc.get("host")
-        if host:
-            roster[host] = {k: svc.get(k) for k in ("name", "group", "where", "access")}
+    for svc in services()["services"]:
+        roster[svc["host"]] = {k: svc.get(k) for k in ("name", "group", "where", "access", "private")}
     return roster
 
 
@@ -352,6 +402,8 @@ class _Handler(BaseHTTPRequestHandler):
             return
         if path == "/api/health":
             body = health()
+        elif path == "/api/services":
+            body = services()
         elif path == "/api/status-probes":
             body = status_probes()
         elif path in ("", "/status", "/api/vps"):

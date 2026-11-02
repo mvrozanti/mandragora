@@ -60,12 +60,14 @@
     var open = s.access === "open";
     var state = stateOf(s);
     var label = s.host + " — " + s.desc + " — on " + machine(s.where).label +
-      (open ? " — reachable without signing in" : " — behind authelia") + " — " + STATE_WORD[state];
+      (open ? " — reachable without signing in" : " — behind authelia") +
+      (s.private ? " — served but not declared in the repo" : "") + " — " + STATE_WORD[state];
     return '<a class="mv-row' + (state === "down" ? " is-down" : "") + '" href="' + esc(linkOf(s)) +
       '" target="_blank" rel="noopener" data-host="' + esc(s.host) + '" aria-label="' + esc(label) + '">' +
       '<span class="mv-dot mv-row__state is-' + state + '" aria-hidden="true"></span>' +
       '<span class="mv-badge ' + (open ? "is-open" : "is-gated") + '" aria-hidden="true">' + lockSvg(open) + "</span>" +
-      '<span class="mv-row__host">' + esc(s.host) + "</span></a>";
+      '<span class="mv-row__host">' + esc(s.host) + "</span>" +
+      (s.private ? '<span class="hub__private" title="served by caddy, declared nowhere in the repo">private</span>' : "") + "</a>";
   };
 
   var renderList = function () {
@@ -199,8 +201,14 @@
     });
   };
 
+  var inventory = function () {
+    return fetch("/api/services", { credentials: "same-origin", cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("host-stats"); return r.json(); })
+      .catch(function () { return fetch("services.json", { cache: "no-cache" }).then(function (r) { return r.json(); }); });
+  };
+
   Promise.all([
-    fetch("services.json", { cache: "no-cache" }).then(function (r) { return r.json(); }),
+    inventory(),
     fetch("/api/clicks", { credentials: "same-origin", cache: "no-store" })
       .then(function (r) { return r.ok ? r.json() : null; })
       .catch(function () { return null; })
