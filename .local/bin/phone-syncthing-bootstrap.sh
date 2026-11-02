@@ -17,8 +17,8 @@ set -euo pipefail
 #
 # Example:
 #   PHONE_ADB_ADDR=100.114.176.5:33391 \
-#   PHONE_API_KEY=6f3titADVL7hpA5M476oTcU7CiSoxdFF \
-#   DESKTOP_DEVICE_ID=7TQ4W3A-C4EN6V5-DYMCUTE-JP6Z3GJ-IM2YISO-REFU7WA-MWUVHBI-KCFDXAF \
+#   PHONE_API_KEY=<sync-fork api key> \
+#   DESKTOP_DEVICE_ID=<desktop syncthing device id> \
 #   phone-syncthing-bootstrap.sh
 
 : "${PHONE_ADB_ADDR:?need PHONE_ADB_ADDR (e.g. 100.114.176.5:33391)}"
