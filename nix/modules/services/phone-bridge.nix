@@ -9,7 +9,7 @@ in
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 6600 ];
 
   mandragora.hub.services.phone-bridge = {
-    port = 6687;
+    port = 6688;
     userService = true;
     systemd = {
       description = "phone-bridge — config, desktop volume, playback lease and lyrics for the phone over the tailnet";
@@ -19,7 +19,7 @@ in
       path = [ pkgs.wireplumber ];
       environment = {
         PHONE_BRIDGE_HOST = "0.0.0.0";
-        PHONE_BRIDGE_PORT = "6687";
+        PHONE_BRIDGE_PORT = "6688";
         PHONE_BRIDGE_MUSIC_DIR = "/home/m/Music";
         PHONE_BRIDGE_STATE = "/home/m/.local/state/phone-bridge";
         PHONE_BRIDGE_SERVICES_JSON = "${servicesJson}";

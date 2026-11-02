@@ -8,7 +8,7 @@ Ideas and constraints: [`BACKLOG.md`](BACKLOG.md).
 ```
 tailnet ip          nix/snippets/tailnet.json  →  phone
 syncthing identity  identity.json              →  deviceId, port
-desktop services    phone-bridge :6687, mpd :6600, ytdl-web :6685, gpu-status :6684
+desktop services    phone-bridge :6688, mpd :6600, ytdl-web :6685, gpu-status :6684
 the app             app/  (built in `nix develop /etc/nixos/mandragora#phone`, shipped by `phone-push`)
 ```
 
@@ -28,7 +28,7 @@ All of it on the tailnet interface only; nothing here has a `*.mvr.ac` host.
 
 | port | unit | what |
 |---|---|---|
-| 6687 | `phone-bridge` (user) | `GET /api/config` (desktop ip, ports, hub manifest); `GET/POST /api/volume` (default sink, all sinks, set level, mute, default); `GET/POST /api/lease`, `POST /api/lease/position` (who plays, where, since); `GET /api/lyrics?file=` (`.lrc` beside the track, then the `~/Music/.lyrics` cache, then lrclib, writing the `.lrc` when synced lyrics exist); `GET /api/now` |
+| 6688 | `phone-bridge` (user) | `GET /api/config` (desktop ip, ports, hub manifest); `GET/POST /api/volume` (default sink, all sinks, set level, mute, default); `GET/POST /api/lease`, `POST /api/lease/position` (who plays, where, since); `GET /api/lyrics?file=` (`.lrc` beside the track, then the `~/Music/.lyrics` cache, then lrclib, writing the `.lrc` when synced lyrics exist); `GET /api/now` |
 | 6600 | mpd (user) | the mpd protocol; the app uses `idle` for push updates. No password: every tailnet node is the operator's |
 | 6685 | `ytdl-web` (user) | `POST /api/download`, `GET /api/jobs`, `/api/jobs/<id>/file`, `/cancel` |
 | 6684 | `gpu-status` | `GET /api/theme?colors=1`, the matugen palette the app wears |

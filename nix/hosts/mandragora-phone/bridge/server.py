@@ -15,7 +15,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 HOST = os.environ.get("PHONE_BRIDGE_HOST", "0.0.0.0")
-PORT = int(os.environ.get("PHONE_BRIDGE_PORT", "6687"))
+PORT = int(os.environ.get("PHONE_BRIDGE_PORT", "6688"))
 MUSIC_DIR = Path(os.environ.get("PHONE_BRIDGE_MUSIC_DIR", "~/Music")).expanduser()
 STATE_DIR = Path(os.environ.get("PHONE_BRIDGE_STATE", "~/.local/state/phone-bridge")).expanduser()
 SERVICES_JSON = os.environ.get("PHONE_BRIDGE_SERVICES_JSON")
