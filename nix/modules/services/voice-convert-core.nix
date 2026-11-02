@@ -11,6 +11,11 @@ let
   rvcDir = "${project}/rvc";
   venvPy = "${project}/.venv-train/bin/python";
 
+  supervisor = pkgs.writers.writePython3Bin "idle-socket-supervisor" {
+    libraries = [ ];
+    doCheck = false;
+  } (builtins.readFile ../../../.local/bin/idle-socket-supervisor.py);
+
   launcher = pkgs.writeShellScript "voice-convert-core-launch" ''
     set -euo pipefail
 
@@ -63,21 +68,31 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    systemd.user.sockets.voice-convert-core = {
+      description = "voice.mvr.ac RVC socket — on-demand :8098";
+      wantedBy = [ "sockets.target" ];
+      listenStreams = [ "0.0.0.0:8098" ];
+    };
+
     mandragora.hub.services.voice-convert-core = {
       maxRuntime = "12h";
       port = 8098;
       userService = true;
       systemd = {
         description = "voice.mvr.ac — realtime RVC voice conversion over WebSocket (GPU)";
-        wantedBy = [ "default.target" ];
-        after = [ "default.target" ];
+        after = [ "voice-convert-core.socket" ];
+        requires = [ "voice-convert-core.socket" ];
         environment = {
           RVC_INDEX_RATE = "0.75";
           RVC_F0METHOD = "rmvpe";
           RVC_PITCH = "0";
           RVC_IDLE_TIMEOUT = "120";
-          VOICE_CONVERT_LISTEN_HOST = "0.0.0.0";
-          VOICE_CONVERT_LISTEN_PORT = "8098";
+          VOICE_CONVERT_LISTEN_HOST = "127.0.0.1";
+          VOICE_CONVERT_LISTEN_PORT = "18098";
+          UPSTREAM_ADDR = "127.0.0.1";
+          UPSTREAM_PORT = "18098";
+          IDLE_TIMEOUT = "600";
+          STARTUP_TIMEOUT = "300";
         };
         path = [
           pkgs.coreutils
@@ -87,7 +102,7 @@ in
           pkgs.binutils
         ];
         serviceConfig = {
-          ExecStart = "${launcher}";
+          ExecStart = "${supervisor}/bin/idle-socket-supervisor ${launcher}";
           Restart = "on-failure";
           RestartSec = "15s";
           TimeoutStartSec = "60s";

@@ -8,6 +8,10 @@
 let
   cfg = config.mandragora.voiceAlterCore;
   voiceAlterPkg = pkgs.callPackage ../../pkgs/voice-alter-core.nix { };
+  supervisor = pkgs.writers.writePython3Bin "idle-socket-supervisor" {
+    libraries = [ ];
+    doCheck = false;
+  } (builtins.readFile ../../../.local/bin/idle-socket-supervisor.py);
 in
 {
   options.mandragora.voiceAlterCore = {
@@ -18,8 +22,8 @@ in
     };
     listenHost = lib.mkOption {
       type = lib.types.str;
-      default = "0.0.0.0";
-      description = "Address voice-alter-core binds; the tailscale0-only firewall keeps port 8095 off the LAN/public net.";
+      default = "127.0.0.1";
+      description = "Loopback address voice-alter-core binds behind the 8095 socket.";
     };
   };
 
@@ -80,22 +84,32 @@ in
       ];
     };
 
+    systemd.user.sockets.voice-alter-core = {
+      description = "voice.mvr.ac room-relay socket — on-demand :8095";
+      wantedBy = [ "sockets.target" ];
+      listenStreams = [ "0.0.0.0:8095" ];
+    };
+
     mandragora.hub.services.voice-alter-core = {
       maxRuntime = "12h";
       port = 8095;
       userService = true;
       systemd = {
         description = "voice.mvr.ac — real-time voice-changer AI backend";
-        wantedBy = [ "default.target" ];
-        after = [ "default.target" ];
+        after = [ "voice-alter-core.socket" ];
+        requires = [ "voice-alter-core.socket" ];
         environment = {
           VOICE_ALTER_LISTEN_HOST = cfg.listenHost;
-          VOICE_ALTER_LISTEN_PORT = "8095";
+          VOICE_ALTER_LISTEN_PORT = "18095";
           VOICE_ALTER_RVC_WS = "ws://127.0.0.1:8098/ws";
           VOICE_ALTER_RVC_HEALTH = "http://127.0.0.1:8098/healthz";
+          UPSTREAM_ADDR = "127.0.0.1";
+          UPSTREAM_PORT = "18095";
+          IDLE_TIMEOUT = "600";
+          STARTUP_TIMEOUT = "300";
         };
         serviceConfig = {
-          ExecStart = "${voiceAlterPkg}/bin/voice-alter-core";
+          ExecStart = "${supervisor}/bin/idle-socket-supervisor ${voiceAlterPkg}/bin/voice-alter-core";
           StateDirectory = "voice-alter-core";
           Restart = "on-failure";
           RestartSec = "5s";
