@@ -68,9 +68,10 @@ namespace, reads caddy's admin API on `localhost:2019`, and publishes
 every `*.mvr.ac` host caddy currently routes, with whether the route
 carries a `forward_auth`, as `GET /hosts` on port 2020. `host-stats`
 merges that into `services.json` and serves the result as
-`/api/services`: a host caddy serves that the repo never declared is
-listed under the group `not in the repo` with a `private` tag and
-`access` taken from the route. Nothing has to be written anywhere for a
+`/api/services`: a host caddy serves that has no tile is listed under
+the group `served, no tile` with a `no tile` tag and `access` taken from
+the route, whether it is an allowlisted public host or one that must stay
+unnamed; the hub cannot tell them apart and does not try. Nothing has to be written anywhere for a
 served host to appear; the hub is the inventory of what is actually
 exposed, and the repo is only the inventory of what it declares.
 

@@ -12,7 +12,7 @@
   .hub__status-grid { grid-template-columns: repeat(3, 1fr); align-items: start; }
 }
 
-.hub__private {
+.hub__untiled {
   margin-left: auto;
   font-family: var(--mv-font-mono);
   font-size: var(--mv-text-xs);
