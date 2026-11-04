@@ -91,7 +91,7 @@ fun HomeScreen(store: Store, onOpenSheet: (Sheet) -> Unit, onOpenStage: () -> Un
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                placeholder = { Text("song, host, or paste a link", style = MaterialTheme.typography.labelLarge) },
+                placeholder = { Text("song, host or link", style = MaterialTheme.typography.labelLarge) },
                 leadingIcon = { Icon(Icons.Filled.Search, null, tint = scheme.outline) },
                 singleLine = true,
                 textStyle = MaterialTheme.typography.labelLarge,

@@ -56,9 +56,9 @@ val MandragoraTypography = Typography(
     titleMedium = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 16.sp),
     bodyLarge = TextStyle(fontSize = 16.sp, lineHeight = 22.sp),
     bodyMedium = TextStyle(fontSize = 14.sp, lineHeight = 20.sp),
-    labelLarge = TextStyle(fontFamily = Mono, fontSize = 13.sp, letterSpacing = 0.5.sp),
-    labelMedium = TextStyle(fontFamily = Mono, fontSize = 12.sp, letterSpacing = 1.2.sp),
-    labelSmall = TextStyle(fontFamily = Mono, fontSize = 11.sp, letterSpacing = 2.sp),
+    labelLarge = TextStyle(fontFamily = Mono, fontSize = 13.sp, letterSpacing = 0.sp),
+    labelMedium = TextStyle(fontFamily = Mono, fontSize = 12.sp, letterSpacing = 0.3.sp),
+    labelSmall = TextStyle(fontFamily = Mono, fontSize = 11.sp, letterSpacing = 1.2.sp),
 )
 
 @Composable

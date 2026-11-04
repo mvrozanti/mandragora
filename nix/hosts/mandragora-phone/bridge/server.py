@@ -105,19 +105,24 @@ def mpd_now() -> dict:
 
 
 def mpd_resume(file: str | None, elapsed: float, playing: bool) -> None:
+    position = f"{max(0.0, elapsed):.1f}"
+    active = mpd_dict("status").get("state") in ("play", "pause")
+    song_id = None
     if file:
-        found = mpd_dict(f"playlistfind file {mpd_quote(file)}")
-        song_id = found.get("Id")
+        song_id = mpd_dict(f"playlistfind file {mpd_quote(file)}").get("Id")
         if song_id is None:
             song_id = mpd_dict(f"addid {mpd_quote(file)}").get("Id")
-        if song_id is not None:
-            mpd_command(f"playid {song_id}")
-            mpd_command(f"seekcur {max(0.0, elapsed):.1f}")
+    if song_id is not None and active:
+        mpd_command(f"seekid {song_id} {position}")
+    elif song_id is not None:
+        mpd_command(f"playid {song_id}")
+        mpd_command(f"seekcur {position}")
+    elif active:
+        mpd_command(f"seekcur {position}")
     else:
         mpd_command("play")
-        mpd_command(f"seekcur {max(0.0, elapsed):.1f}")
-    if not playing:
-        mpd_command("pause 1")
+        mpd_command(f"seekcur {position}")
+    mpd_command("pause 0" if playing else "pause 1")
 
 
 def run(args: list[str]) -> str:
