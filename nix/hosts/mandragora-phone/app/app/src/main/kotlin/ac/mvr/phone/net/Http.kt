@@ -22,7 +22,7 @@ object Http {
         .connectTimeout(2500, TimeUnit.MILLISECONDS)
         .readTimeout(12, TimeUnit.SECONDS)
         .writeTimeout(5, TimeUnit.SECONDS)
-        .retryOnConnectionFailure(false)
+        .retryOnConnectionFailure(true)
         .build()
 
     private val jsonType = "application/json; charset=utf-8".toMediaType()

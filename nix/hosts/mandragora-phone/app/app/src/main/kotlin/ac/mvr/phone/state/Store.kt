@@ -185,6 +185,9 @@ class Store(private val app: Application) {
             }
         }
         scope.launch {
+            combine(foreground, reachable) { fg, ok -> fg && ok }.collect { live -> if (live) refreshAll() }
+        }
+        scope.launch {
             lease.collect { current ->
                 if (current.owner == "phone" && heartbeatJob == null) heartbeatJob = launch { loopHeartbeat() }
                 if (current.owner != "phone") { heartbeatJob?.cancel(); heartbeatJob = null }
@@ -237,6 +240,16 @@ class Store(private val app: Application) {
         mpdReachable.value = true
         val file = snap.song?.file
         if (lease.value.owner == "desk" && file != null && file != lyricsFile.value) loadLyrics(file)
+    }
+
+    private fun refreshAll() = scope.launch {
+        runCatching { refreshVolume() }
+        runCatching { refreshLease() }
+        runCatching { refreshJobs() }
+        runCatching { refreshPalette() }
+        if (hasApiKey.value) runCatching { refreshFolders() }
+        val file = now.value.file
+        if (file != null && lyrics.value == null && !lyricsBusy.value) loadLyrics(file)
     }
 
     suspend fun refreshVolume() { runCatching { volume.value = bridge.volume() } }
@@ -398,11 +411,14 @@ class Store(private val app: Application) {
 
     fun cancelJob(id: String) = act { ytdl.cancel(id); refreshJobs() }
 
-    fun loadLyrics(file: String) = act {
+    fun loadLyrics(file: String) = scope.launch {
+        if (lyricsFile.value != file) lyrics.value = null
         lyricsFile.value = file
         lyricsBusy.value = true
         try {
             lyrics.value = bridge.lyrics(file)
+        } catch (err: Exception) {
+            if (lyricsFile.value == file) lyricsFile.value = null
         } finally {
             lyricsBusy.value = false
         }
