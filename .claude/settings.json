@@ -28,6 +28,10 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/rtk-rewrite.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/pgrep-self-match-guard.py"
           }
         ]
       },
