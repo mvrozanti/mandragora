@@ -7,7 +7,11 @@ import sys
 VALUE_SHORT = set("dgGPstuUFr")
 VALUE_LONG = {"delimiter", "pgroup", "group", "parent", "session", "terminal", "euid", "uid", "pidfile", "runstates", "ns", "nslist", "signal", "env", "cgroup"}
 SEGMENT_END = re.compile(r"[|;&\n`)]")
-COMMAND_WORD = re.compile(r"(?<![\w./-])(?:[\w./-]*/)?(pgrep|pkill)(?![\w-])")
+COMMAND_WORD = re.compile(
+    r"(?:^|[;&|(`{\n!]|\$\(|\b(?:then|do|else|if|while|until|sudo|xargs|exec|timeout\s+\S+|watch(?:\s+-\S+)*))\s*"
+    r"(?:[\w./-]*/)?(pgrep|pkill)(?![\w-])"
+)
+HEREDOC = re.compile(r"<<-?\s*(['\"]?)([A-Za-z_]\w*)\1[^\n]*\n.*?\n[ \t]*\2[ \t]*(?=\n|$)", re.S)
 
 
 def split_segment(segment: str) -> list[str]:
@@ -64,7 +68,7 @@ def full_patterns(command: str) -> list[tuple[str, str]]:
 
 def self_matches(command: str) -> list[tuple[str, str]]:
     hits = []
-    for tool, pattern in full_patterns(command):
+    for tool, pattern in full_patterns(HEREDOC.sub("", command)):
         try:
             if re.search(pattern, command):
                 hits.append((tool, pattern))
