@@ -167,7 +167,10 @@ surface to the user before reusing or deleting.
    shell and spin until timeout. This happened on 2026-05-12,
    2026-08-12 and 2026-10-11, the last time with the other switch long
    finished. Queuing moved into the script so that no agent has to
-   write a waiter again.
+   write a waiter again. It happened a fourth time on 2026-11-04, so it
+   is now refused mechanically: the Claude Code hook
+   `.claude/hooks/pgrep-self-match-guard.py` denies any Bash call whose
+   `pgrep -f`/`pkill -f` pattern matches the call's own text.
 
 2. **Working-tree stability window** — before staging, snapshots
    `git status --porcelain` and the mtimes of every dirty/untracked
