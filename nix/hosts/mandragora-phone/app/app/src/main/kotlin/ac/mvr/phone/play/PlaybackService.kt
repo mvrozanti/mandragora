@@ -61,12 +61,15 @@ class PlaybackService : MediaSessionService(), PlayerHost {
             launch { appStore.volume.collectLatest { remote.refresh() } }
         }
         appStore.host = this
+        appStore.act { appStore.refreshVolume() }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
 
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        if (!local.isPlaying) stopSelf()
+    override fun onTaskRemoved(rootIntent: Intent?) = Unit
+
+    override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
+        super.onUpdateNotification(session, true)
     }
 
     override fun onDestroy() {

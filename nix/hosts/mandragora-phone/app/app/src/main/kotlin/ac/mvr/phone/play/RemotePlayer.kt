@@ -123,11 +123,11 @@ class RemotePlayer(looper: Looper, private val store: Store) : SimpleBasePlayer(
     }
 
     override fun handleIncreaseDeviceVolume(flags: Int): ListenableFuture<*> = run {
-        store.setSinkVolume((store.volume.value.sink?.volume ?: 0) + 4)
+        store.stepSinkVolume(4)
     }
 
     override fun handleDecreaseDeviceVolume(flags: Int): ListenableFuture<*> = run {
-        store.setSinkVolume((store.volume.value.sink?.volume ?: 0) - 4)
+        store.stepSinkVolume(-4)
     }
 
     override fun handleSetDeviceMuted(muted: Boolean, flags: Int): ListenableFuture<*> = run {
