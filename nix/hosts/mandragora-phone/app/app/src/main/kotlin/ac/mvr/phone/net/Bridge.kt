@@ -93,6 +93,9 @@ class BridgeClient(private val baseUrl: () -> String) {
         return json.decodeFromString(Http.post("${baseUrl()}/api/volume", body))
     }
 
+    suspend fun stepVolume(step: Int): VolumeState =
+        json.decodeFromString(Http.post("${baseUrl()}/api/volume", buildJsonObject { put("step", step) }))
+
     suspend fun lease(): Lease = json.decodeFromString(Http.get("${baseUrl()}/api/lease"))
 
     suspend fun takeLease(owner: String, file: String?, elapsed: Double?, playing: Boolean?): Lease {

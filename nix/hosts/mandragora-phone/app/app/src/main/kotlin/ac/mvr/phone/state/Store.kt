@@ -313,6 +313,7 @@ class Store(private val app: Application) {
 
     suspend fun setSinkVolume(level: Int) { volume.value = bridge.setVolume(level = level.coerceIn(0, 100)) }
     suspend fun setSinkMuted(muted: Boolean) { volume.value = bridge.setVolume(muted = muted) }
+    suspend fun stepSinkVolume(step: Int) { volume.value = bridge.stepVolume(step) }
     fun setSinkVolumeAsync(level: Int) = act { setSinkVolume(level) }
     fun setSinkMutedAsync(muted: Boolean) = act { setSinkMuted(muted) }
     fun setDefaultSink(id: Int) = act { volume.value = bridge.setVolume(sink = id, makeDefault = true) }

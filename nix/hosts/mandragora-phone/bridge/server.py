@@ -180,6 +180,9 @@ def set_volume(body: dict) -> dict:
         if "volume" in body:
             level = max(0, min(100, int(body["volume"])))
             run([WPCTL, "set-volume", "-l", "1.0", target, f"{level}%"])
+        elif "step" in body:
+            step = max(-100, min(100, int(body["step"])))
+            run([WPCTL, "set-volume", "-l", "1.0", target, f"{abs(step)}%{'+' if step >= 0 else '-'}"])
         if "muted" in body:
             run([WPCTL, "set-mute", target, "1" if body["muted"] else "0"])
         return volume_state()
