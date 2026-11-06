@@ -27,6 +27,7 @@ in
     restartTriggers = [ (builtins.hashFile "sha256" ../../../.local/bin/chess-lens-game-hold.sh) ];
     serviceConfig = {
       ExecStart = "${gameHold}";
+      ExecStopPost = "${gameHold} lower";
       Restart = "always";
       RestartSec = "5s";
     };
