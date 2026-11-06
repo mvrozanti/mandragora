@@ -44,6 +44,7 @@ in
     ./ea-reaper.nix
     ./gl-fallback-watch.nix
     ./link-speed-watch.nix
+    ./hyprland-session-watch.nix
     ./mail-menu.nix
     ./calibre-reaper.nix
     ./security-menu.nix
