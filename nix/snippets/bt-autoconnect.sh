@@ -7,6 +7,7 @@ DEV="/org/bluez/hci0/dev_${MAC_U}"
 INTERVAL="${BT_AUTOCONNECT_INTERVAL:-10}"
 MAX_BACKOFF="${BT_AUTOCONNECT_MAX_BACKOFF:-300}"
 SINK_GRACE="${BT_SINK_GRACE:-20}"
+LINK_GRACE="${BT_AUTOCONNECT_LINK_GRACE:-120}"
 
 adapter_powered() {
   [ "$(busctl get-property org.bluez /org/bluez/hci0 org.bluez.Adapter1 Powered 2>/dev/null)" = "b true" ]
@@ -14,6 +15,10 @@ adapter_powered() {
 
 connected() {
   [ "$(busctl get-property org.bluez "$DEV" org.bluez.Device1 Connected 2>/dev/null)" = "b true" ]
+}
+
+discovering() {
+  [ "$(busctl get-property org.bluez /org/bluez/hci0 org.bluez.Adapter1 Discovering 2>/dev/null)" = "b true" ]
 }
 
 other_link_up() {
@@ -28,19 +33,23 @@ has_sink() {
 }
 
 no_sink_since=0
+last_link_seen=0
+next_attempt=0
 backoff="$INTERVAL"
 
 while true; do
-  wait="$INTERVAL"
   if adapter_powered; then
     if ! connected; then
       no_sink_since=0
-      if ! other_link_up; then
+      now=$(date +%s)
+      if other_link_up; then
+        last_link_seen="$now"
+      elif [ "$now" -ge "$next_attempt" ] && [ $((now - last_link_seen)) -ge "$LINK_GRACE" ] && ! discovering; then
         busctl call org.bluez "$DEV" org.bluez.Device1 Connect >/dev/null 2>&1 || true
         if connected; then
           backoff="$INTERVAL"
         else
-          wait="$backoff"
+          next_attempt=$((now + backoff))
           backoff=$((backoff * 2))
           [ "$backoff" -gt "$MAX_BACKOFF" ] && backoff="$MAX_BACKOFF"
         fi
@@ -60,5 +69,5 @@ while true; do
       fi
     fi
   fi
-  sleep "$wait"
+  sleep "$INTERVAL"
 done
