@@ -18,15 +18,26 @@ game_running() {
 raise() {
   mkdir -p "${hold%/*}"
   : >"$hold"
-  systemctl --user set-property --runtime "$unit" CPUQuota="$quota" || true
-  echo "game running: chess-lens held, $unit capped at $quota"
+  if systemctl --user set-property --runtime "$unit" CPUQuota="$quota"; then
+    echo "game running: chess-lens held, $unit capped at $quota"
+  else
+    echo "game running: chess-lens held, but capping $unit at $quota FAILED" >&2
+  fi
 }
 
 lower() {
   rm -f "$hold"
-  systemctl --user set-property --runtime "$unit" CPUQuota= || true
-  echo "no game: chess-lens released"
+  if systemctl --user set-property --runtime "$unit" CPUQuota=; then
+    echo "no game: chess-lens released"
+  else
+    echo "no game: chess-lens released, but lifting the cap on $unit FAILED" >&2
+  fi
 }
+
+if [ "${1:-}" = lower ]; then
+  lower
+  exit 0
+fi
 
 trap 'lower; exit 0' TERM INT
 
