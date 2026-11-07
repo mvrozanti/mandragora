@@ -483,6 +483,9 @@ in
         "media.hardware-video-decoding.force-enabled" = true;
         "media.rdd-ffmpeg.enabled" = true;
         "widget.dmabuf.force-enabled" = true;
+        "extensions.update.enabled" = true;
+        "extensions.update.autoUpdateDefault" = true;
+        "services.sync.prefs.sync.extensions.update.enabled" = false;
       };
       userChrome = builtins.readFile ../../snippets/firefox-userchrome-default.css;
     };
