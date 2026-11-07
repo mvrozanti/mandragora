@@ -15,6 +15,7 @@
     ../user/tmux.nix
     ../user/yazi.nix
     ../user/skills.nix
+    ../user/claude-find.nix
   ];
 
   home.packages = with pkgs; [
