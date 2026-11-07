@@ -191,8 +191,8 @@ Rules for the report:
   the objective. This skill reviews the route; `confused` resolves the goal.
 * `elicit-ui` — if the fork under review is visual, options must be shown,
   not listed.
-* `elicit` — if the fork under review is structural and the user owns it,
-  the designs must be drawn and traced, not argued.
+* `elicit` — if the review shows the done-state itself is unclear, ask
+  behavior → consequence checks before continuing.
 * `nrp` — a review that finds the work has sprawled into unrelated concerns
   ends in `nrp`, splitting the diff by topic before commit.
 * `handoff` — a RESTART verdict late in a session is worth writing down; the
