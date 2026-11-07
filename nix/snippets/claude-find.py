@@ -296,11 +296,11 @@ def cmd_ui(args):
     if not out:
         return
     sid = out.split("\t", 1)[0]
-    title, cwd, has = db.execute("select title, cwd, has_transcript from session where sid=?", (sid,)).fetchone()
+    cwd, has = db.execute("select cwd, has_transcript from session where sid=?", (sid,)).fetchone()
     if not has:
         subprocess.run([sys.executable, me, "show", sid, "--full"], check=False)
         return
-    os.execvp("claude-reopen", ["claude-reopen", sid, cwd or str(Path.home()), title or ""])
+    os.execvp("claude-reopen", ["claude-reopen", sid, cwd or str(Path.home())])
 
 
 def main():
