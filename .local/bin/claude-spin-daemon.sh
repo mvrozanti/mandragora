@@ -24,13 +24,13 @@ while :; do
   tmux refresh-client -S 2>/dev/null
 
   active=0
-  while IFS=$'\t' read -r wid cmd state transcript mark; do
+  while IFS=$'\x1f' read -r wid cmd state transcript mark; do
     [ "$state" = run ] && [ "$cmd" = claude ] || continue
     active=1
     if turn_interrupted "$wid" "$transcript" "$mark"; then
       tmux set-option -w -t "$wid" @claude_state idle 2>/dev/null
     fi
-  done < <(tmux list-panes -a -F $'#{window_id}\t#{pane_current_command}\t#{@claude_state}\t#{@claude_transcript}\t#{@claude_mark}' 2>/dev/null)
+  done < <(tmux list-panes -a -F $'#{window_id}\x1f#{pane_current_command}\x1f#{@claude_state}\x1f#{@claude_transcript}\x1f#{@claude_mark}' 2>/dev/null)
 
   if [ "$active" -eq 0 ]; then
     idle_rounds=$((idle_rounds + 1))
