@@ -110,7 +110,7 @@ access_control:
                'vuln.mvr.ac', 'food.mvr.ac',
                'files.mvr.ac', 'btc.mvr.ac', 'voice.mvr.ac',
                'kindle.mvr.ac', 'fly.mvr.ac', 'torrent.mvr.ac',
-              'vj.mvr.ac']
+              'vj.mvr.ac', 'smartdca.mvr.ac']
       policy: 'two_factor'
 {{- range glob "/config/private-hosts/*" }}
     - domain: {{ secret . | squote }}

@@ -76,6 +76,15 @@
       "logging": false
     },
     {
+      "name": "smartdca",
+      "kind": "authelia-simple",
+      "host": "smartdca",
+      "upstream_var": "SMARTDCA_UPSTREAM",
+      "upstream_host": "desktop",
+      "upstream_port": 8435,
+      "logging": false
+    },
+    {
       "name": "stt",
       "kind": "authelia-simple",
       "host": "stt",
