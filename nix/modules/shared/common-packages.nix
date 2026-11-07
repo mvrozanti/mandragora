@@ -12,6 +12,8 @@
     btop
     tree
     fastfetch
+    cbonsai
+    figlet
     hyperfine
     jq
     fx

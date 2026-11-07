@@ -15,6 +15,8 @@
     ripgrep
     fd
     fastfetch
+    cbonsai
+    figlet
     hyperfine
     file
     unzip

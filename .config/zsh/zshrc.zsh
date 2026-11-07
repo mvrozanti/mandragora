@@ -44,6 +44,7 @@ cd_downloads() { echo; cd ~/Downloads; zle reset-prompt }
 cd_fzf() { echo; cd "$(ls | fzf)"; zle reset-prompt }
 run_clock() { echo; peaclock; zle reset-prompt }
 run_gemini() { echo; gemini </dev/tty; zle reset-prompt }
+run_claude_find() { echo; BUFFER="claude-find"; zle accept-line }
 
 zoxide_cd_interactive() {
   local dir
@@ -72,6 +73,7 @@ zle -N cd_downloads
 zle -N cd_fzf
 zle -N run_clock
 zle -N run_gemini
+zle -N run_claude_find
 zle -N zoxide_cd_interactive
 zle -N zoxide_insert_path
 
@@ -83,6 +85,7 @@ bindkey '^[D' cd_downloads
 bindkey '^f' cd_fzf
 bindkey '^[C' run_clock
 bindkey '^[g' run_gemini
+bindkey '^[c' run_claude_find
 bindkey '\ek' up-history
 bindkey '\ej' down-history
 bindkey '^[;' zoxide_cd_interactive
