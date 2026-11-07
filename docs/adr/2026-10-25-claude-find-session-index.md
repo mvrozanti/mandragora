@@ -46,8 +46,8 @@ indexer runs on every launch, incrementally by mtime, and ingests
 months cleanup already deleted are searchable though not resumable.
 The finder is fzf in disabled mode reloading a ranked query per
 keystroke, with a preview of the matching turns. Enter runs
-`claude-reopen`, which opens a tmux window at the session's original
-cwd running `claude --resume`. Retention is set to 90 days by a
+`claude-reopen`, which replaces the finder in the same terminal with
+`claude --resume` at the session's original cwd. Retention is set to 90 days by a
 home-manager activation step that merges `cleanupPeriodDays` into
 `~/.claude/settings.json`; the index keeps the text past that.
 Measured: full build 2.3 s for the transcripts, 14 MB with history,
@@ -73,8 +73,8 @@ Run against the live index, from any directory:
 2. `claude-find query -- kindle power drain` lists "Kindle battery
    efficiency" first.
 3. `claude-find query --here ~/Projects/btc-math-addresses -- chess`
-   lists only sessions under that directory, and Enter in the UI opens
-   a tmux window whose cwd is that directory.
+   lists only sessions under that directory, and Enter in the UI resumes
+   it in the same terminal with that directory as cwd.
 4. `claude-find query -- hyprland impermanence` includes a row marked
    `†` dated 2026-04, a session whose transcript no longer exists.
 5. After a release changes the record shape, `claude-find doctor`
