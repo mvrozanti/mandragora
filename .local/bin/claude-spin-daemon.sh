@@ -4,29 +4,19 @@ flock -n 200 || exit 0
 echo $$ > /tmp/claude-spin-daemon.pid
 trap 'rm -f /tmp/claude-spin-daemon.pid' EXIT
 
-pane_claude_pid() {
-  local p
-  [ "$(cat /proc/$1/comm 2>/dev/null)" = "claude" ] && { echo "$1"; return 0; }
-  for p in $(cat /proc/$1/task/*/children 2>/dev/null | tr ' ' '\n'); do
-    [ -n "$p" ] || continue
-    [ "$(cat /proc/$p/comm 2>/dev/null)" = "claude" ] && { echo "$p"; return 0; }
-  done
-  return 1
+declare -A scanned
+
+turn_interrupted() {
+  local key="$1|$2" transcript="$2" mark="${3:-0}" size from
+  [ -f "$transcript" ] || return 1
+  size=$(stat -c %s "$transcript")
+  from=$(( ${scanned[$key]:-0} - 64 ))
+  [ "$from" -lt "$mark" ] && from=$mark
+  [ "$size" -gt "$from" ] || return 1
+  scanned[$key]=$size
+  tail -c +$((from + 1)) "$transcript" | grep -q '"text":"\[Request interrupted by user'
 }
 
-claude_running_tool() {
-  local c t
-  for c in $(cat /proc/$1/task/*/children 2>/dev/null | tr ' ' '\n'); do
-    [ -n "$c" ] || continue
-    t=$(readlink /proc/$c/fd/1 2>/dev/null)
-    case "$t" in
-      */tasks/*.output*) return 0 ;;
-    esac
-  done
-  return 1
-}
-
-declare -A ticks
 idle_rounds=0
 
 while :; do
@@ -34,20 +24,13 @@ while :; do
   tmux refresh-client -S 2>/dev/null
 
   active=0
-  while IFS=' ' read -r wid pane state; do
-    [ "$state" = run ] || continue
+  while IFS=$'\t' read -r wid cmd state transcript mark; do
+    [ "$state" = run ] && [ "$cmd" = claude ] || continue
     active=1
-    cpid=$(pane_claude_pid "$pane")
-    if [ -n "$cpid" ] && claude_running_tool "$cpid"; then
-      ticks[$wid]=0
-      continue
-    fi
-    ticks[$wid]=$(( ${ticks[$wid]:-0} + 1 ))
-    if [ "${ticks[$wid]}" -ge 5 ]; then
+    if turn_interrupted "$wid" "$transcript" "$mark"; then
       tmux set-option -w -t "$wid" @claude_state idle 2>/dev/null
-      unset "ticks[$wid]"
     fi
-  done < <(tmux list-windows -a -F '#{window_id} #{pane_pid} #{@claude_state}' 2>/dev/null)
+  done < <(tmux list-panes -a -F $'#{window_id}\t#{pane_current_command}\t#{@claude_state}\t#{@claude_transcript}\t#{@claude_mark}' 2>/dev/null)
 
   if [ "$active" -eq 0 ]; then
     idle_rounds=$((idle_rounds + 1))
