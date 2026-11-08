@@ -153,6 +153,7 @@ fun HomeScreen(store: Store, onOpenSheet: (Sheet) -> Unit, onOpenStage: () -> Un
         }
 
         Spacer(Modifier.weight(1f))
+        Notice(store, Modifier.padding(horizontal = 16.dp))
         Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
             OwnerSwitch(now, deskAvailable = reachable, busy = busy, big = false) { store.takeOver(it) }
         }

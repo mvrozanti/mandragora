@@ -112,4 +112,6 @@ class PlaybackService : MediaSessionService(), PlayerHost {
     override fun localPause() { local.pause() }
 
     override fun localSeek(positionMs: Long) { local.seekTo(positionMs.coerceAtLeast(0)) }
+
+    override fun localHasMedia(): Boolean = local.mediaItemCount > 0
 }

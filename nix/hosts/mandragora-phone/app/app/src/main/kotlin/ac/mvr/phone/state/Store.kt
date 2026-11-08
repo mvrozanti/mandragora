@@ -27,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -48,6 +47,7 @@ interface PlayerHost {
     fun localPlay()
     fun localPause()
     fun localSeek(positionMs: Long)
+    fun localHasMedia(): Boolean
 }
 
 data class NowState(
@@ -105,7 +105,8 @@ class Store(private val app: Application) {
     val localDurationMs = MutableStateFlow(0L)
     val localCount = MutableStateFlow(0)
     val stats = MutableStateFlow<Map<String, String>>(emptyMap())
-    val messages = MutableSharedFlow<String>(extraBufferCapacity = 16)
+    val notice = MutableStateFlow<String?>(null)
+    private var noticeJob: Job? = null
     val foreground = MutableStateFlow(false)
     val busy = MutableStateFlow(false)
     private val tick = MutableStateFlow(0L)
@@ -188,9 +189,16 @@ class Store(private val app: Application) {
             combine(foreground, reachable) { fg, ok -> fg && ok }.collect { live -> if (live) refreshAll() }
         }
         scope.launch {
+            var previous = lease.value.owner
             lease.collect { current ->
                 if (current.owner == "phone" && heartbeatJob == null) heartbeatJob = launch { loopHeartbeat() }
                 if (current.owner != "phone") { heartbeatJob?.cancel(); heartbeatJob = null }
+                val h = host
+                if (h != null && !busy.value) {
+                    if (previous == "phone" && current.owner == "desk") { h.localPause(); h.useRemote() }
+                    if (current.owner == "phone" && !h.localHasMedia()) restoreLocal(current)
+                }
+                previous = current.owner
             }
         }
     }
@@ -272,10 +280,19 @@ class Store(private val app: Application) {
             is Unreachable -> "tailnet down · ${err.message}"
             else -> err.message ?: err.toString()
         }
-        messages.tryEmit(text)
+        noticeJob?.cancel()
+        notice.value = text
+        noticeJob = scope.launch {
+            delay(5_000)
+            notice.value = null
+        }
     }
 
-    fun say(text: String) { messages.tryEmit(text) }
+    private fun restoreLocal(current: Lease) = scope.launch {
+        val file = current.file ?: return@launch
+        val track = runCatching { library.find(file) }.getOrNull() ?: return@launch
+        host?.useLocal(track.uri, current.title ?: track.displayName, current.artist, (current.elapsed * 1000).toLong(), false)
+    }
 
     fun act(block: suspend () -> Unit): Job = scope.launch {
         try { block() } catch (err: Exception) { report(err) }
@@ -333,7 +350,6 @@ class Store(private val app: Application) {
                     }
                     lease.value = granted
                     h.useLocal(track.uri, granted.title ?: track.displayName, granted.artist, (granted.elapsed * 1000).toLong(), granted.playing)
-                    say("this phone owns playback · ${fmtTime(granted.elapsed)}")
                     loadLyrics(file)
                 } else {
                     val positionMs = h.localPositionMs()
@@ -343,7 +359,6 @@ class Store(private val app: Application) {
                     lease.value = granted
                     h.useRemote()
                     refreshMpd()
-                    say("desktop owns playback · ${fmtTime(granted.elapsed)}")
                 }
             } finally {
                 busy.value = false
@@ -406,7 +421,6 @@ class Store(private val app: Application) {
     fun download(url: String, mode: String, toClient: Boolean) = act {
         val job = ytdl.download(url.trim(), mode, toClient)
         jobs.value = listOf(job) + jobs.value.filter { it.id != job.id }
-        say("queued · $mode · ${if (toClient) "to this phone" else "to the desktop"}")
         refreshJobs()
     }
 
@@ -431,7 +445,6 @@ class Store(private val app: Application) {
             syncFork.rescan()
             delay(1500)
             refreshFolders()
-            say("sync-fork: rescanned")
         } finally {
             syncBusy.value = false
         }

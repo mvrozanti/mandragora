@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -105,19 +103,14 @@ class MainActivity : ComponentActivity() {
         var sheet by remember { mutableStateOf<Sheet?>(null) }
         val shared by sharedUrl
         val requested by requestedSheet
-        val snackbar = remember { SnackbarHostState() }
 
         LaunchedEffect(requested) {
             if (requested != null) { sheet = requested; requestedSheet.value = null }
-        }
-        LaunchedEffect(Unit) {
-            store.messages.collect { snackbar.showSnackbar(it) }
         }
         BackHandler(enabled = stage && sheet == null) { stage = false }
 
         Scaffold(
             containerColor = scheme.surface,
-            snackbarHost = { SnackbarHost(snackbar) },
         ) { padding ->
             Box(modifier = Modifier.fillMaxSize().background(scheme.surface).padding(padding)) {
                 if (stage) {

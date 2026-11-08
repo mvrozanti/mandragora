@@ -107,6 +107,7 @@ fun StageScreen(store: Store, onHome: () -> Unit, onOpenSheet: (Sheet) -> Unit) 
                     }
                 }
                 ProgressRow(now, enabled = controlsEnabled) { store.seek(it) }
+                Notice(store)
                 OwnerSwitch(now, deskAvailable = reachable, busy = busy, big = true) { store.takeOver(it) }
                 Transport(
                     now,

@@ -44,6 +44,9 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import ac.mvr.phone.net.VolumeState
+import ac.mvr.phone.state.Store
+import androidx.compose.foundation.layout.heightIn
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ac.mvr.phone.state.NowState
 import ac.mvr.phone.state.fmtTime
 
@@ -288,6 +291,19 @@ fun TailnetBanner(reachable: Boolean, now: NowState, onPlayHere: () -> Unit) {
             TextButton(onClick = onPlayHere) { Text("play here from ${fmtTime(now.elapsed)}", style = MaterialTheme.typography.labelLarge) }
         }
     }
+}
+
+@Composable
+fun Notice(store: Store, modifier: Modifier = Modifier) {
+    val text by store.notice.collectAsStateWithLifecycle()
+    Text(
+        text ?: "",
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.error,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier.fillMaxWidth().heightIn(min = 18.dp),
+    )
 }
 
 @Composable

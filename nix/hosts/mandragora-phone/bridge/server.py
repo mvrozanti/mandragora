@@ -30,6 +30,7 @@ PORTS = {"mpd": MPD_PORT, "ytdl": 6685, "theme": 6684, "mympd": 6680, "bridge": 
 MUSIC_FOLDER_ID = "mandragora-music"
 LEASE_FILE = STATE_DIR / "lease.json"
 LRCLIB_MISS_TTL = 24 * 3600
+PHONE_LEASE_TTL = 45
 AUDIO_SUFFIXES = {".mp3", ".m4a", ".flac", ".wav", ".ogg", ".opus", ".aac", ".wma"}
 
 SINK_LINE = re.compile(r"^\s*│\s*(?P<default>\*)?\s*(?P<id>\d+)\.\s+(?P<name>.+?)\s+\[vol:\s*(?P<vol>[\d.]+)(?P<muted>\s+MUTED)?\]\s*$")
@@ -203,26 +204,46 @@ def write_lease(lease: dict) -> None:
     tmp.replace(LEASE_FILE)
 
 
+def safe_now() -> dict | None:
+    try:
+        return mpd_now()
+    except (OSError, MpdError, KeyError, ValueError):
+        return None
+
+
+def phone_lease_live(lease: dict, now: dict | None) -> bool:
+    if lease.get("owner") != "phone":
+        return False
+    if now is not None and now.get("playing"):
+        return False
+    last = lease.get("heartbeat") or lease.get("since") or 0
+    return time.time() - last < PHONE_LEASE_TTL
+
+
+def desk_lease(now: dict | None, previous: dict) -> dict:
+    now = now or {}
+    return {
+        "owner": "desk",
+        "file": now.get("file", previous.get("file")),
+        "elapsed": now.get("elapsed", previous.get("elapsed", 0.0)),
+        "playing": now.get("playing", False),
+        "artist": now.get("artist", previous.get("artist")),
+        "title": now.get("title", previous.get("title")),
+        "duration": now.get("duration", previous.get("duration")),
+        "since": previous.get("since") if previous.get("owner") == "desk" else time.time(),
+    }
+
+
 def lease_state() -> dict:
     with lease_lock:
         lease = read_lease()
-        if lease.get("owner") == "phone":
+        now = safe_now()
+        if phone_lease_live(lease, now):
             return lease
-        try:
-            now = mpd_now()
-        except (OSError, MpdError, KeyError, ValueError):
-            now = {}
-        lease = {
-            "owner": "desk",
-            "file": now.get("file", lease.get("file")),
-            "elapsed": now.get("elapsed", lease.get("elapsed", 0.0)),
-            "playing": now.get("playing", False),
-            "artist": now.get("artist"),
-            "title": now.get("title"),
-            "duration": now.get("duration"),
-            "since": lease.get("since") or time.time(),
-        }
-        return lease
+        settled = desk_lease(now, lease)
+        if lease.get("owner") != "desk":
+            write_lease(settled)
+        return settled
 
 
 def take_lease(body: dict) -> dict:
@@ -249,21 +270,14 @@ def take_lease(body: dict) -> dict:
                 "since": time.time(),
             }
         else:
-            file = body.get("file") or current.get("file")
-            elapsed = float(body.get("elapsed", current.get("elapsed", 0.0)))
-            playing = bool(body.get("playing", current.get("playing", False)))
-            mpd_resume(file, elapsed, playing)
-            now = mpd_now()
-            lease = {
-                "owner": "desk",
-                "file": now.get("file"),
-                "elapsed": now.get("elapsed", elapsed),
-                "playing": now.get("playing", playing),
-                "artist": now.get("artist"),
-                "title": now.get("title"),
-                "duration": now.get("duration"),
-                "since": time.time(),
-            }
+            playing = bool(body.get("playing", False))
+            if phone_lease_live(current, safe_now()):
+                file = body.get("file") or current.get("file")
+                elapsed = float(body.get("elapsed", current.get("elapsed", 0.0)))
+                mpd_resume(file, elapsed, playing)
+            elif playing:
+                mpd_command("pause 0")
+            lease = desk_lease(safe_now(), {})
         write_lease(lease)
         return lease
 
@@ -271,8 +285,11 @@ def take_lease(body: dict) -> dict:
 def heartbeat(body: dict) -> dict:
     with lease_lock:
         lease = read_lease()
-        if lease.get("owner") != "phone":
-            raise ValueError("phone does not own playback")
+        now = safe_now()
+        if lease.get("owner") != "phone" or (now is not None and now.get("playing")):
+            settled = desk_lease(now, lease)
+            write_lease(settled)
+            return settled
         for key in ("file", "elapsed", "playing", "artist", "title", "duration"):
             if key in body:
                 lease[key] = body[key]

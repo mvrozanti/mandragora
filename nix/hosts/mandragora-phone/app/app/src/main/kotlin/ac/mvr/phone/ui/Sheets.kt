@@ -98,6 +98,7 @@ private fun GetSheet(store: Store, sharedUrl: String?, onConsumeShare: () -> Uni
     LaunchedEffect(Unit) { store.refreshJobs() }
 
     SheetTitle("get", "ytdl · POST /api/download")
+    Notice(store)
     OutlinedTextField(
         value = url,
         onValueChange = { url = it },
