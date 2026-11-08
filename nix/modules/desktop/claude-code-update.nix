@@ -52,6 +52,8 @@ in
       ExecStart = "${updateBin}/bin/claude-code-update";
       Nice = 10;
       IOSchedulingClass = "idle";
+      MemoryHigh = "16G";
+      MemoryMax = "20G";
       TimeoutStartSec = "2h";
     };
   };
