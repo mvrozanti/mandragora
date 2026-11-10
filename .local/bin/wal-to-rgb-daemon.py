@@ -32,6 +32,8 @@ HORIZON_SPEED_OFFSET = 256
 GAUGE_WINDOW_SECONDS = 60.0
 GAUGE_FLOOR_MPS = 50 / 3.6
 GAUGE_LEVELS = 64
+AIO_DEVICE_NAMES = ("aorus", "gigabyte")
+BLACK = RGBColor(0, 0, 0)
 
 
 def log(msg):
@@ -82,6 +84,20 @@ def load_palette():
         return [from_hex(palette[i]) for i in RAM_PALETTE_INDICES]
     except Exception:
         return None
+
+
+def hue_of(h):
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)[0]
+
+
+def load_aio_accent():
+    try:
+        data = json.loads(COLORS_PATH.read_text())
+        palette = [data["colors"][f"color{i}"].lstrip("#") for i in range(16)]
+    except Exception:
+        return None
+    return from_hex(min(palette[1:9], key=hue_of))
 
 
 def lerp_color(a, b, t):
@@ -198,6 +214,28 @@ def find_ram_devices(client):
 
 
 
+def find_aio(client):
+    for d in client.devices:
+        if not any(x in (d.name or "").lower() for x in AIO_DEVICE_NAMES):
+            continue
+        static = next((m for m in d.modes if (m.name or "").lower() == "static"), None)
+        if static is not None:
+            log(f"found AIO controller {d.name!r}: dark while racing, palette accent otherwise")
+            return (d, static)
+    log("no AIO controller found")
+    return None
+
+
+def set_aio(aio, color):
+    device, static = aio
+    static.colors = [color]
+    device.set_mode(static)
+
+
+def rgb_tuple(c):
+    return (c.red, c.green, c.blue)
+
+
 def mtime_or_zero():
     try:
         return COLORS_PATH.stat().st_mtime
@@ -278,6 +316,9 @@ def main():
     log("starting up")
     client = connect()
     ram_devices = find_ram_devices(client)
+    aio = find_aio(client)
+    aio_accent = load_aio_accent()
+    aio_last = None
     telemetry = open_telemetry_socket()
     palette = load_palette()
     last_mtime = mtime_or_zero()
@@ -306,6 +347,7 @@ def main():
         mix = step_mix(mix, racing)
 
         if not is_rgb_on() or is_paused():
+            aio_last = None
             time.sleep(0.5)
             last_success = time.monotonic()
             continue
@@ -316,11 +358,24 @@ def main():
             if new_palette:
                 palette = new_palette
                 last_mtime = new_mtime
+                aio_accent = load_aio_accent()
+                aio_last = None
 
-        if palette and ram_devices:
+        if palette and (ram_devices or aio):
             had_any_success = False
             try:
                 with write_lock(timeout=0.4):
+                    if aio and aio_accent:
+                        wanted = BLACK if racing else aio_accent
+                        if aio_last is None or rgb_tuple(wanted) != rgb_tuple(aio_last):
+                            try:
+                                set_aio(aio, wanted)
+                                aio_last = wanted
+                                had_any_success = True
+                            except Exception as e:
+                                device_failures += 1
+                                if device_failures % 200 == 1:
+                                    log(f"aio write failed: {e} (count={device_failures})")
                     for d, zones, frame in frame_targets(ram_devices, palette, phase, level, mix):
                         try:
                             write_target(d, zones, frame, in_flight, frame_start)
@@ -344,6 +399,8 @@ def main():
                     pass
                 client = connect()
                 ram_devices = find_ram_devices(client)
+                aio = find_aio(client)
+                aio_last = None
                 in_flight = {}
                 last_success = time.monotonic()
 

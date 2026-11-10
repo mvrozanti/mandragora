@@ -128,7 +128,7 @@ in
 
   systemd.user.services.wal-to-rgb-daemon = {
     Unit = {
-      Description = "Animate RAM RGB from the pywal palette, and RAM + AIO as a Forza Horizon speed gauge";
+      Description = "Animate RAM RGB from the pywal palette; RAM as a Forza Horizon speed gauge, AIO dark while racing";
       After = [ "graphical-session.target" ];
       X-Restart-Triggers = [ (builtins.hashFile "sha256" ../../../.local/bin/wal-to-rgb-daemon.py) ];
     };
