@@ -21,6 +21,9 @@ NAME_RULES = [
     ("wine", r"\.exe\b"),
 ]
 COMPILED_RULES = [(name, re.compile(pattern)) for name, pattern in NAME_RULES]
+RULES_DIR = os.environ.get("PROCESS_NAMES_RULES_DIR", "")
+UNSAFE_NAME = re.compile(r"[^A-Za-z0-9_.-]")
+EXTRA = {"stamp": None, "rules": []}
 SCRIPT_RULE = re.compile(r"python[0-9.]*\s+(?:-[^\s]+\s+)*[^\s]*?([A-Za-z0-9_.-]+\.py)\b")
 NIX_BIN_RULE = re.compile(r"^/nix/store/[a-z0-9]+-[^/]+/bin/([A-Za-z0-9_.-]+)")
 NIX_LIB_RULE = re.compile(r"^/nix/store/[a-z0-9]+-[^/]+/(?:lib|libexec)/[^\s]*?([A-Za-z0-9_.-]+)(?:\s|$)")
@@ -42,8 +45,35 @@ def read_text(path):
         return None
 
 
-def group_name(cmdline, exe_path):
-    for name, pattern in COMPILED_RULES:
+def extra_rules():
+    if not RULES_DIR:
+        return []
+    try:
+        entries = sorted(entry for entry in os.listdir(RULES_DIR) if entry.endswith(".rules"))
+        stamp = tuple((entry, os.stat(os.path.join(RULES_DIR, entry)).st_mtime_ns) for entry in entries)
+    except OSError:
+        return []
+    if stamp == EXTRA["stamp"]:
+        return EXTRA["rules"]
+    rules = []
+    for entry in entries:
+        for line in (read_text(os.path.join(RULES_DIR, entry)) or "").splitlines():
+            name, _, pattern = line.partition("\t")
+            name = UNSAFE_NAME.sub("", name)
+            pattern = pattern.strip()
+            if not name or not pattern:
+                continue
+            try:
+                rules.append((name, re.compile(pattern)))
+            except re.error:
+                continue
+    EXTRA["stamp"] = stamp
+    EXTRA["rules"] = rules
+    return rules
+
+
+def group_name(cmdline, exe_path, rules):
+    for name, pattern in rules:
         if pattern.search(cmdline):
             return name
     for rule in (SCRIPT_RULE, NIX_BIN_RULE, NIX_LIB_RULE):
@@ -66,7 +96,7 @@ def parse_stat(raw):
     return fields
 
 
-def collect_process(pid):
+def collect_process(pid, rules):
     stat_raw = read_text("/proc/%s/stat" % pid)
     if stat_raw is None:
         return None, "unreadable"
@@ -99,7 +129,7 @@ def collect_process(pid):
             elif line.startswith("write_bytes:"):
                 write_bytes = int(line.split()[1])
     return {
-        "name": group_name(cmdline, exe_path),
+        "name": group_name(cmdline, exe_path, rules),
         "cpu": (int(fields[11]) + int(fields[12])) / CLOCK_TICKS,
         "minflt": int(fields[7]),
         "majflt": int(fields[9]),
@@ -117,10 +147,11 @@ def scan():
     boot_time = time.time() - float(read_text("/proc/uptime").split()[0])
     groups = {}
     skipped = {"zombie": 0, "kernel": 0, "unreadable": 0}
+    rules = extra_rules() + COMPILED_RULES
     for entry in os.listdir("/proc"):
         if not entry.isdigit():
             continue
-        record, reason = collect_process(entry)
+        record, reason = collect_process(entry, rules)
         if record is None:
             skipped[reason] += 1
             continue

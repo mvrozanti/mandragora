@@ -20,6 +20,7 @@ in
     environment = {
       PROCESS_NAMES_HOST = "127.0.0.1";
       PROCESS_NAMES_PORT = "9256";
+      PROCESS_NAMES_RULES_DIR = "/home/m/.config/process-names.d";
     };
     serviceConfig = {
       ExecStart = "${processNamesExporter}/bin/process-names-exporter";
