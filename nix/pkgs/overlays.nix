@@ -34,6 +34,9 @@ _: {
       });
       materia-theme-transparent = prev.callPackage ./materia-theme-transparent/default.nix { };
       rtk = prev.callPackage ./rtk/default.nix { };
+      waybar = prev.waybar.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [ ./waybar/drawer-toggle.patch ];
+      });
       du-exporter = prev.callPackage ./du-exporter/default.nix { };
       mutt-oauth2 = prev.callPackage ./mutt-oauth2/default.nix { };
       mail-menu = final.callPackage ./mail-menu/default.nix { };

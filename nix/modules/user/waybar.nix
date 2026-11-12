@@ -1,5 +1,14 @@
 { pkgs, ... }:
 
+let
+  drawer = leader: {
+    click-to-reveal = true;
+    toggle-button = 2;
+    leader-index = leader;
+    start-revealed = true;
+    transition-duration = 250;
+  };
+in
 {
   imports = [ ./gpu-menu.nix ];
 
@@ -32,6 +41,7 @@
 
         "group/audio" = {
           orientation = "horizontal";
+          drawer = drawer 6;
           modules = [
             "custom/mpd"
             "custom/mpd-prev"
@@ -47,6 +57,7 @@
 
         "group/hardware" = {
           orientation = "horizontal";
+          drawer = drawer 4;
           modules = [
             "disk"
             "custom/disk-io"
@@ -60,6 +71,7 @@
 
         "group/network" = {
           orientation = "horizontal";
+          drawer = drawer 0;
           modules = [
             "custom/network-menu"
             "custom/network"
@@ -68,6 +80,7 @@
 
         "group/actions" = {
           orientation = "horizontal";
+          drawer = drawer 7;
           modules = [
             "custom/monitor"
             "custom/security"
@@ -82,6 +95,7 @@
 
         "group/info" = {
           orientation = "horizontal";
+          drawer = drawer 2;
           modules = [
             "custom/money"
             "custom/weather"

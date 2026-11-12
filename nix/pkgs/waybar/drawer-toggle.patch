@@ -1,0 +1,135 @@
+diff '--color=auto' -ru a/include/group.hpp b/include/group.hpp
+--- a/include/group.hpp	2026-11-11 21:21:28.605699800 -0300
++++ b/include/group.hpp	2026-11-11 21:21:28.621244011 -0300
+@@ -26,6 +26,11 @@
+   bool is_first_widget = true;
+   bool is_drawer = false;
+   bool click_to_reveal = false;
++  Gtk::Box revealer_box_before;
++  Gtk::Revealer revealer_before;
++  int leader_index = -1;
++  int widget_count = 0;
++  unsigned int toggle_button = 1;
+   std::string add_class_to_drawer_children;
+   bool handleMouseEnter(GdkEventCrossing* const& ev) override;
+   bool handleMouseLeave(GdkEventCrossing* const& ev) override;
+diff '--color=auto' -ru a/src/AModule.cpp b/src/AModule.cpp
+--- a/src/AModule.cpp	2026-11-11 21:21:28.604699773 -0300
++++ b/src/AModule.cpp	2026-11-11 21:21:28.621108163 -0300
+@@ -158,6 +158,13 @@
+   const std::map<std::pair<uint, GdkEventType>, std::string>::const_iterator& rec{
+       eventMap_.find(std::pair(e->button, e->type))};
+ 
++  if (rec == eventMap_.cend() ||
++      (!config_[rec->second].isString() && !eventActionMap_.contains(rec->second) &&
++       !(config_["menu"].isString() && config_["menu"].asString() == rec->second))) {
++    dp.emit();
++    return false;
++  }
++
+   if (rec != eventMap_.cend()) {
+     // First call module actions
+     this->AModule::doAction(rec->second);
+diff '--color=auto' -ru a/src/group.cpp b/src/group.cpp
+--- a/src/group.cpp	2026-11-11 21:21:28.604699773 -0300
++++ b/src/group.cpp	2026-11-11 21:21:43.543339925 -0300
+@@ -28,7 +28,8 @@
+              bool vertical)
+     : AModule(config, name, id, true, false),
+       box{vertical ? Gtk::ORIENTATION_VERTICAL : Gtk::ORIENTATION_HORIZONTAL, 0},
+-      revealer_box{vertical ? Gtk::ORIENTATION_VERTICAL : Gtk::ORIENTATION_HORIZONTAL, 0} {
++      revealer_box{vertical ? Gtk::ORIENTATION_VERTICAL : Gtk::ORIENTATION_HORIZONTAL, 0},
++      revealer_box_before{vertical ? Gtk::ORIENTATION_VERTICAL : Gtk::ORIENTATION_HORIZONTAL, 0} {
+   box.set_name(name_);
+   if (!id.empty()) {
+     box.get_style_context()->add_class(id);
+@@ -74,24 +75,53 @@
+ 
+     revealer.add(revealer_box);
+ 
+-    if (left_to_right) {
++    if (drawer_config["toggle-button"].isUInt()) {
++      toggle_button = drawer_config["toggle-button"].asUInt();
++    }
++    if (drawer_config["leader-index"].isInt()) {
++      leader_index = drawer_config["leader-index"].asInt();
++      revealer_before.set_transition_type(transition_type);
++      revealer_before.set_transition_duration(transition_duration);
++      revealer_before.set_reveal_child(false);
++      revealer_before.get_style_context()->add_class("drawer");
++      revealer_before.add(revealer_box_before);
++      revealer.set_transition_type(
++          vertical ? Gtk::RevealerTransitionType::REVEALER_TRANSITION_TYPE_SLIDE_DOWN
++                   : Gtk::RevealerTransitionType::REVEALER_TRANSITION_TYPE_SLIDE_RIGHT);
++      box.pack_start(revealer_before);
++      box.pack_end(revealer);
++    } else if (left_to_right) {
+       box.pack_end(revealer);
+     } else {
+       box.pack_start(revealer);
+     }
++
++    if (drawer_config["start-revealed"].asBool()) {
++      show_group();
++    }
+   }
+ 
+   event_box_.add(box);
+ }
+ 
+ void Group::show_group() {
+-  box.set_state_flags(Gtk::StateFlags::STATE_FLAG_PRELIGHT);
++  if (!click_to_reveal) {
++    box.set_state_flags(Gtk::StateFlags::STATE_FLAG_PRELIGHT);
++  }
+   revealer.set_reveal_child(true);
++  revealer_before.set_reveal_child(true);
++  box.get_style_context()->remove_class("collapsed");
+ }
+ 
+ void Group::hide_group() {
+-  box.unset_state_flags(Gtk::StateFlags::STATE_FLAG_PRELIGHT);
++  if (!click_to_reveal) {
++    box.unset_state_flags(Gtk::StateFlags::STATE_FLAG_PRELIGHT);
++  }
+   revealer.set_reveal_child(false);
++  revealer_before.set_reveal_child(false);
++  if (is_drawer) {
++    box.get_style_context()->add_class("collapsed");
++  }
+ }
+ 
+ bool Group::handleMouseEnter(GdkEventCrossing* const& e) {
+@@ -109,10 +139,10 @@
+ }
+ 
+ bool Group::handleToggle(GdkEventButton* const& e) {
+-  if (!click_to_reveal || e->button != 1) {
++  if (!click_to_reveal || e->button != toggle_button) {
+     return false;
+   }
+-  if ((box.get_state_flags() & Gtk::StateFlags::STATE_FLAG_PRELIGHT) != 0U) {
++  if (revealer.get_reveal_child()) {
+     hide_group();
+   } else {
+     show_group();
+@@ -127,6 +157,19 @@
+ Gtk::Box& Group::getBox() { return is_drawer ? (is_first_widget ? box : revealer_box) : box; }
+ 
+ void Group::addWidget(Gtk::Widget& widget) {
++  if (is_drawer && leader_index >= 0) {
++    if (widget_count == leader_index) {
++      box.pack_start(widget, false, false);
++    } else {
++      (widget_count < leader_index ? revealer_box_before : revealer_box)
++          .pack_start(widget, false, false);
++      widget.get_style_context()->add_class(add_class_to_drawer_children);
++    }
++    widget_count++;
++    is_first_widget = false;
++    return;
++  }
++
+   getBox().pack_start(widget, false, false);
+ 
+   if (is_drawer && !is_first_widget) {
