@@ -117,6 +117,7 @@ in
     models.embeddings
   ];
   services.mandragora-seafile.enable = true;
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 6682 ];
 
   nixpkgs.hostPlatform = "x86_64-linux";
   nixpkgs.config.allowUnfree = true;
