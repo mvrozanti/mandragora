@@ -20,6 +20,7 @@ VAULT = os.path.realpath(os.path.expanduser(os.environ.get("MANDRAGORA_VAULT", "
 FLAKE = os.environ.get("MANDRAGORA_FLAKE", "/etc/nixos/mandragora")
 SECRET_PATTERNS = os.environ.get("MANDRAGORA_SECRET_PATTERNS", "@secretPatterns@")
 DEPLOY = os.path.expanduser(os.environ.get("MANDRAGORA_VAULT_DEPLOY", os.path.join(FLAKE, "nix/hosts/mandragora-vps/compose/demo/publish-vault.sh")))
+PRIVATE_TERMS = os.path.expanduser(os.environ.get("MANDRAGORA_PRIVATE_TERMS") or os.path.join(os.environ.get("XDG_CONFIG_HOME") or "~/.config", "mandragora/private-terms"))
 STATE = os.path.join(os.path.expanduser(os.environ.get("XDG_STATE_HOME") or "~/.local/state"), "mandragora-vault")
 REVIEW_MODEL = os.environ.get("MANDRAGORA_VAULT_REVIEW_MODEL", "claude-haiku-4-5")
 SITE_PROBE = os.environ.get("MANDRAGORA_VAULT_PROBE", "https://demo.mvr.ac/vault/atlas/_Home.md")
@@ -294,6 +295,34 @@ def check_secrets(path, text, problems):
                              "remove the value and describe the mechanism instead; if it was ever real, rotate it")
 
 
+def private_terms():
+    pats = []
+    try:
+        with open(PRIVATE_TERMS, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                try:
+                    pats.append(re.compile(line, re.IGNORECASE))
+                except re.error:
+                    continue
+    except OSError:
+        return []
+    return pats
+
+
+def check_private_terms(path, text, problems):
+    pats = private_terms()
+    if any(pat.search(path) for pat in pats):
+        problems.add(path, "the note's name matches the local private list; the vault is public at demo.mvr.ac",
+                     "keep that subject out of the vault")
+    for n, line in enumerate(text.splitlines(), 1):
+        if any(pat.search(line) for pat in pats):
+            problems.add(f"{path}:{n}", "matches the local private list; the vault is public at demo.mvr.ac",
+                         "reword the line so it does not name it")
+
+
 def check_ledger(old, new, problems):
     if old and not new.startswith(old):
         problems.add(LEDGER, "the ledger is append-only; existing lines changed",
@@ -463,6 +492,7 @@ def run_checks(changes, content, profile):
         if new is None:
             continue
         check_secrets(c.path, new, problems)
+        check_private_terms(c.path, new, problems)
         if profile == "agent":
             check_agent(c, old, new, stems, names, problems)
         elif profile == "publish":

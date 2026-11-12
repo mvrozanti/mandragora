@@ -7,6 +7,30 @@ ALLOWLIST=$(audit_load_allowlist "$AUDIT_HOME/allowlists/hub-tile.txt")
 COMPOSE_DIR="$MANDRAGORA_REPO/nix/hosts/mandragora-vps/compose"
 HUB_STATIC="$COMPOSE_DIR/hub/static"
 VPS="${MANDRAGORA_VPS_SSH:-opc@100.84.78.83}"
+TERMS_FILE="${MANDRAGORA_PRIVATE_TERMS:-${XDG_CONFIG_HOME:-$HOME/.config}/mandragora/private-terms}"
+
+staged_added() {
+  git -C "$MANDRAGORA_REPO" diff --cached --name-only --diff-filter=ACMR 2>/dev/null
+  git -C "$MANDRAGORA_REPO" diff --cached -U0 --diff-filter=ACMR 2>/dev/null | grep -E '^\+' | grep -v '^+++' || true
+}
+
+terms=$(grep -vE '^[[:space:]]*(#|$)' "$TERMS_FILE" 2>/dev/null || true)
+if [ -n "$terms" ]; then
+  term_hits=""
+  if staged_added | grep -qiE -f <(printf '%s\n' "$terms"); then
+    term_hits="$term_hits staged-changes"
+  fi
+  if [ -n "${COMMIT_MSG_FILE:-}" ] && [ -f "$COMMIT_MSG_FILE" ] \
+    && grep -qiE -f <(printf '%s\n' "$terms") "$COMMIT_MSG_FILE"; then
+    term_hits="$term_hits commit-message"
+  fi
+  if [ -n "$term_hits" ]; then
+    audit_fail "$CHECK" "a term from the local private list is named in:$term_hits"
+    echo "    The repo is public. $TERMS_FILE lists patterns that must never be committed." >&2
+    echo "    Reword the change so it does not name them." >&2
+    exit 1
+  fi
+fi
 
 if [ ! -d "$COMPOSE_DIR" ]; then
   audit_pass "$CHECK" "no compose dir; skipped"
