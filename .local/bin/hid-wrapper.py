@@ -17,6 +17,7 @@ ENE_LOCATION = re.compile(r"\((/dev/i2c-\d+)\), address (0x[0-9a-fA-F]+)")
 BLACKOUT_ATTEMPTS = 5
 WRITE_SETTLE_SECONDS = 0.1
 BLACKOUT_TIMEOUT_SECONDS = 12
+LOCK_WAIT_SECONDS = 15
 
 
 def log(msg):
@@ -33,12 +34,13 @@ if not colors_path.exists():
 Path('/home/m/.cache/hid-config').mkdir(exist_ok=True)
 lock_path = Path('/home/m/.cache/hid-config/lock')
 lock_fd = open(lock_path, 'w')
-try:
-    fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-except BlockingIOError:
-    raise SystemExit(0)
-
 signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(TimeoutError('hid-wrapper hung talking to mouse')))
+signal.alarm(LOCK_WAIT_SECONDS)
+try:
+    fcntl.flock(lock_fd, fcntl.LOCK_EX)
+except TimeoutError:
+    log(f"another hid-wrapper held the lock for {LOCK_WAIT_SECONDS}s; dropping {sys.argv[1:] or ['repaint']}")
+    raise SystemExit(1)
 signal.alarm(5)
 
 from colour import Color
