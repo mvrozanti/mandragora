@@ -5,10 +5,7 @@ let
   backendDir = "${projectDir}/backend";
   buildDir = "${projectDir}/frontend/build";
   ldLib = "/run/current-system/sw/share/nix-ld/lib";
-  supervisor = pkgs.writers.writePython3Bin "idle-socket-supervisor" {
-    libraries = [ ];
-    doCheck = false;
-  } (builtins.readFile ../../../.local/bin/idle-socket-supervisor.py);
+  supervisor = import ../../pkgs/idle-socket-supervisor.nix { inherit pkgs; };
 in
 {
   systemd.user.sockets.llm-visualizer-backend = {

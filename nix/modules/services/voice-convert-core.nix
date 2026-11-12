@@ -11,10 +11,7 @@ let
   rvcDir = "${project}/rvc";
   venvPy = "${project}/.venv-train/bin/python";
 
-  supervisor = pkgs.writers.writePython3Bin "idle-socket-supervisor" {
-    libraries = [ ];
-    doCheck = false;
-  } (builtins.readFile ../../../.local/bin/idle-socket-supervisor.py);
+  supervisor = import ../../pkgs/idle-socket-supervisor.nix { inherit pkgs; };
 
   launcher = pkgs.writeShellScript "voice-convert-core-launch" ''
     set -euo pipefail

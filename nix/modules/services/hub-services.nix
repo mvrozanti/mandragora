@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   inherit (lib)
@@ -13,6 +18,7 @@ let
     optionalAttrs
     ;
   cfg = config.mandragora.hub.services;
+  supervisor = import ../../pkgs/idle-socket-supervisor.nix { inherit pkgs; };
   enabled = filterAttrs (_: s: s.enable) cfg;
   systemSvcs = filterAttrs (_: s: !s.userService) enabled;
   userSvcs = filterAttrs (_: s: s.userService) enabled;
@@ -104,6 +110,7 @@ in
   };
 
   config = {
+    environment.systemPackages = [ supervisor ];
     systemd.services = mapAttrs' (name: svc: nameValuePair name (withDefaults svc)) systemSvcs;
     systemd.user.services = mapAttrs' (
       name: svc:

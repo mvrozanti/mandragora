@@ -8,10 +8,7 @@
 let
   cfg = config.mandragora.voiceAlterCore;
   voiceAlterPkg = pkgs.callPackage ../../pkgs/voice-alter-core.nix { };
-  supervisor = pkgs.writers.writePython3Bin "idle-socket-supervisor" {
-    libraries = [ ];
-    doCheck = false;
-  } (builtins.readFile ../../../.local/bin/idle-socket-supervisor.py);
+  supervisor = import ../../pkgs/idle-socket-supervisor.nix { inherit pkgs; };
 in
 {
   options.mandragora.voiceAlterCore = {
