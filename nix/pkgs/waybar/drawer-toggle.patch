@@ -1,7 +1,7 @@
 diff '--color=auto' -ru a/include/group.hpp b/include/group.hpp
 --- a/include/group.hpp	2026-11-11 21:21:28.605699800 -0300
-+++ b/include/group.hpp	2026-11-11 21:21:28.621244011 -0300
-@@ -26,6 +26,11 @@
++++ b/include/group.hpp	2026-11-12 21:18:33.960375521 -0300
+@@ -26,6 +26,13 @@
    bool is_first_widget = true;
    bool is_drawer = false;
    bool click_to_reveal = false;
@@ -10,6 +10,8 @@ diff '--color=auto' -ru a/include/group.hpp b/include/group.hpp
 +  int leader_index = -1;
 +  int widget_count = 0;
 +  unsigned int toggle_button = 1;
++  std::string state_path;
++  void save_state(bool revealed);
    std::string add_class_to_drawer_children;
    bool handleMouseEnter(GdkEventCrossing* const& ev) override;
    bool handleMouseLeave(GdkEventCrossing* const& ev) override;
@@ -32,8 +34,19 @@ diff '--color=auto' -ru a/src/AModule.cpp b/src/AModule.cpp
      this->AModule::doAction(rec->second);
 diff '--color=auto' -ru a/src/group.cpp b/src/group.cpp
 --- a/src/group.cpp	2026-11-11 21:21:28.604699773 -0300
-+++ b/src/group.cpp	2026-11-11 21:21:43.543339925 -0300
-@@ -28,7 +28,8 @@
++++ b/src/group.cpp	2026-11-12 21:18:33.961000334 -0300
+@@ -2,6 +2,10 @@
+ 
+ #include <fmt/format.h>
+ 
++#include <cstdlib>
++#include <filesystem>
++#include <fstream>
++
+ #include <util/command.hpp>
+ 
+ #include "gtkmm/enums.h"
+@@ -28,7 +32,8 @@
               bool vertical)
      : AModule(config, name, id, true, false),
        box{vertical ? Gtk::ORIENTATION_VERTICAL : Gtk::ORIENTATION_HORIZONTAL, 0},
@@ -43,7 +56,7 @@ diff '--color=auto' -ru a/src/group.cpp b/src/group.cpp
    box.set_name(name_);
    if (!id.empty()) {
      box.get_style_context()->add_class(id);
-@@ -74,24 +75,53 @@
+@@ -74,24 +79,74 @@
  
      revealer.add(revealer_box);
  
@@ -69,8 +82,29 @@ diff '--color=auto' -ru a/src/group.cpp b/src/group.cpp
        box.pack_start(revealer);
      }
 +
-+    if (drawer_config["start-revealed"].asBool()) {
++    bool start_revealed = drawer_config["start-revealed"].asBool();
++    if (drawer_config["persist"].asBool()) {
++      const char* state_home = std::getenv("XDG_STATE_HOME");
++      const char* home = std::getenv("HOME");
++      std::filesystem::path dir = (state_home != nullptr && *state_home != 0)
++                                      ? std::filesystem::path(state_home)
++                                      : std::filesystem::path(home != nullptr ? home : "/tmp") /
++                                            ".local" / "state";
++      dir /= "waybar";
++      dir /= "drawers";
++      std::error_code ec;
++      std::filesystem::create_directories(dir, ec);
++      state_path = (dir / name_).string();
++      std::ifstream in(state_path);
++      char c = 0;
++      if (in >> c) {
++        start_revealed = (c == '1');
++      }
++    }
++    if (start_revealed) {
 +      show_group();
++    } else {
++      box.get_style_context()->add_class("collapsed");
 +    }
    }
  
@@ -100,7 +134,7 @@ diff '--color=auto' -ru a/src/group.cpp b/src/group.cpp
  }
  
  bool Group::handleMouseEnter(GdkEventCrossing* const& e) {
-@@ -109,10 +139,10 @@
+@@ -109,17 +164,27 @@
  }
  
  bool Group::handleToggle(GdkEventButton* const& e) {
@@ -111,9 +145,26 @@ diff '--color=auto' -ru a/src/group.cpp b/src/group.cpp
 -  if ((box.get_state_flags() & Gtk::StateFlags::STATE_FLAG_PRELIGHT) != 0U) {
 +  if (revealer.get_reveal_child()) {
      hide_group();
++    save_state(false);
    } else {
      show_group();
-@@ -127,6 +157,19 @@
++    save_state(true);
+   }
+   return true;
+ }
+ 
++void Group::save_state(bool revealed) {
++  if (state_path.empty()) {
++    return;
++  }
++  std::ofstream out(state_path, std::ios::trunc);
++  out << (revealed ? '1' : '0');
++}
++
+ auto Group::update() -> void {
+   // noop
+ }
+@@ -127,6 +192,19 @@
  Gtk::Box& Group::getBox() { return is_drawer ? (is_first_widget ? box : revealer_box) : box; }
  
  void Group::addWidget(Gtk::Widget& widget) {

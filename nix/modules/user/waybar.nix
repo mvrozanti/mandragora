@@ -6,6 +6,7 @@ let
     toggle-button = 2;
     leader-index = leader;
     start-revealed = true;
+    persist = true;
     transition-duration = 250;
   };
 in
