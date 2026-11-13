@@ -62,6 +62,10 @@ tooltip {
     background: transparent;
 }
 
+#workspaces button label {
+    font-family: "Iosevka Nerd Font Propo", "Font Awesome 7 Free Solid", "Font Awesome 7 Brands";
+}
+
 #workspaces button.active {
     color: @foreground;
     opacity: 1.0;
