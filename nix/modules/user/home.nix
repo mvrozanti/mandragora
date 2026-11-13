@@ -352,6 +352,9 @@ in
     (pkgs.writeShellScriptBin "compv" (builtins.readFile ../../../.local/bin/compv.sh))
     (pkgs.writeShellScriptBin "ic" (builtins.readFile ../../../.local/bin/ic.sh))
     (pkgs.writeShellScriptBin "setbg" (builtins.readFile ../../../.local/bin/setbg.sh))
+    (pkgs.writers.writePython3Bin "wallpaper-palette" {
+      flakeIgnore = [ "E501" ];
+    } (builtins.readFile ../../../.local/bin/wallpaper-palette.py))
     (pkgs.writeShellScriptBin "clean" (builtins.readFile ../../../.local/bin/clean.sh))
     (pkgs.writeShellScriptBin "gmp" (builtins.readFile ../../../.local/bin/gmp.sh))
     (pkgs.writeShellScriptBin "mkv2gif" (builtins.readFile ../../../.local/bin/mkv2gif.sh))

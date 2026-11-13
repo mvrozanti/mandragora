@@ -20,7 +20,7 @@ awww img "$fpath" --transition-type grow --transition-pos "$pos" --transition-du
 
 mkdir -p ~/.cache/matugen
 echo "$fpath" > ~/.cache/matugen/last-wallpaper
-matugen image "$fpath" --source-color-index 0 --quiet 2>/dev/null || true
+wallpaper-palette "$fpath" 2>/dev/null || true
 
 if tmux info &>/dev/null; then
     tmux source-file ~/.cache/matugen/colors-tmux.conf
