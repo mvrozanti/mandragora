@@ -30,7 +30,6 @@ nix/hosts/mandragora-phone/identity.json ─▶ syncthing.nix
 nix/snippets/tailnet.json                ─▶ networking.hosts "phone"
 phone-bridge :6688 ◀── config · volume · lease · lyrics ── app
 mpd :6600          ◀── mpd protocol over the tailnet ───── app
-ytdl-web :6685     ◀── POST /api/download, GET /api/jobs ─ app (share target)
 gpu-status :6684   ◀── /api/theme?colors=1 ─────────────── app (palette)
 ~/Music  ──syncthing send-only──────────────────────────▶  Music folder
 ~/Pictures/PhoneInbox/* ◀──syncthing send-receive──────── DCIM, WhatsApp, …

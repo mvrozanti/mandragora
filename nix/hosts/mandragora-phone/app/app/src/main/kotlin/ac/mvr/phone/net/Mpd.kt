@@ -19,7 +19,7 @@ data class MpdSong(
     val pos: Int? = null,
     val id: Int? = null,
 ) {
-    val display: String get() = listOfNotNull(artist, title ?: file.substringAfterLast('/').substringBeforeLast('.')).joinToString(" · ")
+    val name: String get() = title ?: file.substringAfterLast('/').substringBeforeLast('.')
 }
 
 data class MpdStatus(
@@ -33,12 +33,13 @@ data class MpdStatus(
     val consume: Boolean = false,
     val song: Int? = null,
     val songId: Int? = null,
+    val nextSong: Int? = null,
     val playlistLength: Int = 0,
 ) {
     val playing: Boolean get() = state == "play"
 }
 
-class MpdSnapshot(val status: MpdStatus, val song: MpdSong?, val stats: Map<String, String> = emptyMap())
+class MpdSnapshot(val status: MpdStatus, val song: MpdSong?, val next: MpdSong? = null)
 
 class MpdClient(private val host: () -> String, private val port: () -> Int) {
 
@@ -87,10 +88,9 @@ class MpdClient(private val host: () -> String, private val port: () -> Int) {
         val status = parseStatus(conn.command("status"))
         val current = conn.command("currentsong")
         val song = if (current.isEmpty()) null else parseSong(current)
-        MpdSnapshot(status, song)
+        val next = status.nextSong?.let { splitSongs(conn.command("playlistinfo $it:${it + 1}")).firstOrNull() }
+        MpdSnapshot(status, song, next)
     }
-
-    suspend fun stats(): Map<String, String> = command("stats").toMap()
 
     suspend fun play() = command("play")
     suspend fun pause(paused: Boolean) = command(if (paused) "pause 1" else "pause 0")
@@ -106,9 +106,19 @@ class MpdClient(private val host: () -> String, private val port: () -> Int) {
         return splitSongs(command("playlistinfo ${start.coerceAtLeast(0)}:$end"))
     }
 
-    suspend fun search(term: String, limit: Int = 30): List<MpdSong> {
-        val quoted = quote(term)
-        return splitSongs(command("search any $quoted window 0:$limit"))
+    suspend fun addId(file: String, afterCurrent: Boolean): Int {
+        val pairs = command(if (afterCurrent) "addid ${quote(file)} +0" else "addid ${quote(file)}")
+        return pairs.firstOrNull { it.first == "Id" }?.second?.toIntOrNull() ?: throw IOException("addid returned no id")
+    }
+
+    suspend fun recent(limit: Int): List<MpdSong> =
+        splitSongs(command("search ${quote("(any contains '')")} sort -Last-Modified window 0:$limit"))
+
+    suspend fun find(term: String, limit: Int): List<MpdSong> {
+        val value = "'" + term.replace("\\", "\\\\").replace("'", "\\'") + "'"
+        val byTag = splitSongs(command("search ${quote("(any contains $value)")} sort -Last-Modified window 0:$limit"))
+        val byFile = splitSongs(command("search ${quote("(file contains $value)")} sort -Last-Modified window 0:$limit"))
+        return (byTag + byFile).distinctBy { it.file }
     }
 
     suspend fun idle(timeoutSeconds: Int = 60): List<String> = withContext(Dispatchers.IO) {
@@ -178,6 +188,7 @@ class MpdClient(private val host: () -> String, private val port: () -> Int) {
             consume = map["consume"] == "1",
             song = map["song"]?.toIntOrNull(),
             songId = map["songid"]?.toIntOrNull(),
+            nextSong = map["nextsong"]?.toIntOrNull(),
             playlistLength = map["playlistlength"]?.toIntOrNull() ?: 0,
         )
     }

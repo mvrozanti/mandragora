@@ -1,5 +1,11 @@
 package ac.mvr.phone.ui
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -7,110 +13,182 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Repeat
-import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.outlined.Computer
+import androidx.compose.material.icons.outlined.Smartphone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.layout
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import ac.mvr.phone.net.Lyrics
 import ac.mvr.phone.net.VolumeState
-import ac.mvr.phone.state.Store
-import androidx.compose.foundation.layout.heightIn
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ac.mvr.phone.state.NowState
+import ac.mvr.phone.state.Store
 import ac.mvr.phone.state.fmtTime
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlin.math.roundToInt
 
 @Composable
 fun Label(text: String, modifier: Modifier = Modifier, color: Color = MaterialTheme.colorScheme.outline) {
-    Text(text.uppercase(), style = MaterialTheme.typography.labelSmall, color = color, modifier = modifier)
+    Text(text.uppercase(), style = MaterialTheme.typography.labelSmall, color = color, modifier = modifier, maxLines = 1, overflow = TextOverflow.Ellipsis)
 }
 
 @Composable
-fun Chip(text: String, selected: Boolean, enabled: Boolean = true, onClick: () -> Unit) {
+fun StatusDot(ok: Boolean, modifier: Modifier = Modifier) {
+    Box(modifier = modifier.size(8.dp).clip(CircleShape).background(if (ok) Color(0xFF4EC17D) else MaterialTheme.colorScheme.error))
+}
+
+@Composable
+fun Notice(store: Store, modifier: Modifier = Modifier) {
+    val text by store.notice.collectAsStateWithLifecycle()
+    Text(
+        text ?: "",
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.error,
+        textAlign = TextAlign.Center,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier.fillMaxWidth().heightIn(min = 18.dp),
+    )
+}
+
+@Composable
+fun Banner(reachable: Boolean) {
+    if (reachable) return
     val scheme = MaterialTheme.colorScheme
-    Box(
+    Text(
+        "desktop unreachable · the phone keeps playing",
+        style = MaterialTheme.typography.bodyMedium,
+        color = scheme.onSurface,
         modifier = Modifier
-            .clip(RoundedCornerShape(999.dp))
-            .background(if (selected) scheme.primary else Color.Transparent)
-            .border(1.dp, if (selected) scheme.primary else scheme.outlineVariant, RoundedCornerShape(999.dp))
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 13.dp, vertical = 8.dp),
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp)
+            .padding(bottom = 8.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(scheme.error.copy(alpha = 0.15f))
+            .border(1.dp, scheme.error, RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+    )
+}
+
+private fun shortSink(name: String): String {
+    val tag = Regex("\\[(.*?)\\]").find(name)?.groupValues?.get(1)
+    val kind = when {
+        name.contains("HDMI") -> "hdmi"
+        name.contains("IEC958") -> "spdif"
+        else -> null
+    }
+    return listOfNotNull(kind, tag).joinToString(" · ").ifEmpty { name.take(24) }
+}
+
+@Composable
+fun VolumeBar(volume: VolumeState, enabled: Boolean, onDrag: (Int) -> Unit, onMute: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val sink = volume.sink
+    var dragging by remember { mutableStateOf<Float?>(null) }
+    val muted = sink?.muted == true
+    val value = dragging ?: if (muted) 0f else (sink?.volume ?: 0) / 100f
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(scheme.surfaceContainerLow)
+            .padding(horizontal = 14.dp, vertical = 10.dp)
+            .alpha(if (enabled) 1f else 0.45f),
     ) {
-        Text(
-            text,
-            style = MaterialTheme.typography.labelLarge,
-            color = when {
-                !enabled -> scheme.outline
-                selected -> scheme.onPrimary
-                else -> scheme.onSurfaceVariant
-            },
-        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Label("desktop volume")
+            Label(sink?.name?.let(::shortSink) ?: "")
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            IconButton(onClick = onMute, enabled = enabled) {
+                Icon(if (muted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp, "mute", tint = scheme.onSurfaceVariant)
+            }
+            Slider(
+                value = value,
+                onValueChange = { dragging = it; onDrag((it * 100).roundToInt()) },
+                onValueChangeFinished = { dragging?.let { onDrag((it * 100).roundToInt()) }; dragging = null },
+                enabled = enabled,
+                modifier = Modifier.weight(1f),
+                colors = SliderDefaults.colors(thumbColor = scheme.onSurface, activeTrackColor = scheme.primary, inactiveTrackColor = scheme.outlineVariant),
+            )
+            Text(
+                if (muted && dragging == null) "mute" else "${(value * 100).roundToInt()}",
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.End,
+                modifier = Modifier.width(46.dp),
+            )
+        }
     }
 }
 
 @Composable
-fun Transport(now: NowState, enabled: Boolean, flagsEnabled: Boolean, onToggle: () -> Unit, onNext: () -> Unit, onPrevious: () -> Unit, onRepeat: () -> Unit, onRandom: () -> Unit, compact: Boolean = false) {
+fun Transport(now: NowState, onToggle: () -> Unit, onNext: () -> Unit, onPrevious: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    val playSize = if (compact) 56.dp else 72.dp
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), modifier = Modifier.fillMaxWidth()) {
-        IconButton(onClick = onRepeat, enabled = flagsEnabled) {
-            Icon(Icons.Filled.Repeat, "repeat", tint = if (now.repeat) scheme.primary else scheme.onSurface)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(22.dp, Alignment.CenterHorizontally), modifier = Modifier.fillMaxWidth()) {
+        IconButton(onClick = onPrevious, modifier = Modifier.size(56.dp)) {
+            Icon(Icons.Filled.SkipPrevious, "previous", tint = scheme.onSurface, modifier = Modifier.size(32.dp))
         }
-        IconButton(onClick = onPrevious, enabled = enabled) { Icon(Icons.Filled.SkipPrevious, "previous", tint = scheme.onSurface) }
         Box(
-            modifier = Modifier
-                .size(playSize)
-                .clip(CircleShape)
-                .background(if (enabled) scheme.primary else scheme.surfaceContainerHigh)
-                .clickable(enabled = enabled, onClick = onToggle),
+            modifier = Modifier.size(76.dp).clip(CircleShape).background(scheme.primary).clickable(onClick = onToggle),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 if (now.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                 if (now.playing) "pause" else "play",
-                tint = if (enabled) scheme.onPrimary else scheme.outline,
-                modifier = Modifier.size(if (compact) 28.dp else 34.dp),
+                tint = scheme.onPrimary,
+                modifier = Modifier.size(38.dp),
             )
         }
-        IconButton(onClick = onNext, enabled = enabled) { Icon(Icons.Filled.SkipNext, "next", tint = scheme.onSurface) }
-        IconButton(onClick = onRandom, enabled = flagsEnabled) {
-            Icon(Icons.Filled.Shuffle, "random", tint = if (now.random) scheme.primary else scheme.onSurface)
+        IconButton(onClick = onNext, modifier = Modifier.size(56.dp)) {
+            Icon(Icons.Filled.SkipNext, "next", tint = scheme.onSurface, modifier = Modifier.size(32.dp))
         }
     }
 }
 
 @Composable
-fun ProgressRow(now: NowState, enabled: Boolean, onSeek: (Double) -> Unit) {
+fun ProgressRow(now: NowState, onSeek: (Double) -> Unit) {
     val scheme = MaterialTheme.colorScheme
     var dragging by remember { mutableStateOf<Float?>(null) }
     val duration = now.duration.coerceAtLeast(1.0)
@@ -123,81 +201,84 @@ fun ProgressRow(now: NowState, enabled: Boolean, onSeek: (Double) -> Unit) {
                 dragging?.let { onSeek(it * duration) }
                 dragging = null
             },
-            enabled = enabled,
             colors = SliderDefaults.colors(thumbColor = scheme.onSurface, activeTrackColor = scheme.primary, inactiveTrackColor = scheme.outlineVariant),
         )
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(fmtTime(value * duration), style = MaterialTheme.typography.labelMedium, color = scheme.outline)
-            Text("-" + fmtTime(duration - value * duration), style = MaterialTheme.typography.labelMedium, color = scheme.outline)
+            Text(fmtTime(duration), style = MaterialTheme.typography.labelMedium, color = scheme.outline)
         }
     }
 }
 
 @Composable
-fun OwnerSwitch(now: NowState, deskAvailable: Boolean, busy: Boolean, big: Boolean, onTake: (String) -> Unit) {
+fun OwnerSwitch(now: NowState, deskReachable: Boolean, busy: Boolean, onTake: (String) -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    val height = if (big) 64.dp else 48.dp
-    Row(
+    val knob by animateFloatAsState(if (now.phoneOwns) 1f else 0f, label = "knob")
+    val pulse by rememberInfiniteTransition(label = "pulse").animateFloat(
+        initialValue = 1f,
+        targetValue = 0.55f,
+        animationSpec = infiniteRepeatable(tween(600), RepeatMode.Reverse),
+        label = "pulse",
+    )
+    val state = if (now.playing) "playing" else "paused"
+    val primary = scheme.primary
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(height)
-            .clip(RoundedCornerShape(999.dp))
-            .border(1.dp, scheme.outline, RoundedCornerShape(999.dp)),
-    ) {
-        listOf("desk" to "desktop", "phone" to "this phone").forEach { (key, label) ->
-            val selected = now.owner == key
-            val enabled = !busy && (key == "phone" || deskAvailable || selected)
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .background(if (selected) scheme.primary else Color.Transparent)
-                    .clickable(enabled = enabled && !selected) { onTake(key) },
-                contentAlignment = Alignment.Center,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(if (selected && now.playing) Color(0xFF4EC17D) else if (selected) scheme.onPrimary else scheme.outline),
-                    )
-                    Text(
-                        label.uppercase(),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = if (selected) scheme.onPrimary else if (enabled) scheme.onSurfaceVariant else scheme.outline,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun NowStrip(now: NowState, enabled: Boolean, onOpen: () -> Unit, onToggle: () -> Unit) {
-    val scheme = MaterialTheme.colorScheme
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
+            .height(64.dp)
+            .clip(RoundedCornerShape(32.dp))
             .background(scheme.surfaceContainerLow)
-            .clickable(onClick = onOpen)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+            .border(1.dp, scheme.outlineVariant, RoundedCornerShape(32.dp))
+            .drawBehind {
+                val inset = 4.dp.toPx()
+                val width = size.width / 2 - inset
+                drawRoundRect(
+                    color = primary.copy(alpha = if (busy) pulse else 1f),
+                    topLeft = Offset(inset + knob * (size.width / 2), inset),
+                    size = Size(width, size.height - 2 * inset),
+                    cornerRadius = CornerRadius(28.dp.toPx()),
+                )
+            },
     ) {
-        Cover(now, Modifier.size(48.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(listOfNotNull(now.artist, now.title).joinToString(" · "), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(
-                "${now.whereLabel} · ${fmtTime(now.elapsed)} / ${fmtTime(now.duration)}" + if (now.playing) "" else " · paused",
-                style = MaterialTheme.typography.labelMedium,
-                color = scheme.outline,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+        Row(modifier = Modifier.fillMaxSize()) {
+            Side(
+                icon = Icons.Outlined.Computer,
+                label = "desktop",
+                caption = if (!now.phoneOwns) state else if (deskReachable) "tap to move here" else "unreachable",
+                selected = !now.phoneOwns,
+                dim = now.phoneOwns && !deskReachable,
+                busy = busy,
+                modifier = Modifier.weight(1f),
+            ) { onTake("desk") }
+            Side(
+                icon = Icons.Outlined.Smartphone,
+                label = "phone",
+                caption = if (now.phoneOwns) state else "tap to move here",
+                selected = now.phoneOwns,
+                dim = false,
+                busy = busy,
+                modifier = Modifier.weight(1f),
+            ) { onTake("phone") }
         }
-        IconButton(onClick = onToggle, enabled = enabled) {
-            Icon(if (now.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow, "toggle", tint = scheme.onSurface)
+    }
+}
+
+@Composable
+private fun Side(icon: ImageVector, label: String, caption: String, selected: Boolean, dim: Boolean, busy: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val tint = if (selected) scheme.onPrimary else scheme.onSurfaceVariant
+    Row(
+        modifier = modifier
+            .fillMaxHeight()
+            .clickable(enabled = !selected && !busy, onClick = onClick)
+            .alpha(if (dim) 0.4f else 1f),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+    ) {
+        Icon(icon, null, tint = tint, modifier = Modifier.size(24.dp))
+        Column {
+            Text(label, style = MaterialTheme.typography.titleMedium, color = tint)
+            Label(caption, color = tint.copy(alpha = 0.75f))
         }
     }
 }
@@ -207,11 +288,11 @@ fun Cover(now: NowState, modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
     val seed = (now.file ?: now.title).hashCode()
     val tones = listOf(scheme.primary, scheme.secondary, scheme.tertiary)
-    Box(modifier = modifier.clip(RoundedCornerShape(6.dp)).background(scheme.surfaceContainerHigh)) {
+    Box(modifier = modifier.clip(RoundedCornerShape(20.dp)).background(scheme.surfaceContainerHigh)) {
         Box(
             modifier = Modifier
-                .padding(start = ((seed ushr 1) % 40).dp / 2, top = ((seed ushr 7) % 40).dp / 2)
-                .size(((seed ushr 3) % 30 + 20).dp)
+                .padding(start = ((seed ushr 1) % 40).dp * 2, top = ((seed ushr 7) % 40).dp * 2)
+                .size(((seed ushr 3) % 30 + 60).dp)
                 .clip(CircleShape)
                 .background(tones[(seed ushr 11) % 3].copy(alpha = 0.7f)),
         )
@@ -219,100 +300,43 @@ fun Cover(now: NowState, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .fillMaxWidth(((seed ushr 5) % 60 + 20) / 100f)
-                .height(5.dp)
+                .height(12.dp)
                 .background(scheme.primary),
         )
     }
 }
 
 @Composable
-fun SinkRail(volume: VolumeState, enabled: Boolean, onChange: (Int) -> Unit) {
+fun LyricsPane(lyrics: Lyrics?, elapsed: Double, busy: Boolean, modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
-    var dragging by remember { mutableStateOf<Float?>(null) }
-    val level = volume.sink?.volume ?: 0
-    val value = dragging ?: (level / 100f)
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(44.dp).fillMaxHeight()) {
-        Label("desk")
-        Spacer(Modifier.height(4.dp))
-        Box(modifier = Modifier.weight(1f).width(44.dp), contentAlignment = Alignment.Center) {
-            Slider(
-                value = value,
-                onValueChange = { dragging = it },
-                onValueChangeFinished = {
-                    dragging?.let { onChange((it * 100).toInt()) }
-                    dragging = null
-                },
-                enabled = enabled,
-                colors = SliderDefaults.colors(thumbColor = scheme.onSurface, activeTrackColor = scheme.primary, inactiveTrackColor = scheme.outlineVariant),
-                modifier = Modifier
-                    .layout { measurable, constraints ->
-                        val placeable = measurable.measure(
-                            androidx.compose.ui.unit.Constraints(
-                                minWidth = constraints.minHeight,
-                                maxWidth = constraints.maxHeight,
-                                minHeight = constraints.minWidth,
-                                maxHeight = constraints.maxWidth,
-                            ),
+    val synced = lyrics?.synced
+    val plain = lyrics?.plain
+    Box(modifier = modifier.clip(RoundedCornerShape(20.dp)).background(scheme.surfaceContainerLow).padding(16.dp)) {
+        when {
+            !synced.isNullOrEmpty() -> {
+                val state = rememberLazyListState()
+                val current = synced.indexOfLast { it.t <= elapsed }
+                LaunchedEffect(current) { if (current >= 0) state.animateScrollToItem((current - 2).coerceAtLeast(0)) }
+                LazyColumn(state = state, verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxSize()) {
+                    itemsIndexed(synced) { index, line ->
+                        Text(
+                            line.x,
+                            style = if (index == current) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyLarge,
+                            color = if (index == current) scheme.onSurface else scheme.outline,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
                         )
-                        layout(placeable.height, placeable.width) {
-                            placeable.place(-(placeable.width - placeable.height) / 2, (placeable.width - placeable.height) / 2)
-                        }
                     }
-                    .rotate(-90f),
-            )
-        }
-        Spacer(Modifier.height(4.dp))
-        Text("${(value * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
-    }
-}
-
-@Composable
-fun TailnetBanner(reachable: Boolean, now: NowState, onPlayHere: () -> Unit) {
-    if (reachable) return
-    val scheme = MaterialTheme.colorScheme
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 6.dp)
-            .clip(RoundedCornerShape(9.dp))
-            .background(scheme.error.copy(alpha = 0.18f))
-            .border(1.dp, scheme.error, RoundedCornerShape(9.dp))
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Label("tailnet down · fails closed", color = scheme.error)
-        Text(
-            if (now.phoneOwns) "playing locally · desktop volume, queue and get are unavailable"
-            else "desktop last known at ${fmtTime(now.elapsed)} · controls frozen, nothing falls back to mvr.ac",
-            style = MaterialTheme.typography.bodyMedium,
-            color = scheme.onSurface,
-        )
-        if (!now.phoneOwns && now.file != null) {
-            TextButton(onClick = onPlayHere) { Text("play here from ${fmtTime(now.elapsed)}", style = MaterialTheme.typography.labelLarge) }
+                }
+            }
+            plain != null -> LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxSize()) {
+                items(plain.lines()) { line ->
+                    Text(line, style = MaterialTheme.typography.bodyLarge, color = scheme.onSurfaceVariant, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                }
+            }
+            else -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Label(if (busy) "fetching lyrics…" else "no lyrics for this song")
+            }
         }
     }
-}
-
-@Composable
-fun Notice(store: Store, modifier: Modifier = Modifier) {
-    val text by store.notice.collectAsStateWithLifecycle()
-    Text(
-        text ?: "",
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.error,
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier.fillMaxWidth().heightIn(min = 18.dp),
-    )
-}
-
-@Composable
-fun StatusDot(ok: Boolean?, modifier: Modifier = Modifier) {
-    val scheme = MaterialTheme.colorScheme
-    Box(
-        modifier = modifier
-            .size(8.dp)
-            .clip(CircleShape)
-            .background(when (ok) { true -> Color(0xFF4EC17D); false -> scheme.error; null -> scheme.outlineVariant }),
-    )
 }

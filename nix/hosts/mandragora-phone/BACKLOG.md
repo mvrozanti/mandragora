@@ -14,24 +14,29 @@ bottom are the ones that decide which.
 - mpd reachable over the tailnet.
 - `phone-push`: build the app in the `phone` dev shell and install it over
   wireless debugging.
-- The app v0.1: Verbs home, The Stage player, get / volume / lyrics / sync /
-  hub / queue sheets, a Media3 session whose remote player maps to mpd and
-  routes the volume keys to the desktop sink, share target, wallpaper palette.
-  Built debug-signed; not yet installed (the phone was off the tailnet).
+- The app v0.1 (2026-11-02): Verbs home, The Stage player, six sheets, share
+  target. Replaced on 2026-11-14 by the one-screen app built row by row from
+  the tap map in the README: desktop volume, cover or lyrics, transport, the
+  pill, "play something", a Media3 session whose remote player maps to mpd and
+  routes the volume keys to the desktop sink, wallpaper palette. The ytdl,
+  sync and hub clients left with it; git history before 2026-11-14 has them.
 
 ## In flight
 
-- First install and the on-device checks from the phone README.
+- Install the one-screen build and read the tap map top to bottom on the
+  device, each row against `mpc status`.
 
 ## Next up
 
 - Release keystore in sops (`phone/keystore`, `phone/keystore-password`),
   exported to the dev shell as `PHONE_KEYSTORE`/`PHONE_KEYSTORE_PASS`; then a
   minified release build (the debug APK is about 68 MB).
-- Verbs home: the operator said features are missing from the screen after
-  seeing the deck. List them after the first install and add verbs.
-- Round two of the deck: The Stage's hub sheet borrowing the live tiles from
-  "The Hub, native".
+- The next desktop controls (ytdl, sync status, hub) come back as rows in the
+  tap map under the "mandragora" title, which does nothing until then.
+- A fourth lock-screen button that moves the music, if the operator strikes
+  the "no move button" line.
+- Off the tailnet, "play something" could list the phone's own synced files
+  instead of saying the desktop is unreachable.
 - nix-on-droid (`nixOnDroidConfigurations.phone`): zsh, tmux, git, mpc from
   the same flake; reuse dotfiles through `home.file` + `readFile` only.
 - F-Droid repo on the hub: `compose/fdroid/`, tailnet-only vhost (403 off the
@@ -46,8 +51,6 @@ bottom are the ones that decide which.
 
 - mpd has no password on the tailnet. Every tailnet node is the operator's;
   the firewall is the gate, as for ytdl-web and cc-pocket.
-- The Sync-Fork API key is entered once into the app and never leaves the
-  phone; the desktop never stores it again.
 
 ## Ideas
 

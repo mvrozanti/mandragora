@@ -48,13 +48,18 @@ class LocalLibrary(private val context: Context) {
         candidates.firstOrNull { it.relativePath.contains("Music", ignoreCase = true) } ?: candidates.first()
     }
 
-    suspend fun count(): Int = withContext(Dispatchers.IO) {
+    suspend fun names(): Set<String> = withContext(Dispatchers.IO) {
+        val names = HashSet<String>()
         context.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            arrayOf(MediaStore.Audio.Media._ID),
+            arrayOf(MediaStore.Audio.Media.DISPLAY_NAME),
             "${MediaStore.Audio.Media.IS_MUSIC} != 0",
             null,
             null,
-        )?.use { it.count } ?: 0
+        )?.use { cursor ->
+            val col = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
+            while (cursor.moveToNext()) cursor.getString(col)?.let(names::add)
+        }
+        names
     }
 }

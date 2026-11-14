@@ -107,12 +107,14 @@ def mpd_now() -> dict:
 
 def mpd_resume(file: str | None, elapsed: float, playing: bool) -> None:
     position = f"{max(0.0, elapsed):.1f}"
-    active = mpd_dict("status").get("state") in ("play", "pause")
+    status = mpd_dict("status")
+    active = status.get("state") in ("play", "pause")
     song_id = None
     if file:
         song_id = mpd_dict(f"playlistfind file {mpd_quote(file)}").get("Id")
         if song_id is None:
-            song_id = mpd_dict(f"addid {mpd_quote(file)}").get("Id")
+            insert = f"addid {mpd_quote(file)}" + (" +0" if status.get("song") is not None else "")
+            song_id = mpd_dict(insert).get("Id")
     if song_id is not None and active:
         mpd_command(f"seekid {song_id} {position}")
     elif song_id is not None:

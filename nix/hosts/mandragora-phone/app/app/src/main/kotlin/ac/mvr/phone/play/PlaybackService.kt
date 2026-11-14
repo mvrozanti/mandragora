@@ -92,7 +92,7 @@ class PlaybackService : MediaSessionService(), PlayerHost {
     override fun useLocal(uri: Uri, title: String, artist: String?, positionMs: Long, play: Boolean) {
         val metadata = MediaMetadata.Builder()
             .setTitle(title)
-            .setArtist(listOfNotNull(artist, "on this phone").joinToString(" · "))
+            .setArtist(listOfNotNull(artist, "on the phone").joinToString(" · "))
             .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
             .build()
         local.setMediaItem(MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).build(), positionMs.coerceAtLeast(0))

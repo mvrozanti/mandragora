@@ -6,7 +6,6 @@ import android.os.SystemClock
 import ac.mvr.phone.BuildConfig
 import ac.mvr.phone.net.BridgeClient
 import ac.mvr.phone.net.BridgeConfig
-import ac.mvr.phone.net.HubService
 import ac.mvr.phone.net.Lease
 import ac.mvr.phone.net.Lyrics
 import ac.mvr.phone.net.MpdClient
@@ -14,14 +13,11 @@ import ac.mvr.phone.net.MpdSnapshot
 import ac.mvr.phone.net.MpdSong
 import ac.mvr.phone.net.Palette
 import ac.mvr.phone.net.Ports
-import ac.mvr.phone.net.SyncFolder
-import ac.mvr.phone.net.SyncForkClient
 import ac.mvr.phone.net.ThemeClient
 import ac.mvr.phone.net.Unreachable
 import ac.mvr.phone.net.VolumeState
-import ac.mvr.phone.net.YtdlClient
-import ac.mvr.phone.net.YtdlJob
 import ac.mvr.phone.play.LocalLibrary
+import ac.mvr.phone.play.LocalTrack
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -31,7 +27,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -58,21 +53,15 @@ data class NowState(
     val elapsed: Double = 0.0,
     val duration: Double = 0.0,
     val playing: Boolean = false,
-    val pos: Int? = null,
-    val queueLength: Int = 0,
-    val repeat: Boolean = false,
-    val random: Boolean = false,
-    val single: Boolean = false,
-    val consume: Boolean = false,
-    val mpdVolume: Int = -1,
+    val next: String? = null,
 ) {
     val phoneOwns: Boolean get() = owner == "phone"
-    val whereLabel: String get() = if (phoneOwns) "on this phone" else "on mandragora-desktop"
 }
+
+private data class PhoneSide(val queue: List<MpdSong>, val index: Int, val playing: Boolean, val positionMs: Long, val durationMs: Long)
 
 class Store(private val app: Application) {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    val prefs = Prefs(app)
     val library = LocalLibrary(app)
     val desktopIp: String = BuildConfig.DESKTOP_IP
 
@@ -81,9 +70,7 @@ class Store(private val app: Application) {
 
     val bridge = BridgeClient { "http://$desktopIp:${port({ it.bridge }, BuildConfig.BRIDGE_PORT)}" }
     val mpd = MpdClient({ desktopIp }, { port({ it.mpd }, 6600) })
-    val ytdl = YtdlClient { "http://$desktopIp:${port({ it.ytdl }, 6685)}" }
     val theme = ThemeClient { "http://$desktopIp:${port({ it.theme }, 6684)}" }
-    val syncFork = SyncForkClient { prefs.syncForkApiKey }
 
     val reachable = MutableStateFlow(false)
     val mpdReachable = MutableStateFlow(false)
@@ -91,20 +78,16 @@ class Store(private val app: Application) {
     private var snapshotAtMs = 0L
     val lease = MutableStateFlow(Lease())
     val volume = MutableStateFlow(VolumeState())
-    val jobs = MutableStateFlow<List<YtdlJob>>(emptyList())
     val lyrics = MutableStateFlow<Lyrics?>(null)
     val lyricsFile = MutableStateFlow<String?>(null)
     val lyricsBusy = MutableStateFlow(false)
     val palette = MutableStateFlow(Palette())
-    val folders = MutableStateFlow<List<SyncFolder>>(emptyList())
-    val syncBusy = MutableStateFlow(false)
-    val syncError = MutableStateFlow<String?>(null)
-    val hasApiKey = MutableStateFlow(prefs.syncForkApiKey != null)
     val localPlaying = MutableStateFlow(false)
     val localPositionMs = MutableStateFlow(0L)
     val localDurationMs = MutableStateFlow(0L)
-    val localCount = MutableStateFlow(0)
-    val stats = MutableStateFlow<Map<String, String>>(emptyMap())
+    val phoneQueue = MutableStateFlow<List<MpdSong>>(emptyList())
+    val phoneIndex = MutableStateFlow(-1)
+    val localNames = MutableStateFlow<Set<String>>(emptySet())
     val notice = MutableStateFlow<String?>(null)
     private var noticeJob: Job? = null
     val foreground = MutableStateFlow(false)
@@ -112,6 +95,8 @@ class Store(private val app: Application) {
     private val tick = MutableStateFlow(0L)
     private val handoff = Mutex()
     private var heartbeatJob: Job? = null
+    private var volumeTarget: Int? = null
+    private var volumeJob: Job? = null
 
     var host: PlayerHost? = null
 
@@ -121,45 +106,46 @@ class Store(private val app: Application) {
         return if (snap.status.playing) base + (SystemClock.elapsedRealtime() - snapshotAtMs) else base
     }
 
-    val now: StateFlow<NowState> = combine(mpdSnapshot, lease, localPlaying, localPositionMs, tick) { snap, lease, localPlaying, localPos, _ ->
-        val status = snap?.status
-        val song = snap?.song
+    private val phoneSide = combine(phoneQueue, phoneIndex, localPlaying, localPositionMs, localDurationMs) { queue, index, playing, position, duration ->
+        PhoneSide(queue, index, playing, position, duration)
+    }
+
+    val now: StateFlow<NowState> = combine(mpdSnapshot, lease, phoneSide, tick) { snap, lease, phone, _ ->
         if (lease.owner == "phone") {
+            val song = phone.queue.getOrNull(phone.index)
+            val file = song?.file ?: lease.file
             NowState(
                 owner = "phone",
-                file = lease.file ?: song?.file,
-                title = lease.title ?: song?.title ?: lease.file?.substringAfterLast('/')?.substringBeforeLast('.') ?: "nothing playing",
-                artist = lease.artist ?: song?.artist,
-                elapsed = localPos / 1000.0,
-                duration = lease.duration ?: (localDurationMs.value / 1000.0),
-                playing = localPlaying,
-                pos = status?.song,
-                queueLength = status?.playlistLength ?: 0,
-                repeat = status?.repeat ?: false,
-                random = status?.random ?: false,
-                single = status?.single ?: false,
-                consume = status?.consume ?: false,
-                mpdVolume = status?.volume ?: -1,
+                file = file,
+                title = song?.name ?: lease.title ?: file?.substringAfterLast('/')?.substringBeforeLast('.') ?: "nothing playing",
+                artist = song?.artist ?: lease.artist,
+                elapsed = phone.positionMs / 1000.0,
+                duration = song?.duration ?: lease.duration ?: (phone.durationMs / 1000.0),
+                playing = phone.playing,
+                next = phoneNext(phone.queue, phone.index)?.name,
             )
         } else {
+            val status = snap?.status
+            val song = snap?.song
             NowState(
                 owner = "desk",
                 file = song?.file,
-                title = song?.title ?: song?.file?.substringAfterLast('/')?.substringBeforeLast('.') ?: "nothing playing",
+                title = song?.name ?: "nothing playing",
                 artist = song?.artist,
                 elapsed = remoteElapsedMs() / 1000.0,
                 duration = status?.duration ?: song?.duration ?: 0.0,
                 playing = status?.playing ?: false,
-                pos = status?.song,
-                queueLength = status?.playlistLength ?: 0,
-                repeat = status?.repeat ?: false,
-                random = status?.random ?: false,
-                single = status?.single ?: false,
-                consume = status?.consume ?: false,
-                mpdVolume = status?.volume ?: -1,
+                next = snap?.next?.name,
             )
         }
     }.stateIn(scope, SharingStarted.Eagerly, NowState())
+
+    private fun phoneNext(queue: List<MpdSong>, index: Int): MpdSong? {
+        if (queue.isEmpty() || index < 0) return null
+        return queue.getOrNull(index + 1) ?: if (mpdSnapshot.value?.status?.repeat == true) queue.first() else null
+    }
+
+    private fun nowFile(): String? = phoneQueue.value.getOrNull(phoneIndex.value)?.file ?: lease.value.file
 
     fun start() {
         scope.launch {
@@ -172,10 +158,8 @@ class Store(private val app: Application) {
         scope.launch { loopMpd() }
         scope.launch { loopWhileForeground(15_000) { refreshVolume() } }
         scope.launch { loopWhileForeground(10_000) { refreshLease() } }
-        scope.launch { loopWhileForeground(8_000) { refreshJobs() } }
         scope.launch { loopWhileForeground(5_000) { refreshPalette() } }
-        scope.launch { loopWhileForeground(30_000) { if (hasApiKey.value) refreshFolders() } }
-        scope.launch { loopWhileForeground(60_000) { localCount.value = runCatching { library.count() }.getOrDefault(0) } }
+        scope.launch { loopWhileForeground(60_000) { refreshLocalNames() } }
         scope.launch {
             while (isActive) {
                 if (lease.value.owner == "phone") host?.let { h ->
@@ -195,7 +179,12 @@ class Store(private val app: Application) {
                 if (current.owner != "phone") { heartbeatJob?.cancel(); heartbeatJob = null }
                 val h = host
                 if (h != null && !busy.value) {
-                    if (previous == "phone" && current.owner == "desk") { h.localPause(); h.useRemote() }
+                    if (previous == "phone" && current.owner == "desk") {
+                        h.localPause()
+                        h.useRemote()
+                        phoneQueue.value = emptyList()
+                        phoneIndex.value = -1
+                    }
                     if (current.owner == "phone" && !h.localHasMedia()) restoreLocal(current)
                 }
                 previous = current.owner
@@ -214,7 +203,6 @@ class Store(private val app: Application) {
         while (scope.isActive) {
             val ok = runCatching { config.value = bridge.config() }.isSuccess
             reachable.value = ok
-            if (ok && stats.value.isEmpty()) runCatching { stats.value = mpd.stats() }
             delay(if (ok) 30_000 else 5_000)
         }
     }
@@ -234,11 +222,18 @@ class Store(private val app: Application) {
     private suspend fun loopHeartbeat() {
         while (scope.isActive && lease.value.owner == "phone") {
             val h = host
-            if (h != null) runCatching {
-                lease.value = bridge.heartbeat(lease.value.file, h.localPositionMs() / 1000.0, h.localIsPlaying())
+            if (h != null && !busy.value) runCatching {
+                adopt(bridge.heartbeat(nowFile(), h.localPositionMs() / 1000.0, h.localIsPlaying()))
             }
             delay(5_000)
         }
+    }
+
+    private suspend fun adopt(remote: Lease) {
+        if (busy.value) return
+        val h = host
+        val lapsed = remote.owner == "desk" && lease.value.owner == "phone" && !remote.playing && h != null && h.localHasMedia()
+        lease.value = if (lapsed) bridge.takeLease("phone", nowFile(), h!!.localPositionMs() / 1000.0, h.localIsPlaying()) else remote
     }
 
     suspend fun refreshMpd() {
@@ -253,31 +248,27 @@ class Store(private val app: Application) {
     private fun refreshAll() = scope.launch {
         runCatching { refreshVolume() }
         runCatching { refreshLease() }
-        runCatching { refreshJobs() }
         runCatching { refreshPalette() }
-        if (hasApiKey.value) runCatching { refreshFolders() }
+        runCatching { refreshLocalNames() }
         val file = now.value.file
         if (file != null && lyrics.value == null && !lyricsBusy.value) loadLyrics(file)
     }
 
     suspend fun refreshVolume() { runCatching { volume.value = bridge.volume() } }
-    suspend fun refreshLease() { runCatching { lease.value = bridge.lease() } }
-    suspend fun refreshJobs() { runCatching { jobs.value = ytdl.jobs() } }
+    suspend fun refreshLease() { runCatching { adopt(bridge.lease()) } }
     suspend fun refreshPalette() { runCatching { palette.value = theme.palette() } }
 
-    suspend fun refreshFolders() {
-        if (!hasApiKey.value) return
-        try {
-            folders.value = syncFork.folders()
-            syncError.value = null
-        } catch (err: Exception) {
-            syncError.value = "sync-fork: ${err.message ?: "unreachable"}"
-        }
+    suspend fun refreshLocalNames(): Set<String> {
+        val names = runCatching { library.names() }.getOrDefault(localNames.value)
+        localNames.value = names
+        return names
     }
+
+    fun refreshLocalNamesAsync() = scope.launch { refreshLocalNames() }
 
     fun report(err: Throwable) {
         val text = when (err) {
-            is Unreachable -> "tailnet down · ${err.message}"
+            is Unreachable -> "desktop unreachable"
             else -> err.message ?: err.toString()
         }
         noticeJob?.cancel()
@@ -291,6 +282,10 @@ class Store(private val app: Application) {
     private fun restoreLocal(current: Lease) = scope.launch {
         val file = current.file ?: return@launch
         val track = runCatching { library.find(file) }.getOrNull() ?: return@launch
+        if (phoneQueue.value.isEmpty()) {
+            phoneQueue.value = listOf(MpdSong(file, current.artist, current.title, null, current.duration))
+            phoneIndex.value = 0
+        }
         host?.useLocal(track.uri, current.title ?: track.displayName, current.artist, (current.elapsed * 1000).toLong(), false)
     }
 
@@ -301,9 +296,15 @@ class Store(private val app: Application) {
     fun togglePlay() = act {
         val h = host
         if (now.value.phoneOwns && h != null) {
+            if (!h.localHasMedia()) restoreLocal(lease.value).join()
             if (h.localIsPlaying()) h.localPause() else h.localPlay()
         } else {
-            if (mpdSnapshot.value?.status?.playing == true) mpd.pause(true) else mpd.play()
+            val status = mpdSnapshot.value?.status
+            when {
+                status?.playing == true -> mpd.pause(true)
+                status?.state == "pause" -> mpd.pause(false)
+                else -> mpd.play()
+            }
             refreshMpd()
         }
     }
@@ -313,10 +314,7 @@ class Store(private val app: Application) {
     }
 
     fun previous() = act {
-        val h = host
-        if (now.value.phoneOwns && h != null) {
-            if (h.localPositionMs() > 3000) h.localSeek(0) else localAdvance(-1)
-        } else { mpd.previous(); refreshMpd() }
+        if (now.value.phoneOwns) localAdvance(-1) else { mpd.previous(); refreshMpd() }
     }
 
     fun seek(seconds: Double) = act {
@@ -325,106 +323,146 @@ class Store(private val app: Application) {
         else { mpd.seek(seconds); refreshMpd() }
     }
 
-    fun setMpdVolume(level: Int) = act { mpd.setVolume(level); refreshMpd() }
-    fun setFlag(flag: String, on: Boolean) = act { mpd.setFlag(flag, on); refreshMpd() }
-
     suspend fun setSinkVolume(level: Int) { volume.value = bridge.setVolume(level = level.coerceIn(0, 100)) }
     suspend fun setSinkMuted(muted: Boolean) { volume.value = bridge.setVolume(muted = muted) }
     suspend fun stepSinkVolume(step: Int) { volume.value = bridge.stepVolume(step) }
-    fun setSinkVolumeAsync(level: Int) = act { setSinkVolume(level) }
     fun setSinkMutedAsync(muted: Boolean) = act { setSinkMuted(muted) }
-    fun setDefaultSink(id: Int) = act { volume.value = bridge.setVolume(sink = id, makeDefault = true) }
+    fun stepSinkVolumeAsync(step: Int) = act { stepSinkVolume(step) }
+
+    fun dragSinkVolume(level: Int) {
+        volumeTarget = level
+        if (volumeJob?.isActive == true) return
+        volumeJob = scope.launch {
+            while (true) {
+                val target = volumeTarget ?: break
+                volumeTarget = null
+                try { setSinkVolume(target) } catch (err: Exception) { report(err); break }
+                delay(120)
+            }
+        }
+    }
 
     fun takeOver(target: String) = act {
         handoff.withLock {
             busy.value = true
             try {
                 val h = host ?: throw IllegalStateException("player not ready yet")
-                if (target == "phone") {
-                    val granted = bridge.takeLease("phone", null, null, null)
-                    val file = granted.file ?: throw IllegalStateException("desktop has nothing to hand over")
-                    val track = library.find(file)
-                    if (track == null) {
-                        bridge.takeLease("desk", granted.file, granted.elapsed, granted.playing)
-                        throw IllegalStateException("not synced to the phone yet: ${file.substringAfterLast('/')}")
-                    }
-                    lease.value = granted
-                    h.useLocal(track.uri, granted.title ?: track.displayName, granted.artist, (granted.elapsed * 1000).toLong(), granted.playing)
-                    loadLyrics(file)
-                } else {
-                    val positionMs = h.localPositionMs()
-                    val playing = h.localIsPlaying()
-                    h.localPause()
-                    val granted = bridge.takeLease("desk", lease.value.file, positionMs / 1000.0, playing)
-                    lease.value = granted
-                    h.useRemote()
-                    refreshMpd()
-                }
+                if (target == "phone") moveToPhone(h) else moveToDesk(h)
             } finally {
                 busy.value = false
             }
         }
     }
 
-    private suspend fun localAdvance(step: Int) {
-        val h = host ?: return
-        val snap = mpdSnapshot.value ?: return
-        val currentPos = snap.status.song ?: return
-        val targetPos = currentPos + step
-        if (targetPos < 0 || targetPos >= snap.status.playlistLength) return
-        val song = mpd.queueWindow(targetPos, targetPos + 1).firstOrNull() ?: return
-        val track = library.find(song.file) ?: throw IllegalStateException("not synced to the phone yet: ${song.file.substringAfterLast('/')}")
-        song.id?.let { mpd.playId(it); mpd.pause(true) }
+    private suspend fun moveToPhone(h: PlayerHost) {
+        val snap = mpdSnapshot.value
+        val online = reachable.value
+        val granted = if (online) bridge.takeLease("phone", null, null, null) else {
+            runCatching { if (snap?.status?.playing == true) mpd.pause(true) }
+            Lease(
+                owner = "phone",
+                file = snap?.song?.file,
+                elapsed = remoteElapsedMs() / 1000.0,
+                playing = snap?.status?.playing ?: false,
+                artist = snap?.song?.artist,
+                title = snap?.song?.title,
+                duration = snap?.status?.duration ?: snap?.song?.duration,
+            )
+        }
+        val file = granted.file ?: throw IllegalStateException("desktop has nothing to hand over")
+        val track = library.find(file)
+        if (track == null) {
+            if (online) bridge.takeLease("desk", granted.file, granted.elapsed, granted.playing)
+            throw IllegalStateException("not on the phone yet · ${file.substringAfterLast('/')}")
+        }
+        val names = refreshLocalNames()
+        val copied = runCatching { copyQueue(snap, file, names) }.getOrDefault(emptyList())
+        val current = MpdSong(file, granted.artist, granted.title, null, granted.duration)
+        val queue = if (copied.any { it.file == file }) copied else listOf(current) + copied
+        phoneQueue.value = queue
+        phoneIndex.value = queue.indexOfFirst { it.file == file }
+        lease.value = granted
+        h.useLocal(track.uri, granted.title ?: track.displayName, granted.artist, (granted.elapsed * 1000).toLong(), granted.playing)
+        loadLyrics(file)
+    }
+
+    private suspend fun copyQueue(snap: MpdSnapshot?, file: String, names: Set<String>): List<MpdSong> {
+        val status = snap?.status ?: return emptyList()
+        val local = mpd.queueWindow(0, status.playlistLength).filter { it.file.substringAfterLast('/') in names }
+        if (!status.random) return local
+        return listOfNotNull(local.firstOrNull { it.file == file }) + local.filter { it.file != file }.shuffled()
+    }
+
+    private suspend fun moveToDesk(h: PlayerHost) {
+        val positionMs = h.localPositionMs()
+        val playing = h.localIsPlaying()
+        h.localPause()
+        val granted = try {
+            bridge.takeLease("desk", nowFile(), positionMs / 1000.0, playing)
+        } catch (err: Exception) {
+            if (playing) h.localPlay()
+            throw err
+        }
+        lease.value = granted
+        phoneQueue.value = emptyList()
+        phoneIndex.value = -1
+        h.useRemote()
         refreshMpd()
-        lease.value = lease.value.copy(file = song.file, title = song.title, artist = song.artist, duration = song.duration, elapsed = 0.0)
-        h.useLocal(track.uri, song.title ?: track.displayName, song.artist, 0, true)
-        runCatching { bridge.heartbeat(song.file, 0.0, true) }
+    }
+
+    private suspend fun startLocal(h: PlayerHost, song: MpdSong, track: LocalTrack, positionMs: Long, play: Boolean) {
+        lease.value = lease.value.copy(file = song.file, title = song.title, artist = song.artist, duration = song.duration, elapsed = positionMs / 1000.0)
+        h.useLocal(track.uri, song.name, song.artist, positionMs, play)
+        runCatching { bridge.heartbeat(song.file, positionMs / 1000.0, play) }
         loadLyrics(song.file)
     }
 
+    private suspend fun localAdvance(step: Int) {
+        val h = host ?: return
+        val queue = phoneQueue.value
+        if (queue.isEmpty()) return
+        var index = phoneIndex.value + step
+        if (index < 0 || index >= queue.size) {
+            if (mpdSnapshot.value?.status?.repeat != true) return
+            index = (index + queue.size) % queue.size
+        }
+        val song = queue[index]
+        val track = library.find(song.file) ?: throw IllegalStateException("not on the phone yet · ${song.name}")
+        phoneIndex.value = index
+        startLocal(h, song, track, 0, true)
+    }
+
     fun localEnded() = act {
-        val snap = mpdSnapshot.value ?: return@act
-        if (snap.status.single) return@act
+        val status = mpdSnapshot.value?.status
+        if (status?.single == true) {
+            if (status.repeat) host?.let { it.localSeek(0); it.localPlay() }
+            return@act
+        }
         localAdvance(1)
     }
 
-    fun jumpTo(song: MpdSong) = act {
-        val id = song.id ?: return@act
-        if (now.value.phoneOwns) {
-            val h = host ?: return@act
-            val track = library.find(song.file) ?: throw IllegalStateException("not synced to the phone yet")
-            mpd.playId(id); mpd.pause(true); refreshMpd()
-            lease.value = lease.value.copy(file = song.file, title = song.title, artist = song.artist, duration = song.duration, elapsed = 0.0)
-            h.useLocal(track.uri, song.title ?: track.displayName, song.artist, 0, true)
-            runCatching { bridge.heartbeat(song.file, 0.0, true) }
+    fun playSong(song: MpdSong) = act {
+        val h = host
+        if (now.value.phoneOwns && h != null) {
+            val track = library.find(song.file) ?: throw IllegalStateException("not on the phone yet · ${song.name}")
+            val queue = phoneQueue.value.toMutableList()
+            val at = (phoneIndex.value + 1).coerceIn(0, queue.size)
+            queue.add(at, song)
+            phoneQueue.value = queue
+            phoneIndex.value = at
+            startLocal(h, song, track, 0, true)
         } else {
+            val id = mpd.addId(song.file, afterCurrent = mpdSnapshot.value?.status?.song != null)
             mpd.playId(id)
             refreshMpd()
         }
     }
 
-    suspend fun queueWindow(): List<MpdSong> {
-        val snap = mpdSnapshot.value ?: return emptyList()
-        val pos = snap.status.song ?: 0
-        val start = (pos - 10).coerceAtLeast(0)
-        return mpd.queueWindow(start, (pos + 40).coerceAtMost(snap.status.playlistLength))
-    }
+    private fun visible(songs: List<MpdSong>) = songs.filter { !it.file.startsWith(".") && !it.file.contains("/.") }
 
-    suspend fun search(term: String): Pair<List<MpdSong>, List<HubService>> {
-        val hosts = config.value?.hub?.services.orEmpty().filter {
-            it.name.contains(term, true) || it.host.contains(term, true) || it.desc.contains(term, true)
-        }.take(6)
-        val songs = runCatching { mpd.search(term, 12) }.getOrDefault(emptyList())
-        return songs to hosts
-    }
+    suspend fun recent(): List<MpdSong> = visible(mpd.recent(200))
 
-    fun download(url: String, mode: String, toClient: Boolean) = act {
-        val job = ytdl.download(url.trim(), mode, toClient)
-        jobs.value = listOf(job) + jobs.value.filter { it.id != job.id }
-        refreshJobs()
-    }
-
-    fun cancelJob(id: String) = act { ytdl.cancel(id); refreshJobs() }
+    suspend fun find(term: String): List<MpdSong> = visible(mpd.find(term, 120))
 
     fun loadLyrics(file: String) = scope.launch {
         if (lyricsFile.value != file) lyrics.value = null
@@ -437,28 +475,6 @@ class Store(private val app: Application) {
         } finally {
             lyricsBusy.value = false
         }
-    }
-
-    fun rescan() = act {
-        syncBusy.value = true
-        try {
-            syncFork.rescan()
-            delay(1500)
-            refreshFolders()
-        } finally {
-            syncBusy.value = false
-        }
-    }
-
-    fun setApiKey(key: String) {
-        prefs.syncForkApiKey = key.trim().ifBlank { null }
-        hasApiKey.value = prefs.syncForkApiKey != null
-        act { refreshFolders() }
-    }
-
-    suspend fun awaitHost(): PlayerHost? {
-        if (host != null) return host
-        return runCatching { kotlinx.coroutines.withTimeout(3000) { tick.first { host != null } }; host }.getOrNull()
     }
 }
 

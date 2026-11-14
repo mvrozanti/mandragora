@@ -63,7 +63,7 @@ class RemotePlayer(looper: Looper, private val store: Store) : SimpleBasePlayer(
         if (song != null && status != null) {
             val metadata = MediaMetadata.Builder()
                 .setTitle(song.title ?: song.file.substringAfterLast('/').substringBeforeLast('.'))
-                .setArtist(listOfNotNull(song.artist, "on desktop").joinToString(" · "))
+                .setArtist(listOfNotNull(song.artist, "on the desktop").joinToString(" · "))
                 .setAlbumTitle(song.album)
                 .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
                 .build()
