@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# @vicinae.schemaVersion 1
+# @vicinae.title Claude
+# @vicinae.description Ask Claude Code in a new tmux window of the current session
+# @vicinae.mode silent
+# @vicinae.packageName tmux
+# @vicinae.icon 🤖
+# @vicinae.argument1 { "type": "text", "placeholder": "prompt", "optional": true }
+
+vicinae close >/dev/null 2>&1 || true
+exec claude-tmux-prompt "$@"

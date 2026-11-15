@@ -27,6 +27,13 @@
       "preferences": {
         "autoIndexing": false
       }
+    },
+    "scripts": {
+      "entrypoints": {
+        "claude": {
+          "alias": "claude"
+        }
+      }
     }
   }
 }

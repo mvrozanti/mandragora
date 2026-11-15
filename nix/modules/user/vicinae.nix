@@ -1,4 +1,4 @@
-_:
+{ pkgs, ... }:
 
 let
   onboardingCompletedForEveryVersion = {
@@ -15,4 +15,12 @@ in
   };
 
   xdg.stateFile."vicinae/onboarding.json".text = builtins.toJSON onboardingCompletedForEveryVersion;
+
+  xdg.dataFile."vicinae/scripts/claude".source = ../../../.local/share/vicinae/scripts/claude;
+
+  home.packages = [
+    (pkgs.writeShellScriptBin "claude-tmux-prompt" (
+      builtins.readFile ../../../.local/bin/claude-tmux-prompt.sh
+    ))
+  ];
 }
