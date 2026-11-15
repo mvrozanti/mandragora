@@ -193,7 +193,7 @@ fun OwnerSwitch(now: NowState, deskReachable: Boolean, busy: Boolean, onTake: (S
             .border(1.dp, scheme.outlineVariant, RoundedCornerShape(32.dp))
             .drawBehind {
                 val inset = 4.dp.toPx()
-                val width = size.width / 2 - inset
+                val width = size.width / 2 - 2 * inset
                 drawRoundRect(
                     color = primary.copy(alpha = if (busy) pulse else 1f),
                     topLeft = Offset(inset + knob * (size.width / 2), inset),
@@ -233,13 +233,14 @@ private fun Side(icon: ImageVector, label: String, caption: String, selected: Bo
         modifier = modifier
             .fillMaxHeight()
             .clickable(enabled = !selected && !busy, onClick = onClick)
-            .alpha(if (dim) 0.4f else 1f),
+            .alpha(if (dim) 0.4f else 1f)
+            .padding(horizontal = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Icon(icon, null, tint = tint, modifier = Modifier.size(24.dp))
-        Column {
-            Text(label, style = MaterialTheme.typography.titleMedium, color = tint)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.titleMedium, color = tint, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Label(caption, color = tint.copy(alpha = 0.75f))
         }
     }

@@ -53,10 +53,12 @@ fun MusicScreen(store: Store, onCollapse: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("music", reachable, onCollapse)
         Banner(reachable)
-        Box(modifier = Modifier.padding(horizontal = 14.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             VolumeBar(volume, enabled = reachable, onDrag = store::dragSinkVolume) {
                 store.setSinkMutedAsync(volume.sink?.muted != true)
             }
+            OwnerSwitch(now, deskReachable = reachable, busy = busy) { store.takeOver(it) }
+            Notice(store)
         }
         Column(
             modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 22.dp),
@@ -86,8 +88,6 @@ fun MusicScreen(store: Store, onCollapse: () -> Unit) {
             ProgressRow(now) { store.seek(it) }
             Transport(now, onToggle = store::togglePlay, onNext = store::next, onPrevious = store::previous)
             Label(now.next?.let { "next · $it" } ?: "")
-            OwnerSwitch(now, deskReachable = reachable, busy = busy) { store.takeOver(it) }
-            Notice(store)
         }
         FindBar { find = true }
     }

@@ -20,7 +20,7 @@ the app             app/  (built in `nix develop /etc/nixos/mandragora#phone`, p
 | Sync-Fork (`com.github.catfriend1.syncthingandroid`) | Music receive-only, six inbox folders send-receive | `identity.json`, `nix/modules/desktop/syncthing.nix`, `phone-syncthing-bootstrap` |
 | KDE Connect | clipboard, notifications, trackpad, system volume fallback | `nix/modules/desktop/kdeconnect.nix` |
 | DroidCam | mjpeg for the kindle camera widget | `nix/modules/services/kindle-cam.nix` |
-| mandragora (this repo's app) | one screen: desktop volume, the song, the pill that moves it, "play something" | `app/` |
+| mandragora (this repo's app) | one screen: desktop volume, the pill that moves the music, the song, "play something" | `app/` |
 
 ## What the desktop serves for it
 
@@ -43,7 +43,10 @@ Exactly one device plays. `lease.owner` is `desk` or `phone`.
 - `POST /api/lease {"owner":"phone"}`: mpd pauses, the current file and second
   are recorded, the phone plays its synced copy from that second.
 - `POST /api/lease/position {...}` every few seconds while the phone plays, and
-  on pause: the desktop always knows where the phone is.
+  on pause: the desktop always knows where the phone is. The body names the
+  song (file, title, artist, duration), not only the file; a heartbeat that
+  changes the file without them makes the bridge read the tags from mpd's
+  database, so the lease never describes one song with another's name.
 - `POST /api/lease {"owner":"desk"}`: mpd plays the recorded file from the
   recorded second (inserted right after the current song if it is not in the
   queue), paused if the phone was paused.
@@ -96,7 +99,7 @@ pop-ups, errors sit on one reserved line under the pill.
 | State | The screen shows | Taps act on |
 |---|---|---|
 | desktop owns | mpd's current song, position, play state | mpd, the queue ncmpcpp shows |
-| phone owns | the phone's current song | the phone's queue: the copy taken from mpd when the music moved, minus files not synced |
+| phone owns | the phone's current song | the phone's queue: the copy taken from mpd when the music moved (taken again when the app comes back mid-lease), minus files not synced |
 | nobody playing | the last song wherever the pill points, paused | that side |
 | desktop unreachable | banner under the header; slider and desktop side greyed | the phone only |
 
