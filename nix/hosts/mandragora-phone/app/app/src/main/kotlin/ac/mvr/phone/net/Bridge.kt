@@ -119,9 +119,14 @@ class BridgeClient(private val baseUrl: () -> String) {
         return json.decodeFromString(Http.post("${baseUrl()}/api/lease", body))
     }
 
-    suspend fun heartbeat(file: String?, elapsed: Double, playing: Boolean): Lease {
+    suspend fun heartbeat(song: MpdSong?, elapsed: Double, playing: Boolean): Lease {
         val body: JsonObject = buildJsonObject {
-            file?.let { put("file", it) }
+            song?.let {
+                put("file", it.file)
+                put("title", it.title)
+                put("artist", it.artist)
+                put("duration", it.duration)
+            }
             put("elapsed", elapsed)
             put("playing", playing)
         }

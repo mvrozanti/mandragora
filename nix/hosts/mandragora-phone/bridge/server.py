@@ -360,14 +360,13 @@ def take_lease(body: dict) -> dict:
                     mpd_command("pause 1")
             except (OSError, MpdError, KeyError, ValueError):
                 now = {}
+            file = body.get("file") or now.get("file") or current.get("file")
             lease = {
                 "owner": "phone",
-                "file": body.get("file") or now.get("file") or current.get("file"),
+                "file": file,
                 "elapsed": float(body.get("elapsed", now.get("elapsed", current.get("elapsed", 0.0)))),
                 "playing": bool(body.get("playing", now.get("playing", False))),
-                "artist": now.get("artist", current.get("artist")),
-                "title": now.get("title", current.get("title")),
-                "duration": now.get("duration", current.get("duration")),
+                **song_tags(file, body, now or None, current),
                 "since": time.time(),
             }
         else:
@@ -383,6 +382,35 @@ def take_lease(body: dict) -> dict:
         return lease
 
 
+def mpd_tags(file: str) -> dict:
+    song = mpd_dict(f"find file {mpd_quote(file)}")
+    return {
+        "artist": song.get("Artist"),
+        "title": song.get("Title"),
+        "duration": float(song["duration"]) if song.get("duration") else None,
+    }
+
+
+def song_tags(file: str | None, body: dict, now: dict | None, previous: dict) -> dict:
+    keys = ("artist", "title", "duration")
+    tags = {key: body[key] for key in keys if key in body}
+    if len(tags) == len(keys):
+        return tags
+    source: dict | None = None
+    if now and now.get("file") == file:
+        source = now
+    elif previous.get("file") == file:
+        source = previous
+    elif file:
+        try:
+            source = mpd_tags(file)
+        except (OSError, MpdError, ValueError):
+            source = None
+    for key in keys:
+        tags.setdefault(key, (source or {}).get(key))
+    return tags
+
+
 def heartbeat(body: dict) -> dict:
     with lease_lock:
         lease = read_lease()
@@ -391,9 +419,11 @@ def heartbeat(body: dict) -> dict:
             settled = desk_lease(now, lease)
             write_lease(settled)
             return settled
-        for key in ("file", "elapsed", "playing", "artist", "title", "duration"):
+        previous = dict(lease)
+        for key in ("file", "elapsed", "playing"):
             if key in body:
                 lease[key] = body[key]
+        lease.update(song_tags(lease.get("file"), body, now, previous))
         lease["heartbeat"] = time.time()
         write_lease(lease)
         return lease

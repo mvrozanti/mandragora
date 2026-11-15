@@ -138,7 +138,7 @@ class Store(private val app: Application) {
                 title = song?.name ?: lease.title ?: file?.substringAfterLast('/')?.substringBeforeLast('.') ?: "nothing playing",
                 artist = song?.artist ?: lease.artist,
                 elapsed = phone.positionMs / 1000.0,
-                duration = song?.duration ?: lease.duration ?: (phone.durationMs / 1000.0),
+                duration = phone.durationMs.takeIf { it > 0 }?.let { it / 1000.0 } ?: song?.duration ?: lease.duration ?: 0.0,
                 playing = phone.playing,
                 next = phoneNext(phone.queue, phone.index)?.name,
             )
@@ -163,7 +163,10 @@ class Store(private val app: Application) {
         return queue.getOrNull(index + 1) ?: if (mpdSnapshot.value?.status?.repeat == true) queue.first() else null
     }
 
-    private fun nowFile(): String? = phoneQueue.value.getOrNull(phoneIndex.value)?.file ?: lease.value.file
+    private fun nowSong(): MpdSong? = phoneQueue.value.getOrNull(phoneIndex.value)
+        ?: lease.value.let { current -> current.file?.let { MpdSong(it, current.artist, current.title, null, current.duration) } }
+
+    private fun nowFile(): String? = nowSong()?.file
 
     fun start() {
         scope.launch {
@@ -250,7 +253,7 @@ class Store(private val app: Application) {
         while (scope.isActive && lease.value.owner == "phone") {
             val h = host
             if (h != null && !busy.value) runCatching {
-                adopt(bridge.heartbeat(nowFile(), phonePositionMs(h) / 1000.0, h.localIsPlaying()))
+                adopt(bridge.heartbeat(nowSong(), phonePositionMs(h) / 1000.0, h.localIsPlaying()))
             }
             delay(5_000)
         }
@@ -328,11 +331,17 @@ class Store(private val app: Application) {
     private fun restoreLocal(current: Lease) = scope.launch {
         val file = current.file ?: return@launch
         val track = runCatching { library.find(file) }.getOrNull() ?: return@launch
-        if (phoneQueue.value.isEmpty()) {
-            phoneQueue.value = listOf(MpdSong(file, current.artist, current.title, null, current.duration))
+        val seed = listOf(MpdSong(file, current.artist, current.title, null, current.duration))
+        val fresh = phoneQueue.value.isEmpty()
+        if (fresh) {
+            phoneQueue.value = seed
             phoneIndex.value = 0
         }
         host?.useLocal(track.uri, current.title ?: track.displayName, current.artist, (current.elapsed * 1000).toLong(), false, library.artwork(track.uri))
+        if (fresh) {
+            if (mpdSnapshot.value == null) runCatching { refreshMpd() }
+            extendQueue(seed, file)
+        }
     }
 
     fun act(block: suspend () -> Unit): Job = scope.launch {
@@ -432,6 +441,10 @@ class Store(private val app: Application) {
         lease.value = granted
         h.useLocal(track.uri, granted.title ?: track.displayName, granted.artist, (granted.elapsed * 1000).toLong(), granted.playing, library.artwork(track.uri))
         loadLyrics(file)
+        extendQueue(seed, file, snap)
+    }
+
+    private suspend fun extendQueue(seed: List<MpdSong>, file: String, snap: MpdSnapshot? = mpdSnapshot.value) {
         val names = refreshLocalNames()
         val copied = runCatching { copyQueue(snap, file, names) }.getOrDefault(emptyList())
         if (phoneQueue.value !== seed || phoneIndex.value != 0) return
@@ -469,7 +482,7 @@ class Store(private val app: Application) {
     private suspend fun startLocal(h: PlayerHost, song: MpdSong, track: LocalTrack, positionMs: Long, play: Boolean) {
         lease.value = lease.value.copy(file = song.file, title = song.title, artist = song.artist, duration = song.duration, elapsed = positionMs / 1000.0)
         h.useLocal(track.uri, song.name, song.artist, positionMs, play, library.artwork(track.uri))
-        runCatching { bridge.heartbeat(song.file, positionMs / 1000.0, play) }
+        runCatching { bridge.heartbeat(song, positionMs / 1000.0, play) }
         loadLyrics(song.file)
     }
 
