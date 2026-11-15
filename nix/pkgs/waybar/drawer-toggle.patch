@@ -1,6 +1,6 @@
 diff '--color=auto' -ru '--exclude=.git' '--exclude=_codeql_detected_source_root' a/include/group.hpp b/include/group.hpp
 --- a/include/group.hpp	2026-11-15 14:12:40.172753894 -0300
-+++ b/include/group.hpp	2026-11-15 14:14:24.667946385 -0300
++++ b/include/group.hpp	2026-11-15 14:33:08.675997643 -0300
 @@ -4,6 +4,9 @@
  #include <gtkmm/widget.h>
  #include <json/json.h>
@@ -11,7 +11,7 @@ diff '--color=auto' -ru '--exclude=.git' '--exclude=_codeql_detected_source_root
  #include "AModule.hpp"
  #include "gtkmm/revealer.h"
  
-@@ -26,6 +29,20 @@
+@@ -26,6 +29,22 @@
    bool is_first_widget = true;
    bool is_drawer = false;
    bool click_to_reveal = false;
@@ -28,6 +28,8 @@ diff '--color=auto' -ru '--exclude=.git' '--exclude=_codeql_detected_source_root
 +  void save_state();
 +  int shown() const;
 +  void apply_slots(bool animate);
++  void cycle_to(int next);
++  Gtk::RevealerTransitionType slide(bool toward_start) const;
 +  bool handleScroll(GdkEventScroll* e) override;
    std::string add_class_to_drawer_children;
    bool handleMouseEnter(GdkEventCrossing* const& ev) override;
@@ -74,7 +76,7 @@ diff '--color=auto' -ru '--exclude=.git' '--exclude=_codeql_detected_source_root
            }
 diff '--color=auto' -ru '--exclude=.git' '--exclude=_codeql_detected_source_root' a/src/group.cpp b/src/group.cpp
 --- a/src/group.cpp	2026-11-15 14:12:40.179063593 -0300
-+++ b/src/group.cpp	2026-11-15 14:25:58.573142704 -0300
++++ b/src/group.cpp	2026-11-15 14:33:08.676228412 -0300
 @@ -2,6 +2,11 @@
  
  #include <fmt/format.h>
@@ -186,7 +188,7 @@ diff '--color=auto' -ru '--exclude=.git' '--exclude=_codeql_detected_source_root
  }
  
  bool Group::handleMouseEnter(GdkEventCrossing* const& e) {
-@@ -109,17 +167,89 @@
+@@ -109,17 +167,119 @@
  }
  
  bool Group::handleToggle(GdkEventButton* const& e) {
@@ -201,9 +203,9 @@ diff '--color=auto' -ru '--exclude=.git' '--exclude=_codeql_detected_source_root
      show_group();
    }
 +  save_state();
-+  return true;
-+}
-+
+   return true;
+ }
+ 
 +bool Group::handleScroll(GdkEventScroll* e) {
 +  if (!cycle_on_scroll || revealed || slots.size() < 2) {
 +    return false;
@@ -226,12 +228,42 @@ diff '--color=auto' -ru '--exclude=.git' '--exclude=_codeql_detected_source_root
 +      break;
 +    }
 +  }
-+  shown_index = next;
-+  apply_slots(false);
++  cycle_to(next);
 +  save_state();
-   return true;
- }
- 
++  return true;
++}
++
++Gtk::RevealerTransitionType Group::slide(bool toward_start) const {
++  if (vertical_) {
++    return toward_start ? Gtk::RevealerTransitionType::REVEALER_TRANSITION_TYPE_SLIDE_UP
++                        : Gtk::RevealerTransitionType::REVEALER_TRANSITION_TYPE_SLIDE_DOWN;
++  }
++  return toward_start ? Gtk::RevealerTransitionType::REVEALER_TRANSITION_TYPE_SLIDE_LEFT
++                      : Gtk::RevealerTransitionType::REVEALER_TRANSITION_TYPE_SLIDE_RIGHT;
++}
++
++void Group::cycle_to(int next) {
++  const int previous = shown();
++  shown_index = next;
++  const bool forward = next > previous;
++  for (int i = 0; i < static_cast<int>(slots.size()); i++) {
++    auto& slot = *slots[i];
++    const bool at_rest = slot.get_child_revealed() == slot.get_reveal_child();
++    if (at_rest && i == next) {
++      slot.set_transition_type(slide(forward));
++    } else if (at_rest && i == previous) {
++      slot.set_transition_type(slide(!forward));
++    }
++    slot.set_reveal_child(i == next);
++    auto style = slot_widgets[i]->get_style_context();
++    if (i == next) {
++      style->remove_class(add_class_to_drawer_children);
++    } else {
++      style->add_class(add_class_to_drawer_children);
++    }
++  }
++}
++
 +int Group::shown() const {
 +  const int count = static_cast<int>(slots.size());
 +  if (shown_index < count) {
@@ -278,7 +310,7 @@ diff '--color=auto' -ru '--exclude=.git' '--exclude=_codeql_detected_source_root
  auto Group::update() -> void {
    // noop
  }
-@@ -127,6 +257,19 @@
+@@ -127,6 +287,19 @@
  Gtk::Box& Group::getBox() { return is_drawer ? (is_first_widget ? box : revealer_box) : box; }
  
  void Group::addWidget(Gtk::Widget& widget) {
