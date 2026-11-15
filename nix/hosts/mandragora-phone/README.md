@@ -19,6 +19,7 @@ the app             app/  (built in `nix develop /etc/nixos/mandragora#phone`, p
 | Tailscale | the only network path the desktop trusts | tailnet admin; ip in `tailnet.json` |
 | Sync-Fork (`com.github.catfriend1.syncthingandroid`) | Music receive-only, six inbox folders send-receive | `identity.json`, `nix/modules/desktop/syncthing.nix`, `phone-syncthing-bootstrap` |
 | KDE Connect | clipboard, notifications, trackpad, system volume fallback | `nix/modules/desktop/kdeconnect.nix` |
+| the stock calendar app | the Google and the Hotmail calendar, each signed in on the phone as its own account; the desktop syncs the same two | the accounts themselves; desktop side in [`docs/calendar.md`](../../../docs/calendar.md) |
 | DroidCam | mjpeg for the kindle camera widget | `nix/modules/services/kindle-cam.nix` |
 | mandragora (this repo's app) | one screen: desktop volume, the pill that moves the music, the song, "play something" (the find screen) | `app/` |
 

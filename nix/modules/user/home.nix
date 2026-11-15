@@ -37,6 +37,7 @@ in
     ./tmux.nix
     ./yazi.nix
     ./services.nix
+    ./calendar.nix
     ./bots.nix
     ./waybar.nix
     ./money-menu.nix

@@ -1,0 +1,20 @@
+[general]
+status_path = "~/.local/state/vdirsyncer/status/"
+
+[pair google]
+a = "google_local"
+b = "google_remote"
+collections = ["from a", "from b"]
+metadata = ["color", "displayname"]
+conflict_resolution = "b wins"
+
+[storage google_local]
+type = "filesystem"
+path = "~/.local/share/calendars/google/"
+fileext = ".ics"
+
+[storage google_remote]
+type = "google_calendar"
+token_file = "~/.local/state/vdirsyncer/google.token"
+client_id.fetch = ["shell", "cat ~/.local/state/vdirsyncer/google-client-id"]
+client_secret.fetch = ["shell", "cat ~/.local/state/vdirsyncer/google-client-secret"]
