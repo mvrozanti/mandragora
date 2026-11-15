@@ -1,6 +1,8 @@
 package ac.mvr.phone.state
 
 import android.app.Application
+import android.content.ComponentName
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.SystemClock
@@ -304,6 +306,20 @@ class Store(private val app: Application) {
     }
 
     fun refreshLocalNamesAsync() = scope.launch { refreshLocalNames() }
+
+    fun applyIconBucket() {
+        val hsv = FloatArray(3)
+        runCatching { android.graphics.Color.colorToHSV(android.graphics.Color.parseColor(palette.value.primary), hsv) }.getOrElse { return }
+        val bucket = ((Math.round(hsv[0] / 30f) % 12) + 12) % 12
+        val current = prefs.iconBucket
+        if (bucket == current) return
+        val pm = app.packageManager
+        runCatching {
+            pm.setComponentEnabledSetting(ComponentName(app, "ac.mvr.phone.Icon$bucket"), PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
+            pm.setComponentEnabledSetting(ComponentName(app, "ac.mvr.phone.Icon$current"), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
+            prefs.iconBucket = bucket
+        }
+    }
 
     fun report(err: Throwable) {
         val text = when (err) {

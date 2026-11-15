@@ -12,6 +12,9 @@ bottom are the ones that decide which.
 - `phone-bridge` on the desktop: config, desktop sink volume, the playback
   lease, lyrics.
 - mpd reachable over the tailnet.
+- The launcher icon (2026-11-15): the two-tone sprout, traced from the chosen
+  render into a vector, compiled as twelve hue variants that follow the
+  desktop's wallpaper palette; the candidate pages are kept in `app/icon/`.
 - The panic card (2026-11-15): pressure gauges and the eight heaviest user
   units, two taps to kill one through `cgroup.kill`, from a card on home and
   its own screen.

@@ -37,6 +37,10 @@ class Prefs(context: Context) {
         sp.edit().putString("hubClicks", obj.toString()).apply()
     }
 
+    var iconBucket: Int
+        get() = sp.getInt("iconBucket", 8)
+        set(value) = sp.edit().putInt("iconBucket", value).apply()
+
     var lastMoney: String?
         get() = sp.getString("lastMoney", null)
         set(value) = putIfChanged("lastMoney", value)

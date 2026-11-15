@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_plate_0">#4d0d0f</color>
+    <color name="ic_plate_1">#4d2b0d</color>
+    <color name="ic_plate_2">#4d4b0d</color>
+    <color name="ic_plate_3">#2f4d0d</color>
+    <color name="ic_plate_4">#0f4d0d</color>
+    <color name="ic_plate_5">#0d4d2b</color>
+    <color name="ic_plate_6">#0d4d4b</color>
+    <color name="ic_plate_7">#0d2f4d</color>
+    <color name="ic_plate_8">#0d0f4d</color>
+    <color name="ic_plate_9">#2b0d4d</color>
+    <color name="ic_plate_10">#4b0d4d</color>
+    <color name="ic_plate_11">#4d0d2f</color>
+</resources>

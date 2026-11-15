@@ -215,6 +215,15 @@ phone would be used, music included. Rendering is software by default
 Hyprland; `PHONE_EMU_HEADLESS=1` boots it with no window and no audio, for
 checks driven over adb while nobody is looking.
 
+## The icon
+
+The launcher icon is the two-tone sprout chosen on 2026-11-15 and it follows
+the desktop's wallpaper: twelve hue variants are compiled in as
+`activity-alias` entries and the app enables the one nearest the live
+palette's primary hue whenever it leaves the foreground. `app/icon/README.md`
+has the mechanism, the generator and the candidate pages from the three
+rounds, for the next time the icon changes.
+
 ## Building the app
 
 `app/` is a plain Gradle project (AGP 8.7, Kotlin 2.1, Compose, Media3). The

@@ -96,6 +96,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         store.foreground.value = false
+        store.applyIconBucket()
         controllerFuture?.let { MediaController.releaseFuture(it) }
         controllerFuture = null
         super.onStop()
