@@ -18,5 +18,15 @@
   },
   "launcher_window": {
     "opacity": 0.85
+  },
+  "input_server": {
+    "enabled": false
+  },
+  "providers": {
+    "files": {
+      "preferences": {
+        "autoIndexing": false
+      }
+    }
   }
 }
