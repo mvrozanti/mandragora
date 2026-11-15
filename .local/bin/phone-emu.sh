@@ -18,6 +18,7 @@ export ANDROID_USER_HOME="$STATE/android"
 export ANDROID_AVD_HOME="$STATE/avd"
 export ANDROID_EMULATOR_HOME="$STATE/android"
 mkdir -p "$ANDROID_AVD_HOME" "$ANDROID_USER_HOME"
+[ -f "$HOME/.android/debug.keystore" ] && command cp -f "$HOME/.android/debug.keystore" "$ANDROID_USER_HOME/debug.keystore"
 
 set_ini() {
   local file="$1" key="$2" value="$3"
@@ -58,7 +59,15 @@ if [ -z "$APK" ]; then
 fi
 [ -f "$APK" ] || { echo "phone-emu: no apk found" >&2; exit 1; }
 
-adb -s "$SERIAL" install -r "$APK" > /dev/null
+if ! out=$(adb -s "$SERIAL" install -r "$APK" 2>&1); then
+  case "$out" in
+    *INSTALL_FAILED_UPDATE_INCOMPATIBLE*)
+      echo "phone-emu: replacing an app signed with another key"
+      adb -s "$SERIAL" uninstall "$PACKAGE" > /dev/null
+      adb -s "$SERIAL" install -r "$APK" > /dev/null ;;
+    *) echo "$out" >&2; exit 1 ;;
+  esac
+fi
 adb -s "$SERIAL" shell pm grant "$PACKAGE" android.permission.POST_NOTIFICATIONS 2> /dev/null || true
 adb -s "$SERIAL" shell pm grant "$PACKAGE" android.permission.READ_MEDIA_AUDIO 2> /dev/null || true
 

@@ -174,7 +174,11 @@ screen) under `~/.local/share/mandragora-phone/`, boots it, builds the debug
 APK unless `PHONE_APK` names one, installs it, grants notifications and music
 access, pushes the song mpd is on plus the twelve newest files from `~/Music`
 into the device's Music folder so the phone side has something to play, and
-opens the app. Later runs reuse the booted device. The emulator reaches the
+opens the app. Later runs reuse the booted device. The build signs with the
+same debug key `phone-push` uses (`~/.android/debug.keystore`, copied into the
+emulator's user home on every run), so a build from either tool installs over
+the other; an app on the device signed with any other key is uninstalled and
+installed afresh. The emulator reaches the
 desktop's tailnet address through the host, so the volume bar, the pill and
 "play something" act on the real mpd and the real sink; use it the way the
 phone would be used, music included. Rendering is software by default
