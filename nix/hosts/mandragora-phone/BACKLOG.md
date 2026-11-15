@@ -12,8 +12,10 @@ bottom are the ones that decide which.
 - `phone-bridge` on the desktop: config, desktop sink volume, the playback
   lease, lyrics.
 - mpd reachable over the tailnet.
-- `phone-push`: build the app in the `phone` dev shell and install it over
-  wireless debugging.
+- `phone-push`: build the app in the `phone` dev shell and publish it to the
+  bridge (2026-11-15; before that, install it over wireless debugging, still
+  there behind `PHONE_ADB_ADDR`). The app offers the published build on home
+  and hands it to Android's installer, so wireless debugging stays off.
 - `phone-emu`: the same APK in the Android emulator on the desktop, against
   the real mpd and sink, with real songs in its Music folder.
 - The app v0.1 (2026-11-02): Verbs home, The Stage player, six sheets, share

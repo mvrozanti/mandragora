@@ -34,6 +34,7 @@ fun HomeScreen(store: Store, onOpen: (String) -> Unit) {
             modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 14.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            UpdateCard(store)
             MusicCard(store, onOpen)
             MoneyCard(store, onOpen)
             HubCard(store, onOpen)

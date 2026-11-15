@@ -6,6 +6,10 @@ plugins {
 }
 
 val desktopIp: String = System.getenv("MANDRAGORA_DESKTOP_IP") ?: "100.115.80.79"
+val buildMinute: Int = (System.currentTimeMillis() / 60_000L).toInt()
+val gitLabel: String = runCatching {
+    providers.exec { commandLine("git", "describe", "--always", "--dirty") }.standardOutput.asText.get().trim()
+}.getOrDefault("").ifEmpty { "local" }
 
 android {
     namespace = "ac.mvr.phone"
@@ -16,8 +20,8 @@ android {
         applicationId = "ac.mvr.phone"
         minSdk = 29
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1"
+        versionCode = buildMinute
+        versionName = gitLabel
         buildConfigField("String", "DESKTOP_IP", "\"$desktopIp\"")
         buildConfigField("int", "BRIDGE_PORT", "6688")
     }

@@ -78,6 +78,17 @@ data class NowPlaying(
     val state: String? = null,
 )
 
+@Serializable
+data class AppBuild(
+    val versionCode: Int = 0,
+    val versionName: String = "",
+    val sha256: String = "",
+    val size: Long = 0,
+    val variant: String = "",
+    val publishedAt: Double = 0.0,
+    val error: String? = null,
+)
+
 class BridgeClient(private val baseUrl: () -> String) {
     suspend fun config(): BridgeConfig = json.decodeFromString(Http.get("${baseUrl()}/api/config"))
 
@@ -129,4 +140,8 @@ class BridgeClient(private val baseUrl: () -> String) {
     suspend fun refreshMoney() { Http.post("${baseUrl()}/api/money/refresh", buildJsonObject { }) }
 
     suspend fun hub(): String = Http.get("${baseUrl()}/api/hub")
+
+    suspend fun app(): AppBuild = json.decodeFromString(Http.get("${baseUrl()}/api/app"))
+
+    suspend fun downloadApk(target: java.io.File, onProgress: (Long, Long) -> Unit) = Http.download("${baseUrl()}/api/app/apk", target, onProgress)
 }

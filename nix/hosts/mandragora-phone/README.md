@@ -9,7 +9,7 @@ Ideas and constraints: [`BACKLOG.md`](BACKLOG.md).
 tailnet ip          nix/snippets/tailnet.json  →  phone
 syncthing identity  identity.json              →  deviceId, port
 desktop services    phone-bridge :6688, mpd :6600, ytdl-web :6685, gpu-status :6684
-the app             app/  (built in `nix develop /etc/nixos/mandragora#phone`, shipped by `phone-push`)
+the app             app/  (built in `nix develop /etc/nixos/mandragora#phone`, published by `phone-push`, installed by the app itself)
 ```
 
 ## What the phone runs
@@ -28,7 +28,7 @@ All of it on the tailnet interface only; nothing here has a `*.mvr.ac` host.
 
 | port | unit | what |
 |---|---|---|
-| 6688 | `phone-bridge` (user) | `GET /api/config` (desktop ip, ports, hub manifest); `GET/POST /api/volume` (default sink, all sinks, set level, mute, default); `GET/POST /api/lease`, `POST /api/lease/position` (who plays, where, since); `GET /api/lyrics?file=` (`.lrc` beside the track, then the `~/Music/.lyrics` cache, then lrclib, writing the `.lrc` when synced lyrics exist); `GET /api/now`; `GET /api/money` (the money-menu cache plus `stale` and `refreshing`), `POST /api/money/refresh` (starts the `money-menu-refresh` user unit); `GET /api/hub` (the hub manifest plus untiled hosts and per-host state from status.mvr.ac, the VPS stats, the desktop's gpu-status; merged on the desktop and cached 20 s so the phone never leaves the tailnet) |
+| 6688 | `phone-bridge` (user) | `GET /api/config` (desktop ip, ports, hub manifest); `GET/POST /api/volume` (default sink, all sinks, set level, mute, default); `GET/POST /api/lease`, `POST /api/lease/position` (who plays, where, since); `GET /api/lyrics?file=` (`.lrc` beside the track, then the `~/Music/.lyrics` cache, then lrclib, writing the `.lrc` when synced lyrics exist); `GET /api/now`; `GET /api/money` (the money-menu cache plus `stale` and `refreshing`), `POST /api/money/refresh` (starts the `money-menu-refresh` user unit); `GET /api/hub` (the hub manifest plus untiled hosts and per-host state from status.mvr.ac, the VPS stats, the desktop's gpu-status; merged on the desktop and cached 20 s so the phone never leaves the tailnet); `GET /api/app` (the build `phone-push` last published: `versionCode`, `versionName`, `sha256`, `size`), `GET /api/app/apk` (that build, as a download) |
 | 6600 | mpd (user) | the mpd protocol; the app uses `idle` for push updates. No password: every tailnet node is the operator's |
 | 6685 | `ytdl-web` (user) | `POST /api/download`, `GET /api/jobs`, `/api/jobs/<id>/file`, `/cancel` |
 | 6684 | `gpu-status` | `GET /api/theme?colors=1`, the matugen palette the app wears |
@@ -68,13 +68,21 @@ last known second". It never falls back to a public host.
    `PHONE_ADB_ADDR=<ip:port> PHONE_API_KEY=<key> DESKTOP_DEVICE_ID=<id> phone-syncthing-bootstrap`.
    Details and the trashcan-versioning trap: vault note *Syncthing phone drain*.
 3. **KDE Connect**: pair; enable system volume and run command on the phone side.
-4. **Wireless debugging**: Developer options → Wireless debugging → pair with
-   code once from the desktop (`adb pair <ip:pairport>`), then every push uses
+4. **Wireless debugging**, only for `phone-syncthing-bootstrap` above and as
+   the fallback install path: Developer options → Wireless debugging → pair
+   with code once from the desktop (`adb pair <ip:pairport>`), then
    `adb connect <ip:port>`; the port changes per session, read it off the
    screen. `~/Projects/android-music-sync/setup_adb.sh` has the walkthrough.
-5. **The app**: `PHONE_ADB_ADDR=<ip:port> phone-push`. First install asks the
-   phone to allow the install; later installs are silent. Open it once and grant
-   notifications and music access.
+   Turn it off again afterwards; nothing below needs it.
+5. **The app**: `phone-push` on the desktop builds it and publishes it to the
+   bridge. First install: open `http://<desktop tailnet ip>:6688/api/app/apk`
+   in the phone's browser, open the download, allow installs from the browser
+   once, install. Every later build is offered by the app itself: a line on
+   home reads "update ready" when the desktop holds a newer build; one tap
+   downloads it over the tailnet, checks it against the bridge's hash and
+   hands it to Android's installer, which asks once to allow installs from
+   the app and then once per update. `PHONE_ADB_ADDR=<ip:port> phone-push`
+   still installs over wireless debugging instead of publishing.
 
 ## The app: every tap
 
@@ -104,6 +112,7 @@ back collapses it):
 | money card: the total | cycles the unit BTC → USD → BRL (the phone's own unit) | home |
 | money card: name | opens the money screen | money |
 | hub card: name or glance | opens the hub screen | hub |
+| "update ready" line (only when the desktop published a newer build) | downloads it, verifies the hash, opens Android's installer; the first time it opens the "allow installs from this app" setting instead and says so on the notice line | installer |
 | header dot | nothing, display | home |
 | Android back on home | leaves the app | launcher |
 | title chevron or Android back, on any sub-app | collapses to home | home |
@@ -207,6 +216,14 @@ nix develop /etc/nixos/mandragora#phone -c ./gradlew assembleDebug
 - Signing: `phone-push` builds **debug** unless `PHONE_KEYSTORE` is set. The
   debug key is `~/.android/debug.keystore`. Moving to a release key later
   changes the signature, which Android only accepts after an uninstall.
+- Versions: `versionCode` is the build's minute since the epoch, so every
+  build is newer than the one before and Android never sees a downgrade;
+  `versionName` is `git describe --always --dirty`, so the update line and
+  the installed app name the commit they came from.
+- Publishing: `phone-push` copies the APK and an `app.json` (version, sha256,
+  size) into `~/.local/share/mandragora-phone/app/`, atomically, APK first;
+  the bridge serves both. The emulator's `phone-emu` installs over adb and
+  does not touch the slot.
 
 Everything after step 1 is reachable only over the tailnet, so step 1 is the
 whole security model: no tailnet, no phone.

@@ -20,7 +20,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -140,4 +142,32 @@ fun HomeCard(content: @Composable ColumnScope.() -> Unit) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
         content = content,
     )
+}
+
+@Composable
+fun UpdateCard(store: Store) {
+    val build by store.update.available.collectAsStateWithLifecycle()
+    val progress by store.update.progress.collectAsStateWithLifecycle()
+    val ready = build ?: return
+    val scheme = MaterialTheme.colorScheme
+    val tint = scheme.onTertiaryContainer
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(scheme.tertiaryContainer)
+            .clickable(enabled = progress == null) { store.update.install() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Filled.Download, null, tint = tint, modifier = Modifier.size(22.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(if (progress == null) "update ready" else "downloading", style = MaterialTheme.typography.titleSmall, color = tint)
+            Label("${ready.versionName} · ${(ready.size + 524_288) / 1_048_576} MB", color = tint.copy(alpha = 0.7f))
+        }
+        val value = progress
+        if (value == null) Icon(Icons.Filled.ChevronRight, null, tint = tint, modifier = Modifier.size(20.dp))
+        else CircularProgressIndicator(progress = { value }, color = tint, trackColor = tint.copy(alpha = 0.2f), strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
+    }
 }

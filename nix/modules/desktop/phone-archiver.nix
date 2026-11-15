@@ -24,6 +24,8 @@ let
     runtimeInputs = [
       pkgs.android-tools
       pkgs.findutils
+      pkgs.coreutils
+      pkgs.python3
     ];
     text = builtins.readFile ../../../.local/bin/phone-push.sh;
   };

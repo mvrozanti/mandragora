@@ -10,6 +10,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -44,6 +45,33 @@ object Http {
         val builder = Request.Builder().url(url).delete()
         headers.forEach { (k, v) -> builder.header(k, v) }
         execute(builder.build())
+    }
+
+    suspend fun download(url: String, target: File, onProgress: (Long, Long) -> Unit) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().url(url).build()
+        try {
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) throw IOException("${response.code} ${request.url.encodedPath}")
+                val body = response.body ?: throw IOException("empty body")
+                val total = body.contentLength()
+                var done = 0L
+                target.outputStream().use { out ->
+                    body.byteStream().use { input ->
+                        val buffer = ByteArray(64 * 1024)
+                        while (true) {
+                            val n = input.read(buffer)
+                            if (n < 0) break
+                            out.write(buffer, 0, n)
+                            done += n
+                            onProgress(done, total)
+                        }
+                    }
+                }
+            }
+        } catch (err: IOException) {
+            if (err.message?.startsWith("4") == true || err.message?.startsWith("5") == true) throw err
+            throw Unreachable("${request.url.host} unreachable", err)
+        }
     }
 
     private fun execute(request: Request): String {

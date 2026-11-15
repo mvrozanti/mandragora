@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import socket
 import subprocess
 import threading
@@ -40,6 +41,9 @@ STATUS_PROBES_URL = os.environ.get("PHONE_BRIDGE_STATUS_PROBES", "https://status
 STATUS_VPS_URL = os.environ.get("PHONE_BRIDGE_STATUS_VPS", "https://status.mvr.ac/api/vps")
 GPU_STATUS_URL = os.environ.get("PHONE_BRIDGE_GPU_STATUS", "http://127.0.0.1:6684/api/gpu")
 HUB_TTL = 20
+APP_DIR = Path(os.environ.get("PHONE_BRIDGE_APP_DIR", "~/.local/share/mandragora-phone/app")).expanduser()
+APP_APK = APP_DIR / "mandragora-phone.apk"
+APP_META = APP_DIR / "app.json"
 
 SINK_LINE = re.compile(r"^\s*│\s*(?P<default>\*)?\s*(?P<id>\d+)\.\s+(?P<name>.+?)\s+\[vol:\s*(?P<vol>[\d.]+)(?P<muted>\s+MUTED)?\]\s*$")
 LRC_LINE = re.compile(r"^\[(\d+):(\d+(?:\.\d+)?)\](.*)$")
@@ -487,6 +491,13 @@ def hub_state() -> dict:
     return payload
 
 
+def app_state() -> dict:
+    meta = load_json(str(APP_META), None)
+    if not isinstance(meta, dict) or not APP_APK.is_file():
+        return {"error": "no build published"}
+    return meta
+
+
 def config() -> dict:
     return {
         "version": VERSION,
@@ -512,6 +523,20 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(body)
+
+    def send_file(self, path: Path, content_type: str, filename: str) -> None:
+        size = path.stat().st_size
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(size))
+        self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        try:
+            with open(path, "rb") as fh:
+                shutil.copyfileobj(fh, self.wfile, 1 << 16)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
 
     def read_body(self) -> dict:
         length = int(self.headers.get("Content-Length") or 0)
@@ -542,6 +567,13 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(money_state())
             elif url.path == "/api/hub":
                 self.send_json(hub_state())
+            elif url.path == "/api/app":
+                self.send_json(app_state())
+            elif url.path == "/api/app/apk":
+                if APP_APK.is_file():
+                    self.send_file(APP_APK, "application/vnd.android.package-archive", APP_APK.name)
+                else:
+                    self.send_json({"error": "no build published"}, 404)
             elif url.path == "/api/lyrics":
                 file = query.get("file")
                 if not file:
