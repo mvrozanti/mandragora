@@ -74,6 +74,7 @@ in
     ../../modules/services/cc-pocket.nix
     ../../modules/services/phone-bridge.nix
     ../../modules/services/opencode.nix
+    ../../modules/services/claude-bridge.nix
     ../../modules/services/slither-io.nix
     ../../modules/services/transmission-rpc-bridge.nix
     ../../modules/services/fly-brain.nix

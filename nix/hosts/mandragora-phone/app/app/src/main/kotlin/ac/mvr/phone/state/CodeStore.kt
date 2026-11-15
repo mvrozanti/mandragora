@@ -1,5 +1,6 @@
 package ac.mvr.phone.state
 
+import ac.mvr.phone.net.CodeAccess
 import ac.mvr.phone.net.CodeClient
 import ac.mvr.phone.net.CodeEntry
 import ac.mvr.phone.net.CodeEvent
@@ -26,22 +27,39 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.io.IOException
 
-data class CodeModel(val providerID: String, val modelID: String) {
-    val label: String get() = modelID.removePrefix("$providerID-")
+data class CodeModel(val backend: String, val providerID: String, val modelID: String) {
+    val label: String
+        get() = when {
+            backend == "claude" && providerID == "claude" -> "claude"
+            backend == "claude" -> providerID
+            else -> "$backend · ${modelID.removePrefix("$providerID-")}"
+        }
+
+    val key: String get() = "$backend/$providerID/$modelID"
 }
 
 fun parseModel(value: String?): CodeModel? {
-    if (value == null) return null
-    val provider = value.substringBefore('/', "")
-    val model = value.substringAfter('/', "")
-    return if (provider.isEmpty() || model.isEmpty()) null else CodeModel(provider, model)
+    val parts = value?.split('/', limit = 3) ?: return null
+    if (parts.size != 3 || parts.any { it.isEmpty() }) return null
+    return CodeModel(parts[0], parts[1], parts[2])
 }
 
+private val errorText = Regex("\"error\":\\s*\"([^\"]+)\"")
+
 class CodeStore(private val store: Store) {
-    val client = CodeClient({ "http://${store.desktopIp}:${store.config.value?.code?.port ?: 4096}" }, { store.config.value?.code })
+    private val clients = HashMap<String, CodeClient>()
+
+    private fun backends(): List<CodeAccess> = store.config.value?.code?.backends ?: emptyList()
+
+    private fun client(id: String): CodeClient? {
+        val access = backends().firstOrNull { it.id == id } ?: return null
+        return clients.getOrPut(id) {
+            CodeClient(id, { "http://${store.desktopIp}:${backends().firstOrNull { it.id == id }?.port ?: access.port}" }, { backends().firstOrNull { it.id == id } })
+        }
+    }
 
     private val sessionsFlow = MutableStateFlow<List<CodeSession>>(emptyList())
     val sessions: StateFlow<List<CodeSession>> = sessionsFlow
@@ -66,8 +84,8 @@ class CodeStore(private val store: Store) {
     private val questionsFlow = MutableStateFlow<List<QuestionAsk>>(emptyList())
     val questions: StateFlow<List<QuestionAsk>> = questionsFlow
 
-    private val providersFlow = MutableStateFlow<CodeProviders?>(null)
-    val providers: StateFlow<CodeProviders?> = providersFlow
+    private val providersFlow = MutableStateFlow<Map<String, CodeProviders>>(emptyMap())
+    val providers: StateFlow<Map<String, CodeProviders>> = providersFlow
 
     private val modelFlow = MutableStateFlow(parseModel(store.prefs.codeModel))
     val model: StateFlow<CodeModel?> = modelFlow
@@ -84,22 +102,37 @@ class CodeStore(private val store: Store) {
 
     val directory: String? get() = currentFlow.value?.directory ?: newIn.value
 
+    private fun currentClient(): CodeClient? {
+        val backend = currentFlow.value?.backend?.ifEmpty { null } ?: modelFlow.value?.backend ?: backends().firstOrNull()?.id ?: return null
+        return client(backend)
+    }
+
     suspend fun refresh() {
+        val ids = backends().map { it.id }
+        if (ids.isEmpty()) {
+            freshFlow.value = false
+            throw IOException("desktop unreachable")
+        }
         try {
-            val projects = client.projects().sortedByDescending { it.time.updated }
-            projectsFlow.value = projects
-            val perProject = coroutineScope {
-                projects.take(6).map { project ->
+            val perBackend = coroutineScope {
+                ids.mapNotNull { id -> client(id) }.map { client ->
                     async {
-                        val list = runCatching { client.sessions(project.worktree, 8) }.getOrDefault(emptyList())
-                        val status = runCatching { client.status(project.worktree) }.getOrDefault(emptyMap())
-                        list to status
+                        val projects = runCatching { client.projects() }.getOrDefault(emptyList()).sortedByDescending { it.time.updated }
+                        val perProject = projects.take(6).map { project ->
+                            async {
+                                val list = runCatching { client.sessions(project.worktree, 8) }.getOrDefault(emptyList())
+                                val status = runCatching { client.status(project.worktree) }.getOrDefault(emptyMap())
+                                list to status
+                            }
+                        }.awaitAll()
+                        Triple(projects, perProject.flatMap { it.first }, perProject.flatMap { it.second.entries }.associate { it.key to it.value })
                     }
                 }.awaitAll()
             }
-            sessionsFlow.value = perProject.flatMap { it.first }.filter { it.parentID == null }.distinctBy { it.id }.sortedByDescending { it.time.updated }
-            statusFlow.value = perProject.flatMap { it.second.entries }.associate { it.key to it.value }
-            currentFlow.value?.let { cur -> sessionsFlow.value.firstOrNull { it.id == cur.id }?.let { currentFlow.value = it } }
+            projectsFlow.value = perBackend.flatMap { it.first }.distinctBy { it.worktree }.sortedByDescending { it.time.updated }
+            sessionsFlow.value = perBackend.flatMap { it.second }.filter { it.parentID == null }.distinctBy { it.backend + it.id }.sortedByDescending { it.time.updated }
+            statusFlow.value = perBackend.flatMap { it.third.entries }.associate { it.key to it.value }
+            currentFlow.value?.let { cur -> sessionsFlow.value.firstOrNull { it.id == cur.id && it.backend == cur.backend }?.let { currentFlow.value = it } }
             freshFlow.value = true
         } catch (err: Exception) {
             freshFlow.value = false
@@ -108,7 +141,7 @@ class CodeStore(private val store: Store) {
     }
 
     suspend fun enter() {
-        if (providersFlow.value == null) runCatching { loadProviders() }
+        if (providersFlow.value.isEmpty()) runCatching { loadProviders() }
         if (currentFlow.value != null || newIn.value != null) return
         runCatching { refresh() }
         val last = store.prefs.lastCodeSession
@@ -117,27 +150,32 @@ class CodeStore(private val store: Store) {
     }
 
     private suspend fun loadProviders() {
-        val list = client.providers()
-        providersFlow.value = list
-        if (modelFlow.value == null) {
-            val configured = runCatching { client.configuredModel() }.getOrNull()
-            modelFlow.value = parseModel(configured) ?: choices().firstOrNull()
+        val loaded = coroutineScope {
+            backends().mapNotNull { access -> client(access.id) }.map { client ->
+                async { runCatching { client.id to client.providers() }.getOrNull() }
+            }.awaitAll().filterNotNull().toMap()
         }
+        if (loaded.isNotEmpty()) providersFlow.value = loaded
+        if (modelFlow.value == null || choices().none { it == modelFlow.value }) modelFlow.value = choices().firstOrNull()
     }
 
     private fun choices(): List<CodeModel> {
-        val p = providersFlow.value ?: return emptyList()
-        val ids = p.connected.filter { it != "opencode" }.ifEmpty { p.connected }
-        return ids.mapNotNull { id -> p.default[id]?.let { CodeModel(id, it) } }
+        val ordered = backends().sortedBy { if (it.id == "claude") 0 else 1 }
+        return ordered.flatMap { access ->
+            val p = providersFlow.value[access.id] ?: return@flatMap emptyList()
+            val ids = p.connected.filter { it != "opencode" }.ifEmpty { p.connected }
+            ids.mapNotNull { id -> p.default[id]?.let { CodeModel(access.id, id, it) } }
+        }
     }
 
     fun cycleModel() {
-        val options = choices()
+        val backend = currentFlow.value?.backend?.ifEmpty { null }
+        val options = choices().filter { backend == null || it.backend == backend }
         if (options.isEmpty()) return
         val index = options.indexOfFirst { it == modelFlow.value }
         val next = options[(index + 1) % options.size]
         modelFlow.value = next
-        store.prefs.codeModel = "${next.providerID}/${next.modelID}"
+        store.prefs.codeModel = next.key
     }
 
     fun open(session: CodeSession) {
@@ -145,14 +183,16 @@ class CodeStore(private val store: Store) {
         newIn.value = null
         store.prefs.lastCodeSession = session.id
         store.prefs.lastCodeDir = session.directory
+        if (modelFlow.value?.backend != session.backend) choices().firstOrNull { it.backend == session.backend }?.let { modelFlow.value = it }
         entriesFlow.value = emptyList()
         asksFlow.value = emptyList()
         questionsFlow.value = emptyList()
         loadJob?.cancel()
-        loadJob = store.scope.launch { runCatching { load(session) }.onFailure { store.report(it) } }
+        loadJob = store.scope.launch { runCatching { load(session) }.onFailure { store.report(humanize(it)) } }
     }
 
     private suspend fun load(session: CodeSession) {
+        val client = client(session.backend) ?: throw IOException("desktop unreachable")
         val list = client.messages(session.id, session.directory, 80)
         if (currentFlow.value?.id != session.id) return
         entriesFlow.value = list
@@ -173,50 +213,69 @@ class CodeStore(private val store: Store) {
         store.prefs.lastCodeDir = dir
     }
 
-    fun send(text: String) = store.act {
+    private fun humanize(err: Throwable): Throwable {
+        if (err !is IOException) return err
+        val found = errorText.find(err.message ?: "")?.groupValues?.get(1) ?: return err
+        return IllegalStateException(found, err)
+    }
+
+    private fun run(block: suspend () -> Unit): Job = store.scope.launch {
+        try { block() } catch (err: Exception) { store.report(humanize(err)) }
+    }
+
+    fun send(text: String) = run {
         val body = text.trim()
-        if (body.isEmpty()) return@act
+        if (body.isEmpty()) return@run
         var session = currentFlow.value
+        val chosen = modelFlow.value
+        val backend = session?.backend?.ifEmpty { null } ?: chosen?.backend ?: choices().firstOrNull()?.backend ?: "claude"
+        val client = client(backend) ?: throw IOException("desktop unreachable")
+        val sameBackend = chosen?.backend == backend
         if (session == null) {
             val dir = newIn.value ?: store.prefs.lastCodeDir ?: "/home/m"
-            session = client.create(dir)
+            session = client.create(dir, chosen?.providerID?.takeIf { sameBackend }, chosen?.modelID?.takeIf { sameBackend })
             currentFlow.value = session
             newIn.value = null
             store.prefs.lastCodeSession = session.id
             store.prefs.lastCodeDir = session.directory
             sessionsFlow.value = listOf(session) + sessionsFlow.value.filter { it.id != session.id }
         }
-        val chosen = modelFlow.value
-        client.prompt(session.id, session.directory, body, chosen?.providerID, chosen?.modelID)
+        client.prompt(session.id, session.directory, body, chosen?.providerID?.takeIf { sameBackend }, chosen?.modelID?.takeIf { sameBackend })
         draft.value = ""
         statusFlow.value = statusFlow.value + (session.id to CodeStatus("busy"))
     }
 
-    fun stop() = store.act {
-        val session = currentFlow.value ?: return@act
-        client.abort(session.id, session.directory)
+    fun stop() = run {
+        val session = currentFlow.value ?: return@run
+        client(session.backend)?.abort(session.id, session.directory)
     }
 
-    fun allow(ask: PermissionAsk, response: String) = store.act {
-        val dir = directory ?: return@act
+    fun allow(ask: PermissionAsk, response: String) = run {
+        val dir = directory ?: return@run
         asksFlow.value = asksFlow.value.filter { it.id != ask.id }
-        client.permission(ask.sessionID, ask.id, dir, response)
+        currentClient()?.permission(ask.sessionID, ask.id, dir, response)
     }
 
-    fun answer(question: QuestionAsk, answers: List<List<String>>) = store.act {
-        val dir = directory ?: return@act
+    fun answer(question: QuestionAsk, answers: List<List<String>>) = run {
+        val dir = directory ?: return@run
         questionsFlow.value = questionsFlow.value.filter { it.id != question.id }
-        client.answer(question.id, dir, answers)
+        currentClient()?.answer(question.id, dir, answers)
     }
 
-    fun rejectQuestion(question: QuestionAsk) = store.act {
-        val dir = directory ?: return@act
+    fun rejectQuestion(question: QuestionAsk) = run {
+        val dir = directory ?: return@run
         questionsFlow.value = questionsFlow.value.filter { it.id != question.id }
-        client.reject(question.id, dir)
+        currentClient()?.reject(question.id, dir)
     }
 
-    suspend fun watch(dir: String?) {
+    suspend fun watch(backend: String, dir: String?) {
         while (currentCoroutineContext().isActive) {
+            val client = client(backend)
+            if (client == null) {
+                liveFlow.value = false
+                delay(2_000)
+                continue
+            }
             try {
                 client.events(dir).collect { event ->
                     liveFlow.value = true
@@ -247,6 +306,7 @@ class CodeStore(private val store: Store) {
             "session.idle" -> if (sessionID != null) statusFlow.value = statusFlow.value - sessionID
             "session.created", "session.updated" -> p["info"]?.let { info ->
                 val session = runCatching { json.decodeFromJsonElement<CodeSession>(info) }.getOrNull() ?: return
+                session.backend = currentFlow.value?.backend?.ifEmpty { null } ?: modelFlow.value?.backend ?: ""
                 if (session.parentID == null) sessionsFlow.value = (listOf(session) + sessionsFlow.value.filter { it.id != session.id }).sortedByDescending { it.time.updated }
                 if (currentFlow.value?.id == session.id) currentFlow.value = session
             }
