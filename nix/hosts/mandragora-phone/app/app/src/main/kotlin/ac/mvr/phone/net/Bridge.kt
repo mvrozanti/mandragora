@@ -123,4 +123,10 @@ class BridgeClient(private val baseUrl: () -> String) {
     }
 
     suspend fun now(): NowPlaying = json.decodeFromString(Http.get("${baseUrl()}/api/now"))
+
+    suspend fun money(): String = Http.get("${baseUrl()}/api/money")
+
+    suspend fun refreshMoney() { Http.post("${baseUrl()}/api/money/refresh", buildJsonObject { }) }
+
+    suspend fun hub(): String = Http.get("${baseUrl()}/api/hub")
 }

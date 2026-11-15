@@ -110,9 +110,9 @@ class RemotePlayer(looper: Looper, private val store: Store) : SimpleBasePlayer(
     }
 
     override fun handleSeek(mediaItemIndex: Int, positionMs: Long, seekCommand: Int): ListenableFuture<*> = run {
-        when (mediaItemIndex) {
-            0 -> store.mpd.previous()
-            2 -> store.mpd.next()
+        when {
+            mediaItemIndex == 0 || seekCommand == Player.COMMAND_SEEK_TO_PREVIOUS -> store.mpd.previous()
+            mediaItemIndex == 2 -> store.mpd.next()
             else -> store.mpd.seek(positionMs.coerceAtLeast(0) / 1000.0)
         }
         store.refreshMpd()

@@ -49,10 +49,7 @@ fun FindSheet(store: Store, onDismiss: () -> Unit) {
     var hint by remember { mutableStateOf("") }
     val focus = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) {
-        store.refreshLocalNamesAsync()
-        focus.requestFocus()
-    }
+    LaunchedEffect(Unit) { store.refreshLocalNamesAsync() }
     LaunchedEffect(query) {
         val term = query.trim()
         if (term.isNotEmpty()) delay(250)
@@ -67,6 +64,7 @@ fun FindSheet(store: Store, onDismiss: () -> Unit) {
         containerColor = scheme.surfaceContainerLow,
         contentColor = scheme.onSurface,
     ) {
+        LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
         Column(modifier = Modifier.fillMaxHeight(0.92f)) {
             OutlinedTextField(
                 value = query,
@@ -99,7 +97,7 @@ fun FindSheet(store: Store, onDismiss: () -> Unit) {
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(song.name, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(song.artist ?: "unknown artist", style = MaterialTheme.typography.bodyMedium, color = scheme.outline, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(listOfNotNull(song.artist ?: "unknown artist", "not on the phone yet".takeIf { dim }).joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = scheme.outline, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                         Text(song.duration?.let(::fmtTime) ?: "", style = MaterialTheme.typography.labelMedium, color = scheme.outline)
                     }

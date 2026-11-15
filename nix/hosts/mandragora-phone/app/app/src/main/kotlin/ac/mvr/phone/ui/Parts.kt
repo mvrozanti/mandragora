@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ac.mvr.phone.net.Lyrics
 import ac.mvr.phone.net.VolumeState
@@ -68,49 +69,6 @@ import ac.mvr.phone.state.Store
 import ac.mvr.phone.state.fmtTime
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlin.math.roundToInt
-
-@Composable
-fun Label(text: String, modifier: Modifier = Modifier, color: Color = MaterialTheme.colorScheme.outline) {
-    Text(text.uppercase(), style = MaterialTheme.typography.labelSmall, color = color, modifier = modifier, maxLines = 1, overflow = TextOverflow.Ellipsis)
-}
-
-@Composable
-fun StatusDot(ok: Boolean, modifier: Modifier = Modifier) {
-    Box(modifier = modifier.size(8.dp).clip(CircleShape).background(if (ok) Color(0xFF4EC17D) else MaterialTheme.colorScheme.error))
-}
-
-@Composable
-fun Notice(store: Store, modifier: Modifier = Modifier) {
-    val text by store.notice.collectAsStateWithLifecycle()
-    Text(
-        text ?: "",
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.error,
-        textAlign = TextAlign.Center,
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier.fillMaxWidth().heightIn(min = 18.dp),
-    )
-}
-
-@Composable
-fun Banner(reachable: Boolean) {
-    if (reachable) return
-    val scheme = MaterialTheme.colorScheme
-    Text(
-        "desktop unreachable · the phone keeps playing",
-        style = MaterialTheme.typography.bodyMedium,
-        color = scheme.onSurface,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 14.dp)
-            .padding(bottom = 8.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(scheme.error.copy(alpha = 0.15f))
-            .border(1.dp, scheme.error, RoundedCornerShape(12.dp))
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-    )
-}
 
 private fun shortSink(name: String): String {
     val tag = Regex("\\[(.*?)\\]").find(name)?.groupValues?.get(1)
@@ -284,11 +242,11 @@ private fun Side(icon: ImageVector, label: String, caption: String, selected: Bo
 }
 
 @Composable
-fun Cover(now: NowState, modifier: Modifier = Modifier) {
+fun Cover(now: NowState, modifier: Modifier = Modifier, corner: Dp = 20.dp) {
     val scheme = MaterialTheme.colorScheme
     val seed = (now.file ?: now.title).hashCode()
     val tones = listOf(scheme.primary, scheme.secondary, scheme.tertiary)
-    Box(modifier = modifier.clip(RoundedCornerShape(20.dp)).background(scheme.surfaceContainerHigh)) {
+    Box(modifier = modifier.clip(RoundedCornerShape(corner)).background(scheme.surfaceContainerHigh)) {
         Box(
             modifier = Modifier
                 .padding(start = ((seed ushr 1) % 40).dp * 2, top = ((seed ushr 7) % 40).dp * 2)

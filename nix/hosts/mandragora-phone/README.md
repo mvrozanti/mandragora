@@ -92,7 +92,23 @@ pop-ups, errors sit on one reserved line under the pill.
 | nobody playing | the last song wherever the pill points, paused | that side |
 | desktop unreachable | banner under the header; slider and desktop side greyed | the phone only |
 
-The music screen, the only screen:
+Home, three live cards (chosen on 2026-11-14 from the deck of three
+directions: a card opens into its screen, the chevron on the title or Android
+back collapses it):
+
+| Tap | Does | Lands |
+|---|---|---|
+| music card: play / pause | toggles the owner, exactly as on the music screen | home |
+| music card: volume slider / speaker | desktop system volume, music or not | home |
+| music card: name, cover, title | opens the music screen | music |
+| money card: the total | cycles the unit BTC → USD → BRL (the phone's own unit) | home |
+| money card: name | opens the money screen | money |
+| hub card: name or glance | opens the hub screen | hub |
+| header dot | nothing, display | home |
+| Android back on home | leaves the app | launcher |
+| title chevron or Android back, on any sub-app | collapses to home | home |
+
+The music screen:
 
 | Tap | Does | Lands |
 |---|---|---|
@@ -108,8 +124,8 @@ The music screen, the only screen:
 | pill to phone, file not synced | error line "not on the phone yet", nothing moves | same screen |
 | pill to desktop, unreachable | error line "desktop unreachable", nothing moves | same screen |
 | "play something" | the sheet slides up with the keyboard open | the sheet |
-| "mandragora" title | nothing until a second desktop control exists | same screen |
-| Android back | leaves the app | launcher |
+| "music ⌄" title | collapses to home | home |
+| Android back | collapses to home | home |
 
 The "play something" sheet:
 
@@ -120,13 +136,34 @@ The "play something" sheet:
 | a greyed song (pill on phone, not synced) | nothing | sheet |
 | scrim, swipe down, Android back | closes | music screen |
 
+The money screen (the waybar money-menu and its rofi popup, ported; unit and
+hidden amounts are the phone's own, remembered across restarts):
+
+| Tap | Does | Lands |
+|---|---|---|
+| the total | cycles the unit | money |
+| BTC / USD / BRL chip | sets the unit | money |
+| eye | hides amounts (digits → •), remembered | money |
+| refresh | starts `money-menu refresh` on the desktop; the line reads "refreshing…" until a newer fetched_at arrives | money |
+| a venue row | collapses / expands its holdings | money |
+| "fetched … ago" line | nothing; amber with "stale" past 20 min; "desktop unreachable · last known values" offline | money |
+
+The hub screen (hub.mvr.ac, ported; the click counts that sort the rows are
+the phone's own, since the hub's own counter sits behind authelia):
+
+| Tap | Does | Lands |
+|---|---|---|
+| the status summary | expands / collapses the desk card, vps card and "needs attention" | hub |
+| a service row | opens its url (`url` or `https://host`) in the browser; the tap counts for sort-by-use on this phone | browser |
+| "no tile" tag, lock badge, state dot | nothing, display | hub |
+
 Lock screen and notification: prev / play / next act on the owner; the body
-opens the app; volume keys follow the pill (desktop side moves the desktop's
+opens the app on the music screen; volume keys follow the pill (desktop side moves the desktop's
 volume, phone side the phone's); the subtitle reads "artist · on the
 desktop" or "artist · on the phone". No move button on the lock screen.
 
-Not now: ytdl client, sync status, hub, share target. They get rows here,
-under the "mandragora" title, when they come.
+Not now: ytdl client, sync status, share target. They get a card and a table
+here when they come.
 
 ## Trying the app on the desktop
 

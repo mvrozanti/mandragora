@@ -25,16 +25,21 @@ bottom are the ones that decide which.
 
 ## In flight
 
-- Install the one-screen build and read the tap map top to bottom on the
-  device, each row against `mpc status`.
+- The live-cards build (2026-11-15) compiled and reviewed by reading, not
+  yet tapped: run `phone-emu`, read the four tap-map tables top to bottom
+  against `mpc status`, `wpctl get-volume` and `/api/lease`, then install on
+  the device. Known to need the device: the handoff gap and position in both
+  directions, ncmpcpp taking the pill back, the lock-screen skip buttons on
+  the phone side, the money refresh path end to end, a service row opening
+  the browser, airplane mode on each screen.
 
 ## Next up
 
 - Release keystore in sops (`phone/keystore`, `phone/keystore-password`),
   exported to the dev shell as `PHONE_KEYSTORE`/`PHONE_KEYSTORE_PASS`; then a
   minified release build (the debug APK is about 68 MB).
-- The next desktop controls (ytdl, sync status, hub) come back as rows in the
-  tap map under the "mandragora" title, which does nothing until then.
+- The next desktop controls (ytdl, sync status) come back as a card on home
+  and a table in the tap map.
 - A fourth lock-screen button that moves the music, if the operator strikes
   the "no move button" line.
 - Off the tailnet, "play something" could list the phone's own synced files

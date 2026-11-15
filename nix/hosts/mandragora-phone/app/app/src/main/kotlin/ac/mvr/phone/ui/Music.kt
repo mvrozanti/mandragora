@@ -13,8 +13,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,7 +38,7 @@ import ac.mvr.phone.state.Store
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-fun MusicScreen(store: Store, onFind: () -> Unit) {
+fun MusicScreen(store: Store, onCollapse: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val now by store.now.collectAsStateWithLifecycle()
     val reachable by store.reachable.collectAsStateWithLifecycle()
@@ -43,19 +47,10 @@ fun MusicScreen(store: Store, onFind: () -> Unit) {
     val lyricsBusy by store.lyricsBusy.collectAsStateWithLifecycle()
     val busy by store.busy.collectAsStateWithLifecycle()
     var showLyrics by remember { mutableStateOf(false) }
+    var find by rememberSaveable { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Label("mandragora · music")
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                StatusDot(reachable)
-                Label(if (reachable) "desktop reachable" else "desktop unreachable")
-            }
-        }
+        ScreenHeader("music", reachable, onCollapse)
         Banner(reachable)
         Box(modifier = Modifier.padding(horizontal = 14.dp)) {
             VolumeBar(volume, enabled = reachable, onDrag = store::dragSinkVolume) {
@@ -92,8 +87,9 @@ fun MusicScreen(store: Store, onFind: () -> Unit) {
             OwnerSwitch(now, deskReachable = reachable, busy = busy) { store.takeOver(it) }
             Notice(store)
         }
-        FindBar(onFind)
+        FindBar { find = true }
     }
+    if (find) FindSheet(store) { find = false }
 }
 
 @Composable
@@ -114,6 +110,46 @@ private fun FindBar(onFind: () -> Unit) {
         ) {
             Icon(Icons.Filled.Search, null, tint = scheme.onSurface, modifier = Modifier.size(18.dp))
             Text("play something", style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+}
+
+@Composable
+fun MusicCard(store: Store, onOpen: (String) -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val now by store.now.collectAsStateWithLifecycle()
+    val reachable by store.reachable.collectAsStateWithLifecycle()
+    val volume by store.volume.collectAsStateWithLifecycle()
+    val place = if (now.phoneOwns) "on the phone" else "on the desktop"
+    val state = if (now.playing) "playing" else "paused"
+    HomeCard {
+        CardHeader("music", now.next?.let { "next · $it" }) { onOpen("music") }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                modifier = Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).clickable { onOpen("music") },
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Cover(now, Modifier.size(56.dp), corner = 12.dp)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(now.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(now.artist ?: "", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Label("$state $place" + if (reachable) "" else " · desktop unreachable")
+                }
+            }
+            Box(
+                modifier = Modifier.size(52.dp).clip(CircleShape).background(scheme.primary).clickable(onClick = store::togglePlay),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(if (now.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow, if (now.playing) "pause" else "play", tint = scheme.onPrimary, modifier = Modifier.size(28.dp))
+            }
+        }
+        VolumeBar(volume, enabled = reachable, onDrag = store::dragSinkVolume) {
+            store.setSinkMutedAsync(volume.sink?.muted != true)
         }
     }
 }

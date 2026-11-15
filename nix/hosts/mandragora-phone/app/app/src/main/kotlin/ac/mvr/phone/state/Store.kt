@@ -63,6 +63,8 @@ private data class PhoneSide(val queue: List<MpdSong>, val index: Int, val playi
 class Store(private val app: Application) {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     val library = LocalLibrary(app)
+    val prefs = Prefs(app)
+    val requestedScreen = MutableStateFlow<String?>(null)
     val desktopIp: String = BuildConfig.DESKTOP_IP
 
     val config = MutableStateFlow<BridgeConfig?>(null)
@@ -71,6 +73,8 @@ class Store(private val app: Application) {
     val bridge = BridgeClient { "http://$desktopIp:${port({ it.bridge }, BuildConfig.BRIDGE_PORT)}" }
     val mpd = MpdClient({ desktopIp }, { port({ it.mpd }, 6600) })
     val theme = ThemeClient { "http://$desktopIp:${port({ it.theme }, 6684)}" }
+    val money = MoneyStore(this)
+    val hub = HubStore(this)
 
     val reachable = MutableStateFlow(false)
     val mpdReachable = MutableStateFlow(false)
@@ -99,6 +103,10 @@ class Store(private val app: Application) {
     private var volumeJob: Job? = null
 
     var host: PlayerHost? = null
+        set(value) {
+            field = value
+            if (value != null && lease.value.owner == "phone" && !busy.value && !value.localHasMedia()) restoreLocal(lease.value)
+        }
 
     fun remoteElapsedMs(): Long {
         val snap = mpdSnapshot.value ?: return 0L
@@ -160,6 +168,8 @@ class Store(private val app: Application) {
         scope.launch { loopWhileForeground(10_000) { refreshLease() } }
         scope.launch { loopWhileForeground(5_000) { refreshPalette() } }
         scope.launch { loopWhileForeground(60_000) { refreshLocalNames() } }
+        scope.launch { loopWhileForeground(60_000) { money.refresh() } }
+        scope.launch { loopWhileForeground(30_000) { hub.refresh() } }
         scope.launch {
             while (isActive) {
                 if (lease.value.owner == "phone") host?.let { h ->
@@ -175,7 +185,7 @@ class Store(private val app: Application) {
         scope.launch {
             var previous = lease.value.owner
             lease.collect { current ->
-                if (current.owner == "phone" && heartbeatJob == null) heartbeatJob = launch { loopHeartbeat() }
+                if (current.owner == "phone" && heartbeatJob?.isActive != true) heartbeatJob = launch { loopHeartbeat() }
                 if (current.owner != "phone") { heartbeatJob?.cancel(); heartbeatJob = null }
                 val h = host
                 if (h != null && !busy.value) {
@@ -186,6 +196,9 @@ class Store(private val app: Application) {
                         phoneIndex.value = -1
                     }
                     if (current.owner == "phone" && !h.localHasMedia()) restoreLocal(current)
+                }
+                if (previous == "phone" && current.owner == "desk" && !busy.value) {
+                    mpdSnapshot.value?.song?.file?.let { if (it != lyricsFile.value) loadLyrics(it) }
                 }
                 previous = current.owner
             }
@@ -223,7 +236,7 @@ class Store(private val app: Application) {
         while (scope.isActive && lease.value.owner == "phone") {
             val h = host
             if (h != null && !busy.value) runCatching {
-                adopt(bridge.heartbeat(nowFile(), h.localPositionMs() / 1000.0, h.localIsPlaying()))
+                adopt(bridge.heartbeat(nowFile(), phonePositionMs(h) / 1000.0, h.localIsPlaying()))
             }
             delay(5_000)
         }
@@ -236,6 +249,8 @@ class Store(private val app: Application) {
         lease.value = if (lapsed) bridge.takeLease("phone", nowFile(), h!!.localPositionMs() / 1000.0, h.localIsPlaying()) else remote
     }
 
+    private fun phonePositionMs(h: PlayerHost): Long = if (h.localHasMedia()) h.localPositionMs() else (lease.value.elapsed * 1000).toLong()
+
     suspend fun refreshMpd() {
         val snap = mpd.snapshot()
         snapshotAtMs = SystemClock.elapsedRealtime()
@@ -243,6 +258,7 @@ class Store(private val app: Application) {
         mpdReachable.value = true
         val file = snap.song?.file
         if (lease.value.owner == "desk" && file != null && file != lyricsFile.value) loadLyrics(file)
+        if (lease.value.owner == "phone" && snap.status.playing && !busy.value) scope.launch { refreshLease() }
     }
 
     private fun refreshAll() = scope.launch {
@@ -250,8 +266,10 @@ class Store(private val app: Application) {
         runCatching { refreshLease() }
         runCatching { refreshPalette() }
         runCatching { refreshLocalNames() }
+        runCatching { money.refresh() }
+        runCatching { hub.refresh() }
         val file = now.value.file
-        if (file != null && lyrics.value == null && !lyricsBusy.value) loadLyrics(file)
+        if (file != null && file != lyricsFile.value && !lyricsBusy.value) loadLyrics(file)
     }
 
     suspend fun refreshVolume() { runCatching { volume.value = bridge.volume() } }
@@ -355,8 +373,12 @@ class Store(private val app: Application) {
     }
 
     private suspend fun moveToPhone(h: PlayerHost) {
-        val snap = mpdSnapshot.value
         val online = reachable.value
+        if (online) runCatching { refreshMpd() }
+        val snap = mpdSnapshot.value
+        val expected = snap?.song?.file
+        if (online && snap != null && expected == null) throw IllegalStateException("desktop has nothing to hand over")
+        val known = expected?.let { library.find(it) ?: throw IllegalStateException("not on the phone yet · ${it.substringAfterLast('/')}") }
         val granted = if (online) bridge.takeLease("phone", null, null, null) else {
             runCatching { if (snap?.status?.playing == true) mpd.pause(true) }
             Lease(
@@ -370,20 +392,25 @@ class Store(private val app: Application) {
             )
         }
         val file = granted.file ?: throw IllegalStateException("desktop has nothing to hand over")
-        val track = library.find(file)
+        val track = if (file == expected) known else library.find(file)
         if (track == null) {
             if (online) bridge.takeLease("desk", granted.file, granted.elapsed, granted.playing)
             throw IllegalStateException("not on the phone yet · ${file.substringAfterLast('/')}")
         }
-        val names = refreshLocalNames()
-        val copied = runCatching { copyQueue(snap, file, names) }.getOrDefault(emptyList())
         val current = MpdSong(file, granted.artist, granted.title, null, granted.duration)
-        val queue = if (copied.any { it.file == file }) copied else listOf(current) + copied
-        phoneQueue.value = queue
-        phoneIndex.value = queue.indexOfFirst { it.file == file }
+        val seed = listOf(current)
+        phoneQueue.value = seed
+        phoneIndex.value = 0
         lease.value = granted
         h.useLocal(track.uri, granted.title ?: track.displayName, granted.artist, (granted.elapsed * 1000).toLong(), granted.playing)
         loadLyrics(file)
+        val names = refreshLocalNames()
+        val copied = runCatching { copyQueue(snap, file, names) }.getOrDefault(emptyList())
+        if (phoneQueue.value !== seed || phoneIndex.value != 0) return
+        val queue = if (copied.any { it.file == file }) copied else seed + copied
+        val at = queue.indexOfFirst { it.file == file && it.pos == snap?.status?.song }
+        phoneQueue.value = queue
+        phoneIndex.value = if (at >= 0) at else queue.indexOfFirst { it.file == file }
     }
 
     private suspend fun copyQueue(snap: MpdSnapshot?, file: String, names: Set<String>): List<MpdSong> {
@@ -394,7 +421,8 @@ class Store(private val app: Application) {
     }
 
     private suspend fun moveToDesk(h: PlayerHost) {
-        val positionMs = h.localPositionMs()
+        if (!reachable.value) throw Unreachable("desktop unreachable")
+        val positionMs = phonePositionMs(h)
         val playing = h.localIsPlaying()
         h.localPause()
         val granted = try {

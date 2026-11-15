@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -29,6 +30,7 @@ import kotlinx.coroutines.launch
 class PlaybackService : MediaSessionService(), PlayerHost {
     private lateinit var appStore: Store
     private lateinit var local: ExoPlayer
+    private lateinit var localSession: Player
     private lateinit var remote: RemotePlayer
     private var session: MediaSession? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -47,14 +49,15 @@ class PlaybackService : MediaSessionService(), PlayerHost {
                 if (playbackState == Player.STATE_ENDED) appStore.localEnded()
             }
         })
+        localSession = PhoneQueuePlayer(local)
         remote = RemotePlayer(mainLooper, appStore)
         val launch = PendingIntent.getActivity(
             this,
             0,
-            Intent(this, MainActivity::class.java),
+            Intent(this, MainActivity::class.java).putExtra("screen", "music"),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val initial: Player = if (appStore.lease.value.owner == "phone") local else remote
+        val initial: Player = if (appStore.lease.value.owner == "phone") localSession else remote
         session = MediaSession.Builder(this, initial).setSessionActivity(launch).build()
         remoteWatch = scope.launch {
             launch { appStore.mpdSnapshot.collectLatest { remote.refresh() } }
@@ -98,7 +101,7 @@ class PlaybackService : MediaSessionService(), PlayerHost {
         local.setMediaItem(MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).build(), positionMs.coerceAtLeast(0))
         local.prepare()
         local.playWhenReady = play
-        session?.setPlayer(local)
+        session?.setPlayer(localSession)
     }
 
     override fun localPositionMs(): Long = local.currentPosition
@@ -114,4 +117,25 @@ class PlaybackService : MediaSessionService(), PlayerHost {
     override fun localSeek(positionMs: Long) { local.seekTo(positionMs.coerceAtLeast(0)) }
 
     override fun localHasMedia(): Boolean = local.mediaItemCount > 0
+
+    private inner class PhoneQueuePlayer(player: Player) : ForwardingPlayer(player) {
+        private val skips = Player.Commands.Builder().addAll(
+            Player.COMMAND_SEEK_TO_PREVIOUS,
+            Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM,
+            Player.COMMAND_SEEK_TO_NEXT,
+            Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
+        ).build()
+
+        override fun getAvailableCommands(): Player.Commands = super.getAvailableCommands().buildUpon().addAll(skips).build()
+
+        override fun isCommandAvailable(command: Int): Boolean = skips.contains(command) || super.isCommandAvailable(command)
+
+        override fun seekToNext() { appStore.next() }
+
+        override fun seekToNextMediaItem() { appStore.next() }
+
+        override fun seekToPrevious() { appStore.previous() }
+
+        override fun seekToPreviousMediaItem() { appStore.previous() }
+    }
 }
