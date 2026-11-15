@@ -115,6 +115,7 @@ back collapses it):
 | music card: volume slider / speaker | desktop system volume, music or not | home |
 | music card: name, cover, title | opens the music screen | music |
 | money card: the total | cycles the unit BTC → USD → BRL (the phone's own unit) | home |
+| money card: the share bars | nothing, display; one bar per asset, or per venue when the money screen is set to venues | home |
 | money card: name | opens the money screen | money |
 | hub card: name or glance | opens the hub screen | hub |
 | code card: a session row | opens that session on the code screen | code |

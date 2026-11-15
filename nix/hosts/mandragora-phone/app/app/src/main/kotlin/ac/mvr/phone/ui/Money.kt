@@ -101,6 +101,7 @@ fun MoneyCard(store: Store, onOpen: (String) -> Unit) {
     val reachable by store.reachable.collectAsStateWithLifecycle()
     val unitPref by store.prefs.unit.collectAsStateWithLifecycle()
     val hidden by store.prefs.hiddenAmounts.collectAsStateWithLifecycle()
+    val group by store.prefs.moneyGroup.collectAsStateWithLifecycle()
     val nowMs = rememberNowMs()
     val unit = MoneyFormat.unitOf(unitPref)
     val cache = data
@@ -129,7 +130,11 @@ fun MoneyCard(store: Store, onOpen: (String) -> Unit) {
         if (cache != null && cache.hasCache) {
             if (total != null && total != 0.0) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    cache.venues.forEach { ShareBar(it, total) }
+                    if (group == "venue") {
+                        cache.venues.forEach { ShareBar(it.label, it.usd, available = !it.missing && !it.noteOnly && it.usd != null, stale = it.staleSince != null, total = total) }
+                    } else {
+                        assetGroups(cache).forEach { ShareBar(it.asset, it.usd, available = it.usd != null, stale = false, total = total) }
+                    }
                 }
             } else {
                 Text(
@@ -145,14 +150,12 @@ fun MoneyCard(store: Store, onOpen: (String) -> Unit) {
 }
 
 @Composable
-private fun ShareBar(venue: MoneyVenue, total: Double) {
+private fun ShareBar(label: String, usd: Double?, available: Boolean, stale: Boolean, total: Double) {
     val scheme = MaterialTheme.colorScheme
-    val usd = venue.usd
-    val available = !venue.missing && !venue.noteOnly && usd != null
-    val fraction = if (available) (usd!! / total).toFloat().coerceIn(0f, 1f) else 0f
+    val fraction = if (available && usd != null) (usd / total).toFloat().coerceIn(0f, 1f) else 0f
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
-            venue.label,
+            label,
             style = MaterialTheme.typography.labelMedium,
             color = if (available) scheme.onSurfaceVariant else scheme.outline,
             maxLines = 1,
@@ -175,7 +178,7 @@ private fun ShareBar(venue: MoneyVenue, total: Double) {
             style = MaterialTheme.typography.labelMedium,
             color = when {
                 !available -> scheme.outline
-                venue.staleSince != null -> scheme.tertiary
+                stale -> scheme.tertiary
                 else -> scheme.onSurfaceVariant
             },
             textAlign = TextAlign.End,
