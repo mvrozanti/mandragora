@@ -272,7 +272,8 @@ rationale, recipes, or the incident that produced the rule.
     it refuses rewrites, deletions, renames that leave links behind,
     unlinkable titles, broken links, damaged frontmatter, secrets and
     device or network identifiers, and the vault's own hook refuses the
-    same.
+    same. Give `find` the change in a sentence, not one keyword: it
+    ranks, so more words find the note more often (93% against 73%).
     The commit-msg hook refuses an agent commit without a valid verdict,
     an agent-run `mandragora-switch` refuses to build one, and after an
     agent's switch a Haiku privacy pass gates what reaches
