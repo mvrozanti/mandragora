@@ -1,0 +1,15 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "deepseek/deepseek-v4-pro",
+  "small_model": "deepseek/deepseek-v4-flash",
+  "share": "disabled",
+  "autoupdate": false,
+  "username": "m",
+  "provider": {
+    "deepseek": {
+      "options": {
+        "apiKey": "{file:/run/secrets/deepseek/api_key}"
+      }
+    }
+  }
+}

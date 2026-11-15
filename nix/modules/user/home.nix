@@ -283,6 +283,8 @@ in
     (pkgs.writeShellScriptBin "safe-claude" (builtins.readFile ../../../.local/bin/safe-claude.sh))
     (pkgs.writeShellScriptBin "deepseek" (builtins.readFile ../../../.local/bin/deepseek.sh))
     (pkgs.writeShellScriptBin "claude-deepseek" (builtins.readFile ../../../.local/bin/deepseek.sh))
+    pkgs.opencode
+    (pkgs.writeShellScriptBin "oc" (builtins.readFile ../../../.local/bin/oc.sh))
     (pkgs.writeShellScriptBin "claude-backend-sync" (
       builtins.readFile ../../../.local/bin/claude-backend-sync.sh
     ))
