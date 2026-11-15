@@ -5,6 +5,7 @@ let
     click-to-reveal = true;
     toggle-button = 2;
     leader-index = leader;
+    cycle-on-scroll = true;
     start-revealed = true;
     persist = true;
     transition-duration = 250;
@@ -177,7 +178,6 @@ in
         "custom/volume" = {
           exec = "~/.config/waybar/scripts/volume-ramp.sh";
           return-type = "json";
-          # Streaming: script emits on pactl subscribe events; no polling, no signal.
           on-click = "pamixer -t";
           on-scroll-up = "pamixer -i 2";
           on-scroll-down = "pamixer -d 2";
