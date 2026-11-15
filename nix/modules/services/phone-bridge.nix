@@ -32,6 +32,8 @@ in
         Restart = "on-failure";
         RestartSec = "5s";
         MemoryMax = "128M";
+        CPUWeight = 1000;
+        IOWeight = 1000;
       };
     };
   };

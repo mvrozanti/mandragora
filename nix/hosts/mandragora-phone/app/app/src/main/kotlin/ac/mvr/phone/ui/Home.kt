@@ -38,6 +38,7 @@ fun HomeScreen(store: Store, onOpen: (String) -> Unit) {
             MusicCard(store, onOpen)
             MoneyCard(store, onOpen)
             HubCard(store, onOpen)
+            PanicCard(store, onOpen)
         }
         Notice(store, Modifier.padding(horizontal = 14.dp, vertical = 10.dp))
     }

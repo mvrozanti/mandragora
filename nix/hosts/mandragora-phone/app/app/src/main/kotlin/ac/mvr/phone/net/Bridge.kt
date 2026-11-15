@@ -153,4 +153,26 @@ class BridgeClient(private val baseUrl: () -> String) {
     suspend fun app(): AppBuild = json.decodeFromString(Http.get("${baseUrl()}/api/app"))
 
     suspend fun downloadApk(target: java.io.File, onProgress: (Long, Long) -> Unit) = Http.download("${baseUrl()}/api/app/apk", target, onProgress)
+
+    suspend fun load(): LoadState = json.decodeFromString(Http.get("${baseUrl()}/api/load"))
+
+    suspend fun kill(id: String): KillResult = json.decodeFromString(Http.post("${baseUrl()}/api/kill", buildJsonObject { put("id", id) }))
 }
+
+@Serializable
+data class Psi(val some10: Double = 0.0, val some60: Double = 0.0, val full10: Double = 0.0, val full60: Double = 0.0)
+
+@Serializable
+data class Pressure(val memory: Psi = Psi(), val cpu: Psi = Psi(), val io: Psi = Psi())
+
+@Serializable
+data class MemInfo(val total: Long = 0, val available: Long = 0, val swapTotal: Long = 0, val swapFree: Long = 0)
+
+@Serializable
+data class Hog(val id: String, val unit: String = id, val kind: String = "", val name: String = unit, val mem: Long = 0, val swap: Long = 0, val cpu: Double = 0.0, val procs: Int = 0)
+
+@Serializable
+data class LoadState(val ts: Double = 0.0, val pressure: Pressure = Pressure(), val memory: MemInfo = MemInfo(), val hogs: List<Hog> = emptyList())
+
+@Serializable
+data class KillResult(val killed: String? = null, val name: String? = null, val procs: Int = 0, val error: String? = null)

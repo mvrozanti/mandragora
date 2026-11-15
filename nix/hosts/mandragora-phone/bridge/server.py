@@ -5,6 +5,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import socket
 import subprocess
 import threading
@@ -611,6 +612,172 @@ def app_state() -> dict:
     return meta
 
 
+CGROUP_ROOT = Path(f"/sys/fs/cgroup/user.slice/user-{os.getuid()}.slice/user@{os.getuid()}.service")
+PROTECTED_UNITS = ("phone-bridge", "pipewire", "wireplumber", "dbus", "xdg-", "hyprland", "polkit", "gcr-", "dconf", "session.slice", "init.scope")
+load_lock = threading.Lock()
+cpu_last: dict[str, tuple[int, float]] = {}
+
+
+def read_int(path: Path) -> int:
+    try:
+        return int(path.read_text().strip())
+    except (OSError, ValueError):
+        return 0
+
+
+def pressure(name: str) -> dict:
+    out: dict[str, float] = {}
+    try:
+        for line in (Path("/proc/pressure") / name).read_text().splitlines():
+            kind, _, rest = line.partition(" ")
+            for field in rest.split():
+                key, _, value = field.partition("=")
+                if key in ("avg10", "avg60"):
+                    out[kind + key[3:]] = float(value)
+    except (OSError, ValueError):
+        pass
+    return out
+
+
+def meminfo() -> dict:
+    wanted = {"MemTotal": "total", "MemAvailable": "available", "SwapTotal": "swapTotal", "SwapFree": "swapFree"}
+    out: dict[str, int] = {}
+    try:
+        for line in Path("/proc/meminfo").read_text().splitlines():
+            key, _, rest = line.partition(":")
+            if key in wanted:
+                out[wanted[key]] = int(rest.split()[0]) * 1024
+    except (OSError, ValueError, IndexError):
+        pass
+    return out
+
+
+def protected_unit(rel: str) -> bool:
+    return any(token in rel for token in PROTECTED_UNITS)
+
+
+def unit_kind(unit: str) -> str:
+    if unit.startswith("tmux-spawn-"):
+        return "tmux pane"
+    if unit.startswith("kitty-"):
+        return "kitty window"
+    if unit.endswith(".service"):
+        return "service"
+    if unit.startswith("app-"):
+        return "app"
+    return "scope"
+
+
+def unit_title(unit: str) -> str:
+    base = unit.rsplit(".", 1)[0]
+    if unit.startswith("app-"):
+        base = re.sub(r"-\d+$", "", base[4:]).rsplit(".", 1)[-1]
+    return base
+
+
+def heaviest_comm(cg: Path, limit: int = 48) -> tuple[str, int]:
+    try:
+        pids = [int(p) for p in (cg / "cgroup.procs").read_text().split()]
+    except (OSError, ValueError):
+        return "", 0
+    best, best_rss = "", -1
+    for pid in pids[:limit]:
+        proc = Path("/proc") / str(pid)
+        try:
+            rss = int((proc / "statm").read_text().split()[1])
+            comm = (proc / "comm").read_text().strip().rsplit("/", 1)[-1]
+        except (OSError, ValueError, IndexError):
+            continue
+        if rss > best_rss:
+            best, best_rss = comm, rss
+    return best, len(pids)
+
+
+def walk_units(root: Path, depth: int = 0):
+    try:
+        children = [p for p in root.iterdir() if p.is_dir()]
+    except OSError:
+        return
+    for child in children:
+        if child.name.endswith(".service") or child.name.endswith(".scope"):
+            yield child
+        elif depth < 3:
+            yield from walk_units(child, depth + 1)
+
+
+def cpu_usage(cg: Path) -> int:
+    try:
+        for line in (cg / "cpu.stat").read_text().splitlines():
+            if line.startswith("usage_usec "):
+                return int(line.split()[1])
+    except (OSError, ValueError, IndexError):
+        pass
+    return 0
+
+
+def sample_units() -> list:
+    now = time.monotonic()
+    rows = []
+    seen = set()
+    for cg in walk_units(CGROUP_ROOT):
+        rel = str(cg.relative_to(CGROUP_ROOT))
+        if protected_unit(rel):
+            continue
+        usage = cpu_usage(cg)
+        previous = cpu_last.get(rel)
+        cpu_last[rel] = (usage, now)
+        seen.add(rel)
+        cpu = 0.0
+        if previous and now > previous[1] and usage >= previous[0]:
+            cpu = (usage - previous[0]) / ((now - previous[1]) * 1_000_000)
+        rows.append((rel, cg, read_int(cg / "memory.current"), read_int(cg / "memory.swap.current"), cpu))
+    for rel in list(cpu_last):
+        if rel not in seen:
+            del cpu_last[rel]
+    return rows
+
+
+def load_state() -> dict:
+    with load_lock:
+        if not cpu_last:
+            sample_units()
+            time.sleep(0.3)
+        rows = sample_units()
+    rows.sort(key=lambda r: r[2] + r[3], reverse=True)
+    hogs = []
+    for rel, cg, mem, swap, cpu in rows[:8]:
+        comm, procs = heaviest_comm(cg)
+        hogs.append({"id": rel, "unit": cg.name, "kind": unit_kind(cg.name), "name": comm or unit_title(cg.name), "mem": mem, "swap": swap, "cpu": round(cpu, 2), "procs": procs})
+    return {
+        "ts": time.time(),
+        "pressure": {"memory": pressure("memory"), "cpu": pressure("cpu"), "io": pressure("io")},
+        "memory": meminfo(),
+        "hogs": hogs,
+    }
+
+
+def kill_unit(body: dict) -> dict:
+    rel = str(body.get("id") or "").strip("/")
+    if not rel or ".." in rel.split("/"):
+        raise ValueError("id required")
+    cg = CGROUP_ROOT / rel
+    if not cg.is_dir() or not (cg.name.endswith(".service") or cg.name.endswith(".scope")):
+        raise ValueError("unknown unit")
+    if protected_unit(rel):
+        raise ValueError("protected unit")
+    name, procs = heaviest_comm(cg)
+    killfile = cg / "cgroup.kill"
+    if killfile.exists():
+        killfile.write_text("1")
+    else:
+        for pid in (cg / "cgroup.procs").read_text().split():
+            try:
+                os.kill(int(pid), signal.SIGKILL)
+            except (OSError, ValueError):
+                pass
+    return {"killed": rel, "name": name or unit_title(cg.name), "procs": procs}
+
+
 def config() -> dict:
     return {
         "version": VERSION,
@@ -693,6 +860,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(hub_state())
             elif url.path == "/api/app":
                 self.send_json(app_state())
+            elif url.path == "/api/load":
+                self.send_json(load_state())
             elif url.path == "/api/app/apk":
                 if APP_APK.is_file():
                     self.send_file(APP_APK, "application/vnd.android.package-archive", APP_APK.name)
@@ -732,6 +901,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(heartbeat(body))
             elif url.path == "/api/money/refresh":
                 self.send_json(start_money_refresh())
+            elif url.path == "/api/kill":
+                self.send_json(kill_unit(body))
             else:
                 self.send_json({"error": "not found"}, 404)
         except ValueError as err:

@@ -12,6 +12,9 @@ bottom are the ones that decide which.
 - `phone-bridge` on the desktop: config, desktop sink volume, the playback
   lease, lyrics.
 - mpd reachable over the tailnet.
+- The panic card (2026-11-15): pressure gauges and the eight heaviest user
+  units, two taps to kill one through `cgroup.kill`, from a card on home and
+  its own screen.
 - `phone-push`: build the app in the `phone` dev shell and publish it to the
   bridge (2026-11-15; before that, install it over wireless debugging, still
   there behind `PHONE_ADB_ADDR`). The app offers the published build on home
@@ -51,17 +54,6 @@ Stated by the operator on 2026-11-15, in their order:
 - ytdl ported in: the `ytdl-web` client that left with the one-screen
   rewrite returns as a card (paste or share a URL, watch the job, play the
   result on either side).
-- A panic card (asked for on 2026-11-15): when the desktop grinds to a
-  halt under something heavy, the phone shows what is eating it and kills
-  it. The bridge reads memory pressure and the top user cgroups straight
-  from `/proc/pressure` and `/sys/fs/cgroup` (no shell-outs), the card
-  lists them with a second-tap-to-kill per row and one "kill the biggest"
-  button with the same confirm, the kill is a write to the cgroup's
-  `cgroup.kill` so a gradle daemon dies with its children, and a protected
-  set (the compositor, audio, the bridge itself, tailscale) is never
-  offered. For the button to work when it matters the bridge unit needs
-  `MemoryMin`, a high `CPUWeight`/`IOWeight` and `OOMScoreAdjust=-900`, so
-  it stays resident and scheduled while everything else thrashes.
 - More, to be picked from, suggested by the agent on the same day:
   "open on the desktop" as a share target (a URL goes to the desktop's
   browser or mpv, text to the clipboard); a glance card for the desktop

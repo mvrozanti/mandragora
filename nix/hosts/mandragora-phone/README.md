@@ -28,7 +28,7 @@ All of it on the tailnet interface only; nothing here has a `*.mvr.ac` host.
 
 | port | unit | what |
 |---|---|---|
-| 6688 | `phone-bridge` (user) | `GET /api/config` (desktop ip, ports, hub manifest); `GET/POST /api/volume` (default sink, all sinks, set level, mute, default); `GET/POST /api/lease`, `POST /api/lease/position` (who plays, where, since); `GET /api/lyrics?file=` (`.lrc` beside the track, then the `~/Music/.lyrics` cache, then lrclib, writing the `.lrc` when synced lyrics exist); `GET /api/now`; `GET /api/cover?file=` (the picture mpd reads from the file, `readpicture` then `albumart`, 404 when there is none); `GET /api/money` (the money-menu cache plus `stale` and `refreshing`), `POST /api/money/refresh` (starts the `money-menu-refresh` user unit); `GET /api/hub` (the hub manifest plus untiled hosts and per-host state from status.mvr.ac, the VPS stats, the desktop's gpu-status; merged on the desktop and cached 20 s so the phone never leaves the tailnet); `GET /api/app` (the build `phone-push` last published: `versionCode`, `versionName`, `sha256`, `size`), `GET /api/app/apk` (that build, as a download) |
+| 6688 | `phone-bridge` (user) | `GET /api/config` (desktop ip, ports, hub manifest); `GET/POST /api/volume` (default sink, all sinks, set level, mute, default); `GET/POST /api/lease`, `POST /api/lease/position` (who plays, where, since); `GET /api/lyrics?file=` (`.lrc` beside the track, then the `~/Music/.lyrics` cache, then lrclib, writing the `.lrc` when synced lyrics exist); `GET /api/now`; `GET /api/cover?file=` (the picture mpd reads from the file, `readpicture` then `albumart`, 404 when there is none); `GET /api/money` (the money-menu cache plus `stale` and `refreshing`), `POST /api/money/refresh` (starts the `money-menu-refresh` user unit); `GET /api/hub` (the hub manifest plus untiled hosts and per-host state from status.mvr.ac, the VPS stats, the desktop's gpu-status; merged on the desktop and cached 20 s so the phone never leaves the tailnet); `GET /api/app` (the build `phone-push` last published: `versionCode`, `versionName`, `sha256`, `size`), `GET /api/app/apk` (that build, as a download); `GET /api/load` (memory, cpu and io pressure from `/proc/pressure`, free memory and swap, and the eight heaviest user units by memory plus swap with the name of their largest process, read straight from the cgroup tree so it answers while the desktop thrashes); `POST /api/kill {"id"}` (kills that unit's whole cgroup through `cgroup.kill`; the compositor, audio, dbus, the portals and the bridge itself are never listed or killable) |
 | 6600 | mpd (user) | the mpd protocol; the app uses `idle` for push updates. No password: every tailnet node is the operator's |
 | 6685 | `ytdl-web` (user) | `POST /api/download`, `GET /api/jobs`, `/api/jobs/<id>/file`, `/cancel` |
 | 6684 | `gpu-status` | `GET /api/theme?colors=1`, the matugen palette the app wears |
@@ -115,6 +115,9 @@ back collapses it):
 | money card: the total | cycles the unit BTC → USD → BRL (the phone's own unit) | home |
 | money card: name | opens the money screen | money |
 | hub card: name or glance | opens the hub screen | hub |
+| panic card: name or the gauge | opens the panic screen | panic |
+| panic card: "kill the biggest", first tap | arms it for 4 s; the button reads "tap again to kill <name>" | home |
+| panic card: "kill the biggest", second tap | kills that unit's whole cgroup on the desktop; the card says what died | home |
 | "update ready" line (only when the desktop published a newer build) | downloads it, verifies the hash, opens Android's installer; the first time it opens the "allow installs from this app" setting instead and says so on the notice line | installer |
 | header dot | nothing, display | home |
 | Android back on home | leaves the app | launcher |
@@ -168,6 +171,20 @@ the phone's own, since the hub's own counter sits behind authelia):
 | the status summary | expands / collapses the desk card, vps card and "needs attention" | hub |
 | a service row | opens its url (`url` or `https://host`) in the browser; the tap counts for sort-by-use on this phone | browser |
 | "no tile" tag, lock badge, state dot | nothing, display | hub |
+
+The panic screen (what is grinding the desktop, and the way to stop it; the
+list is the eight heaviest user units by memory plus swap, named after their
+largest process, refreshed every 3 s while the screen is open and every 10 s
+from home):
+
+| Tap | Does | Lands |
+|---|---|---|
+| "kill the biggest", first tap | arms it for 4 s; reads "tap again to kill <name>" | panic |
+| "kill the biggest", second tap | kills the top unit's whole cgroup; "killed <name>" appears under the list | panic |
+| a row's "kill", first tap | arms that row for 4 s; the row turns red and reads "tap again" | panic |
+| a row's "kill", second tap | kills that unit's whole cgroup | panic |
+| anything else on a row, the gauges | nothing, display | panic |
+| leaving the screen | disarms whatever was armed | home |
 
 Lock screen and notification: prev / play / next act on the owner; the body
 opens the app on the music screen; volume keys follow the pill (desktop side moves the desktop's

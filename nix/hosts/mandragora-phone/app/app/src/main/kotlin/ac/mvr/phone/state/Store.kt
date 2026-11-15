@@ -83,6 +83,7 @@ class Store(private val app: Application) {
     val money = MoneyStore(this)
     val hub = HubStore(this)
     val update = UpdateStore(this, app)
+    val load = LoadStore(this)
 
     val reachable = MutableStateFlow(false)
     val mpdReachable = MutableStateFlow(false)
@@ -184,6 +185,7 @@ class Store(private val app: Application) {
         scope.launch { loopWhileForeground(60_000) { money.refresh() } }
         scope.launch { loopWhileForeground(30_000) { hub.refresh() } }
         scope.launch { loopWhileForeground(300_000) { update.refresh() } }
+        scope.launch { loopWhileForeground(10_000) { load.refresh() } }
         scope.launch {
             while (isActive) {
                 if (lease.value.owner == "phone") host?.let { h ->
@@ -286,6 +288,7 @@ class Store(private val app: Application) {
         runCatching { money.refresh() }
         runCatching { hub.refresh() }
         runCatching { update.refresh() }
+        runCatching { load.refresh() }
         val file = now.value.file
         if (file != null && file != lyricsFile.value && !lyricsBusy.value) loadLyrics(file)
     }
