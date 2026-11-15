@@ -361,7 +361,7 @@ alias piu='pip install --user --upgrade --break-system-packages'
 alias pir='pip uninstall --no-cache-dir --break-system-packages'
 alias piup='pip install --upgrade pip'
 alias nig='npm i -g'
-C() { make "${1%.*}"; ./"${1%.*}" }
+C() { claude "$@" }
 funccount() { nm "$@" | grep "T " | grep -v " _" | wc -l }
 mentr() { ls | entr -c make }
 nentr() { ls *.* | entr -c node /_ "$@" }
