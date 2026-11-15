@@ -12,6 +12,7 @@ let
       systemd
       iproute2
       curl
+      iwd
     ];
   };
 in

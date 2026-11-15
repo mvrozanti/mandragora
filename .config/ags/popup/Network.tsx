@@ -1,4 +1,5 @@
 import { Gtk } from "ags/gtk4"
+import GLib from "gi://GLib"
 import { createComputed, createState, For } from "ags"
 import Popup from "../widget/Popup"
 import { Chip, Empty, Icon, IconButton, Scroll, SectionLabel, Segmented } from "../widget/parts"
@@ -45,6 +46,29 @@ export default function NetworkPopup() {
     setBusy(label)
     await quiet(["network-menu", ...args])
     setBusy("")
+    poll()
+  }
+
+  const [psk, setPsk] = createState<string | null>(null)
+  let pskEntry!: Gtk.Entry
+
+  const promptFor = (ssid: string) => {
+    setPsk(ssid)
+    GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+      pskEntry.text = ""
+      pskEntry.grab_focus()
+      return GLib.SOURCE_REMOVE
+    })
+  }
+
+  const connectPsk = async () => {
+    const ssid = psk.peek()
+    const pass = pskEntry?.text ?? ""
+    if (!ssid || !pass) return
+    setBusy(ssid)
+    await quiet(["network-menu", "connect-psk", ssid, pass])
+    setBusy("")
+    setPsk(null)
     poll()
   }
 
@@ -97,7 +121,11 @@ export default function NetworkPopup() {
             {(n: Net) => (
               <button
                 class={n.connected ? "row current" : "row"}
-                onClicked={() => run(n.ssid, ["connect", n.ssid])}
+                onClicked={() => {
+                  if (n.connected) return
+                  if (n.security !== "open") promptFor(n.ssid)
+                  else run(n.ssid, ["connect", n.ssid])
+                }}
                 tooltipText={n.connected ? "Connected" : `Connect to ${n.ssid}`}
               >
                 <box spacing={12}>
@@ -114,6 +142,31 @@ export default function NetworkPopup() {
           </box>
         </box>
       </Scroll>
+      <box orientation={Gtk.Orientation.VERTICAL} spacing={8} visible={psk((s) => s !== null)}>
+        <SectionLabel label={psk((s) => `CONNECT TO ${s ?? ""}`)} />
+        <box spacing={8}>
+          <entry
+            $={(self) => {
+              pskEntry = self
+              self.connect("activate", () => connectPsk())
+            }}
+            visibility={false}
+            placeholderText="Wi-Fi passphrase"
+            hexpand
+          />
+          <button class="button" onClicked={connectPsk}>
+            <box spacing={6} halign={Gtk.Align.CENTER}>
+              <Icon name="link" />
+              <label label="Connect" />
+            </box>
+          </button>
+          <button class="button" onClicked={() => setPsk(null)}>
+            <box spacing={6} halign={Gtk.Align.CENTER}>
+              <label label="Cancel" />
+            </box>
+          </button>
+        </box>
+      </box>
       <box class="footer" spacing={8} visible={data((d) => d.networks.some((n) => n.connected))}>
         <button class="button" hexpand onClicked={() => run("disconnect", ["disconnect"])}>
           <box spacing={6} halign={Gtk.Align.CENTER}>

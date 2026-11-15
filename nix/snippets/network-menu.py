@@ -1,4 +1,5 @@
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -240,6 +241,20 @@ def do_connect(net):
     open_manager()
 
 
+def connect_psk(ssid, psk):
+    proc = run(
+        ["iwctl", "--passphrase", psk, "--dont-ask", "station", WIFI_IF, "connect", ssid],
+        timeout=30,
+    )
+    if proc.returncode == 0:
+        notify(f"Connected to {ssid}")
+        return 0
+    raw = re.sub(r"\x1b\[[0-9;]*m", "", (proc.stderr or proc.stdout)).strip().splitlines()
+    reason = raw[-1] if raw else "unknown error"
+    notify(f"Could not connect to {ssid}: {reason}")
+    return 1
+
+
 def pick():
     while True:
         mode = read_run("mode", "auto")
@@ -325,6 +340,9 @@ def main():
         return 0
     if cmd == "connect" and arg:
         return connect_ssid(arg)
+    if cmd == "connect-psk" and arg:
+        psk = sys.argv[3] if len(sys.argv) > 3 else ""
+        return connect_psk(arg, psk)
     if cmd == "rescan":
         station_call("Scan")
         return 0
