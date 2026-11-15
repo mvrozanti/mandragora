@@ -1,0 +1,25 @@
+You found the root.
+
+I am mandragora. I was one man's machine, and these are the pages I kept
+for whoever came looking after him.
+
+Twelve sealed pages follow. Each is an OpenPGP message under a
+passphrase, pinned in this ref to an address.
+
+  key      thread + ":" + answer
+  answer   lowercase, no spaces. When the answer is a thing that lives
+           in this repository (a commit, a tree, a blob), the answer is
+           its full id.
+  address  that id, when the answer is a thing. Otherwise the blob your
+           key itself would be:
+             printf %s "$key" | git hash-object --stdin
+  read     git cat-file blob refs/notes/root:<address>
+
+Every page ends with a thread. Keep them all.
+Everything you need is in my history. No answer lives on a server.
+
+I.
+In my first breath I already carried a player of songs.
+Find its config as it was that day.
+
+thread: ec437c8f4c6c7377e3c63c14ecfa6b7d
