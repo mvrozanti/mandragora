@@ -26,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +37,7 @@ import ac.mvr.phone.state.Store
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-fun MusicScreen(store: Store, onCollapse: () -> Unit) {
+fun MusicScreen(store: Store, onCollapse: () -> Unit, onFind: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val now by store.now.collectAsStateWithLifecycle()
     val reachable by store.reachable.collectAsStateWithLifecycle()
@@ -49,7 +48,6 @@ fun MusicScreen(store: Store, onCollapse: () -> Unit) {
     val cover by store.cover.collectAsStateWithLifecycle()
     val repeat by store.repeatMode.collectAsStateWithLifecycle()
     var showLyrics by remember { mutableStateOf(false) }
-    var find by rememberSaveable { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("music", reachable, onCollapse)
@@ -91,9 +89,8 @@ fun MusicScreen(store: Store, onCollapse: () -> Unit) {
             Transport(now, repeat, onToggle = store::togglePlay, onNext = store::next, onPrevious = store::previous, onRepeat = store::cycleRepeat)
             Label(now.next?.let { "next · $it" } ?: "")
         }
-        FindBar { find = true }
+        FindBar(onFind)
     }
-    if (find) FindSheet(store) { find = false }
 }
 
 @Composable

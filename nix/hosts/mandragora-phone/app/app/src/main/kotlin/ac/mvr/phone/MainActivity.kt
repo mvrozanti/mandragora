@@ -34,6 +34,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import ac.mvr.phone.play.PlaybackService
 import ac.mvr.phone.ui.CodeScreen
+import ac.mvr.phone.ui.FindScreen
 import ac.mvr.phone.ui.HomeScreen
 import ac.mvr.phone.ui.HubScreen
 import ac.mvr.phone.ui.MandragoraTheme
@@ -131,7 +132,7 @@ class MainActivity : ComponentActivity() {
             screen = target
             store.requestedScreen.value = null
         }
-        BackHandler(enabled = screen != "home") { screen = "home" }
+        BackHandler(enabled = screen != "home") { screen = if (screen == "find") "music" else "home" }
         Scaffold(containerColor = scheme.surface) { padding ->
             Box(modifier = Modifier.fillMaxSize().background(scheme.surface).padding(padding)) {
                 AnimatedContent(
@@ -140,7 +141,8 @@ class MainActivity : ComponentActivity() {
                     label = "screen",
                 ) { target ->
                     when (target) {
-                        "music" -> MusicScreen(store) { screen = "home" }
+                        "music" -> MusicScreen(store, onCollapse = { screen = "home" }, onFind = { screen = "find" })
+                        "find" -> FindScreen(store) { screen = "music" }
                         "money" -> MoneyScreen(store) { screen = "home" }
                         "hub" -> HubScreen(store) { screen = "home" }
                         "panic" -> PanicScreen(store) { screen = "home" }

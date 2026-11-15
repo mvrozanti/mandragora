@@ -87,6 +87,7 @@ class Store(private val app: Application) {
     val hub = HubStore(this)
     val update = UpdateStore(this, app)
     val load = LoadStore(this)
+    val find = FindStore(this)
     val code = CodeStore(this)
 
     val reachable = MutableStateFlow(false)
@@ -581,12 +582,6 @@ class Store(private val app: Application) {
             refreshMpd()
         }
     }
-
-    private fun visible(songs: List<MpdSong>) = songs.filter { !it.file.startsWith(".") && !it.file.contains("/.") }
-
-    suspend fun recent(): List<MpdSong> = visible(mpd.recent(200))
-
-    suspend fun find(term: String): List<MpdSong> = visible(mpd.find(term, 120))
 
     fun loadLyrics(file: String) = scope.launch {
         if (lyricsFile.value != file) lyrics.value = null

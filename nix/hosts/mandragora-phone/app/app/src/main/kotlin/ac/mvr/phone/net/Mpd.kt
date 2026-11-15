@@ -18,6 +18,10 @@ data class MpdSong(
     val duration: Double? = null,
     val pos: Int? = null,
     val id: Int? = null,
+    val genre: String? = null,
+    val date: String? = null,
+    val lastModified: String? = null,
+    val track: Int? = null,
 ) {
     val name: String get() = title ?: file.substringAfterLast('/').substringBeforeLast('.')
 }
@@ -111,15 +115,7 @@ class MpdClient(private val host: () -> String, private val port: () -> Int) {
         return pairs.firstOrNull { it.first == "Id" }?.second?.toIntOrNull() ?: throw IOException("addid returned no id")
     }
 
-    suspend fun recent(limit: Int): List<MpdSong> =
-        splitSongs(command("search ${quote("(any contains '')")} sort -Last-Modified window 0:$limit"))
-
-    suspend fun find(term: String, limit: Int): List<MpdSong> {
-        val value = "'" + term.replace("\\", "\\\\").replace("'", "\\'") + "'"
-        val byTag = splitSongs(command("search ${quote("(any contains $value)")} sort -Last-Modified window 0:$limit"))
-        val byFile = splitSongs(command("search ${quote("(file contains $value)")} sort -Last-Modified window 0:$limit"))
-        return (byTag + byFile).distinctBy { it.file }
-    }
+    suspend fun library(): List<MpdSong> = splitSongs(command("search ${quote("(any contains '')")} sort -Last-Modified"))
 
     suspend fun idle(timeoutSeconds: Int = 60): List<String> = withContext(Dispatchers.IO) {
         try {
@@ -172,6 +168,10 @@ class MpdClient(private val host: () -> String, private val port: () -> Int) {
             duration = map["duration"]?.toDoubleOrNull() ?: map["Time"]?.toDoubleOrNull(),
             pos = map["Pos"]?.toIntOrNull(),
             id = map["Id"]?.toIntOrNull(),
+            genre = map["Genre"],
+            date = map["Date"],
+            lastModified = map["Last-Modified"],
+            track = map["Track"]?.substringBefore('/')?.toIntOrNull(),
         )
     }
 

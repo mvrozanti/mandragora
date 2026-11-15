@@ -20,7 +20,7 @@ the app             app/  (built in `nix develop /etc/nixos/mandragora#phone`, p
 | Sync-Fork (`com.github.catfriend1.syncthingandroid`) | Music receive-only, six inbox folders send-receive | `identity.json`, `nix/modules/desktop/syncthing.nix`, `phone-syncthing-bootstrap` |
 | KDE Connect | clipboard, notifications, trackpad, system volume fallback | `nix/modules/desktop/kdeconnect.nix` |
 | DroidCam | mjpeg for the kindle camera widget | `nix/modules/services/kindle-cam.nix` |
-| mandragora (this repo's app) | one screen: desktop volume, the pill that moves the music, the song, "play something" | `app/` |
+| mandragora (this repo's app) | one screen: desktop volume, the pill that moves the music, the song, "play something" (the find screen) | `app/` |
 
 ## What the desktop serves for it
 
@@ -146,18 +146,26 @@ The music screen:
 | pill to phone, file not synced | error line "not on the phone yet", nothing moves | same screen |
 | pill to desktop, unreachable | error line "desktop unreachable", nothing moves | same screen |
 | the desktop media line under the pill | pauses or resumes that desktop player (a browser's YouTube tab, mpv); absent when nothing but mpd plays | same screen |
-| "play something" | the sheet slides up with the keyboard open | the sheet |
+| "play something" | opens the find screen with the keyboard up | find |
 | "music ⌄" title | collapses to home | home |
 | Android back | collapses to home | home |
 
-The "play something" sheet:
+The find screen (one box answered in facets, chosen on 2026-11-15 from a
+deck of five; the library's tags are read once when the screen opens and
+again on a later open, so everything below runs on the phone):
 
 | Tap | Does | Lands |
 |---|---|---|
-| type | filters the library live by tags and path; newest first when empty | sheet |
+| type | filters live across title, artist, album, genre, year and path; every word must match; the match is highlighted and a row says what matched when it was not the title, artist or album | find |
+| empty box | newest songs, the top artists and the top albums | find |
+| an artist row | narrows to that artist as a crumb and clears the box | find |
+| an album row | narrows to that album as a crumb | find |
+| the crumb | widens again | find |
+| "N in all" / "fewer" on a section | shows every artist or album that matched, or the top few again | find |
+| a sort chip (newest · title · artist · album · year · longest) | reorders the songs | find |
 | a song | plays it now on the side the pill points, inserted right after the current song | music screen |
-| a greyed song (pill on phone, not synced) | nothing | sheet |
-| scrim, swipe down, Android back | closes | music screen |
+| a greyed song (pill on phone, not synced) | nothing | find |
+| "find ⌄" title, Android back | back to the music screen | music screen |
 
 The money screen (the waybar money-menu and its rofi popup, ported; unit and
 hidden amounts are the phone's own, remembered across restarts):
