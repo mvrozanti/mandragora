@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +37,8 @@ import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.outlined.Computer
@@ -126,9 +129,17 @@ fun VolumeBar(volume: VolumeState, enabled: Boolean, onDrag: (Int) -> Unit, onMu
 }
 
 @Composable
-fun Transport(now: NowState, onToggle: () -> Unit, onNext: () -> Unit, onPrevious: () -> Unit) {
+fun Transport(now: NowState, repeat: String, onToggle: () -> Unit, onNext: () -> Unit, onPrevious: () -> Unit, onRepeat: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(22.dp, Alignment.CenterHorizontally), modifier = Modifier.fillMaxWidth()) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterHorizontally), modifier = Modifier.fillMaxWidth()) {
+        IconButton(onClick = onRepeat, modifier = Modifier.size(44.dp)) {
+            Icon(
+                if (repeat == "one") Icons.Filled.RepeatOne else Icons.Filled.Repeat,
+                "repeat $repeat",
+                tint = if (repeat == "off") scheme.outline else scheme.primary,
+                modifier = Modifier.size(22.dp),
+            )
+        }
         IconButton(onClick = onPrevious, modifier = Modifier.size(56.dp)) {
             Icon(Icons.Filled.SkipPrevious, "previous", tint = scheme.onSurface, modifier = Modifier.size(32.dp))
         }
@@ -146,6 +157,7 @@ fun Transport(now: NowState, onToggle: () -> Unit, onNext: () -> Unit, onPreviou
         IconButton(onClick = onNext, modifier = Modifier.size(56.dp)) {
             Icon(Icons.Filled.SkipNext, "next", tint = scheme.onSurface, modifier = Modifier.size(32.dp))
         }
+        Spacer(modifier = Modifier.size(44.dp))
     }
 }
 

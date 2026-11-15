@@ -47,6 +47,7 @@ fun MusicScreen(store: Store, onCollapse: () -> Unit) {
     val lyricsBusy by store.lyricsBusy.collectAsStateWithLifecycle()
     val busy by store.busy.collectAsStateWithLifecycle()
     val cover by store.cover.collectAsStateWithLifecycle()
+    val repeat by store.repeatMode.collectAsStateWithLifecycle()
     var showLyrics by remember { mutableStateOf(false) }
     var find by rememberSaveable { mutableStateOf(false) }
 
@@ -87,7 +88,7 @@ fun MusicScreen(store: Store, onCollapse: () -> Unit) {
                 Text(now.artist ?: "", style = MaterialTheme.typography.bodyLarge, color = scheme.onSurfaceVariant, textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             ProgressRow(now) { store.seek(it) }
-            Transport(now, onToggle = store::togglePlay, onNext = store::next, onPrevious = store::previous)
+            Transport(now, repeat, onToggle = store::togglePlay, onNext = store::next, onPrevious = store::previous, onRepeat = store::cycleRepeat)
             Label(now.next?.let { "next · $it" } ?: "")
         }
         FindBar { find = true }

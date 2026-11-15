@@ -165,7 +165,36 @@ class Store(private val app: Application) {
 
     private fun phoneNext(queue: List<MpdSong>, index: Int): MpdSong? {
         if (queue.isEmpty() || index < 0) return null
-        return queue.getOrNull(index + 1) ?: if (mpdSnapshot.value?.status?.repeat == true) queue.first() else null
+        return queue.getOrNull(index + 1) ?: if (repeatOn()) queue.first() else null
+    }
+
+    val localRepeat = MutableStateFlow<String?>(null)
+
+    val repeatMode: StateFlow<String> = combine(mpdSnapshot, localRepeat) { snap, local ->
+        local ?: when {
+            snap?.status?.single == true && snap.status.repeat -> "one"
+            snap?.status?.repeat == true -> "all"
+            else -> "off"
+        }
+    }.stateIn(scope, SharingStarted.Eagerly, "off")
+
+    private fun repeatOn(): Boolean = repeatMode.value != "off"
+
+    private fun singleOn(): Boolean = repeatMode.value == "one"
+
+    fun cycleRepeat() = act {
+        val next = when (repeatMode.value) {
+            "off" -> "all"
+            "all" -> "one"
+            else -> "off"
+        }
+        localRepeat.value = next
+        if (mpdReachable.value) {
+            mpd.setFlag("repeat", next != "off")
+            mpd.setFlag("single", next == "one")
+            refreshMpd()
+            localRepeat.value = null
+        }
     }
 
     private fun nowSong(): MpdSong? = phoneQueue.value.getOrNull(phoneIndex.value)
@@ -517,7 +546,7 @@ class Store(private val app: Application) {
         if (queue.isEmpty()) return
         var index = phoneIndex.value + step
         if (index < 0 || index >= queue.size) {
-            if (mpdSnapshot.value?.status?.repeat != true) return
+            if (!repeatOn()) return
             index = (index + queue.size) % queue.size
         }
         val song = queue[index]
@@ -527,9 +556,8 @@ class Store(private val app: Application) {
     }
 
     fun localEnded() = act {
-        val status = mpdSnapshot.value?.status
-        if (status?.single == true) {
-            if (status.repeat) host?.let { it.localSeek(0); it.localPlay() }
+        if (singleOn()) {
+            host?.let { it.localSeek(0); it.localPlay() }
             return@act
         }
         localAdvance(1)
