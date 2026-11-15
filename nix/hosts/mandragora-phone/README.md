@@ -28,7 +28,7 @@ All of it on the tailnet interface only; nothing here has a `*.mvr.ac` host.
 
 | port | unit | what |
 |---|---|---|
-| 6688 | `phone-bridge` (user) | `GET /api/config` (desktop ip, ports, hub manifest); `GET/POST /api/volume` (default sink, all sinks, set level, mute, default); `GET/POST /api/lease`, `POST /api/lease/position` (who plays, where, since); `GET /api/lyrics?file=` (`.lrc` beside the track, then the `~/Music/.lyrics` cache, then lrclib, writing the `.lrc` when synced lyrics exist); `GET /api/now` |
+| 6688 | `phone-bridge` (user) | `GET /api/config` (desktop ip, ports, hub manifest); `GET/POST /api/volume` (default sink, all sinks, set level, mute, default); `GET/POST /api/lease`, `POST /api/lease/position` (who plays, where, since); `GET /api/lyrics?file=` (`.lrc` beside the track, then the `~/Music/.lyrics` cache, then lrclib, writing the `.lrc` when synced lyrics exist); `GET /api/now`; `GET /api/money` (the money-menu cache plus `stale` and `refreshing`), `POST /api/money/refresh` (starts the `money-menu-refresh` user unit); `GET /api/hub` (the hub manifest plus untiled hosts and per-host state from status.mvr.ac, the VPS stats, the desktop's gpu-status; merged on the desktop and cached 20 s so the phone never leaves the tailnet) |
 | 6600 | mpd (user) | the mpd protocol; the app uses `idle` for push updates. No password: every tailnet node is the operator's |
 | 6685 | `ytdl-web` (user) | `POST /api/download`, `GET /api/jobs`, `/api/jobs/<id>/file`, `/cancel` |
 | 6684 | `gpu-status` | `GET /api/theme?colors=1`, the matugen palette the app wears |

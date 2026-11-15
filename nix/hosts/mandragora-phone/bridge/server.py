@@ -32,6 +32,14 @@ LEASE_FILE = STATE_DIR / "lease.json"
 LRCLIB_MISS_TTL = 24 * 3600
 PHONE_LEASE_TTL = 45
 AUDIO_SUFFIXES = {".mp3", ".m4a", ".flac", ".wav", ".ogg", ".opus", ".aac", ".wma"}
+MONEY_CACHE = Path(os.environ.get("PHONE_BRIDGE_MONEY_CACHE", "~/.local/state/money-menu/cache.json")).expanduser()
+MONEY_CACHE_VERSION = 2
+MONEY_STALE_AFTER = 20 * 60
+MONEY_REFRESH_UNIT = "money-menu-refresh.service"
+STATUS_PROBES_URL = os.environ.get("PHONE_BRIDGE_STATUS_PROBES", "https://status.mvr.ac/api/status-probes")
+STATUS_VPS_URL = os.environ.get("PHONE_BRIDGE_STATUS_VPS", "https://status.mvr.ac/api/vps")
+GPU_STATUS_URL = os.environ.get("PHONE_BRIDGE_GPU_STATUS", "http://127.0.0.1:6684/api/gpu")
+HUB_TTL = 20
 
 SINK_LINE = re.compile(r"^\s*│\s*(?P<default>\*)?\s*(?P<id>\d+)\.\s+(?P<name>.+?)\s+\[vol:\s*(?P<vol>[\d.]+)(?P<muted>\s+MUTED)?\]\s*$")
 LRC_LINE = re.compile(r"^\[(\d+):(\d+(?:\.\d+)?)\](.*)$")
@@ -40,6 +48,10 @@ volume_lock = threading.Lock()
 lease_lock = threading.Lock()
 lrclib_slot = threading.Semaphore(1)
 lrclib_misses: dict[str, float] = {}
+money_lock = threading.Lock()
+money_last: dict | None = None
+hub_lock = threading.Lock()
+hub_cache: dict = {"at": 0.0, "payload": None, "refreshing": False}
 
 
 def load_json(path: str | None, fallback):
@@ -379,6 +391,102 @@ def lyrics_for(file: str) -> dict:
     return {"synced": None, "plain": plain, "source": "cache" if record and record.get("lyrics") else ("lrclib:plain" if plain else "miss")}
 
 
+def read_money_cache() -> dict | None:
+    global money_last
+    try:
+        with open(MONEY_CACHE, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, ValueError):
+        return money_last
+    if isinstance(data, dict) and data.get("version") == MONEY_CACHE_VERSION:
+        money_last = data
+    return money_last
+
+
+def unit_state(unit: str) -> str:
+    try:
+        done = subprocess.run(["systemctl", "--user", "is-active", unit], capture_output=True, text=True, timeout=5)
+    except (OSError, subprocess.SubprocessError):
+        return "unknown"
+    return done.stdout.strip() or "unknown"
+
+
+def money_state() -> dict:
+    with money_lock:
+        data = read_money_cache()
+    refreshing = unit_state(MONEY_REFRESH_UNIT) == "activating"
+    if data is None:
+        return {"total_usd": None, "venues": [], "fx": {}, "prices": {}, "error": "no cached balance yet", "stale": True, "refreshing": refreshing}
+    payload = dict(data)
+    payload["stale"] = time.time() - float(data.get("fetched_at") or 0) > MONEY_STALE_AFTER
+    payload["refreshing"] = refreshing
+    return payload
+
+
+def start_money_refresh() -> dict:
+    subprocess.run(["systemctl", "--user", "start", "--no-block", MONEY_REFRESH_UNIT], check=True, timeout=5)
+    return {"started": True}
+
+
+def fetch_json(url: str, timeout: int = 5):
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return json.load(response)
+    except (urllib.error.URLError, ValueError, TimeoutError):
+        return None
+
+
+def hub_payload() -> dict:
+    parts: dict = {}
+
+    def grab(key: str, url: str) -> None:
+        parts[key] = fetch_json(url)
+
+    threads = [threading.Thread(target=grab, args=pair) for pair in (("probes", STATUS_PROBES_URL), ("vps", STATUS_VPS_URL), ("gpu", GPU_STATUS_URL))]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    manifest = load_json(SERVICES_JSON, {})
+    services = [dict(entry) for entry in manifest.get("services", [])]
+    probes = (parts.get("probes") or {}).get("hosts") or {}
+    known = {entry.get("host") for entry in services}
+    for host, row in probes.items():
+        if host not in known and row.get("untiled"):
+            services.append({"name": host.split(".")[0], "host": host, "group": "untiled", "desc": "served by caddy, no tile", "access": row.get("access") or "priv", "where": row.get("where") or "vps", "untiled": True})
+    groups = list(manifest.get("groups", []))
+    if any(entry.get("untiled") for entry in services):
+        groups.append({"id": "untiled", "label": "served, no tile"})
+    return {
+        "ts": time.time(),
+        "machines": manifest.get("machines", []),
+        "groups": groups,
+        "services": services,
+        "health": {host: row["now"] for host, row in probes.items() if row.get("now")},
+        "probed": parts.get("probes") is not None,
+        "vps": parts.get("vps"),
+        "gpu": parts.get("gpu"),
+    }
+
+
+def hub_state() -> dict:
+    with hub_lock:
+        cached = hub_cache["payload"]
+        if cached is not None and (time.time() - hub_cache["at"] < HUB_TTL or hub_cache["refreshing"]):
+            return cached
+        hub_cache["refreshing"] = True
+    try:
+        payload = hub_payload()
+        with hub_lock:
+            hub_cache["at"] = time.time()
+            hub_cache["payload"] = payload
+    finally:
+        with hub_lock:
+            hub_cache["refreshing"] = False
+    return payload
+
+
 def config() -> dict:
     return {
         "version": VERSION,
@@ -430,6 +538,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(lease_state())
             elif url.path == "/api/now":
                 self.send_json(mpd_now())
+            elif url.path == "/api/money":
+                self.send_json(money_state())
+            elif url.path == "/api/hub":
+                self.send_json(hub_state())
             elif url.path == "/api/lyrics":
                 file = query.get("file")
                 if not file:
@@ -453,6 +565,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(take_lease(body))
             elif url.path == "/api/lease/position":
                 self.send_json(heartbeat(body))
+            elif url.path == "/api/money/refresh":
+                self.send_json(start_money_refresh())
             else:
                 self.send_json({"error": "not found"}, 404)
         except ValueError as err:

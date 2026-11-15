@@ -935,7 +935,9 @@ def migrate_state():
 def write_cache(data):
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     data["fetched_at"] = time.time()
-    CACHE_FILE.write_text(json.dumps(data))
+    tmp = CACHE_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(data))
+    tmp.replace(CACHE_FILE)
 
 
 def read_cache():
