@@ -16,7 +16,10 @@ in
       wantedBy = [ "default.target" ];
       after = [ "mpd.service" ];
       restartTriggers = [ (builtins.readFile src) ];
-      path = [ pkgs.wireplumber ];
+      path = [
+        pkgs.wireplumber
+        pkgs.playerctl
+      ];
       environment = {
         PHONE_BRIDGE_HOST = "0.0.0.0";
         PHONE_BRIDGE_PORT = "6688";

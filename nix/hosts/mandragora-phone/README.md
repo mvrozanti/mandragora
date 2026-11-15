@@ -28,7 +28,7 @@ All of it on the tailnet interface only; nothing here has a `*.mvr.ac` host.
 
 | port | unit | what |
 |---|---|---|
-| 6688 | `phone-bridge` (user) | `GET /api/config` (desktop ip, ports, hub manifest); `GET/POST /api/volume` (default sink, all sinks, set level, mute, default); `GET/POST /api/lease`, `POST /api/lease/position` (who plays, where, since); `GET /api/lyrics?file=` (`.lrc` beside the track, then the `~/Music/.lyrics` cache, then lrclib, writing the `.lrc` when synced lyrics exist); `GET /api/now`; `GET /api/cover?file=` (the picture mpd reads from the file, `readpicture` then `albumart`, 404 when there is none); `GET /api/money` (the money-menu cache plus `stale` and `refreshing`), `POST /api/money/refresh` (starts the `money-menu-refresh` user unit); `GET /api/hub` (the hub manifest plus untiled hosts and per-host state from status.mvr.ac, the VPS stats, the desktop's gpu-status; merged on the desktop and cached 20 s so the phone never leaves the tailnet); `GET /api/app` (the build `phone-push` last published: `versionCode`, `versionName`, `sha256`, `size`), `GET /api/app/apk` (that build, as a download); `GET /api/load` (memory, cpu and io pressure from `/proc/pressure`, free memory and swap, and the eight heaviest user units by memory plus swap with the name of their largest process, read straight from the cgroup tree so it answers while the desktop thrashes); `POST /api/kill {"id"}` (kills that unit's whole cgroup through `cgroup.kill`; the compositor, audio, dbus, the portals and the bridge itself are never listed or killable) |
+| 6688 | `phone-bridge` (user) | `GET /api/config` (desktop ip, ports, hub manifest); `GET/POST /api/volume` (default sink, all sinks, set level, mute, default); `GET/POST /api/lease`, `POST /api/lease/position` (who plays, where, since); `GET /api/lyrics?file=` (`.lrc` beside the track, then the `~/Music/.lyrics` cache, then lrclib, writing the `.lrc` when synced lyrics exist); `GET /api/now`; `GET /api/cover?file=` (the picture mpd reads from the file, `readpicture` then `albumart`, 404 when there is none); `GET /api/money` (the money-menu cache plus `stale` and `refreshing`), `POST /api/money/refresh` (starts the `money-menu-refresh` user unit); `GET /api/hub` (the hub manifest plus untiled hosts and per-host state from status.mvr.ac, the VPS stats, the desktop's gpu-status; merged on the desktop and cached 20 s so the phone never leaves the tailnet); `GET /api/app` (the build `phone-push` last published: `versionCode`, `versionName`, `sha256`, `size`), `GET /api/app/apk` (that build, as a download); `GET /api/load` (memory, cpu and io pressure from `/proc/pressure`, free memory and swap, and the eight heaviest user units by memory plus swap with the name of their largest process, read straight from the cgroup tree so it answers while the desktop thrashes); `POST /api/kill {"id"}` (kills that unit's whole cgroup through `cgroup.kill`; the compositor, audio, dbus, the portals and the bridge itself are never listed or killable); `GET /api/media` (the desktop's other MPRIS players through `playerctl`, mpd excluded: name, status, title, artist, url, and "YouTube" as the source when the url says so), `POST /api/media {"player","action"}` (play-pause, play, pause, next, previous on that player) |
 | 6600 | mpd (user) | the mpd protocol; the app uses `idle` for push updates. No password: every tailnet node is the operator's |
 | 6685 | `ytdl-web` (user) | `POST /api/download`, `GET /api/jobs`, `/api/jobs/<id>/file`, `/cancel` |
 | 6684 | `gpu-status` | `GET /api/theme?colors=1`, the matugen palette the app wears |
@@ -109,7 +109,8 @@ back collapses it):
 
 | Tap | Does | Lands |
 |---|---|---|
-| music card: play / pause | toggles the owner, exactly as on the music screen | home |
+| music card: play / pause (left) | toggles the owner, exactly as on the music screen | home |
+| music card: the desktop media line ("<title> · YouTube on the desktop"), shown only while another player on the desktop has something | pauses or resumes that player, like KDE Connect's media control | home |
 | music card: volume slider / speaker | desktop system volume, music or not | home |
 | music card: name, cover, title | opens the music screen | music |
 | money card: the total | cycles the unit BTC → USD → BRL (the phone's own unit) | home |
@@ -138,6 +139,7 @@ The music screen:
 | pill, the side it is on | nothing | same screen |
 | pill to phone, file not synced | error line "not on the phone yet", nothing moves | same screen |
 | pill to desktop, unreachable | error line "desktop unreachable", nothing moves | same screen |
+| the desktop media line under the pill | pauses or resumes that desktop player (a browser's YouTube tab, mpv); absent when nothing but mpd plays | same screen |
 | "play something" | the sheet slides up with the keyboard open | the sheet |
 | "music ⌄" title | collapses to home | home |
 | Android back | collapses to home | home |
@@ -160,7 +162,8 @@ hidden amounts are the phone's own, remembered across restarts):
 | BTC / USD / BRL chip | sets the unit | money |
 | eye | hides amounts (digits → •), remembered | money |
 | refresh | starts `money-menu refresh` on the desktop; the line reads "refreshing…" until a newer fetched_at arrives | money |
-| a venue row | collapses / expands its holdings | money |
+| "by asset" / "by venue" chips | groups the holdings by asset across venues (the default) or by venue; remembered | money |
+| an asset or venue row | collapses / expands its lines | money |
 | "fetched … ago" line | nothing; amber with "stale" past 20 min; "desktop unreachable · last known values" offline | money |
 
 The hub screen (hub.mvr.ac, ported; the click counts that sort the rows are

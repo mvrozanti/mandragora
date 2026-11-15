@@ -25,6 +25,9 @@ TAILNET_JSON = os.environ.get("PHONE_BRIDGE_TAILNET_JSON")
 MPD_HOST = os.environ.get("PHONE_BRIDGE_MPD_HOST", "127.0.0.1")
 MPD_PORT = int(os.environ.get("PHONE_BRIDGE_MPD_PORT", "6600"))
 WPCTL = os.environ.get("PHONE_BRIDGE_WPCTL", "wpctl")
+PLAYERCTL = os.environ.get("PHONE_BRIDGE_PLAYERCTL", "playerctl")
+MEDIA_FORMAT = "{{playerName}}\t{{status}}\t{{title}}\t{{artist}}\t{{xesam:url}}"
+MEDIA_ACTIONS = ("play-pause", "play", "pause", "next", "previous")
 LRCLIB_GET = "https://lrclib.net/api/get"
 USER_AGENT = "mandragora-phone-bridge/1 (+https://github.com/mvrozanti/mandragora)"
 VERSION = 1
@@ -778,6 +781,34 @@ def kill_unit(body: dict) -> dict:
     return {"killed": rel, "name": name or unit_title(cg.name), "procs": procs}
 
 
+def media_state() -> dict:
+    try:
+        proc = subprocess.run([PLAYERCTL, "-a", "-f", MEDIA_FORMAT, "metadata"], capture_output=True, text=True, timeout=4)
+    except (OSError, subprocess.SubprocessError):
+        return {"players": []}
+    players = []
+    for line in proc.stdout.splitlines():
+        name, status, title, artist, url = (line.split("\t") + ["", "", "", "", ""])[:5]
+        if not name or name.startswith("mpd"):
+            continue
+        source = "YouTube" if "youtube.com" in url or "youtu.be" in url else name.split(".")[0]
+        players.append({"player": name, "status": status, "title": title, "artist": artist, "url": url, "source": source})
+    players.sort(key=lambda p: p["status"] != "Playing")
+    return {"players": players}
+
+
+def media_action(body: dict) -> dict:
+    player = str(body.get("player") or "")
+    action = str(body.get("action") or "play-pause")
+    if action not in MEDIA_ACTIONS:
+        raise ValueError("unknown action")
+    if not re.fullmatch(r"[A-Za-z0-9._-]+", player):
+        raise ValueError("player required")
+    subprocess.run([PLAYERCTL, "-p", player, action], capture_output=True, text=True, timeout=4, check=False)
+    time.sleep(0.25)
+    return media_state()
+
+
 def config() -> dict:
     return {
         "version": VERSION,
@@ -862,6 +893,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(app_state())
             elif url.path == "/api/load":
                 self.send_json(load_state())
+            elif url.path == "/api/media":
+                self.send_json(media_state())
             elif url.path == "/api/app/apk":
                 if APP_APK.is_file():
                     self.send_file(APP_APK, "application/vnd.android.package-archive", APP_APK.name)
@@ -903,6 +936,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(start_money_refresh())
             elif url.path == "/api/kill":
                 self.send_json(kill_unit(body))
+            elif url.path == "/api/media":
+                self.send_json(media_action(body))
             else:
                 self.send_json({"error": "not found"}, 404)
         except ValueError as err:

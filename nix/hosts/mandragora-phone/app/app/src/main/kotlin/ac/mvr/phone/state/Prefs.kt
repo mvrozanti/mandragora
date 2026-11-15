@@ -15,12 +15,20 @@ class Prefs(context: Context) {
     private val hiddenFlow = MutableStateFlow(sp.getBoolean("hiddenAmounts", false))
     val hiddenAmounts: StateFlow<Boolean> = hiddenFlow
 
+    private val groupFlow = MutableStateFlow(sp.getString("moneyGroup", "asset") ?: "asset")
+    val moneyGroup: StateFlow<String> = groupFlow
+
     private val clicksFlow = MutableStateFlow(readClicks())
     val hubClicks: StateFlow<Map<String, Int>> = clicksFlow
 
     fun setUnit(value: String) {
         unitFlow.value = value
         sp.edit().putString("unit", value).apply()
+    }
+
+    fun setMoneyGroup(value: String) {
+        groupFlow.value = value
+        sp.edit().putString("moneyGroup", value).apply()
     }
 
     fun setHiddenAmounts(value: Boolean) {

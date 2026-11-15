@@ -156,6 +156,11 @@ class BridgeClient(private val baseUrl: () -> String) {
 
     suspend fun load(): LoadState = json.decodeFromString(Http.get("${baseUrl()}/api/load"))
 
+    suspend fun media(): MediaState = json.decodeFromString(Http.get("${baseUrl()}/api/media"))
+
+    suspend fun mediaAction(player: String, action: String): MediaState =
+        json.decodeFromString(Http.post("${baseUrl()}/api/media", buildJsonObject { put("player", player); put("action", action) }))
+
     suspend fun kill(id: String): KillResult = json.decodeFromString(Http.post("${baseUrl()}/api/kill", buildJsonObject { put("id", id) }))
 }
 
@@ -173,6 +178,14 @@ data class Hog(val id: String, val unit: String = id, val kind: String = "", val
 
 @Serializable
 data class LoadState(val ts: Double = 0.0, val pressure: Pressure = Pressure(), val memory: MemInfo = MemInfo(), val hogs: List<Hog> = emptyList())
+
+@Serializable
+data class DesktopMedia(val player: String, val status: String = "", val title: String = "", val artist: String = "", val url: String = "", val source: String = "") {
+    val playing: Boolean get() = status == "Playing"
+}
+
+@Serializable
+data class MediaState(val players: List<DesktopMedia> = emptyList())
 
 @Serializable
 data class KillResult(val killed: String? = null, val name: String? = null, val procs: Int = 0, val error: String? = null)

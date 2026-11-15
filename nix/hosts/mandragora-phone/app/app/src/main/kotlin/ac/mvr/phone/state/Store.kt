@@ -9,6 +9,7 @@ import android.os.SystemClock
 import ac.mvr.phone.BuildConfig
 import ac.mvr.phone.net.BridgeClient
 import ac.mvr.phone.net.BridgeConfig
+import ac.mvr.phone.net.DesktopMedia
 import ac.mvr.phone.net.Http
 import ac.mvr.phone.net.Lease
 import ac.mvr.phone.net.Lyrics
@@ -105,6 +106,7 @@ class Store(private val app: Application) {
     val localNames = MutableStateFlow<Set<String>>(emptySet())
     val notice = MutableStateFlow<String?>(null)
     val cover = MutableStateFlow<Bitmap?>(null)
+    val media = MutableStateFlow<List<DesktopMedia>>(emptyList())
     private var coverKey: String? = null
     private var noticeJob: Job? = null
     val foreground = MutableStateFlow(false)
@@ -188,6 +190,7 @@ class Store(private val app: Application) {
         scope.launch { loopWhileForeground(30_000) { hub.refresh() } }
         scope.launch { loopWhileForeground(300_000) { update.refresh() } }
         scope.launch { loopWhileForeground(10_000) { load.refresh() } }
+        scope.launch { loopWhileForeground(5_000) { refreshMedia() } }
         scope.launch {
             while (isActive) {
                 if (lease.value.owner == "phone") host?.let { h ->
@@ -291,11 +294,14 @@ class Store(private val app: Application) {
         runCatching { hub.refresh() }
         runCatching { update.refresh() }
         runCatching { load.refresh() }
+        runCatching { refreshMedia() }
         val file = now.value.file
         if (file != null && file != lyricsFile.value && !lyricsBusy.value) loadLyrics(file)
     }
 
     suspend fun refreshVolume() { runCatching { volume.value = bridge.volume() } }
+    suspend fun refreshMedia() { media.value = bridge.media().players }
+    fun toggleMedia(player: String) = act { media.value = bridge.mediaAction(player, "play-pause").players }
     suspend fun refreshLease() { runCatching { adopt(bridge.lease()) } }
     suspend fun refreshPalette() { runCatching { palette.value = theme.palette() } }
 

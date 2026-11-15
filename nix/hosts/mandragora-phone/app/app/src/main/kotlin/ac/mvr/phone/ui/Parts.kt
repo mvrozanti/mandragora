@@ -247,6 +247,29 @@ private fun Side(icon: ImageVector, label: String, caption: String, selected: Bo
 }
 
 @Composable
+fun DesktopMediaLine(store: Store, modifier: Modifier = Modifier) {
+    val players by store.media.collectAsStateWithLifecycle()
+    val player = players.firstOrNull() ?: return
+    val scheme = MaterialTheme.colorScheme
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(scheme.surfaceContainerHigh)
+            .clickable { store.toggleMedia(player.player) }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(if (player.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow, if (player.playing) "pause on the desktop" else "resume on the desktop", tint = scheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(player.title.ifEmpty { player.source }, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Label(listOfNotNull("${player.source} on the desktop", player.artist.takeIf { it.isNotEmpty() }, "paused".takeIf { !player.playing }).joinToString(" · "))
+        }
+    }
+}
+
+@Composable
 fun Cover(now: NowState, cover: Bitmap?, modifier: Modifier = Modifier, corner: Dp = 20.dp) {
     val scheme = MaterialTheme.colorScheme
     if (cover != null) {

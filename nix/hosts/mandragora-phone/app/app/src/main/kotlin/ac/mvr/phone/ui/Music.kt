@@ -58,6 +58,7 @@ fun MusicScreen(store: Store, onCollapse: () -> Unit) {
                 store.setSinkMutedAsync(volume.sink?.muted != true)
             }
             OwnerSwitch(now, deskReachable = reachable, busy = busy) { store.takeOver(it) }
+            DesktopMediaLine(store)
             Notice(store)
         }
         Column(
@@ -132,6 +133,12 @@ fun MusicCard(store: Store, onOpen: (String) -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Box(
+                modifier = Modifier.size(52.dp).clip(CircleShape).background(scheme.primary).clickable(onClick = store::togglePlay),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(if (now.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow, if (now.playing) "pause" else "play", tint = scheme.onPrimary, modifier = Modifier.size(28.dp))
+            }
             Row(
                 modifier = Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).clickable { onOpen("music") },
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -144,13 +151,8 @@ fun MusicCard(store: Store, onOpen: (String) -> Unit) {
                     Label("$state $place" + if (reachable) "" else " · desktop unreachable")
                 }
             }
-            Box(
-                modifier = Modifier.size(52.dp).clip(CircleShape).background(scheme.primary).clickable(onClick = store::togglePlay),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(if (now.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow, if (now.playing) "pause" else "play", tint = scheme.onPrimary, modifier = Modifier.size(28.dp))
-            }
         }
+        DesktopMediaLine(store)
         VolumeBar(volume, enabled = reachable, onDrag = store::dragSinkVolume) {
             store.setSinkMutedAsync(volume.sink?.muted != true)
         }

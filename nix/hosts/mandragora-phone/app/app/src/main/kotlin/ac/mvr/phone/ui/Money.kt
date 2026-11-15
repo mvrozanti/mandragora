@@ -192,6 +192,7 @@ fun MoneyScreen(store: Store, onCollapse: () -> Unit) {
     val reachable by store.reachable.collectAsStateWithLifecycle()
     val unitPref by store.prefs.unit.collectAsStateWithLifecycle()
     val hidden by store.prefs.hiddenAmounts.collectAsStateWithLifecycle()
+    val group by store.prefs.moneyGroup.collectAsStateWithLifecycle()
     var collapsed by rememberSaveable { mutableStateOf(listOf<String>()) }
     val nowMs = rememberNowMs()
     val unit = MoneyFormat.unitOf(unitPref)
@@ -231,10 +232,22 @@ fun MoneyScreen(store: Store, onCollapse: () -> Unit) {
             FetchedLine(cache, reachable, busy, nowMs)
             cache?.basis?.let { BasisBlock(it, fx, hidden) }
             if (cache != null && cache.venues.isNotEmpty()) {
-                Section("where it sits") {
-                    cache.venues.forEach { venue ->
-                        VenueRow(venue, cache.totalUsd, unit, fx, hidden, expanded = venue.id !in collapsed) {
-                            collapsed = if (venue.id in collapsed) collapsed - venue.id else collapsed + venue.id
+                GroupChips(group) { store.prefs.setMoneyGroup(it) }
+                if (group == "venue") {
+                    Section("where it sits") {
+                        cache.venues.forEach { venue ->
+                            VenueRow(venue, cache.totalUsd, unit, fx, hidden, expanded = venue.id !in collapsed) {
+                                collapsed = if (venue.id in collapsed) collapsed - venue.id else collapsed + venue.id
+                            }
+                        }
+                    }
+                } else {
+                    Section("what it is") {
+                        assetGroups(cache).forEach { asset ->
+                            val key = "asset:" + asset.asset
+                            AssetRow(asset, cache.totalUsd, unit, fx, hidden, expanded = key !in collapsed) {
+                                collapsed = if (key in collapsed) collapsed - key else collapsed + key
+                            }
                         }
                     }
                 }
@@ -470,6 +483,80 @@ private fun VenueRow(venue: MoneyVenue, total: Double?, unit: String, fx: MoneyF
         if (expandable && expanded) {
             Column(modifier = Modifier.fillMaxWidth().padding(start = 26.dp, bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 venue.holdings.forEach { HoldingRow(it, unit, fx, hidden) }
+            }
+        }
+    }
+}
+
+private data class AssetGroup(val asset: String, val amount: Double?, val usd: Double?, val lines: List<MoneyHolding>)
+
+private fun assetGroups(cache: MoneyCache): List<AssetGroup> {
+    val byAsset = LinkedHashMap<String, MutableList<MoneyHolding>>()
+    cache.venues.filter { !it.missing }.forEach { venue ->
+        venue.holdings.filter { it.asset.isNotEmpty() && (it.amount != null || it.usd != null) }.forEach { holding ->
+            val label = if (holding.label.isEmpty() || holding.label == holding.asset) venue.label else "${venue.label} · ${holding.label}"
+            byAsset.getOrPut(holding.asset) { ArrayList() }.add(holding.copy(label = label))
+        }
+    }
+    return byAsset.map { (asset, lines) ->
+        val amounts = lines.map { it.amount }
+        val usds = lines.mapNotNull { it.usd }
+        AssetGroup(
+            asset = asset,
+            amount = if (amounts.all { it != null }) amounts.sumOf { it!! } else null,
+            usd = if (usds.isEmpty()) null else usds.sum(),
+            lines = lines.sortedByDescending { it.usd ?: -1.0 },
+        )
+    }.sortedByDescending { it.usd ?: -1.0 }
+}
+
+@Composable
+private fun GroupChips(group: String, onGroup: (String) -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf("asset" to "by asset", "venue" to "by venue").forEach { (key, text) ->
+            val selected = key == group
+            Text(
+                text,
+                style = MaterialTheme.typography.labelLarge,
+                color = if (selected) scheme.onPrimary else scheme.onSurfaceVariant,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(if (selected) scheme.primary else scheme.surfaceContainerHigh)
+                    .clickable { onGroup(key) }
+                    .padding(horizontal = 14.dp, vertical = 7.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun AssetRow(group: AssetGroup, total: Double?, unit: String, fx: MoneyFx, hidden: Boolean, expanded: Boolean, onToggle: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .clickable(onClick = onToggle)
+                .padding(vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(if (expanded) Icons.Filled.ExpandMore else Icons.Filled.ChevronRight, null, tint = scheme.outline, modifier = Modifier.size(18.dp))
+            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(group.asset, style = MaterialTheme.typography.bodyLarge, color = scheme.onSurface, maxLines = 1)
+                group.amount?.let { Text(shown(MoneyFormat.qty(it), hidden), style = MaterialTheme.typography.labelLarge, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+            }
+            Text(shown(MoneyFormat.unit(group.usd, unit, fx), hidden), style = MaterialTheme.typography.labelLarge, color = scheme.onSurface, maxLines = 1)
+            val share = MoneyFormat.share(group.usd, total)
+            if (share != null) {
+                Text(share, style = MaterialTheme.typography.labelMedium, color = scheme.outline, textAlign = TextAlign.End, maxLines = 1, modifier = Modifier.width(40.dp))
+            }
+        }
+        if (expanded) {
+            Column(modifier = Modifier.fillMaxWidth().padding(start = 26.dp, bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                group.lines.forEach { HoldingRow(it, unit, fx, hidden) }
             }
         }
     }
