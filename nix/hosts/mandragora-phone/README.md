@@ -128,6 +128,23 @@ desktop" or "artist · on the phone". No move button on the lock screen.
 Not now: ytdl client, sync status, hub, share target. They get rows here,
 under the "mandragora" title, when they come.
 
+## Trying the app on the desktop
+
+`phone-emu` runs the real APK in the Android emulator so the app can be
+used, not looked at: tap, go back, lock the virtual phone, press its volume
+keys. The first run creates a virtual device (Android 35, the phone's 1080×2400
+screen) under `~/.local/share/mandragora-phone/`, boots it, builds the debug
+APK unless `PHONE_APK` names one, installs it, grants notifications and music
+access, pushes the song mpd is on plus the twelve newest files from `~/Music`
+into the device's Music folder so the phone side has something to play, and
+opens the app. Later runs reuse the booted device. The emulator reaches the
+desktop's tailnet address through the host, so the volume bar, the pill and
+"play something" act on the real mpd and the real sink; use it the way the
+phone would be used, music included. Rendering is software by default
+(`PHONE_EMU_GPU=host` for the GPU), and the window is an X11 window under
+Hyprland; `PHONE_EMU_HEADLESS=1` boots it with no window and no audio, for
+checks driven over adb while nobody is looking.
+
 ## Building the app
 
 `app/` is a plain Gradle project (AGP 8.7, Kotlin 2.1, Compose, Media3). The

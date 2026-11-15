@@ -14,6 +14,8 @@ bottom are the ones that decide which.
 - mpd reachable over the tailnet.
 - `phone-push`: build the app in the `phone` dev shell and install it over
   wireless debugging.
+- `phone-emu`: the same APK in the Android emulator on the desktop, against
+  the real mpd and sink, with real songs in its Music folder.
 - The app v0.1 (2026-11-02): Verbs home, The Stage player, six sheets, share
   target. Replaced on 2026-11-14 by the one-screen app built row by row from
   the tap map in the README: desktop volume, cover or lyrics, transport, the

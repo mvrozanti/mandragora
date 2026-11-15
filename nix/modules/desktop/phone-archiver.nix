@@ -27,12 +27,23 @@ let
     ];
     text = builtins.readFile ../../../.local/bin/phone-push.sh;
   };
+  emu = pkgs.writeShellApplication {
+    name = "phone-emu";
+    runtimeInputs = [
+      pkgs.mpc
+      pkgs.findutils
+      pkgs.coreutils
+      pkgs.util-linux
+    ];
+    text = builtins.readFile ../../../.local/bin/phone-emu.sh;
+  };
 in
 {
   environment.systemPackages = [
     archiver
     bootstrap
     push
+    emu
   ];
 
   systemd.user.services.phone-archiver = {

@@ -172,6 +172,8 @@
                 build-tools-35-0-0
                 platform-tools
                 platforms-android-35
+                emulator
+                system-images-android-35-google-apis-x86-64
               ]
             );
             sdkRoot = "${androidSdk}/share/android-sdk";
