@@ -57,6 +57,18 @@ class Prefs(context: Context) {
         get() = sp.getString("lastHub", null)
         set(value) = putIfChanged("lastHub", value)
 
+    var lastCodeSession: String?
+        get() = sp.getString("lastCodeSession", null)
+        set(value) = putIfChanged("lastCodeSession", value)
+
+    var lastCodeDir: String?
+        get() = sp.getString("lastCodeDir", null)
+        set(value) = putIfChanged("lastCodeDir", value)
+
+    var codeModel: String?
+        get() = sp.getString("codeModel", null)
+        set(value) = putIfChanged("codeModel", value)
+
     private fun putIfChanged(key: String, value: String?) {
         if (sp.getString(key, null) == value) return
         sp.edit().putString(key, value).apply()

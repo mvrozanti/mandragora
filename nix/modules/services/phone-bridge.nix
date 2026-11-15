@@ -28,6 +28,7 @@ in
         PHONE_BRIDGE_APP_DIR = "/home/m/.local/share/mandragora-phone/app";
         PHONE_BRIDGE_SERVICES_JSON = "${servicesJson}";
         PHONE_BRIDGE_TAILNET_JSON = "${tailnetJson}";
+        PHONE_BRIDGE_OPENCODE_PASSWORD = "/home/m/.local/state/opencode/server-password";
       };
       serviceConfig = {
         Type = "simple";

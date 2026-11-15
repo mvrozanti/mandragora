@@ -24,6 +24,14 @@ bottom are the ones that decide which.
   and hands it to Android's installer, so wireless debugging stays off.
 - `phone-emu`: the same APK in the Android emulator on the desktop, against
   the real mpd and sink, with real songs in its Music folder.
+- The code card and screen (2026-11-15): opencode runs as one server on the
+  desktop (`opencode-serve`, tailnet only, basic auth with a password made
+  once on the desktop and handed over by the bridge), the desktop's `oc`
+  attaches its tui to it, and the phone drives the same sessions over the
+  HTTP API and its event stream: start in any known project, resume, prompt,
+  stop, answer permission and question requests, pick the model. The
+  transcript is coloured by meaning with the `salcc` heuristics ported to
+  Kotlin. DeepSeek is the connected provider.
 - The app v0.1 (2026-11-02): Verbs home, The Stage player, six sheets, share
   target. Replaced on 2026-11-14 by the one-screen app built row by row from
   the tap map in the README: desktop volume, cover or lyrics, transport, the
@@ -45,11 +53,11 @@ bottom are the ones that decide which.
 
 Stated by the operator on 2026-11-15, in their order:
 
-- A proper Claude and DeepSeek bridge: start a new session (the way
-  `claude.mvr.ac` spawns tmux+claude today) or resume an existing one, for
-  both models, from a card on home; the transcript rendered the way `salcc`
-  renders it on the desktop (meaning-coloured: actions, risks, commands,
-  hedges), not as raw terminal text.
+- Claude inside the code card: opencode's Anthropic provider takes an API
+  key only (this build offers no subscription login), so it needs an
+  `anthropic/api_key` secret in sops and a provider block in
+  `.config/opencode/opencode.json`; until then Claude stays with Claude Code
+  through `claude.mvr.ac` and CC Pocket, and the code card is DeepSeek.
 - Notifications both ways: desktop notifications mirrored to the phone and
   the phone's to the desktop, each direction and each app class
   configurable. This is the first feature that needs a settings screen in

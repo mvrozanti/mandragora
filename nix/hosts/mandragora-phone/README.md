@@ -28,7 +28,8 @@ All of it on the tailnet interface only; nothing here has a `*.mvr.ac` host.
 
 | port | unit | what |
 |---|---|---|
-| 6688 | `phone-bridge` (user) | `GET /api/config` (desktop ip, ports, hub manifest); `GET/POST /api/volume` (default sink, all sinks, set level, mute, default); `GET/POST /api/lease`, `POST /api/lease/position` (who plays, where, since); `GET /api/lyrics?file=` (`.lrc` beside the track, then the `~/Music/.lyrics` cache, then lrclib, writing the `.lrc` when synced lyrics exist); `GET /api/now`; `GET /api/cover?file=` (the picture mpd reads from the file, `readpicture` then `albumart`, 404 when there is none); `GET /api/money` (the money-menu cache plus `stale` and `refreshing`), `POST /api/money/refresh` (starts the `money-menu-refresh` user unit); `GET /api/hub` (the hub manifest plus untiled hosts and per-host state from status.mvr.ac, the VPS stats, the desktop's gpu-status; merged on the desktop and cached 20 s so the phone never leaves the tailnet); `GET /api/app` (the build `phone-push` last published: `versionCode`, `versionName`, `sha256`, `size`), `GET /api/app/apk` (that build, as a download); `GET /api/load` (memory, cpu and io pressure from `/proc/pressure`, free memory and swap, and the eight heaviest user units by memory plus swap with the name of their largest process, read straight from the cgroup tree so it answers while the desktop thrashes); `POST /api/kill {"id"}` (kills that unit's whole cgroup through `cgroup.kill`; the compositor, audio, dbus, the portals and the bridge itself are never listed or killable); `GET /api/media` (the desktop's other MPRIS players through `playerctl`, mpd excluded: name, status, title, artist, url, and "YouTube" as the source when the url says so), `POST /api/media {"player","action"}` (play-pause, play, pause, next, previous on that player) |
+| 4096 | `opencode-serve` (user) | the opencode HTTP server, the one the desktop `oc` tui attaches to: sessions, messages, `prompt_async`, `abort`, the `/event` stream, permission and question replies, `/project`, `/provider`. Basic auth as `opencode` with a password generated once into `~/.local/state/opencode/server-password`; the bridge hands the port and password to the app under `code` in `/api/config` |
+| 6688 | `phone-bridge` (user) | `GET /api/config` (desktop ip, ports, hub manifest, the opencode server's port and password); `GET/POST /api/volume` (default sink, all sinks, set level, mute, default); `GET/POST /api/lease`, `POST /api/lease/position` (who plays, where, since); `GET /api/lyrics?file=` (`.lrc` beside the track, then the `~/Music/.lyrics` cache, then lrclib, writing the `.lrc` when synced lyrics exist); `GET /api/now`; `GET /api/cover?file=` (the picture mpd reads from the file, `readpicture` then `albumart`, 404 when there is none); `GET /api/money` (the money-menu cache plus `stale` and `refreshing`), `POST /api/money/refresh` (starts the `money-menu-refresh` user unit); `GET /api/hub` (the hub manifest plus untiled hosts and per-host state from status.mvr.ac, the VPS stats, the desktop's gpu-status; merged on the desktop and cached 20 s so the phone never leaves the tailnet); `GET /api/app` (the build `phone-push` last published: `versionCode`, `versionName`, `sha256`, `size`), `GET /api/app/apk` (that build, as a download); `GET /api/load` (memory, cpu and io pressure from `/proc/pressure`, free memory and swap, and the eight heaviest user units by memory plus swap with the name of their largest process, read straight from the cgroup tree so it answers while the desktop thrashes); `POST /api/kill {"id"}` (kills that unit's whole cgroup through `cgroup.kill`; the compositor, audio, dbus, the portals and the bridge itself are never listed or killable); `GET /api/media` (the desktop's other MPRIS players through `playerctl`, mpd excluded: name, status, title, artist, url, and "YouTube" as the source when the url says so), `POST /api/media {"player","action"}` (play-pause, play, pause, next, previous on that player) |
 | 6600 | mpd (user) | the mpd protocol; the app uses `idle` for push updates. No password: every tailnet node is the operator's |
 | 6685 | `ytdl-web` (user) | `POST /api/download`, `GET /api/jobs`, `/api/jobs/<id>/file`, `/cancel` |
 | 6684 | `gpu-status` | `GET /api/theme?colors=1`, the matugen palette the app wears |
@@ -116,6 +117,9 @@ back collapses it):
 | money card: the total | cycles the unit BTC → USD → BRL (the phone's own unit) | home |
 | money card: name | opens the money screen | money |
 | hub card: name or glance | opens the hub screen | hub |
+| code card: a session row | opens that session on the code screen | code |
+| code card: name | opens the code screen on the last session, or a new one when there is none | code |
+| code card: "new session" | opens the code screen on an empty session in the last used directory | code |
 | panic card: name or the gauge | opens the panic screen | panic |
 | panic card: "kill the biggest", first tap | arms it for 4 s; the button reads "tap again to kill <name>" | home |
 | panic card: "kill the biggest", second tap | kills that unit's whole cgroup on the desktop; the card says what died | home |
@@ -176,6 +180,30 @@ the phone's own, since the hub's own counter sits behind authelia):
 | a service row | opens its url (`url` or `https://host`) in the browser; the tap counts for sort-by-use on this phone | browser |
 | "no tile" tag, lock badge, state dot | nothing, display | hub |
 
+The code screen (opencode on the desktop, driven over its HTTP API and event
+stream; the same sessions the desktop's `oc` tui attaches to. The transcript is
+coloured by meaning the way `salcc` colours a terminal, with its heuristics
+ported: destructive commands and irreversible words red and bold, shell
+commands mono, sentences that tell the operator to do something in the
+tertiary colour, hedged clauses dim italics, narration dimmed. Tool calls are
+one line each, reasoning is folded):
+
+| Tap | Does | Lands |
+|---|---|---|
+| the session title / folder line | opens the sessions sheet: "new session in" every project the server knows, then recent sessions newest first, working ones marked | sheet |
+| a session in the sheet | loads its transcript and follows it live | code |
+| a project under "new session in" | an empty session there; it is created on the first message | code |
+| the model chip | cycles the connected providers' default models; remembered on this phone | code |
+| type, then send | sends to the session (creating it first when new); the reply streams in as it is written | code |
+| send while it works | queues the message behind the current turn | code |
+| stop (replaces send while it works and the box is empty) | aborts the current turn | code |
+| a tool line | expands its command or file and its output; again collapses | code |
+| "thinking · n lines" | expands the model's reasoning; again collapses | code |
+| a permission card: once / always / reject | answers the agent's permission request; the card leaves when the server confirms | code |
+| a question card: an option | answers a single-choice question at once; with several choices or several questions the options toggle and "answer" sends | code |
+| a question card: skip | rejects the question | code |
+| "code ⌄" title or Android back | collapses to home | home |
+
 The panic screen (what is grinding the desktop, and the way to stop it; the
 list is the eight heaviest user units by memory plus swap, named after their
 largest process, refreshed every 3 s while the screen is open and every 10 s
@@ -195,7 +223,7 @@ opens the app on the music screen; volume keys follow the pill (desktop side mov
 volume, phone side the phone's); the subtitle reads "artist · on the
 desktop" or "artist · on the phone". No move button on the lock screen.
 
-Not now: ytdl client, sync status, share target. They get a card and a table
+Not now: ytdl client, sync status, share target, Claude inside the code screen (needs an API key; see the backlog). They get a card and a table
 here when they come.
 
 ## Trying the app on the desktop

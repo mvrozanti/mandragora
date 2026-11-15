@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import ac.mvr.phone.play.PlaybackService
+import ac.mvr.phone.ui.CodeScreen
 import ac.mvr.phone.ui.HomeScreen
 import ac.mvr.phone.ui.HubScreen
 import ac.mvr.phone.ui.MandragoraTheme
@@ -143,6 +144,7 @@ class MainActivity : ComponentActivity() {
                         "money" -> MoneyScreen(store) { screen = "home" }
                         "hub" -> HubScreen(store) { screen = "home" }
                         "panic" -> PanicScreen(store) { screen = "home" }
+                        "code" -> CodeScreen(store) { screen = "home" }
                         else -> HomeScreen(store) { screen = it }
                     }
                 }

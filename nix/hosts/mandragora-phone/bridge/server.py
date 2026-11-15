@@ -31,7 +31,7 @@ MEDIA_ACTIONS = ("play-pause", "play", "pause", "next", "previous")
 LRCLIB_GET = "https://lrclib.net/api/get"
 USER_AGENT = "mandragora-phone-bridge/1 (+https://github.com/mvrozanti/mandragora)"
 VERSION = 1
-PORTS = {"mpd": MPD_PORT, "ytdl": 6685, "theme": 6684, "mympd": 6680, "bridge": PORT}
+PORTS = {"mpd": MPD_PORT, "ytdl": 6685, "theme": 6684, "mympd": 6680, "bridge": PORT, "code": 4096}
 MUSIC_FOLDER_ID = "mandragora-music"
 LEASE_FILE = STATE_DIR / "lease.json"
 LRCLIB_MISS_TTL = 24 * 3600
@@ -48,6 +48,7 @@ HUB_TTL = 20
 APP_DIR = Path(os.environ.get("PHONE_BRIDGE_APP_DIR", "~/.local/share/mandragora-phone/app")).expanduser()
 APP_APK = APP_DIR / "mandragora-phone.apk"
 APP_META = APP_DIR / "app.json"
+OPENCODE_PASSWORD_FILE = Path(os.environ.get("PHONE_BRIDGE_OPENCODE_PASSWORD", "~/.local/state/opencode/server-password")).expanduser()
 
 SINK_LINE = re.compile(r"^\s*│\s*(?P<default>\*)?\s*(?P<id>\d+)\.\s+(?P<name>.+?)\s+\[vol:\s*(?P<vol>[\d.]+)(?P<muted>\s+MUTED)?\]\s*$")
 LRC_LINE = re.compile(r"^\[(\d+):(\d+(?:\.\d+)?)\](.*)$")
@@ -809,6 +810,14 @@ def media_action(body: dict) -> dict:
     return media_state()
 
 
+def code_access() -> dict:
+    try:
+        password = OPENCODE_PASSWORD_FILE.read_text(encoding="utf-8").strip() or None
+    except OSError:
+        password = None
+    return {"port": PORTS["code"], "user": "opencode", "password": password}
+
+
 def config() -> dict:
     return {
         "version": VERSION,
@@ -816,6 +825,7 @@ def config() -> dict:
         "ports": PORTS,
         "music": {"folderId": MUSIC_FOLDER_ID, "dir": str(MUSIC_DIR)},
         "hub": load_json(SERVICES_JSON, {}),
+        "code": code_access(),
         "time": time.time(),
     }
 
