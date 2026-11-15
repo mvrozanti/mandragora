@@ -2,8 +2,7 @@ import { Gtk } from "ags/gtk4"
 import { createComputed, createState, For } from "ags"
 import Popup from "../widget/Popup"
 import { Chip, Empty, Icon, IconButton, Scroll, SectionLabel, Segmented } from "../widget/parts"
-import { every, json, quiet, spawn } from "../lib/run"
-import { closeCurrent } from "../lib/popups"
+import { every, json, quiet } from "../lib/run"
 
 type Net = { ssid: string; security: string; connected: boolean; bars: number }
 type Data = {
@@ -68,14 +67,6 @@ export default function NetworkPopup() {
           tooltip="Scan for Wi-Fi networks"
           class={busy((b) => (b === "scan" ? "spinning" : ""))}
           onClicked={() => run("scan", ["rescan"])}
-        />,
-        <IconButton
-          icon="settings"
-          tooltip="Open the Wi-Fi manager"
-          onClicked={() => {
-            closeCurrent()
-            spawn(["network-menu", "manager"])
-          }}
         />,
       ]}
       onOpen={() => (stop = every(5000, poll))}
