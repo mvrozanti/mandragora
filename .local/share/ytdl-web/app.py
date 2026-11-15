@@ -58,10 +58,12 @@ TAG_SCHEMA = '{"type":"object","properties":{"is_music":{"type":"boolean"},"titl
 TAG_PROMPT = (
     "Extract the song title and performing artist from this YouTube video title. "
     "Strip junk like '(Official Video)', '[HD]', 'Lyrics', channel names. "
-    "If the artist is unclear but this is a song, give your best guess from the title. "
+    "Fill artist only when the title itself names the performer; never guess it or use what you know "
+    "about who recorded a song. If the title names no artist, set artist to an empty string. "
     "If it is not a song (lecture, talk, podcast, video essay, news), set is_music to false "
     "and artist to an empty string; never answer with a placeholder such as 'Unknown'. Title: "
 )
+CHANNEL_SUFFIX_RE = re.compile(r"\s*(-\s*topic|vevo)\s*$", re.I)
 PLACEHOLDER_ARTIST_RE = re.compile(r"^\W*(unknown( artist)?|n/?a|none|null|various( artists)?|not a (song|music)\b.*)\W*(\(.*\))?\W*$", re.I)
 
 URL_RE = re.compile(r"^https?://[^\s]+$")
@@ -95,6 +97,7 @@ def new_job(url, to_client, mode):
         "filepath": None,
         "title": None,
         "artist": None,
+        "channel": None,
         "exit_code": None,
         "log": deque(maxlen=400),
     }
@@ -169,6 +172,10 @@ def real_artist(artist):
     return artist if artist and not PLACEHOLDER_ARTIST_RE.match(artist) else None
 
 
+def channel_artist(channel):
+    return real_artist(CHANNEL_SUFFIX_RE.sub("", channel or ""))
+
+
 def tag_mp3(job):
     path = Path(job.get("filepath") or "")
     if not path.is_file():
@@ -195,8 +202,14 @@ def tag_mp3(job):
     except Exception as exc:
         job["log"].append(f"tag: parse failed: {exc!r}")
         return
-    if not is_music or not artist:
+    if not is_music:
         job["log"].append(f"tag: skipped, not a song: {proc.stdout.strip()[:200]}")
+        return
+    source = "title"
+    if not artist:
+        artist, source = channel_artist(job.get("channel")), "channel"
+    if not artist:
+        job["log"].append("tag: skipped, no artist in the title and no channel name")
         return
     if not title:
         job["log"].append(f"tag: empty title: {proc.stdout.strip()[:200]}")
@@ -216,7 +229,7 @@ def tag_mp3(job):
         os.replace(tmp, path)
         job["title"] = title
         job["artist"] = artist
-        job["log"].append(f"tag: {artist} — {title}")
+        job["log"].append(f"tag: {artist} — {title} (artist from {source})")
     else:
         try:
             tmp.unlink()
@@ -233,6 +246,8 @@ def read_output(job, proc):
             if key == "name":
                 job["name"] = value
                 save_state()
+            elif key == "channel":
+                job["channel"] = value
             elif key == "filepath":
                 job["filepath"] = value
                 job["filename"] = os.path.basename(value)
@@ -265,6 +280,7 @@ def run_yt_dlp(job):
         "--progress",
         "--no-quiet",
         "-O", f"before_dl:{MARK}name=%(title)s",
+        "-O", f"before_dl:{MARK}channel=%(channel,uploader|)s",
         "-O", f"after_move:{MARK}filepath=%(filepath)s",
         *MODE_ARGS[job["mode"]],
         "-P", f"home:{home}",
