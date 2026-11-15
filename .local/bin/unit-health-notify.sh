@@ -63,7 +63,7 @@ status_hint() {
 
 looping() {
   local f="$dir/$unit.looping" since="" count="" last="" paged=""
-  read -r since count last paged < "$f" 2>/dev/null || true
+  { read -r since count last paged < "$f"; } 2>/dev/null || true
   if [ -z "$last" ] || [ $((now - last)) -gt "$loop_window" ]; then
     since=$now
     count=0
@@ -148,7 +148,7 @@ sweep() {
     f="$dir/$name.down"
     since=""
     paged=""
-    read -r since paged < "$f" 2>/dev/null || true
+    { read -r since paged < "$f"; } 2>/dev/null || true
     if [ -z "$since" ]; then
       printf '%s 0\n' "$now" > "$f"
       continue
@@ -180,7 +180,7 @@ sweep() {
   for name in "${due[@]}"; do
     f="$dir/$name.down"
     since=""
-    read -r since paged < "$f" 2>/dev/null || true
+    { read -r since paged < "$f"; } 2>/dev/null || true
     printf '%s %s\n' "${since:-$now}" "$now" > "$f"
   done
 }
