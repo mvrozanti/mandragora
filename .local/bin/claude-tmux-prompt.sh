@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+program="${1:?usage: claude-tmux-prompt <program> [prompt]}"
+shift
 prompt="${*:-}"
 
 windows="$(hyprctl clients -j)"
@@ -54,7 +56,7 @@ else
     cwd="$HOME"
 fi
 
-command=(claude)
+command=("$program")
 if [ -n "$prompt" ]; then
     command+=("$prompt")
 fi

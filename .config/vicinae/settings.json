@@ -32,6 +32,9 @@
       "entrypoints": {
         "claude": {
           "alias": "claude"
+        },
+        "deepseek": {
+          "alias": "deepseek"
         }
       }
     }

@@ -17,6 +17,7 @@ in
   xdg.stateFile."vicinae/onboarding.json".text = builtins.toJSON onboardingCompletedForEveryVersion;
 
   xdg.dataFile."vicinae/scripts/claude".source = ../../../.local/share/vicinae/scripts/claude;
+  xdg.dataFile."vicinae/scripts/deepseek".source = ../../../.local/share/vicinae/scripts/deepseek;
 
   home.packages = [
     (pkgs.writeShellScriptBin "claude-tmux-prompt" (
