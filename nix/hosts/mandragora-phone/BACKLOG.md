@@ -37,6 +37,30 @@ bottom are the ones that decide which.
 
 ## Next up
 
+Stated by the operator on 2026-11-15, in their order:
+
+- A proper Claude and DeepSeek bridge: start a new session (the way
+  `claude.mvr.ac` spawns tmux+claude today) or resume an existing one, for
+  both models, from a card on home; the transcript rendered the way `salcc`
+  renders it on the desktop (meaning-coloured: actions, risks, commands,
+  hedges), not as raw terminal text.
+- Notifications both ways: desktop notifications mirrored to the phone and
+  the phone's to the desktop, each direction and each app class
+  configurable. This is the first feature that needs a settings screen in
+  the app; until then the app has no settings by design.
+- ytdl ported in: the `ytdl-web` client that left with the one-screen
+  rewrite returns as a card (paste or share a URL, watch the job, play the
+  result on either side).
+- More, to be picked from, suggested by the agent on the same day:
+  "open on the desktop" as a share target (a URL goes to the desktop's
+  browser or mpv, text to the clipboard); a glance card for the desktop
+  itself (focused window, workspace, uptime, what is building) with
+  lock / suspend / wake-on-lan under it; a home-screen widget and a Quick
+  Settings tile for the music card ("move music here", play/pause); money
+  alerts when the total moves more than a chosen share in a day; tap and
+  hold on a hub row for the service's last log lines through the bridge;
+  the local model (llm-via-telegram) reachable from a card without Telegram.
+
 - Release keystore in sops (`phone/keystore`, `phone/keystore-password`),
   exported to the dev shell as `PHONE_KEYSTORE`/`PHONE_KEYSTORE_PASS`; then a
   minified release build (the debug APK is about 68 MB).
