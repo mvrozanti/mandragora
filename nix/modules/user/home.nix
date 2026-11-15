@@ -281,9 +281,8 @@ in
       builtins.readFile ../../../.local/bin/tmux-scratchpad.sh
     ))
     (pkgs.writeShellScriptBin "safe-claude" (builtins.readFile ../../../.local/bin/safe-claude.sh))
-    (pkgs.writeShellScriptBin "claude-deepseek" (
-      builtins.readFile ../../../.local/bin/claude-deepseek.sh
-    ))
+    (pkgs.writeShellScriptBin "deepseek" (builtins.readFile ../../../.local/bin/deepseek.sh))
+    (pkgs.writeShellScriptBin "claude-deepseek" (builtins.readFile ../../../.local/bin/deepseek.sh))
     (pkgs.writeShellScriptBin "claude-backend-sync" (
       builtins.readFile ../../../.local/bin/claude-backend-sync.sh
     ))

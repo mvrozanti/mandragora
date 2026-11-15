@@ -4,8 +4,8 @@ set -euo pipefail
 key_file="/run/secrets/deepseek/api_key"
 
 if [ ! -r "$key_file" ]; then
-    echo "claude-deepseek: cannot read $key_file" >&2
-    echo "claude-deepseek: is the sops secret deepseek/api_key provisioned? run mandragora-switch" >&2
+    echo "deepseek: cannot read $key_file" >&2
+    echo "deepseek: is the sops secret deepseek/api_key provisioned? run mandragora-switch" >&2
     exit 1
 fi
 

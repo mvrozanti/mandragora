@@ -196,7 +196,7 @@ gr()  { git checkout $(git rev-list -n 1 HEAD -- "$@")~1 -- "$@" }
     print -r -- "${hit#*$'\t'}"
     return 0
   fi
-  out=$(_comma_translate claude-deepseek "$phrase")
+  out=$(_comma_translate deepseek "$phrase")
   [[ -n "$out" ]] || out=$(_comma_translate claude "$phrase")
   [[ -n "$out" ]] || return 1
   mkdir -p "$cache_dir"
