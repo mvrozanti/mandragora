@@ -131,6 +131,15 @@ co2i() { wl-paste --type image/png > co2i-$(date +%s).png }
 co2ip() { f=/tmp/co2i-$(date +%s).png; wl-paste --type image/png > "$f" && echo -n "$f" }
 co2ipc() { co2ip | c -n }
 co2nsxiv() { wl-paste --type image/png > /tmp/img; nsxiv /tmp/img }
+coc() {
+  local session prompt
+  session="$(tmux display-message -p '#{session_name}' 2>/dev/null)"
+  [[ -n "$session" ]] || { echo 'coc: not inside tmux' >&2; return 1 }
+  prompt="$(wl-paste 2>/dev/null)"
+  [[ -n "$prompt" ]] || { echo 'coc: clipboard empty or unavailable' >&2; return 1 }
+  tmux new-window -t "${session}:" -n "claude-$(date +%H%M%S)" -c "$PWD" \
+    "exec claude $(printf '%q' "$prompt")"
+}
 alias cov='nvim -- "$(cop)"'
 
 alias p='P | c -n'
