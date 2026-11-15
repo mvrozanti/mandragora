@@ -29,6 +29,7 @@ in
         PHONE_BRIDGE_SERVICES_JSON = "${servicesJson}";
         PHONE_BRIDGE_TAILNET_JSON = "${tailnetJson}";
         PHONE_BRIDGE_OPENCODE_PASSWORD = "/home/m/.local/state/opencode/server-password";
+        PHONE_BRIDGE_CLAUDE_PASSWORD = "/home/m/.local/state/claude-bridge/server-password";
       };
       serviceConfig = {
         Type = "simple";

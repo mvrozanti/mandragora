@@ -31,7 +31,7 @@ MEDIA_ACTIONS = ("play-pause", "play", "pause", "next", "previous")
 LRCLIB_GET = "https://lrclib.net/api/get"
 USER_AGENT = "mandragora-phone-bridge/1 (+https://github.com/mvrozanti/mandragora)"
 VERSION = 1
-PORTS = {"mpd": MPD_PORT, "ytdl": 6685, "theme": 6684, "mympd": 6680, "bridge": PORT, "code": 4096}
+PORTS = {"mpd": MPD_PORT, "ytdl": 6685, "theme": 6684, "mympd": 6680, "bridge": PORT, "code": 4096, "claude": 4097}
 MUSIC_FOLDER_ID = "mandragora-music"
 LEASE_FILE = STATE_DIR / "lease.json"
 LRCLIB_MISS_TTL = 24 * 3600
@@ -49,6 +49,11 @@ APP_DIR = Path(os.environ.get("PHONE_BRIDGE_APP_DIR", "~/.local/share/mandragora
 APP_APK = APP_DIR / "mandragora-phone.apk"
 APP_META = APP_DIR / "app.json"
 OPENCODE_PASSWORD_FILE = Path(os.environ.get("PHONE_BRIDGE_OPENCODE_PASSWORD", "~/.local/state/opencode/server-password")).expanduser()
+CLAUDE_PASSWORD_FILE = Path(os.environ.get("PHONE_BRIDGE_CLAUDE_PASSWORD", "~/.local/state/claude-bridge/server-password")).expanduser()
+CODE_BACKENDS = (
+    ("claude", "Claude Code", "claude", "claude", CLAUDE_PASSWORD_FILE),
+    ("opencode", "OpenCode", "code", "opencode", OPENCODE_PASSWORD_FILE),
+)
 
 SINK_LINE = re.compile(r"^\s*│\s*(?P<default>\*)?\s*(?P<id>\d+)\.\s+(?P<name>.+?)\s+\[vol:\s*(?P<vol>[\d.]+)(?P<muted>\s+MUTED)?\]\s*$")
 LRC_LINE = re.compile(r"^\[(\d+):(\d+(?:\.\d+)?)\](.*)$")
@@ -810,12 +815,19 @@ def media_action(body: dict) -> dict:
     return media_state()
 
 
-def code_access() -> dict:
+def read_password(path: Path) -> str | None:
     try:
-        password = OPENCODE_PASSWORD_FILE.read_text(encoding="utf-8").strip() or None
+        return path.read_text(encoding="utf-8").strip() or None
     except OSError:
-        password = None
-    return {"port": PORTS["code"], "user": "opencode", "password": password}
+        return None
+
+
+def code_access() -> dict:
+    backends = [
+        {"id": backend_id, "name": name, "port": PORTS[port_key], "user": user, "password": read_password(path)}
+        for backend_id, name, port_key, user, path in CODE_BACKENDS
+    ]
+    return {"backends": backends}
 
 
 def config() -> dict:

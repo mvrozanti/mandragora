@@ -24,6 +24,13 @@ bottom are the ones that decide which.
   and hands it to Android's installer, so wireless debugging stays off.
 - `phone-emu`: the same APK in the Android emulator on the desktop, against
   the real mpd and sink, with real songs in its Music folder.
+- `claude-bridge` (2026-11-15): Claude Code is the harness that runs both
+  Claude on the subscription and DeepSeek, so the code screen got a second
+  backend speaking the same API shape as opencode's server, built on the
+  packaged Claude Agent SDK: the desktop's own sessions listed from the
+  store with their tui state, new sessions in any project, prompts, stop,
+  permission and question replies, the harness and model picked per
+  session. OpenCode stays as the other backend.
 - The code card and screen (2026-11-15): opencode runs as one server on the
   desktop (`opencode-serve`, tailnet only, basic auth with a password made
   once on the desktop and handed over by the bridge), the desktop's `oc`
@@ -53,11 +60,9 @@ bottom are the ones that decide which.
 
 Stated by the operator on 2026-11-15, in their order:
 
-- Claude inside the code card: opencode's Anthropic provider takes an API
-  key only (this build offers no subscription login), so it needs an
-  `anthropic/api_key` secret in sops and a provider block in
-  `.config/opencode/opencode.json`; until then Claude stays with Claude Code
-  through `claude.mvr.ac` and CC Pocket, and the code card is DeepSeek.
+- Session housekeeping from the phone: rename, delete and fork are served by
+  `claude-bridge` (and opencode) but have no tap yet; a long press on a
+  session row is the natural place.
 - Notifications both ways: desktop notifications mirrored to the phone and
   the phone's to the desktop, each direction and each app class
   configurable. This is the first feature that needs a settings screen in

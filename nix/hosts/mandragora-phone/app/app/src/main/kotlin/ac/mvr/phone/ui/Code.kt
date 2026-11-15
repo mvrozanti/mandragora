@@ -100,7 +100,13 @@ private fun SessionRow(session: CodeSession, status: CodeStatus?, selected: Bool
         Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(if (busy) scheme.primary else scheme.outlineVariant))
         Column(modifier = Modifier.weight(1f)) {
             Text(session.title.ifBlank { "untitled" }, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Label("${session.folder} · ${if (busy) "working" else ago(session.time.updated)}")
+            val live = session.live
+            val state = when {
+                live != null -> "on the desktop · ${live.status ?: "open"}"
+                busy -> "working"
+                else -> ago(session.time.updated)
+            }
+            Label("${session.backend} · ${session.folder} · $state", color = if (live != null) scheme.tertiary else scheme.outline)
         }
     }
 }
@@ -146,7 +152,13 @@ private fun SessionBar(current: CodeSession?, newIn: String?, model: CodeModel?,
             modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).clickable(onClick = onPick).padding(horizontal = 6.dp, vertical = 4.dp),
         ) {
             Text(current?.title?.ifBlank { null } ?: "new session", style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Label((current?.folder ?: folderOf(newIn)) + if (live) "" else " · not live", color = if (live) scheme.outline else scheme.tertiary)
+            val where = current?.live
+            val note = when {
+                where != null -> " · on the desktop as ${where.name ?: "an open session"}"
+                live -> ""
+                else -> " · not live"
+            }
+            Label((current?.folder ?: folderOf(newIn)) + note, color = if (live && where == null) scheme.outline else scheme.tertiary)
         }
         Chip(model?.label ?: "model", scheme.surfaceContainerHigh, scheme.onSurface) { onModel() }
     }
@@ -369,8 +381,9 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     val projects by code.projects.collectAsStateWithLifecycle()
     var picking by remember { mutableStateOf(false) }
     val directory = current?.directory ?: newIn
+    val backend = current?.backend?.ifEmpty { null } ?: model?.backend ?: "claude"
     LaunchedEffect(Unit) { code.enter() }
-    LaunchedEffect(directory) { code.watch(directory) }
+    LaunchedEffect(backend, directory) { code.watch(backend, directory) }
     LaunchedEffect(Unit) {
         while (true) {
             delay(10_000)

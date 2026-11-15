@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.job
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
@@ -22,7 +23,13 @@ import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 
 @Serializable
-data class CodeAccess(val port: Int = 4096, val user: String = "opencode", val password: String? = null)
+data class CodeAccess(val id: String = "opencode", val name: String = id, val port: Int = 4096, val user: String = "opencode", val password: String? = null)
+
+@Serializable
+data class CodeBackends(val backends: List<CodeAccess> = emptyList())
+
+@Serializable
+data class LiveInfo(val name: String? = null, val status: String? = null, val tmux: String? = null)
 
 @Serializable
 data class CodeTime(val created: Long = 0, val updated: Long = 0)
@@ -34,12 +41,15 @@ data class CodeSession(
     val directory: String = "",
     val parentID: String? = null,
     val time: CodeTime = CodeTime(),
+    val live: LiveInfo? = null,
 ) {
+    @Transient var backend: String = ""
     val folder: String get() = directory.trimEnd('/').substringAfterLast('/').ifEmpty { directory }
 }
 
 @Serializable
 data class CodeProject(val id: String, val worktree: String, val name: String? = null, val time: CodeTime = CodeTime()) {
+    @Transient var backend: String = ""
     val folder: String get() = name ?: worktree.trimEnd('/').substringAfterLast('/').ifEmpty { worktree }
 }
 
@@ -130,7 +140,7 @@ data class CodeProviders(
 
 data class CodeEvent(val type: String, val properties: JsonObject)
 
-class CodeClient(private val baseUrl: () -> String, private val access: () -> CodeAccess?) {
+class CodeClient(val id: String, private val baseUrl: () -> String, private val access: () -> CodeAccess?) {
     private fun headers(): Map<String, String> {
         val password = access()?.password ?: return emptyMap()
         return mapOf("Authorization" to Credentials.basic(access()?.user ?: "opencode", password))
@@ -144,10 +154,11 @@ class CodeClient(private val baseUrl: () -> String, private val access: () -> Co
         return base + (if ('?' in path) "&" else "?") + "directory=" + enc(directory)
     }
 
-    suspend fun projects(): List<CodeProject> = json.decodeFromString(Http.get(url("/project"), headers()))
+    suspend fun projects(): List<CodeProject> =
+        json.decodeFromString<List<CodeProject>>(Http.get(url("/project"), headers())).onEach { it.backend = id }
 
     suspend fun sessions(directory: String, limit: Int): List<CodeSession> =
-        json.decodeFromString(Http.get(url("/session?limit=$limit", directory), headers()))
+        json.decodeFromString<List<CodeSession>>(Http.get(url("/session?limit=$limit", directory), headers())).onEach { it.backend = id }
 
     suspend fun status(directory: String): Map<String, CodeStatus> =
         json.decodeFromString(Http.get(url("/session/status", directory), headers()))
@@ -157,8 +168,12 @@ class CodeClient(private val baseUrl: () -> String, private val access: () -> Co
     suspend fun configuredModel(): String? =
         Http.obj(Http.get(url("/config"), headers()))["model"]?.jsonPrimitive?.contentOrNull
 
-    suspend fun create(directory: String): CodeSession =
-        json.decodeFromString(Http.post(url("/session", directory), buildJsonObject { }, headers()))
+    suspend fun create(directory: String, providerID: String?, modelID: String?): CodeSession {
+        val body = buildJsonObject {
+            if (providerID != null && modelID != null) put("model", buildJsonObject { put("providerID", providerID); put("id", modelID) })
+        }
+        return json.decodeFromString<CodeSession>(Http.post(url("/session", directory), body, headers())).also { it.backend = id }
+    }
 
     suspend fun messages(id: String, directory: String, limit: Int): List<CodeEntry> =
         json.decodeFromString(Http.get(url("/session/$id/message?limit=$limit", directory), headers()))

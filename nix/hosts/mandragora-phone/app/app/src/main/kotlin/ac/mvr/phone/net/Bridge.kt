@@ -9,7 +9,7 @@ import kotlinx.serialization.json.put
 data class DesktopInfo(val ip: String, val host: String = "mandragora-desktop")
 
 @Serializable
-data class Ports(val mpd: Int = 6600, val ytdl: Int = 6685, val theme: Int = 6684, val mympd: Int = 6680, val bridge: Int = 6688, val code: Int = 4096)
+data class Ports(val mpd: Int = 6600, val ytdl: Int = 6685, val theme: Int = 6684, val mympd: Int = 6680, val bridge: Int = 6688, val code: Int = 4096, val claude: Int = 4097)
 
 @Serializable
 data class MusicInfo(val folderId: String = "mandragora-music", val dir: String = "")
@@ -38,7 +38,7 @@ data class BridgeConfig(
     val ports: Ports = Ports(),
     val music: MusicInfo = MusicInfo(),
     val hub: HubManifest = HubManifest(),
-    val code: CodeAccess? = null,
+    val code: CodeBackends? = null,
     val time: Double = 0.0,
 )
 
