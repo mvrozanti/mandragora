@@ -1,0 +1,22 @@
+{
+  "telemetry": {
+    "system_info": false
+  },
+  "tray": {
+    "enabled": false
+  },
+  "pop_to_root_on_close": true,
+  "theme": {
+    "light": {
+      "name": "matugen",
+      "icon_theme": "auto"
+    },
+    "dark": {
+      "name": "matugen",
+      "icon_theme": "auto"
+    }
+  },
+  "launcher_window": {
+    "opacity": 0.85
+  }
+}

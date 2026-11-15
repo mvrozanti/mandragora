@@ -64,6 +64,7 @@ in
     ./terminal.nix
     ./desktop-shell.nix
     ./file-links.nix
+    ./vicinae.nix
     ./crush.nix
   ];
 
