@@ -198,8 +198,8 @@ gdc() { git diff HEAD HEAD~1 }
 gd1() { [[ $# -eq 1 ]] && git diff "$1" }
 gda() { [[ "$#" -eq 1 ]] && git diff "$@" || { git ls-files -o --exclude-standard | xargs -I{} git add {} 2>/dev/null; git add .; git diff --staged; git reset 2>/dev/null } }
 
-_claude() { [[ $# -gt 0 ]] && claude "$*" || claude }
-D() { _claude "$@" }
+_ask() { local bin=$1; shift; [[ $# -gt 0 ]] && "$bin" "$*" || "$bin" }
+D() { _ask deepseek "$@" }
 alias whatisthis='uname -mrs'
 alias H='cd -'
 alias poof='shutdown -h 0'
@@ -362,7 +362,7 @@ alias piu='pip install --user --upgrade --break-system-packages'
 alias pir='pip uninstall --no-cache-dir --break-system-packages'
 alias piup='pip install --upgrade pip'
 alias nig='npm i -g'
-C() { _claude "$@" }
+C() { _ask claude "$@" }
 funccount() { nm "$@" | grep "T " | grep -v " _" | wc -l }
 mentr() { ls | entr -c make }
 nentr() { ls *.* | entr -c node /_ "$@" }
