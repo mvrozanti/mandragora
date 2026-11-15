@@ -1,5 +1,9 @@
 package ac.mvr.phone.ui
 
+import android.graphics.Bitmap
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
@@ -242,8 +246,12 @@ private fun Side(icon: ImageVector, label: String, caption: String, selected: Bo
 }
 
 @Composable
-fun Cover(now: NowState, modifier: Modifier = Modifier, corner: Dp = 20.dp) {
+fun Cover(now: NowState, cover: Bitmap?, modifier: Modifier = Modifier, corner: Dp = 20.dp) {
     val scheme = MaterialTheme.colorScheme
+    if (cover != null) {
+        Image(cover.asImageBitmap(), null, modifier = modifier.clip(RoundedCornerShape(corner)), contentScale = ContentScale.Crop)
+        return
+    }
     val seed = (now.file ?: now.title).hashCode()
     val tones = listOf(scheme.primary, scheme.secondary, scheme.tertiary)
     Box(modifier = modifier.clip(RoundedCornerShape(corner)).background(scheme.surfaceContainerHigh)) {

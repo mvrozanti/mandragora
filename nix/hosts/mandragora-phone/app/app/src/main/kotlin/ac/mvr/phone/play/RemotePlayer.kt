@@ -1,5 +1,6 @@
 package ac.mvr.phone.play
 
+import android.net.Uri
 import android.os.Looper
 import androidx.annotation.OptIn
 import androidx.media3.common.DeviceInfo
@@ -65,6 +66,7 @@ class RemotePlayer(looper: Looper, private val store: Store) : SimpleBasePlayer(
                 .setTitle(song.title ?: song.file.substringAfterLast('/').substringBeforeLast('.'))
                 .setArtist(listOfNotNull(song.artist, "on the desktop").joinToString(" · "))
                 .setAlbumTitle(song.album)
+                .setArtworkUri(Uri.parse(store.bridge.coverUrl(song.file)))
                 .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
                 .build()
             val durationUs = ((status.duration ?: song.duration ?: 0.0) * 1_000_000).toLong()

@@ -1,11 +1,13 @@
 package ac.mvr.phone.state
 
 import android.app.Application
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.SystemClock
 import ac.mvr.phone.BuildConfig
 import ac.mvr.phone.net.BridgeClient
 import ac.mvr.phone.net.BridgeConfig
+import ac.mvr.phone.net.Http
 import ac.mvr.phone.net.Lease
 import ac.mvr.phone.net.Lyrics
 import ac.mvr.phone.net.MpdClient
@@ -16,6 +18,7 @@ import ac.mvr.phone.net.Ports
 import ac.mvr.phone.net.ThemeClient
 import ac.mvr.phone.net.Unreachable
 import ac.mvr.phone.net.VolumeState
+import ac.mvr.phone.play.Artwork
 import ac.mvr.phone.play.LocalLibrary
 import ac.mvr.phone.play.LocalTrack
 import kotlinx.coroutines.CoroutineScope
@@ -26,16 +29,20 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 interface PlayerHost {
     fun useRemote()
-    fun useLocal(uri: Uri, title: String, artist: String?, positionMs: Long, play: Boolean)
+    fun useLocal(uri: Uri, title: String, artist: String?, positionMs: Long, play: Boolean, artwork: ByteArray?)
     fun localPositionMs(): Long
     fun localDurationMs(): Long
     fun localIsPlaying(): Boolean
@@ -94,6 +101,8 @@ class Store(private val app: Application) {
     val phoneIndex = MutableStateFlow(-1)
     val localNames = MutableStateFlow<Set<String>>(emptySet())
     val notice = MutableStateFlow<String?>(null)
+    val cover = MutableStateFlow<Bitmap?>(null)
+    private var coverKey: String? = null
     private var noticeJob: Job? = null
     val foreground = MutableStateFlow(false)
     val busy = MutableStateFlow(false)
@@ -183,6 +192,9 @@ class Store(private val app: Application) {
         }
         scope.launch {
             combine(foreground, reachable) { fg, ok -> fg && ok }.collect { live -> if (live) refreshAll() }
+        }
+        scope.launch {
+            now.map { it.owner to it.file }.distinctUntilChanged().collectLatest { (owner, file) -> loadCover(owner, file) }
         }
         scope.launch {
             var previous = lease.value.owner
@@ -300,6 +312,19 @@ class Store(private val app: Application) {
         }
     }
 
+    private suspend fun loadCover(owner: String, file: String?) {
+        val key = "$owner:$file"
+        if (key == coverKey && cover.value != null) return
+        coverKey = key
+        cover.value = null
+        if (file == null) return
+        val bytes = runCatching {
+            if (owner == "phone") library.find(file)?.let { library.artwork(it.uri) } else bridge.cover(file)
+        }.getOrNull() ?: return
+        val bitmap = withContext(Dispatchers.IO) { Artwork.decode(bytes) } ?: return
+        if (coverKey == key) cover.value = bitmap
+    }
+
     private fun restoreLocal(current: Lease) = scope.launch {
         val file = current.file ?: return@launch
         val track = runCatching { library.find(file) }.getOrNull() ?: return@launch
@@ -307,7 +332,7 @@ class Store(private val app: Application) {
             phoneQueue.value = listOf(MpdSong(file, current.artist, current.title, null, current.duration))
             phoneIndex.value = 0
         }
-        host?.useLocal(track.uri, current.title ?: track.displayName, current.artist, (current.elapsed * 1000).toLong(), false)
+        host?.useLocal(track.uri, current.title ?: track.displayName, current.artist, (current.elapsed * 1000).toLong(), false, library.artwork(track.uri))
     }
 
     fun act(block: suspend () -> Unit): Job = scope.launch {
@@ -405,7 +430,7 @@ class Store(private val app: Application) {
         phoneQueue.value = seed
         phoneIndex.value = 0
         lease.value = granted
-        h.useLocal(track.uri, granted.title ?: track.displayName, granted.artist, (granted.elapsed * 1000).toLong(), granted.playing)
+        h.useLocal(track.uri, granted.title ?: track.displayName, granted.artist, (granted.elapsed * 1000).toLong(), granted.playing, library.artwork(track.uri))
         loadLyrics(file)
         val names = refreshLocalNames()
         val copied = runCatching { copyQueue(snap, file, names) }.getOrDefault(emptyList())
@@ -443,7 +468,7 @@ class Store(private val app: Application) {
 
     private suspend fun startLocal(h: PlayerHost, song: MpdSong, track: LocalTrack, positionMs: Long, play: Boolean) {
         lease.value = lease.value.copy(file = song.file, title = song.title, artist = song.artist, duration = song.duration, elapsed = positionMs / 1000.0)
-        h.useLocal(track.uri, song.name, song.artist, positionMs, play)
+        h.useLocal(track.uri, song.name, song.artist, positionMs, play, library.artwork(track.uri))
         runCatching { bridge.heartbeat(song.file, positionMs / 1000.0, play) }
         loadLyrics(song.file)
     }

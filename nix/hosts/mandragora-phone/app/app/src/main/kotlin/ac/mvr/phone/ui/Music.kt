@@ -46,6 +46,7 @@ fun MusicScreen(store: Store, onCollapse: () -> Unit) {
     val lyrics by store.lyrics.collectAsStateWithLifecycle()
     val lyricsBusy by store.lyricsBusy.collectAsStateWithLifecycle()
     val busy by store.busy.collectAsStateWithLifecycle()
+    val cover by store.cover.collectAsStateWithLifecycle()
     var showLyrics by remember { mutableStateOf(false) }
     var find by rememberSaveable { mutableStateOf(false) }
 
@@ -68,6 +69,7 @@ fun MusicScreen(store: Store, onCollapse: () -> Unit) {
                 } else {
                     Cover(
                         now,
+                        cover,
                         Modifier
                             .fillMaxHeight()
                             .aspectRatio(1f, matchHeightConstraintsFirst = true)
@@ -120,6 +122,7 @@ fun MusicCard(store: Store, onOpen: (String) -> Unit) {
     val now by store.now.collectAsStateWithLifecycle()
     val reachable by store.reachable.collectAsStateWithLifecycle()
     val volume by store.volume.collectAsStateWithLifecycle()
+    val cover by store.cover.collectAsStateWithLifecycle()
     val place = if (now.phoneOwns) "on the phone" else "on the desktop"
     val state = if (now.playing) "playing" else "paused"
     HomeCard {
@@ -134,7 +137,7 @@ fun MusicCard(store: Store, onOpen: (String) -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Cover(now, Modifier.size(56.dp), corner = 12.dp)
+                Cover(now, cover, Modifier.size(56.dp), corner = 12.dp)
                 Column(modifier = Modifier.weight(1f)) {
                     Text(now.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(now.artist ?: "", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)

@@ -2,6 +2,7 @@ package ac.mvr.phone.play
 
 import android.content.ContentUris
 import android.content.Context
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.MediaStore
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +47,18 @@ class LocalLibrary(private val context: Context) {
         if (candidates.isEmpty()) return@withContext null
         if (dir.isNotEmpty()) candidates.firstOrNull { it.relativePath.trimEnd('/').endsWith(dir) }?.let { return@withContext it }
         candidates.firstOrNull { it.relativePath.contains("Music", ignoreCase = true) } ?: candidates.first()
+    }
+
+    suspend fun artwork(uri: Uri): ByteArray? = withContext(Dispatchers.IO) {
+        val retriever = MediaMetadataRetriever()
+        try {
+            retriever.setDataSource(context, uri)
+            retriever.embeddedPicture?.let { Artwork.shrink(it) }
+        } catch (err: Exception) {
+            null
+        } finally {
+            retriever.release()
+        }
     }
 
     suspend fun names(): Set<String> = withContext(Dispatchers.IO) {

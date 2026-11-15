@@ -92,11 +92,12 @@ class PlaybackService : MediaSessionService(), PlayerHost {
         remote.refresh()
     }
 
-    override fun useLocal(uri: Uri, title: String, artist: String?, positionMs: Long, play: Boolean) {
+    override fun useLocal(uri: Uri, title: String, artist: String?, positionMs: Long, play: Boolean, artwork: ByteArray?) {
         val metadata = MediaMetadata.Builder()
             .setTitle(title)
             .setArtist(listOfNotNull(artist, "on the phone").joinToString(" · "))
             .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+            .apply { if (artwork != null) setArtworkData(artwork, MediaMetadata.PICTURE_TYPE_FRONT_COVER) }
             .build()
         local.setMediaItem(MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).build(), positionMs.coerceAtLeast(0))
         local.prepare()

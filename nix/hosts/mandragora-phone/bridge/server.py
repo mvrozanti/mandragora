@@ -56,6 +56,9 @@ money_lock = threading.Lock()
 money_last: dict | None = None
 hub_lock = threading.Lock()
 hub_cache: dict = {"at": 0.0, "payload": None, "refreshing": False}
+cover_lock = threading.Lock()
+cover_cache: dict[str, tuple[bytes, str] | None] = {}
+COVER_CACHE_SIZE = 8
 
 
 def load_json(path: str | None, fallback):
@@ -142,6 +145,86 @@ def mpd_resume(file: str | None, elapsed: float, playing: bool) -> None:
         mpd_command("play")
         mpd_command(f"seekcur {position}")
     mpd_command("pause 0" if playing else "pause 1")
+
+
+def read_exact(fh, length: int) -> bytes:
+    chunks: list[bytes] = []
+    remaining = length
+    while remaining > 0:
+        chunk = fh.read(remaining)
+        if not chunk:
+            raise MpdError("connection closed")
+        chunks.append(chunk)
+        remaining -= len(chunk)
+    return b"".join(chunks)
+
+
+def mpd_picture(command: str, file: str) -> tuple[bytes, str | None] | None:
+    with socket.create_connection((MPD_HOST, MPD_PORT), timeout=5) as sock:
+        fh = sock.makefile("rwb", buffering=0)
+        if not fh.readline().startswith(b"OK MPD"):
+            raise MpdError("no mpd banner")
+        fh.write(b"binarylimit 262144\n")
+        while True:
+            line = fh.readline()
+            if not line:
+                raise MpdError("connection closed")
+            if line.startswith(b"OK") or line.startswith(b"ACK"):
+                break
+        data = bytearray()
+        mime = None
+        size = None
+        while True:
+            fh.write(f"{command} {mpd_quote(file)} {len(data)}\n".encode("utf-8"))
+            chunk = None
+            while True:
+                line = fh.readline()
+                if not line:
+                    raise MpdError("connection closed")
+                text = line.decode("utf-8", "replace").rstrip("\n")
+                if text == "OK":
+                    break
+                if text.startswith("ACK "):
+                    return None
+                key, _, value = text.partition(": ")
+                if key == "size":
+                    size = int(value)
+                elif key == "type":
+                    mime = value
+                elif key == "binary":
+                    chunk = read_exact(fh, int(value))
+                    fh.readline()
+            if chunk is None or size is None:
+                break
+            data.extend(chunk)
+            if len(data) >= size or not chunk:
+                break
+        return (bytes(data), mime) if data else None
+
+
+def sniff_image(data: bytes) -> str:
+    if data.startswith(b"\xff\xd8"):
+        return "image/jpeg"
+    if data.startswith(b"\x89PNG"):
+        return "image/png"
+    if data.startswith(b"RIFF") and data[8:12] == b"WEBP":
+        return "image/webp"
+    return "application/octet-stream"
+
+
+def cover_for(file: str) -> tuple[bytes, str] | None:
+    if safe_track(file) is None:
+        raise ValueError("file is outside the music directory")
+    with cover_lock:
+        if file in cover_cache:
+            return cover_cache[file]
+    found = mpd_picture("readpicture", file) or mpd_picture("albumart", file)
+    result = (found[0], found[1] or sniff_image(found[0])) if found else None
+    with cover_lock:
+        if len(cover_cache) >= COVER_CACHE_SIZE:
+            cover_cache.pop(next(iter(cover_cache)))
+        cover_cache[file] = result
+    return result
 
 
 def run(args: list[str]) -> str:
@@ -524,6 +607,17 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def send_bytes(self, data: bytes, content_type: str) -> None:
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "max-age=3600")
+        self.end_headers()
+        try:
+            self.wfile.write(data)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
     def send_file(self, path: Path, content_type: str, filename: str) -> None:
         size = path.stat().st_size
         self.send_response(200)
@@ -580,6 +674,15 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_json({"error": "file required"}, 400)
                 else:
                     self.send_json(lyrics_for(file))
+            elif url.path == "/api/cover":
+                file = query.get("file")
+                found = cover_for(file) if file else None
+                if not file:
+                    self.send_json({"error": "file required"}, 400)
+                elif found is None:
+                    self.send_json({"error": "no cover"}, 404)
+                else:
+                    self.send_bytes(found[0], found[1])
             else:
                 self.send_json({"error": "not found"}, 404)
         except ValueError as err:

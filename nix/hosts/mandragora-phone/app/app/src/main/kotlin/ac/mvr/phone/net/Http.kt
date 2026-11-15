@@ -47,6 +47,20 @@ object Http {
         execute(builder.build())
     }
 
+    suspend fun bytes(url: String): ByteArray? = withContext(Dispatchers.IO) {
+        val request = Request.Builder().url(url).build()
+        try {
+            client.newCall(request).execute().use { response ->
+                if (response.code == 404) return@withContext null
+                if (!response.isSuccessful) throw IOException("${response.code} ${request.url.encodedPath}")
+                response.body?.bytes()
+            }
+        } catch (err: IOException) {
+            if (err.message?.startsWith("4") == true || err.message?.startsWith("5") == true) throw err
+            throw Unreachable("${request.url.host} unreachable", err)
+        }
+    }
+
     suspend fun download(url: String, target: File, onProgress: (Long, Long) -> Unit) = withContext(Dispatchers.IO) {
         val request = Request.Builder().url(url).build()
         try {
