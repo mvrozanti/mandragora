@@ -8,6 +8,7 @@ import json
 import os
 import re
 import shutil
+import sqlite3
 import subprocess
 import sys
 import tarfile
@@ -53,6 +54,7 @@ FENCE = re.compile(r"```.*?```", re.S)
 INLINE_CODE = re.compile(r"`[^`\n]*`")
 CODE = re.compile(r"(```.*?```|`[^`\n]*`)", re.S)
 FULL_LINK = re.compile(r"\[\[(.+?)\]\](?!\])")
+QUERY_TERM = re.compile(r"[^\W_]+")
 VAULT_LINE = re.compile(r"^[ \t]*vault:[ \t]*(.+?)[ \t]*$", re.I | re.M)
 EMAIL = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b")
 EMAIL_ALLOWED = re.compile(r"^(git@|noreply@|.*@users\.noreply\.github\.com$|.*@example\.(com|org|net)$)", re.I)
@@ -93,7 +95,7 @@ Reply {"hold": []} when nothing qualifies."""
 
 NOTE_STEPS = """How to give a commit its vault verdict:
   If the change carries a non-obvious why (a decision, a constraint, an incident lesson):
-    1. mandragora-vault find <keywords>             patch an existing note when one fits
+    1. mandragora-vault find <words or a sentence>  patch an existing note when one fits
     2. mandragora-vault new <category> "<Title>"     only when none fits, then write the body
     3. mandragora-vault commit -m "<what the note now explains>" <note path>
     4. end the commit message with:   Vault: <note path>
@@ -830,25 +832,63 @@ def deploy(rev):
         shutil.rmtree(tmp, ignore_errors=True)
 
 
-def cmd_find(a):
-    words = [w.lower() for w in a.words]
-    scored = []
+def read_notes():
+    notes = {}
     for p in walk_vault():
         if not p.lower().endswith(".md"):
             continue
-        title = os.path.basename(p)[:-3].lower()
         try:
             with open(os.path.join(VAULT, p), encoding="utf-8", errors="replace") as f:
-                text = f.read().lower()
+                notes[p] = f.read()
         except OSError:
             continue
+    return notes
+
+
+def exact_matches(notes, words):
+    words = [w.lower() for w in words]
+    scored = []
+    for p, raw in notes.items():
+        title = os.path.basename(p)[:-3].lower()
+        text = raw.lower()
         score = sum(10 for w in words if w in title) + sum(min(text.count(w), 5) for w in words)
         if score and all(w in title or w in text for w in words):
             scored.append((score, p))
-    for score, p in sorted(scored, key=lambda x: (-x[0], x[1]))[:a.limit]:
+    return [p for _, p in sorted(scored, key=lambda x: (-x[0], x[1]))]
+
+
+def ranked_matches(notes, words, limit):
+    terms = [t for w in words for t in QUERY_TERM.findall(w)]
+    if not terms:
+        return []
+    db = sqlite3.connect(":memory:")
+    try:
+        db.execute("create virtual table notes using fts5(path unindexed, title, body, tokenize='porter unicode61')")
+        db.executemany("insert into notes values (?, ?, ?)", [(p, os.path.basename(p)[:-3], raw) for p, raw in notes.items()])
+        query = " OR ".join(f'"{t}"*' if len(t) >= 3 else f'"{t}"' for t in terms)
+        rows = db.execute("select path from notes where notes match ? order by bm25(notes, 0.0, 8.0, 1.0) limit ?", (query, limit))
+        return [r[0] for r in rows]
+    finally:
+        db.close()
+
+
+def cmd_find(a):
+    notes = read_notes()
+    exact = exact_matches(notes, a.words)
+    for p in exact[:a.limit]:
         print(p)
-    if not scored:
+    room = a.limit - len(exact)
+    if room <= 0:
+        return 0
+    seen = set(exact)
+    close = [p for p in ranked_matches(notes, a.words, a.limit + len(exact)) if p not in seen][:room]
+    sys.stdout.flush()
+    if not exact:
         print("no note mentions all of: " + " ".join(a.words), file=sys.stderr)
+    if close:
+        print("closest notes, mentioning some of the words:", file=sys.stderr)
+        for p in close:
+            print(p)
     return 0
 
 
@@ -1171,7 +1211,7 @@ def publish(a):
 def main():
     ap = argparse.ArgumentParser(prog="mandragora-vault", description=f"Write, check and publish knowledge-vault notes safely. Rules: {DOCS}")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    p = sub.add_parser("find", help="list notes matching all keywords")
+    p = sub.add_parser("find", help="list notes about these words, best first; a sentence works")
     p.add_argument("words", nargs="+")
     p.add_argument("--limit", type=int, default=12)
     p.set_defaults(fn=cmd_find)

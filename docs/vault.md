@@ -14,11 +14,17 @@ switch makes the commit for you).
 1. Ask: does this change carry a reason a reader of the diff would not
    see? A decision between options, a constraint, a workaround, an
    incident lesson, a number someone measured. If not, skip to step 6.
-2. Look for a note that already covers the topic:
+2. Look for a note that already covers the topic. Describe the change
+   in a sentence, or give keywords:
 
    ```
-   mandragora-vault find <two or three keywords>
+   mandragora-vault find <words, or the change in a sentence>
    ```
+
+   Notes that contain every word come first. When fewer than twelve
+   do, the closest notes by keyword rank follow under a `closest
+   notes` line, so a description finds the note even when no single
+   keyword would. No output at all means no note uses any of the words.
 
 3. If one fits, open it and **add or correct only the lines that need
    it**. Keep everything else exactly as it is.
