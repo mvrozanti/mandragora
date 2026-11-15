@@ -373,7 +373,11 @@ locally:
   starts failing, once when it recovers), pages a restarting daemon once it
   has failed five times in ten minutes and hourly while it keeps looping, and
   leaves a success stamp under `/persistent/unit-health` or
-  `~/.local/state/unit-health`. A 15-minute user
+  `~/.local/state/unit-health`. A 5-minute sweep pages a long-running service
+  that stopped and stayed down, hourly until it runs again. Crash-loop and
+  down pages also raise a desktop notification, and a page that no channel
+  took is retried on the next failure instead of being counted as sent
+  (`nix/pkgs/telegram-notify.nix` is the one notifier every pager uses). A 15-minute user
   timer publishes each timer's freshness to the VPS, where watch's
   `unit_health` source pages a job that has not succeeded within twice its
   schedule, or a host that stopped publishing. It exists because background

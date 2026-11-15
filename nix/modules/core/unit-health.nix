@@ -13,9 +13,7 @@ let
   withSystemDir =
     file: builtins.replaceStrings [ "@systemDir@" ] [ systemDir ] (builtins.readFile file);
 
-  notifyBin = pkgs.writeShellScriptBin "telegram-notify" (
-    builtins.readFile ../../../.local/bin/telegram-notify.sh
-  );
+  notifyBin = import ../../pkgs/telegram-notify.nix { inherit pkgs; };
 
   stamp = pkgs.writeShellApplication {
     name = "unit-health-stamp";
@@ -100,6 +98,23 @@ let
     lib.recursiveUpdate (handler mode) {
       unitConfig.ConditionUser = "m";
     };
+
+  sweep = {
+    description = "Page long-running services that stopped and stayed down";
+    serviceConfig = {
+      Type = "oneshot";
+      EnvironmentFile = telegramEnv;
+      ExecStart = "${notify}/bin/unit-health-notify sweep";
+    };
+  };
+  sweepTimer = {
+    description = "Look for services that stayed down every 5 minutes";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "10min";
+      OnUnitActiveSec = "5min";
+    };
+  };
 in
 {
   environment.systemPackages = [ report ];
@@ -114,6 +129,13 @@ in
   systemd.services."unit-health-recovered@" = handler "recovered";
   systemd.user.services."unit-health-failed@" = userHandler "failed";
   systemd.user.services."unit-health-recovered@" = userHandler "recovered";
+
+  systemd.services.unit-health-sweep = sweep;
+  systemd.timers.unit-health-sweep = sweepTimer;
+  systemd.user.services.unit-health-sweep = lib.recursiveUpdate sweep {
+    unitConfig.ConditionUser = "m";
+  };
+  systemd.user.timers.unit-health-sweep = sweepTimer;
 
   systemd.services.user-manager-probe = {
     description = "Page when the primary user's systemd manager stops answering";

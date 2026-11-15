@@ -7,9 +7,7 @@ let
   watchBin = pkgs.writeShellScriptBin "mandragora-update-watch" (
     builtins.readFile ../../../.local/bin/mandragora-update-watch.sh
   );
-  notifyBin = pkgs.writeShellScriptBin "telegram-notify" (
-    builtins.readFile ../../../.local/bin/telegram-notify.sh
-  );
+  notifyBin = import ../../pkgs/telegram-notify.nix { inherit pkgs; };
   buildPath = [
     config.nix.package
     pkgs.nixos-rebuild

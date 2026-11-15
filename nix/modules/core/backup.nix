@@ -9,9 +9,7 @@ let
   lifeboatRecipient = "age1kndldqz9kkcjmrndvnd0cun8clac7un0ggt6xf47mvs84qp7cpyq60y040";
   markerDir = "/persistent/backup";
 
-  notifyBin = pkgs.writeShellScriptBin "telegram-notify" (
-    builtins.readFile ../../../.local/bin/telegram-notify.sh
-  );
+  notifyBin = import ../../pkgs/telegram-notify.nix { inherit pkgs; };
 
   ageKeyBackup = pkgs.writeShellApplication {
     name = "age-key-backup";

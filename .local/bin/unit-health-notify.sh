@@ -3,7 +3,8 @@ set -uo pipefail
 
 mode="${1:-}"
 unit="${2:-}"
-[ -n "$mode" ] && [ -n "$unit" ] || exit 0
+[ -n "$mode" ] || exit 0
+[ -n "$unit" ] || [ "$mode" = sweep ] || exit 0
 
 if [ "$EUID" -eq 0 ]; then
   dir="@systemDir@"
@@ -31,6 +32,20 @@ human() {
 loop_window=600
 loop_threshold=5
 loop_repeat=3600
+down_settle=300
+undelivered=0
+
+send() {
+  telegram-notify "$1" && return 0
+  undelivered=1
+  return 1
+}
+
+urgent() {
+  MANDRAGORA_NOTIFY_DESKTOP=1 telegram-notify "$1" && return 0
+  undelivered=1
+  return 1
+}
 
 journal_tail() {
   [ -n "${p[InvocationID]:-}" ] || return 0
@@ -67,8 +82,7 @@ looping() {
     tail="$(journal_tail)"
     [ -n "$tail" ] && page+=$'\n\n'"$tail"
     page+=$'\n\n'"Pages again hourly while it keeps looping; nothing is sent when it settles. $(status_hint)"
-    telegram-notify "$page"
-    paged=$now
+    urgent "$page" && paged=$now
   fi
   printf '%s %s %s %s\n' "$since" "$count" "$now" "$paged" > "$f"
 }
@@ -84,16 +98,15 @@ failed() {
   local trig="${p[TriggeredBy]:-}"
   if [ "${p[Type]:-}" != oneshot ] && [[ $trig != *.timer* && $trig != *.path* ]]; then
     looping
-    exit 0
+    return 0
   fi
 
   local f="$dir/$unit.failing" since count rest
   if [ -e "$f" ]; then
     read -r since count rest < "$f" || true
     printf '%s %s %s\n' "${since:-$now}" $((${count:-0} + 1)) "$now" > "$f"
-    exit 0
+    return 0
   fi
-  printf '%s 1 %s\n' "$now" "$now" > "$f"
 
   local tail
   tail="$(journal_tail)"
@@ -101,20 +114,81 @@ failed() {
   msg="FAILED on $host: $unit (${p[Result]:-unknown}, exit ${p[ExecMainStatus]:-?})"
   [ -n "$tail" ] && msg+=$'\n\n'"$tail"
   msg+=$'\n\n'"Quiet until it succeeds again. $(status_hint)"
-  telegram-notify "$msg"
+  send "$msg" && printf '%s 1 %s\n' "$now" "$now" > "$f"
 }
 
 recovered() {
   local f="$dir/$unit.recovered" since count rest
-  [ -e "$f" ] || exit 0
+  [ -e "$f" ] || return 0
   read -r since count rest < "$f" || true
   rm -f "$f"
   local dur=$((now - ${since:-$now}))
-  telegram-notify "RECOVERED on $host: $unit succeeded after $(human "$dur") failing (${count:-?} failed runs)"
+  send "RECOVERED on $host: $unit succeeded after $(human "$dur") failing (${count:-?} failed runs)"
+}
+
+sweep() {
+  local name f k v since paged dead names="" lines="" where=""
+  local -a due=()
+  local -A down=() p=()
+  [ "${scope[0]}" = --user ] && where=" --user"
+
+  while read -r name _; do
+    [ -n "$name" ] || continue
+    [[ $name == unit-health-* ]] && continue
+    p=()
+    while IFS='=' read -r k v; do
+      p[$k]="$v"
+    done < <(systemctl "${scope[@]}" show "$name" \
+      -p Type -p TriggeredBy -p Transient -p Result -p ExecMainStatus < /dev/null)
+    [ "${p[Type]:-}" = oneshot ] && continue
+    [ "${p[Transient]:-}" = yes ] && continue
+    [[ ${p[TriggeredBy]:-} == *.timer* || ${p[TriggeredBy]:-} == *.path* ]] && continue
+
+    down[$name]=1
+    f="$dir/$name.down"
+    since=""
+    paged=""
+    read -r since paged < "$f" 2>/dev/null || true
+    if [ -z "$since" ]; then
+      printf '%s 0\n' "$now" > "$f"
+      continue
+    fi
+    paged=${paged:-0}
+    dead=$((now - since))
+    if [ "$paged" -eq 0 ] && [ "$dead" -ge "$down_settle" ]; then
+      lines+="$name stopped $(human "$dead") ago and is not restarting (${p[Result]:-unknown}, exit ${p[ExecMainStatus]:-?})"$'\n'
+    elif [ "$paged" -gt 0 ] && [ $((now - paged)) -ge "$loop_repeat" ]; then
+      lines+="$name is still down after $(human "$dead")"$'\n'
+    else
+      continue
+    fi
+    names+="${names:+, }$name"
+    due+=("$name")
+  done < <(systemctl "${scope[@]}" list-units --type=service --state=failed --plain --no-legend)
+
+  for f in "$dir"/*.down; do
+    [ -e "$f" ] || continue
+    name="${f##*/}"
+    name="${name%.down}"
+    [ -n "${down[$name]:-}" ] || rm -f "$f"
+  done
+
+  [ -n "$lines" ] || return 0
+  local msg="DOWN on $host: $names"$'\n\n'"$lines"
+  msg+=$'\n'"Reminds hourly until each one runs again. To acknowledge one: systemctl$where reset-failed <unit>"
+  urgent "$msg" || return 0
+  for name in "${due[@]}"; do
+    f="$dir/$name.down"
+    since=""
+    read -r since paged < "$f" 2>/dev/null || true
+    printf '%s %s\n' "${since:-$now}" "$now" > "$f"
+  done
 }
 
 case "$mode" in
   failed) failed ;;
   recovered) recovered ;;
+  sweep) sweep ;;
   *) echo "unknown mode $mode" >&2; exit 2 ;;
 esac
+exit "$undelivered"

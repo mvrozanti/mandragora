@@ -8,9 +8,7 @@ let
   updateBin = pkgs.writeShellScriptBin "claude-code-update" (
     builtins.readFile ../../../.local/bin/claude-code-update.sh
   );
-  notifyBin = pkgs.writeShellScriptBin "telegram-notify" (
-    builtins.readFile ../../../.local/bin/telegram-notify.sh
-  );
+  notifyBin = import ../../pkgs/telegram-notify.nix { inherit pkgs; };
   unitPath = [
     pkgs.curl
     pkgs.jq
