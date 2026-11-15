@@ -1,0 +1,15 @@
+# mandragora.koplugin / agenda.lua configuration
+#
+# Copy to /mnt/us/mandragora/agenda.conf on the device. key=value lines;
+# blank lines and unknown keys are ignored, and a missing file is fine.
+
+# host / port: mandragora-agenda on the desktop, which reads the synced
+# calendars through khal. The desktop's LAN address, not its tailnet address,
+# for the same reason as weather.conf: a plain LuaSocket connection on this
+# Kindle has no route to 100.64.0.0/10.
+host=192.168.0.27
+port=6616
+
+# timeout: seconds to wait. The server answers from a one-minute cache; a
+# forced refresh runs khal once, which takes a second or two.
+timeout=25

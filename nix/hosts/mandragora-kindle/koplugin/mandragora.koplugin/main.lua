@@ -61,6 +61,13 @@ local ACTIONS = {
         note = "now and five days",
     },
     {
+        id = "mandragora_agenda",
+        label = "Agenda",
+        widget = "agenda",
+        icon = "agenda.svg",
+        note = "the next two weeks",
+    },
+    {
         id = "mandragora_dash",
         label = "Dash",
         widget = "dash",

@@ -338,6 +338,22 @@ does not move and the free tier is rate limited. Protocol: `PING`, `NOW`,
 them by local day and takes each day's true min and max plus its most common
 description.
 
+## Agenda
+
+The next two weeks of the calendar, read-only. `mandragora-agenda` on the
+desktop (`agenda/server.py`, module `nix/modules/services/kindle-agenda.nix`,
+port 6616 on the LAN interface like weather) runs `khal list` over the
+calendars that `calendar-sync` keeps in `~/.local/share/calendars/` and answers
+from a one-minute cache; the device holds no account and no token. What syncs
+those calendars and how the accounts sign in: [`docs/calendar.md`](../../../docs/calendar.md).
+
+Protocol: `PING`, `NOW`, `REFRESH`. The answer is `SYNC <seconds|never>` (the
+age of the last successful sync, so a stale agenda says so in its header), then
+`DAY<tab>date<tab>label` and `E<tab>start<tab>end<tab>calendar<tab>title<tab>location`
+lines, `MORE <n>` when the server cut the list, `END`. The widget draws what
+fits and counts the rest in the footer. Tap refreshes, double tap or a vertical
+swipe leaves.
+
 ## Camera
 
 The Camera tile shows the phone's DroidCam feed. The phone is a tailnet node, so

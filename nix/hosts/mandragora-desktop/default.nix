@@ -90,6 +90,7 @@ in
     ../../modules/services/chess-lens-backup.nix
     ../../modules/services/ticker.nix
     ../../modules/services/weather.nix
+    ../../modules/services/kindle-agenda.nix
     ../../modules/services/filebrowser.nix
     ../../modules/services/rgb-control.nix
     ../../modules/services/ollama-context-proxy.nix
