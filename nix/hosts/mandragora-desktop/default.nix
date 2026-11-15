@@ -82,6 +82,7 @@ in
     ../../modules/services/lenia-bridge.nix
     ../../modules/services/mympd.nix
     ../../modules/services/mpd-vis.nix
+    ../../modules/services/music-index-backup.nix
     ../../modules/services/chess-engine.nix
     ../../modules/services/chess-lens.nix
     ../../modules/services/chess-lens-backup.nix
