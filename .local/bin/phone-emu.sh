@@ -83,5 +83,7 @@ done < <(
   find "$MUSIC" -maxdepth 1 -type f \( -name '*.mp3' -o -name '*.m4a' -o -name '*.opus' -o -name '*.flac' \) -printf '%T@ %P\n' | sort -rn | head -12 | cut -d' ' -f2-
 )
 
+adb -s "$SERIAL" shell input keyevent KEYCODE_WAKEUP
+adb -s "$SERIAL" shell wm dismiss-keyguard
 adb -s "$SERIAL" shell am start -n "$PACKAGE/.MainActivity" > /dev/null
 echo "phone-emu: $(basename "$APK") running on $SERIAL; $count song(s) in its Music folder"
