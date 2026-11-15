@@ -213,7 +213,7 @@ def search(db, query, here):
     sql = (
         "with t as materialized (select sid, snippet(turn, 3, '', '', '…', 14) as snip, bm25(turn) as r from turn where turn match ?)"
         " select s.sid, s.cwd, s.title, s.started, s.last_seen, s.has_transcript, t.snip, count(*) as hits, min(t.r) as r"
-        f" from t join session s on s.sid = t.sid where 1=1{where_cwd} group by t.sid order by r limit ?")
+        f" from t join session s on s.sid = t.sid where 1=1{where_cwd} group by t.sid order by s.last_seen desc limit ?")
     try:
         return db.execute(sql, (expr, *cwd_args, LIMIT)).fetchall()
     except sqlite3.OperationalError:
