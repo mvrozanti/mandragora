@@ -3,11 +3,13 @@ set -euo pipefail
 
 LIBRARY="${KINDLE_LIBRARY:-$HOME/Documents/library/books}"
 WALLPAPERS="${WALLPAPER_DIR:-$HOME/Pictures/wllpps}"
+NOTES="${KINDLE_NOTES:-$HOME/Documents/notes}"
 DEBOUNCE="${KINDLE_SYNC_DEBOUNCE:-20}"
 
 watched=()
 [ -d "$LIBRARY" ] && watched+=("$LIBRARY")
 [ -d "$WALLPAPERS" ] && watched+=("$WALLPAPERS")
+[ -d "$NOTES" ] && watched+=("$NOTES")
 
 if [ "${#watched[@]}" -eq 0 ]; then
   echo "kindle-sync-watch: nothing to watch" >&2

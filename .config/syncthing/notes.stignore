@@ -1,0 +1,11 @@
+.stversions
+.stfolder
+.stignore
+.obsidian/workspace*
+.obsidian/cache
+.trash
+.trashed-*
+.pending-*
+*.tmp
+*.partial
+*.part

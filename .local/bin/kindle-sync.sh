@@ -7,6 +7,8 @@ KINDLE_PORT="${KINDLE_PORT:-22}"
 LIBRARY="${KINDLE_LIBRARY:-$HOME/Documents/library/kindle}"
 WALLPAPERS="${WALLPAPER_DIR:-$HOME/Pictures/wllpps}"
 REMOTE_BOOKS=/mnt/us/documents/library/books
+NOTES="${KINDLE_NOTES:-$HOME/Documents/notes}"
+REMOTE_NOTES=/mnt/us/documents/notes
 MIN_FREE_MB="${KINDLE_MIN_FREE_MB:-500}"
 
 SSH=(ssh -p "$KINDLE_PORT" -o BatchMode=yes -o StrictHostKeyChecking=accept-new
@@ -111,14 +113,50 @@ sync_art() {
   kindle-art all
 }
 
+sync_notes() {
+  [ -d "$NOTES" ] || { log "no notes at $NOTES"; return 0; }
+
+  local want="$WORK/nwant" have="$WORK/nhave" list="$WORK/nlist" stale="$WORK/nstale"
+
+  ( cd "$NOTES" && find . -type f \( -iname '*.md' -o -iname '*.txt' \) -not -path '*/.*' \
+      -printf '%s\t%T@\t%P\n' ) | sort > "$want"
+  "${SSH[@]}" "cat '$REMOTE_NOTES/.manifest' 2>/dev/null" > "$have" || true
+
+  if cmp -s "$want" "$have"; then
+    log "notes already in sync ($(wc -l < "$want") files)"
+    return 0
+  fi
+
+  cut -f3- "$want" | sort > "$list"
+  if [ -s "$list" ]; then
+    log "pushing $(wc -l < "$list") note(s)"
+    tar cf - -C "$NOTES" --verbatim-files-from --files-from="$list" \
+      | "${SSH[@]}" "mkdir -p '$REMOTE_NOTES' && tar xf - -C '$REMOTE_NOTES'"
+  fi
+
+  "${SSH[@]}" "cd '$REMOTE_NOTES' 2>/dev/null || exit 0
+    find . -type f \( -name '*.md' -o -name '*.txt' \)" 2>/dev/null \
+    | cut -c3- | sort | comm -13 "$list" - > "$stale"
+  if [ -s "$stale" ]; then
+    tr '\n' '\0' < "$stale" | "${SSH[@]}" "cd '$REMOTE_NOTES' || exit 1
+      xargs -0 rm -f --
+      find . -type d -empty -delete 2>/dev/null
+      exit 0"
+    log "removed $(wc -l < "$stale") note(s) that left the desktop"
+  fi
+
+  "${SSH[@]}" "mkdir -p '$REMOTE_NOTES' && cat > '$REMOTE_NOTES/.manifest'" < "$want"
+  log "notes done"
+}
+
 PRUNE=no
 ACTION=all
 for a in "$@"; do
   case "$a" in
     --prune)     PRUNE=yes ;;
     --prune-dry) PRUNE=no ;;
-    books|art|all|prune) ACTION="$a" ;;
-    *) echo "usage: kindle-sync [books|art|all|prune] [--prune]" >&2; exit 2 ;;
+    books|art|notes|all|prune) ACTION="$a" ;;
+    *) echo "usage: kindle-sync [books|art|notes|all|prune] [--prune]" >&2; exit 2 ;;
   esac
 done
 
@@ -130,8 +168,9 @@ main() {
   case "$ACTION" in
     books) sync_books ;;
     art)   sync_art ;;
+    notes) sync_notes ;;
     prune) prune_books ;;
-    all)   sync_books; sync_art ;;
+    all)   sync_books; sync_art; sync_notes ;;
   esac
 }
 

@@ -354,6 +354,15 @@ lines, `MORE <n>` when the server cut the list, `END`. The widget draws what
 fits and counts the rest in the footer. Tap refreshes, double tap or a vertical
 swipe leaves.
 
+## Notes
+
+`kindle-sync notes` mirrors the `.md` and `.txt` files of `~/Documents/notes`
+(the folder Syncthing shares with the phone) into `/mnt/us/documents/notes`,
+where KOReader's file browser opens them. One way: a note deleted on the
+desktop is deleted on the device, hidden directories never travel, and
+KOReader's `.sdr` sidecars are left alone. `kindle-sync-watch` runs it when
+the folder changes.
+
 ## Camera
 
 The Camera tile shows the phone's DroidCam feed. The phone is a tailnet node, so

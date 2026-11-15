@@ -48,6 +48,8 @@ post_folder mandragora-phone-whatsapp   "Phone WhatsApp"    /storage/emulated/0/
 post_folder mandragora-phone-recordings "Phone Recordings"  /storage/emulated/0/Recordings                                    sendreceive
 post_folder mandragora-phone-downloads  "Phone Downloads"   /storage/emulated/0/Download                                      sendreceive
 
+post_folder mandragora-notes            "Notes"             /storage/emulated/0/Documents/notes                               sendreceive
+
 # music push (desktop is master, phone is read replica)
 post_folder mandragora-music            "Music"             /storage/emulated/0/Music                                         receiveonly
 
