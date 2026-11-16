@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +41,7 @@ import ac.mvr.phone.play.PlaybackService
 import ac.mvr.phone.ui.CodeScreen
 import ac.mvr.phone.ui.FindScreen
 import ac.mvr.phone.ui.HomeScreen
+import ac.mvr.phone.ui.LocalChecking
 import ac.mvr.phone.ui.HubScreen
 import ac.mvr.phone.ui.MandragoraTheme
 import ac.mvr.phone.ui.MoneyScreen
@@ -62,8 +64,11 @@ class MainActivity : ComponentActivity() {
         requestScreen(intent)
         setContent {
             val palette by store.palette.collectAsStateWithLifecycle()
+            val checking by store.checking.collectAsStateWithLifecycle()
             MandragoraTheme(palette) {
-                Root()
+                CompositionLocalProvider(LocalChecking provides checking) {
+                    Root()
+                }
             }
         }
     }

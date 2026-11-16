@@ -29,7 +29,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -42,6 +44,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 interface PlayerHost {
     fun useRemote()
@@ -91,6 +94,8 @@ class Store(private val app: Application) {
     val code = CodeStore(this)
 
     val reachable = MutableStateFlow(false)
+    val checking = MutableStateFlow(true)
+    private val recheck = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val mpdReachable = MutableStateFlow(false)
     val mpdSnapshot = MutableStateFlow<MpdSnapshot?>(null)
     private var snapshotAtMs = 0L
@@ -213,6 +218,14 @@ class Store(private val app: Application) {
             }
         }
         scope.launch { loopConfig() }
+        scope.launch {
+            foreground.collect { fg ->
+                if (fg) {
+                    if (!reachable.value) checking.value = true
+                    recheck.tryEmit(Unit)
+                }
+            }
+        }
         scope.launch { loopMpd() }
         scope.launch { loopWhileForeground(15_000) { refreshVolume() } }
         scope.launch { loopWhileForeground(10_000) { refreshLease() } }
@@ -271,10 +284,18 @@ class Store(private val app: Application) {
     }
 
     private suspend fun loopConfig() {
+        var misses = 0
         while (scope.isActive) {
             val ok = runCatching { config.value = bridge.config() }.isSuccess
             reachable.value = ok
-            delay(if (ok) 30_000 else 5_000)
+            misses = if (ok) 0 else misses + 1
+            checking.value = !ok && misses < 3
+            val wait = when {
+                ok -> 30_000L
+                misses < 3 -> 1_000L
+                else -> 5_000L
+            }
+            withTimeoutOrNull(wait) { recheck.first() }
         }
     }
 

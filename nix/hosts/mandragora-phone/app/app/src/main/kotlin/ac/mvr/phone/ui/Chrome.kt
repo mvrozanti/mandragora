@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -69,9 +70,11 @@ fun Notice(store: Store, modifier: Modifier = Modifier) {
     )
 }
 
+val LocalChecking = compositionLocalOf { false }
+
 @Composable
 fun Banner(reachable: Boolean) {
-    if (reachable) return
+    if (reachable || LocalChecking.current) return
     val scheme = MaterialTheme.colorScheme
     Text(
         "desktop unreachable · the phone keeps playing",
@@ -90,9 +93,10 @@ fun Banner(reachable: Boolean) {
 
 @Composable
 fun Reachability(reachable: Boolean) {
+    val checking = !reachable && LocalChecking.current
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-        StatusDot(reachable)
-        Label(if (reachable) "desktop reachable" else "desktop unreachable")
+        if (checking) Box(modifier = Modifier.size(8.dp).clip(CircleShape).border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)) else StatusDot(reachable)
+        Label(if (reachable) "desktop reachable" else if (checking) "reaching the desktop" else "desktop unreachable")
     }
 }
 
