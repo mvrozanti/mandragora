@@ -5,6 +5,7 @@ import base64
 import json
 import os
 import secrets
+import subprocess
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -43,6 +44,8 @@ CLI_PATH = os.environ.get("CLAUDE_BRIDGE_CLI") or None
 IDLE_SECONDS = int(os.environ.get("CLAUDE_BRIDGE_IDLE_SECONDS", "900"))
 SESSIONS_INDEX = HOME / ".claude" / "sessions"
 TRANSCRIPTS = HOME / ".claude" / "projects"
+TMUX = os.environ.get("CLAUDE_BRIDGE_TMUX", "tmux")
+TMUX_SOCKET = Path(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")) / f"tmux-{os.getuid()}" / "default"
 WATCH_SECONDS = 1.0
 HOT_SECONDS = 900
 RESCAN_SECONDS = 15
@@ -270,7 +273,7 @@ class Bridge:
                 continue
             if data.get("kind") not in (None, "interactive"):
                 continue
-            found[sid] = {"name": data.get("name"), "status": data.get("status"), "cwd": data.get("cwd"), "tmux": data.get("tmux")}
+            found[sid] = {"name": data.get("name"), "status": data.get("status"), "cwd": data.get("cwd"), "tmux": data.get("tmux"), "pid": pid}
         return found
 
     async def projects(self) -> list[dict]:
@@ -725,7 +728,19 @@ async def prompt(request: web.Request) -> web.Response:
         return json_error("text required", 400)
     live = bridge.live_sessions().get(sid)
     if live is not None:
-        return json_error(f"running on the desktop as {live.get('name') or 'an open session'}; resuming here would start a copy", 409)
+        name = live.get("name") or "an open session"
+        try:
+            pane = await asyncio.to_thread(pane_of, int(live["pid"]))
+        except (RuntimeError, OSError, subprocess.SubprocessError, ValueError) as err:
+            return json_error(f"running on the desktop as {name}, and tmux could not be reached: {str(err)[:120]}", 409)
+        if pane is None:
+            return json_error(f"running on the desktop as {name} outside tmux; send from there", 409)
+        try:
+            await asyncio.to_thread(type_into, pane, text)
+        except (RuntimeError, OSError, subprocess.SubprocessError) as err:
+            return json_error(f"could not type into {name}: {str(err)[:120]}", 503)
+        bridge.bus.emit("session.status", {"sessionID": sid, "status": {"type": "busy", "message": "busy"}})
+        return web.Response(status=204)
     fresh = bridge.fresh.get(sid)
     run = bridge.runs.get(sid)
     directory = request.query.get("directory") or (fresh or {}).get("directory") or (run.directory if run else None) or str(HOME)
@@ -833,6 +848,43 @@ async def events(request: web.Request) -> web.StreamResponse:
     finally:
         bridge.bus.unsubscribe(queue)
     return response
+
+
+def tmux(*args: str, stdin: str | None = None) -> str:
+    done = subprocess.run([TMUX, "-S", str(TMUX_SOCKET), *args], input=stdin, capture_output=True, text=True, timeout=5)
+    if done.returncode != 0:
+        raise RuntimeError(done.stderr.strip() or f"tmux {args[0]} failed")
+    return done.stdout
+
+
+def parent_of(pid: int) -> int:
+    try:
+        stat = Path(f"/proc/{pid}/stat").read_text()
+        return int(stat[stat.rindex(")") + 2:].split()[1])
+    except (OSError, ValueError, IndexError):
+        return 0
+
+
+def pane_of(pid: int) -> str | None:
+    panes: dict[int, str] = {}
+    for line in tmux("list-panes", "-a", "-F", "#{pane_id} #{pane_pid}").splitlines():
+        pane, _, owner = line.partition(" ")
+        if owner.isdigit():
+            panes[int(owner)] = pane
+    for _ in range(32):
+        if pid in panes:
+            return panes[pid]
+        pid = parent_of(pid)
+        if pid <= 1:
+            return None
+    return None
+
+
+def type_into(pane: str, text: str) -> None:
+    tmux("load-buffer", "-b", "phone-bridge", "-", stdin=text)
+    tmux("paste-buffer", "-p", "-d", "-b", "phone-bridge", "-t", pane)
+    time.sleep(0.2)
+    tmux("send-keys", "-t", pane, "Enter")
 
 
 def hot_transcripts(now: float) -> dict[str, Path]:

@@ -411,6 +411,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
                 }
             }
         }
+        Notice(store, Modifier.padding(horizontal = 14.dp))
         Composer(draft, busy, reachable, onChange = { code.draft.value = it }, onSend = { code.send(draft) }, onStop = { code.stop() })
     }
     if (picking) {

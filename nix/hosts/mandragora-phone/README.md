@@ -217,8 +217,9 @@ one line each, reasoning is folded):
 | a session in the sheet | loads its transcript and follows it live | code |
 | a project under "new session in" | an empty session there; it is created on the first message | code |
 | the model chip | cycles harness and model: claude, deepseek (both Claude Code), opencode · deepseek; with a session open it cycles within that session's harness; remembered on this phone | code |
-| a session marked "on the desktop" | opens it read-only and follows it live: `claude-bridge` watches the transcripts of sessions it does not run itself and pushes a change within about a second, so anything said in the desktop tui or the Claude app appears without reopening; sending answers "running on the desktop as <name>" on the error line | code |
+| a session marked "on the desktop" | opens it and follows it live: `claude-bridge` watches the transcripts of sessions it does not run itself and pushes a change within about a second, so anything said in the desktop tui or the Claude app appears without reopening | code |
 | type, then send | sends to the session (creating it first when new); the reply streams in as it is written | code |
+| type, then send, on a session marked "on the desktop" | types the message into that session's tmux pane, as a bracketed paste followed by Enter, so the desktop tui runs it as if typed there; a session outside tmux answers "send from there" on the error line above the box | code |
 | send while it works | queues the message behind the current turn | code |
 | stop (replaces send while it works and the box is empty) | aborts the current turn | code |
 | a tool line | expands its command or file and its output; again collapses | code |

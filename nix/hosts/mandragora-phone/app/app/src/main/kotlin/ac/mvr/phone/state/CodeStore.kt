@@ -238,7 +238,14 @@ class CodeStore(private val store: Store) {
 
     fun send(text: String) = run {
         val body = text.trim()
-        if (body.isEmpty()) return@run
+        if (body.isEmpty() || sending.value) return@run
+        sending.value = true
+        try { deliver(body) } finally { sending.value = false }
+    }
+
+    val sending = MutableStateFlow(false)
+
+    private suspend fun deliver(body: String) {
         var session = currentFlow.value
         val chosen = modelFlow.value
         val backend = session?.backend?.ifEmpty { null } ?: chosen?.backend ?: choices().firstOrNull()?.backend ?: "claude"
@@ -256,6 +263,7 @@ class CodeStore(private val store: Store) {
         client.prompt(session.id, session.directory, body, chosen?.providerID?.takeIf { sameBackend }, chosen?.modelID?.takeIf { sameBackend })
         draft.value = ""
         statusFlow.value = statusFlow.value + (session.id to CodeStatus("busy"))
+        if (session.live != null) syncCurrent()
     }
 
     fun stop() = run {
