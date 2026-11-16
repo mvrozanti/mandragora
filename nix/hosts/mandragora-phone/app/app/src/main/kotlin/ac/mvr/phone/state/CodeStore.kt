@@ -171,6 +171,15 @@ class CodeStore(private val store: Store) {
         }
     }
 
+    private fun followModel(session: CodeSession, entries: List<CodeEntry>) {
+        val last = entries.lastOrNull { it.info.role == "assistant" && it.info.providerID != null }?.info ?: return
+        val options = choices().filter { it.backend == session.backend }
+        val match = options.firstOrNull { it.providerID == last.providerID && it.modelID == last.modelID }
+            ?: options.firstOrNull { it.providerID == last.providerID }
+            ?: return
+        if (modelFlow.value != match) modelFlow.value = match
+    }
+
     fun cycleModel() {
         val backend = currentFlow.value?.backend?.ifEmpty { null }
         val options = choices().filter { backend == null || it.backend == backend }
@@ -199,6 +208,7 @@ class CodeStore(private val store: Store) {
         val list = client.messages(session.id, session.directory, 80)
         if (currentFlow.value?.id != session.id) return
         entriesFlow.value = list
+        followModel(session, list)
         val pending = runCatching { client.permissions(session.directory) }.getOrDefault(emptyList()).filter { it.sessionID == session.id }
         val open = runCatching { client.questions(session.directory) }.getOrDefault(emptyList()).filter { it.sessionID == session.id }
         if (currentFlow.value?.id != session.id) return
@@ -304,7 +314,10 @@ class CodeStore(private val store: Store) {
                 val session = currentFlow.value ?: break
                 val client = client(session.backend) ?: break
                 val list = runCatching { client.messages(session.id, session.directory, 80) }.getOrNull() ?: continue
-                if (currentFlow.value?.id == session.id) entriesFlow.value = list
+                if (currentFlow.value?.id == session.id) {
+                    entriesFlow.value = list
+                    followModel(session, list)
+                }
             } while (syncAgain)
         }
     }
