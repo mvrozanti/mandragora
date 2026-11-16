@@ -1,5 +1,11 @@
 package ac.mvr.phone.ui
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.border
 import ac.mvr.phone.net.CodeEntry
 import ac.mvr.phone.net.CodePart
 import ac.mvr.phone.net.CodeProject
@@ -84,6 +90,29 @@ private fun Chip(text: String, tone: Color, onTone: Color, enabled: Boolean = tr
 }
 
 @Composable
+private fun SessionDot(open: Boolean, busy: Boolean) {
+    val scheme = MaterialTheme.colorScheme
+    val pulse by rememberInfiniteTransition(label = "dot").animateFloat(
+        initialValue = 1f,
+        targetValue = 0.35f,
+        animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse),
+        label = "dot",
+    )
+    val color = when {
+        busy -> scheme.primary.copy(alpha = pulse)
+        open -> Color(0xFF4EC17D)
+        else -> Color.Transparent
+    }
+    Box(
+        modifier = Modifier
+            .size(8.dp)
+            .clip(CircleShape)
+            .background(color)
+            .border(1.dp, if (busy || open) Color.Transparent else scheme.outlineVariant, CircleShape),
+    )
+}
+
+@Composable
 private fun SessionRow(session: CodeSession, status: CodeStatus?, selected: Boolean = false, onTap: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val busy = status?.type == "busy"
@@ -97,7 +126,7 @@ private fun SessionRow(session: CodeSession, status: CodeStatus?, selected: Bool
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(if (busy) scheme.primary else scheme.outlineVariant))
+        SessionDot(open = session.live != null, busy = busy)
         Column(modifier = Modifier.weight(1f)) {
             Text(session.title.ifBlank { "untitled" }, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
             val live = session.live

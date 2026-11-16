@@ -122,6 +122,7 @@ back collapses it):
 | money card: name | opens the money screen | money |
 | hub card: name or glance | opens the hub screen | hub |
 | code card: a session row | opens that session on the code screen | code |
+| the dot on a session row | nothing, display: green when the session is open on the desktop, pulsing in the accent while it works, hollow when it is closed | home |
 | code card: name | opens the code screen on the last session, or a new one when there is none | code |
 | code card: "new session" | opens the code screen on an empty session in the last used directory | code |
 | panic card: name or the gauge | opens the panic screen | panic |
