@@ -282,30 +282,9 @@ fun DesktopMediaLine(store: Store, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun Cover(now: NowState, cover: Bitmap?, modifier: Modifier = Modifier, corner: Dp = 20.dp) {
-    val scheme = MaterialTheme.colorScheme
-    if (cover != null) {
-        Image(cover.asImageBitmap(), null, modifier = modifier.clip(RoundedCornerShape(corner)), contentScale = ContentScale.Crop)
-        return
-    }
-    val seed = (now.file ?: now.title).hashCode()
-    val tones = listOf(scheme.primary, scheme.secondary, scheme.tertiary)
-    Box(modifier = modifier.clip(RoundedCornerShape(corner)).background(scheme.surfaceContainerHigh)) {
-        Box(
-            modifier = Modifier
-                .padding(start = ((seed ushr 1) % 40).dp * 2, top = ((seed ushr 7) % 40).dp * 2)
-                .size(((seed ushr 3) % 30 + 60).dp)
-                .clip(CircleShape)
-                .background(tones[(seed ushr 11) % 3].copy(alpha = 0.7f)),
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .fillMaxWidth(((seed ushr 5) % 60 + 20) / 100f)
-                .height(12.dp)
-                .background(scheme.primary),
-        )
-    }
+fun Cover(cover: Bitmap?, modifier: Modifier = Modifier, corner: Dp = 20.dp) {
+    if (cover == null) return
+    Image(cover.asImageBitmap(), null, modifier = modifier.clip(RoundedCornerShape(corner)), contentScale = ContentScale.Crop)
 }
 
 @Composable

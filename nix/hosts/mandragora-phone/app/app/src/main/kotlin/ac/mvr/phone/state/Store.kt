@@ -108,6 +108,7 @@ class Store(private val app: Application) {
     val localNames = MutableStateFlow<Set<String>>(emptySet())
     val notice = MutableStateFlow<String?>(null)
     val cover = MutableStateFlow<Bitmap?>(null)
+    val coverSettled = MutableStateFlow(false)
     val media = MutableStateFlow<List<DesktopMedia>>(emptyList())
     private var coverKey: String? = null
     private var noticeJob: Job? = null
@@ -377,12 +378,17 @@ class Store(private val app: Application) {
         if (key == coverKey && cover.value != null) return
         coverKey = key
         cover.value = null
-        if (file == null) return
-        val bytes = runCatching {
-            if (owner == "phone") library.find(file)?.let { library.artwork(it.uri) } else bridge.cover(file)
-        }.getOrNull() ?: return
-        val bitmap = withContext(Dispatchers.IO) { Artwork.decode(bytes) } ?: return
-        if (coverKey == key) cover.value = bitmap
+        coverSettled.value = false
+        try {
+            if (file == null) return
+            val bytes = runCatching {
+                if (owner == "phone") library.find(file)?.let { library.artwork(it.uri) } else bridge.cover(file)
+            }.getOrNull() ?: return
+            val bitmap = withContext(Dispatchers.IO) { Artwork.decode(bytes) } ?: return
+            if (coverKey == key) cover.value = bitmap
+        } finally {
+            if (coverKey == key) coverSettled.value = true
+        }
     }
 
     private fun restoreLocal(current: Lease) = scope.launch {

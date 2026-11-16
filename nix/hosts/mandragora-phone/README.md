@@ -148,7 +148,7 @@ The music screen:
 |---|---|---|
 | drag the desktop volume slider | moves the desktop's system volume live, music or not | same screen |
 | speaker icon | mutes / unmutes the desktop | same screen |
-| cover | lyrics replace the cover; tap again brings the cover back | same screen |
+| cover | lyrics replace the cover; tap again brings the cover back; a song with no cover shows its lyrics in that place instead, and no placeholder art anywhere | same screen |
 | drag the seek bar | seeks whoever owns playback | same screen |
 | prev / next | previous or next song in the owner's queue, as in ncmpcpp | same screen |
 | repeat icon, left of prev | cycles off → all → one for both sides at once: it sets mpd's repeat and single flags, which the phone's own queue follows; with the desktop unreachable it applies to the phone until mpd is back | same screen |

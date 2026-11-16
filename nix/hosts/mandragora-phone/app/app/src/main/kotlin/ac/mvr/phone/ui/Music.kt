@@ -48,6 +48,7 @@ fun MusicScreen(store: Store, onCollapse: () -> Unit, onFind: () -> Unit) {
     val cover by store.cover.collectAsStateWithLifecycle()
     val repeat by store.repeatMode.collectAsStateWithLifecycle()
     var showLyrics by remember { mutableStateOf(false) }
+    val settled by store.coverSettled.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("music", reachable, onCollapse)
@@ -66,11 +67,14 @@ fun MusicScreen(store: Store, onCollapse: () -> Unit, onFind: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(modifier = Modifier.weight(1f).fillMaxWidth().padding(vertical = 10.dp), contentAlignment = Alignment.Center) {
-                if (showLyrics) {
+                if (cover == null && settled) {
+                    LyricsPane(lyrics, now.elapsed, lyricsBusy, Modifier.fillMaxSize())
+                } else if (cover == null) {
+                    Box(modifier = Modifier.fillMaxSize())
+                } else if (showLyrics) {
                     LyricsPane(lyrics, now.elapsed, lyricsBusy, Modifier.fillMaxSize().clickable { showLyrics = false })
                 } else {
                     Cover(
-                        now,
                         cover,
                         Modifier
                             .fillMaxHeight()
@@ -142,7 +146,7 @@ fun MusicCard(store: Store, onOpen: (String) -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Cover(now, cover, Modifier.size(56.dp), corner = 12.dp)
+                Cover(cover, Modifier.size(56.dp), corner = 12.dp)
                 Column(modifier = Modifier.weight(1f)) {
                     Text(now.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(now.artist ?: "", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
