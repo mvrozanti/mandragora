@@ -38,6 +38,7 @@ object Meaning {
     private val shellShape = Regex("^(\\$\\s+)?(sudo\\s+)?([a-z][a-z0-9_.-]*)(\\s|$)")
     private val dimOpener = Regex("^\\s*(Let me\\b|I'll\\b|I'm going to\\b|Now I\\b|First,|Next,|Great!|Perfect!|Sure\\b|Certainly\\b)")
     private val toolNarration = Regex("^\\s*(?:[⏺●○]\\s|⎿\\s|Tool call:|Calling tool\\b|Running tool\\b)")
+    private val marker = Regex("⟦([nracdwu]):([\\s\\S]*?)⟧")
 
     fun scoreLine(line: String): List<Span> {
         val spans = ArrayList<Span>()
@@ -49,7 +50,36 @@ object Meaning {
         return spans.sortedWith(compareByDescending<Span> { it.weight }.thenBy { it.start }).take(MAX_SPANS_PER_LINE).sortedBy { it.start }
     }
 
-    fun annotate(text: String, scheme: ColorScheme): AnnotatedString = buildAnnotatedString {
+    fun annotate(raw: String, scheme: ColorScheme): AnnotatedString {
+        val marks = ArrayList<Triple<Int, Int, Char>>()
+        val plain = StringBuilder()
+        var last = 0
+        for (m in marker.findAll(raw)) {
+            plain.append(raw, last, m.range.first)
+            val start = plain.length
+            plain.append(m.groupValues[2])
+            marks.add(Triple(start, plain.length, m.groupValues[1][0]))
+            last = m.range.last + 1
+        }
+        plain.append(raw, last, raw.length)
+        val text = plain.toString()
+        return buildAnnotatedString {
+            heuristics(text, scheme)
+            for ((start, end, kind) in marks) addStyle(markStyle(kind, scheme), start, end)
+        }
+    }
+
+    private fun markStyle(kind: Char, scheme: ColorScheme): SpanStyle = when (kind) {
+        'n' -> SpanStyle(color = scheme.primary, fontWeight = FontWeight.Medium)
+        'r' -> style(Facet.Risk, scheme)
+        'a' -> style(Facet.Action, scheme)
+        'c' -> style(Facet.Command, scheme)
+        'd' -> SpanStyle(color = scheme.secondary)
+        'u' -> style(Facet.Uncertainty, scheme)
+        else -> SpanStyle(color = scheme.onSurfaceVariant)
+    }
+
+    private fun AnnotatedString.Builder.heuristics(text: String, scheme: ColorScheme) {
         append(text)
         var offset = 0
         var fenced = false
