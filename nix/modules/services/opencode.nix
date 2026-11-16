@@ -12,8 +12,7 @@ in
     userService = true;
     memoryMax = "10G";
     systemd = {
-      description = "opencode-serve — one opencode server on the tailnet; the desktop tui (oc) and the phone attach to the same sessions";
-      wantedBy = [ "default.target" ];
+      description = "opencode-serve — one opencode server on the tailnet, started by the first oc rather than at login; the desktop tui and the phone attach to the same sessions";
       restartTriggers = [
         (builtins.readFile serveScript)
         (builtins.readFile configFile)
