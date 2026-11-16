@@ -148,6 +148,7 @@ fun HomeCard(content: @Composable ColumnScope.() -> Unit) {
 fun UpdateCard(store: Store) {
     val build by store.update.available.collectAsStateWithLifecycle()
     val progress by store.update.progress.collectAsStateWithLifecycle()
+    val downloaded by store.update.ready.collectAsStateWithLifecycle()
     val ready = build ?: return
     val scheme = MaterialTheme.colorScheme
     val tint = scheme.onTertiaryContainer
@@ -163,8 +164,16 @@ fun UpdateCard(store: Store) {
     ) {
         Icon(Icons.Filled.Download, null, tint = tint, modifier = Modifier.size(22.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(if (progress == null) "update ready" else "downloading", style = MaterialTheme.typography.titleSmall, color = tint)
-            Text("${ready.versionName} · ${(ready.size + 524_288) / 1_048_576} MB", style = MaterialTheme.typography.labelSmall, color = tint.copy(alpha = 0.7f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                when {
+                    progress != null -> "downloading"
+                    downloaded -> "install update"
+                    else -> "update ready"
+                },
+                style = MaterialTheme.typography.titleSmall,
+                color = tint,
+            )
+            Text(if (downloaded) "${ready.versionName} · downloaded" else "${ready.versionName} · ${(ready.size + 524_288) / 1_048_576} MB", style = MaterialTheme.typography.labelSmall, color = tint.copy(alpha = 0.7f), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         val value = progress
         if (value == null) Icon(Icons.Filled.ChevronRight, null, tint = tint, modifier = Modifier.size(20.dp))
