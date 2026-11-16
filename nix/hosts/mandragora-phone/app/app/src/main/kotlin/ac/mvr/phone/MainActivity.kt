@@ -32,6 +32,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import ac.mvr.phone.play.PlaybackService
@@ -134,6 +136,14 @@ class MainActivity : ComponentActivity() {
             val target = requested ?: return@LaunchedEffect
             screen = target
             store.requestedScreen.value = null
+        }
+        val focus = LocalFocusManager.current
+        val keyboard = LocalSoftwareKeyboardController.current
+        LaunchedEffect(screen) {
+            if (screen != "find") {
+                focus.clearFocus(force = true)
+                keyboard?.hide()
+            }
         }
         BackHandler(enabled = screen != "home") { screen = if (screen == "find") "music" else "home" }
         Scaffold(containerColor = scheme.surface) { padding ->
