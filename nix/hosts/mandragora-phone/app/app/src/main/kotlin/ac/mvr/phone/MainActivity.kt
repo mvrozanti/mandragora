@@ -19,6 +19,8 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -135,7 +137,7 @@ class MainActivity : ComponentActivity() {
         }
         BackHandler(enabled = screen != "home") { screen = if (screen == "find") "music" else "home" }
         Scaffold(containerColor = scheme.surface) { padding ->
-            Box(modifier = Modifier.fillMaxSize().background(scheme.surface).padding(padding)) {
+            Box(modifier = Modifier.fillMaxSize().background(scheme.surface).padding(padding).consumeWindowInsets(padding).imePadding()) {
                 AnimatedContent(
                     targetState = screen,
                     transitionSpec = { (fadeIn(tween(180)) + scaleIn(initialScale = 0.96f, animationSpec = tween(220))) togetherWith fadeOut(tween(120)) },

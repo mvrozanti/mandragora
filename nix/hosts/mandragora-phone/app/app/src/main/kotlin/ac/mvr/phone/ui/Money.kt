@@ -133,7 +133,11 @@ fun MoneyCard(store: Store, onOpen: (String) -> Unit) {
                     if (group == "venue") {
                         cache.venues.forEach { ShareBar(it.label, it.usd, available = !it.missing && !it.noteOnly && it.usd != null, stale = it.staleSince != null, total = total) }
                     } else {
-                        assetGroups(cache).forEach { ShareBar(it.asset, it.usd, available = it.usd != null, stale = false, total = total) }
+                        val groups = assetGroups(cache)
+                        val (big, small) = groups.partition { (it.usd ?: 0.0) / total >= 0.01 }
+                        big.forEach { ShareBar(it.asset, it.usd, available = it.usd != null, stale = false, total = total) }
+                        if (small.size == 1) ShareBar(small[0].asset, small[0].usd, available = small[0].usd != null, stale = false, total = total)
+                        if (small.size > 1) ShareBar("${small.size} others", small.sumOf { it.usd ?: 0.0 }, available = true, stale = false, total = total)
                     }
                 }
             } else {

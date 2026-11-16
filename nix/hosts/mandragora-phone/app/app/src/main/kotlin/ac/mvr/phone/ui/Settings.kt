@@ -56,7 +56,7 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
                         }
                     }
                 }
-                Label("the update line, when there is one, always comes first")
+                Label("the update line always comes first")
             }
         }
         Notice(store, Modifier.padding(horizontal = 14.dp, vertical = 10.dp))
