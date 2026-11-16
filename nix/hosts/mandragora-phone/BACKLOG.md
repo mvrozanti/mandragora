@@ -12,6 +12,8 @@ bottom are the ones that decide which.
 - `phone-bridge` on the desktop: config, desktop sink volume, the playback
   lease, lyrics.
 - mpd reachable over the tailnet.
+- Settings (2026-11-15): a gear on home opens a screen where the cards are
+  reordered; the order is the phone's own, remembered across restarts.
 - The launcher icon (2026-11-15): the two-tone sprout, traced from the chosen
   render into a vector, compiled as twelve hue variants that follow the
   desktop's wallpaper palette; the candidate pages are kept in `app/icon/`.
@@ -65,8 +67,8 @@ Stated by the operator on 2026-11-15, in their order:
   session row is the natural place.
 - Notifications both ways: desktop notifications mirrored to the phone and
   the phone's to the desktop, each direction and each app class
-  configurable. This is the first feature that needs a settings screen in
-  the app; until then the app has no settings by design.
+  configurable. The settings screen exists since 2026-11-15 (card order);
+  this feature adds its first switches.
 - ytdl ported in: the `ytdl-web` client that left with the one-screen
   rewrite returns as a card (paste or share a URL, watch the job, play the
   result on either side).

@@ -129,8 +129,17 @@ back collapses it):
 | panic card: "kill the biggest", second tap | kills that unit's whole cgroup on the desktop; the card says what died | home |
 | "update ready" line (only when the desktop published a newer build) | downloads it, verifies the hash, opens Android's installer; the first time it opens the "allow installs from this app" setting instead and says so on the notice line | installer |
 | header dot | nothing, display | home |
+| gear in the header | opens settings | settings |
 | Android back on home | leaves the app | launcher |
 | title chevron or Android back, on any sub-app | collapses to home | home |
+
+The settings screen (the first one; card order is the phone's own, like
+the money unit and the hub's click counts):
+
+| Tap | Does | Lands |
+|---|---|---|
+| ▲ / ▼ on a card row | moves that card one step on home, saved at once; the update line always stays on top | settings |
+| "settings ⌄" title, Android back | collapses to home | home |
 
 The music screen:
 

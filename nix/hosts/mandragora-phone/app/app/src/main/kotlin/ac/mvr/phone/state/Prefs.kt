@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONObject
 
+val CARDS = listOf("music", "money", "hub", "code", "panic")
+
 class Prefs(context: Context) {
     private val sp: SharedPreferences = context.getSharedPreferences("mandragora", Context.MODE_PRIVATE)
 
@@ -18,12 +20,28 @@ class Prefs(context: Context) {
     private val groupFlow = MutableStateFlow(sp.getString("moneyGroup", "asset") ?: "asset")
     val moneyGroup: StateFlow<String> = groupFlow
 
+    private val orderFlow = MutableStateFlow(readOrder())
+    val cardOrder: StateFlow<List<String>> = orderFlow
+
     private val clicksFlow = MutableStateFlow(readClicks())
     val hubClicks: StateFlow<Map<String, Int>> = clicksFlow
 
     fun setUnit(value: String) {
         unitFlow.value = value
         sp.edit().putString("unit", value).apply()
+    }
+
+    fun setCardOrder(value: List<String>) {
+        val next = normalizeOrder(value)
+        orderFlow.value = next
+        sp.edit().putString("cardOrder", next.joinToString(",")).apply()
+    }
+
+    private fun readOrder(): List<String> = normalizeOrder(sp.getString("cardOrder", null)?.split(',') ?: emptyList())
+
+    private fun normalizeOrder(value: List<String>): List<String> {
+        val known = value.filter { it in CARDS }.distinct()
+        return known + CARDS.filter { it !in known }
     }
 
     fun setMoneyGroup(value: String) {

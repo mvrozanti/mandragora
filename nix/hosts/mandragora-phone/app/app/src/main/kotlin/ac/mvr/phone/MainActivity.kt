@@ -40,6 +40,7 @@ import ac.mvr.phone.ui.HubScreen
 import ac.mvr.phone.ui.MandragoraTheme
 import ac.mvr.phone.ui.MoneyScreen
 import ac.mvr.phone.ui.MusicScreen
+import ac.mvr.phone.ui.SettingsScreen
 import ac.mvr.phone.ui.PanicScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.common.util.concurrent.ListenableFuture
@@ -146,6 +147,7 @@ class MainActivity : ComponentActivity() {
                         "money" -> MoneyScreen(store) { screen = "home" }
                         "hub" -> HubScreen(store) { screen = "home" }
                         "panic" -> PanicScreen(store) { screen = "home" }
+                        "settings" -> SettingsScreen(store) { screen = "home" }
                         "code" -> CodeScreen(store) { screen = "home" }
                         else -> HomeScreen(store) { screen = it }
                     }
