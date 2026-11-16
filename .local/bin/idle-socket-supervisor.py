@@ -1,5 +1,6 @@
 import asyncio
 import os
+import shlex
 import signal
 import socket
 import subprocess
@@ -13,6 +14,7 @@ UPSTREAM_ADDR = os.environ.get("UPSTREAM_ADDR", "127.0.0.1")
 UPSTREAM_PORT = int(os.environ.get("UPSTREAM_PORT", "18000"))
 IDLE_TIMEOUT = float(os.environ.get("IDLE_TIMEOUT", "900"))
 STARTUP_TIMEOUT = float(os.environ.get("STARTUP_TIMEOUT", "180"))
+BUSY_CHECK = shlex.split(os.environ.get("BUSY_CHECK", ""))
 
 
 class IdleSupervisor:
@@ -23,6 +25,14 @@ class IdleSupervisor:
 
     def start_child(self):
         self.child = subprocess.Popen(sys.argv[1:])
+
+    def busy(self):
+        if not BUSY_CHECK:
+            return False
+        probe = subprocess.run(
+            BUSY_CHECK, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+        return probe.returncode == 0
 
     def child_alive(self):
         return self.child is not None and self.child.poll() is None
@@ -127,6 +137,9 @@ async def run():
                 stop.set()
                 return
             if time.monotonic() - supervisor.last_activity > IDLE_TIMEOUT:
+                if supervisor.busy():
+                    supervisor.last_activity = time.monotonic()
+                    continue
                 supervisor.exit_code = 0
                 stop.set()
                 return
