@@ -42,6 +42,10 @@ DEEPSEEK_KEY_FILE = Path(os.environ.get("CLAUDE_BRIDGE_DEEPSEEK_KEY", "/run/secr
 CLI_PATH = os.environ.get("CLAUDE_BRIDGE_CLI") or None
 IDLE_SECONDS = int(os.environ.get("CLAUDE_BRIDGE_IDLE_SECONDS", "900"))
 SESSIONS_INDEX = HOME / ".claude" / "sessions"
+TRANSCRIPTS = HOME / ".claude" / "projects"
+WATCH_SECONDS = 1.0
+HOT_SECONDS = 900
+RESCAN_SECONDS = 15
 PROJECTS_TTL = 10
 VERSION = "claude-bridge/1"
 DEEPSEEK_BASE_URL = "https://api.deepseek.com/anthropic"
@@ -831,10 +835,71 @@ async def events(request: web.Request) -> web.StreamResponse:
     return response
 
 
+def hot_transcripts(now: float) -> dict[str, Path]:
+    found: dict[str, Path] = {}
+    for path in TRANSCRIPTS.glob("*/*.jsonl"):
+        try:
+            if now - path.stat().st_mtime < HOT_SECONDS:
+                found[path.stem] = path
+        except OSError:
+            continue
+    return found
+
+
+def live_status(live: dict) -> dict:
+    status = live.get("status")
+    return {"type": "busy", "message": status} if status in ("busy", "waiting") else {"type": "idle"}
+
+
+async def watch_outside(bridge) -> None:
+    paths: dict[str, Path] = {}
+    seen: dict[str, tuple[float, int]] = {}
+    statuses: dict[str, str] = {}
+    scanned = 0.0
+    while True:
+        try:
+            now = time.time()
+            if now - scanned > RESCAN_SECONDS:
+                paths = await asyncio.to_thread(hot_transcripts, now)
+                scanned = now
+            live = bridge.live_sessions()
+            for sid, info in live.items():
+                state = live_status(info)
+                if statuses.get(sid) != state["type"]:
+                    statuses[sid] = state["type"]
+                    bridge.bus.emit("session.status", {"sessionID": sid, "status": state})
+            for sid in [s for s in statuses if s not in live]:
+                if statuses.pop(sid) != "idle":
+                    bridge.bus.emit("session.status", {"sessionID": sid, "status": {"type": "idle"}})
+            for sid, path in paths.items():
+                try:
+                    stat = path.stat()
+                except OSError:
+                    continue
+                key = (stat.st_mtime, stat.st_size)
+                before = seen.get(sid)
+                seen[sid] = key
+                if before is not None and before != key and sid not in bridge.runs:
+                    bridge.bus.emit("transcript.changed", {"sessionID": sid, "updated": int(stat.st_mtime * 1000)})
+        except Exception as err:
+            print(f"claude-bridge: watcher: {err}", flush=True)
+        await asyncio.sleep(WATCH_SECONDS)
+
+
+async def start_watcher(app: web.Application) -> None:
+    app["watcher"] = asyncio.create_task(watch_outside(app[BRIDGE]))
+
+
+async def stop_watcher(app: web.Application) -> None:
+    app["watcher"].cancel()
+
+
 def make_app() -> web.Application:
     app = web.Application(middlewares=[auth_middleware])
     app[PASSWORD] = load_password()
     app[BRIDGE] = Bridge()
+    app.on_startup.append(start_watcher)
+    app.on_cleanup.append(stop_watcher)
     if app[PASSWORD] is None:
         print("claude-bridge: no password file could be written; the server is unsecured", flush=True)
     app.router.add_get("/global/health", health)

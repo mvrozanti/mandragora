@@ -221,7 +221,7 @@ class Store(private val app: Application) {
         scope.launch { loopWhileForeground(30_000) { hub.refresh() } }
         scope.launch { loopWhileForeground(300_000) { update.refresh() } }
         scope.launch { loopWhileForeground(10_000) { load.refresh() } }
-        scope.launch { loopWhileForeground(10_000) { code.refresh() } }
+        scope.launch { loopWhileForeground(5_000) { code.refresh() } }
         scope.launch { loopWhileForeground(5_000) { refreshMedia() } }
         scope.launch {
             while (isActive) {

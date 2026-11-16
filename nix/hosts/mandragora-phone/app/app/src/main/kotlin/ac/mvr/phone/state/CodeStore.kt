@@ -99,6 +99,9 @@ class CodeStore(private val store: Store) {
     val draft = MutableStateFlow("")
 
     private var loadJob: Job? = null
+    private var syncJob: Job? = null
+    private var syncAgain = false
+    private var listJob: Job? = null
 
     val directory: String? get() = currentFlow.value?.directory ?: newIn.value
 
@@ -289,11 +292,47 @@ class CodeStore(private val store: Store) {
         }
     }
 
+    private fun syncCurrent() {
+        if (syncJob?.isActive == true) {
+            syncAgain = true
+            return
+        }
+        syncJob = store.scope.launch {
+            do {
+                syncAgain = false
+                delay(250)
+                val session = currentFlow.value ?: break
+                val client = client(session.backend) ?: break
+                val list = runCatching { client.messages(session.id, session.directory, 80) }.getOrNull() ?: continue
+                if (currentFlow.value?.id == session.id) entriesFlow.value = list
+            } while (syncAgain)
+        }
+    }
+
+    private fun refreshListSoon() {
+        if (listJob?.isActive == true) return
+        listJob = store.scope.launch {
+            delay(800)
+            runCatching { refresh() }
+        }
+    }
+
     private fun handle(event: CodeEvent) {
         val p = event.properties
         val sessionID = p["sessionID"]?.jsonPrimitive?.contentOrNull
         val mine = sessionID != null && sessionID == currentFlow.value?.id
         when (event.type) {
+            "server.connected" -> {
+                if (currentFlow.value != null) syncCurrent()
+                refreshListSoon()
+            }
+            "transcript.changed" -> if (sessionID != null) {
+                if (mine) syncCurrent()
+                val updated = p["updated"]?.jsonPrimitive?.contentOrNull?.toLongOrNull()
+                val known = sessionsFlow.value.firstOrNull { it.id == sessionID }
+                if (known == null || updated == null) refreshListSoon()
+                else sessionsFlow.value = sessionsFlow.value.map { if (it.id == sessionID) it.copy(time = it.time.copy(updated = updated)).also { c -> c.backend = it.backend } else it }.sortedByDescending { it.time.updated }
+            }
             "message.updated" -> if (mine) p["info"]?.let { upsertMessage(json.decodeFromJsonElement<CodeMessage>(it)) }
             "message.part.updated" -> if (mine) p["part"]?.let { upsertPart(json.decodeFromJsonElement<CodePart>(it)) }
             "message.part.delta" -> if (mine) delta(p)
