@@ -12,7 +12,7 @@ in
     memoryMax = "9G";
     maxRuntime = "6h";
     systemd = {
-      description = "Chess Lens backend for chess.mvr.ac: JVM API behind the VPS proxy, heap capped so an idle server shrinks instead of growing to a quarter of RAM";
+      description = "Chess Lens backend for chess.mvr.ac: JVM API behind the VPS proxy, heap capped and the engines on a 64 MB hash, so a crunch costs about 200 MB an engine instead of 400";
       after = [ "network.target" ];
       wantedBy = [ "default.target" ];
       path = [

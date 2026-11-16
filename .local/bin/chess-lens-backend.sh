@@ -5,6 +5,8 @@ cd "$PROJ"
 set -a
 . "$PROJ/.env"
 set +a
+: "${STOCKFISH_HASH_SIZE:=64}"
+export STOCKFISH_HASH_SIZE
 CLERK_SECRET_KEY="$(cat /run/secrets/clerk/secret)"
 export CLERK_SECRET_KEY
 export CLERK_AUTHORIZED_PARTIES="https://chess.mvr.ac,http://localhost:5173"
