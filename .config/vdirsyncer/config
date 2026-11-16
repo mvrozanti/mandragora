@@ -18,3 +18,21 @@ type = "google_calendar"
 token_file = "~/.local/state/vdirsyncer/google.token"
 client_id.fetch = ["shell", "cat ~/.local/state/vdirsyncer/google-client-id"]
 client_secret.fetch = ["shell", "cat ~/.local/state/vdirsyncer/google-client-secret"]
+
+[pair hotmail]
+a = "hotmail_local"
+b = "hotmail_remote"
+collections = ["from a", "from b"]
+metadata = ["color", "displayname"]
+conflict_resolution = "b wins"
+
+[storage hotmail_local]
+type = "filesystem"
+path = "~/.local/share/calendars/hotmail/"
+fileext = ".ics"
+
+[storage hotmail_remote]
+type = "caldav"
+url = "http://127.0.0.1:1080/users/mvrozanti@hotmail.com/calendar/"
+username = "mvrozanti@hotmail.com"
+password = "davmail"

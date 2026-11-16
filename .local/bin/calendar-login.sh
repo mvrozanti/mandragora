@@ -2,10 +2,12 @@
 set -euo pipefail
 
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}/vdirsyncer"
+DAVMAIL_STATE="${XDG_STATE_HOME:-$HOME/.local/state}/davmail"
+HOTMAIL_ACCOUNT="mvrozanti@hotmail.com"
 DOWNLOADS="${XDG_DOWNLOAD_DIR:-$HOME/Downloads}"
 
 usage() {
-  echo "usage: calendar-login google" >&2
+  echo "usage: calendar-login google|hotmail" >&2
   exit 2
 }
 
@@ -59,11 +61,36 @@ login_google() {
   echo "calendar-login: google is syncing every 5 minutes from now on"
 }
 
+wait_for_bridge() {
+  local attempt
+  for attempt in $(seq 1 30); do
+    if (exec 3<>"/dev/tcp/127.0.0.1/1080") 2>/dev/null; then
+      return 0
+    fi
+    sleep 1
+  done
+  echo "calendar-login: davmail did not come up after $attempt tries" >&2
+  exit 1
+}
+
+login_hotmail() {
+  mkdir -p "$DAVMAIL_STATE"
+  chmod 700 "$DAVMAIL_STATE"
+  calendar-oauth "$HOTMAIL_ACCOUNT" "$DAVMAIL_STATE/tokens.properties"
+  systemctl --user restart davmail.service
+  wait_for_bridge
+  vdirsyncer discover hotmail < <(yes)
+  vdirsyncer metasync hotmail
+  calendar-sync
+  echo "calendar-login: hotmail is syncing every 5 minutes from now on"
+}
+
 [ "$#" -eq 1 ] || usage
 mkdir -p "$STATE"
 chmod 700 "$STATE"
 
 case "$1" in
   google) login_google ;;
+  hotmail) login_hotmail ;;
   *) usage ;;
 esac
