@@ -7,6 +7,11 @@
 
 let
   tailnet = builtins.fromJSON (builtins.readFile ../../snippets/tailnet.json);
+  publicPort = 3000;
+  grafanaPort = 13000;
+  waitForPort = pkgs.writeShellScript "wait-for-port" (
+    builtins.readFile ../../../.local/bin/wait-for-port.sh
+  );
   mkSystemDashboard =
     {
       title,
@@ -1049,17 +1054,48 @@ let
 in
 
 {
-  systemd.services.grafana.serviceConfig.MemoryMax = "1G";
+  systemd.services.grafana = {
+    wantedBy = lib.mkForce [ ];
+    unitConfig.StopWhenUnneeded = true;
+    path = [ pkgs.coreutils ];
+    serviceConfig = {
+      MemoryMax = "1G";
+      ExecStartPost = "${waitForPort} 127.0.0.1 ${toString grafanaPort} 60";
+    };
+  };
+
+  systemd.sockets.grafana-proxy = {
+    description = "grafana socket: holds :${toString publicPort} while grafana itself is stopped";
+    wantedBy = [ "sockets.target" ];
+    listenStreams = [ "0.0.0.0:${toString publicPort}" ];
+  };
+
+  systemd.services.grafana-proxy = {
+    description = "grafana wake path: the first connection starts grafana, and 15 minutes without one stops it again";
+    requires = [
+      "grafana-proxy.socket"
+      "grafana.service"
+    ];
+    after = [
+      "grafana-proxy.socket"
+      "grafana.service"
+    ];
+    serviceConfig.ExecStart = "${config.systemd.package}/lib/systemd/systemd-socket-proxyd --exit-idle-time=15min 127.0.0.1:${toString grafanaPort}";
+  };
 
   services.grafana = {
     enable = true;
     settings = {
       server = {
         protocol = "http";
-        http_addr = "0.0.0.0";
-        http_port = 3000;
+        http_addr = "127.0.0.1";
+        http_port = grafanaPort;
       };
-      analytics.reporting_enabled = false;
+      analytics = {
+        reporting_enabled = false;
+        check_for_updates = false;
+        check_for_plugin_updates = false;
+      };
       security.secret_key = "$__file{${config.sops.secrets."grafana/secret_key".path}}";
       users.allow_sign_up = false;
       "auth" = {
