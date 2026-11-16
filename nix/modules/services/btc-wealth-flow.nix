@@ -10,6 +10,9 @@ let
   data = "/home/m/.local/share/btc-wealth-flow";
   rpcUser = "m";
   rpcPort = 18443;
+  publicPort = 8420;
+  processorPort = 18420;
+  supervisor = import ../../pkgs/idle-socket-supervisor.nix { inherit pkgs; };
   rpcAuth = "${rpcUser}:${config.services.bitcoind.main.rpc.users.${rpcUser}.passwordHMAC}";
   execLine = argv: lib.replaceStrings [ "$" ] [ "$$" ] (lib.escapeShellArgs argv);
   scanArgs = [
@@ -40,6 +43,8 @@ let
     config.sops.secrets."bitcoin/rpc_password".path
     "--node-unit"
     "btc-flow-scan.service"
+    "--listen"
+    "127.0.0.1:${toString processorPort}"
   ];
 in
 {
@@ -60,22 +65,39 @@ in
   };
 
   mandragora.hub.services.btc-flow-processor = {
-    port = 8420;
+    port = publicPort;
     userService = true;
     memoryMax = "8G";
     systemd = {
-      description = "btc-wealth-flow server for btc.mvr.ac on :8420: serves the aggregates, and on request starts the scan node and ingests up to the chain tip";
-      wantedBy = [ "default.target" ];
+      description = "btc-wealth-flow server for btc.mvr.ac on :${toString publicPort}: woken by its socket on the first visit, serves the aggregates, on request starts the scan node and ingests up to the chain tip, and stops after 15 idle minutes unless the scan node is running";
+      requires = [ "btc-flow-processor.socket" ];
+      after = [ "btc-flow-processor.socket" ];
       path = [ config.systemd.package ];
+      environment = {
+        UPSTREAM_ADDR = "127.0.0.1";
+        UPSTREAM_PORT = toString processorPort;
+        IDLE_TIMEOUT = "900";
+        STARTUP_TIMEOUT = "60";
+        BUSY_CHECK = "${config.systemd.package}/bin/systemctl --user is-active --quiet btc-flow-scan.service";
+      };
       serviceConfig = {
-        ExecStart = execLine ([ "${repo}/result/bin/btc-wealth-flow" ] ++ processorArgs);
-        Restart = "always";
+        ExecStart = "${supervisor}/bin/idle-socket-supervisor ${
+          execLine ([ "${repo}/result/bin/btc-wealth-flow" ] ++ processorArgs)
+        }";
+        Restart = "on-failure";
         RestartSec = "1s";
         MemoryHigh = "6G";
         MemorySwapMax = "0";
         CPUWeight = 20;
       };
     };
+  };
+
+  systemd.user.sockets.btc-flow-processor = {
+    description = "btc-wealth-flow socket: holds :${toString publicPort} while the server is stopped";
+    wantedBy = [ "sockets.target" ];
+    listenStreams = [ "0.0.0.0:${toString publicPort}" ];
+    unitConfig.ConditionUser = "m";
   };
 
   systemd.user.services.btc-flow-pause = {
