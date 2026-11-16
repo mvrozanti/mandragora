@@ -79,5 +79,12 @@ runs take seconds.
 - A calendar the account marks read-only (holidays, birthdays) refuses edits
   on the server; the sync run then fails for that account until the local
   edit is undone.
+- DavMail sometimes answers a full listing with a single event, seen twice
+  on 2026-11-16, both right after a change on Microsoft's side, never on
+  demand. vdirsyncer would read that as everything else deleted upstream and
+  delete the desktop's copies (Microsoft is never touched; the next run pulls
+  them back over minutes). `calendar-sync` lists the calendar first and skips
+  the Hotmail run when the listing is under half of what the desktop holds,
+  logging the two numbers.
 - `systemctl --user status calendar-sync` shows the last run; the kindle
   tile's header shows the age of the last good one.

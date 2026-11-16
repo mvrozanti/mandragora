@@ -6,6 +6,9 @@ let
     runtimeInputs = with pkgs; [
       vdirsyncer
       coreutils
+      findutils
+      gnugrep
+      curl
     ];
     text = builtins.readFile ../../../.local/bin/calendar-sync.sh;
   };
