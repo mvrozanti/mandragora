@@ -130,11 +130,10 @@ private fun SessionRow(session: CodeSession, status: CodeStatus?, selected: Bool
         Column(modifier = Modifier.weight(1f)) {
             Text(session.title.ifBlank { "untitled" }, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
             val live = session.live
-            val state = when {
-                live != null -> "on the desktop · ${live.status ?: "open"}"
-                busy -> "working"
-                else -> ago(session.time.updated)
-            }
+            val state = listOfNotNull(
+                if (live != null) "on the desktop · ${live.status ?: "open"}" else if (busy) "working" else null,
+                ago(session.time.updated).ifEmpty { null },
+            ).joinToString(" · ")
             Label("${session.backend} · ${session.folder} · $state", color = if (live != null) scheme.tertiary else scheme.outline)
         }
     }

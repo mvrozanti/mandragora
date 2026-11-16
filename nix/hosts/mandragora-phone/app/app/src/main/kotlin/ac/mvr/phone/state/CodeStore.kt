@@ -103,6 +103,45 @@ class CodeStore(private val store: Store) {
     private var syncAgain = false
     private var listJob: Job? = null
 
+    private fun ordered(list: List<CodeSession>): List<CodeSession> =
+        list.sortedWith(compareByDescending<CodeSession> { it.time.updated }.thenBy { it.id })
+
+    private fun touch(id: String, at: Long) {
+        sessionsFlow.value = ordered(sessionsFlow.value.map { s ->
+            if (s.id == id && at > s.time.updated) s.copy(time = s.time.copy(updated = at)).also { it.backend = s.backend } else s
+        })
+    }
+
+    suspend fun watchList() {
+        while (currentCoroutineContext().isActive) {
+            val client = client("claude")
+            if (client == null) {
+                delay(3_000)
+                continue
+            }
+            try {
+                client.events(null).collect { event -> listEvent(event) }
+            } catch (err: Exception) {
+            }
+            delay(3_000)
+        }
+    }
+
+    private fun listEvent(event: CodeEvent) {
+        val p = event.properties
+        val sessionID = p["sessionID"]?.jsonPrimitive?.contentOrNull ?: return
+        when (event.type) {
+            "transcript.changed" -> {
+                val updated = p["updated"]?.jsonPrimitive?.contentOrNull?.toLongOrNull()
+                if (updated == null || sessionsFlow.value.none { it.id == sessionID }) refreshListSoon() else touch(sessionID, updated)
+            }
+            "session.status" -> {
+                val status = p["status"]?.let { runCatching { json.decodeFromJsonElement<CodeStatus>(it) }.getOrNull() } ?: CodeStatus()
+                statusFlow.value = if (status.type == "idle") statusFlow.value - sessionID else statusFlow.value + (sessionID to status)
+            }
+        }
+    }
+
     val directory: String? get() = currentFlow.value?.directory ?: newIn.value
 
     private fun currentClient(): CodeClient? {
@@ -133,7 +172,7 @@ class CodeStore(private val store: Store) {
                 }.awaitAll()
             }
             projectsFlow.value = perBackend.flatMap { it.first }.distinctBy { it.worktree }.sortedByDescending { it.time.updated }
-            sessionsFlow.value = perBackend.flatMap { it.second }.filter { it.parentID == null }.distinctBy { it.backend + it.id }.sortedByDescending { it.time.updated }
+            sessionsFlow.value = ordered(perBackend.flatMap { it.second }.filter { it.parentID == null }.distinctBy { it.backend + it.id })
             statusFlow.value = perBackend.flatMap { it.third.entries }.associate { it.key to it.value }
             currentFlow.value?.let { cur -> sessionsFlow.value.firstOrNull { it.id == cur.id && it.backend == cur.backend }?.let { currentFlow.value = it } }
             freshFlow.value = true
@@ -263,6 +302,7 @@ class CodeStore(private val store: Store) {
         client.prompt(session.id, session.directory, body, chosen?.providerID?.takeIf { sameBackend }, chosen?.modelID?.takeIf { sameBackend })
         draft.value = ""
         statusFlow.value = statusFlow.value + (session.id to CodeStatus("busy"))
+        touch(session.id, System.currentTimeMillis())
         if (session.live != null) syncCurrent()
     }
 
@@ -350,9 +390,7 @@ class CodeStore(private val store: Store) {
             "transcript.changed" -> if (sessionID != null) {
                 if (mine) syncCurrent()
                 val updated = p["updated"]?.jsonPrimitive?.contentOrNull?.toLongOrNull()
-                val known = sessionsFlow.value.firstOrNull { it.id == sessionID }
-                if (known == null || updated == null) refreshListSoon()
-                else sessionsFlow.value = sessionsFlow.value.map { if (it.id == sessionID) it.copy(time = it.time.copy(updated = updated)).also { c -> c.backend = it.backend } else it }.sortedByDescending { it.time.updated }
+                if (updated == null || sessionsFlow.value.none { it.id == sessionID }) refreshListSoon() else touch(sessionID, updated)
             }
             "message.updated" -> if (mine) p["info"]?.let { upsertMessage(json.decodeFromJsonElement<CodeMessage>(it)) }
             "message.part.updated" -> if (mine) p["part"]?.let { upsertPart(json.decodeFromJsonElement<CodePart>(it)) }
@@ -367,7 +405,7 @@ class CodeStore(private val store: Store) {
             "session.created", "session.updated" -> p["info"]?.let { info ->
                 val session = runCatching { json.decodeFromJsonElement<CodeSession>(info) }.getOrNull() ?: return
                 session.backend = currentFlow.value?.backend?.ifEmpty { null } ?: modelFlow.value?.backend ?: ""
-                if (session.parentID == null) sessionsFlow.value = (listOf(session) + sessionsFlow.value.filter { it.id != session.id }).sortedByDescending { it.time.updated }
+                if (session.parentID == null) sessionsFlow.value = ordered(listOf(session) + sessionsFlow.value.filter { it.id != session.id })
                 if (currentFlow.value?.id == session.id) currentFlow.value = session
             }
             "session.deleted" -> if (sessionID != null) {
