@@ -1,5 +1,7 @@
 package ac.mvr.phone.ui
 
+import androidx.compose.foundation.layout.height
+
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.material.icons.filled.Image
@@ -271,6 +273,11 @@ private fun EntryView(entry: CodeEntry, scheme: ColorScheme) {
                 }
                 "reasoning" -> ReasoningLine(part)
                 "tool" -> ToolLine(part)
+                "divider" -> Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(modifier = Modifier.weight(1f).height(1.dp).background(scheme.outlineVariant))
+                    Label(part.text.orEmpty(), modifier = Modifier.padding(horizontal = 10.dp), color = scheme.outline)
+                    Box(modifier = Modifier.weight(1f).height(1.dp).background(scheme.outlineVariant))
+                }
             }
         }
         entry.info.error?.let { Label(it.text, color = scheme.error) }

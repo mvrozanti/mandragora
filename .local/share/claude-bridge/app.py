@@ -12,6 +12,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 
 from aiohttp import web
 from claude_agent_sdk import (
@@ -159,9 +160,22 @@ def entry_for(message_id: str, sid: str, role: str, model: str | None = None, cr
     return {"info": info, "parts": []}
 
 
-RECORD_ID = re.compile(r'"uuid":"([^"]+)"')
-MESSAGE_ID = re.compile(r'"id":"(msg_[^"]+)"')
-queued_cache: dict[Path, tuple[tuple[int, int], dict[str, int], list[tuple[int, str, str]]]] = {}
+TRANSCRIPT_KINDS = {"user", "assistant", "attachment", "system", "progress"}
+TRANSCRIPT_CACHE = 16
+transcripts: dict[Path, dict] = {}
+
+
+@dataclass
+class TranscriptLine:
+    uuid: str
+    parent: str | None
+    logical: str | None
+    main: bool
+    visible: bool
+    summary: bool
+    queued: str | None
+    offset: int
+    length: int
 
 
 def queued_text(prompt) -> str:
@@ -172,60 +186,129 @@ def queued_text(prompt) -> str:
     return ""
 
 
-def scan_queued(path: Path) -> tuple[dict[str, int], list[tuple[int, str, str]]]:
+def index_line(index: dict, raw: bytes, offset: int) -> None:
+    try:
+        record = json.loads(raw)
+    except ValueError:
+        return
+    if not isinstance(record, dict):
+        return
+    kind = record.get("type")
+    uid = record.get("uuid")
+    if kind not in TRANSCRIPT_KINDS or not isinstance(uid, str):
+        return
+    main = not record.get("isSidechain") and not record.get("teamName")
+    attachment = record.get("attachment") if kind == "attachment" else None
+    queued = None
+    if main and isinstance(attachment, dict) and attachment.get("type") == "queued_command":
+        said = queued_text(attachment.get("prompt"))
+        if said and not said.startswith("<"):
+            queued = said
+    line = TranscriptLine(
+        uuid=uid,
+        parent=record.get("parentUuid"),
+        logical=record.get("logicalParentUuid"),
+        main=main,
+        visible=main and kind in ("user", "assistant") and not record.get("isMeta"),
+        summary=bool(record.get("isCompactSummary")),
+        queued=queued,
+        offset=offset,
+        length=len(raw),
+    )
+    index["lines"].append(line)
+    index["by_uuid"][uid] = line
+
+
+def transcript_index(path: Path) -> dict:
     stat = path.stat()
-    key = (stat.st_mtime_ns, stat.st_size)
-    cached = queued_cache.get(path)
-    if cached and cached[0] == key:
-        return cached[1], cached[2]
-    order: dict[str, int] = {}
-    queued: list[tuple[int, str, str]] = []
-    with path.open(encoding="utf-8", errors="replace") as handle:
-        for index, line in enumerate(handle):
-            for pattern in (RECORD_ID, MESSAGE_ID):
-                found = pattern.search(line)
-                if found:
-                    order.setdefault(found.group(1), index)
-            if '"queued_command"' not in line:
+    key = (stat.st_dev, stat.st_ino)
+    index = transcripts.pop(path, None)
+    if index is None or index["key"] != key or stat.st_size < index["offset"]:
+        index = {"key": key, "offset": 0, "lines": [], "by_uuid": {}}
+    transcripts[path] = index
+    while len(transcripts) > TRANSCRIPT_CACHE:
+        transcripts.pop(next(iter(transcripts)))
+    if stat.st_size == index["offset"]:
+        return index
+    with path.open("rb") as handle:
+        handle.seek(index["offset"])
+        data = handle.read(stat.st_size - index["offset"])
+    cursor = 0
+    while True:
+        stop = data.find(b"\n", cursor)
+        if stop < 0:
+            break
+        index_line(index, data[cursor:stop], index["offset"] + cursor)
+        cursor = stop + 1
+    index["offset"] += cursor
+    return index
+
+
+def transcript_chain(index: dict) -> list[TranscriptLine]:
+    lines = index["lines"]
+    by_uuid = index["by_uuid"]
+    newest = next((line for line in reversed(lines) if line.visible), None)
+
+    def walk(leaf: TranscriptLine | None) -> list[TranscriptLine]:
+        chain: list[TranscriptLine] = []
+        seen: set[str] = set()
+        current = leaf
+        while current is not None and current.uuid not in seen:
+            seen.add(current.uuid)
+            chain.append(current)
+            step = current.parent or current.logical
+            current = by_uuid.get(step) if step else None
+        chain.reverse()
+        return chain
+
+    chain = walk(next((line for line in reversed(lines) if line.main), None))
+    if newest is not None and all(line.uuid != newest.uuid for line in chain):
+        chain = walk(newest)
+    return chain
+
+
+def transcript_entries(sid: str, path: Path, limit: int) -> list[dict]:
+    index = transcript_index(path)
+    shown = [line for line in transcript_chain(index) if line.visible or line.queued]
+    if limit:
+        shown = shown[-(limit * 8 + 50):]
+    records = []
+    queued_ids = set()
+    with path.open("rb") as handle:
+        for line in shown:
+            if line.queued:
+                queued_ids.add(line.uuid)
+                records.append(SimpleNamespace(type="user", uuid=line.uuid, message={"role": "user", "content": line.queued}))
                 continue
+            if line.summary:
+                records.append(SimpleNamespace(type="divider", uuid=line.uuid, message={}))
+                continue
+            handle.seek(line.offset)
             try:
-                record = json.loads(line)
+                record = json.loads(handle.read(line.length))
             except ValueError:
                 continue
-            attachment = record.get("attachment") or {}
-            text = queued_text(attachment.get("prompt"))
-            if record.get("type") == "attachment" and attachment.get("type") == "queued_command" and text and not text.startswith("<") and record.get("uuid") and not record.get("isSidechain"):
-                queued.append((index, record["uuid"], text))
-    queued_cache[path] = (key, order, queued)
-    return order, queued
+            records.append(SimpleNamespace(type=record.get("type"), uuid=line.uuid, message=record.get("message") or {}))
+    entries = convert_records(sid, records)
+    if queued_ids:
+        said_later: set[str] = set()
+        kept = []
+        for entry in reversed(entries):
+            said = "\n".join(part.get("text", "") for part in entry["parts"] if part.get("type") == "text").strip()
+            if entry["info"]["id"] in queued_ids and said in said_later:
+                continue
+            if entry["info"]["role"] == "user":
+                said_later.add(said)
+            kept.append(entry)
+        entries = kept[::-1]
+    return entries
 
 
-def with_queued(sid: str, entries: list[dict]) -> list[dict]:
+def session_entries(sid: str, directory: str | None, limit: int) -> list[dict]:
     path = next(TRANSCRIPTS.glob(f"*/{sid}.jsonl"), None)
-    if path is None:
-        return entries
-    try:
-        order, queued = scan_queued(path)
-    except OSError:
-        return entries
-    known = [order[entry["info"]["id"]] for entry in entries if entry["info"]["id"] in order]
-    if not queued or not known:
-        return entries
-    start = min(known)
-    typed = {part.get("text", "").strip() for entry in entries if entry["info"]["role"] == "user" for part in entry["parts"]}
-    placed: list[tuple[int, int, dict]] = []
-    position = -1
-    for seq, entry in enumerate(entries):
-        position = order.get(entry["info"]["id"], position)
-        placed.append((position, seq, entry))
-    for index, record_id, text in queued:
-        if index < start or text in typed:
-            continue
-        entry = entry_for(record_id, sid, "user")
-        entry["parts"].append(text_part(f"{record_id}:0", record_id, sid, "text", text))
-        placed.append((index, len(placed), entry))
-    placed.sort(key=lambda item: (item[0], item[1]))
-    return [entry for _, _, entry in placed]
+    if path is not None:
+        return transcript_entries(sid, path, limit)
+    return convert_records(sid, get_session_messages(sid, directory))
 
 
 def convert_records(sid: str, records) -> list[dict]:
@@ -257,6 +340,10 @@ def convert_records(sid: str, records) -> list[dict]:
                     part = tool_part(call_id, message_id, sid, call_id, block.get("name", "tool"), block.get("input") if isinstance(block.get("input"), dict) else {})
                     entry["parts"].append(part)
                     tools[call_id] = part
+        elif role == "divider":
+            entry = entry_for(rec.uuid, sid, "system")
+            entry["parts"].append(text_part(f"{rec.uuid}:0", rec.uuid, sid, "divider", "earlier context was summarized here"))
+            entries.append(entry)
         elif role == "user":
             blocks = blocks_of(content)
             for block in blocks:
@@ -816,10 +903,9 @@ async def messages(request: web.Request) -> web.Response:
     directory = request.query.get("directory") or None
     limit = int(request.query.get("limit") or 80)
     try:
-        records = await asyncio.to_thread(get_session_messages, sid, directory)
+        entries = await asyncio.to_thread(session_entries, sid, directory, limit)
     except Exception:
-        records = []
-    entries = await asyncio.to_thread(with_queued, sid, convert_records(sid, records))
+        entries = []
     if limit and len(entries) > limit:
         entries = entries[-limit:]
     known = {entry["info"]["id"] for entry in entries}
