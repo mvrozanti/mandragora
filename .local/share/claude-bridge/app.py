@@ -48,6 +48,7 @@ CLI_PATH = os.environ.get("CLAUDE_BRIDGE_CLI") or None
 IDLE_SECONDS = int(os.environ.get("CLAUDE_BRIDGE_IDLE_SECONDS", "900"))
 SESSIONS_INDEX = HOME / ".claude" / "sessions"
 TRANSCRIPTS = HOME / ".claude" / "projects"
+PLANS = HOME / ".claude" / "plans"
 UPLOADS = HOME / ".cache" / "claude-bridge" / "uploads"
 IMAGE_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/gif": ".gif"}
 TMUX = os.environ.get("CLAUDE_BRIDGE_TMUX", "tmux")
@@ -798,13 +799,14 @@ class Bridge:
     async def ask_permission(self, sid: str, tool: str, data: dict, context):
         run = self.runs.get(sid)
         suggestions = list(getattr(context, "suggestions", None) or [])
+        plan = plan_text(data) if tool == "ExitPlanMode" else None
         payload = {
             "id": "per_" + uuid.uuid4().hex[:16],
             "sessionID": sid,
             "permission": tool,
             "patterns": [getattr(context, "title", None) or summarize(tool, data)],
             "always": [json.dumps(s)[:120] for s in suggestions],
-            "metadata": {k: v for k, v in data.items() if k in INPUT_KEYS and isinstance(v, str)} | ({"description": context.description} if getattr(context, "description", None) else {}) | ({"plan": data["plan"]} if isinstance(data.get("plan"), str) else {}),
+            "metadata": {k: v for k, v in data.items() if k in INPUT_KEYS and isinstance(v, str)} | ({"description": context.description} if getattr(context, "description", None) else {}) | ({"plan": plan} if plan else {}),
             "tool": {"messageID": run.message_id if run else "", "callID": getattr(context, "tool_use_id", None) or ""},
         }
         ask = Ask("permission", payload, asyncio.get_running_loop().create_future())
@@ -1232,6 +1234,19 @@ def parse_screen(screen: str) -> dict | None:
     return {"body": body, "question": textwrap.dedent("\n".join(question)).strip(), "options": options, "tabs": tabs}
 
 
+def plan_text(data: dict) -> str | None:
+    path = data.get("planFilePath")
+    if isinstance(path, str):
+        target = Path(path).expanduser()
+        try:
+            if target.suffix == ".md" and target.resolve().parent == PLANS.resolve():
+                return target.read_text(encoding="utf-8")
+        except OSError:
+            pass
+    plan = data.get("plan")
+    return plan if isinstance(plan, str) else None
+
+
 def pending_tools(sid: str) -> list[dict]:
     path = next(TRANSCRIPTS.glob(f"*/{sid}.jsonl"), None)
     if path is None:
@@ -1275,7 +1290,7 @@ def screen_payload(sid: str, live: dict, previous: dict | None) -> dict | None:
     ask_id = "scr_" + sha1(seed.encode("utf-8")).hexdigest()[:16]
     if previous is not None and previous["id"] == ask_id:
         return previous
-    plan = next((t["input"].get("plan") for t in pending_tools(sid) if t["name"] == "ExitPlanMode" and isinstance(t["input"].get("plan"), str)), None)
+    plan = next((text for tool in pending_tools(sid) if tool["name"] == "ExitPlanMode" and (text := plan_text(tool["input"]))), None)
     return {
         "id": ask_id,
         "sessionID": sid,
