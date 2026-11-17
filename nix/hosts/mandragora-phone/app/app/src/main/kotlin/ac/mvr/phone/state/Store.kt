@@ -1,6 +1,11 @@
 package ac.mvr.phone.state
 
 import android.app.Application
+import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -73,6 +78,8 @@ data class NowState(
 
 private data class PhoneSide(val queue: List<MpdSong>, val index: Int, val playing: Boolean, val positionMs: Long, val durationMs: Long)
 
+private const val TAILSCALE = "com.tailscale.ipn"
+
 class Store(private val app: Application) {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     val library = LocalLibrary(app)
@@ -95,6 +102,7 @@ class Store(private val app: Application) {
 
     val reachable = MutableStateFlow(false)
     val checking = MutableStateFlow(true)
+    val vpnOff = MutableStateFlow(false)
     private val recheck = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val mpdReachable = MutableStateFlow(false)
     val mpdSnapshot = MutableStateFlow<MpdSnapshot?>(null)
@@ -218,6 +226,7 @@ class Store(private val app: Application) {
             }
         }
         scope.launch { loopConfig() }
+        watchVpn()
         scope.launch {
             foreground.collect { fg ->
                 if (fg) {
@@ -283,13 +292,45 @@ class Store(private val app: Application) {
         }
     }
 
+    private fun vpnActive(): Boolean {
+        val cm = app.getSystemService(ConnectivityManager::class.java) ?: return true
+        return runCatching { cm.allNetworks.any { cm.getNetworkCapabilities(it)?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true } }.getOrDefault(true)
+    }
+
+    private fun watchVpn() {
+        val cm = app.getSystemService(ConnectivityManager::class.java) ?: return
+        val request = NetworkRequest.Builder()
+            .addTransportType(NetworkCapabilities.TRANSPORT_VPN)
+            .removeCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+            .build()
+        runCatching {
+            cm.registerNetworkCallback(request, object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    vpnOff.value = false
+                    recheck.tryEmit(Unit)
+                }
+
+                override fun onLost(network: Network) {
+                    recheck.tryEmit(Unit)
+                }
+            })
+        }
+    }
+
+    fun openTailscale() {
+        runCatching { app.sendBroadcast(Intent("com.tailscale.ipn.CONNECT_VPN").setClassName(TAILSCALE, "$TAILSCALE.IPNReceiver")) }
+        app.packageManager.getLaunchIntentForPackage(TAILSCALE)?.let { runCatching { app.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } }
+        recheck.tryEmit(Unit)
+    }
+
     private suspend fun loopConfig() {
         var misses = 0
         while (scope.isActive) {
             val ok = runCatching { config.value = bridge.config() }.isSuccess
             reachable.value = ok
+            vpnOff.value = !ok && !vpnActive()
             misses = if (ok) 0 else misses + 1
-            checking.value = !ok && misses < 3
+            checking.value = !ok && misses < 3 && !vpnOff.value
             val wait = when {
                 ok -> 30_000L
                 misses < 3 -> 1_000L

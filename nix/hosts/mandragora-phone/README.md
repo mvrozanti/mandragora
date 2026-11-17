@@ -332,7 +332,14 @@ whole security model: no tailnet, no phone.
 ## Traps
 
 - Android stops background VPNs under battery pressure. Without *Always-on*
-  and *Unrestricted*, the app is dead exactly when it is reached for.
+  and *Unrestricted*, the app is dead exactly when it is reached for. On this
+  Samsung, One UI also puts apps it considers unused to sleep after a few
+  days (Settings, Battery, Background usage limits); Tailscale and Sync-Fork
+  belong in *Never sleeping apps*. The app tells the two failures apart: with
+  no VPN up at all the header says "tailscale off" and the banner turns into
+  "Tailscale is off on this phone · tap to turn it on", which asks Tailscale to
+  connect and opens it; it reconnects to the desktop by itself the moment the
+  VPN comes back.
 - Sync-Fork's default trashcan versioning once held 17 GB on the phone.
   `phone-syncthing-bootstrap` posts folders with `versioning: ""`.
 - The Sync-Fork GUI is localhost-only on the phone; the desktop reaches it

@@ -42,6 +42,8 @@ import ac.mvr.phone.ui.CodeScreen
 import ac.mvr.phone.ui.FindScreen
 import ac.mvr.phone.ui.HomeScreen
 import ac.mvr.phone.ui.LocalChecking
+import ac.mvr.phone.ui.LocalOpenTailscale
+import ac.mvr.phone.ui.LocalVpnOff
 import ac.mvr.phone.ui.HubScreen
 import ac.mvr.phone.ui.MandragoraTheme
 import ac.mvr.phone.ui.MoneyScreen
@@ -66,8 +68,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             val palette by store.palette.collectAsStateWithLifecycle()
             val checking by store.checking.collectAsStateWithLifecycle()
+            val vpnOff by store.vpnOff.collectAsStateWithLifecycle()
             MandragoraTheme(palette) {
-                CompositionLocalProvider(LocalChecking provides checking) {
+                CompositionLocalProvider(LocalChecking provides checking, LocalVpnOff provides vpnOff, LocalOpenTailscale provides store::openTailscale) {
                     Root()
                 }
             }

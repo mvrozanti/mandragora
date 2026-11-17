@@ -71,13 +71,17 @@ fun Notice(store: Store, modifier: Modifier = Modifier) {
 }
 
 val LocalChecking = compositionLocalOf { false }
+val LocalVpnOff = compositionLocalOf { false }
+val LocalOpenTailscale = compositionLocalOf<() -> Unit> { {} }
 
 @Composable
 fun Banner(reachable: Boolean) {
     if (reachable || LocalChecking.current) return
     val scheme = MaterialTheme.colorScheme
+    val vpnOff = LocalVpnOff.current
+    val open = LocalOpenTailscale.current
     Text(
-        "desktop unreachable · the phone keeps playing",
+        if (vpnOff) "Tailscale is off on this phone · tap to turn it on" else "desktop unreachable · the phone keeps playing",
         style = MaterialTheme.typography.bodyMedium,
         color = scheme.onSurface,
         modifier = Modifier
@@ -87,6 +91,7 @@ fun Banner(reachable: Boolean) {
             .clip(RoundedCornerShape(12.dp))
             .background(scheme.error.copy(alpha = 0.15f))
             .border(1.dp, scheme.error, RoundedCornerShape(12.dp))
+            .clickable(enabled = vpnOff, onClick = open)
             .padding(horizontal = 12.dp, vertical = 10.dp),
     )
 }
@@ -96,7 +101,7 @@ fun Reachability(reachable: Boolean) {
     val checking = !reachable && LocalChecking.current
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
         if (checking) Box(modifier = Modifier.size(8.dp).clip(CircleShape).border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)) else StatusDot(reachable)
-        Label(if (reachable) "desktop reachable" else if (checking) "reaching the desktop" else "desktop unreachable")
+        Label(if (reachable) "desktop reachable" else if (checking) "reaching the desktop" else if (LocalVpnOff.current) "tailscale off" else "desktop unreachable")
     }
 }
 
