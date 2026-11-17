@@ -123,7 +123,7 @@ back collapses it):
 | hub card: name or glance | opens the hub screen | hub |
 | code card: a session row (the three with the latest activity, by you or the model, newest first; every row says how long ago) | opens that session on the code screen | code |
 | the dot on a session row | nothing, display: green when the session is open on the desktop, pulsing in the accent while it works, hollow when it is closed | home |
-| code card: name | opens the code screen on the last session, or a new one when there is none | code |
+| code card: name or chevron | opens the sessions screen: every Claude Code session, searchable like `claude-find` | sessions |
 | code card: "new session" | opens the code screen on an empty session in the last used directory | code |
 | panic card: name or the gauge | opens the panic screen | panic |
 | panic card: "kill the biggest", first tap | arms it for 4 s; the button reads "tap again to kill <name>" | home |
@@ -140,7 +140,20 @@ the money unit and the hub's click counts):
 | Tap | Does | Lands |
 |---|---|---|
 | ▲ / ▼ on a card row | moves that card one step on home, saved at once; the update line always stays on top | settings |
+| "next and prev start playback" switch | on (the default): a skip while paused plays the new song, on either side; off: a skip while paused stays paused; a skip while playing always keeps playing | settings |
+| ▲ / ▼ on "sessions on the card" | one more or one fewer session on the code card, from one to eight, three by default | settings |
 | "settings ⌄" title, Android back | collapses to home | home |
+
+The sessions screen (every Claude Code session on the desktop, the way
+`claude-find` finds them; the bridge keeps that index fresh and runs its
+full-text search):
+
+| Tap | Does | Lands |
+|---|---|---|
+| empty box | every session, latest activity first, with its dot, folder and age | sessions |
+| type | full-text search over every session's turns, a phrase or subject; each row shows the matching passage | sessions |
+| a session | opens it on the code screen | code |
+| "sessions ⌄" title, Android back | back to home | home |
 
 The music screen:
 
@@ -150,7 +163,7 @@ The music screen:
 | speaker icon | mutes / unmutes the desktop | same screen |
 | cover | lyrics replace the cover; tap again brings the cover back; a song with no cover shows its lyrics in that place instead, and no placeholder art anywhere | same screen |
 | drag the seek bar | seeks whoever owns playback | same screen |
-| prev / next | previous or next song in the owner's queue, as in ncmpcpp | same screen |
+| prev / next | previous or next song in the owner's queue, as in ncmpcpp; whether a skip while paused starts playback is the "next and prev start playback" setting | same screen |
 | repeat icon, left of prev | cycles off → all → one for both sides at once: it sets mpd's repeat and single flags, which the phone's own queue follows; with the desktop unreachable it applies to the phone until mpd is back | same screen |
 | play / pause | toggles the owner; with nothing playing, resumes the last song where the pill points | same screen |
 | "next ·" line | nothing, display only | same screen |

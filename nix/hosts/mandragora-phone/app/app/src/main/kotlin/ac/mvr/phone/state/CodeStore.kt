@@ -112,6 +112,11 @@ class CodeStore(private val store: Store) {
         })
     }
 
+    suspend fun find(query: String): List<CodeSession> {
+        val client = client("claude") ?: throw IOException("desktop unreachable")
+        return client.find(query, 80)
+    }
+
     suspend fun watchList() {
         while (currentCoroutineContext().isActive) {
             val client = client("claude")

@@ -449,12 +449,20 @@ class Store(private val app: Application) {
         }
     }
 
-    fun next() = act {
-        if (now.value.phoneOwns) localAdvance(1) else { mpd.next(); refreshMpd() }
-    }
+    fun next() = act { skip(1) }
 
-    fun previous() = act {
-        if (now.value.phoneOwns) localAdvance(-1) else { mpd.previous(); refreshMpd() }
+    fun previous() = act { skip(-1) }
+
+    private suspend fun skip(step: Int) {
+        val autoplay = prefs.autoplaySkip.value
+        if (now.value.phoneOwns) {
+            localAdvance(step, host?.localIsPlaying() == true || autoplay)
+            return
+        }
+        val wasPlaying = mpdSnapshot.value?.status?.playing == true
+        if (step > 0) mpd.next() else mpd.previous()
+        if (autoplay && !wasPlaying) mpd.play()
+        refreshMpd()
     }
 
     fun seek(seconds: Double) = act {
@@ -571,7 +579,7 @@ class Store(private val app: Application) {
         loadLyrics(song.file)
     }
 
-    private suspend fun localAdvance(step: Int) {
+    private suspend fun localAdvance(step: Int, play: Boolean) {
         val h = host ?: return
         val queue = phoneQueue.value
         if (queue.isEmpty()) return
@@ -583,7 +591,7 @@ class Store(private val app: Application) {
         val song = queue[index]
         val track = library.find(song.file) ?: throw IllegalStateException("not on the phone yet · ${song.name}")
         phoneIndex.value = index
-        startLocal(h, song, track, 0, true)
+        startLocal(h, song, track, 0, play)
     }
 
     fun localEnded() = act {
@@ -591,7 +599,7 @@ class Store(private val app: Application) {
             host?.let { it.localSeek(0); it.localPlay() }
             return@act
         }
-        localAdvance(1)
+        localAdvance(1, true)
     }
 
     fun playSong(song: MpdSong) = act {

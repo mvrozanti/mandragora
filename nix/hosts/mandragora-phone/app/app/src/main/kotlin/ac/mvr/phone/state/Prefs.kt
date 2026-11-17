@@ -23,12 +23,29 @@ class Prefs(context: Context) {
     private val orderFlow = MutableStateFlow(readOrder())
     val cardOrder: StateFlow<List<String>> = orderFlow
 
+    private val autoplayFlow = MutableStateFlow(sp.getBoolean("autoplaySkip", true))
+    val autoplaySkip: StateFlow<Boolean> = autoplayFlow
+
+    private val codeCountFlow = MutableStateFlow(sp.getInt("codeCardCount", 3))
+    val codeCardCount: StateFlow<Int> = codeCountFlow
+
     private val clicksFlow = MutableStateFlow(readClicks())
     val hubClicks: StateFlow<Map<String, Int>> = clicksFlow
 
     fun setUnit(value: String) {
         unitFlow.value = value
         sp.edit().putString("unit", value).apply()
+    }
+
+    fun setAutoplaySkip(value: Boolean) {
+        autoplayFlow.value = value
+        sp.edit().putBoolean("autoplaySkip", value).apply()
+    }
+
+    fun setCodeCardCount(value: Int) {
+        val next = value.coerceIn(1, 8)
+        codeCountFlow.value = next
+        sp.edit().putInt("codeCardCount", next).apply()
     }
 
     fun setCardOrder(value: List<String>) {

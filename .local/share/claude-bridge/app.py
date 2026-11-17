@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import re
 import os
 import secrets
 import subprocess
@@ -45,6 +46,10 @@ IDLE_SECONDS = int(os.environ.get("CLAUDE_BRIDGE_IDLE_SECONDS", "900"))
 SESSIONS_INDEX = HOME / ".claude" / "sessions"
 TRANSCRIPTS = HOME / ".claude" / "projects"
 TMUX = os.environ.get("CLAUDE_BRIDGE_TMUX", "tmux")
+FINDER = os.environ.get("CLAUDE_BRIDGE_FIND", "claude-find")
+FIND_REINDEX_SECONDS = 15
+MARKER = re.compile(r"⟦[nracdwu]:|⟧")
+finder_state = {"indexed": 0.0}
 TMUX_SOCKET = Path(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")) / f"tmux-{os.getuid()}" / "default"
 WATCH_SECONDS = 1.0
 HOT_SECONDS = 900
@@ -313,6 +318,24 @@ class Bridge:
         if live:
             session["live"] = {"name": live.get("name"), "status": live.get("status"), "tmux": live.get("tmux")}
         return session
+
+    async def find(self, query: str, limit: int) -> list[dict]:
+        infos = await asyncio.to_thread(list_sessions, None, 400)
+        live = self.live_sessions()
+        if not query.strip():
+            return [self.session_dict(info, live.get(info.session_id)) for info in infos[:limit]]
+        by_id = {info.session_id: info for info in infos}
+        found = []
+        for sid, snippet in await asyncio.to_thread(find_rows, query):
+            info = by_id.get(sid)
+            if info is None:
+                continue
+            session = self.session_dict(info, live.get(sid))
+            session["snippet"] = MARKER.sub("", snippet)
+            found.append(session)
+            if len(found) >= limit:
+                break
+        return found
 
     async def sessions(self, directory: str | None, limit: int) -> list[dict]:
         infos = await asyncio.to_thread(list_sessions, directory, limit)
@@ -675,6 +698,14 @@ async def sessions(request: web.Request) -> web.Response:
     return web.json_response(await bridge_of(request).sessions(directory, limit))
 
 
+async def find(request: web.Request) -> web.Response:
+    limit = max(1, min(int(request.query.get("limit") or 60), 200))
+    try:
+        return web.json_response(await bridge_of(request).find(request.query.get("q") or "", limit))
+    except (OSError, subprocess.SubprocessError) as err:
+        return json_error(f"search failed: {str(err)[:160]}", 503)
+
+
 async def session_status(request: web.Request) -> web.Response:
     return web.json_response(bridge_of(request).statuses())
 
@@ -887,6 +918,20 @@ def type_into(pane: str, text: str) -> None:
     tmux("send-keys", "-t", pane, "Enter")
 
 
+def find_rows(query: str) -> list[tuple[str, str]]:
+    now = time.time()
+    if now - finder_state["indexed"] > FIND_REINDEX_SECONDS:
+        subprocess.run([FINDER, "index", "--quiet"], capture_output=True, timeout=180)
+        finder_state["indexed"] = now
+    done = subprocess.run([FINDER, "query", *query.split()], capture_output=True, text=True, timeout=60)
+    rows = []
+    for line in done.stdout.splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 5:
+            rows.append((parts[0], parts[4]))
+    return rows
+
+
 def hot_transcripts(now: float) -> dict[str, Path]:
     found: dict[str, Path] = {}
     for path in TRANSCRIPTS.glob("*/*.jsonl"):
@@ -959,6 +1004,7 @@ def make_app() -> web.Application:
     app.router.add_get("/config", config)
     app.router.add_get("/project", projects)
     app.router.add_get("/session", sessions)
+    app.router.add_get("/find", find)
     app.router.add_post("/session", create_session)
     app.router.add_get("/session/status", session_status)
     app.router.add_get("/session/{sid}/message", messages)

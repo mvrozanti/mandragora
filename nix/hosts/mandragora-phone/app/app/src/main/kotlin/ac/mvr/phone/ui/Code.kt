@@ -48,6 +48,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -135,6 +136,9 @@ private fun SessionRow(session: CodeSession, status: CodeStatus?, selected: Bool
                 ago(session.time.updated).ifEmpty { null },
             ).joinToString(" · ")
             Label("${session.backend} · ${session.folder} · $state", color = if (live != null) scheme.tertiary else scheme.outline)
+            session.snippet?.takeIf { it.isNotBlank() }?.let { snip ->
+                Text(Meaning.annotate(snip, scheme), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
         }
     }
 }
@@ -145,6 +149,7 @@ fun CodeCard(store: Store, onOpen: (String) -> Unit) {
     val sessions by store.code.sessions.collectAsStateWithLifecycle()
     val statuses by store.code.statuses.collectAsStateWithLifecycle()
     val fresh by store.code.fresh.collectAsStateWithLifecycle()
+    val count by store.prefs.codeCardCount.collectAsStateWithLifecycle()
     val busy = sessions.count { statuses[it.id]?.type == "busy" }
     val subtitle = when {
         !fresh && sessions.isEmpty() -> "waiting for the desktop"
@@ -152,8 +157,8 @@ fun CodeCard(store: Store, onOpen: (String) -> Unit) {
         else -> "idle"
     }
     HomeCard {
-        CardHeader("code", subtitle) { onOpen("code") }
-        sessions.take(3).forEach { session ->
+        CardHeader("code", subtitle) { onOpen("sessions") }
+        sessions.take(count).forEach { session ->
             SessionRow(session, statuses[session.id]) {
                 store.code.open(session)
                 onOpen("code")
@@ -449,5 +454,55 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
             onNew = { code.startNew(it); picking = false },
             onDismiss = { picking = false },
         )
+    }
+}
+
+@Composable
+fun SessionsScreen(store: Store, onOpenSession: () -> Unit, onCollapse: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val reachable by store.reachable.collectAsStateWithLifecycle()
+    val statuses by store.code.statuses.collectAsStateWithLifecycle()
+    var query by rememberSaveable { mutableStateOf("") }
+    var found by remember { mutableStateOf<List<CodeSession>?>(null) }
+    var failed by remember { mutableStateOf(false) }
+    LaunchedEffect(query) {
+        if (query.isNotBlank()) delay(350)
+        runCatching { store.code.find(query.trim()) }
+            .onSuccess { found = it; failed = false }
+            .onFailure { failed = true }
+    }
+    Column(modifier = Modifier.fillMaxSize()) {
+        ScreenHeader("sessions", reachable, onCollapse)
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            placeholder = { Text("a phrase or subject, across every session") },
+            singleLine = true,
+            shape = RoundedCornerShape(24.dp),
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = scheme.primary, unfocusedBorderColor = scheme.outlineVariant),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),
+        )
+        val list = found
+        Label(
+            when {
+                failed -> "the desktop did not answer"
+                list == null -> "searching"
+                query.isBlank() -> "${list.size} sessions · latest activity first"
+                else -> "${list.size} sessions mention it · latest activity first"
+            },
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+        )
+        LazyColumn(
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            contentPadding = PaddingValues(start = 10.dp, end = 10.dp, bottom = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            items(list ?: emptyList(), key = { it.id }) { session ->
+                SessionRow(session, statuses[session.id]) {
+                    store.code.open(session)
+                    onOpenSession()
+                }
+            }
+        }
     }
 }

@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,6 +35,8 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val reachable by store.reachable.collectAsStateWithLifecycle()
     val order by store.prefs.cardOrder.collectAsStateWithLifecycle()
+    val autoplay by store.prefs.autoplaySkip.collectAsStateWithLifecycle()
+    val codeCount by store.prefs.codeCardCount.collectAsStateWithLifecycle()
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("settings", reachable, onCollapse)
         Column(
@@ -57,6 +60,36 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
                     }
                 }
                 Label("the update line always comes first")
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(scheme.surfaceContainerLow).padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Label("music")
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("next and prev start playback", style = MaterialTheme.typography.bodyLarge)
+                        Label(if (autoplay) "a skip while paused plays the new song" else "a skip while paused stays paused")
+                    }
+                    Switch(checked = autoplay, onCheckedChange = { store.prefs.setAutoplaySkip(it) })
+                }
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(scheme.surfaceContainerLow).padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Label("code")
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("sessions on the card", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                    IconButton(onClick = { store.prefs.setCodeCardCount(codeCount - 1) }, enabled = codeCount > 1, modifier = Modifier.size(40.dp)) {
+                        Icon(Icons.Filled.KeyboardArrowDown, "fewer", tint = if (codeCount > 1) scheme.onSurface else scheme.outlineVariant)
+                    }
+                    Text("$codeCount", style = MaterialTheme.typography.titleMedium)
+                    IconButton(onClick = { store.prefs.setCodeCardCount(codeCount + 1) }, enabled = codeCount < 8, modifier = Modifier.size(40.dp)) {
+                        Icon(Icons.Filled.KeyboardArrowUp, "more", tint = if (codeCount < 8) scheme.onSurface else scheme.outlineVariant)
+                    }
+                }
+                Label("the chevron on the card opens every session")
             }
         }
         Notice(store, Modifier.padding(horizontal = 14.dp, vertical = 10.dp))

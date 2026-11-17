@@ -42,6 +42,7 @@ data class CodeSession(
     val parentID: String? = null,
     val time: CodeTime = CodeTime(),
     val live: LiveInfo? = null,
+    val snippet: String? = null,
 ) {
     @Transient var backend: String = ""
     val folder: String get() = directory.trimEnd('/').substringAfterLast('/').ifEmpty { directory }
@@ -156,6 +157,9 @@ class CodeClient(val id: String, private val baseUrl: () -> String, private val 
 
     suspend fun projects(): List<CodeProject> =
         json.decodeFromString<List<CodeProject>>(Http.get(url("/project"), headers())).onEach { it.backend = id }
+
+    suspend fun find(query: String, limit: Int): List<CodeSession> =
+        json.decodeFromString<List<CodeSession>>(Http.get(url("/find?limit=$limit&q=" + enc(query)), headers())).onEach { it.backend = id }
 
     suspend fun sessions(directory: String, limit: Int): List<CodeSession> =
         json.decodeFromString<List<CodeSession>>(Http.get(url("/session?limit=$limit", directory), headers())).onEach { it.backend = id }
