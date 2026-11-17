@@ -33,6 +33,23 @@ import ac.mvr.phone.net.PermissionAsk
 import ac.mvr.phone.net.QuestionAsk
 import ac.mvr.phone.net.ScreenAsk
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.DpOffset
 import ac.mvr.phone.state.CodeModel
 import ac.mvr.phone.state.Store
 import androidx.compose.foundation.background
@@ -266,20 +283,106 @@ private fun ReasoningLine(part: CodePart) {
     }
 }
 
+private const val ABORTED = "MessageAbortedError"
+
+private fun said(entry: CodeEntry): String =
+    entry.parts.filter { it.type == "text" && !it.synthetic && !it.ignored }.mapNotNull { it.text }.joinToString("\n")
+
+private class Stops(val resend: Map<String, String>, val chips: Map<String, String>)
+
+private fun stoppedTurns(entries: List<CodeEntry>, settled: Boolean): Stops {
+    val resend = HashMap<String, String>()
+    val chips = HashMap<String, String>()
+    var last: CodeEntry? = null
+    var answered = false
+    entries.forEach { entry ->
+        if (entry.info.role == "user") {
+            if (said(entry).isNotBlank()) {
+                last = entry
+                answered = false
+                chips.clear()
+            }
+        } else {
+            if (entry.parts.isNotEmpty()) answered = true
+            if (entry.info.error?.name == ABORTED) last?.let { user ->
+                resend[user.info.id] = said(user)
+                chips[entry.info.id] = said(user)
+            }
+        }
+    }
+    val tail = last
+    if (settled && tail != null && !answered && chips.isEmpty()) {
+        resend[tail.info.id] = said(tail)
+        chips[tail.info.id] = said(tail)
+    }
+    return Stops(resend, chips)
+}
+
 @Composable
-private fun EntryView(entry: CodeEntry, scheme: ColorScheme) {
+private fun StoppedLine(chip: String?, onResend: (String) -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Label("stopped", color = scheme.error)
+        if (chip != null) Chip("resend", scheme.surfaceContainerHigh, scheme.onSurface) { onResend(chip) }
+    }
+}
+
+@Composable
+private fun Held(actions: List<Pair<String, () -> Unit>>, content: @Composable () -> Unit) {
+    var at by remember { mutableStateOf<Offset?>(null) }
+    var height by remember { mutableIntStateOf(0) }
+    val haptic = LocalHapticFeedback.current
+    val density = LocalDensity.current
+    Box(
+        modifier = Modifier
+            .onSizeChanged { height = it.height }
+            .pointerInput(Unit) {
+                detectTapGestures(onLongPress = { point ->
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    at = point
+                })
+            },
+    ) {
+        content()
+        val point = at ?: Offset.Zero
+        DropdownMenu(
+            expanded = at != null,
+            onDismissRequest = { at = null },
+            offset = with(density) { DpOffset(point.x.toDp(), (point.y - height).toDp()) },
+        ) {
+            actions.forEach { (label, act) ->
+                DropdownMenuItem(text = { Text(label) }, onClick = { at = null; act() })
+            }
+        }
+    }
+}
+
+@Composable
+private fun EntryView(entry: CodeEntry, scheme: ColorScheme, stops: Stops, onEdit: (String) -> Unit, onResend: (String) -> Unit) {
+    val clipboard = LocalClipboardManager.current
+    val chip = stops.chips[entry.info.id]
     if (entry.info.role == "user") {
-        val text = entry.parts.filter { it.type == "text" && !it.synthetic && !it.ignored }.mapNotNull { it.text }.joinToString("\n")
+        val text = said(entry)
         if (text.isBlank()) return
-        UserBubble(text, faded = false)
+        val actions = buildList<Pair<String, () -> Unit>> {
+            add("copy" to { clipboard.setText(AnnotatedString(CodeStore.split(text).first.ifEmpty { text })) })
+            add("edit" to { onEdit(text) })
+            if (stops.resend.containsKey(entry.info.id)) add("resend" to { onResend(text) })
+        }
+        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            UserBubble(text, faded = false, actions = actions)
+            if (chip != null) StoppedLine(chip, onResend)
+        }
         return
     }
+    val words = entry.parts.filter { it.type == "text" && !it.ignored }.mapNotNull { it.text }.filter { it.isNotBlank() }.joinToString("\n\n")
+    val copy = listOf<Pair<String, () -> Unit>>("copy" to { clipboard.setText(AnnotatedString(words)) })
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         entry.parts.forEach { part ->
             when (part.type) {
                 "text" -> {
                     val text = part.text
-                    if (!part.ignored && !text.isNullOrBlank()) MarkdownText(text, scheme)
+                    if (!part.ignored && !text.isNullOrBlank()) Held(copy) { MarkdownText(text, scheme) }
                 }
                 "reasoning" -> ReasoningLine(part)
                 "tool" -> ToolLine(part)
@@ -290,18 +393,28 @@ private fun EntryView(entry: CodeEntry, scheme: ColorScheme) {
                 }
             }
         }
-        entry.info.error?.let { Label(it.text, color = scheme.error) }
+        entry.info.error?.let { error ->
+            if (error.name == ABORTED) {
+                StoppedLine(chip, onResend)
+            } else {
+                Label(error.text, color = scheme.error)
+            }
+        }
     }
 }
 
 @Composable
-private fun UserBubble(text: String, faded: Boolean) {
+private fun UserBubble(text: String, faded: Boolean, actions: List<Pair<String, () -> Unit>> = emptyList()) {
+    Column(modifier = Modifier.fillMaxWidth().alpha(if (faded) 0.6f else 1f), horizontalAlignment = Alignment.End) {
+        if (actions.isEmpty()) BubbleBody(text) else Held(actions) { BubbleBody(text) }
+    }
+}
+
+@Composable
+private fun BubbleBody(text: String) {
     val scheme = MaterialTheme.colorScheme
-    val lines = text.lines()
-    val pictures = lines.filter { it.startsWith(CodeStore.PICTURE_LINE) }.map { it.removePrefix(CodeStore.PICTURE_LINE).trim() }
-    val words = lines.filterNot { it.startsWith(CodeStore.PICTURE_LINE) }.joinToString("\n").trim().let { if (pictures.isNotEmpty() && it == CodeStore.PICTURE_ONLY) "" else it }
+    val (words, pictures) = CodeStore.split(text)
     Column(
-        modifier = Modifier.fillMaxWidth().alpha(if (faded) 0.6f else 1f),
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -465,18 +578,20 @@ private fun QuestionCard(ask: QuestionAsk, onAnswer: (List<List<String>>) -> Uni
 
 @Composable
 private fun Composer(
-    draft: String,
+    field: TextFieldValue,
+    focus: FocusRequester,
     busy: Boolean,
     enabled: Boolean,
     attachments: List<CodeStore.Attachment>,
     uploading: Boolean,
-    onChange: (String) -> Unit,
+    onChange: (TextFieldValue) -> Unit,
     onSend: () -> Unit,
     onStop: () -> Unit,
     onAttach: () -> Unit,
     onDetach: (String) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
+    val draft = field.text
     val stopping = busy && draft.isBlank() && attachments.isEmpty()
     if (attachments.isNotEmpty() || uploading) {
         Row(
@@ -485,7 +600,14 @@ private fun Composer(
         ) {
             attachments.forEach { file ->
                 Box {
-                    Image(file.thumb.asImageBitmap(), null, contentScale = ContentScale.Crop, modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp)))
+                        val thumb = file.thumb
+                    if (thumb != null) {
+                        Image(thumb.asImageBitmap(), null, contentScale = ContentScale.Crop, modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp)))
+                    } else {
+                        Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp)).background(scheme.surfaceContainerHigh), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Filled.Image, "picture", tint = scheme.onSurfaceVariant)
+                        }
+                    }
                     Box(
                         modifier = Modifier.align(Alignment.TopEnd).padding(3.dp).size(22.dp).clip(CircleShape).background(scheme.surface.copy(alpha = 0.8f)).clickable { onDetach(file.path) },
                         contentAlignment = Alignment.Center,
@@ -507,9 +629,9 @@ private fun Composer(
             Icon(Icons.Filled.AddPhotoAlternate, "attach a picture", tint = scheme.onSurfaceVariant)
         }
         OutlinedTextField(
-            value = draft,
+            value = field,
             onValueChange = onChange,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).focusRequester(focus),
             enabled = enabled,
             placeholder = { Text("say what to do") },
             maxLines = 6,
@@ -571,7 +693,14 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     val screens by code.screens.collectAsStateWithLifecycle()
     val model by code.model.collectAsStateWithLifecycle()
     val live by code.live.collectAsStateWithLifecycle()
-    val draft by code.draft.collectAsStateWithLifecycle()
+    var field by remember { mutableStateOf(code.draft.value.let { TextFieldValue(it, TextRange(it.length)) }) }
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        code.replaced.collect { text ->
+            field = TextFieldValue(text, TextRange(text.length))
+            if (text.isNotEmpty()) runCatching { focus.requestFocus() }
+        }
+    }
     val sessions by code.sessions.collectAsStateWithLifecycle()
     val projects by code.projects.collectAsStateWithLifecycle()
     var picking by remember { mutableStateOf(false) }
@@ -590,6 +719,8 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     val uploading by code.uploading.collectAsStateWithLifecycle()
     val pendingAll by code.pending.collectAsStateWithLifecycle()
     val pendingHere = pendingAll.filter { it.sessionId == current?.id }
+    val settled = current != null && !busy && pendingHere.isEmpty() && screens.isEmpty() && asks.isEmpty() && questions.isEmpty()
+    val stops = remember(entries, settled) { stoppedTurns(entries, settled) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> if (uri != null) code.attach(uri) }
     val transcript = rememberLazyListState()
     var follow by remember(current?.id) { mutableStateOf(true) }
@@ -617,7 +748,9 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
             items(asks, key = { "p" + it.id }) { ask -> PermissionCard(ask) { code.allow(ask, it) } }
             items(pendingHere.asReversed(), key = { "s" + it.id }) { PendingBubble(it.text, busy) }
             if (busy) item(key = "busy") { Label("working…", color = scheme.primary) }
-            items(entries.asReversed(), key = { it.info.id }) { EntryView(it, scheme) }
+            items(entries.asReversed(), key = { it.info.id }) { entry ->
+                EntryView(entry, scheme, stops, onEdit = { code.edit(it) }, onResend = { code.resend(it) })
+            }
             if (entries.isEmpty()) {
                 item(key = "empty") {
                     Label(if (current == null) "new session in ${folderOf(newIn)}" else "nothing here yet")
@@ -626,9 +759,9 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         }
         Notice(store, Modifier.padding(horizontal = 14.dp))
         Composer(
-            draft, busy, reachable, attachments, uploading,
-            onChange = { code.draft.value = it },
-            onSend = { code.send(draft) },
+            field, focus, busy, reachable, attachments, uploading,
+            onChange = { field = it; code.draft.value = it.text },
+            onSend = { code.send(field.text) },
             onStop = { code.stop() },
             onAttach = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             onDetach = { code.detach(it) },

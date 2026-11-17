@@ -238,7 +238,12 @@ one line each, reasoning is folded):
 | a message just sent | shows at once as a faded bubble, "queued · goes in when the current turn ends" while the session works, "sent · waiting for the session" otherwise, and gives way to the real message when it reaches the transcript | code |
 | type, then send, on a session marked "on the desktop" | types the message into that session's tmux pane, as a bracketed paste followed by Enter, so the desktop tui runs it as if typed there; a session outside tmux answers "send from there" on the error line above the box | code |
 | send while it works | queues the message behind the current turn | code |
-| stop (replaces send while it works and the box is empty) | aborts the current turn | code |
+| stop (replaces send while it works and the box is empty) | aborts the current turn; on a session marked "on the desktop" it presses Esc in its tmux pane, and when the tui puts the stopped prompt back in its input box (it does when no reply has been written yet) clears it with one Ctrl+C, so the next message from the phone is not typed after it | code |
+| a stopped turn | its message is marked "stopped" with a "resend" chip: the turn the transcript records as interrupted, or the last message when the session is idle and nothing answered it; only the newest stopped turn carries the chip | code |
+| "resend" | sends that message again, pictures included, without touching what is in the box | code |
+| press and hold a message you sent | a menu: copy (the words), edit, and resend when that turn was stopped | code |
+| edit (in the hold menu) | puts the message and its pictures in the box with the cursor at the end, for sending as a new message; the turn already in the transcript stays | code |
+| press and hold a reply | a menu with copy, which copies the whole reply's text as markdown | code |
 | a reply's text | nothing; it is set in Source Serif 4, the open serif closest to the Claude app's reply face, and renders as markdown (headings, bold, italics, lists, quotes, links, inline code, code blocks that scroll sideways) with the colour markers and the salcc colouring kept; a table is a grid whose short columns never wrap, whose wordy columns wrap at a readable width, and which scrolls sideways as one with its first column pinned when it has three or more columns (chosen on 2026-11-17 from a deck of five) | code |
 | a tool line | expands its command or file and its output; again collapses | code |
 | "thinking · n lines" | expands the model's reasoning; again collapses | code |

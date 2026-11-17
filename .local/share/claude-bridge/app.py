@@ -172,6 +172,7 @@ def entry_for(message_id: str, sid: str, role: str, model: str | None = None, cr
     return {"info": info, "parts": []}
 
 
+STOPPED = "[Request interrupted by user"
 TRANSCRIPT_KINDS = {"user", "assistant", "attachment", "system", "progress"}
 TRANSCRIPT_CACHE = 16
 transcripts: dict[Path, dict] = {}
@@ -373,7 +374,11 @@ def convert_records(sid: str, records) -> list[dict]:
                     "error": output if block.get("is_error") else None,
                 }
             text = "\n".join(block.get("text", "") for block in blocks if block.get("type") == "text").strip()
-            if text and not text.startswith("<"):
+            if text.startswith(STOPPED):
+                entry = entry_for(rec.uuid, sid, "system")
+                entry["info"]["error"] = {"name": "MessageAbortedError", "data": {"message": "stopped"}}
+                entries.append(entry)
+            elif text and not text.startswith("<"):
                 entry = entry_for(rec.uuid, sid, "user")
                 entry["parts"].append(text_part(f"{rec.uuid}:0", rec.uuid, sid, "text", text))
                 entries.append(entry)
@@ -1017,7 +1022,22 @@ async def prompt(request: web.Request) -> web.Response:
 
 
 async def abort(request: web.Request) -> web.Response:
-    run = bridge_of(request).runs.get(request.match_info["sid"])
+    bridge = bridge_of(request)
+    sid = request.match_info["sid"]
+    live = bridge.live_sessions().get(sid)
+    if live is not None:
+        if live.get("status") != "busy":
+            return web.json_response(False)
+        try:
+            pane = await asyncio.to_thread(pane_of, int(live["pid"]))
+            if pane is None:
+                return json_error("that session runs outside tmux; stop it there", 409)
+            said = await asyncio.to_thread(last_prompt, sid)
+            await asyncio.to_thread(stop_pane, pane, said)
+        except (RuntimeError, OSError, subprocess.SubprocessError, ValueError) as err:
+            return json_error(f"could not reach the desktop terminal: {str(err)[:120]}", 503)
+        return web.json_response(True)
+    run = bridge.runs.get(sid)
     if run is None or run.client is None:
         return web.json_response(False)
     await run.client.interrupt()
@@ -1174,6 +1194,37 @@ def type_into(pane: str, text: str) -> None:
     tmux("paste-buffer", "-p", "-d", "-b", "phone-bridge", "-t", pane)
     time.sleep(0.2)
     tmux("send-keys", "-t", pane, "Enter")
+
+
+def last_prompt(sid: str) -> str | None:
+    path = next(TRANSCRIPTS.glob(f"*/{sid}.jsonl"), None)
+    if path is None:
+        return None
+    for entry in reversed(transcript_entries(sid, path, 4)):
+        if entry["info"]["role"] == "user":
+            return "\n".join(part.get("text", "") for part in entry["parts"])
+    return None
+
+
+def holds(pane: str, said: str) -> bool:
+    screen = tmux("capture-pane", "-p", "-J", "-t", pane).splitlines()
+    rules = [at for at, line in enumerate(screen) if SCREEN_RULE.match(line)]
+    if len(rules) < 2:
+        return False
+    box = " ".join(line.strip().removeprefix("❯").strip() for line in screen[rules[-2] + 1:rules[-1]])
+    head = " ".join(said.split())[:30]
+    return bool(head) and " ".join(box.split()).startswith(head)
+
+
+def stop_pane(pane: str, said: str | None) -> None:
+    tmux("send-keys", "-t", pane, "Escape")
+    if not said:
+        return
+    for _ in range(6):
+        time.sleep(0.25)
+        if holds(pane, said):
+            tmux("send-keys", "-t", pane, "C-c")
+            return
 
 
 def press_into(pane: str, key: str, said: str | None) -> None:

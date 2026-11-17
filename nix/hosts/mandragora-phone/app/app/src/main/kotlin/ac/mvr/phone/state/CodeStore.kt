@@ -21,6 +21,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
@@ -101,18 +102,31 @@ class CodeStore(private val store: Store) {
     val fresh: StateFlow<Boolean> = freshFlow
 
     val draft = MutableStateFlow("")
+    val replaced = MutableSharedFlow<String>(extraBufferCapacity = 4)
+
+    private fun replaceDraft(text: String) {
+        draft.value = text
+        replaced.tryEmit(text)
+    }
 
     private var loadJob: Job? = null
     private var syncJob: Job? = null
     private var syncAgain = false
     private var listJob: Job? = null
 
-    data class Attachment(val path: String, val thumb: android.graphics.Bitmap)
+    data class Attachment(val path: String, val thumb: android.graphics.Bitmap?)
 
     companion object {
         const val PICTURE_LINE = "Attached picture: "
         const val PICTURE_ONLY = "Look at the attached picture."
         val sentThumbs = androidx.compose.runtime.mutableStateMapOf<String, android.graphics.Bitmap>()
+
+        fun split(body: String): Pair<String, List<String>> {
+            val lines = body.lines()
+            val pictures = lines.filter { it.startsWith(PICTURE_LINE) }.map { it.removePrefix(PICTURE_LINE).trim() }
+            val words = lines.filterNot { it.startsWith(PICTURE_LINE) }.joinToString("\n").trim()
+            return (if (pictures.isNotEmpty() && words == PICTURE_ONLY) "" else words) to pictures
+        }
     }
 
     data class Pending(val id: Long, val sessionId: String, val text: String, val at: Long, val seen: Set<String>)
@@ -349,10 +363,27 @@ class CodeStore(private val store: Store) {
         sending.value = true
         try {
             deliver(body)
+            replaceDraft("")
             attachments.value = emptyList()
         } finally {
             sending.value = false
         }
+    }
+
+    fun resend(body: String) = run {
+        if (sending.value) return@run
+        sending.value = true
+        try {
+            deliver(body)
+        } finally {
+            sending.value = false
+        }
+    }
+
+    fun edit(body: String) {
+        val (words, pictures) = split(body)
+        attachments.value = pictures.map { Attachment(it, sentThumbs[it]) }
+        replaceDraft(words)
     }
 
     val sending = MutableStateFlow(false)
@@ -373,7 +404,6 @@ class CodeStore(private val store: Store) {
             sessionsFlow.value = listOf(session) + sessionsFlow.value.filter { it.id != session.id }
         }
         client.prompt(session.id, session.directory, body, chosen?.providerID?.takeIf { sameBackend }, chosen?.modelID?.takeIf { sameBackend })
-        draft.value = ""
         pending.value = pending.value + Pending(System.nanoTime(), session.id, body, System.currentTimeMillis(), entriesFlow.value.filter { it.info.role == "user" }.map { it.info.id }.toSet())
         statusFlow.value = statusFlow.value + (session.id to CodeStatus("busy"))
         touch(session.id, System.currentTimeMillis())
@@ -488,9 +518,13 @@ class CodeStore(private val store: Store) {
             "message.part.removed" -> if (mine) removePart(p)
             "session.status" -> if (sessionID != null) {
                 val status = p["status"]?.let { runCatching { json.decodeFromJsonElement<CodeStatus>(it) }.getOrNull() } ?: CodeStatus()
+                if (mine && status.type == "idle" && statusFlow.value[sessionID]?.type == "busy") syncCurrent()
                 statusFlow.value = if (status.type == "idle") statusFlow.value - sessionID else statusFlow.value + (sessionID to status)
             }
-            "session.idle" -> if (sessionID != null) statusFlow.value = statusFlow.value - sessionID
+            "session.idle" -> if (sessionID != null) {
+                if (mine && statusFlow.value[sessionID]?.type == "busy") syncCurrent()
+                statusFlow.value = statusFlow.value - sessionID
+            }
             "session.created", "session.updated" -> p["info"]?.let { info ->
                 val session = runCatching { json.decodeFromJsonElement<CodeSession>(info) }.getOrNull() ?: return
                 session.backend = currentFlow.value?.backend?.ifEmpty { null } ?: modelFlow.value?.backend ?: ""
