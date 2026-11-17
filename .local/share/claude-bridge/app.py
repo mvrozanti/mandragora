@@ -7,8 +7,10 @@ import re
 import os
 import secrets
 import subprocess
+import textwrap
 import time
 import uuid
+from hashlib import sha1
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -66,6 +68,15 @@ PROVIDERS = {
 }
 INPUT_KEYS = ("command", "description", "file_path", "pattern", "path", "url", "query")
 SETTING_SOURCES = ["user", "project", "local"]
+SCREEN_OPTION = re.compile(r"^(\s*)(?:❯\s*)?(\d)\.\s+(.*?)\s*$")
+SCREEN_RULE = re.compile(r"^\s*[─━]{12,}\s*$")
+SCREEN_DASH = re.compile(r"^\s*[╌┄▔]{12,}\s*$")
+SCREEN_FOOTER = re.compile(r"Esc to cancel|Enter to select|to navigate|ctrl\+g to edit|Tab to amend")
+SCREEN_TEXT = re.compile(r"type something|tell claude", re.I)
+SCREEN_TABS = re.compile(r"^\s*←.*→\s*$")
+SCREEN_KEYS = {"escape": "Escape", "next": "Right", "previous": "Left"}
+SCREEN_TAIL_BYTES = 262144
+SCREEN_MISSES = 2
 
 PASSWORD = web.AppKey("password", object)
 BRIDGE = web.AppKey("bridge", object)
@@ -421,6 +432,8 @@ class Bridge:
         self.runs: dict[str, Run] = {}
         self.fresh: dict[str, dict] = {}
         self.asks: dict[str, Ask] = {}
+        self.screens: dict[str, dict] = {}
+        self.misses: dict[str, int] = {}
         self.projects_cache: tuple[float, list[dict]] = (0.0, [])
 
     def live_sessions(self) -> dict[str, dict]:
@@ -436,7 +449,8 @@ class Bridge:
                 continue
             if data.get("kind") not in (None, "interactive"):
                 continue
-            found[sid] = {"name": data.get("name"), "status": data.get("status"), "cwd": data.get("cwd"), "tmux": data.get("tmux"), "pid": pid}
+            waiting = data.get("waitingFor") if data.get("status") == "waiting" else None
+            found[sid] = {"name": data.get("name"), "status": data.get("status"), "waiting": waiting, "cwd": data.get("cwd"), "tmux": data.get("tmux"), "pid": pid}
         return found
 
     async def projects(self) -> list[dict]:
@@ -474,7 +488,7 @@ class Bridge:
             "time": {"created": to_ms(info.created_at) or to_ms(info.last_modified), "updated": to_ms(info.last_modified)},
         }
         if live:
-            session["live"] = {"name": live.get("name"), "status": live.get("status"), "tmux": live.get("tmux")}
+            session["live"] = {"name": live.get("name"), "status": live.get("status"), "waiting": live.get("waiting"), "tmux": live.get("tmux")}
         return session
 
     async def find(self, query: str, limit: int) -> list[dict]:
@@ -502,6 +516,9 @@ class Bridge:
 
     def statuses(self) -> dict[str, dict]:
         result = {sid: {"type": "busy"} for sid, run in self.runs.items() if run.busy}
+        for ask in self.asks.values():
+            if ask.payload.get("sessionID") in result:
+                result[ask.payload["sessionID"]] = {"type": "busy", "message": "waiting"}
         for sid, live in self.live_sessions().items():
             if live.get("status") in ("busy", "waiting"):
                 result[sid] = {"type": "busy", "message": live.get("status")}
@@ -741,11 +758,42 @@ class Bridge:
         return can_use_tool
 
     async def wait(self, ask: Ask):
+        sid = ask.payload["sessionID"]
         self.asks[ask.payload["id"]] = ask
+        self.bus.emit("session.status", {"sessionID": sid, "status": {"type": "busy", "message": "waiting"}})
         try:
             return await ask.future
         finally:
             self.asks.pop(ask.payload["id"], None)
+            run = self.runs.get(sid)
+            if run is not None and run.busy and not any(a.payload.get("sessionID") == sid for a in self.asks.values()):
+                self.bus.emit("session.status", {"sessionID": sid, "status": {"type": "busy"}})
+
+    async def sync_screen(self, sid: str, live: dict | None, patient: bool = True) -> dict | None:
+        payload = None
+        if live is not None and live.get("status") == "waiting":
+            try:
+                payload = await asyncio.to_thread(screen_payload, sid, live, self.screens.get(sid))
+            except (RuntimeError, OSError, subprocess.SubprocessError, ValueError):
+                payload = None
+            if payload is not None and not payload["options"]:
+                self.misses[sid] = self.misses.get(sid, 0) + 1
+                if not patient or self.misses[sid] <= SCREEN_MISSES:
+                    payload = self.screens.get(sid)
+            elif payload is not None:
+                self.misses.pop(sid, None)
+        else:
+            self.misses.pop(sid, None)
+        before = self.screens.get(sid)
+        if payload is None:
+            if before is not None:
+                self.screens.pop(sid, None)
+                self.bus.emit("screen.cleared", {"sessionID": sid, "requestID": before["id"]})
+            return None
+        if before is None or before["id"] != payload["id"]:
+            self.screens[sid] = payload
+            self.bus.emit("screen.asked", payload)
+        return payload
 
     async def ask_permission(self, sid: str, tool: str, data: dict, context):
         run = self.runs.get(sid)
@@ -756,7 +804,7 @@ class Bridge:
             "permission": tool,
             "patterns": [getattr(context, "title", None) or summarize(tool, data)],
             "always": [json.dumps(s)[:120] for s in suggestions],
-            "metadata": {k: v for k, v in data.items() if k in INPUT_KEYS and isinstance(v, str)} | ({"description": context.description} if getattr(context, "description", None) else {}),
+            "metadata": {k: v for k, v in data.items() if k in INPUT_KEYS and isinstance(v, str)} | ({"description": context.description} if getattr(context, "description", None) else {}) | ({"plan": data["plan"]} if isinstance(data.get("plan"), str) else {}),
             "tool": {"messageID": run.message_id if run else "", "callID": getattr(context, "tool_use_id", None) or ""},
         }
         ask = Ask("permission", payload, asyncio.get_running_loop().create_future())
@@ -930,6 +978,8 @@ async def prompt(request: web.Request) -> web.Response:
     live = bridge.live_sessions().get(sid)
     if live is not None:
         name = live.get("name") or "an open session"
+        if live.get("status") == "waiting":
+            return json_error(f"{name} is waiting for an answer on the desktop; answer that first", 409)
         try:
             pane = await asyncio.to_thread(pane_of, int(live["pid"]))
         except (RuntimeError, OSError, subprocess.SubprocessError, ValueError) as err:
@@ -1030,6 +1080,42 @@ async def reject_question(request: web.Request) -> web.Response:
     return web.json_response(bridge_of(request).reply(request.match_info["qid"], None))
 
 
+async def screens(request: web.Request) -> web.Response:
+    return web.json_response(list(bridge_of(request).screens.values()))
+
+
+async def press_screen(request: web.Request) -> web.Response:
+    bridge = bridge_of(request)
+    sid = request.match_info["sid"]
+    body = await request.json()
+    body = body if isinstance(body, dict) else {}
+    key = str(body.get("key") or "")
+    said = body.get("text") if isinstance(body.get("text"), str) else None
+    live = bridge.live_sessions().get(sid)
+    if live is None:
+        return json_error("that session is no longer open on the desktop", 409)
+    current = await bridge.sync_screen(sid, live, patient=False)
+    if current is None:
+        return json_error("nothing is waiting for an answer there any more", 409)
+    if current["id"] != body.get("id"):
+        return json_error("the prompt changed on the desktop; here is the new one", 409)
+    if key.isdigit():
+        if not any(option["key"] == key for option in current["options"]):
+            return json_error("that option is gone", 409)
+    elif key not in SCREEN_KEYS:
+        return json_error("unknown key", 400)
+    try:
+        pane = await asyncio.to_thread(pane_of, int(live["pid"]))
+        if pane is None:
+            return json_error("that session runs outside tmux; answer it there", 409)
+        await asyncio.to_thread(press_into, pane, key, said)
+    except (RuntimeError, OSError, subprocess.SubprocessError, ValueError) as err:
+        return json_error(f"could not reach the desktop terminal: {str(err)[:120]}", 503)
+    await asyncio.sleep(0.7)
+    after = await bridge.sync_screen(sid, bridge.live_sessions().get(sid), patient=False)
+    return web.json_response({"screen": after})
+
+
 async def events(request: web.Request) -> web.StreamResponse:
     bridge = bridge_of(request)
     response = web.StreamResponse(headers={"Content-Type": "text/event-stream", "Cache-Control": "no-store", "X-Accel-Buffering": "no"})
@@ -1088,6 +1174,119 @@ def type_into(pane: str, text: str) -> None:
     tmux("send-keys", "-t", pane, "Enter")
 
 
+def press_into(pane: str, key: str, said: str | None) -> None:
+    if not key.isdigit():
+        tmux("send-keys", "-t", pane, SCREEN_KEYS[key])
+        return
+    tmux("send-keys", "-t", pane, key)
+    words = " ".join((said or "").split())
+    if words:
+        time.sleep(0.2)
+        tmux("send-keys", "-t", pane, "-l", "--", words)
+        time.sleep(0.2)
+        tmux("send-keys", "-t", pane, "Enter")
+
+
+def parse_screen(screen: str) -> dict | None:
+    lines = [line.rstrip() for line in screen.splitlines()]
+    hits = [(i, match) for i, line in enumerate(lines) if (match := SCREEN_OPTION.match(line))]
+    first = next((k for k in range(len(hits) - 1, -1, -1) if hits[k][1].group(2) == "1"), None)
+    if first is None:
+        return None
+    chosen = [hits[first]]
+    for hit in hits[first + 1:]:
+        if int(hit[1].group(2)) != int(chosen[-1][1].group(2)) + 1:
+            break
+        chosen.append(hit)
+    if len(chosen) < 2:
+        return None
+    options = []
+    for n, (i, match) in enumerate(chosen):
+        end = chosen[n + 1][0] if n + 1 < len(chosen) else len(lines)
+        column = match.start(2)
+        detail = []
+        for line in lines[i + 1:end]:
+            stripped = line.strip()
+            if not stripped or SCREEN_RULE.match(line) or SCREEN_DASH.match(line) or stripped == "Submit":
+                continue
+            if SCREEN_FOOTER.search(line) or len(line) - len(line.lstrip()) <= column:
+                break
+            detail.append(stripped)
+        label = match.group(3)
+        options.append({
+            "key": match.group(2),
+            "label": label,
+            "detail": " ".join(detail),
+            "text": bool(SCREEN_TEXT.search(label)),
+            "current": "❯" in lines[i][:column],
+        })
+    top = chosen[0][0]
+    start = next((k + 1 for k in range(top - 1, -1, -1) if SCREEN_RULE.match(lines[k])), 0)
+    region = lines[start:top]
+    tabs = any(SCREEN_TABS.match(line) for line in region)
+    last_dash = max((k for k, line in enumerate(region) if SCREEN_DASH.match(line)), default=-1)
+    kept = [line for line in region if not SCREEN_DASH.match(line)]
+    question = [line for line in region[last_dash + 1:] if line.strip()]
+    body = textwrap.dedent("\n".join(kept[-60:])).strip()
+    body = re.sub(r"\n{3,}", "\n\n", body)
+    return {"body": body, "question": textwrap.dedent("\n".join(question)).strip(), "options": options, "tabs": tabs}
+
+
+def pending_tools(sid: str) -> list[dict]:
+    path = next(TRANSCRIPTS.glob(f"*/{sid}.jsonl"), None)
+    if path is None:
+        return []
+    with path.open("rb") as handle:
+        size = handle.seek(0, 2)
+        handle.seek(max(0, size - SCREEN_TAIL_BYTES))
+        data = handle.read()
+    answered: set[str] = set()
+    pending = []
+    for raw in reversed(data.split(b"\n")):
+        try:
+            record = json.loads(raw)
+        except ValueError:
+            continue
+        if not isinstance(record, dict) or record.get("isSidechain") or record.get("type") not in ("user", "assistant"):
+            continue
+        content = (record.get("message") or {}).get("content")
+        if record["type"] == "user" and not (isinstance(content, list) and any(isinstance(b, dict) and b.get("type") == "tool_result" for b in content)):
+            break
+        for block in content if isinstance(content, list) else []:
+            if not isinstance(block, dict):
+                continue
+            if block.get("type") == "tool_result":
+                answered.add(block.get("tool_use_id"))
+            elif block.get("type") == "tool_use" and block.get("id") not in answered:
+                pending.append({"name": block.get("name"), "input": block.get("input") or {}})
+    return pending
+
+
+def screen_payload(sid: str, live: dict, previous: dict | None) -> dict | None:
+    pane = pane_of(int(live["pid"]))
+    if pane is None:
+        return None
+    screen = tmux("capture-pane", "-p", "-J", "-t", pane)
+    parsed = parse_screen(screen)
+    if parsed is None:
+        tail = [line.rstrip() for line in screen.splitlines() if line.strip()][-25:]
+        parsed = {"body": textwrap.dedent("\n".join(tail)).strip(), "question": "", "options": [], "tabs": False}
+    seed = json.dumps([sid, parsed["body"], [(o["key"], o["label"], o["current"]) for o in parsed["options"]]], ensure_ascii=False)
+    ask_id = "scr_" + sha1(seed.encode("utf-8")).hexdigest()[:16]
+    if previous is not None and previous["id"] == ask_id:
+        return previous
+    plan = next((t["input"].get("plan") for t in pending_tools(sid) if t["name"] == "ExitPlanMode" and isinstance(t["input"].get("plan"), str)), None)
+    return {
+        "id": ask_id,
+        "sessionID": sid,
+        "waiting": live.get("waiting") or "an answer",
+        "body": parsed["question"] if plan else parsed["body"],
+        "plan": plan,
+        "options": parsed["options"],
+        "tabs": parsed["tabs"],
+    }
+
+
 def find_rows(query: str) -> list[tuple[str, str]]:
     now = time.time()
     if now - finder_state["indexed"] > FIND_REINDEX_SECONDS:
@@ -1132,12 +1331,17 @@ async def watch_outside(bridge) -> None:
             live = bridge.live_sessions()
             for sid, info in live.items():
                 state = live_status(info)
-                if statuses.get(sid) != state["type"]:
-                    statuses[sid] = state["type"]
+                mark = f"{state['type']}:{state.get('message') or ''}"
+                if statuses.get(sid) != mark:
+                    statuses[sid] = mark
                     bridge.bus.emit("session.status", {"sessionID": sid, "status": state})
+                if info.get("status") == "waiting" or sid in bridge.screens:
+                    await bridge.sync_screen(sid, info)
             for sid in [s for s in statuses if s not in live]:
-                if statuses.pop(sid) != "idle":
+                if statuses.pop(sid) != "idle:":
                     bridge.bus.emit("session.status", {"sessionID": sid, "status": {"type": "idle"}})
+            for sid in [s for s in bridge.screens if s not in live]:
+                await bridge.sync_screen(sid, None)
             for sid, path in paths.items():
                 try:
                     stat = path.stat()
@@ -1189,6 +1393,8 @@ def make_app() -> web.Application:
     app.router.add_get("/question", questions)
     app.router.add_post("/question/{qid}/reply", reply_question)
     app.router.add_post("/question/{qid}/reject", reject_question)
+    app.router.add_get("/screen", screens)
+    app.router.add_post("/session/{sid}/screen", press_screen)
     app.router.add_get("/event", events)
     return app
 

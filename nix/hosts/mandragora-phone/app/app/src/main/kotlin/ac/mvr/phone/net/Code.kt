@@ -29,7 +29,7 @@ data class CodeAccess(val id: String = "opencode", val name: String = id, val po
 data class CodeBackends(val backends: List<CodeAccess> = emptyList())
 
 @Serializable
-data class LiveInfo(val name: String? = null, val status: String? = null, val tmux: String? = null)
+data class LiveInfo(val name: String? = null, val status: String? = null, val waiting: String? = null, val tmux: String? = null)
 
 @Serializable
 data class CodeTime(val created: Long = 0, val updated: Long = 0)
@@ -133,6 +133,23 @@ data class QuestionAsk(val id: String, val sessionID: String, val questions: Lis
 data class Uploaded(val path: String)
 
 @Serializable
+data class ScreenOption(val key: String, val label: String, val detail: String = "", val text: Boolean = false, val current: Boolean = false)
+
+@Serializable
+data class ScreenAsk(
+    val id: String,
+    val sessionID: String,
+    val waiting: String = "",
+    val body: String = "",
+    val plan: String? = null,
+    val options: List<ScreenOption> = emptyList(),
+    val tabs: Boolean = false,
+)
+
+@Serializable
+data class Pressed(val screen: ScreenAsk? = null)
+
+@Serializable
 data class CodeProvider(val id: String, val name: String = id)
 
 @Serializable
@@ -215,6 +232,18 @@ class CodeClient(val id: String, private val baseUrl: () -> String, private val 
             put("answers", buildJsonArray { answers.forEach { one -> add(buildJsonArray { one.forEach { add(it) } }) } })
         }
         Http.post(url("/question/$requestID/reply", directory), body, headers())
+    }
+
+    suspend fun screens(directory: String): List<ScreenAsk> =
+        json.decodeFromString(Http.get(url("/screen", directory), headers()))
+
+    suspend fun press(sessionID: String, directory: String, id: String, key: String, text: String?): ScreenAsk? {
+        val body = buildJsonObject {
+            put("id", id)
+            put("key", key)
+            if (text != null) put("text", text)
+        }
+        return json.decodeFromString<Pressed>(Http.post(url("/session/$sessionID/screen", directory), body, headers())).screen
     }
 
     suspend fun reject(requestID: String, directory: String) {

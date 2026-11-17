@@ -31,6 +31,8 @@ import ac.mvr.phone.net.CodeSession
 import ac.mvr.phone.net.CodeStatus
 import ac.mvr.phone.net.PermissionAsk
 import ac.mvr.phone.net.QuestionAsk
+import ac.mvr.phone.net.ScreenAsk
+import androidx.compose.ui.text.font.FontFamily
 import ac.mvr.phone.state.CodeModel
 import ac.mvr.phone.state.Store
 import androidx.compose.foundation.background
@@ -135,6 +137,7 @@ private fun SessionDot(open: Boolean, busy: Boolean) {
 private fun SessionRow(session: CodeSession, status: CodeStatus?, selected: Boolean = false, onTap: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val busy = status?.type == "busy"
+    val waiting = status?.message == "waiting"
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -150,10 +153,15 @@ private fun SessionRow(session: CodeSession, status: CodeStatus?, selected: Bool
             Text(session.title.ifBlank { "untitled" }, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
             val live = session.live
             val state = listOfNotNull(
-                if (live != null) "on the desktop · ${live.status ?: "open"}" else if (busy) "working" else null,
+                when {
+                    waiting -> "needs you" + (live?.waiting?.let { " · $it" } ?: "")
+                    live != null -> "on the desktop · ${live.status ?: "open"}"
+                    busy -> "working"
+                    else -> null
+                },
                 ago(session.time.updated).ifEmpty { null },
             ).joinToString(" · ")
-            Label("${session.backend} · ${session.folder} · $state", color = if (live != null) scheme.tertiary else scheme.outline)
+            Label("${session.backend} · ${session.folder} · $state", color = if (waiting) scheme.error else if (live != null) scheme.tertiary else scheme.outline)
             session.snippet?.takeIf { it.isNotBlank() }?.let { snip ->
                 Text(Meaning.annotate(snip, scheme), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
@@ -169,8 +177,10 @@ fun CodeCard(store: Store, onOpen: (String) -> Unit) {
     val fresh by store.code.fresh.collectAsStateWithLifecycle()
     val count by store.prefs.codeCardCount.collectAsStateWithLifecycle()
     val busy = sessions.count { statuses[it.id]?.type == "busy" }
+    val waiting = sessions.count { statuses[it.id]?.message == "waiting" }
     val subtitle = when {
         !fresh && sessions.isEmpty() -> "waiting for the desktop"
+        waiting > 0 -> if (waiting == 1) "1 needs you" else "$waiting need you"
         busy > 0 -> "$busy working"
         else -> "idle"
     }
@@ -334,17 +344,70 @@ private fun PendingBubble(text: String, busy: Boolean) {
 @Composable
 private fun PermissionCard(ask: PermissionAsk, onReply: (String) -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    val lines = ask.metadata?.str("command")?.let { listOf(it) } ?: ask.patterns.take(3)
+    val plan = ask.metadata?.str("plan")
+    val lines = ask.metadata?.str("command")?.let { listOf(it) } ?: if (plan != null) emptyList() else ask.patterns.take(3)
     Column(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(scheme.surfaceContainerHigh).padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("wants to ${ask.permission}", style = MaterialTheme.typography.titleMedium, color = scheme.tertiary)
+        Text(if (plan != null) "has a plan ready" else "wants to ${ask.permission}", style = MaterialTheme.typography.titleMedium, color = scheme.tertiary)
+        plan?.let { MarkdownText(it, scheme) }
         lines.forEach { Text(it, style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant, maxLines = 3, overflow = TextOverflow.Ellipsis) }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Chip("once", scheme.primary, scheme.onPrimary) { onReply("once") }
             Chip("always", scheme.surfaceContainer, scheme.onSurface) { onReply("always") }
             Chip("reject", scheme.error, scheme.onError) { onReply("reject") }
+        }
+    }
+}
+
+@Composable
+private fun ScreenCard(ask: ScreenAsk, onPress: (String, String?) -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    var typing by remember(ask.id) { mutableStateOf<String?>(null) }
+    var said by remember(ask.id) { mutableStateOf("") }
+    Column(
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(scheme.surfaceContainerHigh).padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Label("on the desktop · ${ask.waiting}", color = scheme.error)
+        ask.plan?.let { MarkdownText(it, scheme) }
+        if (ask.body.isNotBlank()) {
+            Text(ask.body, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), color = scheme.onSurface)
+        }
+        ask.options.forEach { option ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (option.current) scheme.secondaryContainer else scheme.surfaceContainer)
+                    .clickable { if (option.text) typing = option.key else onPress(option.key, null) }
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+            ) {
+                Text("${option.key}. ${option.label}", style = MaterialTheme.typography.bodyMedium, color = if (option.current) scheme.onSecondaryContainer else scheme.onSurface)
+                if (option.detail.isNotBlank()) Label(option.detail, color = scheme.outline)
+            }
+            if (typing == option.key) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = said,
+                        onValueChange = { said = it },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        placeholder = { Text("type the answer", color = scheme.outline) },
+                    )
+                    IconButton(onClick = { onPress(option.key, said.trim()) }, enabled = said.isNotBlank()) {
+                        Icon(Icons.AutoMirrored.Filled.Send, "send", tint = if (said.isNotBlank()) scheme.primary else scheme.outline)
+                    }
+                }
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (ask.tabs) {
+                Chip("‹ back", scheme.surfaceContainer, scheme.onSurface) { onPress("previous", null) }
+                Chip("next ›", scheme.surfaceContainer, scheme.onSurface) { onPress("next", null) }
+            }
+            Chip("esc", scheme.surfaceContainer, scheme.onSurface) { onPress("escape", null) }
         }
     }
 }
@@ -505,6 +568,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     val statuses by code.statuses.collectAsStateWithLifecycle()
     val asks by code.asks.collectAsStateWithLifecycle()
     val questions by code.questions.collectAsStateWithLifecycle()
+    val screens by code.screens.collectAsStateWithLifecycle()
     val model by code.model.collectAsStateWithLifecycle()
     val live by code.live.collectAsStateWithLifecycle()
     val draft by code.draft.collectAsStateWithLifecycle()
@@ -533,7 +597,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         snapshotFlow { Triple(transcript.isScrollInProgress, transcript.firstVisibleItemIndex, transcript.firstVisibleItemScrollOffset) }
             .collect { (scrolling, index, offset) -> if (scrolling) follow = index == 0 && offset < 120 }
     }
-    val newest = listOf(entries.size, pendingHere.size, questions.size, asks.size, if (busy) 1 else 0, entries.lastOrNull()?.parts?.size ?: 0)
+    val newest = listOf(entries.size, pendingHere.size, questions.size, asks.size, if (busy) 1 else 0, entries.lastOrNull()?.parts?.size ?: 0, screens.firstOrNull()?.id.hashCode())
     LaunchedEffect(current?.id, newest) {
         if (follow && transcript.firstVisibleItemIndex != 0) transcript.scrollToItem(0)
     }
@@ -548,6 +612,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            items(screens, key = { "x" + it.id }) { ask -> ScreenCard(ask) { key, text -> code.press(ask, key, text) } }
             items(questions, key = { "q" + it.id }) { ask -> QuestionCard(ask, onAnswer = { code.answer(ask, it) }, onReject = { code.rejectQuestion(ask) }) }
             items(asks, key = { "p" + it.id }) { ask -> PermissionCard(ask) { code.allow(ask, it) } }
             items(pendingHere.asReversed(), key = { "s" + it.id }) { PendingBubble(it.text, busy) }

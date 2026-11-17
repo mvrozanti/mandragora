@@ -10,6 +10,7 @@ import ac.mvr.phone.net.CodeProject
 import ac.mvr.phone.net.CodeProviders
 import ac.mvr.phone.net.CodeSession
 import ac.mvr.phone.net.CodeStatus
+import ac.mvr.phone.net.ScreenAsk
 import ac.mvr.phone.net.MessageError
 import ac.mvr.phone.net.PermissionAsk
 import ac.mvr.phone.net.QuestionAsk
@@ -83,6 +84,9 @@ class CodeStore(private val store: Store) {
 
     private val questionsFlow = MutableStateFlow<List<QuestionAsk>>(emptyList())
     val questions: StateFlow<List<QuestionAsk>> = questionsFlow
+
+    private val screensFlow = MutableStateFlow<List<ScreenAsk>>(emptyList())
+    val screens: StateFlow<List<ScreenAsk>> = screensFlow
 
     private val providersFlow = MutableStateFlow<Map<String, CodeProviders>>(emptyMap())
     val providers: StateFlow<Map<String, CodeProviders>> = providersFlow
@@ -295,6 +299,7 @@ class CodeStore(private val store: Store) {
         entriesFlow.value = emptyList()
         asksFlow.value = emptyList()
         questionsFlow.value = emptyList()
+        screensFlow.value = emptyList()
         loadJob?.cancel()
         loadJob = store.scope.launch { runCatching { load(session) }.onFailure { store.report(humanize(it)) } }
     }
@@ -308,9 +313,11 @@ class CodeStore(private val store: Store) {
         reconcile()
         val pending = runCatching { client.permissions(session.directory) }.getOrDefault(emptyList()).filter { it.sessionID == session.id }
         val open = runCatching { client.questions(session.directory) }.getOrDefault(emptyList()).filter { it.sessionID == session.id }
+        val shown = runCatching { client.screens(session.directory) }.getOrDefault(emptyList()).filter { it.sessionID == session.id }
         if (currentFlow.value?.id != session.id) return
         asksFlow.value = pending
         questionsFlow.value = open
+        screensFlow.value = shown
     }
 
     fun startNew(directory: String? = null) {
@@ -319,6 +326,7 @@ class CodeStore(private val store: Store) {
         entriesFlow.value = emptyList()
         asksFlow.value = emptyList()
         questionsFlow.value = emptyList()
+        screensFlow.value = emptyList()
         newIn.value = dir
         store.prefs.lastCodeDir = dir
     }
@@ -393,6 +401,20 @@ class CodeStore(private val store: Store) {
         val dir = directory ?: return@run
         questionsFlow.value = questionsFlow.value.filter { it.id != question.id }
         currentClient()?.reject(question.id, dir)
+    }
+
+    fun press(ask: ScreenAsk, key: String, text: String? = null) = run {
+        val dir = directory ?: return@run
+        val client = currentClient() ?: return@run
+        screensFlow.value = screensFlow.value.filter { it.id != ask.id }
+        try {
+            val next = client.press(ask.sessionID, dir, ask.id, key, text)
+            if (next != null && currentFlow.value?.id == ask.sessionID) screensFlow.value = screensFlow.value.filter { it.sessionID != ask.sessionID } + next
+        } catch (err: IOException) {
+            val fresh = runCatching { client.screens(dir) }.getOrDefault(emptyList()).filter { it.sessionID == ask.sessionID }
+            if (currentFlow.value?.id == ask.sessionID) screensFlow.value = fresh
+            throw err
+        }
     }
 
     suspend fun watch(backend: String, dir: String?) {
@@ -487,6 +509,10 @@ class CodeStore(private val store: Store) {
                 questionsFlow.value = questionsFlow.value.filter { it.id != ask.id } + ask
             }
             "question.replied", "question.rejected" -> p["requestID"]?.jsonPrimitive?.contentOrNull?.let { id -> questionsFlow.value = questionsFlow.value.filter { it.id != id } }
+            "screen.asked" -> if (mine) runCatching { json.decodeFromJsonElement<ScreenAsk>(p) }.getOrNull()?.let { ask ->
+                screensFlow.value = screensFlow.value.filter { it.sessionID != ask.sessionID } + ask
+            }
+            "screen.cleared" -> p["requestID"]?.jsonPrimitive?.contentOrNull?.let { id -> screensFlow.value = screensFlow.value.filter { it.id != id } }
             "session.error" -> if (mine) p["error"]?.let { err ->
                 val parsed = runCatching { json.decodeFromJsonElement<MessageError>(err) }.getOrNull()
                 store.report(IllegalStateException(parsed?.text ?: "session error"))
