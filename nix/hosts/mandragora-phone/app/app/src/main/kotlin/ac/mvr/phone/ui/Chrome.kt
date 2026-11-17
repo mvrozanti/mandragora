@@ -98,11 +98,7 @@ fun Banner(reachable: Boolean) {
 
 @Composable
 fun Reachability(reachable: Boolean) {
-    val checking = !reachable && LocalChecking.current
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-        if (checking) Box(modifier = Modifier.size(8.dp).clip(CircleShape).border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)) else StatusDot(reachable)
-        Label(if (reachable) "desktop reachable" else if (checking) "reaching the desktop" else if (LocalVpnOff.current) "tailscale off" else "desktop unreachable")
-    }
+    if (!reachable && LocalChecking.current) Box(modifier = Modifier.size(8.dp).clip(CircleShape).border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)) else StatusDot(reachable)
 }
 
 @Composable

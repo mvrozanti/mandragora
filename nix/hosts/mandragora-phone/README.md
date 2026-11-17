@@ -129,7 +129,7 @@ back collapses it):
 | panic card: "kill the biggest", first tap | arms it for 4 s; the button reads "tap again to kill <name>" | home |
 | panic card: "kill the biggest", second tap | kills that unit's whole cgroup on the desktop; the card says what died | home |
 | "update ready" line (only when the desktop published a newer build) | downloads it, verifies the hash, opens Android's installer; the first time it opens the "allow installs from this app" setting instead and says so on the notice line. The verified download is kept, so leaving the app mid-download never costs a second one: the line turns into "install update", and a download that finishes while the app is in the background posts a "tap to install" notification instead of opening the installer | installer |
-| header dot | nothing, display: green when the desktop answers; hollow "reaching the desktop" from the moment the app opens until the first answer, with retries a second apart; red "desktop unreachable" only after three misses in a row, and from then on a retry every five seconds | home |
+| header dot | nothing, display, a dot with no words (the banner under the header says what is wrong): green when the desktop answers; hollow from the moment the app opens until the first answer, with retries a second apart; red only after three misses in a row, and from then on a retry every five seconds | home |
 | gear in the header | opens settings | settings |
 | Android back on home | leaves the app | launcher |
 | title chevron or Android back, on any sub-app | collapses to home | home |
