@@ -404,7 +404,7 @@ class Store(private val app: Application) {
         try {
             if (file == null) return
             val bytes = runCatching {
-                if (owner == "phone") library.find(file)?.let { library.artwork(it.uri) } else bridge.cover(file)
+                if (owner == "phone") library.find(file)?.let { library.artwork(it.uri) } ?: bridge.cover(file) else bridge.cover(file)
             }.getOrNull() ?: return
             val bitmap = withContext(Dispatchers.IO) { Artwork.decode(bytes) } ?: return
             if (coverKey == key) cover.value = bitmap
@@ -413,16 +413,30 @@ class Store(private val app: Application) {
         }
     }
 
+    private data class Source(val uri: Uri, val name: String, val local: Boolean)
+
+    private suspend fun sourceFor(file: String): Source? {
+        runCatching { library.find(file) }.getOrNull()?.let { return Source(it.uri, it.displayName, true) }
+        if (!reachable.value) return null
+        return Source(Uri.parse(bridge.fileUrl(file)), file.substringAfterLast('/'), false)
+    }
+
+    private suspend fun artworkFor(source: Source, file: String): ByteArray? =
+        if (source.local) library.artwork(source.uri)
+        else runCatching { bridge.cover(file)?.let { Artwork.shrink(it) } }.getOrNull()
+
+    private fun missing(name: String) = IllegalStateException("not on the phone and the desktop is unreachable · $name")
+
     private fun restoreLocal(current: Lease) = scope.launch {
         val file = current.file ?: return@launch
-        val track = runCatching { library.find(file) }.getOrNull() ?: return@launch
+        val track = sourceFor(file) ?: return@launch
         val seed = listOf(MpdSong(file, current.artist, current.title, null, current.duration))
         val fresh = phoneQueue.value.isEmpty()
         if (fresh) {
             phoneQueue.value = seed
             phoneIndex.value = 0
         }
-        host?.useLocal(track.uri, current.title ?: track.displayName, current.artist, (current.elapsed * 1000).toLong(), false, library.artwork(track.uri))
+        host?.useLocal(track.uri, current.title ?: track.name, current.artist, (current.elapsed * 1000).toLong(), false, artworkFor(track, file))
         if (fresh) {
             if (mpdSnapshot.value == null) runCatching { refreshMpd() }
             extendQueue(seed, file)
@@ -508,7 +522,7 @@ class Store(private val app: Application) {
         val snap = mpdSnapshot.value
         val expected = snap?.song?.file
         if (online && snap != null && expected == null) throw IllegalStateException("desktop has nothing to hand over")
-        val known = expected?.let { library.find(it) ?: throw IllegalStateException("not on the phone yet · ${it.substringAfterLast('/')}") }
+        val known = expected?.let { sourceFor(it) ?: throw missing(it.substringAfterLast('/')) }
         val granted = if (online) bridge.takeLease("phone", null, null, null) else {
             runCatching { if (snap?.status?.playing == true) mpd.pause(true) }
             Lease(
@@ -522,17 +536,17 @@ class Store(private val app: Application) {
             )
         }
         val file = granted.file ?: throw IllegalStateException("desktop has nothing to hand over")
-        val track = if (file == expected) known else library.find(file)
+        val track = if (file == expected) known else sourceFor(file)
         if (track == null) {
             if (online) bridge.takeLease("desk", granted.file, granted.elapsed, granted.playing)
-            throw IllegalStateException("not on the phone yet · ${file.substringAfterLast('/')}")
+            throw missing(file.substringAfterLast('/'))
         }
         val current = MpdSong(file, granted.artist, granted.title, null, granted.duration)
         val seed = listOf(current)
         phoneQueue.value = seed
         phoneIndex.value = 0
         lease.value = granted
-        h.useLocal(track.uri, granted.title ?: track.displayName, granted.artist, (granted.elapsed * 1000).toLong(), granted.playing, library.artwork(track.uri))
+        h.useLocal(track.uri, granted.title ?: track.name, granted.artist, (granted.elapsed * 1000).toLong(), granted.playing, artworkFor(track, file))
         loadLyrics(file)
         extendQueue(seed, file, snap)
     }
@@ -549,7 +563,8 @@ class Store(private val app: Application) {
 
     private suspend fun copyQueue(snap: MpdSnapshot?, file: String, names: Set<String>): List<MpdSong> {
         val status = snap?.status ?: return emptyList()
-        val local = mpd.queueWindow(0, status.playlistLength).filter { it.file.substringAfterLast('/') in names }
+        val online = reachable.value
+        val local = mpd.queueWindow(0, status.playlistLength).filter { online || it.file.substringAfterLast('/') in names }
         if (!status.random) return local
         return listOfNotNull(local.firstOrNull { it.file == file }) + local.filter { it.file != file }.shuffled()
     }
@@ -572,9 +587,9 @@ class Store(private val app: Application) {
         refreshMpd()
     }
 
-    private suspend fun startLocal(h: PlayerHost, song: MpdSong, track: LocalTrack, positionMs: Long, play: Boolean) {
+    private suspend fun startLocal(h: PlayerHost, song: MpdSong, track: Source, positionMs: Long, play: Boolean) {
         lease.value = lease.value.copy(file = song.file, title = song.title, artist = song.artist, duration = song.duration, elapsed = positionMs / 1000.0)
-        h.useLocal(track.uri, song.name, song.artist, positionMs, play, library.artwork(track.uri))
+        h.useLocal(track.uri, song.name, song.artist, positionMs, play, artworkFor(track, song.file))
         runCatching { bridge.heartbeat(song, positionMs / 1000.0, play) }
         loadLyrics(song.file)
     }
@@ -589,7 +604,7 @@ class Store(private val app: Application) {
             index = (index + queue.size) % queue.size
         }
         val song = queue[index]
-        val track = library.find(song.file) ?: throw IllegalStateException("not on the phone yet · ${song.name}")
+        val track = sourceFor(song.file) ?: throw missing(song.name)
         phoneIndex.value = index
         startLocal(h, song, track, 0, play)
     }
@@ -605,7 +620,7 @@ class Store(private val app: Application) {
     fun playSong(song: MpdSong) = act {
         val h = host
         if (now.value.phoneOwns && h != null) {
-            val track = library.find(song.file) ?: throw IllegalStateException("not on the phone yet · ${song.name}")
+            val track = sourceFor(song.file) ?: throw missing(song.name)
             val queue = phoneQueue.value.toMutableList()
             val at = (phoneIndex.value + 1).coerceIn(0, queue.size)
             queue.add(at, song)

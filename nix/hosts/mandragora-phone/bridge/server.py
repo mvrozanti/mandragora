@@ -37,6 +37,7 @@ LEASE_FILE = STATE_DIR / "lease.json"
 LRCLIB_MISS_TTL = 24 * 3600
 PHONE_LEASE_TTL = 45
 AUDIO_SUFFIXES = {".mp3", ".m4a", ".flac", ".wav", ".ogg", ".opus", ".aac", ".wma"}
+AUDIO_TYPES = {".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".aac": "audio/aac", ".flac": "audio/flac", ".ogg": "audio/ogg", ".opus": "audio/ogg", ".wav": "audio/wav", ".wma": "audio/x-ms-wma"}
 MONEY_CACHE = Path(os.environ.get("PHONE_BRIDGE_MONEY_CACHE", "~/.local/state/money-menu/cache.json")).expanduser()
 MONEY_CACHE_VERSION = 2
 MONEY_STALE_AFTER = 20 * 60
@@ -830,6 +831,14 @@ def code_access() -> dict:
     return {"backends": backends}
 
 
+def music_path(rel: str) -> Path:
+    root = MUSIC_DIR.resolve()
+    path = (root / rel).resolve()
+    if root not in path.parents or path.suffix.lower() not in AUDIO_SUFFIXES or not path.is_file():
+        raise ValueError("not a song in the library")
+    return path
+
+
 def config() -> dict:
     return {
         "version": VERSION,
@@ -865,6 +874,47 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         try:
             self.wfile.write(data)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
+    def send_song(self, path: Path) -> None:
+        size = path.stat().st_size
+        start, end, status = 0, size - 1, 200
+        wanted = self.headers.get("Range") or ""
+        if wanted.startswith("bytes="):
+            first, _, last = wanted[6:].split(",")[0].strip().partition("-")
+            try:
+                if first:
+                    start = int(first)
+                    end = min(int(last), size - 1) if last else size - 1
+                else:
+                    start = max(0, size - int(last))
+            except ValueError:
+                start, end = 0, size - 1
+            if start > end or start >= size:
+                self.send_response(416)
+                self.send_header("Content-Range", f"bytes */{size}")
+                self.end_headers()
+                return
+            status = 206
+        self.send_response(status)
+        self.send_header("Content-Type", AUDIO_TYPES.get(path.suffix.lower(), "application/octet-stream"))
+        self.send_header("Accept-Ranges", "bytes")
+        self.send_header("Content-Length", str(end - start + 1))
+        if status == 206:
+            self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        try:
+            with open(path, "rb") as fh:
+                fh.seek(start)
+                remaining = end - start + 1
+                while remaining > 0:
+                    chunk = fh.read(min(1 << 16, remaining))
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+                    remaining -= len(chunk)
         except (BrokenPipeError, ConnectionResetError):
             pass
 
@@ -928,6 +978,8 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_json({"error": "file required"}, 400)
                 else:
                     self.send_json(lyrics_for(file))
+            elif url.path == "/api/file":
+                self.send_song(music_path(query.get("file") or ""))
             elif url.path == "/api/cover":
                 file = query.get("file")
                 found = cover_for(file) if file else None

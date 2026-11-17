@@ -139,6 +139,8 @@ class BridgeClient(private val baseUrl: () -> String) {
         return json.decodeFromString(Http.get("${baseUrl()}/api/lyrics?file=$encoded"))
     }
 
+    fun fileUrl(file: String): String = "${baseUrl()}/api/file?file=" + java.net.URLEncoder.encode(file, "UTF-8").replace("+", "%20")
+
     fun coverUrl(file: String): String = "${baseUrl()}/api/cover?file=" + java.net.URLEncoder.encode(file, "UTF-8").replace("+", "%20")
 
     suspend fun cover(file: String): ByteArray? = Http.bytes(coverUrl(file))

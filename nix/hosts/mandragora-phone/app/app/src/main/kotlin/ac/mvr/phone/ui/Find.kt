@@ -181,7 +181,7 @@ fun FindScreen(store: Store, onCollapse: () -> Unit) {
                 }
                 items(drilled, key = { it.song.file }) { match ->
                     val song = match.song
-                    val dim = now.phoneOwns && song.file.substringAfterLast('/') !in names
+                    val dim = now.phoneOwns && !reachable && song.file.substringAfterLast('/') !in names
                     SongRow(song, match, term, dim, scheme.primary) { store.playSong(song); onCollapse() }
                 }
             }
