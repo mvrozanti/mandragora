@@ -384,6 +384,7 @@ class CodeStore(private val store: Store) {
         questionsFlow.value = emptyList()
         screensFlow.value = emptyList()
         settingsFlow.value = SessionSettings()
+        parseModel(store.prefs.codeModel)?.let { saved -> choices().firstOrNull { it == saved }?.let { modelFlow.value = it } }
         newIn.value = dir
         store.prefs.lastCodeDir = dir
     }
@@ -561,11 +562,11 @@ class CodeStore(private val store: Store) {
             "message.part.removed" -> if (mine) removePart(p)
             "session.status" -> if (sessionID != null) {
                 val status = p["status"]?.let { runCatching { json.decodeFromJsonElement<CodeStatus>(it) }.getOrNull() } ?: CodeStatus()
-                if (mine && status.type == "idle" && statusFlow.value[sessionID]?.type == "busy") syncCurrent()
+                if (mine && status.type == "idle") syncCurrent()
                 statusFlow.value = if (status.type == "idle") statusFlow.value - sessionID else statusFlow.value + (sessionID to status)
             }
             "session.idle" -> if (sessionID != null) {
-                if (mine && statusFlow.value[sessionID]?.type == "busy") syncCurrent()
+                if (mine) syncCurrent()
                 statusFlow.value = statusFlow.value - sessionID
             }
             "session.created", "session.updated" -> p["info"]?.let { info ->

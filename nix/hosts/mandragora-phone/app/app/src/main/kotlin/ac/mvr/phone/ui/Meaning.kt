@@ -50,6 +50,8 @@ object Meaning {
         return spans.sortedWith(compareByDescending<Span> { it.weight }.thenBy { it.start }).take(MAX_SPANS_PER_LINE).sortedBy { it.start }
     }
 
+    fun unmark(raw: String): String = marker.replace(raw) { it.groupValues[2] }
+
     fun annotate(raw: String, scheme: ColorScheme): AnnotatedString {
         val marks = ArrayList<Triple<Int, Int, Char>>()
         val plain = StringBuilder()

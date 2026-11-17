@@ -443,7 +443,7 @@ private fun EntryView(entry: CodeEntry, scheme: ColorScheme, stops: Stops, onEdi
         return
     }
     val words = entry.parts.filter { it.type == "text" && !it.ignored }.mapNotNull { it.text }.filter { it.isNotBlank() }.joinToString("\n\n")
-    val copy = listOf<Pair<String, () -> Unit>>("copy" to { clipboard.setText(AnnotatedString(words)) })
+    val copy = listOf<Pair<String, () -> Unit>>("copy" to { clipboard.setText(AnnotatedString(Meaning.unmark(words))) })
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         entry.parts.forEach { part ->
             when (part.type) {
@@ -798,9 +798,9 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         snapshotFlow { Triple(transcript.isScrollInProgress, transcript.firstVisibleItemIndex, transcript.firstVisibleItemScrollOffset) }
             .collect { (scrolling, index, offset) -> if (scrolling) follow = index == 0 && offset < 120 }
     }
-    val newest = listOf(entries.size, pendingHere.size, questions.size, asks.size, if (busy) 1 else 0, entries.lastOrNull()?.parts?.size ?: 0, screens.firstOrNull()?.id.hashCode())
+    val newest = listOf(entries.size, pendingHere.size, questions.size, asks.size, if (busy) 1 else 0, entries.lastOrNull()?.parts?.size ?: 0, screens.firstOrNull()?.id.hashCode(), stops.chips.keys.hashCode())
     LaunchedEffect(current?.id, newest) {
-        if (follow && transcript.firstVisibleItemIndex != 0) transcript.scrollToItem(0)
+        if (follow && (transcript.firstVisibleItemIndex != 0 || transcript.firstVisibleItemScrollOffset != 0)) transcript.scrollToItem(0)
     }
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("code", reachable, onCollapse)
