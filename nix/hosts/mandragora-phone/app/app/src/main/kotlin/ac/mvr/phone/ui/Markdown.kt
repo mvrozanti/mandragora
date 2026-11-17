@@ -180,24 +180,25 @@ fun MarkdownText(text: String, scheme: ColorScheme) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         blocks.forEach { block ->
             when (block) {
-                is MdPara -> Text(remember(block, scheme) { Markdown.inline(block.text, scheme) }, style = MaterialTheme.typography.bodyMedium)
+                is MdPara -> Text(remember(block, scheme) { Markdown.inline(block.text, scheme) }, style = ReplyBody, color = scheme.onSurface)
                 is MdHeading -> Text(
                     remember(block, scheme) { Markdown.inline(block.text, scheme) },
-                    style = if (block.level <= 2) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
+                    style = ReplyBody.copy(fontSize = if (block.level <= 2) 18.sp else 16.5.sp, lineHeight = 25.sp),
+                    fontWeight = FontWeight.SemiBold,
+                    color = scheme.onSurface,
                 )
                 is MdList -> Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     block.items.forEachIndexed { index, entry ->
                         Row {
-                            Text(if (block.ordered) "${index + 1}." else "•", style = MaterialTheme.typography.bodyMedium, color = scheme.outline, modifier = Modifier.width(20.dp))
-                            Text(remember(entry, scheme) { Markdown.inline(entry, scheme) }, style = MaterialTheme.typography.bodyMedium)
+                            Text(if (block.ordered) "${index + 1}." else "•", style = ReplyBody, color = scheme.outline, modifier = Modifier.width(22.dp))
+                            Text(remember(entry, scheme) { Markdown.inline(entry, scheme) }, style = ReplyBody, color = scheme.onSurface)
                         }
                     }
                 }
                 is MdQuote -> Row(
                     modifier = Modifier.drawBehind { drawLine(scheme.outlineVariant, Offset(0f, 0f), Offset(0f, size.height), strokeWidth = 3.dp.toPx()) }.padding(start = 12.dp),
                 ) {
-                    Text(remember(block, scheme) { Markdown.inline(block.text, scheme) }, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                    Text(remember(block, scheme) { Markdown.inline(block.text, scheme) }, style = ReplyBody, color = scheme.onSurfaceVariant)
                 }
                 is MdFence -> Box(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(scheme.surfaceContainerLow).horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 8.dp),
@@ -214,7 +215,7 @@ fun MarkdownText(text: String, scheme: ColorScheme) {
 private fun MarkdownTable(table: MdTable, scheme: ColorScheme) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
-    val cellStyle = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp)
+    val cellStyle = ReplyBody.copy(fontSize = 14.sp, lineHeight = 19.sp)
     val headStyle = cellStyle.copy(fontWeight = FontWeight.Medium, fontSize = 12.sp)
     val columns = table.head.size
     val rows = remember(table) { table.rows.map { r -> List(columns) { c -> r.getOrElse(c) { "" } } } }

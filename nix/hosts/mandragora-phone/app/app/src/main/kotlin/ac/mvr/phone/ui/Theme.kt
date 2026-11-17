@@ -7,7 +7,10 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import ac.mvr.phone.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import ac.mvr.phone.net.Palette
@@ -49,6 +52,16 @@ fun Palette.scheme(): ColorScheme = darkColorScheme(
 )
 
 val Mono = FontFamily.Monospace
+
+val ReplySerif = FontFamily(
+    Font(R.font.source_serif_regular, FontWeight.Normal),
+    Font(R.font.source_serif_italic, FontWeight.Normal, FontStyle.Italic),
+    Font(R.font.source_serif_semibold, FontWeight.SemiBold),
+    Font(R.font.source_serif_semibold, FontWeight.Medium),
+    Font(R.font.source_serif_bold, FontWeight.Bold),
+)
+
+val ReplyBody = TextStyle(fontFamily = ReplySerif, fontSize = 15.5.sp, lineHeight = 23.sp)
 
 val MandragoraTypography = Typography(
     headlineMedium = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp, letterSpacing = (-0.5).sp, lineHeight = 30.sp),

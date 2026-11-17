@@ -103,6 +103,50 @@ class CodeStore(private val store: Store) {
     private var syncAgain = false
     private var listJob: Job? = null
 
+    data class Attachment(val path: String, val thumb: android.graphics.Bitmap)
+
+    data class Pending(val id: Long, val sessionId: String, val text: String, val at: Long, val seen: Set<String>)
+
+    val attachments = MutableStateFlow<List<Attachment>>(emptyList())
+    val uploading = MutableStateFlow(false)
+    val pending = MutableStateFlow<List<Pending>>(emptyList())
+
+    fun attach(uri: android.net.Uri) = run {
+        uploading.value = true
+        try {
+            val raw = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                store.appContext.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            } ?: throw IOException("could not read the picture")
+            val bytes = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { ac.mvr.phone.play.Artwork.shrink(raw, 2048) } ?: throw IOException("that file is not a picture")
+            val client = client("claude") ?: throw IOException("desktop unreachable")
+            val path = client.upload(bytes)
+            val thumb = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { ac.mvr.phone.play.Artwork.decode(bytes, 160) } ?: throw IOException("that file is not a picture")
+            attachments.value = attachments.value + Attachment(path, thumb)
+        } finally {
+            uploading.value = false
+        }
+    }
+
+    fun detach(path: String) {
+        attachments.value = attachments.value.filter { it.path != path }
+    }
+
+    private fun norm(text: String): String = text.replace(Regex("\\s+"), " ").trim()
+
+    private fun reconcile() {
+        val sid = currentFlow.value?.id ?: return
+        val now = System.currentTimeMillis()
+        val users = entriesFlow.value.filter { it.info.role == "user" }.map { entry ->
+            entry.info.id to norm(entry.parts.filter { it.type == "text" }.mapNotNull { it.text }.joinToString(" "))
+        }
+        pending.value = pending.value.filter { p ->
+            if (now - p.at > 15 * 60_000) return@filter false
+            if (p.sessionId != sid) return@filter true
+            val key = norm(p.text).take(40)
+            users.none { (id, text) -> id !in p.seen && text.contains(key) }
+        }
+    }
+
     private fun ordered(list: List<CodeSession>): List<CodeSession> =
         list.sortedWith(compareByDescending<CodeSession> { it.time.updated }.thenBy { it.id })
 
@@ -253,6 +297,7 @@ class CodeStore(private val store: Store) {
         if (currentFlow.value?.id != session.id) return
         entriesFlow.value = list
         followModel(session, list)
+        reconcile()
         val pending = runCatching { client.permissions(session.directory) }.getOrDefault(emptyList()).filter { it.sessionID == session.id }
         val open = runCatching { client.questions(session.directory) }.getOrDefault(emptyList()).filter { it.sessionID == session.id }
         if (currentFlow.value?.id != session.id) return
@@ -281,10 +326,17 @@ class CodeStore(private val store: Store) {
     }
 
     fun send(text: String) = run {
-        val body = text.trim()
-        if (body.isEmpty() || sending.value) return@run
+        val typed = text.trim()
+        val files = attachments.value
+        if ((typed.isEmpty() && files.isEmpty()) || sending.value) return@run
+        val body = (listOf(typed.ifEmpty { "Look at the attached picture." }) + files.map { "Attached picture: ${it.path}" }).joinToString("\n")
         sending.value = true
-        try { deliver(body) } finally { sending.value = false }
+        try {
+            deliver(body)
+            attachments.value = emptyList()
+        } finally {
+            sending.value = false
+        }
     }
 
     val sending = MutableStateFlow(false)
@@ -306,6 +358,7 @@ class CodeStore(private val store: Store) {
         }
         client.prompt(session.id, session.directory, body, chosen?.providerID?.takeIf { sameBackend }, chosen?.modelID?.takeIf { sameBackend })
         draft.value = ""
+        pending.value = pending.value + Pending(System.nanoTime(), session.id, body, System.currentTimeMillis(), entriesFlow.value.filter { it.info.role == "user" }.map { it.info.id }.toSet())
         statusFlow.value = statusFlow.value + (session.id to CodeStatus("busy"))
         touch(session.id, System.currentTimeMillis())
         if (session.live != null) syncCurrent()
@@ -370,6 +423,7 @@ class CodeStore(private val store: Store) {
                 if (currentFlow.value?.id == session.id) {
                     entriesFlow.value = list
                     followModel(session, list)
+                    reconcile()
                 }
             } while (syncAgain)
         }
@@ -397,8 +451,8 @@ class CodeStore(private val store: Store) {
                 val updated = p["updated"]?.jsonPrimitive?.contentOrNull?.toLongOrNull()
                 if (updated == null || sessionsFlow.value.none { it.id == sessionID }) refreshListSoon() else touch(sessionID, updated)
             }
-            "message.updated" -> if (mine) p["info"]?.let { upsertMessage(json.decodeFromJsonElement<CodeMessage>(it)) }
-            "message.part.updated" -> if (mine) p["part"]?.let { upsertPart(json.decodeFromJsonElement<CodePart>(it)) }
+            "message.updated" -> if (mine) p["info"]?.let { upsertMessage(json.decodeFromJsonElement<CodeMessage>(it)); reconcile() }
+            "message.part.updated" -> if (mine) p["part"]?.let { upsertPart(json.decodeFromJsonElement<CodePart>(it)); reconcile() }
             "message.part.delta" -> if (mine) delta(p)
             "message.removed" -> if (mine) p["messageID"]?.jsonPrimitive?.contentOrNull?.let { id -> entriesFlow.value = entriesFlow.value.filter { it.info.id != id } }
             "message.part.removed" -> if (mine) removePart(p)

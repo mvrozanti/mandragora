@@ -82,6 +82,7 @@ private const val TAILSCALE = "com.tailscale.ipn"
 
 class Store(private val app: Application) {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    val appContext: Application get() = app
     val library = LocalLibrary(app)
     val prefs = Prefs(app)
     val requestedScreen = MutableStateFlow<String?>(null)

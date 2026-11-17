@@ -45,6 +45,8 @@ CLI_PATH = os.environ.get("CLAUDE_BRIDGE_CLI") or None
 IDLE_SECONDS = int(os.environ.get("CLAUDE_BRIDGE_IDLE_SECONDS", "900"))
 SESSIONS_INDEX = HOME / ".claude" / "sessions"
 TRANSCRIPTS = HOME / ".claude" / "projects"
+UPLOADS = HOME / ".cache" / "claude-bridge" / "uploads"
+IMAGE_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/gif": ".gif"}
 TMUX = os.environ.get("CLAUDE_BRIDGE_TMUX", "tmux")
 FINDER = os.environ.get("CLAUDE_BRIDGE_FIND", "claude-find")
 FIND_REINDEX_SECONDS = 15
@@ -155,6 +157,75 @@ def entry_for(message_id: str, sid: str, role: str, model: str | None = None, cr
         info["modelID"] = model
         info["providerID"] = provider_of(model)
     return {"info": info, "parts": []}
+
+
+RECORD_ID = re.compile(r'"uuid":"([^"]+)"')
+MESSAGE_ID = re.compile(r'"id":"(msg_[^"]+)"')
+queued_cache: dict[Path, tuple[tuple[int, int], dict[str, int], list[tuple[int, str, str]]]] = {}
+
+
+def queued_text(prompt) -> str:
+    if isinstance(prompt, str):
+        return prompt.strip()
+    if isinstance(prompt, list):
+        return "\n".join(block.get("text", "") for block in prompt if isinstance(block, dict) and block.get("type") == "text").strip()
+    return ""
+
+
+def scan_queued(path: Path) -> tuple[dict[str, int], list[tuple[int, str, str]]]:
+    stat = path.stat()
+    key = (stat.st_mtime_ns, stat.st_size)
+    cached = queued_cache.get(path)
+    if cached and cached[0] == key:
+        return cached[1], cached[2]
+    order: dict[str, int] = {}
+    queued: list[tuple[int, str, str]] = []
+    with path.open(encoding="utf-8", errors="replace") as handle:
+        for index, line in enumerate(handle):
+            for pattern in (RECORD_ID, MESSAGE_ID):
+                found = pattern.search(line)
+                if found:
+                    order.setdefault(found.group(1), index)
+            if '"queued_command"' not in line:
+                continue
+            try:
+                record = json.loads(line)
+            except ValueError:
+                continue
+            attachment = record.get("attachment") or {}
+            text = queued_text(attachment.get("prompt"))
+            if record.get("type") == "attachment" and attachment.get("type") == "queued_command" and text and not text.startswith("<") and record.get("uuid") and not record.get("isSidechain"):
+                queued.append((index, record["uuid"], text))
+    queued_cache[path] = (key, order, queued)
+    return order, queued
+
+
+def with_queued(sid: str, entries: list[dict]) -> list[dict]:
+    path = next(TRANSCRIPTS.glob(f"*/{sid}.jsonl"), None)
+    if path is None:
+        return entries
+    try:
+        order, queued = scan_queued(path)
+    except OSError:
+        return entries
+    known = [order[entry["info"]["id"]] for entry in entries if entry["info"]["id"] in order]
+    if not queued or not known:
+        return entries
+    start = min(known)
+    typed = {part.get("text", "").strip() for entry in entries if entry["info"]["role"] == "user" for part in entry["parts"]}
+    placed: list[tuple[int, int, dict]] = []
+    position = -1
+    for seq, entry in enumerate(entries):
+        position = order.get(entry["info"]["id"], position)
+        placed.append((position, seq, entry))
+    for index, record_id, text in queued:
+        if index < start or text in typed:
+            continue
+        entry = entry_for(record_id, sid, "user")
+        entry["parts"].append(text_part(f"{record_id}:0", record_id, sid, "text", text))
+        placed.append((index, len(placed), entry))
+    placed.sort(key=lambda item: (item[0], item[1]))
+    return [entry for _, _, entry in placed]
 
 
 def convert_records(sid: str, records) -> list[dict]:
@@ -706,6 +777,19 @@ async def find(request: web.Request) -> web.Response:
         return json_error(f"search failed: {str(err)[:160]}", 503)
 
 
+async def upload(request: web.Request) -> web.Response:
+    suffix = IMAGE_TYPES.get((request.content_type or "").lower())
+    if suffix is None:
+        return json_error("only pictures can be attached", 415)
+    data = await request.read()
+    if not data:
+        return json_error("empty upload", 400)
+    UPLOADS.mkdir(parents=True, exist_ok=True)
+    path = UPLOADS / f"{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}{suffix}"
+    await asyncio.to_thread(path.write_bytes, data)
+    return web.json_response({"path": str(path)})
+
+
 async def session_status(request: web.Request) -> web.Response:
     return web.json_response(bridge_of(request).statuses())
 
@@ -735,7 +819,7 @@ async def messages(request: web.Request) -> web.Response:
         records = await asyncio.to_thread(get_session_messages, sid, directory)
     except Exception:
         records = []
-    entries = convert_records(sid, records)
+    entries = await asyncio.to_thread(with_queued, sid, convert_records(sid, records))
     if limit and len(entries) > limit:
         entries = entries[-limit:]
     known = {entry["info"]["id"] for entry in entries}
@@ -992,7 +1076,7 @@ async def stop_watcher(app: web.Application) -> None:
 
 
 def make_app() -> web.Application:
-    app = web.Application(middlewares=[auth_middleware])
+    app = web.Application(middlewares=[auth_middleware], client_max_size=32 * 1024 * 1024)
     app[PASSWORD] = load_password()
     app[BRIDGE] = Bridge()
     app.on_startup.append(start_watcher)
@@ -1005,6 +1089,7 @@ def make_app() -> web.Application:
     app.router.add_get("/project", projects)
     app.router.add_get("/session", sessions)
     app.router.add_get("/find", find)
+    app.router.add_post("/upload", upload)
     app.router.add_post("/session", create_session)
     app.router.add_get("/session/status", session_status)
     app.router.add_get("/session/{sid}/message", messages)

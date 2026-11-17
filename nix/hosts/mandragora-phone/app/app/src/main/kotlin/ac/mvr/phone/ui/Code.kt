@@ -1,5 +1,18 @@
 package ac.mvr.phone.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import ac.mvr.phone.state.CodeStore
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -244,8 +257,8 @@ private fun EntryView(entry: CodeEntry, scheme: ColorScheme) {
         val text = entry.parts.filter { it.type == "text" && !it.synthetic && !it.ignored }.mapNotNull { it.text }.joinToString("\n")
         if (text.isBlank()) return
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-            Box(modifier = Modifier.clip(RoundedCornerShape(16.dp)).background(scheme.primaryContainer).padding(horizontal = 12.dp, vertical = 8.dp)) {
-                Text(text, style = MaterialTheme.typography.bodyMedium, color = scheme.onPrimaryContainer)
+            Box(modifier = Modifier.clip(RoundedCornerShape(18.dp)).background(scheme.surfaceContainerHigh).padding(horizontal = 14.dp, vertical = 10.dp)) {
+                Text(text, style = MaterialTheme.typography.bodyLarge, color = scheme.onSurface)
             }
         }
         return
@@ -262,6 +275,17 @@ private fun EntryView(entry: CodeEntry, scheme: ColorScheme) {
             }
         }
         entry.info.error?.let { Label(it.text, color = scheme.error) }
+    }
+}
+
+@Composable
+private fun PendingBubble(text: String, busy: Boolean) {
+    val scheme = MaterialTheme.colorScheme
+    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Box(modifier = Modifier.alpha(0.6f).clip(RoundedCornerShape(18.dp)).background(scheme.surfaceContainerHigh).padding(horizontal = 14.dp, vertical = 10.dp)) {
+            Text(text, style = MaterialTheme.typography.bodyLarge, color = scheme.onSurface)
+        }
+        Label(if (busy) "queued · goes in when the current turn ends" else "sent · waiting for the session", color = scheme.tertiary)
     }
 }
 
@@ -335,13 +359,48 @@ private fun QuestionCard(ask: QuestionAsk, onAnswer: (List<List<String>>) -> Uni
 }
 
 @Composable
-private fun Composer(draft: String, busy: Boolean, enabled: Boolean, onChange: (String) -> Unit, onSend: () -> Unit, onStop: () -> Unit) {
+private fun Composer(
+    draft: String,
+    busy: Boolean,
+    enabled: Boolean,
+    attachments: List<CodeStore.Attachment>,
+    uploading: Boolean,
+    onChange: (String) -> Unit,
+    onSend: () -> Unit,
+    onStop: () -> Unit,
+    onAttach: () -> Unit,
+    onDetach: (String) -> Unit,
+) {
     val scheme = MaterialTheme.colorScheme
-    val stopping = busy && draft.isBlank()
+    val stopping = busy && draft.isBlank() && attachments.isEmpty()
+    if (attachments.isNotEmpty() || uploading) {
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 14.dp, end = 14.dp, top = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            attachments.forEach { file ->
+                Box {
+                    Image(file.thumb.asImageBitmap(), null, contentScale = ContentScale.Crop, modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp)))
+                    Box(
+                        modifier = Modifier.align(Alignment.TopEnd).padding(3.dp).size(22.dp).clip(CircleShape).background(scheme.surface.copy(alpha = 0.8f)).clickable { onDetach(file.path) },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Icons.Filled.Close, "remove", tint = scheme.onSurface, modifier = Modifier.size(14.dp))
+                    }
+                }
+            }
+            if (uploading) Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp)).background(scheme.surfaceContainerHigh), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
+            }
+        }
+    }
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 6.dp, top = 6.dp, bottom = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 6.dp, top = 6.dp, bottom = 8.dp),
         verticalAlignment = Alignment.Bottom,
     ) {
+        IconButton(onClick = onAttach, enabled = enabled && !uploading) {
+            Icon(Icons.Filled.AddPhotoAlternate, "attach a picture", tint = scheme.onSurfaceVariant)
+        }
         OutlinedTextField(
             value = draft,
             onValueChange = onChange,
@@ -353,7 +412,7 @@ private fun Composer(draft: String, busy: Boolean, enabled: Boolean, onChange: (
             textStyle = MaterialTheme.typography.bodyMedium,
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = scheme.primary, unfocusedBorderColor = scheme.outlineVariant),
         )
-        IconButton(onClick = { if (stopping) onStop() else onSend() }, enabled = enabled && (stopping || draft.isNotBlank())) {
+        IconButton(onClick = { if (stopping) onStop() else onSend() }, enabled = enabled && !uploading && (stopping || draft.isNotBlank() || attachments.isNotEmpty())) {
             Icon(
                 if (stopping) Icons.Filled.Stop else Icons.AutoMirrored.Filled.Send,
                 if (stopping) "stop" else "send",
@@ -421,6 +480,11 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         }
     }
     val busy = current?.let { statuses[it.id]?.type == "busy" } ?: false
+    val attachments by code.attachments.collectAsStateWithLifecycle()
+    val uploading by code.uploading.collectAsStateWithLifecycle()
+    val pendingAll by code.pending.collectAsStateWithLifecycle()
+    val pendingHere = pendingAll.filter { it.sessionId == current?.id }
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> if (uri != null) code.attach(uri) }
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("code", reachable, onCollapse)
         Banner(reachable)
@@ -433,6 +497,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         ) {
             items(questions, key = { "q" + it.id }) { ask -> QuestionCard(ask, onAnswer = { code.answer(ask, it) }, onReject = { code.rejectQuestion(ask) }) }
             items(asks, key = { "p" + it.id }) { ask -> PermissionCard(ask) { code.allow(ask, it) } }
+            items(pendingHere.asReversed(), key = { "s" + it.id }) { PendingBubble(it.text, busy) }
             if (busy) item(key = "busy") { Label("working…", color = scheme.primary) }
             items(entries.asReversed(), key = { it.info.id }) { EntryView(it, scheme) }
             if (entries.isEmpty()) {
@@ -442,7 +507,14 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
             }
         }
         Notice(store, Modifier.padding(horizontal = 14.dp))
-        Composer(draft, busy, reachable, onChange = { code.draft.value = it }, onSend = { code.send(draft) }, onStop = { code.stop() })
+        Composer(
+            draft, busy, reachable, attachments, uploading,
+            onChange = { code.draft.value = it },
+            onSend = { code.send(draft) },
+            onStop = { code.stop() },
+            onAttach = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            onDetach = { code.detach(it) },
+        )
     }
     if (picking) {
         SessionSheet(

@@ -130,6 +130,9 @@ data class QuestionInfo(
 data class QuestionAsk(val id: String, val sessionID: String, val questions: List<QuestionInfo> = emptyList())
 
 @Serializable
+data class Uploaded(val path: String)
+
+@Serializable
 data class CodeProvider(val id: String, val name: String = id)
 
 @Serializable
@@ -157,6 +160,9 @@ class CodeClient(val id: String, private val baseUrl: () -> String, private val 
 
     suspend fun projects(): List<CodeProject> =
         json.decodeFromString<List<CodeProject>>(Http.get(url("/project"), headers())).onEach { it.backend = id }
+
+    suspend fun upload(bytes: ByteArray): String =
+        json.decodeFromString<Uploaded>(Http.postBytes(url("/upload"), bytes, "image/jpeg", headers())).path
 
     suspend fun find(query: String, limit: Int): List<CodeSession> =
         json.decodeFromString<List<CodeSession>>(Http.get(url("/find?limit=$limit&q=" + enc(query)), headers())).onEach { it.backend = id }
