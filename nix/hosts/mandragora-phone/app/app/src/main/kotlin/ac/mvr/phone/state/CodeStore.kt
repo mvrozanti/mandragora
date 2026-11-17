@@ -296,8 +296,10 @@ class CodeStore(private val store: Store) {
     }
 
     fun modelChoices(): List<CodeModel> {
-        val backend = currentFlow.value?.backend?.ifEmpty { null }
-        return choices().filter { backend == null || it.backend == backend }
+        val session = currentFlow.value
+        val backend = session?.backend?.ifEmpty { null }
+        val pinned = settingsFlow.value.providerID?.takeIf { session?.live != null && backend == "claude" }
+        return choices().filter { (backend == null || it.backend == backend) && (pinned == null || it.providerID == pinned) }
     }
 
     private fun followModel(session: CodeSession, entries: List<CodeEntry>) {
@@ -315,12 +317,22 @@ class CodeStore(private val store: Store) {
         if (modelFlow.value != match) modelFlow.value = match
     }
 
-    private fun adjustable(): CodeSession? = currentFlow.value?.takeIf { it.backend == "claude" && it.live == null }
+    private fun adjustable(): CodeSession? = currentFlow.value?.takeIf { it.backend == "claude" }
 
     private fun change(body: kotlinx.serialization.json.JsonObject) = run {
         val session = adjustable() ?: return@run
         val client = client(session.backend) ?: throw IOException("desktop unreachable")
-        val saved = client.setSettings(session.id, session.directory, body)
+        val saved = try {
+            client.setSettings(session.id, session.directory, body)
+        } catch (err: Exception) {
+            runCatching { client.settings(session.id, session.directory) }.getOrNull()?.let { found ->
+                if (currentFlow.value?.id == session.id) {
+                    settingsFlow.value = found
+                    followModel(session, entriesFlow.value)
+                }
+            }
+            throw err
+        }
         if (currentFlow.value?.id == session.id) settingsFlow.value = saved
     }
 

@@ -80,6 +80,12 @@ SCREEN_FOOTER = re.compile(r"Esc to cancel|Enter to select|to navigate|ctrl\+g t
 SCREEN_TEXT = re.compile(r"type something|tell claude", re.I)
 SCREEN_TABS = re.compile(r"^\s*←.*→\s*$")
 SCREEN_KEYS = {"escape": "Escape", "next": "Right", "previous": "Left"}
+SCREEN_EDGE = re.compile(r"^\s*[─━]{12,}")
+SCREEN_EFFORT = re.compile(r"[○◐●◉◈]\s+(low|medium|high|xhigh|max) · /effort")
+SCREEN_PICKED_EFFORT = re.compile(r"[○◐●◉◈]\s+(\w+) effort( \(default\))?\s+←/→")
+SCREEN_MODEL = re.compile(r"\[(deepseek-v4-pro|deepseek-v4-flash|Opus|Sonnet|Haiku|Fable)\b[^\]]*\]")
+SCREEN_MODES = (("auto mode on", "auto"), ("manual mode on", "default"), ("accept edits on", "acceptEdits"), ("plan mode on", "plan"))
+SCREEN_PICKER = "Select model"
 SCREEN_TAIL_BYTES = 262144
 SCREEN_MISSES = 2
 
@@ -598,7 +604,25 @@ class Bridge:
         self.bus.emit("session.settings", {"sessionID": sid, "settings": shown})
         return now
 
+    def desk_settings(self, sid: str, live: dict) -> dict:
+        stored = self.choice(sid)
+        view = {"mode": None, "effort": None, "model": None}
+        try:
+            pane = pane_of(int(live["pid"]))
+            if pane is not None:
+                view = desk_view(pane_lines(pane))
+        except (RuntimeError, OSError, subprocess.SubprocessError, ValueError):
+            pass
+        model = view["model"] or stored.get("model")
+        if model is None:
+            seen = last_model(sid)
+            model = model_alias(provider_of(seen), seen)
+        return {"providerID": provider_of(model), "modelID": model, "mode": view["mode"] or stored["mode"], "effort": view["effort"] or stored["effort"]}
+
     async def settings_of(self, sid: str) -> dict:
+        live = self.live_sessions().get(sid)
+        if live is not None:
+            return await asyncio.to_thread(self.desk_settings, sid, live)
         stored = self.choice(sid)
         provider, model = stored.get("provider"), stored.get("model")
         if provider not in PROVIDERS:
@@ -1158,8 +1182,9 @@ async def set_settings(request: web.Request) -> web.Response:
         changes["provider"], changes["model"] = provider, model
     if not changes:
         return json_error("nothing to change", 400)
-    if sid in bridge.live_sessions():
-        return json_error("that session runs in a desktop terminal; change it there", 409)
+    live = bridge.live_sessions().get(sid)
+    if live is not None:
+        return await tune_live(bridge, sid, live, changes)
     bridge.choose(sid, **changes)
     fresh = bridge.fresh.get(sid)
     if fresh is not None and "provider" in changes:
@@ -1177,6 +1202,28 @@ async def set_settings(request: web.Request) -> web.Response:
         except Exception as err:
             return json_error(f"saved; the running session did not take it yet: {str(err)[:120]}", 503)
     return web.json_response(await bridge.settings_of(sid))
+
+
+async def tune_live(bridge: Bridge, sid: str, live: dict, changes: dict) -> web.Response:
+    if live.get("status") == "waiting":
+        return json_error("that terminal is waiting on an answer; answer it first", 409)
+    now = await asyncio.to_thread(bridge.desk_settings, sid, live)
+    if "provider" in changes:
+        if changes["provider"] != now["providerID"]:
+            return json_error(f"that terminal runs {PROVIDERS[now['providerID']]['name']}; switching between Claude and DeepSeek takes a new session", 409)
+        if changes["model"] == now["modelID"]:
+            changes = {key: value for key, value in changes.items() if key not in ("provider", "model")}
+    try:
+        pane = await asyncio.to_thread(pane_of, int(live["pid"]))
+        if pane is None:
+            return json_error("that session runs outside tmux; change it there", 409)
+        await asyncio.to_thread(tune_desk, pane, now["providerID"], changes)
+    except RuntimeError as err:
+        return json_error(str(err)[:160], 409)
+    except (OSError, subprocess.SubprocessError, ValueError) as err:
+        return json_error(f"could not reach the desktop terminal: {str(err)[:120]}", 503)
+    kept = bridge.choose(sid, **({"provider": now["providerID"], "model": now["modelID"], "mode": now["mode"], "effort": now["effort"]} | changes))
+    return web.json_response({"providerID": kept["provider"], "modelID": kept["model"], "mode": kept["mode"], "effort": kept["effort"]})
 
 
 async def rename(request: web.Request) -> web.Response:
@@ -1360,6 +1407,140 @@ def stop_pane(pane: str, said: str | None) -> None:
         if holds(pane, said):
             tmux("send-keys", "-t", pane, "C-c")
             return
+
+
+def pane_lines(pane: str) -> list[str]:
+    return tmux("capture-pane", "-p", "-J", "-t", pane).splitlines()
+
+
+def desk_mode(lines: list[str]) -> str | None:
+    for line in reversed(lines[-8:]):
+        for words, mode in SCREEN_MODES:
+            if words in line:
+                return mode
+    return None
+
+
+def desk_view(lines: list[str]) -> dict:
+    edges = [at for at, line in enumerate(lines) if SCREEN_EDGE.match(line)]
+    below = lines[edges[-1] + 1:] if edges else []
+    seen = next((found.group(1) for line in below if (found := SCREEN_MODEL.search(line))), None)
+    near = lines[max(edges[-2] - 1, 0):edges[-2] + 1] if len(edges) >= 2 else []
+    effort = next((found.group(1) for line in near if (found := SCREEN_EFFORT.search(line))), None)
+    model = seen if seen is None or seen.startswith("deepseek") else seen.lower()
+    return {"mode": desk_mode(lines), "effort": effort, "model": model}
+
+
+def picker_open(lines: list[str]) -> bool:
+    return any(SCREEN_PICKER in line for line in lines[-40:])
+
+
+def picker_options(lines: list[str]) -> list[tuple[bool, str]]:
+    start = max((at for at, line in enumerate(lines) if SCREEN_PICKER in line), default=0)
+    options = []
+    for line in lines[start:]:
+        found = SCREEN_OPTION.match(line)
+        if found:
+            options.append((line.lstrip().startswith("❯"), found.group(3).split("  ")[0].replace("✔", "").strip()))
+    return options
+
+
+def picker_means(provider: str, model: str, label: str) -> bool:
+    if model == "default":
+        return label.startswith("Default")
+    if provider == "claude":
+        return label.lower().startswith(model)
+    return label == model
+
+
+def picked_effort(lines: list[str]) -> tuple[str, bool] | None:
+    for line in reversed(lines):
+        found = SCREEN_PICKED_EFFORT.search(line)
+        if found:
+            return found.group(1).lower(), bool(found.group(2))
+    return None
+
+
+def settle(pane: str, ready, tries: int = 12) -> list[str] | None:
+    for _ in range(tries):
+        time.sleep(0.2)
+        lines = pane_lines(pane)
+        if ready(lines):
+            return lines
+    return None
+
+
+def cycle_mode(pane: str, mode: str) -> None:
+    for _ in range(len(MODES) + 1):
+        now = desk_mode(pane_lines(pane))
+        if now is None:
+            raise RuntimeError("the terminal shows no mode line; is a dialog open there?")
+        if now == mode:
+            return
+        tmux("send-keys", "-t", pane, "BTab")
+        time.sleep(0.4)
+    raise RuntimeError(f"the terminal did not reach {mode} mode")
+
+
+def walk_effort(pane: str, effort: str | None) -> None:
+    heading = "Left"
+    for _ in range(len(EFFORTS) * 2 + 2):
+        found = picked_effort(pane_lines(pane))
+        if found is None:
+            raise RuntimeError("that model has no effort setting")
+        level, default = found
+        if (default if effort is None else level == effort):
+            return
+        if effort is not None:
+            if level not in EFFORTS:
+                raise RuntimeError(f"the terminal shows an unknown effort {level}")
+            heading = "Right" if EFFORTS.index(effort) > EFFORTS.index(level) else "Left"
+        tmux("send-keys", "-t", pane, heading)
+        time.sleep(0.25)
+        after = picked_effort(pane_lines(pane))
+        if after is not None and after[0] == level:
+            if effort is not None or heading == "Right":
+                raise RuntimeError(f"that model does not offer {effort or 'a default'} effort")
+            heading = "Right"
+    raise RuntimeError("the terminal did not reach that effort")
+
+
+def pick_on_desk(pane: str, provider: str, model: str | None, effort: str | None, effort_given: bool) -> None:
+    if desk_mode(pane_lines(pane)) is None:
+        raise RuntimeError("the terminal has a dialog open; answer it first")
+    tmux("send-keys", "-t", pane, "M-p")
+    lines = settle(pane, picker_open)
+    if lines is None:
+        raise RuntimeError("the model picker did not open in that terminal")
+    try:
+        if model is not None:
+            options = picker_options(lines)
+            target = next((at for at, (_, label) in enumerate(options) if picker_means(provider, model, label)), None)
+            cursor = next((at for at, (on, _) in enumerate(options) if on), None)
+            if target is None or cursor is None:
+                raise RuntimeError(f"that terminal does not offer {model}")
+            for _ in range(abs(target - cursor)):
+                tmux("send-keys", "-t", pane, "Down" if target > cursor else "Up")
+                time.sleep(0.1)
+            landed = settle(pane, lambda now: any(on and picker_means(provider, model, label) for on, label in picker_options(now)), 6)
+            if landed is None:
+                raise RuntimeError(f"could not reach {model} in the model picker")
+        if effort_given:
+            walk_effort(pane, effort)
+        tmux("send-keys", "-t", pane, "s")
+    except Exception:
+        if picker_open(pane_lines(pane)):
+            tmux("send-keys", "-t", pane, "Escape")
+        raise
+    if settle(pane, lambda now: not picker_open(now)) is None:
+        raise RuntimeError("the model picker did not close")
+
+
+def tune_desk(pane: str, provider: str, changes: dict) -> None:
+    if "mode" in changes:
+        cycle_mode(pane, changes["mode"])
+    if "model" in changes or "effort" in changes:
+        pick_on_desk(pane, provider, changes.get("model"), changes.get("effort"), "effort" in changes)
 
 
 def press_into(pane: str, key: str, said: str | None) -> None:

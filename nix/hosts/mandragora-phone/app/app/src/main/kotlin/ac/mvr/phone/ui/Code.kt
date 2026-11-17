@@ -253,10 +253,7 @@ private fun TuneSheet(
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state, containerColor = scheme.surfaceContainer) {
         Column(modifier = Modifier.fillMaxWidth().padding(start = 18.dp, end = 18.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (desk != null) {
-                Text("runs in a desktop terminal as $desk; its model, effort and mode are set there", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
-                return@Column
-            }
+            if (desk != null) Text("runs in a desktop terminal as $desk; changes go to that terminal, for this session only", style = MaterialTheme.typography.bodySmall, color = scheme.outline)
             Label("model")
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 models.forEach { option ->
@@ -805,7 +802,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("code", reachable, onCollapse)
         Banner(reachable)
-        val tunable = backend == "claude" && current?.live == null
+        val tunable = backend == "claude"
         SessionBar(current, newIn, model, chipText(model, settings, tunable), live, onPick = { picking = true }, onModel = { tuning = true })
         LazyColumn(
             state = transcript,
@@ -839,9 +836,9 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         )
     }
     if (tuning) {
-        val models = remember(providers, current?.backend) { code.modelChoices() }
+        val models = remember(providers, current?.backend, current?.live != null, settings.providerID) { code.modelChoices() }
         TuneSheet(
-            models, model, settings, tunable = backend == "claude" && current?.live == null,
+            models, model, settings, tunable = backend == "claude",
             desk = current?.live?.let { it.name ?: "an open session" },
             onModel = { code.pickModel(it) },
             onEffort = { code.pickEffort(it) },
