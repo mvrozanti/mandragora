@@ -150,7 +150,10 @@ data class ScreenAsk(
 data class Pressed(val screen: ScreenAsk? = null)
 
 @Serializable
-data class CodeProvider(val id: String, val name: String = id)
+data class CodeProvider(val id: String, val name: String = id, val models: Map<String, JsonObject> = emptyMap())
+
+@Serializable
+data class SessionSettings(val providerID: String? = null, val modelID: String? = null, val mode: String = "auto", val effort: String? = null)
 
 @Serializable
 data class CodeProviders(
@@ -195,12 +198,22 @@ class CodeClient(val id: String, private val baseUrl: () -> String, private val 
     suspend fun configuredModel(): String? =
         Http.obj(Http.get(url("/config"), headers()))["model"]?.jsonPrimitive?.contentOrNull
 
-    suspend fun create(directory: String, providerID: String?, modelID: String?): CodeSession {
+    suspend fun create(directory: String, providerID: String?, modelID: String?, settings: SessionSettings? = null): CodeSession {
         val body = buildJsonObject {
             if (providerID != null && modelID != null) put("model", buildJsonObject { put("providerID", providerID); put("id", modelID) })
+            if (settings != null) {
+                put("mode", settings.mode)
+                settings.effort?.let { put("effort", it) }
+            }
         }
         return json.decodeFromString<CodeSession>(Http.post(url("/session", directory), body, headers())).also { it.backend = id }
     }
+
+    suspend fun settings(id: String, directory: String): SessionSettings =
+        json.decodeFromString(Http.get(url("/session/$id/settings", directory), headers()))
+
+    suspend fun setSettings(id: String, directory: String, body: JsonObject): SessionSettings =
+        json.decodeFromString(Http.post(url("/session/$id/settings", directory), body, headers()))
 
     suspend fun messages(id: String, directory: String, limit: Int): List<CodeEntry> =
         json.decodeFromString(Http.get(url("/session/$id/message?limit=$limit", directory), headers()))

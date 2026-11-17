@@ -11,6 +11,10 @@ import ac.mvr.phone.net.CodeProviders
 import ac.mvr.phone.net.CodeSession
 import ac.mvr.phone.net.CodeStatus
 import ac.mvr.phone.net.ScreenAsk
+import ac.mvr.phone.net.SessionSettings
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import ac.mvr.phone.net.MessageError
 import ac.mvr.phone.net.PermissionAsk
 import ac.mvr.phone.net.QuestionAsk
@@ -35,8 +39,8 @@ import java.io.IOException
 data class CodeModel(val backend: String, val providerID: String, val modelID: String) {
     val label: String
         get() = when {
-            backend == "claude" && providerID == "claude" -> "claude"
-            backend == "claude" -> providerID
+            backend == "claude" && providerID == "claude" -> if (modelID == "default") "claude" else modelID
+            backend == "claude" -> "$providerID ${modelID.substringAfterLast('-')}"
             else -> "$backend · ${modelID.removePrefix("$providerID-")}"
         }
 
@@ -94,6 +98,9 @@ class CodeStore(private val store: Store) {
 
     private val modelFlow = MutableStateFlow(parseModel(store.prefs.codeModel))
     val model: StateFlow<CodeModel?> = modelFlow
+
+    private val settingsFlow = MutableStateFlow(SessionSettings())
+    val settings: StateFlow<SessionSettings> = settingsFlow
 
     private val liveFlow = MutableStateFlow(false)
     val live: StateFlow<Boolean> = liveFlow
@@ -281,11 +288,25 @@ class CodeStore(private val store: Store) {
         return ordered.flatMap { access ->
             val p = providersFlow.value[access.id] ?: return@flatMap emptyList()
             val ids = p.connected.filter { it != "opencode" }.ifEmpty { p.connected }
-            ids.mapNotNull { id -> p.default[id]?.let { CodeModel(access.id, id, it) } }
+            ids.flatMap { id ->
+                val listed = if (access.id == "claude") p.all.firstOrNull { it.id == id }?.models?.keys?.toList().orEmpty() else emptyList()
+                listed.ifEmpty { listOfNotNull(p.default[id]) }.map { CodeModel(access.id, id, it) }
+            }
         }
     }
 
+    fun modelChoices(): List<CodeModel> {
+        val backend = currentFlow.value?.backend?.ifEmpty { null }
+        return choices().filter { backend == null || it.backend == backend }
+    }
+
     private fun followModel(session: CodeSession, entries: List<CodeEntry>) {
+        if (session.backend == "claude") {
+            val chosen = settingsFlow.value
+            val match = choices().firstOrNull { it.backend == "claude" && it.providerID == chosen.providerID && it.modelID == chosen.modelID } ?: return
+            if (modelFlow.value != match) modelFlow.value = match
+            return
+        }
         val last = entries.lastOrNull { it.info.role == "assistant" && it.info.providerID != null }?.info ?: return
         val options = choices().filter { it.backend == session.backend }
         val match = options.firstOrNull { it.providerID == last.providerID && it.modelID == last.modelID }
@@ -294,14 +315,31 @@ class CodeStore(private val store: Store) {
         if (modelFlow.value != match) modelFlow.value = match
     }
 
-    fun cycleModel() {
-        val backend = currentFlow.value?.backend?.ifEmpty { null }
-        val options = choices().filter { backend == null || it.backend == backend }
-        if (options.isEmpty()) return
-        val index = options.indexOfFirst { it == modelFlow.value }
-        val next = options[(index + 1) % options.size]
-        modelFlow.value = next
-        store.prefs.codeModel = next.key
+    private fun adjustable(): CodeSession? = currentFlow.value?.takeIf { it.backend == "claude" && it.live == null }
+
+    private fun change(body: kotlinx.serialization.json.JsonObject) = run {
+        val session = adjustable() ?: return@run
+        val client = client(session.backend) ?: throw IOException("desktop unreachable")
+        val saved = client.setSettings(session.id, session.directory, body)
+        if (currentFlow.value?.id == session.id) settingsFlow.value = saved
+    }
+
+    fun pickModel(choice: CodeModel) {
+        modelFlow.value = choice
+        store.prefs.codeModel = choice.key
+        if (choice.backend != "claude") return
+        settingsFlow.value = settingsFlow.value.copy(providerID = choice.providerID, modelID = choice.modelID)
+        change(buildJsonObject { put("providerID", choice.providerID); put("modelID", choice.modelID) })
+    }
+
+    fun pickMode(mode: String) {
+        settingsFlow.value = settingsFlow.value.copy(mode = mode)
+        change(buildJsonObject { put("mode", mode) })
+    }
+
+    fun pickEffort(effort: String?) {
+        settingsFlow.value = settingsFlow.value.copy(effort = effort)
+        change(buildJsonObject { put("effort", effort?.let { kotlinx.serialization.json.JsonPrimitive(it) } ?: JsonNull) })
     }
 
     fun open(session: CodeSession) {
@@ -314,6 +352,7 @@ class CodeStore(private val store: Store) {
         asksFlow.value = emptyList()
         questionsFlow.value = emptyList()
         screensFlow.value = emptyList()
+        settingsFlow.value = SessionSettings()
         loadJob?.cancel()
         loadJob = store.scope.launch { runCatching { load(session) }.onFailure { store.report(humanize(it)) } }
     }
@@ -323,6 +362,9 @@ class CodeStore(private val store: Store) {
         val list = client.messages(session.id, session.directory, 80)
         if (currentFlow.value?.id != session.id) return
         entriesFlow.value = list
+        if (session.backend == "claude") runCatching { client.settings(session.id, session.directory) }.getOrNull()?.let { found ->
+            if (currentFlow.value?.id == session.id) settingsFlow.value = found
+        }
         followModel(session, list)
         reconcile()
         val pending = runCatching { client.permissions(session.directory) }.getOrDefault(emptyList()).filter { it.sessionID == session.id }
@@ -341,6 +383,7 @@ class CodeStore(private val store: Store) {
         asksFlow.value = emptyList()
         questionsFlow.value = emptyList()
         screensFlow.value = emptyList()
+        settingsFlow.value = SessionSettings()
         newIn.value = dir
         store.prefs.lastCodeDir = dir
     }
@@ -396,7 +439,7 @@ class CodeStore(private val store: Store) {
         val sameBackend = chosen?.backend == backend
         if (session == null) {
             val dir = newIn.value ?: store.prefs.lastCodeDir ?: "/home/m"
-            session = client.create(dir, chosen?.providerID?.takeIf { sameBackend }, chosen?.modelID?.takeIf { sameBackend })
+            session = client.create(dir, chosen?.providerID?.takeIf { sameBackend }, chosen?.modelID?.takeIf { sameBackend }, settingsFlow.value.takeIf { backend == "claude" })
             currentFlow.value = session
             newIn.value = null
             store.prefs.lastCodeSession = session.id
@@ -545,6 +588,12 @@ class CodeStore(private val store: Store) {
             "question.replied", "question.rejected" -> p["requestID"]?.jsonPrimitive?.contentOrNull?.let { id -> questionsFlow.value = questionsFlow.value.filter { it.id != id } }
             "screen.asked" -> if (mine) runCatching { json.decodeFromJsonElement<ScreenAsk>(p) }.getOrNull()?.let { ask ->
                 screensFlow.value = screensFlow.value.filter { it.sessionID != ask.sessionID } + ask
+            }
+            "session.settings" -> if (mine) p["settings"]?.let { raw ->
+                val got = runCatching { json.decodeFromJsonElement<SessionSettings>(raw) }.getOrNull() ?: return
+                val now = settingsFlow.value
+                settingsFlow.value = SessionSettings(got.providerID ?: now.providerID, got.modelID ?: now.modelID, got.mode, got.effort)
+                currentFlow.value?.let { followModel(it, entriesFlow.value) }
             }
             "screen.cleared" -> p["requestID"]?.jsonPrimitive?.contentOrNull?.let { id -> screensFlow.value = screensFlow.value.filter { it.id != id } }
             "session.error" -> if (mine) p["error"]?.let { err ->

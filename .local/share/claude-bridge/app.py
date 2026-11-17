@@ -64,9 +64,13 @@ PROJECTS_TTL = 10
 VERSION = "claude-bridge/1"
 DEEPSEEK_BASE_URL = "https://api.deepseek.com/anthropic"
 PROVIDERS = {
-    "claude": {"name": "Claude Code", "default": "default", "models": ["default"]},
+    "claude": {"name": "Claude Code", "default": "default", "models": ["default", "fable", "opus", "sonnet", "haiku"]},
     "deepseek": {"name": "DeepSeek via Claude Code", "default": "deepseek-v4-pro", "models": ["deepseek-v4-pro", "deepseek-v4-flash"]},
 }
+MODES = ("auto", "default", "acceptEdits", "plan")
+EFFORTS = ("low", "medium", "high", "xhigh", "max")
+CHOICES_FILE = HOME / ".local" / "state" / "claude-bridge" / "choices.json"
+CHOICES_KEPT = 400
 INPUT_KEYS = ("command", "description", "file_path", "pattern", "path", "url", "query")
 SETTING_SOURCES = ["user", "project", "local"]
 SCREEN_OPTION = re.compile(r"^(\s*)(?:❯\s*)?(\d)\.\s+(.*?)\s*$")
@@ -145,6 +149,31 @@ def summarize(tool: str, data: dict) -> str:
 
 def provider_of(model: str | None) -> str:
     return "deepseek" if model and model.startswith("deepseek") else "claude"
+
+
+def model_alias(provider: str, model: str | None) -> str:
+    known = PROVIDERS[provider]["models"]
+    if provider != "claude":
+        return model if model in known else PROVIDERS[provider]["default"]
+    return next((alias for alias in known[1:] if model and alias in model), "default")
+
+
+def read_choices() -> dict[str, dict]:
+    try:
+        data = json.loads(CHOICES_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def last_model(sid: str) -> str | None:
+    path = next(TRANSCRIPTS.glob(f"*/{sid}.jsonl"), None)
+    if path is None:
+        return None
+    for entry in reversed(transcript_entries(sid, path, 6)):
+        if entry["info"]["role"] == "assistant" and entry["info"].get("modelID"):
+            return entry["info"]["modelID"]
+    return None
 
 
 def tool_part(part_id: str, message_id: str, sid: str, call_id: str, tool: str, data: dict | None, status: str = "pending") -> dict:
@@ -440,6 +469,7 @@ class Bridge:
         self.asks: dict[str, Ask] = {}
         self.screens: dict[str, dict] = {}
         self.misses: dict[str, int] = {}
+        self.choices: dict[str, dict] = read_choices()
         self.projects_cache: tuple[float, list[dict]] = (0.0, [])
 
     def live_sessions(self) -> dict[str, dict]:
@@ -551,6 +581,49 @@ class Bridge:
             return None if model in ("", "default") else model
         return model or PROVIDERS[provider]["default"]
 
+    def choice(self, sid: str) -> dict:
+        return {"mode": "auto", "effort": None} | self.choices.get(sid, {})
+
+    def choose(self, sid: str, **changes) -> dict:
+        now = self.choice(sid) | changes
+        self.choices.pop(sid, None)
+        self.choices[sid] = now
+        while len(self.choices) > CHOICES_KEPT:
+            self.choices.pop(next(iter(self.choices)))
+        CHOICES_FILE.parent.mkdir(parents=True, exist_ok=True)
+        spare = CHOICES_FILE.with_suffix(".tmp")
+        spare.write_text(json.dumps(self.choices), encoding="utf-8")
+        os.replace(spare, CHOICES_FILE)
+        shown = {"providerID": now.get("provider"), "modelID": now.get("model"), "mode": now["mode"], "effort": now["effort"]}
+        self.bus.emit("session.settings", {"sessionID": sid, "settings": shown})
+        return now
+
+    async def settings_of(self, sid: str) -> dict:
+        stored = self.choice(sid)
+        provider, model = stored.get("provider"), stored.get("model")
+        if provider not in PROVIDERS:
+            run, fresh = self.runs.get(sid), self.fresh.get(sid)
+            if run is not None:
+                provider, model = run.provider, run.model
+            elif fresh is not None:
+                provider, model = fresh["provider"], fresh["model"]
+            else:
+                seen = await asyncio.to_thread(last_model, sid)
+                provider = provider_of(seen)
+                model = model_alias(provider, seen)
+        return {"providerID": provider, "modelID": model or PROVIDERS[provider]["default"], "mode": stored["mode"], "effort": stored["effort"]}
+
+    async def apply_effort(self, run: Run, effort: str | None) -> None:
+        send = getattr(getattr(run.client, "_query", None), "_send_control_request", None)
+        try:
+            if send is None:
+                raise RuntimeError("no control channel")
+            await send({"subtype": "apply_flag_settings", "settings": {"effortLevel": effort}})
+        except Exception:
+            if run.busy:
+                raise
+            await self.stop_run(run)
+
     async def ensure_run(self, sid: str, directory: str, provider: str, model: str) -> Run:
         run = self.runs.get(sid)
         if run is not None and run.provider == provider:
@@ -562,14 +635,16 @@ class Bridge:
             await self.stop_run(run)
         fresh = sid in self.fresh
         run = Run(sid=sid, directory=directory, provider=provider, model=model)
+        choice = self.choice(sid)
         options = ClaudeAgentOptions(
             cwd=directory,
             env=self.env_for(provider),
             model=self.model_arg(provider, model),
             can_use_tool=self.permission_handler(sid),
             include_partial_messages=True,
-            permission_mode="default",
+            permission_mode=choice["mode"],
             setting_sources=SETTING_SOURCES,
+            **({"effort": choice["effort"]} if choice["effort"] else {}),
             cli_path=CLI_PATH,
             **({"session_id": sid} if fresh else {"resume": sid}),
         )
@@ -635,6 +710,9 @@ class Bridge:
 
     def handle(self, run: Run, message) -> None:
         if isinstance(message, SystemMessage):
+            mode = message.data.get("permissionMode") if isinstance(message.data, dict) else None
+            if mode in MODES and mode != self.choice(run.sid)["mode"]:
+                self.choose(run.sid, mode=mode)
             if message.subtype == "init":
                 self.set_busy(run, True)
             return
@@ -947,7 +1025,11 @@ async def create_session(request: web.Request) -> web.Response:
     model = body.get("model") if isinstance(body.get("model"), dict) else {}
     provider = model.get("providerID") if model.get("providerID") in PROVIDERS else "claude"
     sid = str(uuid.uuid4())
-    bridge.fresh[sid] = {"directory": directory, "provider": provider, "model": model.get("id") or PROVIDERS[provider]["default"]}
+    chosen = model.get("id") or PROVIDERS[provider]["default"]
+    bridge.fresh[sid] = {"directory": directory, "provider": provider, "model": chosen}
+    mode = body.get("mode") if body.get("mode") in MODES else "auto"
+    effort = body.get("effort") if body.get("effort") in EFFORTS else None
+    bridge.choose(sid, provider=provider, model=chosen, mode=mode, effort=effort)
     stamp = now_ms()
     return web.json_response({"id": sid, "title": body.get("title") or "", "directory": directory, "parentID": None, "time": {"created": stamp, "updated": stamp}})
 
@@ -1001,12 +1083,15 @@ async def prompt(request: web.Request) -> web.Response:
         return web.Response(status=204)
     fresh = bridge.fresh.get(sid)
     run = bridge.runs.get(sid)
+    stored = bridge.choice(sid)
     directory = request.query.get("directory") or (fresh or {}).get("directory") or (run.directory if run else None) or str(HOME)
     model = body.get("model") if isinstance(body.get("model"), dict) else {}
-    provider = model.get("providerID") or (fresh or {}).get("provider") or (run.provider if run else "claude")
+    provider = model.get("providerID") or (fresh or {}).get("provider") or (run.provider if run else None) or stored.get("provider") or "claude"
     if provider not in PROVIDERS:
         return json_error(f"unknown provider {provider}", 400)
-    chosen = model.get("modelID") or (fresh or {}).get("model") or (run.model if run and run.provider == provider else PROVIDERS[provider]["default"])
+    chosen = model.get("modelID") or (fresh or {}).get("model") or (run.model if run and run.provider == provider else None) or (stored.get("model") if stored.get("provider") == provider else None) or PROVIDERS[provider]["default"]
+    if (stored.get("provider"), stored.get("model")) != (provider, chosen):
+        bridge.choose(sid, provider=provider, model=chosen)
     try:
         run = await bridge.ensure_run(sid, directory, provider, chosen)
     except Exception as err:
@@ -1042,6 +1127,56 @@ async def abort(request: web.Request) -> web.Response:
         return web.json_response(False)
     await run.client.interrupt()
     return web.json_response(True)
+
+
+async def get_settings(request: web.Request) -> web.Response:
+    return web.json_response(await bridge_of(request).settings_of(request.match_info["sid"]))
+
+
+async def set_settings(request: web.Request) -> web.Response:
+    bridge = bridge_of(request)
+    sid = request.match_info["sid"]
+    try:
+        body = await request.json()
+    except ValueError:
+        body = None
+    if not isinstance(body, dict):
+        return json_error("a settings object is required", 400)
+    changes: dict = {}
+    if "mode" in body:
+        if body["mode"] not in MODES:
+            return json_error(f"mode must be one of {', '.join(MODES)}", 400)
+        changes["mode"] = body["mode"]
+    if "effort" in body:
+        if body["effort"] is not None and body["effort"] not in EFFORTS:
+            return json_error(f"effort must be one of {', '.join(EFFORTS)} or null", 400)
+        changes["effort"] = body["effort"]
+    if "providerID" in body or "modelID" in body:
+        provider, model = body.get("providerID"), body.get("modelID")
+        if provider not in PROVIDERS or not isinstance(model, str) or not model:
+            return json_error("unknown model", 400)
+        changes["provider"], changes["model"] = provider, model
+    if not changes:
+        return json_error("nothing to change", 400)
+    if sid in bridge.live_sessions():
+        return json_error("that session runs in a desktop terminal; change it there", 409)
+    bridge.choose(sid, **changes)
+    fresh = bridge.fresh.get(sid)
+    if fresh is not None and "provider" in changes:
+        fresh["provider"], fresh["model"] = changes["provider"], changes["model"]
+    run = bridge.runs.get(sid)
+    if run is not None and run.client is not None:
+        try:
+            if "mode" in changes:
+                await run.client.set_permission_mode(changes["mode"])
+            if "effort" in changes:
+                await bridge.apply_effort(run, changes["effort"])
+            if changes.get("provider") == run.provider and changes.get("model") != run.model and bridge.runs.get(sid) is run:
+                await run.client.set_model(bridge.model_arg(run.provider, changes["model"]))
+                run.model = changes["model"]
+        except Exception as err:
+            return json_error(f"saved; the running session did not take it yet: {str(err)[:120]}", 503)
+    return web.json_response(await bridge.settings_of(sid))
 
 
 async def rename(request: web.Request) -> web.Response:
@@ -1451,6 +1586,8 @@ def make_app() -> web.Application:
     app.router.add_get("/session/{sid}/message", messages)
     app.router.add_post("/session/{sid}/prompt_async", prompt)
     app.router.add_post("/session/{sid}/abort", abort)
+    app.router.add_get("/session/{sid}/settings", get_settings)
+    app.router.add_post("/session/{sid}/settings", set_settings)
     app.router.add_patch("/session/{sid}", rename)
     app.router.add_delete("/session/{sid}", remove)
     app.router.add_post("/session/{sid}/fork", fork)

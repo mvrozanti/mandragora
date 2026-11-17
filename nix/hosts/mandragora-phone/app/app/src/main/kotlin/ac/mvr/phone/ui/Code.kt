@@ -32,6 +32,9 @@ import ac.mvr.phone.net.CodeStatus
 import ac.mvr.phone.net.PermissionAsk
 import ac.mvr.phone.net.QuestionAsk
 import ac.mvr.phone.net.ScreenAsk
+import ac.mvr.phone.net.SessionSettings
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.material3.DropdownMenu
@@ -218,8 +221,72 @@ fun CodeCard(store: Store, onOpen: (String) -> Unit) {
     }
 }
 
+private val MODES = listOf("auto" to "auto", "default" to "ask", "acceptEdits" to "accept edits", "plan" to "plan")
+private val EFFORTS = listOf(null, "low", "medium", "high", "xhigh", "max")
+private val MODE_NOTES = mapOf(
+    "auto" to "a classifier approves or refuses each tool call; asks only when it cannot tell",
+    "default" to "asks before every edit and command",
+    "acceptEdits" to "edits files without asking; asks before commands",
+    "plan" to "reads and plans; changes nothing until you approve the plan",
+)
+
+private fun chipText(model: CodeModel?, settings: SessionSettings, tunable: Boolean): String {
+    val base = model?.label ?: "model"
+    if (!tunable) return base
+    return listOfNotNull(base, settings.effort, MODES.firstOrNull { it.first == settings.mode }?.second?.substringBefore(' ')).joinToString(" · ")
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-private fun SessionBar(current: CodeSession?, newIn: String?, model: CodeModel?, live: Boolean, onPick: () -> Unit, onModel: () -> Unit) {
+private fun TuneSheet(
+    models: List<CodeModel>,
+    model: CodeModel?,
+    settings: SessionSettings,
+    tunable: Boolean,
+    desk: String?,
+    onModel: (CodeModel) -> Unit,
+    onEffort: (String?) -> Unit,
+    onMode: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+    val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state, containerColor = scheme.surfaceContainer) {
+        Column(modifier = Modifier.fillMaxWidth().padding(start = 18.dp, end = 18.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (desk != null) {
+                Text("runs in a desktop terminal as $desk; its model, effort and mode are set there", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                return@Column
+            }
+            Label("model")
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                models.forEach { option ->
+                    val on = option == model
+                    Chip(option.label, if (on) scheme.primary else scheme.surfaceContainerHigh, if (on) scheme.onPrimary else scheme.onSurface) { onModel(option) }
+                }
+            }
+            if (tunable) {
+                Label("effort")
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    EFFORTS.forEach { level ->
+                        val on = level == settings.effort
+                        Chip(level ?: "default", if (on) scheme.primary else scheme.surfaceContainerHigh, if (on) scheme.onPrimary else scheme.onSurface) { onEffort(level) }
+                    }
+                }
+                Label("mode")
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    MODES.forEach { (id, name) ->
+                        val on = id == settings.mode
+                        Chip(name, if (on) scheme.primary else scheme.surfaceContainerHigh, if (on) scheme.onPrimary else scheme.onSurface) { onMode(id) }
+                    }
+                }
+                MODE_NOTES[settings.mode]?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = scheme.outline) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SessionBar(current: CodeSession?, newIn: String?, model: CodeModel?, chip: String, live: Boolean, onPick: () -> Unit, onModel: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 4.dp),
@@ -238,7 +305,7 @@ private fun SessionBar(current: CodeSession?, newIn: String?, model: CodeModel?,
             }
             Label((current?.folder ?: folderOf(newIn)) + note, color = if (live && where == null) scheme.outline else scheme.tertiary)
         }
-        Chip(model?.label ?: "model", scheme.surfaceContainerHigh, scheme.onSurface) { onModel() }
+        Chip(chip, scheme.surfaceContainerHigh, scheme.onSurface) { onModel() }
     }
 }
 
@@ -704,6 +771,9 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     val sessions by code.sessions.collectAsStateWithLifecycle()
     val projects by code.projects.collectAsStateWithLifecycle()
     var picking by remember { mutableStateOf(false) }
+    var tuning by remember { mutableStateOf(false) }
+    val settings by code.settings.collectAsStateWithLifecycle()
+    val providers by code.providers.collectAsStateWithLifecycle()
     val directory = current?.directory ?: newIn
     val backend = current?.backend?.ifEmpty { null } ?: model?.backend ?: "claude"
     LaunchedEffect(Unit) { code.enter() }
@@ -735,7 +805,8 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("code", reachable, onCollapse)
         Banner(reachable)
-        SessionBar(current, newIn, model, live, onPick = { picking = true }, onModel = { code.cycleModel() })
+        val tunable = backend == "claude" && current?.live == null
+        SessionBar(current, newIn, model, chipText(model, settings, tunable), live, onPick = { picking = true }, onModel = { tuning = true })
         LazyColumn(
             state = transcript,
             modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -765,6 +836,17 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
             onStop = { code.stop() },
             onAttach = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             onDetach = { code.detach(it) },
+        )
+    }
+    if (tuning) {
+        val models = remember(providers, current?.backend) { code.modelChoices() }
+        TuneSheet(
+            models, model, settings, tunable = backend == "claude" && current?.live == null,
+            desk = current?.live?.let { it.name ?: "an open session" },
+            onModel = { code.pickModel(it) },
+            onEffort = { code.pickEffort(it) },
+            onMode = { code.pickMode(it) },
+            onDismiss = { tuning = false },
         )
     }
     if (picking) {
