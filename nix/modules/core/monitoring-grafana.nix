@@ -21,6 +21,7 @@ let
       disk,
       refresh ? "30s",
       withGpu ? false,
+      withCpuTemp ? false,
       withEbpf ? false,
       withDirsize ? false,
       withFsUsage ? false,
@@ -593,7 +594,35 @@ let
         })
       ];
 
-      yGpu = yEbpf + ebpfH;
+      yCpuTemp = yEbpf + ebpfH;
+      cpuTempH = if withCpuTemp then 9 else 0;
+      cpuTempPanels = lib.optionals withCpuTemp [
+        (mkRow 65 "CPU" yCpuTemp)
+        (mkTs {
+          id = 66;
+          title = "CPU temperature";
+          targets = [ (mkT 0 x.cpuTemps "{{label}}") ];
+          gridPos = pos 0 (yCpuTemp + 1) 18 8;
+          unit = "celsius";
+          fillOpacity = 0;
+        })
+        (mkStat {
+          id = 67;
+          title = "CPU temp (Tctl)";
+          expr = x.cpuTemp;
+          gridPos = pos 18 (yCpuTemp + 1) 6 8;
+          unit = "celsius";
+          decimals = 0;
+          steps = [
+            (st "green" null)
+            (st "#EAB839" 75)
+            (st "orange" 85)
+            (st "red" 93)
+          ];
+        })
+      ];
+
+      yGpu = yCpuTemp + cpuTempH;
       gpuH = if withGpu then 9 else 0;
       gpuPanels = lib.optionals withGpu [
         (mkRow 70 "GPU" yGpu)
@@ -693,6 +722,7 @@ let
       ++ whoPanels
       ++ sysPanels
       ++ ebpfPanels
+      ++ cpuTempPanels
       ++ gpuPanels
       ++ fsPanels
       ++ dirPanels;
@@ -706,6 +736,7 @@ let
     disk = "nvme0n1";
     refresh = "10s";
     withGpu = true;
+    withCpuTemp = true;
     withEbpf = true;
     withDirsize = true;
     withPressure = true;

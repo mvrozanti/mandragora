@@ -32,6 +32,8 @@ in
   txToday = "sum(increase(node_network_transmit_bytes_total{${inst},device=\"${nic}\"}[24h]))";
   gpuUtil = "nvidia_smi_utilization_gpu_ratio{${inst}} * 100";
   gpuMem = "nvidia_smi_utilization_memory_ratio{${inst}} * 100";
+  cpuTemps = "(node_hwmon_temp_celsius{${inst}} * on(instance, chip) group_left node_hwmon_chip_names{${inst},chip_name=\"k10temp\"}) * on(instance, chip, sensor) group_left(label) node_hwmon_sensor_label{${inst}}";
+  cpuTemp = "node_hwmon_temp_celsius{${inst}} * on(instance, chip, sensor) group_left node_hwmon_sensor_label{${inst},label=\"Tctl\"}";
   gpuTemp = "nvidia_smi_temperature_gpu{${inst}}";
   gpuPower = "nvidia_smi_power_draw_watts{${inst}}";
   rootFree = "node_filesystem_avail_bytes{${inst},mountpoint=\"/\"}";
