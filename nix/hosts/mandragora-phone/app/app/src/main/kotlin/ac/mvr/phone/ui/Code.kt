@@ -1,5 +1,8 @@
 package ac.mvr.phone.ui
 
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.material.icons.filled.Image
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -256,11 +259,7 @@ private fun EntryView(entry: CodeEntry, scheme: ColorScheme) {
     if (entry.info.role == "user") {
         val text = entry.parts.filter { it.type == "text" && !it.synthetic && !it.ignored }.mapNotNull { it.text }.joinToString("\n")
         if (text.isBlank()) return
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-            Box(modifier = Modifier.clip(RoundedCornerShape(18.dp)).background(scheme.surfaceContainerHigh).padding(horizontal = 14.dp, vertical = 10.dp)) {
-                Text(text, style = MaterialTheme.typography.bodyLarge, color = scheme.onSurface)
-            }
-        }
+        UserBubble(text, faded = false)
         return
     }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -279,12 +278,48 @@ private fun EntryView(entry: CodeEntry, scheme: ColorScheme) {
 }
 
 @Composable
+private fun UserBubble(text: String, faded: Boolean) {
+    val scheme = MaterialTheme.colorScheme
+    val lines = text.lines()
+    val pictures = lines.filter { it.startsWith(CodeStore.PICTURE_LINE) }.map { it.removePrefix(CodeStore.PICTURE_LINE).trim() }
+    val words = lines.filterNot { it.startsWith(CodeStore.PICTURE_LINE) }.joinToString("\n").trim().let { if (pictures.isNotEmpty() && it == CodeStore.PICTURE_ONLY) "" else it }
+    Column(
+        modifier = Modifier.fillMaxWidth().alpha(if (faded) 0.6f else 1f),
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        if (pictures.isNotEmpty()) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                pictures.forEach { path ->
+                    val thumb = CodeStore.sentThumbs[path]
+                    if (thumb != null) {
+                        Image(thumb.asImageBitmap(), "picture", contentScale = ContentScale.Crop, modifier = Modifier.size(96.dp).clip(RoundedCornerShape(14.dp)))
+                    } else {
+                        Row(
+                            modifier = Modifier.clip(RoundedCornerShape(14.dp)).background(scheme.surfaceContainerHigh).padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Icon(Icons.Filled.Image, null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                            Text("picture", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+        }
+        if (words.isNotEmpty()) {
+            Box(modifier = Modifier.clip(RoundedCornerShape(18.dp)).background(scheme.surfaceContainerHigh).padding(horizontal = 14.dp, vertical = 10.dp)) {
+                Text(words, style = MaterialTheme.typography.bodyLarge, color = scheme.onSurface)
+            }
+        }
+    }
+}
+
+@Composable
 private fun PendingBubble(text: String, busy: Boolean) {
     val scheme = MaterialTheme.colorScheme
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Box(modifier = Modifier.alpha(0.6f).clip(RoundedCornerShape(18.dp)).background(scheme.surfaceContainerHigh).padding(horizontal = 14.dp, vertical = 10.dp)) {
-            Text(text, style = MaterialTheme.typography.bodyLarge, color = scheme.onSurface)
-        }
+        UserBubble(text, faded = true)
         Label(if (busy) "queued · goes in when the current turn ends" else "sent · waiting for the session", color = scheme.tertiary)
     }
 }
@@ -485,11 +520,22 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     val pendingAll by code.pending.collectAsStateWithLifecycle()
     val pendingHere = pendingAll.filter { it.sessionId == current?.id }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> if (uri != null) code.attach(uri) }
+    val transcript = rememberLazyListState()
+    var follow by remember(current?.id) { mutableStateOf(true) }
+    LaunchedEffect(transcript) {
+        snapshotFlow { Triple(transcript.isScrollInProgress, transcript.firstVisibleItemIndex, transcript.firstVisibleItemScrollOffset) }
+            .collect { (scrolling, index, offset) -> if (scrolling) follow = index == 0 && offset < 120 }
+    }
+    val newest = listOf(entries.size, pendingHere.size, questions.size, asks.size, if (busy) 1 else 0, entries.lastOrNull()?.parts?.size ?: 0)
+    LaunchedEffect(current?.id, newest) {
+        if (follow && transcript.firstVisibleItemIndex != 0) transcript.scrollToItem(0)
+    }
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("code", reachable, onCollapse)
         Banner(reachable)
         SessionBar(current, newIn, model, live, onPick = { picking = true }, onModel = { code.cycleModel() })
         LazyColumn(
+            state = transcript,
             modifier = Modifier.weight(1f).fillMaxWidth(),
             reverseLayout = true,
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),

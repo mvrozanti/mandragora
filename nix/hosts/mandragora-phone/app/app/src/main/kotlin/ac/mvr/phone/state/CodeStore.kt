@@ -105,6 +105,12 @@ class CodeStore(private val store: Store) {
 
     data class Attachment(val path: String, val thumb: android.graphics.Bitmap)
 
+    companion object {
+        const val PICTURE_LINE = "Attached picture: "
+        const val PICTURE_ONLY = "Look at the attached picture."
+        val sentThumbs = androidx.compose.runtime.mutableStateMapOf<String, android.graphics.Bitmap>()
+    }
+
     data class Pending(val id: Long, val sessionId: String, val text: String, val at: Long, val seen: Set<String>)
 
     val attachments = MutableStateFlow<List<Attachment>>(emptyList())
@@ -121,6 +127,7 @@ class CodeStore(private val store: Store) {
             val client = client("claude") ?: throw IOException("desktop unreachable")
             val path = client.upload(bytes)
             val thumb = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { ac.mvr.phone.play.Artwork.decode(bytes, 160) } ?: throw IOException("that file is not a picture")
+            sentThumbs[path] = thumb
             attachments.value = attachments.value + Attachment(path, thumb)
         } finally {
             uploading.value = false
@@ -329,7 +336,7 @@ class CodeStore(private val store: Store) {
         val typed = text.trim()
         val files = attachments.value
         if ((typed.isEmpty() && files.isEmpty()) || sending.value) return@run
-        val body = (listOf(typed.ifEmpty { "Look at the attached picture." }) + files.map { "Attached picture: ${it.path}" }).joinToString("\n")
+        val body = (listOf(typed.ifEmpty { PICTURE_ONLY }) + files.map { PICTURE_LINE + it.path }).joinToString("\n")
         sending.value = true
         try {
             deliver(body)
