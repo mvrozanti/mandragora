@@ -255,6 +255,7 @@ class CodeStore(private val store: Store) {
         }
         if (loaded.isNotEmpty()) providersFlow.value = loaded
         if (modelFlow.value == null || choices().none { it == modelFlow.value }) modelFlow.value = choices().firstOrNull()
+        currentFlow.value?.let { followModel(it, entriesFlow.value) }
     }
 
     private fun choices(): List<CodeModel> {
