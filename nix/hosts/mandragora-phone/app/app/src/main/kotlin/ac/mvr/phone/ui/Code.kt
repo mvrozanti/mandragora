@@ -255,10 +255,7 @@ private fun EntryView(entry: CodeEntry, scheme: ColorScheme) {
             when (part.type) {
                 "text" -> {
                     val text = part.text
-                    if (!part.ignored && !text.isNullOrBlank()) {
-                        val styled = remember(text, scheme) { Meaning.annotate(text, scheme) }
-                        Text(styled, style = MaterialTheme.typography.bodyMedium)
-                    }
+                    if (!part.ignored && !text.isNullOrBlank()) MarkdownText(text, scheme)
                 }
                 "reasoning" -> ReasoningLine(part)
                 "tool" -> ToolLine(part)

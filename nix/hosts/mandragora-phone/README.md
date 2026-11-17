@@ -236,6 +236,7 @@ one line each, reasoning is folded):
 | type, then send, on a session marked "on the desktop" | types the message into that session's tmux pane, as a bracketed paste followed by Enter, so the desktop tui runs it as if typed there; a session outside tmux answers "send from there" on the error line above the box | code |
 | send while it works | queues the message behind the current turn | code |
 | stop (replaces send while it works and the box is empty) | aborts the current turn | code |
+| a reply's text | nothing; it renders as markdown (headings, bold, italics, lists, quotes, links, inline code, code blocks that scroll sideways) with the colour markers and the salcc colouring kept; a table is a grid whose short columns never wrap, whose wordy columns wrap at a readable width, and which scrolls sideways as one with its first column pinned when it has three or more columns (chosen on 2026-11-17 from a deck of five) | code |
 | a tool line | expands its command or file and its output; again collapses | code |
 | "thinking · n lines" | expands the model's reasoning; again collapses | code |
 | a permission card: once / always / reject | answers the agent's permission request; the card leaves when the server confirms | code |

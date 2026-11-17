@@ -69,7 +69,7 @@ object Meaning {
         }
     }
 
-    private fun markStyle(kind: Char, scheme: ColorScheme): SpanStyle = when (kind) {
+    fun markStyle(kind: Char, scheme: ColorScheme): SpanStyle = when (kind) {
         'n' -> SpanStyle(color = scheme.primary, fontWeight = FontWeight.Medium)
         'r' -> style(Facet.Risk, scheme)
         'a' -> style(Facet.Action, scheme)
