@@ -94,6 +94,9 @@ failed() {
     p[$k]="$v"
   done < <(systemctl "${scope[@]}" show "$unit" \
     -p Type -p TriggeredBy -p Result -p ExecMainStatus -p InvocationID)
+  [ -n "${MONITOR_SERVICE_RESULT:-}" ] && p[Result]=$MONITOR_SERVICE_RESULT
+  [ -n "${MONITOR_EXIT_STATUS:-}" ] && p[ExecMainStatus]=$MONITOR_EXIT_STATUS
+  [ -n "${MONITOR_INVOCATION_ID:-}" ] && p[InvocationID]=$MONITOR_INVOCATION_ID
 
   local trig="${p[TriggeredBy]:-}"
   if [ "${p[Type]:-}" != oneshot ] && [[ $trig != *.timer* && $trig != *.path* ]]; then

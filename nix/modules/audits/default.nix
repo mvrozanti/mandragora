@@ -89,6 +89,7 @@ in
     serviceConfig = {
       Type = "oneshot";
       ExecStart = "${pkgs.bash}/bin/bash ${healthCheckDigest}";
+      SuccessExitStatus = "1";
       StandardOutput = "journal";
       StandardError = "journal";
     };

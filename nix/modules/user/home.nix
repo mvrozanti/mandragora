@@ -407,7 +407,12 @@ in
     (pkgs.writeShellScriptBin "shfthue" (builtins.readFile ../../../.local/bin/shfthue.sh))
     (pkgs.writeShellScriptBin "sit" (builtins.readFile ../../../.local/bin/sit.sh))
 
-    (pkgs.writeShellScriptBin "health-check" (builtins.readFile ../../../.local/bin/health-check.sh))
+    (pkgs.writeShellScriptBin "health-check" (
+      builtins.replaceStrings
+        [ "@diskWarnThreshold@" "@diskWarnOverrides@" "@logFile@" ]
+        [ "91" "/mnt/sandisk=95" "" ]
+        (builtins.readFile ../../../.local/bin/health-check.sh)
+    ))
     (pkgs.writeShellScriptBin "keyledsd-reload" (
       builtins.readFile ../../../.local/bin/keyledsd-reload.sh
     ))
