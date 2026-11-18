@@ -121,18 +121,30 @@ class CodeStore(private val store: Store) {
     private var syncAgain = false
     private var listJob: Job? = null
 
-    data class Attachment(val path: String, val thumb: android.graphics.Bitmap?)
+    data class Attachment(val path: String, val thumb: android.graphics.Bitmap?, val picture: Boolean = true) {
+        val name: String get() = path.substringAfterLast('/')
+        val line: String get() = (if (picture) PICTURE_LINE else FILE_LINE) + path
+    }
 
     companion object {
         const val PICTURE_LINE = "Attached picture: "
+        const val FILE_LINE = "Attached file: "
         const val PICTURE_ONLY = "Look at the attached picture."
+        const val FILE_ONLY = "Look at the attached file."
+        const val FILE_LIMIT = 30 * 1024 * 1024
         val sentThumbs = androidx.compose.runtime.mutableStateMapOf<String, android.graphics.Bitmap>()
 
-        fun split(body: String): Pair<String, List<String>> {
+        fun split(body: String): Pair<String, List<Attachment>> {
             val lines = body.lines()
-            val pictures = lines.filter { it.startsWith(PICTURE_LINE) }.map { it.removePrefix(PICTURE_LINE).trim() }
-            val words = lines.filterNot { it.startsWith(PICTURE_LINE) }.joinToString("\n").trim()
-            return (if (pictures.isNotEmpty() && words == PICTURE_ONLY) "" else words) to pictures
+            val attached = lines.mapNotNull { line ->
+                when {
+                    line.startsWith(PICTURE_LINE) -> line.removePrefix(PICTURE_LINE).trim().let { Attachment(it, sentThumbs[it]) }
+                    line.startsWith(FILE_LINE) -> Attachment(line.removePrefix(FILE_LINE).trim(), null, picture = false)
+                    else -> null
+                }
+            }
+            val words = lines.filterNot { it.startsWith(PICTURE_LINE) || it.startsWith(FILE_LINE) }.joinToString("\n").trim()
+            return (if (attached.isNotEmpty() && (words == PICTURE_ONLY || words == FILE_ONLY)) "" else words) to attached
         }
     }
 
@@ -142,20 +154,56 @@ class CodeStore(private val store: Store) {
     val uploading = MutableStateFlow(false)
     val pending = MutableStateFlow<List<Pending>>(emptyList())
 
-    fun attach(uri: android.net.Uri) = run {
+    fun attach(uris: List<android.net.Uri>) = run {
+        if (uris.isEmpty()) return@run
         uploading.value = true
         try {
-            val raw = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                store.appContext.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-            } ?: throw IOException("could not read the picture")
-            val bytes = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { ac.mvr.phone.play.Artwork.shrink(raw, 2048) } ?: throw IOException("that file is not a picture")
-            val client = client("claude") ?: throw IOException("desktop unreachable")
-            val path = client.upload(bytes)
-            val thumb = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { ac.mvr.phone.play.Artwork.decode(bytes, 160) } ?: throw IOException("that file is not a picture")
-            sentThumbs[path] = thumb
-            attachments.value = attachments.value + Attachment(path, thumb)
+            uris.forEach { attachOne(it) }
         } finally {
             uploading.value = false
+        }
+    }
+
+    private suspend fun attachOne(uri: android.net.Uri) {
+        val resolver = store.appContext.contentResolver
+        val type = resolver.getType(uri) ?: "application/octet-stream"
+        val name = nameOf(uri, type)
+        val raw = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { readCapped(uri, name) }
+        val client = client("claude") ?: throw IOException("desktop unreachable")
+        val shrunk = if (type.startsWith("image/")) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { ac.mvr.phone.play.Artwork.shrink(raw, 2048) } else null
+        if (shrunk == null) {
+            val path = client.upload(raw, type, name)
+            attachments.value = attachments.value + Attachment(path, null, picture = false)
+            return
+        }
+        val path = client.upload(shrunk)
+        val thumb = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { ac.mvr.phone.play.Artwork.decode(shrunk, 160) }
+        if (thumb != null) sentThumbs[path] = thumb
+        attachments.value = attachments.value + Attachment(path, thumb)
+    }
+
+    private fun nameOf(uri: android.net.Uri, type: String): String {
+        val shown = runCatching {
+            store.appContext.contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
+        }.getOrNull()?.trim()
+        if (!shown.isNullOrEmpty()) return shown
+        val ext = android.webkit.MimeTypeMap.getSingleton().getExtensionFromMimeType(type)
+        return if (ext != null) "file.$ext" else "file"
+    }
+
+    private fun readCapped(uri: android.net.Uri, name: String): ByteArray {
+        val input = store.appContext.contentResolver.openInputStream(uri) ?: throw IOException("could not read $name")
+        return input.use { stream ->
+            val out = java.io.ByteArrayOutputStream()
+            val buffer = ByteArray(64 * 1024)
+            while (true) {
+                val n = stream.read(buffer)
+                if (n < 0) break
+                if (out.size() + n > FILE_LIMIT) throw IOException("$name is over ${FILE_LIMIT / (1024 * 1024)} MB")
+                out.write(buffer, 0, n)
+            }
+            if (out.size() == 0) throw IOException("$name is empty")
+            out.toByteArray()
         }
     }
 
@@ -415,7 +463,7 @@ class CodeStore(private val store: Store) {
         val typed = text.trim()
         val files = attachments.value
         if ((typed.isEmpty() && files.isEmpty()) || sending.value) return@run
-        val body = (listOf(typed.ifEmpty { PICTURE_ONLY }) + files.map { PICTURE_LINE + it.path }).joinToString("\n")
+        val body = (listOf(typed.ifEmpty { if (files.all { it.picture }) PICTURE_ONLY else FILE_ONLY }) + files.map { it.line }).joinToString("\n")
         sending.value = true
         try {
             deliver(body)
@@ -437,8 +485,8 @@ class CodeStore(private val store: Store) {
     }
 
     fun edit(body: String) {
-        val (words, pictures) = split(body)
-        attachments.value = pictures.map { Attachment(it, sentThumbs[it]) }
+        val (words, attached) = split(body)
+        attachments.value = attached
         replaceDraft(words)
     }
 

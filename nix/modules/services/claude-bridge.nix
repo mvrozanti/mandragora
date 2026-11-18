@@ -19,6 +19,7 @@ in
       restartTriggers = [ (builtins.readFile src) ];
       path = [
         pkgs.claude-code
+        pkgs.poppler-utils
         "/run/wrappers"
         "/home/m/.nix-profile"
         "/etc/profiles/per-user/m"

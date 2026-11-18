@@ -1021,15 +1021,25 @@ async def find(request: web.Request) -> web.Response:
         return json_error(f"search failed: {str(err)[:160]}", 503)
 
 
+def upload_name(raw: str) -> str:
+    name = re.sub(r"[\x00-\x1f\x7f/\\]+", "_", raw).strip().lstrip(".")
+    if not name:
+        return ""
+    path = Path(name)
+    return path.stem[:100].strip() + path.suffix[:12]
+
+
 async def upload(request: web.Request) -> web.Response:
+    name = upload_name(request.query.get("name") or "")
     suffix = IMAGE_TYPES.get((request.content_type or "").lower())
-    if suffix is None:
-        return json_error("only pictures can be attached", 415)
+    if not name and suffix is None:
+        return json_error("only pictures can be attached without a file name", 415)
     data = await request.read()
     if not data:
         return json_error("empty upload", 400)
-    UPLOADS.mkdir(parents=True, exist_ok=True)
-    path = UPLOADS / f"{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}{suffix}"
+    stamp = f"{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
+    path = UPLOADS / stamp / name if name else UPLOADS / f"{stamp}{suffix}"
+    path.parent.mkdir(parents=True, exist_ok=True)
     await asyncio.to_thread(path.write_bytes, data)
     return web.json_response({"path": str(path)})
 

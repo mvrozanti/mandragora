@@ -181,8 +181,8 @@ class CodeClient(val id: String, private val baseUrl: () -> String, private val 
     suspend fun projects(): List<CodeProject> =
         json.decodeFromString<List<CodeProject>>(Http.get(url("/project"), headers())).onEach { it.backend = id }
 
-    suspend fun upload(bytes: ByteArray): String =
-        json.decodeFromString<Uploaded>(Http.postBytes(url("/upload"), bytes, "image/jpeg", headers())).path
+    suspend fun upload(bytes: ByteArray, type: String = "image/jpeg", name: String? = null): String =
+        json.decodeFromString<Uploaded>(Http.postBytes(url("/upload" + (name?.let { "?name=" + enc(it) } ?: "")), bytes, type, headers())).path
 
     suspend fun find(query: String, limit: Int): List<CodeSession> =
         json.decodeFromString<List<CodeSession>>(Http.get(url("/find?limit=$limit&q=" + enc(query)), headers())).onEach { it.backend = id }

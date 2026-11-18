@@ -11,7 +11,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.unit.Dp
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.draw.alpha
@@ -477,15 +481,17 @@ private fun UserBubble(text: String, faded: Boolean, actions: List<Pair<String, 
 @Composable
 private fun BubbleBody(text: String) {
     val scheme = MaterialTheme.colorScheme
-    val (words, pictures) = CodeStore.split(text)
+    val (words, attached) = CodeStore.split(text)
+    val pictures = attached.filter { it.picture }
     Column(
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
+        attached.filterNot { it.picture }.forEach { file -> FileChip(file.name) }
         if (pictures.isNotEmpty()) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                pictures.forEach { path ->
-                    val thumb = CodeStore.sentThumbs[path]
+                pictures.forEach { picture ->
+                    val thumb = CodeStore.sentThumbs[picture.path]
                     if (thumb != null) {
                         Image(thumb.asImageBitmap(), "picture", contentScale = ContentScale.Crop, modifier = Modifier.size(96.dp).clip(RoundedCornerShape(14.dp)))
                     } else {
@@ -506,6 +512,19 @@ private fun BubbleBody(text: String) {
                 Text(words, style = MaterialTheme.typography.bodyLarge, color = scheme.onSurface)
             }
         }
+    }
+}
+
+@Composable
+private fun FileChip(name: String, modifier: Modifier = Modifier, end: Dp = 12.dp) {
+    val scheme = MaterialTheme.colorScheme
+    Row(
+        modifier = modifier.clip(RoundedCornerShape(14.dp)).background(scheme.surfaceContainerHigh).padding(start = 12.dp, end = end, top = 10.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(if (name.endsWith(".pdf", ignoreCase = true)) Icons.Filled.PictureAsPdf else Icons.Filled.Description, null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+        Text(name, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 220.dp))
     }
 }
 
@@ -651,10 +670,12 @@ private fun Composer(
     onChange: (TextFieldValue) -> Unit,
     onSend: () -> Unit,
     onStop: () -> Unit,
-    onAttach: () -> Unit,
+    onPicture: () -> Unit,
+    onFile: () -> Unit,
     onDetach: (String) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
+    var choosing by remember { mutableStateOf(false) }
     val draft = field.text
     val stopping = busy && draft.isBlank() && attachments.isEmpty()
     if (attachments.isNotEmpty() || uploading) {
@@ -664,8 +685,10 @@ private fun Composer(
         ) {
             attachments.forEach { file ->
                 Box {
-                        val thumb = file.thumb
-                    if (thumb != null) {
+                    val thumb = file.thumb
+                    if (!file.picture) {
+                        FileChip(file.name, Modifier.height(64.dp), end = 30.dp)
+                    } else if (thumb != null) {
                         Image(thumb.asImageBitmap(), null, contentScale = ContentScale.Crop, modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp)))
                     } else {
                         Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp)).background(scheme.surfaceContainerHigh), contentAlignment = Alignment.Center) {
@@ -689,8 +712,22 @@ private fun Composer(
         modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 6.dp, top = 6.dp, bottom = 8.dp),
         verticalAlignment = Alignment.Bottom,
     ) {
-        IconButton(onClick = onAttach, enabled = enabled && !uploading) {
-            Icon(Icons.Filled.AddPhotoAlternate, "attach a picture", tint = scheme.onSurfaceVariant)
+        Box {
+            IconButton(onClick = { choosing = true }, enabled = enabled && !uploading) {
+                Icon(Icons.Filled.AttachFile, "attach", tint = scheme.onSurfaceVariant)
+            }
+            DropdownMenu(expanded = choosing, onDismissRequest = { choosing = false }) {
+                DropdownMenuItem(
+                    text = { Text("a picture") },
+                    leadingIcon = { Icon(Icons.Filled.Image, null) },
+                    onClick = { choosing = false; onPicture() },
+                )
+                DropdownMenuItem(
+                    text = { Text("a file or pdf") },
+                    leadingIcon = { Icon(Icons.Filled.Description, null) },
+                    onClick = { choosing = false; onFile() },
+                )
+            }
         }
         OutlinedTextField(
             value = field,
@@ -788,7 +825,8 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     val pendingHere = pendingAll.filter { it.sessionId == current?.id }
     val settled = current != null && !busy && pendingHere.isEmpty() && screens.isEmpty() && asks.isEmpty() && questions.isEmpty()
     val stops = remember(entries, settled) { stoppedTurns(entries, settled) }
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> if (uri != null) code.attach(uri) }
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(8)) { uris -> code.attach(uris) }
+    val files = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> code.attach(uris) }
     val transcript = rememberLazyListState()
     var follow by remember(current?.id) { mutableStateOf(true) }
     LaunchedEffect(transcript) {
@@ -831,7 +869,8 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
             onChange = { field = it; code.draft.value = it.text },
             onSend = { code.send(field.text) },
             onStop = { code.stop() },
-            onAttach = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            onPicture = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            onFile = { files.launch(arrayOf("*/*")) },
             onDetach = { code.detach(it) },
         )
     }
