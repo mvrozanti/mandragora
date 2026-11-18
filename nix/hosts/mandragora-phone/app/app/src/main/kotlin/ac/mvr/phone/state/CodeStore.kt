@@ -459,8 +459,15 @@ class CodeStore(private val store: Store) {
             store.prefs.lastCodeDir = session.directory
             sessionsFlow.value = listOf(session) + sessionsFlow.value.filter { it.id != session.id }
         }
-        client.prompt(session.id, session.directory, body, chosen?.providerID?.takeIf { sameBackend }, chosen?.modelID?.takeIf { sameBackend })
-        pending.value = pending.value + Pending(System.nanoTime(), session.id, body, System.currentTimeMillis(), entriesFlow.value.filter { it.info.role == "user" }.map { it.info.id }.toSet())
+        val sent = Pending(System.nanoTime(), session.id, body, System.currentTimeMillis(), entriesFlow.value.filter { it.info.role == "user" }.map { it.info.id }.toSet())
+        pending.value = pending.value + sent
+        try {
+            client.prompt(session.id, session.directory, body, chosen?.providerID?.takeIf { sameBackend }, chosen?.modelID?.takeIf { sameBackend })
+        } catch (err: Exception) {
+            pending.value = pending.value.filter { it.id != sent.id }
+            throw err
+        }
+        reconcile()
         statusFlow.value = statusFlow.value + (session.id to CodeStatus("busy"))
         touch(session.id, System.currentTimeMillis())
         if (session.live != null) syncCurrent()
