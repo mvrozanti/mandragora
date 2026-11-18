@@ -15,11 +15,11 @@ let
   archMap = {
     "x86_64-linux" = {
       npmArch = "linux-x64";
-      hash = "sha256-EG6ewixi0mNa5Ea5t0GQS2u5NipcZLGOEhfFXZV6E0g=";
+      hash = "sha256-7rMOxhcTXGhCcIANkRt10dLWxkIZEUf33S3ej75Gs+s=";
     };
     "aarch64-linux" = {
       npmArch = "linux-arm64";
-      hash = "sha256-hKwO7trIr+heEx5wNmWmoYsX2EKFGgo6S0btRgm4pyI=";
+      hash = "sha256-nWaDYr1ljD9Sawcm3WbwCFaCg1xgVOK58cHzgZsfuxo=";
     };
   };
   arch =
@@ -28,7 +28,7 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "claude-code";
-  version = "2.1.326";
+  version = "2.1.327";
 
   src = fetchzip {
     url = "https://registry.npmjs.org/@anthropic-ai/claude-code-${arch.npmArch}/-/claude-code-${arch.npmArch}-${finalAttrs.version}.tgz";
