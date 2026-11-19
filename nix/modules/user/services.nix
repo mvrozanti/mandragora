@@ -101,6 +101,8 @@ in
             gnugrep
             gnused
             coreutils
+            findutils
+            jq
             notmuch
             mutt-oauth2
             mail-menu

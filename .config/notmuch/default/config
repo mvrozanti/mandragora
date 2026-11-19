@@ -7,7 +7,7 @@ primary_email=mvrozanti@hotmail.com
 
 [new]
 tags=unread;inbox;
-ignore=
+ignore=.uidvalidity;.mbsyncstate;.mbsyncstate.journal;.mbsyncstate.new;.mbsyncstate.lock
 
 [search]
 exclude_tags=deleted;spam;

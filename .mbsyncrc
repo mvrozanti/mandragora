@@ -26,6 +26,7 @@ Expunge Both
 CopyArrivalDate yes
 Sync All
 Create Both
+Remove Near
 SyncState *
 MaxMessages 0
 ExpireUnread no
