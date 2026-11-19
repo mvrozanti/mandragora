@@ -94,15 +94,15 @@ FETCH_LOG=""
 MSG_PID=""
 MSG_FILE=""
 AUDIT_STAMP=""
-WSL_PID=""
-WSL_LOG=""
+PEER_PID=""
+PEER_LOG=""
 PUBLISH_PID=""
 PUBLISH_LOG=""
 cleanup() {
   rm -f "${LOCKFILE}.pid"
   [ -n "$TMPFILE" ] && rm -f "$TMPFILE" "$SAVED_FLAG"
-  [ -n "$WSL_PID" ] && kill "$WSL_PID" 2>/dev/null
-  rm -f ${FETCH_LOG:+"$FETCH_LOG"} ${MSG_FILE:+"$MSG_FILE"} ${AUDIT_STAMP:+"$AUDIT_STAMP"} ${WSL_LOG:+"$WSL_LOG"} ${PUBLISH_LOG:+"$PUBLISH_LOG"}
+  [ -n "$PEER_PID" ] && { pkill -P "$PEER_PID" 2>/dev/null; kill "$PEER_PID" 2>/dev/null; }
+  rm -f ${FETCH_LOG:+"$FETCH_LOG"} ${MSG_FILE:+"$MSG_FILE"} ${AUDIT_STAMP:+"$AUDIT_STAMP"} ${PEER_LOG:+"$PEER_LOG"} ${PUBLISH_LOG:+"$PUBLISH_LOG"}
   if [ "$MODE" = main ] && [ -d "$WT" ]; then
     git -C "$FLAKE" worktree remove --force "$WT" 2>/dev/null || rm -rf "$WT"
     git -C "$FLAKE" worktree prune 2>/dev/null || true
@@ -453,10 +453,21 @@ EVAL_REF="$WT"
 if [ -z "$(git -C "$WT" status --porcelain --untracked-files=no)" ]; then
   EVAL_REF="git+file://$WT?rev=$(git -C "$WT" rev-parse HEAD)"
 fi
-WSL_LOG=$(mktemp "$LOCKDIR/mandragora-switch-wsl.XXXXXX")
-nix build --dry-run "$EVAL_REF#nixosConfigurations.mandragora-wsl.config.system.build.toplevel" >"$WSL_LOG" 2>&1 &
-WSL_PID=$!
-echo "==> Pre-flight: mandragora-wsl evaluates in the background; a failure still blocks the push."
+PEER_TARGETS=(
+  "nixosConfigurations.mandragora-wsl.config.system.build.toplevel"
+  "darwinConfigurations.mandragora-macos.system"
+)
+PEER_LOG=$(mktemp "$LOCKDIR/mandragora-switch-peers.XXXXXX")
+(
+  rc=0
+  for target in "${PEER_TARGETS[@]}"; do
+    echo "--- $target"
+    nix build --dry-run "$EVAL_REF#$target" || rc=1
+  done
+  exit "$rc"
+) >"$PEER_LOG" 2>&1 &
+PEER_PID=$!
+echo "==> Pre-flight: mandragora-wsl and mandragora-macos evaluate in the background; a failure still blocks the push."
 
 if [ "$INTERACTIVE" -eq 0 ] && command -v mandragora-vault >/dev/null 2>&1; then
   PUBLISH_LOG=$(mktemp "$LOCKDIR/mandragora-switch-publish.XXXXXX")
@@ -498,14 +509,14 @@ else
   exit "$RC"
 fi
 
-if wait "$WSL_PID"; then
-  echo "==> [ok] mandragora-wsl evaluates"
+if wait "$PEER_PID"; then
+  echo "==> [ok] mandragora-wsl and mandragora-macos evaluate"
 else
-  echo "==> ABORTED before promoting: mandragora-wsl failed to evaluate. The desktop already runs this commit; fix the WSL eval and re-run mandragora-switch, which folds the running commit in:" >&2
-  cat "$WSL_LOG" >&2
+  echo "==> ABORTED before promoting: a peer host failed to evaluate. The desktop already runs this commit; fix the failing host below and re-run mandragora-switch, which folds the running commit in:" >&2
+  cat "$PEER_LOG" >&2
   exit 1
 fi
-WSL_PID=""
+PEER_PID=""
 
 if [ "$COMMIT_SKIPPED" -eq 0 ]; then
   NEW_COMMIT=$(git -C "$WT" rev-parse HEAD)
