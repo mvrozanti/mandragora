@@ -3,14 +3,28 @@
   stdenv,
   fetchurl,
 }:
-# rtk ships as a statically-linked musl binary per release, so no patchelf needed.
+let
+  targets = {
+    "x86_64-linux" = {
+      triple = "x86_64-unknown-linux-musl";
+      hash = "sha256-Pft6BWNqaGh7ocWqaW+o1fy0lER97YbZ64uItxAKN8Y=";
+    };
+    "aarch64-darwin" = {
+      triple = "aarch64-apple-darwin";
+      hash = "sha256-meIKWYR97btkAyo/eYXy/pWfy5Z02Or5QPxYoYnifso=";
+    };
+  };
+  target =
+    targets.${stdenv.hostPlatform.system}
+      or (throw "rtk: unsupported system ${stdenv.hostPlatform.system}");
+in
 stdenv.mkDerivation (finalAttrs: {
   pname = "rtk";
   version = "0.37.2";
 
   src = fetchurl {
-    url = "https://github.com/rtk-ai/rtk/releases/download/v${finalAttrs.version}/rtk-x86_64-unknown-linux-musl.tar.gz";
-    hash = "sha256-Pft6BWNqaGh7ocWqaW+o1fy0lER97YbZ64uItxAKN8Y=";
+    url = "https://github.com/rtk-ai/rtk/releases/download/v${finalAttrs.version}/rtk-${target.triple}.tar.gz";
+    inherit (target) hash;
   };
 
   sourceRoot = ".";
@@ -29,6 +43,6 @@ stdenv.mkDerivation (finalAttrs: {
     license = lib.licenses.mit;
     mainProgram = "rtk";
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
-    platforms = [ "x86_64-linux" ];
+    platforms = builtins.attrNames targets;
   };
 })

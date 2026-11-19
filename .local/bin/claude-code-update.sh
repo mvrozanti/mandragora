@@ -63,7 +63,7 @@ sri_for() {
 }
 
 echo "prefetching $latest..."
-if ! X64=$(sri_for linux-x64) || ! ARM=$(sri_for linux-arm64); then
+if ! X64=$(sri_for linux-x64) || ! ARM=$(sri_for linux-arm64) || ! MAC=$(sri_for darwin-arm64); then
   notify "claude-code $latest: prefetch failed, pin left at $current"
   echo "prefetch failed" >&2
   exit 1
@@ -86,9 +86,10 @@ if ! git -C "$FLAKE" worktree add -b "$BRANCH" "$WT" refs/heads/master >/dev/nul
 fi
 
 PKG="$WT/$PKGREL"
-awk -v ver="$latest" -v x64="$X64" -v arm="$ARM" '
+awk -v ver="$latest" -v x64="$X64" -v arm="$ARM" -v mac="$MAC" '
   /npmArch = "linux-x64";/ { print; if ((getline l) > 0) { sub(/sha256-[^"]*/, x64, l); print l } next }
   /npmArch = "linux-arm64";/ { print; if ((getline l) > 0) { sub(/sha256-[^"]*/, arm, l); print l } next }
+  /npmArch = "darwin-arm64";/ { print; if ((getline l) > 0) { sub(/sha256-[^"]*/, mac, l); print l } next }
   /^  version = "[0-9][^"]*";$/ { sub(/"[0-9][^"]*"/, "\"" ver "\""); print; next }
   { print }
 ' "$PKG" > "$PKG.new" && mv "$PKG.new" "$PKG"

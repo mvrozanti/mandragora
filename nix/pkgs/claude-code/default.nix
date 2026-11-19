@@ -8,9 +8,6 @@
   procps,
   socat,
 }:
-# claude-code 2.1.116+ ships as a native ELF binary via platform-specific
-# npm optional deps. We fetch the matching architecture binary directly and
-# bypass npm.
 let
   archMap = {
     "x86_64-linux" = {
@@ -21,7 +18,12 @@ let
       npmArch = "linux-arm64";
       hash = "sha256-nWaDYr1ljD9Sawcm3WbwCFaCg1xgVOK58cHzgZsfuxo=";
     };
+    "aarch64-darwin" = {
+      npmArch = "darwin-arm64";
+      hash = "sha256-03VwVIr8XGshD5+vGmVvtN+Fx0JOj5eCUf+eQD0AWeQ=";
+    };
   };
+  inherit (stdenv.hostPlatform) isLinux;
   arch =
     archMap.${stdenv.hostPlatform.system}
       or (throw "claude-code: unsupported system ${stdenv.hostPlatform.system}");
@@ -35,11 +37,8 @@ stdenv.mkDerivation (finalAttrs: {
     inherit (arch) hash;
   };
 
-  nativeBuildInputs = [
-    autoPatchelfHook
-    makeWrapper
-  ];
-  buildInputs = [ stdenv.cc.libc ];
+  nativeBuildInputs = lib.optional isLinux autoPatchelfHook ++ [ makeWrapper ];
+  buildInputs = lib.optional isLinux stdenv.cc.libc;
 
   dontBuild = true;
   dontStrip = true;
@@ -56,13 +55,7 @@ stdenv.mkDerivation (finalAttrs: {
       --set-default FORCE_AUTOUPDATE_PLUGINS 1 \
       --set DISABLE_INSTALLATION_CHECKS 1 \
       --unset DEV \
-      --prefix PATH : ${
-        lib.makeBinPath [
-          procps
-          bubblewrap
-          socat
-        ]
-      }
+      --prefix PATH : ${lib.makeBinPath ([ procps ] ++ lib.optional isLinux bubblewrap ++ [ socat ])}
   '';
 
   meta = {
@@ -75,6 +68,7 @@ stdenv.mkDerivation (finalAttrs: {
     platforms = [
       "x86_64-linux"
       "aarch64-linux"
+      "aarch64-darwin"
     ];
   };
 })

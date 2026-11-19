@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Updates pkgs/claude-code/default.nix to the latest @anthropic-ai/claude-code on npm.
-# Fetches both linux-x64 and linux-arm64 native binary packages directly.
-# Run from anywhere; resolves its own directory.
 set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -29,16 +26,18 @@ fetch_sri() {
 
 X64_SRI=$(fetch_sri linux-x64)
 ARM64_SRI=$(fetch_sri linux-arm64)
+DARWIN_SRI=$(fetch_sri darwin-arm64)
 
 echo "Patching default.nix..."
-python3 - "$DIR/default.nix" "$VERSION" "$X64_SRI" "$ARM64_SRI" <<'PY'
+python3 - "$DIR/default.nix" "$VERSION" "$X64_SRI" "$ARM64_SRI" "$DARWIN_SRI" <<'PY'
 import re, sys, pathlib
-path, version, x64, arm64 = sys.argv[1:]
+path, version, x64, arm64, darwin = sys.argv[1:]
 p = pathlib.Path(path)
 s = p.read_text()
 s = re.sub(r'version = "[^"]+";', f'version = "{version}";', s, count=1)
 s = re.sub(r'("x86_64-linux"\s*=\s*\{[^}]*?hash\s*=\s*")[^"]+"', lambda m: m.group(1) + x64 + '"', s, count=1, flags=re.S)
 s = re.sub(r'("aarch64-linux"\s*=\s*\{[^}]*?hash\s*=\s*")[^"]+"', lambda m: m.group(1) + arm64 + '"', s, count=1, flags=re.S)
+s = re.sub(r'("aarch64-darwin"\s*=\s*\{[^}]*?hash\s*=\s*")[^"]+"', lambda m: m.group(1) + darwin + '"', s, count=1, flags=re.S)
 p.write_text(s)
 PY
 
