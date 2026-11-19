@@ -311,7 +311,9 @@ checks driven over adb while nobody is looking.
 The launcher icon is the two-tone sprout chosen on 2026-11-15 and it follows
 the desktop's wallpaper: twelve hue variants are compiled in as
 `activity-alias` entries and the app enables the one nearest the live
-palette's primary hue whenever it leaves the foreground. `app/icon/README.md`
+palette's primary hue whenever it leaves the foreground. The app-level icon,
+the one the lock screen shows beside the app's notifications and media
+controls, is a grayscale variant that never changes. `app/icon/README.md`
 has the mechanism, the generator and the candidate pages from the three
 rounds, for the next time the icon changes.
 

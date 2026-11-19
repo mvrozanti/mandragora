@@ -16,7 +16,9 @@ ships, so the icon scales, themes and recolours like any vector.
 `gen.py` writes the resources from `glyph.json`: twelve foreground vectors
 (`drawable/ic_launcher_fg_<k>.xml`), twelve adaptive icons
 (`mipmap-anydpi-v26/ic_launcher_<k>.xml`), twelve plate colours
-(`values/ic_launcher_colors.xml`) and one monochrome layer
+(`values/ic_launcher_colors.xml`), the same three for the grayscale default
+(`ic_launcher_gray`, every colour mapped to the gray of equal luminance) and
+one monochrome layer
 (`drawable/ic_launcher_mono.xml`, the two shapes in one tone, which Android 13
 themed icons tint). Run it after editing `glyph.json`; its output is
 committed so the gradle build needs no python. `gen.py --aliases` prints the
@@ -34,6 +36,14 @@ whose bucket is nearest the palette's primary hue and disables the previous
 one. The launcher repaints within seconds, no install needed. Some launchers
 drop a home-screen shortcut when its component changes; the app drawer entry
 always follows.
+
+## Why a gray default
+
+The aliases only steer the launcher. Everything else that asks for the app's
+icon reads the `<application>` icon, and on the One UI lock screen that is
+the icon beside the app's notifications and media controls. That one is
+`ic_launcher_gray`, so the locked phone shows the sprout in grayscale and
+the wallpaper's hue appears only on the unlocked home screen and drawer.
 
 ## The candidates, for next time
 

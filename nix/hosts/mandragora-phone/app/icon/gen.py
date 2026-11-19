@@ -9,6 +9,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 RES = HERE.parent / "app/src/main/res"
 BUCKETS = 12
 HOME_BUCKET = 8
+DEFAULT = "gray"
 glyph = json.loads((HERE / "glyph.json").read_text())
 
 
@@ -17,6 +18,14 @@ def rotate(color: str, degrees: float) -> str:
     h, s, v = colorsys.rgb_to_hsv(r, g, b)
     r, g, b = colorsys.hsv_to_rgb((h + degrees / 360) % 1, s, v)
     return "#%02x%02x%02x" % (round(r * 255), round(g * 255), round(b * 255))
+
+
+def gray(color: str) -> str:
+    channels = [int(color[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+    linear = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
+    luminance = 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+    level = 12.92 * luminance if luminance <= 0.0031308 else 1.055 * luminance ** (1 / 2.4) - 0.055
+    return "#%02x%02x%02x" % ((round(level * 255),) * 3)
 
 
 def span(path: str) -> tuple[float, float, float]:
@@ -55,22 +64,29 @@ colors = glyph["colors"]
 (RES / "drawable").mkdir(parents=True, exist_ok=True)
 (RES / "mipmap-anydpi-v26").mkdir(parents=True, exist_ok=True)
 (RES / "values").mkdir(parents=True, exist_ok=True)
-plates = []
-for k in range(BUCKETS):
-    shift = (k - HOME_BUCKET) * (360 / BUCKETS)
+
+
+def write_variant(name: str, paint) -> str:
     fg = VECTOR
-    fg += gradient_path(glyph["body"], rotate(colors["body_top"], shift), rotate(colors["body_bottom"], shift))
-    fg += gradient_path(glyph["leaf"], rotate(colors["leaf_top"], shift), rotate(colors["leaf_bottom"], shift))
+    fg += gradient_path(glyph["body"], paint(colors["body_top"]), paint(colors["body_bottom"]))
+    fg += gradient_path(glyph["leaf"], paint(colors["leaf_top"]), paint(colors["leaf_bottom"]))
     fg += "</vector>\n"
-    (RES / "drawable" / f"ic_launcher_fg_{k}.xml").write_text(fg)
-    plates.append(rotate(colors["plate"], shift))
-    (RES / "mipmap-anydpi-v26" / f"ic_launcher_{k}.xml").write_text(f'''<?xml version="1.0" encoding="utf-8"?>
+    (RES / "drawable" / f"ic_launcher_fg_{name}.xml").write_text(fg)
+    (RES / "mipmap-anydpi-v26" / f"ic_launcher_{name}.xml").write_text(f'''<?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/ic_plate_{k}" />
-    <foreground android:drawable="@drawable/ic_launcher_fg_{k}" />
+    <background android:drawable="@color/ic_plate_{name}" />
+    <foreground android:drawable="@drawable/ic_launcher_fg_{name}" />
     <monochrome android:drawable="@drawable/ic_launcher_mono" />
 </adaptive-icon>
 ''')
+    return paint(colors["plate"])
+
+
+plates = {}
+for k in range(BUCKETS):
+    shift = (k - HOME_BUCKET) * (360 / BUCKETS)
+    plates[str(k)] = write_variant(str(k), lambda color: rotate(color, shift))
+plates[DEFAULT] = write_variant(DEFAULT, gray)
 
 mono = VECTOR.replace('    xmlns:aapt="http://schemas.android.com/aapt"\n', "")
 for key in ("body", "leaf"):
@@ -79,8 +95,8 @@ mono += "</vector>\n"
 (RES / "drawable" / "ic_launcher_mono.xml").write_text(mono)
 
 values = '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n'
-for k, plate in enumerate(plates):
-    values += f'    <color name="ic_plate_{k}">{plate}</color>\n'
+for name, plate in plates.items():
+    values += f'    <color name="ic_plate_{name}">{plate}</color>\n'
 values += "</resources>\n"
 (RES / "values" / "ic_launcher_colors.xml").write_text(values)
 
@@ -100,4 +116,4 @@ if "--aliases" in sys.argv:
             </intent-filter>
         </activity-alias>
 ''')
-print(f"wrote {BUCKETS} foregrounds, {BUCKETS} adaptive icons, the monochrome layer and {BUCKETS} plate colours under {RES}")
+print(f"wrote {BUCKETS} hue variants, the {DEFAULT} default and the monochrome layer under {RES}")

@@ -12,4 +12,5 @@
     <color name="ic_plate_9">#2b0d4d</color>
     <color name="ic_plate_10">#4b0d4d</color>
     <color name="ic_plate_11">#4d0d2f</color>
+    <color name="ic_plate_gray">#191919</color>
 </resources>
