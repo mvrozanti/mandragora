@@ -1,5 +1,6 @@
 import Notifd from "gi://AstalNotifd"
 import GLib from "gi://GLib"
+import Gio from "gi://Gio"
 import { createState } from "ags"
 
 export let notifd: Notifd.Notifd
@@ -11,6 +12,75 @@ const [dnd, setDnd] = createState(false)
 export { list as notifications, dnd }
 
 const stateDir = `${GLib.get_user_runtime_dir()}/mandragora-shell`
+const historyDir = `${GLib.get_user_state_dir()}/mandragora-shell`
+const historyPath = `${historyDir}/notification-history.jsonl`
+const historyDays = 30
+const historyDefaultCount = 20
+
+const urgencyName = (u: Notifd.Urgency) =>
+  u === Notifd.Urgency.CRITICAL ? "critical" : u === Notifd.Urgency.LOW ? "low" : "normal"
+
+function readHistory(): string[] {
+  try {
+    const [ok, bytes] = GLib.file_get_contents(historyPath)
+    return ok ? new TextDecoder().decode(bytes).split("\n").filter(Boolean) : []
+  } catch {
+    return []
+  }
+}
+
+function record(id: number, replaced: boolean) {
+  const n = notifd.get_notification(id)
+  if (!n) return
+  const entry = {
+    time: n.time,
+    app: n.appName,
+    summary: n.summary,
+    body: n.body,
+    urgency: urgencyName(n.urgency),
+    replaced,
+  }
+  try {
+    const stream = Gio.File.new_for_path(historyPath).append_to(Gio.FileCreateFlags.PRIVATE, null)
+    stream.write_all(new TextEncoder().encode(JSON.stringify(entry) + "\n"), null)
+    stream.close(null)
+  } catch (e) {
+    printerr(`notification history: ${e}`)
+  }
+}
+
+function prune() {
+  const cutoff = Math.floor(GLib.get_real_time() / 1e6) - historyDays * 86400
+  const lines = readHistory()
+  const kept = lines.filter((line) => {
+    try {
+      return JSON.parse(line).time >= cutoff
+    } catch {
+      return false
+    }
+  })
+  if (kept.length !== lines.length) {
+    GLib.file_set_contents_full(
+      historyPath,
+      kept.map((line) => line + "\n").join(""),
+      GLib.FileSetContentsFlags.CONSISTENT,
+      0o600,
+    )
+  }
+  return GLib.SOURCE_CONTINUE
+}
+
+function formatEntry(line: string): string {
+  try {
+    const e = JSON.parse(line)
+    const when = GLib.DateTime.new_from_unix_local(e.time).format("%F %T")
+    const body = String(e.body ?? "").replace(/\s+/g, " ").trim()
+    const mark = e.urgency === "critical" ? "!" : " "
+    return `${when} ${mark} ${e.app || "?"}: ${e.summary}${body ? ` — ${body}` : ""}`
+  } catch {
+    return line
+  }
+}
 
 let pending = 0
 function publish() {
@@ -32,6 +102,10 @@ export function initNotifications() {
   notifd = Notifd.get_default()
   notifd.ignoreTimeout = true
   GLib.mkdir_with_parents(stateDir, 0o700)
+  GLib.mkdir_with_parents(historyDir, 0o700)
+  prune()
+  GLib.timeout_add_seconds(GLib.PRIORITY_LOW, 86400, prune)
+  notifd.connect("notified", (_n, id, replaced) => record(id, replaced))
   setList(newestFirst())
   setDnd(notifd.dontDisturb)
   notifd.connect("notify::notifications", () => {
@@ -75,6 +149,10 @@ export function request(args: string[]): string {
     case "close-latest":
       latest()?.dismiss()
       return "ok"
+    case "history": {
+      const count = Math.max(1, Math.floor(Number(arg)) || historyDefaultCount)
+      return readHistory().slice(-count).map(formatEntry).join("\n") || "no notifications recorded"
+    }
     case "invoke-latest": {
       const n = latest()
       if (n) invokeDefault(n)
