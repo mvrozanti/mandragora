@@ -87,7 +87,7 @@ Hold any added text that contains:
 - identifiers of the owner's devices and network: phone, laptop or other device model numbers, hostnames of personal devices (any hostname that contains a person's name or names a phone, tablet or laptop), and the address of any specific machine on the tailnet (100.64.0.0/10) or the LAN (10.x, 172.16-31.x, 192.168.x) - say "the VPS's tailnet address" or "the phone" instead
 - financial identifiers: bank or card details, seed phrases, exchange account ids, wallet addresses tied to the owner
 
-Do not hold: mechanisms, architecture, configuration shapes, incident timelines, file paths, the project's own machine names (mandragora-desktop, mandragora-vps, mandragora-kindle, mandragora-wsl), public service domains under mvr.ac, network ranges written as CIDR, well-known addresses (public DNS resolvers, link-local, cloud metadata, a Docker bridge gateway), commit hashes, package and product names.
+Do not hold: mechanisms, architecture, configuration shapes, incident timelines, file paths, the project's own machine names (mandragora-desktop, mandragora-vps, mandragora-kindle, mandragora-wsl, mandragora-macos), public service domains under mvr.ac, network ranges written as CIDR, well-known addresses (public DNS resolvers, link-local, cloud metadata, a Docker bridge gateway), commit hashes, package and product names.
 
 Reply with exactly one JSON object and nothing else:
 {"hold": [{"file": "<path>", "excerpt": "<at most 80 chars around the problem, with the sensitive part replaced by ***>", "reason": "<which rule>"}]}

@@ -26,6 +26,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-darwin = {
+      url = "github:nix-darwin/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     pi.url = "github:earendil-works/pi/stable";
 
     ags = {
@@ -53,6 +58,7 @@
       impermanence,
       nixos-generators,
       nixos-wsl,
+      nix-darwin,
       ...
     }@inputs:
     let
@@ -69,6 +75,7 @@
           && name != "mandragora-usb"
           && name != "mandragora-vps"
           && name != "mandragora-wsl"
+          && name != "mandragora-macos"
         ) (builtins.readDir hostsDir)
       );
 
@@ -138,6 +145,14 @@
             }
           ];
         };
+      };
+
+      darwinConfigurations.mandragora-macos = nix-darwin.lib.darwinSystem {
+        specialArgs = { inherit inputs; };
+        modules = sharedModules ++ [
+          ./nix/hosts/mandragora-macos/default.nix
+          home-manager.darwinModules.home-manager
+        ];
       };
 
       packages.${system}.usbImage = nixos-generators.nixosGenerate {

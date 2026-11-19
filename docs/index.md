@@ -62,6 +62,8 @@ in this repo.
 
 - [`appendix/wsl/README.md`](appendix/wsl/README.md) — Mandragora
   profile under WSL2 (corporate-laptop fallback).
+- [`appendix/macos/README.md`](appendix/macos/README.md) — Mandragora
+  CLI baseline on a work-issued Apple Silicon Mac via nix-darwin.
 - [`../nix/hosts/mandragora-usb/`](../nix/hosts/mandragora-usb/) — bootable
   installer / rescue USB host (built via `nix build .#usbImage`,
   test-driven via `nix run .#refiner -- --auto`).

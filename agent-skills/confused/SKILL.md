@@ -145,7 +145,8 @@ same question reworded — that is how a clarification becomes an argument.
 
 ## Rebuild+Switch Mode
 
-`mandragora-switch` (desktop) and `mandragora-wsl-switch` (WSL) abort in ways
+`mandragora-switch` (desktop), `mandragora-wsl-switch` (WSL) and
+`mandragora-macos-switch` (macOS) abort in ways
 whose recovery is a real judgement call. When one of those aborts, this skill
 turns the failure into a choice instead of a wall of stderr.
 
@@ -155,7 +156,7 @@ Applies to these switch outcomes:
 |---|---|
 | "main tree is publish-only" | Whose changes should be in this commit? |
 | Repo audit failed | Is this failure yours to fix, or pre-existing? (Rule 18 default is isolate) |
-| `mandragora-wsl` eval failed in pre-flight | Should the other host block this switch? |
+| `mandragora-wsl` or `mandragora-macos` eval failed in pre-flight | Should the other host block this switch? |
 | Rebase conflict on promote/push | Should your commit go on top, or wait? |
 | Activated but units failed | Ship the generation, or roll back? |
 | Heavy source build in `--dry-run` | Rule 19 — park it, or cage it and pay the RAM? |

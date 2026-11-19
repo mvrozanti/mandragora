@@ -6,6 +6,7 @@
       "desktop"
       "live"
       "wsl"
+      "macos"
     ];
     default = "desktop";
     description = ''

@@ -13,7 +13,7 @@ whole system is comprehensible to a single individual.
 
 ## 1. Executive summary
 
-The flake centers on one workstation (`mandragora-desktop`) but ships four
+The flake centers on one workstation (`mandragora-desktop`) but ships five
 targets for one user (`m`). Every runtime concern is expressed as a Nix
 module under `nix/modules/`. Each host's composition file
 (`nix/hosts/<host>/default.nix`) imports those modules, and the flake
@@ -23,6 +23,7 @@ module under `nix/modules/`. Each host's composition file
 | ------ | ---- | -------- |
 | `mandragora-desktop` | NixOS workstation (the primary host) | `nixosConfigurations.mandragora-desktop` |
 | `mandragora-wsl` | NixOS-WSL guest | `nixosConfigurations.mandragora-wsl` |
+| `mandragora-macos` | nix-darwin + home-manager on a work-issued Apple Silicon Mac | `darwinConfigurations.mandragora-macos` |
 | `mandragora-usb` | NixOS live/installer image | `nixosConfigurations.mandragora-usb` + `packages.usbImage` (raw-efi generator) + `apps.refiner` (QEMU boot-test harness) |
 | `mandragora-vps` | Oracle Linux ARM VPS — **not a NixOS host** | `homeConfigurations."m@mandragora-vps"` (aarch64 home-manager) + docker-compose stacks under `nix/hosts/mandragora-vps/compose/` |
 
