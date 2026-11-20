@@ -62,9 +62,10 @@ bottom are the ones that decide which.
 
 Stated by the operator on 2026-11-15, in their order:
 
-- Session housekeeping from the phone: rename, delete and fork are served by
+- Session housekeeping from the phone: delete and fork are served by
   `claude-bridge` (and opencode) but have no tap yet; a long press on a
-  session row is the natural place.
+  session row is the natural place. Rename is the title tap on the code
+  screen, closing is a swipe on the row.
 - Notifications both ways: desktop notifications mirrored to the phone and
   the phone's to the desktop, each direction and each app class
   configurable. The settings screen exists since 2026-11-15 (card order);

@@ -1417,12 +1417,25 @@ async def tune_live(bridge: Bridge, sid: str, live: dict, changes: dict) -> web.
 
 
 async def rename(request: web.Request) -> web.Response:
+    bridge = bridge_of(request)
     sid = request.match_info["sid"]
     body = await request.json()
     title = (body or {}).get("title") if isinstance(body, dict) else None
+    title = " ".join(str(title).split())[:200] if title else ""
     if not title:
         return json_error("title required", 400)
-    await asyncio.to_thread(rename_session, sid, title, request.query.get("directory") or None)
+    live = bridge.live_sessions().get(sid)
+    typed = False
+    if live is not None and live.get("status") != "waiting":
+        try:
+            pane = await asyncio.to_thread(pane_of, int(live["pid"]))
+            if pane is not None:
+                await asyncio.to_thread(type_into, pane, f"/rename {title}")
+                typed = True
+        except (RuntimeError, OSError, subprocess.SubprocessError, ValueError):
+            typed = False
+    if not typed:
+        await asyncio.to_thread(rename_session, sid, title, request.query.get("directory") or None)
     bridge_of(request).bus.emit("session.updated", {"sessionID": sid, "info": {"id": sid, "title": title, "directory": request.query.get("directory") or "", "time": {"created": 0, "updated": now_ms()}}})
     return web.json_response(True)
 

@@ -41,6 +41,13 @@ object Http {
         execute(builder.build())
     }
 
+    suspend fun patch(url: String, body: JsonElement?, headers: Map<String, String> = emptyMap()): String = withContext(Dispatchers.IO) {
+        val payload = (body?.toString() ?: "").toRequestBody(jsonType)
+        val builder = Request.Builder().url(url).patch(payload)
+        headers.forEach { (k, v) -> builder.header(k, v) }
+        execute(builder.build())
+    }
+
     suspend fun postBytes(url: String, bytes: ByteArray, type: String, headers: Map<String, String> = emptyMap()): String = withContext(Dispatchers.IO) {
         val builder = Request.Builder().url(url).post(bytes.toRequestBody(type.toMediaType()))
         headers.forEach { (k, v) -> builder.header(k, v) }

@@ -1,5 +1,12 @@
 package ac.mvr.phone.ui
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.layout.height
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
@@ -422,26 +429,60 @@ private fun TuneSheet(
 }
 
 @Composable
-private fun SessionBar(current: CodeSession?, newIn: String?, model: CodeModel?, chip: String, live: Boolean, onPick: () -> Unit, onModel: () -> Unit) {
+private fun SessionBar(current: CodeSession?, chip: String, onRename: (String) -> Unit, onPick: () -> Unit, onModel: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
+    var editing by remember(current?.id) { mutableStateOf(false) }
+    if (editing && current != null) {
+        TitleEditor(current.title, onSave = { editing = false; onRename(it) }, onCancel = { editing = false })
+        return
+    }
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(
-            modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).clickable(onClick = onPick).padding(horizontal = 6.dp, vertical = 4.dp),
-        ) {
-            Text(current?.title?.ifBlank { null } ?: "new session", style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            val where = current?.live
-            val note = when {
-                where != null -> " · on the desktop as ${where.name ?: "an open session"}"
-                live -> ""
-                else -> " · not live"
-            }
-            Label((current?.folder ?: folderOf(newIn)) + note, color = if (live && where == null) scheme.outline else scheme.tertiary)
-        }
+        Text(
+            current?.title?.ifBlank { null } ?: if (current == null) "new session" else "untitled",
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(10.dp))
+                .clickable { if (current != null) editing = true else onPick() }
+                .padding(horizontal = 6.dp, vertical = 4.dp),
+        )
         Chip(chip, scheme.surfaceContainerHigh, scheme.onSurface) { onModel() }
+        IconButton(onClick = onPick) { Icon(Icons.AutoMirrored.Filled.List, "sessions", tint = scheme.onSurfaceVariant) }
+    }
+}
+
+@Composable
+private fun TitleEditor(title: String, onSave: (String) -> Unit, onCancel: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    var field by remember { mutableStateOf(TextFieldValue(title, TextRange(title.length))) }
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+    BackHandler(onBack = onCancel)
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        OutlinedTextField(
+            value = field,
+            onValueChange = { field = it.copy(text = it.text.replace('\n', ' ')) },
+            textStyle = MaterialTheme.typography.titleMedium,
+            placeholder = { Text("name this session") },
+            maxLines = 4,
+            shape = RoundedCornerShape(14.dp),
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { onSave(field.text) }),
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = scheme.primary, unfocusedBorderColor = scheme.outlineVariant),
+            modifier = Modifier.weight(1f).focusRequester(focus),
+        )
+        IconButton(onClick = { onSave(field.text) }) { Icon(Icons.Filled.Check, "rename", tint = scheme.primary) }
+        IconButton(onClick = onCancel) { Icon(Icons.Filled.Close, "cancel", tint = scheme.onSurfaceVariant) }
     }
 }
 
@@ -999,7 +1040,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         ScreenHeader("code", reachable, onCollapse)
         Banner(reachable)
         val tunable = backend == "claude"
-        SessionBar(current, newIn, model, chipText(model, settings, tunable), live, onPick = { picking = true }, onModel = { tuning = true })
+        SessionBar(current, chipText(model, settings, tunable), onRename = { code.rename(it) }, onPick = { picking = true }, onModel = { tuning = true })
         LazyColumn(
             state = transcript,
             modifier = Modifier.weight(1f).fillMaxWidth(),

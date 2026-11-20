@@ -10,6 +10,7 @@ import ac.mvr.phone.net.CodeProject
 import ac.mvr.phone.net.CodeProviders
 import ac.mvr.phone.net.CodeSession
 import ac.mvr.phone.net.CodeStatus
+import ac.mvr.phone.net.CodeTime
 import ac.mvr.phone.net.ScreenAsk
 import ac.mvr.phone.net.SessionSettings
 import kotlinx.serialization.json.JsonNull
@@ -576,6 +577,25 @@ class CodeStore(private val store: Store) {
         if (session.live != null) syncCurrent()
     }
 
+    fun rename(title: String) = run {
+        val session = currentFlow.value ?: return@run
+        val name = title.replace(Regex("\\s+"), " ").trim()
+        if (name.isEmpty() || name == session.title) return@run
+        val client = client(session.backend) ?: throw IOException("desktop unreachable")
+        retitle(session.id, name)
+        try {
+            client.rename(session.id, session.directory, name)
+        } catch (err: Exception) {
+            retitle(session.id, session.title)
+            throw err
+        }
+    }
+
+    private fun retitle(id: String, title: String) {
+        sessionsFlow.value = sessionsFlow.value.map { s -> if (s.id == id) s.copy(title = title).also { it.backend = s.backend } else s }
+        currentFlow.value?.takeIf { it.id == id }?.let { s -> currentFlow.value = s.copy(title = title).also { it.backend = s.backend } }
+    }
+
     fun stop() = run {
         val session = currentFlow.value ?: return@run
         client(session.backend)?.abort(session.id, session.directory)
@@ -753,8 +773,15 @@ class CodeStore(private val store: Store) {
                 statusFlow.value = statusFlow.value - sessionID
             }
             "session.created", "session.updated" -> p["info"]?.let { info ->
-                val session = runCatching { json.decodeFromJsonElement<CodeSession>(info) }.getOrNull() ?: return
-                session.backend = currentFlow.value?.backend?.ifEmpty { null } ?: modelFlow.value?.backend ?: ""
+                val told = runCatching { json.decodeFromJsonElement<CodeSession>(info) }.getOrNull() ?: return
+                val known = sessionsFlow.value.firstOrNull { it.id == told.id } ?: currentFlow.value?.takeIf { it.id == told.id }
+                val session = known?.copy(
+                    title = told.title.ifBlank { known.title },
+                    directory = told.directory.ifBlank { known.directory },
+                    parentID = told.parentID ?: known.parentID,
+                    time = CodeTime(known.time.created.takeIf { it > 0 } ?: told.time.created, maxOf(known.time.updated, told.time.updated)),
+                ) ?: told
+                session.backend = known?.backend?.ifEmpty { null } ?: currentFlow.value?.backend?.ifEmpty { null } ?: modelFlow.value?.backend ?: ""
                 if (session.parentID == null) sessionsFlow.value = ordered(listOf(session) + sessionsFlow.value.filter { it.id != session.id })
                 if (currentFlow.value?.id == session.id) currentFlow.value = session
             }

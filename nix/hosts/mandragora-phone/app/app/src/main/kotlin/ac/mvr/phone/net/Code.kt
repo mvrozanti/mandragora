@@ -230,6 +230,10 @@ class CodeClient(val id: String, private val baseUrl: () -> String, private val 
         Http.post(url("/session/$id/abort", directory), buildJsonObject { }, headers())
     }
 
+    suspend fun rename(id: String, directory: String, title: String) {
+        Http.patch(url("/session/$id", directory), buildJsonObject { put("title", title) }, headers())
+    }
+
     suspend fun close(id: String, directory: String) {
         Http.post(url("/session/$id/close", directory), buildJsonObject { }, headers())
     }
