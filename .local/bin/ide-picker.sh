@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-selected=$(printf 'VSCode\nIntelliJ\nPyCharm\nCursor' | vicinae dmenu -p "IDE")
-case "$selected" in
-    VSCode)    code ;;
-    IntelliJ)  idea-ultimate ;;
-    PyCharm)   pycharm-professional ;;
-    Cursor)    cursor ;;
-esac
+exec vicinae-pick IDE <<'ROWS'
+vscode	VSCode	code
+intellij-idea	IntelliJ	intellij-idea
+pycharm-professional	PyCharm	pycharm-professional
+cursor	Cursor	cursor
+ROWS

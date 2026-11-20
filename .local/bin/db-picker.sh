@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-selected=$(printf 'MySQL Workbench\nMongoDB Compass\nBeekeeper Studio\nbaobab' | vicinae dmenu -p "Database")
-case "$selected" in
-    "MySQL Workbench")   mysql-workbench ;;
-    "MongoDB Compass")   mongodb-compass ;;
-    "Beekeeper Studio")  beekeeper-studio ;;
-    baobab)              baobab ;;
-esac
+exec vicinae-pick Database <<'ROWS'
+mysql-workbench	MySQL Workbench	mysql-workbench
+mongodb-compass	MongoDB Compass	mongodb-compass
+beekeeper-studio	Beekeeper Studio	beekeeper-studio
+org.gnome.baobab	baobab	baobab
+ROWS

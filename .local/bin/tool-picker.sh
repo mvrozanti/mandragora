@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-selected=$(printf 'zathura\nPostman\nBruno\nGpick\nHyprpicker\nKill window' | vicinae dmenu -p "Tool")
-case "$selected" in
-    zathura)  zathura ;;
-    Postman)  postman ;;
-    Bruno)    bruno ;;
-    Gpick)    gpick ;;
-    Hyprpicker) hyprpicker -a ;;
-    "Kill window") hyprctl kill ;;
-esac
+exec vicinae-pick Tool <<'ROWS'
+org.pwmt.zathura	zathura	zathura
+postman	Postman	postman
+bruno	Bruno	bruno
+gpick	Gpick	gpick
+eye-dropper	Hyprpicker	hyprpicker -a
+xmark	Kill window	hyprctl kill
+ROWS

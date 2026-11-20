@@ -118,7 +118,7 @@ mandragora-(audit|switch|diff|diff-last|winvm|commit-push)|
 crush-wrapped|gemini-cli|gh-dash|
 isync-xoauth2|msmtp|aerc|notmuch|khal|password-store|gnome-keyring|
 nvtop|gpu-lock|recent-files-scrub|restore-theme|resize-window|record-window|
-rofi-.*|.*-picker|rss-menu|security-menu|weather-menu|window-to-corner|scratchpad.*|screenshot-window|
+rofi-.*|.*-picker|vicinae-pick|rss-menu|security-menu|weather-menu|window-to-corner|scratchpad.*|screenshot-window|
 opacity-adjust|gap-adjust|blur-adjust|blur-strength|center-window|biggest-pane|desktop-toggle|
 clipboard-menu|cycle-audio-output|cycle-kbd-layouts|screencap|screenkey-toggle|capture|compv|
 ic|gmp|mkv2gif|mov2gif|mp42gif|roman|lipsum|wiki|after|are-processes-related|

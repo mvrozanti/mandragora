@@ -9,6 +9,9 @@ in
 {
   programs.vicinae = {
     enable = true;
+    package = pkgs.vicinae.overrideAttrs (old: {
+      patches = (old.patches or [ ]) ++ [ ../../pkgs/vicinae/dmenu-icons.patch ];
+    });
     systemd.enable = true;
     enableFirefoxIntegration = false;
     settings = builtins.fromJSON (builtins.readFile ../../../.config/vicinae/settings.json);
@@ -25,6 +28,8 @@ in
       "tool-picker"
       "db-picker"
       "wallpaper-picker"
+      "light-picker"
+      "vicinae-pick"
     ]
     ++ [
       (pkgs.writeShellScriptBin "claude-tmux-prompt" (
