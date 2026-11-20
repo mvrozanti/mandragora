@@ -31,6 +31,9 @@
     "${config.home.homeDirectory}/.local/share/go/bin"
   ];
 
+  home.file.".icons/hicolor".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.local/share/icons/hicolor";
+
   home.pointerCursor = {
     enable = true;
     name = "Bibata-Modern-Classic";
