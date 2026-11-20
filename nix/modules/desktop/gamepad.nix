@@ -1,5 +1,7 @@
 { pkgs, ... }:
 {
+  boot.blacklistedKernelModules = [ "joydev" ];
+
   services.udev.extraRules =
     builtins.readFile ../../snippets/gamepad-touchpad.rules
     + builtins.replaceStrings [ "@COREUTILS@" ] [ "${pkgs.coreutils}" ] (
