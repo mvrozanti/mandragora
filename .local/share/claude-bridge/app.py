@@ -10,13 +10,16 @@ import subprocess
 import textwrap
 import time
 import uuid
+from contextlib import AsyncExitStack
 from hashlib import sha1
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
 
-from aiohttp import web
+from aiohttp import ClientError, ClientSession, ClientTimeout, web
+from gpu_lock import GpuBusy, gpu_lock
+from gpu_lock_ollama import evict_model
 from claude_agent_sdk import (
     AssistantMessage,
     ClaudeAgentOptions,
@@ -63,10 +66,17 @@ RESCAN_SECONDS = 15
 PROJECTS_TTL = 10
 VERSION = "claude-bridge/1"
 DEEPSEEK_BASE_URL = "https://api.deepseek.com/anthropic"
+OLLAMA_URL = os.environ.get("CLAUDE_BRIDGE_OLLAMA_URL", "http://127.0.0.1:11434")
+LOCAL_MODELS = {spec["name"]: spec for spec in json.loads(os.environ.get("CLAUDE_BRIDGE_LOCAL_MODELS") or "[]")}
+LOCAL_LINGER_SECONDS = int(os.environ.get("CLAUDE_BRIDGE_LOCAL_LINGER", "60"))
+LOCAL_TURN_SECONDS = 600
+GPU_HOLDER = "claude-bridge"
 PROVIDERS = {
     "claude": {"name": "Claude Code", "default": "default", "models": ["default", "fable", "opus", "sonnet", "haiku"]},
     "deepseek": {"name": "DeepSeek via Claude Code", "default": "deepseek-v4-pro", "models": ["deepseek-v4-pro", "deepseek-v4-flash"]},
 }
+if LOCAL_MODELS:
+    PROVIDERS["local"] = {"name": "Local models via Claude Code", "default": next(iter(LOCAL_MODELS)), "models": list(LOCAL_MODELS)}
 MODES = ("auto", "default", "acceptEdits", "plan")
 EFFORTS = ("low", "medium", "high", "xhigh", "max")
 CHOICES_FILE = HOME / ".local" / "state" / "claude-bridge" / "choices.json"
@@ -153,14 +163,22 @@ def summarize(tool: str, data: dict) -> str:
     return tool
 
 
+def local_name(model: str | None) -> str | None:
+    name = (model or "").removesuffix(":latest")
+    return name if name in LOCAL_MODELS else None
+
+
 def provider_of(model: str | None) -> str:
+    if local_name(model):
+        return "local"
     return "deepseek" if model and model.startswith("deepseek") else "claude"
 
 
 def model_alias(provider: str, model: str | None) -> str:
     known = PROVIDERS[provider]["models"]
     if provider != "claude":
-        return model if model in known else PROVIDERS[provider]["default"]
+        name = local_name(model) or model or ""
+        return name if name in known else PROVIDERS[provider]["default"]
     return next((alias for alias in known[1:] if model and alias in model), "default")
 
 
@@ -458,6 +476,8 @@ class Run:
     raw_input: dict[str, str] = field(default_factory=dict)
     idle_handle: asyncio.TimerHandle | None = None
     started: int = field(default_factory=now_ms)
+    lease: AsyncExitStack | None = None
+    linger: asyncio.TimerHandle | None = None
 
 
 @dataclass
@@ -477,6 +497,8 @@ class Bridge:
         self.misses: dict[str, int] = {}
         self.choices: dict[str, dict] = read_choices()
         self.projects_cache: tuple[float, list[dict]] = (0.0, [])
+        self.made: set[str] = set()
+        self.releasing: set[asyncio.Task] = set()
 
     def live_sessions(self) -> dict[str, dict]:
         found: dict[str, dict] = {}
@@ -566,7 +588,21 @@ class Bridge:
                 result[sid] = {"type": "busy", "message": live.get("status")}
         return result
 
-    def env_for(self, provider: str) -> dict[str, str]:
+    def env_for(self, provider: str, model: str) -> dict[str, str]:
+        if provider == "local":
+            spec = LOCAL_MODELS[model]
+            return {
+                "ANTHROPIC_BASE_URL": OLLAMA_URL,
+                "ANTHROPIC_AUTH_TOKEN": "ollama",
+                "ANTHROPIC_API_KEY": "",
+                "ANTHROPIC_MODEL": model,
+                "ANTHROPIC_DEFAULT_OPUS_MODEL": model,
+                "ANTHROPIC_DEFAULT_SONNET_MODEL": model,
+                "ANTHROPIC_DEFAULT_HAIKU_MODEL": model,
+                "ANTHROPIC_SMALL_FAST_MODEL": model,
+                "CLAUDE_CODE_MAX_CONTEXT_TOKENS": str(spec["num_ctx"]),
+                "CLAUDE_CODE_MAX_OUTPUT_TOKENS": str(spec["num_ctx"] // 4),
+            }
         if provider != "deepseek":
             return {}
         key = DEEPSEEK_KEY_FILE.read_text(encoding="utf-8").strip()
@@ -648,10 +684,56 @@ class Bridge:
                 raise
             await self.stop_run(run)
 
+    async def make_local(self, model: str) -> None:
+        if model in self.made:
+            return
+        spec = LOCAL_MODELS[model]
+        async with ClientSession(timeout=ClientTimeout(total=120)) as http:
+            async with http.post(f"{OLLAMA_URL}/api/show", json={"model": model}) as shown:
+                if shown.status == 200:
+                    parameters = (await shown.json()).get("parameters") or ""
+                    if re.search(rf"^num_ctx\s+{spec['num_ctx']}\s*$", parameters, re.M):
+                        self.made.add(model)
+                        return
+            body = {"model": model, "from": spec["from"], "parameters": {"num_ctx": spec["num_ctx"]}, "stream": False}
+            async with http.post(f"{OLLAMA_URL}/api/create", json=body) as made:
+                if made.status != 200:
+                    raise RuntimeError(f"ollama could not make {model} from {spec['from']}: {(await made.text())[:160]}")
+        self.made.add(model)
+
+    async def take_gpu(self, run: Run) -> None:
+        for other in list(self.runs.values()):
+            if other is not run and other.lease is not None and not other.busy:
+                self.free_gpu(other)
+        if self.releasing:
+            await asyncio.gather(*self.releasing, return_exceptions=True)
+        model = run.model
+        lease = AsyncExitStack()
+        await lease.enter_async_context(gpu_lock.acquire_async(GPU_HOLDER, LOCAL_TURN_SECONDS, on_release=lambda: evict_model(OLLAMA_URL, model)))
+        run.lease = lease
+
+    def free_gpu(self, run: Run) -> None:
+        if run.linger:
+            run.linger.cancel()
+            run.linger = None
+        lease, run.lease = run.lease, None
+        if lease is None:
+            return
+        task = asyncio.ensure_future(lease.aclose())
+        self.releasing.add(task)
+        task.add_done_callback(self.releasing.discard)
+
+    def settle_gpu(self, run: Run) -> None:
+        if run.lease is None:
+            return
+        if run.linger:
+            run.linger.cancel()
+        run.linger = asyncio.get_running_loop().call_later(LOCAL_LINGER_SECONDS, lambda: None if run.busy else self.free_gpu(run))
+
     async def ensure_run(self, sid: str, directory: str, provider: str, model: str) -> Run:
         run = self.runs.get(sid)
-        if run is not None and run.provider == provider:
-            if run.model != model and run.client is not None:
+        if run is not None and run.provider == provider and (provider != "local" or run.model == model or run.busy):
+            if provider != "local" and run.model != model and run.client is not None:
                 await run.client.set_model(self.model_arg(provider, model))
                 run.model = model
             return run
@@ -662,7 +744,7 @@ class Bridge:
         choice = self.choice(sid)
         options = ClaudeAgentOptions(
             cwd=directory,
-            env=self.env_for(provider),
+            env=self.env_for(provider, model),
             model=self.model_arg(provider, model),
             can_use_tool=self.permission_handler(sid),
             include_partial_messages=True,
@@ -694,6 +776,7 @@ class Bridge:
                 await run.client.disconnect()
             except Exception:
                 pass
+        self.free_gpu(run)
         self.set_busy(run, False)
 
     def set_busy(self, run: Run, busy: bool) -> None:
@@ -717,6 +800,7 @@ class Bridge:
         except Exception as err:
             self.bus.emit("session.error", {"sessionID": run.sid, "error": {"name": "UnknownError", "data": {"message": str(err)[:300]}}})
             self.runs.pop(run.sid, None)
+            self.free_gpu(run)
             self.set_busy(run, False)
 
     def part_id(self, run: Run, index: int) -> str:
@@ -787,6 +871,7 @@ class Bridge:
                 self.bus.emit("session.error", {"sessionID": run.sid, "error": {"name": "UnknownError", "data": {"message": str(detail)[:300]}}})
             self.set_busy(run, False)
             self.schedule_idle(run)
+            self.settle_gpu(run)
 
     def register_part(self, run: Run, part_id: str, part: dict) -> None:
         run.parts[part_id] = part
@@ -1124,19 +1209,40 @@ async def prompt(request: web.Request) -> web.Response:
     if provider not in PROVIDERS:
         return json_error(f"unknown provider {provider}", 400)
     chosen = model.get("modelID") or (fresh or {}).get("model") or (run.model if run and run.provider == provider else None) or (stored.get("model") if stored.get("provider") == provider else None) or PROVIDERS[provider]["default"]
+    if provider == "local" and chosen not in LOCAL_MODELS:
+        return json_error(f"unknown local model {chosen}", 400)
     if (stored.get("provider"), stored.get("model")) != (provider, chosen):
         bridge.choose(sid, provider=provider, model=chosen)
+    if provider == "local":
+        try:
+            await bridge.make_local(chosen)
+        except (ClientError, RuntimeError, OSError, asyncio.TimeoutError) as err:
+            return json_error(f"the local model is not ready: {str(err)[:200]}", 503)
     try:
         run = await bridge.ensure_run(sid, directory, provider, chosen)
     except Exception as err:
         return json_error(f"could not start claude: {str(err)[:200]}", 503)
+    if run.provider == "local" and run.lease is None:
+        try:
+            await bridge.take_gpu(run)
+        except GpuBusy as busy:
+            bridge.schedule_idle(run)
+            return json_error(f"the GPU is busy: {busy}", 409)
+    if run.linger:
+        run.linger.cancel()
+        run.linger = None
     if run.idle_handle:
         run.idle_handle.cancel()
     user_id = "usr_" + uuid.uuid4().hex[:16]
     bridge.bus.emit("message.updated", {"sessionID": sid, "info": entry_for(user_id, sid, "user", created=now_ms())["info"]})
     bridge.bus.emit("message.part.updated", {"sessionID": sid, "part": text_part(f"{user_id}:0", user_id, sid, "text", text), "time": now_ms()})
     bridge.set_busy(run, True)
-    await run.client.query(text)
+    try:
+        await run.client.query(text)
+    except Exception:
+        bridge.set_busy(run, False)
+        bridge.free_gpu(run)
+        raise
     return web.Response(status=204)
 
 
@@ -1187,7 +1293,7 @@ async def set_settings(request: web.Request) -> web.Response:
         changes["effort"] = body["effort"]
     if "providerID" in body or "modelID" in body:
         provider, model = body.get("providerID"), body.get("modelID")
-        if provider not in PROVIDERS or not isinstance(model, str) or not model:
+        if provider not in PROVIDERS or not isinstance(model, str) or not model or (provider == "local" and model not in LOCAL_MODELS):
             return json_error("unknown model", 400)
         changes["provider"], changes["model"] = provider, model
     if not changes:
@@ -1206,7 +1312,7 @@ async def set_settings(request: web.Request) -> web.Response:
                 await run.client.set_permission_mode(changes["mode"])
             if "effort" in changes:
                 await bridge.apply_effort(run, changes["effort"])
-            if changes.get("provider") == run.provider and changes.get("model") != run.model and bridge.runs.get(sid) is run:
+            if run.provider != "local" and changes.get("provider") == run.provider and changes.get("model") != run.model and bridge.runs.get(sid) is run:
                 await run.client.set_model(bridge.model_arg(run.provider, changes["model"]))
                 run.model = changes["model"]
         except Exception as err:
@@ -1220,7 +1326,7 @@ async def tune_live(bridge: Bridge, sid: str, live: dict, changes: dict) -> web.
     now = await asyncio.to_thread(bridge.desk_settings, sid, live)
     if "provider" in changes:
         if changes["provider"] != now["providerID"]:
-            return json_error(f"that terminal runs {PROVIDERS[now['providerID']]['name']}; switching between Claude and DeepSeek takes a new session", 409)
+            return json_error(f"that terminal runs {PROVIDERS[now['providerID']]['name']}; switching to {PROVIDERS[changes['provider']]['name']} takes a new session", 409)
         if changes["model"] == now["modelID"]:
             changes = {key: value for key, value in changes.items() if key not in ("provider", "model")}
     try:

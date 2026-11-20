@@ -106,9 +106,11 @@ except GpuBusy as busy:
 
 Ollama runs as a systemd service (`services.ollama` in `nix/modules/core/ai-local.nix`), but it does **not** hold the GPU continuously: a model only occupies VRAM while loaded, and unloads once `keep_alive` expires. An idle Ollama holds no VRAM, so it does not need a manual `systemctl stop` before other GPU jobs — that older protocol is retired.
 
-Instead, every Ollama *client* participates in the lease directly (`llm-via-telegram`, `meme`, `stt-via-telegram`, `local-ai-mcp-server`). The contract:
+Instead, every Ollama *client* participates in the lease directly (`llm-via-telegram`, `meme`, `stt-via-telegram`, `local-ai-mcp-server`, `claude-bridge`). The contract:
 
 > Wrap each `/api/chat`|`/api/generate` call in `gpu_lock.acquire_async(...)`, and `await evict_model(...)` in the `finally` — **while still holding the lock**, before releasing.
+
+`claude-bridge` is the one client whose requests it does not make itself: a `local` code session runs `claude -p` against Ollama's Anthropic-compatible `/v1/messages`, and a turn is many requests. So the bridge holds one lease per turn, taken before the prompt reaches the CLI and refused with the holder's name when the GPU is taken, kept for `CLAUDE_BRIDGE_LOCAL_LINGER` seconds (60) after the turn so a quick reply does not reload the model, then released with the eviction.
 
 The eviction is mandatory, not optional. Releasing the lock with the model still resident lets the next holder fault with CUDA OOM even though the lock looked free (the 2026-04-27 incident). The shared eviction helpers live at `.local/share/gpu-lock/gpu_lock_ollama.py` — `wait_for_unload`, `evict_others`, `evict_model` — and clients import them rather than re-implementing.
 

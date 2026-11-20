@@ -119,6 +119,7 @@ in
     models.gemma
     models.secondary
     models.embeddings
+    models.coder
   ];
   services.mandragora-seafile.enable = true;
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 6682 ];
