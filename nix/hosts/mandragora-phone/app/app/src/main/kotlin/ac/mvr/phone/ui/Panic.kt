@@ -33,6 +33,7 @@ import ac.mvr.phone.net.LoadState
 import ac.mvr.phone.state.Store
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import java.util.Locale
 
 private fun fmtBytes(bytes: Long): String = when {
@@ -63,9 +64,9 @@ private fun severity(value: Double): Color {
 }
 
 @Composable
-private fun PressureLine(name: String, caption: String, value: Double) {
+private fun PressureLine(name: String, caption: String, value: Double, modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Label("$name · $caption")
             Label("${value.toInt()}%")
@@ -155,7 +156,7 @@ fun PanicCard(store: Store, onOpen: (String) -> Unit) {
         if (current == null) {
             Label("waiting for the desktop")
         } else {
-            PressureLine("memory", "stalled, last 10 s", current.pressure.memory.full10)
+            PressureLine("memory", "stalled, last 10 s", current.pressure.memory.full10, Modifier.clip(RoundedCornerShape(10.dp)).clickable { onOpen("panic") })
             val killed = lastKill
             if (killed != null) Label("killed ${killed.name}")
         }
@@ -172,9 +173,11 @@ fun PanicScreen(store: Store, onCollapse: () -> Unit) {
     val fresh by store.load.fresh.collectAsStateWithLifecycle()
     val lastKill by store.load.lastKill.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
-        while (true) {
-            runCatching { store.load.refresh() }
-            delay(3_000)
+        store.foreground.collectLatest { foreground ->
+            while (foreground) {
+                runCatching { store.load.refresh() }
+                delay(3_000)
+            }
         }
     }
     DisposableEffect(Unit) { onDispose { store.load.disarm() } }

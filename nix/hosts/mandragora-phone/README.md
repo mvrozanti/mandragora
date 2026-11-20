@@ -123,13 +123,13 @@ back collapses it):
 | hub card: name or glance | opens the hub screen | hub |
 | code card: a session row (the three with the latest activity, by you or the model, newest first; every row says how long ago) | opens that session on the code screen | code |
 | the dot on a session row | nothing, display: green when the session is open on the desktop, pulsing in the accent while it works, hollow when it is closed | home |
-| a session row, swiped to the left (only a Claude Code session that is open on the desktop or working; the others do not move) | a red strip with "close" follows the finger; past two fifths of the row it fills, buzzes once and reads "let go to close", and letting go there (or a fast flick past a third of that) closes the session: the row turns into "closing on the desktop in 5 s" with a draining line and an "undo" chip, and only when the five seconds run out does `claude-bridge` end that session's `claude` (SIGTERM, then SIGKILL after 6 s if it is still there). A window the phone opened goes away with it; a `claude` started from a shell leaves that shell. A working session says "its turn stops" while it counts down. The transcript stays, so the next message opens it again. Let go short of the line and the row springs back. The same swipe works in the sessions screen and the sessions sheet | home |
+| a session row, swiped to the left (only a Claude Code session that is open on the desktop or working; the others do not move) | a red strip with "close" follows the finger; past two fifths of the row it fills, buzzes once and reads "let go to close", and letting go there (or a fast flick past a third of that) closes the session: the row turns into "closing on the desktop in 5 s" with a draining line and an "undo" chip, and only when the five seconds run out does `claude-bridge` end that session's `claude` (SIGTERM, then SIGKILL after 6 s if it is still there). A window the phone opened goes away with it; a `claude` started from a shell leaves that shell. A working session says "its turn stops" while it counts down; once the five seconds are up the undo goes away and the row reads "closing on the desktop…" until the bridge answers. The transcript stays, so the next message opens it again. Let go short of the line and the row springs back. The same swipe works in the sessions screen and the sessions sheet | home |
 | code card: name or chevron | opens the sessions screen: every Claude Code session, searchable like `claude-find` | sessions |
 | code card: "new session" | opens the code screen on an empty session in the last used directory | code |
 | panic card: name or the gauge | opens the panic screen | panic |
 | panic card: "kill the biggest", first tap | arms it for 4 s; the button reads "tap again to kill <name>" | home |
 | panic card: "kill the biggest", second tap | kills that unit's whole cgroup on the desktop; the card says what died | home |
-| "update ready" line (only when the desktop published a newer build) | downloads it, verifies the hash, opens Android's installer; the first time it opens the "allow installs from this app" setting instead and says so on the notice line. The verified download is kept, so leaving the app mid-download never costs a second one: the line turns into "install update", and a download that finishes while the app is in the background posts a "tap to install" notification instead of opening the installer | installer |
+| "update ready" line (only when the desktop published a newer build) | asks the desktop for its current build first, then downloads it, verifies the hash, opens Android's installer (a build published while the line was showing is the one installed); the first time it opens the "allow installs from this app" setting instead and says so on the notice line. The verified download is kept, so leaving the app mid-download never costs a second one: the line turns into "install update", and a download that finishes while the app is in the background posts a "tap to install" notification instead of opening the installer | installer |
 | header dot | nothing, display, a dot with no words (the banner under the header says what is wrong): green when the desktop answers; hollow from the moment the app opens until the first answer, with retries a second apart; red only after three misses in a row, and from then on a retry every five seconds | home |
 | gear in the header | opens settings | settings |
 | Android back on home | leaves the app | launcher |
@@ -166,8 +166,9 @@ The music screen:
 | cover | lyrics replace the cover; tap again brings the cover back; a song with no cover shows its lyrics in that place instead, and no placeholder art anywhere | same screen |
 | drag the seek bar | seeks whoever owns playback | same screen |
 | prev / next | previous or next song in the owner's queue, as in ncmpcpp; whether a skip while paused starts playback is the "next and prev start playback" setting | same screen |
-| repeat icon, left of prev | cycles off → all → one for both sides at once: it sets mpd's repeat and single flags, which the phone's own queue follows; with the desktop unreachable it applies to the phone until mpd is back | same screen |
-| play / pause | toggles the owner; with nothing playing, resumes the last song where the pill points | same screen |
+| repeat icon, left of prev | cycles off → all → one for both sides at once: it sets mpd's repeat and single flags, which the phone's own queue follows; with the desktop unreachable it applies to the phone until mpd is back, and is then sent to mpd once, after which the app follows mpd again (a change made in ncmpcpp shows here) | same screen |
+| play / pause | toggles the owner; with nothing playing, resumes the last song where the pill points; after the phone's queue has run out it plays the last song again from the start | same screen |
+| a phone song that fails to play (the stream breaks, the desktop answers an error, the file does not decode) | nothing to tap: the notice line says "skipped <song> · <why>" and the next playable song starts; with nothing playable left, or after five failures in a row, it pauses on "can't play <song> · <why>". A song that is neither on the phone nor reachable is skipped the same way | same screen |
 | "next ·" line | nothing, display only | same screen |
 | pill, the other side | moves the music there at the same second; the old side pauses | same screen, pill moved |
 | pill, the side it is on | nothing | same screen |
@@ -187,7 +188,7 @@ again on a later open, so everything below runs on the phone):
 | type | filters live across title, artist, album, genre, year and path; every word must match; the match is highlighted and a row says what matched when it was not the title, artist or album | find |
 | empty box | newest songs, the top artists and the top albums | find |
 | an artist row | narrows to that artist as a crumb and clears the box | find |
-| an album row | narrows to that album as a crumb | find |
+| an album row | narrows to that album by that artist as a crumb (albums of the same name by different artists are separate rows) | find |
 | the crumb | widens again | find |
 | "N in all" / "fewer" on a section | shows every artist or album that matched, or the top few again | find |
 | a sort chip (newest · title · artist · album · year · longest) | reorders the songs | find |
@@ -296,7 +297,7 @@ keys. The first run creates a virtual device (Android 35, the phone's 1080×2400
 screen) under `~/.local/share/mandragora-phone/`, boots it, builds the debug
 APK unless `PHONE_APK` names one, installs it, grants notifications and music
 access, pushes the song mpd is on plus the twelve newest files from `~/Music`
-into the device's Music folder so the phone side has something to play, and
+into the device's Music folder, at the same path below it as in `~/Music` so the phone side has something to play, and
 opens the app. Later runs reuse the booted device. The build signs with the
 same debug key `phone-push` uses (`~/.android/debug.keystore`, copied into the
 emulator's user home on every run), so a build from either tool installs over

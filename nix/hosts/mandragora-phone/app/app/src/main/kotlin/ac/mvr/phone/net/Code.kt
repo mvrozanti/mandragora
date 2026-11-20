@@ -268,7 +268,7 @@ class CodeClient(val id: String, private val baseUrl: () -> String, private val 
     }
 
     fun events(directory: String?): Flow<CodeEvent> = flow {
-        val client = Http.client.newBuilder().readTimeout(0, TimeUnit.MILLISECONDS).build()
+        val client = Http.client.newBuilder().readTimeout(45, TimeUnit.SECONDS).build()
         val builder = Request.Builder().url(url("/event", directory)).header("Accept", "text/event-stream")
         headers().forEach { (k, v) -> builder.header(k, v) }
         val call = client.newCall(builder.build())

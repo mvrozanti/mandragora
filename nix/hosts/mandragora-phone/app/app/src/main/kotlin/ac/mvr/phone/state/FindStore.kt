@@ -2,6 +2,7 @@ package ac.mvr.phone.state
 
 import android.os.SystemClock
 import ac.mvr.phone.net.MpdSong
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -9,7 +10,7 @@ import kotlinx.coroutines.sync.withLock
 
 data class Match(val song: MpdSong, val why: String)
 
-data class Facet(val name: String, val count: Int, val sample: MpdSong)
+data class Facet(val name: String, val count: Int, val sample: MpdSong, val within: String = "")
 
 object Finder {
     val sorts = listOf("newest" to "newest", "title" to "title", "artist" to "artist", "album" to "album", "year" to "year", "length" to "longest")
@@ -57,14 +58,16 @@ object Finder {
         }
     }
 
-    fun facets(list: List<Match>, key: (MpdSong) -> String?): List<Facet> {
-        val counts = LinkedHashMap<String, Pair<Int, MpdSong>>()
+    fun facets(list: List<Match>, within: (MpdSong) -> String = { "" }, key: (MpdSong) -> String?): List<Facet> {
+        val counts = LinkedHashMap<Pair<String, String>, Pair<Int, MpdSong>>()
         for (m in list) {
             val k = key(m.song)?.takeIf { it.isNotEmpty() } ?: continue
-            val prev = counts[k]
-            counts[k] = (prev?.first ?: 0) + 1 to (prev?.second ?: m.song)
+            val id = within(m.song) to k
+            val prev = counts[id]
+            counts[id] = (prev?.first ?: 0) + 1 to (prev?.second ?: m.song)
         }
-        return counts.map { (name, v) -> Facet(name, v.first, v.second) }.sortedWith(compareByDescending<Facet> { it.count }.thenBy { it.name.lowercase() })
+        return counts.map { (id, v) -> Facet(id.second, v.first, v.second, id.first) }
+            .sortedWith(compareByDescending<Facet> { it.count }.thenBy { it.name.lowercase() }.thenBy { it.within.lowercase() })
     }
 }
 
@@ -85,6 +88,8 @@ class FindStore(private val store: Store) {
                 libraryFlow.value = store.mpd.library().filter { !it.file.startsWith(".") && !it.file.contains("/.") }
                 fetchedAtMs = SystemClock.elapsedRealtime()
                 freshFlow.value = true
+            } catch (err: CancellationException) {
+                throw err
             } catch (err: Exception) {
                 freshFlow.value = false
                 throw err

@@ -30,6 +30,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -280,6 +282,34 @@ class CodeStore(private val store: Store) {
         return client(backend)
     }
 
+    private suspend fun <T> attempt(block: suspend () -> T): Result<T> = try {
+        Result.success(block())
+    } catch (err: kotlinx.coroutines.CancellationException) {
+        throw err
+    } catch (err: Exception) {
+        Result.failure(err)
+    }
+
+    private class Listing(val backend: String, val projects: List<CodeProject>, val sessions: List<CodeSession>, val statuses: Map<String, CodeStatus>)
+
+    private val listed = HashMap<String, Set<String>>()
+
+    private suspend fun listing(client: CodeClient): Listing = coroutineScope {
+        val projects = client.projects().sortedByDescending { it.time.updated }
+        val perProject = projects.take(6).map { project ->
+            async {
+                val key = client.id + "\n" + project.worktree
+                val list = attempt { client.sessions(project.worktree, 8) }.getOrNull()
+                if (list != null) listed[key] = list.map { it.id }.toSet()
+                val sessions = list ?: listed[key].orEmpty().let { was -> sessionsFlow.value.filter { it.backend == client.id && it.id in was } }
+                sessions to attempt { client.status(project.worktree) }.getOrNull()
+            }
+        }.awaitAll()
+        val kept = perProject.filter { it.second == null }.flatMap { it.first }.mapNotNull { s -> statusFlow.value[s.id]?.let { s.id to it } }.toMap()
+        val fresh = perProject.mapNotNull { it.second }.flatMap { it.entries }.associate { it.key to it.value }
+        Listing(client.id, projects, perProject.flatMap { it.first }, kept + fresh)
+    }
+
     suspend fun refresh() {
         val ids = backends().map { it.id }
         if (ids.isEmpty()) {
@@ -289,22 +319,17 @@ class CodeStore(private val store: Store) {
         try {
             val perBackend = coroutineScope {
                 ids.mapNotNull { id -> client(id) }.map { client ->
-                    async {
-                        val projects = runCatching { client.projects() }.getOrDefault(emptyList()).sortedByDescending { it.time.updated }
-                        val perProject = projects.take(6).map { project ->
-                            async {
-                                val list = runCatching { client.sessions(project.worktree, 8) }.getOrDefault(emptyList())
-                                val status = runCatching { client.status(project.worktree) }.getOrDefault(emptyMap())
-                                list to status
-                            }
-                        }.awaitAll()
-                        Triple(projects, perProject.flatMap { it.first }, perProject.flatMap { it.second.entries }.associate { it.key to it.value })
-                    }
+                    async { attempt { listing(client) } }
                 }.awaitAll()
             }
-            projectsFlow.value = perBackend.flatMap { it.first }.distinctBy { it.worktree }.sortedByDescending { it.time.updated }
-            sessionsFlow.value = ordered(perBackend.flatMap { it.second }.filter { it.parentID == null }.distinctBy { it.backend + it.id })
-            statusFlow.value = perBackend.flatMap { it.third.entries }.associate { it.key to it.value }
+            val answered = perBackend.mapNotNull { it.getOrNull() }
+            if (answered.isEmpty()) throw perBackend.firstNotNullOfOrNull { it.exceptionOrNull() } ?: IOException("desktop unreachable")
+            val failed = ids.filter { id -> answered.none { it.backend == id } }
+            val keptSessions = sessionsFlow.value.filter { it.backend in failed }
+            val keptStatus = keptSessions.mapNotNull { s -> statusFlow.value[s.id]?.let { s.id to it } }.toMap()
+            projectsFlow.value = (answered.flatMap { it.projects } + projectsFlow.value.filter { it.backend in failed }).distinctBy { it.worktree }.sortedByDescending { it.time.updated }
+            sessionsFlow.value = ordered((answered.flatMap { it.sessions } + keptSessions).filter { it.parentID == null }.distinctBy { it.backend + it.id })
+            statusFlow.value = keptStatus + answered.flatMap { it.statuses.entries }.associate { it.key to it.value }
             currentFlow.value?.let { cur -> sessionsFlow.value.firstOrNull { it.id == cur.id && it.backend == cur.backend }?.let { currentFlow.value = it } }
             freshFlow.value = true
         } catch (err: Exception) {
@@ -369,21 +394,30 @@ class CodeStore(private val store: Store) {
 
     private fun adjustable(): CodeSession? = currentFlow.value?.takeIf { it.backend == "claude" }
 
-    private fun change(body: kotlinx.serialization.json.JsonObject) = run {
-        val session = adjustable() ?: return@run
-        val client = client(session.backend) ?: throw IOException("desktop unreachable")
-        val saved = try {
-            client.setSettings(session.id, session.directory, body)
-        } catch (err: Exception) {
-            runCatching { client.settings(session.id, session.directory) }.getOrNull()?.let { found ->
-                if (currentFlow.value?.id == session.id) {
-                    settingsFlow.value = found
-                    followModel(session, entriesFlow.value)
+    private val changes = Mutex()
+    private var queuedChanges = 0
+
+    private fun change(body: kotlinx.serialization.json.JsonObject) {
+        val session = adjustable() ?: return
+        queuedChanges += 1
+        run {
+            changes.withLock {
+                queuedChanges -= 1
+                val client = client(session.backend) ?: throw IOException("desktop unreachable")
+                val saved = try {
+                    client.setSettings(session.id, session.directory, body)
+                } catch (err: Exception) {
+                    attempt { client.settings(session.id, session.directory) }.getOrNull()?.let { found ->
+                        if (queuedChanges == 0 && currentFlow.value?.id == session.id) {
+                            settingsFlow.value = found
+                            followModel(session, entriesFlow.value)
+                        }
+                    }
+                    throw err
                 }
+                if (queuedChanges == 0 && currentFlow.value?.id == session.id) settingsFlow.value = saved
             }
-            throw err
         }
-        if (currentFlow.value?.id == session.id) settingsFlow.value = saved
     }
 
     fun pickModel(choice: CodeModel) {
@@ -416,7 +450,7 @@ class CodeStore(private val store: Store) {
         screensFlow.value = emptyList()
         settingsFlow.value = SessionSettings()
         loadJob?.cancel()
-        loadJob = store.scope.launch { runCatching { load(session) }.onFailure { store.report(humanize(it)) } }
+        loadJob = run { load(session) }
     }
 
     private suspend fun load(session: CodeSession) {
@@ -429,13 +463,26 @@ class CodeStore(private val store: Store) {
         }
         followModel(session, list)
         reconcile()
-        val pending = runCatching { client.permissions(session.directory) }.getOrDefault(emptyList()).filter { it.sessionID == session.id }
-        val open = runCatching { client.questions(session.directory) }.getOrDefault(emptyList()).filter { it.sessionID == session.id }
-        val shown = runCatching { client.screens(session.directory) }.getOrDefault(emptyList()).filter { it.sessionID == session.id }
+        prompts(session, client)
+    }
+
+    private suspend fun prompts(session: CodeSession, client: CodeClient) {
+        val pending = attempt { client.permissions(session.directory) }.getOrNull()?.filter { it.sessionID == session.id }
+        val open = attempt { client.questions(session.directory) }.getOrNull()?.filter { it.sessionID == session.id }
+        val shown = attempt { client.screens(session.directory) }.getOrNull()?.filter { it.sessionID == session.id }
         if (currentFlow.value?.id != session.id) return
-        asksFlow.value = pending
-        questionsFlow.value = open
-        screensFlow.value = shown
+        pending?.let { asksFlow.value = it }
+        open?.let { questionsFlow.value = it }
+        shown?.let { screensFlow.value = it }
+    }
+
+    private var promptJob: Job? = null
+
+    private fun syncPrompts() {
+        val session = currentFlow.value ?: return
+        val client = client(session.backend) ?: return
+        promptJob?.cancel()
+        promptJob = store.scope.launch { prompts(session, client) }
     }
 
     fun startNew(directory: String? = null) {
@@ -458,7 +505,7 @@ class CodeStore(private val store: Store) {
     }
 
     private fun run(block: suspend () -> Unit): Job = store.scope.launch {
-        try { block() } catch (err: Exception) { store.report(humanize(err)) }
+        try { block() } catch (err: kotlinx.coroutines.CancellationException) { throw err } catch (err: Exception) { store.report(humanize(err)) }
     }
 
     fun send(text: String) = run {
@@ -467,10 +514,16 @@ class CodeStore(private val store: Store) {
         if ((typed.isEmpty() && files.isEmpty()) || sending.value) return@run
         val body = (listOf(typed.ifEmpty { if (files.all { it.picture }) PICTURE_ONLY else FILE_ONLY }) + files.map { it.line }).joinToString("\n")
         sending.value = true
+        replaceDraft("")
+        attachments.value = attachments.value.filter { it !in files }
         try {
             deliver(body)
-            replaceDraft("")
-            attachments.value = emptyList()
+        } catch (err: Exception) {
+            if (draft.value.isEmpty() && attachments.value.isEmpty() && !uploading.value) {
+                replaceDraft(text)
+                attachments.value = files
+            }
+            throw err
         } finally {
             sending.value = false
         }
@@ -529,6 +582,7 @@ class CodeStore(private val store: Store) {
     }
 
     private val closeJobs = HashMap<String, Job>()
+    private val committed = HashSet<String>()
     val closing = MutableStateFlow<Map<String, Long>>(emptyMap())
     val closed = MutableStateFlow(0)
 
@@ -543,6 +597,7 @@ class CodeStore(private val store: Store) {
             val mine = coroutineContext[Job]
             try {
                 delay(CLOSE_GRACE_MS)
+                committed += id
                 val client = client(session.backend) ?: throw IOException("desktop unreachable")
                 client.close(id, session.directory)
                 forgetLive(id)
@@ -555,6 +610,7 @@ class CodeStore(private val store: Store) {
             } finally {
                 if (closeJobs[id] === mine) {
                     closeJobs.remove(id)
+                    committed -= id
                     closing.value = closing.value - id
                 }
             }
@@ -562,6 +618,7 @@ class CodeStore(private val store: Store) {
     }
 
     fun undoClose(id: String) {
+        if (id in committed) return
         closeJobs.remove(id)?.cancel()
         closing.value = closing.value - id
     }
@@ -572,22 +629,32 @@ class CodeStore(private val store: Store) {
         currentFlow.value?.takeIf { it.id == id }?.let { s -> currentFlow.value = s.copy(live = null).also { it.backend = s.backend } }
     }
 
-    fun allow(ask: PermissionAsk, response: String) = run {
+    private val replying = HashSet<String>()
+
+    private fun reply(id: String, post: suspend (CodeClient, String) -> Unit) = run {
         val dir = directory ?: return@run
+        val client = currentClient() ?: throw IOException("desktop unreachable")
+        if (!replying.add(id)) return@run
+        try {
+            post(client, dir)
+        } finally {
+            replying.remove(id)
+        }
+    }
+
+    fun allow(ask: PermissionAsk, response: String) = reply(ask.id) { client, dir ->
+        client.permission(ask.sessionID, ask.id, dir, response)
         asksFlow.value = asksFlow.value.filter { it.id != ask.id }
-        currentClient()?.permission(ask.sessionID, ask.id, dir, response)
     }
 
-    fun answer(question: QuestionAsk, answers: List<List<String>>) = run {
-        val dir = directory ?: return@run
+    fun answer(question: QuestionAsk, answers: List<List<String>>) = reply(question.id) { client, dir ->
+        client.answer(question.id, dir, answers)
         questionsFlow.value = questionsFlow.value.filter { it.id != question.id }
-        currentClient()?.answer(question.id, dir, answers)
     }
 
-    fun rejectQuestion(question: QuestionAsk) = run {
-        val dir = directory ?: return@run
+    fun rejectQuestion(question: QuestionAsk) = reply(question.id) { client, dir ->
+        client.reject(question.id, dir)
         questionsFlow.value = questionsFlow.value.filter { it.id != question.id }
-        currentClient()?.reject(question.id, dir)
     }
 
     fun press(ask: ScreenAsk, key: String, text: String? = null) = run {
@@ -660,7 +727,10 @@ class CodeStore(private val store: Store) {
         val mine = sessionID != null && sessionID == currentFlow.value?.id
         when (event.type) {
             "server.connected" -> {
-                if (currentFlow.value != null) syncCurrent()
+                if (currentFlow.value != null) {
+                    syncCurrent()
+                    syncPrompts()
+                }
                 refreshListSoon()
             }
             "transcript.changed" -> if (sessionID != null) {

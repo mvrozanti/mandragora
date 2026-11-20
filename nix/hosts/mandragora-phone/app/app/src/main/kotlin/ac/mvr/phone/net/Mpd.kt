@@ -88,6 +88,9 @@ class MpdClient(private val host: () -> String, private val port: () -> Int) {
 
     suspend fun command(cmd: String): List<Pair<String, String>> = withConnection { it.command(cmd) }
 
+    suspend fun commandList(cmds: List<String>): List<Pair<String, String>> =
+        command((listOf("command_list_begin") + cmds + "command_list_end").joinToString("\n"))
+
     suspend fun snapshot(): MpdSnapshot = withConnection { conn ->
         val status = parseStatus(conn.command("status"))
         val current = conn.command("currentsong")

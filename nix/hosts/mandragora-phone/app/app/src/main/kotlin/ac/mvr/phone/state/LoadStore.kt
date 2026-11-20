@@ -2,6 +2,7 @@ package ac.mvr.phone.state
 
 import android.os.SystemClock
 import ac.mvr.phone.net.LoadState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +31,8 @@ class LoadStore(private val store: Store) {
         try {
             stateFlow.value = store.bridge.load()
             freshFlow.value = true
+        } catch (err: CancellationException) {
+            throw err
         } catch (err: Exception) {
             freshFlow.value = false
             throw err

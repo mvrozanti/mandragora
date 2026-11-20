@@ -35,6 +35,7 @@ PORTS = {"mpd": MPD_PORT, "ytdl": 6685, "theme": 6684, "mympd": 6680, "bridge": 
 MUSIC_FOLDER_ID = "mandragora-music"
 LEASE_FILE = STATE_DIR / "lease.json"
 LRCLIB_MISS_TTL = 24 * 3600
+LRCLIB_RETRY_AFTER = 10 * 60
 PHONE_LEASE_TTL = 45
 AUDIO_SUFFIXES = {".mp3", ".m4a", ".flac", ".wav", ".ogg", ".opus", ".aac", ".wma"}
 AUDIO_TYPES = {".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".aac": "audio/aac", ".flac": "audio/flac", ".ogg": "audio/ogg", ".opus": "audio/ogg", ".wav": "audio/wav", ".wma": "audio/x-ms-wma"}
@@ -476,7 +477,7 @@ def track_tags(file: str, record: dict | None) -> dict:
 
 def lrclib_fetch(tags: dict) -> dict | None:
     if not tags.get("artist") or not tags.get("title"):
-        return None
+        return {}
     params = {"artist_name": tags["artist"], "track_name": tags["title"]}
     if tags.get("album"):
         params["album_name"] = tags["album"]
@@ -486,7 +487,9 @@ def lrclib_fetch(tags: dict) -> dict | None:
     try:
         with urllib.request.urlopen(request, timeout=8) as response:
             return json.load(response)
-    except (urllib.error.URLError, ValueError, TimeoutError):
+    except urllib.error.HTTPError as err:
+        return {} if err.code == 404 else None
+    except (urllib.error.URLError, ValueError, TimeoutError, OSError):
         return None
 
 
@@ -510,12 +513,15 @@ def lyrics_for(file: str) -> dict:
         found = lrclib_fetch(track_tags(file, record))
     finally:
         lrclib_slot.release()
-    synced_text = (found or {}).get("syncedLyrics")
+    if found is None:
+        lrclib_misses[file] = time.time() - LRCLIB_MISS_TTL + LRCLIB_RETRY_AFTER
+        return {"synced": None, "plain": plain, "source": "cache" if plain else "miss"}
+    synced_text = found.get("syncedLyrics")
     if synced_text and track.suffix.lower() in AUDIO_SUFFIXES:
         lrc_path.write_text(synced_text, encoding="utf-8")
         return {"synced": parse_lrc(synced_text), "plain": None, "source": "lrclib"}
     lrclib_misses[file] = time.time()
-    plain = plain or (found or {}).get("plainLyrics") or None
+    plain = plain or found.get("plainLyrics") or None
     return {"synced": None, "plain": plain, "source": "cache" if record and record.get("lyrics") else ("lrclib:plain" if plain else "miss")}
 
 

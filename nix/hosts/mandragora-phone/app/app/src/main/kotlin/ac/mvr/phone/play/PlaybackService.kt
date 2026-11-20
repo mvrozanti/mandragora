@@ -9,8 +9,10 @@ import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -42,12 +44,17 @@ class PlaybackService : MediaSessionService(), PlayerHost {
         local = ExoPlayer.Builder(this)
             .setAudioAttributes(AudioAttributes.Builder().setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).setUsage(C.USAGE_MEDIA).build(), true)
             .setHandleAudioBecomingNoisy(true)
+            .setWakeMode(C.WAKE_MODE_NETWORK)
             .build()
         local.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) { appStore.localPlaying.value = isPlaying }
+            override fun onEvents(player: Player, events: Player.Events) {
+                if (events.containsAny(Player.EVENT_PLAY_WHEN_READY_CHANGED, Player.EVENT_PLAYBACK_STATE_CHANGED)) appStore.localPlaying.value = localIsPlaying()
+            }
+            override fun onIsPlayingChanged(isPlaying: Boolean) { if (isPlaying) appStore.localStarted() }
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (playbackState == Player.STATE_ENDED) appStore.localEnded()
             }
+            override fun onPlayerError(error: PlaybackException) { appStore.localFailed(describe(error), local.playWhenReady) }
         })
         localSession = PhoneQueuePlayer(local)
         remote = RemotePlayer(mainLooper, appStore)
@@ -92,12 +99,11 @@ class PlaybackService : MediaSessionService(), PlayerHost {
         remote.refresh()
     }
 
-    override fun useLocal(uri: Uri, title: String, artist: String?, positionMs: Long, play: Boolean, artwork: ByteArray?) {
+    override fun useLocal(uri: Uri, title: String, artist: String?, positionMs: Long, play: Boolean) {
         val metadata = MediaMetadata.Builder()
             .setTitle(title)
             .setArtist(listOfNotNull(artist, "on the phone").joinToString(" · "))
             .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-            .apply { if (artwork != null) setArtworkData(artwork, MediaMetadata.PICTURE_TYPE_FRONT_COVER) }
             .build()
         local.setMediaItem(MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).build(), positionMs.coerceAtLeast(0))
         local.prepare()
@@ -105,13 +111,40 @@ class PlaybackService : MediaSessionService(), PlayerHost {
         session?.setPlayer(localSession)
     }
 
+    override fun localArtwork(uri: Uri, artwork: ByteArray) {
+        val item = local.currentMediaItem ?: return
+        if (item.localConfiguration?.uri != uri) return
+        val metadata = item.mediaMetadata.buildUpon().setArtworkData(artwork, MediaMetadata.PICTURE_TYPE_FRONT_COVER).build()
+        local.replaceMediaItem(local.currentMediaItemIndex, item.buildUpon().setMediaMetadata(metadata).build())
+    }
+
     override fun localPositionMs(): Long = local.currentPosition
 
     override fun localDurationMs(): Long = local.duration.takeIf { it != C.TIME_UNSET } ?: 0L
 
-    override fun localIsPlaying(): Boolean = local.playWhenReady && local.playbackState != Player.STATE_ENDED
+    override fun localIsPlaying(): Boolean =
+        local.playWhenReady && (local.playbackState == Player.STATE_READY || local.playbackState == Player.STATE_BUFFERING)
 
-    override fun localPlay() { local.play() }
+    override fun localPlay() {
+        if (local.mediaItemCount == 0) return
+        when (local.playbackState) {
+            Player.STATE_IDLE -> local.prepare()
+            Player.STATE_ENDED -> local.seekTo(local.currentMediaItemIndex, 0)
+        }
+        local.play()
+    }
+
+    private fun describe(error: PlaybackException): String {
+        val http = generateSequence<Throwable>(error) { it.cause }.filterIsInstance<HttpDataSource.InvalidResponseCodeException>().firstOrNull()
+        return when {
+            http != null -> "the desktop answered ${http.responseCode}"
+            error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
+                error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> "the connection dropped"
+            error.errorCode == PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND -> "the file is gone"
+            error.errorCode in PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED..PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED -> "it does not decode"
+            else -> error.errorCodeName.removePrefix("ERROR_CODE_").lowercase().replace('_', ' ')
+        }
+    }
 
     override fun localPause() { local.pause() }
 

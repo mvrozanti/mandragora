@@ -113,7 +113,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.key
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
@@ -243,7 +246,7 @@ private fun ClosingRow(session: CodeSession, busy: Boolean, until: Long, onUndo:
         Column(modifier = Modifier.weight(1f)) {
             Text(session.title.ifBlank { "untitled" }, style = MaterialTheme.typography.bodyLarge, color = scheme.onErrorContainer, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Label(
-                (if (seconds > 0) "closing on the desktop in $seconds s" else "closing on the desktop") + if (busy) " · its turn stops" else "",
+                if (seconds > 0) "closing on the desktop in $seconds s" + (if (busy) " · its turn stops" else "") else "closing on the desktop…",
                 color = scheme.onErrorContainer.copy(alpha = 0.8f),
             )
             Box(
@@ -257,7 +260,7 @@ private fun ClosingRow(session: CodeSession, busy: Boolean, until: Long, onUndo:
                 Box(modifier = Modifier.fillMaxWidth(share).fillMaxHeight().background(scheme.onErrorContainer))
             }
         }
-        Chip("undo", scheme.onErrorContainer, scheme.errorContainer, onTap = onUndo)
+        if (left > 0) Chip("undo", scheme.onErrorContainer, scheme.errorContainer, onTap = onUndo)
     }
 }
 
@@ -335,15 +338,17 @@ fun CodeCard(store: Store, onOpen: (String) -> Unit) {
     HomeCard {
         CardHeader("code", subtitle) { onOpen("sessions") }
         sessions.take(count).forEach { session ->
-            val status = statuses[session.id]
-            SessionRow(
-                session, status,
-                closingUntil = closing[session.id],
-                onClose = if (store.code.closable(session, status)) ({ store.code.close(session) }) else null,
-                onUndo = { store.code.undoClose(session.id) },
-            ) {
-                store.code.open(session)
-                onOpen("code")
+            key(session.id) {
+                val status = statuses[session.id]
+                SessionRow(
+                    session, status,
+                    closingUntil = closing[session.id],
+                    onClose = if (store.code.closable(session, status)) ({ store.code.close(session) }) else null,
+                    onUndo = { store.code.undoClose(session.id) },
+                ) {
+                    store.code.open(session)
+                    onOpen("code")
+                }
             }
         }
         Row {
@@ -954,11 +959,21 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     val directory = current?.directory ?: newIn
     val backend = current?.backend?.ifEmpty { null } ?: model?.backend ?: "claude"
     LaunchedEffect(Unit) { code.enter() }
-    LaunchedEffect(backend, directory) { code.watch(backend, directory) }
+    LaunchedEffect(backend, directory) {
+        store.foreground.collectLatest { shown -> if (shown) code.watch(backend, directory) }
+    }
     LaunchedEffect(Unit) {
-        while (true) {
-            delay(10_000)
-            runCatching { code.refresh() }
+        var away = false
+        store.foreground.collectLatest { shown ->
+            if (!shown) {
+                away = true
+                return@collectLatest
+            }
+            if (away) runCatching { code.refresh() }
+            while (true) {
+                delay(10_000)
+                runCatching { code.refresh() }
+            }
         }
     }
     val busy = current?.let { statuses[it.id]?.type == "busy" } ?: false
@@ -1054,9 +1069,14 @@ fun SessionsScreen(store: Store, onOpenSession: () -> Unit, onCollapse: () -> Un
     var failed by remember { mutableStateOf(false) }
     LaunchedEffect(query, closed) {
         if (query.isNotBlank()) delay(350)
-        runCatching { store.code.find(query.trim()) }
-            .onSuccess { found = it; failed = false }
-            .onFailure { failed = true }
+        try {
+            found = store.code.find(query.trim())
+            failed = false
+        } catch (err: CancellationException) {
+            throw err
+        } catch (err: Exception) {
+            failed = true
+        }
     }
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("sessions", reachable, onCollapse)

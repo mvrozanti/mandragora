@@ -56,7 +56,7 @@ import ac.mvr.phone.state.fmtTime
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 private fun highlight(text: String, term: String, color: Color): AnnotatedString {
-    val at = if (term.isEmpty()) -1 else text.lowercase().indexOf(term.lowercase())
+    val at = if (term.isEmpty()) -1 else text.indexOf(term, ignoreCase = true)
     if (at < 0) return AnnotatedString(text)
     return buildAnnotatedString {
         append(text.substring(0, at))
@@ -75,8 +75,8 @@ fun FindScreen(store: Store, onCollapse: () -> Unit) {
     val fresh by store.find.fresh.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf("") }
     var sort by rememberSaveable { mutableStateOf("newest") }
-    var drillKey by rememberSaveable { mutableStateOf("") }
-    var drillValue by rememberSaveable { mutableStateOf("") }
+    var drillArtist by rememberSaveable { mutableStateOf<String?>(null) }
+    var drillAlbum by rememberSaveable { mutableStateOf<String?>(null) }
     var allArtists by rememberSaveable { mutableStateOf(false) }
     var allAlbums by rememberSaveable { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
@@ -92,18 +92,21 @@ fun FindScreen(store: Store, onCollapse: () -> Unit) {
 
     val term = query.trim().split(Regex("\\s+")).firstOrNull { it.isNotEmpty() } ?: ""
     val matched = remember(library, query, sort) { Finder.search(library, query, sort) }
-    val drilled = remember(matched, drillKey, drillValue) {
-        when (drillKey) {
-            "artist" -> matched.filter { it.song.artist == drillValue }
-            "album" -> matched.filter { it.song.album == drillValue }
-            else -> matched
-        }
+    val drilled = remember(matched, drillArtist, drillAlbum) {
+        val artist = drillArtist
+        val album = drillAlbum
+        matched.filter { (artist == null || (it.song.artist ?: "") == artist) && (album == null || it.song.album == album) }
     }
-    val artists = remember(drilled, term, drillKey) {
-        if (drillKey.isNotEmpty()) emptyList() else Finder.facets(if (term.isEmpty()) drilled else drilled.filter { (it.song.artist ?: "").contains(term, ignoreCase = true) }) { it.artist }
+    val crumb = when {
+        drillAlbum != null -> "album: $drillAlbum" + (drillArtist?.takeIf { it.isNotEmpty() }?.let { " · $it" } ?: "")
+        drillArtist != null -> "artist: $drillArtist"
+        else -> null
     }
-    val albums = remember(drilled, term, drillKey) {
-        if (drillKey == "album") emptyList() else Finder.facets(if (term.isEmpty()) drilled else drilled.filter { (it.song.album ?: "").contains(term, ignoreCase = true) || (it.song.artist ?: "").contains(term, ignoreCase = true) }) { it.album }
+    val artists = remember(drilled, term, crumb) {
+        if (crumb != null) emptyList() else Finder.facets(if (term.isEmpty()) drilled else drilled.filter { (it.song.artist ?: "").contains(term, ignoreCase = true) }) { it.artist }
+    }
+    val albums = remember(drilled, term, drillAlbum) {
+        if (drillAlbum != null) emptyList() else Finder.facets(if (term.isEmpty()) drilled else drilled.filter { (it.song.album ?: "").contains(term, ignoreCase = true) || (it.song.artist ?: "").contains(term, ignoreCase = true) }, within = { it.artist ?: "" }) { it.album }
     }
     val artistsShown = if (allArtists) artists else artists.take(if (term.isEmpty()) 4 else 3)
     val albumsShown = if (allAlbums) albums else albums.take(if (term.isEmpty()) 4 else 3)
@@ -116,7 +119,7 @@ fun FindScreen(store: Store, onCollapse: () -> Unit) {
             placeholder = { Text("artist, album, song, genre, year…", style = MaterialTheme.typography.bodyLarge) },
             leadingIcon = { Icon(Icons.Filled.Search, null, tint = scheme.outline) },
             trailingIcon = {
-                if (query.isNotEmpty()) Icon(Icons.Filled.Close, "clear", tint = scheme.outline, modifier = Modifier.clickable { query = ""; drillKey = ""; drillValue = "" })
+                if (query.isNotEmpty()) Icon(Icons.Filled.Close, "clear", tint = scheme.outline, modifier = Modifier.clickable { query = ""; drillArtist = null; drillAlbum = null })
             },
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyLarge,
@@ -130,14 +133,14 @@ fun FindScreen(store: Store, onCollapse: () -> Unit) {
             ),
             modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp).focusRequester(focus),
         )
-        if (drillKey.isNotEmpty()) {
+        if (crumb != null) {
             Row(modifier = Modifier.padding(horizontal = 18.dp, vertical = 6.dp)) {
                 Row(
-                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(scheme.surfaceContainerHigh).clickable { drillKey = ""; drillValue = "" }.padding(horizontal = 8.dp, vertical = 4.dp),
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(scheme.surfaceContainerHigh).clickable { drillArtist = null; drillAlbum = null }.padding(horizontal = 8.dp, vertical = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("$drillKey: $drillValue", style = MaterialTheme.typography.labelLarge, color = scheme.tertiary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(crumb, style = MaterialTheme.typography.labelLarge, color = scheme.tertiary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Icon(Icons.Filled.Close, "widen", tint = scheme.outline, modifier = Modifier.padding(0.dp))
                 }
             }
@@ -152,17 +155,17 @@ fun FindScreen(store: Store, onCollapse: () -> Unit) {
                     item { SectionHead("artists", if (artists.size > artistsShown.size) "${artists.size} in all" else if (allArtists && artists.size > 4) "fewer" else null) { allArtists = !allArtists } }
                     items(artistsShown, key = { "a:" + it.name }) { facet ->
                         FacetRow(highlight(facet.name, term, scheme.primary), "${facet.count} song${if (facet.count == 1) "" else "s"}") {
-                            drillKey = "artist"; drillValue = facet.name; query = ""; allArtists = false; allAlbums = false
+                            drillArtist = facet.name; drillAlbum = null; query = ""; allArtists = false; allAlbums = false
                         }
                     }
                 }
                 if (albumsShown.isNotEmpty()) {
                     item { SectionHead("albums", if (albums.size > albumsShown.size) "${albums.size} in all" else if (allAlbums && albums.size > 4) "fewer" else null) { allAlbums = !allAlbums } }
-                    items(albumsShown, key = { "b:" + it.name }) { facet ->
+                    items(albumsShown, key = { "b:" + it.within + "\n" + it.name }) { facet ->
                         FacetRow(
                             highlight(facet.name, term, scheme.primary),
                             listOfNotNull(facet.sample.artist, "${facet.count} song${if (facet.count == 1) "" else "s"}", Finder.year(facet.sample).takeIf { it.isNotEmpty() }).joinToString(" · "),
-                        ) { drillKey = "album"; drillValue = facet.name; allAlbums = false }
+                        ) { drillArtist = facet.within; drillAlbum = facet.name; allAlbums = false }
                     }
                 }
                 item {

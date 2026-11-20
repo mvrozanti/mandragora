@@ -38,7 +38,8 @@ import androidx.compose.ui.unit.sp
 sealed interface MdBlock
 data class MdPara(val text: String) : MdBlock
 data class MdHeading(val level: Int, val text: String) : MdBlock
-data class MdList(val ordered: Boolean, val items: List<String>) : MdBlock
+data class MdItem(val number: String?, val blocks: List<MdBlock>)
+data class MdList(val items: List<MdItem>) : MdBlock
 data class MdQuote(val text: String) : MdBlock
 data class MdFence(val body: String) : MdBlock
 data class MdTable(val head: List<String>, val rows: List<List<String>>) : MdBlock
@@ -49,15 +50,22 @@ object Markdown {
     private val tableRule = Regex("^\\s*\\|\\s*:?-{2,}")
     private val heading = Regex("^(#{1,4})\\s+(.*)")
     private val item = Regex("^\\s*([-*]|\\d+\\.)\\s+")
-    private val ordered = Regex("^\\s*\\d+\\.")
     private val quote = Regex("^>\\s?")
     private val paraStop = Regex("^\\s*(```|\\||#{1,4}\\s|[-*]\\s|\\d+\\.\\s|>)")
-    private val continuation = Regex("^\\s{2,}\\S")
     private val inlineToken = Regex("(⟦([nracdwu]):([\\s\\S]*?)⟧)|(`([^`]+)`)|(\\*\\*([^*]+)\\*\\*)|(\\*([^*\\s][^*]*)\\*)|(\\[([^\\]]+)\\]\\(([^)]+)\\))")
     private val number = Regex("^[\\s−+\\-~]*[\\d.,]+\\s*(%|°|s|k|ms|MB|GB|GiB|MiB|x|×)?$")
 
-    fun blocks(text: String): List<MdBlock> {
-        val lines = text.split('\n')
+    fun blocks(text: String): List<MdBlock> = parse(text.split('\n'))
+
+    private fun indent(line: String): Int = line.length - line.trimStart().length
+
+    private fun dedent(line: String, width: Int): String {
+        var k = 0
+        while (k < width && k < line.length && line[k].isWhitespace()) k++
+        return line.substring(k)
+    }
+
+    private fun parse(lines: List<String>): List<MdBlock> {
         val out = ArrayList<MdBlock>()
         var i = 0
         while (i < lines.size) {
@@ -84,15 +92,38 @@ object Markdown {
                 continue
             }
             if (item.containsMatchIn(line)) {
-                val isOrdered = ordered.containsMatchIn(line)
-                val items = ArrayList<String>()
-                while (i < lines.size && item.containsMatchIn(lines[i])) {
-                    var entry = lines[i].replace(item, "")
+                val base = indent(line)
+                val items = ArrayList<MdItem>()
+                while (i < lines.size) {
+                    val head = item.find(lines[i]) ?: break
+                    val width = head.range.last + 1
+                    val marker = head.groupValues[1]
+                    val body = arrayListOf(lines[i].substring(width))
                     i++
-                    while (i < lines.size && continuation.containsMatchIn(lines[i]) && !item.containsMatchIn(lines[i])) entry += " " + lines[i++].trim()
-                    items.add(entry)
+                    var inFence = false
+                    while (i < lines.size) {
+                        val next = lines[i]
+                        if (inFence || (next.isNotBlank() && indent(next) > base)) {
+                            val inner = dedent(next, width)
+                            if (fence.containsMatchIn(inner)) inFence = !inFence
+                            body.add(inner)
+                            i++
+                            continue
+                        }
+                        if (next.isBlank()) {
+                            var k = i
+                            while (k < lines.size && lines[k].isBlank()) k++
+                            if (k < lines.size && indent(lines[k]) > base) {
+                                while (i < k) { body.add(""); i++ }
+                                continue
+                            }
+                            if (k < lines.size && item.containsMatchIn(lines[k])) i = k
+                        }
+                        break
+                    }
+                    items.add(MdItem(marker.takeIf { it[0].isDigit() }, parse(body)))
                 }
-                out.add(MdList(isOrdered, items))
+                out.add(MdList(items))
                 continue
             }
             if (quote.containsMatchIn(line)) {
@@ -178,34 +209,52 @@ object Markdown {
 fun MarkdownText(text: String, scheme: ColorScheme) {
     val blocks = remember(text) { Markdown.blocks(text) }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        blocks.forEach { block ->
-            when (block) {
-                is MdPara -> Text(remember(block, scheme) { Markdown.inline(block.text, scheme) }, style = ReplyBody, color = scheme.onSurface)
-                is MdHeading -> Text(
-                    remember(block, scheme) { Markdown.inline(block.text, scheme) },
-                    style = ReplyBody.copy(fontSize = if (block.level <= 2) 18.sp else 16.5.sp, lineHeight = 25.sp),
-                    fontWeight = FontWeight.SemiBold,
-                    color = scheme.onSurface,
-                )
-                is MdList -> Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    block.items.forEachIndexed { index, entry ->
-                        Row {
-                            Text(if (block.ordered) "${index + 1}." else "•", style = ReplyBody, color = scheme.outline, modifier = Modifier.width(22.dp))
-                            Text(remember(entry, scheme) { Markdown.inline(entry, scheme) }, style = ReplyBody, color = scheme.onSurface)
-                        }
-                    }
+        MarkdownBlocks(blocks, scheme, 0)
+    }
+}
+
+@Composable
+private fun MarkdownBlocks(blocks: List<MdBlock>, scheme: ColorScheme, depth: Int) {
+    blocks.forEach { block ->
+        when (block) {
+            is MdPara -> Text(remember(block, scheme) { Markdown.inline(block.text, scheme) }, style = ReplyBody, color = scheme.onSurface)
+            is MdHeading -> Text(
+                remember(block, scheme) { Markdown.inline(block.text, scheme) },
+                style = ReplyBody.copy(fontSize = if (block.level <= 2) 18.sp else 16.5.sp, lineHeight = 25.sp),
+                fontWeight = FontWeight.SemiBold,
+                color = scheme.onSurface,
+            )
+            is MdList -> MarkdownList(block, scheme, depth)
+            is MdQuote -> Row(
+                modifier = Modifier.drawBehind { drawLine(scheme.outlineVariant, Offset(0f, 0f), Offset(0f, size.height), strokeWidth = 3.dp.toPx()) }.padding(start = 12.dp),
+            ) {
+                Text(remember(block, scheme) { Markdown.inline(block.text, scheme) }, style = ReplyBody, color = scheme.onSurfaceVariant)
+            }
+            is MdFence -> Box(
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(scheme.surfaceContainerLow).horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 8.dp),
+            ) {
+                Text(block.body, style = TextStyle(fontFamily = Mono, fontSize = 12.sp), color = scheme.primary, softWrap = false)
+            }
+            is MdTable -> MarkdownTable(block, scheme)
+        }
+    }
+}
+
+@Composable
+private fun MarkdownList(list: MdList, scheme: ColorScheme, depth: Int) {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    val markerWidth = remember(list, density) {
+        val widest = list.items.mapNotNull { it.number }.maxOfOrNull { measurer.measure(it, ReplyBody, softWrap = false).size.width } ?: 0
+        maxOf(22.dp, with(density) { widest.toDp() } + 6.dp)
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        list.items.forEach { entry ->
+            Row {
+                Text(entry.number ?: if (depth == 0) "•" else "◦", style = ReplyBody, color = scheme.outline, modifier = Modifier.width(markerWidth))
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    MarkdownBlocks(entry.blocks, scheme, depth + 1)
                 }
-                is MdQuote -> Row(
-                    modifier = Modifier.drawBehind { drawLine(scheme.outlineVariant, Offset(0f, 0f), Offset(0f, size.height), strokeWidth = 3.dp.toPx()) }.padding(start = 12.dp),
-                ) {
-                    Text(remember(block, scheme) { Markdown.inline(block.text, scheme) }, style = ReplyBody, color = scheme.onSurfaceVariant)
-                }
-                is MdFence -> Box(
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(scheme.surfaceContainerLow).horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 8.dp),
-                ) {
-                    Text(block.body, style = TextStyle(fontFamily = Mono, fontSize = 12.sp), color = scheme.primary, softWrap = false)
-                }
-                is MdTable -> MarkdownTable(block, scheme)
             }
         }
     }

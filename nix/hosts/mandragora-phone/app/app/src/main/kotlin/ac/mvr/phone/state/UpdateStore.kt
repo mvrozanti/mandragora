@@ -13,10 +13,12 @@ import ac.mvr.phone.net.AppBuild
 import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.IOException
 import java.security.MessageDigest
 
 class UpdateStore(private val store: Store, private val app: Application) {
@@ -33,8 +35,12 @@ class UpdateStore(private val store: Store, private val app: Application) {
     private val apk: File get() = File(dir, "mandragora-phone.apk")
     private val stamp: File get() = File(dir, "mandragora-phone.apk.sha256")
 
+    private var job: Job? = null
+
+    private suspend fun latest(): AppBuild? = store.bridge.app().takeIf { it.error == null && it.versionCode > BuildConfig.VERSION_CODE }
+
     suspend fun refresh() {
-        val build = store.bridge.app().takeIf { it.error == null && it.versionCode > BuildConfig.VERSION_CODE }
+        val build = latest()
         availableFlow.value = build
         readyFlow.value = build != null && downloaded(build)
         if (build == null) withContext(Dispatchers.IO) { apk.delete(); stamp.delete() }
@@ -44,41 +50,60 @@ class UpdateStore(private val store: Store, private val app: Application) {
         apk.isFile && apk.length() == build.size && runCatching { stamp.readText().trim() }.getOrNull() == build.sha256
 
     fun install() {
-        val build = availableFlow.value ?: return
-        if (progressFlow.value != null) return
+        val known = availableFlow.value ?: return
+        if (job?.isActive == true) return
         if (!app.packageManager.canRequestPackageInstalls()) {
             app.startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${app.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             store.report(IllegalStateException("allow installs from mandragora, then tap again"))
             return
         }
-        if (downloaded(build)) {
-            readyFlow.value = true
-            app.startActivity(installer())
-            return
-        }
-        progressFlow.value = 0f
-        store.act {
+        job = store.act {
+            val build = try {
+                latest()
+            } catch (err: IOException) {
+                if (downloaded(known)) known else throw err
+            }
+            availableFlow.value = build
+            if (build == null) {
+                readyFlow.value = false
+                withContext(Dispatchers.IO) { apk.delete(); stamp.delete() }
+                return@act
+            }
+            if (downloaded(build)) {
+                readyFlow.value = true
+                app.startActivity(installer())
+                return@act
+            }
+            readyFlow.value = false
+            progressFlow.value = 0f
+            val partial = File(dir, "mandragora-phone.apk.part")
             try {
-                val partial = File(dir, "mandragora-phone.apk.part")
                 stamp.delete()
                 store.bridge.downloadApk(partial) { done, total -> progressFlow.value = if (total > 0) done.toFloat() / total else 0f }
                 val sum = withContext(Dispatchers.IO) { sha256(partial) }
-                if (sum != build.sha256) {
-                    partial.delete()
-                    throw IllegalStateException("the download did not match the desktop's build")
-                }
+                val verified = if (sum == build.sha256) build else republished(sum)
+                    ?: throw IllegalStateException("the download did not match the desktop's build")
                 withContext(Dispatchers.IO) {
                     apk.delete()
                     partial.renameTo(apk)
-                    stamp.writeText(build.sha256)
+                    stamp.writeText(verified.sha256)
                 }
+                availableFlow.value = verified
                 readyFlow.value = true
-                if (store.foreground.value) app.startActivity(installer()) else notifyReady(build)
+                if (store.foreground.value) app.startActivity(installer()) else notifyReady(verified)
             } finally {
+                partial.delete()
                 progressFlow.value = null
             }
         }
     }
+
+    private suspend fun republished(sum: String): AppBuild? =
+        try {
+            latest()?.takeIf { it.sha256 == sum }
+        } catch (err: IOException) {
+            null
+        }
 
     private fun installer(): Intent {
         val uri = FileProvider.getUriForFile(app, "${app.packageName}.files", apk)

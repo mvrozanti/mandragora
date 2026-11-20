@@ -76,7 +76,7 @@ current=$(mpc -f %file% current 2> /dev/null || true)
 count=0
 while IFS= read -r file; do
   [ -n "$file" ] && [ -f "$MUSIC/$file" ] || continue
-  adb -s "$SERIAL" push --sync "$MUSIC/$file" "/sdcard/Music/$(basename "$file")" > /dev/null < /dev/null
+  adb -s "$SERIAL" push --sync "$MUSIC/$file" "/sdcard/Music/$file" > /dev/null < /dev/null
   count=$((count + 1))
 done < <(
   printf '%s\n' "$current"

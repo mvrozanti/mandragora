@@ -45,7 +45,7 @@ class LocalLibrary(private val context: Context) {
             }
         }
         if (candidates.isEmpty()) return@withContext null
-        if (dir.isNotEmpty()) candidates.firstOrNull { it.relativePath.trimEnd('/').endsWith(dir) }?.let { return@withContext it }
+        if (dir.isNotEmpty()) return@withContext candidates.firstOrNull { "/${it.relativePath.trimEnd('/')}".endsWith("/$dir") }
         candidates.firstOrNull { it.relativePath.contains("Music", ignoreCase = true) } ?: candidates.first()
     }
 
