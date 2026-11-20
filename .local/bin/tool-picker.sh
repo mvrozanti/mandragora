@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-selected=$(printf 'zathura\nPostman\nBruno\nGpick\nHyprpicker\nKill window' | rofi -dmenu -p "Tool")
+selected=$(printf 'zathura\nPostman\nBruno\nGpick\nHyprpicker\nKill window' | vicinae dmenu -p "Tool")
 case "$selected" in
     zathura)  zathura ;;
     Postman)  postman ;;

@@ -305,18 +305,9 @@ in
     (pkgs.writeShellScriptBin "mandragora-winvm" (
       builtins.readFile ../../../.local/bin/mandragora-winvm.sh
     ))
-    (pkgs.writeShellScriptBin "rofi-ide-picker" (
-      builtins.readFile ../../../.local/bin/rofi-ide-picker.sh
-    ))
-    (pkgs.writeShellScriptBin "rofi-tool-picker" (
-      builtins.readFile ../../../.local/bin/rofi-tool-picker.sh
-    ))
     (pkgs.writeShellScriptBin "rofi-run" (builtins.readFile ../../../.local/bin/rofi-run.sh))
     (pkgs.writeShellScriptBin "rofi-run-list" (builtins.readFile ../../../.local/bin/rofi-run-list.sh))
     (pkgs.writeShellScriptBin "rofi-run-exec" (builtins.readFile ../../../.local/bin/rofi-run-exec.sh))
-    (pkgs.writeShellScriptBin "rofi-db-picker" (
-      builtins.readFile ../../../.local/bin/rofi-db-picker.sh
-    ))
     (pkgs.writeShellScriptBin "cycle-audio-output" (
       builtins.readFile ../../../.local/bin/cycle-audio-output.sh
     ))
@@ -328,9 +319,6 @@ in
     (pkgs.writeShellScriptBin "blur-adjust" (builtins.readFile ../../../.local/bin/blur-adjust.sh))
     (pkgs.writeShellScriptBin "opacity-adjust" (
       builtins.readFile ../../../.local/bin/opacity-adjust.sh
-    ))
-    (pkgs.writeShellScriptBin "rofi-wallpaper-picker" (
-      builtins.readFile ../../../.local/bin/rofi-wallpaper-picker.sh
     ))
     (pkgs.writeShellScriptBin "kindle-push" (builtins.readFile ../../../.local/bin/kindle-push.sh))
     (pkgs.writeShellScriptBin "kindle-dash" (builtins.readFile ../../../.local/bin/kindle-dash.sh))

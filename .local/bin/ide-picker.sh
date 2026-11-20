@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-selected=$(printf 'VSCode\nIntelliJ\nPyCharm\nCursor' | rofi -dmenu -p "IDE")
+selected=$(printf 'VSCode\nIntelliJ\nPyCharm\nCursor' | vicinae dmenu -p "IDE")
 case "$selected" in
     VSCode)    code ;;
     IntelliJ)  idea-ultimate ;;

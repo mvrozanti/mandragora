@@ -19,9 +19,16 @@ in
   xdg.dataFile."vicinae/scripts/claude".source = ../../../.local/share/vicinae/scripts/claude;
   xdg.dataFile."vicinae/scripts/deepseek".source = ../../../.local/share/vicinae/scripts/deepseek;
 
-  home.packages = [
-    (pkgs.writeShellScriptBin "claude-tmux-prompt" (
-      builtins.readFile ../../../.local/bin/claude-tmux-prompt.sh
-    ))
-  ];
+  home.packages =
+    map (name: pkgs.writeShellScriptBin name (builtins.readFile ../../../.local/bin/${name}.sh)) [
+      "ide-picker"
+      "tool-picker"
+      "db-picker"
+      "wallpaper-picker"
+    ]
+    ++ [
+      (pkgs.writeShellScriptBin "claude-tmux-prompt" (
+        builtins.readFile ../../../.local/bin/claude-tmux-prompt.sh
+      ))
+    ];
 }
