@@ -53,6 +53,8 @@ fun parseModel(value: String?): CodeModel? {
     return CodeModel(parts[0], parts[1], parts[2])
 }
 
+const val CLOSE_GRACE_MS = 5_000L
+
 private val errorText = Regex("\"error\":\\s*\"([^\"]+)\"")
 
 class CodeStore(private val store: Store) {
@@ -524,6 +526,50 @@ class CodeStore(private val store: Store) {
     fun stop() = run {
         val session = currentFlow.value ?: return@run
         client(session.backend)?.abort(session.id, session.directory)
+    }
+
+    private val closeJobs = HashMap<String, Job>()
+    val closing = MutableStateFlow<Map<String, Long>>(emptyMap())
+    val closed = MutableStateFlow(0)
+
+    fun closable(session: CodeSession, status: CodeStatus?): Boolean =
+        session.backend == "claude" && (session.live != null || status?.type == "busy")
+
+    fun close(session: CodeSession) {
+        val id = session.id
+        if (closeJobs.containsKey(id)) return
+        closing.value = closing.value + (id to System.currentTimeMillis() + CLOSE_GRACE_MS)
+        closeJobs[id] = store.scope.launch {
+            val mine = coroutineContext[Job]
+            try {
+                delay(CLOSE_GRACE_MS)
+                val client = client(session.backend) ?: throw IOException("desktop unreachable")
+                client.close(id, session.directory)
+                forgetLive(id)
+                closed.value += 1
+                refreshListSoon()
+            } catch (err: kotlinx.coroutines.CancellationException) {
+                throw err
+            } catch (err: Exception) {
+                store.report(humanize(err))
+            } finally {
+                if (closeJobs[id] === mine) {
+                    closeJobs.remove(id)
+                    closing.value = closing.value - id
+                }
+            }
+        }
+    }
+
+    fun undoClose(id: String) {
+        closeJobs.remove(id)?.cancel()
+        closing.value = closing.value - id
+    }
+
+    private fun forgetLive(id: String) {
+        statusFlow.value = statusFlow.value - id
+        sessionsFlow.value = sessionsFlow.value.map { s -> if (s.id == id) s.copy(live = null).also { it.backend = s.backend } else s }
+        currentFlow.value?.takeIf { it.id == id }?.let { s -> currentFlow.value = s.copy(live = null).also { it.backend = s.backend } }
     }
 
     fun allow(ask: PermissionAsk, response: String) = run {

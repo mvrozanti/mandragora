@@ -6,6 +6,7 @@ import json
 import re
 import os
 import secrets
+import signal
 import subprocess
 import textwrap
 import time
@@ -103,6 +104,7 @@ DESK_MODES = {"default": "manual"}
 DESK_READY_SECONDS = 45
 DESK_FALLBACK_SESSION = os.environ.get("CLAUDE_BRIDGE_TMUX_SESSION", "claude")
 DESK_WINDOW = "#{session_name}:#{window_index} #{pane_id}"
+CLOSE_SECONDS = 6
 
 PASSWORD = web.AppKey("password", object)
 BRIDGE = web.AppKey("bridge", object)
@@ -522,7 +524,7 @@ class Bridge:
             if data.get("kind") not in (None, "interactive"):
                 continue
             waiting = data.get("waitingFor") if data.get("status") == "waiting" else None
-            found[sid] = {"name": data.get("name"), "status": data.get("status"), "waiting": waiting, "cwd": data.get("cwd"), "tmux": data.get("tmux"), "pid": pid}
+            found[sid] = {"name": data.get("name"), "status": data.get("status"), "waiting": waiting, "cwd": data.get("cwd"), "tmux": data.get("tmux"), "pid": pid, "procStart": data.get("procStart")}
         return found
 
     async def projects(self) -> list[dict]:
@@ -1320,6 +1322,27 @@ async def abort(request: web.Request) -> web.Response:
     return web.json_response(True)
 
 
+async def close_session(request: web.Request) -> web.Response:
+    bridge = bridge_of(request)
+    sid = request.match_info["sid"]
+    if sid in bridge.opening:
+        return json_error("it is still opening on the desktop; close it once it is up", 409)
+    run = bridge.runs.get(sid)
+    if run is not None:
+        await bridge.stop_run(run)
+        return web.json_response(True)
+    live = bridge.live_sessions().get(sid)
+    if live is None:
+        return web.json_response(False)
+    try:
+        await asyncio.to_thread(end_process, int(live["pid"]), live.get("procStart"))
+    except (OSError, RuntimeError, ValueError) as err:
+        return json_error(f"could not close it on the desktop: {str(err)[:160]}", 503)
+    bridge.bus.emit("session.status", {"sessionID": sid, "status": {"type": "idle"}})
+    bridge.bus.emit("session.idle", {"sessionID": sid})
+    return web.json_response(True)
+
+
 async def get_settings(request: web.Request) -> web.Response:
     return web.json_response(await bridge_of(request).settings_of(request.match_info["sid"]))
 
@@ -1599,6 +1622,29 @@ def desk_ready(pane: str) -> bool:
     lines = pane_lines(pane)
     rules = [at for at, line in enumerate(lines) if SCREEN_RULE.match(line)]
     return len(rules) >= 2 and lines[rules[-2] + 1].lstrip().startswith("❯")
+
+
+def started_at(pid: int) -> str | None:
+    try:
+        stat = Path(f"/proc/{pid}/stat").read_text()
+        return stat[stat.rindex(")") + 2:].split()[19]
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+def end_process(pid: int, started: str | None) -> None:
+    now = started_at(pid)
+    if now is None:
+        return
+    if started is not None and str(started) != now:
+        raise RuntimeError(f"process {pid} is no longer that session")
+    os.kill(pid, signal.SIGTERM)
+    deadline = time.monotonic() + CLOSE_SECONDS
+    while time.monotonic() < deadline:
+        time.sleep(0.2)
+        if started_at(pid) != now:
+            return
+    os.kill(pid, signal.SIGKILL)
 
 
 def type_into(pane: str, text: str) -> None:
@@ -1997,6 +2043,7 @@ def make_app() -> web.Application:
     app.router.add_get("/session/{sid}/message", messages)
     app.router.add_post("/session/{sid}/prompt_async", prompt)
     app.router.add_post("/session/{sid}/abort", abort)
+    app.router.add_post("/session/{sid}/close", close_session)
     app.router.add_get("/session/{sid}/settings", get_settings)
     app.router.add_post("/session/{sid}/settings", set_settings)
     app.router.add_patch("/session/{sid}", rename)

@@ -1,6 +1,18 @@
 package ac.mvr.phone.ui
 
 import androidx.compose.foundation.layout.height
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.offset
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.ui.unit.IntOffset
+import ac.mvr.phone.state.CLOSE_GRACE_MS
+import kotlin.math.roundToInt
 
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.snapshotFlow
@@ -158,7 +170,118 @@ private fun SessionDot(open: Boolean, busy: Boolean) {
 }
 
 @Composable
-private fun SessionRow(session: CodeSession, status: CodeStatus?, selected: Boolean = false, onTap: () -> Unit) {
+private fun SwipeToClose(enabled: Boolean, onClose: () -> Unit, content: @Composable () -> Unit) {
+    if (!enabled) {
+        content()
+        return
+    }
+    val scheme = MaterialTheme.colorScheme
+    val haptic = LocalHapticFeedback.current
+    val density = LocalDensity.current
+    var width by remember { mutableIntStateOf(0) }
+    var drag by remember { mutableFloatStateOf(0f) }
+    val reach = width * 0.4f
+    val armed = reach > 0f && -drag >= reach
+    LaunchedEffect(armed) { if (armed) haptic.performHapticFeedback(HapticFeedbackType.LongPress) }
+    Box(modifier = Modifier.fillMaxWidth().onSizeChanged { width = it.width }) {
+        if (drag < 0f) {
+            val tint = if (armed) scheme.onError else scheme.onErrorContainer
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(start = with(density) { (width + drag).coerceAtLeast(0f).toDp() })
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (armed) scheme.error else scheme.errorContainer),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Filled.Close, null, tint = tint, modifier = Modifier.size(18.dp))
+                    Text(if (armed) "let go to close" else "close", style = MaterialTheme.typography.labelLarge, color = tint, maxLines = 1)
+                }
+            }
+        }
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(drag.roundToInt(), 0) }
+                .draggable(
+                    orientation = Orientation.Horizontal,
+                    state = rememberDraggableState { delta -> drag = (drag + delta).coerceIn(-width.toFloat(), 0f) },
+                    onDragStopped = { velocity ->
+                        if (-drag >= reach || (velocity < -2400f && -drag > reach / 3)) onClose()
+                        animate(drag, 0f, animationSpec = spring(dampingRatio = 0.8f, stiffness = 500f)) { value, _ -> drag = value }
+                    },
+                ),
+        ) { content() }
+    }
+}
+
+@Composable
+private fun ClosingRow(session: CodeSession, busy: Boolean, until: Long, onUndo: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    var left by remember(until) { mutableLongStateOf(until - System.currentTimeMillis()) }
+    LaunchedEffect(until) {
+        while (left > 0) {
+            delay(50)
+            left = until - System.currentTimeMillis()
+        }
+    }
+    val share = (left.toFloat() / CLOSE_GRACE_MS).coerceIn(0f, 1f)
+    val seconds = ((left + 999) / 1000).coerceAtLeast(0)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(scheme.errorContainer)
+            .padding(start = 12.dp, end = 6.dp, top = 8.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(session.title.ifBlank { "untitled" }, style = MaterialTheme.typography.bodyLarge, color = scheme.onErrorContainer, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Label(
+                (if (seconds > 0) "closing on the desktop in $seconds s" else "closing on the desktop") + if (busy) " · its turn stops" else "",
+                color = scheme.onErrorContainer.copy(alpha = 0.8f),
+            )
+            Box(
+                modifier = Modifier
+                    .padding(top = 6.dp)
+                    .fillMaxWidth()
+                    .height(2.dp)
+                    .clip(CircleShape)
+                    .background(scheme.onErrorContainer.copy(alpha = 0.2f)),
+            ) {
+                Box(modifier = Modifier.fillMaxWidth(share).fillMaxHeight().background(scheme.onErrorContainer))
+            }
+        }
+        Chip("undo", scheme.onErrorContainer, scheme.errorContainer, onTap = onUndo)
+    }
+}
+
+@Composable
+private fun SessionRow(
+    session: CodeSession,
+    status: CodeStatus?,
+    selected: Boolean = false,
+    closingUntil: Long? = null,
+    onClose: (() -> Unit)? = null,
+    onUndo: () -> Unit = {},
+    onTap: () -> Unit,
+) {
+    if (closingUntil != null) {
+        ClosingRow(session, status?.type == "busy", closingUntil, onUndo)
+        return
+    }
+    SwipeToClose(enabled = onClose != null, onClose = { onClose?.invoke() }) {
+        SessionLine(session, status, selected, onTap)
+    }
+}
+
+@Composable
+private fun SessionLine(session: CodeSession, status: CodeStatus?, selected: Boolean, onTap: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val busy = status?.type == "busy"
     val waiting = status?.message == "waiting"
@@ -200,6 +323,7 @@ fun CodeCard(store: Store, onOpen: (String) -> Unit) {
     val statuses by store.code.statuses.collectAsStateWithLifecycle()
     val fresh by store.code.fresh.collectAsStateWithLifecycle()
     val count by store.prefs.codeCardCount.collectAsStateWithLifecycle()
+    val closing by store.code.closing.collectAsStateWithLifecycle()
     val busy = sessions.count { statuses[it.id]?.type == "busy" }
     val waiting = sessions.count { statuses[it.id]?.message == "waiting" }
     val subtitle = when {
@@ -211,7 +335,13 @@ fun CodeCard(store: Store, onOpen: (String) -> Unit) {
     HomeCard {
         CardHeader("code", subtitle) { onOpen("sessions") }
         sessions.take(count).forEach { session ->
-            SessionRow(session, statuses[session.id]) {
+            val status = statuses[session.id]
+            SessionRow(
+                session, status,
+                closingUntil = closing[session.id],
+                onClose = if (store.code.closable(session, status)) ({ store.code.close(session) }) else null,
+                onUndo = { store.code.undoClose(session.id) },
+            ) {
                 store.code.open(session)
                 onOpen("code")
             }
@@ -757,6 +887,10 @@ private fun SessionSheet(
     projects: List<CodeProject>,
     statuses: Map<String, CodeStatus>,
     currentId: String?,
+    closing: Map<String, Long>,
+    closable: (CodeSession, CodeStatus?) -> Boolean,
+    onClose: (CodeSession) -> Unit,
+    onUndo: (String) -> Unit,
     onPick: (CodeSession) -> Unit,
     onNew: (String) -> Unit,
     onDismiss: () -> Unit,
@@ -775,7 +909,15 @@ private fun SessionSheet(
                 }
             }
             item { Label("sessions", modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)) }
-            items(sessions, key = { it.id }) { session -> SessionRow(session, statuses[session.id], session.id == currentId) { onPick(session) } }
+            items(sessions, key = { it.id }) { session ->
+                val status = statuses[session.id]
+                SessionRow(
+                    session, status, session.id == currentId,
+                    closingUntil = closing[session.id],
+                    onClose = if (closable(session, status)) ({ onClose(session) }) else null,
+                    onUndo = { onUndo(session.id) },
+                ) { onPick(session) }
+            }
         }
     }
 }
@@ -804,6 +946,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     }
     val sessions by code.sessions.collectAsStateWithLifecycle()
     val projects by code.projects.collectAsStateWithLifecycle()
+    val closing by code.closing.collectAsStateWithLifecycle()
     var picking by remember { mutableStateOf(false) }
     var tuning by remember { mutableStateOf(false) }
     val settings by code.settings.collectAsStateWithLifecycle()
@@ -888,6 +1031,10 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     if (picking) {
         SessionSheet(
             sessions, projects, statuses, current?.id,
+            closing = closing,
+            closable = code::closable,
+            onClose = { code.close(it) },
+            onUndo = { code.undoClose(it) },
             onPick = { code.open(it); picking = false },
             onNew = { code.startNew(it); picking = false },
             onDismiss = { picking = false },
@@ -900,10 +1047,12 @@ fun SessionsScreen(store: Store, onOpenSession: () -> Unit, onCollapse: () -> Un
     val scheme = MaterialTheme.colorScheme
     val reachable by store.reachable.collectAsStateWithLifecycle()
     val statuses by store.code.statuses.collectAsStateWithLifecycle()
+    val closing by store.code.closing.collectAsStateWithLifecycle()
+    val closed by store.code.closed.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf("") }
     var found by remember { mutableStateOf<List<CodeSession>?>(null) }
     var failed by remember { mutableStateOf(false) }
-    LaunchedEffect(query) {
+    LaunchedEffect(query, closed) {
         if (query.isNotBlank()) delay(350)
         runCatching { store.code.find(query.trim()) }
             .onSuccess { found = it; failed = false }
@@ -936,7 +1085,13 @@ fun SessionsScreen(store: Store, onOpenSession: () -> Unit, onCollapse: () -> Un
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             items(list ?: emptyList(), key = { it.id }) { session ->
-                SessionRow(session, statuses[session.id]) {
+                val status = statuses[session.id]
+                SessionRow(
+                    session, status,
+                    closingUntil = closing[session.id],
+                    onClose = if (store.code.closable(session, status)) ({ store.code.close(session) }) else null,
+                    onUndo = { store.code.undoClose(session.id) },
+                ) {
                     store.code.open(session)
                     onOpenSession()
                 }
