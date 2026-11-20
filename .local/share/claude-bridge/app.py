@@ -98,6 +98,11 @@ SCREEN_MODES = (("auto mode on", "auto"), ("manual mode on", "default"), ("accep
 SCREEN_PICKER = "Select model"
 SCREEN_TAIL_BYTES = 262144
 SCREEN_MISSES = 2
+DESK_COMMANDS = {"claude": "claude", "deepseek": "deepseek"}
+DESK_MODES = {"default": "manual"}
+DESK_READY_SECONDS = 45
+DESK_FALLBACK_SESSION = os.environ.get("CLAUDE_BRIDGE_TMUX_SESSION", "claude")
+DESK_WINDOW = "#{session_name}:#{window_index} #{pane_id}"
 
 PASSWORD = web.AppKey("password", object)
 BRIDGE = web.AppKey("bridge", object)
@@ -499,6 +504,9 @@ class Bridge:
         self.projects_cache: tuple[float, list[dict]] = (0.0, [])
         self.made: set[str] = set()
         self.releasing: set[asyncio.Task] = set()
+        self.opening: dict[str, asyncio.Task] = {}
+        self.typing: dict[str, asyncio.Lock] = {}
+        self.deliveries: set[asyncio.Task] = set()
 
     def live_sessions(self) -> dict[str, dict]:
         found: dict[str, dict] = {}
@@ -760,6 +768,44 @@ class Bridge:
         self.runs[sid] = run
         run.reader = asyncio.create_task(self.read(run))
         return run
+
+    def open_on_desk(self, sid: str, directory: str, provider: str, model: str) -> asyncio.Task:
+        task = self.opening.get(sid)
+        if task is None:
+            task = asyncio.ensure_future(self.bring_up(sid, directory, provider, model))
+            self.opening[sid] = task
+            task.add_done_callback(lambda _: self.opening.pop(sid, None))
+        return task
+
+    async def bring_up(self, sid: str, directory: str, provider: str, model: str) -> str:
+        self.fresh.pop(sid, None)
+        known = await asyncio.to_thread(session_cwd, sid)
+        command = desk_command(sid, DESK_COMMANDS[provider], self.model_arg(provider, model), self.choice(sid), known is None)
+        place, pane = await asyncio.to_thread(open_window, known or directory, command)
+        deadline = time.monotonic() + DESK_READY_SECONDS
+        while time.monotonic() < deadline:
+            await asyncio.sleep(0.5)
+            live = self.live_sessions().get(sid)
+            if live is not None and live.get("status") == "idle" and await asyncio.to_thread(desk_ready, pane):
+                return pane
+        raise RuntimeError(f"opened in tmux window {place} on the desktop, but it was not ready within {DESK_READY_SECONDS} s; a dialog there may be waiting")
+
+    def deliver(self, sid: str, opened: asyncio.Task, text: str) -> None:
+        lock = self.typing.setdefault(sid, asyncio.Lock())
+
+        async def run() -> None:
+            async with lock:
+                try:
+                    pane = await opened
+                    await asyncio.to_thread(type_into, pane, text)
+                except Exception as err:
+                    self.bus.emit("session.error", {"sessionID": sid, "error": {"name": "UnknownError", "data": {"message": str(err)[:300]}}})
+                    self.bus.emit("session.status", {"sessionID": sid, "status": {"type": "idle"}})
+                    self.bus.emit("session.idle", {"sessionID": sid})
+
+        task = asyncio.ensure_future(run())
+        self.deliveries.add(task)
+        task.add_done_callback(self.deliveries.discard)
 
     async def stop_run(self, run: Run) -> None:
         if run.idle_handle:
@@ -1213,6 +1259,11 @@ async def prompt(request: web.Request) -> web.Response:
         return json_error(f"unknown local model {chosen}", 400)
     if (stored.get("provider"), stored.get("model")) != (provider, chosen):
         bridge.choose(sid, provider=provider, model=chosen)
+    if sid in bridge.opening or (run is None and provider in DESK_COMMANDS):
+        opened = bridge.open_on_desk(sid, directory, provider, chosen)
+        bridge.deliver(sid, opened, text)
+        bridge.bus.emit("session.status", {"sessionID": sid, "status": {"type": "busy", "message": "busy"}})
+        return web.Response(status=204)
     if provider == "local":
         try:
             await bridge.make_local(chosen)
@@ -1485,6 +1536,69 @@ def pane_of(pid: int) -> str | None:
         if pid <= 1:
             return None
     return None
+
+
+def session_cwd(sid: str) -> str | None:
+    path = next(TRANSCRIPTS.glob(f"*/{sid}.jsonl"), None)
+    if path is None:
+        return None
+    try:
+        with path.open(encoding="utf-8") as lines:
+            for line in lines:
+                try:
+                    cwd = json.loads(line).get("cwd")
+                except (ValueError, AttributeError):
+                    continue
+                if cwd and Path(cwd).is_dir():
+                    return cwd
+    except OSError:
+        return None
+    return str(HOME)
+
+
+def desk_command(sid: str, program: str, model: str | None, choice: dict, fresh: bool) -> list[str]:
+    command = [program, "--session-id" if fresh else "--resume", sid, "--permission-mode", DESK_MODES.get(choice["mode"], choice["mode"])]
+    if model:
+        command += ["--model", model]
+    if choice["effort"]:
+        command += ["--effort", choice["effort"]]
+    return command
+
+
+def desk_session() -> str | None:
+    for listing, fmt in (("list-clients", "#{client_activity} #{session_name}"), ("list-sessions", "#{session_activity} #{session_name}")):
+        try:
+            out = tmux(listing, "-F", fmt)
+        except RuntimeError:
+            return None
+        rows = [line.split(" ", 1) for line in out.splitlines() if " " in line]
+        if rows:
+            return max(rows, key=lambda row: int(row[0]) if row[0].isdigit() else 0)[1]
+    return None
+
+
+def open_window(directory: str, command: list[str]) -> tuple[str, str]:
+    name = Path(directory).name or "claude"
+    session = desk_session()
+    if session is not None:
+        out = tmux("new-window", "-d", "-t", f"{session}:", "-c", directory, "-n", name, "-P", "-F", DESK_WINDOW, *command)
+    else:
+        started = subprocess.run(
+            ["systemd-run", "--user", "--scope", "--quiet", "--collect", "--slice=app.slice",
+             TMUX, "-S", str(TMUX_SOCKET), "new-session", "-d", "-s", DESK_FALLBACK_SESSION, "-c", directory, "-n", name, "-P", "-F", DESK_WINDOW, *command],
+            capture_output=True, text=True, timeout=10,
+        )
+        if started.returncode != 0:
+            raise RuntimeError(started.stderr.strip() or "tmux new-session failed")
+        out = started.stdout
+    place, _, pane = out.strip().splitlines()[-1].partition(" ")
+    return place, pane
+
+
+def desk_ready(pane: str) -> bool:
+    lines = pane_lines(pane)
+    rules = [at for at, line in enumerate(lines) if SCREEN_RULE.match(line)]
+    return len(rules) >= 2 and lines[rules[-2] + 1].lstrip().startswith("❯")
 
 
 def type_into(pane: str, text: str) -> None:
