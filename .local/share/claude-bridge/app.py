@@ -52,6 +52,7 @@ CLI_PATH = os.environ.get("CLAUDE_BRIDGE_CLI") or None
 IDLE_SECONDS = int(os.environ.get("CLAUDE_BRIDGE_IDLE_SECONDS", "900"))
 SESSIONS_INDEX = HOME / ".claude" / "sessions"
 TRANSCRIPTS = HOME / ".claude" / "projects"
+USER_SETTINGS = HOME / ".claude" / "settings.json"
 PLANS = HOME / ".claude" / "plans"
 UPLOADS = HOME / ".cache" / "claude-bridge" / "uploads"
 IMAGE_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/gif": ".gif"}
@@ -173,6 +174,14 @@ def summarize(tool: str, data: dict) -> str:
 def local_name(model: str | None) -> str | None:
     name = (model or "").removesuffix(":latest")
     return name if name in LOCAL_MODELS else None
+
+
+def configured_model() -> str:
+    try:
+        model = json.loads(USER_SETTINGS.read_text(encoding="utf-8")).get("model")
+    except (OSError, ValueError, AttributeError):
+        model = None
+    return model if isinstance(model, str) and model else "default"
 
 
 def provider_of(model: str | None) -> str:
@@ -628,9 +637,9 @@ class Bridge:
             "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1000000",
         }
 
-    def model_arg(self, provider: str, model: str) -> str | None:
+    def model_arg(self, provider: str, model: str) -> str:
         if provider == "claude":
-            return None if model in ("", "default") else model
+            return configured_model() if model in ("", "default") else model
         return model or PROVIDERS[provider]["default"]
 
     def choice(self, sid: str) -> dict:
