@@ -309,6 +309,9 @@ private fun SessionLine(session: CodeSession, status: CodeStatus?, selected: Boo
     }
 }
 
+private fun active(session: CodeSession, status: CodeStatus?): Boolean =
+    session.live != null || status?.type == "busy" || status?.message == "waiting"
+
 @Composable
 fun CodeCard(store: Store, onOpen: (String) -> Unit) {
     val scheme = MaterialTheme.colorScheme
@@ -325,10 +328,7 @@ fun CodeCard(store: Store, onOpen: (String) -> Unit) {
         busy > 0 -> "$busy working"
         else -> "idle"
     }
-    val connected = sessions.filter { session ->
-        val status = statuses[session.id]
-        session.live != null || status?.type == "busy" || status?.message == "waiting"
-    }
+    val connected = sessions.filter { active(it, statuses[it.id]) }
     val connectedIds = connected.map { it.id }.toSet()
     val shown = connected + sessions.filter { it.id !in connectedIds }.take((count - connected.size).coerceAtLeast(0))
     HomeCard {
@@ -1210,6 +1210,7 @@ fun SessionsScreen(store: Store, onOpenSession: () -> Unit, onCollapse: () -> Un
     val closing by store.code.closing.collectAsStateWithLifecycle()
     val closed by store.code.closed.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf("") }
+    var showClosed by remember { mutableStateOf(false) }
     var found by remember { mutableStateOf<List<CodeSession>?>(null) }
     var failed by remember { mutableStateOf(false) }
     LaunchedEffect(query, closed) {
@@ -1235,21 +1236,31 @@ fun SessionsScreen(store: Store, onOpenSession: () -> Unit, onCollapse: () -> Un
             modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),
         )
         val list = found
-        Label(
-            when {
-                failed -> "the desktop did not answer"
-                list == null -> "searching"
-                query.isBlank() -> "${list.size} sessions · latest activity first"
-                else -> "${list.size} sessions mention it · latest activity first"
-            },
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-        )
+        val shown = if (showClosed) list else list?.filter { active(it, statuses[it.id]) }
+        val hidden = (list?.size ?: 0) - (shown?.size ?: 0)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 14.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Label(
+                when {
+                    failed -> "the desktop did not answer"
+                    shown == null -> "searching"
+                    query.isBlank() -> "${shown.size} ${if (showClosed) "sessions" else "open"} · latest activity first"
+                    else -> "${shown.size} mention it · latest activity first"
+                },
+                modifier = Modifier.weight(1f),
+            )
+            if (showClosed || hidden > 0) {
+                Chip(if (showClosed) "hide closed" else "+$hidden closed", scheme.surfaceContainerHigh, scheme.onSurface) { showClosed = !showClosed }
+            }
+        }
         LazyColumn(
             modifier = Modifier.weight(1f).fillMaxWidth(),
             contentPadding = PaddingValues(start = 10.dp, end = 10.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            items(list ?: emptyList(), key = { it.id }) { session ->
+            items(shown ?: emptyList(), key = { it.id }) { session ->
                 val status = statuses[session.id]
                 SessionRow(
                     session, status,
