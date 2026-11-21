@@ -173,6 +173,8 @@ class BridgeClient(private val baseUrl: () -> String) {
     fun mediaArtUrl(player: String, key: String): String =
         "${baseUrl()}/api/media/art?player=" + java.net.URLEncoder.encode(player, "UTF-8") + "&k=" + java.net.URLEncoder.encode(key, "UTF-8")
 
+    suspend fun transcribe(audio: java.io.File): Transcript = json.decodeFromString(Http.postFile("${baseUrl()}/api/transcribe", audio, "audio/mp4"))
+
     suspend fun kill(id: String): KillResult = json.decodeFromString(Http.post("${baseUrl()}/api/kill", buildJsonObject { put("id", id) }))
 }
 
@@ -210,6 +212,9 @@ data class DesktopMedia(
 
 @Serializable
 data class MediaState(val players: List<DesktopMedia> = emptyList())
+
+@Serializable
+data class Transcript(val text: String = "", val language: String? = null, val duration: Double? = null)
 
 @Serializable
 data class KillResult(val killed: String? = null, val name: String? = null, val procs: Int = 0, val error: String? = null)

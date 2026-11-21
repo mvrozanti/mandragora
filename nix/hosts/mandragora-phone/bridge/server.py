@@ -31,6 +31,9 @@ MEDIA_ACTIONS = ("play-pause", "play", "pause", "next", "previous", "seek")
 MEDIA_HIDDEN = re.compile(r"(mpd|kdeconnect|playerctld)(\.|$)")
 MEDIA_ART_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
 MEDIA_ART_MAX = 5 * 1024 * 1024
+STT_URL = os.environ.get("PHONE_BRIDGE_STT_URL", "http://127.0.0.1:8091/transcribe")
+STT_MAX = 25 * 1024 * 1024
+STT_SUFFIXES = {"audio/mp4": ".m4a", "audio/aac": ".aac", "audio/ogg": ".ogg", "audio/webm": ".webm", "audio/wav": ".wav"}
 LRCLIB_GET = "https://lrclib.net/api/get"
 USER_AGENT = "mandragora-phone-bridge/1 (+https://github.com/mvrozanti/mandragora)"
 VERSION = 1
@@ -866,6 +869,36 @@ def media_action(body: dict) -> dict:
     return media_state()
 
 
+def transcribe_audio(data: bytes, content_type: str) -> dict:
+    if not data:
+        raise ValueError("empty audio")
+    kind = content_type.split(";")[0].strip() or "audio/mp4"
+    boundary = os.urandom(12).hex()
+    head = (
+        f"--{boundary}\r\n"
+        f"Content-Disposition: form-data; name=\"audio\"; filename=\"speech{STT_SUFFIXES.get(kind, '.m4a')}\"\r\n"
+        f"Content-Type: {kind}\r\n\r\n"
+    ).encode()
+    request = urllib.request.Request(
+        STT_URL,
+        data=head + data + f"\r\n--{boundary}--\r\n".encode(),
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=180) as response:
+            result = json.loads(response.read())
+    except urllib.error.HTTPError as err:
+        try:
+            detail = json.loads(err.read()).get("detail")
+        except (ValueError, AttributeError):
+            detail = None
+        raise OSError(str(detail or f"speech-to-text answered {err.code}")) from None
+    except urllib.error.URLError:
+        raise OSError("speech-to-text is not running on the desktop") from None
+    return {"text": str(result.get("text") or "").strip(), "language": result.get("language"), "duration": result.get("duration")}
+
+
 def read_password(path: Path) -> str | None:
     try:
         return path.read_text(encoding="utf-8").strip() or None
@@ -1054,6 +1087,17 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         url = urllib.parse.urlparse(self.path)
+        if url.path == "/api/transcribe":
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+                if length > STT_MAX:
+                    raise ValueError("audio too long")
+                self.send_json(transcribe_audio(self.rfile.read(length), self.headers.get("Content-Type") or ""))
+            except ValueError as err:
+                self.send_json({"error": str(err)}, 400)
+            except OSError as err:
+                self.send_json({"error": str(err)}, 503)
+            return
         try:
             body = self.read_body()
             if url.path == "/api/volume":

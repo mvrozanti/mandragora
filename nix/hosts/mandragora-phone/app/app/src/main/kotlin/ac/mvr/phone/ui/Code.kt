@@ -4,6 +4,14 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import android.Manifest
+import android.content.pm.PackageManager
+import ac.mvr.phone.play.Voice
+import java.io.File
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.layout.height
@@ -941,11 +949,36 @@ private fun Composer(
     onPicture: () -> Unit,
     onFile: () -> Unit,
     onDetach: (String) -> Unit,
+    hearing: Boolean,
+    onSpoken: (File?) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
     var choosing by remember { mutableStateOf(false) }
     val draft = field.text
     val stopping = busy && draft.isBlank() && attachments.isEmpty()
+    val context = LocalContext.current
+    val voice = remember { Voice(context) }
+    var recording by remember { mutableStateOf(false) }
+    var since by remember { mutableLongStateOf(0L) }
+    var seconds by remember { mutableIntStateOf(0) }
+    DisposableEffect(Unit) { onDispose { voice.cancel() } }
+    LaunchedEffect(recording) {
+        while (recording) {
+            seconds = ((System.currentTimeMillis() - since) / 1000).toInt()
+            delay(250)
+        }
+    }
+    fun listen() {
+        if (voice.start()) {
+            since = System.currentTimeMillis()
+            seconds = 0
+            recording = true
+        } else {
+            onSpoken(null)
+        }
+    }
+    val askMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> if (granted) listen() }
+    val speakable = !stopping && !hearing && draft.isBlank() && attachments.isEmpty() && !uploading
     if (attachments.isNotEmpty() || uploading) {
         Row(
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 14.dp, end = 14.dp, top = 6.dp),
@@ -980,8 +1013,12 @@ private fun Composer(
         modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 6.dp, top = 6.dp, bottom = 8.dp),
         verticalAlignment = Alignment.Bottom,
     ) {
-        Box {
-            IconButton(onClick = { choosing = true }, enabled = enabled && !uploading) {
+        if (recording) {
+            IconButton(onClick = { voice.cancel(); recording = false }) {
+                Icon(Icons.Filled.Close, "drop the recording", tint = scheme.error)
+            }
+        } else Box {
+            IconButton(onClick = { choosing = true }, enabled = enabled && !uploading && !hearing) {
                 Icon(Icons.Filled.AttachFile, "attach", tint = scheme.onSurfaceVariant)
             }
             DropdownMenu(expanded = choosing, onDismissRequest = { choosing = false }) {
@@ -1001,19 +1038,45 @@ private fun Composer(
             value = field,
             onValueChange = onChange,
             modifier = Modifier.weight(1f).focusRequester(focus),
-            enabled = enabled,
-            placeholder = { Text("say what to do") },
+            enabled = enabled && !recording && !hearing,
+            placeholder = {
+                Text(
+                    when {
+                        recording -> "listening · %d:%02d · ✓ sends it".format(seconds / 60, seconds % 60)
+                        hearing -> "transcribing…"
+                        else -> "say what to do"
+                    },
+                    color = if (recording) scheme.error else Color.Unspecified,
+                )
+            },
             maxLines = 6,
             shape = RoundedCornerShape(18.dp),
             textStyle = MaterialTheme.typography.bodyMedium,
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = scheme.primary, unfocusedBorderColor = scheme.outlineVariant),
         )
-        IconButton(onClick = { if (stopping) onStop() else onSend() }, enabled = enabled && !uploading && (stopping || draft.isNotBlank() || attachments.isNotEmpty())) {
-            Icon(
-                if (stopping) Icons.Filled.Stop else Icons.AutoMirrored.Filled.Send,
-                if (stopping) "stop" else "send",
-                tint = if (stopping) scheme.error else scheme.primary,
-            )
+        when {
+            recording -> IconButton(onClick = { recording = false; onSpoken(voice.finish()) }) {
+                Icon(Icons.Filled.Check, "send what was said", tint = scheme.primary)
+            }
+            hearing -> Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
+            }
+            speakable -> IconButton(
+                onClick = {
+                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) listen()
+                    else askMic.launch(Manifest.permission.RECORD_AUDIO)
+                },
+                enabled = enabled,
+            ) {
+                Icon(Icons.Filled.Mic, "speak a prompt", tint = scheme.primary)
+            }
+            else -> IconButton(onClick = { if (stopping) onStop() else onSend() }, enabled = enabled && !uploading && (stopping || draft.isNotBlank() || attachments.isNotEmpty())) {
+                Icon(
+                    if (stopping) Icons.Filled.Stop else Icons.AutoMirrored.Filled.Send,
+                    if (stopping) "stop" else "send",
+                    tint = if (stopping) scheme.error else scheme.primary,
+                )
+            }
         }
     }
 }
@@ -1087,6 +1150,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     val closing by code.closing.collectAsStateWithLifecycle()
     var picking by remember { mutableStateOf(false) }
     var tuning by remember { mutableStateOf(false) }
+    var hearing by remember { mutableStateOf(false) }
     val settings by code.settings.collectAsStateWithLifecycle()
     val providers by code.providers.collectAsStateWithLifecycle()
     val directory = current?.directory ?: newIn
@@ -1175,6 +1239,25 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
             onPicture = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             onFile = { files.launch(arrayOf("*/*")) },
             onDetach = { code.detach(it) },
+            hearing = hearing,
+            onSpoken = { audio ->
+                if (audio == null) {
+                    store.report(IllegalStateException("nothing recorded; hold on a little longer"))
+                } else {
+                    hearing = true
+                    store.act {
+                        try {
+                            val text = store.bridge.transcribe(audio).text
+                            if (text.isBlank()) throw IllegalStateException("heard nothing")
+                            follow = true
+                            code.send(text)
+                        } finally {
+                            hearing = false
+                            audio.delete()
+                        }
+                    }
+                }
+            },
         )
     }
     if (tuning) {

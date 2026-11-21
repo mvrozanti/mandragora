@@ -9,6 +9,7 @@ import kotlinx.serialization.json.jsonObject
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.IOException
@@ -27,6 +28,12 @@ object Http {
         .build()
 
     private val jsonType = "application/json; charset=utf-8".toMediaType()
+
+    private val patient: OkHttpClient by lazy { client.newBuilder().readTimeout(180, TimeUnit.SECONDS).build() }
+
+    suspend fun postFile(url: String, file: File, type: String): String = withContext(Dispatchers.IO) {
+        execute(Request.Builder().url(url).post(file.asRequestBody(type.toMediaType())).build(), patient)
+    }
 
     suspend fun get(url: String, headers: Map<String, String> = emptyMap()): String = withContext(Dispatchers.IO) {
         val builder = Request.Builder().url(url)
@@ -101,9 +108,9 @@ object Http {
         }
     }
 
-    private fun execute(request: Request): String {
+    private fun execute(request: Request, using: OkHttpClient = client): String {
         try {
-            client.newCall(request).execute().use { response ->
+            using.newCall(request).execute().use { response ->
                 val text = response.body?.string() ?: ""
                 if (!response.isSuccessful) throw IOException("${response.code} ${request.url.encodedPath}: ${text.take(160)}")
                 return text
