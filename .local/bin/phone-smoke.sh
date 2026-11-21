@@ -44,7 +44,14 @@ fail() {
 
 crashes() { a logcat -d -b crash 2> /dev/null | grep -A12 "Process: $PACKAGE" || true; }
 
-foreground_services() { a shell dumpsys activity services "$PACKAGE" 2> /dev/null | grep -c "isForeground=true" || true; }
+foreground_services() {
+  a shell dumpsys activity services "$PACKAGE" 2> /dev/null | tr -d '\r' |
+    awk '/ServiceRecord\{/ { for (i = 1; i <= NF; i++) if ($i ~ /\//) name = $i; sub(/\}$/, "", name); sub(/.*\//, "", name); n = split(name, part, "."); name = part[n-1] "." part[n] }
+         /isForeground=true/ { print name }' | sort -u
+}
+
+EXPECTED_SERVICES="inbox.InboxService
+play.PlaybackService"
 
 running() { [ -n "$(a shell pidof "$PACKAGE" 2> /dev/null | tr -d '\r')" ]; }
 
@@ -63,7 +70,7 @@ booted() {
   until [ "$(a shell getprop sys.boot_completed 2> /dev/null | tr -d '\r')" = "1" ]; do sleep 1; done
 }
 
-one_service() { [ "$(foreground_services)" -ge 1 ]; }
+expected_services() { [ "$(foreground_services)" = "$EXPECTED_SERVICES" ]; }
 
 [ -n "${PHONE_SMOKE_BOOTED:-}" ] || stop_emulator
 bash "$REPO/.local/bin/phone-emu.sh" > /dev/null
@@ -75,13 +82,13 @@ running || fail "the app died right after starting$(printf '\n%s' "$(crashes)")"
 
 a shell input keyevent KEYCODE_HOME
 a shell input keyevent KEYCODE_SLEEP
-within 20 one_service || true
+within 20 expected_services || true
 sleep 2
-services=$(foreground_services)
-[ "$services" -eq 1 ] || fail "$services foreground services after locking; expected exactly one, the music player"
+services=$(foreground_services | paste -sd, -)
+expected_services || fail "foreground services after locking: ${services:-none}; expected only the music player and the inbox listener"
 running || fail "the app died after locking$(printf '\n%s' "$(crashes)")"
 [ -z "$(crashes)" ] || fail "crashed while in use:$(printf '\n%s' "$(crashes)")"
-say "runs, locks, one foreground service, no crash"
+say "runs, locks, only the music player and the inbox listener in the foreground, no crash"
 
 a reboot
 booted

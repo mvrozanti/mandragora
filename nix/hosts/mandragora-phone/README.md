@@ -472,7 +472,7 @@ touch the app, either bridge or the gate itself run its fast half through
 | basedpyright | standard mode over both bridges and their tests (`pyrightconfig.json` at the repo root, so the editor reads it too) | ✓ | ✓ |
 | pytest | `bridge/tests` and `.local/share/claude-bridge/tests`, against a fake `playerctl` and a fake `stt-core`, never the real ones; coverage may not fall under `quality/coverage-floors` | ✓ | ✓ |
 | Android lint | warnings are errors | | ✓ |
-| `phone-smoke` | a separate headless emulator (`mandragora-phone-check`, port 5560, never the one `phone-emu` gives you) installs the APK, launches it, locks, and requires the app still running, exactly one foreground service and no crash; then reboots it and requires no crash at boot | | ✓ |
+| `phone-smoke` | a separate headless emulator (`mandragora-phone-check`, port 5560, never the one `phone-emu` gives you) installs the APK, launches it, locks, and requires the app still running, the music player and the inbox listener as its only foreground services, and no crash; then reboots it and requires no crash at boot | | ✓ |
 
 What existed before the gate is grandfathered, not hidden: `quality/detekt-baseline.xml`,
 `app/app/lint-baseline.xml` and `quality/pyright-baseline.json` list it, and only a new
