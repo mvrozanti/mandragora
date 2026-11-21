@@ -37,6 +37,7 @@ from claude_agent_sdk import (
     UserMessage,
     delete_session,
     fork_session,
+    get_session_info,
     get_session_messages,
     list_sessions,
     rename_session,
@@ -554,7 +555,11 @@ class Bridge:
                 project["time"]["updated"] = updated
         for live in self.live_sessions().values():
             cwd = live.get("cwd")
-            if cwd and cwd not in grouped and Path(cwd).is_dir():
+            if not cwd or not Path(cwd).is_dir():
+                continue
+            if cwd in grouped:
+                grouped[cwd]["time"]["updated"] = now_ms()
+            else:
                 grouped[cwd] = {"id": cwd, "worktree": cwd, "name": Path(cwd).name or cwd, "time": {"created": now_ms(), "updated": now_ms()}, "sandboxes": []}
         result = sorted(grouped.values(), key=lambda p: p["time"]["updated"], reverse=True)
         self.projects_cache = (time.time(), result)
@@ -595,6 +600,13 @@ class Bridge:
     async def sessions(self, directory: str | None, limit: int) -> list[dict]:
         infos = await asyncio.to_thread(list_sessions, directory, limit)
         live = self.live_sessions()
+        listed = {info.session_id for info in infos}
+        for sid, desk in live.items():
+            if sid in listed or (directory is not None and desk.get("cwd") != directory):
+                continue
+            info = await asyncio.to_thread(get_session_info, sid, desk.get("cwd"))
+            if info is not None:
+                infos.append(info)
         return [self.session_dict(info, live.get(info.session_id)) for info in infos]
 
     def statuses(self) -> dict[str, dict]:
