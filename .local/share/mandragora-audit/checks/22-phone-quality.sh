@@ -12,7 +12,7 @@ fi
 in_scope() {
   case "$1" in
     nix/hosts/mandragora-phone/app/*/build/*) return 1 ;;
-    nix/hosts/mandragora-phone/app/*|nix/hosts/mandragora-phone/bridge/*|nix/hosts/mandragora-phone/quality/*) return 0 ;;
+    nix/hosts/mandragora-phone/app/*|nix/hosts/mandragora-phone/bridge/*|nix/hosts/mandragora-phone/ask/*|nix/hosts/mandragora-phone/quality/*) return 0 ;;
     .local/share/claude-bridge/*|.local/bin/phone-gate.sh|pyrightconfig.json) return 0 ;;
     *) return 1 ;;
   esac

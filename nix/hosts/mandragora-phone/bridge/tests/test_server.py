@@ -1,6 +1,7 @@
 import json
 import sys
 import threading
+import time
 import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -46,6 +47,16 @@ class SttServer(ThreadingHTTPServer):
 
 
 class FakeStt(BaseHTTPRequestHandler):
+    def do_GET(self):
+        owner = cast(SttServer, self.server)
+        owner.seen.append(("GET " + self.path, b""))
+        data = json.dumps({"model_loaded": True, "gpu_lock_holder": None}).encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
     def do_POST(self):
         owner = cast(SttServer, self.server)
         body = self.rfile.read(int(self.headers["Content-Length"]))
@@ -156,11 +167,24 @@ def test_media_art_reads_the_players_image(playerctl, tmp_path):
 
 def test_transcribe_forwards_audio_as_multipart(stt):
     result = server.transcribe_audio(b"AUDIO", "audio/mp4")
-    assert result == {"text": "hello there", "language": "en", "duration": 1.5}
+    assert (result["text"], result["language"], result["duration"], result["task"]) == ("hello there", "en", 1.5, "transcribe")
     content_type, body = stt.seen[0]
     assert content_type.startswith("multipart/form-data; boundary=")
     assert b'name="audio"; filename="speech.m4a"' in body
     assert b"\r\n\r\nAUDIO\r\n" in body
+    assert b'name="task"\r\n\r\ntranscribe\r\n' in body
+    assert b'name="language"' not in body
+
+
+def test_transcribe_passes_task_and_language_and_refuses_odd_ones(stt):
+    server.transcribe_audio(b"AUDIO", "audio/mp4", "translate", "pt")
+    _, body = stt.seen[0]
+    assert b'name="task"\r\n\r\ntranslate\r\n' in body
+    assert b'name="language"\r\n\r\npt\r\n' in body
+    with pytest.raises(ValueError, match="task"):
+        server.transcribe_audio(b"AUDIO", "audio/mp4", "summarize")
+    with pytest.raises(ValueError, match="language"):
+        server.transcribe_audio(b"AUDIO", "audio/mp4", "transcribe", "pt\r\nx")
 
 
 def test_transcribe_reports_why_it_failed(stt, monkeypatch):
@@ -390,3 +414,70 @@ def test_media_peers_default_to_the_phone_on_the_tailnet(tmp_path, monkeypatch):
     assert server.media_from_phone("/api/phone/media/thumb", "GET", "127.0.0.1")
     assert not server.media_from_phone("/api/phone/media/thumb", "POST", "127.0.0.1")
     assert server.media_from_phone("/api/phone/media/index", "POST", "100.64.0.5")
+
+
+def test_stt_proxy_passes_only_status_and_warmup(bridge, stt, monkeypatch):
+    monkeypatch.setattr(server, "STT_BASE", f"http://127.0.0.1:{stt.server_port}")
+    status, body = fetch(f"{bridge}/api/stt/status")
+    assert (status, body["model_loaded"]) == (200, True)
+    assert stt.seen[-1][0] == "GET /status"
+    status, _ = fetch(f"{bridge}/api/stt/warmup", b"")
+    assert status == 200
+    status, body = fetch(f"{bridge}/api/stt/transcribe", b"AUDIO", {"Content-Type": "audio/mp4"})
+    assert status == 400
+    status, _ = fetch(f"{bridge}/api/stt/../etc")
+    assert status == 400
+    monkeypatch.setattr(server, "STT_BASE", "http://127.0.0.1:9")
+    status, body = fetch(f"{bridge}/api/stt/status")
+    assert (status, body["error"]) == (503, "speech-to-text is not running on the desktop")
+
+
+def test_transcribe_route_reads_task_and_language(bridge, stt):
+    status, body = fetch(f"{bridge}/api/transcribe?task=translate&language=pt", b"AUDIO", {"Content-Type": "audio/mp4"})
+    assert (status, body["task"]) == (200, "translate")
+    status, body = fetch(f"{bridge}/api/transcribe?task=nope", b"AUDIO", {"Content-Type": "audio/mp4"})
+    assert status == 400
+
+
+@pytest.fixture
+def inbox(tmp_path, monkeypatch):
+    monkeypatch.setattr(server, "INBOX_FILE", tmp_path / "inbox.json")
+    monkeypatch.setattr(server, "inbox_data", {"items": [], "next": 1, "read": 0})
+    return tmp_path / "inbox.json"
+
+
+def test_inbox_keeps_reads_and_drops_items(bridge, inbox):
+    status, body = post_json(f"{bridge}/api/inbox", {"source": "watch", "title": "fired", "text": "a thing happened", "level": "alert", "ref": {"event": 7}})
+    assert (status, body["id"]) == (200, 1)
+    post_json(f"{bridge}/api/inbox", {"text": "plain note"})
+    status, view = fetch(f"{bridge}/api/inbox?after=0")
+    assert [item["id"] for item in view["items"]] == [1, 2]
+    assert view["items"][0]["level"] == "alert" and view["items"][1]["title"] == "mandragora"
+    assert json.loads(inbox.read_text())["next"] == 3
+    status, body = post_json(f"{bridge}/api/inbox/read", {"upTo": 99})
+    assert body["read"] == 2
+    status, body = post_json(f"{bridge}/api/inbox/drop", {"id": 1})
+    assert body["left"] == 1
+    status, body = post_json(f"{bridge}/api/inbox/drop", {"upTo": 2})
+    assert body["left"] == 0
+    server.inbox_data.update({"items": [], "next": 1, "read": 0})
+    server.inbox_load()
+    assert server.inbox_data["next"] == 3 and server.inbox_data["read"] == 2
+
+
+def test_inbox_refuses_bad_posts_and_long_polls_until_something_arrives(bridge, inbox):
+    assert post_json(f"{bridge}/api/inbox", {"text": "  "})[0] == 400
+    assert post_json(f"{bridge}/api/inbox", {"text": "x", "level": "loud"})[0] == 400
+    assert post_json(f"{bridge}/api/inbox", {"text": "x", "ref": {"big": "y" * 600}})[0] == 400
+    started = time.monotonic()
+    threading.Timer(0.3, lambda: server.inbox_post({"text": "late"})).start()
+    status, view = fetch(f"{bridge}/api/inbox?after=0&wait=5")
+    assert status == 200 and view["items"][0]["text"] == "late"
+    assert time.monotonic() - started < 4
+
+
+def test_watch_proxy_only_forwards_watchs_api(bridge):
+    status, body = fetch(f"{bridge}/api/watch/admin/secrets")
+    assert (status, body["error"]) == (400, "only watch's api is proxied")
+    status, _ = fetch(f"{bridge}/api/watch/api/../../etc")
+    assert status == 400

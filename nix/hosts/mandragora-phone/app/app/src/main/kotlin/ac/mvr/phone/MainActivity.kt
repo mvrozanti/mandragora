@@ -3,6 +3,7 @@ package ac.mvr.phone
 import android.Manifest
 import android.content.ComponentName
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
@@ -30,6 +31,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -37,7 +39,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import ac.mvr.phone.inbox.InboxService
 import ac.mvr.phone.play.PlaybackService
+import ac.mvr.phone.state.Store
 import ac.mvr.phone.ui.CodeScreen
 import ac.mvr.phone.ui.FindScreen
 import ac.mvr.phone.ui.HomeScreen
@@ -45,6 +49,11 @@ import ac.mvr.phone.ui.LocalChecking
 import ac.mvr.phone.ui.LocalOpenTailscale
 import ac.mvr.phone.ui.LocalVpnOff
 import ac.mvr.phone.ui.HubScreen
+import ac.mvr.phone.ui.AskScreen
+import ac.mvr.phone.ui.InboxScreen
+import ac.mvr.phone.ui.TeachScreen
+import ac.mvr.phone.ui.WatchScreen
+import ac.mvr.phone.ui.VoiceScreen
 import ac.mvr.phone.ui.MandragoraTheme
 import ac.mvr.phone.ui.MoneyScreen
 import ac.mvr.phone.ui.MusicScreen
@@ -84,9 +93,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestScreen(intent: Intent?) {
-        val screen = intent?.getStringExtra("screen") ?: return
-        intent.removeExtra("screen")
-        store.requestedScreen.value = screen
+        when {
+            intent == null -> Unit
+            intent.action == Intent.ACTION_SEND -> receiveShared(intent, store)
+            else -> intent.getStringExtra("screen")?.let { screen ->
+                intent.removeExtra("screen")
+                store.requestedScreen.value = screen
+            }
+        }
     }
 
     private fun askPermissions() {
@@ -105,6 +119,7 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         store.foreground.value = true
         store.photos.refreshAllowed()
+        InboxService.sync(this)
         val token = SessionToken(this, ComponentName(this, PlaybackService::class.java))
         controllerFuture = MediaController.Builder(this, token).buildAsync().also { future ->
             future.addListener({ runCatching { future.get() } }, MoreExecutors.directExecutor())
@@ -156,6 +171,7 @@ class MainActivity : ComponentActivity() {
             }
         }
         BackHandler(enabled = screen != "home") { screen = if (screen == "find") "music" else "home" }
+        val routes = remember { routes(store) { screen = it } }
         Scaffold(containerColor = scheme.surface) { padding ->
             Box(modifier = Modifier.fillMaxSize().background(scheme.surface).padding(padding).consumeWindowInsets(padding).imePadding()) {
                 AnimatedContent(
@@ -163,19 +179,37 @@ class MainActivity : ComponentActivity() {
                     transitionSpec = { (fadeIn(tween(180)) + scaleIn(initialScale = 0.96f, animationSpec = tween(220))) togetherWith fadeOut(tween(120)) },
                     label = "screen",
                 ) { target ->
-                    when (target) {
-                        "music" -> MusicScreen(store, onCollapse = { screen = "home" }, onFind = { screen = "find" })
-                        "find" -> FindScreen(store) { screen = "music" }
-                        "money" -> MoneyScreen(store) { screen = "home" }
-                        "hub" -> HubScreen(store) { screen = "home" }
-                        "panic" -> PanicScreen(store) { screen = "home" }
-                        "settings" -> SettingsScreen(store) { screen = "home" }
-                        "sessions" -> SessionsScreen(store, onOpenSession = { screen = "code" }) { screen = "home" }
-                        "code" -> CodeScreen(store) { screen = "home" }
-                        else -> HomeScreen(store) { screen = it }
-                    }
+                    val route = routes[target]
+                    if (route != null) route() else HomeScreen(store) { screen = it }
                 }
             }
         }
+    }
+}
+
+private fun routes(store: Store, go: (String) -> Unit): Map<String, @Composable () -> Unit> = mapOf(
+    "music" to { MusicScreen(store, onCollapse = { go("home") }, onFind = { go("find") }) },
+    "find" to { FindScreen(store) { go("music") } },
+    "money" to { MoneyScreen(store) { go("home") } },
+    "hub" to { HubScreen(store) { go("home") } },
+    "panic" to { PanicScreen(store) { go("home") } },
+    "settings" to { SettingsScreen(store) { go("home") } },
+    "sessions" to { SessionsScreen(store, onOpenSession = { go("code") }) { go("home") } },
+    "code" to { CodeScreen(store) { go("home") } },
+    "inbox" to { InboxScreen(store, onCollapse = { go("home") }, onOpen = go) },
+    "voice" to { VoiceScreen(store) { go("home") } },
+    "watch" to { WatchScreen(store) { go("home") } },
+    "ask" to { AskScreen(store) { go("home") } },
+    "teach" to { TeachScreen(store) { go("home") } },
+)
+
+private fun receiveShared(intent: Intent, store: Store) {
+    val type = intent.type.orEmpty()
+    val clip = if (Build.VERSION.SDK_INT >= 33) intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+    else @Suppress("DEPRECATION") intent.getParcelableExtra(Intent.EXTRA_STREAM)
+    intent.action = null
+    if (clip != null && (type.startsWith("audio/") || type.startsWith("video/"))) {
+        store.voice.transcribeShared(clip)
+        store.requestedScreen.value = "voice"
     }
 }

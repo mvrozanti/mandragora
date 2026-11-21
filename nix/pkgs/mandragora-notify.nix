@@ -1,7 +1,7 @@
 { pkgs }:
 
 pkgs.writeShellApplication {
-  name = "telegram-notify";
+  name = "mandragora-notify";
   bashOptions = [
     "nounset"
     "pipefail"
@@ -9,8 +9,9 @@ pkgs.writeShellApplication {
   runtimeInputs = [
     pkgs.coreutils
     pkgs.curl
+    pkgs.jq
     pkgs.libnotify
     pkgs.util-linux
   ];
-  text = builtins.readFile ../../.local/bin/telegram-notify.sh;
+  text = builtins.readFile ../../.local/bin/mandragora-notify.sh;
 }

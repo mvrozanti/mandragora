@@ -18,7 +18,7 @@ This file documents how multiple workloads coordinate that single GPU.
 
 ## The tool: `gpu-lock`
 
-`gpu-lock` is a Python wrapper around the `gpu_lock` library — a non-blocking `fcntl.flock` mutex on `/dev/shm/gpu-lock/gpu.lock` with a sidecar JSON file describing the current holder. The bots (`llm-via-telegram` and others) coordinate on the same primitive directly via `import gpu_lock`; the CLI extends the same protocol to non-Python and shell callers.
+`gpu-lock` is a Python wrapper around the `gpu_lock` library — a non-blocking `fcntl.flock` mutex on `/dev/shm/gpu-lock/gpu.lock` with a sidecar JSON file describing the current holder. The services (`phone-ask`, `stt-core` and others) coordinate on the same primitive directly via `import gpu_lock`; the CLI extends the same protocol to non-Python and shell callers.
 
 Semantics are **respect-the-holder**, not cooperative preemption: a running holder is never signalled or interrupted. New arrivals fail fast — the caller decides whether to retry, fall back, or surface the busy state.
 
@@ -43,7 +43,7 @@ gpu-lock status [--json]
 ### Coordination rules
 
 1. **One holder at a time.** `acquire` is non-blocking. If free, you get the lock. If held, you get `GpuBusy(holder=...)` immediately.
-2. **No preemption.** The holder is never signalled, never killed, never asked to yield. Whatever is running runs to completion. This is a deliberate trade against responsiveness — interactive callers (the Telegram bot) are expected to tell the user "GPU busy, try in ~Ns" rather than waiting indefinitely or pre-empting a long-running training job.
+2. **No preemption.** The holder is never signalled, never killed, never asked to yield. Whatever is running runs to completion. This is a deliberate trade against responsiveness — interactive callers (the phone's ask screen) are expected to tell the user "GPU busy, try in ~Ns" rather than waiting indefinitely or pre-empting a long-running training job.
 3. **PID death releases the lock.** `fcntl` flocks are released by the kernel on process exit, so a crashed holder doesn't wedge the system — the next acquirer just gets the lock. (The stale `gpu.lock.holder` JSON file may linger for a moment until overwritten, but the lock itself is free.)
 4. **No `eta`, no priority, no queue ordering.** First non-busy `acquire` wins. `expected_seconds` is metadata for `status` and `GpuBusy.expected_remaining()`, not enforced.
 5. **PyTorch holders MUST clean VRAM before release.** Call `torch.cuda.empty_cache()` before exiting the `with gpu_lock.acquire(...)` block, or the caching allocator keeps the pages and the next holder sees a near-full GPU. This bit us on 2026-04-27.
@@ -106,7 +106,7 @@ except GpuBusy as busy:
 
 Ollama runs as a systemd service (`services.ollama` in `nix/modules/core/ai-local.nix`), but it does **not** hold the GPU continuously: a model only occupies VRAM while loaded, and unloads once `keep_alive` expires. An idle Ollama holds no VRAM, so it does not need a manual `systemctl stop` before other GPU jobs — that older protocol is retired.
 
-Instead, every Ollama *client* participates in the lease directly (`llm-via-telegram`, `meme`, `stt-via-telegram`, `local-ai-mcp-server`, `claude-bridge`). The contract:
+Instead, every Ollama *client* participates in the lease directly (`phone-ask`, `meme`, `stt-core`, `local-ai-mcp-server`, `claude-bridge`). The contract:
 
 > Wrap each `/api/chat`|`/api/generate` call in `gpu_lock.acquire_async(...)`, and `await evict_model(...)` in the `finally` — **while still holding the lock**, before releasing.
 

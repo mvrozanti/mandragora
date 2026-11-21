@@ -9,7 +9,7 @@ let
   lifeboatRecipient = "age1kndldqz9kkcjmrndvnd0cun8clac7un0ggt6xf47mvs84qp7cpyq60y040";
   markerDir = "/persistent/backup";
 
-  notifyBin = import ../../pkgs/telegram-notify.nix { inherit pkgs; };
+  notifyBin = import ../../pkgs/mandragora-notify.nix { inherit pkgs; };
 
   ageKeyBackup = pkgs.writeShellApplication {
     name = "age-key-backup";
@@ -33,7 +33,7 @@ let
     text = builtins.readFile ../../snippets/backup-alert.sh;
   };
 
-  notifyEnv = "MANDRAGORA_NOTIFY_BIN=${notifyBin}/bin/telegram-notify";
+  notifyEnv = "MANDRAGORA_NOTIFY_BIN=${notifyBin}/bin/mandragora-notify";
 in
 {
   systemd.services."backup-failed@" = {
@@ -42,10 +42,10 @@ in
       Type = "oneshot";
       User = "m";
       Group = "users";
-      EnvironmentFile = config.sops.secrets."llm_via_telegram/env".path;
       Environment = [
         "MANDRAGORA_BACKUP_MARKER_DIR=${markerDir}"
         notifyEnv
+        "MANDRAGORA_NOTIFY_SOURCE=backup"
       ];
       ExecStart = "${backupAlert}/bin/backup-alert %i";
     };
@@ -69,7 +69,6 @@ in
       Nice = 15;
       IOSchedulingClass = "idle";
       TimeoutStartSec = "20m";
-      EnvironmentFile = config.sops.secrets."llm_via_telegram/env".path;
       Environment = [
         "AGE_KEY_FILE=${ageKeyFile}"
         "BACKUP_USER=${backupUser}"
@@ -78,6 +77,7 @@ in
         "REMOTE_DIR=${remoteDir}"
         "LIFEBOAT_RECIPIENT=${lifeboatRecipient}"
         notifyEnv
+        "MANDRAGORA_NOTIFY_SOURCE=backup"
       ];
       ExecStart = "${ageKeyBackup}/bin/age-key-backup";
     };

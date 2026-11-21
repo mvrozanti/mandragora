@@ -32,7 +32,9 @@ All of it on the tailnet interface only; nothing here has a `*.mvr.ac` host.
 |---|---|---|
 | 4097 | `claude-bridge` (user) | Claude Code sessions over the same API shape as opencode's: `GET /project` and `GET /session?directory=` from the on-disk session store (each session with the `providerID` and `modelID` that answered last, read from the transcript's tail), `GET /session/:id/message`, `POST /session` (a fresh id the first prompt will create), `prompt_async`, `abort`, the `/event` stream, `/permission` and `/question` with their replies, `PATCH` rename (typed into the pane as `/rename <title>` for a session open on the desktop, unless it waits on a dialog; written to the transcript otherwise), `DELETE`, `fork`, `POST /session/:id/close` (ends the session's `claude` on the desktop, checked against the start time the session index records so a reused pid is never hit, or stops the run the bridge holds; `false` when nothing was open), and `GET`/`POST /session/:id/settings` (model, effort and permission mode per session, kept in `~/.local/state/claude-bridge/choices.json`; for a session open in a desktop tui, read from its pane and set through its own controls). A Claude or DeepSeek session that is not open anywhere opens in a new tmux window on the desktop when the phone sends to it, so it can be picked up at the desk: `claude` or `deepseek` with `--session-id` for a new session and `--resume` for an old one, in that session's own folder, with the chosen model, effort and permission mode, in the tmux session with the latest client activity and without switching to it (a fresh `claude` tmux session when none is running, started outside the bridge's cgroup); the message is typed in once its input box is up, and from then on it is a desktop session like any other, so a restart of the bridge no longer ends it. Only a local model still runs as `claude -p` through the Agent SDK inside the bridge, through Ollama's own Anthropic-compatible endpoint (`local`: `cc-qwen3.6` and `cc-gptoss`, 64k-context variants of the declared `coder` and `agentic` models that the bridge makes in Ollama on first use; each turn holds the gpu lock, a busy GPU answers 409 with the holder, and the model is evicted a minute after the turn), chosen per session (a session the bridge already runs headless keeps running there until it idles out); sessions open in a desktop tui are listed with their name and state, and a message to one is typed into its tmux pane, since resuming it would start a copy; `GET /screen` and `POST /session/:id/screen` mirror the dialog such a session waits on (read with `tmux capture-pane` while the session index says `waiting`, answered with `send-keys`). Basic auth as `claude`, password generated once into `~/.local/state/claude-bridge/server-password` |
 | 4096 | `opencode-serve` (user) | the opencode HTTP server, the one the desktop `oc` tui attaches to: sessions, messages, `prompt_async`, `abort`, the `/event` stream, permission and question replies, `/project`, `/provider`. Basic auth as `opencode` with a password generated once into `~/.local/state/opencode/server-password`; the bridge hands the port and password to the app under `code` in `/api/config` |
-| 6688 | `phone-bridge` (user) | `GET /api/config` (desktop ip, ports, hub manifest, the code backends — claude-bridge and opencode — with port, user and password); `GET/POST /api/volume` (default sink, all sinks, set level, mute, default); `GET/POST /api/lease`, `POST /api/lease/position` (who plays, where, since); `GET /api/lyrics?file=` (`.lrc` beside the track, then the `~/Music/.lyrics` cache, then lrclib, writing the `.lrc` when synced lyrics exist); `GET /api/now`; `GET /api/file?file=` (a song from the library, with byte ranges, so the phone can stream what Syncthing has not delivered yet); `GET /api/cover?file=` (the picture mpd reads from the file, `readpicture` then `albumart`, 404 when there is none); `GET /api/money` (the money-menu cache plus `stale` and `refreshing`), `POST /api/money/refresh` (starts the `money-menu-refresh` user unit); `GET /api/hub` (the hub manifest plus untiled hosts and per-host state from status.mvr.ac, the VPS stats, the desktop's gpu-status; merged on the desktop and cached 20 s so the phone never leaves the tailnet); `GET /api/app` (the build `phone-push` last published: `versionCode`, `versionName`, `sha256`, `size`), `GET /api/app/apk` (that build, as a download); `GET /api/load` (memory, cpu and io pressure from `/proc/pressure`, free memory and swap, and the eight heaviest user units by memory plus swap with the name of their largest process, read straight from the cgroup tree so it answers while the desktop thrashes); `POST /api/kill {"id"}` (kills that unit's whole cgroup through `cgroup.kill`; the compositor, audio, dbus, the portals and the bridge itself are never listed or killable); `GET /api/media` (the desktop's other MPRIS players through `playerctl` that are playing or paused, mpd excluded and so are the mirrors KDE Connect and playerctld make of players that are not the desk's own: instance name, status, title, artist, url, position and length in seconds, an artwork key, and "YouTube" as the source when the url says so), `GET /api/media/art?player=` (that player's artwork when it is a local image file, as Firefox writes one per video), `POST /api/media {"player","action"[,"position"]}` (play-pause, play, pause, next, previous, or seek to `position` seconds on that player); `POST /api/transcribe` (raw audio, `audio/mp4`, passed to the desktop's `stt-core`, faster-whisper on the GPU, which knows English and Portuguese; answers `{text, language, duration}`, or 503 with the reason when the GPU is busy or the service is down); the phone's photos and videos, all under `~/.local/state/phone-bridge/phone-media/`: the app posts its MediaStore listing to `POST /api/phone/media/index` (whenever it changed, and every six hours anyway) and reads its queue from the answer or `GET /api/phone/media/jobs`, uploads a thumbnail to `POST /api/phone/media/thumb?id=`, a file to `POST /api/phone/media/file?id=` with its sha256 in `X-Sha256` (kept under `held/` only when the bytes hash to it), and reports each job's outcome to `POST /api/phone/media/report` (a deletion is logged in `removed.jsonl`; a failure leaves the queue and is listed, so nothing retries forever); the desktop side is `GET /api/phone/media` (index, queue, held copies, failures, when the phone last checked in), `POST /api/phone/media/request {thumbs, pull, remove}` (a deletion is refused until the desktop holds a verified copy, and carries that copy's sha256, which the phone re-hashes before it deletes), `GET /api/phone/media/thumb?id=`, `GET /api/phone/media/held?id=` and `POST /api/phone/media/release {ids}`; `POST /api/phone/media/request {archived: {id: sha256}}` queues a deletion for something the desktop archived elsewhere. Only the phone's tailnet ip (from `tailnet.json`, or `PHONE_BRIDGE_MEDIA_PEERS`) may post an index, fetch jobs, upload or report, so an emulator running the app against the desk cannot stand in for the phone; the jobs answer says `reindex` when the bridge holds no index. `phone-media` (`status`, `ls`, `sheet`, `move ID… --to DIR [--keep]`, `archive`) drives it from a shell; the `phone-media-archive` timer runs `archive` every 10 min: everything in the six drained folders (DCIM, Pictures, Movies, WhatsApp media, Recordings, Download, minus what the old Syncthing ignore list skipped) is copied into `~/Pictures/PhoneInbox/<bucket>/…`, where `phone-archiver` files it by date at once, and an item is deleted from the phone once it is 30 days old and its sha256 is found, re-hashed, in the archive |
+| 6688 | `phone-bridge` (user) | `GET /api/config` (desktop ip, ports, hub manifest, the code backends — claude-bridge and opencode — with port, user and password); `GET/POST /api/volume` (default sink, all sinks, set level, mute, default); `GET/POST /api/lease`, `POST /api/lease/position` (who plays, where, since); `GET /api/lyrics?file=` (`.lrc` beside the track, then the `~/Music/.lyrics` cache, then lrclib, writing the `.lrc` when synced lyrics exist); `GET /api/now`; `GET /api/file?file=` (a song from the library, with byte ranges, so the phone can stream what Syncthing has not delivered yet); `GET /api/cover?file=` (the picture mpd reads from the file, `readpicture` then `albumart`, 404 when there is none); `GET /api/money` (the money-menu cache plus `stale` and `refreshing`), `POST /api/money/refresh` (starts the `money-menu-refresh` user unit); `GET /api/hub` (the hub manifest plus untiled hosts and per-host state from status.mvr.ac, the VPS stats, the desktop's gpu-status; merged on the desktop and cached 20 s so the phone never leaves the tailnet); `GET /api/app` (the build `phone-push` last published: `versionCode`, `versionName`, `sha256`, `size`), `GET /api/app/apk` (that build, as a download); `GET /api/load` (memory, cpu and io pressure from `/proc/pressure`, free memory and swap, and the eight heaviest user units by memory plus swap with the name of their largest process, read straight from the cgroup tree so it answers while the desktop thrashes); `POST /api/kill {"id"}` (kills that unit's whole cgroup through `cgroup.kill`; the compositor, audio, dbus, the portals and the bridge itself are never listed or killable); `GET /api/media` (the desktop's other MPRIS players through `playerctl` that are playing or paused, mpd excluded and so are the mirrors KDE Connect and playerctld make of players that are not the desk's own: instance name, status, title, artist, url, position and length in seconds, an artwork key, and "YouTube" as the source when the url says so), `GET /api/media/art?player=` (that player's artwork when it is a local image file, as Firefox writes one per video), `POST /api/media {"player","action"[,"position"]}` (play-pause, play, pause, next, previous, or seek to `position` seconds on that player); `POST /api/transcribe` (raw audio, `audio/mp4`, passed to the desktop's `stt-core`, faster-whisper on the GPU, which knows English and Portuguese; answers `{text, language, duration}`, or 503 with the reason when the GPU is busy or the service is down; `?task=translate` gives English and `&language=` skips detection); the phone's photos and videos, all under `~/.local/state/phone-bridge/phone-media/`: the app posts its MediaStore listing to `POST /api/phone/media/index` (whenever it changed, and every six hours anyway) and reads its queue from the answer or `GET /api/phone/media/jobs`, uploads a thumbnail to `POST /api/phone/media/thumb?id=`, a file to `POST /api/phone/media/file?id=` with its sha256 in `X-Sha256` (kept under `held/` only when the bytes hash to it), and reports each job's outcome to `POST /api/phone/media/report` (a deletion is logged in `removed.jsonl`; a failure leaves the queue and is listed, so nothing retries forever); the desktop side is `GET /api/phone/media` (index, queue, held copies, failures, when the phone last checked in), `POST /api/phone/media/request {thumbs, pull, remove}` (a deletion is refused until the desktop holds a verified copy, and carries that copy's sha256, which the phone re-hashes before it deletes), `GET /api/phone/media/thumb?id=`, `GET /api/phone/media/held?id=` and `POST /api/phone/media/release {ids}`; `POST /api/phone/media/request {archived: {id: sha256}}` queues a deletion for something the desktop archived elsewhere. Only the phone's tailnet ip (from `tailnet.json`, or `PHONE_BRIDGE_MEDIA_PEERS`) may post an index, fetch jobs, upload or report, so an emulator running the app against the desk cannot stand in for the phone; the jobs answer says `reindex` when the bridge holds no index. `phone-media` (`status`, `ls`, `sheet`, `move ID… --to DIR [--keep]`, `archive`) drives it from a shell; the `phone-media-archive` timer runs `archive` every 10 min: everything in the six drained folders (DCIM, Pictures, Movies, WhatsApp media, Recordings, Download, minus what the old Syncthing ignore list skipped) is copied into `~/Pictures/PhoneInbox/<bucket>/…`, where `phone-archiver` files it by date at once, and an item is deleted from the phone once it is 30 days old and its sha256 is found, re-hashed, in the archive; `GET /api/stt/status`, `POST /api/stt/warmup` (stt-core's own, passed through, since its port stays off the tailnet); `GET /api/inbox?after=&wait=` (long poll, up to 50 s), `POST /api/inbox` (`{source, title, text, open, link, level: info or alert, ref}`, what `mandragora-notify`, watch and the tutor send; the newest 300 kept in `inbox.json`), `POST /api/inbox/read {upTo}`, `POST /api/inbox/drop {id}` or `{upTo}`; `/api/watch/<api path>` (any method, forwarded to watch.mvr.ac's tailnet-only `/internal/` route, so the phone needs no Authelia session) |
+| 6689 | `phone-ask` (user) | the local model and the desktop's shell for the ask screen, the retired llm-via-telegram bot's whole surface: `GET /api/ask?after=&wait=` (long poll: the timeline after an id, busy, the model, thinking on or off, the personas and the registered commands), `POST /api/ask {text}` (plain text goes to the model, a slash command runs in the server), `POST /api/ask/stop`, `POST /api/ask/think {on}`. Tools, system prompt (AGENTS.md and `docs/local-llm.md`), gpu lock and history work as the bot did; state in `~/.local/state/phone-ask` |
+| 6691 | `teacher-teach` (user) | the Socratic tutor from `~/Projects/teacher` (`teacher.server`), the retired Telegram tutor: `GET /api/teach?after=&v=&wait=` (long poll on a version), `POST /api/teach/say {text}`, `POST /api/teach/act {action: warmup, long, done, answer, explain; concept}`, `GET /api/teach/stats`, `POST /api/teach/retention {topic, value}`, `POST /api/teach/nudge {enabled}`, `POST /api/teach/retry`; nudges go to the inbox |
 | 6600 | mpd (user) | the mpd protocol; the app uses `idle` for push updates. No password: every tailnet node is the operator's |
 | 6685 | `ytdl-web` (user) | `POST /api/download`, `GET /api/jobs`, `/api/jobs/<id>/file`, `/cancel` |
 | 6684 | `gpu-status` | `GET /api/theme?colors=1`, the matugen palette the app wears |
@@ -131,6 +133,11 @@ back collapses it):
 | panic card: name or the gauge | opens the panic screen | panic |
 | panic card: "kill the biggest", first tap | arms it for 4 s; the button reads "tap again to kill <name>" | home |
 | panic card: "kill the biggest", second tap | kills that unit's whole cgroup on the desktop; the card says what died | home |
+| inbox card: name or a line | opens the inbox screen; the subtitle is "n new", "listening" or "not listening" | inbox |
+| voice card: name | opens the voice screen | voice |
+| ask card: name or the last reply | opens the ask screen; the subtitle is the model, or what it is doing | ask |
+| teach card: name or the last line | opens the teach screen; the subtitle is the streak, what is due and how often you were right, or that the tutor is writing | teach |
+| watch card: name or a trigger | opens the watch screen; the subtitle counts the triggers not yet accepted | watch |
 | "update ready" line (only when the desktop published a newer build) | asks the desktop for its current build first, then downloads it, verifies the hash, opens Android's installer (a build published while the line was showing is the one installed); the first time it opens the "allow installs from this app" setting instead and says so on the notice line. The verified download is kept, so leaving the app mid-download never costs a second one: the line turns into "install update", and a download that finishes while the app is in the background posts a "tap to install" notification instead of opening the installer | installer |
 | header dot | nothing, display, a dot with no words (the banner under the header says what is wrong): green when the desktop answers; hollow from the moment the app opens until the first answer, with retries a second apart; red only after three misses in a row, and from then on a retry every five seconds | home |
 | gear in the header | opens settings | settings |
@@ -147,6 +154,8 @@ the money unit and the hub's click counts):
 | ▲ / ▼ on "sessions on the card" | one more or one fewer idle session on the code card, from one to eight, three by default; connected sessions always show | settings |
 | "squash call chains" switch | on (the default): two or more tool calls in a row show on the code screen as one "n calls" line; off: every call and every thinking block gets its own line, as before | settings |
 | "the desktop reaches photos and videos" switch | opens Android's *All files access* page for the app, either way; the line under it says whether it is on and when the app last reached the desktop. While it is on, the app syncs with `phone-bridge` every 10 s while open and every 15 min in the background (a persisted JobScheduler job, no notification): it posts its index when it changed, then makes the thumbnails, copies and deletions the desktop queued | settings |
+| "listen in the background" switch | on (the default): a foreground service keeps a long poll to the bridge's inbox and turns each new item into an Android notification, alerts in a channel of their own; off: items wait in the inbox until the app opens | settings |
+| "battery is restricted" (only while listening and the app is not exempt) | opens Android's request to let the app ignore battery optimisation, so the listener survives sleep | Android |
 | "settings ⌄" title, Android back | collapses to home | home |
 
 The sessions screen (every Claude Code session on the desktop, the way
@@ -289,6 +298,75 @@ from home):
 | anything else on a row, the gauges | nothing, display | panic |
 | leaving the screen | disarms whatever was armed | home |
 
+The inbox screen (everything the desktop sent: unit failures, backups, the
+nightly update, claude-code updates, watch triggers, the tutor's nudges;
+what used to arrive on Telegram):
+
+| Tap | Does | Lands |
+|---|---|---|
+| a row | expands or collapses its whole text | inbox |
+| "open <screen>" on a row | opens the screen the sender named (watch, teach) | that screen |
+| "accept" (watch triggers) | accepts that event in watch and drops the row | inbox |
+| "link" | opens the link in the browser | browser |
+| "dismiss" | drops the row on the desktop too | inbox |
+| "clear all", first tap | arms it for 4 s; it reads "tap again" | inbox |
+| "clear all", second tap | drops every row | inbox |
+| a notification | opens the inbox, or the screen it names; "accept" on a watch alert accepts it without opening the app | the app |
+
+The voice screen (speech to text on the desktop's faster-whisper, English and
+Portuguese, through the bridge; the retired stt-via-telegram bot):
+
+| Tap | Does | Lands |
+|---|---|---|
+| "record" | records from the microphone; the button counts the time | voice |
+| the button while recording | stops and sends the clip; "transcribing on the desktop" until the text comes back | voice |
+| "a file" | picks an audio or video file and sends it | voice |
+| share audio or video to mandragora from any app | opens the voice screen and sends it | voice |
+| "as said" / "to english" | keep the spoken language, or translate to English | voice |
+| "auto" / a language | detect the language, or fix it | voice |
+| "warm up" (only while the model is cold) | loads the model on the desktop | voice |
+| "copy" / "share" / "forget" on a result | copies the text, shares it, or drops it from the phone's last 30 | voice |
+
+The ask screen (the local model with the desktop's shell, the retired
+llm-via-telegram bot; replies render as markdown):
+
+| Tap | Does | Lands |
+|---|---|---|
+| type, send | plain text goes to the model; a slash command runs on the desktop: `/p <persona> <q>`, `/reg prompt, cmd, list or del`, `/run <name>`, `/sh <command>`, `/term <command>` (a terminal on the desktop), `/open <url>`, `/vj stats` or `undo`, `/context`, `/clear`, `/think`, `/help` | ask |
+| stop (while it works and the box is empty) | stops between tool turns | ask |
+| "thinking on" / "thinking off" | the model reasons before answering, the trace folded above each reply | ask |
+| "clear" | forgets the conversation history the model sees | ask |
+| a registered command's chip | runs it, as `/run <name>` | ask |
+| "thought · tap to read" | unfolds the reasoning | ask |
+| a shell or error line | unfolds its whole output | ask |
+
+The teach screen (the Socratic tutor, the retired Telegram tutor; answers
+render as markdown):
+
+| Tap | Does | Lands |
+|---|---|---|
+| type, send | answers the tutor or asks it something; queued while claude is unavailable and sent when it comes back | teach |
+| "warm up" / "long session" / "show the answer" / "done for today" | the tutor's /warmup, /long, /answer and /done | teach |
+| "progress" | shows the streak, the due concepts, mastery and accuracy, the queue and the nudge switch | teach |
+| "explain it back" on a due concept | asks you to teach that concept back | teach |
+| "retry now" (only with a queue) | sends the queued messages now | teach |
+| nudge switch | the tutor's idle nudges to the inbox, on or off | teach |
+
+The watch screen (watch.mvr.ac, the retired watch bot's commands; triggers
+also arrive in the inbox):
+
+| Tap | Does | Lands |
+|---|---|---|
+| a watcher | expands it: its condition, last error, actions and what fired | watch |
+| "accept" on a trigger | accepts that event | watch |
+| "accept all" | accepts every open trigger of the watcher | watch |
+| "pause" / "resume" | stops or restarts its polling | watch |
+| "poll now" | polls it at once | watch |
+| "delete", first tap | arms it; it reads "tap again" | watch |
+| "delete", second tap | deletes the watch and every place it watches | watch |
+| a trigger's title | opens its link | browser |
+| the box at the bottom, send | builds a new watch from a sentence, as the bot's quick compose did | watch |
+
 Lock screen and notification: prev / play / next act on the owner; the body
 opens the app on the music screen; volume keys follow the pill (desktop side moves the desktop's
 volume, phone side the phone's); the subtitle reads "artist · on the
@@ -304,11 +382,15 @@ Starting either one from the phone pauses the other. When both play anyway,
 because one was started at the desk, a second media notification shows the
 video beside the music. The app asks the desk every 5 s while a desktop
 player exists, every 15 s otherwise and again the moment the screen turns
-on, from the music player's own foreground service; nothing else runs in
-the background and nothing else sits in the notification shade. After a
-reboot nothing runs until the app is opened once.
+on, from the music player's own foreground service. The only other thing that
+runs in the background is the inbox listener (settings, "listen in the
+background"): a second foreground service with a quiet notification of its
+own, started again after a reboot or an update, that holds one long poll to
+the bridge and turns new items into notifications. Alerts reach the phone
+only over the tailnet; while it is off they queue on the desktop and land on
+reconnect.
 
-Not now: ytdl client, sync status, share target, deleting or forking sessions from the phone (the bridge already answers those). They get a card and a table
+Not now: ytdl client, sync status, a share target for anything but audio and video, deleting or forking sessions from the phone (the bridge already answers those). They get a card and a table
 here when they come.
 
 ## Trying the app on the desktop

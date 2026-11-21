@@ -269,7 +269,7 @@ home-manager scope. `home-manager.nix` enables the NixOS module and imports
 `home.nix` (the large user-packages/`programs.*`/theming file). Program config
 that consumes XDG-mirrored files (`zsh.nix`, `tmux.nix`, `waybar.nix`,
 `yazi.nix`), user systemd units (`services.nix`), agent/bot integrations
-(`bots.nix` — Telegram-bridged llm-via-telegram, `axon.nix`,
+(`bots.nix` — stt-core and tts-clone-core, `axon.nix`,
 `autoclaude.nix`, `skills.nix`, `nb-vault-sync.nix`), the wofi/rofi menus
 (`gpu-menu.nix`, `monitor-menu.nix`, `rss-menu.nix`, `security-menu.nix`,
 `weather-menu.nix`), and `zx-dirs.nix` (XDG user directories). `skills.nix`
@@ -370,7 +370,7 @@ locally:
   on the host to detect state drift, stray files, and imperative state.
 - **Unit health (`nix/modules/core/unit-health.nix`)** — a global systemd
   drop-in, for system and user managers alike, gives every oneshot and
-  timer- or path-triggered unit an `OnFailure=` Telegram page (once when it
+  timer- or path-triggered unit an `OnFailure=` page to the phone's inbox (once when it
   starts failing, once when it recovers), pages a restarting daemon once it
   has failed five times in ten minutes and hourly while it keeps looping, and
   leaves a success stamp under `/persistent/unit-health` or
@@ -378,7 +378,7 @@ locally:
   that stopped and stayed down, hourly until it runs again. Crash-loop and
   down pages also raise a desktop notification, and a page that no channel
   took is retried on the next failure instead of being counted as sent
-  (`nix/pkgs/telegram-notify.nix` is the one notifier every pager uses). A 15-minute user
+  (`nix/pkgs/mandragora-notify.nix` is the one notifier every pager uses; it posts to the phone bridge's inbox, which the app turns into a notification). A 15-minute user
   timer publishes each timer's freshness to the VPS, where watch's
   `unit_health` source pages a job that has not succeeded within twice its
   schedule, or a host that stopped publishing. It exists because background

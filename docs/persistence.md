@@ -80,7 +80,7 @@ off-host backup on the system.
   for validity, discarding the output (only the *public* key) and using
   the exit code alone. Any failure exits nonzero.
 - **Failure alerting:** `OnFailure=backup-failed@age-key-backup.service`
-  fires `backup-alert`, which pings Telegram (`telegram-notify`, with a
+  fires `backup-alert`, which posts to the phone's inbox (`mandragora-notify`, with a
   `notify-send` fallback) and best-effort records a marker under
   `/persistent/backup/last-failure`.
 

@@ -4,7 +4,7 @@ set -uo pipefail
 FLAKE="${MANDRAGORA_REPO:-/etc/nixos/mandragora}"
 HOST="${MANDRAGORA_HOST:-mandragora-desktop}"
 STATUSDIR="${MANDRAGORA_STATUS_DIR:-/persistent/mandragora-update}"
-NOTIFY="${MANDRAGORA_NOTIFY_BIN:-telegram-notify}"
+NOTIFY="${MANDRAGORA_NOTIFY_BIN:-mandragora-notify}"
 RUNBASE="${XDG_RUNTIME_DIR:-/tmp}"
 WT="$RUNBASE/mandragora-update-watch-wt"
 

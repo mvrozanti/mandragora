@@ -7,13 +7,12 @@
 
 let
   systemDir = "/persistent/unit-health";
-  telegramEnv = config.sops.secrets."llm_via_telegram/env".path;
   systemctl = config.systemd.package;
 
   withSystemDir =
     file: builtins.replaceStrings [ "@systemDir@" ] [ systemDir ] (builtins.readFile file);
 
-  notifyBin = import ../../pkgs/telegram-notify.nix { inherit pkgs; };
+  notifyBin = import ../../pkgs/mandragora-notify.nix { inherit pkgs; };
 
   stamp = pkgs.writeShellApplication {
     name = "unit-health-stamp";
@@ -89,7 +88,7 @@ let
     description = "Page on the ${mode} transition of %i";
     serviceConfig = {
       Type = "oneshot";
-      EnvironmentFile = telegramEnv;
+      Environment = "MANDRAGORA_NOTIFY_SOURCE=health";
       ExecStart = "${notify}/bin/unit-health-notify ${mode} %i";
     };
   };
@@ -103,7 +102,7 @@ let
     description = "Page long-running services that stopped and stayed down";
     serviceConfig = {
       Type = "oneshot";
-      EnvironmentFile = telegramEnv;
+      Environment = "MANDRAGORA_NOTIFY_SOURCE=health";
       ExecStart = "${notify}/bin/unit-health-notify sweep";
     };
   };

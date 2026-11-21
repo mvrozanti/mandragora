@@ -388,7 +388,8 @@ audit them):
 ## Local LLM Migration
 
 Migrating to a new local model touches Ollama, `thought/config.py`,
-`llm-via-telegram/config.py`, `crush.json`, and the docs. Full
+`nix/snippets/local-llm-models.json` (the phone's ask screen reads it),
+`crush.json`, and the docs. Full
 checklist: [`docs/model-migration.md`](docs/model-migration.md).
 
 ---

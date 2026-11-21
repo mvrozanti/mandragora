@@ -35,17 +35,17 @@ object Http {
         execute(Request.Builder().url(url).post(file.asRequestBody(type.toMediaType())).build(), patient)
     }
 
-    suspend fun get(url: String, headers: Map<String, String> = emptyMap()): String = withContext(Dispatchers.IO) {
+    suspend fun get(url: String, headers: Map<String, String> = emptyMap(), long: Boolean = false): String = withContext(Dispatchers.IO) {
         val builder = Request.Builder().url(url)
         headers.forEach { (k, v) -> builder.header(k, v) }
-        execute(builder.build())
+        execute(builder.build(), if (long) patient else client)
     }
 
-    suspend fun post(url: String, body: JsonElement?, headers: Map<String, String> = emptyMap()): String = withContext(Dispatchers.IO) {
+    suspend fun post(url: String, body: JsonElement?, headers: Map<String, String> = emptyMap(), long: Boolean = false): String = withContext(Dispatchers.IO) {
         val payload = (body?.toString() ?: "").toRequestBody(jsonType)
         val builder = Request.Builder().url(url).post(payload)
         headers.forEach { (k, v) -> builder.header(k, v) }
-        execute(builder.build())
+        execute(builder.build(), if (long) patient else client)
     }
 
     suspend fun patch(url: String, body: JsonElement?, headers: Map<String, String> = emptyMap()): String = withContext(Dispatchers.IO) {

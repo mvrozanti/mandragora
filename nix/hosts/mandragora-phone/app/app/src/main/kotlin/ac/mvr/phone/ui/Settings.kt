@@ -1,7 +1,13 @@
 package ac.mvr.phone.ui
 
 import android.text.format.DateUtils
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.PowerManager
+import android.provider.Settings
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +28,12 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import ac.mvr.phone.inbox.InboxService
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,7 +42,21 @@ import androidx.compose.ui.unit.dp
 import ac.mvr.phone.state.Store
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-private val CARD_NAMES = mapOf("music" to "music", "money" to "money", "hub" to "hub", "code" to "code", "panic" to "panic")
+private val CARD_NAMES = mapOf(
+    "music" to "music",
+    "inbox" to "inbox",
+    "money" to "money",
+    "hub" to "hub",
+    "code" to "code",
+    "ask" to "ask · the local model",
+    "voice" to "voice · speech to text",
+    "teach" to "teach · the tutor",
+    "watch" to "watch",
+    "panic" to "panic",
+)
+
+private fun batteryExempt(context: Context): Boolean =
+    context.getSystemService(PowerManager::class.java)?.isIgnoringBatteryOptimizations(context.packageName) ?: true
 
 @Composable
 fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
@@ -40,6 +66,13 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
     val autoplay by store.prefs.autoplaySkip.collectAsStateWithLifecycle()
     val codeCount by store.prefs.codeCardCount.collectAsStateWithLifecycle()
     val squash by store.prefs.squashCalls.collectAsStateWithLifecycle()
+    val listen by store.prefs.inboxListen.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    var exempt by remember { mutableStateOf(batteryExempt(context)) }
+    LifecycleResumeEffect(Unit) {
+        exempt = batteryExempt(context)
+        onPauseOrDispose { }
+    }
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("settings", reachable, onCollapse)
         Column(
@@ -63,6 +96,37 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
                     }
                 }
                 Label("the update line always comes first")
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(scheme.surfaceContainerLow).padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Label("alerts")
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("listen in the background", style = MaterialTheme.typography.bodyLarge)
+                        Label(if (listen) "desktop alerts arrive as notifications" else "alerts wait in the inbox until the app opens")
+                    }
+                    Switch(checked = listen, onCheckedChange = {
+                        store.prefs.setInboxListen(it)
+                        InboxService.sync(context)
+                    })
+                }
+                if (listen && !exempt) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable {
+                            runCatching {
+                                context.startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}")))
+                            }
+                        }.padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("battery is restricted", style = MaterialTheme.typography.bodyLarge, color = scheme.error)
+                            Label("tap to let the listener run while the phone sleeps")
+                        }
+                    }
+                }
             }
             Column(
                 modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(scheme.surfaceContainerLow).padding(horizontal = 16.dp, vertical = 14.dp),

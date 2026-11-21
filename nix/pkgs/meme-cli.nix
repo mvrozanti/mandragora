@@ -28,40 +28,40 @@ let
       --replace-fail 'cmd = ["vtag", "tag"]' 'cmd = ["meme", "tag"]'
   '';
   gpuLockRoot = ../../.local/share/gpu-lock;
-  botPython = import ./bot-python.nix { inherit pkgs; };
+  memePython = import ./meme-python.nix { inherit pkgs; };
 
   meme = pkgs.writeShellApplication {
     name = "meme";
     runtimeInputs = [
-      botPython
+      memePython
       pkgs.exiftool
     ];
     text = ''
       export PYTHONPATH=${gpuLockRoot}:${memeSrc}''${PYTHONPATH:+:$PYTHONPATH}
-      exec ${botPython}/bin/python3 ${memeSrc}/cli.py "$@"
+      exec ${memePython}/bin/python3 ${memeSrc}/cli.py "$@"
     '';
   };
 
   vfind = pkgs.writeShellApplication {
     name = "vfind";
     runtimeInputs = [
-      botPython
+      memePython
       pkgs.exiftool
     ];
     text = ''
-      exec ${botPython}/bin/python3 ${memeSrc}/find.py "$@"
+      exec ${memePython}/bin/python3 ${memeSrc}/find.py "$@"
     '';
   };
 
   meme-server = pkgs.writeShellApplication {
     name = "meme-server";
     runtimeInputs = [
-      botPython
+      memePython
       pkgs.exiftool
     ];
     text = ''
       export PYTHONPATH=${gpuLockRoot}:${memeSrc}''${PYTHONPATH:+:$PYTHONPATH}
-      exec ${botPython}/bin/python3 ${memeSrc}/server.py "$@"
+      exec ${memePython}/bin/python3 ${memeSrc}/server.py "$@"
     '';
   };
 in

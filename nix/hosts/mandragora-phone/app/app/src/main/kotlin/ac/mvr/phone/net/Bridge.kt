@@ -9,7 +9,17 @@ import kotlinx.serialization.json.put
 data class DesktopInfo(val ip: String, val host: String = "mandragora-desktop")
 
 @Serializable
-data class Ports(val mpd: Int = 6600, val ytdl: Int = 6685, val theme: Int = 6684, val mympd: Int = 6680, val bridge: Int = 6688, val code: Int = 4096, val claude: Int = 4097)
+data class Ports(
+    val mpd: Int = 6600,
+    val ytdl: Int = 6685,
+    val theme: Int = 6684,
+    val mympd: Int = 6680,
+    val bridge: Int = 6688,
+    val code: Int = 4096,
+    val claude: Int = 4097,
+    val ask: Int = 6689,
+    val teach: Int = 6691,
+)
 
 @Serializable
 data class MusicInfo(val folderId: String = "mandragora-music", val dir: String = "")
@@ -176,7 +186,37 @@ class BridgeClient(private val baseUrl: () -> String) {
     suspend fun transcribe(audio: java.io.File): Transcript = json.decodeFromString(Http.postFile("${baseUrl()}/api/transcribe", audio, "audio/mp4"))
 
     suspend fun kill(id: String): KillResult = json.decodeFromString(Http.post("${baseUrl()}/api/kill", buildJsonObject { put("id", id) }))
+
+    suspend fun inbox(after: Long, waitSeconds: Int): InboxView =
+        json.decodeFromString(Http.get("${baseUrl()}/api/inbox?after=$after&wait=$waitSeconds", long = true))
+
+    suspend fun inboxRead(upTo: Long) { Http.post("${baseUrl()}/api/inbox/read", buildJsonObject { put("upTo", upTo) }) }
+
+    suspend fun inboxDrop(id: Long? = null, upTo: Long? = null) {
+        Http.post("${baseUrl()}/api/inbox/drop", buildJsonObject {
+            id?.let { put("id", it) }
+            upTo?.let { put("upTo", it) }
+        })
+    }
 }
+
+@Serializable
+data class InboxItem(
+    val id: Long,
+    val ts: Double = 0.0,
+    val title: String = "",
+    val text: String = "",
+    val source: String = "",
+    val open: String? = null,
+    val link: String? = null,
+    val level: String = "info",
+    val ref: JsonObject? = null,
+) {
+    val alert: Boolean get() = level == "alert"
+}
+
+@Serializable
+data class InboxView(val items: List<InboxItem> = emptyList(), val last: Long = 0, val read: Long = 0)
 
 @Serializable
 data class Psi(val some10: Double = 0.0, val some60: Double = 0.0, val full10: Double = 0.0, val full60: Double = 0.0)

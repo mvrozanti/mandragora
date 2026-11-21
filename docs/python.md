@@ -88,9 +88,7 @@ Required shape:
   upstream project and why Nix-ifying is impractical *today*. Revisit
   when the upstream stabilises.
 
-Current carve-outs:
-- `.local/share/stt-via-telegram/bot.sh` — Whisper-based STT bot;
-  `uv venv` bootstrap.
+Current carve-outs: none since the stt-via-telegram bot was retired.
 
 ---
 

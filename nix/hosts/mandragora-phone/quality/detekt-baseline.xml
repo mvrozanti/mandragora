@@ -121,6 +121,8 @@
     <ID>TooManyFunctions:Prefs.kt$Prefs</ID>
     <ID>TooManyFunctions:RemotePlayer.kt$RemotePlayer : SimpleBasePlayer</ID>
     <ID>TooManyFunctions:Store.kt$Store</ID>
+    <ID>TooManyFunctions:Watch.kt$WatchClient</ID>
+    <ID>TooManyFunctions:WatchStore.kt$WatchStore</ID>
     <ID>UnusedPrivateProperty:Store.kt$Store$attempt</ID>
     <ID>UseCheckOrError:Code.kt$throw IllegalStateException("heard nothing")</ID>
     <ID>UseCheckOrError:MoneyStore.kt$MoneyStore$throw IllegalStateException("refresh failed on the desktop")</ID>

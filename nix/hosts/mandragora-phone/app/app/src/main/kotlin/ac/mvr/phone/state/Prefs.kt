@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONObject
 
-val CARDS = listOf("music", "money", "hub", "code", "panic")
+val CARDS = listOf("music", "inbox", "money", "hub", "code", "ask", "voice", "teach", "watch", "panic")
 
 class Prefs(context: Context) {
     private val sp: SharedPreferences = context.getSharedPreferences("mandragora", Context.MODE_PRIVATE)
@@ -34,6 +34,38 @@ class Prefs(context: Context) {
 
     private val clicksFlow = MutableStateFlow(readClicks())
     val hubClicks: StateFlow<Map<String, Int>> = clicksFlow
+
+    private val listenFlow = MutableStateFlow(sp.getBoolean("inboxListen", true))
+    val inboxListen: StateFlow<Boolean> = listenFlow
+
+    private val voiceTaskFlow = MutableStateFlow(sp.getString("voiceTask", "transcribe") ?: "transcribe")
+    val voiceTask: StateFlow<String> = voiceTaskFlow
+
+    private val voiceLangFlow = MutableStateFlow(sp.getString("voiceLang", "") ?: "")
+    val voiceLang: StateFlow<String> = voiceLangFlow
+
+    fun setInboxListen(value: Boolean) {
+        listenFlow.value = value
+        sp.edit().putBoolean("inboxListen", value).apply()
+    }
+
+    fun setVoiceTask(value: String) {
+        voiceTaskFlow.value = value
+        sp.edit().putString("voiceTask", value).apply()
+    }
+
+    fun setVoiceLang(value: String) {
+        voiceLangFlow.value = value
+        sp.edit().putString("voiceLang", value).apply()
+    }
+
+    var inboxNotified: Long
+        get() = sp.getLong("inboxNotified", -1L)
+        set(value) = sp.edit().putLong("inboxNotified", value).apply()
+
+    var voiceHistory: String?
+        get() = sp.getString("voiceHistory", null)
+        set(value) = putIfChanged("voiceHistory", value)
 
     fun setUnit(value: String) {
         unitFlow.value = value

@@ -70,7 +70,7 @@ kotlin_checks() {
 }
 
 python_checks() {
-  timed "python: ruff $RUFF_RULES" ruff check --no-cache --quiet --select "$RUFF_RULES" "$BRIDGE" "$CLAUDE_BRIDGE" || return 1
+  timed "python: ruff $RUFF_RULES" ruff check --no-cache --quiet --select "$RUFF_RULES" "$BRIDGE" "$PHONE/ask" "$CLAUDE_BRIDGE" || return 1
   timed "python: basedpyright, new errors only" basedpyright "${pyright_args[@]}" --level error || return 1
   timed "python: phone-bridge tests, coverage >= $(floor phone-bridge)%" pytest_cov "$BRIDGE" server phone-bridge || return 1
   timed "python: claude-bridge tests, coverage >= $(floor claude-bridge)%" pytest_cov "$CLAUDE_BRIDGE" app claude-bridge

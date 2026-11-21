@@ -7,7 +7,7 @@ let
   watchBin = pkgs.writeShellScriptBin "mandragora-update-watch" (
     builtins.readFile ../../../.local/bin/mandragora-update-watch.sh
   );
-  notifyBin = import ../../pkgs/telegram-notify.nix { inherit pkgs; };
+  notifyBin = import ../../pkgs/mandragora-notify.nix { inherit pkgs; };
   buildPath = [
     config.nix.package
     pkgs.nixos-rebuild
@@ -66,13 +66,13 @@ in
       MANDRAGORA_REPO = "/etc/nixos/mandragora";
       MANDRAGORA_HOST = "mandragora-desktop";
       MANDRAGORA_STATUS_DIR = "/persistent/mandragora-update";
-      MANDRAGORA_NOTIFY_BIN = "${notifyBin}/bin/telegram-notify";
+      MANDRAGORA_NOTIFY_BIN = "${notifyBin}/bin/mandragora-notify";
+      MANDRAGORA_NOTIFY_SOURCE = "update";
     };
     serviceConfig = {
       Type = "oneshot";
       User = "m";
       Group = "users";
-      EnvironmentFile = config.sops.secrets."llm_via_telegram/env".path;
       ExecStart = "${watchBin}/bin/mandragora-update-watch";
       Nice = 15;
       IOSchedulingClass = "idle";

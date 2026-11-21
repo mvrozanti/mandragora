@@ -8,7 +8,7 @@ Single LLM router. Every survivor doc is one hop from here.
   policy variances, edit→rebuild→verify→commit summary.
 - Agent-specific delta: [`../CLAUDE.md`](../CLAUDE.md) (Claude Code),
   [`../GEMINI.md`](../GEMINI.md) (Gemini CLI),
-  [`local-llm.md`](local-llm.md) (Telegram-bridged local model).
+  [`local-llm.md`](local-llm.md) (the local model behind the phone's ask screen).
 
 ## Topical (lazy-load)
 

@@ -8,7 +8,7 @@ let
   updateBin = pkgs.writeShellScriptBin "claude-code-update" (
     builtins.readFile ../../../.local/bin/claude-code-update.sh
   );
-  notifyBin = import ../../pkgs/telegram-notify.nix { inherit pkgs; };
+  notifyBin = import ../../pkgs/mandragora-notify.nix { inherit pkgs; };
   unitPath = [
     pkgs.curl
     pkgs.jq
@@ -39,14 +39,14 @@ in
     path = unitPath;
     environment = {
       MANDRAGORA_REPO = "/etc/nixos/mandragora";
-      MANDRAGORA_NOTIFY_BIN = "${notifyBin}/bin/telegram-notify";
+      MANDRAGORA_NOTIFY_BIN = "${notifyBin}/bin/mandragora-notify";
+      MANDRAGORA_NOTIFY_SOURCE = "claude-code";
       MANDRAGORA_SWITCH_STABILITY_SECONDS = "0";
     };
     serviceConfig = {
       Type = "oneshot";
       User = "m";
       Group = "users";
-      EnvironmentFile = config.sops.secrets."llm_via_telegram/env".path;
       ExecStart = "${updateBin}/bin/claude-code-update";
       Nice = 10;
       IOSchedulingClass = "idle";

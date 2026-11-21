@@ -99,8 +99,10 @@ class Store(private val app: Application) {
 
     val config = MutableStateFlow<BridgeConfig?>(null)
     private fun port(get: (Ports) -> Int, fallback: Int): Int = config.value?.ports?.let(get) ?: fallback
+    fun desktopUrl(get: (Ports) -> Int, fallback: Int): String = "http://$desktopIp:${port(get, fallback)}"
+    val bridgeUrl: String get() = desktopUrl({ it.bridge }, BuildConfig.BRIDGE_PORT)
 
-    val bridge = BridgeClient { "http://$desktopIp:${port({ it.bridge }, BuildConfig.BRIDGE_PORT)}" }
+    val bridge = BridgeClient { bridgeUrl }
     val mpd = MpdClient({ desktopIp }, { port({ it.mpd }, 6600) })
     val theme = ThemeClient { "http://$desktopIp:${port({ it.theme }, 6684)}" }
     val money = MoneyStore(this)
@@ -110,6 +112,11 @@ class Store(private val app: Application) {
     val find = FindStore(this)
     val code = CodeStore(this)
     val photos = PhoneMediaStore(app, PhoneMediaApi { "http://$desktopIp:${port({ it.bridge }, BuildConfig.BRIDGE_PORT)}" })
+    val inbox = InboxStore(this)
+    val voice = VoiceStore(this)
+    val watch = WatchStore(this)
+    val ask = AskStore(this)
+    val teach = TeachStore(this)
 
     val reachable = MutableStateFlow(false)
     val checking = MutableStateFlow(true)
@@ -271,6 +278,12 @@ class Store(private val app: Application) {
         scope.launch { loopWhileForeground(10_000) { if (photos.refreshAllowed()) PhoneMediaJob.schedule(app).also { photos.sync() } } }
         scope.launch { foreground.collectLatest { fg -> if (fg) code.watchList() } }
         scope.launch { loopMedia() }
+        scope.launch { inbox.listen() }
+        scope.launch { loopWhileForeground(30_000) { voice.refresh() } }
+        scope.launch { loopWhileForeground(30_000) { watch.refresh() } }
+        scope.launch { loopWhileForeground(30_000) { ask.refresh() } }
+        scope.launch { loopWhileForeground(30_000) { teach.refresh() } }
+        scope.launch { loopWhileForeground(300_000) { teach.loadStats() } }
         scope.launch {
             while (isActive) {
                 if (lease.value.owner == "phone") host?.let { h ->
@@ -431,6 +444,7 @@ class Store(private val app: Application) {
         runCatching { update.refresh() }
         runCatching { load.refresh() }
         runCatching { refreshMedia() }
+        runCatching { voice.refresh() }
         val file = now.value.file
         if (file != null && file != lyricsFile.value && !lyricsBusy.value) loadLyrics(file)
     }

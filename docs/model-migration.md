@@ -26,8 +26,8 @@ Deployed (and imported by consumers) at
 Roles, and who reads each:
 
 - `agentic` — primary agentic model. `mandragora.ai.agentic.model`
-  default in `nix/modules/core/ai-local.nix`; crush primary
-  (manual, see below).
+  default in `nix/modules/core/ai-local.nix`; the phone's ask screen
+  (`phone-ask`); crush primary (manual, see below).
 - `meme` — VLM. `mandragora.ai.meme.model` default in
   `nix/modules/core/ai-local.nix`.
 - `aux` — auxiliary chat model.
@@ -68,8 +68,12 @@ Changing a role key in the JSON flows through automatically:
    keeps a mutable `~/.local/share/crush/crush.json` holding
    `recent_models`; after a role change it can still offer the old tag
    until reselected.
+5. **phone-ask** — `nix/modules/services/phone-ask.nix` passes the
+   `agentic` key as `OLLAMA_MODEL` to the service behind the phone
+   app's ask screen. It reads `AGENTS.md` + `docs/local-llm.md` for its
+   system prompt and talks to raw ollama `:11434`.
 
-Both Python consumers open the deployed JSON path and fall back to the
+The MCP server and gemma.py open the deployed JSON path and fall back to the
 prior hardcoded tag if the file is unreadable.
 
 ## Manual touchpoints (the JSON does not reach these)
@@ -93,12 +97,7 @@ repos. Listed for completeness:
 1. **thought** (`~/Projects/thought`) — `model` in `thought/config.py`
    and the `model:` key in every `configs/*.yaml`; embeddings use the
    `embeddings` tag (`nomic-embed-text`).
-2. **Telegram bot** (`~/Projects/llm-via-telegram`) — `OLLAMA_MODEL`
-   (and `GEMINI_MODEL`) in `config.py`, overridden at runtime by the
-   `llm_via_telegram/env` sops secret. Reads `AGENTS.md` +
-   `docs/local-llm.md` for its system prompt, talks to raw ollama
-   `:11434`.
-3. **meme** — fetched from GitHub (`nix/pkgs/meme-cli.nix`); the VLM
+2. **meme** — fetched from GitHub (`nix/pkgs/meme-cli.nix`); the VLM
    tag it pulls is the `meme` role via the pre-pull unit, but the
    upstream default lives in the vtag repo.
 

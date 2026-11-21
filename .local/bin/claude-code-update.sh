@@ -3,7 +3,7 @@ set -uo pipefail
 
 FLAKE="${MANDRAGORA_REPO:-/etc/nixos/mandragora}"
 PKGREL="nix/pkgs/claude-code/default.nix"
-NOTIFY="${MANDRAGORA_NOTIFY_BIN:-telegram-notify}"
+NOTIFY="${MANDRAGORA_NOTIFY_BIN:-mandragora-notify}"
 REGISTRY="https://registry.npmjs.org/@anthropic-ai/claude-code"
 RUNBASE="${XDG_RUNTIME_DIR:-}"
 if [ -z "$RUNBASE" ] || [ ! -w "$RUNBASE" ]; then RUNBASE="/tmp"; fi

@@ -36,13 +36,13 @@ down_settle=300
 undelivered=0
 
 send() {
-  telegram-notify "$1" && return 0
+  mandragora-notify "$1" && return 0
   undelivered=1
   return 1
 }
 
 urgent() {
-  MANDRAGORA_NOTIFY_DESKTOP=1 telegram-notify "$1" && return 0
+  MANDRAGORA_NOTIFY_DESKTOP=1 mandragora-notify "$1" && return 0
   undelivered=1
   return 1
 }

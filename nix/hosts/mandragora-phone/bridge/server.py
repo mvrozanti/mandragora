@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import hashlib
+import http.client
 import json
 import os
 import re
 import shutil
 import signal
 import socket
+import ssl
 import subprocess
 import threading
 import time
@@ -33,11 +35,14 @@ MEDIA_ART_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jp
 MEDIA_ART_MAX = 5 * 1024 * 1024
 STT_URL = os.environ.get("PHONE_BRIDGE_STT_URL", "http://127.0.0.1:8091/transcribe")
 STT_MAX = 25 * 1024 * 1024
+STT_BASE = STT_URL.rsplit("/", 1)[0]
+STT_PROXIED = {("GET", "status"), ("POST", "warmup")}
+STT_TASKS = ("transcribe", "translate")
 STT_SUFFIXES = {"audio/mp4": ".m4a", "audio/aac": ".aac", "audio/ogg": ".ogg", "audio/webm": ".webm", "audio/wav": ".wav"}
 LRCLIB_GET = "https://lrclib.net/api/get"
 USER_AGENT = "mandragora-phone-bridge/1 (+https://github.com/mvrozanti/mandragora)"
 VERSION = 1
-PORTS = {"mpd": MPD_PORT, "ytdl": 6685, "theme": 6684, "mympd": 6680, "bridge": PORT, "code": 4096, "claude": 4097}
+PORTS = {"mpd": MPD_PORT, "ytdl": 6685, "theme": 6684, "mympd": 6680, "bridge": PORT, "code": 4096, "claude": 4097, "ask": 6689, "teach": 6691, "stt": 8091}
 MUSIC_FOLDER_ID = "mandragora-music"
 LEASE_FILE = STATE_DIR / "lease.json"
 LRCLIB_MISS_TTL = 24 * 3600
@@ -84,6 +89,14 @@ money_lock = threading.Lock()
 money_last: dict | None = None
 hub_lock = threading.Lock()
 hub_cache: dict = {"at": 0.0, "payload": None, "refreshing": False}
+INBOX_FILE = STATE_DIR / "inbox.json"
+INBOX_KEEP = 300
+INBOX_WAIT_MAX = 50
+INBOX_LEVELS = ("info", "alert")
+inbox_cond = threading.Condition()
+inbox_data: dict = {"next": 1, "read": 0, "items": []}
+WATCH_HOST = os.environ.get("PHONE_BRIDGE_WATCH_HOST", "watch.mvr.ac")
+WATCH_PREFIX = "/internal"
 cover_lock = threading.Lock()
 cover_cache: dict[str, tuple[bytes, str] | None] = {}
 COVER_CACHE_SIZE = 8
@@ -103,6 +116,134 @@ def load_json(path: str | None, fallback):
 def desktop_ip() -> str | None:
     tailnet = load_json(TAILNET_JSON, {})
     return (tailnet.get("desktop") or {}).get("ip")
+
+
+def vps_ip() -> str | None:
+    tailnet = load_json(TAILNET_JSON, {})
+    return (tailnet.get("vps") or {}).get("ip")
+
+
+def inbox_load() -> None:
+    data = load_json(str(INBOX_FILE), None)
+    if isinstance(data, dict) and isinstance(data.get("items"), list):
+        inbox_data["items"] = data["items"][-INBOX_KEEP:]
+        inbox_data["next"] = max(int(data.get("next") or 1), 1 + max((item["id"] for item in inbox_data["items"]), default=0))
+        inbox_data["read"] = int(data.get("read") or 0)
+
+
+def inbox_save() -> None:
+    tmp = INBOX_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(inbox_data), encoding="utf-8")
+    os.replace(tmp, INBOX_FILE)
+
+
+def clipped(body: dict, key: str, limit: int) -> str | None:
+    value = body.get(key)
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text[:limit] if text else None
+
+
+def inbox_post(body: dict) -> dict:
+    text = clipped(body, "text", 4000)
+    if not text:
+        raise ValueError("text required")
+    level = body.get("level") or "info"
+    if level not in INBOX_LEVELS:
+        raise ValueError(f"level must be one of {', '.join(INBOX_LEVELS)}")
+    ref = body.get("ref")
+    if ref is not None and (not isinstance(ref, dict) or len(json.dumps(ref)) > 512):
+        raise ValueError("ref must be a small object")
+    with inbox_cond:
+        item = {
+            "id": inbox_data["next"],
+            "ts": time.time(),
+            "title": clipped(body, "title", 120) or clipped(body, "source", 32) or "mandragora",
+            "text": text,
+            "source": clipped(body, "source", 32) or "desktop",
+            "open": clipped(body, "open", 32),
+            "link": clipped(body, "link", 500),
+            "level": level,
+            "ref": ref,
+        }
+        inbox_data["next"] += 1
+        inbox_data["items"] = (inbox_data["items"] + [item])[-INBOX_KEEP:]
+        inbox_save()
+        inbox_cond.notify_all()
+    print(f"inbox: #{item['id']} from {item['source']}: {item['title']}", flush=True)
+    return {"id": item["id"]}
+
+
+def inbox_view(after: int) -> dict:
+    newer = [item for item in inbox_data["items"] if item["id"] > after]
+    return {"items": newer[-100:], "last": inbox_data["next"] - 1, "read": inbox_data["read"]}
+
+
+def inbox_wait(query: dict) -> dict:
+    after = int(query.get("after") or 0)
+    wait = min(max(float(query.get("wait") or 0), 0.0), INBOX_WAIT_MAX)
+    deadline = time.monotonic() + wait
+    with inbox_cond:
+        while True:
+            view = inbox_view(after)
+            remaining = deadline - time.monotonic()
+            if view["items"] or remaining <= 0:
+                return view
+            inbox_cond.wait(remaining)
+
+
+def inbox_read(body: dict) -> dict:
+    with inbox_cond:
+        upto = min(int(body.get("upTo") or 0), inbox_data["next"] - 1)
+        if upto > inbox_data["read"]:
+            inbox_data["read"] = upto
+            inbox_save()
+            inbox_cond.notify_all()
+        return {"read": inbox_data["read"]}
+
+
+def inbox_drop(body: dict) -> dict:
+    with inbox_cond:
+        if body.get("id") is not None:
+            target = int(body["id"])
+            inbox_data["items"] = [item for item in inbox_data["items"] if item["id"] != target]
+        else:
+            upto = int(body.get("upTo") or 0)
+            inbox_data["items"] = [item for item in inbox_data["items"] if item["id"] > upto]
+        inbox_save()
+        return {"left": len(inbox_data["items"])}
+
+
+class PinnedHTTPS(http.client.HTTPSConnection):
+    def __init__(self, host: str, addr: str):
+        tls = ssl.create_default_context()
+        super().__init__(host, 443, timeout=20, context=tls)
+        self.tls = tls
+        self.addr = addr
+
+    def connect(self) -> None:
+        raw = socket.create_connection((self.addr, self.port), self.timeout)
+        self.sock = self.tls.wrap_socket(raw, server_hostname=self.host)
+
+
+def watch_call(method: str, rest: str, query: str, body: bytes | None) -> tuple[int, bytes, str]:
+    if not (rest == "healthz" or rest.startswith("api/")) or ".." in rest:
+        raise ValueError("only watch's api is proxied")
+    addr = vps_ip()
+    if not addr:
+        raise OSError("no vps address in the tailnet manifest")
+    conn = PinnedHTTPS(WATCH_HOST, addr)
+    try:
+        path = f"{WATCH_PREFIX}/{rest}" + (f"?{query}" if query else "")
+        headers = {"User-Agent": USER_AGENT, "Accept": "application/json"}
+        if body is not None:
+            headers["Content-Type"] = "application/json"
+        conn.request(method, path, body=body, headers=headers)
+        response = conn.getresponse()
+        return response.status, response.read(), response.getheader("Content-Type") or "application/json"
+    finally:
+        conn.close()
 
 
 class MpdError(Exception):
@@ -880,12 +1021,18 @@ def media_action(body: dict) -> dict:
     return media_state()
 
 
-def transcribe_audio(data: bytes, content_type: str) -> dict:
+def transcribe_audio(data: bytes, content_type: str, task: str = "transcribe", language: str = "") -> dict:
     if not data:
         raise ValueError("empty audio")
+    if task not in STT_TASKS:
+        raise ValueError(f"task must be one of {', '.join(STT_TASKS)}")
+    if language and not (language.isalpha() and len(language) <= 3):
+        raise ValueError("language must be a short language code")
     kind = content_type.split(";")[0].strip() or "audio/mp4"
     boundary = os.urandom(12).hex()
-    head = (
+    fields = {"task": task, **({"language": language} if language else {})}
+    form = "".join(f"--{boundary}\r\nContent-Disposition: form-data; name=\"{name}\"\r\n\r\n{value}\r\n" for name, value in fields.items())
+    head = form.encode() + (
         f"--{boundary}\r\n"
         f"Content-Disposition: form-data; name=\"audio\"; filename=\"speech{STT_SUFFIXES.get(kind, '.m4a')}\"\r\n"
         f"Content-Type: {kind}\r\n\r\n"
@@ -907,7 +1054,28 @@ def transcribe_audio(data: bytes, content_type: str) -> dict:
         raise OSError(str(detail or f"speech-to-text answered {err.code}")) from None
     except urllib.error.URLError:
         raise OSError("speech-to-text is not running on the desktop") from None
-    return {"text": str(result.get("text") or "").strip(), "language": result.get("language"), "duration": result.get("duration")}
+    return {
+        "text": str(result.get("text") or "").strip(),
+        "language": result.get("language"),
+        "duration": result.get("duration"),
+        "language_probability": result.get("language_probability"),
+        "task": result.get("task") or task,
+        "elapsed_seconds": result.get("elapsed_seconds"),
+    }
+
+
+def stt_call(method: str, rest: str, body: bytes | None, content_type: str) -> tuple[int, bytes, str]:
+    if (method, rest) not in STT_PROXIED:
+        raise ValueError("only stt-core's status and warmup are proxied")
+    headers = {"Content-Type": content_type} if body is not None and content_type else {}
+    request = urllib.request.Request(f"{STT_BASE}/{rest}", data=body, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(request, timeout=180) as response:
+            return response.status, response.read(), response.headers.get("Content-Type") or "application/json"
+    except urllib.error.HTTPError as err:
+        return err.code, err.read(), err.headers.get("Content-Type") or "application/json"
+    except urllib.error.URLError:
+        raise OSError("speech-to-text is not running on the desktop") from None
 
 
 def read_password(path: Path) -> str | None:
@@ -1276,6 +1444,30 @@ class Handler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             pass
 
+    def proxy_watch(self, method: str, url) -> None:
+        length = int(self.headers.get("Content-Length") or 0)
+        body = self.rfile.read(length) if length else (b"" if method in ("POST", "PATCH") else None)
+        status, data, content_type = watch_call(method, url.path[len("/api/watch/"):], url.query, body)
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+
+    def proxy_stt(self, method: str, url) -> None:
+        length = int(self.headers.get("Content-Length") or 0)
+        if length > STT_MAX:
+            raise ValueError("audio too long")
+        body = self.rfile.read(length) if method == "POST" else None
+        status, data, content_type = stt_call(method, url.path[len("/api/stt/"):], body, self.headers.get("Content-Type") or "")
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+
     def read_body(self) -> dict:
         length = int(self.headers.get("Content-Length") or 0)
         if not length:
@@ -1326,6 +1518,12 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_json({"error": "no art"}, 404)
                 else:
                     self.send_bytes(found[0], found[1])
+            elif url.path == "/api/inbox":
+                self.send_json(inbox_wait(query))
+            elif url.path.startswith("/api/watch/"):
+                self.proxy_watch("GET", url)
+            elif url.path.startswith("/api/stt/"):
+                self.proxy_stt("GET", url)
             elif url.path == "/api/app/apk":
                 if APP_APK.is_file():
                     self.send_file(APP_APK, "application/vnd.android.package-archive", APP_APK.name)
@@ -1369,19 +1567,29 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({"error": "not found"}, 404)
         except ValueError as err:
             self.send_json({"error": str(err)}, 400)
-        except (OSError, MpdError, subprocess.SubprocessError) as err:
+        except (OSError, MpdError, subprocess.SubprocessError, http.client.HTTPException) as err:
             self.send_json({"error": str(err)}, 503)
 
     def do_POST(self):
         url = urllib.parse.urlparse(self.path)
         if self.refuse_stranger(url.path, "POST"):
             return
+        if url.path.startswith("/api/stt/"):
+            try:
+                self.proxy_stt("POST", url)
+            except ValueError as err:
+                self.send_json({"error": str(err)}, 400)
+            except OSError as err:
+                self.send_json({"error": str(err)}, 503)
+            return
         if url.path == "/api/transcribe":
             try:
                 length = int(self.headers.get("Content-Length") or 0)
                 if length > STT_MAX:
                     raise ValueError("audio too long")
-                self.send_json(transcribe_audio(self.rfile.read(length), self.headers.get("Content-Type") or ""))
+                query = dict(urllib.parse.parse_qsl(url.query))
+                audio = self.rfile.read(length)
+                self.send_json(transcribe_audio(audio, self.headers.get("Content-Type") or "", query.get("task") or "transcribe", query.get("language") or ""))
             except ValueError as err:
                 self.send_json({"error": str(err)}, 400)
             except OSError as err:
@@ -1391,6 +1599,9 @@ class Handler(BaseHTTPRequestHandler):
             self.receive_media(url)
             return
         try:
+            if url.path.startswith("/api/watch/"):
+                self.proxy_watch("POST", url)
+                return
             length = int(self.headers.get("Content-Length") or 0)
             if length > PHONE_MEDIA_INDEX_MAX:
                 raise ValueError("body too large")
@@ -1403,6 +1614,12 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(media_report(body))
             elif url.path == "/api/phone/media/release":
                 self.send_json(media_release(body))
+            elif url.path == "/api/inbox":
+                self.send_json(inbox_post(body))
+            elif url.path == "/api/inbox/read":
+                self.send_json(inbox_read(body))
+            elif url.path == "/api/inbox/drop":
+                self.send_json(inbox_drop(body))
             elif url.path == "/api/volume":
                 self.send_json(set_volume(body))
             elif url.path == "/api/lease":
@@ -1419,7 +1636,31 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({"error": "not found"}, 404)
         except ValueError as err:
             self.send_json({"error": str(err)}, 400)
-        except (OSError, MpdError, subprocess.SubprocessError) as err:
+        except (OSError, MpdError, subprocess.SubprocessError, http.client.HTTPException) as err:
+            self.send_json({"error": str(err)}, 503)
+
+    def do_PATCH(self):
+        url = urllib.parse.urlparse(self.path)
+        try:
+            if not url.path.startswith("/api/watch/"):
+                self.send_json({"error": "not found"}, 404)
+                return
+            self.proxy_watch("PATCH", url)
+        except ValueError as err:
+            self.send_json({"error": str(err)}, 400)
+        except (OSError, http.client.HTTPException) as err:
+            self.send_json({"error": str(err)}, 503)
+
+    def do_DELETE(self):
+        url = urllib.parse.urlparse(self.path)
+        try:
+            if not url.path.startswith("/api/watch/"):
+                self.send_json({"error": "not found"}, 404)
+                return
+            self.proxy_watch("DELETE", url)
+        except ValueError as err:
+            self.send_json({"error": str(err)}, 400)
+        except (OSError, http.client.HTTPException) as err:
             self.send_json({"error": str(err)}, 503)
 
     def receive_media(self, url) -> None:
@@ -1442,6 +1683,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main() -> None:
     STATE_DIR.mkdir(parents=True, exist_ok=True)
+    inbox_load()
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     server.daemon_threads = True
     print(f"phone-bridge listening on {HOST}:{PORT}", flush=True)
