@@ -1060,7 +1060,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
             items(pendingHere.asReversed(), key = { "s" + it.id }) { PendingBubble(it.text, busy) }
             if (busy) item(key = "busy") { Label("working…", color = scheme.primary) }
             items(entries.asReversed(), key = { it.info.id }) { entry ->
-                EntryView(entry, scheme, stops, onEdit = { code.edit(it) }, onResend = { code.resend(it) })
+                EntryView(entry, scheme, stops, onEdit = { code.edit(it) }, onResend = { follow = true; code.resend(it) })
             }
             if (entries.isEmpty()) {
                 item(key = "empty") {
@@ -1072,7 +1072,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         Composer(
             field, focus, busy, reachable, attachments, uploading,
             onChange = { field = it; code.draft.value = it.text },
-            onSend = { code.send(field.text) },
+            onSend = { follow = true; code.send(field.text) },
             onStop = { code.stop() },
             onPicture = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             onFile = { files.launch(arrayOf("*/*")) },
