@@ -28,9 +28,6 @@ class UpdateStore(private val store: Store, private val app: Application) {
     private val progressFlow = MutableStateFlow<Float?>(null)
     val progress: StateFlow<Float?> = progressFlow
 
-    private val readyFlow = MutableStateFlow(false)
-    val ready: StateFlow<Boolean> = readyFlow
-
     private val dir: File get() = File(app.cacheDir, "updates").apply { mkdirs() }
     private val apk: File get() = File(dir, "mandragora-phone.apk")
     private val stamp: File get() = File(dir, "mandragora-phone.apk.sha256")
@@ -42,7 +39,6 @@ class UpdateStore(private val store: Store, private val app: Application) {
     suspend fun refresh() {
         val build = latest()
         availableFlow.value = build
-        readyFlow.value = build != null && downloaded(build)
         if (build == null) withContext(Dispatchers.IO) { apk.delete(); stamp.delete() }
     }
 
@@ -65,16 +61,13 @@ class UpdateStore(private val store: Store, private val app: Application) {
             }
             availableFlow.value = build
             if (build == null) {
-                readyFlow.value = false
                 withContext(Dispatchers.IO) { apk.delete(); stamp.delete() }
                 return@act
             }
             if (downloaded(build)) {
-                readyFlow.value = true
                 app.startActivity(installer())
                 return@act
             }
-            readyFlow.value = false
             progressFlow.value = 0f
             val partial = File(dir, "mandragora-phone.apk.part")
             try {
@@ -89,7 +82,6 @@ class UpdateStore(private val store: Store, private val app: Application) {
                     stamp.writeText(verified.sha256)
                 }
                 availableFlow.value = verified
-                readyFlow.value = true
                 if (store.foreground.value) app.startActivity(installer()) else notifyReady(verified)
             } finally {
                 partial.delete()
@@ -118,7 +110,7 @@ class UpdateStore(private val store: Store, private val app: Application) {
         val tap = PendingIntent.getActivity(app, 7, installer(), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val notification = NotificationCompat.Builder(app, CHANNEL)
             .setSmallIcon(R.drawable.ic_launcher_mono)
-            .setContentTitle("mandragora update downloaded")
+            .setContentTitle("mandragora update")
             .setContentText("${build.versionName} · tap to install")
             .setContentIntent(tap)
             .setAutoCancel(true)

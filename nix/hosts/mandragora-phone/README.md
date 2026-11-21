@@ -88,8 +88,8 @@ last known second". It never falls back to a public host.
    bridge. First install: open `http://<desktop tailnet ip>:6688/api/app/apk`
    in the phone's browser, open the download, allow installs from the browser
    once, install. Every later build is offered by the app itself: a line on
-   home reads "update ready" when the desktop holds a newer build; one tap
-   downloads it over the tailnet, checks it against the bridge's hash and
+   home reads "install update" when the desktop holds a newer build; one tap
+   fetches it over the tailnet, checks it against the bridge's hash and
    hands it to Android's installer, which asks once to allow installs from
    the app and then once per update. `PHONE_ADB_ADDR=<ip:port> phone-push`
    still installs over wireless debugging instead of publishing.
@@ -138,7 +138,7 @@ back collapses it):
 | ask card: name or the last reply | opens the ask screen; the subtitle is the model, or what it is doing | ask |
 | teach card: name or the last line | opens the teach screen; the subtitle is the streak, what is due and how often you were right, or that the tutor is writing | teach |
 | watch card: name or a trigger | opens the watch screen; the subtitle counts the triggers not yet accepted | watch |
-| "update ready" line (only when the desktop published a newer build) | asks the desktop for its current build first, then downloads it, verifies the hash, opens Android's installer (a build published while the line was showing is the one installed); the first time it opens the "allow installs from this app" setting instead and says so on the notice line. The verified download is kept, so leaving the app mid-download never costs a second one: the line turns into "install update", and a download that finishes while the app is in the background posts a "tap to install" notification instead of opening the installer | installer |
+| "install update" line (only when the desktop published a newer build; it shows the version, and a ring while the build is fetched) | asks the desktop for its current build first, then fetches it, verifies the hash, opens Android's installer (a build published while the line was showing is the one installed); the first time it opens the "allow installs from this app" setting instead and says so on the notice line. The line never mentions downloading: the verified build is kept, so leaving the app mid-fetch never costs a second one, the next tap goes straight to the installer, and a fetch that finishes while the app is in the background posts a "tap to install" notification instead of opening the installer | installer |
 | header dot | nothing, display, a dot with no words (the banner under the header says what is wrong): green when the desktop answers; hollow from the moment the app opens until the first answer, with retries a second apart; red only after three misses in a row, and from then on a retry every five seconds | home |
 | gear in the header | opens settings | settings |
 | Android back on home | leaves the app | launcher |
