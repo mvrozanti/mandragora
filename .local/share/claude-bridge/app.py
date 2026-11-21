@@ -107,6 +107,8 @@ DESK_READY_SECONDS = 45
 DESK_FALLBACK_SESSION = os.environ.get("CLAUDE_BRIDGE_TMUX_SESSION", "claude")
 DESK_WINDOW = "#{session_name}:#{window_index} #{pane_id}"
 CLOSE_SECONDS = 6
+TAIL_REACH = (65536, 1048576)
+tail_models: dict[Path, tuple[tuple[int, int], str | None]] = {}
 
 PASSWORD = web.AppKey("password", object)
 BRIDGE = web.AppKey("bridge", object)
@@ -215,6 +217,55 @@ def last_model(sid: str) -> str | None:
         if entry["info"]["role"] == "assistant" and entry["info"].get("modelID"):
             return entry["info"]["modelID"]
     return None
+
+
+def assistant_model(data: bytes) -> str | None:
+    for raw in reversed(data.split(b"\n")):
+        if b'"assistant"' not in raw:
+            continue
+        try:
+            record = json.loads(raw)
+        except ValueError:
+            continue
+        if not isinstance(record, dict) or record.get("type") != "assistant" or record.get("isSidechain"):
+            continue
+        model = (record.get("message") or {}).get("model")
+        if isinstance(model, str) and model and model != "<synthetic>":
+            return model
+    return None
+
+
+def tail_model(path: Path) -> str | None:
+    try:
+        stat = path.stat()
+    except OSError:
+        return None
+    key = (stat.st_size, stat.st_mtime_ns)
+    known = tail_models.get(path)
+    if known is not None and known[0] == key:
+        return known[1]
+    model = None
+    with path.open("rb") as handle:
+        for reach in TAIL_REACH:
+            handle.seek(max(0, stat.st_size - reach))
+            model = assistant_model(handle.read())
+            if model is not None or stat.st_size <= reach:
+                break
+    if model is None and known is not None:
+        model = known[1]
+    tail_models[path] = (key, model)
+    return model
+
+
+def transcript_models(sids: list[str]) -> dict[str, str]:
+    paths = {path.stem: path for path in TRANSCRIPTS.glob("*/*.jsonl")}
+    found = {}
+    for sid in sids:
+        path = paths.get(sid)
+        model = tail_model(path) if path is not None else None
+        if model is not None:
+            found[sid] = model
+    return found
 
 
 def tool_part(part_id: str, message_id: str, sid: str, call_id: str, tool: str, data: dict | None, status: str = "pending") -> dict:
@@ -567,7 +618,7 @@ class Bridge:
         self.projects_cache = (time.time(), result)
         return result
 
-    def session_dict(self, info, live: dict | None) -> dict:
+    def session_dict(self, info, live: dict | None, model: tuple[str, str] | None = None) -> dict:
         first = (info.first_prompt or "").strip().splitlines()
         title = info.custom_title or info.summary or (first[0][:80] if first else "")
         session = {
@@ -579,24 +630,45 @@ class Bridge:
         }
         if live:
             session["live"] = {"name": live.get("name"), "status": live.get("status"), "waiting": live.get("waiting"), "tmux": live.get("tmux")}
+        if model is not None:
+            session["providerID"], session["modelID"] = model
         return session
+
+    async def models_of(self, sids: list[str]) -> dict[str, tuple[str, str]]:
+        seen = await asyncio.to_thread(transcript_models, sids)
+        result = {}
+        for sid in sids:
+            run, fresh, chosen = self.runs.get(sid), self.fresh.get(sid), self.choices.get(sid, {})
+            if run is not None:
+                result[sid] = (run.provider, run.model)
+            elif sid in seen:
+                result[sid] = (provider_of(seen[sid]), seen[sid])
+            elif chosen.get("provider") in PROVIDERS:
+                result[sid] = (chosen["provider"], chosen.get("model") or PROVIDERS[chosen["provider"]]["default"])
+            elif fresh is not None:
+                result[sid] = (fresh["provider"], fresh["model"])
+        return result
 
     async def find(self, query: str, limit: int) -> list[dict]:
         infos = await asyncio.to_thread(list_sessions, None, 400)
         live = self.live_sessions()
         if not query.strip():
-            return [self.session_dict(info, live.get(info.session_id)) for info in infos[:limit]]
+            shown = infos[:limit]
+            models = await self.models_of([info.session_id for info in shown])
+            return [self.session_dict(info, live.get(info.session_id), models.get(info.session_id)) for info in shown]
         by_id = {info.session_id: info for info in infos}
-        found = []
+        hits = []
         for sid, snippet in await asyncio.to_thread(find_rows, query):
-            info = by_id.get(sid)
-            if info is None:
-                continue
-            session = self.session_dict(info, live.get(sid))
+            if sid in by_id:
+                hits.append((by_id[sid], snippet))
+                if len(hits) >= limit:
+                    break
+        models = await self.models_of([info.session_id for info, _ in hits])
+        found = []
+        for info, snippet in hits:
+            session = self.session_dict(info, live.get(info.session_id), models.get(info.session_id))
             session["snippet"] = MARKER.sub("", snippet)
             found.append(session)
-            if len(found) >= limit:
-                break
         return found
 
     async def sessions(self, directory: str | None, limit: int) -> list[dict]:
@@ -609,7 +681,8 @@ class Bridge:
             info = await asyncio.to_thread(get_session_info, sid, desk.get("cwd"))
             if info is not None:
                 infos.append(info)
-        return [self.session_dict(info, live.get(info.session_id)) for info in infos]
+        models = await self.models_of([info.session_id for info in infos])
+        return [self.session_dict(info, live.get(info.session_id), models.get(info.session_id)) for info in infos]
 
     def statuses(self) -> dict[str, dict]:
         result = {sid: {"type": "busy"} for sid, run in self.runs.items() if run.busy}

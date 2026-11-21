@@ -43,6 +43,8 @@ data class CodeSession(
     val time: CodeTime = CodeTime(),
     val live: LiveInfo? = null,
     val snippet: String? = null,
+    val providerID: String? = null,
+    val modelID: String? = null,
 ) {
     @Transient var backend: String = ""
     val folder: String get() = directory.trimEnd('/').substringAfterLast('/').ifEmpty { directory }

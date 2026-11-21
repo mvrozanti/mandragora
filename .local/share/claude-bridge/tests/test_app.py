@@ -128,3 +128,40 @@ def test_the_configured_model_falls_back_to_default(tmp_path, monkeypatch, conte
     settings.write_text(content)
     monkeypatch.setattr(app, "USER_SETTINGS", settings)
     assert app.configured_model() == expected
+
+
+def transcript_line(kind: str, model: str | None = None, sidechain: bool = False) -> str:
+    record = {"type": kind, "uuid": "u", "isSidechain": sidechain, "message": {"role": kind}}
+    if model is not None:
+        record["message"]["model"] = model
+    return json.dumps(record)
+
+
+def test_the_last_main_assistant_model_names_the_conversation():
+    lines = [
+        transcript_line("assistant", "claude-opus-5-5"),
+        transcript_line("assistant", "deepseek-v4-pro"),
+        transcript_line("assistant", "claude-haiku-4-5", sidechain=True),
+        transcript_line("assistant", "<synthetic>"),
+        transcript_line("user"),
+        "not json \"assistant\"",
+    ]
+    assert app.assistant_model("\n".join(lines).encode()) == "deepseek-v4-pro"
+    assert app.assistant_model(transcript_line("user").encode()) is None
+
+
+def test_transcript_models_read_tails_and_remember_them(tmp_path, monkeypatch):
+    monkeypatch.setattr(app, "TRANSCRIPTS", tmp_path)
+    monkeypatch.setattr(app, "TAIL_REACH", (64, 1 << 20))
+    monkeypatch.setattr(app, "tail_models", {})
+    folder = tmp_path / "-home-m"
+    folder.mkdir()
+    early = folder / "s1.jsonl"
+    early.write_text(transcript_line("assistant", "cc-gptoss") + "\n" + transcript_line("user") * 4 + "\n")
+    (folder / "s2.jsonl").write_text(transcript_line("user") + "\n")
+    assert app.transcript_models(["s1", "s2", "s3"]) == {"s1": "cc-gptoss"}
+    with early.open("a") as handle:
+        handle.write("x" * 2048 + "\n")
+    monkeypatch.setattr(app, "TAIL_REACH", (64,))
+    assert app.transcript_models(["s1"]) == {"s1": "cc-gptoss"}
+    assert app.tail_model(folder / "gone.jsonl") is None

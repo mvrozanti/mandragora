@@ -1,6 +1,8 @@
 package ac.mvr.phone.ui
 
 import ac.mvr.phone.logic.ABORTED
+import ac.mvr.phone.logic.Maker
+import ac.mvr.phone.logic.makerOf
 import ac.mvr.phone.logic.Shown
 import ac.mvr.phone.logic.ShownCalls
 import ac.mvr.phone.logic.ShownEntry
@@ -149,17 +151,22 @@ private fun JsonObject.str(key: String): String? = runCatching { this[key]?.json
 private fun folderOf(path: String?): String = path?.trimEnd('/')?.substringAfterLast('/')?.ifEmpty { path } ?: "home"
 
 @Composable
-private fun Chip(text: String, tone: Color, onTone: Color, enabled: Boolean = true, onTap: () -> Unit) {
-    Box(
+private fun Chip(text: String, tone: Color, onTone: Color, enabled: Boolean = true, lead: (@Composable () -> Unit)? = null, onTap: () -> Unit) {
+    Row(
         modifier = Modifier
             .clip(RoundedCornerShape(999.dp))
             .background(if (enabled) tone else tone.copy(alpha = 0.4f))
             .clickable(enabled = enabled, onClick = onTap)
-            .padding(horizontal = 14.dp, vertical = 8.dp),
+            .padding(start = if (lead != null) 10.dp else 14.dp, end = 14.dp, top = 8.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        lead?.invoke()
         Text(text, style = MaterialTheme.typography.labelLarge, color = onTone, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
+
+private fun CodeModel.maker(): Maker? = makerOf(backend, providerID, modelID)
 
 @Composable
 private fun SessionDot(open: Boolean, busy: Boolean) {
@@ -311,6 +318,7 @@ private fun SessionLine(session: CodeSession, status: CodeStatus?, selected: Boo
         verticalAlignment = Alignment.CenterVertically,
     ) {
         SessionDot(open = session.live != null, busy = busy)
+        MakerMark(makerOf(session.backend, session.providerID, session.modelID))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 session.title.ifBlank { "untitled" },
@@ -405,7 +413,11 @@ private fun TuneSheet(
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 models.forEach { option ->
                     val on = option == model
-                    Chip(option.label, if (on) scheme.primary else scheme.surfaceContainerHigh, if (on) scheme.onPrimary else scheme.onSurface) { onModel(option) }
+                    val ink = if (on) scheme.onPrimary else scheme.onSurface
+                    Chip(
+                        option.label, if (on) scheme.primary else scheme.surfaceContainerHigh, ink,
+                        lead = { MakerMark(option.maker(), size = 16.dp, tint = ink.takeIf { on }) },
+                    ) { onModel(option) }
                 }
             }
             if (tunable) {
@@ -430,7 +442,7 @@ private fun TuneSheet(
 }
 
 @Composable
-private fun SessionBar(current: CodeSession?, chip: String, onRename: (String) -> Unit, onPick: () -> Unit, onModel: () -> Unit) {
+private fun SessionBar(current: CodeSession?, chip: String, maker: Maker?, onRename: (String) -> Unit, onPick: () -> Unit, onModel: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     var editing by remember(current?.id) { mutableStateOf(false) }
     if (editing && current != null) {
@@ -451,7 +463,7 @@ private fun SessionBar(current: CodeSession?, chip: String, onRename: (String) -
                 .clickable { if (current != null) editing = true else onPick() }
                 .padding(horizontal = 6.dp, vertical = 4.dp),
         )
-        Chip(chip, scheme.surfaceContainerHigh, scheme.onSurface) { onModel() }
+        Chip(chip, scheme.surfaceContainerHigh, scheme.onSurface, lead = maker?.let { { MakerMark(it, size = 16.dp) } }) { onModel() }
     }
 }
 
@@ -1117,7 +1129,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         ScreenHeader("code", reachable, onCollapse)
         Banner(reachable)
         val tunable = backend == "claude"
-        SessionBar(current, chipText(model, settings, tunable), onRename = { code.rename(it) }, onPick = { picking = true }, onModel = { tuning = true })
+        SessionBar(current, chipText(model, settings, tunable), model?.maker(), onRename = { code.rename(it) }, onPick = { picking = true }, onModel = { tuning = true })
         LazyColumn(
             state = transcript,
             modifier = Modifier.weight(1f).fillMaxWidth(),
