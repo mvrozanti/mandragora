@@ -290,6 +290,8 @@ private fun SessionRow(
     }
 }
 
+private val HOME_DIR = Regex("|/root|/home/[^/]+")
+
 @Composable
 private fun SessionLine(session: CodeSession, status: CodeStatus?, selected: Boolean, onTap: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
@@ -309,16 +311,17 @@ private fun SessionLine(session: CodeSession, status: CodeStatus?, selected: Boo
         Column(modifier = Modifier.weight(1f)) {
             Text(session.title.ifBlank { "untitled" }, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
             val live = session.live
-            val state = listOfNotNull(
+            val subtitle = listOfNotNull(
                 when {
                     waiting -> "needs you" + (live?.waiting?.let { " · $it" } ?: "")
-                    live != null -> "on the desktop · ${live.status ?: "open"}"
                     busy -> "working"
                     else -> null
                 },
+                session.backend.takeIf { it.isNotEmpty() && it != "claude" },
+                session.folder.takeUnless { session.directory.trimEnd('/').matches(HOME_DIR) },
                 ago(session.time.updated).ifEmpty { null },
             ).joinToString(" · ")
-            Label("${session.backend} · ${session.folder} · $state", color = if (waiting) scheme.error else if (live != null) scheme.tertiary else scheme.outline)
+            Label(subtitle, color = if (waiting) scheme.error else if (live != null) scheme.tertiary else scheme.outline)
             session.snippet?.takeIf { it.isNotBlank() }?.let { snip ->
                 Text(Meaning.annotate(snip, scheme), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
@@ -607,8 +610,112 @@ private fun Held(actions: List<Pair<String, () -> Unit>>, content: @Composable (
     }
 }
 
+private sealed interface Shown {
+    val key: String
+}
+
+private class ShownEntry(val entry: CodeEntry, val parts: List<CodePart>, val tail: Boolean, override val key: String) : Shown
+
+private class ShownCalls(val parts: List<CodePart>, val squashed: Boolean, override val key: String) : Shown
+
+private fun isCall(part: CodePart) = part.type == "tool" || part.type == "reasoning"
+
+private fun squashCalls(entries: List<CodeEntry>): List<Shown> {
+    val out = ArrayList<Shown>()
+    val run = ArrayList<CodePart>()
+    fun flush() {
+        if (run.isEmpty()) return
+        out += ShownCalls(run.toList(), run.count { it.type == "tool" } >= 2, "calls:" + run.first().id)
+        run.clear()
+    }
+    entries.forEach { entry ->
+        if (entry.info.role == "user") {
+            flush()
+            out += ShownEntry(entry, entry.parts, true, entry.info.id)
+            return@forEach
+        }
+        val piece = ArrayList<CodePart>()
+        var pieces = 0
+        fun cut() {
+            if (piece.isEmpty()) return
+            out += ShownEntry(entry, piece.toList(), false, entry.info.id + ":" + pieces++)
+            piece.clear()
+        }
+        entry.parts.forEach { part ->
+            when {
+                isCall(part) -> { cut(); run += part }
+                part.type == "text" && (part.ignored || part.text.isNullOrBlank()) -> Unit
+                else -> { flush(); piece += part }
+            }
+        }
+        cut()
+        if (entry.info.error != null) {
+            flush()
+            out += ShownEntry(entry, emptyList(), true, entry.info.id + ":end")
+        }
+    }
+    flush()
+    return out
+}
+
 @Composable
-private fun EntryView(entry: CodeEntry, scheme: ColorScheme, stops: Stops, onEdit: (String) -> Unit, onResend: (String) -> Unit) {
+private fun CallsView(calls: ShownCalls) {
+    if (!calls.squashed) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            calls.parts.forEach { if (it.type == "tool") ToolLine(it) else ReasoningLine(it) }
+        }
+        return
+    }
+    val scheme = MaterialTheme.colorScheme
+    var open by remember(calls.key) { mutableStateOf(false) }
+    val tools = calls.parts.filter { it.type == "tool" }
+    val live = tools.last().takeIf { it.state?.status != "completed" && it.state?.status != "error" }
+    val failed = tools.count { it.state?.status == "error" }
+    val names = tools.groupingBy { it.tool ?: "tool" }.eachCount().entries
+        .sortedByDescending { it.value }
+        .joinToString(" · ") { (name, count) -> if (count > 1) "$name ×$count" else name }
+    val tint = when {
+        live != null -> scheme.primary
+        failed > 0 -> scheme.error
+        else -> scheme.outline
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { open = !open }.padding(horizontal = 4.dp, vertical = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(if (open) "▾" else if (live != null) "▸" else "▪", style = MaterialTheme.typography.labelLarge, color = tint)
+            Text("${tools.size} calls", style = MaterialTheme.typography.labelLarge, color = tint)
+            Text(
+                listOfNotNull(names, "$failed failed".takeIf { failed > 0 }).joinToString(" · "),
+                style = MaterialTheme.typography.labelMedium,
+                color = scheme.outline,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        if (open) {
+            Column(modifier = Modifier.padding(start = 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                calls.parts.forEach { if (it.type == "tool") ToolLine(it) else ReasoningLine(it) }
+            }
+        } else if (live != null) {
+            Box(modifier = Modifier.padding(start = 14.dp)) { ToolLine(live) }
+        }
+    }
+}
+
+@Composable
+private fun EntryView(
+    entry: CodeEntry,
+    scheme: ColorScheme,
+    stops: Stops,
+    onEdit: (String) -> Unit,
+    onResend: (String) -> Unit,
+    parts: List<CodePart> = entry.parts,
+    tail: Boolean = true,
+) {
     val clipboard = LocalClipboardManager.current
     val chip = stops.chips[entry.info.id]
     if (entry.info.role == "user") {
@@ -628,7 +735,7 @@ private fun EntryView(entry: CodeEntry, scheme: ColorScheme, stops: Stops, onEdi
     val words = entry.parts.filter { it.type == "text" && !it.ignored }.mapNotNull { it.text }.filter { it.isNotBlank() }.joinToString("\n\n")
     val copy = listOf<Pair<String, () -> Unit>>("copy" to { clipboard.setText(AnnotatedString(Meaning.unmark(words))) })
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        entry.parts.forEach { part ->
+        parts.forEach { part ->
             when (part.type) {
                 "text" -> {
                     val text = part.text
@@ -643,7 +750,7 @@ private fun EntryView(entry: CodeEntry, scheme: ColorScheme, stops: Stops, onEdi
                 }
             }
         }
-        entry.info.error?.let { error ->
+        entry.info.error?.takeIf { tail }?.let { error ->
             if (error.name == ABORTED) {
                 StoppedLine(chip, onResend)
             } else {
@@ -748,7 +855,7 @@ private fun ScreenCard(ask: ScreenAsk, onPress: (String, String?) -> Unit) {
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(scheme.surfaceContainerHigh).padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Label("on the desktop · ${ask.waiting}", color = scheme.error)
+        if (ask.waiting.isNotBlank()) Label(ask.waiting, color = scheme.error)
         ask.plan?.let { MarkdownText(it, scheme) }
         if (ask.body.isNotBlank()) {
             Text(ask.body, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), color = scheme.onSurface)
@@ -1030,6 +1137,8 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     val pendingHere = pendingAll.filter { it.sessionId == current?.id }
     val settled = current != null && !busy && pendingHere.isEmpty() && screens.isEmpty() && asks.isEmpty() && questions.isEmpty()
     val stops = remember(entries, settled) { stoppedTurns(entries, settled) }
+    val squash by store.prefs.squashCalls.collectAsStateWithLifecycle()
+    val shown = remember(entries, squash) { if (squash) squashCalls(entries) else null }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(8)) { uris -> code.attach(uris) }
     val files = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> code.attach(uris) }
     val transcript = rememberLazyListState()
@@ -1059,8 +1168,18 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
             items(asks, key = { "p" + it.id }) { ask -> PermissionCard(ask) { code.allow(ask, it) } }
             items(pendingHere.asReversed(), key = { "s" + it.id }) { PendingBubble(it.text, busy) }
             if (busy) item(key = "busy") { Label("working…", color = scheme.primary) }
-            items(entries.asReversed(), key = { it.info.id }) { entry ->
-                EntryView(entry, scheme, stops, onEdit = { code.edit(it) }, onResend = { follow = true; code.resend(it) })
+            val onResend: (String) -> Unit = { follow = true; code.resend(it) }
+            if (shown != null) {
+                items(shown.asReversed(), key = { it.key }) { item ->
+                    when (item) {
+                        is ShownEntry -> EntryView(item.entry, scheme, stops, onEdit = { code.edit(it) }, onResend = onResend, parts = item.parts, tail = item.tail)
+                        is ShownCalls -> CallsView(item)
+                    }
+                }
+            } else {
+                items(entries.asReversed(), key = { it.info.id }) { entry ->
+                    EntryView(entry, scheme, stops, onEdit = { code.edit(it) }, onResend = onResend)
+                }
             }
             if (entries.isEmpty()) {
                 item(key = "empty") {

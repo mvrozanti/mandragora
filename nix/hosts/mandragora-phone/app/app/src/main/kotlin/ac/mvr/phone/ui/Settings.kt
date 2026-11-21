@@ -37,6 +37,7 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
     val order by store.prefs.cardOrder.collectAsStateWithLifecycle()
     val autoplay by store.prefs.autoplaySkip.collectAsStateWithLifecycle()
     val codeCount by store.prefs.codeCardCount.collectAsStateWithLifecycle()
+    val squash by store.prefs.squashCalls.collectAsStateWithLifecycle()
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("settings", reachable, onCollapse)
         Column(
@@ -90,6 +91,13 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
                     }
                 }
                 Label("the chevron on the card opens every session")
+                Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("squash call chains", style = MaterialTheme.typography.bodyLarge)
+                        Label(if (squash) "two or more calls in a row show as one line; tap it to open" else "every command, skill and edit gets its own line")
+                    }
+                    Switch(checked = squash, onCheckedChange = { store.prefs.setSquashCalls(it) })
+                }
             }
         }
         Notice(store, Modifier.padding(horizontal = 14.dp, vertical = 10.dp))

@@ -29,6 +29,9 @@ class Prefs(context: Context) {
     private val codeCountFlow = MutableStateFlow(sp.getInt("codeCardCount", 3))
     val codeCardCount: StateFlow<Int> = codeCountFlow
 
+    private val squashFlow = MutableStateFlow(sp.getBoolean("squashCalls", true))
+    val squashCalls: StateFlow<Boolean> = squashFlow
+
     private val clicksFlow = MutableStateFlow(readClicks())
     val hubClicks: StateFlow<Map<String, Int>> = clicksFlow
 
@@ -40,6 +43,11 @@ class Prefs(context: Context) {
     fun setAutoplaySkip(value: Boolean) {
         autoplayFlow.value = value
         sp.edit().putBoolean("autoplaySkip", value).apply()
+    }
+
+    fun setSquashCalls(value: Boolean) {
+        squashFlow.value = value
+        sp.edit().putBoolean("squashCalls", value).apply()
     }
 
     fun setCodeCardCount(value: Int) {

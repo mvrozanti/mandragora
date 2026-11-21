@@ -7,6 +7,11 @@ bottom are the ones that decide which.
 
 ## Shipped
 
+- Quieter code screens (2026-11-21): session rows say only what tells
+  sessions apart (needs you / working, a non-Claude backend, a project
+  folder that is not home, age), not "claude · m · on the desktop · open";
+  the prompt card drops its "on the desktop" too. Chains of two or more
+  tool calls fold into one "n calls" line, a setting that is on by default.
 - Desktop video on the lock screen (2026-11-21): when only the desk's
   YouTube tab (or any other MPRIS player) plays, the music player's session
   becomes that tab's, with thumbnail, position and seek through the bridge;
