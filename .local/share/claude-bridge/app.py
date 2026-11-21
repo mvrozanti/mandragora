@@ -542,10 +542,12 @@ class Bridge:
         if time.time() - stamp < PROJECTS_TTL:
             return cached
         infos = await asyncio.to_thread(list_sessions, None, 400)
+        lives = list(self.live_sessions().values())
+        present = await asyncio.to_thread(existing_dirs, [info.cwd for info in infos] + [live.get("cwd") for live in lives])
         grouped: dict[str, dict] = {}
         for info in infos:
             cwd = info.cwd
-            if not cwd or not Path(cwd).is_dir():
+            if not cwd or cwd not in present:
                 continue
             updated = to_ms(info.last_modified)
             project = grouped.get(cwd)
@@ -553,9 +555,9 @@ class Bridge:
                 grouped[cwd] = {"id": cwd, "worktree": cwd, "name": Path(cwd).name or cwd, "time": {"created": updated, "updated": updated}, "sandboxes": []}
             elif updated > project["time"]["updated"]:
                 project["time"]["updated"] = updated
-        for live in self.live_sessions().values():
+        for live in lives:
             cwd = live.get("cwd")
-            if not cwd or not Path(cwd).is_dir():
+            if not cwd or cwd not in present:
                 continue
             if cwd in grouped:
                 grouped[cwd]["time"]["updated"] = now_ms()
@@ -1112,7 +1114,7 @@ class Bridge:
             return PermissionResultDeny(message="the question was skipped from the phone")
         self.bus.emit("question.replied", {"sessionID": sid, "requestID": payload["id"], "answers": answers})
         chosen = {}
-        for question, picked in zip(questions, answers):
+        for question, picked in zip(questions, answers, strict=False):
             chosen[question["question"]] = ", ".join(picked)
         return PermissionResultAllow(updated_input={**data, "answers": chosen})
 
@@ -1184,6 +1186,10 @@ async def find(request: web.Request) -> web.Response:
         return web.json_response(await bridge_of(request).find(request.query.get("q") or "", limit))
     except (OSError, subprocess.SubprocessError) as err:
         return json_error(f"search failed: {str(err)[:160]}", 503)
+
+
+def existing_dirs(paths: list) -> set[str]:
+    return {path for path in paths if path and Path(path).is_dir()}
 
 
 def upload_name(raw: str) -> str:
