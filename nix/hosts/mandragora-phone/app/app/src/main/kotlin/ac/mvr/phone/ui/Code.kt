@@ -342,9 +342,15 @@ fun CodeCard(store: Store, onOpen: (String) -> Unit) {
         busy > 0 -> "$busy working"
         else -> "idle"
     }
+    val connected = sessions.filter { session ->
+        val status = statuses[session.id]
+        session.live != null || status?.type == "busy" || status?.message == "waiting"
+    }
+    val connectedIds = connected.map { it.id }.toSet()
+    val shown = connected + sessions.filter { it.id !in connectedIds }.take((count - connected.size).coerceAtLeast(0))
     HomeCard {
         CardHeader("code", subtitle) { onOpen("sessions") }
-        sessions.take(count).forEach { session ->
+        shown.forEach { session ->
             key(session.id) {
                 val status = statuses[session.id]
                 SessionRow(

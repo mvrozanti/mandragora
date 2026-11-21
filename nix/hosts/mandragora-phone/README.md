@@ -121,7 +121,7 @@ back collapses it):
 | money card: the share bars | nothing, display; one bar per asset, assets under one percent folded into one, or per venue when the money screen is set to venues | home |
 | money card: name | opens the money screen | money |
 | hub card: name or glance | opens the hub screen | hub |
-| code card: a session row (the three with the latest activity, by you or the model, newest first; every row says how long ago) | opens that session on the code screen | code |
+| code card: a session row (every session open on the desktop, working or waiting for you, newest first, then idle ones up to the count in settings; every row says how long ago) | opens that session on the code screen | code |
 | the dot on a session row | nothing, display: green when the session is open on the desktop, pulsing in the accent while it works, hollow when it is closed | home |
 | a session row, swiped to the left (only a Claude Code session that is open on the desktop or working; the others do not move) | a red strip with "close" follows the finger; past two fifths of the row it fills, buzzes once and reads "let go to close", and letting go there (or a fast flick past a third of that) closes the session: the row turns into "closing on the desktop in 5 s" with a draining line and an "undo" chip, and only when the five seconds run out does `claude-bridge` end that session's `claude` (SIGTERM, then SIGKILL after 6 s if it is still there). A window the phone opened goes away with it; a `claude` started from a shell leaves that shell. A working session says "its turn stops" while it counts down; once the five seconds are up the undo goes away and the row reads "closing on the desktop…" until the bridge answers. The transcript stays, so the next message opens it again. Let go short of the line and the row springs back. The same swipe works in the sessions screen and the sessions sheet | home |
 | code card: name or chevron | opens the sessions screen: every Claude Code session, searchable like `claude-find` | sessions |
@@ -142,7 +142,7 @@ the money unit and the hub's click counts):
 |---|---|---|
 | ▲ / ▼ on a card row | moves that card one step on home, saved at once; the update line always stays on top | settings |
 | "next and prev start playback" switch | on (the default): a skip while paused plays the new song, on either side; off: a skip while paused stays paused; a skip while playing always keeps playing | settings |
-| ▲ / ▼ on "sessions on the card" | one more or one fewer session on the code card, from one to eight, three by default | settings |
+| ▲ / ▼ on "sessions on the card" | one more or one fewer idle session on the code card, from one to eight, three by default; connected sessions always show | settings |
 | "settings ⌄" title, Android back | collapses to home | home |
 
 The sessions screen (every Claude Code session on the desktop, the way
