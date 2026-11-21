@@ -551,7 +551,7 @@ if [ "$COMMIT_SKIPPED" -eq 0 ]; then
       else
         echo "==> NOTE: $f also changed in the main tree; left as-is there (resolve manually)." >&2
       fi
-    done < <(git -C "$FLAKE" diff --name-only HEAD)
+    done < <(git -C "$FLAKE" diff --name-only --no-renames HEAD)
   fi
 
   cd "$FLAKE"
