@@ -161,8 +161,17 @@ class BridgeClient(private val baseUrl: () -> String) {
 
     suspend fun media(): MediaState = json.decodeFromString(Http.get("${baseUrl()}/api/media"))
 
-    suspend fun mediaAction(player: String, action: String): MediaState =
-        json.decodeFromString(Http.post("${baseUrl()}/api/media", buildJsonObject { put("player", player); put("action", action) }))
+    suspend fun mediaAction(player: String, action: String, position: Double? = null): MediaState =
+        json.decodeFromString(
+            Http.post("${baseUrl()}/api/media", buildJsonObject {
+                put("player", player)
+                put("action", action)
+                if (position != null) put("position", position)
+            }),
+        )
+
+    fun mediaArtUrl(player: String, key: String): String =
+        "${baseUrl()}/api/media/art?player=" + java.net.URLEncoder.encode(player, "UTF-8") + "&k=" + java.net.URLEncoder.encode(key, "UTF-8")
 
     suspend fun kill(id: String): KillResult = json.decodeFromString(Http.post("${baseUrl()}/api/kill", buildJsonObject { put("id", id) }))
 }
@@ -183,8 +192,20 @@ data class Hog(val id: String, val unit: String = id, val kind: String = "", val
 data class LoadState(val ts: Double = 0.0, val pressure: Pressure = Pressure(), val memory: MemInfo = MemInfo(), val hogs: List<Hog> = emptyList())
 
 @Serializable
-data class DesktopMedia(val player: String, val status: String = "", val title: String = "", val artist: String = "", val url: String = "", val source: String = "") {
+data class DesktopMedia(
+    val player: String,
+    val status: String = "",
+    val title: String = "",
+    val artist: String = "",
+    val url: String = "",
+    val source: String = "",
+    val position: Double = 0.0,
+    val length: Double = 0.0,
+    val art: String = "",
+) {
     val playing: Boolean get() = status == "Playing"
+    val label: String get() = title.ifEmpty { source }
+    val byline: String get() = listOfNotNull(artist.takeIf { it.isNotEmpty() }, "$source on the desktop").joinToString(" · ")
 }
 
 @Serializable

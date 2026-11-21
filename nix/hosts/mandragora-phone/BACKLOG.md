@@ -7,6 +7,13 @@ bottom are the ones that decide which.
 
 ## Shipped
 
+- Desktop video on the lock screen (2026-11-21): when only the desk's
+  YouTube tab (or any other MPRIS player) plays, the music player's session
+  becomes that tab's, with thumbnail, position and seek through the bridge;
+  a second media notification appears only while both play; starting one
+  from the phone pauses the other. A first cut the same morning ran its own
+  foreground service with a permanent "watching the desk" notification and a
+  boot receiver; both are gone.
 - Host declaration: identity, tailnet entry, syncthing folders read from one
   place.
 - `phone-bridge` on the desktop: config, desktop sink volume, the playback

@@ -18,6 +18,7 @@ import ac.mvr.phone.net.DesktopMedia
 import ac.mvr.phone.net.Http
 import ac.mvr.phone.net.Lease
 import ac.mvr.phone.net.Lyrics
+import ac.mvr.phone.net.MediaState
 import ac.mvr.phone.net.MpdClient
 import ac.mvr.phone.net.MpdSnapshot
 import ac.mvr.phone.net.MpdSong
@@ -129,6 +130,8 @@ class Store(private val app: Application) {
     val cover = MutableStateFlow<Bitmap?>(null)
     val coverSettled = MutableStateFlow(false)
     val media = MutableStateFlow<List<DesktopMedia>>(emptyList())
+    private var mediaAtMs = 0L
+    private val mediaPoke = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private var coverKey: String? = null
     private var noticeJob: Job? = null
     val foreground = MutableStateFlow(false)
@@ -262,7 +265,7 @@ class Store(private val app: Application) {
         scope.launch { loopWhileForeground(10_000) { load.refresh() } }
         scope.launch { loopWhileForeground(5_000) { code.refresh() } }
         scope.launch { foreground.collectLatest { fg -> if (fg) code.watchList() } }
-        scope.launch { loopWhileForeground(5_000) { refreshMedia() } }
+        scope.launch { loopMedia() }
         scope.launch {
             while (isActive) {
                 if (lease.value.owner == "phone") host?.let { h ->
@@ -368,6 +371,19 @@ class Store(private val app: Application) {
         }
     }
 
+    private suspend fun loopMedia() {
+        var misses = 0
+        while (scope.isActive) {
+            if (foreground.value || host != null) {
+                val ok = runCatching { refreshMedia() }.isSuccess
+                misses = if (ok) 0 else misses + 1
+                if (misses >= 3 && media.value.isNotEmpty()) media.value = emptyList()
+            }
+            val wait = if (foreground.value || media.value.isNotEmpty()) 5_000L else 15_000L
+            withTimeoutOrNull(wait) { mediaPoke.first() }
+        }
+    }
+
     private suspend fun loopHeartbeat() {
         while (scope.isActive && lease.value.owner == "phone") {
             val h = host
@@ -415,8 +431,40 @@ class Store(private val app: Application) {
     }
 
     suspend fun refreshVolume() { runCatching { volume.value = bridge.volume() } }
-    suspend fun refreshMedia() { media.value = bridge.media().players }
-    fun toggleMedia(player: String) = act { media.value = bridge.mediaAction(player, "play-pause").players }
+    suspend fun refreshMedia() = adoptMedia(bridge.media())
+    fun toggleMedia(player: String) = act { deskCommand(player, "play-pause") }
+    fun pokeMedia() { mediaPoke.tryEmit(Unit) }
+
+    private fun adoptMedia(state: MediaState) {
+        mediaAtMs = SystemClock.elapsedRealtime()
+        media.value = state.players
+    }
+
+    fun mediaPositionMs(player: DesktopMedia): Long =
+        (player.position * 1000).toLong() + if (player.playing) SystemClock.elapsedRealtime() - mediaAtMs else 0L
+
+    suspend fun deskCommand(player: String, action: String, position: Double? = null) {
+        val resumes = action == "play" || (action == "play-pause" && media.value.none { it.player == player && it.playing })
+        if (resumes) runCatching { pauseMusic() }
+        adoptMedia(bridge.mediaAction(player, action, position))
+    }
+
+    private suspend fun pauseMusic() {
+        if (lease.value.owner == "phone") {
+            host?.localPause()
+        } else if (mpdSnapshot.value?.status?.playing == true) {
+            mpd.pause(true)
+            refreshMpd()
+        }
+    }
+
+    fun yieldDesk() {
+        val playing = media.value.filter { it.playing }
+        if (playing.isEmpty()) return
+        scope.launch {
+            playing.forEach { runCatching { adoptMedia(bridge.mediaAction(it.player, "pause")) } }
+        }
+    }
     suspend fun refreshLease() { runCatching { adopt(bridge.lease()) } }
     suspend fun refreshPalette() { runCatching { palette.value = theme.palette() } }
 
@@ -527,13 +575,13 @@ class Store(private val app: Application) {
         val h = host
         if (now.value.phoneOwns && h != null) {
             if (!h.localHasMedia()) restoreLocal(lease.value).join()
-            if (h.localIsPlaying()) h.localPause() else h.localPlay()
+            if (h.localIsPlaying()) h.localPause() else { yieldDesk(); h.localPlay() }
         } else {
             val status = mpdSnapshot.value?.status
             when {
                 status?.playing == true -> mpd.pause(true)
-                status?.state == "pause" -> mpd.pause(false)
-                else -> mpd.play()
+                status?.state == "pause" -> { yieldDesk(); mpd.pause(false) }
+                else -> { yieldDesk(); mpd.play() }
             }
             refreshMpd()
         }
@@ -744,6 +792,7 @@ class Store(private val app: Application) {
     }
 
     fun playSong(song: MpdSong) = act {
+        yieldDesk()
         val h = host
         if (now.value.phoneOwns && h != null) {
             val track = sourceFor(song.file) ?: throw missing(song.name)

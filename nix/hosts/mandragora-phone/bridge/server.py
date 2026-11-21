@@ -26,8 +26,11 @@ MPD_HOST = os.environ.get("PHONE_BRIDGE_MPD_HOST", "127.0.0.1")
 MPD_PORT = int(os.environ.get("PHONE_BRIDGE_MPD_PORT", "6600"))
 WPCTL = os.environ.get("PHONE_BRIDGE_WPCTL", "wpctl")
 PLAYERCTL = os.environ.get("PHONE_BRIDGE_PLAYERCTL", "playerctl")
-MEDIA_FORMAT = "{{playerName}}\t{{status}}\t{{title}}\t{{artist}}\t{{xesam:url}}"
-MEDIA_ACTIONS = ("play-pause", "play", "pause", "next", "previous")
+MEDIA_FORMAT = "{{playerInstance}}\t{{status}}\t{{title}}\t{{artist}}\t{{xesam:url}}\t{{position}}\t{{mpris:length}}\t{{mpris:artUrl}}"
+MEDIA_ACTIONS = ("play-pause", "play", "pause", "next", "previous", "seek")
+MEDIA_HIDDEN = re.compile(r"(mpd|kdeconnect|playerctld)(\.|$)")
+MEDIA_ART_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
+MEDIA_ART_MAX = 5 * 1024 * 1024
 LRCLIB_GET = "https://lrclib.net/api/get"
 USER_AGENT = "mandragora-phone-bridge/1 (+https://github.com/mvrozanti/mandragora)"
 VERSION = 1
@@ -801,13 +804,47 @@ def media_state() -> dict:
         return {"players": []}
     players = []
     for line in proc.stdout.splitlines():
-        name, status, title, artist, url = (line.split("\t") + ["", "", "", "", ""])[:5]
-        if not name or name.startswith("mpd"):
+        name, status, title, artist, url, position, length, art = (line.split("\t") + [""] * 8)[:8]
+        if not name or MEDIA_HIDDEN.match(name) or status not in ("Playing", "Paused"):
             continue
         source = "YouTube" if "youtube.com" in url or "youtu.be" in url else name.split(".")[0]
-        players.append({"player": name, "status": status, "title": title, "artist": artist, "url": url, "source": source})
+        players.append({
+            "player": name,
+            "status": status,
+            "title": title,
+            "artist": artist,
+            "url": url,
+            "source": source,
+            "position": micros_to_seconds(position),
+            "length": micros_to_seconds(length),
+            "art": Path(art).name if media_art_path(art) else "",
+        })
     players.sort(key=lambda p: p["status"] != "Playing")
     return {"players": players}
+
+
+def micros_to_seconds(value: str) -> float:
+    return int(value) / 1_000_000 if value.strip().isdigit() else 0.0
+
+
+def media_art_path(art_url: str) -> Path | None:
+    if not art_url.startswith("file://"):
+        return None
+    path = Path(urllib.parse.unquote(art_url[len("file://"):]))
+    if path.suffix.lower() not in MEDIA_ART_TYPES or not path.is_file() or path.stat().st_size > MEDIA_ART_MAX:
+        return None
+    return path
+
+
+def media_art(player: str) -> tuple[bytes, str] | None:
+    if not re.fullmatch(r"[A-Za-z0-9._-]+", player) or MEDIA_HIDDEN.match(player):
+        return None
+    try:
+        proc = subprocess.run([PLAYERCTL, "-p", player, "metadata", "mpris:artUrl"], capture_output=True, text=True, timeout=4)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    path = media_art_path(proc.stdout.strip())
+    return (path.read_bytes(), MEDIA_ART_TYPES[path.suffix.lower()]) if path else None
 
 
 def media_action(body: dict) -> dict:
@@ -817,7 +854,14 @@ def media_action(body: dict) -> dict:
         raise ValueError("unknown action")
     if not re.fullmatch(r"[A-Za-z0-9._-]+", player):
         raise ValueError("player required")
-    subprocess.run([PLAYERCTL, "-p", player, action], capture_output=True, text=True, timeout=4, check=False)
+    args = [action]
+    if action == "seek":
+        try:
+            position = float(str(body.get("position")))
+        except (TypeError, ValueError):
+            raise ValueError("position required") from None
+        args = ["position", f"{max(position, 0.0):.3f}"]
+    subprocess.run([PLAYERCTL, "-p", player, *args], capture_output=True, text=True, timeout=4, check=False)
     time.sleep(0.25)
     return media_state()
 
@@ -973,6 +1017,12 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(load_state())
             elif url.path == "/api/media":
                 self.send_json(media_state())
+            elif url.path == "/api/media/art":
+                found = media_art(query.get("player") or "")
+                if found is None:
+                    self.send_json({"error": "no art"}, 404)
+                else:
+                    self.send_bytes(found[0], found[1])
             elif url.path == "/api/app/apk":
                 if APP_APK.is_file():
                     self.send_file(APP_APK, "application/vnd.android.package-archive", APP_APK.name)

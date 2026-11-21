@@ -91,7 +91,7 @@ class RemotePlayer(looper: Looper, private val store: Store) : SimpleBasePlayer(
     }
 
     override fun handleSetPlayWhenReady(playWhenReady: Boolean): ListenableFuture<*> = run {
-        if (playWhenReady) store.mpd.play() else store.mpd.pause(true)
+        if (playWhenReady) { store.yieldDesk(); store.mpd.play() } else store.mpd.pause(true)
         store.refreshMpd()
     }
 

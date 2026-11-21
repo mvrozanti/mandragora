@@ -1,8 +1,12 @@
 package ac.mvr.phone.play
 
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
+import androidx.core.content.ContextCompat
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -26,6 +30,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
@@ -34,9 +39,15 @@ class PlaybackService : MediaSessionService(), PlayerHost {
     private lateinit var local: ExoPlayer
     private lateinit var localSession: Player
     private lateinit var remote: RemotePlayer
+    private lateinit var desk: DeskPlayer
+    private lateinit var music: Player
+    private var deskNotice: DeskNotice? = null
     private var session: MediaSession? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var remoteWatch: Job? = null
+    private val screenOn = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) { appStore.pokeMedia() }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -58,20 +69,50 @@ class PlaybackService : MediaSessionService(), PlayerHost {
         })
         localSession = PhoneQueuePlayer(local)
         remote = RemotePlayer(mainLooper, appStore)
+        desk = DeskPlayer(mainLooper, appStore)
+        deskNotice = DeskNotice(this, appStore)
         val launch = PendingIntent.getActivity(
             this,
             0,
             Intent(this, MainActivity::class.java).putExtra("screen", "music"),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val initial: Player = if (appStore.lease.value.owner == "phone") localSession else remote
-        session = MediaSession.Builder(this, initial).setSessionActivity(launch).build()
+        music = if (appStore.lease.value.owner == "phone") localSession else remote
+        session = MediaSession.Builder(this, music).setSessionActivity(launch).build()
         remoteWatch = scope.launch {
             launch { appStore.mpdSnapshot.collectLatest { remote.refresh() } }
-            launch { appStore.volume.collectLatest { remote.refresh() } }
+            launch { appStore.volume.collectLatest { remote.refresh(); desk.refresh() } }
+            launch { combine(appStore.media, appStore.mpdSnapshot, appStore.lease, appStore.localPlaying) { _, _, _, _ -> }.collect { route() } }
         }
+        ContextCompat.registerReceiver(this, screenOn, IntentFilter(Intent.ACTION_SCREEN_ON), ContextCompat.RECEIVER_NOT_EXPORTED)
         appStore.host = this
         appStore.act { appStore.refreshVolume() }
+        appStore.pokeMedia()
+    }
+
+    private fun musicPlaying(): Boolean =
+        if (appStore.lease.value.owner == "phone") localIsPlaying() else appStore.mpdSnapshot.value?.status?.playing == true
+
+    private fun route() {
+        val current = session ?: return
+        val players = appStore.media.value
+        val musicOn = musicPlaying()
+        val deskOn = players.firstOrNull { it.playing }
+        if (!musicOn && deskOn != null) desk.bind(deskOn.player)
+        val showDesk = when {
+            musicOn -> false
+            deskOn != null -> true
+            else -> current.player === desk && players.any { it.player == desk.bound }
+        }
+        val target = if (showDesk) desk else music
+        if (current.player !== target) current.setPlayer(target)
+        desk.refresh()
+        if (musicOn && deskOn != null) deskNotice?.show(deskOn) else deskNotice?.hide()
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == DeskNotice.ACTION) deskNotice?.handle(intent)
+        return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
@@ -84,18 +125,23 @@ class PlaybackService : MediaSessionService(), PlayerHost {
 
     override fun onDestroy() {
         appStore.host = null
+        runCatching { unregisterReceiver(screenOn) }
         remoteWatch?.cancel()
         scope.cancel()
+        deskNotice?.release()
+        deskNotice = null
         session?.release()
         session = null
         local.release()
         remote.release()
+        desk.release()
         super.onDestroy()
     }
 
     override fun useRemote() {
         local.pause()
-        session?.setPlayer(remote)
+        music = remote
+        route()
         remote.refresh()
     }
 
@@ -108,7 +154,8 @@ class PlaybackService : MediaSessionService(), PlayerHost {
         local.setMediaItem(MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).build(), positionMs.coerceAtLeast(0))
         local.prepare()
         local.playWhenReady = play
-        session?.setPlayer(localSession)
+        music = localSession
+        route()
     }
 
     override fun localArtwork(uri: Uri, artwork: ByteArray) {
@@ -163,6 +210,16 @@ class PlaybackService : MediaSessionService(), PlayerHost {
         override fun getAvailableCommands(): Player.Commands = super.getAvailableCommands().buildUpon().addAll(skips).build()
 
         override fun isCommandAvailable(command: Int): Boolean = skips.contains(command) || super.isCommandAvailable(command)
+
+        override fun play() {
+            appStore.yieldDesk()
+            super.play()
+        }
+
+        override fun setPlayWhenReady(playWhenReady: Boolean) {
+            if (playWhenReady) appStore.yieldDesk()
+            super.setPlayWhenReady(playWhenReady)
+        }
 
         override fun seekToNext() { appStore.next() }
 

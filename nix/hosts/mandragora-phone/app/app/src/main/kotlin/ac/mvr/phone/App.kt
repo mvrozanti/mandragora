@@ -1,7 +1,6 @@
 package ac.mvr.phone
 
 import android.app.Application
-import ac.mvr.phone.play.DesktopMediaWatcher
 import ac.mvr.phone.state.Store
 
 class App : Application() {
@@ -12,7 +11,6 @@ class App : Application() {
         super.onCreate()
         store = Store(this)
         store.start()
-        DesktopMediaWatcher.ensure(this)
     }
 }
 
