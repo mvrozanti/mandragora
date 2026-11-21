@@ -104,6 +104,7 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         store.foreground.value = true
+        store.photos.refreshAllowed()
         val token = SessionToken(this, ComponentName(this, PlaybackService::class.java))
         controllerFuture = MediaController.Builder(this, token).buildAsync().also { future ->
             future.addListener({ runCatching { future.get() } }, MoreExecutors.directExecutor())

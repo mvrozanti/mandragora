@@ -62,6 +62,14 @@ CODE_BACKENDS = (
     ("claude", "Claude Code", "claude", "claude", CLAUDE_PASSWORD_FILE),
     ("opencode", "OpenCode", "code", "opencode", OPENCODE_PASSWORD_FILE),
 )
+PHONE_MEDIA_DIR = STATE_DIR / "phone-media"
+PHONE_MEDIA_FILE_MAX = 8 << 30
+PHONE_MEDIA_THUMB_MAX = 4 << 20
+PHONE_MEDIA_INDEX_MAX = 64 << 20
+PHONE_MEDIA_ID = re.compile(r"^[0-9]{1,19}$")
+PHONE_MEDIA_SHA = re.compile(r"^[0-9a-f]{64}$")
+PHONE_MEDIA_FIELDS = ("name", "path", "kind", "mime", "size", "taken", "modified")
+PHONE_MEDIA_JOBS = ("thumbs", "pull", "remove")
 
 SINK_LINE = re.compile(r"^\s*│\s*(?P<default>\*)?\s*(?P<id>\d+)\.\s+(?P<name>.+?)\s+\[vol:\s*(?P<vol>[\d.]+)(?P<muted>\s+MUTED)?\]\s*$")
 LRC_LINE = re.compile(r"^\[(\d+):(\d+(?:\.\d+)?)\](.*)$")
@@ -77,6 +85,7 @@ hub_cache: dict = {"at": 0.0, "payload": None, "refreshing": False}
 cover_lock = threading.Lock()
 cover_cache: dict[str, tuple[bytes, str] | None] = {}
 COVER_CACHE_SIZE = 8
+phone_media_lock = threading.Lock()
 
 
 def load_json(path: str | None, fallback):
@@ -934,6 +943,235 @@ def config() -> dict:
     }
 
 
+def media_id(value) -> str:
+    text = str(value if value is not None else "")
+    if not PHONE_MEDIA_ID.match(text):
+        raise ValueError("bad media id")
+    return text
+
+
+def media_ids(values) -> list[str]:
+    if values is None:
+        return []
+    if not isinstance(values, list):
+        raise ValueError("ids must be a list")
+    return list(dict.fromkeys(media_id(v) for v in values))
+
+
+def media_path(*parts: str) -> Path:
+    return PHONE_MEDIA_DIR.joinpath(*parts)
+
+
+def media_read(name: str, fallback):
+    data = load_json(str(media_path(name)), None)
+    return data if isinstance(data, type(fallback)) else fallback
+
+
+def media_write(name: str, data) -> None:
+    target = media_path(name)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    tmp = target.with_name(target.name + ".tmp")
+    tmp.write_text(json.dumps(data), encoding="utf-8")
+    os.replace(tmp, target)
+
+
+def media_jobs() -> dict:
+    jobs = media_read("jobs.json", {})
+    remove = jobs.get("remove")
+    failed = jobs.get("failed")
+    return {
+        "thumbs": [str(x) for x in jobs.get("thumbs") or []],
+        "pull": [str(x) for x in jobs.get("pull") or []],
+        "remove": {str(k): str(v) for k, v in remove.items()} if isinstance(remove, dict) else {},
+        "failed": failed if isinstance(failed, dict) else {},
+    }
+
+
+def media_held(mid: str) -> dict | None:
+    meta = media_read(f"held/{mid}.json", {})
+    return meta if meta.get("sha256") and media_path("held", mid).is_file() else None
+
+
+def media_index_items() -> dict[str, dict]:
+    return {item["id"]: item for item in media_read("index.json", {}).get("items") or [] if isinstance(item, dict) and "id" in item}
+
+
+def media_for_phone() -> dict:
+    with phone_media_lock:
+        jobs = media_jobs()
+        media_write("seen.json", {"at": time.time()})
+    return {
+        "thumbs": jobs["thumbs"],
+        "pull": jobs["pull"],
+        "remove": [{"id": mid, "sha256": sha} for mid, sha in jobs["remove"].items()],
+    }
+
+
+def media_clean_item(item) -> dict:
+    if not isinstance(item, dict):
+        raise ValueError("index items must be objects")
+    clean = {"id": media_id(item.get("id"))}
+    for key in PHONE_MEDIA_FIELDS:
+        if key in item:
+            clean[key] = item[key]
+    return clean
+
+
+def media_store_index(body: dict) -> dict:
+    items = body.get("items")
+    if not isinstance(items, list):
+        raise ValueError("items required")
+    clean = [media_clean_item(item) for item in items]
+    present = {item["id"] for item in clean}
+    with phone_media_lock:
+        media_write("index.json", {"at": time.time(), "items": clean})
+        jobs = media_jobs()
+        gone = [mid for mid in jobs["remove"] if mid not in present]
+        for mid in gone:
+            media_log(mid, jobs["remove"].pop(mid), "gone")
+        jobs["thumbs"] = [mid for mid in jobs["thumbs"] if mid in present]
+        jobs["pull"] = [mid for mid in jobs["pull"] if mid in present]
+        media_write("jobs.json", jobs)
+    return media_for_phone()
+
+
+def media_log(mid: str, sha: str, outcome: str) -> None:
+    item = media_index_items().get(mid) or {}
+    line = json.dumps({"id": mid, "sha256": sha, "outcome": outcome, "name": item.get("name"), "path": item.get("path"), "at": time.time()})
+    target = media_path("removed.jsonl")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with open(target, "a", encoding="utf-8") as fh:
+        fh.write(line + "\n")
+
+
+def media_request(body: dict) -> dict:
+    thumbs = media_ids(body.get("thumbs"))
+    pull = media_ids(body.get("pull"))
+    remove = media_ids(body.get("remove"))
+    with phone_media_lock:
+        jobs = media_jobs()
+        missing = [mid for mid in remove if media_held(mid) is None]
+        if missing:
+            raise ValueError(f"not held on the desktop yet: {', '.join(missing)}")
+        for mid in thumbs:
+            jobs["failed"].pop(mid, None)
+            if mid not in jobs["thumbs"] and not media_path("thumbs", f"{mid}.jpg").is_file():
+                jobs["thumbs"].append(mid)
+        for mid in pull:
+            jobs["failed"].pop(mid, None)
+            if mid not in jobs["pull"] and media_held(mid) is None:
+                jobs["pull"].append(mid)
+        for mid in remove:
+            jobs["failed"].pop(mid, None)
+            jobs["remove"][mid] = (media_held(mid) or {})["sha256"]
+        media_write("jobs.json", jobs)
+    return media_status()
+
+
+def media_status() -> dict:
+    held_dir = media_path("held")
+    held = []
+    if held_dir.is_dir():
+        for meta in sorted(held_dir.glob("*.json")):
+            found = media_held(meta.stem)
+            if found:
+                held.append(found)
+    jobs = media_jobs()
+    thumbs_dir = media_path("thumbs")
+    return {
+        "index": media_read("index.json", {"at": None, "items": []}),
+        "jobs": {key: jobs[key] for key in PHONE_MEDIA_JOBS},
+        "failed": jobs["failed"],
+        "held": held,
+        "thumbs": sorted(p.stem for p in thumbs_dir.glob("*.jpg")) if thumbs_dir.is_dir() else [],
+        "seen": media_read("seen.json", {}).get("at"),
+    }
+
+
+def media_receive_thumb(mid: str, data: bytes) -> dict:
+    mid = media_id(mid)
+    if not data or len(data) > PHONE_MEDIA_THUMB_MAX or sniff_image(data) != "image/jpeg":
+        raise ValueError("a thumbnail is a jpeg under 4 MiB")
+    target = media_path("thumbs", f"{mid}.jpg")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    tmp = target.with_name(target.name + ".tmp")
+    tmp.write_bytes(data)
+    os.replace(tmp, target)
+    with phone_media_lock:
+        jobs = media_jobs()
+        jobs["thumbs"] = [x for x in jobs["thumbs"] if x != mid]
+        media_write("jobs.json", jobs)
+    return {"id": mid}
+
+
+def media_receive_file(mid: str, stream, length: int, claimed: str) -> dict:
+    mid = media_id(mid)
+    claimed = claimed.strip().lower()
+    if not PHONE_MEDIA_SHA.match(claimed):
+        raise ValueError("X-Sha256 header required")
+    if length <= 0 or length > PHONE_MEDIA_FILE_MAX:
+        raise ValueError("bad length")
+    held = media_path("held")
+    held.mkdir(parents=True, exist_ok=True)
+    partial = held / f"{mid}.part"
+    digest = hashlib.sha256()
+    remaining = length
+    with open(partial, "wb") as fh:
+        while remaining > 0:
+            chunk = stream.read(min(1 << 16, remaining))
+            if not chunk:
+                break
+            digest.update(chunk)
+            fh.write(chunk)
+            remaining -= len(chunk)
+    if remaining or digest.hexdigest() != claimed:
+        partial.unlink(missing_ok=True)
+        raise ValueError("upload incomplete or sha256 mismatch")
+    os.replace(partial, held / mid)
+    item = media_index_items().get(mid) or {}
+    meta = {"id": mid, "sha256": claimed, "size": length, "at": time.time(), **{k: item[k] for k in PHONE_MEDIA_FIELDS if k in item}}
+    media_write(f"held/{mid}.json", meta)
+    with phone_media_lock:
+        jobs = media_jobs()
+        jobs["pull"] = [x for x in jobs["pull"] if x != mid]
+        media_write("jobs.json", jobs)
+    return {"id": mid, "sha256": claimed}
+
+
+def media_report(body: dict) -> dict:
+    mid = media_id(body.get("id"))
+    job = body.get("job")
+    if job not in PHONE_MEDIA_JOBS:
+        raise ValueError("job must be thumbs, pull or remove")
+    error = body.get("error")
+    with phone_media_lock:
+        jobs = media_jobs()
+        if job == "remove":
+            sha = jobs["remove"].pop(mid, None)
+            if sha is not None:
+                media_log(mid, sha, f"failed: {error}" if error else "removed")
+        else:
+            jobs[job] = [x for x in jobs[job] if x != mid]
+        if error:
+            jobs["failed"][mid] = {"job": job, "error": str(error)[:300], "at": time.time()}
+        media_write("jobs.json", jobs)
+    return {"ok": True}
+
+
+def media_release(body: dict) -> dict:
+    ids = media_ids(body.get("ids"))
+    released = []
+    with phone_media_lock:
+        jobs = media_jobs()
+        for mid in ids:
+            if mid in jobs["remove"]:
+                continue
+            media_path("held", mid).unlink(missing_ok=True)
+            media_path("held", f"{mid}.json").unlink(missing_ok=True)
+            released.append(mid)
+    return {"released": released}
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "phone-bridge/1"
 
@@ -1069,6 +1307,23 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_json(lyrics_for(file))
             elif url.path == "/api/file":
                 self.send_song(music_path(query.get("file") or ""))
+            elif url.path == "/api/phone/media":
+                self.send_json(media_status())
+            elif url.path == "/api/phone/media/jobs":
+                self.send_json(media_for_phone())
+            elif url.path == "/api/phone/media/thumb":
+                thumb = media_path("thumbs", f"{media_id(query.get('id'))}.jpg")
+                if thumb.is_file():
+                    self.send_bytes(thumb.read_bytes(), "image/jpeg")
+                else:
+                    self.send_json({"error": "no thumbnail"}, 404)
+            elif url.path == "/api/phone/media/held":
+                mid = media_id(query.get("id"))
+                meta = media_held(mid)
+                if meta is None:
+                    self.send_json({"error": "not held"}, 404)
+                else:
+                    self.send_file(media_path("held", mid), str(meta.get("mime") or "application/octet-stream"), mid)
             elif url.path == "/api/cover":
                 file = query.get("file")
                 found = cover_for(file) if file else None
@@ -1098,9 +1353,23 @@ class Handler(BaseHTTPRequestHandler):
             except OSError as err:
                 self.send_json({"error": str(err)}, 503)
             return
+        if url.path in ("/api/phone/media/thumb", "/api/phone/media/file"):
+            self.receive_media(url)
+            return
         try:
+            length = int(self.headers.get("Content-Length") or 0)
+            if length > PHONE_MEDIA_INDEX_MAX:
+                raise ValueError("body too large")
             body = self.read_body()
-            if url.path == "/api/volume":
+            if url.path == "/api/phone/media/index":
+                self.send_json(media_store_index(body))
+            elif url.path == "/api/phone/media/request":
+                self.send_json(media_request(body))
+            elif url.path == "/api/phone/media/report":
+                self.send_json(media_report(body))
+            elif url.path == "/api/phone/media/release":
+                self.send_json(media_release(body))
+            elif url.path == "/api/volume":
                 self.send_json(set_volume(body))
             elif url.path == "/api/lease":
                 self.send_json(take_lease(body))
@@ -1117,6 +1386,23 @@ class Handler(BaseHTTPRequestHandler):
         except ValueError as err:
             self.send_json({"error": str(err)}, 400)
         except (OSError, MpdError, subprocess.SubprocessError) as err:
+            self.send_json({"error": str(err)}, 503)
+
+    def receive_media(self, url) -> None:
+        query = dict(urllib.parse.parse_qsl(url.query))
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+            if url.path == "/api/phone/media/thumb":
+                if length > PHONE_MEDIA_THUMB_MAX:
+                    raise ValueError("thumbnail too large")
+                self.send_json(media_receive_thumb(query.get("id") or "", self.rfile.read(length)))
+            else:
+                self.send_json(media_receive_file(query.get("id") or "", self.rfile, length, self.headers.get("X-Sha256") or ""))
+        except ValueError as err:
+            self.close_connection = True
+            self.send_json({"error": str(err)}, 400)
+        except OSError as err:
+            self.close_connection = True
             self.send_json({"error": str(err)}, 503)
 
 

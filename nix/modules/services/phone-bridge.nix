@@ -4,9 +4,22 @@ let
   src = ../../hosts/mandragora-phone/bridge/server.py;
   servicesJson = ../../hosts/mandragora-vps/compose/hub/static/services.json;
   tailnetJson = ../../snippets/tailnet.json;
+  phoneMedia = pkgs.writeShellApplication {
+    name = "phone-media";
+    runtimeInputs = [
+      pkgs.python3
+      pkgs.imagemagick
+    ];
+    runtimeEnv.PHONE_MEDIA_FONT = "${pkgs.dejavu_fonts}/share/fonts/truetype/DejaVuSans.ttf";
+    text = ''
+      exec python3 ${../../../.local/bin/phone-media.py} "$@"
+    '';
+  };
 in
 {
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 6600 ];
+
+  environment.systemPackages = [ phoneMedia ];
 
   mandragora.hub.services.phone-bridge = {
     port = 6688;

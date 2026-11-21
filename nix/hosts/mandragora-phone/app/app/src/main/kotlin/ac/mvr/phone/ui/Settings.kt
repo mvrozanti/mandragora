@@ -1,5 +1,6 @@
 package ac.mvr.phone.ui
 
+import android.text.format.DateUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import ac.mvr.phone.state.Store
@@ -99,8 +101,37 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
                     Switch(checked = squash, onCheckedChange = { store.prefs.setSquashCalls(it) })
                 }
             }
+            PhotosSection(store)
         }
         Notice(store, Modifier.padding(horizontal = 14.dp, vertical = 10.dp))
+    }
+}
+
+@Composable
+private fun PhotosSection(store: Store) {
+    val scheme = MaterialTheme.colorScheme
+    val context = LocalContext.current
+    val allowed by store.photos.allowed.collectAsStateWithLifecycle()
+    val contact by store.photos.lastContactMs.collectAsStateWithLifecycle()
+    val moved by store.photos.moved.collectAsStateWithLifecycle()
+    val detail = when {
+        !allowed -> "off · the switch opens Android's all files access for this app"
+        contact == 0L -> "on · not in touch with the desktop yet"
+        else -> "on · last in touch ${DateUtils.getRelativeTimeSpanString(contact)}" + if (moved > 0) " · $moved moved off the phone" else ""
+    }
+    Column(
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(scheme.surfaceContainerLow).padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Label("photos")
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("the desktop reaches photos and videos", style = MaterialTheme.typography.bodyLarge)
+                Label(detail)
+            }
+            Switch(checked = allowed, onCheckedChange = { context.startActivity(store.photos.accessSettings()) })
+        }
+        Label("it copies what it asks for, checks the copy, and only then deletes it here")
     }
 }
 

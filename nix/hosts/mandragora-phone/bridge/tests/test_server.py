@@ -241,3 +241,111 @@ def test_http_refuses_oversized_audio(bridge, monkeypatch):
     monkeypatch.setattr(server, "STT_MAX", 3)
     status, body = fetch(f"{bridge}/api/transcribe", b"AUDIO", {"Content-Type": "audio/mp4"})
     assert (status, body["error"]) == (400, "audio too long")
+
+
+JPEG = b"\xff\xd8\xff\xe0" + b"\x00" * 32
+PHOTO = b"car photo bytes" * 100
+PHOTO_SHA = server.hashlib.sha256(PHOTO).hexdigest()
+
+
+@pytest.fixture
+def media_dir(tmp_path, monkeypatch):
+    folder = tmp_path / "phone-media"
+    monkeypatch.setattr(server, "PHONE_MEDIA_DIR", folder)
+    return folder
+
+
+def post_json(url, payload):
+    return fetch(url, json.dumps(payload).encode(), {"Content-Type": "application/json"})
+
+
+def index(bridge, *ids):
+    items = [{"id": i, "name": f"{i}.jpg", "path": "DCIM/Camera/", "kind": "image", "mime": "image/jpeg", "size": len(PHOTO), "taken": 1, "junk": "x"} for i in ids]
+    return post_json(f"{bridge}/api/phone/media/index", {"items": items})
+
+
+def upload(bridge, mid, data, sha):
+    return fetch(f"{bridge}/api/phone/media/file?id={mid}", data, {"Content-Type": "application/octet-stream", "X-Sha256": sha})
+
+
+def test_media_ids_are_digits_only():
+    assert server.media_ids(["1", 2, "1"]) == ["1", "2"]
+    assert server.media_ids(None) == []
+    for bad in (["../x"], ["1;rm"], "12", [""]):
+        with pytest.raises(ValueError):
+            server.media_ids(bad)
+
+
+def test_phone_media_moves_a_photo_end_to_end(bridge, media_dir):
+    status, jobs = index(bridge, "7", "8")
+    assert (status, jobs) == (200, {"thumbs": [], "pull": [], "remove": []})
+    assert "junk" not in server.media_index_items()["7"]
+
+    status, body = post_json(f"{bridge}/api/phone/media/request", {"thumbs": ["7"], "pull": ["7"]})
+    assert status == 200
+    assert body["jobs"]["thumbs"] == ["7"] and body["jobs"]["pull"] == ["7"]
+    status, jobs = fetch(f"{bridge}/api/phone/media/jobs")
+    assert jobs == {"thumbs": ["7"], "pull": ["7"], "remove": []}
+
+    status, _ = fetch(f"{bridge}/api/phone/media/thumb?id=7", b"not a jpeg", {"Content-Type": "image/jpeg"})
+    assert status == 400
+    status, _ = fetch(f"{bridge}/api/phone/media/thumb?id=7", JPEG, {"Content-Type": "image/jpeg"})
+    assert status == 200
+    with urllib.request.urlopen(f"{bridge}/api/phone/media/thumb?id=7") as response:
+        assert response.read() == JPEG
+
+    status, body = post_json(f"{bridge}/api/phone/media/request", {"remove": ["7"]})
+    assert status == 400 and "not held" in body["error"]
+
+    status, _ = upload(bridge, "7", PHOTO, "0" * 64)
+    assert status == 400
+    assert not (media_dir / "held" / "7").exists()
+    status, body = upload(bridge, "7", PHOTO, PHOTO_SHA)
+    assert (status, body["sha256"]) == (200, PHOTO_SHA)
+    with urllib.request.urlopen(f"{bridge}/api/phone/media/held?id=7") as response:
+        assert response.read() == PHOTO
+
+    status, body = post_json(f"{bridge}/api/phone/media/request", {"remove": ["7"], "pull": ["7"]})
+    assert body["jobs"] == {"thumbs": [], "pull": [], "remove": {"7": PHOTO_SHA}}
+    assert body["held"][0]["name"] == "7.jpg"
+    status, jobs = fetch(f"{bridge}/api/phone/media/jobs")
+    assert jobs["remove"] == [{"id": "7", "sha256": PHOTO_SHA}]
+
+    status, body = post_json(f"{bridge}/api/phone/media/release", {"ids": ["7"]})
+    assert body["released"] == []
+    status, _ = post_json(f"{bridge}/api/phone/media/report", {"id": "7", "job": "remove"})
+    assert status == 200
+    log = [json.loads(line) for line in (media_dir / "removed.jsonl").read_text().splitlines()]
+    assert [(e["id"], e["outcome"], e["name"]) for e in log] == [("7", "removed", "7.jpg")]
+    status, body = post_json(f"{bridge}/api/phone/media/release", {"ids": ["7"]})
+    assert body["released"] == ["7"]
+    status, body = fetch(f"{bridge}/api/phone/media")
+    assert body["held"] == [] and body["seen"] is not None and body["thumbs"] == ["7"]
+
+
+def test_phone_media_failures_stop_retries_and_gone_items_leave_the_queue(bridge, media_dir):
+    index(bridge, "1", "2", "3")
+    post_json(f"{bridge}/api/phone/media/request", {"pull": ["1", "2"], "thumbs": ["3"]})
+    status, _ = post_json(f"{bridge}/api/phone/media/report", {"id": "1", "job": "pull", "error": "permission denied"})
+    assert status == 200
+    status, body = fetch(f"{bridge}/api/phone/media")
+    assert body["jobs"]["pull"] == ["2"]
+    assert body["failed"]["1"]["error"] == "permission denied"
+    status, _ = post_json(f"{bridge}/api/phone/media/report", {"id": "1", "job": "nope"})
+    assert status == 400
+
+    upload(bridge, "2", PHOTO, PHOTO_SHA)
+    post_json(f"{bridge}/api/phone/media/request", {"remove": ["2"]})
+    status, jobs = index(bridge, "1")
+    assert jobs == {"thumbs": [], "pull": [], "remove": []}
+    log = [json.loads(line) for line in (media_dir / "removed.jsonl").read_text().splitlines()]
+    assert [(e["id"], e["outcome"]) for e in log] == [("2", "gone")]
+
+    status, _ = post_json(f"{bridge}/api/phone/media/index", {"items": "nope"})
+    assert status == 400
+    status, _ = fetch(f"{bridge}/api/phone/media/thumb?id=99")
+    assert status == 404
+    status, _ = fetch(f"{bridge}/api/phone/media/held?id=99")
+    assert status == 404
+    status, _ = fetch(f"{bridge}/api/phone/media/held?id=../x")
+    assert status == 400

@@ -7,6 +7,14 @@ bottom are the ones that decide which.
 
 ## Shipped
 
+- The app as the desktop's way into the phone's photos and videos
+  (2026-11-21): with *All files access* on, the app posts its MediaStore
+  listing to `phone-bridge` and runs what the desktop queued (thumbnails,
+  sha256-checked copies, deletions that re-hash the file against the
+  desktop's copy first), every 10 s while open and every 15 min from a
+  persisted JobScheduler job, with no foreground service. `phone-media` on
+  the desktop lists, makes contact sheets and moves files off the phone.
+  No wireless debugging, and no Syncthing, for a one-off move.
 - Quieter code screens (2026-11-21): session rows say only what tells
   sessions apart (needs you / working, a non-Claude backend, a project
   folder that is not home, age), not "claude · m · on the desktop · open";
@@ -71,6 +79,15 @@ bottom are the ones that decide which.
   the browser, airplane mode on each screen.
 
 ## Next up
+
+- Retire Sync-Fork from the photo drain: the media bridge already moves
+  files with a verified copy; what is missing is the standing policy the
+  Syncthing inbox + `phone-archiver` encode (archive every new item into
+  `~/Pictures/Photos/YYYY/MM` and friends, delete from the phone after the
+  30-day retention). That is a desktop-side timer over `phone-media`, then
+  the six inbox folders leave `syncthing.nix`; Music and Notes stay on
+  Syncthing until the app can carry them too. Operator's call, stated
+  2026-11-21 as "we might even get rid of syncthing".
 
 Stated by the operator on 2026-11-15, in their order:
 

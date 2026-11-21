@@ -12,6 +12,8 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.SystemClock
 import ac.mvr.phone.BuildConfig
+import ac.mvr.phone.media.PhoneMediaJob
+import ac.mvr.phone.net.PhoneMediaApi
 import ac.mvr.phone.net.BridgeClient
 import ac.mvr.phone.net.BridgeConfig
 import ac.mvr.phone.net.DesktopMedia
@@ -107,6 +109,7 @@ class Store(private val app: Application) {
     val load = LoadStore(this)
     val find = FindStore(this)
     val code = CodeStore(this)
+    val photos = PhoneMediaStore(app, PhoneMediaApi { "http://$desktopIp:${port({ it.bridge }, BuildConfig.BRIDGE_PORT)}" })
 
     val reachable = MutableStateFlow(false)
     val checking = MutableStateFlow(true)
@@ -265,6 +268,7 @@ class Store(private val app: Application) {
         scope.launch { loopWhileForeground(300_000) { update.refresh() } }
         scope.launch { loopWhileForeground(10_000) { load.refresh() } }
         scope.launch { loopWhileForeground(5_000) { code.refresh() } }
+        scope.launch { loopWhileForeground(10_000) { if (photos.refreshAllowed()) PhoneMediaJob.schedule(app).also { photos.sync() } } }
         scope.launch { foreground.collectLatest { fg -> if (fg) code.watchList() } }
         scope.launch { loopMedia() }
         scope.launch {
