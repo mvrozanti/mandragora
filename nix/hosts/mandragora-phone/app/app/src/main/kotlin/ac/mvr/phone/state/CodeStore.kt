@@ -374,8 +374,7 @@ class CodeStore(private val store: Store) {
     fun modelChoices(): List<CodeModel> {
         val session = currentFlow.value
         val backend = session?.backend?.ifEmpty { null }
-        val pinned = settingsFlow.value.providerID?.takeIf { session?.live != null && backend == "claude" }
-        return choices().filter { (backend == null || it.backend == backend) && (pinned == null || it.providerID == pinned) }
+        return choices().filter { backend == null || it.backend == backend }
     }
 
     private fun followModel(session: CodeSession, entries: List<CodeEntry>) {
@@ -417,6 +416,7 @@ class CodeStore(private val store: Store) {
                     throw err
                 }
                 if (queuedChanges == 0 && currentFlow.value?.id == session.id) settingsFlow.value = saved
+                if (body.containsKey("providerID")) refreshListSoon()
             }
         }
     }

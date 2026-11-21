@@ -809,6 +809,17 @@ class Bridge:
         self.deliveries.add(task)
         task.add_done_callback(self.deliveries.discard)
 
+    def reopen(self, sid: str, opened: asyncio.Task) -> None:
+        async def run() -> None:
+            try:
+                await opened
+            except Exception as err:
+                self.bus.emit("session.error", {"sessionID": sid, "error": {"name": "UnknownError", "data": {"message": str(err)[:300]}}})
+
+        task = asyncio.ensure_future(run())
+        self.deliveries.add(task)
+        task.add_done_callback(self.deliveries.discard)
+
     async def stop_run(self, run: Run) -> None:
         if run.idle_handle:
             run.idle_handle.cancel()
@@ -1261,7 +1272,11 @@ async def prompt(request: web.Request) -> web.Response:
         return json_error(f"unknown local model {chosen}", 400)
     if (stored.get("provider"), stored.get("model")) != (provider, chosen):
         bridge.choose(sid, provider=provider, model=chosen)
-    if sid in bridge.opening or (run is None and provider in DESK_COMMANDS):
+    if sid in bridge.opening or (provider in DESK_COMMANDS and (run is None or run.provider != provider)):
+        if run is not None and sid not in bridge.opening:
+            if run.busy:
+                return json_error("still working on the last turn; stop it or let it finish, then switch", 409)
+            await bridge.stop_run(run)
         opened = bridge.open_on_desk(sid, directory, provider, chosen)
         bridge.deliver(sid, opened, text)
         bridge.bus.emit("session.status", {"sessionID": sid, "status": {"type": "busy", "message": "busy"}})
@@ -1394,13 +1409,27 @@ async def set_settings(request: web.Request) -> web.Response:
     return web.json_response(await bridge.settings_of(sid))
 
 
+async def switch_harness(bridge: Bridge, sid: str, live: dict, now: dict, changes: dict) -> web.Response:
+    if live.get("status") in ("busy", "shell"):
+        return json_error("that terminal is still working; stop it or let it finish, then switch", 409)
+    try:
+        await asyncio.to_thread(end_process, int(live["pid"]), live.get("procStart"))
+    except (OSError, RuntimeError, ValueError) as err:
+        return json_error(f"could not close the desktop terminal: {str(err)[:160]}", 503)
+    kept = bridge.choose(sid, **({"provider": now["providerID"], "model": now["modelID"], "mode": now["mode"], "effort": now["effort"]} | changes))
+    bridge.bus.emit("session.status", {"sessionID": sid, "status": {"type": "idle"}})
+    if kept["provider"] in DESK_COMMANDS:
+        bridge.reopen(sid, bridge.open_on_desk(sid, live.get("cwd") or str(HOME), kept["provider"], kept["model"]))
+    return web.json_response({"providerID": kept["provider"], "modelID": kept["model"], "mode": kept["mode"], "effort": kept["effort"]})
+
+
 async def tune_live(bridge: Bridge, sid: str, live: dict, changes: dict) -> web.Response:
     if live.get("status") == "waiting":
         return json_error("that terminal is waiting on an answer; answer it first", 409)
     now = await asyncio.to_thread(bridge.desk_settings, sid, live)
     if "provider" in changes:
         if changes["provider"] != now["providerID"]:
-            return json_error(f"that terminal runs {PROVIDERS[now['providerID']]['name']}; switching to {PROVIDERS[changes['provider']]['name']} takes a new session", 409)
+            return await switch_harness(bridge, sid, live, now, changes)
         if changes["model"] == now["modelID"]:
             changes = {key: value for key, value in changes.items() if key not in ("provider", "model")}
     try:

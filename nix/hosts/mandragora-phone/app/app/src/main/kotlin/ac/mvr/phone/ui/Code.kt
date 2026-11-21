@@ -399,7 +399,7 @@ private fun TuneSheet(
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state, containerColor = scheme.surfaceContainer) {
         Column(modifier = Modifier.fillMaxWidth().padding(start = 18.dp, end = 18.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (desk != null) Text("runs in a desktop terminal as $desk; changes go to that terminal, for this session only", style = MaterialTheme.typography.bodySmall, color = scheme.outline)
+            if (desk != null) Text("runs in a desktop terminal as $desk; changes go to that terminal, for this session only. Another kind of model restarts it with the conversation kept: claude and deepseek in a new desktop window, a local model in the background on the desktop", style = MaterialTheme.typography.bodySmall, color = scheme.outline)
             Label("model")
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 models.forEach { option ->
