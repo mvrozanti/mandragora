@@ -26,9 +26,6 @@ class Prefs(context: Context) {
     private val autoplayFlow = MutableStateFlow(sp.getBoolean("autoplaySkip", true))
     val autoplaySkip: StateFlow<Boolean> = autoplayFlow
 
-    private val codeCountFlow = MutableStateFlow(sp.getInt("codeCardCount", 3))
-    val codeCardCount: StateFlow<Int> = codeCountFlow
-
     private val squashFlow = MutableStateFlow(sp.getBoolean("squashCalls", true))
     val squashCalls: StateFlow<Boolean> = squashFlow
 
@@ -80,12 +77,6 @@ class Prefs(context: Context) {
     fun setSquashCalls(value: Boolean) {
         squashFlow.value = value
         sp.edit().putBoolean("squashCalls", value).apply()
-    }
-
-    fun setCodeCardCount(value: Int) {
-        val next = value.coerceIn(1, 8)
-        codeCountFlow.value = next
-        sp.edit().putInt("codeCardCount", next).apply()
     }
 
     fun setCardOrder(value: List<String>) {

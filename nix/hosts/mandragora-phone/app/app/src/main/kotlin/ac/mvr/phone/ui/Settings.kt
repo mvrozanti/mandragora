@@ -64,7 +64,6 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
     val reachable by store.reachable.collectAsStateWithLifecycle()
     val order by store.prefs.cardOrder.collectAsStateWithLifecycle()
     val autoplay by store.prefs.autoplaySkip.collectAsStateWithLifecycle()
-    val codeCount by store.prefs.codeCardCount.collectAsStateWithLifecycle()
     val squash by store.prefs.squashCalls.collectAsStateWithLifecycle()
     val listen by store.prefs.inboxListen.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -147,17 +146,6 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
             ) {
                 Label("code")
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("sessions on the card", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                    IconButton(onClick = { store.prefs.setCodeCardCount(codeCount - 1) }, enabled = codeCount > 1, modifier = Modifier.size(40.dp)) {
-                        Icon(Icons.Filled.KeyboardArrowDown, "fewer", tint = if (codeCount > 1) scheme.onSurface else scheme.outlineVariant)
-                    }
-                    Text("$codeCount", style = MaterialTheme.typography.titleMedium)
-                    IconButton(onClick = { store.prefs.setCodeCardCount(codeCount + 1) }, enabled = codeCount < 8, modifier = Modifier.size(40.dp)) {
-                        Icon(Icons.Filled.KeyboardArrowUp, "more", tint = if (codeCount < 8) scheme.onSurface else scheme.outlineVariant)
-                    }
-                }
-                Label("the chevron on the card opens every session")
-                Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text("squash call chains", style = MaterialTheme.typography.bodyLarge)
                         Label(if (squash) "two or more calls in a row show as one line; tap it to open" else "every command, skill and edit gets its own line")

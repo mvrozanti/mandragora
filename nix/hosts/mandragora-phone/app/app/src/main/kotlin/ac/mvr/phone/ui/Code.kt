@@ -338,7 +338,6 @@ fun CodeCard(store: Store, onOpen: (String) -> Unit) {
     val sessions by store.code.sessions.collectAsStateWithLifecycle()
     val statuses by store.code.statuses.collectAsStateWithLifecycle()
     val fresh by store.code.fresh.collectAsStateWithLifecycle()
-    val count by store.prefs.codeCardCount.collectAsStateWithLifecycle()
     val closing by store.code.closing.collectAsStateWithLifecycle()
     val busy = sessions.count { statuses[it.id]?.type == "busy" }
     val waiting = sessions.count { statuses[it.id]?.message == "waiting" }
@@ -348,11 +347,10 @@ fun CodeCard(store: Store, onOpen: (String) -> Unit) {
         busy > 0 -> "$busy working"
         else -> "idle"
     }
-    val connected = sessions.filter { active(it, statuses[it.id]) }
-    val connectedIds = connected.map { it.id }.toSet()
-    val shown = connected + sessions.filter { it.id !in connectedIds }.take((count - connected.size).coerceAtLeast(0))
+    val shown = sessions.filter { active(it, statuses[it.id]) }
     HomeCard {
         CardHeader("code", subtitle) { onOpen("sessions") }
+        if (fresh && shown.isEmpty()) Label("nothing open on the desktop")
         shown.forEach { session ->
             key(session.id) {
                 val status = statuses[session.id]
