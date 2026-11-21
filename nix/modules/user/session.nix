@@ -23,9 +23,13 @@
     QT_QPA_PLATFORMTHEME = lib.mkForce "gnome";
     WALLPAPER_DIR = "${config.home.homeDirectory}/Pictures/wllpps";
     PLAYWRIGHT_MCP_HEADLESS = "true";
+    PLAYWRIGHT_MCP_OUTPUT_DIR = "${config.home.homeDirectory}/.cache/playwright-mcp";
   };
 
-  systemd.user.sessionVariables.PLAYWRIGHT_MCP_HEADLESS = "true";
+  systemd.user.sessionVariables = {
+    PLAYWRIGHT_MCP_HEADLESS = "true";
+    PLAYWRIGHT_MCP_OUTPUT_DIR = "${config.home.homeDirectory}/.cache/playwright-mcp";
+  };
 
   home.sessionPath = [
     "${config.home.homeDirectory}/.local/share/go/bin"
