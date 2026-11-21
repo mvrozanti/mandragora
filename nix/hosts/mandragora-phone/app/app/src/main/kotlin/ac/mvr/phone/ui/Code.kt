@@ -3,7 +3,6 @@ package ac.mvr.phone.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -462,7 +461,6 @@ private fun SessionBar(current: CodeSession?, chip: String, onRename: (String) -
                 .padding(horizontal = 6.dp, vertical = 4.dp),
         )
         Chip(chip, scheme.surfaceContainerHigh, scheme.onSurface) { onModel() }
-        IconButton(onClick = onPick) { Icon(Icons.AutoMirrored.Filled.List, "sessions", tint = scheme.onSurfaceVariant) }
     }
 }
 
