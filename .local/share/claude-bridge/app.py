@@ -1664,14 +1664,13 @@ def desk_session() -> str | None:
 
 
 def open_window(directory: str, command: list[str]) -> tuple[str, str]:
-    name = Path(directory).name or "claude"
     session = desk_session()
     if session is not None:
-        out = tmux("new-window", "-d", "-t", f"{session}:", "-c", directory, "-n", name, "-P", "-F", DESK_WINDOW, *command)
+        out = tmux("new-window", "-d", "-t", f"{session}:", "-c", directory, "-P", "-F", DESK_WINDOW, *command)
     else:
         started = subprocess.run(
             ["systemd-run", "--user", "--scope", "--quiet", "--collect", "--slice=app.slice",
-             TMUX, "-S", str(TMUX_SOCKET), "new-session", "-d", "-s", DESK_FALLBACK_SESSION, "-c", directory, "-n", name, "-P", "-F", DESK_WINDOW, *command],
+             TMUX, "-S", str(TMUX_SOCKET), "new-session", "-d", "-s", DESK_FALLBACK_SESSION, "-c", directory, "-P", "-F", DESK_WINDOW, *command],
             capture_output=True, text=True, timeout=10,
         )
         if started.returncode != 0:
