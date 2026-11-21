@@ -131,17 +131,6 @@ private fun JsonObject.str(key: String): String? = runCatching { this[key]?.json
 
 private fun folderOf(path: String?): String = path?.trimEnd('/')?.substringAfterLast('/')?.ifEmpty { path } ?: "home"
 
-private fun ago(ms: Long): String {
-    val seconds = (System.currentTimeMillis() - ms) / 1000
-    return when {
-        ms <= 0 -> ""
-        seconds < 60 -> "now"
-        seconds < 3600 -> "${seconds / 60} m"
-        seconds < 86400 -> "${seconds / 3600} h"
-        else -> "${seconds / 86400} d"
-    }
-}
-
 @Composable
 private fun Chip(text: String, tone: Color, onTone: Color, enabled: Boolean = true, onTap: () -> Unit) {
     Box(
@@ -289,8 +278,6 @@ private fun SessionRow(
     }
 }
 
-private val HOME_DIR = Regex("|/root|/home/[^/]+")
-
 @Composable
 private fun SessionLine(session: CodeSession, status: CodeStatus?, selected: Boolean, onTap: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
@@ -308,19 +295,13 @@ private fun SessionLine(session: CodeSession, status: CodeStatus?, selected: Boo
     ) {
         SessionDot(open = session.live != null, busy = busy)
         Column(modifier = Modifier.weight(1f)) {
-            Text(session.title.ifBlank { "untitled" }, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            val live = session.live
-            val subtitle = listOfNotNull(
-                when {
-                    waiting -> "needs you" + (live?.waiting?.let { " · $it" } ?: "")
-                    busy -> "working"
-                    else -> null
-                },
-                session.backend.takeIf { it.isNotEmpty() && it != "claude" },
-                session.folder.takeUnless { session.directory.trimEnd('/').matches(HOME_DIR) },
-                ago(session.time.updated).ifEmpty { null },
-            ).joinToString(" · ")
-            Label(subtitle, color = if (waiting) scheme.error else if (live != null) scheme.tertiary else scheme.outline)
+            Text(
+                session.title.ifBlank { "untitled" },
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (waiting) scheme.error else Color.Unspecified,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
             session.snippet?.takeIf { it.isNotBlank() }?.let { snip ->
                 Text(Meaning.annotate(snip, scheme), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }

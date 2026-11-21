@@ -121,7 +121,7 @@ back collapses it):
 | money card: the share bars | nothing, display; one bar per asset, assets under one percent folded into one, or per venue when the money screen is set to venues | home |
 | money card: name | opens the money screen | money |
 | hub card: name or glance | opens the hub screen | hub |
-| code card: a session row (every session open on the desktop, working or waiting for you, newest first, then idle ones up to the count in settings; under the title a row says only what tells sessions apart: "needs you" or "working", the backend when it is not Claude, the project folder when it is not the home folder, and how long ago; open on the desktop is the dot's job, not a word's) | opens that session on the code screen | code |
+| code card: a session row (every session open on the desktop, working or waiting for you, newest first, then idle ones up to the count in settings; a row is the dot, the title, red when the session needs you, and the last words of the transcript; no subtitle line) | opens that session on the code screen | code |
 | the dot on a session row | nothing, display: green when the session is open on the desktop, pulsing in the accent while it works, hollow when it is closed | home |
 | a session row, swiped to the left (only a Claude Code session that is open on the desktop or working; the others do not move) | a red strip with "close" follows the finger; past two fifths of the row it fills, buzzes once and reads "let go to close", and letting go there (or a fast flick past a third of that) closes the session: the row turns into "closing on the desktop in 5 s" with a draining line and an "undo" chip, and only when the five seconds run out does `claude-bridge` end that session's `claude` (SIGTERM, then SIGKILL after 6 s if it is still there). A window the phone opened goes away with it; a `claude` started from a shell leaves that shell. A working session says "its turn stops" while it counts down; once the five seconds are up the undo goes away and the row reads "closing on the desktop…" until the bridge answers. The transcript stays, so the next message opens it again. Let go short of the line and the row springs back. The same swipe works in the sessions screen and the sessions sheet | home |
 | code card: name or chevron | opens the sessions screen: every Claude Code session, searchable like `claude-find` | sessions |
@@ -152,7 +152,7 @@ full-text search):
 
 | Tap | Does | Lands |
 |---|---|---|
-| empty box | every session, latest activity first, with its dot, its project folder (none for the home folder) and age | sessions |
+| empty box | every session, latest activity first, with its dot and title | sessions |
 | type | full-text search over every session's turns, a phrase or subject; each row shows the matching passage | sessions |
 | a session | opens it on the code screen | code |
 | a session, swiped to the left | closes it on the desktop after five seconds with an undo, as on the code card | sessions |
