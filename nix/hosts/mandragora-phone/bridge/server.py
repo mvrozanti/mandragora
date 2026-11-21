@@ -1300,7 +1300,7 @@ def media_receive_file(mid: str, stream, length: int, claimed: str) -> dict:
     claimed = claimed.strip().lower()
     if not PHONE_MEDIA_SHA.match(claimed):
         raise ValueError("X-Sha256 header required")
-    if length <= 0 or length > PHONE_MEDIA_FILE_MAX:
+    if length < 0 or length > PHONE_MEDIA_FILE_MAX:
         raise ValueError("bad length")
     held = media_path("held")
     held.mkdir(parents=True, exist_ok=True)

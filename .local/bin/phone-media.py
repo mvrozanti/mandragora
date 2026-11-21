@@ -30,6 +30,7 @@ IGNORED_NAMES = {".nomedia", ".stignore"}
 IGNORED_PREFIXES = (".trashed-", ".pending-")
 IGNORED_SUFFIXES = (".tmp", ".partial", ".part")
 PULL_BATCH = 300
+NAME_MAX_BYTES = 200
 PULL_BYTES = 2 << 30
 PENDING_TTL = 6 * 3600
 FAILED_PAUSE = 24 * 3600
@@ -157,8 +158,16 @@ def sha256_of(path):
     return digest.hexdigest()
 
 
+def fitted(name, sha):
+    if len(name.encode()) <= NAME_MAX_BYTES:
+        return name
+    path = Path(name)
+    room = NAME_MAX_BYTES - len(path.suffix.encode()) - 9
+    return f"{path.stem.encode()[:room].decode('utf-8', 'ignore')}-{sha[:8]}{path.suffix}"
+
+
 def deliver(meta, folder):
-    name = Path(meta.get("name") or meta["id"]).name
+    name = fitted(Path(meta.get("name") or meta["id"]).name, meta["sha256"])
     target = folder / name
     if target.exists():
         if sha256_of(target) == meta["sha256"]:
@@ -231,7 +240,7 @@ def load_ledger():
         data = json.loads(LEDGER.read_text())
     except (OSError, ValueError):
         data = {}
-    return {"items": dict(data.get("items") or {}), "pending": dict(data.get("pending") or {})}
+    return {"items": dict(data.get("items") or {}), "pending": dict(data.get("pending") or {}), "errors": []}
 
 
 def save_ledger(ledger):
@@ -260,8 +269,13 @@ def stage_held(state, items, ledger, now):
         if folder is None:
             pending.pop(mid)
             continue
-        folder.mkdir(parents=True, exist_ok=True)
-        deliver(held[mid], folder)
+        try:
+            folder.mkdir(parents=True, exist_ok=True)
+            deliver(held[mid], folder)
+        except (OSError, urllib.error.URLError) as err:
+            print(f"phone-media: could not stage {mid} ({item.get('path')}{item.get('name')}): {err}", file=sys.stderr)
+            ledger.setdefault("errors", []).append(mid)
+            continue
         known[mid] = {"sha256": held[mid]["sha256"], "size": item.get("size"), "modified": item.get("modified"), "at": now}
         pending.pop(mid)
         staged.append(mid)
@@ -322,6 +336,7 @@ def cmd_archive(args):
         call("/api/phone/media/release", {"ids": staged})
     batch, behind = queue_pulls(state, items, ledger, now)
     due = due_deletions(state, items, ledger, now)
+    errors = ledger.pop("errors", [])
     if not args.dry_run:
         if batch:
             call("/api/phone/media/request", {"pull": batch})
@@ -330,6 +345,8 @@ def cmd_archive(args):
         save_ledger(ledger)
     verb = "would" if args.dry_run else "did"
     print(f"phone-media archive ({verb}): staged {len(staged)}, asked for {len(batch)} of {behind} not yet copied, deleting {len(due)} archived and older than {RETENTION_DAYS} days, {len(ledger['pending'])} copies in flight")
+    if errors:
+        sys.exit(f"phone-media: {len(errors)} could not be staged; they stay held on the desktop and are retried next run")
 
 
 def main():

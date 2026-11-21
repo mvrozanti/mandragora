@@ -481,3 +481,9 @@ def test_watch_proxy_only_forwards_watchs_api(bridge):
     assert (status, body["error"]) == (400, "only watch's api is proxied")
     status, _ = fetch(f"{bridge}/api/watch/api/../../etc")
     assert status == 400
+def test_an_empty_file_is_still_a_file(bridge, media_dir):
+    index(bridge, "3")
+    empty = server.hashlib.sha256(b"").hexdigest()
+    status, body = upload(bridge, "3", b"", empty)
+    assert (status, body["sha256"]) == (200, empty)
+    assert (media_dir / "held" / "3").read_bytes() == b""
