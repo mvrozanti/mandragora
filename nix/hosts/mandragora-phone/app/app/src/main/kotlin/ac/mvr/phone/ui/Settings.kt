@@ -1,6 +1,7 @@
 package ac.mvr.phone.ui
 
 import android.text.format.DateUtils
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -54,6 +55,11 @@ private val CARD_NAMES = mapOf(
     "watch" to "watch",
     "panic" to "panic",
 )
+
+@SuppressLint("BatteryLife")
+private fun askBatteryExemption(context: Context) {
+    runCatching { context.startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}"))) }
+}
 
 private fun batteryExempt(context: Context): Boolean =
     context.getSystemService(PowerManager::class.java)?.isIgnoringBatteryOptimizations(context.packageName) ?: true
@@ -113,11 +119,7 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
                 }
                 if (listen && !exempt) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable {
-                            runCatching {
-                                context.startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}")))
-                            }
-                        }.padding(vertical = 6.dp),
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable { askBatteryExemption(context) }.padding(vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(modifier = Modifier.weight(1f)) {

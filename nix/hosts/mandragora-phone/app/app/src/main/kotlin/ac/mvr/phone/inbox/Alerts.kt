@@ -43,9 +43,6 @@ object Alerts {
         )
     }
 
-    private fun allowed(context: Context): Boolean =
-        Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-
     private fun screen(context: Context, screen: String, request: Int): PendingIntent =
         PendingIntent.getActivity(
             context,
@@ -58,7 +55,11 @@ object Alerts {
         if (item.source == "watch") item.ref?.get("event")?.jsonPrimitive?.longOrNull else null
 
     fun post(context: Context, item: InboxItem) {
-        if (!allowed(context)) return
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
         val request = item.id.toInt()
         val builder = NotificationCompat.Builder(context, if (item.alert) CHANNEL_ALERT else CHANNEL_INFO)
             .setSmallIcon(R.drawable.ic_launcher_mono)
