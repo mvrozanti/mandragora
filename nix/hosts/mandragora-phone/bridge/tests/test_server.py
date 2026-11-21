@@ -252,6 +252,7 @@ PHOTO_SHA = server.hashlib.sha256(PHOTO).hexdigest()
 def media_dir(tmp_path, monkeypatch):
     folder = tmp_path / "phone-media"
     monkeypatch.setattr(server, "PHONE_MEDIA_DIR", folder)
+    monkeypatch.setattr(server, "PHONE_MEDIA_PEERS", "127.0.0.1")
     return folder
 
 
@@ -278,14 +279,14 @@ def test_media_ids_are_digits_only():
 
 def test_phone_media_moves_a_photo_end_to_end(bridge, media_dir):
     status, jobs = index(bridge, "7", "8")
-    assert (status, jobs) == (200, {"thumbs": [], "pull": [], "remove": []})
+    assert (status, jobs) == (200, {"thumbs": [], "pull": [], "remove": [], "reindex": False})
     assert "junk" not in server.media_index_items()["7"]
 
     status, body = post_json(f"{bridge}/api/phone/media/request", {"thumbs": ["7"], "pull": ["7"]})
     assert status == 200
     assert body["jobs"]["thumbs"] == ["7"] and body["jobs"]["pull"] == ["7"]
     status, jobs = fetch(f"{bridge}/api/phone/media/jobs")
-    assert jobs == {"thumbs": ["7"], "pull": ["7"], "remove": []}
+    assert jobs == {"thumbs": ["7"], "pull": ["7"], "remove": [], "reindex": False}
 
     status, _ = fetch(f"{bridge}/api/phone/media/thumb?id=7", b"not a jpeg", {"Content-Type": "image/jpeg"})
     assert status == 400
@@ -337,7 +338,7 @@ def test_phone_media_failures_stop_retries_and_gone_items_leave_the_queue(bridge
     upload(bridge, "2", PHOTO, PHOTO_SHA)
     post_json(f"{bridge}/api/phone/media/request", {"remove": ["2"]})
     status, jobs = index(bridge, "1")
-    assert jobs == {"thumbs": [], "pull": [], "remove": []}
+    assert jobs == {"thumbs": [], "pull": [], "remove": [], "reindex": False}
     log = [json.loads(line) for line in (media_dir / "removed.jsonl").read_text().splitlines()]
     assert [(e["id"], e["outcome"]) for e in log] == [("2", "gone")]
 
@@ -349,3 +350,43 @@ def test_phone_media_failures_stop_retries_and_gone_items_leave_the_queue(bridge
     assert status == 404
     status, _ = fetch(f"{bridge}/api/phone/media/held?id=../x")
     assert status == 400
+
+
+def test_phone_media_removes_what_the_desktop_archived(bridge, media_dir):
+    index(bridge, "5")
+    status, body = post_json(f"{bridge}/api/phone/media/request", {"archived": {"5": "nope"}})
+    assert status == 400
+    status, body = post_json(f"{bridge}/api/phone/media/request", {"archived": {"../5": PHOTO_SHA}})
+    assert status == 400
+    status, body = post_json(f"{bridge}/api/phone/media/request", {"archived": {"5": PHOTO_SHA}})
+    assert status == 200 and body["jobs"]["remove"] == {"5": PHOTO_SHA}
+    status, jobs = fetch(f"{bridge}/api/phone/media/jobs")
+    assert jobs["remove"] == [{"id": "5", "sha256": PHOTO_SHA}]
+
+
+def test_only_the_phone_sends_media(bridge, media_dir, monkeypatch):
+    status, jobs = fetch(f"{bridge}/api/phone/media/jobs")
+    assert (status, jobs["reindex"]) == (200, True)
+    monkeypatch.setattr(server, "PHONE_MEDIA_PEERS", "100.64.0.9")
+    for path in ("index", "report"):
+        status, body = post_json(f"{bridge}/api/phone/media/{path}", {"items": []})
+        assert (status, body["error"]) == (403, "only the phone sends its media")
+    status, _ = fetch(f"{bridge}/api/phone/media/jobs")
+    assert status == 403
+    status, _ = upload(bridge, "7", PHOTO, PHOTO_SHA)
+    assert status == 403
+    status, _ = fetch(f"{bridge}/api/phone/media")
+    assert status == 200
+    status, _ = post_json(f"{bridge}/api/phone/media/request", {"thumbs": []})
+    assert status == 200
+
+
+def test_media_peers_default_to_the_phone_on_the_tailnet(tmp_path, monkeypatch):
+    tailnet = tmp_path / "tailnet.json"
+    tailnet.write_text(json.dumps({"phone": {"ip": "100.64.0.5"}}))
+    monkeypatch.setattr(server, "TAILNET_JSON", str(tailnet))
+    monkeypatch.setattr(server, "PHONE_MEDIA_PEERS", None)
+    assert server.media_peers() == {"100.64.0.5"}
+    assert server.media_from_phone("/api/phone/media/thumb", "GET", "127.0.0.1")
+    assert not server.media_from_phone("/api/phone/media/thumb", "POST", "127.0.0.1")
+    assert server.media_from_phone("/api/phone/media/index", "POST", "100.64.0.5")

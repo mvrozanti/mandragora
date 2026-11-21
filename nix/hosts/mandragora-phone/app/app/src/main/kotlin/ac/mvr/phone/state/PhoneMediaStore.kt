@@ -63,10 +63,12 @@ class PhoneMediaStore(private val app: Application, private val api: PhoneMediaA
             val byId = items.associateBy { it.id.toString() }
             val signature = indexSignature(items)
             val now = System.currentTimeMillis()
-            val jobs = if (indexDue(signature, prefs.getString(KEY_SIGNATURE, null), prefs.getLong(KEY_POSTED_AT, 0L), now)) {
+            val due = indexDue(signature, prefs.getString(KEY_SIGNATURE, null), prefs.getLong(KEY_POSTED_AT, 0L), now)
+            val asked = if (due) null else api.jobs()
+            val jobs = if (asked == null || asked.reindex) {
                 api.postIndex(items).also { prefs.edit().putString(KEY_SIGNATURE, signature).putLong(KEY_POSTED_AT, now).apply() }
             } else {
-                api.jobs()
+                asked
             }
             contactFlow.value = now
             prefs.edit().putLong(KEY_CONTACT_AT, now).apply()

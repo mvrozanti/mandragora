@@ -70,6 +70,8 @@ PHONE_MEDIA_ID = re.compile(r"^[0-9]{1,19}$")
 PHONE_MEDIA_SHA = re.compile(r"^[0-9a-f]{64}$")
 PHONE_MEDIA_FIELDS = ("name", "path", "kind", "mime", "size", "taken", "modified")
 PHONE_MEDIA_JOBS = ("thumbs", "pull", "remove")
+PHONE_MEDIA_PEERS = os.environ.get("PHONE_BRIDGE_MEDIA_PEERS")
+PHONE_MEDIA_PHONE_PATHS = ("/api/phone/media/index", "/api/phone/media/jobs", "/api/phone/media/thumb", "/api/phone/media/file", "/api/phone/media/report")
 
 SINK_LINE = re.compile(r"^\s*│\s*(?P<default>\*)?\s*(?P<id>\d+)\.\s+(?P<name>.+?)\s+\[vol:\s*(?P<vol>[\d.]+)(?P<muted>\s+MUTED)?\]\s*$")
 LRC_LINE = re.compile(r"^\[(\d+):(\d+(?:\.\d+)?)\](.*)$")
@@ -943,6 +945,19 @@ def config() -> dict:
     }
 
 
+def media_peers() -> set[str]:
+    if PHONE_MEDIA_PEERS is not None:
+        return {peer.strip() for peer in PHONE_MEDIA_PEERS.split(",") if peer.strip()}
+    phone = (load_json(TAILNET_JSON, {}).get("phone") or {}).get("ip")
+    return {phone} if phone else set()
+
+
+def media_from_phone(path: str, method: str, client: str) -> bool:
+    if path not in PHONE_MEDIA_PHONE_PATHS or (method == "GET" and path == "/api/phone/media/thumb"):
+        return True
+    return client in media_peers()
+
+
 def media_id(value) -> str:
     text = str(value if value is not None else "")
     if not PHONE_MEDIA_ID.match(text):
@@ -1004,6 +1019,7 @@ def media_for_phone() -> dict:
         "thumbs": jobs["thumbs"],
         "pull": jobs["pull"],
         "remove": [{"id": mid, "sha256": sha} for mid, sha in jobs["remove"].items()],
+        "reindex": not media_path("index.json").is_file(),
     }
 
 
@@ -1048,6 +1064,10 @@ def media_request(body: dict) -> dict:
     thumbs = media_ids(body.get("thumbs"))
     pull = media_ids(body.get("pull"))
     remove = media_ids(body.get("remove"))
+    archived = body.get("archived") or {}
+    if not isinstance(archived, dict) or not all(isinstance(v, str) and PHONE_MEDIA_SHA.match(v) for v in archived.values()):
+        raise ValueError("archived maps ids to sha256")
+    archived = {media_id(k): v for k, v in archived.items()}
     with phone_media_lock:
         jobs = media_jobs()
         missing = [mid for mid in remove if media_held(mid) is None]
@@ -1064,6 +1084,9 @@ def media_request(body: dict) -> dict:
         for mid in remove:
             jobs["failed"].pop(mid, None)
             jobs["remove"][mid] = (media_held(mid) or {})["sha256"]
+        for mid, sha in archived.items():
+            jobs["failed"].pop(mid, None)
+            jobs["remove"][mid] = sha
         media_write("jobs.json", jobs)
     return media_status()
 
@@ -1264,9 +1287,18 @@ class Handler(BaseHTTPRequestHandler):
             data = dict(urllib.parse.parse_qsl(raw.decode("utf-8", "replace")))
         return data if isinstance(data, dict) else {}
 
+    def refuse_stranger(self, path: str, method: str) -> bool:
+        if media_from_phone(path, method, self.client_address[0]):
+            return False
+        self.close_connection = True
+        self.send_json({"error": "only the phone sends its media"}, 403)
+        return True
+
     def do_GET(self):
         url = urllib.parse.urlparse(self.path)
         query = dict(urllib.parse.parse_qsl(url.query))
+        if self.refuse_stranger(url.path, "GET"):
+            return
         try:
             if url.path == "/healthz":
                 self.send_json({"ok": True})
@@ -1342,6 +1374,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         url = urllib.parse.urlparse(self.path)
+        if self.refuse_stranger(url.path, "POST"):
+            return
         if url.path == "/api/transcribe":
             try:
                 length = int(self.headers.get("Content-Length") or 0)

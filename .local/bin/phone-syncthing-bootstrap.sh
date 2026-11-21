@@ -40,17 +40,8 @@ post_folder() {
   echo "posted: $id -> $path ($ftype)"
 }
 
-# drain buckets (phone is producer, desktop archives)
-post_folder mandragora-phone-dcim       "Phone DCIM"        /storage/emulated/0/DCIM                                          sendreceive
-post_folder mandragora-phone-pictures   "Phone Pictures"    /storage/emulated/0/Pictures                                      sendreceive
-post_folder mandragora-phone-movies     "Phone Movies"      /storage/emulated/0/Movies                                        sendreceive
-post_folder mandragora-phone-whatsapp   "Phone WhatsApp"    /storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media     sendreceive
-post_folder mandragora-phone-recordings "Phone Recordings"  /storage/emulated/0/Recordings                                    sendreceive
-post_folder mandragora-phone-downloads  "Phone Downloads"   /storage/emulated/0/Download                                      sendreceive
-
 post_folder mandragora-notes            "Notes"             /storage/emulated/0/Documents/notes                               sendreceive
 
-# music push (desktop is master, phone is read replica)
 post_folder mandragora-music            "Music"             /storage/emulated/0/Music                                         receiveonly
 
 echo

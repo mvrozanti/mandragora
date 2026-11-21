@@ -7,6 +7,13 @@ bottom are the ones that decide which.
 
 ## Shipped
 
+- Sync-Fork retired from the photo drain (2026-11-21): the
+  `phone-media-archive` timer copies everything in the six drained folders
+  through the app into the inbox, `phone-archiver` files it at once
+  (retention 0 now), and the phone deletes an item at 30 days only after the
+  desktop finds its sha256 in the archive. Syncthing keeps Music and Notes;
+  its folders are now declared with `overrideFolders = true`. The bridge
+  takes phone media only from the phone's tailnet ip.
 - The app as the desktop's way into the phone's photos and videos
   (2026-11-21): with *All files access* on, the app posts its MediaStore
   listing to `phone-bridge` and runs what the desktop queued (thumbnails,
@@ -79,15 +86,6 @@ bottom are the ones that decide which.
   the browser, airplane mode on each screen.
 
 ## Next up
-
-- Retire Sync-Fork from the photo drain: the media bridge already moves
-  files with a verified copy; what is missing is the standing policy the
-  Syncthing inbox + `phone-archiver` encode (archive every new item into
-  `~/Pictures/Photos/YYYY/MM` and friends, delete from the phone after the
-  30-day retention). That is a desktop-side timer over `phone-media`, then
-  the six inbox folders leave `syncthing.nix`; Music and Notes stay on
-  Syncthing until the app can carry them too. Operator's call, stated
-  2026-11-21 as "we might even get rid of syncthing".
 
 Stated by the operator on 2026-11-15, in their order:
 

@@ -2,7 +2,6 @@
 
 let
   musicStignore = ../../../.config/syncthing/music.stignore;
-  phoneInboxStignore = ../../../.config/syncthing/phone-inbox.stignore;
   notesStignore = ../../../.config/syncthing/notes.stignore;
 
   tailnet = builtins.fromJSON (builtins.readFile ../../snippets/tailnet.json);
@@ -38,7 +37,7 @@ in
     configDir = "/home/m/.config/syncthing";
     openDefaultPorts = true;
     overrideDevices = false;
-    overrideFolders = false;
+    overrideFolders = true;
 
     settings = {
       gui = {
@@ -82,43 +81,14 @@ in
             };
           };
         };
-        "phone-dcim" = phoneFolder "mandragora-phone-dcim" "Phone DCIM" "/home/m/Pictures/PhoneInbox/dcim";
-        "phone-pictures" =
-          phoneFolder "mandragora-phone-pictures" "Phone Pictures"
-            "/home/m/Pictures/PhoneInbox/pictures";
-        "phone-movies" =
-          phoneFolder "mandragora-phone-movies" "Phone Movies"
-            "/home/m/Pictures/PhoneInbox/movies";
-        "phone-whatsapp" =
-          phoneFolder "mandragora-phone-whatsapp" "Phone WhatsApp"
-            "/home/m/Pictures/PhoneInbox/whatsapp";
-        "phone-recordings" =
-          phoneFolder "mandragora-phone-recordings" "Phone Recordings"
-            "/home/m/Pictures/PhoneInbox/recordings";
-        "phone-downloads" =
-          phoneFolder "mandragora-phone-downloads" "Phone Downloads"
-            "/home/m/Pictures/PhoneInbox/downloads";
         "notes" = phoneFolder "mandragora-notes" "Notes" "/home/m/Documents/notes";
       };
     };
   };
 
   systemd.tmpfiles.rules = [
-    "d /home/m/Pictures/PhoneInbox 0755 m users -"
-    "d /home/m/Pictures/PhoneInbox/dcim 0755 m users -"
-    "d /home/m/Pictures/PhoneInbox/pictures 0755 m users -"
-    "d /home/m/Pictures/PhoneInbox/movies 0755 m users -"
-    "d /home/m/Pictures/PhoneInbox/whatsapp 0755 m users -"
-    "d /home/m/Pictures/PhoneInbox/recordings 0755 m users -"
-    "d /home/m/Pictures/PhoneInbox/downloads 0755 m users -"
     "d /home/m/Documents/notes 0755 m users -"
     "C+ /home/m/Documents/notes/.stignore 0644 m users - ${notesStignore}"
     "C+ /home/m/Music/.stignore 0644 m users - ${musicStignore}"
-    "C+ /home/m/Pictures/PhoneInbox/dcim/.stignore 0644 m users - ${phoneInboxStignore}"
-    "C+ /home/m/Pictures/PhoneInbox/pictures/.stignore 0644 m users - ${phoneInboxStignore}"
-    "C+ /home/m/Pictures/PhoneInbox/movies/.stignore 0644 m users - ${phoneInboxStignore}"
-    "C+ /home/m/Pictures/PhoneInbox/whatsapp/.stignore 0644 m users - ${phoneInboxStignore}"
-    "C+ /home/m/Pictures/PhoneInbox/recordings/.stignore 0644 m users - ${phoneInboxStignore}"
-    "C+ /home/m/Pictures/PhoneInbox/downloads/.stignore 0644 m users - ${phoneInboxStignore}"
   ];
 }

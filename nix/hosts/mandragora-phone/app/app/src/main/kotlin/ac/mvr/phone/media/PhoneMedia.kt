@@ -21,6 +21,19 @@ data class Digest(val sha256: String, val length: Long)
 private const val THUMB_PX = 320
 private const val THUMB_QUALITY = 80
 private const val READ_CHUNK = 1 shl 16
+private val DRAINED = listOf(
+    "DCIM/",
+    "Pictures/",
+    "Movies/",
+    "Android/media/com.whatsapp/WhatsApp/Media/",
+    "Recordings/",
+    "Download/",
+)
+private val KINDS = mapOf(
+    MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE to "image",
+    MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO to "video",
+    MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO to "audio",
+)
 
 class PhoneMedia(private val context: Context) {
     private val resolver get() = context.contentResolver
@@ -32,12 +45,16 @@ class PhoneMedia(private val context: Context) {
     fun find(id: Long): PhoneMediaItem? = query("${MediaStore.MediaColumns._ID} = ?", arrayOf(id.toString())).firstOrNull()
 
     private fun query(extra: String?, extraArgs: Array<String>?): List<PhoneMediaItem> {
-        val kinds = "${MediaStore.Files.FileColumns.MEDIA_TYPE} IN (?, ?)"
-        val selection = if (extra == null) kinds else "$kinds AND $extra"
+        val path = MediaStore.MediaColumns.RELATIVE_PATH
+        val visual = "${MediaStore.Files.FileColumns.MEDIA_TYPE} IN (?, ?) AND ($path IS NULL OR $path NOT LIKE ?)"
+        val drained = DRAINED.joinToString(" OR ") { "$path LIKE ?" }
+        val scope = "(($visual) OR (($drained) AND ${MediaStore.MediaColumns.MIME_TYPE} IS NOT NULL))"
+        val selection = if (extra == null) scope else "$scope AND $extra"
         val args = arrayOf(
             MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(),
             MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO.toString(),
-        ) + (extraArgs ?: emptyArray())
+            "Music/%",
+        ) + DRAINED.map { "$it%" } + (extraArgs ?: emptyArray())
         val projection = arrayOf(
             MediaStore.MediaColumns._ID,
             MediaStore.MediaColumns.DISPLAY_NAME,
@@ -55,7 +72,7 @@ class PhoneMedia(private val context: Context) {
                     id = c.getLong(0),
                     name = c.getString(1).orEmpty(),
                     path = c.getString(2).orEmpty(),
-                    kind = if (c.getInt(3) == MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO) "video" else "image",
+                    kind = KINDS[c.getInt(3)] ?: "file",
                     mime = c.getString(4).orEmpty(),
                     size = c.getLong(5),
                     taken = c.getLong(6),
@@ -67,7 +84,11 @@ class PhoneMedia(private val context: Context) {
     }
 
     private fun uri(item: PhoneMediaItem): Uri = ContentUris.withAppendedId(
-        if (item.kind == "video") MediaStore.Video.Media.EXTERNAL_CONTENT_URI else MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+        when (item.kind) {
+            "image" -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            "video" -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            else -> MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        },
         item.id,
     )
 

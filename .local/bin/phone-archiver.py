@@ -143,7 +143,20 @@ def sha256_of(path):
     return h.hexdigest()
 
 
+NAME_MAX_BYTES = 200
+
+
+def fitted(name, short_hash):
+    if len(name.encode()) <= NAME_MAX_BYTES:
+        return name
+    path = Path(name)
+    room = NAME_MAX_BYTES - len(path.suffix.encode()) - 9
+    stem = path.stem.encode()[:room].decode("utf-8", "ignore")
+    return f"{stem}-{short_hash[:8]}{path.suffix}"
+
+
 def unique_dest(dest_dir, name, short_hash):
+    name = fitted(name, short_hash)
     candidate = dest_dir / name
     if not candidate.exists():
         return candidate
@@ -211,7 +224,7 @@ def archive_one(src, dest_root, index, log):
         if not known_path.exists():
             del index[src_hash]
 
-    existing = dest_dir / src.name
+    existing = dest_dir / fitted(src.name, src_hash)
     if existing.exists():
         if sha256_of(existing) == src_hash:
             src.unlink()

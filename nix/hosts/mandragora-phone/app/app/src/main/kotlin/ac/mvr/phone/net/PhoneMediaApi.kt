@@ -22,7 +22,12 @@ import java.util.concurrent.TimeUnit
 data class RemoveJob(val id: String, val sha256: String)
 
 @Serializable
-data class PhoneMediaJobs(val thumbs: List<String> = emptyList(), val pull: List<String> = emptyList(), val remove: List<RemoveJob> = emptyList()) {
+data class PhoneMediaJobs(
+    val thumbs: List<String> = emptyList(),
+    val pull: List<String> = emptyList(),
+    val remove: List<RemoveJob> = emptyList(),
+    val reindex: Boolean = false,
+) {
     val empty: Boolean get() = thumbs.isEmpty() && pull.isEmpty() && remove.isEmpty()
 }
 

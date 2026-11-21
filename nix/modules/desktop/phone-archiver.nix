@@ -66,6 +66,16 @@ in
     smoke
   ];
 
+  systemd.tmpfiles.rules = [
+    "d /home/m/Pictures/PhoneInbox 0755 m users -"
+    "d /home/m/Pictures/PhoneInbox/dcim 0755 m users -"
+    "d /home/m/Pictures/PhoneInbox/pictures 0755 m users -"
+    "d /home/m/Pictures/PhoneInbox/movies 0755 m users -"
+    "d /home/m/Pictures/PhoneInbox/whatsapp 0755 m users -"
+    "d /home/m/Pictures/PhoneInbox/recordings 0755 m users -"
+    "d /home/m/Pictures/PhoneInbox/downloads 0755 m users -"
+  ];
+
   systemd.user.services.phone-archiver = {
     description = "Drain ~/Pictures/PhoneInbox into archive (EXIF-dated, sha256-verified)";
     serviceConfig = {
@@ -75,7 +85,7 @@ in
       Nice = 19;
       IOSchedulingClass = "idle";
       Environment = [
-        "PHONE_ARCHIVER_RETENTION_DAYS=30"
+        "PHONE_ARCHIVER_RETENTION_DAYS=0"
       ];
     };
   };

@@ -32,7 +32,7 @@ phone-bridge :6688 ◀── config · volume · lease · lyrics ── app
 mpd :6600          ◀── mpd protocol over the tailnet ───── app
 gpu-status :6684   ◀── /api/theme?colors=1 ─────────────── app (palette)
 ~/Music  ──syncthing send-only──────────────────────────▶  Music folder
-~/Pictures/PhoneInbox/* ◀──syncthing send-receive──────── DCIM, WhatsApp, …
+~/Pictures/PhoneInbox/* ◀──phone-media archive, via the app── DCIM, WhatsApp, …
 nix/hosts/mandragora-phone/app/ ──phone-push (adb over the tailnet)──▶ the app
 ```
 
@@ -41,7 +41,7 @@ Three surfaces, three owners:
 | where | what | in the repo |
 |---|---|---|
 | **device** | Tailscale, Sync-Fork, KDE Connect, the app | `nix/hosts/mandragora-phone/` (README, identity, app) |
-| **desktop** | `phone-bridge`, mpd on the tailnet, `phone-push`, inbox drain | `nix/modules/services/phone-bridge.nix`, `nix/modules/core/security.nix`, `nix/modules/desktop/phone-archiver.nix`, `.local/bin/` |
+| **desktop** | `phone-bridge`, mpd on the tailnet, `phone-push`, the media drain (`phone-media archive` into the inbox, `phone-archiver` out of it) | `nix/modules/services/phone-bridge.nix`, `nix/modules/core/security.nix`, `nix/modules/desktop/phone-archiver.nix`, `.local/bin/` |
 | **VPS** | nothing yet; the F-Droid repo is on the backlog | — |
 
 ## Workflow

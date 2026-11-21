@@ -21,6 +21,29 @@ in
 
   environment.systemPackages = [ phoneMedia ];
 
+  systemd.user.services.phone-media-archive = {
+    description = "Drain the phone through the mandragora app into ~/Pictures/PhoneInbox, and delete from the phone what is archived and 30 days old";
+    after = [ "phone-bridge.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${phoneMedia}/bin/phone-media archive";
+      TimeoutStartSec = "30min";
+      Nice = 19;
+      IOSchedulingClass = "idle";
+    };
+  };
+
+  systemd.user.timers.phone-media-archive = {
+    description = "Phone media drain timer";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "6min";
+      OnUnitInactiveSec = "10min";
+      RandomizedDelaySec = "30s";
+      Persistent = true;
+    };
+  };
+
   mandragora.hub.services.phone-bridge = {
     port = 6688;
     userService = true;

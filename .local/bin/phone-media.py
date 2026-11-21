@@ -13,6 +13,26 @@ from pathlib import Path
 
 BRIDGE = os.environ.get("PHONE_MEDIA_BRIDGE", "http://127.0.0.1:6688")
 SHEET_PAGE = 48
+INBOX = Path(os.environ.get("PHONE_MEDIA_INBOX", "~/Pictures/PhoneInbox")).expanduser()
+ARCHIVE_INDEX = Path(os.environ.get("PHONE_MEDIA_ARCHIVE_INDEX", "~/.cache/phone-archiver-hashes.json")).expanduser()
+LEDGER = Path(os.environ.get("PHONE_MEDIA_LEDGER", "~/.local/state/phone-media/archive.json")).expanduser()
+RETENTION_DAYS = int(os.environ.get("PHONE_MEDIA_RETENTION_DAYS", "30"))
+DRAINED = (
+    ("Android/media/com.whatsapp/WhatsApp/Media/", "whatsapp"),
+    ("DCIM/", "dcim"),
+    ("Pictures/", "pictures"),
+    ("Movies/", "movies"),
+    ("Recordings/", "recordings"),
+    ("Download/", "downloads"),
+)
+IGNORED_PARTS = {".stversions", ".stfolder", ".thumbnails", "Thumbnails", ".", ".."}
+IGNORED_NAMES = {".nomedia", ".stignore"}
+IGNORED_PREFIXES = (".trashed-", ".pending-")
+IGNORED_SUFFIXES = (".tmp", ".partial", ".part")
+PULL_BATCH = 300
+PULL_BYTES = 2 << 30
+PENDING_TTL = 6 * 3600
+FAILED_PAUSE = 24 * 3600
 FONT = os.environ.get("PHONE_MEDIA_FONT")
 
 
@@ -192,6 +212,126 @@ def cmd_move(args):
     call("/api/phone/media/release", {"ids": copied})
 
 
+def staging(item):
+    name = Path(item.get("name") or "").name
+    if not name or name in IGNORED_NAMES or name.startswith(IGNORED_PREFIXES) or name.endswith(IGNORED_SUFFIXES) or ".sync-conflict-" in name:
+        return None
+    path = item.get("path") or ""
+    for prefix, bucket in DRAINED:
+        if path.startswith(prefix):
+            parts = [part for part in path[len(prefix) :].split("/") if part]
+            if any(part in IGNORED_PARTS for part in parts):
+                return None
+            return INBOX.joinpath(bucket, *parts)
+    return None
+
+
+def load_ledger():
+    try:
+        data = json.loads(LEDGER.read_text())
+    except (OSError, ValueError):
+        data = {}
+    return {"items": dict(data.get("items") or {}), "pending": dict(data.get("pending") or {})}
+
+
+def save_ledger(ledger):
+    LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    tmp = LEDGER.with_name(LEDGER.name + ".tmp")
+    tmp.write_text(json.dumps(ledger))
+    os.replace(tmp, LEDGER)
+
+
+def unchanged(item, record):
+    return record is not None and record.get("size") == item.get("size") and record.get("modified") == item.get("modified")
+
+
+def stage_held(state, items, ledger, now):
+    known, pending = ledger["items"], ledger["pending"]
+    held = {h["id"]: h for h in state["held"]}
+    staged = []
+    for mid in list(pending):
+        item = items.get(mid)
+        if item is None or now - pending[mid] > PENDING_TTL or mid in state["failed"]:
+            pending.pop(mid)
+            continue
+        if mid not in held:
+            continue
+        folder = staging(item)
+        if folder is None:
+            pending.pop(mid)
+            continue
+        folder.mkdir(parents=True, exist_ok=True)
+        deliver(held[mid], folder)
+        known[mid] = {"sha256": held[mid]["sha256"], "size": item.get("size"), "modified": item.get("modified"), "at": now}
+        pending.pop(mid)
+        staged.append(mid)
+    return staged
+
+
+def queue_pulls(state, items, ledger, now):
+    known, pending = ledger["items"], ledger["pending"]
+    failed = state["failed"]
+    wanted = [
+        item
+        for mid, item in items.items()
+        if staging(item) is not None
+        and not unchanged(item, known.get(mid))
+        and mid not in pending
+        and not (mid in failed and now - (failed[mid].get("at") or 0) < FAILED_PAUSE)
+    ]
+    wanted.sort(key=lambda i: i.get("modified") or 0)
+    batch, size = [], 0
+    for item in wanted:
+        if batch and (len(batch) >= PULL_BATCH or size + (item.get("size") or 0) > PULL_BYTES):
+            break
+        batch.append(item["id"])
+        size += item.get("size") or 0
+    for mid in batch:
+        pending[mid] = now
+    return batch, len(wanted)
+
+
+def due_deletions(state, items, ledger, now):
+    try:
+        archived = json.loads(ARCHIVE_INDEX.read_text())
+    except (OSError, ValueError):
+        return {}
+    cutoff = now - RETENTION_DAYS * 86400
+    due = {}
+    for mid, record in ledger["items"].items():
+        item = items.get(mid)
+        if item is None or not unchanged(item, record) or (item.get("modified") or now) > cutoff or mid in state["jobs"]["remove"]:
+            continue
+        copy = archived.get(record["sha256"])
+        if copy and Path(copy).is_file() and sha256_of(copy) == record["sha256"]:
+            due[mid] = record["sha256"]
+    return due
+
+
+def cmd_archive(args):
+    now = time.time()
+    state = status()
+    items = {i["id"]: i for i in state["index"].get("items") or []}
+    if not items:
+        print("phone-media: the phone has not sent an index yet; nothing to do")
+        return
+    ledger = load_ledger()
+    ledger["items"] = {mid: rec for mid, rec in ledger["items"].items() if mid in items}
+    staged = [] if args.dry_run else stage_held(state, items, ledger, now)
+    if staged:
+        call("/api/phone/media/release", {"ids": staged})
+    batch, behind = queue_pulls(state, items, ledger, now)
+    due = due_deletions(state, items, ledger, now)
+    if not args.dry_run:
+        if batch:
+            call("/api/phone/media/request", {"pull": batch})
+        if due:
+            call("/api/phone/media/request", {"archived": due})
+        save_ledger(ledger)
+    verb = "would" if args.dry_run else "did"
+    print(f"phone-media archive ({verb}): staged {len(staged)}, asked for {len(batch)} of {behind} not yet copied, deleting {len(due)} archived and older than {RETENTION_DAYS} days, {len(ledger['pending'])} copies in flight")
+
+
 def main():
     parser = argparse.ArgumentParser(prog="phone-media", description="Photos and videos on the phone, through the mandragora app and phone-bridge.")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -213,6 +353,9 @@ def main():
     move.add_argument("--keep", action="store_true")
     move.add_argument("--wait", type=int, default=1800)
     move.set_defaults(func=cmd_move)
+    archive = sub.add_parser("archive")
+    archive.add_argument("--dry-run", action="store_true")
+    archive.set_defaults(func=cmd_archive)
     args = parser.parse_args()
     args.func(args)
 
