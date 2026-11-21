@@ -1,0 +1,17 @@
+style:
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    active: true
+    maxLineLength: 180
+naming:
+  FunctionNaming:
+    active: true
+    ignoreAnnotated: ['Composable']
+complexity:
+  LongParameterList:
+    active: true
+    ignoreAnnotated: ['Composable']
+  LongMethod:
+    active: true
+    ignoreAnnotated: ['Composable']

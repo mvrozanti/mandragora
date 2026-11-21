@@ -1,0 +1,16 @@
+{
+  "include": [
+    "nix/hosts/mandragora-phone/bridge",
+    ".local/share/claude-bridge"
+  ],
+  "exclude": [
+    "**/__pycache__"
+  ],
+  "extraPaths": [
+    "nix/hosts/mandragora-phone/bridge",
+    ".local/share/claude-bridge",
+    ".local/share/gpu-lock"
+  ],
+  "typeCheckingMode": "standard",
+  "reportMissingModuleSource": false
+}

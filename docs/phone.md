@@ -53,3 +53,8 @@ Three surfaces, three owners:
   /etc/nixos/mandragora#phone`.
 - Nothing is pushed by hand. If it is on the phone and not in the repo, it is
   a bug, as for the kindle.
+- Nothing ships unchecked: `phone-push` runs `phone-gate` (detekt, unit tests
+  with coverage on the `logic` package, ruff, basedpyright, the bridges' tests,
+  Android lint, a headless emulator smoke test with a reboot) and publishes
+  nothing when it fails. The checks and their baselines are in the README's
+  "The quality gate".

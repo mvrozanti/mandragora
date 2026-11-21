@@ -19,6 +19,13 @@ if [ -z "$APK" ]; then
 fi
 [ -f "$APK" ] || { echo "phone-push: no apk found" >&2; exit 1; }
 
+GATE_MODE="${PHONE_GATE_MODE:-full}"
+echo "phone-push: quality gate ($GATE_MODE) before anything leaves the desktop"
+if ! MANDRAGORA_REPO="$REPO" PHONE_APK="$APK" "$REPO/.local/bin/phone-gate.sh" "$GATE_MODE"; then
+  echo "phone-push: the gate failed; nothing was published or installed" >&2
+  exit 1
+fi
+
 if [ -n "${PHONE_ADB_ADDR:-}" ]; then
   adb connect "$PHONE_ADB_ADDR" > /dev/null
   adb -s "$PHONE_ADB_ADDR" install -r "$APK"

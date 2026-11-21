@@ -373,6 +373,31 @@ nix develop /etc/nixos/mandragora#phone -c ./gradlew assembleDebug
 Everything after step 1 is reachable only over the tailnet, so step 1 is the
 whole security model: no tailnet, no phone.
 
+## The quality gate
+
+Nothing reaches the phone without passing `phone-gate`. `phone-push` runs it
+on the APK it just built and publishes nothing when it fails; commits that
+touch the app, either bridge or the gate itself run its fast half through
+`mandragora-audit` check 22.
+
+| check | what it holds | fast | full |
+|---|---|---|---|
+| detekt | Kotlin style and complexity, `quality/detekt.yml` on top of the defaults (Compose's dp literals, PascalCase composables and long composables excepted) | ✓ | ✓ |
+| unit tests + Kover | the `logic` package (pure decisions: call folding, stopped turns, which player the lock screen shows, the either/or rule, the active-session test) has at least 80% line coverage; a decision belongs there, with a test, rather than in a composable or a service | ✓ | ✓ |
+| ruff | bug rules only on both bridges: pyflakes, bugbear, async pitfalls, pylint errors | ✓ | ✓ |
+| basedpyright | standard mode over both bridges and their tests (`pyrightconfig.json` at the repo root, so the editor reads it too) | ✓ | ✓ |
+| pytest | `bridge/tests` and `.local/share/claude-bridge/tests`, against a fake `playerctl` and a fake `stt-core`, never the real ones; coverage may not fall under `quality/coverage-floors` | ✓ | ✓ |
+| Android lint | warnings are errors | | ✓ |
+| `phone-smoke` | a separate headless emulator (`mandragora-phone-check`, port 5560, never the one `phone-emu` gives you) installs the APK, launches it, locks, and requires the app still running, exactly one foreground service and no crash; then reboots it and requires no crash at boot | | ✓ |
+
+What existed before the gate is grandfathered, not hidden: `quality/detekt-baseline.xml`,
+`app/app/lint-baseline.xml` and `quality/pyright-baseline.json` list it, and only a new
+finding fails. Fixing an old one and rewriting the baselines with `phone-gate
+baseline` shrinks them; a diff that grows them is a decision to defend in the
+commit. The coverage floors only go up: raise a floor when the tests raise the
+number. `PHONE_GATE_MODE=fast phone-push` skips lint and the emulator, for when
+the emulator itself is the broken thing; say so in the commit that follows.
+
 ## Traps
 
 - Android stops background VPNs under battery pressure. Without *Always-on*

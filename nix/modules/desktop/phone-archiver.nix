@@ -29,6 +29,22 @@ let
     ];
     text = builtins.readFile ../../../.local/bin/phone-push.sh;
   };
+  gate = pkgs.writeShellApplication {
+    name = "phone-gate";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.gnused
+    ];
+    text = builtins.readFile ../../../.local/bin/phone-gate.sh;
+  };
+  smoke = pkgs.writeShellApplication {
+    name = "phone-smoke";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.gnugrep
+    ];
+    text = builtins.readFile ../../../.local/bin/phone-smoke.sh;
+  };
   emu = pkgs.writeShellApplication {
     name = "phone-emu";
     runtimeInputs = [
@@ -46,6 +62,8 @@ in
     bootstrap
     push
     emu
+    gate
+    smoke
   ];
 
   systemd.user.services.phone-archiver = {

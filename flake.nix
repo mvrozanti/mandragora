@@ -192,11 +192,22 @@
               ]
             );
             sdkRoot = "${androidSdk}/share/android-sdk";
+            quality = pkgs.python3.withPackages (ps: [
+              ps.aiohttp
+              ps.claude-agent-sdk
+              ps.httpx
+              ps.pytest
+              ps.pytest-cov
+            ]);
           in
           pkgs.mkShell {
             packages = [
               androidSdk
               pkgs.jdk21
+              quality
+              pkgs.ruff
+              pkgs.basedpyright
+              pkgs.detekt
             ];
             ANDROID_HOME = sdkRoot;
             ANDROID_SDK_ROOT = sdkRoot;

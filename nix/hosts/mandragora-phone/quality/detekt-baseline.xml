@@ -1,0 +1,131 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:Store.kt$Store$lease.value.owner != "phone" || lease.value.file != file || busy.value || h.localHasMedia()</ID>
+    <ID>ComplexCondition:Store.kt$Store$value != null &amp;&amp; lease.value.owner == "phone" &amp;&amp; !busy.value &amp;&amp; !value.localHasMedia()</ID>
+    <ID>ComplexCondition:Turns.kt$settled &amp;&amp; tail != null &amp;&amp; !answered &amp;&amp; chips.isEmpty()</ID>
+    <ID>CyclomaticComplexMethod:Code.kt$@Composable fun CodeScreen(store: Store, onCollapse: () -&gt; Unit)</ID>
+    <ID>CyclomaticComplexMethod:Code.kt$@Composable fun SessionsScreen(store: Store, onOpenSession: () -&gt; Unit, onCollapse: () -&gt; Unit)</ID>
+    <ID>CyclomaticComplexMethod:Code.kt$@Composable private fun CallsView(calls: ShownCalls)</ID>
+    <ID>CyclomaticComplexMethod:Code.kt$@Composable private fun Composer( field: TextFieldValue, focus: FocusRequester, busy: Boolean, enabled: Boolean, attachments: List&lt;CodeStore.Attachment&gt;, uploading: Boolean, onChange: (TextFieldValue) -&gt; Unit, onSend: () -&gt; Unit, onStop: () -&gt; Unit, onPicture: () -&gt; Unit, onFile: () -&gt; Unit, onDetach: (String) -&gt; Unit, hearing: Boolean, onSpoken: (File?) -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:Code.kt$@Composable private fun EntryView( entry: CodeEntry, scheme: ColorScheme, stops: Stops, onEdit: (String) -&gt; Unit, onResend: (String) -&gt; Unit, parts: List&lt;CodePart&gt; = entry.parts, tail: Boolean = true, )</ID>
+    <ID>CyclomaticComplexMethod:Code.kt$@Composable private fun QuestionCard(ask: QuestionAsk, onAnswer: (List&lt;List&lt;String&gt;&gt;) -&gt; Unit, onReject: () -&gt; Unit)</ID>
+    <ID>CyclomaticComplexMethod:Code.kt$@Composable private fun ToolLine(part: CodePart)</ID>
+    <ID>CyclomaticComplexMethod:Code.kt$CodeClient$fun events(directory: String?): Flow&lt;CodeEvent&gt;</ID>
+    <ID>CyclomaticComplexMethod:CodeStore.kt$CodeStore$private fun handle(event: CodeEvent)</ID>
+    <ID>CyclomaticComplexMethod:Find.kt$@Composable fun FindScreen(store: Store, onCollapse: () -&gt; Unit)</ID>
+    <ID>CyclomaticComplexMethod:HubStore.kt$fun hubView(feed: HubFeed, reachable: Boolean, fresh: Boolean): HubView</ID>
+    <ID>CyclomaticComplexMethod:Markdown.kt$Markdown$private fun parse(lines: List&lt;String&gt;): List&lt;MdBlock&gt;</ID>
+    <ID>CyclomaticComplexMethod:Meaning.kt$Meaning$private fun risk(line: String, spans: MutableList&lt;Span&gt;)</ID>
+    <ID>CyclomaticComplexMethod:Money.kt$@Composable fun MoneyCard(store: Store, onOpen: (String) -&gt; Unit)</ID>
+    <ID>CyclomaticComplexMethod:Money.kt$@Composable fun MoneyScreen(store: Store, onCollapse: () -&gt; Unit)</ID>
+    <ID>CyclomaticComplexMethod:Money.kt$@Composable private fun FetchedLine(cache: MoneyCache?, reachable: Boolean, busy: Boolean, nowMs: Long)</ID>
+    <ID>CyclomaticComplexMethod:Store.kt$Store$fun start()</ID>
+    <ID>CyclomaticComplexMethod:Store.kt$Store$private suspend fun moveToPhone(h: PlayerHost)</ID>
+    <ID>EmptyCatchBlock:CodeStore.kt$CodeStore${ }</ID>
+    <ID>EmptyElseBlock:Find.kt$if (i &gt; 0) append(" · ")</ID>
+    <ID>InstanceOfCheckForException:Http.kt$Http$err is Unreachable</ID>
+    <ID>LargeClass:CodeStore.kt$CodeStore</ID>
+    <ID>LargeClass:Store.kt$Store</ID>
+    <ID>LongMethod:CodeStore.kt$CodeStore$private fun handle(event: CodeEvent)</ID>
+    <ID>LongMethod:HubStore.kt$fun hubView(feed: HubFeed, reachable: Boolean, fresh: Boolean): HubView</ID>
+    <ID>LongMethod:Markdown.kt$Markdown$private fun parse(lines: List&lt;String&gt;): List&lt;MdBlock&gt;</ID>
+    <ID>LongMethod:Store.kt$Store$fun start()</ID>
+    <ID>LongParameterList:Store.kt$Store$(h: PlayerHost, track: Source, file: String, title: String, artist: String?, positionMs: Long, play: Boolean)</ID>
+    <ID>LoopWithTooManyJumpStatements:CodeStore.kt$CodeStore$do</ID>
+    <ID>LoopWithTooManyJumpStatements:Markdown.kt$Markdown$while</ID>
+    <ID>LoopWithTooManyJumpStatements:Meaning.kt$Meaning$for</ID>
+    <ID>LoopWithTooManyJumpStatements:MoneyStore.kt$MoneyStore$while</ID>
+    <ID>LoopWithTooManyJumpStatements:Store.kt$Store$for</ID>
+    <ID>LoopWithTooManyJumpStatements:Store.kt$Store$while</ID>
+    <ID>MaxLineLength:Bridge.kt$Hog$data</ID>
+    <ID>MaxLineLength:Chrome.kt$Text(if (downloaded) "${ready.versionName} · downloaded" else "${ready.versionName} · ${(ready.size + 524_288) / 1_048_576} MB", style = MaterialTheme.typography.labelSmall, color = tint.copy(alpha = 0.7f), maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
+    <ID>MaxLineLength:Chrome.kt$if (!reachable &amp;&amp; LocalChecking.current) Box(modifier = Modifier.size(8.dp).clip(CircleShape).border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)) else StatusDot(reachable)</ID>
+    <ID>MaxLineLength:Code.kt$Icon(if (name.endsWith(".pdf", ignoreCase = true)) Icons.Filled.PictureAsPdf else Icons.Filled.Description, null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(18.dp))</ID>
+    <ID>MaxLineLength:Code.kt$Text(name, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 220.dp))</ID>
+    <ID>MaxLineLength:Code.kt$else</ID>
+    <ID>MaxLineLength:Code.kt$if (desk != null) Text("runs in a desktop terminal as $desk; changes go to that terminal, for this session only. Another kind of model restarts it with the conversation kept: claude and deepseek in a new desktop window, a local model in the background on the desktop", style = MaterialTheme.typography.bodySmall, color = scheme.outline)</ID>
+    <ID>MaxLineLength:Code.kt$modifier = Modifier.align(Alignment.TopEnd).padding(3.dp).size(22.dp).clip(CircleShape).background(scheme.surface.copy(alpha = 0.8f)).clickable { onDetach(file.path) }</ID>
+    <ID>MaxLineLength:Code.kt$val newest = listOf(entries.size, pendingHere.size, questions.size, asks.size, if (busy) 1 else 0, entries.lastOrNull()?.parts?.size ?: 0, screens.firstOrNull()?.id.hashCode(), stops.chips.keys.hashCode())</ID>
+    <ID>MaxLineLength:CodeStore.kt$CodeStore$projectsFlow.value = (answered.flatMap { it.projects } + projectsFlow.value.filter { it.backend in failed }).distinctBy { it.worktree }.sortedByDescending { it.time.updated }</ID>
+    <ID>MaxLineLength:CodeStore.kt$CodeStore$store.appContext.contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c -&gt; if (c.moveToFirst()) c.getString(0) else null }</ID>
+    <ID>MaxLineLength:Find.kt$Row</ID>
+    <ID>MaxLineLength:Find.kt$if (crumb != null) emptyList() else Finder.facets(if (term.isEmpty()) drilled else drilled.filter { (it.song.artist ?: "").contains(term, ignoreCase = true) }) { it.artist }</ID>
+    <ID>MaxLineLength:Find.kt$if (drillAlbum != null) emptyList() else Finder.facets(if (term.isEmpty()) drilled else drilled.filter { (it.song.album ?: "").contains(term, ignoreCase = true) || (it.song.artist ?: "").contains(term, ignoreCase = true) }, within = { it.artist ?: "" }) { it.album }</ID>
+    <ID>MaxLineLength:Find.kt$if (query.isNotEmpty()) Icon(Icons.Filled.Close, "clear", tint = scheme.outline, modifier = Modifier.clickable { query = ""; drillArtist = null; drillAlbum = null })</ID>
+    <ID>MaxLineLength:Find.kt$item { SectionHead("albums", if (albums.size &gt; albumsShown.size) "${albums.size} in all" else if (allAlbums &amp;&amp; albums.size &gt; 4) "fewer" else null) { allAlbums = !allAlbums } }</ID>
+    <ID>MaxLineLength:Find.kt$item { SectionHead("artists", if (artists.size &gt; artistsShown.size) "${artists.size} in all" else if (allArtists &amp;&amp; artists.size &gt; 4) "fewer" else null) { allArtists = !allArtists } }</ID>
+    <ID>MaxLineLength:Find.kt$listOfNotNull(facet.sample.artist, "${facet.count} song${if (facet.count == 1) "" else "s"}", Finder.year(facet.sample).takeIf { it.isNotEmpty() }).joinToString(" · ")</ID>
+    <ID>MaxLineLength:Find.kt$modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(scheme.surfaceContainerHigh).clickable { drillArtist = null; drillAlbum = null }.padding(horizontal = 8.dp, vertical = 4.dp)</ID>
+    <ID>MaxLineLength:Find.kt$modifier = Modifier.clip(RoundedCornerShape(999.dp)).background(if (selected) scheme.primary else scheme.surfaceContainerHigh).clickable { sort = key }.padding(horizontal = 12.dp, vertical = 6.dp)</ID>
+    <ID>MaxLineLength:Markdown.kt$modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(scheme.surfaceContainerLow).horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 8.dp)</ID>
+    <ID>MaxLineLength:Meaning.kt$Meaning$private val action = Regex("(you need to|you'll need to|you should now|run the following|make sure to|don't forget to|before you \\w[^,]{0,60},|manually)", RegexOption.IGNORE_CASE)</ID>
+    <ID>MaxLineLength:Meaning.kt$Meaning$private val riskCommands = listOf("rm -rf", "rm -fr", "sudo rm", "git reset --hard", "git push -f", "git push --force", "git clean -fd", "--force", "dd of=", "mkfs", "chmod -R 777", ":&gt;")</ID>
+    <ID>MaxLineLength:Money.kt$Text(entry.label, style = MaterialTheme.typography.labelMedium, color = scheme.outline, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(top = 1.dp))</ID>
+    <ID>MaxLineLength:Money.kt$Text(venue.label, style = MaterialTheme.typography.bodyLarge, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))</ID>
+    <ID>MaxLineLength:Money.kt$group.amount?.let { Text(shown(MoneyFormat.qty(it), hidden), style = MaterialTheme.typography.labelLarge, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis) }</ID>
+    <ID>MaxLineLength:Music.kt$Icon(if (now.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow, if (now.playing) "pause" else "play", tint = scheme.onPrimary, modifier = Modifier.size(28.dp))</ID>
+    <ID>MaxLineLength:Music.kt$Text(now.artist ?: "", style = MaterialTheme.typography.bodyLarge, color = scheme.onSurfaceVariant, textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
+    <ID>MaxLineLength:Panic.kt$Label("${fmtBytes(m.available)} free of ${fmtBytes(m.total)} · swap ${fmtBytes(m.swapTotal - m.swapFree)} used of ${fmtBytes(m.swapTotal)}" + if (fresh) "" else " · last known")</ID>
+    <ID>MaxLineLength:Parts.kt$Icon(if (player.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow, if (player.playing) "pause on the desktop" else "resume on the desktop", tint = scheme.onSurfaceVariant, modifier = Modifier.size(18.dp))</ID>
+    <ID>NestedBlockDepth:CodeStore.kt$CodeStore$private fun handle(event: CodeEvent)</ID>
+    <ID>NestedBlockDepth:Markdown.kt$Markdown$private fun parse(lines: List&lt;String&gt;): List&lt;MdBlock&gt;</ID>
+    <ID>NestedBlockDepth:Turns.kt$fun stoppedTurns(entries: List&lt;CodeEntry&gt;, settled: Boolean): Stops</ID>
+    <ID>ReturnCount:CodeStore.kt$CodeStore$private fun delta(p: JsonObject)</ID>
+    <ID>ReturnCount:CodeStore.kt$CodeStore$private fun followModel(session: CodeSession, entries: List&lt;CodeEntry&gt;)</ID>
+    <ID>ReturnCount:CodeStore.kt$CodeStore$private fun humanize(err: Throwable): Throwable</ID>
+    <ID>ReturnCount:CodeStore.kt$fun parseModel(value: String?): CodeModel?</ID>
+    <ID>ReturnCount:MainActivity.kt$MainActivity$override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean</ID>
+    <ID>ReturnCount:Meaning.kt$Meaning$private fun command(line: String, spans: MutableList&lt;Span&gt;)</ID>
+    <ID>ReturnCount:Meaning.kt$Meaning$private fun shellShaped(content: String): Boolean</ID>
+    <ID>ReturnCount:Money.kt$MoneyFormat$fun gain(ratio: Double?): String</ID>
+    <ID>ReturnCount:Money.kt$MoneyFormat$fun gainRatio(now: Double?, avg: Double?): Double?</ID>
+    <ID>ReturnCount:Money.kt$MoneyFormat$fun nowBrl(fx: MoneyFx): Double?</ID>
+    <ID>ReturnCount:Money.kt$MoneyFormat$fun share(usd: Double?, total: Double?): String?</ID>
+    <ID>ReturnCount:Money.kt$MoneyFormat$private fun general(value: Double, digits: Int): String</ID>
+    <ID>ReturnCount:Store.kt$Store$private suspend fun copyQueue(snap: MpdSnapshot?, file: String, names: Set&lt;String&gt;): List&lt;MpdSong&gt;</ID>
+    <ID>ReturnCount:Store.kt$Store$private suspend fun loadCover(owner: String, file: String?)</ID>
+    <ID>ReturnCount:Store.kt$Store$private suspend fun localAdvance(step: Int, play: Boolean): Boolean</ID>
+    <ID>ReturnCount:Store.kt$Store$private suspend fun sourceFor(file: String): Source?</ID>
+    <ID>ReturnCount:UpdateStore.kt$UpdateStore$fun install()</ID>
+    <ID>SwallowedException:Code.kt$err: Exception</ID>
+    <ID>SwallowedException:CodeStore.kt$CodeStore$err: Exception</ID>
+    <ID>SwallowedException:Hub.kt$err: ActivityNotFoundException</ID>
+    <ID>SwallowedException:LocalLibrary.kt$LocalLibrary$err: Exception</ID>
+    <ID>SwallowedException:Store.kt$Store$err: Exception</ID>
+    <ID>SwallowedException:Store.kt$Store$err: Unreachable</ID>
+    <ID>SwallowedException:UpdateStore.kt$UpdateStore$err: IOException</ID>
+    <ID>ThrowsCount:CodeStore.kt$CodeStore$private fun readCapped(uri: android.net.Uri, name: String): ByteArray</ID>
+    <ID>ThrowsCount:CodeStore.kt$CodeStore$suspend fun refresh()</ID>
+    <ID>ThrowsCount:Http.kt$Http$private fun execute(request: Request, using: OkHttpClient = client): String</ID>
+    <ID>ThrowsCount:Store.kt$Store$private suspend fun moveToPhone(h: PlayerHost)</ID>
+    <ID>TooGenericExceptionCaught:Code.kt$err: Exception</ID>
+    <ID>TooGenericExceptionCaught:CodeStore.kt$CodeStore$err: Exception</ID>
+    <ID>TooGenericExceptionCaught:FindStore.kt$FindStore$err: Exception</ID>
+    <ID>TooGenericExceptionCaught:HubStore.kt$HubStore$err: Exception</ID>
+    <ID>TooGenericExceptionCaught:LoadStore.kt$LoadStore$err: Exception</ID>
+    <ID>TooGenericExceptionCaught:LocalLibrary.kt$LocalLibrary$err: Exception</ID>
+    <ID>TooGenericExceptionCaught:Store.kt$Store$err: Exception</ID>
+    <ID>TooManyFunctions:Bridge.kt$BridgeClient</ID>
+    <ID>TooManyFunctions:Code.kt$CodeClient</ID>
+    <ID>TooManyFunctions:Code.kt$ac.mvr.phone.ui.Code.kt</ID>
+    <ID>TooManyFunctions:CodeStore.kt$CodeStore</ID>
+    <ID>TooManyFunctions:DeskPlayer.kt$DeskPlayer : SimpleBasePlayer</ID>
+    <ID>TooManyFunctions:Hub.kt$ac.mvr.phone.ui.Hub.kt</ID>
+    <ID>TooManyFunctions:Meaning.kt$Meaning</ID>
+    <ID>TooManyFunctions:Money.kt$MoneyFormat</ID>
+    <ID>TooManyFunctions:Money.kt$ac.mvr.phone.ui.Money.kt</ID>
+    <ID>TooManyFunctions:Mpd.kt$MpdClient</ID>
+    <ID>TooManyFunctions:PlaybackService.kt$PlaybackService : MediaSessionServicePlayerHost</ID>
+    <ID>TooManyFunctions:Prefs.kt$Prefs</ID>
+    <ID>TooManyFunctions:RemotePlayer.kt$RemotePlayer : SimpleBasePlayer</ID>
+    <ID>TooManyFunctions:Store.kt$Store</ID>
+    <ID>UnusedPrivateProperty:Store.kt$Store$attempt</ID>
+    <ID>UseCheckOrError:Code.kt$throw IllegalStateException("heard nothing")</ID>
+    <ID>UseCheckOrError:MoneyStore.kt$MoneyStore$throw IllegalStateException("refresh failed on the desktop")</ID>
+    <ID>UseCheckOrError:Store.kt$Store$throw IllegalStateException("desktop has nothing to hand over")</ID>
+    <ID>UseCheckOrError:Store.kt$Store$throw IllegalStateException("player not ready yet")</ID>
+    <ID>UseCheckOrError:UpdateStore.kt$UpdateStore$throw IllegalStateException("the download did not match the desktop's build")</ID>
+  </CurrentIssues>
+</SmellBaseline>

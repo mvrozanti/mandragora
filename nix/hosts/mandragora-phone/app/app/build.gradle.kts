@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("org.jetbrains.kotlinx.kover")
 }
 
 val desktopIp: String = System.getenv("MANDRAGORA_DESKTOP_IP") ?: "100.115.80.79"
@@ -62,6 +63,31 @@ android {
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
+
+    lint {
+        baseline = file("lint-baseline.xml")
+        abortOnError = true
+        warningsAsErrors = true
+        checkReleaseBuilds = false
+        disable += setOf("GradleDependency", "NewerVersionAvailable", "AndroidGradlePluginVersion", "OldTargetApi")
+    }
+}
+
+kover {
+    reports {
+        filters {
+            includes {
+                packages("ac.mvr.phone.logic")
+            }
+        }
+        variant("debug") {
+            verify {
+                rule {
+                    minBound(80)
+                }
+            }
+        }
+    }
 }
 
 dependencies {
@@ -82,4 +108,5 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
+    testImplementation("junit:junit:4.13.2")
 }

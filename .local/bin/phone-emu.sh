@@ -4,7 +4,7 @@ set -euo pipefail
 REPO="${MANDRAGORA_REPO:-/etc/nixos/mandragora}"
 APP="$REPO/nix/hosts/mandragora-phone/app"
 STATE="${XDG_DATA_HOME:-$HOME/.local/share}/mandragora-phone"
-NAME="mandragora-phone"
+NAME="${PHONE_EMU_NAME:-mandragora-phone}"
 IMAGE="system-images;android-35;google_apis;x86_64"
 PORT="${PHONE_EMU_PORT:-5554}"
 SERIAL="emulator-$PORT"
@@ -40,11 +40,12 @@ if [ ! -d "$ANDROID_AVD_HOME/$NAME.avd" ]; then
 fi
 
 if ! adb -s "$SERIAL" get-state > /dev/null 2>&1; then
-  echo "phone-emu: booting (log: $STATE/emulator.log)"
+  echo "phone-emu: booting (log: $STATE/emulator-$NAME.log)"
   window=()
   [ -n "${PHONE_EMU_HEADLESS:-}" ] && window=(-no-window -no-audio)
-  setsid -f emulator -avd "$NAME" -port "$PORT" -gpu "${PHONE_EMU_GPU:-swiftshader_indirect}" -no-boot-anim "${window[@]}" > "$STATE/emulator.log" 2>&1 < /dev/null
+  setsid -f emulator -avd "$NAME" -port "$PORT" -gpu "${PHONE_EMU_GPU:-swiftshader_indirect}" -no-boot-anim "${window[@]}" > "$STATE/emulator-$NAME.log" 2>&1 < /dev/null
 fi
+[ -n "${PHONE_EMU_BOOT_ONLY:-}" ] && exit 0
 
 adb -s "$SERIAL" wait-for-device
 until [ "$(adb -s "$SERIAL" shell getprop sys.boot_completed 2> /dev/null | tr -d '\r')" = "1" ]; do

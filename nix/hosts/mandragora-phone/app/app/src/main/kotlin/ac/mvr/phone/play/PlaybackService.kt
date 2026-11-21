@@ -21,6 +21,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import ac.mvr.phone.MainActivity
+import ac.mvr.phone.logic.lockScreen
 import ac.mvr.phone.state.PlayerHost
 import ac.mvr.phone.state.Store
 import ac.mvr.phone.store
@@ -95,19 +96,13 @@ class PlaybackService : MediaSessionService(), PlayerHost {
 
     private fun route() {
         val current = session ?: return
-        val players = appStore.media.value
-        val musicOn = musicPlaying()
-        val deskOn = players.firstOrNull { it.playing }
-        if (!musicOn && deskOn != null) desk.bind(deskOn.player)
-        val showDesk = when {
-            musicOn -> false
-            deskOn != null -> true
-            else -> current.player === desk && players.any { it.player == desk.bound }
-        }
-        val target = if (showDesk) desk else music
+        val shown = lockScreen(musicPlaying(), appStore.media.value, current.player === desk, desk.bound)
+        shown.bind?.let { desk.bind(it) }
+        val target = if (shown.showDesk) desk else music
         if (current.player !== target) current.setPlayer(target)
         desk.refresh()
-        if (musicOn && deskOn != null) deskNotice?.show(deskOn) else deskNotice?.hide()
+        val beside = shown.beside
+        if (beside != null) deskNotice?.show(beside) else deskNotice?.hide()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

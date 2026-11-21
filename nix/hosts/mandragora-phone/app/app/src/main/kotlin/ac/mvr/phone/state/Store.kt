@@ -17,6 +17,7 @@ import ac.mvr.phone.net.BridgeConfig
 import ac.mvr.phone.net.DesktopMedia
 import ac.mvr.phone.net.Http
 import ac.mvr.phone.net.Lease
+import ac.mvr.phone.logic.resumes
 import ac.mvr.phone.net.Lyrics
 import ac.mvr.phone.net.MediaState
 import ac.mvr.phone.net.MpdClient
@@ -444,8 +445,7 @@ class Store(private val app: Application) {
         (player.position * 1000).toLong() + if (player.playing) SystemClock.elapsedRealtime() - mediaAtMs else 0L
 
     suspend fun deskCommand(player: String, action: String, position: Double? = null) {
-        val resumes = action == "play" || (action == "play-pause" && media.value.none { it.player == player && it.playing })
-        if (resumes) runCatching { pauseMusic() }
+        if (resumes(action, player, media.value)) runCatching { pauseMusic() }
         adoptMedia(bridge.mediaAction(player, action, position))
     }
 

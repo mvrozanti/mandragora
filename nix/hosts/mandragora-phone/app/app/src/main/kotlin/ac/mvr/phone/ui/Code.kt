@@ -1,5 +1,14 @@
 package ac.mvr.phone.ui
 
+import ac.mvr.phone.logic.ABORTED
+import ac.mvr.phone.logic.Shown
+import ac.mvr.phone.logic.ShownCalls
+import ac.mvr.phone.logic.ShownEntry
+import ac.mvr.phone.logic.Stops
+import ac.mvr.phone.logic.active
+import ac.mvr.phone.logic.said
+import ac.mvr.phone.logic.squashCalls
+import ac.mvr.phone.logic.stoppedTurns
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -317,9 +326,6 @@ private fun SessionLine(session: CodeSession, status: CodeStatus?, selected: Boo
     }
 }
 
-private fun active(session: CodeSession, status: CodeStatus?): Boolean =
-    session.live != null || status?.type == "busy" || status?.message == "waiting"
-
 @Composable
 fun CodeCard(store: Store, onOpen: (String) -> Unit) {
     val scheme = MaterialTheme.colorScheme
@@ -523,41 +529,6 @@ private fun ReasoningLine(part: CodePart) {
     }
 }
 
-private const val ABORTED = "MessageAbortedError"
-
-private fun said(entry: CodeEntry): String =
-    entry.parts.filter { it.type == "text" && !it.synthetic && !it.ignored }.mapNotNull { it.text }.joinToString("\n")
-
-private class Stops(val resend: Map<String, String>, val chips: Map<String, String>)
-
-private fun stoppedTurns(entries: List<CodeEntry>, settled: Boolean): Stops {
-    val resend = HashMap<String, String>()
-    val chips = HashMap<String, String>()
-    var last: CodeEntry? = null
-    var answered = false
-    entries.forEach { entry ->
-        if (entry.info.role == "user") {
-            if (said(entry).isNotBlank()) {
-                last = entry
-                answered = false
-                chips.clear()
-            }
-        } else {
-            if (entry.parts.isNotEmpty()) answered = true
-            if (entry.info.error?.name == ABORTED) last?.let { user ->
-                resend[user.info.id] = said(user)
-                chips[entry.info.id] = said(user)
-            }
-        }
-    }
-    val tail = last
-    if (settled && tail != null && !answered && chips.isEmpty()) {
-        resend[tail.info.id] = said(tail)
-        chips[tail.info.id] = said(tail)
-    }
-    return Stops(resend, chips)
-}
-
 @Composable
 private fun StoppedLine(chip: String?, onResend: (String) -> Unit) {
     val scheme = MaterialTheme.colorScheme
@@ -595,54 +566,6 @@ private fun Held(actions: List<Pair<String, () -> Unit>>, content: @Composable (
             }
         }
     }
-}
-
-private sealed interface Shown {
-    val key: String
-}
-
-private class ShownEntry(val entry: CodeEntry, val parts: List<CodePart>, val tail: Boolean, override val key: String) : Shown
-
-private class ShownCalls(val parts: List<CodePart>, val squashed: Boolean, override val key: String) : Shown
-
-private fun isCall(part: CodePart) = part.type == "tool" || part.type == "reasoning"
-
-private fun squashCalls(entries: List<CodeEntry>): List<Shown> {
-    val out = ArrayList<Shown>()
-    val run = ArrayList<CodePart>()
-    fun flush() {
-        if (run.isEmpty()) return
-        out += ShownCalls(run.toList(), run.count { it.type == "tool" } >= 2, "calls:" + run.first().id)
-        run.clear()
-    }
-    entries.forEach { entry ->
-        if (entry.info.role == "user") {
-            flush()
-            out += ShownEntry(entry, entry.parts, true, entry.info.id)
-            return@forEach
-        }
-        val piece = ArrayList<CodePart>()
-        var pieces = 0
-        fun cut() {
-            if (piece.isEmpty()) return
-            out += ShownEntry(entry, piece.toList(), false, entry.info.id + ":" + pieces++)
-            piece.clear()
-        }
-        entry.parts.forEach { part ->
-            when {
-                isCall(part) -> { cut(); run += part }
-                part.type == "text" && (part.ignored || part.text.isNullOrBlank()) -> Unit
-                else -> { flush(); piece += part }
-            }
-        }
-        cut()
-        if (entry.info.error != null) {
-            flush()
-            out += ShownEntry(entry, emptyList(), true, entry.info.id + ":end")
-        }
-    }
-    flush()
-    return out
 }
 
 @Composable
