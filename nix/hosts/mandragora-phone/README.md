@@ -164,7 +164,7 @@ full-text search):
 | Tap | Does | Lands |
 |---|---|---|
 | empty box | every session, latest activity first, with its dot and title | sessions |
-| "+n closed" / "hide closed" (right of the count) | shows or hides the sessions that are neither open on the desktop, working nor waiting for you; hidden each time the screen opens, never remembered, and it applies to search results too | sessions |
+| "hide closed" / "+n closed" (right of the count) | hides or shows again the sessions that are neither open on the desktop, working nor waiting for you; shown each time the screen opens, since the code card already lists only the active ones and this screen is the only place a closed session can be found; never remembered, and it applies to search results too | sessions |
 | type | full-text search over every session's turns, a phrase or subject; each row shows the matching passage | sessions |
 | a session | opens it on the code screen | code |
 | a session, swiped to the left | closes it on the desktop after five seconds with an undo, as on the code card | sessions |

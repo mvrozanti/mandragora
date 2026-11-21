@@ -1222,7 +1222,7 @@ fun SessionsScreen(store: Store, onOpenSession: () -> Unit, onCollapse: () -> Un
     val closing by store.code.closing.collectAsStateWithLifecycle()
     val closed by store.code.closed.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf("") }
-    var showClosed by remember { mutableStateOf(false) }
+    var showClosed by remember { mutableStateOf(true) }
     var found by remember { mutableStateOf<List<CodeSession>?>(null) }
     var failed by remember { mutableStateOf(false) }
     LaunchedEffect(query, closed) {
