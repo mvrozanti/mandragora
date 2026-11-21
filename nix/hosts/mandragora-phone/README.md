@@ -232,7 +232,7 @@ one line each, reasoning is folded):
 
 | Tap | Does | Lands |
 |---|---|---|
-| the session title (up to two lines) | turns into an edit box holding the whole name, cursor at the end; ✓ or the keyboard's Done renames the session, ✕ or Android back leaves it as it was. A session open on the desktop is renamed through its own `/rename`, which Claude Code runs at once, mid-turn too, and records as a user-set title; a closed one gets the title written to its transcript; an opencode session through opencode's rename. Before a new session exists the title reads "new session" and the tap opens the sessions sheet instead | code |
+| the session title (whole, on as many lines as it needs; session rows show the whole title too) | turns into an edit box holding the whole name, cursor at the end; ✓ or the keyboard's Done renames the session, ✕ or Android back leaves it as it was. A session open on the desktop is renamed through its own `/rename`, which Claude Code runs at once, mid-turn too, and records as a user-set title; a closed one gets the title written to its transcript; an opencode session through opencode's rename. Before a new session exists the title reads "new session" and the tap opens the sessions sheet instead | code |
 | "new session" (the title, only before a session's first message) | opens the sessions sheet: "new session in" every project the server knows, then recent sessions newest first, working ones marked. An open session has no way into the sheet; another session is opened from the code card or the sessions screen | sheet |
 | a session in the sheet | loads its transcript and follows it live | code |
 | a session in the sheet, swiped to the left | closes it on the desktop after five seconds with an undo, as on the code card | sheet |

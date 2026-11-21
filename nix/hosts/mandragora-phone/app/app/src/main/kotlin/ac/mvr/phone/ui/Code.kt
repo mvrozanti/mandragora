@@ -256,7 +256,7 @@ private fun ClosingRow(session: CodeSession, busy: Boolean, until: Long, onUndo:
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(session.title.ifBlank { "untitled" }, style = MaterialTheme.typography.bodyLarge, color = scheme.onErrorContainer, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(session.title.ifBlank { "untitled" }, style = MaterialTheme.typography.bodyLarge, color = scheme.onErrorContainer)
             Label(
                 if (seconds > 0) "closing on the desktop in $seconds s" + (if (busy) " · its turn stops" else "") else "closing on the desktop…",
                 color = scheme.onErrorContainer.copy(alpha = 0.8f),
@@ -316,8 +316,6 @@ private fun SessionLine(session: CodeSession, status: CodeStatus?, selected: Boo
                 session.title.ifBlank { "untitled" },
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (waiting) scheme.error else Color.Unspecified,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
             session.snippet?.takeIf { it.isNotBlank() }?.let { snip ->
                 Text(Meaning.annotate(snip, scheme), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -447,8 +445,6 @@ private fun SessionBar(current: CodeSession?, chip: String, onRename: (String) -
         Text(
             current?.title?.ifBlank { null } ?: if (current == null) "new session" else "untitled",
             style = MaterialTheme.typography.titleMedium,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .weight(1f)
                 .clip(RoundedCornerShape(10.dp))
