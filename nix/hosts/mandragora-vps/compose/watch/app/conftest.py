@@ -77,7 +77,7 @@ def captured_sends(monkeypatch):
 
     import poller
 
-    monkeypatch.setattr(poller.tg, "push_event", fake_push)
-    monkeypatch.setattr(poller.tg, "enabled", lambda: True)
+    monkeypatch.setattr(poller.inbox, "push_event", fake_push)
+    monkeypatch.setattr(poller.inbox, "enabled", lambda: True)
     monkeypatch.setattr(poller, "WEBHOOK_URL", "")
     return sent

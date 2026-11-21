@@ -115,7 +115,7 @@
         out.push('<div class="wa-alert"><b>' + h.escalated_open + " event" + (h.escalated_open > 1 ? "s" : "") +
           " escalated unjudged</b> — pushed without a model verdict, judge them yourself</div>");
       }
-      if (!h.telegram_enabled) out.push('<div class="wa-alert"><b>telegram is not configured</b> — nothing can notify you</div>');
+      if (!h.inbox_enabled) out.push('<div class="wa-alert"><b>the phone inbox is not configured</b> — nothing can notify you</div>');
     }
     var broken = state.watchers.filter(function (w) { return w.last_error; });
     if (broken.length) {
@@ -261,7 +261,7 @@
       '<div class="wa-field wide"><label for="f-name">what are you waiting for</label><input class="wa-input" id="f-name" placeholder="e.g. severance s3 gets a date"></div>' +
       '<div class="wa-field wide"><label for="f-rule">match rule</label>' +
       '<input class="wa-input" id="f-rule" placeholder="e.g. jailbreak OR &quot;root exploit&quot; — blank and everything is sent"></div>' +
-      '<div class="wa-checks wide"><label><input type="checkbox" id="f-push" checked> notify me on telegram when it fires</label>' +
+      '<div class="wa-checks wide"><label><input type="checkbox" id="f-push" checked> notify me on the phone when it fires</label>' +
       '<label><input type="checkbox" id="f-ack"> keep nagging hourly until I accept it <span class="wa-hint">— urgent security only</span></label></div>' +
       '<div class="wa-acts wide"><button class="wa-btn primary" type="submit">add</button>' +
       '<button class="wa-btn" type="button" data-act="canceladd">cancel</button></div></form>';

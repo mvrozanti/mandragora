@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 import poller
 import sources
 import stats
-import telegram as tg
+import inbox
 
 
 logging.basicConfig(
@@ -302,11 +302,10 @@ async def lifespan(app: FastAPI):
     bootstrap_vuln_watch()
     bootstrap_health_watch()
     bootstrap_ea_app_watch()
-    if not tg.enabled():
-        log.error("telegram unconfigured: TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID missing from .env")
+    if not inbox.enabled():
+        log.error("inbox unconfigured: WATCH_INBOX_URL is unset, nothing will notify the phone")
     TASKS.update(
         poller=asyncio.create_task(poller.run_forever(conn)),
-        telegram=asyncio.create_task(tg.run_forever(conn)),
     )
     try:
         yield
@@ -403,9 +402,7 @@ def event_dict(row: sqlite3.Row, watcher: sqlite3.Row | None = None) -> dict:
 def task_states() -> dict[str, str]:
     states = {}
     for name, task in TASKS.items():
-        if name == "telegram" and not tg.enabled():
-            states[name] = "disabled"
-        elif task.done():
+        if task.done():
             states[name] = "dead"
         else:
             states[name] = "alive"
@@ -416,13 +413,14 @@ def task_states() -> dict[str, str]:
 async def healthz() -> dict:
     states = task_states()
     degraded = [f"{name}_task_dead" for name, state in states.items() if state == "dead"]
-    if not tg.enabled():
-        degraded.append("telegram_unconfigured")
+    if not inbox.enabled():
+        degraded.append("inbox_unconfigured")
     snapshot = stats.collect(conn)
     return {
         "ok": not degraded,
         "degraded": degraded,
-        "telegram_enabled": tg.enabled(),
+        "inbox_enabled": inbox.enabled(),
+        "undecidable_specs": stats.undecidable_specs(conn),
         "tasks": states,
         "runtime_model_calls": False,
         "registration_providers": __import__("llm").available(),
@@ -649,6 +647,20 @@ async def delete_watcher(wid: int) -> dict:
     return {"ok": True}
 
 
+@app.delete("/api/watches/{wid}")
+async def delete_watch(wid: int) -> dict:
+    c = conn()
+    try:
+        watch = c.execute("SELECT condition FROM watches WHERE id = ?", (wid,)).fetchone()
+        if watch is None:
+            raise HTTPException(404, "watch not found")
+        places = c.execute("DELETE FROM watchers WHERE watch_id = ?", (wid,)).rowcount
+        c.execute("DELETE FROM watches WHERE id = ?", (wid,))
+    finally:
+        c.close()
+    return {"ok": True, "condition": watch["condition"], "places": places}
+
+
 @app.post("/api/watchers/{wid}/toggle")
 async def toggle_watcher(wid: int) -> dict:
     c = conn()
@@ -805,6 +817,51 @@ async def watcher_triggers(wid: int, limit: int = Query(50, ge=1, le=200)) -> li
             "ai_reason": r["ai_reason"],
             "ai_claim": r["ai_claim"],
             "escalated_at": r["escalated_at"],
+        }
+        for r in rows
+    ]
+
+
+@app.get("/api/triggers")
+async def recent_triggers(
+    limit: int = Query(20, ge=1, le=200),
+    open_only: int = Query(1, alias="open"),
+    pushing: int = 1,
+) -> list[dict]:
+    where = [TRIGGER_PREDICATE]
+    if open_only:
+        where.append("e.acked_at IS NULL")
+    if pushing:
+        where.append("w.push = 1 AND w.enabled = 1")
+    c = conn()
+    rows = c.execute(
+        f"""
+        SELECT e.id, e.watcher_id, e.title, substr(e.summary, 1, 400) AS summary, e.link,
+               e.occurred_at, e.received_at, e.acked_at, e.ai_verdict, e.ai_reason,
+               w.name AS w_name, w.kind AS w_kind, w.target AS w_target, w.condition AS w_condition
+        FROM events e JOIN watchers w ON w.id = e.watcher_id
+        WHERE {" AND ".join(where)}
+        ORDER BY e.id DESC LIMIT ?
+        """,
+        (limit,),
+    ).fetchall()
+    c.close()
+    return [
+        {
+            "id": r["id"],
+            "watcher_id": r["watcher_id"],
+            "watcher_name": r["w_name"],
+            "watcher_kind": r["w_kind"],
+            "watcher_target": r["w_target"],
+            "condition": r["w_condition"],
+            "title": r["title"],
+            "summary": r["summary"],
+            "link": r["link"],
+            "occurred_at": r["occurred_at"],
+            "received_at": r["received_at"],
+            "acked_at": r["acked_at"],
+            "ai_verdict": r["ai_verdict"],
+            "ai_reason": r["ai_reason"],
         }
         for r in rows
     ]

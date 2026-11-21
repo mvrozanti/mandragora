@@ -4,7 +4,7 @@ import pytest
 
 import main
 import poller
-import telegram as tg
+from fastapi import HTTPException
 
 
 def _watches(db):
@@ -105,7 +105,7 @@ def test_stop_condition_counts_across_the_whole_watch(db, make_watcher, make_eve
     assert places == 0
 
 
-def test_list_addresses_watches_not_places(db, make_watcher):
+def test_every_place_carries_its_watch(db, make_watcher):
     a = make_watcher(kind="rss", target="https://a.invalid/f", ai_spec=None)
     b = make_watcher(kind="hn_search", target="q", ai_spec=None)
     for wid in (a, b):
@@ -113,9 +113,10 @@ def test_list_addresses_watches_not_places(db, make_watcher):
     c = db()
     main._migrate_conditions_to_watches(c)
     c.close()
-    out = asyncio.run(tg._cmd_list(db))
-    assert out.count("a new kindle jailbreak is released") == 1
-    assert "2 places" in out
+    listed = asyncio.run(main.list_watchers())
+    assert {w["condition"] for w in listed} == {"a new kindle jailbreak is released"}
+    assert len({w["watch_id"] for w in listed}) == 1
+    assert None not in {w["watch_id"] for w in listed}
 
 
 def test_deleting_a_watch_removes_every_place(db, make_watcher):
@@ -127,8 +128,9 @@ def test_deleting_a_watch_removes_every_place(db, make_watcher):
     main._migrate_conditions_to_watches(c)
     c.close()
     watch_id = _watches(db)[0]["id"]
-    out = asyncio.run(tg._cmd_del(db, [str(watch_id)]))
-    assert "going away" in out
+    out = asyncio.run(main.delete_watch(watch_id))
+    assert out["condition"] == "going away"
+    assert out["places"] == 2
     c = db()
     left = c.execute("SELECT COUNT(*) n FROM watchers").fetchone()["n"]
     c.close()
@@ -137,4 +139,22 @@ def test_deleting_a_watch_removes_every_place(db, make_watcher):
 
 
 def test_deleting_an_unknown_id_says_so(db):
-    assert "no watch" in asyncio.run(tg._cmd_del(db, ["999"]))
+    with pytest.raises(HTTPException) as caught:
+        asyncio.run(main.delete_watch(999))
+    assert caught.value.status_code == 404
+
+
+def test_recent_triggers_lists_open_pushing_triggers_newest_first(db, make_watcher, make_event):
+    gated = make_watcher(kind="rss", target="https://a.invalid/f", ai_spec="spec")
+    plain = make_watcher(kind="hn_search", target="q", ai_spec=None)
+    muted = make_watcher(kind="hn_search", target="muted", ai_spec=None, push=0)
+    rejected = make_event(gated, external_id="r", verdict="NO")
+    go = make_event(gated, external_id="g", verdict="GO")
+    first = make_event(plain, external_id="p1")
+    accepted = make_event(plain, external_id="p2", acked_at="2026-01-01T00:00:00Z")
+    make_event(muted, external_id="m")
+    ids = [t["id"] for t in asyncio.run(main.recent_triggers(limit=20, open_only=1, pushing=1))]
+    assert ids == [first, go]
+    assert rejected not in ids and accepted not in ids
+    everything = [t["id"] for t in asyncio.run(main.recent_triggers(limit=20, open_only=0, pushing=0))]
+    assert accepted in everything and rejected not in everything

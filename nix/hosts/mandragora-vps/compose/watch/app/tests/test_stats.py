@@ -71,18 +71,3 @@ def test_collect_reports_backlog_and_totals(db, make_watcher, make_event):
     assert snapshot["pending_unjudged"] == 1
     assert snapshot["funnel_lifetime"]["GO"] == 1
     assert snapshot["last_push_at"] is None
-
-
-def test_format_status_shows_disabled_telegram(db, make_watcher, make_event):
-    wid = make_watcher()
-    make_event(wid, verdict="GO")
-    text = stats.format_status(stats.collect(db), False, [])
-    assert "telegram: DISABLED" in text
-    assert "GO 1" in text
-
-
-def test_format_status_lists_undecidable_specs(db, make_watcher):
-    wid = make_watcher(name="electrum-sec: hn")
-    text = stats.format_status(stats.collect(db), True, [{"id": wid, "name": "electrum-sec: hn"}])
-    assert "undecidable spec" in text
-    assert "electrum-sec: hn" in text

@@ -22,7 +22,7 @@ Each watcher is a question you are waiting on, and it is in exactly one state:
 |---|---|
 | **waiting** | nothing has fired yet |
 | **triggered** | something fired and you have not accepted it |
-| **done** | everything that fired has been accepted, in the web UI or from the Telegram link |
+| **done** | everything that fired has been accepted, in the web UI or the phone app's watch screen |
 
 A *trigger* is an event that reached you: a `GO` verdict, or — for a watcher with no
 `match_rule` — any event, since everything that source emits passes by definition. The
@@ -127,11 +127,11 @@ track those with an `rss` watcher pointed at
 
 Read it in the web UI under the **releases** tab — release bodies render
 as markdown in a collapsible `notes` block. The same items also reach
-Telegram, on a **stable-only** policy:
+the phone, on a **stable-only** policy:
 
 - **Web/dashboard shows everything** the watcher fetched — stable and
   prerelease, including the full backlog.
-- **Telegram pushes stable releases only.** Prereleases/nightlies
+- **The phone gets stable releases only.** Prereleases/nightlies
   (`prerelease: true`) are skipped at push time in `_push_pending` —
   they stay on the dashboard but never ping. No LLM is involved; it is
   a flag check.
@@ -144,20 +144,21 @@ Telegram, on a **stable-only** policy:
 
 Every watcher has a `push` flag (default `1`). When `push=0` its events
 are still polled, stored, matched, and visible in the UI, but the
-poller skips Telegram/webhook fanout for them entirely. Toggle per
+poller skips the phone inbox and the webhook fanout for them entirely. Toggle per
 watcher with the `mute`/`unmute` button (or `PATCH /api/watchers/:id`
 `{"push": false}`); the add-watcher form has a "push" checkbox. Mute a
 single noisy release watcher this way without touching the rest.
 
 ## Ack-required notifications
 
-Mark a watcher with `requires_ack=true` (web UI checkbox, or `/addack`
-via Telegram, or `PATCH /api/watchers/:id`). Events from such watchers
-get re-pushed (Telegram + webhook fanout) every `reminder_interval`
-seconds (default 3600) until acknowledged. Three ways to ack:
+Mark a watcher with `requires_ack=true` (web UI checkbox, or
+`PATCH /api/watchers/:id`). Events from such watchers get re-pushed
+(phone inbox + webhook fanout) every `reminder_interval` seconds
+(default 3600) until acknowledged, and reach the phone as alerts rather
+than plain notifications. Three ways to ack:
 
-- click the inline `✓ ack` button on the Telegram message, or send
-  `/ack <event_id>` / `/ackall <watcher_id>` in the chat;
+- tap `accept` on the alert in the phone app's inbox, or on the event in
+  its watch screen (or `accept all` on the watcher);
 - click `ack` on the event in the web UI (or `ack-all` on the watcher);
 - open the per-event `ack_url` from the webhook payload (`GET /ack/:id`
   renders a confirmation page).
@@ -232,7 +233,7 @@ known-exploited catalog. The responsibility split is the point:
 | exposure probes | whether the affected thing listens: `open`/`lan`/`public`, `tailnet`/`authed` |
 | vuln stack | current state, the dashboard, the one `noise.json` |
 | this source | what is **news**: a new (package, CVE) pair, a known pair newly on KEV, a scanner gone stale |
-| match rule + telegram | what pages, delivery, ack |
+| match rule + phone inbox | what pages, delivery, ack |
 
 Resolutions are state, not news, so the source never reports them; the
 dashboard shows a CVE disappearing. Nothing here runs exploit code.
@@ -567,21 +568,23 @@ everything looks identical to a dead one. Two places answer it.
 
 `GET /healthz` always returns 200 (so the container healthcheck keeps
 meaning "process serves HTTP") and reports `ok`, a `degraded` list,
-per-task liveness for the poller and telegram loops, `model_calls_possible`
-(always `false`), `telegram_enabled`, `last_poll_at`, `last_push_at`,
-watcher tallies, and verdict funnels over 24h and lifetime.
+per-task liveness for the poller loop, `model_calls_possible`
+(always `false`), `inbox_enabled`, `undecidable_specs`, `last_poll_at`,
+`last_push_at`, watcher tallies, and verdict funnels over 24h and lifetime.
 
-Telegram `/status` renders the same funnel from the phone, plus any
-undecidable-spec warnings. `last push: never` with a healthy funnel
-means the filters are rejecting everything; `telegram: DISABLED` or a
-dead task means the pipeline itself is broken.
+`last push: never` with a healthy funnel means the filters are rejecting
+everything; `inbox_enabled: false`, an `inbox_unconfigured` entry in
+`degraded`, or a dead task means the pipeline itself is broken.
 
 ## Delivery
 
 A push is only recorded once every configured channel confirms it.
-Telegram 429s are retried once honoring `retry_after`; transient
-failures (network, 5xx, exhausted retry) leave `last_reminder_at`
-unset so the next poll cycle tries again. Permanent 4xx rejections are
+The phone channel is the desktop's `phone-bridge` inbox
+(`WATCH_INBOX_URL`, `POST /api/inbox`), reached straight over the
+tailnet from the container; the phone app long-polls it and raises the
+Android notification. Transient failures (desktop off, network, 408,
+429, 5xx) leave `last_reminder_at` unset so the next poll cycle tries
+again, which is also how events queue while the desktop is down. Permanent 4xx rejections are
 logged at ERROR and not retried forever. When no channel is configured
 at all, events are marked delivered so the dashboard stays usable, and
 the missing configuration is logged at ERROR on every startup.
@@ -706,8 +709,6 @@ WATCH_ALERT_PENDING=200
 WATCH_ALERT_INTERVAL=21600
 WATCH_WEBHOOK_URL=https://webhook.mvr.ac/h/<slug>
 GITHUB_PAT=ghp_xxx
-TELEGRAM_BOT_TOKEN=123456:abc
-TELEGRAM_CHAT_ID=12345678
 ```
 
 The container reads this file via compose `env_file`, which resolves
@@ -715,12 +716,25 @@ relative to the compose file rather than the invoking shell's cwd. A
 missing `.env` now fails the compose command outright instead of
 silently starting with empty credentials.
 
-`TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` are optional. When both are
-set, the bot pushes every new event to the chat and accepts commands:
-`/list`, `/add <kind> <target>`, `/del <id>`, `/pause <id>`,
-`/resume <id>`, `/poll <id>`, `/recent [n]`. `TELEGRAM_CHAT_ID`
-accepts a single id or a comma/space-separated list; only those ids
-are allowed to issue commands.
+`WATCH_INBOX_URL` is set in `docker-compose.yml`, not in `.env`: it is
+the desktop's tailnet address, not a secret. Without it nothing reaches
+the phone and `/healthz` reports `inbox_unconfigured`. The Telegram bot
+that used to push events and take `/list`, `/add`, `/ack` commands was
+retired on 2026-11-20; any `TELEGRAM_*` lines left in an old `.env` are
+ignored.
+
+## The phone and `/internal/*`
+
+The phone app's watch screen drives the same JSON API as the web UI,
+through the desktop's `phone-bridge` (`/api/watch/<path>`), which calls
+`https://watch.mvr.ac/internal/<path>` pinned to the VPS tailnet
+address. Caddy answers `/internal/*` only for `100.64.0.0/10` (403
+otherwise), strips the prefix and proxies without Authelia, the same
+shape as the webhook stack's `/internal/events`. Everything else on the
+host still goes through forward_auth. `DELETE /api/watches/:id` removes
+a watch with every place it watches, which is what the app's delete
+does for a grouped watch. `GET /api/triggers` (open, pushing watchers
+only by default, summaries clipped) feeds the app's home card.
 
 `GITHUB_PAT` is optional. Without it the GitHub API allows 60
 requests/hour per source IP; with a PAT 5 000 req/hour.

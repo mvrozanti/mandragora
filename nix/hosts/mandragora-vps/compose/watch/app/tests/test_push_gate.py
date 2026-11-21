@@ -69,8 +69,8 @@ def test_failed_send_is_retried_not_burned(db, make_watcher, make_event, monkeyp
         attempts.append(event["id"])
         return False
 
-    monkeypatch.setattr(poller.tg, "push_event", failing_push)
-    monkeypatch.setattr(poller.tg, "enabled", lambda: True)
+    monkeypatch.setattr(poller.inbox, "push_event", failing_push)
+    monkeypatch.setattr(poller.inbox, "enabled", lambda: True)
     monkeypatch.setattr(poller, "WEBHOOK_URL", "")
     wid = make_watcher()
     eid = make_event(wid, verdict="GO")
@@ -80,15 +80,15 @@ def test_failed_send_is_retried_not_burned(db, make_watcher, make_event, monkeyp
     assert attempts == [eid, eid]
 
 
-def test_unconfigured_telegram_does_not_burn_backlog(db, make_watcher, make_event, monkeypatch):
+def test_unconfigured_inbox_does_not_burn_backlog(db, make_watcher, make_event, monkeypatch):
     sent = []
 
     async def disabled_push(watcher, event):
         sent.append(event["id"])
         return False
 
-    monkeypatch.setattr(poller.tg, "push_event", disabled_push)
-    monkeypatch.setattr(poller.tg, "enabled", lambda: False)
+    monkeypatch.setattr(poller.inbox, "push_event", disabled_push)
+    monkeypatch.setattr(poller.inbox, "enabled", lambda: False)
     monkeypatch.setattr(poller, "WEBHOOK_URL", "")
     wid = make_watcher()
     eid = make_event(wid, verdict="GO")

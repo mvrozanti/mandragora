@@ -2,8 +2,8 @@
 #
 # One GitHub repo (owner/repo) per line. On startup the watch app
 # registers a feed-only `github_release` watcher for each (push=0, so
-# they appear in the watch.mvr.ac "releases" view but never ping
-# Telegram). Lines are matched on (kind, target) so re-adds are no-ops.
+# they appear in the watch.mvr.ac "releases" view but never reach
+# the phone). Lines are matched on (kind, target) so re-adds are no-ops.
 #
 # `#` starts a comment. Blank lines ignored. To stop tracking a repo,
 # remove its line AND delete the watcher in the UI (the bootstrap only

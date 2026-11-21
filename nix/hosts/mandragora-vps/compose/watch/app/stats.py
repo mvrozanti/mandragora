@@ -1,4 +1,3 @@
-import html
 from datetime import datetime, timedelta, timezone
 
 VERDICT_KEYS = ("GO", "UNCLEAR", "NO", "pending")
@@ -150,26 +149,3 @@ def collect(conn_factory) -> dict:
         "funnel_lifetime": funnel_counts(conn_factory),
         "watchers": watcher_summary(conn_factory),
     }
-
-
-def _funnel_line(counts: dict[str, int]) -> str:
-    return " · ".join(f"{key} {counts.get(key, 0)}" for key in VERDICT_KEYS)
-
-
-def format_status(snapshot: dict, telegram_enabled: bool, undecidable: list[dict] | None = None) -> str:
-    watchers = snapshot.get("watchers") or {}
-    lines = [
-        "<b>watch status</b>",
-        f"watchers: {watchers.get('enabled', 0)} enabled · {watchers.get('pushing', 0)} pushing · {watchers.get('judged', 0)} ai-gated",
-        f"events: {snapshot.get('events_24h', 0)} in 24h · {snapshot.get('events_total', 0)} total",
-        f"24h funnel: {_funnel_line(snapshot.get('funnel_24h') or {})}",
-        f"lifetime: {_funnel_line(snapshot.get('funnel_lifetime') or {})}",
-        f"pending unjudged: {snapshot.get('pending_unjudged', 0)} · escalated open: {snapshot.get('escalated_open', 0)}",
-        f"last poll: {snapshot.get('last_poll_at') or 'never'}",
-        f"last push: {snapshot.get('last_push_at') or 'never'}",
-        f"telegram: {'enabled' if telegram_enabled else 'DISABLED'}",
-    ]
-    for watcher in undecidable or []:
-        label = html.escape(f"{watcher.get('name') or watcher.get('kind')}", quote=False)
-        lines.append(f"⚠ undecidable spec: <code>{watcher.get('id')}</code> {label}")
-    return "\n".join(lines)

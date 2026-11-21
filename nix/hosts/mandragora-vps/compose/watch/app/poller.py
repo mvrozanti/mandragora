@@ -12,7 +12,7 @@ import httpx
 import match as matcher
 import sources
 import stats
-import telegram as tg
+import inbox
 
 log = logging.getLogger("watch.poller")
 
@@ -185,9 +185,9 @@ async def _push_pending(conn_factory) -> tuple[int, int]:
             channels += 1
             if not await _fanout(watcher_proxy, ev_proxy):
                 delivered = False
-        if tg.enabled():
+        if inbox.enabled():
             channels += 1
-            if not await tg.push_event(watcher_proxy, ev_proxy):
+            if not await inbox.push_event(watcher_proxy, ev_proxy):
                 delivered = False
         if channels and not delivered:
             log.warning("delivery unconfirmed, retrying next cycle event_id=%s", r["id"])
@@ -288,10 +288,10 @@ async def _honour_stop_condition(conn_factory, watcher_id: int) -> bool:
         return False
     name = rows[0]["name"]
     log.info("watch complete, stopping name=%s watchers=%s", name, [r["id"] for r in rows])
-    if tg.enabled():
-        await tg.broadcast(
-            f"✅ <b>watch complete</b>\n{tg._esc(name)}\n"
-            f"fired {delivered} time{'s' if delivered != 1 else ''} and has stopped"
+    if inbox.enabled():
+        await inbox.broadcast(
+            f"{name}\nfired {delivered} time{'s' if delivered != 1 else ''} and has stopped",
+            title="watch complete",
         )
     return True
 
@@ -361,7 +361,7 @@ def _alert_due(conn_factory, now_ts: float) -> bool:
 
 
 async def _health_alert(conn_factory) -> bool:
-    if ALERT_PENDING <= 0 or not tg.enabled():
+    if ALERT_PENDING <= 0 or not inbox.enabled():
         return False
     pending = stats.pending_unjudged(conn_factory)
     if pending < ALERT_PENDING:
@@ -371,12 +371,10 @@ async def _health_alert(conn_factory) -> bool:
     escalated = stats.escalated_open(conn_factory)
     last_push = stats.get_meta(conn_factory, "last_push_at") or "never"
     text = (
-        f"⚠ <b>watch backlog</b>\n"
         f"{pending} events waiting on a verdict · {escalated} escalated unjudged\n"
-        f"last push: {last_push}\n"
-        f"<a href=\"{PUBLIC_BASE.rstrip('/')}/healthz\">healthz</a>"
+        f"last push: {last_push}"
     )
-    if not await tg.broadcast(text):
+    if not await inbox.broadcast(text, title="watch backlog", level="alert", link=f"{PUBLIC_BASE.rstrip('/')}/healthz"):
         return False
     stats.set_meta(conn_factory, "last_health_alert_at", now_iso())
     return True
