@@ -17,6 +17,15 @@ let
     ];
     text = builtins.readFile ../../../.local/bin/fullscreen-guard.sh;
   };
+  x11WorkareaSync = pkgs.writeShellApplication {
+    name = "x11-workarea-sync";
+    runtimeInputs = [
+      pkgs.hyprland
+      pkgs.jq
+      pkgs.xprop
+    ];
+    text = builtins.readFile ../../../.local/bin/x11-workarea-sync.sh;
+  };
   awwwRestore = pkgs.writeShellApplication {
     name = "awww-restore";
     runtimeInputs = [
@@ -223,5 +232,23 @@ in
           RestartSec = "3s";
         };
       };
+
+      x11-workarea-sync = {
+        description = "Keep X11 _NET_WORKAREA in sync with the live layer reserved area";
+        after = [ "graphical-session.target" ];
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${x11WorkareaSync}/bin/x11-workarea-sync";
+        };
+      };
     };
+
+  systemd.user.timers.x11-workarea-sync = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnActiveSec = "10s";
+      OnUnitActiveSec = "30s";
+      Unit = "x11-workarea-sync.service";
+    };
+  };
 }
