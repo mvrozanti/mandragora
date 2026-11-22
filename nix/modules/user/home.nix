@@ -521,6 +521,34 @@ in
       "x-scheme-handler/http" = "firefox.desktop";
       "x-scheme-handler/https" = "firefox.desktop";
       "application/pdf" = "org.pwmt.zathura.desktop";
+      "image/png" = "nsxiv.desktop";
+      "image/jpeg" = "nsxiv.desktop";
+      "image/gif" = "nsxiv.desktop";
+      "image/webp" = "nsxiv.desktop";
+      "image/bmp" = "nsxiv.desktop";
+      "image/tiff" = "nsxiv.desktop";
+      "image/avif" = "nsxiv.desktop";
+      "image/jxl" = "nsxiv.desktop";
+      "image/heic" = "nsxiv.desktop";
+      "image/heif" = "nsxiv.desktop";
+      "image/x-icon" = "nsxiv.desktop";
+      "image/svg+xml" = "firefox.desktop";
     };
+    associations.removed = pkgs.lib.genAttrs [
+      "application/pdf"
+      "application/rdf+xml"
+      "application/rss+xml"
+      "application/xhtml+xml"
+      "application/xhtml_xml"
+      "application/xml"
+      "image/gif"
+      "image/jpeg"
+      "image/png"
+      "image/webp"
+      "text/html"
+      "text/xml"
+      "x-scheme-handler/http"
+      "x-scheme-handler/https"
+    ] (_: "chromium-browser.desktop");
   };
 }
