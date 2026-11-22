@@ -135,7 +135,18 @@ data class QuestionAsk(val id: String, val sessionID: String, val questions: Lis
 data class Uploaded(val path: String)
 
 @Serializable
-data class ScreenOption(val key: String, val label: String, val detail: String = "", val text: Boolean = false, val current: Boolean = false)
+data class ScreenOption(
+    val key: String,
+    val label: String,
+    val detail: String = "",
+    val text: Boolean = false,
+    val current: Boolean = false,
+    val checked: Boolean? = null,
+    val aside: Boolean = false,
+)
+
+@Serializable
+data class ScreenStep(val label: String, val done: Boolean = false)
 
 @Serializable
 data class ScreenAsk(
@@ -146,6 +157,10 @@ data class ScreenAsk(
     val plan: String? = null,
     val options: List<ScreenOption> = emptyList(),
     val tabs: Boolean = false,
+    val title: String = "",
+    val context: String = "",
+    val steps: List<ScreenStep> = emptyList(),
+    val step: Int = -1,
 )
 
 @Serializable
