@@ -2118,6 +2118,11 @@ def pending_tools(sid: str) -> list[dict]:
     return pending
 
 
+def screen_id(sid: str, parsed: dict) -> str:
+    seed = json.dumps([sid, parsed["body"], [(o["key"], o["label"], o["current"], o.get("checked")) for o in parsed["options"]]], ensure_ascii=False)
+    return "scr_" + sha1(seed.encode("utf-8")).hexdigest()[:16]
+
+
 def screen_payload(sid: str, live: dict, previous: dict | None) -> dict | None:
     pane = pane_of(int(live["pid"]))
     if pane is None:
@@ -2127,8 +2132,7 @@ def screen_payload(sid: str, live: dict, previous: dict | None) -> dict | None:
     if parsed is None:
         tail = [line.rstrip() for line in screen.splitlines() if line.strip()][-25:]
         parsed = {"body": textwrap.dedent("\n".join(tail)).strip(), "question": "", "title": "", "context": "", "options": [], "tabs": False, "steps": []}
-    seed = json.dumps([sid, parsed["body"], [(o["key"], o["label"], o["current"]) for o in parsed["options"]]], ensure_ascii=False)
-    ask_id = "scr_" + sha1(seed.encode("utf-8")).hexdigest()[:16]
+    ask_id = screen_id(sid, parsed)
     if previous is not None and previous["id"] == ask_id:
         return previous
     pending = pending_tools(sid)

@@ -170,6 +170,11 @@ def test_checkboxes_come_without_their_boxes():
     assert options[2]["text"]
 
 
+def test_ticking_a_box_makes_a_new_screen():
+    ticked = CHECKBOXES.replace("[ ] Verification", "[✔] Verification")
+    assert app.screen_id("s1", parsed_screen(ticked)) != app.screen_id("s1", parsed_screen(CHECKBOXES))
+    assert app.screen_id("s1", parsed_screen(CHECKBOXES)) == app.screen_id("s1", parsed_screen(CHECKBOXES))
+
 def test_the_step_shown_is_found_from_the_pending_question():
     pending = [{"name": "AskUserQuestion", "input": {"questions": [
         {"question": "Which output format do you want for this task?"},
