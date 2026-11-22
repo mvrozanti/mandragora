@@ -58,6 +58,7 @@ in
       path = [
         pkgs.wireplumber
         pkgs.playerctl
+        "/run/current-system/sw"
       ];
       environment = {
         PHONE_BRIDGE_HOST = "0.0.0.0";
