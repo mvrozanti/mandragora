@@ -6,25 +6,24 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
@@ -35,20 +34,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -143,8 +146,6 @@ fun MoneyScreen(store: Store, onCollapse: () -> Unit) {
     val reachable by store.reachable.collectAsStateWithLifecycle()
     val unitPref by store.prefs.unit.collectAsStateWithLifecycle()
     val hidden by store.prefs.hiddenAmounts.collectAsStateWithLifecycle()
-    val group by store.prefs.moneyGroup.collectAsStateWithLifecycle()
-    var collapsed by rememberSaveable { mutableStateOf(listOf<String>()) }
     val nowMs = rememberNowMs()
     val unit = MoneyFormat.unitOf(unitPref)
     val cache = data
@@ -170,8 +171,8 @@ fun MoneyScreen(store: Store, onCollapse: () -> Unit) {
                 .padding(bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            TotalBlock(cache, unit, hidden) { store.prefs.setUnit(MoneyFormat.nextUnit(unit)) }
-            Controls(
+            TotalBlock(
+                cache = cache,
                 unit = unit,
                 hidden = hidden,
                 busy = busy,
@@ -181,72 +182,150 @@ fun MoneyScreen(store: Store, onCollapse: () -> Unit) {
                 onRefresh = store.money::refreshNow,
             )
             FetchedLine(cache, reachable, busy, nowMs)
-            cache?.basis?.let { BasisBlock(it, fx, hidden) }
+            cache?.basis?.let { BasisBlock(it, fx, unit, hidden) }
             if (cache != null && cache.venues.isNotEmpty()) {
-                GroupChips(group) { store.prefs.setMoneyGroup(it) }
-                if (group == "venue") {
-                    Section("where it sits") {
-                        cache.venues.forEach { venue ->
-                            VenueRow(venue, cache.totalUsd, unit, fx, hidden, expanded = venue.id !in collapsed) {
-                                collapsed = if (venue.id in collapsed) collapsed - venue.id else collapsed + venue.id
-                            }
-                        }
-                    }
-                } else {
-                    Section("what it is") {
-                        assetGroups(cache).forEach { asset ->
-                            val key = "asset:" + asset.asset
-                            AssetRow(asset, cache.totalUsd, unit, fx, hidden, expanded = key !in collapsed) {
-                                collapsed = if (key in collapsed) collapsed - key else collapsed + key
-                            }
-                        }
-                    }
-                }
+                val statement = remember(cache) { statementOf(cache) }
+                val columns = rememberColumns(statement)
+                val readout = Readout(unit, fx, cache.totalUsd, hidden)
+                WhatItIs(statement, columns, readout)
+                WhereItSits(statement, columns, readout)
             }
             val error = cache?.error
             if (cache != null && cache.hasCache && error != null) {
-                Text(error, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(horizontal = 4.dp))
+                Text(error, style = NoteText, color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(horizontal = 4.dp))
             }
         }
         Notice(store, Modifier.padding(horizontal = 14.dp, vertical = 10.dp))
     }
 }
 
+private const val SMALL_SHARE = 0.01
+
+private val GridGap = 10.dp
+
+private val TotalLarge = TextStyle(fontWeight = FontWeight.Medium, fontSize = 32.sp, letterSpacing = (-0.5).sp, fontFeatureSettings = "tnum")
+
+private val HeadingText = TextStyle(fontWeight = FontWeight.Medium, fontSize = 11.sp, letterSpacing = 1.sp)
+
+private val BodyText = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontFeatureSettings = "tnum")
+
+private val StrongText = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, lineHeight = 21.sp, fontFeatureSettings = "tnum")
+
+private val ShareText = TextStyle(fontSize = 12.5.sp, fontFeatureSettings = "tnum")
+
+private val NoteText = TextStyle(fontSize = 12.sp, lineHeight = 16.sp)
+
+private val TagText = TextStyle(fontSize = 11.sp, lineHeight = 16.sp)
+
+private data class Line(
+    val asset: String,
+    val name: String,
+    val amount: Double?,
+    val usd: Double?,
+    val dust: Boolean,
+    val count: Int,
+    val detail: String?,
+    val note: String?,
+)
+
+private data class Place(val name: String, val usd: Double?, val missing: Boolean, val stale: Boolean, val note: String?, val lines: List<Line>)
+
+private data class AssetTotal(val asset: String, val name: String, val dust: Boolean, val amount: Double?, val usd: Double, val count: Int)
+
+private data class Statement(val places: List<Place>, val assets: List<AssetTotal>, val small: List<AssetTotal>)
+
+private data class Readout(val unit: String, val fx: MoneyFx, val total: Double?, val hidden: Boolean) {
+    fun money(usd: Double?): String = shown(MoneyFormat.unit(usd, unit, fx), hidden)
+
+    fun share(usd: Double?): String = MoneyFormat.share(usd, total) ?: ""
+
+    fun quantity(amount: Double?, asset: String): String =
+        if (amount == null || asset.lowercase() == unit) "" else shown(MoneyFormat.qty(amount), hidden)
+}
+
+private fun lineOf(holding: MoneyHolding, venue: MoneyVenue): Line {
+    val label = holding.label
+    val plain = label.isEmpty() || label.equals(venue.label, ignoreCase = true) || label == holding.asset
+    val bare = label.none(Char::isWhitespace) && venue.holdings.count { it.asset == holding.asset } < 2
+    return Line(
+        asset = holding.asset,
+        name = if (holding.isDust) "Dust" else holding.asset,
+        amount = holding.amount,
+        usd = holding.usd,
+        dust = holding.isDust,
+        count = if (holding.isDust) label.takeWhile(Char::isDigit).toIntOrNull() ?: 0 else 0,
+        detail = if (holding.isDust || plain || bare) null else label,
+        note = holding.note,
+    )
+}
+
+private fun placeOf(venue: MoneyVenue): Place = Place(
+    name = venue.label,
+    usd = if (venue.missing) null else venue.usd,
+    missing = venue.missing,
+    stale = venue.staleSince != null,
+    note = venue.note.takeIf { venue.noteOnly },
+    lines = if (venue.missing) emptyList() else venue.holdings.map { lineOf(it, venue) }.sortedByDescending { it.usd ?: -1.0 },
+)
+
+private fun totalsOf(places: List<Place>): List<AssetTotal> =
+    places.flatMap { it.lines }
+        .filter { it.asset.isNotEmpty() && (it.amount != null || it.usd != null) }
+        .groupBy { it.asset }
+        .map { (asset, lines) ->
+            val amounts = lines.mapNotNull { it.amount }
+            AssetTotal(
+                asset = asset,
+                name = lines.first().name,
+                dust = lines.first().dust,
+                amount = if (amounts.size == lines.size) amounts.sum() else null,
+                usd = lines.sumOf { it.usd ?: 0.0 },
+                count = lines.sumOf { it.count },
+            )
+        }
+        .sortedByDescending { it.usd }
+
+private fun statementOf(cache: MoneyCache): Statement {
+    val places = cache.venues.map(::placeOf).sortedByDescending { it.usd ?: -1.0 }
+    val totals = totalsOf(places)
+    val whole = cache.totalUsd?.takeIf { it > 0 } ?: return Statement(places, totals, emptyList())
+    val (big, small) = totals.partition { it.usd / whole >= SMALL_SHARE }
+    return if (small.size > 1) Statement(places, big, small) else Statement(places, totals, emptyList())
+}
+
+private fun Modifier.dashedUnderline(color: Color): Modifier = drawBehind {
+    val y = size.height - 0.5.dp.toPx()
+    val dash = 3.dp.toPx()
+    drawLine(color, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(dash, dash)))
+}
+
+private fun Modifier.topRule(color: Color): Modifier = drawBehind {
+    drawLine(color, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth = 1.dp.toPx())
+}
+
 @Composable
-private fun TotalBlock(cache: MoneyCache?, unit: String, hidden: Boolean, onCycle: () -> Unit) {
-    val scheme = MaterialTheme.colorScheme
-    val fx = cache?.fx ?: MoneyFx()
-    val total = cache?.totalUsd
+private fun Heading(text: String, modifier: Modifier = Modifier) {
+    Text(text.uppercase(), style = HeadingText, color = MaterialTheme.colorScheme.outline, maxLines = 1, modifier = modifier)
+}
+
+@Composable
+private fun Panel(title: String, content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(scheme.surfaceContainerLow)
-            .clickable(onClick = onCycle)
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Label("total")
-        Text(
-            shown(MoneyFormat.unit(total, unit, fx), hidden),
-            style = totalStyle(34.sp),
-            color = if (total == null) scheme.outline else scheme.onSurface,
-            maxLines = 1,
-            softWrap = false,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            MoneyFormat.units.filter { it != unit }.joinToString("   ") { shown(MoneyFormat.unit(total, it, fx), hidden) },
-            style = MaterialTheme.typography.labelLarge,
-            color = scheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Heading(title)
+        content()
     }
 }
 
 @Composable
-private fun Controls(
+private fun TotalBlock(
+    cache: MoneyCache?,
     unit: String,
     hidden: Boolean,
     busy: Boolean,
@@ -256,33 +335,58 @@ private fun Controls(
     onRefresh: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        MoneyFormat.units.forEach { option ->
-            val selected = option == unit
-            Text(
-                option.uppercase(),
-                style = MaterialTheme.typography.labelLarge,
-                color = if (selected) scheme.onPrimary else scheme.onSurfaceVariant,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(if (selected) scheme.primary else scheme.surfaceContainerHigh)
-                    .clickable { onUnit(option) }
-                    .padding(horizontal = 16.dp, vertical = 11.dp),
-            )
+    val fx = cache?.fx ?: MoneyFx()
+    val total = cache?.totalUsd
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(scheme.surfaceContainerLow)
+            .padding(start = 16.dp, end = 6.dp, top = 4.dp, bottom = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Heading("total", Modifier.weight(1f))
+            IconButton(onClick = onHidden, modifier = Modifier.size(42.dp)) {
+                Icon(
+                    if (hidden) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                    if (hidden) "show amounts" else "hide amounts",
+                    tint = scheme.onSurfaceVariant,
+                )
+            }
+            IconButton(onClick = onRefresh, enabled = canRefresh && !busy, modifier = Modifier.size(42.dp)) {
+                if (busy) {
+                    Spinning { angle -> Icon(Icons.Outlined.Refresh, "refreshing", tint = scheme.tertiary, modifier = Modifier.rotate(angle)) }
+                } else {
+                    Icon(Icons.Outlined.Refresh, "refresh", tint = scheme.onSurfaceVariant, modifier = Modifier.alpha(if (canRefresh) 1f else 0.4f))
+                }
+            }
         }
-        Spacer(modifier = Modifier.weight(1f))
-        IconButton(onClick = onHidden) {
-            Icon(
-                if (hidden) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                if (hidden) "show amounts" else "hide amounts",
-                tint = scheme.onSurfaceVariant,
-            )
-        }
-        IconButton(onClick = onRefresh, enabled = canRefresh && !busy) {
-            if (busy) {
-                Spinning { angle -> Icon(Icons.Outlined.Refresh, "refreshing", tint = scheme.tertiary, modifier = Modifier.rotate(angle)) }
-            } else {
-                Icon(Icons.Outlined.Refresh, "refresh", tint = scheme.onSurfaceVariant, modifier = Modifier.alpha(if (canRefresh) 1f else 0.4f))
+        Text(
+            shown(MoneyFormat.unit(total, unit, fx), hidden),
+            style = TotalLarge,
+            color = if (total == null) scheme.outline else scheme.onSurface,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 10.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .clickable { onUnit(MoneyFormat.nextUnit(unit)) },
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Bottom) {
+            MoneyFormat.units.filter { it != unit }.forEach { other ->
+                Text(
+                    shown(MoneyFormat.unit(total, other, fx), hidden),
+                    style = BodyText,
+                    color = scheme.onSurfaceVariant,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .clickable { onUnit(other) }
+                        .dashedUnderline(scheme.outlineVariant)
+                        .padding(vertical = 2.dp),
+                )
             }
         }
     }
@@ -304,7 +408,7 @@ private fun FetchedLine(cache: MoneyCache?, reachable: Boolean, busy: Boolean, n
     val scheme = MaterialTheme.colorScheme
     val known = cache != null && cache.hasCache
     val stale = known && MoneyFormat.isStale(cache!!, nowMs)
-    val timer = "refresh timer every 15 min"
+    val timer = "refreshes every 15 min"
     val text = when {
         !reachable && known -> "desktop unreachable · last known values from ${MoneyFormat.ago(cache!!.fetchedAt, nowMs)}"
         !reachable -> "desktop unreachable"
@@ -330,213 +434,178 @@ private fun FetchedLine(cache: MoneyCache?, reachable: Boolean, busy: Boolean, n
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(dot))
-        Text(text, style = MaterialTheme.typography.labelMedium, color = color)
+        Text(text, style = NoteText, color = color)
     }
 }
 
 @Composable
-private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Label(title)
-        content()
-    }
-}
-
-@Composable
-private fun BasisBlock(basis: MoneyBasis, fx: MoneyFx, hidden: Boolean) {
-    Section("cost basis") {
-        BasisRow("avg buy", shown("$ ${MoneyFormat.grouped(basis.avgUsd, 2)}", hidden), MoneyFormat.gainRatio(fx.btcUsd, basis.avgUsd), null)
-        BasisRow("avg buy", shown("R$ ${MoneyFormat.grouped(basis.avgBrl, 2)}", hidden), MoneyFormat.gainRatio(MoneyFormat.nowBrl(fx), basis.avgBrl), null)
-        BasisRow("bought", shown("${MoneyFormat.ICON} ${MoneyFormat.btc(basis.btc)}", hidden), null, "${basis.buys} buys since ${MoneyFormat.since(basis.first)}")
-    }
-}
-
-@Composable
-private fun BasisRow(key: String, value: String, ratio: Double?, trailing: String?) {
+private fun BasisBlock(basis: MoneyBasis, fx: MoneyFx, unit: String, hidden: Boolean) {
     val scheme = MaterialTheme.colorScheme
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(key, style = MaterialTheme.typography.labelLarge, color = scheme.outline, modifier = Modifier.width(68.dp))
-        Text(value, style = MaterialTheme.typography.labelLarge, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-        if (trailing != null) {
-            Text(trailing, style = MaterialTheme.typography.labelMedium, color = scheme.outline, maxLines = 1, textAlign = TextAlign.End)
-        } else {
-            Text(
-                MoneyFormat.gain(ratio),
-                style = MaterialTheme.typography.labelLarge,
-                color = when {
-                    ratio == null -> scheme.outline
-                    ratio >= 0 -> GainUp
-                    else -> scheme.error
-                },
-                maxLines = 1,
-                textAlign = TextAlign.End,
-            )
-        }
-    }
-}
-
-@Composable
-private fun VenueRow(venue: MoneyVenue, total: Double?, unit: String, fx: MoneyFx, hidden: Boolean, expanded: Boolean, onToggle: () -> Unit) {
-    val scheme = MaterialTheme.colorScheme
-    val plain = !venue.missing && !venue.noteOnly
-    val expandable = plain && venue.holdings.isNotEmpty()
-    val stale = venue.staleSince != null
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
-                .clickable(enabled = expandable, onClick = onToggle)
-                .padding(vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Icon(
-                if (expanded) Icons.Filled.ExpandMore else Icons.Filled.ChevronRight,
-                null,
-                tint = scheme.outline,
-                modifier = Modifier.size(18.dp).alpha(if (expandable) 1f else 0f),
-            )
-            if (!plain) {
-                Text(venue.label, style = MaterialTheme.typography.bodyLarge, color = scheme.outline, maxLines = 1)
+    val brl = unit == "brl"
+    val symbol = if (brl) "R$ " else "$ "
+    val paid = if (brl) basis.avgBrl else basis.avgUsd
+    val today = if (brl) MoneyFormat.nowBrl(fx) else fx.btcUsd
+    val ratio = MoneyFormat.gainRatio(today, paid)
+    Panel("bitcoin bought") {
+        Text(
+            "${shown(MoneyFormat.btc(basis.btc), hidden)} BTC in ${basis.buys} buys since ${MoneyFormat.since(basis.first)}",
+            style = BodyText,
+            color = scheme.onSurfaceVariant,
+        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("paid on average", style = BodyText, color = scheme.outline, maxLines = 1)
+                Text("price today", style = BodyText, color = scheme.outline, maxLines = 1)
+            }
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(shown(symbol + MoneyFormat.grouped(paid, 2), hidden), style = BodyText, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(today?.let { symbol + MoneyFormat.grouped(it, 2) } ?: "--", style = BodyText, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("", style = BodyText)
                 Text(
-                    if (venue.missing) "unavailable" else venue.note ?: "",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = scheme.outline,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-            } else {
-                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(venue.label, style = MaterialTheme.typography.bodyLarge, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                    if (stale) Label("· stale", color = scheme.tertiary)
-                }
-                Text(
-                    shown(MoneyFormat.unit(venue.usd, unit, fx), hidden),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (stale) scheme.tertiary else scheme.onSurface,
+                    MoneyFormat.gain(ratio),
+                    style = BodyText.copy(fontWeight = FontWeight.Medium),
+                    color = when {
+                        ratio == null -> scheme.outline
+                        ratio >= 0 -> GainUp
+                        else -> scheme.error
+                    },
                     maxLines = 1,
                 )
-                val share = MoneyFormat.share(venue.usd, total)
-                if (share != null) {
-                    Text(share, style = MaterialTheme.typography.labelMedium, color = scheme.outline, textAlign = TextAlign.End, maxLines = 1, modifier = Modifier.width(40.dp))
+            }
+        }
+    }
+}
+
+private class Columns(val name: Dp, val share: Dp)
+
+@Composable
+private fun rememberColumns(statement: Statement): Columns {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    return remember(statement, density) {
+        val names = statement.assets.map { it.name } + statement.places.flatMap { place -> place.lines.map { it.name } } + "${statement.small.size} small"
+        val widest = names.maxOf { measurer.measure(it, BodyText, maxLines = 1, softWrap = false).size.width }
+        val share = measurer.measure("100%", ShareText, maxLines = 1, softWrap = false).size.width
+        with(density) { Columns(name = maxOf(widest.toDp(), 56.sp.toDp()), share = share.toDp()) }
+    }
+}
+
+@Composable
+private fun GridRow(columns: Columns, name: String, quantity: String, value: String, share: String, quiet: Boolean) {
+    val scheme = MaterialTheme.colorScheme
+    val main = if (quiet) scheme.onSurfaceVariant else scheme.onSurface
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(GridGap)) {
+        Text(name, style = BodyText, color = main, maxLines = 1, softWrap = false, modifier = Modifier.widthIn(min = columns.name).alignByBaseline())
+        Text(quantity, style = BodyText, color = scheme.outline, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).alignByBaseline())
+        Text(value, style = BodyText, color = main, maxLines = 1, softWrap = false, textAlign = TextAlign.End, modifier = Modifier.alignByBaseline())
+        Text(
+            share,
+            style = ShareText,
+            color = scheme.outline,
+            maxLines = 1,
+            softWrap = false,
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(columns.share).alignByBaseline(),
+        )
+    }
+}
+
+@Composable
+private fun GridNote(columns: Columns, text: String) {
+    Text(text, style = NoteText, color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(start = columns.name + GridGap))
+}
+
+@Composable
+private fun StaleTag() {
+    val color = MaterialTheme.colorScheme.tertiary
+    Text(
+        "stale",
+        style = TagText,
+        color = color,
+        maxLines = 1,
+        modifier = Modifier
+            .padding(start = 6.dp)
+            .border(1.dp, color.copy(alpha = 0.5f), RoundedCornerShape(5.dp))
+            .padding(horizontal = 5.dp),
+    )
+}
+
+@Composable
+private fun WhatItIs(statement: Statement, columns: Columns, readout: Readout) {
+    Panel("what it is") {
+        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            statement.assets.forEach { asset ->
+                val quantity = if (asset.dust) "${asset.count} small" else readout.quantity(asset.amount, asset.asset)
+                GridRow(columns, asset.name, quantity, readout.money(asset.usd), readout.share(asset.usd), quiet = false)
+            }
+            if (statement.small.isNotEmpty()) {
+                val sum = statement.small.sumOf { it.usd }
+                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                    GridRow(columns, "${statement.small.size} small", "", readout.money(sum), readout.share(sum), quiet = false)
+                    GridNote(columns, statement.small.joinToString(", ") { it.name })
                 }
             }
         }
-        if (expandable && expanded) {
-            Column(modifier = Modifier.fillMaxWidth().padding(start = 26.dp, bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                venue.holdings.forEach { HoldingRow(it, unit, fx, hidden) }
-            }
-        }
     }
-}
-
-private data class AssetGroup(val asset: String, val amount: Double?, val usd: Double?, val lines: List<MoneyHolding>)
-
-private fun assetGroups(cache: MoneyCache): List<AssetGroup> {
-    val byAsset = LinkedHashMap<String, MutableList<MoneyHolding>>()
-    cache.venues.filter { !it.missing }.forEach { venue ->
-        venue.holdings.filter { it.asset.isNotEmpty() && (it.amount != null || it.usd != null) }.forEach { holding ->
-            val label = if (holding.label.isEmpty() || holding.label == holding.asset) venue.label else "${venue.label} · ${holding.label}"
-            byAsset.getOrPut(holding.asset) { ArrayList() }.add(holding.copy(label = label))
-        }
-    }
-    return byAsset.map { (asset, lines) ->
-        val amounts = lines.map { it.amount }
-        val usds = lines.mapNotNull { it.usd }
-        AssetGroup(
-            asset = asset,
-            amount = if (amounts.all { it != null }) amounts.sumOf { it!! } else null,
-            usd = if (usds.isEmpty()) null else usds.sum(),
-            lines = lines.sortedByDescending { it.usd ?: -1.0 },
-        )
-    }.sortedByDescending { it.usd ?: -1.0 }
 }
 
 @Composable
-private fun GroupChips(group: String, onGroup: (String) -> Unit) {
-    val scheme = MaterialTheme.colorScheme
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        listOf("asset" to "by asset", "venue" to "by venue").forEach { (key, text) ->
-            val selected = key == group
-            Text(
-                text,
-                style = MaterialTheme.typography.labelLarge,
-                color = if (selected) scheme.onPrimary else scheme.onSurfaceVariant,
+private fun WhereItSits(statement: Statement, columns: Columns, readout: Readout) {
+    val rule = MaterialTheme.colorScheme.outlineVariant
+    Panel("where it sits") {
+        statement.places.forEach { place ->
+            Column(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(if (selected) scheme.primary else scheme.surfaceContainerHigh)
-                    .clickable { onGroup(key) }
-                    .padding(horizontal = 14.dp, vertical = 7.dp),
-            )
-        }
-    }
-}
-
-@Composable
-private fun AssetRow(group: AssetGroup, total: Double?, unit: String, fx: MoneyFx, hidden: Boolean, expanded: Boolean, onToggle: () -> Unit) {
-    val scheme = MaterialTheme.colorScheme
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
-                .clickable(onClick = onToggle)
-                .padding(vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Icon(if (expanded) Icons.Filled.ExpandMore else Icons.Filled.ChevronRight, null, tint = scheme.outline, modifier = Modifier.size(18.dp))
-            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(group.asset, style = MaterialTheme.typography.bodyLarge, color = scheme.onSurface, maxLines = 1)
-                group.amount?.let { Text(shown(MoneyFormat.qty(it), hidden), style = MaterialTheme.typography.labelLarge, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-            }
-            Text(shown(MoneyFormat.unit(group.usd, unit, fx), hidden), style = MaterialTheme.typography.labelLarge, color = scheme.onSurface, maxLines = 1)
-            val share = MoneyFormat.share(group.usd, total)
-            if (share != null) {
-                Text(share, style = MaterialTheme.typography.labelMedium, color = scheme.outline, textAlign = TextAlign.End, maxLines = 1, modifier = Modifier.width(40.dp))
-            }
-        }
-        if (expanded) {
-            Column(modifier = Modifier.fillMaxWidth().padding(start = 26.dp, bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                group.lines.forEach { HoldingRow(it, unit, fx, hidden) }
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
+                    .topRule(rule)
+                    .padding(top = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                PlaceRow(columns, place, readout)
+                place.note?.let { GridNote(columns, it) }
+                place.lines.forEach { LineEntry(columns, it, readout) }
             }
         }
     }
 }
 
 @Composable
-private fun HoldingRow(entry: MoneyHolding, unit: String, fx: MoneyFx, hidden: Boolean) {
+private fun PlaceRow(columns: Columns, place: Place, readout: Readout) {
     val scheme = MaterialTheme.colorScheme
-    val mono = MaterialTheme.typography.labelLarge
-    if (entry.amount == null && entry.usd == null) {
-        Text("${entry.asset} ${entry.label}  ${entry.note ?: "--"}", style = mono, color = scheme.outline)
-        return
+    val known = !place.missing && place.note == null
+    val color = if (known) scheme.onSurface else scheme.outline
+    val value = when {
+        place.missing -> "unavailable"
+        place.note != null -> ""
+        else -> readout.money(place.usd)
     }
-    val dust = entry.isDust
-    val quantity = entry.amount?.let { "${shown(MoneyFormat.qty(it), hidden)} ${entry.asset}" } ?: entry.asset
-    Column(modifier = Modifier.fillMaxWidth().alpha(if (dust) 0.7f else 1f)) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(quantity, style = mono, color = if (dust) scheme.outline else scheme.onSurface, maxLines = 1)
-            Text(entry.label, style = MaterialTheme.typography.labelMedium, color = scheme.outline, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(top = 1.dp))
-            Text(
-                shown(MoneyFormat.unit(entry.usd, unit, fx), hidden),
-                style = mono,
-                color = if (dust) scheme.outline else scheme.onSurfaceVariant,
-                textAlign = TextAlign.End,
-                maxLines = 1,
-            )
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(GridGap)) {
+        Row(modifier = Modifier.weight(1f).alignByBaseline(), verticalAlignment = Alignment.CenterVertically) {
+            Text(place.name, style = StrongText, color = color, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+            if (place.stale) StaleTag()
         }
-        if (dust && entry.note != null) {
-            Text(entry.note, style = MaterialTheme.typography.labelMedium, color = scheme.outline, modifier = Modifier.padding(top = 2.dp))
-        }
+        Text(value, style = StrongText, color = color, maxLines = 1, softWrap = false, textAlign = TextAlign.End, modifier = Modifier.alignByBaseline())
+        Text(
+            if (known) readout.share(place.usd) else "",
+            style = ShareText,
+            color = scheme.outline,
+            maxLines = 1,
+            softWrap = false,
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(columns.share).alignByBaseline(),
+        )
+    }
+}
+
+@Composable
+private fun LineEntry(columns: Columns, line: Line, readout: Readout) {
+    val quantity = if (line.dust) "${line.count} small balances" else readout.quantity(line.amount, line.asset)
+    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+        GridRow(columns, line.name, quantity, readout.money(line.usd), "", quiet = true)
+        line.detail?.let { GridNote(columns, it) }
+        line.note?.let { GridNote(columns, it) }
     }
 }

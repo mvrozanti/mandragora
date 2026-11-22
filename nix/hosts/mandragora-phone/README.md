@@ -212,17 +212,24 @@ again on a later open, so everything below runs on the phone):
 | "find ⌄" title, Android back | back to the music screen | music screen |
 
 The money screen (the waybar money-menu and its rofi popup, ported; unit and
-hidden amounts are the phone's own, remembered across restarts):
+hidden amounts are the phone's own, remembered across restarts). It reads as a
+statement, top to bottom, with nothing to open: the total; "bitcoin bought"
+(how much, in how many buys since when, what was paid on average against
+today's price, in reais when the unit is BRL and in dollars otherwise); "what
+it is" (each asset with its quantity, value and share, the ones under 1% folded
+into one "N small" line that names them); "where it sits" (each place, largest
+first, with what it holds). A quantity is left out when the asset is the unit
+shown, and a place's own label for a holding (spot, evm, native) only appears
+when it tells two holdings apart or says something, such as the CDB's rate:
 
 | Tap | Does | Lands |
 |---|---|---|
 | the total | cycles the unit | money |
-| BTC / USD / BRL chip | sets the unit | money |
-| eye | hides amounts (digits → •), remembered | money |
-| refresh | starts `money-menu refresh` on the desktop; the line reads "refreshing…" until a newer fetched_at arrives | money |
-| "by asset" / "by venue" chips | groups the holdings by asset across venues (the default) or by venue; remembered | money |
-| an asset or venue row | collapses / expands its lines | money |
+| either amount under the total | sets that unit | money |
+| eye, on the "total" line | hides amounts (digits → •), remembered | money |
+| refresh, on the "total" line | starts `money-menu refresh` on the desktop; the line reads "refreshing…" until a newer fetched_at arrives | money |
 | "fetched … ago" line | nothing; amber with "stale" past 20 min; "desktop unreachable · last known values" offline | money |
+| "stale" tag beside a place | nothing; that place kept its last good balance | money |
 
 The hub screen (hub.mvr.ac, ported; the click counts that sort the rows are
 the phone's own, since the hub's own counter sits behind authelia):

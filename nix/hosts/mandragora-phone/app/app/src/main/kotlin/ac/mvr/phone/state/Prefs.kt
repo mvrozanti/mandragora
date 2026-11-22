@@ -17,9 +17,6 @@ class Prefs(context: Context) {
     private val hiddenFlow = MutableStateFlow(sp.getBoolean("hiddenAmounts", false))
     val hiddenAmounts: StateFlow<Boolean> = hiddenFlow
 
-    private val groupFlow = MutableStateFlow(sp.getString("moneyGroup", "asset") ?: "asset")
-    val moneyGroup: StateFlow<String> = groupFlow
-
     private val orderFlow = MutableStateFlow(readOrder())
     val cardOrder: StateFlow<List<String>> = orderFlow
 
@@ -90,11 +87,6 @@ class Prefs(context: Context) {
     private fun normalizeOrder(value: List<String>): List<String> {
         val known = value.filter { it in CARDS }.distinct()
         return known + CARDS.filter { it !in known }
-    }
-
-    fun setMoneyGroup(value: String) {
-        groupFlow.value = value
-        sp.edit().putString("moneyGroup", value).apply()
     }
 
     fun setHiddenAmounts(value: Boolean) {

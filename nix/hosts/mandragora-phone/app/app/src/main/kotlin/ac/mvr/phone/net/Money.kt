@@ -166,6 +166,7 @@ object MoneyFormat {
         val u = usd ?: return null
         val percent = u / t * 100
         special(percent)?.let { return "$it%" }
+        if (percent > 0 && percent < 0.5) return "<1%"
         return "${fixed(percent, 0).toPlainString()}%"
     }
 
