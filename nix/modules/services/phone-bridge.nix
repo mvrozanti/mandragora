@@ -4,6 +4,7 @@ let
   src = ../../hosts/mandragora-phone/bridge/server.py;
   servicesJson = ../../hosts/mandragora-vps/compose/hub/static/services.json;
   tailnetJson = ../../snippets/tailnet.json;
+  identityJson = ../../hosts/mandragora-phone/identity.json;
   phoneMedia = pkgs.writeShellApplication {
     name = "phone-media";
     runtimeInputs = [
@@ -66,6 +67,7 @@ in
         PHONE_BRIDGE_APP_DIR = "/home/m/.local/share/mandragora-phone/app";
         PHONE_BRIDGE_SERVICES_JSON = "${servicesJson}";
         PHONE_BRIDGE_TAILNET_JSON = "${tailnetJson}";
+        PHONE_BRIDGE_IDENTITY_JSON = "${identityJson}";
         PHONE_BRIDGE_OPENCODE_PASSWORD = "/home/m/.local/state/opencode/server-password";
         PHONE_BRIDGE_CLAUDE_PASSWORD = "/home/m/.local/state/claude-bridge/server-password";
       };

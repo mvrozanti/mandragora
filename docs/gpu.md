@@ -118,6 +118,10 @@ The eviction is mandatory, not optional. Releasing the lock with the model still
 
 There is no Layer-2 proxy and none is planned. A bare `crush` against `127.0.0.1:11434` from a one-off shell is the only remaining bypass; treat it as user-supervised, not a contract violation.
 
+### The operator's "free" (the phone's gpu card)
+
+Rule 2 binds clients and agents; the operator has one lever on top of it. The phone's gpu card (`phone-bridge` `POST /api/gpu/free`) asks a *resident* to unload: an Ollama model still in VRAM gets `keep_alive: 0`, and stt-core gets `POST /release`, which ends its lingering lease early. Neither is a signal. Ollama finishes a request already running before it honours `keep_alive: 0`, and stt-core's release waits on the same lock its transcriptions take, so a running turn always completes. Nothing on the card kills a process, and a gpu-lock holder that is not a resident (a training job, a game outside the lock) is shown, never touched.
+
 ---
 
 ## Unmanaged GPU users (games, manual apps)

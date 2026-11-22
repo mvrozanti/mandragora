@@ -60,6 +60,7 @@ import ac.mvr.phone.ui.MusicScreen
 import ac.mvr.phone.ui.SessionsScreen
 import ac.mvr.phone.ui.SettingsScreen
 import ac.mvr.phone.ui.PanicScreen
+import ac.mvr.phone.ui.GpuScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -193,6 +194,7 @@ private fun routes(store: Store, go: (String) -> Unit): Map<String, @Composable 
     "money" to { MoneyScreen(store) { go("home") } },
     "hub" to { HubScreen(store) { go("home") } },
     "panic" to { PanicScreen(store) { go("home") } },
+    "gpu" to { GpuScreen(store) { go("home") } },
     "settings" to { SettingsScreen(store) { go("home") } },
     "sessions" to { SessionsScreen(store, onOpenSession = { go("code") }) { go("home") } },
     "code" to { CodeScreen(store) { go("home") } },

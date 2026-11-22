@@ -109,6 +109,7 @@ class Store(private val app: Application) {
     val hub = HubStore(this)
     val update = UpdateStore(this, app)
     val load = LoadStore(this)
+    val gpu = GpuStore(this)
     val power = PowerStore(this)
     val find = FindStore(this)
     val code = CodeStore(this)
@@ -118,6 +119,7 @@ class Store(private val app: Application) {
     val watch = WatchStore(this)
     val ask = AskStore(this)
     val teach = TeachStore(this)
+    val audit = AuditStore(this, app)
 
     val reachable = MutableStateFlow(false)
     val checking = MutableStateFlow(true)
@@ -275,6 +277,8 @@ class Store(private val app: Application) {
         scope.launch { loopWhileForeground(30_000) { hub.refresh() } }
         scope.launch { loopWhileForeground(300_000) { update.refresh() } }
         scope.launch { loopWhileForeground(10_000) { load.refresh() } }
+        scope.launch { loopWhileForeground(10_000) { gpu.refresh() } }
+        scope.launch { loopWhileForeground(60_000) { audit.refresh() } }
         scope.launch { loopWhileForeground(30_000) { power.refresh() } }
         scope.launch { loopWhileForeground(5_000) { code.refresh() } }
         scope.launch { loopWhileForeground(10_000) { if (photos.refreshAllowed()) PhoneMediaJob.schedule(app).also { photos.sync() } } }
@@ -331,7 +335,7 @@ class Store(private val app: Application) {
         }
     }
 
-    private fun vpnActive(): Boolean {
+    fun vpnActive(): Boolean {
         val cm = app.getSystemService(ConnectivityManager::class.java) ?: return true
         return runCatching { cm.allNetworks.any { cm.getNetworkCapabilities(it)?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true } }.getOrDefault(true)
     }
@@ -445,6 +449,8 @@ class Store(private val app: Application) {
         runCatching { hub.refresh() }
         runCatching { update.refresh() }
         runCatching { load.refresh() }
+        runCatching { gpu.refresh() }
+        runCatching { audit.refresh() }
         runCatching { power.refresh() }
         runCatching { refreshMedia() }
         runCatching { voice.refresh() }

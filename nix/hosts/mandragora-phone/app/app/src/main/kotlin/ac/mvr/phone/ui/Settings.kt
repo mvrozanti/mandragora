@@ -1,14 +1,7 @@
 package ac.mvr.phone.ui
 
 import android.text.format.DateUtils
-import android.annotation.SuppressLint
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.os.PowerManager
-import android.provider.Settings
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,11 +22,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import ac.mvr.phone.inbox.InboxService
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import ac.mvr.phone.state.Store
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 
 private val CARD_NAMES = mapOf(
     "music" to "music",
@@ -54,16 +44,9 @@ private val CARD_NAMES = mapOf(
     "teach" to "teach · the tutor",
     "watch" to "watch",
     "panic" to "panic",
+    "gpu" to "gpu · vram and who holds it",
     "power" to "power · reboot or power off the desktop",
 )
-
-@SuppressLint("BatteryLife")
-private fun askBatteryExemption(context: Context) {
-    runCatching { context.startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}"))) }
-}
-
-private fun batteryExempt(context: Context): Boolean =
-    context.getSystemService(PowerManager::class.java)?.isIgnoringBatteryOptimizations(context.packageName) ?: true
 
 @Composable
 fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
@@ -74,17 +57,13 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
     val squash by store.prefs.squashCalls.collectAsStateWithLifecycle()
     val listen by store.prefs.inboxListen.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    var exempt by remember { mutableStateOf(batteryExempt(context)) }
-    LifecycleResumeEffect(Unit) {
-        exempt = batteryExempt(context)
-        onPauseOrDispose { }
-    }
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("settings", reachable, onCollapse)
         Column(
             modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 14.dp).padding(bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            AuditSection(store)
             Column(
                 modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(scheme.surfaceContainerLow).padding(horizontal = 16.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -116,18 +95,8 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
                     Switch(checked = listen, onCheckedChange = {
                         store.prefs.setInboxListen(it)
                         InboxService.sync(context)
+                        store.scope.launch { runCatching { store.audit.refresh() } }
                     })
-                }
-                if (listen && !exempt) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable { askBatteryExemption(context) }.padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("battery is restricted", style = MaterialTheme.typography.bodyLarge, color = scheme.error)
-                            Label("tap to let the listener run while the phone sleeps")
-                        }
-                    }
                 }
             }
             Column(

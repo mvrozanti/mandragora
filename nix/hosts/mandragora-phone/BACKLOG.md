@@ -7,6 +7,21 @@ bottom are the ones that decide which.
 
 ## Shipped
 
+- The phone audits itself (2026-11-22): `identity.json` declares the apps
+  the phone must run and which must run unrestricted (Tailscale); the app
+  checks those plus its own needs (battery exemption and notifications while
+  listening, *All files access*, installing updates, a VPN up, Tailscale as
+  the always-on VPN when Android lets it say) and shows a red "this phone"
+  line on home only while one fails, with a tap that opens the Android page
+  fixing it. The result goes to `phone-bridge`; `mandragora-audit`'s
+  `phone-host` check warns on every run and fails a commit that touches the
+  phone host while a fresh report has a failure. The old "battery is
+  restricted" settings row is one of these checks now.
+- The gpu card and screen (2026-11-22): VRAM, load, temperature and power
+  from `nvidia-smi`, who holds the gpu lock or uses the GPU outside it,
+  every process by VRAM, and a "free" button for what can be asked to let
+  go (Ollama models, stt-core's whisper, through a new `/release` on
+  stt-core). It frees, it never kills.
 - Sync-Fork retired from the photo drain (2026-11-21): the
   `phone-media-archive` timer copies everything in the six drained folders
   through the app into the inbox, `phone-archiver` files it at once
@@ -124,8 +139,9 @@ Stated by the operator on 2026-11-15, in their order:
 - F-Droid repo on the hub: `compose/fdroid/`, tailnet-only vhost (403 off the
   tailnet, no Authelia since the client cannot SSO), repo signing key in sops,
   tile under infra.
-- The phone reports its own state to the bridge (battery, media volume, sync
-  lag) so the hub can show a phone row.
+- The phone reports the rest of its state to the bridge (battery, media
+  volume, sync lag) so the hub can show a phone row; the self-audit report
+  (`/api/phone/audit`) is the first piece of it.
 - The lyrics cache under `~/Music/.lyrics` has no owner in the repo; decide
   whether the bridge's lrclib path should also fill it.
 

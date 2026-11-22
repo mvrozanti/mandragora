@@ -51,6 +51,7 @@ fun HomeScreen(store: Store, onOpen: (String) -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             UpdateCard(store)
+            AuditLine(store, onOpen)
             order.forEach { card ->
                 when (card) {
                     "music" -> MusicCard(store, onOpen)
@@ -58,6 +59,7 @@ fun HomeScreen(store: Store, onOpen: (String) -> Unit) {
                     "hub" -> HubCard(store, onOpen)
                     "code" -> CodeCard(store, onOpen)
                     "panic" -> PanicCard(store, onOpen)
+                    "gpu" -> GpuCard(store, onOpen)
                     "power" -> PowerCard(store)
                     "inbox" -> InboxCard(store, onOpen)
                     "voice" -> VoiceCard(store, onOpen)

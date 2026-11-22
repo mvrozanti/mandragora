@@ -16,6 +16,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import xml.etree.ElementTree as ET
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -62,6 +63,12 @@ MONEY_REFRESH_UNIT = "money-menu-refresh.service"
 STATUS_PROBES_URL = os.environ.get("PHONE_BRIDGE_STATUS_PROBES", "https://status.mvr.ac/api/status-probes")
 STATUS_VPS_URL = os.environ.get("PHONE_BRIDGE_STATUS_VPS", "https://status.mvr.ac/api/vps")
 GPU_STATUS_URL = os.environ.get("PHONE_BRIDGE_GPU_STATUS", "http://127.0.0.1:6684/api/gpu")
+NVIDIA_SMI = os.environ.get("PHONE_BRIDGE_NVIDIA_SMI", "/run/current-system/sw/bin/nvidia-smi")
+GPU_LOCK = os.environ.get("PHONE_BRIDGE_GPU_LOCK", "/run/current-system/sw/bin/gpu-lock")
+OLLAMA_URL = os.environ.get("PHONE_BRIDGE_OLLAMA", "http://127.0.0.1:11434")
+STT_UNIT = "stt-core.service"
+IDENTITY_JSON = os.environ.get("PHONE_BRIDGE_IDENTITY_JSON")
+PHONE_AUDIT_MAX = 64
 HUB_TTL = 20
 APP_DIR = Path(os.environ.get("PHONE_BRIDGE_APP_DIR", "~/.local/share/mandragora-phone/app")).expanduser()
 APP_APK = APP_DIR / "mandragora-phone.apk"
@@ -82,6 +89,8 @@ PHONE_MEDIA_FIELDS = ("name", "path", "kind", "mime", "size", "taken", "modified
 PHONE_MEDIA_JOBS = ("thumbs", "pull", "remove")
 PHONE_MEDIA_PEERS = os.environ.get("PHONE_BRIDGE_MEDIA_PEERS")
 PHONE_MEDIA_PHONE_PATHS = ("/api/phone/media/index", "/api/phone/media/jobs", "/api/phone/media/thumb", "/api/phone/media/file", "/api/phone/media/report")
+PHONE_AUDIT_FILE = STATE_DIR / "phone-audit.json"
+PHONE_ONLY_POSTS = {"/api/power": "only the phone may power the desktop off", "/api/phone/audit": "only the phone reports on itself"}
 
 SINK_LINE = re.compile(r"^\s*│\s*(?P<default>\*)?\s*(?P<id>\d+)\.\s+(?P<name>.+?)\s+\[vol:\s*(?P<vol>[\d.]+)(?P<muted>\s+MUTED)?\]\s*$")
 LRC_LINE = re.compile(r"^\[(\d+):(\d+(?:\.\d+)?)\](.*)$")
@@ -957,6 +966,174 @@ def kill_unit(body: dict) -> dict:
     return {"killed": rel, "name": name or unit_title(cg.name), "procs": procs}
 
 
+def mib_bytes(text: str | None) -> int:
+    try:
+        return int(float((text or "").split()[0]) * 1024 * 1024)
+    except (ValueError, IndexError):
+        return 0
+
+
+def first_number(text: str | None) -> float:
+    try:
+        return float((text or "").split()[0])
+    except (ValueError, IndexError):
+        return 0.0
+
+
+def gpu_proc_name(raw: str) -> str:
+    if "\\" in raw:
+        return raw.rsplit("\\", 1)[-1]
+    return (raw.split() or [""])[0].rsplit("/", 1)[-1]
+
+
+def pid_unit(pid: int) -> str:
+    try:
+        line = (Path("/proc") / str(pid) / "cgroup").read_text().strip().splitlines()[-1]
+    except (OSError, IndexError):
+        return ""
+    units = [part for part in line.split("/") if part.endswith(".service") or part.endswith(".scope")]
+    return units[-1] if units else ""
+
+
+def nvidia_state() -> tuple[dict | None, list[dict]]:
+    try:
+        done = subprocess.run([NVIDIA_SMI, "-q", "-x"], capture_output=True, text=True, timeout=8)
+        root = ET.fromstring(done.stdout)
+    except (OSError, subprocess.SubprocessError, ET.ParseError):
+        return None, []
+    gpu = root.find("gpu")
+    if gpu is None:
+        return None, []
+    info = {
+        "name": gpu.findtext("product_name") or "",
+        "memUsed": mib_bytes(gpu.findtext("fb_memory_usage/used")),
+        "memTotal": mib_bytes(gpu.findtext("fb_memory_usage/total")),
+        "util": first_number(gpu.findtext("utilization/gpu_util")),
+        "temp": first_number(gpu.findtext("temperature/gpu_temp")),
+        "power": first_number(gpu.findtext("gpu_power_readings/instant_power_draw") or gpu.findtext("gpu_power_readings/power_draw")),
+    }
+    merged: dict[str, dict] = {}
+    for proc in gpu.findall("processes/process_info"):
+        try:
+            pid = int(proc.findtext("pid") or "")
+        except ValueError:
+            continue
+        name = gpu_proc_name(proc.findtext("process_name") or "") or f"pid {pid}"
+        mem = mib_bytes(proc.findtext("used_memory"))
+        row = merged.setdefault(name, {"pid": pid, "name": name, "kind": "graphics", "mem": 0, "unit": pid_unit(pid), "pids": []})
+        if mem > row["mem"]:
+            row["pid"] = pid
+        row["mem"] += mem
+        row["pids"].append(pid)
+        if "C" in (proc.findtext("type") or ""):
+            row["kind"] = "compute"
+    return info, sorted(merged.values(), key=lambda row: row["mem"], reverse=True)
+
+
+def lock_party(raw) -> dict | None:
+    if not isinstance(raw, dict):
+        return None
+    expected = raw.get("expected_seconds")
+    return {
+        "name": str(raw.get("name") or "").removesuffix(" (unmanaged)"),
+        "pid": int(raw.get("pid") or 0),
+        "since": float(raw.get("since") or 0),
+        "expected": float(expected) if isinstance(expected, (int, float)) else None,
+    }
+
+
+def gpu_lock_state() -> dict:
+    try:
+        done = subprocess.run([GPU_LOCK, "status", "--json"], capture_output=True, text=True, timeout=8)
+        data = json.loads(done.stdout or "{}")
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return {"holder": None, "unmanaged": None, "error": "gpu-lock did not answer"}
+    return {"holder": lock_party(data.get("holder")), "unmanaged": lock_party(data.get("unmanaged"))}
+
+
+def ollama_models() -> list[dict]:
+    data = fetch_json(f"{OLLAMA_URL}/api/ps", timeout=3)
+    models = data.get("models") if isinstance(data, dict) else None
+    rows = []
+    for model in models or []:
+        if isinstance(model, dict) and int(model.get("size_vram") or 0) > 0:
+            rows.append({"kind": "ollama", "name": str(model.get("name") or model.get("model") or ""), "mem": int(model["size_vram"])})
+    return rows
+
+
+def stt_status() -> dict | None:
+    data = fetch_json(f"{STT_BASE}/status", timeout=3)
+    return data if isinstance(data, dict) else None
+
+
+def stt_resident(status: dict | None, procs: list[dict]) -> dict | None:
+    if not status or not status.get("model_loaded"):
+        return None
+    model = (status.get("config") or {}).get("model") or "whisper"
+    return {"kind": "stt", "name": f"stt-core · {model}", "mem": sum(row["mem"] for row in procs if row["unit"] == STT_UNIT)}
+
+
+def gpu_state() -> dict:
+    found: dict = {}
+
+    def grab(key: str, probe) -> None:
+        found[key] = probe()
+
+    probes = (("smi", nvidia_state), ("lock", gpu_lock_state), ("ollama", ollama_models), ("stt", stt_status))
+    threads = [threading.Thread(target=grab, args=pair) for pair in probes]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    info, procs = found.get("smi") or (None, [])
+    lock = found.get("lock") or {"holder": None, "unmanaged": None}
+    holder_pid = (lock.get("holder") or {}).get("pid")
+    outside_pid = (lock.get("unmanaged") or {}).get("pid")
+    for row in procs:
+        pids = row.pop("pids")
+        row["holder"] = holder_pid in pids
+        row["outside"] = outside_pid in pids
+    residents = list(found.get("ollama") or [])
+    stt = stt_resident(found.get("stt"), procs)
+    if stt:
+        residents.append(stt)
+    return {"ts": time.time(), "gpu": info, "lock": lock, "procs": procs, "residents": residents}
+
+
+def post_local(url: str, payload: dict | None, timeout: int = 30) -> dict:
+    data = json.dumps(payload).encode("utf-8") if payload is not None else b""
+    request = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        body = response.read()
+    try:
+        parsed = json.loads(body or b"{}")
+    except ValueError:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def gpu_free(body: dict) -> dict:
+    what = str(body.get("what") or "")
+    if what == "stt":
+        try:
+            post_local(f"{STT_BASE}/release", None)
+        except urllib.error.HTTPError as err:
+            raise OSError(f"stt-core cannot release its model (HTTP {err.code})") from None
+        except (urllib.error.URLError, TimeoutError):
+            raise OSError("stt-core is not running on the desktop") from None
+        return {"freed": "stt-core"}
+    if what != "ollama":
+        raise ValueError("what must be ollama or stt")
+    name = str(body.get("name") or "")
+    if name not in {row["name"] for row in ollama_models()}:
+        raise ValueError(f"{name or 'that model'} is not in VRAM")
+    try:
+        post_local(f"{OLLAMA_URL}/api/generate", {"model": name, "keep_alive": 0})
+    except (urllib.error.URLError, TimeoutError) as err:
+        raise OSError(f"ollama did not unload {name}: {err}") from None
+    return {"freed": name}
+
+
 def media_state() -> dict:
     try:
         proc = subprocess.run([PLAYERCTL, "-a", "-f", MEDIA_FORMAT, "metadata"], capture_output=True, text=True, timeout=4)
@@ -1114,7 +1291,55 @@ def config() -> dict:
         "music": {"folderId": MUSIC_FOLDER_ID, "dir": str(MUSIC_DIR)},
         "hub": load_json(SERVICES_JSON, {}),
         "code": code_access(),
+        "phone": phone_expect(),
         "time": time.time(),
+    }
+
+
+def phone_expect() -> dict:
+    identity = load_json(IDENTITY_JSON, {})
+    apps = []
+    for entry in identity.get("apps", []) if isinstance(identity, dict) else []:
+        if isinstance(entry, dict) and entry.get("package"):
+            package = str(entry["package"])
+            apps.append({"package": package, "name": str(entry.get("name") or package), "unrestricted": bool(entry.get("unrestricted"))})
+    return {"apps": apps}
+
+
+def phone_audit_store(body: dict) -> dict:
+    checks = body.get("checks")
+    if not isinstance(checks, list) or len(checks) > PHONE_AUDIT_MAX:
+        raise ValueError(f"checks must be a list of at most {PHONE_AUDIT_MAX}")
+    clean = []
+    for check in checks:
+        if not isinstance(check, dict) or not check.get("id"):
+            raise ValueError("every check needs an id")
+        ok = check.get("ok")
+        clean.append({
+            "id": str(check["id"])[:80],
+            "label": str(check.get("label") or "")[:200],
+            "ok": ok if isinstance(ok, bool) else None,
+            "detail": str(check.get("detail") or "")[:300],
+        })
+    report = {"ts": time.time(), "versionCode": int(body.get("versionCode") or 0), "checks": clean}
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    tmp = PHONE_AUDIT_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(report), encoding="utf-8")
+    tmp.replace(PHONE_AUDIT_FILE)
+    return {"stored": len(clean)}
+
+
+def phone_audit_view() -> dict:
+    report = load_json(str(PHONE_AUDIT_FILE), None)
+    if not isinstance(report, dict):
+        return {"ts": None, "age": None, "versionCode": 0, "checks": [], "failing": []}
+    checks = [check for check in report.get("checks", []) if isinstance(check, dict)]
+    return {
+        "ts": report.get("ts"),
+        "age": time.time() - float(report.get("ts") or 0),
+        "versionCode": report.get("versionCode", 0),
+        "checks": checks,
+        "failing": [check.get("id") for check in checks if check.get("ok") is False],
     }
 
 
@@ -1126,7 +1351,7 @@ def media_peers() -> set[str]:
 
 
 def phone_only(path: str, method: str) -> bool:
-    if method == "POST" and path == "/api/power":
+    if method == "POST" and path in PHONE_ONLY_POSTS:
         return True
     return path in PHONE_MEDIA_PHONE_PATHS and not (method == "GET" and path == "/api/phone/media/thumb")
 
@@ -1525,7 +1750,7 @@ class Handler(BaseHTTPRequestHandler):
         if media_from_phone(path, method, self.client_address[0]):
             return False
         self.close_connection = True
-        self.send_json({"error": "only the phone may power the desktop off" if path == "/api/power" else "only the phone sends its media"}, 403)
+        self.send_json({"error": PHONE_ONLY_POSTS.get(path, "only the phone sends its media")}, 403)
         return True
 
     def do_GET(self):
@@ -1554,6 +1779,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(power_state())
             elif url.path == "/api/load":
                 self.send_json(load_state())
+            elif url.path == "/api/gpu":
+                self.send_json(gpu_state())
+            elif url.path == "/api/phone/audit":
+                self.send_json(phone_audit_view())
             elif url.path == "/api/media":
                 self.send_json(media_state())
             elif url.path == "/api/media/art":
@@ -1674,6 +1903,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(start_money_refresh())
             elif url.path == "/api/kill":
                 self.send_json(kill_unit(body))
+            elif url.path == "/api/gpu/free":
+                self.send_json(gpu_free(body))
+            elif url.path == "/api/phone/audit":
+                self.send_json(phone_audit_store(body))
             elif url.path == "/api/power":
                 self.send_json(power(body))
             elif url.path == "/api/media":

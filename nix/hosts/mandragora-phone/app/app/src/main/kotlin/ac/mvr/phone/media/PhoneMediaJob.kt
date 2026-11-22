@@ -24,6 +24,7 @@ class PhoneMediaJob : JobService() {
 
     override fun onStartJob(params: JobParameters): Boolean {
         running = scope.launch {
+            runCatching { applicationContext.store.audit.refresh() }
             runCatching { applicationContext.store.photos.sync(System.currentTimeMillis() + BUDGET_MS) }
             jobFinished(params, false)
         }

@@ -3,6 +3,7 @@ package ac.mvr.phone.net
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.put
 
 @Serializable
@@ -49,8 +50,15 @@ data class BridgeConfig(
     val music: MusicInfo = MusicInfo(),
     val hub: HubManifest = HubManifest(),
     val code: CodeBackends? = null,
+    val phone: PhoneExpect = PhoneExpect(),
     val time: Double = 0.0,
 )
+
+@Serializable
+data class ExpectedApp(val `package`: String, val name: String = `package`, val unrestricted: Boolean = false)
+
+@Serializable
+data class PhoneExpect(val apps: List<ExpectedApp> = emptyList())
 
 @Serializable
 data class Sink(val id: Int, val name: String, val volume: Int, val muted: Boolean = false, val default: Boolean = false)
@@ -191,6 +199,18 @@ class BridgeClient(private val baseUrl: () -> String) {
 
     suspend fun kill(id: String): KillResult = json.decodeFromString(Http.post("${baseUrl()}/api/kill", buildJsonObject { put("id", id) }))
 
+    suspend fun gpu(): GpuState = json.decodeFromString(Http.get("${baseUrl()}/api/gpu"))
+
+    suspend fun freeGpu(resident: GpuResident): FreeResult =
+        json.decodeFromString(Http.post("${baseUrl()}/api/gpu/free", buildJsonObject {
+            put("what", resident.kind)
+            put("name", resident.name)
+        }))
+
+    suspend fun reportAudit(versionCode: Int, checks: List<HostCheck>) {
+        Http.post("${baseUrl()}/api/phone/audit", json.encodeToJsonElement(AuditReport(versionCode, checks)))
+    }
+
     suspend fun inbox(after: Long, waitSeconds: Int): InboxView =
         json.decodeFromString(Http.get("${baseUrl()}/api/inbox?after=$after&wait=$waitSeconds", long = true))
 
@@ -268,3 +288,44 @@ data class PowerResult(val action: String? = null, val error: String? = null)
 
 @Serializable
 data class KillResult(val killed: String? = null, val name: String? = null, val procs: Int = 0, val error: String? = null)
+
+@Serializable
+data class GpuInfo(val name: String = "", val memUsed: Long = 0, val memTotal: Long = 0, val util: Double = 0.0, val temp: Double = 0.0, val power: Double = 0.0)
+
+@Serializable
+data class GpuParty(val name: String = "", val pid: Int = 0, val since: Double = 0.0, val expected: Double? = null)
+
+@Serializable
+data class GpuLock(val holder: GpuParty? = null, val unmanaged: GpuParty? = null, val error: String? = null)
+
+@Serializable
+data class GpuProc(
+    val pid: Int = 0,
+    val name: String = "",
+    val kind: String = "",
+    val mem: Long = 0,
+    val unit: String = "",
+    val holder: Boolean = false,
+    val outside: Boolean = false,
+)
+
+@Serializable
+data class GpuResident(val kind: String, val name: String, val mem: Long = 0)
+
+@Serializable
+data class GpuState(
+    val ts: Double = 0.0,
+    val gpu: GpuInfo? = null,
+    val lock: GpuLock = GpuLock(),
+    val procs: List<GpuProc> = emptyList(),
+    val residents: List<GpuResident> = emptyList(),
+)
+
+@Serializable
+data class FreeResult(val freed: String? = null, val error: String? = null)
+
+@Serializable
+data class HostCheck(val id: String, val label: String, val ok: Boolean?, val detail: String = "", val fix: String? = null)
+
+@Serializable
+data class AuditReport(val versionCode: Int, val checks: List<HostCheck>)

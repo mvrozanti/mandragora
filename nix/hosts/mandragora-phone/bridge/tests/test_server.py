@@ -535,3 +535,175 @@ def test_only_the_phone_powers_the_desktop(bridge, systemctl, monkeypatch):
     status, _ = fetch(f"{bridge}/api/power")
     assert status == 200
     assert not systemctl.exists()
+
+
+SMI_XML = """<?xml version="1.0" ?>
+<nvidia_smi_log>
+  <gpu id="00000000:01:00.0">
+    <product_name>NVIDIA GeForce RTX 5070 Ti</product_name>
+    <fb_memory_usage><total>16303 MiB</total><used>10585 MiB</used></fb_memory_usage>
+    <utilization><gpu_util>42 %</gpu_util></utilization>
+    <temperature><gpu_temp>55 C</gpu_temp></temperature>
+    <gpu_power_readings><instant_power_draw>106.05 W</instant_power_draw></gpu_power_readings>
+    <processes>
+      <process_info><pid>12384</pid><type>G</type><process_name>/etc/profiles/per-user/m/bin/firefox</process_name><used_memory>109 MiB</used_memory></process_info>
+      <process_info><pid>13135</pid><type>C+G</type><process_name>/nix/store/x-firefox/lib/firefox/firefox -contentproc -appDir x</process_name><used_memory>324 MiB</used_memory></process_info>
+      <process_info><pid>3298250</pid><type>C+G</type><process_name>S:\\steamapps\\common\\ForzaHorizon6\\forzahorizon6.exe</process_name><used_memory>8501 MiB</used_memory></process_info>
+      <process_info><pid>777</pid><type>C</type><process_name>/nix/store/y-python3/bin/python3</process_name><used_memory>3900 MiB</used_memory></process_info>
+      <process_info><pid>x</pid><type>G</type><process_name>broken</process_name><used_memory>N/A</used_memory></process_info>
+    </processes>
+  </gpu>
+</nvidia_smi_log>
+"""
+
+
+class LocalServer(ThreadingHTTPServer):
+    seen: list[tuple[str, dict]]
+    replies: dict[str, tuple[int, dict]]
+
+
+class FakeLocal(BaseHTTPRequestHandler):
+    def answer(self, status: int, payload: dict) -> None:
+        data = json.dumps(payload).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self):
+        owner = cast(LocalServer, self.server)
+        self.answer(*owner.replies.get("GET " + self.path, (404, {"error": "nope"})))
+
+    def do_POST(self):
+        owner = cast(LocalServer, self.server)
+        raw = self.rfile.read(int(self.headers.get("Content-Length") or 0))
+        owner.seen.append((self.path, json.loads(raw) if raw else {}))
+        self.answer(*owner.replies.get("POST " + self.path, (404, {"error": "nope"})))
+
+    def log_message(self, format, *args):
+        return
+
+
+@pytest.fixture
+def gpu_desk(tmp_path, monkeypatch):
+    xml = tmp_path / "smi.xml"
+    xml.write_text(SMI_XML)
+    smi = tmp_path / "nvidia-smi"
+    smi.write_text(f"#!/bin/sh\ncat {xml}\n")
+    smi.chmod(0o755)
+    lock_json = tmp_path / "lock.json"
+    lock_json.write_text(json.dumps({"holder": None, "unmanaged": {"pid": 3298250, "name": "forzahorizon6.exe (unmanaged)", "since": 5.0, "expected_seconds": None}}))
+    lock = tmp_path / "gpu-lock"
+    lock.write_text(f"#!/bin/sh\n[ \"$1 $2\" = 'status --json' ] && cat {lock_json}\n")
+    lock.chmod(0o755)
+    fake = LocalServer(("127.0.0.1", 0), FakeLocal)
+    fake.seen = []
+    fake.replies = {
+        "GET /api/ps": (200, {"models": [{"name": "qwen3:8b", "size_vram": 5_000_000_000}, {"name": "on-cpu", "size_vram": 0}]}),
+        "GET /status": (200, {"model_loaded": True, "config": {"model": "large-v3"}}),
+        "POST /api/generate": (200, {"done": True, "done_reason": "unload"}),
+        "POST /release": (200, {"ok": True}),
+    }
+    threading.Thread(target=fake.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{fake.server_port}"
+    monkeypatch.setattr(server, "NVIDIA_SMI", str(smi))
+    monkeypatch.setattr(server, "GPU_LOCK", str(lock))
+    monkeypatch.setattr(server, "OLLAMA_URL", base)
+    monkeypatch.setattr(server, "STT_BASE", base)
+    monkeypatch.setattr(server, "pid_unit", lambda pid: "stt-core.service" if pid == 777 else "")
+    yield fake
+    fake.shutdown()
+
+
+def test_gpu_state_merges_processes_and_names_who_is_outside_the_lock(bridge, gpu_desk):
+    status, body = fetch(f"{bridge}/api/gpu")
+    assert status == 200
+    assert body["gpu"]["name"] == "NVIDIA GeForce RTX 5070 Ti"
+    assert body["gpu"]["memTotal"] == 16303 * 1024 * 1024
+    assert body["gpu"]["util"] == 42.0
+    assert body["gpu"]["power"] == pytest.approx(106.05)
+    names = [row["name"] for row in body["procs"]]
+    assert names == ["forzahorizon6.exe", "python3", "firefox"]
+    firefox = next(row for row in body["procs"] if row["name"] == "firefox")
+    assert (firefox["mem"], firefox["kind"], firefox["pid"]) == (433 * 1024 * 1024, "compute", 13135)
+    game = body["procs"][0]
+    assert (game["outside"], game["holder"]) == (True, False)
+    assert body["lock"]["holder"] is None
+    assert body["lock"]["unmanaged"]["name"] == "forzahorizon6.exe"
+    assert body["residents"] == [
+        {"kind": "ollama", "name": "qwen3:8b", "mem": 5_000_000_000},
+        {"kind": "stt", "name": "stt-core · large-v3", "mem": 3900 * 1024 * 1024},
+    ]
+
+
+def test_gpu_state_survives_a_desk_without_any_gpu_tool(bridge, tmp_path, monkeypatch):
+    monkeypatch.setattr(server, "NVIDIA_SMI", str(tmp_path / "missing"))
+    monkeypatch.setattr(server, "GPU_LOCK", str(tmp_path / "missing"))
+    monkeypatch.setattr(server, "OLLAMA_URL", "http://127.0.0.1:9")
+    monkeypatch.setattr(server, "STT_BASE", "http://127.0.0.1:9")
+    status, body = fetch(f"{bridge}/api/gpu")
+    assert status == 200
+    assert (body["gpu"], body["procs"], body["residents"]) == (None, [], [])
+    assert body["lock"]["error"] == "gpu-lock did not answer"
+
+
+def test_gpu_free_asks_ollama_and_stt_core_to_let_go(bridge, gpu_desk):
+    status, body = post_json(f"{bridge}/api/gpu/free", {"what": "ollama", "name": "qwen3:8b"})
+    assert (status, body) == (200, {"freed": "qwen3:8b"})
+    status, body = post_json(f"{bridge}/api/gpu/free", {"what": "stt"})
+    assert (status, body) == (200, {"freed": "stt-core"})
+    assert gpu_desk.seen == [("/api/generate", {"model": "qwen3:8b", "keep_alive": 0}), ("/release", {})]
+
+
+def test_gpu_free_refuses_what_is_not_in_vram(bridge, gpu_desk):
+    status, body = post_json(f"{bridge}/api/gpu/free", {"what": "ollama", "name": "on-cpu"})
+    assert (status, body["error"]) == (400, "on-cpu is not in VRAM")
+    status, body = post_json(f"{bridge}/api/gpu/free", {"what": "forzahorizon6.exe"})
+    assert (status, body["error"]) == (400, "what must be ollama or stt")
+    del gpu_desk.replies["POST /release"]
+    status, body = post_json(f"{bridge}/api/gpu/free", {"what": "stt"})
+    assert (status, body["error"]) == (503, "stt-core cannot release its model (HTTP 404)")
+    assert gpu_desk.seen == [("/release", {})]
+
+
+def test_config_carries_the_apps_the_phone_must_run(bridge, tmp_path, monkeypatch):
+    identity = tmp_path / "identity.json"
+    identity.write_text(json.dumps({"apps": [{"package": "com.tailscale.ipn", "name": "Tailscale", "unrestricted": True}, {"package": "md.obsidian"}, {"name": "no package"}]}))
+    monkeypatch.setattr(server, "IDENTITY_JSON", str(identity))
+    status, body = fetch(f"{bridge}/api/config")
+    assert status == 200
+    assert body["phone"] == {"apps": [
+        {"package": "com.tailscale.ipn", "name": "Tailscale", "unrestricted": True},
+        {"package": "md.obsidian", "name": "md.obsidian", "unrestricted": False},
+    ]}
+
+
+def test_phone_audit_is_kept_and_read_back(bridge, tmp_path, monkeypatch):
+    monkeypatch.setattr(server, "STATE_DIR", tmp_path)
+    monkeypatch.setattr(server, "PHONE_AUDIT_FILE", tmp_path / "phone-audit.json")
+    monkeypatch.setattr(server, "PHONE_MEDIA_PEERS", "127.0.0.1")
+    status, body = fetch(f"{bridge}/api/phone/audit")
+    assert (status, body["checks"], body["ts"]) == (200, [], None)
+    checks = [
+        {"id": "battery:com.tailscale.ipn", "label": "Tailscale runs unrestricted", "ok": False, "detail": "battery optimised"},
+        {"id": "always-on", "label": "Tailscale is the always-on VPN", "ok": None},
+        {"id": "all-files", "label": "the desktop reaches photos", "ok": True, "extra": "dropped"},
+    ]
+    status, body = post_json(f"{bridge}/api/phone/audit", {"versionCode": 41, "checks": checks})
+    assert (status, body) == (200, {"stored": 3})
+    status, body = fetch(f"{bridge}/api/phone/audit")
+    assert body["versionCode"] == 41
+    assert body["failing"] == ["battery:com.tailscale.ipn"]
+    assert body["checks"][2] == {"id": "all-files", "label": "the desktop reaches photos", "ok": True, "detail": ""}
+    assert 0 <= body["age"] < 60
+    status, body = post_json(f"{bridge}/api/phone/audit", {"checks": [{"label": "no id"}]})
+    assert (status, body["error"]) == (400, "every check needs an id")
+
+
+def test_only_the_phone_reports_on_itself(bridge, tmp_path, monkeypatch):
+    monkeypatch.setattr(server, "PHONE_AUDIT_FILE", tmp_path / "phone-audit.json")
+    monkeypatch.setattr(server, "PHONE_MEDIA_PEERS", "100.64.0.9")
+    status, body = post_json(f"{bridge}/api/phone/audit", {"checks": []})
+    assert (status, body["error"]) == (403, "only the phone reports on itself")
+    assert not (tmp_path / "phone-audit.json").exists()
