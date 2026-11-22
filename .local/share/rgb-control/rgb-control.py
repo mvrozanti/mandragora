@@ -199,6 +199,11 @@ async def run_systemctl_user(verb: str, unit: str) -> tuple[int, str]:
     return proc.returncode, out.decode(errors="replace")
 
 
+async def graphical_session_up() -> bool:
+    rc, _ = await run_systemctl_user("is-active", "graphical-session.target")
+    return rc == 0
+
+
 async def stop_keyleds() -> str:
     msgs = []
     for unit in KEYLEDS_UNITS:
@@ -705,6 +710,8 @@ async def startup_recovery(app: web.Application) -> None:
     if state.get("override"):
         log.info("override=on at start — stopping keyledsd to match")
         await stop_keyleds()
+    elif not await graphical_session_up():
+        log.info("override=off at start — graphical session not up yet, keyledsd starts with it")
     else:
         log.info("override=off at start — ensuring keyledsd is up")
         await restart_keyleds()
