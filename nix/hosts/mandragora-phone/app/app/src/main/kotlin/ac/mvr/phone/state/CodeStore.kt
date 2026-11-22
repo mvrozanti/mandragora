@@ -13,6 +13,7 @@ import ac.mvr.phone.net.CodeStatus
 import ac.mvr.phone.net.CodeTime
 import ac.mvr.phone.net.ScreenAsk
 import ac.mvr.phone.net.SessionSettings
+import ac.mvr.phone.logic.withBackground
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -273,7 +274,15 @@ class CodeStore(private val store: Store) {
                 val status = p["status"]?.let { runCatching { json.decodeFromJsonElement<CodeStatus>(it) }.getOrNull() } ?: CodeStatus()
                 statusFlow.value = if (status.type == "idle") statusFlow.value - sessionID else statusFlow.value + (sessionID to status)
             }
+            "session.background" -> background(sessionID, p)
         }
+    }
+
+    private fun background(sessionID: String, p: JsonObject) {
+        val raw = p["tasks"] ?: return
+        val tasks = runCatching { json.decodeFromJsonElement<List<String>>(raw) }.getOrNull() ?: return
+        sessionsFlow.value = sessionsFlow.value.map { if (it.id == sessionID) withBackground(it, tasks) else it }
+        currentFlow.value?.takeIf { it.id == sessionID }?.let { currentFlow.value = withBackground(it, tasks) }
     }
 
     val directory: String? get() = currentFlow.value?.directory ?: newIn.value
@@ -772,6 +781,7 @@ class CodeStore(private val store: Store) {
                 if (mine) syncCurrent()
                 statusFlow.value = statusFlow.value - sessionID
             }
+            "session.background" -> if (sessionID != null) background(sessionID, p)
             "session.created", "session.updated" -> p["info"]?.let { info ->
                 val told = runCatching { json.decodeFromJsonElement<CodeSession>(info) }.getOrNull() ?: return
                 val known = sessionsFlow.value.firstOrNull { it.id == told.id } ?: currentFlow.value?.takeIf { it.id == told.id }

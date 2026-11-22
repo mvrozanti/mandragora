@@ -7,6 +7,12 @@ import ac.mvr.phone.net.DesktopMedia
 fun active(session: CodeSession, status: CodeStatus?): Boolean =
     session.live != null || status?.type == "busy" || status?.message == "waiting"
 
+fun inBackground(session: CodeSession?): String? =
+    session?.live?.background?.filter { it.isNotBlank() }?.takeIf { it.isNotEmpty() }?.joinToString(", ")
+
+fun withBackground(session: CodeSession, tasks: List<String>): CodeSession =
+    if (session.live == null) session else session.copy(live = session.live.copy(background = tasks)).also { it.backend = session.backend }
+
 fun resumes(action: String, player: String, players: List<DesktopMedia>): Boolean =
     action == "play" || (action == "play-pause" && players.none { it.player == player && it.playing })
 

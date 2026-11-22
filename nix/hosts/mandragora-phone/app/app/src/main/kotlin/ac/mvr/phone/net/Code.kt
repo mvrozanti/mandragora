@@ -29,7 +29,13 @@ data class CodeAccess(val id: String = "opencode", val name: String = id, val po
 data class CodeBackends(val backends: List<CodeAccess> = emptyList())
 
 @Serializable
-data class LiveInfo(val name: String? = null, val status: String? = null, val waiting: String? = null, val tmux: String? = null)
+data class LiveInfo(
+    val name: String? = null,
+    val status: String? = null,
+    val waiting: String? = null,
+    val tmux: String? = null,
+    val background: List<String> = emptyList(),
+)
 
 @Serializable
 data class CodeTime(val created: Long = 0, val updated: Long = 0)

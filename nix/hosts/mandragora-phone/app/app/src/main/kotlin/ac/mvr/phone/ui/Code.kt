@@ -8,6 +8,7 @@ import ac.mvr.phone.logic.ShownCalls
 import ac.mvr.phone.logic.ShownEntry
 import ac.mvr.phone.logic.Stops
 import ac.mvr.phone.logic.active
+import ac.mvr.phone.logic.inBackground
 import ac.mvr.phone.logic.said
 import ac.mvr.phone.logic.replyPin
 import ac.mvr.phone.logic.squashCalls
@@ -339,6 +340,9 @@ private fun SessionLine(session: CodeSession, status: CodeStatus?, selected: Boo
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (waiting) scheme.error else Color.Unspecified,
             )
+            inBackground(session)?.let { tasks ->
+                Text("$tasks in the background", style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
             session.snippet?.takeIf { it.isNotBlank() }?.let { snip ->
                 Text(Meaning.annotate(snip, scheme), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
@@ -514,6 +518,20 @@ private fun WorkingLine(tint: Color) {
             }
         }
         Text("working…", style = ReplyBody, color = tint)
+    }
+}
+
+@Composable
+private fun BackgroundLine(tasks: String?) {
+    if (tasks == null) return
+    val tint = MaterialTheme.colorScheme.onSurfaceVariant
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        CircularProgressIndicator(color = tint, strokeWidth = 1.5.dp, modifier = Modifier.size(12.dp))
+        Text("$tasks running in the background", style = MaterialTheme.typography.labelMedium, color = tint, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -1165,6 +1183,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
                 }
             }
         }
+        BackgroundLine(inBackground(current))
         Notice(store, Modifier.padding(horizontal = 14.dp))
         Composer(
             field, focus, busy, reachable, attachments, uploading,

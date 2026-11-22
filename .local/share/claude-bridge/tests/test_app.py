@@ -87,6 +87,37 @@ RULED = """───────────────────────
  Esc to cancel · Tab to amend
 """
 
+FOOTER = """──────────────────────────────────────────────────────────────
+❯
+──────────────────────────────────────────────────────────────
+  [Opus 5.5] │ sessions
+  Context █░░░░░░░░░ 10% │ Usage ███░░░░░░░ 33% (resets in 4h 16m)
+  ⏵⏵ auto mode on · {pill}esc to interrupt · ↓ to manage
+"""
+
+
+def footer(pill: str, *swaps: tuple[str, str]) -> list[str]:
+    screen = FOOTER.format(pill=pill)
+    for old, new in swaps:
+        screen = screen.replace(old, new)
+    return screen.splitlines()
+
+
+def test_the_footer_names_what_runs_in_the_background():
+    assert app.desk_background(footer("2 shells, 1 monitor · ")) == ["2 shells", "1 monitor"]
+    assert app.desk_background(footer("1 shell · ", ("esc to interrupt · ", ""))) == ["1 shell"]
+    assert app.desk_background(footer("1 cloud session · ", ("↓ to manage", "↓ to manage        Update available"))) == ["1 cloud session"]
+
+
+def test_a_quiet_footer_has_nothing_in_the_background():
+    assert app.desk_background(footer("")) == []
+    assert app.desk_background(footer("", ("auto mode on", "manual mode on"), ("esc to interrupt · ↓ to manage", "? for shortcuts"))) == []
+
+
+def test_a_footer_hidden_by_a_dialog_says_nothing():
+    assert app.desk_background([str(line) for line in PERMISSION.splitlines()]) is None
+
+
 def test_desk_command_starts_or_resumes_with_the_chosen_settings():
     fresh = app.desk_command("s1", "claude", "opus", {"mode": "default", "effort": "high"}, fresh=True)
     assert fresh == ["claude", "--session-id", "s1", "--permission-mode", "manual", "--model", "opus", "--effort", "high"]

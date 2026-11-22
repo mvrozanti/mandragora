@@ -105,6 +105,9 @@ SCREEN_MODES = (("auto mode on", "auto"), ("manual mode on", "default"), ("accep
 SCREEN_PICKER = "Select model"
 SCREEN_TAIL_BYTES = 262144
 SCREEN_MISSES = 2
+SCREEN_PIECES = re.compile(r" · |, |\s{2,}")
+SCREEN_BACKGROUND = re.compile(r"^\d+ [a-z][a-z ]*[a-z]$")
+BACKGROUND_SECONDS = 3
 DESK_COMMANDS = {"claude": "claude", "deepseek": "deepseek"}
 DESK_MODES = {"default": "manual"}
 DESK_READY_SECONDS = 45
@@ -589,6 +592,7 @@ class Bridge:
         self.fresh: dict[str, dict] = {}
         self.asks: dict[str, Ask] = {}
         self.screens: dict[str, dict] = {}
+        self.background: dict[str, list[str]] = {}
         self.misses: dict[str, int] = {}
         self.choices: dict[str, dict] = read_choices()
         self.projects_cache: tuple[float, list[dict]] = (0.0, [])
@@ -656,7 +660,13 @@ class Bridge:
             "time": {"created": to_ms(info.created_at) or to_ms(info.last_modified), "updated": to_ms(info.last_modified)},
         }
         if live:
-            session["live"] = {"name": live.get("name"), "status": live.get("status"), "waiting": live.get("waiting"), "tmux": live.get("tmux")}
+            session["live"] = {
+                "name": live.get("name"),
+                "status": live.get("status"),
+                "waiting": live.get("waiting"),
+                "tmux": live.get("tmux"),
+                "background": self.background.get(info.session_id, []),
+            }
         if model is not None:
             session["providerID"], session["modelID"] = model
         return session
@@ -1169,6 +1179,20 @@ class Bridge:
             self.screens[sid] = payload
             self.bus.emit("screen.asked", payload)
         return payload
+
+    async def sync_background(self, live: dict[str, dict]) -> None:
+        seen = await asyncio.to_thread(desk_backgrounds, live)
+        for sid in [s for s in self.background if s not in live]:
+            self.background.pop(sid)
+            self.bus.emit("session.background", {"sessionID": sid, "tasks": []})
+        for sid, tasks in seen.items():
+            if tasks is None or tasks == self.background.get(sid, []):
+                continue
+            if tasks:
+                self.background[sid] = tasks
+            else:
+                self.background.pop(sid, None)
+            self.bus.emit("session.background", {"sessionID": sid, "tasks": tasks})
 
     async def ask_permission(self, sid: str, tool: str, data: dict, context):
         run = self.runs.get(sid)
@@ -1715,12 +1739,20 @@ def parent_of(pid: int) -> int:
         return 0
 
 
-def pane_of(pid: int) -> str | None:
+def tmux_panes() -> dict[int, str]:
     panes: dict[int, str] = {}
     for line in tmux("list-panes", "-a", "-F", "#{pane_id} #{pane_pid}").splitlines():
         pane, _, owner = line.partition(" ")
         if owner.isdigit():
             panes[int(owner)] = pane
+    return panes
+
+
+def pane_of(pid: int) -> str | None:
+    return pane_among(tmux_panes(), pid)
+
+
+def pane_among(panes: dict[int, str], pid: int) -> str | None:
     for _ in range(32):
         if pid in panes:
             return panes[pid]
@@ -1863,6 +1895,28 @@ def desk_mode(lines: list[str]) -> str | None:
             if words in line:
                 return mode
     return None
+
+
+def desk_background(lines: list[str]) -> list[str] | None:
+    for line in reversed(lines[-8:]):
+        if any(words in line for words, _ in SCREEN_MODES):
+            return [piece for piece in SCREEN_PIECES.split(line.strip()) if SCREEN_BACKGROUND.match(piece)]
+    return None
+
+
+def desk_backgrounds(live: dict[str, dict]) -> dict[str, list[str] | None]:
+    try:
+        panes = tmux_panes()
+    except (RuntimeError, OSError, subprocess.SubprocessError):
+        return {}
+    found: dict[str, list[str] | None] = {}
+    for sid, info in live.items():
+        try:
+            pane = pane_among(panes, int(info["pid"]))
+            found[sid] = desk_background(pane_lines(pane)) if pane else []
+        except (RuntimeError, OSError, subprocess.SubprocessError, ValueError):
+            found[sid] = None
+    return found
 
 
 def desk_view(lines: list[str]) -> dict:
@@ -2194,6 +2248,7 @@ async def watch_outside(bridge) -> None:
     seen: dict[str, tuple[float, int]] = {}
     statuses: dict[str, str] = {}
     scanned = 0.0
+    looked = 0.0
     while True:
         try:
             now = time.time()
@@ -2201,6 +2256,9 @@ async def watch_outside(bridge) -> None:
                 paths = await asyncio.to_thread(hot_transcripts, now)
                 scanned = now
             live = bridge.live_sessions()
+            if now - looked > BACKGROUND_SECONDS:
+                await bridge.sync_background(live)
+                looked = now
             for sid, info in live.items():
                 state = live_status(info)
                 mark = f"{state['type']}:{state.get('message') or ''}"

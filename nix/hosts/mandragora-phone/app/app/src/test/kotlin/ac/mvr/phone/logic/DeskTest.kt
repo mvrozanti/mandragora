@@ -78,6 +78,27 @@ class DeskTest {
     }
 
     @Test
+    fun backgroundTasksReadAsOneLineOnlyWhenSomethingRuns() {
+        val open = CodeSession(id = "s", live = LiveInfo(status = "idle", background = listOf("2 shells", "1 monitor")))
+        assertEquals("2 shells, 1 monitor", inBackground(open))
+        assertNull(inBackground(open.copy(live = LiveInfo(background = listOf(" ")))))
+        assertNull(inBackground(open.copy(live = LiveInfo())))
+        assertNull(inBackground(CodeSession(id = "s")))
+        assertNull(inBackground(null))
+    }
+
+    @Test
+    fun backgroundTasksLandOnlyOnOpenSessions() {
+        val open = CodeSession(id = "s", live = LiveInfo(status = "busy")).also { it.backend = "claude" }
+        val moved = withBackground(open, listOf("1 shell"))
+        assertEquals(listOf("1 shell"), moved.live?.background)
+        assertEquals("busy", moved.live?.status)
+        assertEquals("claude", moved.backend)
+        val closed = CodeSession(id = "s")
+        assertEquals(closed, withBackground(closed, listOf("1 shell")))
+    }
+
+    @Test
     fun desktopMediaReadsAsTitleAndByline() {
         assertEquals("a video", youtube.label)
         assertEquals("YouTube on the desktop", youtube.byline)
