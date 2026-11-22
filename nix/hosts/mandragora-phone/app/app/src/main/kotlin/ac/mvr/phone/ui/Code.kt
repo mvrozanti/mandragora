@@ -48,7 +48,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.foundation.layout.widthIn
@@ -135,6 +137,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.animation.core.StartOffset
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -440,28 +449,82 @@ private fun TuneSheet(
 }
 
 @Composable
-private fun SessionBar(current: CodeSession?, chip: String, maker: Maker?, onRename: (String) -> Unit, onPick: () -> Unit, onModel: () -> Unit) {
+private fun SessionHeader(
+    current: CodeSession?,
+    chip: String,
+    maker: Maker?,
+    reachable: Boolean,
+    onCollapse: () -> Unit,
+    onRename: (String) -> Unit,
+    onPick: () -> Unit,
+    onModel: () -> Unit,
+) {
     val scheme = MaterialTheme.colorScheme
     var editing by remember(current?.id) { mutableStateOf(false) }
     if (editing && current != null) {
         TitleEditor(current.title, onSave = { editing = false; onRename(it) }, onCancel = { editing = false })
         return
     }
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = onCollapse) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "home", tint = scheme.onSurface) }
+        Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                current?.title?.ifBlank { null } ?: if (current == null) "new session" else "untitled",
+                style = MaterialTheme.typography.titleMedium,
+                color = scheme.onSurface,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { if (current != null) editing = true else onPick() }.padding(horizontal = 8.dp),
+            )
+            Row(
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onModel).padding(horizontal = 8.dp, vertical = 1.dp),
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (maker != null) MakerMark(maker, size = 13.dp)
+                Text(chip, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) { Reachability(reachable) }
+    }
+}
+
+@Composable
+private fun Chevron(open: Boolean, tint: Color) {
+    Icon(Icons.Filled.ChevronRight, null, tint = tint.copy(alpha = 0.7f), modifier = Modifier.size(18.dp).rotate(if (open) 90f else 0f))
+}
+
+@Composable
+private fun WorkingLine(tint: Color) {
+    val pulse = rememberInfiniteTransition(label = "working")
+    Row(modifier = Modifier.padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            repeat(3) { index ->
+                val alpha by pulse.animateFloat(
+                    initialValue = 0.2f,
+                    targetValue = 1f,
+                    animationSpec = infiniteRepeatable(tween(600), RepeatMode.Reverse, StartOffset(index * 200)),
+                    label = "dot$index",
+                )
+                Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(tint.copy(alpha = alpha)))
+            }
+        }
+        Text("working…", style = ReplyBody, color = tint)
+    }
+}
+
+@Composable
+private fun RoundButton(icon: ImageVector, label: String, tint: Color, enabled: Boolean = true, onClick: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    Box(
+        modifier = Modifier
+            .padding(vertical = 6.dp)
+            .size(44.dp)
+            .clip(CircleShape)
+            .background(scheme.onSurface.copy(alpha = if (enabled) 0.09f else 0.04f))
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center,
     ) {
-        Text(
-            current?.title?.ifBlank { null } ?: if (current == null) "new session" else "untitled",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier
-                .weight(1f)
-                .clip(RoundedCornerShape(10.dp))
-                .clickable { if (current != null) editing = true else onPick() }
-                .padding(horizontal = 6.dp, vertical = 4.dp),
-        )
-        Chip(chip, scheme.surfaceContainerHigh, scheme.onSurface, lead = maker?.let { { MakerMark(it, size = 16.dp) } }) { onModel() }
+        Icon(icon, label, tint = if (enabled) tint else tint.copy(alpha = 0.4f), modifier = Modifier.size(22.dp))
     }
 }
 
@@ -504,17 +567,24 @@ private fun ToolLine(part: CodePart) {
     val title = state?.title ?: input?.str("command") ?: input?.str("filePath") ?: input?.str("pattern") ?: input?.str("description") ?: ""
     val tint = when (status) {
         "error" -> scheme.error
-        "completed" -> scheme.outline
+        "completed" -> scheme.onSurfaceVariant
         else -> scheme.primary
     }
     Column(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { open = !open }.padding(horizontal = 4.dp, vertical = 2.dp),
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { open = !open }.padding(horizontal = 2.dp, vertical = 3.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(if (status == "completed" || status == "error") "▪" else "▸", style = MaterialTheme.typography.labelLarge, color = tint)
-            Text(part.tool ?: "tool", style = MaterialTheme.typography.labelLarge, color = tint)
-            Text(title, style = MaterialTheme.typography.labelMedium, color = scheme.outline, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(part.tool ?: "tool", style = Trail, fontWeight = FontWeight.Medium, color = tint)
+            Text(
+                title,
+                style = Trail,
+                color = scheme.onSurfaceVariant.copy(alpha = 0.75f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
+            )
+            Chevron(open, tint)
         }
         if (open) {
             val body = state?.error ?: state?.output ?: input?.toString() ?: ""
@@ -529,9 +599,15 @@ private fun ReasoningLine(part: CodePart) {
     var open by remember(part.id) { mutableStateOf(false) }
     val text = part.text ?: return
     if (text.isBlank()) return
-    Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { open = !open }.padding(horizontal = 4.dp, vertical = 2.dp)) {
-        Label(if (open) "thinking" else "thinking · ${text.lines().size} lines", color = scheme.outline)
-        if (open) Text(text, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurface.copy(alpha = 0.6f))
+    Column(
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { open = !open }.padding(horizontal = 2.dp, vertical = 3.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(if (open) "thinking" else "thinking · ${text.lines().size} lines", style = Trail, color = scheme.onSurfaceVariant)
+            Chevron(open, scheme.onSurfaceVariant)
+        }
+        if (open) Text(text, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurface.copy(alpha = 0.7f))
     }
 }
 
@@ -593,24 +669,24 @@ private fun CallsView(calls: ShownCalls) {
     val tint = when {
         live != null -> scheme.primary
         failed > 0 -> scheme.error
-        else -> scheme.outline
+        else -> scheme.onSurfaceVariant
     }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { open = !open }.padding(horizontal = 4.dp, vertical = 2.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { open = !open }.padding(horizontal = 2.dp, vertical = 3.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(if (open) "▾" else if (live != null) "▸" else "▪", style = MaterialTheme.typography.labelLarge, color = tint)
-            Text("${tools.size} calls", style = MaterialTheme.typography.labelLarge, color = tint)
+            Text("${tools.size} calls", style = Trail, fontWeight = FontWeight.Medium, color = tint)
             Text(
                 listOfNotNull(names, "$failed failed".takeIf { failed > 0 }).joinToString(" · "),
-                style = MaterialTheme.typography.labelMedium,
-                color = scheme.outline,
+                style = Trail,
+                color = scheme.onSurfaceVariant.copy(alpha = 0.75f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f, fill = false),
             )
+            Chevron(open, tint)
         }
         if (open) {
             Column(modifier = Modifier.padding(start = 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -678,7 +754,7 @@ private fun EntryView(
 
 @Composable
 private fun UserBubble(text: String, faded: Boolean, actions: List<Pair<String, () -> Unit>> = emptyList()) {
-    Column(modifier = Modifier.fillMaxWidth().alpha(if (faded) 0.6f else 1f), horizontalAlignment = Alignment.End) {
+    Column(modifier = Modifier.fillMaxWidth().padding(start = 40.dp).alpha(if (faded) 0.6f else 1f), horizontalAlignment = Alignment.End) {
         if (actions.isEmpty()) BubbleBody(text) else Held(actions) { BubbleBody(text) }
     }
 }
@@ -713,8 +789,8 @@ private fun BubbleBody(text: String) {
             }
         }
         if (words.isNotEmpty()) {
-            Box(modifier = Modifier.clip(RoundedCornerShape(18.dp)).background(scheme.surfaceContainerHigh).padding(horizontal = 14.dp, vertical = 10.dp)) {
-                Text(words, style = MaterialTheme.typography.bodyLarge, color = scheme.onSurface)
+            Box(modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(scheme.surfaceContainerHigh).padding(horizontal = 16.dp, vertical = 10.dp)) {
+                Text(words, style = ReplyBody, color = scheme.onSurface)
             }
         }
     }
@@ -939,17 +1015,18 @@ private fun Composer(
         }
     }
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 6.dp, top = 6.dp, bottom = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 10.dp, end = 10.dp, top = 6.dp, bottom = 10.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(scheme.surfaceContainerHigh)
+            .padding(horizontal = 6.dp),
         verticalAlignment = Alignment.Bottom,
     ) {
         if (recording) {
-            IconButton(onClick = { voice.cancel(); recording = false }) {
-                Icon(Icons.Filled.Close, "drop the recording", tint = scheme.error)
-            }
+            RoundButton(Icons.Filled.Close, "drop the recording", scheme.error) { voice.cancel(); recording = false }
         } else Box {
-            IconButton(onClick = { choosing = true }, enabled = enabled && !uploading && !hearing) {
-                Icon(Icons.Filled.AttachFile, "attach", tint = scheme.onSurfaceVariant)
-            }
+            RoundButton(Icons.Filled.Add, "attach", scheme.onSurface, enabled = enabled && !uploading && !hearing) { choosing = true }
             DropdownMenu(expanded = choosing, onDismissRequest = { choosing = false }) {
                 DropdownMenuItem(
                     text = { Text("a picture") },
@@ -963,7 +1040,7 @@ private fun Composer(
                 )
             }
         }
-        OutlinedTextField(
+        TextField(
             value = field,
             onValueChange = onChange,
             modifier = Modifier.weight(1f).focusRequester(focus),
@@ -979,33 +1056,31 @@ private fun Composer(
                 )
             },
             maxLines = 6,
-            shape = RoundedCornerShape(18.dp),
-            textStyle = MaterialTheme.typography.bodyMedium,
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = scheme.primary, unfocusedBorderColor = scheme.outlineVariant),
+            textStyle = MaterialTheme.typography.bodyLarge,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+            ),
         )
         when {
-            recording -> IconButton(onClick = { recording = false; onSpoken(voice.finish()) }) {
-                Icon(Icons.Filled.Check, "send what was said", tint = scheme.primary)
-            }
-            hearing -> Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+            recording -> RoundButton(Icons.Filled.Check, "send what was said", scheme.primary) { recording = false; onSpoken(voice.finish()) }
+            hearing -> Box(modifier = Modifier.padding(vertical = 6.dp).size(44.dp), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
             }
-            speakable -> IconButton(
-                onClick = {
-                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) listen()
-                    else askMic.launch(Manifest.permission.RECORD_AUDIO)
-                },
-                enabled = enabled,
-            ) {
-                Icon(Icons.Filled.Mic, "speak a prompt", tint = scheme.primary)
+            speakable -> RoundButton(Icons.Filled.Mic, "speak a prompt", scheme.onSurface, enabled = enabled) {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) listen()
+                else askMic.launch(Manifest.permission.RECORD_AUDIO)
             }
-            else -> IconButton(onClick = { if (stopping) onStop() else onSend() }, enabled = enabled && !uploading && (stopping || draft.isNotBlank() || attachments.isNotEmpty())) {
-                Icon(
-                    if (stopping) Icons.Filled.Stop else Icons.AutoMirrored.Filled.Send,
-                    if (stopping) "stop" else "send",
-                    tint = if (stopping) scheme.error else scheme.primary,
-                )
-            }
+            else -> RoundButton(
+                if (stopping) Icons.Filled.Stop else Icons.AutoMirrored.Filled.Send,
+                if (stopping) "stop" else "send",
+                if (stopping) scheme.error else scheme.primary,
+                enabled = enabled && !uploading && (stopping || draft.isNotBlank() || attachments.isNotEmpty()),
+            ) { if (stopping) onStop() else onSend() }
         }
     }
 }
@@ -1124,22 +1199,24 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         if (follow && (transcript.firstVisibleItemIndex != 0 || transcript.firstVisibleItemScrollOffset != 0)) transcript.scrollToItem(0)
     }
     Column(modifier = Modifier.fillMaxSize()) {
-        ScreenHeader("code", reachable, onCollapse)
-        Banner(reachable)
         val tunable = backend == "claude"
-        SessionBar(current, chipText(model, settings, tunable), model?.maker(), onRename = { code.rename(it) }, onPick = { picking = true }, onModel = { tuning = true })
+        SessionHeader(
+            current, chipText(model, settings, tunable), model?.maker(), reachable, onCollapse,
+            onRename = { code.rename(it) }, onPick = { picking = true }, onModel = { tuning = true },
+        )
+        Banner(reachable)
         LazyColumn(
             state = transcript,
             modifier = Modifier.weight(1f).fillMaxWidth(),
             reverseLayout = true,
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(screens, key = { "x" + it.id }) { ask -> ScreenCard(ask) { key, text -> code.press(ask, key, text) } }
             items(questions, key = { "q" + it.id }) { ask -> QuestionCard(ask, onAnswer = { code.answer(ask, it) }, onReject = { code.rejectQuestion(ask) }) }
             items(asks, key = { "p" + it.id }) { ask -> PermissionCard(ask) { code.allow(ask, it) } }
             items(pendingHere.asReversed(), key = { "s" + it.id }) { PendingBubble(it.text, busy) }
-            if (busy) item(key = "busy") { Label("working…", color = scheme.primary) }
+            if (busy) item(key = "busy") { WorkingLine(brandOf(model?.maker()) ?: scheme.primary) }
             val onResend: (String) -> Unit = { follow = true; code.resend(it) }
             if (shown != null) {
                 items(shown.asReversed(), key = { it.key }) { item ->

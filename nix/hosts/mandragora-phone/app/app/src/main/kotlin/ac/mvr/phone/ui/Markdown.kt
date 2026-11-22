@@ -220,7 +220,7 @@ private fun MarkdownBlocks(blocks: List<MdBlock>, scheme: ColorScheme, depth: In
             is MdPara -> Text(remember(block, scheme) { Markdown.inline(block.text, scheme) }, style = ReplyBody, color = scheme.onSurface)
             is MdHeading -> Text(
                 remember(block, scheme) { Markdown.inline(block.text, scheme) },
-                style = ReplyBody.copy(fontSize = if (block.level <= 2) 18.sp else 16.5.sp, lineHeight = 25.sp),
+                style = ReplyBody.copy(fontSize = if (block.level <= 2) 20.sp else 18.sp, lineHeight = 27.sp),
                 fontWeight = FontWeight.SemiBold,
                 color = scheme.onSurface,
             )
@@ -233,7 +233,7 @@ private fun MarkdownBlocks(blocks: List<MdBlock>, scheme: ColorScheme, depth: In
             is MdFence -> Box(
                 modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(scheme.surfaceContainerLow).horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 8.dp),
             ) {
-                Text(block.body, style = TextStyle(fontFamily = Mono, fontSize = 12.sp), color = scheme.primary, softWrap = false)
+                Text(block.body, style = TextStyle(fontFamily = Mono, fontSize = 13.sp, lineHeight = 19.sp), color = scheme.primary, softWrap = false)
             }
             is MdTable -> MarkdownTable(block, scheme)
         }
@@ -264,7 +264,7 @@ private fun MarkdownList(list: MdList, scheme: ColorScheme, depth: Int) {
 private fun MarkdownTable(table: MdTable, scheme: ColorScheme) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
-    val cellStyle = ReplyBody.copy(fontSize = 14.sp, lineHeight = 19.sp)
+    val cellStyle = ReplyBody.copy(fontSize = 15.sp, lineHeight = 21.sp)
     val headStyle = cellStyle.copy(fontWeight = FontWeight.Medium, fontSize = 12.sp)
     val columns = table.head.size
     val rows = remember(table) { table.rows.map { r -> List(columns) { c -> r.getOrElse(c) { "" } } } }

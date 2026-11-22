@@ -24,6 +24,8 @@ private val MARKS = mapOf(
     Maker.OPENCODE to Mark(R.drawable.mark_opencode, null),
 )
 
+fun brandOf(maker: Maker?): Color? = maker?.let { MARKS[it]?.brand }
+
 @Composable
 fun MakerMark(maker: Maker?, size: Dp = 18.dp, tint: Color? = null) {
     val mark = maker?.let { MARKS[it] }
