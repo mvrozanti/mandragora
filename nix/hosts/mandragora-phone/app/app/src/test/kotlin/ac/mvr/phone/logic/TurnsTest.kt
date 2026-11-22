@@ -116,4 +116,36 @@ class TurnsTest {
         assertTrue(stops.resend.isEmpty())
         assertTrue(stops.chips.isEmpty())
     }
+
+    @Test
+    fun replyPinsTheMessageWaitingToBeDelivered() {
+        assertEquals(Pin("s7", 2), replyPin(2, "s7", busy = true, listOf(user("u1", "hi")), null))
+    }
+
+    @Test
+    fun replyPinsTheNewestVisibleUserMessage() {
+        val entries = listOf(
+            user("u1", "first"),
+            assistant("a1", words("ok")),
+            user("u2", "second"),
+            assistant("a2", words("working")),
+            CodeEntry(CodeMessage(id = "u3", role = "user"), listOf(part("text", "tool result", synthetic = true))),
+            assistant("a3", words("more")),
+        )
+        assertEquals(Pin("u2", 1 + 1 + 3), replyPin(1, null, busy = true, entries, null))
+        assertEquals(Pin("u2", 1 + 3), replyPin(1, null, busy = false, entries, null))
+    }
+
+    @Test
+    fun replyPinsTheUserRowWhenCallsAreFolded() {
+        val entries = listOf(user("u1", "do it"), assistant("a1", tool(), tool("Edit")), assistant("a2", words("done")))
+        val shown = squashCalls(entries)
+        assertEquals(Pin("u1", 2), replyPin(0, null, busy = false, entries, shown))
+    }
+
+    @Test
+    fun replyPinsNothingWithoutAUserMessage() {
+        assertEquals(null, replyPin(0, null, busy = false, listOf(assistant("a1", words("hello"))), null))
+        assertEquals(null, replyPin(0, null, busy = false, emptyList(), emptyList()))
+    }
 }

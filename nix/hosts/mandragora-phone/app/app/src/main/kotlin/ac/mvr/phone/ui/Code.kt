@@ -9,6 +9,7 @@ import ac.mvr.phone.logic.ShownEntry
 import ac.mvr.phone.logic.Stops
 import ac.mvr.phone.logic.active
 import ac.mvr.phone.logic.said
+import ac.mvr.phone.logic.replyPin
 import ac.mvr.phone.logic.squashCalls
 import ac.mvr.phone.logic.stoppedTurns
 import androidx.activity.compose.BackHandler
@@ -41,6 +42,10 @@ import kotlin.math.roundToInt
 
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.foundation.interaction.DragInteraction
+import kotlinx.coroutines.flow.first
 import androidx.compose.material.icons.filled.Image
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -1190,13 +1195,39 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     val files = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> code.attach(uris) }
     val transcript = rememberLazyListState()
     var follow by remember(current?.id) { mutableStateOf(true) }
-    LaunchedEffect(transcript) {
-        snapshotFlow { Triple(transcript.isScrollInProgress, transcript.firstVisibleItemIndex, transcript.firstVisibleItemScrollOffset) }
-            .collect { (scrolling, index, offset) -> if (scrolling) follow = index == 0 && offset < 120 }
+    var pin by remember { mutableStateOf(false) }
+    var pinSession by remember { mutableStateOf(current?.id) }
+    LaunchedEffect(current?.id) {
+        if (pinSession != null) pin = false
+        pinSession = current?.id
     }
-    val newest = listOf(entries.size, pendingHere.size, questions.size, asks.size, if (busy) 1 else 0, entries.lastOrNull()?.parts?.size ?: 0, screens.firstOrNull()?.id.hashCode(), stops.chips.keys.hashCode())
-    LaunchedEffect(current?.id, newest) {
-        if (follow && (transcript.firstVisibleItemIndex != 0 || transcript.firstVisibleItemScrollOffset != 0)) transcript.scrollToItem(0)
+    val anchor = replyPin(screens.size + questions.size + asks.size, pendingHere.lastOrNull()?.let { "s" + it.id }, busy, entries, shown)
+    val anchorNow by rememberUpdatedState(anchor)
+    LaunchedEffect(transcript, current?.id) {
+        transcript.interactionSource.interactions.collectLatest { interaction ->
+            when (interaction) {
+                is DragInteraction.Start -> follow = false
+                is DragInteraction.Stop, is DragInteraction.Cancel -> {
+                    withFrameNanos { }
+                    snapshotFlow { transcript.isScrollInProgress }.first { !it }
+                    if (transcript.firstVisibleItemIndex == 0 && transcript.firstVisibleItemScrollOffset < 120) {
+                        follow = true
+                        if (anchorNow?.let { transcript.showsWhole(it.key) } != true) pin = false
+                    }
+                }
+            }
+        }
+    }
+    val streamed = entries.lastOrNull()?.parts?.sumOf { it.text?.length ?: 0 } ?: 0
+    val newest = listOf(
+        entries.size, pendingHere.size, questions.size, asks.size, if (busy) 1 else 0, entries.lastOrNull()?.parts?.size ?: 0,
+        screens.firstOrNull()?.id.hashCode(), stops.chips.keys.hashCode(), streamed,
+    )
+    LaunchedEffect(current?.id, newest, anchor?.key) {
+        if (!follow) return@LaunchedEffect
+        val target = anchor
+        if (pin && target != null) transcript.pinTop(target)
+        else if (transcript.firstVisibleItemIndex != 0 || transcript.firstVisibleItemScrollOffset != 0) transcript.scrollToItem(0)
     }
     Column(modifier = Modifier.fillMaxSize()) {
         val tunable = backend == "claude"
@@ -1217,7 +1248,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
             items(asks, key = { "p" + it.id }) { ask -> PermissionCard(ask) { code.allow(ask, it) } }
             items(pendingHere.asReversed(), key = { "s" + it.id }) { PendingBubble(it.text, busy) }
             if (busy) item(key = "busy") { WorkingLine(brandOf(model?.maker()) ?: scheme.primary) }
-            val onResend: (String) -> Unit = { follow = true; code.resend(it) }
+            val onResend: (String) -> Unit = { follow = true; pin = true; code.resend(it) }
             if (shown != null) {
                 items(shown.asReversed(), key = { it.key }) { item ->
                     when (item) {
@@ -1240,7 +1271,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         Composer(
             field, focus, busy, reachable, attachments, uploading,
             onChange = { field = it; code.draft.value = it.text },
-            onSend = { follow = true; code.send(field.text) },
+            onSend = { follow = true; pin = true; code.send(field.text) },
             onStop = { code.stop() },
             onPicture = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             onFile = { files.launch(arrayOf("*/*")) },
@@ -1256,6 +1287,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
                             val text = store.bridge.transcribe(audio).text
                             if (text.isBlank()) throw IllegalStateException("heard nothing")
                             follow = true
+                            pin = true
                             code.send(text)
                         } finally {
                             hearing = false

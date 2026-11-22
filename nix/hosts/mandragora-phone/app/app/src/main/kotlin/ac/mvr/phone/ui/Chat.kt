@@ -1,5 +1,6 @@
 package ac.mvr.phone.ui
 
+import ac.mvr.phone.logic.Pin
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -106,4 +108,19 @@ fun FollowBottom(list: LazyListState, count: Int) {
     LaunchedEffect(count) {
         if (count > 0) list.animateScrollToItem(count - 1)
     }
+}
+
+private val LazyListState.roof: Int get() = layoutInfo.viewportEndOffset - layoutInfo.afterContentPadding
+
+fun LazyListState.showsWhole(key: Any): Boolean {
+    val item = layoutInfo.visibleItemsInfo.firstOrNull { it.key == key } ?: return false
+    return item.offset + item.size <= roof
+}
+
+suspend fun LazyListState.pinTop(pin: Pin) {
+    scrollToItem(0)
+    if (showsWhole(pin.key)) return
+    scrollToItem(pin.index)
+    val item = layoutInfo.visibleItemsInfo.firstOrNull { it.key == pin.key } ?: return
+    scrollBy((item.offset + item.size - roof).toFloat())
 }

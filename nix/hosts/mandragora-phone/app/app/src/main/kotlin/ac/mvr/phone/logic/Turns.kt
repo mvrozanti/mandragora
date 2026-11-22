@@ -85,3 +85,12 @@ fun squashCalls(entries: List<CodeEntry>): List<Shown> {
     flush()
     return out
 }
+
+data class Pin(val key: Any, val index: Int)
+
+fun replyPin(lead: Int, pendingKey: String?, busy: Boolean, entries: List<CodeEntry>, shown: List<Shown>?): Pin? {
+    if (pendingKey != null) return Pin(pendingKey, lead)
+    val rows = shown?.asReversed()?.map { (it as? ShownEntry)?.entry to it.key } ?: entries.asReversed().map { it to it.info.id }
+    val at = rows.indexOfFirst { (entry, _) -> entry != null && entry.info.role == "user" && said(entry).isNotBlank() }
+    return if (at < 0) null else Pin(rows[at].second, lead + (if (busy) 1 else 0) + at)
+}
