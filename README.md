@@ -34,7 +34,7 @@ carries a WSL profile, a macOS work laptop, a bootable rescue USB, an Oracle VPS
 | `mandragora-usb` | Bootable installer / rescue image — `nix build .#usbImage`, test-driven via `nix run .#refiner -- --auto` |
 | `mandragora-vps` | Oracle Cloud aarch64 VPS — **not NixOS**; home-manager + Docker Compose stacks behind a Caddy proxy ([`nix/hosts/mandragora-vps/INVENTORY.md`](nix/hosts/mandragora-vps/INVENTORY.md)) |
 | `mandragora-kindle` | Jailbroken Kindle Paperwhite (armhf) — Tailnet node + KOReader dashboard, **not NixOS** ([`nix/hosts/mandragora-kindle/README.md`](nix/hosts/mandragora-kindle/README.md)) |
-| `mandragora-phone` | Android phone — Tailnet node, syncthing peer, native remote/player app, **not NixOS** ([`nix/hosts/mandragora-phone/README.md`](nix/hosts/mandragora-phone/README.md)) |
+| `mandragora-phone` | Android phone — Tailnet node, native remote/player app that also keeps the music library, **not NixOS** ([`nix/hosts/mandragora-phone/README.md`](nix/hosts/mandragora-phone/README.md)) |
 
 ## Workflow
 

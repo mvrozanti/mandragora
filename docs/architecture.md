@@ -247,7 +247,7 @@ observability/maintenance (`monitoring.nix` — Prometheus + Grafana,
 The GUI session and peripherals. Session (`hyprland.nix`, `sddm.nix`,
 `input-method.nix`), input/LED/RGB hardware (`keyd.nix`, `keyledsd.nix`,
 `keystats.nix`, `openrgb.nix`, `rival-mouse.nix`, `ydotool.nix`), sync and
-bridges (`seafile.nix`, `syncthing.nix`, `kdeconnect.nix`,
+bridges (`seafile.nix`, `kdeconnect.nix`,
 `phone-archiver.nix`), gaming (`steam.nix`, `wine-gaming.nix`, `minecraft.nix`,
 `mt5.nix`), and Claude-Code desktop integrations
 (`cc-lens.nix`). One file per device/concern is

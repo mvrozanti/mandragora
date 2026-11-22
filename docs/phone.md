@@ -1,7 +1,7 @@
 # mandragora-phone
 
-An Android phone running as a Mandragora host: on the tailnet, a syncthing
-peer, a KDE Connect pair, and the home of a native app that is the phone's
+An Android phone running as a Mandragora host: on the tailnet, a KDE Connect
+pair, and the home of a native app that is the phone's
 window into the desktop. It is not NixOS and never will be; the repo declares
 what the phone is and ships what the desktop must serve for it, and the phone
 side is a small set of apps installed once.
@@ -26,12 +26,12 @@ the idea list is in [`BACKLOG.md`](../nix/hosts/mandragora-phone/BACKLOG.md).
 ```
 mandragora-desktop                                        phone
 ──────────────────                                        ─────
-nix/hosts/mandragora-phone/identity.json ─▶ syncthing.nix
+nix/hosts/mandragora-phone/identity.json ─▶ phone-bridge /api/config
 nix/snippets/tailnet.json                ─▶ networking.hosts "phone"
 phone-bridge :6688 ◀── config · volume · lease · lyrics ── app
 mpd :6600          ◀── mpd protocol over the tailnet ───── app
 gpu-status :6684   ◀── /api/theme?colors=1 ─────────────── app (palette)
-~/Music  ──syncthing send-only──────────────────────────▶  Music folder
+~/Music  ──/api/music/index + /api/file, pulled by the app─▶ Music folder
 ~/Pictures/PhoneInbox/* ◀──phone-media archive, via the app── DCIM, WhatsApp, …
 nix/hosts/mandragora-phone/app/ ──phone-push (adb over the tailnet)──▶ the app
 ```
@@ -40,7 +40,7 @@ Three surfaces, three owners:
 
 | where | what | in the repo |
 |---|---|---|
-| **device** | Tailscale, Sync-Fork, KDE Connect, the app | `nix/hosts/mandragora-phone/` (README, identity, app) |
+| **device** | Tailscale, KDE Connect, the app | `nix/hosts/mandragora-phone/` (README, identity, app) |
 | **desktop** | `phone-bridge`, mpd on the tailnet, `phone-push`, the media drain (`phone-media archive` into the inbox, `phone-archiver` out of it) | `nix/modules/services/phone-bridge.nix`, `nix/modules/core/security.nix`, `nix/modules/desktop/phone-archiver.nix`, `.local/bin/` |
 | **VPS** | nothing yet; the F-Droid repo is on the backlog | — |
 

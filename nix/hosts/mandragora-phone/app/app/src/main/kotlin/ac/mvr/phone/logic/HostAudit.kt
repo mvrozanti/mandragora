@@ -13,48 +13,27 @@ data class PhoneFacts(
     val allFiles: Boolean,
     val notifications: Boolean,
     val installs: Boolean,
-    val vpnUp: Boolean,
-    val alwaysOnReadable: Boolean,
-    val alwaysOnVpn: String?,
 )
 
 private fun check(id: String, label: String, ok: Boolean?, problem: String, fix: String?): HostCheck =
     HostCheck(id, label, ok, if (ok == false) problem else "", fix)
 
-private fun appChecks(app: ExpectedApp, facts: PhoneFacts): List<HostCheck> {
+private fun batteryCheck(app: ExpectedApp, facts: PhoneFacts): HostCheck {
     val pkg = app.`package`
     val present = pkg in facts.installed
-    val installed = check("app:$pkg", "${app.name} is installed", present, "${app.name} is not installed", null)
-    if (!app.unrestricted || !present) return listOf(installed)
-    val battery = check(
-        "battery:$pkg",
-        "${app.name} runs unrestricted",
-        pkg in facts.unrestricted,
-        "${app.name} is battery optimised; Android stops it while the phone sleeps",
-        "battery:$pkg",
-    )
-    return listOf(installed, battery)
-}
-
-private fun alwaysOnCheck(facts: PhoneFacts): HostCheck {
-    val label = "Tailscale is the always-on VPN"
-    if (!facts.alwaysOnReadable) return HostCheck("always-on", label, null, "Android does not let apps read this; VPN settings show it", "vpn-settings")
-    val current = facts.alwaysOnVpn.orEmpty()
-    val problem = if (current.isEmpty()) "no always-on VPN; Android may drop the tailnet" else "the always-on VPN is $current, not Tailscale"
-    return check("always-on", label, current == TAILSCALE_PACKAGE, problem, "vpn-settings")
+    val problem = if (present) "${app.name} is battery optimised; Android stops it while the phone sleeps" else "${app.name} is not installed"
+    return check("battery:$pkg", "${app.name} runs unrestricted", pkg in facts.unrestricted, problem, if (present) "battery:$pkg" else null)
 }
 
 fun hostChecks(expected: List<ExpectedApp>, facts: PhoneFacts): List<HostCheck> = buildList {
-    expected.forEach { addAll(appChecks(it, facts)) }
+    expected.filter { it.unrestricted }.forEach { add(batteryCheck(it, facts)) }
     if (facts.listening) {
         val listener = facts.self in facts.unrestricted
         add(check("battery:self", "the inbox listener runs unrestricted", listener, "this app is battery optimised; desktop alerts stop while the phone sleeps", "battery:self"))
         add(check("notifications", "this app may notify", facts.notifications, "notifications are off for this app; desktop alerts arrive silently", "notifications"))
     }
-    add(check("all-files", "the desktop reaches photos and videos", facts.allFiles, "all files access is off; the photo drain has stopped", "all-files"))
+    add(check("all-files", "the app reaches photos, videos and music", facts.allFiles, "all files access is off; the photo drain and the music copy have stopped", "all-files"))
     add(check("installs", "updates install in place", facts.installs, "this app may not install updates; the update line cannot finish", "installs"))
-    add(check("vpn", "the tailnet is up", facts.vpnUp, "no VPN is up; nothing reaches the desktop", "tailscale"))
-    add(alwaysOnCheck(facts))
 }
 
 fun failing(checks: List<HostCheck>): List<HostCheck> = checks.filter { it.ok == false }

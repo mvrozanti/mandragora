@@ -51,6 +51,8 @@ in
     kindleSyncWatch
   ];
 
+  systemd.tmpfiles.rules = [ "d /home/m/Documents/notes 0755 m users -" ];
+
   systemd.user.services.kindle-sync-watch = {
     description = "Watch the library and wallpapers, push changes to the kindle";
     wantedBy = [ "default.target" ];

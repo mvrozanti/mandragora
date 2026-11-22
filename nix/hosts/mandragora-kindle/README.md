@@ -357,7 +357,7 @@ swipe leaves.
 ## Notes
 
 `kindle-sync notes` mirrors the `.md` and `.txt` files of `~/Documents/notes`
-(the folder Syncthing shares with the phone) into `/mnt/us/documents/notes`,
+into `/mnt/us/documents/notes`,
 where KOReader's file browser opens them. One way: a note deleted on the
 desktop is deleted on the device, hidden directories never travel, and
 KOReader's `.sdr` sidecars are left alone. `kindle-sync-watch` runs it when

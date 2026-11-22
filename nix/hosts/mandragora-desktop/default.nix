@@ -52,7 +52,6 @@ in
     ../../modules/desktop/kindle-sync.nix
     ../../modules/desktop/rival-mouse.nix
     ../../modules/desktop/seafile.nix
-    ../../modules/desktop/syncthing.nix
     ../../modules/desktop/phone-archiver.nix
     ../../modules/desktop/steam.nix
     ../../modules/desktop/gamepad.nix

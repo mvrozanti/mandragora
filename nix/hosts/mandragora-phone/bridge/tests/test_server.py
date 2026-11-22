@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 import threading
 import time
@@ -210,6 +211,25 @@ def test_paths_never_leave_the_music_folder(tmp_path, monkeypatch):
             server.music_path(bad)
     assert server.safe_track("a/s.mp3") == song
     assert server.safe_track("../outside.mp3") is None
+
+
+def test_the_music_index_lists_what_the_phone_mirrors(bridge, tmp_path, monkeypatch):
+    for rel, data in (("b/two.flac", b"22"), ("a/one.mp3", b"1"), ("a/one.lrc", b"[00:01]x"), ("a/cover.jpg", b"j"), ("a/.one.mp3.part", b"p"), (".viz/stem.mp3", b"v"), (".lyrics/x.lrc", b"l")):
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_bytes(data)
+    os.utime(tmp_path / "a" / "one.mp3", (1700000000, 1700000000))
+    (tmp_path / "a" / "elsewhere.mp3").symlink_to(tmp_path / "b" / "two.flac")
+    monkeypatch.setattr(server, "MUSIC_DIR", tmp_path)
+    status, body = fetch(f"{bridge}/api/music/index")
+    assert status == 200
+    assert [row[:2] for row in body["files"]] == [["a/one.lrc", 8], ["a/one.mp3", 1], ["b/two.flac", 2]]
+    assert body["files"][1][2] == 1700000000
+    status, again = fetch(f"{bridge}/api/music/index?have={body['version']}")
+    assert again == {"version": body["version"], "unchanged": True}
+    (tmp_path / "b" / "two.flac").write_bytes(b"333")
+    status, changed = fetch(f"{bridge}/api/music/index?have={body['version']}")
+    assert changed["version"] != body["version"] and changed["files"][2][:2] == ["b/two.flac", 3]
+    assert server.music_path("a/one.lrc") == tmp_path / "a" / "one.lrc"
 
 
 def test_the_kill_list_never_offers_the_session_core():

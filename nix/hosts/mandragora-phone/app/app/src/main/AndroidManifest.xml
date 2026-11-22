@@ -209,6 +209,10 @@
             android:name=".media.PhoneMediaJob"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service
+            android:name=".media.MusicMirrorJob"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
         <receiver
             android:name=".state.InstallReceiver"
             android:exported="false" />

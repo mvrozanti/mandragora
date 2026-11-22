@@ -10,15 +10,6 @@ let
       exec ${pyEnv}/bin/python ${src} "$@"
     '';
   };
-  bootstrap = pkgs.writeShellApplication {
-    name = "phone-syncthing-bootstrap";
-    runtimeInputs = [
-      pkgs.android-tools
-      pkgs.curl
-      pkgs.jq
-    ];
-    text = builtins.readFile ../../../.local/bin/phone-syncthing-bootstrap.sh;
-  };
   push = pkgs.writeShellApplication {
     name = "phone-push";
     runtimeInputs = [
@@ -59,7 +50,6 @@ in
 {
   environment.systemPackages = [
     archiver
-    bootstrap
     push
     emu
     gate

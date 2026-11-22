@@ -7,11 +7,19 @@ bottom are the ones that decide which.
 
 ## Shipped
 
+- Sync-Fork and Syncthing retired (2026-11-22): the app keeps the desktop's
+  music in the phone's `Music/` by itself, from `/api/music/index` and
+  `/api/file`, on unmetered networks, deleting only what it placed. Notes
+  never ran on the phone (Obsidian was not installed and the share was never
+  accepted), so the phone side of Notes is dropped; `~/Documents/notes`
+  stays for the kindle. The desktop runs no Syncthing at all now. The
+  "this phone" list lost the rows that never told anything new: apps being
+  installed, the tailnet being up (the banner says it), and the always-on VPN
+  (Android never lets the app read it).
 - The phone audits itself (2026-11-22): `identity.json` declares the apps
   the phone must run and which must run unrestricted (Tailscale); the app
   checks those plus its own needs (battery exemption and notifications while
-  listening, *All files access*, installing updates, a VPN up, Tailscale as
-  the always-on VPN when Android lets it say) and shows a red "this phone"
+  listening, *All files access*, installing updates) and shows a red "this phone"
   line on home only while one fails, with a tap that opens the Android page
   fixing it. The result goes to `phone-bridge`; `mandragora-audit`'s
   `phone-host` check warns on every run and fails a commit that touches the
@@ -49,8 +57,7 @@ bottom are the ones that decide which.
   from the phone pauses the other. A first cut the same morning ran its own
   foreground service with a permanent "watching the desk" notification and a
   boot receiver; both are gone.
-- Host declaration: identity, tailnet entry, syncthing folders read from one
-  place.
+- Host declaration: identity and tailnet entry read from one place.
 - `phone-bridge` on the desktop: config, desktop sink volume, the playback
   lease, lyrics.
 - mpd reachable over the tailnet.

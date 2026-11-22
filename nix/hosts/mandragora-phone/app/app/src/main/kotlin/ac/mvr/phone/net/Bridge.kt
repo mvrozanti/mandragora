@@ -1,6 +1,7 @@
 package ac.mvr.phone.net
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
@@ -23,7 +24,10 @@ data class Ports(
 )
 
 @Serializable
-data class MusicInfo(val folderId: String = "mandragora-music", val dir: String = "")
+data class MusicInfo(val dir: String = "")
+
+@Serializable
+data class MusicIndex(val version: String = "", val unchanged: Boolean = false, val files: List<JsonArray> = emptyList())
 
 @Serializable
 data class HubGroup(val id: String, val label: String = id)
@@ -158,6 +162,9 @@ class BridgeClient(private val baseUrl: () -> String) {
     }
 
     fun fileUrl(file: String): String = "${baseUrl()}/api/file?file=" + java.net.URLEncoder.encode(file, "UTF-8").replace("+", "%20")
+
+    suspend fun musicIndex(have: String?): MusicIndex =
+        json.decodeFromString(Http.get("${baseUrl()}/api/music/index" + (have?.let { "?have=$it" } ?: ""), long = true))
 
     fun coverUrl(file: String): String = "${baseUrl()}/api/cover?file=" + java.net.URLEncoder.encode(file, "UTF-8").replace("+", "%20")
 

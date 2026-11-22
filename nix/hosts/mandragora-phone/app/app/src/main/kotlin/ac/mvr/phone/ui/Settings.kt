@@ -1,6 +1,7 @@
 package ac.mvr.phone.ui
 
 import android.text.format.DateUtils
+import android.text.format.Formatter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import ac.mvr.phone.state.MirrorStatus
 import ac.mvr.phone.state.Store
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
@@ -126,6 +128,7 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
                 }
             }
             PhotosSection(store)
+            MusicSection(store)
         }
         Notice(store, Modifier.padding(horizontal = 14.dp, vertical = 10.dp))
     }
@@ -156,6 +159,35 @@ private fun PhotosSection(store: Store) {
             Switch(checked = allowed, onCheckedChange = { context.startActivity(store.photos.accessSettings()) })
         }
         Label("it copies what it asks for, checks the copy, and only then deletes it here")
+    }
+}
+
+@Composable
+private fun MusicSection(store: Store) {
+    val scheme = MaterialTheme.colorScheme
+    val context = LocalContext.current
+    val allowed by store.photos.allowed.collectAsStateWithLifecycle()
+    val status by store.music.status.collectAsStateWithLifecycle()
+    val detail = musicDetail(allowed, status, Formatter.formatShortFileSize(context, status.leftBytes))
+    Column(
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(scheme.surfaceContainerLow).padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Label("music")
+        Text("the desktop's library, kept on this phone", style = MaterialTheme.typography.bodyLarge)
+        Label(detail)
+        Label("over Wi-Fi, about once an hour; a song the desktop deletes leaves the phone too, and nothing else in Music is touched")
+    }
+}
+
+private fun musicDetail(allowed: Boolean, status: MirrorStatus, left: String): String {
+    val checked = if (status.doneAtMs > 0) " · checked ${DateUtils.getRelativeTimeSpanString(status.doneAtMs)}" else ""
+    return when {
+        !allowed -> "off · it needs all files access, the switch above"
+        status.error != null -> "stopped · ${status.error}"
+        status.total == 0 -> if (status.running) "copying for the first time" else "waits for Wi-Fi"
+        status.have < status.total -> "${status.have} of ${status.total} files · $left to go" + if (status.running) " · copying" else ""
+        else -> "all ${status.total} files$checked"
     }
 }
 

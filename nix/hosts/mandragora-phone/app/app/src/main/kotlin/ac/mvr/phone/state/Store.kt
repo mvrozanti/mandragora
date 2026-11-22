@@ -12,6 +12,8 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.SystemClock
 import ac.mvr.phone.BuildConfig
+import ac.mvr.phone.media.MIRROR_BUDGET_MS
+import ac.mvr.phone.media.MusicMirrorJob
 import ac.mvr.phone.media.PhoneMediaJob
 import ac.mvr.phone.net.PhoneMediaApi
 import ac.mvr.phone.net.BridgeClient
@@ -114,6 +116,7 @@ class Store(private val app: Application) {
     val find = FindStore(this)
     val code = CodeStore(this)
     val photos = PhoneMediaStore(app, PhoneMediaApi { "http://$desktopIp:${port({ it.bridge }, BuildConfig.BRIDGE_PORT)}" })
+    val music = MusicMirrorStore(app, bridge) { photos.refreshAllowed() }
     val inbox = InboxStore(this)
     val voice = VoiceStore(this)
     val watch = WatchStore(this)
@@ -282,6 +285,7 @@ class Store(private val app: Application) {
         scope.launch { loopWhileForeground(30_000) { power.refresh() } }
         scope.launch { loopWhileForeground(5_000) { code.refresh() } }
         scope.launch { loopWhileForeground(10_000) { if (photos.refreshAllowed()) PhoneMediaJob.schedule(app).also { photos.sync() } } }
+        scope.launch { loopWhileForeground(15 * 60_000) { syncMusic() } }
         scope.launch { foreground.collectLatest { fg -> if (fg) code.watchList() } }
         scope.launch { loopMedia() }
         scope.launch { inbox.listen() }
@@ -326,6 +330,12 @@ class Store(private val app: Application) {
                 previous = current.owner
             }
         }
+    }
+
+    private suspend fun syncMusic() {
+        if (!photos.refreshAllowed()) return
+        MusicMirrorJob.schedule(app)
+        music.sync(System.currentTimeMillis() + MIRROR_BUDGET_MS)
     }
 
     private suspend fun loopWhileForeground(intervalMs: Long, block: suspend () -> Unit) {

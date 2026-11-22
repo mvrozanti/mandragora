@@ -43,7 +43,6 @@ class AuditStore(private val store: Store, private val app: Application) {
         val pm = app.packageManager
         val power = app.getSystemService(PowerManager::class.java)
         val packages = store.config.value?.phone?.apps.orEmpty().map { it.`package` } + app.packageName
-        val alwaysOn = runCatching { Settings.Secure.getString(app.contentResolver, "always_on_vpn_app") }.getOrNull()
         return PhoneFacts(
             self = app.packageName,
             installed = packages.filter { installed(pm, it) }.toSet(),
@@ -53,9 +52,6 @@ class AuditStore(private val store: Store, private val app: Application) {
             notifications = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
                 app.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED,
             installs = pm.canRequestPackageInstalls(),
-            vpnUp = store.vpnActive(),
-            alwaysOnReadable = alwaysOn != null,
-            alwaysOnVpn = alwaysOn,
         )
     }
 
@@ -68,11 +64,7 @@ class AuditStore(private val store: Store, private val app: Application) {
     }.isSuccess
 
     fun fix(context: Context, check: HostCheck) {
-        when (val fix = check.fix) {
-            null -> Unit
-            "tailscale" -> store.openTailscale()
-            else -> fixIntent(fix)?.let { runCatching { context.startActivity(it) } }
-        }
+        check.fix?.let(::fixIntent)?.let { runCatching { context.startActivity(it) } }
     }
 
     @SuppressLint("BatteryLife")
@@ -84,7 +76,6 @@ class AuditStore(private val store: Store, private val app: Application) {
             fix.startsWith("battery:") -> Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${fix.removePrefix("battery:")}"))
             fix == "notifications" -> Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, self)
             fix == "installs" -> Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$self"))
-            fix == "vpn-settings" -> Intent(Settings.ACTION_VPN_SETTINGS)
             else -> null
         }
     }

@@ -10,6 +10,7 @@ import shutil
 import signal
 import socket
 import ssl
+import stat
 import subprocess
 import threading
 import time
@@ -49,12 +50,12 @@ LRCLIB_GET = "https://lrclib.net/api/get"
 USER_AGENT = "mandragora-phone-bridge/1 (+https://github.com/mvrozanti/mandragora)"
 VERSION = 1
 PORTS = {"mpd": MPD_PORT, "ytdl": 6685, "theme": 6684, "mympd": 6680, "bridge": PORT, "code": 4096, "claude": 4097, "ask": 6689, "teach": 6691, "stt": 8091}
-MUSIC_FOLDER_ID = "mandragora-music"
 LEASE_FILE = STATE_DIR / "lease.json"
 LRCLIB_MISS_TTL = 24 * 3600
 LRCLIB_RETRY_AFTER = 10 * 60
 PHONE_LEASE_TTL = 45
 AUDIO_SUFFIXES = {".mp3", ".m4a", ".flac", ".wav", ".ogg", ".opus", ".aac", ".wma"}
+MIRROR_SUFFIXES = AUDIO_SUFFIXES | {".lrc"}
 AUDIO_TYPES = {".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".aac": "audio/aac", ".flac": "audio/flac", ".ogg": "audio/ogg", ".opus": "audio/ogg", ".wav": "audio/wav", ".wma": "audio/x-ms-wma"}
 MONEY_CACHE = Path(os.environ.get("PHONE_BRIDGE_MONEY_CACHE", "~/.local/state/money-menu/cache.json")).expanduser()
 MONEY_CACHE_VERSION = 2
@@ -1278,9 +1279,37 @@ def code_access() -> dict:
 def music_path(rel: str) -> Path:
     root = MUSIC_DIR.resolve()
     path = (root / rel).resolve()
-    if root not in path.parents or path.suffix.lower() not in AUDIO_SUFFIXES or not path.is_file():
+    if root not in path.parents or path.suffix.lower() not in MIRROR_SUFFIXES or not path.is_file():
         raise ValueError("not a song in the library")
     return path
+
+
+def mirrored(name: str) -> bool:
+    return not name.startswith(".") and Path(name).suffix.lower() in MIRROR_SUFFIXES and "\n" not in name and "\t" not in name
+
+
+def music_index() -> dict:
+    root = MUSIC_DIR.resolve()
+    files = []
+    for folder, dirs, names in os.walk(root):
+        dirs[:] = sorted(d for d in dirs if not d.startswith("."))
+        for name in sorted(filter(mirrored, names)):
+            path = Path(folder) / name
+            try:
+                info = path.lstat()
+            except OSError:
+                continue
+            if stat.S_ISREG(info.st_mode):
+                files.append([path.relative_to(root).as_posix(), info.st_size, int(info.st_mtime)])
+    version = hashlib.sha256(json.dumps(files).encode("utf-8")).hexdigest()[:16]
+    return {"version": version, "files": files}
+
+
+def music_index_for(have: str | None) -> dict:
+    index = music_index()
+    if have and have == index["version"]:
+        return {"version": index["version"], "unchanged": True}
+    return index
 
 
 def config() -> dict:
@@ -1288,7 +1317,7 @@ def config() -> dict:
         "version": VERSION,
         "desktop": {"ip": desktop_ip(), "host": "mandragora-desktop"},
         "ports": PORTS,
-        "music": {"folderId": MUSIC_FOLDER_ID, "dir": str(MUSIC_DIR)},
+        "music": {"dir": str(MUSIC_DIR)},
         "hub": load_json(SERVICES_JSON, {}),
         "code": code_access(),
         "phone": phone_expect(),
@@ -1810,6 +1839,8 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_json(lyrics_for(file))
             elif url.path == "/api/file":
                 self.send_song(music_path(query.get("file") or ""))
+            elif url.path == "/api/music/index":
+                self.send_json(music_index_for(query.get("have")))
             elif url.path == "/api/phone/media":
                 self.send_json(media_status())
             elif url.path == "/api/phone/media/jobs":
