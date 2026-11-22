@@ -149,6 +149,7 @@ in
     mediainfo
     img2pdf
     typst
+    lean4
     asciidoc
     biber
 
