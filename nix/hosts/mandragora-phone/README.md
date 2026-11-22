@@ -517,6 +517,13 @@ the emulator itself is the broken thing; say so in the commit that follows.
   "Tailscale is off on this phone · tap to turn it on", which asks Tailscale to
   connect and opens it; it reconnects to the desktop by itself the moment the
   VPN comes back.
+- The smoke test's emulator cold-boots every time (`-no-snapshot` whenever
+  `PHONE_EMU_HEADLESS` is set). Its quick-boot snapshot used to be saved on
+  every exit, and one saved with a wedged network made every later run fail
+  with "foreground services after locking: inbox.InboxService": the app
+  never reached the desk, so the music player had nothing to run for.
+  `toybox nc -w 3 <desktop ip> 6600` from `adb shell` answering "Network is
+  unreachable" is that state.
 - Sync-Fork's default trashcan versioning once held 17 GB on the phone.
   `phone-syncthing-bootstrap` posts folders with `versioning: ""`.
 - The Sync-Fork GUI is localhost-only on the phone; the desktop reaches it

@@ -42,7 +42,7 @@ fi
 if ! adb -s "$SERIAL" get-state > /dev/null 2>&1; then
   echo "phone-emu: booting (log: $STATE/emulator-$NAME.log)"
   window=()
-  [ -n "${PHONE_EMU_HEADLESS:-}" ] && window=(-no-window -no-audio)
+  [ -n "${PHONE_EMU_HEADLESS:-}" ] && window=(-no-window -no-audio -no-snapshot)
   setsid -f emulator -avd "$NAME" -port "$PORT" -gpu "${PHONE_EMU_GPU:-swiftshader_indirect}" -no-boot-anim "${window[@]}" > "$STATE/emulator-$NAME.log" 2>&1 < /dev/null
 fi
 [ -n "${PHONE_EMU_BOOT_ONLY:-}" ] && exit 0
