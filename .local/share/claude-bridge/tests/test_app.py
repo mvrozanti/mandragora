@@ -58,6 +58,20 @@ Review your answers
   2. Cancel
 """
 
+ANSWERED = """──────────────────────────────────────────────────────────────
+←  ☒ Format  ☒ Scope  ✔ Submit  →
+
+Review your answers
+
+ ● Which output format do you want for this task?
+   → Bullets please
+ ● Which areas should I include in the work?
+   → Code changes, Verification
+
+❯ 1. Submit answers
+  2. Cancel
+"""
+
 
 def test_desk_command_starts_or_resumes_with_the_chosen_settings():
     fresh = app.desk_command("s1", "claude", "opus", {"mode": "default", "effort": "high"}, fresh=True)
@@ -174,6 +188,15 @@ def test_ticking_a_box_makes_a_new_screen():
     ticked = CHECKBOXES.replace("[ ] Verification", "[✔] Verification")
     assert app.screen_id("s1", parsed_screen(ticked)) != app.screen_id("s1", parsed_screen(CHECKBOXES))
     assert app.screen_id("s1", parsed_screen(CHECKBOXES)) == app.screen_id("s1", parsed_screen(CHECKBOXES))
+
+def test_the_review_keeps_its_title_above_the_answers():
+    unanswered = parsed_screen(REVIEW)
+    assert (unanswered["title"], unanswered["context"]) == ("Review your answers", "⚠ Some questions are unanswered")
+    answered = parsed_screen(ANSWERED)
+    assert answered["title"] == "Review your answers"
+    assert answered["context"].startswith("● Which output format")
+    assert "→ Code changes, Verification" in answered["context"]
+    assert app.screen_step(answered, []) == 2
 
 def test_the_step_shown_is_found_from_the_pending_question():
     pending = [{"name": "AskUserQuestion", "input": {"questions": [

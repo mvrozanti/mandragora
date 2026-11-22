@@ -2045,17 +2045,23 @@ def parse_screen(screen: str) -> dict | None:
     question = [line for line in region[last_dash + 1:] if line.strip() and not SCREEN_TABS.match(line)]
     body = textwrap.dedent("\n".join(kept[-60:])).strip()
     body = re.sub(r"\n{3,}", "\n\n", body)
-    prose = textwrap.dedent("\n".join(line for line in kept[-60:] if not SCREEN_TABS.match(line))).strip()
-    paragraphs = [p for p in re.split(r"\n\s*\n", prose) if p.strip()]
+    title, context = screen_title(textwrap.dedent("\n".join(line for line in kept[-60:] if not SCREEN_TABS.match(line))).strip())
     return {
         "body": body,
         "question": textwrap.dedent("\n".join(question)).strip(),
-        "title": paragraphs[-1].strip() if paragraphs else "",
-        "context": "\n\n".join(paragraphs[:-1]),
+        "title": title,
+        "context": context,
         "options": options,
         "tabs": bar is not None,
         "steps": screen_steps(bar) if bar else [],
     }
+
+
+def screen_title(prose: str) -> tuple[str, str]:
+    if prose.startswith(SCREEN_REVIEW):
+        return SCREEN_REVIEW, textwrap.dedent(prose[len(SCREEN_REVIEW):].strip("\n")).strip()
+    paragraphs = [p for p in re.split(r"\n\s*\n", prose) if p.strip()]
+    return (paragraphs[-1].strip(), "\n\n".join(paragraphs[:-1])) if paragraphs else ("", "")
 
 
 def screen_steps(bar: str) -> list[dict]:
