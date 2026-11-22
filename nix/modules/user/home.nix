@@ -534,22 +534,11 @@ in
       "image/heif" = "nsxiv.desktop";
       "image/x-icon" = "nsxiv.desktop";
       "image/svg+xml" = "firefox.desktop";
+      "application/xml" = "firefox.desktop";
+      "text/xml" = "firefox.desktop";
+      "application/rss+xml" = "firefox.desktop";
+      "application/rdf+xml" = "firefox.desktop";
+      "application/xhtml_xml" = "firefox.desktop";
     };
-    associations.removed = pkgs.lib.genAttrs [
-      "application/pdf"
-      "application/rdf+xml"
-      "application/rss+xml"
-      "application/xhtml+xml"
-      "application/xhtml_xml"
-      "application/xml"
-      "image/gif"
-      "image/jpeg"
-      "image/png"
-      "image/webp"
-      "text/html"
-      "text/xml"
-      "x-scheme-handler/http"
-      "x-scheme-handler/https"
-    ] (_: "chromium-browser.desktop");
   };
 }
