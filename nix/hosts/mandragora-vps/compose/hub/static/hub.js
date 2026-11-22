@@ -4,6 +4,9 @@
     return String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   };
 
+  var VPS_DISK_WARN = 95;
+  var VPS_DISK_CRITICAL = 98;
+
   var data = null;
   var health = {};
   var clicks = {};
@@ -140,12 +143,12 @@
         '<div class="mv-card__meta">' + esc(machine("vps").meta) + "</div>" +
         '<div class="mv-card__note">host-stats unreachable</div></div>';
     }
-    if (v.disk && v.disk.used_pct >= 70) pushAlert("warn", "vps disk at " + pct(v.disk.used_pct), fmtGB(v.disk.used_gb) + " of " + fmtGB(v.disk.total_gb) + " — seafile is the driver");
+    if (v.disk && v.disk.used_pct >= VPS_DISK_WARN) pushAlert("warn", "vps disk at " + pct(v.disk.used_pct), fmtGB(v.disk.used_gb) + " of " + fmtGB(v.disk.total_gb) + " — seafile is the driver");
     return '<div class="mv-card"><div class="mv-card__name">' + esc(machine("vps").label) +
       '<span class="mv-pill is-ok">online</span></div>' +
       '<div class="mv-card__meta">' + esc(machine("vps").meta) + "</div>" +
       meterHTML("cpu", pct(v.cpu && v.cpu.util_pct), v.cpu && v.cpu.util_pct, 50, 85) +
-      meterHTML("disk", v.disk ? fmtGB(v.disk.used_gb) + "/" + fmtGB(v.disk.total_gb) : "–", v.disk && v.disk.used_pct, 70, 90) +
+      meterHTML("disk", v.disk ? fmtGB(v.disk.used_gb) + "/" + fmtGB(v.disk.total_gb) : "–", v.disk && v.disk.used_pct, VPS_DISK_WARN, VPS_DISK_CRITICAL) +
       '<div class="mv-card__note">' + data.services.filter(function (s) { return s.where === "vps"; }).length + " services here</div></div>";
   };
 
@@ -153,7 +156,7 @@
     var parts = [];
     parts.push('<span><i class="mv-dot ' + (d ? (d.locked ? "is-warn" : "is-ok") : "is-down") + '"></i><b>' +
       esc(machine("desk").label) + "</b> " + (d ? (d.gpu ? "gpu " + pct(d.gpu.util_pct) : "up") + (d.locked ? " · lock held" : "") : "offline") + "</span>");
-    parts.push('<span><i class="mv-dot ' + (v ? (v.disk && v.disk.used_pct >= 70 ? "is-warn" : "is-ok") : "is-down") + '"></i><b>vps</b> ' +
+    parts.push('<span><i class="mv-dot ' + (v ? (v.disk && v.disk.used_pct >= VPS_DISK_WARN ? "is-warn" : "is-ok") : "is-down") + '"></i><b>vps</b> ' +
       (v ? "disk " + pct(v.disk && v.disk.used_pct) : "offline") + "</span>");
     var bad = data ? data.services.filter(function (s) { return stateOf(s) === "down" || stateOf(s) === "warn"; }).length : 0;
     parts.push('<span><i class="mv-dot ' + (bad ? "is-warn" : "is-ok") + '"></i>' +

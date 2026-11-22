@@ -117,6 +117,9 @@ private fun hubBand(percent: Double?, warnAt: Double, criticalAt: Double): Pair<
     return p.toFloat() to level
 }
 
+private const val VPS_DISK_WARN = 95.0
+private const val VPS_DISK_CRITICAL = 98.0
+
 private fun hubMeter(label: String, value: String, percent: Double?, warnAt: Double, criticalAt: Double): HubMeter {
     val (p, level) = hubBand(percent, warnAt, criticalAt)
     return HubMeter(label, value, p, level)
@@ -194,7 +197,7 @@ fun hubView(feed: HubFeed, reachable: Boolean, fresh: Boolean): HubView {
     } else {
         val vpsDisk = vps.disk
         val vpsUsed = vpsDisk?.usedPct
-        if (vpsDisk != null && vpsUsed != null && vpsUsed >= 70) {
+        if (vpsDisk != null && vpsUsed != null && vpsUsed >= VPS_DISK_WARN) {
             alerts += HubAlert(HubLevel.Warn, "vps disk at ${hubPct(vpsUsed)}", "${hubGb(vpsDisk.usedGb)} of ${hubGb(vpsDisk.totalGb)} — seafile is the driver")
         }
         HubMachineView(
@@ -204,7 +207,7 @@ fun hubView(feed: HubFeed, reachable: Boolean, fresh: Boolean): HubView {
             meta = vpsMachine.meta,
             meters = listOf(
                 hubMeter("cpu", hubPct(vps.cpu?.utilPct), vps.cpu?.utilPct, 50.0, 85.0),
-                hubMeter("disk", hubDiskValue(vps.disk), vps.disk?.usedPct, 70.0, 90.0),
+                hubMeter("disk", hubDiskValue(vps.disk), vps.disk?.usedPct, VPS_DISK_WARN, VPS_DISK_CRITICAL),
             ),
             note = HubNote(null, "${feed.services.count { it.where == "vps" }} services here"),
         )
@@ -248,7 +251,7 @@ fun hubView(feed: HubFeed, reachable: Boolean, fresh: Boolean): HubView {
         else -> {
             val level = when {
                 !live -> HubLevel.Unknown
-                (vps.disk?.usedPct ?: 0.0) >= 70 -> HubLevel.Warn
+                (vps.disk?.usedPct ?: 0.0) >= VPS_DISK_WARN -> HubLevel.Warn
                 else -> HubLevel.Ok
             }
             HubLine(level, "vps", "cpu ${hubPct(vps.cpu?.utilPct)} · disk ${hubPct(vps.disk?.usedPct)}")
