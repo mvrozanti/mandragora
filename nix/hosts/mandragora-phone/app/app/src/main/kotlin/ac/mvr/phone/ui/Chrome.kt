@@ -121,10 +121,10 @@ fun ScreenHeader(title: String, reachable: Boolean, onCollapse: () -> Unit) {
 }
 
 @Composable
-fun CardHeader(name: String, subtitle: String?, onOpen: () -> Unit) {
+fun CardHeader(name: String, subtitle: String?, onOpen: (() -> Unit)? = null) {
     val scheme = MaterialTheme.colorScheme
     Row(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable(onClick = onOpen).padding(vertical = 2.dp),
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable(enabled = onOpen != null) { onOpen?.invoke() }.padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(name, style = MaterialTheme.typography.titleMedium)
@@ -132,7 +132,7 @@ fun CardHeader(name: String, subtitle: String?, onOpen: () -> Unit) {
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
             if (subtitle != null) Label(subtitle)
         }
-        Icon(Icons.Filled.ChevronRight, null, tint = scheme.outline, modifier = Modifier.size(20.dp))
+        if (onOpen != null) Icon(Icons.Filled.ChevronRight, null, tint = scheme.outline, modifier = Modifier.size(20.dp))
     }
 }
 

@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONObject
 
-val CARDS = listOf("music", "inbox", "money", "hub", "code", "ask", "voice", "teach", "watch", "panic")
+val CARDS = listOf("music", "inbox", "money", "hub", "code", "ask", "voice", "teach", "watch", "panic", "power")
 
 class Prefs(context: Context) {
     private val sp: SharedPreferences = context.getSharedPreferences("mandragora", Context.MODE_PRIVATE)

@@ -109,6 +109,7 @@ class Store(private val app: Application) {
     val hub = HubStore(this)
     val update = UpdateStore(this, app)
     val load = LoadStore(this)
+    val power = PowerStore(this)
     val find = FindStore(this)
     val code = CodeStore(this)
     val photos = PhoneMediaStore(app, PhoneMediaApi { "http://$desktopIp:${port({ it.bridge }, BuildConfig.BRIDGE_PORT)}" })
@@ -274,6 +275,7 @@ class Store(private val app: Application) {
         scope.launch { loopWhileForeground(30_000) { hub.refresh() } }
         scope.launch { loopWhileForeground(300_000) { update.refresh() } }
         scope.launch { loopWhileForeground(10_000) { load.refresh() } }
+        scope.launch { loopWhileForeground(30_000) { power.refresh() } }
         scope.launch { loopWhileForeground(5_000) { code.refresh() } }
         scope.launch { loopWhileForeground(10_000) { if (photos.refreshAllowed()) PhoneMediaJob.schedule(app).also { photos.sync() } } }
         scope.launch { foreground.collectLatest { fg -> if (fg) code.watchList() } }
@@ -443,6 +445,7 @@ class Store(private val app: Application) {
         runCatching { hub.refresh() }
         runCatching { update.refresh() }
         runCatching { load.refresh() }
+        runCatching { power.refresh() }
         runCatching { refreshMedia() }
         runCatching { voice.refresh() }
         val file = now.value.file

@@ -487,3 +487,51 @@ def test_an_empty_file_is_still_a_file(bridge, media_dir):
     status, body = upload(bridge, "3", b"", empty)
     assert (status, body["sha256"]) == (200, empty)
     assert (media_dir / "held" / "3").read_bytes() == b""
+
+
+@pytest.fixture
+def systemctl(tmp_path, monkeypatch):
+    log = tmp_path / "systemctl-calls"
+    script = tmp_path / "systemctl"
+    script.write_text(f'#!/bin/sh\necho "$@" >> {log}\n[ "$1" = poweroff ] && {{ echo "inhibited by backup" >&2; exit 1; }}\nexit 0\n')
+    script.chmod(0o755)
+    uptime = tmp_path / "uptime"
+    uptime.write_text("93784.52 1000.00\n")
+    monkeypatch.setattr(server, "SYSTEMCTL", str(script))
+    monkeypatch.setattr(server, "UPTIME_FILE", str(uptime))
+    monkeypatch.setattr(server, "SWITCH_LOCK", str(tmp_path / "switch.lock"))
+    monkeypatch.setattr(server, "PHONE_MEDIA_PEERS", "127.0.0.1")
+    return log
+
+
+def test_power_reboots_through_systemctl_and_reports_failures(bridge, systemctl):
+    status, body = fetch(f"{bridge}/api/power")
+    assert (status, body) == (200, {"uptime": 93784.52, "switching": False})
+    status, body = post_json(f"{bridge}/api/power", {"action": "reboot"})
+    assert (status, body) == (200, {"action": "reboot"})
+    status, body = post_json(f"{bridge}/api/power", {"action": "poweroff"})
+    assert (status, body["error"]) == (503, "inhibited by backup")
+    status, body = post_json(f"{bridge}/api/power", {"action": "suspend"})
+    assert status == 400
+    assert systemctl.read_text().splitlines() == ["reboot", "poweroff"]
+
+
+def test_power_waits_for_a_running_switch(bridge, systemctl):
+    import fcntl
+
+    with open(server.SWITCH_LOCK, "w") as held:
+        fcntl.flock(held, fcntl.LOCK_EX)
+        status, body = fetch(f"{bridge}/api/power")
+        assert body["switching"] is True
+        status, body = post_json(f"{bridge}/api/power", {"action": "reboot"})
+        assert (status, body["error"]) == (400, "a switch is running; try again when it ends")
+    assert not systemctl.exists()
+
+
+def test_only_the_phone_powers_the_desktop(bridge, systemctl, monkeypatch):
+    monkeypatch.setattr(server, "PHONE_MEDIA_PEERS", "100.64.0.9")
+    status, body = post_json(f"{bridge}/api/power", {"action": "reboot"})
+    assert (status, body["error"]) == (403, "only the phone may power the desktop off")
+    status, _ = fetch(f"{bridge}/api/power")
+    assert status == 200
+    assert not systemctl.exists()

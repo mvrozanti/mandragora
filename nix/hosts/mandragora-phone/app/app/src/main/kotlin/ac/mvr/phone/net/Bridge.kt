@@ -185,6 +185,10 @@ class BridgeClient(private val baseUrl: () -> String) {
 
     suspend fun transcribe(audio: java.io.File): Transcript = json.decodeFromString(Http.postFile("${baseUrl()}/api/transcribe", audio, "audio/mp4"))
 
+    suspend fun powerState(): PowerState = json.decodeFromString(Http.get("${baseUrl()}/api/power"))
+
+    suspend fun power(action: String): PowerResult = json.decodeFromString(Http.post("${baseUrl()}/api/power", buildJsonObject { put("action", action) }))
+
     suspend fun kill(id: String): KillResult = json.decodeFromString(Http.post("${baseUrl()}/api/kill", buildJsonObject { put("id", id) }))
 
     suspend fun inbox(after: Long, waitSeconds: Int): InboxView =
@@ -255,6 +259,12 @@ data class MediaState(val players: List<DesktopMedia> = emptyList())
 
 @Serializable
 data class Transcript(val text: String = "", val language: String? = null, val duration: Double? = null)
+
+@Serializable
+data class PowerState(val uptime: Double? = null, val switching: Boolean = false)
+
+@Serializable
+data class PowerResult(val action: String? = null, val error: String? = null)
 
 @Serializable
 data class KillResult(val killed: String? = null, val name: String? = null, val procs: Int = 0, val error: String? = null)

@@ -54,6 +54,7 @@ private val CARD_NAMES = mapOf(
     "teach" to "teach · the tutor",
     "watch" to "watch",
     "panic" to "panic",
+    "power" to "power · reboot or power off the desktop",
 )
 
 @SuppressLint("BatteryLife")

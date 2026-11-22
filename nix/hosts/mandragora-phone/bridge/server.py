@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import http.client
 import json
@@ -28,6 +29,10 @@ MPD_HOST = os.environ.get("PHONE_BRIDGE_MPD_HOST", "127.0.0.1")
 MPD_PORT = int(os.environ.get("PHONE_BRIDGE_MPD_PORT", "6600"))
 WPCTL = os.environ.get("PHONE_BRIDGE_WPCTL", "wpctl")
 PLAYERCTL = os.environ.get("PHONE_BRIDGE_PLAYERCTL", "playerctl")
+SYSTEMCTL = os.environ.get("PHONE_BRIDGE_SYSTEMCTL", "systemctl")
+SWITCH_LOCK = os.environ.get("PHONE_BRIDGE_SWITCH_LOCK") or str(Path(os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}") / "mandragora-switch.lock")
+UPTIME_FILE = os.environ.get("PHONE_BRIDGE_UPTIME", "/proc/uptime")
+POWER_ACTIONS = ("reboot", "poweroff")
 MEDIA_FORMAT = "{{playerInstance}}\t{{status}}\t{{title}}\t{{artist}}\t{{xesam:url}}\t{{position}}\t{{mpris:length}}\t{{mpris:artUrl}}"
 MEDIA_ACTIONS = ("play-pause", "play", "pause", "next", "previous", "seek")
 MEDIA_HIDDEN = re.compile(r"(mpd|kdeconnect|playerctld)(\.|$)")
@@ -1120,10 +1125,47 @@ def media_peers() -> set[str]:
     return {phone} if phone else set()
 
 
-def media_from_phone(path: str, method: str, client: str) -> bool:
-    if path not in PHONE_MEDIA_PHONE_PATHS or (method == "GET" and path == "/api/phone/media/thumb"):
+def phone_only(path: str, method: str) -> bool:
+    if method == "POST" and path == "/api/power":
         return True
-    return client in media_peers()
+    return path in PHONE_MEDIA_PHONE_PATHS and not (method == "GET" and path == "/api/phone/media/thumb")
+
+
+def media_from_phone(path: str, method: str, client: str) -> bool:
+    return not phone_only(path, method) or client in media_peers()
+
+
+def switching() -> bool:
+    try:
+        with open(SWITCH_LOCK, "a") as handle:
+            try:
+                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                return True
+            fcntl.flock(handle, fcntl.LOCK_UN)
+            return False
+    except OSError:
+        return False
+
+
+def power_state() -> dict:
+    try:
+        uptime = float(Path(UPTIME_FILE).read_text().split()[0])
+    except (OSError, ValueError, IndexError):
+        uptime = None
+    return {"uptime": uptime, "switching": switching()}
+
+
+def power(body: dict) -> dict:
+    action = str(body.get("action") or "")
+    if action not in POWER_ACTIONS:
+        raise ValueError("action must be reboot or poweroff")
+    if switching():
+        raise ValueError("a switch is running; try again when it ends")
+    done = subprocess.run([SYSTEMCTL, action], capture_output=True, text=True, timeout=15)
+    if done.returncode != 0:
+        raise OSError((done.stderr or done.stdout).strip() or f"systemctl {action} failed")
+    return {"action": action}
 
 
 def media_id(value) -> str:
@@ -1483,7 +1525,7 @@ class Handler(BaseHTTPRequestHandler):
         if media_from_phone(path, method, self.client_address[0]):
             return False
         self.close_connection = True
-        self.send_json({"error": "only the phone sends its media"}, 403)
+        self.send_json({"error": "only the phone may power the desktop off" if path == "/api/power" else "only the phone sends its media"}, 403)
         return True
 
     def do_GET(self):
@@ -1508,6 +1550,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(hub_state())
             elif url.path == "/api/app":
                 self.send_json(app_state())
+            elif url.path == "/api/power":
+                self.send_json(power_state())
             elif url.path == "/api/load":
                 self.send_json(load_state())
             elif url.path == "/api/media":
@@ -1630,6 +1674,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(start_money_refresh())
             elif url.path == "/api/kill":
                 self.send_json(kill_unit(body))
+            elif url.path == "/api/power":
+                self.send_json(power(body))
             elif url.path == "/api/media":
                 self.send_json(media_action(body))
             else:

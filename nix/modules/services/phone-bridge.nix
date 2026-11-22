@@ -21,6 +21,8 @@ in
 
   environment.systemPackages = [ phoneMedia ];
 
+  security.polkit.extraConfig = builtins.readFile ../../../.local/share/polkit-rules/phone-power.js;
+
   systemd.user.services.phone-media-archive = {
     description = "Drain the phone through the mandragora app into ~/Pictures/PhoneInbox, and delete from the phone what is archived and 30 days old";
     after = [ "phone-bridge.service" ];
