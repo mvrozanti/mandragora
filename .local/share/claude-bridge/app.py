@@ -526,6 +526,11 @@ class Bus:
     def unsubscribe(self, queue: asyncio.Queue) -> None:
         self.queues.discard(queue)
 
+    def close(self) -> None:
+        for queue in list(self.queues):
+            queue.shutdown(immediate=True)
+        self.queues.clear()
+
 
 @dataclass
 class Run:
@@ -1666,7 +1671,7 @@ async def events(request: web.Request) -> web.StreamResponse:
                 await response.write(b": keepalive\n\n")
                 continue
             await response.write(("data: " + json.dumps(event) + "\n\n").encode("utf-8"))
-    except (ConnectionResetError, asyncio.CancelledError, RuntimeError):
+    except (ConnectionResetError, asyncio.QueueShutDown, RuntimeError):
         pass
     finally:
         bridge.bus.unsubscribe(queue)
@@ -2164,11 +2169,18 @@ async def stop_watcher(app: web.Application) -> None:
     app["watcher"].cancel()
 
 
+async def close_streams(app: web.Application) -> None:
+    bridge = app[BRIDGE]
+    if isinstance(bridge, Bridge):
+        bridge.bus.close()
+
+
 def make_app() -> web.Application:
     app = web.Application(middlewares=[auth_middleware], client_max_size=32 * 1024 * 1024)
     app[PASSWORD] = load_password()
     app[BRIDGE] = Bridge()
     app.on_startup.append(start_watcher)
+    app.on_shutdown.append(close_streams)
     app.on_cleanup.append(stop_watcher)
     if app[PASSWORD] is None:
         print("claude-bridge: no password file could be written; the server is unsecured", flush=True)
