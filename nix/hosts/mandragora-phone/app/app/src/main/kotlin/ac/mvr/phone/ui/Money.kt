@@ -13,10 +13,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -101,7 +99,6 @@ fun MoneyCard(store: Store, onOpen: (String) -> Unit) {
     val reachable by store.reachable.collectAsStateWithLifecycle()
     val unitPref by store.prefs.unit.collectAsStateWithLifecycle()
     val hidden by store.prefs.hiddenAmounts.collectAsStateWithLifecycle()
-    val group by store.prefs.moneyGroup.collectAsStateWithLifecycle()
     val nowMs = rememberNowMs()
     val unit = MoneyFormat.unitOf(unitPref)
     val cache = data
@@ -127,68 +124,15 @@ fun MoneyCard(store: Store, onOpen: (String) -> Unit) {
             )
             Label(unit.uppercase())
         }
-        if (cache != null && cache.hasCache) {
-            if (total != null && total != 0.0) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    if (group == "venue") {
-                        cache.venues.forEach { ShareBar(it.label, it.usd, available = !it.missing && !it.noteOnly && it.usd != null, stale = it.staleSince != null, total = total) }
-                    } else {
-                        val groups = assetGroups(cache)
-                        val (big, small) = groups.partition { (it.usd ?: 0.0) / total >= 0.01 }
-                        big.forEach { ShareBar(it.asset, it.usd, available = it.usd != null, stale = false, total = total) }
-                        if (small.size == 1) ShareBar(small[0].asset, small[0].usd, available = small[0].usd != null, stale = false, total = total)
-                        if (small.size > 1) ShareBar("${small.size} others", small.sumOf { it.usd ?: 0.0 }, available = true, stale = false, total = total)
-                    }
-                }
-            } else {
-                Text(
-                    cache.error ?: "incomplete",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = scheme.outline,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+        if (cache != null && cache.hasCache && (total ?: 0.0) == 0.0) {
+            Text(
+                cache.error ?: "incomplete",
+                style = MaterialTheme.typography.labelMedium,
+                color = scheme.outline,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
-    }
-}
-
-@Composable
-private fun ShareBar(label: String, usd: Double?, available: Boolean, stale: Boolean, total: Double) {
-    val scheme = MaterialTheme.colorScheme
-    val fraction = if (available && usd != null) (usd / total).toFloat().coerceIn(0f, 1f) else 0f
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelMedium,
-            color = if (available) scheme.onSurfaceVariant else scheme.outline,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.width(96.dp),
-        )
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(6.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .background(scheme.surfaceContainerHigh),
-        ) {
-            if (fraction > 0f) {
-                Box(modifier = Modifier.fillMaxHeight().fillMaxWidth(fraction).clip(RoundedCornerShape(3.dp)).background(scheme.secondary))
-            }
-        }
-        Text(
-            if (available) MoneyFormat.share(usd, total) ?: "--" else "--",
-            style = MaterialTheme.typography.labelMedium,
-            color = when {
-                !available -> scheme.outline
-                stale -> scheme.tertiary
-                else -> scheme.onSurfaceVariant
-            },
-            textAlign = TextAlign.End,
-            maxLines = 1,
-            modifier = Modifier.width(44.dp),
-        )
     }
 }
 

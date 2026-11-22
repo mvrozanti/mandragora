@@ -122,7 +122,6 @@ back collapses it):
 | music card: volume slider / speaker | desktop system volume, music or not | home |
 | music card: name, cover, title | opens the music screen | music |
 | money card: the total | cycles the unit BTC → USD → BRL (the phone's own unit) | home |
-| money card: the share bars | nothing, display; one bar per asset, assets under one percent folded into one, or per venue when the money screen is set to venues | home |
 | money card: name | opens the money screen | money |
 | hub card: name or glance | opens the hub screen | hub |
 | code card: a session row (only the active ones: every session open on the desktop, working or waiting for you, newest first; with none, the card says "nothing open on the desktop" and the chevron still opens every session; a row is the dot, the model's mark, the title, red when the session needs you, and the last words of the transcript; no subtitle line) | opens that session on the code screen | code |
