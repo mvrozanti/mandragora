@@ -227,14 +227,15 @@ in
       opener = {
         edit = [
           {
-            run = ''$EDITOR "$@"'';
+            run = "$EDITOR %s";
+            desc = "$EDITOR";
             block = true;
             for = "unix";
           }
         ];
         open = [
           {
-            run = ''xdg-open "$@"'';
+            run = "xdg-open %s1";
             desc = "xdg-open";
             orphan = true;
             for = "unix";
@@ -242,35 +243,56 @@ in
         ];
         play = [
           {
-            run = ''mpv "$@"'';
+            run = "mpv -- %s";
+            desc = "mpv";
             orphan = true;
             for = "unix";
           }
         ];
         view-image = [
           {
-            run = ''nsxiv -ab -- "$@"'';
+            run = "nsxiv -ab -- %s";
+            desc = "nsxiv";
+            orphan = true;
+            for = "unix";
+          }
+        ];
+        edit-image = [
+          {
+            run = "pinta %s";
+            desc = "pinta";
+            orphan = true;
+            for = "unix";
+          }
+        ];
+        view-image-dir = [
+          {
+            run = "nsxiv -abr -- %s";
+            desc = "nsxiv (recursive)";
             orphan = true;
             for = "unix";
           }
         ];
         view-pdf = [
           {
-            run = ''zathura "$@"'';
+            run = "zathura %s";
+            desc = "zathura";
             orphan = true;
             for = "unix";
           }
         ];
         view-archive = [
           {
-            run = ''atool --list -- "$@" | ${"$"}{PAGER:-less}'';
+            run = "atool --list -- %s | \${PAGER:-less}";
+            desc = "atool --list";
             block = true;
             for = "unix";
           }
         ];
         office = [
           {
-            run = ''libreoffice "$@"'';
+            run = "libreoffice %s";
+            desc = "libreoffice";
             orphan = true;
             for = "unix";
           }
@@ -279,68 +301,124 @@ in
       open = {
         rules = [
           {
+            mime = "folder/*";
+            use = [
+              "view-image-dir"
+              "open"
+            ];
+          }
+          {
             mime = "text/*";
-            use = [ "edit" ];
+            use = [
+              "edit"
+              "open"
+            ];
           }
           {
             mime = "image/*";
-            use = [ "view-image" ];
+            use = [
+              "view-image"
+              "edit-image"
+              "play"
+              "open"
+            ];
           }
           {
             mime = "video/*";
-            use = [ "play" ];
+            use = [
+              "play"
+              "open"
+            ];
           }
           {
             mime = "audio/*";
-            use = [ "play" ];
+            use = [
+              "play"
+              "open"
+            ];
           }
           {
             mime = "application/pdf";
-            use = [ "view-pdf" ];
+            use = [
+              "view-pdf"
+              "open"
+            ];
           }
           {
             mime = "application/epub+zip";
-            use = [ "view-pdf" ];
+            use = [
+              "view-pdf"
+              "open"
+            ];
           }
           {
             mime = "application/zip";
-            use = [ "view-archive" ];
+            use = [
+              "view-archive"
+              "open"
+            ];
           }
           {
             mime = "application/x-tar";
-            use = [ "view-archive" ];
+            use = [
+              "view-archive"
+              "open"
+            ];
           }
           {
             mime = "application/x-7z-compressed";
-            use = [ "view-archive" ];
+            use = [
+              "view-archive"
+              "open"
+            ];
           }
           {
             mime = "application/x-rar";
-            use = [ "view-archive" ];
+            use = [
+              "view-archive"
+              "open"
+            ];
           }
           {
             mime = "application/vnd.openxmlformats-officedocument.*";
-            use = [ "office" ];
+            use = [
+              "office"
+              "open"
+            ];
           }
           {
             mime = "application/msword";
-            use = [ "office" ];
+            use = [
+              "office"
+              "open"
+            ];
           }
           {
             mime = "application/vnd.ms-excel";
-            use = [ "office" ];
+            use = [
+              "office"
+              "open"
+            ];
           }
           {
             mime = "application/vnd.ms-powerpoint";
-            use = [ "office" ];
+            use = [
+              "office"
+              "open"
+            ];
           }
           {
             mime = "application/vnd.oasis.opendocument.*";
-            use = [ "office" ];
+            use = [
+              "office"
+              "open"
+            ];
           }
           {
             url = "*";
-            use = [ "open" ];
+            use = [
+              "open"
+            ];
           }
         ];
       };
@@ -463,8 +541,8 @@ in
         }
         {
           on = "r";
-          run = "escape";
-          desc = "Neutralized — use a/cw/A";
+          run = "open --interactive";
+          desc = "Open with…";
         }
         {
           on = "<Tab>";

@@ -210,6 +210,7 @@ in
 
     vlc
     inkscape
+    pinta
     gifsicle
     yt-dlp
     streamlink
