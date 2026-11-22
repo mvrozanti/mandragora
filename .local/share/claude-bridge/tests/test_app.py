@@ -23,6 +23,42 @@ PERMISSION = """ Bash command
 """
 
 
+QUESTION = """──────────────────────────────────────────────────────────────
+←  ☐ Format  ☒ Scope  ✔ Submit  →
+Which output format do you want for this task?
+❯ 1. Short summary (Recommended)
+     A few sentences with the key result. Fastest to read.
+  2. Detailed report
+     Full explanation with every step and supporting detail.
+  3. Type something.
+──────────────────────────────────────────────────────────────
+  4. Chat about this
+Enter to select · Tab/Arrow keys to navigate · Esc to cancel
+"""
+
+CHECKBOXES = """──────────────────────────────────────────────────────────────
+←  ☐ Format  ☒ Scope  ✔ Submit  →
+Which areas should I include in the work?
+❯ 1. [✔] Code changes
+         Edit files in the repository as needed.
+  2. [ ] Verification
+         Run checks or tests after making changes.
+  3. [ ] Type something
+     Submit
+──────────────────────────────────────────────────────────────
+  4. Chat about this
+Enter to select · Tab/Arrow keys to navigate · Esc to cancel
+"""
+
+REVIEW = """──────────────────────────────────────────────────────────────
+←  ☐ Format  ☒ Scope  ✔ Submit  →
+Review your answers
+⚠ Some questions are unanswered
+❯ 1. Submit answers
+  2. Cancel
+"""
+
+
 def test_desk_command_starts_or_resumes_with_the_chosen_settings():
     fresh = app.desk_command("s1", "claude", "opus", {"mode": "default", "effort": "high"}, fresh=True)
     assert fresh == ["claude", "--session-id", "s1", "--permission-mode", "manual", "--model", "opus", "--effort", "high"]
@@ -99,6 +135,51 @@ def test_a_permission_dialog_parses_into_options():
     assert parsed["options"][2]["text"]
     assert app.parse_screen("nothing to answer here") is None
     assert app.parse_screen(" ❯ 1. Only one choice") is None
+
+
+def parsed_screen(screen: str) -> dict:
+    result = app.parse_screen(screen)
+    assert result is not None
+    return result
+
+
+def test_a_permission_dialog_splits_its_question_from_the_command():
+    parsed = parsed_screen(PERMISSION)
+    assert parsed["title"] == "Do you want to proceed?"
+    assert "rm -rf build" in parsed["context"]
+    assert parsed["steps"] == []
+    assert [o["checked"] for o in parsed["options"]] == [None, None, None]
+
+
+def test_a_question_dialog_carries_its_steps_and_options():
+    parsed = parsed_screen(QUESTION)
+    assert parsed["steps"] == [{"label": "Format", "done": False}, {"label": "Scope", "done": True}, {"label": "Submit", "done": False}]
+    assert parsed["title"] == "Which output format do you want for this task?"
+    assert parsed["context"] == ""
+    assert "☐" not in parsed["question"]
+    options = parsed["options"]
+    assert options[0]["label"] == "Short summary (Recommended)"
+    assert options[0]["detail"].startswith("A few sentences")
+    assert options[2]["text"]
+    assert [o["aside"] for o in options] == [False, False, False, True]
+
+
+def test_checkboxes_come_without_their_boxes():
+    options = parsed_screen(CHECKBOXES)["options"]
+    assert [(o["label"], o["checked"]) for o in options[:3]] == [("Code changes", True), ("Verification", False), ("Type something", False)]
+    assert options[2]["text"]
+
+
+def test_the_step_shown_is_found_from_the_pending_question():
+    pending = [{"name": "AskUserQuestion", "input": {"questions": [
+        {"question": "Which output format do you want for this task?"},
+        {"question": "Which areas should I include in the work?"},
+    ]}}]
+    assert app.screen_step(parsed_screen(QUESTION), pending) == 0
+    assert app.screen_step(parsed_screen(CHECKBOXES), pending) == 1
+    assert app.screen_step(parsed_screen(REVIEW), pending) == 2
+    assert app.screen_step(parsed_screen(QUESTION), []) == -1
+    assert app.screen_step(parsed_screen(PERMISSION), pending) == -1
 
 
 def test_the_model_picker_and_effort_read_from_the_pane():

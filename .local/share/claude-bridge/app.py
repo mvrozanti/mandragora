@@ -92,6 +92,10 @@ SCREEN_DASH = re.compile(r"^\s*[╌┄▔]{12,}\s*$")
 SCREEN_FOOTER = re.compile(r"Esc to cancel|Enter to select|to navigate|ctrl\+g to edit|Tab to amend")
 SCREEN_TEXT = re.compile(r"type something|tell claude", re.I)
 SCREEN_TABS = re.compile(r"^\s*←.*→\s*$")
+SCREEN_TAB = re.compile(r"^([☐☒✔])\s+(.+)$")
+SCREEN_BOX = re.compile(r"^\[([ ✔])\]\s+(.*)$")
+SCREEN_ASIDE = re.compile(r"^chat about this$", re.I)
+SCREEN_REVIEW = "Review your answers"
 SCREEN_KEYS = {"escape": "Escape", "next": "Right", "previous": "Left"}
 SCREEN_EDGE = re.compile(r"^\s*[─━]{12,}")
 SCREEN_EFFORT = re.compile(r"[○◐●◉◈]\s+(low|medium|high|xhigh|max) · /effort")
@@ -2022,23 +2026,53 @@ def parse_screen(screen: str) -> dict | None:
                 break
             detail.append(stripped)
         label = match.group(3)
+        box = SCREEN_BOX.match(label)
         options.append({
             "key": match.group(2),
-            "label": label,
+            "label": box.group(2) if box else label,
             "detail": " ".join(detail),
             "text": bool(SCREEN_TEXT.search(label)),
             "current": "❯" in lines[i][:column],
+            "checked": (box.group(1) != " ") if box else None,
+            "aside": bool(SCREEN_ASIDE.match(label)),
         })
     top = chosen[0][0]
     start = next((k + 1 for k in range(top - 1, -1, -1) if SCREEN_RULE.match(lines[k])), 0)
     region = lines[start:top]
-    tabs = any(SCREEN_TABS.match(line) for line in region)
+    bar = next((line for line in region if SCREEN_TABS.match(line)), None)
     last_dash = max((k for k, line in enumerate(region) if SCREEN_DASH.match(line)), default=-1)
     kept = [line for line in region if not SCREEN_DASH.match(line)]
-    question = [line for line in region[last_dash + 1:] if line.strip()]
+    question = [line for line in region[last_dash + 1:] if line.strip() and not SCREEN_TABS.match(line)]
     body = textwrap.dedent("\n".join(kept[-60:])).strip()
     body = re.sub(r"\n{3,}", "\n\n", body)
-    return {"body": body, "question": textwrap.dedent("\n".join(question)).strip(), "options": options, "tabs": tabs}
+    prose = textwrap.dedent("\n".join(line for line in kept[-60:] if not SCREEN_TABS.match(line))).strip()
+    paragraphs = [p for p in re.split(r"\n\s*\n", prose) if p.strip()]
+    return {
+        "body": body,
+        "question": textwrap.dedent("\n".join(question)).strip(),
+        "title": paragraphs[-1].strip() if paragraphs else "",
+        "context": "\n\n".join(paragraphs[:-1]),
+        "options": options,
+        "tabs": bar is not None,
+        "steps": screen_steps(bar) if bar else [],
+    }
+
+
+def screen_steps(bar: str) -> list[dict]:
+    inner = bar.strip().removeprefix("←").removesuffix("→").strip()
+    found = (SCREEN_TAB.match(token.strip()) for token in re.split(r"\s{2,}", inner))
+    return [{"label": match.group(2), "done": match.group(1) == "☒"} for match in found if match]
+
+
+def screen_step(parsed: dict, pending: list[dict]) -> int:
+    if not parsed["steps"]:
+        return -1
+    shown = " ".join(parsed["title"].split())
+    if shown.startswith(SCREEN_REVIEW):
+        return len(parsed["steps"]) - 1
+    asked = next((tool["input"].get("questions") for tool in pending if tool["name"] == "AskUserQuestion"), None)
+    texts = [" ".join(str(q.get("question", "")).split()) for q in asked or [] if isinstance(q, dict)]
+    return texts.index(shown) if shown in texts else -1
 
 
 def plan_text(data: dict) -> str | None:
@@ -2092,20 +2126,25 @@ def screen_payload(sid: str, live: dict, previous: dict | None) -> dict | None:
     parsed = parse_screen(screen)
     if parsed is None:
         tail = [line.rstrip() for line in screen.splitlines() if line.strip()][-25:]
-        parsed = {"body": textwrap.dedent("\n".join(tail)).strip(), "question": "", "options": [], "tabs": False}
+        parsed = {"body": textwrap.dedent("\n".join(tail)).strip(), "question": "", "title": "", "context": "", "options": [], "tabs": False, "steps": []}
     seed = json.dumps([sid, parsed["body"], [(o["key"], o["label"], o["current"]) for o in parsed["options"]]], ensure_ascii=False)
     ask_id = "scr_" + sha1(seed.encode("utf-8")).hexdigest()[:16]
     if previous is not None and previous["id"] == ask_id:
         return previous
-    plan = next((text for tool in pending_tools(sid) if tool["name"] == "ExitPlanMode" and (text := plan_text(tool["input"]))), None)
+    pending = pending_tools(sid)
+    plan = next((text for tool in pending if tool["name"] == "ExitPlanMode" and (text := plan_text(tool["input"]))), None)
     return {
         "id": ask_id,
         "sessionID": sid,
         "waiting": live.get("waiting") or "an answer",
         "body": parsed["question"] if plan else parsed["body"],
         "plan": plan,
+        "title": parsed["title"],
+        "context": "" if plan else parsed["context"],
         "options": parsed["options"],
         "tabs": parsed["tabs"],
+        "steps": parsed["steps"],
+        "step": screen_step(parsed, pending),
     }
 
 
