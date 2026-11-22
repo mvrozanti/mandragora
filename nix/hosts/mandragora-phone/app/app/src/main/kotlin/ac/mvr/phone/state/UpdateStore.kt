@@ -5,13 +5,14 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.pm.PackageInstaller
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import ac.mvr.phone.BuildConfig
 import ac.mvr.phone.R
 import ac.mvr.phone.net.AppBuild
 import androidx.core.app.NotificationCompat
-import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,12 +66,12 @@ class UpdateStore(private val store: Store, private val app: Application) {
                 return@act
             }
             if (downloaded(build)) {
-                app.startActivity(installer())
+                handOver(build)
                 return@act
             }
             progressFlow.value = 0f
             val partial = File(dir, "mandragora-phone.apk.part")
-            try {
+            val verified = try {
                 stamp.delete()
                 store.bridge.downloadApk(partial) { done, total -> progressFlow.value = if (total > 0) done.toFloat() / total else 0f }
                 val sum = withContext(Dispatchers.IO) { sha256(partial) }
@@ -81,12 +82,13 @@ class UpdateStore(private val store: Store, private val app: Application) {
                     partial.renameTo(apk)
                     stamp.writeText(verified.sha256)
                 }
-                availableFlow.value = verified
-                if (store.foreground.value) app.startActivity(installer()) else notifyReady(verified)
+                verified
             } finally {
                 partial.delete()
                 progressFlow.value = null
             }
+            availableFlow.value = verified
+            handOver(verified)
         }
     }
 
@@ -97,21 +99,57 @@ class UpdateStore(private val store: Store, private val app: Application) {
             null
         }
 
-    private fun installer(): Intent {
-        val uri = FileProvider.getUriForFile(app, "${app.packageName}.files", apk)
-        return Intent(Intent.ACTION_VIEW)
-            .setDataAndType(uri, "application/vnd.android.package-archive")
-            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+    private suspend fun handOver(build: AppBuild) = withContext(Dispatchers.IO) {
+        progressFlow.value = 1f
+        val installer = app.packageManager.packageInstaller
+        val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
+            setAppPackageName(app.packageName)
+            setSize(build.size)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
+        }
+        try {
+            commit(installer, installer.createSession(params))
+        } catch (err: IOException) {
+            progressFlow.value = null
+            throw err
+        }
     }
 
-    private fun notifyReady(build: AppBuild) {
+    private fun commit(installer: PackageInstaller, id: Int) {
+        installer.openSession(id).use { session ->
+            session.openWrite("base.apk", 0, apk.length()).use { out ->
+                apk.inputStream().use { it.copyTo(out) }
+                session.fsync(out)
+            }
+            val status = Intent(app, InstallReceiver::class.java).setAction(ACTION_STATUS)
+            val flags = PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            session.commit(PendingIntent.getBroadcast(app, id, status, flags).intentSender)
+        }
+    }
+
+    fun settle(status: Int, prompt: Intent?, message: String?) {
+        if (status == PackageInstaller.STATUS_SUCCESS) return
+        progressFlow.value = null
+        when (status) {
+            PackageInstaller.STATUS_PENDING_USER_ACTION -> prompt?.let(::ask)
+            PackageInstaller.STATUS_FAILURE_ABORTED -> Unit
+            else -> store.report(IllegalStateException("the update did not install: ${message ?: "status $status"}"))
+        }
+    }
+
+    private fun ask(prompt: Intent) {
+        val intent = prompt.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (store.foreground.value) {
+            app.startActivity(intent)
+            return
+        }
         val manager = app.getSystemService(NotificationManager::class.java) ?: return
         manager.createNotificationChannel(NotificationChannel(CHANNEL, "app updates", NotificationManager.IMPORTANCE_DEFAULT))
-        val tap = PendingIntent.getActivity(app, 7, installer(), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val tap = PendingIntent.getActivity(app, 7, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val notification = NotificationCompat.Builder(app, CHANNEL)
             .setSmallIcon(R.drawable.ic_launcher_mono)
             .setContentTitle("mandragora update")
-            .setContentText("${build.versionName} · tap to install")
+            .setContentText("${availableFlow.value?.versionName.orEmpty()} · tap to install")
             .setContentIntent(tap)
             .setAutoCancel(true)
             .build()
@@ -132,6 +170,7 @@ class UpdateStore(private val store: Store, private val app: Application) {
     }
 
     companion object {
+        const val ACTION_STATUS = "ac.mvr.phone.INSTALL_STATUS"
         private const val CHANNEL = "updates"
         private const val NOTIFICATION_ID = 7107
     }
