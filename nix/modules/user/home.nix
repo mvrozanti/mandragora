@@ -520,6 +520,7 @@ in
       "application/xhtml+xml" = "firefox.desktop";
       "x-scheme-handler/http" = "firefox.desktop";
       "x-scheme-handler/https" = "firefox.desktop";
+      "application/pdf" = "org.pwmt.zathura.desktop";
     };
   };
 }

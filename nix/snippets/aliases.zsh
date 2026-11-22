@@ -252,6 +252,7 @@ _at() { nohup "$@" 2>&1 >/dev/null & disown }
 alias @="_at "
 o() { nohup xdg-open "$@" 2>&1 >/dev/null & }
 O() { nohup xdg-open "$@" 2>&1 >/dev/null &; exit }
+alias open='xdg-open'
 tf() { tail -f "$1" 2>&1 | perl -ne 'if (/file truncated/) {system("clear"); print} else {print}' }
 t2d() { date -d "@$(cat -)" }
 _keep() { while :; do "$@"; done }
