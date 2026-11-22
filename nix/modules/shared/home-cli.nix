@@ -13,6 +13,7 @@
     ../user/yazi.nix
     ../user/skills.nix
     ../user/claude-find.nix
+    ../user/claude-settings.nix
   ];
 
   home.packages =

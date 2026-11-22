@@ -143,8 +143,8 @@
     "pyright-lsp@claude-plugins-official": true,
     "lua-lsp@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "chrome-devtools-mcp@claude-plugins-official": true,
-    "playwright@claude-plugins-official": true,
+    "chrome-devtools-mcp@claude-plugins-official": false,
+    "playwright@claude-plugins-official": false,
     "crowdsec@claude-plugins-official": true,
     "nvidia-skills@claude-plugins-official": true,
     "huggingface-skills@claude-plugins-official": true,
@@ -180,5 +180,7 @@
   "theme": "dark",
   "remoteControlAtStartup": true,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "preferredNotifChannel": "notifications_disabled",
+  "cleanupPeriodDays": 90
 }
