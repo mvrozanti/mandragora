@@ -23,6 +23,11 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
 
   skin:
     image: ${AUTHELIA_SKIN_IMAGE:-nginx:1.27-alpine}
