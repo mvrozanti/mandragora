@@ -11,7 +11,6 @@ let
   sttCoreState = "/home/m/.local/share/stt-core";
   ttsCloneCoreRoot = "/home/m/Projects/tts-clone-core";
   ttsCloneCoreState = "/home/m/.local/share/tts-clone-core";
-  teacherState = "/home/m/.local/share/teacher";
   memeState = "/home/m/.local/share/meme";
   axonRoot = ../../../.local/share/axon;
   axonState = "/home/m/.local/share/axon";
@@ -24,7 +23,6 @@ in
   home.activation.botsState = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     mkdir -p ${sttCoreState}/data ${sttCoreState}/logs ${sttCoreState}/hf-cache
     mkdir -p ${ttsCloneCoreState}/refs ${ttsCloneCoreState}/out ${ttsCloneCoreState}/hf-cache
-    mkdir -p ${teacherState}/data ${teacherState}/logs
     mkdir -p ${memeState}/logs
     mkdir -p ${axonState}/logs
     mkdir -p ${axonWebState}/logs

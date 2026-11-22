@@ -121,7 +121,7 @@ class Store(private val app: Application) {
     val voice = VoiceStore(this)
     val watch = WatchStore(this)
     val ask = AskStore(this)
-    val teach = TeachStore(this)
+    val plugin = PluginStore(this)
     val audit = AuditStore(this, app)
 
     val reachable = MutableStateFlow(false)
@@ -292,8 +292,7 @@ class Store(private val app: Application) {
         scope.launch { loopWhileForeground(30_000) { voice.refresh() } }
         scope.launch { loopWhileForeground(30_000) { watch.refresh() } }
         scope.launch { loopWhileForeground(30_000) { ask.refresh() } }
-        scope.launch { loopWhileForeground(30_000) { teach.refresh() } }
-        scope.launch { loopWhileForeground(300_000) { teach.loadStats() } }
+        scope.launch { loopWhileForeground(30_000) { plugin.refresh() } }
         scope.launch {
             while (isActive) {
                 if (lease.value.owner == "phone") host?.let { h ->

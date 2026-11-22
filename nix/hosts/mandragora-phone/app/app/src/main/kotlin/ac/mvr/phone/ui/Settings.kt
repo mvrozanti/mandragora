@@ -43,7 +43,7 @@ private val CARD_NAMES = mapOf(
     "code" to "code",
     "ask" to "ask · the local model",
     "voice" to "voice · speech to text",
-    "teach" to "teach · the tutor",
+    "plugin" to "plugin · the private service on the desktop",
     "watch" to "watch",
     "panic" to "panic",
     "gpu" to "gpu · vram and who holds it",

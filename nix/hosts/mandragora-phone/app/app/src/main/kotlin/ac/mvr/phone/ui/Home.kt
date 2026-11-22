@@ -65,7 +65,7 @@ fun HomeScreen(store: Store, onOpen: (String) -> Unit) {
                     "voice" -> VoiceCard(store, onOpen)
                     "watch" -> WatchCard(store, onOpen)
                     "ask" -> AskCard(store, onOpen)
-                    "teach" -> TeachCard(store, onOpen)
+                    "plugin" -> PluginCard(store, onOpen)
                 }
             }
         }

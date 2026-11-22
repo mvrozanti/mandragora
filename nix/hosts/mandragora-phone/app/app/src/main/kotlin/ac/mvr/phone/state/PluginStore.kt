@@ -1,9 +1,10 @@
 package ac.mvr.phone.state
 
-import ac.mvr.phone.net.TeachClient
-import ac.mvr.phone.net.TeachState
-import ac.mvr.phone.net.TeachStats
-import ac.mvr.phone.net.TeachTurn
+import ac.mvr.phone.net.PluginClient
+import ac.mvr.phone.net.PluginManifest
+import ac.mvr.phone.net.PluginPanel
+import ac.mvr.phone.net.PluginState
+import ac.mvr.phone.net.PluginTurn
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,17 +12,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-class TeachStore(private val store: Store) {
-    private val client = TeachClient { store.desktopUrl({ it.teach }, 6691) }
+class PluginStore(private val store: Store) {
+    private val client = PluginClient { store.desktopUrl({ it.plugin }, 6691) }
 
-    private val stateFlow = MutableStateFlow(TeachState())
-    val state: StateFlow<TeachState> = stateFlow
+    private val stateFlow = MutableStateFlow(PluginState())
+    val state: StateFlow<PluginState> = stateFlow
 
-    private val turnsFlow = MutableStateFlow<List<TeachTurn>>(emptyList())
-    val turns: StateFlow<List<TeachTurn>> = turnsFlow
+    private val turnsFlow = MutableStateFlow<List<PluginTurn>>(emptyList())
+    val turns: StateFlow<List<PluginTurn>> = turnsFlow
 
-    private val statsFlow = MutableStateFlow<TeachStats?>(null)
-    val stats: StateFlow<TeachStats?> = statsFlow
+    private val manifestFlow = MutableStateFlow<PluginManifest?>(null)
+    val manifest: StateFlow<PluginManifest?> = manifestFlow
+
+    private val panelFlow = MutableStateFlow<PluginPanel?>(null)
+    val panel: StateFlow<PluginPanel?> = panelFlow
 
     private val freshFlow = MutableStateFlow(false)
     val fresh: StateFlow<Boolean> = freshFlow
@@ -31,7 +35,10 @@ class TeachStore(private val store: Store) {
     private var last = 0L
     private var version: Long? = null
 
-    suspend fun refresh() = pull(0)
+    suspend fun refresh() {
+        pull(0)
+        loadManifest()
+    }
 
     suspend fun follow() {
         while (currentCoroutineContext().isActive) {
@@ -39,8 +46,12 @@ class TeachStore(private val store: Store) {
         }
     }
 
-    suspend fun loadStats() {
-        statsFlow.value = readable { client.stats() }
+    suspend fun loadManifest() {
+        manifestFlow.value = readable { client.manifest() }
+    }
+
+    suspend fun loadPanel() {
+        panelFlow.value = readable { client.panel() }
     }
 
     private suspend fun pull(wait: Int) {
@@ -68,19 +79,15 @@ class TeachStore(private val store: Store) {
         }
     }
 
-    fun act(action: String, concept: Int? = null) = store.act { readable { client.act(action, concept) } }
-
-    fun nudges(enabled: Boolean) = store.act {
-        readable { client.nudges(enabled) }
-        loadStats()
+    fun act(action: String, arg: Long? = null) = store.act {
+        readable { client.act(action, arg) }
+        loadManifest()
     }
 
-    fun retention(topic: String, value: Double) = store.act {
-        readable { client.retention(topic, value) }
-        loadStats()
+    fun toggle(id: String, on: Boolean) = store.act {
+        readable { client.toggle(id, on) }
+        loadPanel()
     }
-
-    fun retry() = store.act { readable { client.retry() } }
 
     private companion object {
         const val KEEP = 300

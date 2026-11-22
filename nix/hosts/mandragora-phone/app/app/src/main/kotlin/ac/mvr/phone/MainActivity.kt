@@ -51,7 +51,7 @@ import ac.mvr.phone.ui.LocalVpnOff
 import ac.mvr.phone.ui.HubScreen
 import ac.mvr.phone.ui.AskScreen
 import ac.mvr.phone.ui.InboxScreen
-import ac.mvr.phone.ui.TeachScreen
+import ac.mvr.phone.ui.PluginScreen
 import ac.mvr.phone.ui.WatchScreen
 import ac.mvr.phone.ui.VoiceScreen
 import ac.mvr.phone.ui.MandragoraTheme
@@ -202,7 +202,7 @@ private fun routes(store: Store, go: (String) -> Unit): Map<String, @Composable 
     "voice" to { VoiceScreen(store) { go("home") } },
     "watch" to { WatchScreen(store) { go("home") } },
     "ask" to { AskScreen(store) { go("home") } },
-    "teach" to { TeachScreen(store) { go("home") } },
+    "plugin" to { PluginScreen(store) { go("home") } },
 )
 
 private fun receiveShared(intent: Intent, store: Store) {

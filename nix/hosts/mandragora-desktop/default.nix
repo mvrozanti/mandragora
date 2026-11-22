@@ -72,7 +72,7 @@ in
     ../../modules/services/claude-web.nix
     ../../modules/services/cc-pocket.nix
     ../../modules/services/phone-bridge.nix
-    ../../modules/services/teacher.nix
+    ../../modules/services/plugin-slot.nix
     ../../modules/services/phone-ask.nix
     ../../modules/services/opencode.nix
     ../../modules/services/claude-bridge.nix

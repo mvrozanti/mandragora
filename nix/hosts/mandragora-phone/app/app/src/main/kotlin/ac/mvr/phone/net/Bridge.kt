@@ -20,7 +20,7 @@ data class Ports(
     val code: Int = 4096,
     val claude: Int = 4097,
     val ask: Int = 6689,
-    val teach: Int = 6691,
+    val plugin: Int = 6691,
 )
 
 @Serializable
