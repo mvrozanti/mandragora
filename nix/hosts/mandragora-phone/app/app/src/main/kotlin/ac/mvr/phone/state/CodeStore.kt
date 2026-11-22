@@ -689,14 +689,16 @@ class CodeStore(private val store: Store) {
     fun press(ask: ScreenAsk, key: String, text: String? = null) = run {
         val dir = directory ?: return@run
         val client = currentClient() ?: return@run
-        screensFlow.value = screensFlow.value.filter { it.id != ask.id }
+        if (!replying.add(ask.id)) return@run
         try {
             val next = client.press(ask.sessionID, dir, ask.id, key, text)
-            if (next != null && currentFlow.value?.id == ask.sessionID) screensFlow.value = screensFlow.value.filter { it.sessionID != ask.sessionID } + next
+            if (currentFlow.value?.id == ask.sessionID) screensFlow.value = screensFlow.value.filter { it.sessionID != ask.sessionID } + listOfNotNull(next)
         } catch (err: IOException) {
             val fresh = runCatching { client.screens(dir) }.getOrDefault(emptyList()).filter { it.sessionID == ask.sessionID }
             if (currentFlow.value?.id == ask.sessionID) screensFlow.value = fresh
             throw err
+        } finally {
+            replying.remove(ask.id)
         }
     }
 

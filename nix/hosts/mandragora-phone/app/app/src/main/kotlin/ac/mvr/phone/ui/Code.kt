@@ -1137,7 +1137,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
     val streamed = entries.lastOrNull()?.parts?.sumOf { it.text?.length ?: 0 } ?: 0
     val newest = listOf(
         entries.size, pendingHere.size, questions.size, asks.size, if (busy) 1 else 0, entries.lastOrNull()?.parts?.size ?: 0,
-        screens.firstOrNull()?.id.hashCode(), stops.chips.keys.hashCode(), streamed,
+        screens.firstOrNull()?.sessionID.hashCode(), stops.chips.keys.hashCode(), streamed,
     )
     LaunchedEffect(current?.id, newest, anchor?.key) {
         if (!follow) return@LaunchedEffect
@@ -1159,7 +1159,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            items(screens, key = { "x" + it.id }) { ask -> ScreenCard(ask) { key, text -> code.press(ask, key, text) } }
+            items(screens, key = { "x" + it.sessionID }) { ask -> ScreenCard(ask) { key, text -> code.press(ask, key, text) } }
             items(questions, key = { "q" + it.id }) { ask -> QuestionCard(ask, onAnswer = { code.answer(ask, it) }, onReject = { code.rejectQuestion(ask) }) }
             items(asks, key = { "p" + it.id }) { ask -> PermissionCard(ask) { code.allow(ask, it) } }
             items(pendingHere.asReversed(), key = { "s" + it.id }) { PendingBubble(it.text, busy) }
