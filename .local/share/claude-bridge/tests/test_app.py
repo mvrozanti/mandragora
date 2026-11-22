@@ -73,6 +73,20 @@ Review your answers
 """
 
 
+RULED = """──────────────────────────────────────────────────────────────
+ Bash command
+ Touch the probe file
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ │ touch /tmp/probe
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ Do you want to proceed?
+ ❯ 1. Yes
+   2. Yes, and always allow access to
+      /tmp from this project
+   3. No
+ Esc to cancel · Tab to amend
+"""
+
 def test_desk_command_starts_or_resumes_with_the_chosen_settings():
     fresh = app.desk_command("s1", "claude", "opus", {"mode": "default", "effort": "high"}, fresh=True)
     assert fresh == ["claude", "--session-id", "s1", "--permission-mode", "manual", "--model", "opus", "--effort", "high"]
@@ -164,6 +178,12 @@ def test_a_permission_dialog_splits_its_question_from_the_command():
     assert parsed["steps"] == []
     assert [o["checked"] for o in parsed["options"]] == [None, None, None]
 
+
+def test_dashed_rules_split_the_command_from_the_question():
+    parsed = parsed_screen(RULED)
+    assert parsed["title"] == "Do you want to proceed?"
+    assert parsed["context"] == "Bash command\nTouch the probe file\n\n│ touch /tmp/probe"
+    assert parsed["options"][1]["detail"] == "/tmp from this project"
 
 def test_a_question_dialog_carries_its_steps_and_options():
     parsed = parsed_screen(QUESTION)

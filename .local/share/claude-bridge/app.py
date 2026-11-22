@@ -2045,7 +2045,8 @@ def parse_screen(screen: str) -> dict | None:
     question = [line for line in region[last_dash + 1:] if line.strip() and not SCREEN_TABS.match(line)]
     body = textwrap.dedent("\n".join(kept[-60:])).strip()
     body = re.sub(r"\n{3,}", "\n\n", body)
-    title, context = screen_title(textwrap.dedent("\n".join(line for line in kept[-60:] if not SCREEN_TABS.match(line))).strip())
+    prose = ["" if SCREEN_DASH.match(line) else line for line in region[-60:] if not SCREEN_TABS.match(line)]
+    title, context = screen_title(textwrap.dedent("\n".join(prose)).strip())
     return {
         "body": body,
         "question": textwrap.dedent("\n".join(question)).strip(),
