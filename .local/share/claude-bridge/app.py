@@ -310,6 +310,7 @@ class TranscriptLine:
     queued: str | None
     offset: int
     length: int
+    dequeued: bool = False
 
 
 def queued_text(prompt) -> str:
@@ -348,6 +349,7 @@ def index_line(index: dict, raw: bytes, offset: int) -> None:
         queued=queued,
         offset=offset,
         length=len(raw),
+        dequeued=main and kind == "user" and record.get("promptSource") == "queued" and not record.get("isMeta"),
     )
     index["lines"].append(line)
     index["by_uuid"][uid] = line
@@ -401,13 +403,29 @@ def transcript_chain(index: dict) -> list[TranscriptLine]:
     return chain
 
 
+def with_stray_prompts(index: dict, chain: list[TranscriptLine]) -> tuple[list[TranscriptLine], set[str]]:
+    placed = {line.uuid for line in chain}
+    strays: dict[str, list[TranscriptLine]] = {}
+    for line in index["lines"]:
+        if line.dequeued and line.uuid not in placed and line.parent in placed:
+            strays.setdefault(line.parent, []).append(line)
+    if not strays:
+        return chain, set()
+    merged: list[TranscriptLine] = []
+    for line in chain:
+        merged.append(line)
+        merged.extend(strays.get(line.uuid, ()))
+    return merged, {line.uuid for group in strays.values() for line in group}
+
+
 def transcript_entries(sid: str, path: Path, limit: int) -> list[dict]:
     index = transcript_index(path)
-    shown = [line for line in transcript_chain(index) if line.visible or line.queued]
+    chain, strays = with_stray_prompts(index, transcript_chain(index))
+    shown = [line for line in chain if line.visible or line.queued]
     if limit:
         shown = shown[-(limit * 8 + 50):]
     records = []
-    queued_ids = set()
+    queued_ids = set(strays)
     with path.open("rb") as handle:
         for line in shown:
             if line.queued:

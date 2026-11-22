@@ -165,3 +165,54 @@ def test_transcript_models_read_tails_and_remember_them(tmp_path, monkeypatch):
     monkeypatch.setattr(app, "TAIL_REACH", (64,))
     assert app.transcript_models(["s1"]) == {"s1": "cc-gptoss"}
     assert app.tail_model(folder / "gone.jsonl") is None
+
+
+def record(uid: str, parent: str | None, kind: str, content, source: str | None = None) -> str:
+    line = {"type": kind, "uuid": uid, "parentUuid": parent, "isSidechain": False, "message": {"role": kind, "content": content}}
+    if source is not None:
+        line["promptSource"] = source
+    return json.dumps(line)
+
+
+def user_texts(entries: list[dict]) -> list[str]:
+    return [part["text"] for entry in entries if entry["info"]["role"] == "user" for part in entry["parts"] if part.get("type") == "text"]
+
+
+def test_a_prompt_dequeued_into_a_rejected_tool_call_still_shows(tmp_path):
+    call = [{"type": "tool_use", "id": "t1", "name": "Bash", "input": {}}]
+    rejected = [{"type": "tool_result", "tool_use_id": "t1", "content": "rejected", "is_error": True}]
+    path = tmp_path / "s.jsonl"
+    path.write_text("\n".join([
+        record("a1", None, "user", "check the vps disk", "typed"),
+        record("a2", "a1", "assistant", call),
+        record("q1", "a2", "user", "in the phone app i mean", "queued"),
+        record("r1", "a2", "user", rejected),
+        record("r2", "r1", "user", [{"type": "text", "text": "[Request interrupted by user for tool use]"}]),
+        record("a3", "r2", "user", "in the phone app", "typed"),
+    ]) + "\n")
+    assert user_texts(app.transcript_entries("s", path, 0)) == ["check the vps disk", "in the phone app i mean", "in the phone app"]
+
+
+def test_a_stray_prompt_said_again_later_shows_once(tmp_path):
+    call = [{"type": "tool_use", "id": "t1", "name": "Bash", "input": {}}]
+    rejected = [{"type": "tool_result", "tool_use_id": "t1", "content": "rejected", "is_error": True}]
+    path = tmp_path / "s.jsonl"
+    path.write_text("\n".join([
+        record("a1", None, "user", "go", "typed"),
+        record("a2", "a1", "assistant", call),
+        record("q1", "a2", "user", "again", "queued"),
+        record("r1", "a2", "user", rejected),
+        record("a3", "r1", "user", "again", "typed"),
+    ]) + "\n")
+    assert user_texts(app.transcript_entries("s", path, 0)) == ["go", "again"]
+
+
+def test_a_rewound_typed_prompt_stays_hidden(tmp_path):
+    path = tmp_path / "s.jsonl"
+    path.write_text("\n".join([
+        record("a1", None, "user", "first", "typed"),
+        record("a2", "a1", "assistant", [{"type": "text", "text": "ok"}]),
+        record("old", "a2", "user", "abandoned edit", "typed"),
+        record("new", "a2", "user", "rewritten", "typed"),
+    ]) + "\n")
+    assert user_texts(app.transcript_entries("s", path, 0)) == ["first", "rewritten"]
