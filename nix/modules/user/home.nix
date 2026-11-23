@@ -268,6 +268,7 @@ in
     qt6.qtwayland
 
     (pkgs.writeShellScriptBin "smart-launch" (builtins.readFile ../../../.local/bin/smart-launch.sh))
+    (pkgs.writeShellScriptBin "open-follow" (builtins.readFile ../../../.local/bin/open-follow.sh))
     (pkgs.writeShellScriptBin "obsidian-launch" (
       builtins.readFile ../../../.local/bin/obsidian-launch.sh
     ))

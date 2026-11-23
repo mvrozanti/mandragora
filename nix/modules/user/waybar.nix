@@ -122,6 +122,7 @@ in
             "17" = "";
             "18" = "<span size=\"large\"></span>";
             "19" = "<span size=\"large\"></span>";
+            "21" = "<span size=\"large\"></span>";
             "7" = "<span size=\"large\"></span>";
             "10" = "♟";
             "14" = "";

@@ -291,7 +291,7 @@ in
         ];
         office = [
           {
-            run = "libreoffice %s";
+            run = "open-follow '^(libreoffice|soffice)' libreoffice %s";
             desc = "libreoffice";
             orphan = true;
             for = "unix";
