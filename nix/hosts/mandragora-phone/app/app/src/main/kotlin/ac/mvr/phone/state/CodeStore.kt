@@ -854,11 +854,24 @@ class CodeStore(private val store: Store) {
                 currentFlow.value?.let { followModel(it, entriesFlow.value) }
             }
             "screen.cleared" -> p["requestID"]?.jsonPrimitive?.contentOrNull?.let { id -> screensFlow.value = screensFlow.value.filter { it.id != id } }
-            "session.error" -> if (mine) p["error"]?.let { err ->
-                val parsed = runCatching { json.decodeFromJsonElement<MessageError>(err) }.getOrNull()
-                store.report(IllegalStateException(parsed?.text ?: "session error"))
+            "session.error" -> if (sessionID != null) {
+                val lost = undelivered(sessionID)
+                if (mine || lost) p["error"]?.let { err ->
+                    val parsed = runCatching { json.decodeFromJsonElement<MessageError>(err) }.getOrNull()
+                    store.report(IllegalStateException(parsed?.text ?: "session error"))
+                }
             }
         }
+    }
+
+    private fun undelivered(sessionID: String): Boolean {
+        val lost = pending.value.filter { it.sessionId == sessionID }
+        if (lost.isEmpty()) return false
+        pending.value = pending.value - lost.toSet()
+        if (currentFlow.value?.id == sessionID && draft.value.isEmpty() && attachments.value.isEmpty()) {
+            edit(lost.joinToString("\n\n") { it.text })
+        }
+        return true
     }
 
     private fun upsertMessage(info: CodeMessage) {
