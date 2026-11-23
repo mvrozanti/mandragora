@@ -531,6 +531,18 @@ class CodeStore(private val store: Store) {
         store.prefs.lastCodeDir = dir
     }
 
+    suspend fun openIn(backend: String, directory: String) {
+        val client = client(backend) ?: throw IOException("desktop unreachable")
+        val newest = client.sessions(directory, 10).filter { it.parentID == null }.maxByOrNull { it.time.updated }
+        if (newest != null) {
+            open(newest)
+            return
+        }
+        if (providersFlow.value.isEmpty()) runCatching { loadProviders() }
+        startNew(directory)
+        if (modelFlow.value?.backend != backend) modelFlow.value = choices().firstOrNull { it.backend == backend }
+    }
+
     private fun humanize(err: Throwable): Throwable {
         if (err !is IOException) return err
         val found = errorText.find(err.message ?: "")?.groupValues?.get(1) ?: return err

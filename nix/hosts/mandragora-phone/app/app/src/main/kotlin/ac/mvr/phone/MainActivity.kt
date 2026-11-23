@@ -202,7 +202,7 @@ private fun routes(store: Store, go: (String) -> Unit): Map<String, @Composable 
     "voice" to { VoiceScreen(store) { go("home") } },
     "watch" to { WatchScreen(store) { go("home") } },
     "ask" to { AskScreen(store) { go("home") } },
-    "plugin" to { PluginScreen(store) { go("home") } },
+    "plugin" to { PluginScreen(store, onReady = { go("code") }) { go("home") } },
 )
 
 private fun receiveShared(intent: Intent, store: Store) {
