@@ -170,6 +170,8 @@ full-text search):
 | type | full-text search over every session's turns, a phrase or subject; each row shows the matching passage | sessions |
 | a session | opens it on the code screen | code |
 | a session, swiped to the left | closes it on the desktop after five seconds with an undo, as on the code card | sessions |
+| share pictures, files, a link or text to mandragora from any app ("code session" in the share sheet; one audio or video clip still goes to the voice screen) | opens this screen with "pick a session for 2 pictures and a file" (or "a link", "the text") over the list and a "new session" chip; the files upload to `claude-bridge` meanwhile, the way the + on the code screen does (pictures shrunk to 2048 px, anything else as is up to 30 MB), waiting for the desktop up to 15 s on a cold start, and a failure shows on the line under the strip; shared text joins the box on its own line | sessions |
+| a session, or "new session", after a share | opens it on the code screen with the shared files in the box and the text after whatever was typed there; nothing is sent until send | code |
 | "sessions ⌄" title, Android back | back to home | home |
 
 The music screen:
@@ -446,7 +448,7 @@ later. WhatsApp stays on the phone while WhatsApp Web is open on the
 desktop, since that window notifies by itself; the desktop decides, at the
 moment the notification arrives.
 
-Not now: ytdl client, sync status, a share target for anything but audio and video, deleting or forking sessions from the phone (the bridge already answers those). They get a card and a table
+Not now: ytdl client, sync status, deleting or forking sessions from the phone (the bridge already answers those). They get a card and a table
 here when they come.
 
 ## Trying the app on the desktop

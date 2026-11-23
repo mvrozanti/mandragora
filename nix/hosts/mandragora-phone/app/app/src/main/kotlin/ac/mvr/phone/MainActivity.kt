@@ -40,6 +40,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import ac.mvr.phone.inbox.InboxService
+import ac.mvr.phone.logic.ShareRoute
+import ac.mvr.phone.logic.shareRoute
 import ac.mvr.phone.play.PlaybackService
 import ac.mvr.phone.state.Store
 import ac.mvr.phone.ui.CodeScreen
@@ -96,7 +98,7 @@ class MainActivity : ComponentActivity() {
     private fun requestScreen(intent: Intent?) {
         when {
             intent == null -> Unit
-            intent.action == Intent.ACTION_SEND -> receiveShared(intent, store)
+            intent.action == Intent.ACTION_SEND || intent.action == Intent.ACTION_SEND_MULTIPLE -> receiveShared(intent, store)
             else -> intent.getStringExtra("screen")?.let { screen ->
                 intent.removeExtra("screen")
                 store.requestedScreen.value = screen
@@ -207,11 +209,29 @@ private fun routes(store: Store, go: (String) -> Unit): Map<String, @Composable 
 
 private fun receiveShared(intent: Intent, store: Store) {
     val type = intent.type.orEmpty()
-    val clip = if (Build.VERSION.SDK_INT >= 33) intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
-    else @Suppress("DEPRECATION") intent.getParcelableExtra(Intent.EXTRA_STREAM)
+    val streams = sharedStreams(intent)
+    val text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
     intent.action = null
-    if (clip != null && (type.startsWith("audio/") || type.startsWith("video/"))) {
-        store.voice.transcribeShared(clip)
-        store.requestedScreen.value = "voice"
+    when (shareRoute(type, streams.size, text)) {
+        ShareRoute.VOICE -> {
+            store.voice.transcribeShared(streams.first())
+            store.requestedScreen.value = "voice"
+        }
+        ShareRoute.CODE -> {
+            store.code.receive(streams, text)
+            store.requestedScreen.value = "sessions"
+        }
+        ShareRoute.NONE -> Unit
     }
+}
+
+private fun sharedStreams(intent: Intent): List<Uri> {
+    if (intent.action == Intent.ACTION_SEND_MULTIPLE) {
+        val many = if (Build.VERSION.SDK_INT >= 33) intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)
+        else @Suppress("DEPRECATION") intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM)
+        return many.orEmpty().filterNotNull()
+    }
+    val one = if (Build.VERSION.SDK_INT >= 33) intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+    else @Suppress("DEPRECATION") intent.getParcelableExtra(Intent.EXTRA_STREAM)
+    return listOfNotNull(one)
 }

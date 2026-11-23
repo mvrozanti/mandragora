@@ -32,7 +32,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
+import ac.mvr.phone.logic.sharedLabel
+import ac.mvr.phone.logic.withShared
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -183,6 +186,20 @@ class CodeStore(private val store: Store) {
     val attachments = MutableStateFlow<List<Attachment>>(emptyList())
     val uploading = MutableStateFlow(false)
     val pending = MutableStateFlow<List<Pending>>(emptyList())
+    val shared = MutableStateFlow<String?>(null)
+
+    fun receive(uris: List<android.net.Uri>, text: String?) {
+        val resolver = store.appContext.contentResolver
+        shared.value = sharedLabel(uris.map { resolver.getType(it) ?: "application/octet-stream" }, text)
+        if (!text.isNullOrBlank()) replaceDraft(withShared(draft.value, text))
+        attach(uris)
+    }
+
+    private suspend fun uploader(): CodeClient {
+        client("claude")?.let { return it }
+        kotlinx.coroutines.withTimeoutOrNull(15_000) { store.config.first { config -> config?.code?.backends?.any { it.id == "claude" } == true } }
+        return client("claude") ?: throw IOException("desktop unreachable")
+    }
 
     fun attach(uris: List<android.net.Uri>) = run {
         if (uris.isEmpty()) return@run
@@ -199,7 +216,7 @@ class CodeStore(private val store: Store) {
         val type = resolver.getType(uri) ?: "application/octet-stream"
         val name = nameOf(uri, type)
         val raw = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { readCapped(uri, name) }
-        val client = client("claude") ?: throw IOException("desktop unreachable")
+        val client = uploader()
         val shrunk = if (type.startsWith("image/")) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { ac.mvr.phone.play.Artwork.shrink(raw, 2048) } else null
         if (shrunk == null) {
             val path = client.upload(raw, type, name)
@@ -478,6 +495,7 @@ class CodeStore(private val store: Store) {
     fun open(session: CodeSession) {
         currentFlow.value = session
         newIn.value = null
+        shared.value = null
         if (!hidden(session.directory)) {
             store.prefs.lastCodeSession = session.id
             store.prefs.lastCodeDir = session.directory
@@ -527,6 +545,7 @@ class CodeStore(private val store: Store) {
     fun startNew(directory: String? = null) {
         val dir = directory ?: store.prefs.lastCodeDir ?: projectsFlow.value.firstOrNull()?.worktree ?: "/home/m"
         currentFlow.value = null
+        shared.value = null
         entriesFlow.value = emptyList()
         asksFlow.value = emptyList()
         questionsFlow.value = emptyList()

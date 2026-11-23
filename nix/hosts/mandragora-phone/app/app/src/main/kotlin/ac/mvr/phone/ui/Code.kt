@@ -1260,6 +1260,8 @@ fun SessionsScreen(store: Store, onOpenSession: () -> Unit, onCollapse: () -> Un
     val statuses by store.code.statuses.collectAsStateWithLifecycle()
     val closing by store.code.closing.collectAsStateWithLifecycle()
     val closed by store.code.closed.collectAsStateWithLifecycle()
+    val shared by store.code.shared.collectAsStateWithLifecycle()
+    val uploading by store.code.uploading.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf("") }
     var showClosed by remember { mutableStateOf(true) }
     var found by remember { mutableStateOf<List<CodeSession>?>(null) }
@@ -1277,6 +1279,21 @@ fun SessionsScreen(store: Store, onOpenSession: () -> Unit, onCollapse: () -> Un
     }
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("sessions", reachable, onCollapse)
+        shared?.let { what ->
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 14.dp, bottom = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (uploading) CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(14.dp))
+                Label("pick a session for $what", modifier = Modifier.weight(1f), color = scheme.primary)
+                Chip("new session", scheme.primaryContainer, scheme.onPrimaryContainer) {
+                    store.code.startNew()
+                    onOpenSession()
+                }
+            }
+            Notice(store, Modifier.padding(horizontal = 14.dp))
+        }
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
