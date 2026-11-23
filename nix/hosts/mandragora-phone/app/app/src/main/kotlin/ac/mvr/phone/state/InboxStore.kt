@@ -1,6 +1,8 @@
 package ac.mvr.phone.state
 
+import ac.mvr.phone.BuildConfig
 import ac.mvr.phone.inbox.Alerts
+import ac.mvr.phone.logic.newBuild
 import ac.mvr.phone.net.InboxItem
 import ac.mvr.phone.net.InboxView
 import kotlinx.coroutines.CancellationException
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class InboxStore(private val store: Store) {
     private val itemsFlow = MutableStateFlow<List<InboxItem>>(emptyList())
@@ -29,12 +32,14 @@ class InboxStore(private val store: Store) {
         .stateIn(store.scope, SharingStarted.Eagerly, 0)
 
     private var last = 0L
+    private var published: Long? = null
+    private var checked = 0L
 
     suspend fun listen() {
         var backoff = MIN_BACKOFF
         var synced = false
         while (currentCoroutineContext().isActive) {
-            val view = runCatching { store.bridge.inbox(if (synced) last else 0L, if (synced) WAIT_SECONDS else 0) }.getOrNull()
+            val view = runCatching { store.bridge.inbox(if (synced) last else 0L, if (synced) WAIT_SECONDS else 0, published.takeIf { synced }) }.getOrNull()
             when {
                 view == null -> {
                     liveFlow.value = false
@@ -54,6 +59,11 @@ class InboxStore(private val store: Store) {
     }
 
     private fun absorb(view: InboxView, replace: Boolean) {
+        published = view.app
+        if (newBuild(view.app, BuildConfig.VERSION_CODE.toLong(), checked)) {
+            checked = view.app
+            store.scope.launch { runCatching { store.update.refresh() } }
+        }
         itemsFlow.value = if (replace) view.items else (itemsFlow.value + view.items).distinctBy { it.id }.takeLast(KEEP)
         readFlow.value = view.read
         last = view.last

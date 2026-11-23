@@ -221,8 +221,8 @@ class BridgeClient(private val baseUrl: () -> String, private val device: () -> 
         Http.post("${baseUrl()}/api/phone/audit", json.encodeToJsonElement(AuditReport(versionCode, checks)))
     }
 
-    suspend fun inbox(after: Long, waitSeconds: Int): InboxView =
-        json.decodeFromString(Http.get("${baseUrl()}/api/inbox?after=$after&wait=$waitSeconds", long = true))
+    suspend fun inbox(after: Long, waitSeconds: Int, app: Long? = null): InboxView =
+        json.decodeFromString(Http.get("${baseUrl()}/api/inbox?after=$after&wait=$waitSeconds" + (app?.let { "&app=$it" } ?: ""), long = true))
 
     suspend fun inboxRead(upTo: Long) { Http.post("${baseUrl()}/api/inbox/read", buildJsonObject { put("upTo", upTo) }) }
 
@@ -250,7 +250,7 @@ data class InboxItem(
 }
 
 @Serializable
-data class InboxView(val items: List<InboxItem> = emptyList(), val last: Long = 0, val read: Long = 0)
+data class InboxView(val items: List<InboxItem> = emptyList(), val last: Long = 0, val read: Long = 0, val app: Long = 0)
 
 @Serializable
 data class Psi(val some10: Double = 0.0, val some60: Double = 0.0, val full10: Double = 0.0, val full60: Double = 0.0)

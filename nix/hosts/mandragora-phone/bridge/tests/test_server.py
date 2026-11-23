@@ -522,6 +522,24 @@ def test_inbox_refuses_bad_posts_and_long_polls_until_something_arrives(bridge, 
     assert time.monotonic() - started < 4
 
 
+def test_inbox_long_poll_wakes_when_a_new_build_is_published(bridge, inbox, tmp_path, monkeypatch):
+    meta = tmp_path / "app.json"
+    monkeypatch.setattr(server, "APP_META", meta)
+    monkeypatch.setattr(server, "INBOX_SLICE", 0.1)
+    monkeypatch.setattr(server, "app_seen", {"mtime": None, "code": 0})
+    meta.write_text(json.dumps({"versionCode": 5}))
+    status, view = fetch(f"{bridge}/api/inbox?after=0")
+    assert (status, view["app"]) == (200, 5)
+    started = time.monotonic()
+    threading.Timer(0.3, lambda: meta.write_text(json.dumps({"versionCode": 6}))).start()
+    status, view = fetch(f"{bridge}/api/inbox?after=0&wait=5&app=5")
+    assert (status, view["app"], view["items"]) == (200, 6, [])
+    assert time.monotonic() - started < 3
+    started = time.monotonic()
+    status, view = fetch(f"{bridge}/api/inbox?after=0&wait=1&app=6")
+    assert view["app"] == 6 and time.monotonic() - started >= 0.9
+
+
 def test_watch_proxy_only_forwards_watchs_api(bridge):
     status, body = fetch(f"{bridge}/api/watch/admin/secrets")
     assert (status, body["error"]) == (400, "only watch's api is proxied")

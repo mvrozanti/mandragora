@@ -107,6 +107,7 @@ hub_cache: dict = {"at": 0.0, "payload": None, "refreshing": False}
 INBOX_FILE = STATE_DIR / "inbox.json"
 INBOX_KEEP = 300
 INBOX_WAIT_MAX = 50
+INBOX_SLICE = 2.0
 INBOX_LEVELS = ("info", "alert")
 inbox_cond = threading.Condition()
 inbox_data: dict = {"next": 1, "read": 0, "items": []}
@@ -190,22 +191,37 @@ def inbox_post(body: dict) -> dict:
     return {"id": item["id"]}
 
 
+app_seen: dict = {"mtime": None, "code": 0}
+
+
+def published_version() -> int:
+    try:
+        mtime = APP_META.stat().st_mtime_ns
+    except OSError:
+        return 0
+    if app_seen["mtime"] != mtime:
+        meta = load_json(str(APP_META), None)
+        app_seen.update(mtime=mtime, code=int(meta.get("versionCode") or 0) if isinstance(meta, dict) else 0)
+    return app_seen["code"]
+
+
 def inbox_view(after: int) -> dict:
     newer = [item for item in inbox_data["items"] if item["id"] > after]
-    return {"items": newer[-100:], "last": inbox_data["next"] - 1, "read": inbox_data["read"]}
+    return {"items": newer[-100:], "last": inbox_data["next"] - 1, "read": inbox_data["read"], "app": published_version()}
 
 
 def inbox_wait(query: dict) -> dict:
     after = int(query.get("after") or 0)
     wait = min(max(float(query.get("wait") or 0), 0.0), INBOX_WAIT_MAX)
+    known = str(query.get("app") or "")
     deadline = time.monotonic() + wait
     with inbox_cond:
         while True:
             view = inbox_view(after)
             remaining = deadline - time.monotonic()
-            if view["items"] or remaining <= 0:
+            if view["items"] or remaining <= 0 or (known.isdigit() and view["app"] != int(known)):
                 return view
-            inbox_cond.wait(remaining)
+            inbox_cond.wait(min(remaining, INBOX_SLICE))
 
 
 def inbox_read(body: dict) -> dict:

@@ -58,4 +58,4 @@ with open(tmp, "w", encoding="utf-8") as fh:
     json.dump(meta, fh)
 os.replace(tmp, os.path.join(slot, "app.json"))
 PY
-echo "phone-push: published $version_name ($version_code, $VARIANT) to $SLOT; the app offers it on its next check"
+echo "phone-push: published $version_name ($version_code, $VARIANT) to $SLOT; the app offers it within seconds"
