@@ -7,10 +7,8 @@
     <ID>ComplexCondition:Turns.kt$settled &amp;&amp; tail != null &amp;&amp; !answered &amp;&amp; chips.isEmpty()</ID>
     <ID>CyclomaticComplexMethod:Code.kt$@Composable fun CodeScreen(store: Store, onCollapse: () -&gt; Unit)</ID>
     <ID>CyclomaticComplexMethod:Code.kt$@Composable fun SessionsScreen(store: Store, onOpenSession: () -&gt; Unit, onCollapse: () -&gt; Unit)</ID>
-    <ID>CyclomaticComplexMethod:Code.kt$@Composable private fun CallsView(calls: ShownCalls)</ID>
     <ID>CyclomaticComplexMethod:Code.kt$@Composable private fun Composer( field: TextFieldValue, focus: FocusRequester, busy: Boolean, enabled: Boolean, attachments: List&lt;CodeStore.Attachment&gt;, uploading: Boolean, onChange: (TextFieldValue) -&gt; Unit, onSend: () -&gt; Unit, onStop: () -&gt; Unit, onPicture: () -&gt; Unit, onFile: () -&gt; Unit, onDetach: (String) -&gt; Unit, hearing: Boolean, onSpoken: (File?) -&gt; Unit, )</ID>
     <ID>CyclomaticComplexMethod:Code.kt$@Composable private fun EntryView( entry: CodeEntry, scheme: ColorScheme, stops: Stops, onEdit: (String) -&gt; Unit, onResend: (String) -&gt; Unit, parts: List&lt;CodePart&gt; = entry.parts, tail: Boolean = true, )</ID>
-    <ID>CyclomaticComplexMethod:Code.kt$@Composable private fun QuestionCard(ask: QuestionAsk, onAnswer: (List&lt;List&lt;String&gt;&gt;) -&gt; Unit, onReject: () -&gt; Unit)</ID>
     <ID>CyclomaticComplexMethod:Code.kt$@Composable private fun ToolLine(part: CodePart)</ID>
     <ID>CyclomaticComplexMethod:Code.kt$CodeClient$fun events(directory: String?): Flow&lt;CodeEvent&gt;</ID>
     <ID>CyclomaticComplexMethod:CodeStore.kt$CodeStore$private fun handle(event: CodeEvent)</ID>
@@ -18,8 +16,6 @@
     <ID>CyclomaticComplexMethod:HubStore.kt$fun hubView(feed: HubFeed, reachable: Boolean, fresh: Boolean): HubView</ID>
     <ID>CyclomaticComplexMethod:Markdown.kt$Markdown$private fun parse(lines: List&lt;String&gt;): List&lt;MdBlock&gt;</ID>
     <ID>CyclomaticComplexMethod:Meaning.kt$Meaning$private fun risk(line: String, spans: MutableList&lt;Span&gt;)</ID>
-    <ID>CyclomaticComplexMethod:Money.kt$@Composable fun MoneyCard(store: Store, onOpen: (String) -&gt; Unit)</ID>
-    <ID>CyclomaticComplexMethod:Money.kt$@Composable fun MoneyScreen(store: Store, onCollapse: () -&gt; Unit)</ID>
     <ID>CyclomaticComplexMethod:Money.kt$@Composable private fun FetchedLine(cache: MoneyCache?, reachable: Boolean, busy: Boolean, nowMs: Long)</ID>
     <ID>CyclomaticComplexMethod:Store.kt$Store$fun start()</ID>
     <ID>CyclomaticComplexMethod:Store.kt$Store$private suspend fun moveToPhone(h: PlayerHost)</ID>
@@ -43,10 +39,8 @@
     <ID>MaxLineLength:Chrome.kt$if (!reachable &amp;&amp; LocalChecking.current) Box(modifier = Modifier.size(8.dp).clip(CircleShape).border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)) else StatusDot(reachable)</ID>
     <ID>MaxLineLength:Code.kt$Icon(if (name.endsWith(".pdf", ignoreCase = true)) Icons.Filled.PictureAsPdf else Icons.Filled.Description, null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(18.dp))</ID>
     <ID>MaxLineLength:Code.kt$Text(name, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 220.dp))</ID>
-    <ID>MaxLineLength:Code.kt$else</ID>
     <ID>MaxLineLength:Code.kt$if (desk != null) Text("runs in a desktop terminal as $desk; changes go to that terminal, for this session only. Another kind of model restarts it with the conversation kept: claude and deepseek in a new desktop window, a local model in the background on the desktop", style = MaterialTheme.typography.bodySmall, color = scheme.outline)</ID>
     <ID>MaxLineLength:Code.kt$modifier = Modifier.align(Alignment.TopEnd).padding(3.dp).size(22.dp).clip(CircleShape).background(scheme.surface.copy(alpha = 0.8f)).clickable { onDetach(file.path) }</ID>
-    <ID>MaxLineLength:Code.kt$val newest = listOf(entries.size, pendingHere.size, questions.size, asks.size, if (busy) 1 else 0, entries.lastOrNull()?.parts?.size ?: 0, screens.firstOrNull()?.id.hashCode(), stops.chips.keys.hashCode())</ID>
     <ID>MaxLineLength:CodeStore.kt$CodeStore$projectsFlow.value = (answered.flatMap { it.projects } + projectsFlow.value.filter { it.backend in failed }).distinctBy { it.worktree }.sortedByDescending { it.time.updated }</ID>
     <ID>MaxLineLength:CodeStore.kt$CodeStore$store.appContext.contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c -&gt; if (c.moveToFirst()) c.getString(0) else null }</ID>
     <ID>MaxLineLength:Find.kt$Row</ID>
@@ -61,9 +55,6 @@
     <ID>MaxLineLength:Markdown.kt$modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(scheme.surfaceContainerLow).horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 8.dp)</ID>
     <ID>MaxLineLength:Meaning.kt$Meaning$private val action = Regex("(you need to|you'll need to|you should now|run the following|make sure to|don't forget to|before you \\w[^,]{0,60},|manually)", RegexOption.IGNORE_CASE)</ID>
     <ID>MaxLineLength:Meaning.kt$Meaning$private val riskCommands = listOf("rm -rf", "rm -fr", "sudo rm", "git reset --hard", "git push -f", "git push --force", "git clean -fd", "--force", "dd of=", "mkfs", "chmod -R 777", ":&gt;")</ID>
-    <ID>MaxLineLength:Money.kt$Text(entry.label, style = MaterialTheme.typography.labelMedium, color = scheme.outline, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(top = 1.dp))</ID>
-    <ID>MaxLineLength:Money.kt$Text(venue.label, style = MaterialTheme.typography.bodyLarge, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))</ID>
-    <ID>MaxLineLength:Money.kt$group.amount?.let { Text(shown(MoneyFormat.qty(it), hidden), style = MaterialTheme.typography.labelLarge, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis) }</ID>
     <ID>MaxLineLength:Music.kt$Icon(if (now.playing) Icons.Filled.Pause else Icons.Filled.PlayArrow, if (now.playing) "pause" else "play", tint = scheme.onPrimary, modifier = Modifier.size(28.dp))</ID>
     <ID>MaxLineLength:Music.kt$Text(now.artist ?: "", style = MaterialTheme.typography.bodyLarge, color = scheme.onSurfaceVariant, textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)</ID>
     <ID>MaxLineLength:Panic.kt$Label("${fmtBytes(m.available)} free of ${fmtBytes(m.total)} · swap ${fmtBytes(m.swapTotal - m.swapFree)} used of ${fmtBytes(m.swapTotal)}" + if (fresh) "" else " · last known")</ID>

@@ -376,3 +376,19 @@ def test_a_rewound_typed_prompt_stays_hidden(tmp_path):
         record("new", "a2", "user", "rewritten", "typed"),
     ]) + "\n")
     assert user_texts(app.transcript_entries("s", path, 0)) == ["first", "rewritten"]
+
+
+def test_slash_commands_keep_what_a_desk_session_can_run():
+    found = [
+        {"name": "devil", "description": "Explicit-only (/devil).\n  Attack it. (user)", "argumentHint": ""},
+        {"name": "compact", "description": "Free up context", "argumentHint": " <optional instructions> "},
+        {"name": "__remote-workflow", "description": "Run the workflow script (server-launched sessions only)"},
+        {"name": "workflow-launch-exec", "description": "Execute a handoff (workflow_launch event sessions only)"},
+        {"name": "devil", "description": "a second copy"},
+        {"name": "", "description": "nameless"},
+        "not a command",
+    ]
+    assert app.slash_commands(found) == [
+        {"name": "devil", "description": "Explicit-only (/devil). Attack it. (user)", "argumentHint": ""},
+        {"name": "compact", "description": "Free up context", "argumentHint": "<optional instructions>"},
+    ]

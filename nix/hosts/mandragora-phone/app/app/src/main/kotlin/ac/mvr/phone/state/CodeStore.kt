@@ -1,6 +1,7 @@
 package ac.mvr.phone.state
 
 import ac.mvr.phone.net.CodeAccess
+import ac.mvr.phone.net.CodeCommand
 import ac.mvr.phone.net.CodeClient
 import ac.mvr.phone.net.CodeEntry
 import ac.mvr.phone.net.CodeEvent
@@ -113,6 +114,28 @@ class CodeStore(private val store: Store) {
 
     private val freshFlow = MutableStateFlow(false)
     val fresh: StateFlow<Boolean> = freshFlow
+
+    private val commandsFlow = MutableStateFlow<List<CodeCommand>>(emptyList())
+    val commands: StateFlow<List<CodeCommand>> = commandsFlow
+    val lookingUpCommands = MutableStateFlow(false)
+    private val commandsKnown = HashMap<String, List<CodeCommand>>()
+    private var commandsKey: String? = null
+
+    suspend fun loadCommands(backend: String, dir: String?) {
+        val folder = dir ?: store.prefs.lastCodeDir ?: "/home/m"
+        val key = backend + "\n" + folder
+        commandsKey = key
+        commandsFlow.value = commandsKnown[key].orEmpty()
+        val client = client(backend) ?: return
+        lookingUpCommands.value = true
+        try {
+            val listed = attempt { client.commands(folder) }.getOrNull() ?: return
+            commandsKnown[key] = listed
+            if (commandsKey == key) commandsFlow.value = listed
+        } finally {
+            if (commandsKey == key) lookingUpCommands.value = false
+        }
+    }
 
     val draft = MutableStateFlow("")
     val replaced = MutableSharedFlow<String>(extraBufferCapacity = 4)

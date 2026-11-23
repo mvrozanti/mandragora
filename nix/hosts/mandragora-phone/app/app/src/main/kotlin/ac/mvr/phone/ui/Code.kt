@@ -10,6 +10,9 @@ import ac.mvr.phone.logic.Stops
 import ac.mvr.phone.logic.active
 import ac.mvr.phone.logic.inBackground
 import ac.mvr.phone.logic.said
+import ac.mvr.phone.logic.slashMatches
+import ac.mvr.phone.logic.slashPicked
+import ac.mvr.phone.logic.slashQuery
 import ac.mvr.phone.logic.replyPin
 import ac.mvr.phone.logic.squashCalls
 import ac.mvr.phone.logic.stoppedTurns
@@ -1099,6 +1102,11 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         }
     }
     val busy = current?.let { statuses[it.id]?.type == "busy" } ?: false
+    val commands by code.commands.collectAsStateWithLifecycle()
+    val lookingUpCommands by code.lookingUpCommands.collectAsStateWithLifecycle()
+    val slash = if (backend == "claude") slashQuery(field.text) else null
+    LaunchedEffect(backend, directory, slash != null) { if (slash != null) code.loadCommands(backend, directory) }
+    val slashOffers = remember(slash, commands) { slash?.let { slashMatches(it, commands) }.orEmpty() }
     val attachments by code.attachments.collectAsStateWithLifecycle()
     val uploading by code.uploading.collectAsStateWithLifecycle()
     val pendingAll by code.pending.collectAsStateWithLifecycle()
@@ -1185,6 +1193,11 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         }
         BackgroundLine(inBackground(current))
         Notice(store, Modifier.padding(horizontal = 14.dp))
+        if (slash != null) SlashMenu(slashOffers, lookingUpCommands) { picked ->
+            val text = slashPicked(picked)
+            field = TextFieldValue(text, TextRange(text.length))
+            code.draft.value = text
+        }
         Composer(
             field, focus, busy, reachable, attachments, uploading,
             onChange = { field = it; code.draft.value = it.text },

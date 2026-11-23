@@ -173,6 +173,9 @@ data class ScreenAsk(
 data class Pressed(val screen: ScreenAsk? = null)
 
 @Serializable
+data class CodeCommand(val name: String, val description: String = "", val argumentHint: String = "")
+
+@Serializable
 data class CodeProvider(val id: String, val name: String = id, val models: Map<String, JsonObject> = emptyMap())
 
 @Serializable
@@ -215,6 +218,9 @@ class CodeClient(val id: String, private val baseUrl: () -> String, private val 
 
     suspend fun status(directory: String): Map<String, CodeStatus> =
         json.decodeFromString(Http.get(url("/session/status", directory), headers()))
+
+    suspend fun commands(directory: String): List<CodeCommand> =
+        json.decodeFromString(Http.get(url("/command", directory), headers()))
 
     suspend fun providers(): CodeProviders = json.decodeFromString(Http.get(url("/provider"), headers()))
 

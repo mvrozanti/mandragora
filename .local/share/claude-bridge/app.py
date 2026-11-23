@@ -42,6 +42,7 @@ from claude_agent_sdk import (
     list_sessions,
     rename_session,
 )
+from claude_agent_sdk.types import SettingSource
 
 HOME = Path(os.environ.get("HOME", "/home/m"))
 HOST = os.environ.get("CLAUDE_BRIDGE_HOST", "0.0.0.0")
@@ -85,7 +86,7 @@ EFFORTS = ("low", "medium", "high", "xhigh", "max")
 CHOICES_FILE = HOME / ".local" / "state" / "claude-bridge" / "choices.json"
 CHOICES_KEPT = 400
 INPUT_KEYS = ("command", "description", "file_path", "pattern", "path", "url", "query")
-SETTING_SOURCES = ["user", "project", "local"]
+SETTING_SOURCES: list[SettingSource] = ["user", "project", "local"]
 SCREEN_OPTION = re.compile(r"^(\s*)(?:❯\s*)?(\d)\.\s+(.*?)\s*$")
 SCREEN_RULE = re.compile(r"^\s*[─━]{12,}\s*$")
 SCREEN_DASH = re.compile(r"^\s*[╌┄▔]{12,}\s*$")
@@ -115,6 +116,8 @@ DESK_FALLBACK_SESSION = os.environ.get("CLAUDE_BRIDGE_TMUX_SESSION", "claude")
 DESK_WINDOW = "#{session_name}:#{window_index} #{pane_id}"
 CLOSE_SECONDS = 6
 TAIL_REACH = (65536, 1048576)
+COMMANDS_TTL = 300
+COMMAND_ELSEWHERE = re.compile(r"sessions only\)\s*$")
 tail_models: dict[Path, tuple[tuple[int, int], str | None]] = {}
 
 PASSWORD = web.AppKey("password", object)
@@ -601,6 +604,8 @@ class Bridge:
         self.opening: dict[str, asyncio.Task] = {}
         self.typing: dict[str, asyncio.Lock] = {}
         self.deliveries: set[asyncio.Task] = set()
+        self.commands_cache: dict[str, tuple[float, list[dict]]] = {}
+        self.listing: dict[str, asyncio.Lock] = {}
 
     def live_sessions(self) -> dict[str, dict]:
         found: dict[str, dict] = {}
@@ -903,6 +908,20 @@ class Bridge:
         self.runs[sid] = run
         run.reader = asyncio.create_task(self.read(run))
         return run
+
+    async def commands(self, directory: str) -> list[dict]:
+        stamp, cached = self.commands_cache.get(directory, (0.0, []))
+        if cached and time.time() - stamp < COMMANDS_TTL:
+            return cached
+        async with self.listing.setdefault(directory, asyncio.Lock()):
+            stamp, cached = self.commands_cache.get(directory, (0.0, []))
+            if cached and time.time() - stamp < COMMANDS_TTL:
+                return cached
+            running = next((run.client for run in self.runs.values() if run.directory == directory and run.client is not None), None)
+            info = await (running.get_server_info() if running is not None else server_info(directory))
+            listed = slash_commands((info or {}).get("commands") or [])
+            self.commands_cache[directory] = (time.time(), listed)
+            return listed
 
     def open_on_desk(self, sid: str, directory: str, provider: str, model: str) -> asyncio.Task:
         task = self.opening.get(sid)
@@ -1310,6 +1329,36 @@ async def find(request: web.Request) -> web.Response:
         return web.json_response(await bridge_of(request).find(request.query.get("q") or "", limit))
     except (OSError, subprocess.SubprocessError) as err:
         return json_error(f"search failed: {str(err)[:160]}", 503)
+
+
+async def server_info(directory: str) -> dict | None:
+    options = ClaudeAgentOptions(cwd=directory, setting_sources=SETTING_SOURCES, cli_path=CLI_PATH)
+    async with ClaudeSDKClient(options) as client:
+        return await client.get_server_info()
+
+
+def slash_commands(found: list) -> list[dict]:
+    listed: dict[str, dict] = {}
+    for item in found:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or "").strip().lstrip("/")
+        description = " ".join(str(item.get("description") or "").split())
+        if not name or name.startswith("_") or name in listed or COMMAND_ELSEWHERE.search(description):
+            continue
+        listed[name] = {"name": name, "description": description, "argumentHint": str(item.get("argumentHint") or "").strip()}
+    return list(listed.values())
+
+
+async def commands(request: web.Request) -> web.Response:
+    directory = request.query.get("directory") or str(HOME)
+    if not await asyncio.to_thread(os.path.isdir, directory):
+        return json_error(f"{directory} is not a folder on the desktop", 400)
+    try:
+        listed = await bridge_of(request).commands(directory)
+    except Exception as err:
+        return json_error(f"could not list the commands: {str(err)[:200]}", 503)
+    return web.json_response(listed)
 
 
 def existing_dirs(paths: list) -> set[str]:
@@ -2316,6 +2365,7 @@ def make_app() -> web.Application:
     app.router.add_get("/project", projects)
     app.router.add_get("/session", sessions)
     app.router.add_get("/find", find)
+    app.router.add_get("/command", commands)
     app.router.add_post("/upload", upload)
     app.router.add_post("/session", create_session)
     app.router.add_get("/session/status", session_status)
