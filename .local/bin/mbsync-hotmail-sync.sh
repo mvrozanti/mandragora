@@ -3,11 +3,16 @@ set -u
 
 account="mvrozanti@hotmail.com"
 maildir_root="$HOME/.local/share/mail/$account"
+inbox_new_dir="$maildir_root/INBOX/new"
 rescue_root="$HOME/.local/share/mail/orphaned/$account"
 backoff_file="${XDG_RUNTIME_DIR:-/tmp}/mbsync-hotmail-backoff"
 base_delay=300
 max_delay=3600
 page_threshold=3
+
+list_unseen_inbox() {
+    { find "$inbox_new_dir" -maxdepth 1 -type f -printf '%f\n' 2>/dev/null || true; } | sort
+}
 
 retire_vanished_box() {
     local box="$1"
@@ -81,6 +86,7 @@ if [ "$now" -lt "$next_attempt" ]; then
     exit 1
 fi
 
+unseen_before=$(list_unseen_inbox)
 mbsync_status=0
 sync_output=$(mbsync mvrozanti@hotmail.com 2>&1) || mbsync_status=$?
 echo "$sync_output"
@@ -89,9 +95,8 @@ if [ "$mbsync_status" -eq 0 ]; then
     rm -f "$backoff_file"
     echo "mbsync result=success consecutive=0"
     mail-menu mark-synced || true
-    slave_count=$(grep 'Inbox' -A6 <<< "$sync_output" | grep -E '^slave' | cut -d',' -f1 | tr -cd '[:digit:]' || echo 0)
-    master_count=$(grep 'Inbox' -A6 <<< "$sync_output" | grep -E '^master' | cut -d',' -f1 | tr -cd '[:digit:]' || echo 0)
-    new_mail_count=$(( ${master_count:-0} - ${slave_count:-0} ))
+    new_mail_count=$(comm -13 <(printf '%s\n' "$unseen_before") <(list_unseen_inbox) | grep -c . || true)
+    echo "mbsync new_inbox_mail=$new_mail_count"
     if [ "$new_mail_count" -gt 0 ]; then
         notify-send "Mail" "You have $new_mail_count new email(s)." || true
     fi
