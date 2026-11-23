@@ -553,6 +553,7 @@ def take_lease(body: dict) -> dict:
                 "playing": bool(body.get("playing", now.get("playing", False))),
                 **song_tags(file, body, now or None, current),
                 "since": time.time(),
+                **({"device": body["device"]} if body.get("device") else {}),
             }
         else:
             playing = bool(body.get("playing", False))
@@ -604,6 +605,11 @@ def heartbeat(body: dict) -> dict:
             settled = desk_lease(now, lease)
             write_lease(settled)
             return settled
+        holder = lease.get("device")
+        if holder and body.get("device") != holder:
+            return lease
+        if body.get("device") and not holder:
+            lease["device"] = body["device"]
         previous = dict(lease)
         for key in ("file", "elapsed", "playing"):
             if key in body:

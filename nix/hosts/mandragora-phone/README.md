@@ -56,6 +56,13 @@ Exactly one device plays. `lease.owner` is `desk` or `phone`.
   queue), paused if the phone was paused.
 - `GET /api/lease` with the desk owning reads live mpd state; with the phone
   owning returns the last heartbeat.
+- The phone lease names the install that took it (`device`, a random id each
+  install keeps in its preferences). A heartbeat from any other install
+  changes nothing and gets the lease back, and an install that sees the lease
+  held elsewhere stops its own playback and shows the desk side. A lease
+  from before devices goes to the first install that beats with one. Without
+  this, an emulator a test left running claimed the lease too and overwrote
+  the phone's song every five seconds for twenty hours (2026-11-23).
 
 When the tailnet is down the app shows the last known desk state, freezes the
 desk controls, keeps local playback working, and offers "play here from the

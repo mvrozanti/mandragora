@@ -21,6 +21,7 @@ import ac.mvr.phone.net.BridgeConfig
 import ac.mvr.phone.net.DesktopMedia
 import ac.mvr.phone.net.Http
 import ac.mvr.phone.net.Lease
+import ac.mvr.phone.logic.heldElsewhere
 import ac.mvr.phone.logic.resumes
 import ac.mvr.phone.net.Lyrics
 import ac.mvr.phone.net.MediaState
@@ -104,7 +105,7 @@ class Store(private val app: Application) {
     fun desktopUrl(get: (Ports) -> Int, fallback: Int): String = "http://$desktopIp:${port(get, fallback)}"
     val bridgeUrl: String get() = desktopUrl({ it.bridge }, BuildConfig.BRIDGE_PORT)
 
-    val bridge = BridgeClient { bridgeUrl }
+    val bridge = BridgeClient({ bridgeUrl }, { prefs.deviceId })
     val mpd = MpdClient({ desktopIp }, { port({ it.mpd }, 6600) })
     val theme = ThemeClient { "http://$desktopIp:${port({ it.theme }, 6684)}" }
     val money = MoneyStore(this)
@@ -429,6 +430,10 @@ class Store(private val app: Application) {
 
     private suspend fun adopt(remote: Lease) {
         if (busy.value) return
+        if (heldElsewhere(remote, prefs.deviceId)) {
+            lease.value = remote.copy(owner = "desk")
+            return
+        }
         val h = host
         val lapsed = remote.owner == "desk" && lease.value.owner == "phone" && !remote.playing && h != null && h.localHasMedia()
         lease.value = if (lapsed) bridge.takeLease("phone", nowFile(), h!!.localPositionMs() / 1000.0, h.localIsPlaying()) else remote

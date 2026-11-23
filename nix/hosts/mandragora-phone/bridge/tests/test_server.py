@@ -265,6 +265,32 @@ def test_a_phone_lease_lapses_without_heartbeats(monkeypatch):
     assert not server.phone_lease_live({"owner": "phone", "heartbeat": 1000}, {"playing": True})
 
 
+def test_only_the_device_that_took_the_music_moves_the_lease(monkeypatch, tmp_path):
+    monkeypatch.setattr(server, "LEASE_FILE", tmp_path / "lease.json")
+    monkeypatch.setattr(server, "STATE_DIR", tmp_path)
+    monkeypatch.setattr(server, "mpd_now", lambda: {"file": "desk.mp3", "elapsed": 5.0, "playing": False})
+    monkeypatch.setattr(server, "safe_now", lambda: {"file": "desk.mp3", "elapsed": 5.0, "playing": False})
+    tags = {"title": "t", "artist": "a", "duration": 100.0}
+    taken = server.take_lease({"owner": "phone", "file": "mine.mp3", "elapsed": 1.0, "device": "phone-a", **tags})
+    assert taken["device"] == "phone-a"
+    stray = server.heartbeat({"file": "stray.mp3", "elapsed": 2504.8, "playing": False, "device": "emulator", **tags})
+    assert (stray["file"], stray["elapsed"]) == ("mine.mp3", 1.0)
+    assert server.heartbeat({"file": "old-build.mp3", "elapsed": 3.0, **tags})["file"] == "mine.mp3"
+    moved = server.heartbeat({"file": "next.mp3", "elapsed": 7.0, "playing": True, "device": "phone-a", **tags})
+    assert (moved["file"], moved["elapsed"], moved["device"]) == ("next.mp3", 7.0, "phone-a")
+    assert server.read_lease()["file"] == "next.mp3"
+
+
+def test_a_lease_from_before_devices_goes_to_the_first_device_that_beats(monkeypatch, tmp_path):
+    monkeypatch.setattr(server, "LEASE_FILE", tmp_path / "lease.json")
+    monkeypatch.setattr(server, "STATE_DIR", tmp_path)
+    monkeypatch.setattr(server, "safe_now", lambda: {"file": "desk.mp3", "elapsed": 5.0, "playing": False})
+    tags = {"title": "t", "artist": "a", "duration": 100.0}
+    server.write_lease({"owner": "phone", "file": "mine.mp3", "elapsed": 1.0, "playing": False, "since": 1.0})
+    assert server.heartbeat({"file": "mine.mp3", "elapsed": 2.0, "device": "phone-a", **tags})["device"] == "phone-a"
+    assert server.heartbeat({"file": "stray.mp3", "elapsed": 9.0, "device": "emulator", **tags})["file"] == "mine.mp3"
+
+
 def test_http_media_and_transcribe(bridge, playerctl, stt):
     playerctl(("firefox.instance_1_2", "Playing", "video", "", "https://youtu.be/x", "", "", ""))
     status, body = fetch(f"{bridge}/api/media")

@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONObject
+import java.util.UUID
 
 val CARDS = listOf("music", "inbox", "money", "hub", "code", "ask", "voice", "plugin", "watch", "panic", "gpu", "power")
 
@@ -101,6 +102,10 @@ class Prefs(context: Context) {
         val obj = JSONObject()
         next.forEach { (k, v) -> obj.put(k, v) }
         sp.edit().putString("hubClicks", obj.toString()).apply()
+    }
+
+    val deviceId: String by lazy {
+        sp.getString("deviceId", null) ?: UUID.randomUUID().toString().also { sp.edit().putString("deviceId", it).apply() }
     }
 
     var iconBucket: Int

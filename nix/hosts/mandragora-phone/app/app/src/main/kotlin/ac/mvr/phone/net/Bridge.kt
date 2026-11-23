@@ -81,6 +81,7 @@ data class Lease(
     val duration: Double? = null,
     val since: Double = 0.0,
     val heartbeat: Double? = null,
+    val device: String? = null,
 )
 
 @Serializable
@@ -112,7 +113,7 @@ data class AppBuild(
     val error: String? = null,
 )
 
-class BridgeClient(private val baseUrl: () -> String) {
+class BridgeClient(private val baseUrl: () -> String, private val device: () -> String) {
     suspend fun config(): BridgeConfig = json.decodeFromString(Http.get("${baseUrl()}/api/config"))
 
     suspend fun volume(): VolumeState = json.decodeFromString(Http.get("${baseUrl()}/api/volume"))
@@ -135,6 +136,7 @@ class BridgeClient(private val baseUrl: () -> String) {
     suspend fun takeLease(owner: String, file: String?, elapsed: Double?, playing: Boolean?): Lease {
         val body = buildJsonObject {
             put("owner", owner)
+            put("device", device())
             file?.let { put("file", it) }
             elapsed?.let { put("elapsed", it) }
             playing?.let { put("playing", it) }
@@ -152,6 +154,7 @@ class BridgeClient(private val baseUrl: () -> String) {
             }
             put("elapsed", elapsed)
             put("playing", playing)
+            put("device", device())
         }
         return json.decodeFromString(Http.post("${baseUrl()}/api/lease/position", body))
     }
