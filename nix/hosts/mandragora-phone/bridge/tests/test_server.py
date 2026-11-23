@@ -771,3 +771,57 @@ def test_only_the_phone_reports_on_itself(bridge, tmp_path, monkeypatch):
     status, body = post_json(f"{bridge}/api/phone/audit", {"checks": []})
     assert (status, body["error"]) == (403, "only the phone reports on itself")
     assert not (tmp_path / "phone-audit.json").exists()
+
+
+@pytest.fixture
+def desktop(tmp_path, monkeypatch):
+    proc = tmp_path / "proc"
+    proc.mkdir()
+    log = tmp_path / "notified"
+    script = tmp_path / "notify-send"
+    script.write_text(f'#!/bin/sh\nprintf "%s|" "$@" >> {log}\necho >> {log}\n')
+    script.chmod(0o755)
+    monkeypatch.setattr(server, "PROC_ROOT", proc)
+    monkeypatch.setattr(server, "NOTIFY_SEND", str(script))
+
+    def launch(pid: int, *argv: str) -> None:
+        (proc / str(pid)).mkdir()
+        (proc / str(pid) / "cmdline").write_bytes(b"\0".join(arg.encode() for arg in argv) + b"\0")
+
+    def shown() -> list[str]:
+        return log.read_text().splitlines() if log.exists() else []
+
+    return launch, shown
+
+
+def test_a_phone_notification_shows_on_the_desktop(desktop):
+    launch, shown = desktop
+    launch(10, "firefox", "-P", "default")
+    assert server.phone_notify({"package": "org.telegram.messenger", "app": "Telegram", "title": "ana", "text": "-oi"}) == {"shown": True}
+    assert shown() == ["--app-name|Telegram|--icon|phone|--|ana|-oi|"]
+
+
+def test_whatsapp_stays_on_the_phone_while_it_is_open_on_the_desktop(desktop):
+    launch, shown = desktop
+    note = {"package": "com.whatsapp", "app": "WhatsApp", "title": "ana", "text": "oi"}
+    assert server.phone_notify(note)["shown"] is True
+    launch(11, ".firefox-wrapped", "-P", "whatsapp", "--new-instance", "--url", "https://web.whatsapp.com")
+    assert server.phone_notify(note) == {"shown": False, "reason": "WhatsApp is open on the desktop"}
+    assert len(shown()) == 1
+
+
+def test_a_phone_notification_needs_a_package_and_words(desktop):
+    with pytest.raises(ValueError):
+        server.phone_notify({"package": "org.example", "title": " ", "text": ""})
+    with pytest.raises(ValueError):
+        server.phone_notify({"title": "ana", "text": "oi"})
+
+
+def test_only_the_phone_forwards_notifications(bridge, desktop, monkeypatch):
+    monkeypatch.setattr(server, "PHONE_MEDIA_PEERS", "100.64.0.9")
+    status, body = fetch(f"{bridge}/api/phone/notify", json.dumps({"package": "a.b", "title": "x"}).encode(), {"Content-Type": "application/json"})
+    assert status == 403
+    assert body["error"] == "only the phone forwards its notifications"
+    monkeypatch.setattr(server, "PHONE_MEDIA_PEERS", "127.0.0.1")
+    status, body = fetch(f"{bridge}/api/phone/notify", json.dumps({"package": "a.b", "title": "x"}).encode(), {"Content-Type": "application/json"})
+    assert (status, body) == (200, {"shown": True})

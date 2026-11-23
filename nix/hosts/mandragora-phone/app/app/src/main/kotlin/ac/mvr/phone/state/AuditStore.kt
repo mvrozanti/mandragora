@@ -3,6 +3,7 @@ package ac.mvr.phone.state
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,7 +12,9 @@ import android.os.Build
 import android.os.PowerManager
 import android.os.SystemClock
 import android.provider.Settings
+import androidx.core.app.NotificationManagerCompat
 import ac.mvr.phone.BuildConfig
+import ac.mvr.phone.inbox.NoteForwarder
 import ac.mvr.phone.logic.PhoneFacts
 import ac.mvr.phone.logic.hostChecks
 import ac.mvr.phone.net.HostCheck
@@ -51,8 +54,16 @@ class AuditStore(private val store: Store, private val app: Application) {
             allFiles = store.photos.refreshAllowed(),
             notifications = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
                 app.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED,
+            forwarding = app.packageName in NotificationManagerCompat.getEnabledListenerPackages(app),
             installs = pm.canRequestPackageInstalls(),
         )
+    }
+
+    private fun forwardSettings(): Intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS)
+            .putExtra(Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME, ComponentName(app, NoteForwarder::class.java).flattenToString())
+    } else {
+        Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
     }
 
     private fun installed(pm: PackageManager, pkg: String): Boolean = runCatching {
@@ -75,6 +86,7 @@ class AuditStore(private val store: Store, private val app: Application) {
             fix == "battery:self" -> Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$self"))
             fix.startsWith("battery:") -> Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${fix.removePrefix("battery:")}"))
             fix == "notifications" -> Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, self)
+            fix == "forward" -> forwardSettings()
             fix == "installs" -> Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$self"))
             else -> null
         }

@@ -58,6 +58,7 @@ in
       path = [
         pkgs.wireplumber
         pkgs.playerctl
+        pkgs.libnotify
         "/run/current-system/sw"
       ];
       environment = {

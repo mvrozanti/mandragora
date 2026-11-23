@@ -217,6 +217,15 @@ class BridgeClient(private val baseUrl: () -> String, private val device: () -> 
             put("name", resident.name)
         }))
 
+    suspend fun phoneNote(pkg: String, app: String, title: String, text: String) {
+        Http.post("${baseUrl()}/api/phone/notify", buildJsonObject {
+            put("package", pkg)
+            put("app", app)
+            put("title", title)
+            put("text", text)
+        })
+    }
+
     suspend fun reportAudit(versionCode: Int, checks: List<HostCheck>) {
         Http.post("${baseUrl()}/api/phone/audit", json.encodeToJsonElement(AuditReport(versionCode, checks)))
     }

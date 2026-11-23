@@ -91,7 +91,10 @@ PHONE_MEDIA_JOBS = ("thumbs", "pull", "remove")
 PHONE_MEDIA_PEERS = os.environ.get("PHONE_BRIDGE_MEDIA_PEERS")
 PHONE_MEDIA_PHONE_PATHS = ("/api/phone/media/index", "/api/phone/media/jobs", "/api/phone/media/thumb", "/api/phone/media/file", "/api/phone/media/report")
 PHONE_AUDIT_FILE = STATE_DIR / "phone-audit.json"
-PHONE_ONLY_POSTS = {"/api/power": "only the phone may power the desktop off", "/api/phone/audit": "only the phone reports on itself"}
+PHONE_ONLY_POSTS = {"/api/power": "only the phone may power the desktop off", "/api/phone/audit": "only the phone reports on itself", "/api/phone/notify": "only the phone forwards its notifications"}
+NOTIFY_SEND = os.environ.get("PHONE_BRIDGE_NOTIFY_SEND", "notify-send")
+PROC_ROOT = Path(os.environ.get("PHONE_BRIDGE_PROC", "/proc"))
+DESK_TWINS = {"com.whatsapp": "whatsapp", "com.whatsapp.w4b": "whatsapp"}
 
 SINK_LINE = re.compile(r"^\s*│\s*(?P<default>\*)?\s*(?P<id>\d+)\.\s+(?P<name>.+?)\s+\[vol:\s*(?P<vol>[\d.]+)(?P<muted>\s+MUTED)?\]\s*$")
 LRC_LINE = re.compile(r"^\[(\d+):(\d+(?:\.\d+)?)\](.*)$")
@@ -189,6 +192,34 @@ def inbox_post(body: dict) -> dict:
         inbox_cond.notify_all()
     print(f"inbox: #{item['id']} from {item['source']}: {item['title']}", flush=True)
     return {"id": item["id"]}
+
+
+def firefox_profile_running(profile: str) -> bool:
+    wanted = profile.encode()
+    for entry in PROC_ROOT.iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            argv = (entry / "cmdline").read_bytes().split(b"\0")
+        except OSError:
+            continue
+        if any(flag == b"-P" and value == wanted for flag, value in zip(argv, argv[1:], strict=False)):
+            return True
+    return False
+
+
+def phone_notify(body: dict) -> dict:
+    package = clipped(body, "package", 200)
+    title = clipped(body, "title", 200)
+    text = clipped(body, "text", 2000)
+    if not package or not (title or text):
+        raise ValueError("a notification needs a package and a title or a text")
+    app = clipped(body, "app", 80) or package
+    twin = DESK_TWINS.get(package)
+    if twin and firefox_profile_running(twin):
+        return {"shown": False, "reason": f"{app} is open on the desktop"}
+    run([NOTIFY_SEND, "--app-name", app, "--icon", "phone", "--", title or app, text or ""])
+    return {"shown": True}
 
 
 app_seen: dict = {"mtime": None, "code": 0}
@@ -1960,6 +1991,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(gpu_free(body))
             elif url.path == "/api/phone/audit":
                 self.send_json(phone_audit_store(body))
+            elif url.path == "/api/phone/notify":
+                self.send_json(phone_notify(body))
             elif url.path == "/api/power":
                 self.send_json(power(body))
             elif url.path == "/api/media":

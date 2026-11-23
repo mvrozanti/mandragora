@@ -12,6 +12,7 @@ data class PhoneFacts(
     val listening: Boolean,
     val allFiles: Boolean,
     val notifications: Boolean,
+    val forwarding: Boolean,
     val installs: Boolean,
 )
 
@@ -32,6 +33,15 @@ fun hostChecks(expected: List<ExpectedApp>, facts: PhoneFacts): List<HostCheck> 
         add(check("battery:self", "the inbox listener runs unrestricted", listener, "this app is battery optimised; desktop alerts stop while the phone sleeps", "battery:self"))
         add(check("notifications", "this app may notify", facts.notifications, "notifications are off for this app; desktop alerts arrive silently", "notifications"))
     }
+    add(
+        check(
+            "forward",
+            "the desktop shows this phone's notifications",
+            facts.forwarding,
+            "notification access is off for this app; this phone's notifications no longer reach the desktop",
+            "forward",
+        ),
+    )
     add(check("all-files", "the app reaches photos, videos and music", facts.allFiles, "all files access is off; the photo drain and the music copy have stopped", "all-files"))
     add(check("installs", "updates install in place", facts.installs, "this app may not install updates; the update line cannot finish", "installs"))
 }

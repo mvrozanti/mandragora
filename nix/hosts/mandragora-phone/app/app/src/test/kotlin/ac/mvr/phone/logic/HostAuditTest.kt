@@ -18,6 +18,7 @@ class HostAuditTest {
         listening = true,
         allFiles = true,
         notifications = true,
+        forwarding = true,
         installs = true,
     )
 
@@ -25,7 +26,7 @@ class HostAuditTest {
     fun aHealthyPhonePassesEveryCheckAndSaysNothing() {
         val checks = hostChecks(apps, healthy)
         assertEquals(
-            listOf("battery:$TAILSCALE_PACKAGE", "battery:self", "notifications", "all-files", "installs"),
+            listOf("battery:$TAILSCALE_PACKAGE", "battery:self", "notifications", "forward", "all-files", "installs"),
             checks.map { it.id },
         )
         assertEquals(emptyList<String>(), failing(checks).map { it.id })
@@ -53,8 +54,8 @@ class HostAuditTest {
     fun theListenerChecksAppearOnlyWhileListening() {
         val quiet = hostChecks(apps, healthy.copy(listening = false, unrestricted = setOf(TAILSCALE_PACKAGE), notifications = false))
         assertEquals(emptyList<String>(), failing(quiet).map { it.id })
-        val loud = hostChecks(apps, healthy.copy(unrestricted = setOf(TAILSCALE_PACKAGE), notifications = false, allFiles = false, installs = false))
-        assertEquals(listOf("battery:self", "notifications", "all-files", "installs"), failing(loud).map { it.id })
-        assertEquals("4 things this phone needs are off", auditLine(loud))
+        val loud = hostChecks(apps, healthy.copy(unrestricted = setOf(TAILSCALE_PACKAGE), notifications = false, forwarding = false, allFiles = false, installs = false))
+        assertEquals(listOf("battery:self", "notifications", "forward", "all-files", "installs"), failing(loud).map { it.id })
+        assertEquals("5 things this phone needs are off", auditLine(loud))
     }
 }
