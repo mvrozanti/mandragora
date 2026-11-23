@@ -76,6 +76,13 @@ MIN_BODY_LINES = 3
 NOTE_RECENT_DAYS = 14
 CHUNK_CHARS = 60000
 REVIEW_TIMEOUT = 240
+MENTION_MIN_CHARS = 3
+AUTOLINK_OFF = {"off", "false", "no", "never"}
+UNMENTIONED_CATEGORIES = {"atlas"}
+LINK_SUBJECT = "docs(vault): link notes to the notes they name"
+UNLINKABLE_SPAN = re.compile(r"```.*?```|`[^`\n]*`|\[\[[^\n]*?\]\]|!?\[[^\]\n]*\]\([^)\n]*\)|<[^>\n]*>|\w+://\S+|^[ \t]*[#|][^\n]*", re.S | re.M)
+H1 = re.compile(r"^# (.+?)[ \t]*$", re.M)
+ALIASES = re.compile(r"^aliases:[ \t]*(.*)$((?:\n[ \t]+-[^\n]*)*)", re.M)
 
 REVIEW_PROMPT = """You review text that is about to be published on a public website indexed by search engines: additions to a personal engineering knowledge vault. The owner is the person behind the public handle "mvrozanti" and the domain mvr.ac; that handle, that domain and its subdomains may appear freely.
 
@@ -245,6 +252,17 @@ def frontmatter(text):
     return keys
 
 
+def aliases(text):
+    if frontmatter(text) is None:
+        return []
+    m = ALIASES.search(text[4:text.find("\n---", 4)])
+    if not m:
+        return []
+    inline = m.group(1).strip()
+    items = inline.strip("[]").split(",") if inline else [line.strip()[1:] for line in m.group(2).splitlines() if line.strip()]
+    return [i.strip().strip("'\"") for i in items if i.strip().strip("'\"")]
+
+
 def body(text):
     if frontmatter(text) is None:
         return text
@@ -406,6 +424,112 @@ def notes_linking(path):
     return hits
 
 
+class Mentions:
+    def __init__(self):
+        self.notes = {}
+        for p in walk_vault():
+            if p.lower().endswith(".md"):
+                with open(os.path.join(VAULT, p), encoding="utf-8", errors="replace") as f:
+                    self.notes[p] = f.read()
+        self.forms = {}
+        for p in self.notes:
+            for form in link_forms(p):
+                self.forms.setdefault(form, set()).add(p)
+        named = {}
+        for p, text in self.notes.items():
+            parts = p.split("/")
+            if len(parts) != 2 or parts[0] in UNMENTIONED_CATEGORIES:
+                continue
+            if (frontmatter(text) or {}).get("autolink", "").lower() in AUTOLINK_OFF:
+                continue
+            heading = H1.search(body(text))
+            for name in {parts[1][:-3].strip(), heading.group(1).strip() if heading else "", *aliases(text)}:
+                if len(name) >= MENTION_MIN_CHARS:
+                    named.setdefault(name.lower(), set()).add(p)
+        self.names = {n: next(iter(ps)) for n, ps in named.items() if len(ps) == 1}
+        alternatives = "|".join(re.escape(n) for n in sorted(self.names, key=len, reverse=True))
+        self.pattern = re.compile(r"(?<![\w.@/-])(?:" + alternatives + r")(?![\w@-]|\.\w|/\w)", re.I) if self.names else None
+        self.adjacent = {}
+        for p, text in self.notes.items():
+            for target in links(text):
+                q = self.resolve(target)
+                if q and q != p:
+                    self.connect(p, q)
+
+    def resolve(self, target):
+        key = target.strip().lower()
+        hits = self.forms.get(key) or self.forms.get(key[:-3] if key.endswith(".md") else key) or set()
+        return next(iter(hits)) if len(hits) == 1 else None
+
+    def connect(self, a, b):
+        self.adjacent.setdefault(a, set()).add(b)
+        self.adjacent.setdefault(b, set()).add(a)
+
+    def link(self, path):
+        text = self.notes.get(path)
+        if text is None or self.pattern is None:
+            return []
+        start = len(text) - len(body(text))
+        protected = [(m.start(), m.end()) for m in UNLINKABLE_SPAN.finditer(text, start)]
+        out, cursor, i, titles = [], 0, 0, []
+        for m in self.pattern.finditer(text, start):
+            while i < len(protected) and protected[i][1] <= m.start():
+                i += 1
+            if i < len(protected) and protected[i][0] < m.end():
+                continue
+            target = self.names[m.group(0).lower()]
+            if target == path or target in self.adjacent.get(path, ()):
+                continue
+            self.connect(path, target)
+            title = os.path.basename(target)[:-3]
+            titles.append(title)
+            out += [text[cursor:m.start()], f"[[{title}]]" if m.group(0) == title else f"[[{title}|{m.group(0)}]]"]
+            cursor = m.end()
+        if titles:
+            self.notes[path] = "".join(out) + text[cursor:]
+        return titles
+
+    def save(self, path):
+        with open(os.path.join(VAULT, path), "w", encoding="utf-8") as f:
+            f.write(self.notes[path])
+
+
+def dirty_paths():
+    return {p for c in parse_porcelain(git("status", "--porcelain=v1", "-z", "--untracked-files=all")) for p in (c.path, c.old) if p}
+
+
+def link_mentions(paths=None):
+    m = Mentions()
+    if paths is None:
+        dirty = dirty_paths()
+        paths = sorted(p for p in m.notes if p not in dirty)
+    linked = {}
+    for p in paths:
+        titles = m.link(p)
+        if titles:
+            m.save(p)
+            linked[p] = titles
+    return linked
+
+
+def report_links(linked):
+    for p, titles in linked.items():
+        print(f"linked {p}: " + ", ".join(f"[[{t}]]" for t in titles))
+
+
+def link_committed_notes():
+    linked = link_mentions()
+    if not linked:
+        return
+    try:
+        sha = commit_paths(sorted(linked), LINK_SUBJECT)
+    except Fail as e:
+        git_run(["checkout", "HEAD", "--", *linked], VAULT)
+        print(f"notes left unlinked; the commit failed: {e}", file=sys.stderr)
+        return
+    print(f"linked {sum(map(len, linked.values()))} mention(s) in {len(linked)} note(s) to the notes they name ({sha[:8]})")
+
+
 def check_rename(c, stems, problems):
     check_new_name(c, stems, problems)
     left = notes_linking(c.old)
@@ -454,7 +578,7 @@ def check_agent(c, old, new, stems, names, problems):
                          f"restore it (git -C {quoted(VAULT)} checkout HEAD -- {quoted(c.path)}) and change only the lines that are wrong or missing")
         if len(added) > GROWTH_MAX_LINES:
             problems.add(c.path, f"{len(added)} lines added in one go", "keep the reasoning, link to the code instead of pasting it")
-    for email in sorted({m for line in added for m in EMAIL.findall(line)}):
+    for email in sorted({m for line in added for m in EMAIL.findall(line)} - set(EMAIL.findall(old or ""))):
         if not EMAIL_ALLOWED.match(email):
             problems.add(c.path, f"contains an email address ({email.split('@')[0][:2]}***@{email.split('@')[1]})", "remove it")
     check_addresses(c.path, added, problems, old)
@@ -739,21 +863,36 @@ def notify(summary, text):
         subprocess.run(["notify-send", "-a", "mandragora-vault", "-u", "critical", summary, text], capture_output=True)
 
 
+def unlinked(line):
+    return FULL_LINK.sub(lambda m: m.group(1).split("|", 1)[-1], line)
+
+
 def review_blocks(base, head):
     diff = git("diff", "--unified=0", "--no-color", base, head, "--", "*.md")
     blocks = []
     current = None
     lines = []
+    removed = set()
+
+    def flush():
+        fresh = [line for line in lines if unlinked(line) not in removed]
+        if current and fresh:
+            blocks.append((current, fresh))
+
+    header = False
     for line in diff.splitlines():
-        if line.startswith("+++ "):
-            if current and lines:
-                blocks.append((current, lines))
-            current = line[6:] if line.startswith("+++ b/") else None
-            lines = []
+        if line.startswith("diff --git "):
+            flush()
+            current, lines, removed, header = None, [], set(), True
+        elif header:
+            if line.startswith("+++ "):
+                current = line[6:].rstrip("\t") if line.startswith("+++ b/") else None
+            header = not line.startswith("@@")
         elif line.startswith("+") and current:
             lines.append(line[1:])
-    if current and lines:
-        blocks.append((current, lines))
+        elif line.startswith("-"):
+            removed.add(unlinked(line[1:]))
+    flush()
     return blocks
 
 
@@ -987,8 +1126,16 @@ def cmd_check(a):
     return 0
 
 
+def cmd_link(a):
+    linked = link_mentions([rel(p) for p in a.paths] or None)
+    report_links(linked)
+    print(f"{sum(map(len, linked.values()))} mention(s) linked in {len(linked)} note(s); commit them with: mandragora-vault commit")
+    return 0
+
+
 def cmd_commit(a):
     paths = [rel(p) for p in a.paths]
+    report_links(link_mentions([p for p in paths if p.lower().endswith(".md")]))
     changes = worktree_changes(paths)
     touched = {c.path for c in changes} | {c.old for c in changes if c.old}
     idle = [p for p in paths if p not in touched]
@@ -1157,7 +1304,6 @@ def cmd_publish(a):
 
 
 def publish(a):
-    head = git("rev-parse", "HEAD").strip()
     pub = (git_maybe("rev-parse", "--verify", "-q", PUBLISHED) or "").strip()
     if a.init:
         if pub:
@@ -1166,6 +1312,8 @@ def publish(a):
         git("update-ref", PUBLISHED, target, "")
         print(f"published ref set to {target[:8]}")
         return 0
+    link_committed_notes()
+    head = git("rev-parse", "HEAD").strip()
     if not pub:
         raise Fail("no published ref yet; a human runs once: mandragora-vault publish --init <vault commit that is live>")
     if pub == head:
@@ -1228,7 +1376,10 @@ def main():
     p.add_argument("paths", nargs="*")
     p.add_argument("--staged", action="store_true")
     p.set_defaults(fn=cmd_check)
-    p = sub.add_parser("commit", help="check and commit exactly these notes")
+    p = sub.add_parser("link", help="link every note a note names but does not link yet (default: all committed notes)")
+    p.add_argument("paths", nargs="*")
+    p.set_defaults(fn=cmd_link)
+    p = sub.add_parser("commit", help="link, check and commit exactly these notes")
     p.add_argument("-m", "--message", required=True)
     p.add_argument("paths", nargs="+")
     p.set_defaults(fn=cmd_commit)

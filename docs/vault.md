@@ -40,7 +40,9 @@ switch makes the commit for you).
    Link other notes with `[[Their Title]]`. Describe machines and
    devices, never identify them: "the phone", "the VPS's tailnet
    address", not a model number, a personal hostname or an address.
-5. Commit the note (only the paths you name are committed):
+5. Commit the note (only the paths you name are committed). `commit`
+   first links every note the text names but does not link yet (see
+   "Linking" below), so writing "the VPS runs Caddy" is enough:
 
    ```
    mandragora-vault commit -m "<what the note now explains>" "<note path>"
@@ -91,14 +93,42 @@ own pre-commit hook that applies the same checks to a raw `git commit`.
   cannot link, and notes left uncommitted. Those wait for the session
   that wrote them: nobody else commits another author's note.
 
+## Linking
+
+A note that names another note is connected to it. `mandragora-vault`
+turns the first plain mention of each note's title, H1 or alias into a
+`[[link]]` (skipping headings, tables, code, URLs and existing links),
+unless the two notes are already linked in either direction:
+
+- `commit` links the notes it commits;
+- `publish` links every note with no uncommitted changes and commits
+  that as `docs(vault): link notes to the notes they name`, so notes
+  written in Obsidian or by a raw `git commit`, and mentions of a title
+  that did not exist when the note was written, are linked before they
+  reach demo.mvr.ac;
+- `mandragora-vault link [paths]` does the same by hand, without
+  committing.
+
+Two frontmatter keys steer it, on the note being linked *to*:
+
+| Key | Effect |
+|---|---|
+| `aliases: [VPS]` | prose saying "VPS" links `[[mandragora-vps\|VPS]]`; how a host the rules say to describe ("the VPS") still gets its edges |
+| `autolink: off` | the title is a common word (`file`, `tree`, `thought`); never link it from prose |
+
+Nested notes (a `/` in a legacy title) and `atlas/` maps are never link
+targets, and a name two notes share is skipped as ambiguous.
+
 ## Publishing
 
 An agent-run `mandragora-switch` ends with `mandragora-vault publish`:
 
-1. It takes the vault commits since `refs/heads/published` (what is live).
+1. It links unlinked mentions in committed notes (above), then takes
+   the vault commits since `refs/heads/published` (what is live).
 2. Deterministic checks: secrets, deletions, and notes that lost over a
    quarter of their lines since the last publish.
-3. Haiku reads every added line for private material: credentials,
+3. Haiku reads every added line for private material (a line whose
+   only change is new `[[links]]` around existing words is skipped): credentials,
    other people's personal data, SSIDs, addresses, employer
    specifics, the home connection, device models, personal hostnames,
    tailnet and LAN host addresses, financial identifiers.
