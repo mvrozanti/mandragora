@@ -14,7 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.Edit
@@ -28,10 +28,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +37,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
 internal enum class Lead(val icon: ImageVector?, val on: Boolean) {
@@ -99,23 +97,22 @@ private fun Pill(text: String) {
 }
 
 @Composable
-internal fun OwnAnswer(onSend: (String) -> Unit) {
+internal fun OwnAnswer(said: TextFieldValue, clearable: Boolean, onChange: (TextFieldValue) -> Unit, onOk: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    var said by remember { mutableStateOf("") }
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
-    val ready = said.isNotBlank()
+    val ready = said.text.isNotBlank() || clearable
     OutlinedTextField(
         value = said,
-        onValueChange = { said = it },
+        onValueChange = onChange,
         modifier = Modifier.fillMaxWidth().focusRequester(focus),
-        placeholder = { Text("your answer", color = scheme.outline) },
+        placeholder = { Text(if (clearable) "leave empty to drop it" else "your answer", color = scheme.outline) },
         shape = RoundedCornerShape(14.dp),
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-        keyboardActions = KeyboardActions(onSend = { if (ready) onSend(said.trim()) }),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { if (ready) onOk() }),
         trailingIcon = {
-            IconButton(onClick = { onSend(said.trim()) }, enabled = ready) {
-                Icon(Icons.AutoMirrored.Filled.Send, "send", tint = if (ready) scheme.primary else scheme.outline)
+            IconButton(onClick = onOk, enabled = ready) {
+                Icon(Icons.Filled.Check, "ok", tint = if (ready) scheme.primary else scheme.outline)
             }
         },
         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = scheme.primary, unfocusedBorderColor = scheme.outlineVariant),

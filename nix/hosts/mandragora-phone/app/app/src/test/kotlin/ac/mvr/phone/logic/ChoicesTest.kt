@@ -39,4 +39,18 @@ class ChoicesTest {
         assertEquals(listOf("a", "b"), toggled(listOf("a"), "b", multiple = true))
         assertEquals(listOf("a"), toggled(listOf("a", "b"), "b", multiple = true))
     }
+
+    @Test
+    fun theReviewSubmitsWithItsSubmitOption() {
+        assertEquals("1", submitKey(listOf("1" to "Submit answers", "2" to "Cancel")))
+        assertEquals("2", submitKey(listOf("1" to "Cancel", "2" to "submit")))
+        assertEquals("1", submitKey(listOf("1" to "Send", "2" to "Cancel")))
+        assertNull(submitKey(emptyList()))
+    }
+
+    @Test
+    fun reopeningAnOwnAnswerShowsWhatTheDesktopHoldsElseWhatWasTyped() {
+        assertEquals("rats", ownAnswerSeed("rats", "mice"))
+        assertEquals("mice", ownAnswerSeed("", "mice"))
+    }
 }

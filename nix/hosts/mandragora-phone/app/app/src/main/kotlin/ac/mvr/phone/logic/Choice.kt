@@ -21,6 +21,11 @@ fun nextLabel(step: Int, count: Int): String? = when {
     else -> "next"
 }
 
+fun submitKey(options: List<Pair<String, String>>): String? =
+    options.firstOrNull { (_, label) -> label.startsWith("submit", ignoreCase = true) }?.first ?: options.firstOrNull()?.first
+
+fun ownAnswerSeed(shown: String, typed: String): String = shown.ifEmpty { typed }
+
 fun toggled(now: List<String>, label: String, multiple: Boolean): List<String> = when {
     !multiple -> listOf(label)
     label in now -> now - label

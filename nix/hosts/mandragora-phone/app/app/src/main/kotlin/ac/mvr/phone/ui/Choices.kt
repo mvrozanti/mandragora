@@ -2,6 +2,8 @@ package ac.mvr.phone.ui
 
 import ac.mvr.phone.logic.choiceOf
 import ac.mvr.phone.logic.nextLabel
+import ac.mvr.phone.logic.ownAnswerSeed
+import ac.mvr.phone.logic.submitKey
 import ac.mvr.phone.logic.stepLabel
 import ac.mvr.phone.logic.toggled
 import ac.mvr.phone.net.QuestionAsk
@@ -36,6 +38,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -99,6 +103,7 @@ private fun Context(text: String, code: Boolean) {
 
 private fun leadOf(option: ScreenOption): Lead = when {
     option.checked == true -> Lead.CHECKED
+    option.picked -> Lead.PICKED
     option.text -> Lead.WRITE
     option.checked == false -> Lead.UNCHECKED
     else -> Lead.NONE
@@ -123,6 +128,7 @@ private fun ScreenActions(ask: ScreenAsk, onPress: (String, String?) -> Unit) {
             }
             nextLabel(ask.step, ask.steps.size)?.let { Forward(it) { onPress("next", null) } }
         }
+        if (ask.review) submitKey(ask.options.filterNot { it.aside }.map { it.key to it.label })?.let { key -> Forward("submit") { onPress(key, null) } }
     }
 }
 
@@ -141,18 +147,29 @@ private fun Heading(ask: ScreenAsk) {
 @Composable
 fun ScreenCard(ask: ScreenAsk, onPress: (String, String?) -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    var typing by remember(ask.id) { mutableStateOf<String?>(null) }
+    var typing by remember(ask.sessionID, ask.title) { mutableStateOf<String?>(null) }
+    var said by remember(ask.sessionID, ask.title) { mutableStateOf(TextFieldValue("")) }
     ChoiceCard {
         if (ask.steps.isNotEmpty()) Steps(ask.steps, ask.step)
         ask.plan?.let { MarkdownText(it, scheme) }
         Heading(ask)
-        ask.options.filterNot { it.aside }.forEach { option ->
+        if (!ask.review) ask.options.filterNot { it.aside }.forEach { option ->
             if (typing == option.key) {
-                OwnAnswer { onPress(option.key, it) }
+                OwnAnswer(said, clearable = ask.multiple && option.value.isNotEmpty(), onChange = { said = it }) {
+                    typing = null
+                    onPress(option.key, said.text.trim())
+                }
             } else {
                 val choice = choiceOf(option.label)
-                ChoiceRow(choice.label, option.detail, leadOf(option), choice.recommended) {
-                    if (option.text) typing = option.key else onPress(option.key, null)
+                val detail = if (option.text && option.value.isNotEmpty()) "your own answer · tap to change it" else option.detail
+                ChoiceRow(choice.label, detail, leadOf(option), choice.recommended) {
+                    if (!option.text) {
+                        onPress(option.key, null)
+                    } else {
+                        val seed = ownAnswerSeed(option.value, said.text)
+                        said = TextFieldValue(seed, TextRange(seed.length))
+                        typing = option.key
+                    }
                 }
             }
         }

@@ -97,6 +97,9 @@ SCREEN_TAB = re.compile(r"^([☐☒✔])\s+(.+)$")
 SCREEN_BOX = re.compile(r"^\[([ ✔])\]\s+(.*)$")
 SCREEN_ASIDE = re.compile(r"^chat about this$", re.I)
 SCREEN_REVIEW = "Review your answers"
+SCREEN_SUBMIT = re.compile(r"^\s*(❯)?\s*(?:Submit|Next)\s*$")
+SCREEN_PICKED = re.compile(r"\s+✔$")
+SCREEN_STEP_SECONDS = 0.15
 SCREEN_KEYS = {"escape": "Escape", "next": "Right", "previous": "Left"}
 SCREEN_EDGE = re.compile(r"^\s*[─━]{12,}")
 SCREEN_EFFORT = re.compile(r"[○◐●◉◈]\s+(low|medium|high|xhigh|max) · /effort")
@@ -1740,11 +1743,14 @@ async def press_screen(request: web.Request) -> web.Response:
             return json_error("that option is gone", 409)
     elif key not in SCREEN_KEYS:
         return json_error("unknown key", 400)
+    steps = screen_keys(current, key, said)
+    if steps is None:
+        return json_error("the desktop's cursor is not on that question's choices; answer it there", 409)
     try:
         pane = await asyncio.to_thread(pane_of, int(live["pid"]))
         if pane is None:
             return json_error("that session runs outside tmux; answer it there", 409)
-        await asyncio.to_thread(press_into, pane, key, said)
+        await asyncio.to_thread(press_into, pane, steps)
     except (RuntimeError, OSError, subprocess.SubprocessError, ValueError) as err:
         return json_error(f"could not reach the desktop terminal: {str(err)[:120]}", 503)
     await asyncio.sleep(0.7)
@@ -2090,17 +2096,14 @@ def tune_desk(pane: str, provider: str, changes: dict) -> None:
         pick_on_desk(pane, provider, changes.get("model"), changes.get("effort"), "effort" in changes)
 
 
-def press_into(pane: str, key: str, said: str | None) -> None:
-    if not key.isdigit():
-        tmux("send-keys", "-t", pane, SCREEN_KEYS[key])
-        return
-    tmux("send-keys", "-t", pane, key)
-    words = " ".join((said or "").split())
-    if words:
-        time.sleep(0.2)
-        tmux("send-keys", "-t", pane, "-l", "--", words)
-        time.sleep(0.2)
-        tmux("send-keys", "-t", pane, "Enter")
+def press_into(pane: str, steps: list[tuple[str, str]]) -> None:
+    for n, (kind, value) in enumerate(steps):
+        if n:
+            time.sleep(SCREEN_STEP_SECONDS)
+        if kind == "text":
+            tmux("send-keys", "-t", pane, "-l", "--", value)
+        else:
+            tmux("send-keys", "-t", pane, value)
 
 
 def parse_screen(screen: str) -> dict | None:
@@ -2117,27 +2120,35 @@ def parse_screen(screen: str) -> dict | None:
     if len(chosen) < 2:
         return None
     options = []
+    below = False
     for n, (i, match) in enumerate(chosen):
         end = chosen[n + 1][0] if n + 1 < len(chosen) else len(lines)
         column = match.start(2)
         detail = []
         for line in lines[i + 1:end]:
             stripped = line.strip()
-            if not stripped or SCREEN_RULE.match(line) or SCREEN_DASH.match(line) or stripped == "Submit":
+            submit = SCREEN_SUBMIT.match(line)
+            if submit:
+                below = below or submit.group(1) is not None
+                continue
+            if not stripped or SCREEN_RULE.match(line) or SCREEN_DASH.match(line):
                 continue
             if SCREEN_FOOTER.search(line) or len(line) - len(line.lstrip()) <= column:
                 break
             detail.append(stripped)
-        label = match.group(3)
-        box = SCREEN_BOX.match(label)
+        raw = match.group(3)
+        box = SCREEN_BOX.match(raw)
+        label = box.group(2) if box else raw
         options.append({
             "key": match.group(2),
-            "label": box.group(2) if box else label,
+            "label": SCREEN_PICKED.sub("", label),
             "detail": " ".join(detail),
-            "text": bool(SCREEN_TEXT.search(label)),
+            "text": bool(SCREEN_TEXT.search(raw)),
+            "value": "",
             "current": "❯" in lines[i][:column],
             "checked": (box.group(1) != " ") if box else None,
-            "aside": bool(SCREEN_ASIDE.match(label)),
+            "picked": bool(SCREEN_PICKED.search(label)),
+            "aside": bool(SCREEN_ASIDE.match(raw)),
         })
     top = chosen[0][0]
     start = next((k + 1 for k in range(top - 1, -1, -1) if SCREEN_RULE.match(lines[k])), 0)
@@ -2150,6 +2161,9 @@ def parse_screen(screen: str) -> dict | None:
     body = re.sub(r"\n{3,}", "\n\n", body)
     prose = ["" if SCREEN_DASH.match(line) else line for line in region[-60:] if not SCREEN_TABS.match(line)]
     title, context = screen_title(textwrap.dedent("\n".join(prose)).strip())
+    review = title == SCREEN_REVIEW
+    if bar is not None and not review:
+        own_answer(options)
     return {
         "body": body,
         "question": textwrap.dedent("\n".join(question)).strip(),
@@ -2158,7 +2172,70 @@ def parse_screen(screen: str) -> dict | None:
         "options": options,
         "tabs": bar is not None,
         "steps": screen_steps(bar) if bar else [],
+        "review": review,
+        "multiple": any(option["checked"] is not None for option in options),
+        "below": below,
     }
+
+
+def own_answer(options: list[dict]) -> None:
+    listed = [option for option in options if not option["aside"]]
+    if not listed or listed[-1]["detail"]:
+        return
+    last = listed[-1]
+    last["text"] = True
+    if not SCREEN_TEXT.search(last["label"]):
+        last["value"] = last["label"]
+
+
+def cursor_row(screen: dict, listed: list[dict]) -> int | None:
+    found = next((n for n, option in enumerate(listed) if option.get("current")), None)
+    if found is not None:
+        return found
+    rows = len(listed) + (1 if screen.get("multiple") else 0)
+    if screen.get("below"):
+        return len(listed)
+    asides = [option for option in screen.get("options") or [] if option.get("aside")]
+    return next((rows + n for n, option in enumerate(asides) if option.get("current")), None)
+
+
+def screen_keys(screen: dict, key: str, said: str | None) -> list[tuple[str, str]] | None:
+    if key == "escape":
+        return [("key", SCREEN_KEYS[key])]
+    words = " ".join((said or "").split())
+    if not screen.get("tabs"):
+        if not key.isdigit():
+            return [("key", SCREEN_KEYS[key])]
+        return [("key", key)] + ([("text", words), ("key", "Enter")] if words else [])
+    options = screen.get("options") or []
+    listed = [option for option in options if not option.get("aside")]
+    multiple = bool(screen.get("multiple"))
+    steps: list[tuple[str, str]] = []
+    at = cursor_row(screen, listed)
+    while at is not None and at > 0 and (at >= len(listed) or listed[at].get("text")):
+        steps.append(("key", "Up"))
+        at -= 1
+    if not key.isdigit():
+        return steps + [("key", SCREEN_KEYS[key])]
+    target = next((n for n, option in enumerate(listed) if option["key"] == key), None)
+    option = listed[target] if target is not None else next((o for o in options if o["key"] == key), None)
+    if said is None or option is None or not option.get("text"):
+        return steps + [("key", key)]
+    if target is not None and at is not None:
+        steps += [("key", "Down" if target > at else "Up")] * abs(target - at)
+    elif not multiple and not option.get("value"):
+        steps.append(("key", key))
+    else:
+        return None
+    if option.get("value"):
+        steps += [("key", "C-e"), ("key", "C-u")]
+    if words:
+        steps.append(("text", words))
+    if multiple:
+        steps.append(("key", "Up"))
+    elif words:
+        steps.append(("key", "Enter"))
+    return steps
 
 
 def screen_title(prose: str) -> tuple[str, str]:
@@ -2259,6 +2336,9 @@ def screen_payload(sid: str, live: dict, previous: dict | None) -> dict | None:
         "tabs": parsed["tabs"],
         "steps": parsed["steps"],
         "step": screen_step(parsed, pending),
+        "review": parsed.get("review", False),
+        "multiple": parsed.get("multiple", False),
+        "below": parsed.get("below", False),
     }
 
 

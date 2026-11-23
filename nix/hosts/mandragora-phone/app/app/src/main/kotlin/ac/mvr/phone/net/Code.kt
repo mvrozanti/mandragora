@@ -149,6 +149,8 @@ data class ScreenOption(
     val current: Boolean = false,
     val checked: Boolean? = null,
     val aside: Boolean = false,
+    val value: String = "",
+    val picked: Boolean = false,
 )
 
 @Serializable
@@ -167,6 +169,8 @@ data class ScreenAsk(
     val context: String = "",
     val steps: List<ScreenStep> = emptyList(),
     val step: Int = -1,
+    val review: Boolean = false,
+    val multiple: Boolean = false,
 )
 
 @Serializable

@@ -392,3 +392,91 @@ def test_slash_commands_keep_what_a_desk_session_can_run():
         {"name": "devil", "description": "Explicit-only (/devil). Attack it. (user)", "argumentHint": ""},
         {"name": "compact", "description": "Free up context", "argumentHint": "<optional instructions>"},
     ]
+
+
+PETS_TYPED = """──────────────────────────────────────────────────────────────
+←  ☒ Pets  ☐ Food  ✔ Submit  →
+Which pets do you like?
+  1. [✔] Cats
+         Cats as pets
+  2. [ ] Dogs
+         Dogs as pets
+❯ 3. [✔] rats
+     Next
+──────────────────────────────────────────────────────────────
+  4. Chat about this
+Enter to select · Tab/Arrow keys to navigate · ctrl+g to edit in Nvim · Esc to cancel
+"""
+
+PETS_ON_NEXT = PETS_TYPED.replace("❯ 3. [✔] rats", "  3. [✔] rats").replace("     Next", "❯    Next")
+
+FOOD_PICKED = """──────────────────────────────────────────────────────────────
+←  ☒ Pets  ☒ Food  ✔ Submit  →
+Which food?
+❯ 1. Pizza
+     Pizza
+  2. Sushi
+     Sushi
+  3. tacos ✔
+──────────────────────────────────────────────────────────────
+  4. Chat about this
+Enter to select · Tab/Arrow keys to navigate · Esc to cancel
+"""
+
+FOOD_OPEN = FOOD_PICKED.replace("  3. tacos ✔", "  3. Type something.")
+
+
+def test_the_typed_answer_row_is_found_after_something_was_typed():
+    parsed = parsed_screen(PETS_TYPED)
+    rats = parsed["options"][2]
+    assert (rats["label"], rats["text"], rats["value"], rats["checked"], rats["detail"]) == ("rats", True, "rats", True, "")
+    assert parsed["multiple"] and not parsed["below"] and not parsed["review"]
+    assert parsed_screen(PETS_ON_NEXT)["below"]
+    assert parsed_screen(CHECKBOXES)["options"][2]["value"] == ""
+
+
+def test_a_picked_single_answer_loses_its_tick_and_says_it_was_picked():
+    tacos = parsed_screen(FOOD_PICKED)["options"][2]
+    assert (tacos["label"], tacos["picked"], tacos["text"], tacos["value"]) == ("tacos", True, True, "tacos")
+    assert not parsed_screen(FOOD_PICKED)["multiple"]
+
+
+def test_the_review_is_flagged_and_has_no_typed_answer():
+    parsed = parsed_screen(ANSWERED)
+    assert parsed["review"]
+    assert not any(option["text"] for option in parsed["options"])
+
+
+def test_a_digit_in_a_text_row_would_be_typed_so_the_cursor_leaves_it_first():
+    parsed = parsed_screen(PETS_TYPED)
+    assert app.screen_keys(parsed, "2", None) == [("key", "Up"), ("key", "2")]
+    assert app.screen_keys(parsed, "next", None) == [("key", "Up"), ("key", "Right")]
+    assert app.screen_keys(parsed_screen(PETS_ON_NEXT), "previous", None) == [("key", "Up"), ("key", "Up"), ("key", "Left")]
+    assert app.screen_keys(parsed, "escape", None) == [("key", "Escape")]
+
+
+def test_a_multiple_choice_answer_is_typed_in_its_row_without_enter():
+    parsed = parsed_screen(PETS_TYPED.replace("❯ 3. [✔] rats", "  3. [✔] rats").replace("  1. [✔] Cats", "❯ 1. [✔] Cats"))
+    assert app.screen_keys(parsed, "3", " mice  ") == [
+        ("key", "Down"), ("key", "Down"), ("key", "C-e"), ("key", "C-u"), ("text", "mice"), ("key", "Up"),
+    ]
+    assert app.screen_keys(parsed, "3", "") == [("key", "Down"), ("key", "Down"), ("key", "C-e"), ("key", "C-u"), ("key", "Up")]
+
+
+def test_a_single_choice_answer_is_reached_by_arrows_once_it_holds_text():
+    assert app.screen_keys(parsed_screen(FOOD_PICKED), "3", "burritos") == [
+        ("key", "Down"), ("key", "Down"), ("key", "C-e"), ("key", "C-u"), ("text", "burritos"), ("key", "Enter"),
+    ]
+    assert app.screen_keys(parsed_screen(FOOD_OPEN), "3", "tacos") == [("key", "Down"), ("key", "Down"), ("text", "tacos"), ("key", "Enter")]
+
+
+def test_a_typed_answer_is_refused_when_the_cursor_cannot_be_placed():
+    lost = parsed_screen(FOOD_PICKED.replace("❯ 1. Pizza", "  1. Pizza"))
+    assert app.screen_keys(lost, "3", "burritos") is None
+    assert app.screen_keys(parsed_screen(FOOD_OPEN.replace("❯ 1. Pizza", "  1. Pizza")), "3", "tacos") == [("key", "3"), ("text", "tacos"), ("key", "Enter")]
+
+
+def test_a_permission_dialog_keeps_its_old_keys():
+    parsed = parsed_screen(PERMISSION)
+    assert app.screen_keys(parsed, "3", "use trash instead") == [("key", "3"), ("text", "use trash instead"), ("key", "Enter")]
+    assert app.screen_keys(parsed, "1", None) == [("key", "1")]
