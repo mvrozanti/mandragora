@@ -51,6 +51,17 @@ class HostAuditTest {
     }
 
     @Test
+    fun missingNotificationAccessSaysHowToUngreyTheSwitch() {
+        val checks = hostChecks(apps, healthy.copy(forwarding = false))
+        val bad = failing(checks).single()
+        assertEquals("forward", bad.fix)
+        assertEquals(
+            "notification access is off; phone notifications no longer reach the desktop (a grey switch: app info, ⋮, Allow restricted settings)",
+            auditLine(checks),
+        )
+    }
+
+    @Test
     fun theListenerChecksAppearOnlyWhileListening() {
         val quiet = hostChecks(apps, healthy.copy(listening = false, unrestricted = setOf(TAILSCALE_PACKAGE), notifications = false))
         assertEquals(emptyList<String>(), failing(quiet).map { it.id })

@@ -38,7 +38,8 @@ fun hostChecks(expected: List<ExpectedApp>, facts: PhoneFacts): List<HostCheck> 
             "forward",
             "the desktop shows this phone's notifications",
             facts.forwarding,
-            "notification access is off for this app; this phone's notifications no longer reach the desktop",
+            "notification access is off; phone notifications no longer reach the desktop " +
+                "(a grey switch: app info, ⋮, Allow restricted settings)",
             "forward",
         ),
     )
