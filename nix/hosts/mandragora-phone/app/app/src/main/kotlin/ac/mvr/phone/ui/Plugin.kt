@@ -24,18 +24,14 @@ private const val UNNAMED = "plugin"
 @Composable
 fun PluginCard(store: Store, onOpen: (String) -> Unit) {
     val manifest by store.plugin.manifest.collectAsStateWithLifecycle()
-    val sessions by store.code.sessions.collectAsStateWithLifecycle()
-    val folder = manifest?.chat?.directory
-    val latest = sessions.filter { it.directory == folder && it.parentID == null }.maxByOrNull { it.time.updated }
-    val said = latest?.snippet?.ifBlank { null } ?: latest?.title?.ifBlank { null }
     val subtitle = manifest?.subtitle?.ifBlank { null } ?: if (manifest == null) "waiting for the desktop" else "idle"
     HomeCard {
         CardHeader(manifest?.title ?: UNNAMED, subtitle) { onOpen("plugin") }
         Text(
-            said ?: "open the conversation",
+            "open the conversation",
             style = MaterialTheme.typography.bodyMedium,
-            color = if (said == null) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface,
-            maxLines = 2,
+            color = MaterialTheme.colorScheme.outline,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
     }

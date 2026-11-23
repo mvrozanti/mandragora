@@ -14,6 +14,7 @@ import ac.mvr.phone.net.CodeStatus
 import ac.mvr.phone.net.CodeTime
 import ac.mvr.phone.net.ScreenAsk
 import ac.mvr.phone.net.SessionSettings
+import ac.mvr.phone.logic.privateFolder
 import ac.mvr.phone.logic.withBackground
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.buildJsonObject
@@ -265,9 +266,11 @@ class CodeStore(private val store: Store) {
         })
     }
 
+    private fun hidden(directory: String): Boolean = privateFolder(directory, store.prefs.pluginFolder)
+
     suspend fun find(query: String): List<CodeSession> {
         val client = client("claude") ?: throw IOException("desktop unreachable")
-        return client.find(query, 80)
+        return client.find(query, 80).filterNot { hidden(it.directory) }
     }
 
     suspend fun watchList() {
@@ -328,7 +331,7 @@ class CodeStore(private val store: Store) {
     private val listed = HashMap<String, Set<String>>()
 
     private suspend fun listing(client: CodeClient): Listing = coroutineScope {
-        val projects = client.projects().sortedByDescending { it.time.updated }
+        val projects = client.projects().filterNot { hidden(it.worktree) }.sortedByDescending { it.time.updated }
         val perProject = projects.take(6).map { project ->
             async {
                 val key = client.id + "\n" + project.worktree
@@ -361,7 +364,8 @@ class CodeStore(private val store: Store) {
             val keptSessions = sessionsFlow.value.filter { it.backend in failed }
             val keptStatus = keptSessions.mapNotNull { s -> statusFlow.value[s.id]?.let { s.id to it } }.toMap()
             projectsFlow.value = (answered.flatMap { it.projects } + projectsFlow.value.filter { it.backend in failed }).distinctBy { it.worktree }.sortedByDescending { it.time.updated }
-            sessionsFlow.value = ordered((answered.flatMap { it.sessions } + keptSessions).filter { it.parentID == null }.distinctBy { it.backend + it.id })
+            val visible = (answered.flatMap { it.sessions } + keptSessions).filter { it.parentID == null && !hidden(it.directory) }
+            sessionsFlow.value = ordered(visible.distinctBy { it.backend + it.id })
             statusFlow.value = keptStatus + answered.flatMap { it.statuses.entries }.associate { it.key to it.value }
             currentFlow.value?.let { cur -> sessionsFlow.value.firstOrNull { it.id == cur.id && it.backend == cur.backend }?.let { currentFlow.value = it } }
             freshFlow.value = true
@@ -474,8 +478,10 @@ class CodeStore(private val store: Store) {
     fun open(session: CodeSession) {
         currentFlow.value = session
         newIn.value = null
-        store.prefs.lastCodeSession = session.id
-        store.prefs.lastCodeDir = session.directory
+        if (!hidden(session.directory)) {
+            store.prefs.lastCodeSession = session.id
+            store.prefs.lastCodeDir = session.directory
+        }
         if (modelFlow.value?.backend != session.backend) choices().firstOrNull { it.backend == session.backend }?.let { modelFlow.value = it }
         entriesFlow.value = emptyList()
         asksFlow.value = emptyList()
@@ -528,7 +534,7 @@ class CodeStore(private val store: Store) {
         settingsFlow.value = SessionSettings()
         parseModel(store.prefs.codeModel)?.let { saved -> choices().firstOrNull { it == saved }?.let { modelFlow.value = it } }
         newIn.value = dir
-        store.prefs.lastCodeDir = dir
+        if (!hidden(dir)) store.prefs.lastCodeDir = dir
     }
 
     suspend fun openIn(backend: String, directory: String) {

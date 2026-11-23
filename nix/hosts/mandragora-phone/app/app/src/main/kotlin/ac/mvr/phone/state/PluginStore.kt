@@ -13,7 +13,10 @@ class PluginStore(private val store: Store) {
 
     suspend fun refresh() = loadManifest()
 
-    suspend fun loadManifest(): PluginManifest = readable { client.manifest() }.also { manifestFlow.value = it }
+    suspend fun loadManifest(): PluginManifest = readable { client.manifest() }.also {
+        manifestFlow.value = it
+        store.prefs.pluginFolder = it.chat?.directory
+    }
 
     suspend fun enter(): Boolean {
         val chat = loadManifest().chat ?: return false

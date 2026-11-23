@@ -58,6 +58,10 @@ class Prefs(context: Context) {
         get() = sp.getLong("inboxNotified", -1L)
         set(value) = sp.edit().putLong("inboxNotified", value).apply()
 
+    var pluginFolder: String?
+        get() = sp.getString("pluginFolder", null)
+        set(value) = putIfChanged("pluginFolder", value)
+
     var voiceHistory: String?
         get() = sp.getString("voiceHistory", null)
         set(value) = putIfChanged("voiceHistory", value)

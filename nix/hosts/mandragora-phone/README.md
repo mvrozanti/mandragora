@@ -367,7 +367,11 @@ is only a door: it reads the manifest, opens the newest Claude Code
 session in the folder the manifest names, or a new one there, and hands
 over to the code screen. Everything after that is a code chat: model and
 effort pickers, slash commands (the service ships its own), questions,
-permissions, attachments.
+permissions, attachments. The folder stays the plugin's: its sessions never
+show on the code card, in the sessions screen or its search, or in the
+new-session folder list, and opening one does not become the code screen's
+"last session" (the app remembers the folder from the last manifest, so this
+holds before the manifest loads too).
 
 | Tap | Does | Lands |
 |---|---|---|
