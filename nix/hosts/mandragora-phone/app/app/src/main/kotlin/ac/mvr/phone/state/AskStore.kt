@@ -7,6 +7,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -30,6 +31,7 @@ class AskStore(private val store: Store) {
 
     suspend fun follow() {
         while (currentCoroutineContext().isActive) {
+            store.foreground.first { it }
             if (runCatching { pull(45) }.isFailure) delay(3_000)
         }
     }

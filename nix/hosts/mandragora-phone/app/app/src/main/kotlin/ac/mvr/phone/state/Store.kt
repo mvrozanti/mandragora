@@ -10,6 +10,7 @@ import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.PowerManager
 import android.os.SystemClock
 import ac.mvr.phone.BuildConfig
 import ac.mvr.phone.media.MIRROR_BUDGET_MS
@@ -21,7 +22,12 @@ import ac.mvr.phone.net.BridgeConfig
 import ac.mvr.phone.net.DesktopMedia
 import ac.mvr.phone.net.Http
 import ac.mvr.phone.net.Lease
+import ac.mvr.phone.logic.HEARTBEAT_MS
+import ac.mvr.phone.logic.configWaitMs
 import ac.mvr.phone.logic.heldElsewhere
+import ac.mvr.phone.logic.mediaPolls
+import ac.mvr.phone.logic.mediaWaitMs
+import ac.mvr.phone.logic.mpdIdleSeconds
 import ac.mvr.phone.logic.resumes
 import ac.mvr.phone.net.Lyrics
 import ac.mvr.phone.net.MediaState
@@ -257,9 +263,11 @@ class Store(private val app: Application) {
 
     fun start() {
         scope.launch {
-            while (isActive) {
-                if (foreground.value || lease.value.owner == "phone") tick.value = SystemClock.elapsedRealtime()
-                delay(500)
+            combine(foreground, lease) { fg, current -> fg || current.owner == "phone" }.distinctUntilChanged().collectLatest { ticking ->
+                while (ticking) {
+                    tick.value = SystemClock.elapsedRealtime()
+                    delay(500)
+                }
             }
         }
         scope.launch { loopConfig() }
@@ -269,6 +277,7 @@ class Store(private val app: Application) {
                 if (fg) {
                     if (!reachable.value) checking.value = true
                     recheck.tryEmit(Unit)
+                    mpd.wake()
                 }
             }
         }
@@ -295,12 +304,14 @@ class Store(private val app: Application) {
         scope.launch { loopWhileForeground(30_000) { ask.refresh() } }
         scope.launch { loopWhileForeground(30_000) { plugin.refresh() } }
         scope.launch {
-            while (isActive) {
-                if (lease.value.owner == "phone") host?.let { h ->
-                    localPositionMs.value = h.localPositionMs()
-                    localDurationMs.value = h.localDurationMs()
+            lease.map { it.owner == "phone" }.distinctUntilChanged().collectLatest { mine ->
+                while (mine) {
+                    host?.let { h ->
+                        localPositionMs.value = h.localPositionMs()
+                        localDurationMs.value = h.localDurationMs()
+                    }
+                    delay(500)
                 }
-                delay(500)
             }
         }
         scope.launch {
@@ -384,12 +395,7 @@ class Store(private val app: Application) {
             vpnOff.value = !ok && !vpnActive()
             misses = if (ok) 0 else misses + 1
             checking.value = !ok && misses < 3 && !vpnOff.value
-            val wait = when {
-                ok -> 30_000L
-                misses < 3 -> 1_000L
-                else -> 5_000L
-            }
-            withTimeoutOrNull(wait) { recheck.first() }
+            withTimeoutOrNull(configWaitMs(ok, misses, foreground.value)) { recheck.first() }
         }
     }
 
@@ -397,7 +403,7 @@ class Store(private val app: Application) {
         while (scope.isActive) {
             try {
                 refreshMpd()
-                mpd.idle(50)
+                mpd.idle(mpdIdleSeconds(foreground.value))
             } catch (err: Exception) {
                 mpdReachable.value = false
                 delay(5_000)
@@ -408,15 +414,17 @@ class Store(private val app: Application) {
     private suspend fun loopMedia() {
         var misses = 0
         while (scope.isActive) {
-            if (foreground.value || host != null) {
+            val polls = mediaPolls(foreground.value, host != null, screenOn())
+            if (polls) {
                 val ok = runCatching { refreshMedia() }.isSuccess
                 misses = if (ok) 0 else misses + 1
                 if (misses >= 3 && media.value.isNotEmpty()) media.value = emptyList()
             }
-            val wait = if (foreground.value || media.value.isNotEmpty()) 5_000L else 15_000L
-            withTimeoutOrNull(wait) { mediaPoke.first() }
+            withTimeoutOrNull(mediaWaitMs(foreground.value, polls)) { mediaPoke.first() }
         }
     }
+
+    private fun screenOn(): Boolean = app.getSystemService(PowerManager::class.java)?.isInteractive ?: true
 
     private suspend fun loopHeartbeat() {
         while (scope.isActive && lease.value.owner == "phone") {
@@ -424,7 +432,7 @@ class Store(private val app: Application) {
             if (h != null && !busy.value) runCatching {
                 adopt(bridge.heartbeat(nowSong(), phonePositionMs(h) / 1000.0, h.localIsPlaying()))
             }
-            delay(5_000)
+            delay(HEARTBEAT_MS)
         }
     }
 

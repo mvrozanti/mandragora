@@ -38,6 +38,7 @@ import ac.mvr.phone.net.Watcher
 import ac.mvr.phone.state.Store
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import java.time.Instant
 
 private val SECTIONS = listOf(
@@ -171,6 +172,7 @@ fun WatchScreen(store: Store, onCollapse: () -> Unit) {
     var draft by rememberSaveable { mutableStateOf("") }
     LaunchedEffect(Unit) {
         while (true) {
+            store.foreground.first { it }
             runCatching { store.watch.refresh() }
             delay(15_000)
         }

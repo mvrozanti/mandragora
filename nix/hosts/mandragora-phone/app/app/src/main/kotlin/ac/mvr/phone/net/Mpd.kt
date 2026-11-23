@@ -120,9 +120,20 @@ class MpdClient(private val host: () -> String, private val port: () -> Int) {
 
     suspend fun library(): List<MpdSong> = splitSongs(command("search ${quote("(any contains '')")} sort -Last-Modified"))
 
+    @Volatile private var idling: Socket? = null
+
+    @Volatile private var woken = false
+
+    fun wake() {
+        woken = true
+        idling?.let { runCatching { it.close() } }
+    }
+
     suspend fun idle(timeoutSeconds: Int = 60): List<String> = withContext(Dispatchers.IO) {
+        woken = false
         try {
             Connection(host(), port()).use { conn ->
+                idling = conn.socket
                 conn.socket.soTimeout = (timeoutSeconds + 5) * 1000
                 val worker = Thread {
                     try {
@@ -143,7 +154,10 @@ class MpdClient(private val host: () -> String, private val port: () -> Int) {
                 changed
             }
         } catch (err: IOException) {
+            if (woken) return@withContext emptyList()
             throw Unreachable("mpd unreachable", err)
+        } finally {
+            idling = null
         }
     }
 

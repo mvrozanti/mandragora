@@ -46,8 +46,9 @@ Exactly one device plays. `lease.owner` is `desk` or `phone`.
 
 - `POST /api/lease {"owner":"phone"}`: mpd pauses, the current file and second
   are recorded, the phone plays its synced copy from that second.
-- `POST /api/lease/position {...}` every few seconds while the phone plays, and
-  on pause: the desktop always knows where the phone is. The body names the
+- `POST /api/lease/position {...}` every 15 s while the phone holds the
+  lease, and on pause: the desktop always knows where the phone is. A phone
+  lease with no heartbeat for 60 s lapses back to the desk. The body names the
   song (file, title, artist, duration), not only the file; a heartbeat that
   changes the file without them makes the bridge read the tags from mpd's
   database, so the lease never describes one song with another's name.
@@ -406,15 +407,30 @@ that tab and the volume keys on the desktop's volume. It stays there paused,
 so the video can be resumed, until music plays again or the tab goes away.
 Starting either one from the phone pauses the other. When both play anyway,
 because one was started at the desk, a second media notification shows the
-video beside the music. The app asks the desk every 5 s while a desktop
-player exists, every 15 s otherwise and again the moment the screen turns
-on, from the music player's own foreground service. The only other thing that
-runs in the background is the inbox listener (settings, "listen in the
-background"): a second foreground service with a quiet notification of its
+video beside the music. The app asks the desk every 5 s while it is open;
+in the background, from the music player's own foreground service, every
+15 s while the screen is on and again the moment it turns on, and not at all
+while the screen is off. The inbox listener (settings, "listen in the
+background") is a second foreground service with a quiet notification of its
 own, started again after a reboot or an update, that holds one long poll to
 the bridge and turns new items into notifications. Alerts reach the phone
 only over the tailnet; while it is off they queue on the desktop and land on
 reconnect.
+
+The listener keeps the app's process alive, so everything else the app
+does on a timer runs in the background too unless it is told not to, and
+every request wakes the phone's radio. On 2026-11-23 the bridge's log showed
+about 800 requests an hour from a phone nobody was using, all night: the
+desk's players every 7 s, the config every 40 s, the inbox poll, and the
+lease heartbeat every 6 s while the phone held the music. Away from the
+screen the app now asks for the desk's players only while the screen is on,
+reads the config every 10 min instead of 30 s (and at once on coming back),
+renews mpd's idle connection every 290 s instead of 50 (mpd keeps an idle
+client past its own 60 s timeout, and coming back to the front ends the
+wait at once), sends the lease heartbeat every 15 s, and the ask, voice and
+watch screens stop polling until the app is back. What still runs: the
+inbox poll (45 s), the heartbeat while the phone holds the lease, the photo
+job every 15 min and the music copy hourly on wifi.
 
 Not now: ytdl client, sync status, a share target for anything but audio and video, deleting or forking sessions from the phone (the bridge already answers those). They get a card and a table
 here when they come.

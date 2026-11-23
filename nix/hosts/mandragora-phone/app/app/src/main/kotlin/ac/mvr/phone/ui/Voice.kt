@@ -51,6 +51,7 @@ import ac.mvr.phone.state.Transcript
 import ac.mvr.phone.state.VoicePhase
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import java.util.Locale
 
 private fun statusLine(status: SttStatus?): String {
@@ -209,6 +210,7 @@ fun VoiceScreen(store: Store, onCollapse: () -> Unit) {
     val pick = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> uri?.let { store.voice.transcribeShared(it) } }
     LaunchedEffect(Unit) {
         while (true) {
+            store.foreground.first { it }
             runCatching { store.voice.refresh() }
             delay(10_000)
         }
