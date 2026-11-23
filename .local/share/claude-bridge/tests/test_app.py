@@ -118,6 +118,17 @@ def test_a_footer_hidden_by_a_dialog_says_nothing():
     assert app.desk_background([str(line) for line in PERMISSION.splitlines()]) is None
 
 
+def test_a_named_session_is_ready_once_its_prompt_is_empty(monkeypatch):
+    rule = "─" * 60
+    screen = ["● done", "", rule + " decidir-srm-vs-act-ambev ─", "❯ ", rule, "  [Opus 5.5] │ m"]
+    monkeypatch.setattr(app, "pane_lines", lambda pane: screen)
+    assert app.desk_ready("%1")
+    screen[2] = rule
+    assert app.desk_ready("%1")
+    screen[3] = "  thinking"
+    assert not app.desk_ready("%1")
+
+
 def test_desk_command_starts_or_resumes_with_the_chosen_settings():
     fresh = app.desk_command("s1", "claude", "opus", {"mode": "default", "effort": "high"}, fresh=True)
     assert fresh == ["claude", "--session-id", "s1", "--permission-mode", "manual", "--model", "opus", "--effort", "high"]
