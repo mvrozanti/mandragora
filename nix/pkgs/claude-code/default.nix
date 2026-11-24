@@ -12,15 +12,15 @@ let
   archMap = {
     "x86_64-linux" = {
       npmArch = "linux-x64";
-      hash = "sha256-1YqoO6AhDXXzD/r+z9AIdGbJyJsGksW8A5Bi9PLybM4=";
+      hash = "sha256-106Q47+nQ/j42pJ2PUd+/4rd/LuO1KNMH2Vs3GWeMAU=";
     };
     "aarch64-linux" = {
       npmArch = "linux-arm64";
-      hash = "sha256-OeDdcmREsi1qTaOEFoSgVUXoILR0ODWFa93NELxCxEs=";
+      hash = "sha256-SGMZupsBA8G6URWupCoxxKWJU6i4cyLFunV0a9CxY7c=";
     };
     "aarch64-darwin" = {
       npmArch = "darwin-arm64";
-      hash = "sha256-OUe93XSCVQWp2kZ1BXUWe3eCLkyjjWrp1wQCO1bL410=";
+      hash = "sha256-rWY0nuqoAguPo7YyOAmXDzkQ/CJijHvYuI5Hf4Hxrrc=";
     };
   };
   inherit (stdenv.hostPlatform) isLinux;
@@ -30,7 +30,7 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "claude-code";
-  version = "2.1.330";
+  version = "2.1.331";
 
   src = fetchzip {
     url = "https://registry.npmjs.org/@anthropic-ai/claude-code-${arch.npmArch}/-/claude-code-${arch.npmArch}-${finalAttrs.version}.tgz";
