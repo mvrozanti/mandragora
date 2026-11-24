@@ -4,8 +4,8 @@ let
   upstreamSrc = pkgs.fetchFromGitHub {
     owner = "mvrozanti";
     repo = "vtag";
-    rev = "d567c2949bcf0aeff53e245ee8e027d99274bce9";
-    sha256 = "sha256-JBB9S4dlWK4PPlW9EXb+z2DiW1DNgnAruAiH2Rmr/vg=";
+    rev = "b76fc392794bdd434677b09b2afefdb80ace5c91";
+    sha256 = "sha256-O+ot4VFaREdXDSe9XWFyDIJk2xs19cJ3s07UJ5FsiTI=";
   };
 
   hubStatic = ../hosts/mandragora-vps/compose/hub/static;
