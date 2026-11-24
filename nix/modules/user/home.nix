@@ -76,6 +76,7 @@ in
     bubblewrap
     ripgrep
     droidcam
+    android-tools
     fd
     fzf
     uv
