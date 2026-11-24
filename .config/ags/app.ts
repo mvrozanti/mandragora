@@ -4,6 +4,7 @@ import popupStyle from "./style/popups.css"
 import { applyTheme } from "./lib/theme"
 import { close, closeCurrent, names, open, toggle } from "./lib/popups"
 import { initNotifications, request as notificationRequest } from "./lib/notifications"
+import { initPhone } from "./lib/phone"
 import Toasts from "./widget/Toasts"
 import MoneyPopup from "./popup/Money"
 import CalendarPopup from "./popup/Calendar"
@@ -38,6 +39,7 @@ app.start({
   main() {
     applyTheme(style + popupStyle)
     initNotifications()
+    initPhone()
     for (const make of popups) make()
     Toasts()
   },

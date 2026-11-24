@@ -22,6 +22,7 @@ switch_to() {
 
 case "${1:-state}" in
   state) state ;;
+  path) echo "$file" ;;
   on) switch_to true ;;
   off) switch_to false ;;
   toggle)
@@ -32,7 +33,7 @@ case "${1:-state}" in
     fi
     ;;
   *)
-    echo "usage: phone-forward [state|on|off|toggle]" >&2
+    echo "usage: phone-forward [state|on|off|toggle|path]" >&2
     exit 2
     ;;
 esac

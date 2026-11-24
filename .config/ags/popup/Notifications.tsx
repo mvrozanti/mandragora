@@ -5,6 +5,7 @@ import Popup from "../widget/Popup"
 import NotificationCard from "../widget/NotificationCard"
 import { Empty, IconButton, Scroll } from "../widget/parts"
 import { clearAll, dnd, notifd, notifications } from "../lib/notifications"
+import { phoneKnown, phoneOn, togglePhone } from "../lib/phone"
 import { close } from "../lib/popups"
 import { toastControl } from "../widget/Toasts"
 
@@ -18,7 +19,8 @@ export default function NotificationsPopup() {
       subtitle={createComputed(() => {
         const count = notifications().length
         const text = count === 0 ? "Nothing new" : count === 1 ? "1 notification" : `${count} notifications`
-        return dnd() ? `${text} · Do not disturb is on` : text
+        const quiet = [dnd() && "Do not disturb is on", phoneKnown() && !phoneOn() && "phone off"].filter(Boolean)
+        return [text, ...quiet].join(" · ")
       })}
       onOpen={() => {
         toastControl.muted = true
@@ -32,6 +34,14 @@ export default function NotificationsPopup() {
           class={dnd((d) => (d ? "on" : ""))}
           onClicked={() => (notifd.dontDisturb = !notifd.dontDisturb)}
         />,
+        <box visible={phoneKnown}>
+          <IconButton
+            icon={phoneOn((on) => (on ? "mobile" : "mobile_off"))}
+            tooltip="Phone notifications on the desktop"
+            class={phoneOn((on) => (on ? "" : "on"))}
+            onClicked={togglePhone}
+          />
+        </box>,
         <IconButton
           icon="delete_sweep"
           tooltip="Clear all"
