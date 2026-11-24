@@ -161,6 +161,11 @@ in
     enable = true;
     targetDir = "/mnt/toshiba/hdd/gdrive/Levv/4chan";
     listenHost = "100.115.80.79";
+    sidecarRoots = [ "/home/m/Documents/PhoneDownloads" ];
+    nightly.roots = [
+      "/home/m/Documents/PhoneDownloads"
+      "/mnt/toshiba/hdd/gdrive/Levv/4chan"
+    ];
   };
   mandragora.emotionWeb.enable = true;
   mandragora.voiceAlterCore.enable = true;

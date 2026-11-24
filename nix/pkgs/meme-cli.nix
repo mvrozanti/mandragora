@@ -18,6 +18,7 @@ let
   memeSrc = pkgs.runCommand "meme-src" { } ''
     cp -r ${upstreamSrc} $out
     chmod -R u+w $out
+    patch -p1 -d $out < ${../snippets/meme-sidecar-roots.patch}
     cp ${builtins.concatStringsSep " " designSystem} $out/webui/static/
     substituteInPlace $out/webui/static/index.html \
       --replace-fail '<title>vtag · mvr.ac</title>' '<title>meme · mvr.ac</title>' \

@@ -8,6 +8,18 @@
 let
   cfg = config.mandragora.memeWeb;
   memePkgs = pkgs.callPackage ../../pkgs/meme-cli.nix { };
+  stateDir = "/home/m/.local/share/meme";
+  sidecarRoots = lib.concatMapStringsSep ":" toString cfg.sidecarRoots;
+  nightlyTag = pkgs.writeShellApplication {
+    name = "meme-nightly-tag";
+    runtimeInputs = [
+      memePkgs.meme
+      memePkgs.vfind
+      pkgs.sqlite
+      pkgs.coreutils
+    ];
+    text = builtins.readFile ../../snippets/meme-nightly-tag.sh;
+  };
 in
 {
   options.mandragora.memeWeb = {
@@ -32,9 +44,61 @@ in
         the tailscale0-only firewall keeps port 8093 off the LAN/public net.
       '';
     };
+    sidecarRoots = lib.mkOption {
+      type = lib.types.listOf lib.types.path;
+      default = [ ];
+      description = ''
+        Directories whose media must stay byte-identical: tags for files
+        under them go to a `<file>.xmp` sidecar instead of into the file.
+      '';
+    };
+    nightly = {
+      roots = lib.mkOption {
+        type = lib.types.listOf lib.types.path;
+        default = [ ];
+        description = "Directories whose untagged media is tagged and reindexed every night.";
+      };
+      start = lib.mkOption {
+        type = lib.types.str;
+        default = "02:30";
+        description = "Time of day the nightly tagging run starts.";
+      };
+      until = lib.mkOption {
+        type = lib.types.str;
+        default = "06:30";
+        description = "Time of day the nightly tagging run stops, wherever it is.";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
+    systemd.user.services.meme-nightly-tag = lib.mkIf (cfg.nightly.roots != [ ]) {
+      description = "Tag the night's untagged memes, then refresh the meme.mvr.ac index";
+      environment = {
+        VTAG_STATE_DIR = stateDir;
+        VTAG_SIDECAR_ROOTS = sidecarRoots;
+        MEME_NIGHTLY_ROOTS = lib.concatMapStringsSep ":" toString cfg.nightly.roots;
+        MEME_NIGHTLY_UNTIL = cfg.nightly.until;
+      };
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${nightlyTag}/bin/meme-nightly-tag";
+        Nice = 15;
+        IOSchedulingClass = "idle";
+        TimeoutStartSec = "6h";
+        MemoryMax = "6G";
+      };
+    };
+
+    systemd.user.timers.meme-nightly-tag = lib.mkIf (cfg.nightly.roots != [ ]) {
+      description = "Nightly trigger for meme tagging, inside the hours the operator sleeps";
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnCalendar = "*-*-* ${cfg.nightly.start}:00";
+        Persistent = false;
+      };
+    };
+
     mandragora.hub.services.meme-web = {
       maxRuntime = "12h";
       port = 8093;
@@ -44,7 +108,8 @@ in
         wantedBy = [ "default.target" ];
         after = [ "default.target" ];
         environment = {
-          VTAG_STATE_DIR = "/home/m/.local/share/meme";
+          VTAG_STATE_DIR = stateDir;
+          VTAG_SIDECAR_ROOTS = sidecarRoots;
           VTAG_HUB_TARGET_DIR = toString cfg.targetDir;
           VTAG_HUB_LISTEN_HOST = cfg.listenHost;
           VTAG_HUB_LISTEN_PORT = "8093";
