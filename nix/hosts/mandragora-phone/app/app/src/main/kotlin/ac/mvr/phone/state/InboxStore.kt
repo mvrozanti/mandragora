@@ -28,6 +28,9 @@ class InboxStore(private val store: Store) {
 
     val viewing = MutableStateFlow(false)
 
+    private val forwardFlow = MutableStateFlow<Boolean?>(null)
+    val forward: StateFlow<Boolean?> = forwardFlow
+
     val unread: StateFlow<Int> = combine(itemsFlow, readFlow) { items, read -> items.count { it.id > read } }
         .stateIn(store.scope, SharingStarted.Eagerly, 0)
 
@@ -39,7 +42,9 @@ class InboxStore(private val store: Store) {
         var backoff = MIN_BACKOFF
         var synced = false
         while (currentCoroutineContext().isActive) {
-            val view = runCatching { store.bridge.inbox(if (synced) last else 0L, if (synced) WAIT_SECONDS else 0, published.takeIf { synced }) }.getOrNull()
+            val view = runCatching {
+                store.bridge.inbox(if (synced) last else 0L, if (synced) WAIT_SECONDS else 0, published.takeIf { synced }, forwardFlow.value.takeIf { synced })
+            }.getOrNull()
             when {
                 view == null -> {
                     liveFlow.value = false
@@ -60,6 +65,7 @@ class InboxStore(private val store: Store) {
 
     private fun absorb(view: InboxView, replace: Boolean) {
         published = view.app
+        forwardFlow.value = view.forward
         if (newBuild(view.app, BuildConfig.VERSION_CODE.toLong(), checked)) {
             checked = view.app
             store.scope.launch { runCatching { store.update.refresh() } }
@@ -76,6 +82,16 @@ class InboxStore(private val store: Store) {
         if (!(viewing.value && store.foreground.value)) fresh.forEach { Alerts.post(store.appContext, it) }
         if (view.last > notified) store.prefs.inboxNotified = view.last
         itemsFlow.value.filter { it.id <= view.read }.forEach { Alerts.cancel(store.appContext, it.id) }
+    }
+
+    fun setForward(on: Boolean) {
+        val before = forwardFlow.value
+        forwardFlow.value = on
+        store.act {
+            val result = runCatching { store.bridge.setForward(on) }
+            forwardFlow.value = result.getOrNull()?.on ?: before
+            result.getOrThrow()
+        }
     }
 
     fun markRead() {

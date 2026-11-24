@@ -85,6 +85,14 @@ def stt(monkeypatch):
     fake.shutdown()
 
 
+@pytest.fixture(autouse=True)
+def forward(tmp_path, monkeypatch) -> Path:
+    log = tmp_path / "forward-changed"
+    monkeypatch.setattr(server, "FORWARD_FILE", tmp_path / "forward.json")
+    monkeypatch.setattr(server, "FORWARD_CHANGED", ["sh", "-c", f"echo changed >> {log}"])
+    return log
+
+
 @pytest.fixture
 def bridge():
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
@@ -540,6 +548,26 @@ def test_inbox_long_poll_wakes_when_a_new_build_is_published(bridge, inbox, tmp_
     assert view["app"] == 6 and time.monotonic() - started >= 0.9
 
 
+def test_inbox_long_poll_wakes_when_phone_notifications_are_switched(bridge, inbox, monkeypatch):
+    monkeypatch.setattr(server, "INBOX_SLICE", 0.1)
+    monkeypatch.setattr(server, "PHONE_MEDIA_PEERS", "127.0.0.1")
+    status, view = fetch(f"{bridge}/api/inbox?after=0")
+    assert (status, view["forward"]) == (200, True)
+    started = time.monotonic()
+    threading.Timer(0.3, lambda: server.FORWARD_FILE.write_text(json.dumps({"on": False}))).start()
+    status, view = fetch(f"{bridge}/api/inbox?after=0&wait=5&forward=1")
+    assert (status, view["forward"], view["items"]) == (200, False, [])
+    assert time.monotonic() - started < 3
+    monkeypatch.setattr(server, "INBOX_SLICE", 30.0)
+    started = time.monotonic()
+    threading.Timer(0.3, lambda: server.forward_set({"on": True})).start()
+    status, view = fetch(f"{bridge}/api/inbox?after=0&wait=5&forward=0")
+    assert view["forward"] is True and time.monotonic() - started < 3
+    started = time.monotonic()
+    status, view = fetch(f"{bridge}/api/inbox?after=0&wait=1&forward=1")
+    assert view["forward"] is True and time.monotonic() - started >= 0.9
+
+
 def test_watch_proxy_only_forwards_watchs_api(bridge):
     status, body = fetch(f"{bridge}/api/watch/admin/secrets")
     assert (status, body["error"]) == (400, "only watch's api is proxied")
@@ -825,3 +853,36 @@ def test_only_the_phone_forwards_notifications(bridge, desktop, monkeypatch):
     monkeypatch.setattr(server, "PHONE_MEDIA_PEERS", "127.0.0.1")
     status, body = fetch(f"{bridge}/api/phone/notify", json.dumps({"package": "a.b", "title": "x"}).encode(), {"Content-Type": "application/json"})
     assert (status, body) == (200, {"shown": True})
+
+
+def test_phone_notifications_are_on_until_switched_off(bridge, desktop, forward, monkeypatch):
+    _, shown = desktop
+    monkeypatch.setattr(server, "PHONE_MEDIA_PEERS", "127.0.0.1")
+    assert fetch(f"{bridge}/api/phone/forward") == (200, {"on": True})
+    assert post_json(f"{bridge}/api/phone/forward", {"on": False}) == (200, {"on": False})
+    assert json.loads(server.FORWARD_FILE.read_text()) == {"on": False}
+    assert forward.read_text().splitlines() == ["changed"]
+    assert fetch(f"{bridge}/api/phone/forward") == (200, {"on": False})
+    note = {"package": "org.telegram.messenger", "app": "Telegram", "title": "ana", "text": "oi"}
+    assert server.phone_notify(note) == {"shown": False, "reason": "phone notifications are off"}
+    assert shown() == []
+    server.FORWARD_FILE.write_text(json.dumps({"on": True}))
+    assert server.phone_notify(note) == {"shown": True}
+    assert len(shown()) == 1
+
+
+def test_only_the_phone_switches_its_notifications_over_the_bridge(bridge, monkeypatch):
+    monkeypatch.setattr(server, "PHONE_MEDIA_PEERS", "100.64.0.9")
+    status, body = post_json(f"{bridge}/api/phone/forward", {"on": False})
+    assert (status, body["error"]) == (403, "only the phone switches its notifications over the bridge; the desktop uses phone-forward")
+    assert not server.FORWARD_FILE.exists()
+    assert fetch(f"{bridge}/api/phone/forward") == (200, {"on": True})
+    monkeypatch.setattr(server, "PHONE_MEDIA_PEERS", "127.0.0.1")
+    assert post_json(f"{bridge}/api/phone/forward", {"on": "no"})[0] == 400
+
+
+def test_a_broken_forward_file_reads_as_on(forward):
+    server.FORWARD_FILE.write_text("{not json")
+    assert server.forward_on() is True
+    server.FORWARD_FILE.write_text(json.dumps({"on": None}))
+    assert server.forward_on() is True

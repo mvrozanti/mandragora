@@ -58,6 +58,7 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
     val autoplay by store.prefs.autoplaySkip.collectAsStateWithLifecycle()
     val squash by store.prefs.squashCalls.collectAsStateWithLifecycle()
     val listen by store.prefs.inboxListen.collectAsStateWithLifecycle()
+    val forward by store.inbox.forward.collectAsStateWithLifecycle()
     val context = LocalContext.current
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader("settings", reachable, onCollapse)
@@ -99,6 +100,13 @@ fun SettingsScreen(store: Store, onCollapse: () -> Unit) {
                         InboxService.sync(context)
                         store.scope.launch { runCatching { store.audit.refresh() } }
                     })
+                }
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("phone notifications on the desktop", style = MaterialTheme.typography.bodyLarge)
+                        Label(forwardDetail(forward))
+                    }
+                    Switch(checked = forward == true, enabled = forward != null, onCheckedChange = { store.inbox.setForward(it) })
                 }
             }
             Column(
@@ -178,6 +186,12 @@ private fun MusicSection(store: Store) {
         Label(detail)
         Label("over Wi-Fi, about once an hour; a song the desktop deletes leaves the phone too, and nothing else in Music is touched")
     }
+}
+
+private fun forwardDetail(on: Boolean?): String = when (on) {
+    null -> "waiting for the desktop"
+    true -> "on · the desktop bell's middle-click too"
+    false -> "off · the desktop bell's middle-click too"
 }
 
 private fun musicDetail(allowed: Boolean, status: MirrorStatus, left: String): String {

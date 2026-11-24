@@ -342,6 +342,7 @@ in
           tooltip = true;
           on-click = "shell-popup notifications";
           on-click-right = "shell-notif dnd toggle";
+          on-click-middle = "phone-forward toggle";
         };
 
         "custom/monitor" = {

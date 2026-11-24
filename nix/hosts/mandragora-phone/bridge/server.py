@@ -91,8 +91,10 @@ PHONE_MEDIA_JOBS = ("thumbs", "pull", "remove")
 PHONE_MEDIA_PEERS = os.environ.get("PHONE_BRIDGE_MEDIA_PEERS")
 PHONE_MEDIA_PHONE_PATHS = ("/api/phone/media/index", "/api/phone/media/jobs", "/api/phone/media/thumb", "/api/phone/media/file", "/api/phone/media/report")
 PHONE_AUDIT_FILE = STATE_DIR / "phone-audit.json"
-PHONE_ONLY_POSTS = {"/api/power": "only the phone may power the desktop off", "/api/phone/audit": "only the phone reports on itself", "/api/phone/notify": "only the phone forwards its notifications"}
+PHONE_ONLY_POSTS = {"/api/power": "only the phone may power the desktop off", "/api/phone/audit": "only the phone reports on itself", "/api/phone/notify": "only the phone forwards its notifications", "/api/phone/forward": "only the phone switches its notifications over the bridge; the desktop uses phone-forward"}
 NOTIFY_SEND = os.environ.get("PHONE_BRIDGE_NOTIFY_SEND", "notify-send")
+FORWARD_FILE = Path(os.environ.get("PHONE_BRIDGE_FORWARD_FILE") or STATE_DIR / "forward.json")
+FORWARD_CHANGED = ["pkill", "-RTMIN+16", "-x", "waybar"]
 PROC_ROOT = Path(os.environ.get("PHONE_BRIDGE_PROC", "/proc"))
 DESK_TWINS = {"com.whatsapp": "whatsapp", "com.whatsapp.w4b": "whatsapp"}
 
@@ -215,11 +217,36 @@ def phone_notify(body: dict) -> dict:
     if not package or not (title or text):
         raise ValueError("a notification needs a package and a title or a text")
     app = clipped(body, "app", 80) or package
+    if not forward_on():
+        return {"shown": False, "reason": "phone notifications are off"}
     twin = DESK_TWINS.get(package)
     if twin and firefox_profile_running(twin):
         return {"shown": False, "reason": f"{app} is open on the desktop"}
     run([NOTIFY_SEND, "--app-name", app, "--icon", "phone", "--", title or app, text or ""])
     return {"shown": True}
+
+
+def forward_on() -> bool:
+    data = load_json(str(FORWARD_FILE), {})
+    return not (isinstance(data, dict) and data.get("on") is False)
+
+
+def forward_set(body: dict) -> dict:
+    on = body.get("on")
+    if not isinstance(on, bool):
+        raise ValueError("on must be true or false")
+    with inbox_cond:
+        FORWARD_FILE.parent.mkdir(parents=True, exist_ok=True)
+        tmp = FORWARD_FILE.with_name(FORWARD_FILE.name + ".bridge")
+        tmp.write_text(json.dumps({"on": on}) + "\n", encoding="utf-8")
+        os.replace(tmp, FORWARD_FILE)
+        inbox_cond.notify_all()
+    try:
+        subprocess.run(FORWARD_CHANGED, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5, check=False)
+    except (OSError, subprocess.SubprocessError):
+        pass
+    print(f"forward: phone notifications {'on' if on else 'off'}", flush=True)
+    return {"on": on}
 
 
 app_seen: dict = {"mtime": None, "code": 0}
@@ -238,19 +265,20 @@ def published_version() -> int:
 
 def inbox_view(after: int) -> dict:
     newer = [item for item in inbox_data["items"] if item["id"] > after]
-    return {"items": newer[-100:], "last": inbox_data["next"] - 1, "read": inbox_data["read"], "app": published_version()}
+    return {"items": newer[-100:], "last": inbox_data["next"] - 1, "read": inbox_data["read"], "app": published_version(), "forward": forward_on()}
 
 
 def inbox_wait(query: dict) -> dict:
     after = int(query.get("after") or 0)
     wait = min(max(float(query.get("wait") or 0), 0.0), INBOX_WAIT_MAX)
     known = str(query.get("app") or "")
+    forward = str(query.get("forward") or "")
     deadline = time.monotonic() + wait
     with inbox_cond:
         while True:
             view = inbox_view(after)
             remaining = deadline - time.monotonic()
-            if view["items"] or remaining <= 0 or (known.isdigit() and view["app"] != int(known)):
+            if view["items"] or remaining <= 0 or (known.isdigit() and view["app"] != int(known)) or (forward in ("0", "1") and view["forward"] != (forward == "1")):
                 return view
             inbox_cond.wait(min(remaining, INBOX_SLICE))
 
@@ -1865,6 +1893,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(gpu_state())
             elif url.path == "/api/phone/audit":
                 self.send_json(phone_audit_view())
+            elif url.path == "/api/phone/forward":
+                self.send_json({"on": forward_on()})
             elif url.path == "/api/media":
                 self.send_json(media_state())
             elif url.path == "/api/media/art":
@@ -1993,6 +2023,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(phone_audit_store(body))
             elif url.path == "/api/phone/notify":
                 self.send_json(phone_notify(body))
+            elif url.path == "/api/phone/forward":
+                self.send_json(forward_set(body))
             elif url.path == "/api/power":
                 self.send_json(power(body))
             elif url.path == "/api/media":

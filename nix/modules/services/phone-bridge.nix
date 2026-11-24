@@ -5,6 +5,18 @@ let
   servicesJson = ../../hosts/mandragora-vps/compose/hub/static/services.json;
   tailnetJson = ../../snippets/tailnet.json;
   identityJson = ../../hosts/mandragora-phone/identity.json;
+  stateDir = "/home/m/.local/state/phone-bridge";
+  forwardFile = "${stateDir}/forward.json";
+  phoneForward = pkgs.writeShellApplication {
+    name = "phone-forward";
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.procps
+      pkgs.coreutils
+    ];
+    runtimeEnv.PHONE_FORWARD_FILE = forwardFile;
+    text = builtins.readFile ../../../.local/bin/phone-forward.sh;
+  };
   phoneMedia = pkgs.writeShellApplication {
     name = "phone-media";
     runtimeInputs = [
@@ -20,7 +32,10 @@ in
 {
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 6600 ];
 
-  environment.systemPackages = [ phoneMedia ];
+  environment.systemPackages = [
+    phoneMedia
+    phoneForward
+  ];
 
   security.polkit.extraConfig = builtins.readFile ../../../.local/share/polkit-rules/phone-power.js;
 
@@ -65,7 +80,8 @@ in
         PHONE_BRIDGE_HOST = "0.0.0.0";
         PHONE_BRIDGE_PORT = "6688";
         PHONE_BRIDGE_MUSIC_DIR = "/home/m/Music";
-        PHONE_BRIDGE_STATE = "/home/m/.local/state/phone-bridge";
+        PHONE_BRIDGE_STATE = stateDir;
+        PHONE_BRIDGE_FORWARD_FILE = forwardFile;
         PHONE_BRIDGE_APP_DIR = "/home/m/.local/share/mandragora-phone/app";
         PHONE_BRIDGE_SERVICES_JSON = "${servicesJson}";
         PHONE_BRIDGE_TAILNET_JSON = "${tailnetJson}";
