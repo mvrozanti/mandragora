@@ -20,6 +20,7 @@ window#waybar {
 
 #workspaces,
 #audio,
+#devices,
 #hardware,
 #network,
 #actions,
@@ -496,8 +497,44 @@ tooltip {
     border-radius: 4px;
 }
 
-#bluetooth {
+#custom-dev-phone,
+#custom-dev-kindle,
+#custom-dev-headset,
+#custom-dev-drives,
+#custom-dev-vps {
     padding: 0 8px;
+    transition: color 120ms ease, border-bottom-color 120ms ease;
+}
+
+#custom-dev-phone.offline,
+#custom-dev-kindle.offline,
+#custom-dev-headset.offline {
+    color: alpha(@foreground, 0.35);
+}
+
+#custom-dev-phone.low,
+#custom-dev-kindle.low,
+#custom-dev-headset.low,
+#custom-dev-drives.low {
+    color: @color1;
+}
+
+#custom-dev-headset.nosink {
+    color: @color3;
+}
+
+#custom-dev-vps.down {
+    color: @color1;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+#custom-dev-phone:hover,
+#custom-dev-kindle:hover,
+#custom-dev-headset:hover,
+#custom-dev-drives:hover,
+#custom-dev-vps:hover {
+    color: @color5;
+    border-bottom: 2px solid @color5;
 }
 
 #custom-gamepad {

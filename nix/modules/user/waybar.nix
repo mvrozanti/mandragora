@@ -1,6 +1,8 @@
 { pkgs, ... }:
 
 let
+  tailnet = builtins.fromJSON (builtins.readFile ../../snippets/tailnet.json);
+
   drawer = leader: {
     click-to-reveal = true;
     toggle-button = 2;
@@ -34,6 +36,7 @@ in
         modules-center = [ ];
         modules-right = [
           "group/audio"
+          "group/devices"
           "group/hardware"
           "group/network"
           "group/info"
@@ -52,8 +55,19 @@ in
             "custom/mpd-single"
             "custom/mpd-random"
             "custom/volume"
-            "bluetooth"
+          ];
+        };
+
+        "group/devices" = {
+          orientation = "horizontal";
+          drawer = drawer 0;
+          modules = [
+            "custom/dev-phone"
+            "custom/dev-kindle"
+            "custom/dev-headset"
             "custom/gamepad"
+            "custom/dev-drives"
+            "custom/dev-vps"
           ];
         };
 
@@ -196,19 +210,46 @@ in
           on-scroll-down = "~/.config/waybar/scripts/brightness.sh decrease";
         };
 
-        bluetooth = {
-          format = "";
-          format-disabled = "";
-          format-off = "";
-          format-on = "";
-          format-connected = "󰂯";
-          format-connected-battery = "󰂯 {device_battery_percentage}%";
-          tooltip-format = "{controller_alias}\t{controller_address}";
-          tooltip-format-connected = "{controller_alias}\t{controller_address}\n\n{device_enumerate}";
-          tooltip-format-enumerate-connected = "{device_alias}\t{device_address}";
-          tooltip-format-enumerate-connected-battery = "{device_alias}\t{device_address}\t{device_battery_percentage}%";
+        "custom/dev-phone" = {
+          exec = "devices-menu waybar phone";
+          return-type = "json";
+          interval = 30;
+          tooltip = true;
+          on-click = "kdeconnect-app";
+        };
+
+        "custom/dev-kindle" = {
+          exec = "devices-menu waybar kindle";
+          return-type = "json";
+          interval = 60;
+          tooltip = true;
+          on-click = "systemctl --user start --no-block kindle-sync.service";
+          on-click-right = "kitty -e ssh root@${tailnet.kindle.ip}";
+        };
+
+        "custom/dev-headset" = {
+          exec = "devices-menu waybar headset";
+          return-type = "json";
+          interval = 5;
+          tooltip = true;
           on-click = "${pkgs.bash}/bin/bash ~/.config/waybar/scripts/bluetooth.sh toggle";
           on-click-right = "blueman-manager";
+        };
+
+        "custom/dev-drives" = {
+          exec = "devices-menu waybar drives";
+          return-type = "json";
+          interval = 10;
+          tooltip = true;
+          on-click = "kitty -e yazi /mnt";
+        };
+
+        "custom/dev-vps" = {
+          exec = "devices-menu waybar vps";
+          return-type = "json";
+          interval = 30;
+          tooltip = true;
+          on-click = "kitty -e ssh opc@mandragora-vps";
         };
 
         disk = {

@@ -51,6 +51,7 @@ in
     ./security-menu.nix
     ./weather-menu.nix
     ./monitor-menu.nix
+    ./devices-menu.nix
     ./network-menu.nix
     ./mandragora-shell.nix
     ./monitor-audio.nix
