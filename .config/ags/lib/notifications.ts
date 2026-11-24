@@ -93,7 +93,7 @@ function publish() {
       `${stateDir}/notifications.json`,
       JSON.stringify({ count, dnd: notifd.dontDisturb }) + "\n",
     )
-    GLib.spawn_command_line_async("pkill -RTMIN+16 -x waybar")
+    GLib.spawn_command_line_async("pkill -RTMIN+16 -x '(\\.waybar-wrapped|waybar)'")
     return GLib.SOURCE_REMOVE
   })
 }

@@ -16,7 +16,7 @@ switch_to() {
   local tmp="$file.$$"
   jq -n --argjson on "$1" '{on: $on}' >"$tmp"
   mv -f "$tmp" "$file"
-  pkill -RTMIN+16 -x waybar || true
+  pkill -RTMIN+16 -x '(\.waybar-wrapped|waybar)' || true
   state
 }
 

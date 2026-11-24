@@ -94,7 +94,7 @@ PHONE_AUDIT_FILE = STATE_DIR / "phone-audit.json"
 PHONE_ONLY_POSTS = {"/api/power": "only the phone may power the desktop off", "/api/phone/audit": "only the phone reports on itself", "/api/phone/notify": "only the phone forwards its notifications", "/api/phone/forward": "only the phone switches its notifications over the bridge; the desktop uses phone-forward"}
 NOTIFY_SEND = os.environ.get("PHONE_BRIDGE_NOTIFY_SEND", "notify-send")
 FORWARD_FILE = Path(os.environ.get("PHONE_BRIDGE_FORWARD_FILE") or STATE_DIR / "forward.json")
-FORWARD_CHANGED = ["pkill", "-RTMIN+16", "-x", "waybar"]
+FORWARD_CHANGED = ["pkill", "-RTMIN+16", "-x", r"(\.waybar-wrapped|waybar)"]
 PROC_ROOT = Path(os.environ.get("PHONE_BRIDGE_PROC", "/proc"))
 DESK_TWINS = {"com.whatsapp": "whatsapp", "com.whatsapp.w4b": "whatsapp"}
 
