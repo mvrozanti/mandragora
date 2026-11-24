@@ -5,6 +5,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -125,7 +127,9 @@ internal fun Quiet(text: String, onTap: () -> Unit) {
         text,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.clip(RoundedCornerShape(999.dp)).clickable(onClick = onTap).padding(horizontal = 12.dp, vertical = 10.dp),
+        maxLines = 1,
+        softWrap = false,
+        modifier = Modifier.padding(vertical = 4.dp).clip(RoundedCornerShape(999.dp)).clickable(onClick = onTap).padding(horizontal = 12.dp, vertical = 10.dp),
     )
 }
 
@@ -136,7 +140,10 @@ internal fun Forward(text: String, enabled: Boolean = true, onTap: () -> Unit) {
         text,
         style = MaterialTheme.typography.labelLarge,
         color = scheme.onPrimary,
+        maxLines = 1,
+        softWrap = false,
         modifier = Modifier
+            .padding(vertical = 4.dp)
             .clip(RoundedCornerShape(999.dp))
             .background(if (enabled) scheme.primary else scheme.primary.copy(alpha = 0.4f))
             .clickable(enabled = enabled, onClick = onTap)
@@ -144,11 +151,12 @@ internal fun Forward(text: String, enabled: Boolean = true, onTap: () -> Unit) {
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun Actions(content: @Composable () -> Unit) {
-    Row(
+    FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) { content() }
 }

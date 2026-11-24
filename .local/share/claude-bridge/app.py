@@ -98,6 +98,7 @@ SCREEN_BOX = re.compile(r"^\[([ ✔])\]\s+(.*)$")
 SCREEN_ASIDE = re.compile(r"^chat about this$", re.I)
 SCREEN_REVIEW = "Review your answers"
 SCREEN_SUBMIT = re.compile(r"^\s*(❯)?\s*(?:Submit|Next)\s*$")
+SCREEN_BORDER = re.compile(r"^│ ?")
 SCREEN_PICKED = re.compile(r"\s+✔$")
 SCREEN_STEP_SECONDS = 0.15
 SCREEN_KEYS = {"escape": "Escape", "next": "Right", "previous": "Left"}
@@ -2152,7 +2153,7 @@ def parse_screen(screen: str) -> dict | None:
         })
     top = chosen[0][0]
     start = next((k + 1 for k in range(top - 1, -1, -1) if SCREEN_RULE.match(lines[k])), 0)
-    region = lines[start:top]
+    region = [SCREEN_BORDER.sub("", line) for line in lines[start:top]]
     bar = next((line for line in region if SCREEN_TABS.match(line)), None)
     last_dash = max((k for k, line in enumerate(region) if SCREEN_DASH.match(line)), default=-1)
     kept = [line for line in region if not SCREEN_DASH.match(line)]

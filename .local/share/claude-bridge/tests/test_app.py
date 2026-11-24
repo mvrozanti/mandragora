@@ -272,6 +272,15 @@ def test_the_step_shown_is_found_from_the_pending_question():
     assert app.screen_step(parsed_screen(PERMISSION), pending) == -1
 
 
+def test_a_long_question_loses_the_border_drawn_beside_it():
+    bordered = CHECKBOXES.replace("Which areas should I include in the work?", "│ Which areas should I include in the work?")
+    parsed = parsed_screen(bordered)
+    assert parsed["title"] == "Which areas should I include in the work?"
+    pending = [{"name": "AskUserQuestion", "input": {"questions": [{"question": "Which areas should I include in the work?"}]}}]
+    assert app.screen_step(parsed, pending) == 0
+    assert "│ touch /tmp/probe" in parsed_screen(RULED)["body"]
+
+
 def test_the_model_picker_and_effort_read_from_the_pane():
     assert app.picker_options(["Select model", " ❯ 1. Default (recommended)  ✔", "   2. Opus"]) == [(True, "Default (recommended)"), (False, "Opus")]
     assert app.picked_effort(["x", "◐ high effort (default) ←/→ to adjust"]) == ("high", True)
