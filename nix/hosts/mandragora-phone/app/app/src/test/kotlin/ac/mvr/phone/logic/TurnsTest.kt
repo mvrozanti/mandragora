@@ -16,7 +16,7 @@ class TurnsTest {
     private fun part(type: String, text: String? = null, tool: String? = null, ignored: Boolean = false, synthetic: Boolean = false) =
         CodePart(id = "p${counter++}", messageID = "m", type = type, text = text, tool = tool, ignored = ignored, synthetic = synthetic)
 
-    private fun user(id: String, text: String) = CodeEntry(CodeMessage(id = id, role = "user"), listOf(part("text", text)))
+    private fun user(id: String, text: String, queued: Boolean = false) = CodeEntry(CodeMessage(id = id, role = "user", queued = queued), listOf(part("text", text)))
 
     private fun assistant(id: String, vararg parts: CodePart, error: String? = null) =
         CodeEntry(CodeMessage(id = id, role = "assistant", error = error?.let { MessageError(name = it) }), parts.toList())
@@ -118,8 +118,23 @@ class TurnsTest {
     }
 
     @Test
-    fun replyPinsTheMessageWaitingToBeDelivered() {
-        assertEquals(Pin("s7", 2), replyPin(2, "s7", busy = true, listOf(user("u1", "hi")), null))
+    fun aQueuedMessageDoesNotOpenATurn() {
+        val entries = listOf(user("u1", "build it"), assistant("a1", words("on it")), user("q1", "keep it small", queued = true), assistant("a2", words("done"), error = ABORTED))
+        val stops = stoppedTurns(entries, settled = true)
+        assertEquals("build it", stops.resend["u1"])
+        assertEquals("build it", stops.chips["a2"])
+        assertFalse(stops.resend.containsKey("q1"))
+    }
+
+    @Test
+    fun replyPinsTheMessageWaitingToBeDeliveredToAnIdleSession() {
+        assertEquals(Pin("s7", 2), replyPin(2, listOf("s6", "s7"), busy = false, listOf(user("u1", "hi")), null))
+    }
+
+    @Test
+    fun aMessageQueuedDuringATurnLeavesThePinOnThatTurn() {
+        val entries = listOf(user("u1", "build it"), assistant("a1", words("on it")), user("q1", "keep it small", queued = true), assistant("a2", words("more")))
+        assertEquals(Pin("u1", 2 + 1 + 1 + 3), replyPin(2, listOf("s7"), busy = true, entries, null))
     }
 
     @Test
@@ -132,20 +147,20 @@ class TurnsTest {
             CodeEntry(CodeMessage(id = "u3", role = "user"), listOf(part("text", "tool result", synthetic = true))),
             assistant("a3", words("more")),
         )
-        assertEquals(Pin("u2", 1 + 1 + 3), replyPin(1, null, busy = true, entries, null))
-        assertEquals(Pin("u2", 1 + 3), replyPin(1, null, busy = false, entries, null))
+        assertEquals(Pin("u2", 1 + 1 + 3), replyPin(1, emptyList(), busy = true, entries, null))
+        assertEquals(Pin("u2", 1 + 3), replyPin(1, emptyList(), busy = false, entries, null))
     }
 
     @Test
     fun replyPinsTheUserRowWhenCallsAreFolded() {
         val entries = listOf(user("u1", "do it"), assistant("a1", tool(), tool("Edit")), assistant("a2", words("done")))
         val shown = squashCalls(entries)
-        assertEquals(Pin("u1", 2), replyPin(0, null, busy = false, entries, shown))
+        assertEquals(Pin("u1", 2), replyPin(0, emptyList(), busy = false, entries, shown))
     }
 
     @Test
     fun replyPinsNothingWithoutAUserMessage() {
-        assertEquals(null, replyPin(0, null, busy = false, listOf(assistant("a1", words("hello"))), null))
-        assertEquals(null, replyPin(0, null, busy = false, emptyList(), emptyList()))
+        assertEquals(null, replyPin(0, emptyList(), busy = false, listOf(assistant("a1", words("hello"))), null))
+        assertEquals(null, replyPin(0, emptyList(), busy = false, emptyList(), emptyList()))
     }
 }

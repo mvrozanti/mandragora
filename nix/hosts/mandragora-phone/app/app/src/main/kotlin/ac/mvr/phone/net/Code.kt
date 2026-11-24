@@ -107,6 +107,7 @@ data class CodeMessage(
     val agent: String? = null,
     val error: MessageError? = null,
     val finish: String? = null,
+    val queued: Boolean = false,
 )
 
 @Serializable

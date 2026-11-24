@@ -370,7 +370,25 @@ def test_a_prompt_dequeued_into_a_rejected_tool_call_still_shows(tmp_path):
         record("r2", "r1", "user", [{"type": "text", "text": "[Request interrupted by user for tool use]"}]),
         record("a3", "r2", "user", "in the phone app", "typed"),
     ]) + "\n")
-    assert user_texts(app.transcript_entries("s", path, 0)) == ["check the vps disk", "in the phone app i mean", "in the phone app"]
+    entries = app.transcript_entries("s", path, 0)
+    assert user_texts(entries) == ["check the vps disk", "in the phone app i mean", "in the phone app"]
+    assert [entry["info"].get("queued", False) for entry in entries if entry["info"]["role"] == "user"] == [False, True, False]
+
+
+def test_a_prompt_queued_mid_turn_is_marked_queued(tmp_path):
+    call = [{"type": "tool_use", "id": "t1", "name": "Bash", "input": {}}]
+    done = [{"type": "tool_result", "tool_use_id": "t1", "content": "ok"}]
+    queued = {"type": "attachment", "uuid": "q1", "parentUuid": "r1", "isSidechain": False, "attachment": {"type": "queued_command", "prompt": "keep it small"}}
+    path = tmp_path / "s.jsonl"
+    path.write_text("\n".join([
+        record("a1", None, "user", "build it", "typed"),
+        record("a2", "a1", "assistant", call),
+        record("r1", "a2", "user", done),
+        json.dumps(queued),
+        record("a3", "q1", "assistant", [{"type": "text", "text": "noted"}]),
+    ]) + "\n")
+    users = [entry for entry in app.transcript_entries("s", path, 0) if entry["info"]["role"] == "user"]
+    assert [(user_texts([entry])[0], entry["info"].get("queued", False)) for entry in users] == [("build it", False), ("keep it small", True)]
 
 
 def test_a_stray_prompt_said_again_later_shows_once(tmp_path):

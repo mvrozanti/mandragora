@@ -8,6 +8,8 @@ const val ABORTED = "MessageAbortedError"
 fun said(entry: CodeEntry): String =
     entry.parts.filter { it.type == "text" && !it.synthetic && !it.ignored }.mapNotNull { it.text }.joinToString("\n")
 
+fun opensTurn(entry: CodeEntry): Boolean = entry.info.role == "user" && !entry.info.queued && said(entry).isNotBlank()
+
 class Stops(val resend: Map<String, String>, val chips: Map<String, String>)
 
 fun stoppedTurns(entries: List<CodeEntry>, settled: Boolean): Stops {
@@ -17,7 +19,7 @@ fun stoppedTurns(entries: List<CodeEntry>, settled: Boolean): Stops {
     var answered = false
     entries.forEach { entry ->
         if (entry.info.role == "user") {
-            if (said(entry).isNotBlank()) {
+            if (opensTurn(entry)) {
                 last = entry
                 answered = false
                 chips.clear()
@@ -88,9 +90,9 @@ fun squashCalls(entries: List<CodeEntry>): List<Shown> {
 
 data class Pin(val key: Any, val index: Int)
 
-fun replyPin(lead: Int, pendingKey: String?, busy: Boolean, entries: List<CodeEntry>, shown: List<Shown>?): Pin? {
-    if (pendingKey != null) return Pin(pendingKey, lead)
+fun replyPin(lead: Int, pendingKeys: List<String>, busy: Boolean, entries: List<CodeEntry>, shown: List<Shown>?): Pin? {
+    if (!busy) pendingKeys.lastOrNull()?.let { return Pin(it, lead) }
     val rows = shown?.asReversed()?.map { (it as? ShownEntry)?.entry to it.key } ?: entries.asReversed().map { it to it.info.id }
-    val at = rows.indexOfFirst { (entry, _) -> entry != null && entry.info.role == "user" && said(entry).isNotBlank() }
-    return if (at < 0) null else Pin(rows[at].second, lead + (if (busy) 1 else 0) + at)
+    val at = rows.indexOfFirst { (entry, _) -> entry != null && opensTurn(entry) }
+    return if (at < 0) null else Pin(rows[at].second, lead + pendingKeys.size + (if (busy) 1 else 0) + at)
 }

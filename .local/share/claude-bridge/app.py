@@ -461,8 +461,10 @@ def transcript_entries(sid: str, path: Path, limit: int) -> list[dict]:
         kept = []
         for entry in reversed(entries):
             said = "\n".join(part.get("text", "") for part in entry["parts"] if part.get("type") == "text").strip()
-            if entry["info"]["id"] in queued_ids and said in said_later:
-                continue
+            if entry["info"]["id"] in queued_ids:
+                if said in said_later:
+                    continue
+                entry["info"]["queued"] = True
             if entry["info"]["role"] == "user":
                 said_later.add(said)
             kept.append(entry)

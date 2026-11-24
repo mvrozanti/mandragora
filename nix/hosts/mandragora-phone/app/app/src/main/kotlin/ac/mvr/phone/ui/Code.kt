@@ -744,9 +744,13 @@ private fun EntryView(
             add("edit" to { onEdit(text) })
             if (stops.resend.containsKey(entry.info.id)) add("resend" to { onResend(text) })
         }
-        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            UserBubble(text, faded = false, actions = actions)
-            if (chip != null) StoppedLine(chip, onResend)
+        if (entry.info.queued) {
+            QueuedLine(text, actions)
+        } else {
+            Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                UserBubble(text, faded = false, actions = actions)
+                if (chip != null) StoppedLine(chip, onResend)
+            }
         }
         return
     }
@@ -837,11 +841,40 @@ private fun FileChip(name: String, modifier: Modifier = Modifier, end: Dp = 12.d
 
 @Composable
 private fun PendingBubble(text: String, busy: Boolean) {
+    if (busy) {
+        QueuedLine(text)
+        return
+    }
     val scheme = MaterialTheme.colorScheme
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         UserBubble(text, faded = true)
-        Label(if (busy) "queued · goes in when the current turn ends" else "sent · waiting for the session", color = scheme.tertiary)
+        Label("sent · waiting for the session", color = scheme.tertiary)
     }
+}
+
+@Composable
+private fun QueuedLine(text: String, actions: List<Pair<String, () -> Unit>> = emptyList()) {
+    val scheme = MaterialTheme.colorScheme
+    val (words, attached) = CodeStore.split(text)
+    val gist = words.ifBlank { attached.joinToString(", ") { it.name } }.replace(Regex("\\s+"), " ").trim()
+    val line = @Composable {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 40.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Label("queued", color = scheme.tertiary)
+            Text(
+                gist,
+                style = MaterialTheme.typography.bodySmall,
+                color = scheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
+            )
+        }
+    }
+    if (actions.isEmpty()) line() else Held(actions, line)
 }
 
 @Composable
@@ -1125,7 +1158,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         if (pinSession != null) pin = false
         pinSession = current?.id
     }
-    val anchor = replyPin(screens.size + questions.size + asks.size, pendingHere.lastOrNull()?.let { "s" + it.id }, busy, entries, shown)
+    val anchor = replyPin(screens.size + questions.size + asks.size, pendingHere.map { "s" + it.id }, busy, entries, shown)
     val anchorNow by rememberUpdatedState(anchor)
     LaunchedEffect(transcript, current?.id) {
         transcript.interactionSource.interactions.collectLatest { interaction ->
@@ -1201,7 +1234,7 @@ fun CodeScreen(store: Store, onCollapse: () -> Unit) {
         Composer(
             field, focus, busy, reachable, attachments, uploading,
             onChange = { field = it; code.draft.value = it.text },
-            onSend = { follow = true; pin = true; code.send(field.text) },
+            onSend = { follow = true; pin = !busy; code.send(field.text) },
             onStop = { code.stop() },
             onPicture = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             onFile = { files.launch(arrayOf("*/*")) },
