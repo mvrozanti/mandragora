@@ -4,8 +4,8 @@ let
   upstreamSrc = pkgs.fetchFromGitHub {
     owner = "mvrozanti";
     repo = "vtag";
-    rev = "88d5d2ecb53fcf585b4ee6310f910ef10a9ae6b1";
-    sha256 = "sha256-S3DH+ElmMvP+EpOyoPVAWdGtSbPvd1Gdi9E5bmMMUW4=";
+    rev = "d567c2949bcf0aeff53e245ee8e027d99274bce9";
+    sha256 = "sha256-JBB9S4dlWK4PPlW9EXb+z2DiW1DNgnAruAiH2Rmr/vg=";
   };
 
   hubStatic = ../hosts/mandragora-vps/compose/hub/static;
@@ -18,7 +18,6 @@ let
   memeSrc = pkgs.runCommand "meme-src" { } ''
     cp -r ${upstreamSrc} $out
     chmod -R u+w $out
-    patch -p1 -d $out < ${../snippets/meme-sidecar-roots.patch}
     cp ${builtins.concatStringsSep " " designSystem} $out/webui/static/
     substituteInPlace $out/webui/static/index.html \
       --replace-fail '<title>vtag · mvr.ac</title>' '<title>meme · mvr.ac</title>' \

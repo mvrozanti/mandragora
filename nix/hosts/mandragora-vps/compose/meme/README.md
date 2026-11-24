@@ -1,4 +1,10 @@
-# `meme.mvr.ac` — runner UI for `meme` image tagger
+# `meme.mvr.ac` — meme search and tagging runner
+
+Search over the meme library (caption text, tags, labels, filenames) plus a
+runner for the `meme` tagger. The library is the folder list in
+`mandragora.memeWeb.roots` (today `~/Documents/PhoneDownloads` and the 4chan
+folder); search, the Start button, the reindex button and the nightly
+`meme-nightly-tag` run all read it as `VTAG_SEARCH_ROOTS`.
 
 Authelia-gated reverse proxy for the desktop-side `meme-server` user service.
 Caddy on the docker-proxy terminates TLS and forward-auths every request
@@ -13,27 +19,18 @@ through Authelia, then proxies to the desktop over the tailnet at
   (`meme-server` wrapper around `server.py` from
   `github.com/mvrozanti/vtag`).
 
-## First-time bring-up on the VPS
+## Deploying
 
-```sh
-ssh opc@mandragora-vps
-sudo mkdir -p /home/opc/meme
-sudo chown -R opc:opc /home/opc/meme
-exit
+`docker-compose.yml` is generated from [`../proxy-stacks.json`](../proxy-stacks.json)
+by [`../generate-proxy-stacks.py`](../generate-proxy-stacks.py) — edit the
+manifest and re-run the generator, never this file. Audit check
+`11-proxy-stacks` gates the drift.
 
-rsync -a /persistent/mandragora/nix/hosts/mandragora-vps/compose/meme/ \
-  opc@mandragora-vps:/home/opc/meme/
-
-ssh opc@mandragora-vps 'cd /home/opc/meme && docker compose up -d'
-```
-
-`seafile-net` must already exist (it does, from the Seafile stack).
-
-## Updating
-
-Compose-only edits: re-`rsync` and `docker compose up -d` (no
-`mandragora-switch` required). Changes to the upstream server live in the
-`meme-web` nixos module and ship via `mandragora-switch` on the desktop.
+Deploy by landing the change: `mandragora-switch` runs
+`deploy-stacks.sh --sync`, which deploys every enrolled stack master changed.
+Never `rsync` into `/home/opc/` by hand. Changes to the server itself live in
+the `meme-web` module and the pinned vtag rev in `nix/pkgs/meme-cli.nix`, and
+ship with the same switch.
 
 ## Override upstream
 

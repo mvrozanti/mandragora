@@ -28,7 +28,7 @@
     { "name": "ytdl", "host": "ytdl.mvr.ac", "group": "media", "desc": "yt-dlp · mp3 or mp4 · desktop or phone", "access": "priv", "where": "desk" },
     { "name": "analyzer", "host": "music.mvr.ac", "group": "media", "desc": "one song, every modelable transmission", "access": "open", "where": "vps" },
     { "name": "voice", "host": "voice.mvr.ac", "group": "media", "desc": "live voice morph · dsp + rvc", "access": "priv", "where": "vps" },
-    { "name": "meme", "host": "meme.mvr.ac", "group": "media", "desc": "image tag runner · progress / restart", "access": "priv", "where": "vps" },
+    { "name": "meme", "host": "meme.mvr.ac", "group": "media", "desc": "meme search · caption text + tags · tagged nightly", "access": "priv", "where": "vps" },
 
     { "name": "chat", "host": "chat.mvr.ac", "group": "ai", "desc": "open-webui · local ollama", "access": "priv", "where": "vps" },
     { "name": "image gen", "host": "gen.mvr.ac", "group": "ai", "desc": "flux · prompt → image", "access": "priv", "where": "desk" },

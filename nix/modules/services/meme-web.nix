@@ -10,12 +10,11 @@ let
   memePkgs = pkgs.callPackage ../../pkgs/meme-cli.nix { };
   stateDir = "/home/m/.local/share/meme";
   sidecarRoots = lib.concatMapStringsSep ":" toString cfg.sidecarRoots;
+  libraryRoots = lib.concatMapStringsSep ":" toString cfg.roots;
   nightlyTag = pkgs.writeShellApplication {
     name = "meme-nightly-tag";
     runtimeInputs = [
       memePkgs.meme
-      memePkgs.vfind
-      pkgs.sqlite
       pkgs.coreutils
     ];
     text = builtins.readFile ../../snippets/meme-nightly-tag.sh;
@@ -26,13 +25,14 @@ in
     enable = lib.mkOption {
       type = lib.types.bool;
       default = false;
-      description = "Enable the meme.mvr.ac runner web UI (port 8093, user service).";
+      description = "Enable meme.mvr.ac, meme search and tagging runner (port 8093, user service).";
     };
-    targetDir = lib.mkOption {
-      type = lib.types.path;
+    roots = lib.mkOption {
+      type = lib.types.listOf lib.types.path;
       description = ''
-        Directory the meme-server subprocess will recursively tag when
-        the user clicks Start. Set per host; no default.
+        The library: the folders meme.mvr.ac searches, the Start button
+        and the nightly run tag, the reindex button refreshes, and a bare
+        `vfind` indexes. Set per host; no default.
       '';
     };
     listenHost = lib.mkOption {
@@ -53,11 +53,6 @@ in
       '';
     };
     nightly = {
-      roots = lib.mkOption {
-        type = lib.types.listOf lib.types.path;
-        default = [ ];
-        description = "Directories whose untagged media is tagged and reindexed every night.";
-      };
       start = lib.mkOption {
         type = lib.types.str;
         default = "02:30";
@@ -72,12 +67,14 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    systemd.user.services.meme-nightly-tag = lib.mkIf (cfg.nightly.roots != [ ]) {
-      description = "Tag the night's untagged memes, then refresh the meme.mvr.ac index";
+    environment.sessionVariables.VTAG_SEARCH_ROOTS = libraryRoots;
+
+    systemd.user.services.meme-nightly-tag = {
+      description = "Tag the library's untagged memes and refresh the meme.mvr.ac index";
       environment = {
         VTAG_STATE_DIR = stateDir;
         VTAG_SIDECAR_ROOTS = sidecarRoots;
-        MEME_NIGHTLY_ROOTS = lib.concatMapStringsSep ":" toString cfg.nightly.roots;
+        VTAG_SEARCH_ROOTS = libraryRoots;
         MEME_NIGHTLY_UNTIL = cfg.nightly.until;
       };
       serviceConfig = {
@@ -90,7 +87,7 @@ in
       };
     };
 
-    systemd.user.timers.meme-nightly-tag = lib.mkIf (cfg.nightly.roots != [ ]) {
+    systemd.user.timers.meme-nightly-tag = {
       description = "Nightly trigger for meme tagging, inside the hours the operator sleeps";
       wantedBy = [ "timers.target" ];
       timerConfig = {
@@ -104,13 +101,13 @@ in
       port = 8093;
       userService = true;
       systemd = {
-        description = "meme.mvr.ac — meme runner web UI";
+        description = "meme.mvr.ac — meme search and tagging runner";
         wantedBy = [ "default.target" ];
         after = [ "default.target" ];
         environment = {
           VTAG_STATE_DIR = stateDir;
           VTAG_SIDECAR_ROOTS = sidecarRoots;
-          VTAG_HUB_TARGET_DIR = toString cfg.targetDir;
+          VTAG_SEARCH_ROOTS = libraryRoots;
           VTAG_HUB_LISTEN_HOST = cfg.listenHost;
           VTAG_HUB_LISTEN_PORT = "8093";
           VTAG_HUB_VTAG_BIN = "${memePkgs.meme}/bin/meme";

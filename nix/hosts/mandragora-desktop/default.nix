@@ -159,13 +159,12 @@ in
   };
   mandragora.memeWeb = {
     enable = true;
-    targetDir = "/mnt/toshiba/hdd/gdrive/Levv/4chan";
     listenHost = "100.115.80.79";
-    sidecarRoots = [ "/home/m/Documents/PhoneDownloads" ];
-    nightly.roots = [
+    roots = [
       "/home/m/Documents/PhoneDownloads"
       "/mnt/toshiba/hdd/gdrive/Levv/4chan"
     ];
+    sidecarRoots = [ "/home/m/Documents/PhoneDownloads" ];
   };
   mandragora.emotionWeb.enable = true;
   mandragora.voiceAlterCore.enable = true;
