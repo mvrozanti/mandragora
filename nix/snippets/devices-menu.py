@@ -70,14 +70,10 @@ def tailnet_peer(name):
     return None
 
 
-def presence(peer):
-    if peer is None:
-        return False, "not on the tailnet"
-    if peer.get("Online"):
-        route = f"direct {peer['CurAddr']}" if peer.get("CurAddr") else f"relayed via {peer.get('Relay') or '?'}"
-        return True, f"online · {route}"
-    seen = since(peer.get("LastSeen"))
-    return False, f"offline · last seen {seen}" if seen else "offline"
+def route(peer):
+    if not peer or not peer.get("Online"):
+        return None
+    return f"direct {peer['CurAddr']}" if peer.get("CurAddr") else f"relayed via {peer.get('Relay') or '?'}"
 
 
 def battery_text(level, charging):
@@ -86,9 +82,7 @@ def battery_text(level, charging):
     return f" {level}%" + (f" {BOLT}" if charging else "")
 
 
-def battery_class(online, level, charging):
-    if not online:
-        return "offline"
+def battery_class(level, charging):
     if level is not None and level <= LOW_BATTERY and not charging:
         return "low"
     return ""
@@ -108,20 +102,23 @@ def kdeconnect_battery():
 
 
 def phone():
-    online, line = presence(tailnet_peer("phone"))
+    line = route(tailnet_peer("phone"))
+    if line is None:
+        emit("")
+        return
     level, charging = kdeconnect_battery()
     tip = ["Phone", line]
     tip.append(f"battery {level}%" + (" · charging" if charging else "") if level is not None else "battery unknown (KDE Connect not reachable)")
-    emit(PHONE + battery_text(level, charging), "\n".join(tip), battery_class(online, level, charging))
+    emit(PHONE + battery_text(level, charging), "\n".join(tip), battery_class(level, charging))
 
 
-def kindle_battery(online):
+def kindle_battery():
     cache = STATE / "kindle-battery.json"
     try:
         cached = json.loads(cache.read_text())
     except (OSError, ValueError):
         cached = None
-    if online and (cached is None or time.time() - cached["at"] > KINDLE_BATTERY_TTL):
+    if (cached is None or time.time() - cached["at"] > KINDLE_BATTERY_TTL):
         out = run(
             ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=4", "-o", "StrictHostKeyChecking=accept-new",
              f"root@{TAILNET['kindle']['ip']}",
@@ -137,26 +134,29 @@ def kindle_battery(online):
 
 
 def kindle():
-    online, line = presence(tailnet_peer("kindle"))
-    battery = kindle_battery(online)
+    line = route(tailnet_peer("kindle"))
+    if line is None:
+        emit("")
+        return
+    battery = kindle_battery()
     tip = ["Kindle", line]
     if battery:
         age = since(datetime.fromtimestamp(battery["at"], timezone.utc).isoformat())
         tip.append(f"battery {battery['level']}%" + (" · charging" if battery["charging"] else "") + f" (read {age})")
     tip.append("click: sync now · right-click: shell")
-    level = battery["level"] if battery and online else None
+    level = battery["level"] if battery else None
     charging = bool(battery and battery["charging"])
-    emit(KINDLE + battery_text(level, charging), "\n".join(tip), battery_class(online, level, charging))
+    emit(KINDLE + battery_text(level, charging), "\n".join(tip), battery_class(level, charging))
 
 
 def vps():
     peer = tailnet_peer("vps")
-    online, line = presence(peer)
-    tip = ["VPS · mandragora-vps", line]
-    if peer and online:
-        tip.append(f"rx {size(peer.get('RxBytes', 0))} · tx {size(peer.get('TxBytes', 0))}")
-    tip.append("click: ssh")
-    emit(VPS, "\n".join(tip), "" if online else "down")
+    line = route(peer)
+    if line is None:
+        emit("")
+        return
+    tip = ["VPS · mandragora-vps", line, f"rx {size(peer.get('RxBytes', 0))} · tx {size(peer.get('TxBytes', 0))}", "click: ssh"]
+    emit(VPS, "\n".join(tip))
 
 
 def bluez_objects():
@@ -195,18 +195,12 @@ def has_sink(address):
 
 def headset():
     objects = bluez_objects()
-    if not objects:
-        emit(HEADSET, "Headset\nbluetooth is off", "offline")
-        return
     ifaces = headset_target(objects)
-    if ifaces is None:
+    if ifaces is None or not prop(ifaces, "org.bluez.Device1", "Connected"):
         emit("")
         return
     name = prop(ifaces, "org.bluez.Device1", "Alias") or "Headset"
     address = prop(ifaces, "org.bluez.Device1", "Address")
-    if not prop(ifaces, "org.bluez.Device1", "Connected"):
-        emit(HEADSET, f"{name}\ndisconnected\nclick: connect · right-click: blueman", "offline")
-        return
     level = prop(ifaces, "org.bluez.Battery1", "Percentage")
     if not has_sink(address):
         emit(HEADSET + battery_text(level, False), f"{name}\nconnected, but no audio sink\nclick: disconnect", "nosink")
@@ -215,7 +209,7 @@ def headset():
     if level is not None:
         tip.append(f"battery {level}%")
     tip.append("click: disconnect · right-click: blueman")
-    emit(HEADSET + battery_text(level, False), "\n".join(tip), battery_class(True, level, False))
+    emit(HEADSET + battery_text(level, False), "\n".join(tip), battery_class(level, False))
 
 
 def mounts(node):

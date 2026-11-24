@@ -506,12 +506,6 @@ tooltip {
     transition: color 120ms ease, border-bottom-color 120ms ease;
 }
 
-#custom-dev-phone.offline,
-#custom-dev-kindle.offline,
-#custom-dev-headset.offline {
-    color: alpha(@foreground, 0.35);
-}
-
 #custom-dev-phone.low,
 #custom-dev-kindle.low,
 #custom-dev-headset.low,
@@ -521,11 +515,6 @@ tooltip {
 
 #custom-dev-headset.nosink {
     color: @color3;
-}
-
-#custom-dev-vps.down {
-    color: @color1;
-    animation: pulse 1.5s ease-in-out infinite;
 }
 
 #custom-dev-phone:hover,
