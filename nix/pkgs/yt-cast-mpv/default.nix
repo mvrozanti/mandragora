@@ -4,6 +4,7 @@
   nodejs_22,
   makeWrapper,
   mpv,
+  mpvScripts,
   yt-dlp,
 }:
 
@@ -44,7 +45,7 @@ buildNpmPackage {
       --add-flags $out/lib/yt-cast-mpv/index.js \
       --prefix PATH : ${
         lib.makeBinPath [
-          mpv
+          (mpv.override { scripts = [ mpvScripts.mpris ]; })
           yt-dlp
         ]
       }

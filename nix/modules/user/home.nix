@@ -109,7 +109,7 @@ in
     rustmission
     libnotify
 
-    mpv
+    (mpv.override { scripts = [ mpvScripts.mpris ]; })
     (pkgs.nsxiv.overrideAttrs (oldAttrs: {
       patches = (oldAttrs.patches or [ ]) ++ [ ../../pkgs/nsxiv/commands.patch ];
       postPatch = (oldAttrs.postPatch or "") + "cp ${../../pkgs/nsxiv/config.h} config.def.h";
