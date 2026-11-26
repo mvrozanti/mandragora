@@ -629,17 +629,17 @@ in
         }
         {
           on = "P";
-          run = ''shell "echo -n %s | wl-copy"'';
+          run = ''shell "printf '%s\n' %s | wl-copy"'';
           desc = "Yank path";
         }
         {
           on = "N";
-          run = ''shell "basename %s | tr -d '\n' | wl-copy"'';
+          run = ''shell "basename -a %s | wl-copy"'';
           desc = "Yank name";
         }
         {
           on = "<C-n>";
-          run = ''shell "basename %s | tr -d '\n' | wl-copy"'';
+          run = ''shell "basename -a %s | wl-copy"'';
           desc = "Yank name";
         }
         {
