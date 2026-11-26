@@ -1,4 +1,4 @@
-# `demo.mvr.ac` — public static site (vault graph + gource)
+# `demo.mvr.ac` — public static site (vault graph + gource + commits)
 
 Nginx container that serves whatever sits in `./static/` to
 `https://demo.${MVR_AC:-mvr.ac}`. **No Authelia** — this is the
@@ -14,6 +14,9 @@ Two views live here:
   `/api/gource/render`, which caddy path-routes to the `gource-api`
   container in the [gource](../gource/) stack. See that stack's
   README for the render pipeline (desktop-first, VPS fallback).
+- **`/commits.html`** — commit statistics for the same repo: a
+  contribution heatmap, punch card, author and file breakdown, all
+  computed live by `GET /api/gource/stats` in the `gource-api`.
 
 Both pages are on the `--mv-*` design system: `theme.css`,
 `theme.js` and `components.css` are byte-identical copies of
@@ -26,8 +29,8 @@ maps onto the tokens, and re-tints on the `mv-theme` event.
 
 | path                                                    | owned by                  |
 |---------------------------------------------------------|---------------------------|
-| `index.html`, `gource.html`                             | this repo (deploy.sh)     |
-| `demo.css`, `gource.js`                                 | this repo (deploy.sh)     |
+| `index.html`, `gource.html`, `commits.html`       | this repo (deploy.sh)     |
+| `demo.css`, `gource.js`, `commits.js`             | this repo (deploy.sh)     |
 | `theme.css`, `theme.js`, `components.css`               | copies of `hub/static/`   |
 | `favicon.svg`, `robots.txt`, `sitemap.xml`, `.well-known/` | this repo               |
 | `vendor/vault-graph/`                                   | this repo (vendored)      |

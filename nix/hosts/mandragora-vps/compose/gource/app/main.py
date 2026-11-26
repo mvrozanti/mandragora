@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field, field_validator
 
 import render_local
 import render_remote
+import stats
 
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO").upper(),
@@ -299,6 +300,12 @@ async def _startup() -> None:
 @app.get("/healthz")
 def healthz() -> dict:
     return {"ok": True, "queue_depth": len(_queue), "cached": len(list(CACHE_DIR.glob("*.mp4")))}
+
+
+@app.get("/stats")
+async def stats_endpoint() -> JSONResponse:
+    repo = await render_local.ensure_repo()
+    return JSONResponse(await stats.compute(repo))
 
 
 @app.get("/defaults")

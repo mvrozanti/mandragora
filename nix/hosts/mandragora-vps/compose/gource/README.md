@@ -32,6 +32,22 @@ is `libx264 -preset veryfast` on both ends.
 Rate limit: 10 renders/hour per `X-Forwarded-For` (cache hits don't
 count).
 
+## `/stats` — commit statistics
+
+`GET /api/gource/stats` returns aggregated commit history for the repo
+cloned at `REPO_DIR`, computed by `stats.py` from one `git log
+--numstat` pass. The response carries totals (commits, authors,
+insertions, deletions, files, active days, first/last date), a per-day
+map for the contribution heatmap, a per-month series, a 7×24 punch
+card, per-author breakdowns and the top 24 most-changed files. It is
+served by `demo.mvr.ac/commits.html` and re-tints with the theme like
+every other page on that host.
+
+`ensure_repo()` runs first, so the numbers track the latest fetch. The
+endpoint is uncached — it re-runs `git log` on every hit; the repo is
+small enough that this is fine, and the page is public so it carries no
+rate limit of its own.
+
 ## First-time bring-up on the VPS
 
 ```sh

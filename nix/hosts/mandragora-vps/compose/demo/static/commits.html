@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>commits — mandragora repo statistics</title>
+<meta name="description" content="Commit statistics for the mandragora NixOS repo: commits per day, per hour, per author, insertions and deletions, and the files that changed most.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#13140d">
+<meta property="og:title" content="commits — mandragora repo statistics">
+<meta property="og:description" content="A contribution heatmap, punch card, author and file breakdown for the mandragora NixOS workstation repo.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://demo.mvr.ac/commits.html">
+<meta property="og:site_name" content="mvr.ac">
+<link rel="canonical" href="https://demo.mvr.ac/commits.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="theme.css?v=3cb0f19c">
+<link rel="stylesheet" href="components.css?v=6b30523d">
+<link rel="stylesheet" href="demo.css?v=07d4a5fd">
+<script src="theme.js?v=a672fa84" data-endpoint="/api/theme?colors=1" data-poll="0"></script>
+</head>
+<body class="demo-page">
+<header class="demo-bar">
+  <a class="demo-bar__name" href="/">demo</a>
+  <nav class="mv-tabs" aria-label="demo views">
+    <a class="mv-tabs__tab" href="/">graph</a>
+    <a class="mv-tabs__tab" href="/gource.html">gource</a>
+    <a class="mv-tabs__tab" href="/commits.html" aria-current="page">commits</a>
+  </nav>
+  <span class="demo-bar__end"><a href="https://mvr.ac" rel="noopener">mvr.ac</a></span>
+</header>
+<main class="demo-main">
+  <header class="demo-head">
+    <p class="mv-label">mandragora · repository</p>
+    <h1>commits</h1>
+    <p class="demo-blurb">
+      History of the
+      <a href="https://github.com/mvrozanti/mandragora" rel="noopener">mandragora</a>
+      repo, computed from git. Days, hours, authors, lines and the files
+      that changed most — re-tinted to the wallpaper like everything here.
+    </p>
+  </header>
+
+  <section class="stats-hero" id="hero" aria-label="summary"></section>
+
+  <section class="mv-card stats-panel" aria-labelledby="heatmap-title">
+    <div class="stats-panel__head">
+      <h2 class="mv-label" id="heatmap-title">contributions</h2>
+      <div class="stats-legend" aria-hidden="true">
+        <span>less</span>
+        <i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i>
+        <span>more</span>
+      </div>
+    </div>
+    <div class="heatmap" id="heatmap" role="img" aria-label="commits per day by year"></div>
+  </section>
+
+  <div class="stats-grid">
+    <section class="mv-card stats-panel" aria-labelledby="punch-title">
+      <div class="stats-panel__head">
+        <h2 class="mv-label" id="punch-title">punch card</h2>
+        <span class="stats-sub" id="punch-busy"></span>
+      </div>
+      <div class="punch" id="punch" role="img" aria-label="commits by weekday and hour"></div>
+    </section>
+
+    <section class="mv-card stats-panel" aria-labelledby="authors-title">
+      <div class="stats-panel__head">
+        <h2 class="mv-label" id="authors-title">authors</h2>
+        <span class="stats-sub" id="authors-sub"></span>
+      </div>
+      <div class="authors" id="authors"></div>
+    </section>
+  </div>
+
+  <div class="stats-grid">
+    <section class="mv-card stats-panel" aria-labelledby="activity-title">
+      <div class="stats-panel__head">
+        <h2 class="mv-label" id="activity-title">activity</h2>
+        <span class="stats-sub">commits / month</span>
+      </div>
+      <div class="activity" id="activity" role="img" aria-label="commits per month"></div>
+    </section>
+
+    <section class="mv-card stats-panel" aria-labelledby="files-title">
+      <div class="stats-panel__head">
+        <h2 class="mv-label" id="files-title">most changed</h2>
+        <span class="stats-sub" id="files-sub"></span>
+      </div>
+      <div class="files" id="files"></div>
+    </section>
+  </div>
+</main>
+<script src="commits.js?v=1"></script>
+</body>
+</html>
