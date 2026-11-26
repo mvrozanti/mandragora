@@ -61,6 +61,7 @@ in
         pkgs.ffmpeg
         pkgs.coreutils
         pkgs.claude-code
+        pkgs.bash
       ];
       serviceConfig = {
         Type = "simple";
