@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#13140d">
+  <title>upload</title>
+  <link rel="stylesheet" href="/static/theme.css">
+  <script src="/static/theme.js" data-endpoint="/api/theme" data-poll="0"></script>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: var(--mv-space-4);
+      background: var(--mv-bg);
+      color: var(--mv-text);
+      font-family: var(--mv-font-sans);
+      font-size: var(--mv-text-md);
+      line-height: var(--mv-leading);
+    }
+    .card {
+      width: 100%;
+      max-width: 460px;
+      background: var(--mv-bg-raised);
+      border: 1px solid var(--mv-line);
+      border-radius: var(--mv-radius-2);
+      padding: var(--mv-space-6);
+    }
+    h1 {
+      margin: 0 0 var(--mv-space-1);
+      font-size: var(--mv-text-xl);
+      font-weight: 600;
+      letter-spacing: var(--mv-tracking-label);
+      text-transform: uppercase;
+    }
+    .sub {
+      margin: 0 0 var(--mv-space-5);
+      color: var(--mv-text-dim);
+      font-size: var(--mv-text-sm);
+    }
+    label {
+      display: block;
+      margin-bottom: var(--mv-space-1);
+      color: var(--mv-text-dim);
+      font-size: var(--mv-text-xs);
+      letter-spacing: var(--mv-tracking-label);
+      text-transform: uppercase;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      margin-bottom: var(--mv-space-4);
+      padding: var(--mv-space-3);
+      background: var(--mv-bg-elevated);
+      color: var(--mv-text);
+      border: 1px solid var(--mv-line);
+      border-radius: var(--mv-radius-1);
+      font: inherit;
+    }
+    input[type="text"]:focus, textarea:focus {
+      outline: none;
+      border-color: var(--mv-accent);
+      box-shadow: var(--mv-focus);
+    }
+    textarea { resize: vertical; min-height: 72px; }
+    .file {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--mv-space-2);
+      align-items: center;
+      margin-bottom: var(--mv-space-4);
+    }
+    .file input {
+      width: 100%;
+      padding: var(--mv-space-3);
+      background: var(--mv-bg-elevated);
+      border: 1px dashed var(--mv-line-strong);
+      border-radius: var(--mv-radius-1);
+      color: var(--mv-text-dim);
+    }
+    button {
+      width: 100%;
+      padding: var(--mv-space-3);
+      background: var(--mv-accent);
+      color: var(--mv-on-accent);
+      border: none;
+      border-radius: var(--mv-radius-1);
+      font: inherit;
+      font-weight: 600;
+      letter-spacing: var(--mv-tracking-label);
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity var(--mv-dur-fast) var(--mv-ease);
+    }
+    button:disabled { opacity: 0.5; cursor: default; }
+    .status {
+      min-height: 1.5em;
+      margin-top: var(--mv-space-4);
+      font-size: var(--mv-text-sm);
+      color: var(--mv-text-dim);
+    }
+    .status.ok { color: var(--mv-ok); }
+    .status.err { color: var(--mv-down); }
+  </style>
+</head>
+<body>
+  <form class="card" id="form">
+    <h1>upload</h1>
+    <p class="sub">send a file to marcelo · it lands in his inbox</p>
+    <label for="file">file</label>
+    <div class="file">
+      <input type="file" id="file" name="file" required>
+    </div>
+    <label for="name">your name</label>
+    <input type="text" id="name" name="name" maxlength="120" autocomplete="name">
+    <label for="message">message</label>
+    <textarea id="message" name="message" maxlength="4000"></textarea>
+    <button type="submit" id="submit">send</button>
+    <div class="status" id="status"></div>
+  </form>
+  <script>
+    var form = document.getElementById("form");
+    var status = document.getElementById("status");
+    var submit = document.getElementById("submit");
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var data = new FormData(form);
+      submit.disabled = true;
+      status.textContent = "sending…";
+      status.className = "status";
+      fetch("/api/upload", { method: "POST", body: data })
+        .then(function (r) {
+          return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+        })
+        .then(function (res) {
+          if (!res.ok) throw new Error(res.body.detail || "upload failed");
+          status.textContent = "sent — marcelo has been notified";
+          status.className = "status ok";
+          form.reset();
+        })
+        .catch(function (err) {
+          status.textContent = err.message || "upload failed";
+          status.className = "status err";
+        })
+        .finally(function () { submit.disabled = false; });
+    });
+  </script>
+</body>
+</html>

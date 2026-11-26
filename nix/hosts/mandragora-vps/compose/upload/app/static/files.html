@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#13140d">
+  <title>upload · inbox</title>
+  <link rel="stylesheet" href="/static/theme.css">
+  <script src="/static/theme.js" data-endpoint="/api/theme" data-poll="0"></script>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      padding: var(--mv-space-5);
+      background: var(--mv-bg);
+      color: var(--mv-text);
+      font-family: var(--mv-font-sans);
+      font-size: var(--mv-text-md);
+      line-height: var(--mv-leading);
+    }
+    main {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin: 0 0 var(--mv-space-1);
+      font-size: var(--mv-text-xl);
+      font-weight: 600;
+      letter-spacing: var(--mv-tracking-label);
+      text-transform: uppercase;
+    }
+    .sub {
+      margin: 0 0 var(--mv-space-5);
+      color: var(--mv-text-dim);
+      font-size: var(--mv-text-sm);
+    }
+    .empty {
+      padding: var(--mv-space-6) 0;
+      color: var(--mv-text-dim);
+      text-align: center;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--mv-space-2) var(--mv-space-4);
+      align-items: center;
+      padding: var(--mv-space-3) 0;
+      border-bottom: 1px solid var(--mv-line);
+    }
+    .name {
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+    .meta {
+      color: var(--mv-text-dim);
+      font-size: var(--mv-text-sm);
+    }
+    a.dl {
+      padding: var(--mv-space-2) var(--mv-space-3);
+      background: var(--mv-accent);
+      color: var(--mv-on-accent);
+      border-radius: var(--mv-radius-1);
+      text-decoration: none;
+      font-size: var(--mv-text-sm);
+      font-weight: 600;
+      letter-spacing: var(--mv-tracking-label);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>inbox</h1>
+    <p class="sub">files people have sent you</p>
+    <div id="list"></div>
+  </main>
+  <script>
+    var list = document.getElementById("list");
+    function row(item) {
+      var meta = [item.sender, item.message, item.ts].filter(Boolean).join(" · ");
+      var el = document.createElement("div");
+      el.className = "row";
+      var left = document.createElement("div");
+      var name = document.createElement("div");
+      name.className = "name";
+      name.textContent = item.name;
+      var m = document.createElement("div");
+      m.className = "meta";
+      m.textContent = meta;
+      left.appendChild(name);
+      left.appendChild(m);
+      var a = document.createElement("a");
+      a.className = "dl";
+      a.href = "/files/" + item.id + "/download";
+      a.textContent = "download";
+      el.appendChild(left);
+      el.appendChild(a);
+      return el;
+    }
+    fetch("/files/api")
+      .then(function (r) { return r.json(); })
+      .then(function (body) {
+        var items = body.items || [];
+        list.innerHTML = "";
+        if (items.length === 0) {
+          var empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "nothing yet — share upload.mvr.ac";
+          list.appendChild(empty);
+          return;
+        }
+        items.forEach(function (item) { list.appendChild(row(item)); });
+      })
+      .catch(function () {
+        list.innerHTML = "";
+        var empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "could not load the inbox";
+        list.appendChild(empty);
+      });
+  </script>
+</body>
+</html>

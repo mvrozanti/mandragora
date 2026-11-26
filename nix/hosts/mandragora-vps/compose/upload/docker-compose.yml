@@ -1,0 +1,42 @@
+services:
+
+  upload:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: ${UPLOAD_IMAGE:-mandragora/upload:local}
+    container_name: upload
+    restart: unless-stopped
+    environment:
+      - UPLOAD_DATA_DIR=/data
+      - UPLOAD_PUBLIC_BASE=https://upload.${MVR_AC:-mvr.ac}
+      - UPLOAD_INBOX_URL=${UPLOAD_INBOX_URL:-http://100.115.80.79:6688/api/inbox}
+      - UPLOAD_MAX_MB=${UPLOAD_MAX_MB:-2048}
+    volumes:
+      - ${UPLOAD_DATA_VOLUME:-./data}:/data
+    extra_hosts:
+      - "host.docker.internal:172.18.0.1"
+    networks:
+      - seafile-net
+      - tailnet-fwd
+    labels:
+      caddy: https://upload.${MVR_AC:-mvr.ac}
+      caddy.@files.path: "/files /files/*"
+      caddy.0_handle: "@files"
+      caddy.0_handle.forward_auth: "authelia:9091"
+      caddy.0_handle.forward_auth.uri: "/api/authz/forward-auth"
+      caddy.0_handle.forward_auth.copy_headers: "Remote-User Remote-Groups Remote-Name Remote-Email"
+      caddy.0_handle.reverse_proxy: "{{upstreams 8080}}"
+      caddy.1_handle.reverse_proxy: "{{upstreams 8080}}"
+      caddy.1_handle.request_body.max_size: "${UPLOAD_MAX_BODY:-2048MB}"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  seafile-net:
+    external: true
+  tailnet-fwd:
+    external: true
