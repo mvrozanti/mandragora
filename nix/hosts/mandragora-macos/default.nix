@@ -84,8 +84,6 @@ in
     ];
   };
 
-  security.pam.services.sudo_local.touchIdAuth = true;
-
   fonts.packages = [
     pkgs.nerd-fonts.iosevka
     pkgs.nerd-fonts.terminess-ttf
