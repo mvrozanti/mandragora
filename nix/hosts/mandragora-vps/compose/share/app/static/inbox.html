@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#13140d">
-  <title>upload · inbox</title>
+  <title>share · inbox</title>
   <link rel="stylesheet" href="/static/theme.css">
   <script src="/static/theme.js" data-endpoint="/api/theme" data-poll="0"></script>
   <style>
@@ -37,6 +37,7 @@
       color: var(--mv-text-dim);
       font-size: var(--mv-text-sm);
     }
+    .sub a { color: var(--mv-text-dim); }
     .empty {
       padding: var(--mv-space-6) 0;
       color: var(--mv-text-dim);
@@ -75,7 +76,7 @@
 <body>
   <main>
     <h1>inbox</h1>
-    <p class="sub">files people have sent you</p>
+    <p class="sub">files people have sent you · <a href="/drop">drop a file</a></p>
     <div id="list"></div>
   </main>
   <script>
@@ -95,13 +96,13 @@
       left.appendChild(m);
       var a = document.createElement("a");
       a.className = "dl";
-      a.href = "/files/" + item.id + "/download";
+      a.href = "/inbox/" + item.id + "/download";
       a.textContent = "download";
       el.appendChild(left);
       el.appendChild(a);
       return el;
     }
-    fetch("/files/api")
+    fetch("/inbox/api")
       .then(function (r) { return r.json(); })
       .then(function (body) {
         var items = body.items || [];
@@ -109,7 +110,7 @@
         if (items.length === 0) {
           var empty = document.createElement("div");
           empty.className = "empty";
-          empty.textContent = "nothing yet — share upload.mvr.ac";
+          empty.textContent = "nothing yet — share share.mvr.ac";
           list.appendChild(empty);
           return;
         }
