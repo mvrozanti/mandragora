@@ -19,7 +19,6 @@ let
     r = "12";
     s = "13";
     u = "15";
-    v = "16";
     x = "18";
     y = "19";
     z = "1a";
@@ -43,6 +42,7 @@ in
   ];
 
   programs.kitty = {
+    font.size = 12.5;
     settings = {
       listen_on = lib.mkForce "unix:/tmp/kitty";
       macos_option_as_alt = "yes";
