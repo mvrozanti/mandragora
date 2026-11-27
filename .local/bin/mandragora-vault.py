@@ -1334,8 +1334,13 @@ def publish(a):
             print(f"vault publish skipped: no review model ({e}); nothing published, the next agent switch retries", file=sys.stderr)
             return 3
     if holds and not a.approve:
-        save_held(head, holds)
-        notify("demo.mvr.ac publish held", f"{len(holds)} item(s) need a look: mandragora-vault status")
+        prior = load_held()
+        unchanged = prior is not None and prior.get("head") == head and sorted(
+            (h.get("file"), h.get("problem")) for h in prior.get("items", [])
+        ) == sorted((h.get("file"), h.get("problem")) for h in holds)
+        if not unchanged:
+            save_held(head, holds)
+            notify("demo.mvr.ac publish held", f"{len(holds)} item(s) need a look: mandragora-vault status")
         print("vault publish held; nothing published:", file=sys.stderr)
         for h in holds:
             print(f"  ✗ {h['file']}: {h['problem']}" + (f"  [{h['excerpt']}]" if h["excerpt"] else ""), file=sys.stderr)
