@@ -42,7 +42,7 @@ in
   ];
 
   programs.kitty = {
-    font.size = 12.5;
+    font.size = lib.mkForce 12.5;
     settings = {
       listen_on = lib.mkForce "unix:/tmp/kitty";
       macos_option_as_alt = "yes";
