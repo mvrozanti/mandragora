@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -14,6 +15,7 @@ let
     ];
     text = builtins.readFile ../../../.local/bin/usb-watch-hyprland.sh;
   };
+  mpdDiscordRpcEnabled = false;
 in
 {
   services.mpd = {
@@ -27,6 +29,39 @@ in
     WatchdogSec = "30s";
     Restart = "on-failure";
     RestartSec = 2;
+  };
+
+  services.mpd-discord-rpc = lib.mkIf mpdDiscordRpcEnabled {
+    enable = true;
+    settings = {
+      hosts = [ "localhost:6600" ];
+      format = {
+        details = "$title";
+        state = "$artist / $album";
+        timestamp = "both";
+        large_image = "notes";
+        small_image = "notes";
+      };
+    };
+  };
+
+  systemd.user.services.mpd-discord-rpc = lib.mkIf mpdDiscordRpcEnabled {
+    Unit = {
+      After = [ "mpd.service" ];
+      Wants = [ "mpd.service" ];
+    };
+    Service = {
+      Environment = "RUST_LOG=mpd_discord_rpc=info,discord_presence=off";
+      LogRateLimitIntervalSec = "1h";
+      LogRateLimitBurst = 20;
+    };
+    Install.WantedBy = lib.mkForce [ ];
+  };
+
+  systemd.user.paths.mpd-discord-rpc = lib.mkIf mpdDiscordRpcEnabled {
+    Unit.Description = "Start mpd-discord-rpc once a Discord client opens its IPC socket";
+    Path.PathExists = "%t/discord-ipc-0";
+    Install.WantedBy = [ "default.target" ];
   };
 
   # Transmission Daemon Service
