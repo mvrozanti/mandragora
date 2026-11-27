@@ -64,7 +64,7 @@ in
       FXPreferredViewStyle = "Nlsv";
     };
     dock = {
-      autohide = true;
+      autohide = false;
       mru-spaces = false;
     };
     trackpad.Clicking = true;
